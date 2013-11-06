@@ -70,7 +70,7 @@ public:
 };
 
 #define REGISTER_SCRIPTLANGUAGE(name, klass) \
-	static RegisterLanguageHelper g_RegisterSL_ ## type(name, boost::make_shared<klass>())
+	static RegisterLanguageHelper g_RegisterSL_ ## type(name, make_shared<klass>())
 
 }
 

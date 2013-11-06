@@ -33,7 +33,6 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/application.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -57,7 +56,7 @@ void StatusDataWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	m_StatusTimer = boost::make_shared<Timer>();
+	m_StatusTimer = make_shared<Timer>();
 	m_StatusTimer->SetInterval(15);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&StatusDataWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();

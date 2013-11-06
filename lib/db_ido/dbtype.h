@@ -23,7 +23,6 @@
 #include "db_ido/i2-db_ido.h"
 #include "base/object.h"
 #include "base/registry.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
@@ -40,9 +39,9 @@ class I2_DB_IDO_API DbType : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);
 
-	typedef boost::function<boost::shared_ptr<DbObject> (const boost::shared_ptr<DbType>&, const String&, const String&)> ObjectFactory;
+	typedef boost::function<shared_ptr<DbObject> (const shared_ptr<DbType>&, const String&, const String&)> ObjectFactory;
 	typedef std::map<String, DbType::Ptr, string_iless> TypeMap;
-	typedef std::map<std::pair<String, String>, boost::shared_ptr<DbObject>, pair_string_iless> ObjectMap;
+	typedef std::map<std::pair<String, String>, shared_ptr<DbObject>, pair_string_iless> ObjectMap;
 
 	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 
@@ -56,7 +55,7 @@ public:
 	static DbType::Ptr GetByName(const String& name);
 	static DbType::Ptr GetByID(long tid);
 
-	boost::shared_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
+	shared_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
 
 private:
 	String m_Name;
@@ -89,7 +88,7 @@ class RegisterDbTypeHelper
 public:
 	RegisterDbTypeHelper(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
 	{
-		DbType::Ptr dbtype = boost::make_shared<DbType>(name, table, tid, idcolumn, factory);
+		DbType::Ptr dbtype = make_shared<DbType>(name, table, tid, idcolumn, factory);
 		DbType::RegisterType(dbtype);
 	}
 };
@@ -102,7 +101,7 @@ public:
 template<typename T>
 shared_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, const String& name2)
 {
-	return boost::make_shared<T>(type, name1, name2);
+	return make_shared<T>(type, name1, name2);
 }
 
 #define REGISTER_DBTYPE(name, table, tid, idcolumn, type) \

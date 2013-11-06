@@ -23,7 +23,6 @@
 #include "db_ido/i2-db_ido.h"
 #include "base/object.h"
 #include "base/value.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {

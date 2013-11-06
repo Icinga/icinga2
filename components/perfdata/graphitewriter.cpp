@@ -34,7 +34,6 @@
 #include "base/bufferedstream.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -48,7 +47,7 @@ void GraphiteWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	m_ReconnectTimer = boost::make_shared<Timer>();
+	m_ReconnectTimer = make_shared<Timer>();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GraphiteWriter::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
@@ -69,13 +68,13 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 		Log(LogWarning, "perfdata", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");	
 	}
 
-	TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
+	TcpSocket::Ptr socket = make_shared<TcpSocket>();
 
 	Log(LogDebug, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 	socket->Connect(GetHost(), GetPort());
 
-	NetworkStream::Ptr net_stream = boost::make_shared<NetworkStream>(socket);
-	m_Stream = boost::make_shared<BufferedStream>(net_stream);
+	NetworkStream::Ptr net_stream = make_shared<NetworkStream>(socket);
+	m_Stream = make_shared<BufferedStream>(net_stream);
 }
 
 void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)

@@ -29,7 +29,6 @@
 #include "db_ido_mysql/idomysqlconnection.h"
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -46,12 +45,12 @@ void IdoMysqlConnection::Start(void)
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
 
-	m_TxTimer = boost::make_shared<Timer>();
+	m_TxTimer = make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
-	m_ReconnectTimer = boost::make_shared<Timer>();
+	m_ReconnectTimer = make_shared<Timer>();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
@@ -285,7 +284,7 @@ Array::Ptr IdoMysqlConnection::Query(const String& query)
 		return Array::Ptr();
 	}
 
-	Array::Ptr rows = boost::make_shared<Array>();
+	Array::Ptr rows = make_shared<Array>();
 
 	for (;;) {
 		Dictionary::Ptr row = FetchRow(result);
@@ -342,7 +341,7 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(MYSQL_RES *result)
 	if (!lengths)
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dict = make_shared<Dictionary>();
 
 	mysql_field_seek(result, 0);
 	for (field = mysql_fetch_field(result), i = 0; field; field = mysql_fetch_field(result), i++) {

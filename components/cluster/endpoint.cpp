@@ -25,7 +25,6 @@
 #include "base/utility.h"
 #include "base/logger_fwd.h"
 #include "config/configitembuilder.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 

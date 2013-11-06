@@ -83,7 +83,7 @@ void DbObject::SendConfigUpdate(void)
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("config_type", 1);
-	query.WhereCriteria = boost::make_shared<Dictionary>();
+	query.WhereCriteria = make_shared<Dictionary>();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
 	query.Object = GetSelf();
 	query.ConfigUpdate = true;
@@ -109,7 +109,7 @@ void DbObject::SendStatusUpdate(void)
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	query.WhereCriteria = boost::make_shared<Dictionary>();
+	query.WhereCriteria = make_shared<Dictionary>();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
 	query.Object = GetSelf();
 	query.StatusUpdate = true;

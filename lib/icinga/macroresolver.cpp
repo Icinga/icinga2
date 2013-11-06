@@ -18,12 +18,11 @@
  ******************************************************************************/
 
 #include "icinga/macroresolver.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
 StaticMacroResolver::StaticMacroResolver(void)
-	: m_Macros(boost::make_shared<Dictionary>())
+	: m_Macros(make_shared<Dictionary>())
 { }
 
 void StaticMacroResolver::Add(const String& macro, const String& value)

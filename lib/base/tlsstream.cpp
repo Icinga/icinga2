@@ -43,7 +43,7 @@ TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SS
 	m_InnerStream = dynamic_pointer_cast<BufferedStream>(innerStream);
 	
 	if (!m_InnerStream)
-		m_InnerStream = boost::make_shared<BufferedStream>(innerStream);
+		m_InnerStream = make_shared<BufferedStream>(innerStream);
 
 	m_InnerStream->MakeNonBlocking();
 	

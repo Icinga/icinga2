@@ -20,15 +20,13 @@
 #include "base/object.h"
 #include "base/value.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
 class TestObject : public Object
 {
 public:
-	typedef boost::shared_ptr<TestObject> Ptr;
-	typedef boost::weak_ptr<TestObject> WeakPtr;
+	DECLARE_PTR_TYPEDEFS(TestObject);
 
 	TestObject::Ptr GetTestRef(void)
 	{
@@ -40,13 +38,13 @@ BOOST_AUTO_TEST_SUITE(base_object)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Object::Ptr tobject = boost::make_shared<TestObject>();
+	Object::Ptr tobject = make_shared<TestObject>();
 	BOOST_CHECK(tobject);
 }
 
 BOOST_AUTO_TEST_CASE(getself)
 {
-	TestObject::Ptr tobject = boost::make_shared<TestObject>();
+	TestObject::Ptr tobject = make_shared<TestObject>();
 	TestObject::Ptr tobject_self = tobject->GetTestRef();
 	BOOST_CHECK(tobject == tobject_self);
 
@@ -57,7 +55,7 @@ BOOST_AUTO_TEST_CASE(getself)
 
 BOOST_AUTO_TEST_CASE(weak)
 {
-	TestObject::Ptr tobject = boost::make_shared<TestObject>();
+	TestObject::Ptr tobject = make_shared<TestObject>();
 	TestObject::WeakPtr wtobject = tobject;
 	tobject.reset();
 	BOOST_CHECK(!tobject);

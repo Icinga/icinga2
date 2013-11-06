@@ -26,7 +26,6 @@
 #include "base/convert.h"
 #include "base/application.h"
 #include "base/utility.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -38,7 +37,7 @@ REGISTER_TYPE(CheckResultReader);
  */
 void CheckResultReader::Start(void)
 {
-	m_ReadTimer = boost::make_shared<Timer>();
+	m_ReadTimer = make_shared<Timer>();
 	m_ReadTimer->OnTimerExpired.connect(boost::bind(&CheckResultReader::ReadTimerHandler, this));
 	m_ReadTimer->SetInterval(5);
 	m_ReadTimer->Start();

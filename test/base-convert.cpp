@@ -20,7 +20,6 @@
 #include "base/convert.h"
 #include "base/object.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <iostream>
 
 using namespace icinga;
@@ -47,7 +46,7 @@ BOOST_AUTO_TEST_CASE(tostring)
 	BOOST_CHECK(Convert::ToString(7.3) == "7.3");
 	BOOST_CHECK(Convert::ToString("hello") == "hello");
 
-	Object::Ptr object = boost::make_shared<Object>();
+	Object::Ptr object = make_shared<Object>();
 	BOOST_CHECK(Convert::ToString(object) == "Object of type 'icinga::Object'");
 }
 

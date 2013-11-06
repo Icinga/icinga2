@@ -27,7 +27,6 @@
 #include "base/convert.h"
 #include "base/utility.h"
 #include "base/application.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -39,7 +38,7 @@ void PerfdataWriter::Start(void)
 
 	Service::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
-	m_RotationTimer = boost::make_shared<Timer>();
+	m_RotationTimer = make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();

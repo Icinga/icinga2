@@ -27,7 +27,6 @@
 #include <map>
 #include <set>
 #include <boost/function.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
@@ -109,7 +108,7 @@ class RegisterTypeHelper
 public:
 	RegisterTypeHelper(const String& name, const DynamicType::ObjectFactory& factory)
 	{
-		DynamicType::Ptr type = boost::make_shared<DynamicType>(name, factory);
+		DynamicType::Ptr type = make_shared<DynamicType>(name, factory);
 		DynamicType::RegisterType(type);
 	}
 };
@@ -122,7 +121,7 @@ public:
 template<typename T>
 shared_ptr<T> DynamicObjectFactory(void)
 {
-	return boost::make_shared<T>();
+	return make_shared<T>();
 }
 
 #define REGISTER_TYPE_ALIAS(type, alias) \

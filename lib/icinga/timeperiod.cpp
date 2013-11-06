@@ -25,7 +25,6 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -41,7 +40,7 @@ void TimePeriod::Start(void)
 	DynamicObject::Start();
 
 	if (!l_UpdateTimer) {
-		l_UpdateTimer = boost::make_shared<Timer>();
+		l_UpdateTimer = make_shared<Timer>();
 		l_UpdateTimer->SetInterval(300);
 		l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
 		l_UpdateTimer->Start();
@@ -87,12 +86,12 @@ void TimePeriod::AddSegment(double begin, double end)
 	}
 
 	/* Create new segment if we weren't able to merge this into an existing segment. */
-	Dictionary::Ptr segment = boost::make_shared<Dictionary>();
+	Dictionary::Ptr segment = make_shared<Dictionary>();
 	segment->Set("begin", begin);
 	segment->Set("end", end);
 
 	if (!segments) {
-		segments = boost::make_shared<Array>();
+		segments = make_shared<Array>();
 		SetSegments(segments);
 	}
 
@@ -121,7 +120,7 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	if (!segments)
 		return;
 
-	Array::Ptr newSegments = boost::make_shared<Array>();
+	Array::Ptr newSegments = make_shared<Array>();
 
 	/* Try to split or adjust an existing segment. */
 	ObjectLock dlock(segments);
@@ -168,7 +167,7 @@ void TimePeriod::PurgeSegments(double end)
 	if (!segments)
 		return;
 
-	Array::Ptr newSegments = boost::make_shared<Array>();
+	Array::Ptr newSegments = make_shared<Array>();
 
 	/* Remove old segments. */
 	ObjectLock dlock(segments);
@@ -275,17 +274,17 @@ void TimePeriod::UpdateTimerHandler(void)
 
 Array::Ptr TimePeriod::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
 {
-	Array::Ptr segments = boost::make_shared<Array>();
+	Array::Ptr segments = make_shared<Array>();
 	return segments;
 }
 
 Array::Ptr TimePeriod::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
 {
-	Array::Ptr segments = boost::make_shared<Array>();
+	Array::Ptr segments = make_shared<Array>();
 
 	for (long t = begin / 60 - 1; t * 60 < end; t++) {
 		if ((t % 2) == 0) {
-			Dictionary::Ptr segment = boost::make_shared<Dictionary>();
+			Dictionary::Ptr segment = make_shared<Dictionary>();
 			segment->Set("begin", t * 60);
 			segment->Set("end", (t + 1) * 60);
 

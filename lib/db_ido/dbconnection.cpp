@@ -41,7 +41,7 @@ void DbConnection::Start(void)
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 
-	m_CleanUpTimer = boost::make_shared<Timer>();
+	m_CleanUpTimer = make_shared<Timer>();
 	m_CleanUpTimer->SetInterval(60);
 	m_CleanUpTimer->OnTimerExpired.connect(boost::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
@@ -49,7 +49,7 @@ void DbConnection::Start(void)
 
 void DbConnection::StaticInitialize(void)
 {
-	m_ProgramStatusTimer = boost::make_shared<Timer>();
+	m_ProgramStatusTimer = make_shared<Timer>();
 	m_ProgramStatusTimer->SetInterval(10);
 	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&DbConnection::ProgramStatusHandler));
 	m_ProgramStatusTimer->Start();
@@ -61,7 +61,7 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 	query.Table = "runtimevariables";
 	query.Type = DbQueryInsert;
 	query.Category = DbCatProgramStatus;
-	query.Fields = boost::make_shared<Dictionary>();
+	query.Fields = make_shared<Dictionary>();
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("varname", key);
 	query.Fields->Set("varvalue", value);
@@ -74,7 +74,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query1.Table = "programstatus";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatProgramStatus;
-	query1.WhereCriteria = boost::make_shared<Dictionary>();
+	query1.WhereCriteria = make_shared<Dictionary>();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query1);
 
@@ -84,7 +84,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Type = DbQueryInsert;
 	query2.Category = DbCatProgramStatus;
 
-	query2.Fields = boost::make_shared<Dictionary>();
+	query2.Fields = make_shared<Dictionary>();
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query2.Fields->Set("program_start_time", DbValue::FromTimestamp(Application::GetStartTime()));
@@ -105,7 +105,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query3.Table = "runtimevariables";
 	query3.Type = DbQueryDelete;
 	query3.Category = DbCatProgramStatus;
-	query3.WhereCriteria = boost::make_shared<Dictionary>();
+	query3.WhereCriteria = make_shared<Dictionary>();
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);
 

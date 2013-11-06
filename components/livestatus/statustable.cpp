@@ -26,7 +26,6 @@
 #include "base/dynamictype.h"
 #include "base/utility.h"
 #include "base/application.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 using namespace livestatus;
@@ -107,7 +106,7 @@ String StatusTable::GetName(void) const
 
 void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Object::Ptr obj = boost::make_shared<Object>();
+	Object::Ptr obj = make_shared<Object>();
 
 	/* Return a fake row. */
 	addRowFn(obj);

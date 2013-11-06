@@ -20,7 +20,6 @@
 #include "demo/demo.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -33,7 +32,7 @@ void Demo::Start(void)
 {
 	DynamicObject::Start();
 
-	m_DemoTimer = boost::make_shared<Timer>();
+	m_DemoTimer = make_shared<Timer>();
 	m_DemoTimer->SetInterval(5);
 	m_DemoTimer->OnTimerExpired.connect(boost::bind(&Demo::DemoTimerHandler, this));
 	m_DemoTimer->Start();

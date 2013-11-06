@@ -26,7 +26,6 @@
 #include "base/scriptfunction.h"
 #include "base/utility.h"
 #include "base/process.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -46,7 +45,7 @@ void PluginEventTask::ScriptFunc(const Service::Ptr& service)
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, service->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
-	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
+	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
 	Array::Ptr export_macros = commandObj->GetExportMacros();
 
@@ -63,7 +62,7 @@ void PluginEventTask::ScriptFunc(const Service::Ptr& service)
 		}
 	}
 
-	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
+	Process::Ptr process = make_shared<Process>(Process::SplitCommand(command), envMacros);
 
 	process->SetTimeout(commandObj->GetTimeout());
 

@@ -20,7 +20,6 @@
 #include "base/fifo.h"
 #include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -29,7 +28,7 @@ BOOST_AUTO_TEST_SUITE(base_fifo)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	FIFO::Ptr fifo = make_shared<FIFO>();
 	BOOST_CHECK(fifo);
 	BOOST_CHECK(fifo->GetAvailableBytes() == 0);
 
@@ -38,7 +37,7 @@ BOOST_AUTO_TEST_CASE(construct)
 
 BOOST_AUTO_TEST_CASE(io)
 {
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	FIFO::Ptr fifo = make_shared<FIFO>();
 
 	fifo->Write("hello", 5);
 	BOOST_CHECK(fifo->GetAvailableBytes() == 5);

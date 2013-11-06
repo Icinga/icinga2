@@ -19,7 +19,6 @@
 
 #include "base/scriptfunction.h"
 #include "base/registry.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -34,6 +33,6 @@ Value ScriptFunction::Invoke(const std::vector<Value>& arguments)
 
 RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
 {
-	ScriptFunction::Ptr func = boost::make_shared<ScriptFunction>(function);
+	ScriptFunction::Ptr func = make_shared<ScriptFunction>(function);
 	ScriptFunctionRegistry::GetInstance()->Register(name, func);
 }

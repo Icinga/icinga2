@@ -30,7 +30,6 @@
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 #ifndef _WIN32
@@ -77,7 +76,7 @@ static bool LoadConfigFiles(const String& appType, bool validateOnly)
 		ConfigCompiler::CompileText(name, fragment);
 	}
 
-	ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>();
+	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>();
 	builder->SetType(appType);
 	builder->SetName("application");
 	ConfigItem::Ptr item = builder->Compile();

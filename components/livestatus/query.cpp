@@ -38,7 +38,6 @@
 #include "base/exception.h"
 #include "base/utility.h"
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 
@@ -156,19 +155,19 @@ Query::Query(const std::vector<String>& lines)
 			Filter::Ptr filter;
 
 			if (aggregate_arg == "sum") {
-				aggregator = boost::make_shared<SumAggregator>(aggregate_attr);
+				aggregator = make_shared<SumAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "min") {
-				aggregator = boost::make_shared<MinAggregator>(aggregate_attr);
+				aggregator = make_shared<MinAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "max") {
-				aggregator = boost::make_shared<MaxAggregator>(aggregate_attr);
+				aggregator = make_shared<MaxAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "avg") {
-				aggregator = boost::make_shared<AvgAggregator>(aggregate_attr);
+				aggregator = make_shared<AvgAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "std") {
-				aggregator = boost::make_shared<StdAggregator>(aggregate_attr);
+				aggregator = make_shared<StdAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "suminv") {
-				aggregator = boost::make_shared<InvSumAggregator>(aggregate_attr);
+				aggregator = make_shared<InvSumAggregator>(aggregate_attr);
 			} else if (aggregate_arg == "avginv") {
-				aggregator = boost::make_shared<InvAvgAggregator>(aggregate_attr);
+				aggregator = make_shared<InvAvgAggregator>(aggregate_attr);
 			} else {
 				filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -179,7 +178,7 @@ Query::Query(const std::vector<String>& lines)
 					return;
 				}
 
-				aggregator = boost::make_shared<CountAggregator>();
+				aggregator = make_shared<CountAggregator>();
 			}
 
 			aggregator->SetFilter(filter);
@@ -193,10 +192,10 @@ Query::Query(const std::vector<String>& lines)
 			CombinerFilter::Ptr filter;
 
 			if (header == "Or" || header == "StatsOr") {
-				filter = boost::make_shared<OrFilter>();
+				filter = make_shared<OrFilter>();
 				Log(LogDebug, "livestatus", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
 			} else {
-				filter = boost::make_shared<AndFilter>();
+				filter = make_shared<AndFilter>();
 				Log(LogDebug, "livestatus", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
 			}
 
@@ -234,7 +233,7 @@ Query::Query(const std::vector<String>& lines)
 				return;
 			}
 
-			deq.push_back(boost::make_shared<NegateFilter>(filter));
+			deq.push_back(make_shared<NegateFilter>(filter));
 
 			if (deq == stats) {
 				Aggregator::Ptr aggregator = aggregators.back();
@@ -244,7 +243,7 @@ Query::Query(const std::vector<String>& lines)
 	}
 
 	/* Combine all top-level filters into a single filter. */
-	AndFilter::Ptr top_filter = boost::make_shared<AndFilter>();
+	AndFilter::Ptr top_filter = make_shared<AndFilter>();
 
 	BOOST_FOREACH(const Filter::Ptr& filter, filters) {
 		top_filter->AddSubFilter(filter);
@@ -311,10 +310,10 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 		negate = true;
 	}
 
-	Filter::Ptr filter = boost::make_shared<AttributeFilter>(attr, op, val);
+	Filter::Ptr filter = make_shared<AttributeFilter>(attr, op, val);
 
 	if (negate)
-		filter = boost::make_shared<NegateFilter>(filter);
+		filter = make_shared<NegateFilter>(filter);
 
 	/* pre-filter log time duration */
 	if (attr == "time") {
@@ -411,11 +410,11 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	else
 		columns = table->GetColumnNames();
 
-	Array::Ptr rs = boost::make_shared<Array>();
+	Array::Ptr rs = make_shared<Array>();
 
 	if (m_Aggregators.empty()) {
 		BOOST_FOREACH(const Value& object, objects) {
-			Array::Ptr row = boost::make_shared<Array>();
+			Array::Ptr row = make_shared<Array>();
 
 			BOOST_FOREACH(const String& columnName, columns) {
 				Column column = table->GetColumn(columnName);
@@ -438,7 +437,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 			index++;
 		}
 
-		Array::Ptr row = boost::make_shared<Array>();
+		Array::Ptr row = make_shared<Array>();
 		for (size_t i = 0; i < m_Aggregators.size(); i++)
 			row->Add(stats[i]);
 

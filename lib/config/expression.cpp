@@ -24,7 +24,6 @@
 #include "base/array.h"
 #include <sstream>
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -73,7 +72,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 		case OperatorSet:
 			if (valueExprl) {
-				dict = boost::make_shared<Dictionary>();
+				dict = make_shared<Dictionary>();
 				valueExprl->Execute(dict);
 				newValue = dict;
 			}
@@ -91,14 +90,14 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 			if (valueExprl) {
 				if (!dict)
-					dict = boost::make_shared<Dictionary>();
+					dict = make_shared<Dictionary>();
 
 				valueExprl->Execute(dict);
 
 				newValue = dict;
 			} else if (valueDict) {
 				if (!dict)
-					dict = boost::make_shared<Dictionary>();
+					dict = make_shared<Dictionary>();
 
 				ObjectLock olock(valueDict);
 
@@ -111,7 +110,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				newValue = dict;
 			} else if (valueArray) {
 				if (!array)
-					array = boost::make_shared<Array>();
+					array = make_shared<Array>();
 
 
 				ObjectLock olock(valueArray);

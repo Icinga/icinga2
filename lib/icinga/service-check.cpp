@@ -26,7 +26,6 @@
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/utility.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -334,7 +333,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	if (remove_acknowledgement_comments)
 		RemoveCommentsByType(CommentAcknowledgement);
 
-	Dictionary::Ptr vars_after = boost::make_shared<Dictionary>();
+	Dictionary::Ptr vars_after = make_shared<Dictionary>();
 	vars_after->Set("state", GetState());
 	vars_after->Set("state_type", GetStateType());
 	vars_after->Set("attempt", GetCheckAttempt());
@@ -458,7 +457,7 @@ void Service::ExecuteCheck(void)
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
-	Dictionary::Ptr checkInfo = boost::make_shared<Dictionary>();
+	Dictionary::Ptr checkInfo = make_shared<Dictionary>();
 	checkInfo->Set("schedule_start", GetNextCheck());
 	checkInfo->Set("execution_start", Utility::GetTime());
 
@@ -483,7 +482,7 @@ void Service::ExecuteCheck(void)
 
 		Log(LogWarning, "icinga", message);
 
-		result = boost::make_shared<Dictionary>();
+		result = make_shared<Dictionary>();
 		result->Set("state", StateUnknown);
 		result->Set("output", message);
 	}

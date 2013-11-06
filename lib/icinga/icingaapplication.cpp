@@ -27,7 +27,6 @@
 #include "base/timer.h"
 #include "base/scriptvariable.h"
 #include "base/initialize.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -55,7 +54,7 @@ int IcingaApplication::Main(void)
 	Log(LogDebug, "icinga", "In IcingaApplication::Main()");
 
 	/* periodically dump the program state */
-	l_RetentionTimer = boost::make_shared<Timer>();
+	l_RetentionTimer = make_shared<Timer>();
 	l_RetentionTimer->SetInterval(300);
 	l_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	l_RetentionTimer->Start();

@@ -1,6 +1,5 @@
 #include "db_ido/dbquery.h"
 #include "base/dynamicobject.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
@@ -12,7 +11,7 @@ class DbConnection : DynamicObject
 	};
 
 	[config] Dictionary::Ptr cleanup {
-		default {{{ return boost::make_shared<Dictionary>(); }}}
+		default {{{ return make_shared<Dictionary>(); }}}
 	};
 
 	[config] int categories {

@@ -26,7 +26,6 @@
 #include "base/debug.h"
 #include <sstream>
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -107,7 +106,7 @@ void ConfigItem::Link(void)
 {
 	ObjectLock olock(this);
 
-	m_LinkedExpressionList = boost::make_shared<ExpressionList>();
+	m_LinkedExpressionList = make_shared<ExpressionList>();
 
 	BOOST_FOREACH(const String& name, m_ParentNames) {
 		ConfigItem::Ptr parent = ConfigItem::GetObject(m_Type, name);
@@ -163,11 +162,11 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 
 	/* Create a fake update in the format that
 	 * DynamicObject::Deserialize expects. */
-	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attrs = make_shared<Dictionary>();
 
 	Link();
 
-	Dictionary::Ptr properties = boost::make_shared<Dictionary>();
+	Dictionary::Ptr properties = make_shared<Dictionary>();
 	GetLinkedExpressionList()->Execute(properties);
 
 	{

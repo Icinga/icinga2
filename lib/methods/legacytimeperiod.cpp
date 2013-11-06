@@ -24,7 +24,6 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/debug.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -364,7 +363,7 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 {
 	tm begin, end;
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
-	Dictionary::Ptr segment = boost::make_shared<Dictionary>();
+	Dictionary::Ptr segment = make_shared<Dictionary>();
 	segment->Set("begin", (long)mktime(&begin));
 	segment->Set("end", (long)mktime(&end));
 	return segment;
@@ -384,7 +383,7 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 
 Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin, double end)
 {
-	Array::Ptr segments = boost::make_shared<Array>();
+	Array::Ptr segments = make_shared<Array>();
 
 	Dictionary::Ptr ranges = tp->GetRanges();
 

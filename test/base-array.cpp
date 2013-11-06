@@ -20,7 +20,6 @@
 #include "base/array.h"
 #include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -29,14 +28,14 @@ BOOST_AUTO_TEST_SUITE(base_array)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 	BOOST_CHECK(array);
 	BOOST_CHECK(array->GetLength() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(getset)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -55,7 +54,7 @@ BOOST_AUTO_TEST_CASE(getset)
 
 BOOST_AUTO_TEST_CASE(remove)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -72,7 +71,7 @@ BOOST_AUTO_TEST_CASE(remove)
 
 BOOST_AUTO_TEST_CASE(foreach)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -92,7 +91,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 BOOST_AUTO_TEST_CASE(clone)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -107,7 +106,7 @@ BOOST_AUTO_TEST_CASE(clone)
 
 BOOST_AUTO_TEST_CASE(serialize)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);

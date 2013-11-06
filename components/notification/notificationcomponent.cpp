@@ -23,7 +23,6 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
 
@@ -41,7 +40,7 @@ void NotificationComponent::Start(void)
 	Service::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));
 
-	m_NotificationTimer = boost::make_shared<Timer>();
+	m_NotificationTimer = make_shared<Timer>();
 	m_NotificationTimer->SetInterval(5);
 	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
 	m_NotificationTimer->Start();

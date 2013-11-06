@@ -20,7 +20,6 @@
 #include "base/dictionary.h"
 #include "base/objectlock.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 
@@ -30,13 +29,13 @@ BOOST_AUTO_TEST_SUITE(base_dictionary)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 	BOOST_CHECK(dictionary);
 }
 
 BOOST_AUTO_TEST_CASE(get1)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
@@ -58,8 +57,8 @@ BOOST_AUTO_TEST_CASE(get1)
 
 BOOST_AUTO_TEST_CASE(get2)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
-	Dictionary::Ptr other = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr other = make_shared<Dictionary>();
 
 	dictionary->Set("test1", other);
 
@@ -74,7 +73,7 @@ BOOST_AUTO_TEST_CASE(get2)
 
 BOOST_AUTO_TEST_CASE(foreach)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
@@ -108,7 +107,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 BOOST_AUTO_TEST_CASE(remove)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
@@ -141,7 +140,7 @@ BOOST_AUTO_TEST_CASE(remove)
 
 BOOST_AUTO_TEST_CASE(clone)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
@@ -164,7 +163,7 @@ BOOST_AUTO_TEST_CASE(clone)
 
 BOOST_AUTO_TEST_CASE(serialize)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");

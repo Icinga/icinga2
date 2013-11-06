@@ -29,7 +29,6 @@
 #include "db_ido_pgsql/idopgsqlconnection.h"
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -46,12 +45,12 @@ void IdoPgsqlConnection::Start(void)
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
 
-	m_TxTimer = boost::make_shared<Timer>();
+	m_TxTimer = make_shared<Timer>();
 	m_TxTimer->SetInterval(5);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoPgsqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
-	m_ReconnectTimer = boost::make_shared<Timer>();
+	m_ReconnectTimer = make_shared<Timer>();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&IdoPgsqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
@@ -290,7 +289,7 @@ Array::Ptr IdoPgsqlConnection::Query(const String& query)
 		);
 	}
 
-	Array::Ptr rows = boost::make_shared<Array>();
+	Array::Ptr rows = make_shared<Array>();
 
 	int rownum = 0;
 
@@ -352,7 +351,7 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(PGresult *result, int row)
 
 	int columns = PQnfields(result);
 
-	Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dict = make_shared<Dictionary>();
 
 	for (int column = 0; column < columns; column++) {
 		Value value;

@@ -20,14 +20,13 @@
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <sstream>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false), m_ExpressionList(boost::make_shared<ExpressionList>())
+	: m_Abstract(false), m_ExpressionList(make_shared<ExpressionList>())
 {
 	m_DebugInfo.FirstLine = 0;
 	m_DebugInfo.FirstColumn = 0;
@@ -36,7 +35,7 @@ ConfigItemBuilder::ConfigItemBuilder(void)
 }
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
-	: m_Abstract(false), m_ExpressionList(boost::make_shared<ExpressionList>())
+	: m_Abstract(false), m_ExpressionList(make_shared<ExpressionList>())
 {
 	m_DebugInfo = debugInfo;
 }
@@ -103,7 +102,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Configuration item '" + m_Name + "' of type '" + m_Type + "' must not inherit from itself."));
 	}
 
-	ExpressionList::Ptr exprl = boost::make_shared<ExpressionList>();
+	ExpressionList::Ptr exprl = make_shared<ExpressionList>();
 
 	Expression execExpr("", OperatorExecute, m_ExpressionList, m_DebugInfo);
 	exprl->AddExpression(execExpr);
@@ -114,6 +113,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Expression nameExpr("__name", OperatorSet, m_Name, m_DebugInfo);
 	exprl->AddExpression(nameExpr);
 
-	return boost::make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
+	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
 	    m_Parents, m_DebugInfo);
 }

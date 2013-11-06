@@ -41,7 +41,7 @@ HostDbObject::HostDbObject(const DbType::Ptr& type, const String& name1, const S
 
 Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+	Dictionary::Ptr fields = make_shared<Dictionary>();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
 	Service::Ptr service = host->GetCheckService();
@@ -124,7 +124,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 {
-	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+	Dictionary::Ptr fields = make_shared<Dictionary>();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 	Service::Ptr service = host->GetCheckService();
 
@@ -198,7 +198,7 @@ void HostDbObject::OnConfigUpdate(void)
 	query_del1.Table = GetType()->GetTable() + "_parenthosts";
 	query_del1.Type = DbQueryDelete;
 	query_del1.Category = DbCatConfig;
-	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del1.WhereCriteria = make_shared<Dictionary>();
 	query_del1.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
 	OnQuery(query_del1);
 
@@ -206,7 +206,7 @@ void HostDbObject::OnConfigUpdate(void)
 	query_del2.Table = GetType()->GetTable() + "dependencies";
 	query_del2.Type = DbQueryDelete;
 	query_del2.Category = DbCatConfig;
-	query_del2.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del2.WhereCriteria = make_shared<Dictionary>();
 	query_del2.WhereCriteria->Set("dependent_host_object_id", host);
 	OnQuery(query_del2);
 
@@ -214,7 +214,7 @@ void HostDbObject::OnConfigUpdate(void)
 		Log(LogDebug, "db_ido", "host parents: " + parent->GetName());
 
 		/* parents: host_id, parent_host_object_id */
-		Dictionary::Ptr fields1 = boost::make_shared<Dictionary>();
+		Dictionary::Ptr fields1 = make_shared<Dictionary>();
 		fields1->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
 		fields1->Set("parent_host_object_id", parent);
 		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -227,7 +227,7 @@ void HostDbObject::OnConfigUpdate(void)
 		OnQuery(query1);
 
 		/* host dependencies */
-		Dictionary::Ptr fields2 = boost::make_shared<Dictionary>();
+		Dictionary::Ptr fields2 = make_shared<Dictionary>();
 		fields2->Set("host_object_id", parent);
 		fields2->Set("dependent_host_object_id", host);
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -249,7 +249,7 @@ void HostDbObject::OnConfigUpdate(void)
 		BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetServiceNotificationUsers(service)) {
 			Log(LogDebug, "db_ido", "host contacts: " + user->GetName());
 
-			Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
+			Dictionary::Ptr fields_contact = make_shared<Dictionary>();
 			fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
 			fields_contact->Set("contact_object_id", user);
 			fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -267,7 +267,7 @@ void HostDbObject::OnConfigUpdate(void)
 		BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetServiceNotificationUserGroups(service)) {
 			Log(LogDebug, "db_ido", "host contactgroups: " + usergroup->GetName());
 
-			Dictionary::Ptr fields_contact = boost::make_shared<Dictionary>();
+			Dictionary::Ptr fields_contact = make_shared<Dictionary>();
 			fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
 			fields_contact->Set("contactgroup_object_id", usergroup);
 			fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -288,7 +288,7 @@ void HostDbObject::OnConfigUpdate(void)
 	query_del3.Table = "customvariables";
 	query_del3.Type = DbQueryDelete;
 	query_del3.Category = DbCatConfig;
-	query_del3.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del3.WhereCriteria = make_shared<Dictionary>();
 	query_del3.WhereCriteria->Set("object_id", host);
 	OnQuery(query_del3);
 
@@ -306,7 +306,7 @@ void HostDbObject::OnConfigUpdate(void)
 		BOOST_FOREACH(boost::tie(key, value), customvars) {
 			Log(LogDebug, "db_ido", "host customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
 
-			Dictionary::Ptr fields3 = boost::make_shared<Dictionary>();
+			Dictionary::Ptr fields3 = make_shared<Dictionary>();
 			fields3->Set("varname", Convert::ToString(key));
 			fields3->Set("varvalue", Convert::ToString(value));
 			fields3->Set("config_type", 1);

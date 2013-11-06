@@ -26,7 +26,6 @@
 #include "base/utility.h"
 #include "config/configitembuilder.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 
@@ -125,7 +124,7 @@ void Service::UpdateSlaveNotifications(void)
 		if (di.Path.IsEmpty())
 			di = item->GetDebugInfo();
 
-		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
+		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Notification");
 		builder->SetName(name);
 		builder->AddExpression("host", OperatorSet, GetHost()->GetName());
@@ -147,7 +146,7 @@ void Service::UpdateSlaveNotifications(void)
 		}
 
 		/* Clone attributes from the notification expression list. */
-		ExpressionList::Ptr nfc_exprl = boost::make_shared<ExpressionList>();
+		ExpressionList::Ptr nfc_exprl = make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
 
 		std::vector<String> dpath;

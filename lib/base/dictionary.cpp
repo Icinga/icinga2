@@ -209,7 +209,7 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	Dictionary::Ptr clone = boost::make_shared<Dictionary>();
+	Dictionary::Ptr clone = make_shared<Dictionary>();
 
 	String key;
 	Value value;
@@ -228,7 +228,7 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
  */
 Dictionary::Ptr Dictionary::FromJson(cJSON *json)
 {
-	Dictionary::Ptr dictionary = boost::make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
 	ASSERT(json->type == cJSON_Object);
 

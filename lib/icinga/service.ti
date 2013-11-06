@@ -1,7 +1,6 @@
 #include "icinga/host.h"
 #include "icinga/icingaapplication.h"
 #include "base/dynamicobject.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 namespace icinga
 {
@@ -111,10 +110,10 @@ class Service : DynamicObject
 	};
 	[state] double acknowledgement_expiry;
 	[state] Dictionary::Ptr comments {
-		default {{{ return boost::make_shared<Dictionary>(); }}}
+		default {{{ return make_shared<Dictionary>(); }}}
 	};
 	[state] Dictionary::Ptr downtimes {
-		default {{{ return boost::make_shared<Dictionary>(); }}}
+		default {{{ return make_shared<Dictionary>(); }}}
 	};
 	[state] bool enable_notifications (EnableNotificationsRaw) {
 		default {{{ return true; }}}

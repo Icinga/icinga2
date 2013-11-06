@@ -19,7 +19,6 @@
 
 #include "base/serializer.h"
 #include "base/type.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -27,7 +26,7 @@ Dictionary::Ptr Serializer::Serialize(const Object::Ptr& object, int attributeTy
 {
 	const Type *type = object->GetReflectionType();
 
-	Dictionary::Ptr update = boost::make_shared<Dictionary>();
+	Dictionary::Ptr update = make_shared<Dictionary>();
 
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);

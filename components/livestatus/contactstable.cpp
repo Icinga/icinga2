@@ -23,7 +23,6 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 
@@ -211,7 +210,7 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!custom)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(custom);
 	String key;
@@ -244,7 +243,7 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!custom)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(custom);
 	String key;
@@ -277,7 +276,7 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	if (!custom)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(custom);
 	String key;
@@ -292,7 +291,7 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 		    key == "2d_coords")
 			continue;
 
-		Array::Ptr key_val = boost::make_shared<Array>();
+		Array::Ptr key_val = make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
 		cv->Add(key_val);

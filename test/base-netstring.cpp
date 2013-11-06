@@ -20,7 +20,6 @@
 #include "base/netstring.h"
 #include "base/fifo.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -28,7 +27,7 @@ BOOST_AUTO_TEST_SUITE(base_netstring)
 
 BOOST_AUTO_TEST_CASE(netstring)
 {
-	FIFO::Ptr fifo = boost::make_shared<FIFO>();
+	FIFO::Ptr fifo = make_shared<FIFO>();
 
 	NetString::WriteStringToStream(fifo, "hello");
 

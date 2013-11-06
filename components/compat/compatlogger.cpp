@@ -34,7 +34,6 @@
 #include "base/application.h"
 #include "base/utility.h"
 #include "base/scriptfunction.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -62,7 +61,7 @@ void CompatLogger::Start(void)
 	Service::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
-	m_RotationTimer = boost::make_shared<Timer>();
+	m_RotationTimer = make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLogger::RotationTimerHandler, this));
 	m_RotationTimer->Start();
 

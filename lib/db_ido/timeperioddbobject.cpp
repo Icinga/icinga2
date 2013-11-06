@@ -38,7 +38,7 @@ TimePeriodDbObject::TimePeriodDbObject(const DbType::Ptr& type, const String& na
 
 Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = boost::make_shared<Dictionary>();
+	Dictionary::Ptr fields = make_shared<Dictionary>();
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 
 	fields->Set("alias", tp->GetDisplayName());
@@ -59,7 +59,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 	query_del1.Table = GetType()->GetTable() + "_timeranges";
 	query_del1.Type = DbQueryDelete;
 	query_del1.Category = DbCatConfig;
-	query_del1.WhereCriteria = boost::make_shared<Dictionary>();
+	query_del1.WhereCriteria = make_shared<Dictionary>();
 	query_del1.WhereCriteria->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
 	OnQuery(query_del1);
 
@@ -98,7 +98,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 		}
 #endif /* _MSC_VER */
 
-		Array::Ptr segments = boost::make_shared<Array>();
+		Array::Ptr segments = make_shared<Array>();
 		LegacyTimePeriod::ProcessTimeRanges(value, &reference, segments);
 
 		ObjectLock olock(segments);
@@ -111,7 +111,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 			query.Table = GetType()->GetTable() + "_timeranges";
 			query.Type = DbQueryInsert;
 			query.Category = DbCatConfig;
-			query.Fields = boost::make_shared<Dictionary>();
+			query.Fields = make_shared<Dictionary>();
 			query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 			query.Fields->Set("timeperiod_id", DbValue::FromObjectInsertID(tp));
 			query.Fields->Set("day", wday);

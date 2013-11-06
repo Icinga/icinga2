@@ -282,5 +282,5 @@ Socket::Ptr Socket::Accept(void)
 #endif /* _WIN32 */
 	}
 
-	return boost::make_shared<Socket>(fd);
+	return make_shared<Socket>(fd);
 }

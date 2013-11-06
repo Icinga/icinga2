@@ -32,7 +32,6 @@
 #include "base/utility.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -1403,7 +1402,7 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	Array::Ptr contact_names = boost::make_shared<Array>();
+	Array::Ptr contact_names = make_shared<Array>();
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetServiceNotificationUsers(hc)) {
 		contact_names->Add(user->GetName());
@@ -1427,7 +1426,7 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = hc->GetDowntimes();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(downtimes);
 
@@ -1462,7 +1461,7 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = hc->GetDowntimes();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(downtimes);
 
@@ -1476,7 +1475,7 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
-		Array::Ptr downtime_info = boost::make_shared<Array>();
+		Array::Ptr downtime_info = make_shared<Array>();
 		downtime_info->Add(downtime->Get("legacy_id"));
 		downtime_info->Add(downtime->Get("author"));
 		downtime_info->Add(downtime->Get("comment"));
@@ -1501,7 +1500,7 @@ Value HostsTable::CommentsAccessor(const Value& row)
 
 	Dictionary::Ptr comments = hc->GetComments();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(comments);
 
@@ -1536,7 +1535,7 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = hc->GetComments();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(comments);
 
@@ -1550,7 +1549,7 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 		if (Service::IsCommentExpired(comment))
 			continue;
 
-		Array::Ptr comment_info = boost::make_shared<Array>();
+		Array::Ptr comment_info = make_shared<Array>();
 		comment_info->Add(comment->Get("legacy_id"));
 		comment_info->Add(comment->Get("author"));
 		comment_info->Add(comment->Get("text"));
@@ -1575,7 +1574,7 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = hc->GetComments();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(comments);
 
@@ -1589,7 +1588,7 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 		if (Service::IsCommentExpired(comment))
 			continue;
 
-		Array::Ptr comment_info = boost::make_shared<Array>();
+		Array::Ptr comment_info = make_shared<Array>();
 		comment_info->Add(comment->Get("legacy_id"));
 		comment_info->Add(comment->Get("author"));
 		comment_info->Add(comment->Get("text"));
@@ -1618,7 +1617,7 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!customvars)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
@@ -1646,7 +1645,7 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!customvars)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
@@ -1674,12 +1673,12 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 	if (!customvars)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), customvars) {
-		Array::Ptr key_val = boost::make_shared<Array>();
+		Array::Ptr key_val = make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
 		cv->Add(key_val);
@@ -1695,7 +1694,7 @@ Value HostsTable::ParentsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr parents = boost::make_shared<Array>();
+	Array::Ptr parents = make_shared<Array>();
 
 	BOOST_FOREACH(const Host::Ptr& parent, host->GetParentHosts()) {
 		parents->Add(parent->GetName());
@@ -1711,7 +1710,7 @@ Value HostsTable::ChildsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr childs = boost::make_shared<Array>();
+	Array::Ptr childs = make_shared<Array>();
 
 	BOOST_FOREACH(const Host::Ptr& child, host->GetChildHosts()) {
 		childs->Add(child->GetName());
@@ -1988,7 +1987,7 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	Array::Ptr contactgroup_names = boost::make_shared<Array>();
+	Array::Ptr contactgroup_names = make_shared<Array>();
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetServiceNotificationUserGroups(hc)) {
 		contactgroup_names->Add(usergroup->GetName());
@@ -2004,7 +2003,7 @@ Value HostsTable::ServicesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = boost::make_shared<Array>();
+	Array::Ptr services = make_shared<Array>();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		services->Add(service->GetShortName());
@@ -2020,10 +2019,10 @@ Value HostsTable::ServicesWithStateAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = boost::make_shared<Array>();
+	Array::Ptr services = make_shared<Array>();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Array::Ptr svc_add = boost::make_shared<Array>();
+		Array::Ptr svc_add = make_shared<Array>();
 
 		svc_add->Add(service->GetShortName());
 		svc_add->Add(service->GetState());
@@ -2041,10 +2040,10 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = boost::make_shared<Array>();
+	Array::Ptr services = make_shared<Array>();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Array::Ptr svc_add = boost::make_shared<Array>();
+		Array::Ptr svc_add = make_shared<Array>();
 
 		svc_add->Add(service->GetShortName());
 		svc_add->Add(service->GetState());

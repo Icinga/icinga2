@@ -25,7 +25,6 @@
 #include "base/convert.h"
 #include "base/scriptfunction.h"
 #include "base/logger_fwd.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -42,7 +41,7 @@ Dictionary::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 	output += name;
 	String perfdata = "time=" + Convert::ToString(static_cast<double>(Utility::GetTime()));
 
-	Dictionary::Ptr cr = boost::make_shared<Dictionary>();
+	Dictionary::Ptr cr = make_shared<Dictionary>();
 	cr->Set("output", output);
 	cr->Set("performance_data_raw", perfdata);
 	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));

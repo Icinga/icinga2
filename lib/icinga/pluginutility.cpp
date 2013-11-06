@@ -28,7 +28,6 @@
 #include "base/process.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -49,7 +48,7 @@ ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 
 Dictionary::Ptr PluginUtility::ParseCheckOutput(const String& output)
 {
-	Dictionary::Ptr result = boost::make_shared<Dictionary>();
+	Dictionary::Ptr result = make_shared<Dictionary>();
 
 	String text;
 	String perfdata;

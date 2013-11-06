@@ -20,7 +20,6 @@
 #include "methods/nulleventtask.h"
 #include "base/scriptfunction.h"
 #include "base/logger_fwd.h"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 

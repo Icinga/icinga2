@@ -29,7 +29,6 @@
 #include "base/application.h"
 #include "base/scriptfunction.h"
 #include "base/convert.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
@@ -50,7 +49,7 @@ void LivestatusListener::Start(void)
 	DynamicObject::Start();
 
 	if (GetSocketType() == "tcp") {
-		TcpSocket::Ptr socket = boost::make_shared<TcpSocket>();
+		TcpSocket::Ptr socket = make_shared<TcpSocket>();
 		socket->Bind(GetBindHost(), GetBindPort(), AF_INET);
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
@@ -59,7 +58,7 @@ void LivestatusListener::Start(void)
 	}
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
-		UnixSocket::Ptr socket = boost::make_shared<UnixSocket>();
+		UnixSocket::Ptr socket = make_shared<UnixSocket>();
 		socket->Bind(GetSocketPath());
 
 		/* group must be able to write */
@@ -119,7 +118,7 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 		l_Connections++;
 	}
 
-	Stream::Ptr stream = boost::make_shared<NetworkStream>(client);
+	Stream::Ptr stream = make_shared<NetworkStream>(client);
 
 	for (;;) {
 		String line;
@@ -134,7 +133,7 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 				break;
 		}
 
-		Query::Ptr query = boost::make_shared<Query>(lines);
+		Query::Ptr query = make_shared<Query>(lines);
 		if (!query->Execute(stream))
 			break;
 	}

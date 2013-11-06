@@ -32,7 +32,6 @@
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -170,7 +169,7 @@ void Host::UpdateSlaveServices(void)
 		if (di.Path.IsEmpty())
 			di = item->GetDebugInfo();
 
-		ConfigItemBuilder::Ptr builder = boost::make_shared<ConfigItemBuilder>(di);
+		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Service");
 		builder->SetName(name);
 		builder->AddExpression("host", OperatorSet, GetName());
@@ -193,7 +192,7 @@ void Host::UpdateSlaveServices(void)
 		}
 
 		/* Clone attributes from the service expression list. */
-		ExpressionList::Ptr svc_exprl = boost::make_shared<ExpressionList>();
+		ExpressionList::Ptr svc_exprl = make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
 
 		std::vector<String> dpath;

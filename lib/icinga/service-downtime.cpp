@@ -24,7 +24,6 @@
 #include "base/timer.h"
 #include "base/utility.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -57,7 +56,7 @@ String Service::AddDowntime(const String& comment_id,
 	else
 		uid = id;
 
-	Dictionary::Ptr downtime = boost::make_shared<Dictionary>();
+	Dictionary::Ptr downtime = make_shared<Dictionary>();
 	downtime->Set("id", uid);
 	downtime->Set("entry_time", Utility::GetTime());
 	downtime->Set("comment_id", comment_id);
@@ -66,7 +65,7 @@ String Service::AddDowntime(const String& comment_id,
 	downtime->Set("fixed", fixed);
 	downtime->Set("duration", duration);
 	downtime->Set("triggered_by", triggeredBy);
-	downtime->Set("triggers", boost::make_shared<Dictionary>());
+	downtime->Set("triggers", make_shared<Dictionary>());
 	downtime->Set("trigger_time", 0);
 
 	int legacy_id;
@@ -268,7 +267,7 @@ bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
 void Service::StartDowntimesExpiredTimer(void)
 {
         if (!l_DowntimesExpireTimer) {
-		l_DowntimesExpireTimer = boost::make_shared<Timer>();
+		l_DowntimesExpireTimer = make_shared<Timer>();
 		l_DowntimesExpireTimer->SetInterval(60);
 		l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
 		l_DowntimesExpireTimer->Start();

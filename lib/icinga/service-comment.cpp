@@ -23,7 +23,6 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 
@@ -55,7 +54,7 @@ String Service::AddComment(CommentType entryType, const String& author,
 	else
 		uid = id;
 
-	Dictionary::Ptr comment = boost::make_shared<Dictionary>();
+	Dictionary::Ptr comment = make_shared<Dictionary>();
 	comment->Set("id", uid);
 	comment->Set("entry_time", Utility::GetTime());
 	comment->Set("entry_type", entryType);
@@ -183,7 +182,7 @@ void Service::AddCommentsToCache(void)
 
 	String id;
 	Dictionary::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
+	BOOST_FOREACH(boost::tie(id, comment), comments) {
 		int legacy_id = comment->Get("legacy_id");
 
 		if (legacy_id >= l_NextCommentID)
@@ -205,7 +204,7 @@ void Service::RemoveCommentsByType(int type)
 
 		String id;
 		Dictionary::Ptr comment;
-		BOOST_FOREACH(tie(id, comment), comments) {
+		BOOST_FOREACH(boost::tie(id, comment), comments) {
 			if (comment->Get("entry_type") == type)
 				removedComments.push_back(id);
 		}
@@ -227,7 +226,7 @@ void Service::RemoveExpiredComments(void)
 
 		String id;
 		Dictionary::Ptr comment;
-		BOOST_FOREACH(tie(id, comment), comments) {
+		BOOST_FOREACH(boost::tie(id, comment), comments) {
 			if (IsCommentExpired(comment))
 				expiredComments.push_back(id);
 		}

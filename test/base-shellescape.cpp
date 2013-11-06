@@ -19,7 +19,6 @@
 
 #include "base/utility.h"
 #include <boost/test/unit_test.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <iostream>
 
 using namespace icinga;

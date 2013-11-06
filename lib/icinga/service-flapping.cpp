@@ -26,7 +26,6 @@
 #include "base/utility.h"
 #include "base/convert.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;

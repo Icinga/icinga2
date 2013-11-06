@@ -23,13 +23,12 @@
 #include "base/convert.h"
 #include "base/scriptfunction.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 ConfigType::ConfigType(const String& name, const DebugInfo& debuginfo)
-	: m_Name(name), m_RuleList(boost::make_shared<TypeRuleList>()), m_DebugInfo(debuginfo)
+	: m_Name(name), m_RuleList(make_shared<TypeRuleList>()), m_DebugInfo(debuginfo)
 { }
 
 String ConfigType::GetName(void) const
@@ -81,7 +80,7 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item)
 	if (item->IsAbstract())
 		return;
 
-	Dictionary::Ptr attrs = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attrs = make_shared<Dictionary>();
 	item->GetLinkedExpressionList()->Execute(attrs);
 
 	std::vector<String> locations;

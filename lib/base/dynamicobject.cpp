@@ -112,7 +112,7 @@ void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
 	Dictionary::Ptr extensions = GetExtensions();
 
 	if (!extensions) {
-		extensions = boost::make_shared<Dictionary>();
+		extensions = make_shared<Dictionary>();
 		SetExtensions(extensions);
 	}
 
@@ -212,11 +212,11 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 	if (!fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + filename + "' file"));
 
-	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
+	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
-			Dictionary::Ptr persistentObject = boost::make_shared<Dictionary>();
+			Dictionary::Ptr persistentObject = make_shared<Dictionary>();
 
 			persistentObject->Set("type", type->GetName());
 			persistentObject->Set("name", object->GetName());
@@ -258,7 +258,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 	std::fstream fp;
 	fp.open(filename.CStr(), std::ios_base::in);
 
-	StdioStream::Ptr sfp = boost::make_shared<StdioStream>(&fp, false);
+	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
 
 	unsigned long restored = 0;
 

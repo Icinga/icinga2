@@ -24,7 +24,6 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -40,7 +39,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 	if (str.IsScalar()) {
 		result = InternalResolveMacros(str, resolvers, cr, escapeFn, escapeMacros);
 	} else if (str.IsObjectType<Array>()) {
-		Array::Ptr resultArr = boost::make_shared<Array>();
+		Array::Ptr resultArr = make_shared<Array>();
 		Array::Ptr arr = str;
 
 		ObjectLock olock(arr);

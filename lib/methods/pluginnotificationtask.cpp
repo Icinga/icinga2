@@ -27,7 +27,6 @@
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include "base/process.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -45,7 +44,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Value raw_command = commandObj->GetCommandLine();
 
-	StaticMacroResolver::Ptr notificationMacroResolver = boost::make_shared<StaticMacroResolver>();
+	StaticMacroResolver::Ptr notificationMacroResolver = make_shared<StaticMacroResolver>();
 	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
 	notificationMacroResolver->Add("NOTIFICATIONAUTHOR", author);
 	notificationMacroResolver->Add("NOTIFICATIONAUTHORNAME", author);
@@ -62,7 +61,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
-	Dictionary::Ptr envMacros = boost::make_shared<Dictionary>();
+	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
 	Array::Ptr export_macros = commandObj->GetExportMacros();
 
@@ -79,7 +78,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 		}
 	}
 
-	Process::Ptr process = boost::make_shared<Process>(Process::SplitCommand(command), envMacros);
+	Process::Ptr process = make_shared<Process>(Process::SplitCommand(command), envMacros);
 
 	process->SetTimeout(commandObj->GetTimeout());
 

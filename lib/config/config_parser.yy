@@ -33,7 +33,6 @@
 #include "base/scriptvariable.h"
 #include <sstream>
 #include <stack>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
 
@@ -178,7 +177,7 @@ variable: T_SET identifier T_EQUAL value
 	{
 		Value *value = $4;
 		if (value->IsObjectType<ExpressionList>()) {
-			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			Dictionary::Ptr dict = make_shared<Dictionary>();
 			ExpressionList::Ptr exprl = *value;
 			exprl->Execute(dict);
 			delete value;
@@ -208,7 +207,7 @@ type: partial_specifier T_TYPE identifier
 			if ($1)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Partial type definition for unknown type '" + name + "'"));
 
-			m_Type = boost::make_shared<ConfigType>(name, yylloc);
+			m_Type = make_shared<ConfigType>(name, yylloc);
 			m_Type->Register();
 		}
 	}
@@ -238,7 +237,7 @@ partial_specifier: /* Empty */
 
 typerulelist: '{'
 	{
-		m_RuleLists.push(boost::make_shared<TypeRuleList>());
+		m_RuleLists.push(make_shared<TypeRuleList>());
 	}
 	typerules
 	'}'
@@ -316,7 +315,7 @@ object:
 	}
 object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	{
-		ConfigItemBuilder::Ptr item = boost::make_shared<ConfigItemBuilder>(yylloc);
+		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(yylloc);
 
 		item->SetType($3);
 
@@ -442,7 +441,7 @@ expression: identifier operator value
 		free($3);
 		delete $6;
 
-		ExpressionList::Ptr subexprl = boost::make_shared<ExpressionList>();
+		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
 		$$ = new Expression($1, OperatorPlus, subexprl, yylloc);
@@ -485,7 +484,7 @@ array_items_inner: /* empty */
 
 		if ($1->IsObjectType<ExpressionList>()) {
 			ExpressionList::Ptr exprl = *$1;
-			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			Dictionary::Ptr dict = make_shared<Dictionary>();
 			exprl->Execute(dict);
 			delete $1;
 			$1 = new Value(dict);
@@ -503,7 +502,7 @@ array_items_inner: /* empty */
 
 		if ($3->IsObjectType<ExpressionList>()) {
 			ExpressionList::Ptr exprl = *$3;
-			Dictionary::Ptr dict = boost::make_shared<Dictionary>();
+			Dictionary::Ptr dict = make_shared<Dictionary>();
 			exprl->Execute(dict);
 			delete $3;
 			$3 = new Value(dict);
@@ -544,63 +543,63 @@ aterm: '(' aexpression ')'
 
 aexpression: T_STRING
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEReturn, AValue(ATVariable, $1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1)));
 		free($1);
 	}
 	| aexpression '+' aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '-' aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '*' aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '/' aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '&' aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '|' aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_SHIFT_LEFT aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_SHIFT_RIGHT aexpression
 	{
-		$$ = new Value(boost::make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
 		delete $1;
 		delete $3;
 	}

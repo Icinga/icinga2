@@ -44,7 +44,7 @@ void CheckerComponent::Start(void)
 
 	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
-	m_ResultTimer = boost::make_shared<Timer>();
+	m_ResultTimer = make_shared<Timer>();
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();

@@ -24,7 +24,6 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/debug.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -36,8 +35,8 @@ using namespace icinga;
 
 Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
 {
-	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
-	Dictionary::Ptr service_attr = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attr = make_shared<Dictionary>();
+	Dictionary::Ptr service_attr = make_shared<Dictionary>();
 
 	ASSERT(host->OwnsLock());
 
@@ -166,7 +165,7 @@ Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
 
 Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type)
 {
-	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attr = make_shared<Dictionary>();
 
 	ASSERT(service->OwnsLock());
 
@@ -291,7 +290,7 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 
 Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& service)
 {
-	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attr = make_shared<Dictionary>();
 
 	ASSERT(service->OwnsLock());
 
@@ -418,7 +417,7 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 
 Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& command)
 {
-	Dictionary::Ptr attr = boost::make_shared<Dictionary>();
+	Dictionary::Ptr attr = make_shared<Dictionary>();
 
 	Value commandLine = command->GetCommandLine();
 
@@ -459,7 +458,7 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 		return Dictionary::Ptr();
 	}
 
-	Dictionary::Ptr customvars = boost::make_shared<Dictionary>();
+	Dictionary::Ptr customvars = make_shared<Dictionary>();
 
 	if (!custom)
 		return Dictionary::Ptr();
@@ -528,7 +527,7 @@ Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
 
 	String long_output;
 	String output;
-	Dictionary::Ptr bag = boost::make_shared<Dictionary>();
+	Dictionary::Ptr bag = make_shared<Dictionary>();
 
 	String raw_output = cr->Get("output");
 
@@ -574,7 +573,7 @@ String CompatUtility::EscapeString(const String& str)
 
 Dictionary::Ptr CompatUtility::ConvertTimestamp(double time)
 {
-	Dictionary::Ptr time_bag = boost::make_shared<Dictionary>();
+	Dictionary::Ptr time_bag = make_shared<Dictionary>();
 
 	unsigned long time_sec = static_cast<long>(time);
 	unsigned long time_usec = (time - time_sec) * 1000 * 1000;

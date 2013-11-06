@@ -35,7 +35,6 @@
 #include "base/array.h"
 #include "base/dictionary.h"
 #include <boost/tuple/tuple.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 
@@ -48,31 +47,31 @@ Table::Table(void)
 Table::Ptr Table::GetByName(const String& name, const unsigned long& from, const unsigned long& until)
 {
 	if (name == "status")
-		return boost::make_shared<StatusTable>();
+		return make_shared<StatusTable>();
 	else if (name == "contactgroups")
-		return boost::make_shared<ContactGroupsTable>();
+		return make_shared<ContactGroupsTable>();
 	else if (name == "contacts")
-		return boost::make_shared<ContactsTable>();
+		return make_shared<ContactsTable>();
 	else if (name == "hostgroups")
-		return boost::make_shared<HostGroupsTable>();
+		return make_shared<HostGroupsTable>();
 	else if (name == "hosts")
-		return boost::make_shared<HostsTable>();
+		return make_shared<HostsTable>();
 	else if (name == "servicegroups")
-		return boost::make_shared<ServiceGroupsTable>();
+		return make_shared<ServiceGroupsTable>();
 	else if (name == "services")
-		return boost::make_shared<ServicesTable>();
+		return make_shared<ServicesTable>();
 	else if (name == "commands")
-		return boost::make_shared<CommandsTable>();
+		return make_shared<CommandsTable>();
 	else if (name == "comments")
-		return boost::make_shared<CommentsTable>();
+		return make_shared<CommentsTable>();
 	else if (name == "downtimes")
-		return boost::make_shared<DowntimesTable>();
+		return make_shared<DowntimesTable>();
 	else if (name == "timeperiods")
-		return boost::make_shared<TimePeriodsTable>();
+		return make_shared<TimePeriodsTable>();
 	else if (name == "log")
-		return boost::make_shared<LogTable>(from, until);
+		return make_shared<LogTable>(from, until);
 	else if (name == "statehist")
-		return boost::make_shared<StateHistTable>(from, until);
+		return make_shared<StateHistTable>(from, until);
 
 	return Table::Ptr();
 }
@@ -141,10 +140,10 @@ Value Table::EmptyStringAccessor(const Value&)
 
 Value Table::EmptyArrayAccessor(const Value&)
 {
-	return boost::make_shared<Array>();
+	return make_shared<Array>();
 }
 
 Value Table::EmptyDictionaryAccessor(const Value&)
 {
-	return boost::make_shared<Dictionary>();
+	return make_shared<Dictionary>();
 }

@@ -143,7 +143,7 @@ Array::Ptr Array::ShallowClone(void) const
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	Array::Ptr clone = boost::make_shared<Array>();
+	Array::Ptr clone = make_shared<Array>();
 
 	std::copy(m_Data.begin(), m_Data.end(), std::back_inserter(clone->m_Data));
 
@@ -158,7 +158,7 @@ Array::Ptr Array::ShallowClone(void) const
  */
 Array::Ptr Array::FromJson(cJSON *json)
 {
-	Array::Ptr array = boost::make_shared<Array>();
+	Array::Ptr array = make_shared<Array>();
 
 	ASSERT(json->type == cJSON_Array);
 

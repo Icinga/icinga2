@@ -21,14 +21,13 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/logger_fwd.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <sstream>
 
 using namespace icinga;
 
 BufferedStream::BufferedStream(const Stream::Ptr& innerStream, size_t maxBufferSize)
 	: m_InnerStream(innerStream), m_Stopped(false), m_Eof(false),
-	  m_RecvQ(boost::make_shared<FIFO>()), m_SendQ(boost::make_shared<FIFO>()),
+	  m_RecvQ(make_shared<FIFO>()), m_SendQ(make_shared<FIFO>()),
 	  m_Blocking(true), m_MaxBufferSize(maxBufferSize), m_Exception()
 {
 	m_ReadThread = boost::thread(boost::bind(&BufferedStream::ReadThreadProc, this));

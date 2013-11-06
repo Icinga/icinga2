@@ -1,5 +1,3 @@
-#include <boost/smart_ptr/make_shared.hpp>
-
 namespace icinga
 {
 
@@ -13,7 +11,7 @@ class DynamicObject
 	[config] Array::Ptr authorities;
 	[get_protected] bool active;
 	Dictionary::Ptr authority_info {
-		default {{{ return boost::make_shared<Dictionary>(); }}}
+		default {{{ return make_shared<Dictionary>(); }}}
 	};
 	[protected] Dictionary::Ptr extensions;
 };

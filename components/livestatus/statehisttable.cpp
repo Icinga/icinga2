@@ -135,8 +135,8 @@ StateHistTable::StateHistTable(const unsigned long& from, const unsigned long& u
 			if (m_ServicesCache.find(state_hist_service) == m_ServicesCache.end()) {
 
 				/* create new values */
-				state_hist_service_states = boost::make_shared<Array>();
-				state_hist_bag = boost::make_shared<Dictionary>();
+				state_hist_service_states = make_shared<Array>();
+				state_hist_bag = make_shared<Dictionary>();
 
 				state_hist_bag->Set("host_name", state_hist_service->GetHost()->GetName());
 				state_hist_bag->Set("service_description", state_hist_service->GetShortName());
@@ -195,7 +195,7 @@ StateHistTable::StateHistTable(const unsigned long& from, const unsigned long& u
 							state_hist_bag->Set("until", time); /* add until record for duration calculation */
 
 							/* 2. add new state_hist_bag */
-							Dictionary::Ptr state_hist_bag_new = boost::make_shared<Dictionary>();
+							Dictionary::Ptr state_hist_bag_new = make_shared<Dictionary>();
 
 							state_hist_bag_new->Set("host_name", state_hist_bag->Get("host_name"));
 							state_hist_bag_new->Set("service_description", state_hist_bag->Get("service_description"));
@@ -704,7 +704,7 @@ Dictionary::Ptr StateHistTable::GetStateHistAttributes(const String& type, const
 	else
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr bag = boost::make_shared<Dictionary>();
+	Dictionary::Ptr bag = make_shared<Dictionary>();
 
 	bag->Set("log_class", log_class); /* 0 is the default if not populated */
 	bag->Set("log_type", log_type);

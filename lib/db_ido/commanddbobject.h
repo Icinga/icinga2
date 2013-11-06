@@ -36,7 +36,7 @@ class CommandDbObject : public DbObject
 public:
 	DECLARE_PTR_TYPEDEFS(CommandDbObject);
 
-	CommandDbObject(const boost::shared_ptr<DbType>& type, const String& name1, const String& name2);
+	CommandDbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2);
 
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;

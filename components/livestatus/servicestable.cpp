@@ -1033,7 +1033,7 @@ Value ServicesTable::ContactsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Array::Ptr contact_names = boost::make_shared<Array>();
+	Array::Ptr contact_names = make_shared<Array>();
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetServiceNotificationUsers(service)) {
 		contact_names->Add(user->GetName());
@@ -1051,7 +1051,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = service->GetDowntimes();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(downtimes);
 
@@ -1080,7 +1080,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = service->GetDowntimes();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(downtimes);
 
@@ -1094,7 +1094,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
-		Array::Ptr downtime_info = boost::make_shared<Array>();
+		Array::Ptr downtime_info = make_shared<Array>();
 		downtime_info->Add(downtime->Get("legacy_id"));
 		downtime_info->Add(downtime->Get("author"));
 		downtime_info->Add(downtime->Get("comment"));
@@ -1113,7 +1113,7 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 
 	Dictionary::Ptr comments = service->GetComments();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(comments);
 
@@ -1142,7 +1142,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = service->GetComments();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(comments);
 
@@ -1156,7 +1156,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 		if (Service::IsCommentExpired(comment))
 			continue;
 
-		Array::Ptr comment_info = boost::make_shared<Array>();
+		Array::Ptr comment_info = make_shared<Array>();
 		comment_info->Add(comment->Get("legacy_id"));
 		comment_info->Add(comment->Get("author"));
 		comment_info->Add(comment->Get("text"));
@@ -1175,7 +1175,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = service->GetComments();
 
-	Array::Ptr ids = boost::make_shared<Array>();
+	Array::Ptr ids = make_shared<Array>();
 
 	ObjectLock olock(comments);
 
@@ -1189,7 +1189,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 		if (Service::IsCommentExpired(comment))
 			continue;
 
-		Array::Ptr comment_info = boost::make_shared<Array>();
+		Array::Ptr comment_info = make_shared<Array>();
 		comment_info->Add(comment->Get("legacy_id"));
 		comment_info->Add(comment->Get("author"));
 		comment_info->Add(comment->Get("text"));
@@ -1218,7 +1218,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	if (!customvars)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
@@ -1246,7 +1246,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 	if (!customvars)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
@@ -1274,12 +1274,12 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	if (!customvars)
 		return Empty;
 
-	Array::Ptr cv = boost::make_shared<Array>();
+	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), customvars) {
-		Array::Ptr key_val = boost::make_shared<Array>();
+		Array::Ptr key_val = make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
 		cv->Add(key_val);
@@ -1310,7 +1310,7 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Array::Ptr contactgroup_names = boost::make_shared<Array>();
+	Array::Ptr contactgroup_names = make_shared<Array>();
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetServiceNotificationUserGroups(service)) {
 		contactgroup_names->Add(usergroup->GetName());

@@ -35,7 +35,6 @@
 #include "base/logger_fwd.h"
 #include "base/application.h"
 #include "base/objectlock.h"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
@@ -555,7 +554,7 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 	} else
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr bag = boost::make_shared<Dictionary>();
+	Dictionary::Ptr bag = make_shared<Dictionary>();
 
 	bag->Set("class", log_class); /* 0 is the default if not populated */
 	bag->Set("comment", comment);

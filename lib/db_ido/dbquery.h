@@ -64,7 +64,7 @@ struct I2_DB_IDO_API DbQuery
 	String IdColumn;
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
-	boost::shared_ptr<DbObject> Object;
+	shared_ptr<DbObject> Object;
 	bool ConfigUpdate;
 	bool StatusUpdate;
 

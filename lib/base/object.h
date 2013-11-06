@@ -33,11 +33,14 @@
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/weak_ptr.hpp>
 #include <boost/smart_ptr/enable_shared_from_this.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
+using boost::enable_shared_from_this;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
+using boost::make_shared;
 
 namespace icinga
 {
@@ -56,7 +59,7 @@ class Type;
  *
  * @ingroup base
  */
-class I2_BASE_API Object : public boost::enable_shared_from_this<Object>
+class I2_BASE_API Object : public enable_shared_from_this<Object>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
