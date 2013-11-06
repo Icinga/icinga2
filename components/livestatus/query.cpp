@@ -192,10 +192,13 @@ Query::Query(const std::vector<String>& lines)
 			unsigned int num = Convert::ToLong(params);
 			CombinerFilter::Ptr filter;
 
-			if (header == "Or" || header == "StatsOr")
+			if (header == "Or" || header == "StatsOr") {
 				filter = boost::make_shared<OrFilter>();
-			else
+				Log(LogDebug, "livestatus", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+			} else {
 				filter = boost::make_shared<AndFilter>();
+				Log(LogDebug, "livestatus", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+			}
 
 			if (num > deq.size()) {
 				m_Verb = "ERROR";
@@ -204,8 +207,9 @@ Query::Query(const std::vector<String>& lines)
 				return;
 			}
 
-			while (num-- && num > 0) {
+			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
+				Log(LogDebug, "livestatus", "Add " +  Convert::ToString(num) + " filter.");
 				deq.pop_back();
 			}
 
@@ -278,7 +282,7 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 		tokens.push_back(temp_buffer.SubStr(0, sp_index));
 		temp_buffer = temp_buffer.SubStr(sp_index + 1);
 	}
-	
+
 	/* add the rest as value */
 	tokens.push_back(temp_buffer);
 
@@ -320,7 +324,7 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 			from = Convert::ToLong(val);
 		}
 	}
-	
+
 	Log(LogDebug, "livestatus", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
 
 	return filter;
@@ -485,6 +489,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 	String sLength = Convert::ToString(static_cast<long>(data.GetLength()));
 
 	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
+
 	stream->Write(header.CStr(), header.GetLength());
 }
 
