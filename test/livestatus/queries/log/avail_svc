@@ -1,0 +1,13 @@
+GET log
+Columns: time type message class
+Filter: type = HOST DOWNTIME ALERT
+Filter: type = SERVICE ALERT
+Filter: state_type = HARD
+Filter: type = INITIAL SERVICE STATE
+Filter: state_type = HARD
+Filter: type = CURRENT SERVICE STATE
+Filter: state_type = HARD
+Filter: type = SERVICE DOWNTIME ALERT
+Or: 8
+ResponseHeader: fixed16
+

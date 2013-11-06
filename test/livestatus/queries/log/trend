@@ -1,0 +1,26 @@
+GET log
+Columns: time type message
+Filter: host_name = localhost
+Filter: type = HOST ALERT
+Filter: state_type = HARD
+Filter: type = INITIAL HOST STATE
+Filter: state_type = HARD
+Filter: type = CURRENT HOST STATE
+Filter: state_type = HARD
+Filter: type = HOST DOWNTIME ALERT
+Or: 7
+And: 2
+Filter: host_name = localhost
+Filter: type = SERVICE ALERT
+Filter: state_type = HARD
+Filter: type = INITIAL SERVICE STATE
+Filter: state_type = HARD
+Filter: type = CURRENT SERVICE STATE
+Filter: state_type = HARD
+Filter: type = SERVICE DOWNTIME ALERT
+Or: 7
+And: 2
+Filter: class = 2
+Or: 3
+ResponseHeader: fixed16
+

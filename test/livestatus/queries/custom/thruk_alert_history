@@ -1,0 +1,19 @@
+GET log
+Columns: class time type state host_name service_description plugin_output message options state_type contact_name
+Filter: time >= 1383692400
+Filter: time <= 1383778800
+Filter: type = SERVICE ALERT
+And: 1
+Filter: type = HOST ALERT
+And: 1
+Filter: type = SERVICE FLAPPING ALERT
+Filter: type = HOST FLAPPING ALERT
+Filter: type = SERVICE DOWNTIME ALERT
+Filter: type = HOST DOWNTIME ALERT
+Filter: message ~ starting\.\.\.
+Filter: message ~ shutting\ down\.\.\.
+Or: 8
+And: 3
+OutputFormat: json
+ResponseHeader: fixed16
+

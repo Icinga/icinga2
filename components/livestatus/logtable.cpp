@@ -55,7 +55,7 @@ LogTable::LogTable(const unsigned long& from, const unsigned long& until)
 	/* store from & until for FetchRows */
 	m_TimeFrom = from;
 	m_TimeUntil = until;
-	
+
 	/* create log file index - TODO config option */
 	CreateLogIndex(Application::GetLocalStateDir() + "/log/icinga2/compat");
 
@@ -96,6 +96,9 @@ LogTable::LogTable(const unsigned long& from, const unsigned long& until)
 			options.Trim();
 
 			Dictionary::Ptr bag = GetLogEntryAttributes(type, options);
+
+			if (!bag)
+				continue;
 
 			bag->Set("time", time);
 			bag->Set("lineno", lineno);
@@ -549,7 +552,8 @@ Dictionary::Ptr LogTable::GetLogEntryAttributes(const String& type, const String
 		 boost::algorithm::contains(type, "active mode...") ||
 		 boost::algorithm::contains(type, "standby mode...")) {
 		log_class = LogClassProgram;
-	}
+	} else
+		return Dictionary::Ptr();
 
 	Dictionary::Ptr bag = boost::make_shared<Dictionary>();
 

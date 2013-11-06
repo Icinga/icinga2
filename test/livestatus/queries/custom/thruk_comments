@@ -1,0 +1,7 @@
+GET comments
+Columns: author comment entry_time entry_type expires expire_time host_name id persistent service_description source type
+Filter: host_name = localhost
+Filter: service_description = processes
+OutputFormat: json
+ResponseHeader: fixed16
+
