@@ -30,6 +30,7 @@
 #include "livestatus/downtimestable.h"
 #include "livestatus/timeperiodstable.h"
 #include "livestatus/logtable.h"
+#include "livestatus/statehisttable.h"
 #include "livestatus/filter.h"
 #include "base/array.h"
 #include "base/dictionary.h"
@@ -70,6 +71,8 @@ Table::Ptr Table::GetByName(const String& name, const unsigned long& from, const
 		return boost::make_shared<TimePeriodsTable>();
 	else if (name == "log")
 		return boost::make_shared<LogTable>(from, until);
+	else if (name == "statehist")
+		return boost::make_shared<StateHistTable>(from, until);
 
 	return Table::Ptr();
 }

@@ -1,0 +1,6 @@
+GET statehist
+Columns: host_name service_description state duration duration_part in_downtime in_host_downtime in_notification_period is_flapping
+Filter: service_description = disk
+Filter: time >= 1348657741
+ResponseHeader: fixed16
+

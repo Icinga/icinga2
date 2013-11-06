@@ -1,0 +1,9 @@
+GET statehist
+Columns: host_name service_description state duration duration_part
+Filter: host_name = localhost
+Filter: service_description = disk
+Filter: time >= 1348657741
+Stats: sum duration
+Stats: sum duration_part
+ResponseHeader: fixed16
+
