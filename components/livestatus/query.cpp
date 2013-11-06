@@ -477,8 +477,16 @@ void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data
 	if (m_ResponseHeader == "fixed16")
 		PrintFixed16(stream, code, data);
 
-	if (m_ResponseHeader == "fixed16" || code == LivestatusErrorOK)
-		stream->Write(data.CStr(), data.GetLength());
+	if (m_ResponseHeader == "fixed16" || code == LivestatusErrorOK) {
+		try {
+			stream->Write(data.CStr(), data.GetLength());
+		} catch (const std::exception& ex) {
+			std::ostringstream info;
+			info << "Exception thrown while writing to the livestatus socket: " << std::endl
+			     << boost::diagnostic_information(ex);
+			Log(LogCritical, "livestatus", info.str());
+		}
+	}
 }
 
 void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data)
@@ -490,7 +498,14 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 
 	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
 
-	stream->Write(header.CStr(), header.GetLength());
+	try {
+		stream->Write(header.CStr(), header.GetLength());
+	} catch (const std::exception& ex) {
+		std::ostringstream info;
+		info << "Exception thrown while writing to the livestatus socket: " << std::endl
+		     << boost::diagnostic_information(ex);
+		Log(LogCritical, "livestatus", info.str());
+	}
 }
 
 bool Query::Execute(const Stream::Ptr& stream)
