@@ -56,15 +56,12 @@ void NotificationComponent::NotificationTimerHandler(void)
 	double now = Utility::GetTime();
 
 	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
-		if (notification->GetNotificationInterval() <= 0)
+		Service::Ptr service = notification->GetService();
+
+		if (notification->GetNotificationInterval() <= 0 && notification->GetLastProblemNotification() < service->GetLastHardStateChange())
 			continue;
 
 		if (notification->GetNextNotification() > now)
-			continue;
-
-		Service::Ptr service = notification->GetService();
-
-		if (!service)
 			continue;
 
 		bool reachable = service->IsReachable();
@@ -107,5 +104,5 @@ void NotificationComponent::NotificationTimerHandler(void)
 void NotificationComponent::SendNotificationsHandler(const Service::Ptr& service, NotificationType type,
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	service->SendNotifications(static_cast<NotificationType>(type), cr, author, text);
+	service->SendNotifications(type, cr, author, text);
 }

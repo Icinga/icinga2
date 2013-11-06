@@ -217,7 +217,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	{
 		ObjectLock olock(this);
 
-		SetLastNotification(Utility::GetTime());
+		double now = Utility::GetTime();
+		SetLastNotification(now);
+
+		if (type == NotificationProblem)
+			SetLastProblemNotification(now);
 	}
 
 	std::set<User::Ptr> allUsers;
