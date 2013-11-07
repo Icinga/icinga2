@@ -1,0 +1,17 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class PerfdataValue
+{
+	[state] double Value;
+	[state] bool Counter;
+	[state] String Unit;
+	[state] Value Crit;
+	[state] Value Warn;
+	[state] Value Min;
+	[state] Value Max;
+};
+
+}

@@ -41,6 +41,9 @@ public:
 	static ServiceState ExitStatusToState(int exitStatus);
 	static Dictionary::Ptr ParseCheckOutput(const String& output);
 
+	static Value ParsePerfdata(const String& perfdata);
+	static String FormatPerfdata(const Value& perfdata);
+
 private:
 	PluginUtility(void);
 };

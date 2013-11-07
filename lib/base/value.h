@@ -73,6 +73,21 @@ public:
 	operator double(void) const;
 	operator String(void) const;
 
+	bool operator==(int rhs);
+	bool operator!=(int rhs);
+
+	bool operator==(double rhs);
+	bool operator!=(double rhs);
+
+	bool operator==(const char *rhs);
+	bool operator!=(const char *rhs);
+
+	bool operator==(const String& rhs);
+	bool operator!=(const String& rhs);
+
+	bool operator==(const Value& rhs);
+	bool operator!=(const Value& rhs);
+
 	template<typename T>
 	operator shared_ptr<T>(void) const
 	{
@@ -116,6 +131,9 @@ static Value Empty;
 
 I2_BASE_API Value operator+(const Value& lhs, const char *rhs);
 I2_BASE_API Value operator+(const char *lhs, const Value& rhs);
+
+I2_BASE_API Value operator+(const Value& lhs, const String& rhs);
+I2_BASE_API Value operator+(const String& lhs, const Value& rhs);
 
 I2_BASE_API std::ostream& operator<<(std::ostream& stream, const Value& value);
 I2_BASE_API std::istream& operator>>(std::istream& stream, Value& value);

@@ -21,6 +21,7 @@
 #include "icinga/service.h"
 #include "icinga/hostgroup.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/pluginutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -619,7 +620,7 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 			*result = hccr->Get("output");
 			return true;
 		} else if (macro == "HOSTPERFDATA") {
-			*result = hccr->Get("performance_data_raw");
+			*result = PluginUtility::FormatPerfdata(hccr->Get("performance_data"));
 			return true;
 		} else if (macro == "LASTHOSTCHECK") {
 			*result = Convert::ToString((long)hccr->Get("schedule_start"));

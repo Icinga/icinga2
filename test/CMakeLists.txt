@@ -18,8 +18,11 @@
 include(BoostTestTargets)
 
 add_boost_test(base
-  SOURCES base-array.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp base-match.cpp base-netstring.cpp base-object.cpp base-shellescape.cpp base-stacktrace.cpp base-string.cpp base-timer.cpp base-value.cpp test.cpp
-  LIBRARIES base
+  SOURCES base-array.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp
+          base-match.cpp base-netstring.cpp base-object.cpp base-shellescape.cpp
+          base-stacktrace.cpp base-string.cpp base-timer.cpp base-value.cpp
+          icinga-perfdata.cpp test.cpp
+  LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
         base_array/remove
@@ -62,5 +65,11 @@ add_boost_test(base
         base_value/scalar
         base_value/convert
         base_value/format
+	icinga_perfdata/simple
+	icinga_perfdata/multiple
+	icinga_perfdata/uom
+	icinga_perfdata/warncrit
+	icinga_perfdata/minmax
+	icinga_perfdata/invalid
 )
 

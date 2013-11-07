@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/qstring.h"
+#include "base/value.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/compare.hpp>
@@ -86,6 +87,12 @@ String& String::operator+=(const char *rhs)
 	return *this;
 }
 
+String& String::operator+=(const Value& rhs)
+{
+	m_Data += static_cast<String>(rhs);
+	return *this;
+}
+
 String& String::operator+=(char rhs)
 {
 	m_Data += rhs;
@@ -140,6 +147,16 @@ size_t String::FindFirstOf(const char *s, size_t pos) const
 size_t String::FindFirstOf(char ch, size_t pos) const
 {
 	return m_Data.find_first_of(ch, pos);
+}
+
+size_t String::FindFirstNotOf(const char *s, size_t pos) const
+{
+	return m_Data.find_first_not_of(s, pos);
+}
+
+size_t String::FindFirstNotOf(char ch, size_t pos) const
+{
+	return m_Data.find_first_not_of(ch, pos);
 }
 
 String String::SubStr(size_t first, size_t len) const

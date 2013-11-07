@@ -28,6 +28,8 @@
 
 namespace icinga {
 
+class Value;
+
 /**
  * String class.
  *
@@ -64,6 +66,7 @@ public:
 
 	String& operator+=(const String& rhs);
 	String& operator+=(const char *rhs);
+	String& operator+=(const Value& rhs);
 	String& operator+=(char rhs);
 
 	bool IsEmpty(void) const;
@@ -81,6 +84,8 @@ public:
 	size_t Find(const String& str, size_t pos = 0) const;
 	size_t FindFirstOf(const char *s, size_t pos = 0) const;
 	size_t FindFirstOf(char ch, size_t pos = 0) const;
+	size_t FindFirstNotOf(const char *s, size_t pos = 0) const;
+	size_t FindFirstNotOf(char ch, size_t pos = 0) const;
 	String SubStr(size_t first, size_t len = NPos) const;
 	void Replace(size_t first, size_t second, const String& str);
 

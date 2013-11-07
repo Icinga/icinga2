@@ -21,6 +21,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/perfdatavalue.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/scriptfunction.h"
@@ -75,7 +76,61 @@ Dictionary::Ptr PluginUtility::ParseCheckOutput(const String& output)
 	}
 
 	result->Set("output", text);
-	result->Set("performance_data_raw", perfdata);
+	result->Set("performance_data", ParsePerfdata(perfdata));
 
 	return result;
+}
+
+Value PluginUtility::ParsePerfdata(const String& perfdata)
+{
+	try {
+		Dictionary::Ptr result = make_shared<Dictionary>();
+	
+		size_t begin = 0;
+		
+		for (;;) {
+			size_t eqp = perfdata.FindFirstOf('=', begin);
+
+			if (eqp == String::NPos)
+				break;
+
+			String key = perfdata.SubStr(begin, eqp - begin);
+
+			size_t spq = perfdata.FindFirstOf(' ', eqp);
+
+			if (spq == String::NPos)
+				spq = perfdata.GetLength();
+
+			String value = perfdata.SubStr(eqp + 1, spq - eqp - 1);
+
+			result->Set(key, PerfdataValue::Parse(value));
+
+			begin = spq + 1;
+		}
+
+		return result;
+	} catch (const std::exception&) {
+		return perfdata;
+	}
+}
+
+String PluginUtility::FormatPerfdata(const Value& perfdata)
+{
+	String output;
+
+	if (!perfdata.IsObjectType<Dictionary>())
+		return perfdata;
+
+	Dictionary::Ptr dict = perfdata;
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), dict) {
+		if (!output.IsEmpty())
+			output += " ";
+
+		output += key + "=" + PerfdataValue::Format(value);
+	}
+
+	return output;
 }

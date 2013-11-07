@@ -17,13 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/convert.h"
 #include "icinga/compatutility.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
+#include "icinga/pluginutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/debug.h"
+#include "base/convert.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -556,12 +557,10 @@ Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
 String CompatUtility::GetCheckResultPerfdata(const Dictionary::Ptr& cr)
 {
 	if (!cr)
-		return Empty;
+		return String();
 
-	String perfdata = EscapeString(cr->Get("performance_data_raw"));
-	perfdata.Trim();
-
-	return perfdata;
+	Dictionary::Ptr perfdata = cr->Get("performance_data");
+	return PluginUtility::FormatPerfdata(perfdata);
 }
 
 String CompatUtility::EscapeString(const String& str)
