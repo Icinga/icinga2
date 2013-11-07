@@ -142,6 +142,16 @@ size_t String::FindFirstOf(char ch, size_t pos) const
 	return m_Data.find_first_of(ch, pos);
 }
 
+size_t String::FindFirstNotOf(const char *s, size_t pos) const
+{
+	return m_Data.find_first_not_of(s, pos);
+}
+
+size_t String::FindFirstNotOf(char ch, size_t pos) const
+{
+	return m_Data.find_first_not_of(ch, pos);
+}
+
 String String::SubStr(size_t first, size_t len) const
 {
 	return m_Data.substr(first, len);
