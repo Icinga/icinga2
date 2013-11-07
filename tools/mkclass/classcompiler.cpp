@@ -349,7 +349,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 					  << "\t" << "{" << std::endl;
 
 			if (it->DefaultAccessor.empty())
-				std::cout << "\t\t" << "return Empty;" << std::endl;
+				std::cout << "\t\t" << "return " << it->Type << "();" << std::endl;
 			else
 				std::cout << it->DefaultAccessor << std::endl;
 
