@@ -428,8 +428,9 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		}
 	} else {
 		std::vector<double> stats(m_Aggregators.size(), 0);
-
 		int index = 0;
+
+		/* add aggregated stats */
 		BOOST_FOREACH(const Aggregator::Ptr aggregator, m_Aggregators) {
 			BOOST_FOREACH(const Value& object, objects) {
 				aggregator->Apply(table, object);
@@ -440,6 +441,17 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		}
 
 		Array::Ptr row = make_shared<Array>();
+
+		/*
+		 * add columns selected next to stats
+		 * may not be accurate for grouping!
+		 */
+		BOOST_FOREACH(const String& columnName, columns) {
+			Column column = table->GetColumn(columnName);
+
+			row->Add(column.ExtractValue(objects[0])); // first object wins
+		}
+
 		for (size_t i = 0; i < m_Aggregators.size(); i++)
 			row->Add(stats[i]);
 
