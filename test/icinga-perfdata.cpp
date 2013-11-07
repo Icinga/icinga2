@@ -62,9 +62,9 @@ BOOST_AUTO_TEST_CASE(uom)
 	BOOST_CHECK(str == "test=123456b");
 }
 
-BOOST_AUTO_TEST_CASE(warncrit)
+BOOST_AUTO_TEST_CASE(warncritminmax)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456b;1000;2000");
+	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456b;1000;2000;3000;4000");
 
 	PerfdataValue::Ptr pv = pd->Get("test");
 	BOOST_CHECK(pv);
@@ -74,11 +74,11 @@ BOOST_AUTO_TEST_CASE(warncrit)
 	BOOST_CHECK(pv->GetUnit() == "bytes");
 	BOOST_CHECK(pv->GetWarn() == 1000);
 	BOOST_CHECK(pv->GetCrit() == 2000);
-	BOOST_CHECK(pv->GetMin() == Empty);
-	BOOST_CHECK(pv->GetMax() == Empty);
+	BOOST_CHECK(pv->GetMin() == 3000);
+	BOOST_CHECK(pv->GetMax() == 4000);
 
 	String str = PluginUtility::FormatPerfdata(pd);
-	BOOST_CHECK(str == "test=123456b;1000;2000");
+	BOOST_CHECK(str == "test=123456b;1000;2000;3000;4000");
 }
 
 BOOST_AUTO_TEST_CASE(invalid)
