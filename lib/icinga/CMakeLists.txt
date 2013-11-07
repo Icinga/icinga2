@@ -24,6 +24,7 @@ mkclass_target(host.ti host.th)
 mkclass_target(icingaapplication.ti icingaapplication.th)
 mkclass_target(notificationcommand.ti notificationcommand.th)
 mkclass_target(notification.ti notification.th)
+mkclass_target(perfdatavalue.ti perfdatavalue.th)
 mkclass_target(servicegroup.ti servicegroup.th)
 mkclass_target(service.ti service.th)
 mkclass_target(timeperiod.ti timeperiod.th)
@@ -38,11 +39,11 @@ add_library(icinga SHARED
   externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
   icingaapplication.cpp icingaapplication.th macroprocessor.cpp
   macroresolver.cpp notificationcommand.cpp notificationcommand.th
-  notification.cpp notification.th pluginutility.cpp service-check.cpp
-  service-comment.cpp service.cpp service-downtime.cpp service-event.cpp
-  service-flapping.cpp service.th servicegroup.cpp servicegroup.th
-  service-notification.cpp timeperiod.cpp timeperiod.th user.cpp user.th
-  usergroup.cpp usergroup.th icinga-type.cpp
+  notification.cpp notification.th perfdatavalue.cpp perfdatavalue.th
+  pluginutility.cpp service-check.cpp service-comment.cpp service.cpp
+  service-downtime.cpp service-event.cpp service-flapping.cpp service.th
+  servicegroup.cpp servicegroup.th service-notification.cpp timeperiod.cpp
+  timeperiod.th user.cpp user.th usergroup.cpp usergroup.th icinga-type.cpp
 )
 
 target_link_libraries(icinga ${Boost_LIBRARIES} base config)
