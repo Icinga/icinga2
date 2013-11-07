@@ -66,7 +66,7 @@ class LogTable : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(LogTable);
 
-	LogTable(const unsigned long& from, const unsigned long& until);
+	LogTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());

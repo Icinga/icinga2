@@ -26,6 +26,9 @@ class livestatus::LivestatusListener : DynamicObject {
 	[config] String bind_port {
 		default {{{ return "6558"; }}}
 	};
+	[config] String compat_log_path {
+		default {{{ return Application::GetLocalStateDir() + "/log/icinga2/compat"; }}}
+	};
 };
 
 }

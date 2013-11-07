@@ -47,7 +47,7 @@ using namespace livestatus;
 static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
 
-Query::Query(const std::vector<String>& lines)
+Query::Query(const std::vector<String>& lines, const String& log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1),
 	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
@@ -63,6 +63,8 @@ Query::Query(const std::vector<String>& lines)
 		msg += line + "\n";
 	}
 	Log(LogDebug, "livestatus", msg);
+
+	m_CompatLogPath = log_path;
 
 	/* default separators */
 	m_Separators.push_back("\n");
@@ -394,7 +396,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 {
 	Log(LogInformation, "livestatus", "Table: " + m_Table);
 
-	Table::Ptr table = Table::GetByName(m_Table, m_LogTimeFrom, m_LogTimeUntil);
+	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
 	if (!table) {
 		SendResponse(stream, LivestatusErrorNotFound, "Table '" + m_Table + "' does not exist.");

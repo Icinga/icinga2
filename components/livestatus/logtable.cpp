@@ -47,7 +47,7 @@
 using namespace icinga;
 using namespace livestatus;
 
-LogTable::LogTable(const unsigned long& from, const unsigned long& until)
+LogTable::LogTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until)
 {
 	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(from) + " until " + Convert::ToString(until));
 
@@ -55,8 +55,8 @@ LogTable::LogTable(const unsigned long& from, const unsigned long& until)
 	m_TimeFrom = from;
 	m_TimeUntil = until;
 
-	/* create log file index - TODO config option */
-	CreateLogIndex(Application::GetLocalStateDir() + "/log/icinga2/compat");
+	/* create log file index */
+	CreateLogIndex(compat_log_path);
 
 	/* m_LogFileIndex map tells which log files are involved ordered by their start timestamp */
 	unsigned long ts;

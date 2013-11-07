@@ -44,7 +44,7 @@ using namespace livestatus;
 Table::Table(void)
 { }
 
-Table::Ptr Table::GetByName(const String& name, const unsigned long& from, const unsigned long& until)
+Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, const unsigned long& from, const unsigned long& until)
 {
 	if (name == "status")
 		return make_shared<StatusTable>();
@@ -69,9 +69,9 @@ Table::Ptr Table::GetByName(const String& name, const unsigned long& from, const
 	else if (name == "timeperiods")
 		return make_shared<TimePeriodsTable>();
 	else if (name == "log")
-		return make_shared<LogTable>(from, until);
+		return make_shared<LogTable>(compat_log_path, from, until);
 	else if (name == "statehist")
-		return make_shared<StateHistTable>(from, until);
+		return make_shared<StateHistTable>(compat_log_path, from, until);
 
 	return Table::Ptr();
 }

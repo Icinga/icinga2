@@ -67,7 +67,7 @@ class StateHistTable : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(StateHistTable);
 
-	StateHistTable(const unsigned long& from, const unsigned long& until);
+	StateHistTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
