@@ -39,11 +39,13 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 
 	String output = "Hello from ";
 	output += name;
-	String perfdata = "time=" + Convert::ToString(static_cast<double>(Utility::GetTime()));
+
+	Dictionary::Ptr perfdata = make_shared<Dictionary>();
+	perfdata->Set("time", Utility::GetTime());
 
 	Dictionary::Ptr cr = make_shared<Dictionary>();
 	cr->Set("output", output);
-	cr->Set("performance_data_raw", perfdata);
+	cr->Set("performance_data", perfdata);
 	cr->Set("state", StateOK);
 
 	return cr;

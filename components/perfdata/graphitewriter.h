@@ -50,10 +50,9 @@ private:
         Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
-        static void AddServiceMetric(std::vector<String>& metrics, const Service::Ptr& service, const String& name, const Value& value);
-        void SendMetrics(const std::vector<String>& metrics);
+        void SendMetric(const Service::Ptr& service, const String& name, double value);
         static void SanitizeMetric(String& str);
-        
+
         void ReconnectTimerHandler(void);
 };
 

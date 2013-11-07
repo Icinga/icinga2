@@ -22,6 +22,7 @@
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/compatutility.h"
+#include "icinga/perfdatavalue.h"
 #include "base/tcpsocket.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -82,122 +83,36 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;
 
-	Host::Ptr host = service->GetHost();
+	/* basic metrics */
+	SendMetric(service, "current_attempt", service->GetCheckAttempt());
+	SendMetric(service, "max_check_attempts", service->GetMaxCheckAttempts());
+	SendMetric(service, "state_type", service->GetStateType());
+	SendMetric(service, "state", service->GetState());
+	SendMetric(service, "latency", Service::CalculateLatency(cr));
+	SendMetric(service, "execution_time", Service::CalculateExecutionTime(cr));
 
-	if (!host)
+	Value pdv = cr->Get("performance_data");
+
+	if (!pdv.IsObjectType<Dictionary>())
 		return;
 
-	/* service metrics */
-	std::vector<String> metrics;
-	String metricName;
-	Value metricValue;
+	Dictionary::Ptr perfdata = pdv;
 
-	/* basic metrics */
-	AddServiceMetric(metrics, service, "current_attempt", service->GetCheckAttempt());
-	AddServiceMetric(metrics, service, "max_check_attempts", service->GetMaxCheckAttempts());
-	AddServiceMetric(metrics, service, "state_type", service->GetStateType());
-	AddServiceMetric(metrics, service, "state", service->GetState());
-	AddServiceMetric(metrics, service, "latency", Service::CalculateLatency(cr));
-	AddServiceMetric(metrics, service, "execution_time", Service::CalculateExecutionTime(cr));
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), perfdata) {
+		double valueNum;
 
-	/* performance data metrics */
-	String perfdata = CompatUtility::GetCheckResultPerfdata(cr);
+		if (!value.IsObjectType<PerfdataValue>())
+			valueNum = value;
+		else
+			valueNum = static_cast<PerfdataValue::Ptr>(value)->GetValue();
 
-	if (!perfdata.IsEmpty()) {
-		perfdata.Trim();
-
-		Log(LogDebug, "perfdata", "GraphiteWriter: Processing perfdata: '" + perfdata + "'.");
-
-		/*
-		 * 'foo bar'=0;;; baz=0.0;;;
-		 * 'label'=value[UOM];[warn];[crit];[min];[max]
-		*/
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, perfdata, boost::is_any_of(" "));
-
-		/* TODO deal with white spaces in single quoted labels: 'foo bar'=0;;; 'baz'=1.0;;;
-		 * 1. find first ', find second ' -> if no '=' in between, this is a label
-		 * 2. two single quotes define an escaped single quite
-		 * 3. warn/crit/min/max may be null and semicolon delimiter omitted
-		 * https://www.nagios-plugins.org/doc/guidelines.html#AEN200
-		 */
-		BOOST_FOREACH(const String& token, tokens) {
-			String metricKeyVal = token;
-			metricKeyVal.Trim();
-
-			std::vector<String> key_val;
-			boost::algorithm::split(key_val, metricKeyVal, boost::is_any_of("="));
-
-			if (key_val.size() == 0) {
-				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data. No assignment operator found in :'" + metricKeyVal + "'.");
-				return;
-			}
-
-			String metricName = key_val[0];
-			metricName.Trim();
-
-			if (key_val.size() == 1) {
-				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + metricKeyVal + "' with key: '" + metricName + "'.");
-				return;
-			}
-
-			String metricValues = key_val[1];
-			metricValues.Trim();
-
-			std::vector<String> perfdata_values;
-			boost::algorithm::split(perfdata_values, metricValues, boost::is_any_of(";"));
-
-			if (perfdata_values.size() == 0) {
-				Log(LogWarning, "perfdata", "GraphiteWriter: Invalid performance data: '" + metricKeyVal +
-				    "' with key: '" + metricName + "' and values: '" + metricValues + "'.");
-				return;
-			}
-
-			String metricValue = perfdata_values[0];
-
-			metricValue.Trim();
-			Log(LogDebug, "perfdata", "GraphiteWriter: Trimmed metric value: '" + metricValue + "'.");
-
-			/* extract raw value (digit number digit as double) and uom
-			 * http://en.highscore.de/cpp/boost/stringhandling.html
-			 */
-			String metricValueRaw = boost::algorithm::trim_right_copy_if(metricValue, (!boost::algorithm::is_digit() && !boost::algorithm::is_any_of(".,")));
-			String metricValueUom = boost::algorithm::trim_left_copy_if(metricValue, (boost::algorithm::is_digit() || boost::algorithm::is_any_of(".,")));
-
-			Log(LogDebug, "perfdata", "GraphiteWriter: Raw metric value: '" + metricValueRaw + "' with UOM: '" + metricValueUom + "'.");
-
-			/* TODO: Normalize raw value based on UOM
-			 * a. empty - assume a number
-			 * b. 's' - seconds (us, ms)
-			 * c. '%' - percentage
-			 * d. 'B' - bytes (KB, MB, GB, TB)
-			 * e. 'c' - continous counter (snmp)
-			 */
-
-			/* //TODO: Figure out how graphite handles warn/crit/min/max
-			String metricValueWarn, metricValueCrit, metricValueMin, metricValueMax;
-
-			if (perfdata_values.size() > 1)
-				metricValueWarn = perfdata_values[1];
-			if (perfdata_values.size() > 2)
-				metricValueCrit = perfdata_values[2];
-			if (perfdata_values.size() > 3)
-				metricValueMin = perfdata_values[3];
-			if (perfdata_values.size() > 4)
-				metricValueMax = perfdata_values[4];
-			*/
-
-			/* sanitize invalid metric characters */
-			SanitizeMetric(metricName);
-
-			AddServiceMetric(metrics, service, metricName, metricValueRaw);
-		}
+		SendMetric(service, key, valueNum);
 	}
-
-	SendMetrics(metrics);
 }
 
-void GraphiteWriter::AddServiceMetric(std::vector<String>& metrics, const Service::Ptr& service, const String& name, const Value& value)
+void GraphiteWriter::SendMetric(const Service::Ptr& service, const String& name, double value)
 {
 	/* TODO: sanitize host and service names */
 	String hostName = service->GetHost()->GetName();
@@ -211,33 +126,22 @@ void GraphiteWriter::AddServiceMetric(std::vector<String>& metrics, const Servic
 
 	String metric = graphitePrefix + "." + metricPrefix + "." + name + " " + Convert::ToString(value) + " " + Convert::ToString(static_cast<long>(Utility::GetTime())) + "\n";
 	Log(LogDebug, "perfdata", "GraphiteWriter: Add to metric list:'" + metric + "'.");
-	metrics.push_back(metric);
-}
 
-void GraphiteWriter::SendMetrics(const std::vector<String>& metrics)
-{
-	BOOST_FOREACH(const String& metric, metrics) {
-		if (metric.IsEmpty())
-			continue;
+	ObjectLock olock(this);
 
-		Log(LogDebug, "perfdata", "GraphiteWriter: Sending metric '" + metric + "'.");
+	if (!m_Stream)
+		return;
 
-		ObjectLock olock(this);
+	try {
+		m_Stream->Write(metric.CStr(), metric.GetLength());
+	} catch (const std::exception& ex) {
+		std::ostringstream msgbuf;
+		msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
+		       << boost::diagnostic_information(ex);
 
-		if (!m_Stream)
-			return;
+		Log(LogCritical, "base", msgbuf.str());
 
-		try {
-			m_Stream->Write(metric.CStr(), metric.GetLength());
-		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
-                               << boost::diagnostic_information(ex);
-
-			Log(LogCritical, "base", msgbuf.str());
-
-			m_Stream.reset();
-		}
+		m_Stream.reset();
 	}
 }
 
@@ -249,4 +153,3 @@ void GraphiteWriter::SanitizeMetric(String& str)
 	boost::replace_all(str, "\\", "_");
 	boost::replace_all(str, "/", "_");
 }
-

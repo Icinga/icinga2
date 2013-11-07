@@ -22,6 +22,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/pluginutility.h"
 #include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -393,7 +394,7 @@ bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 			*result = cr->Get("output");
 			return true;
 		} else if (macro == "SERVICEPERFDATA") {
-			*result = cr->Get("performance_data_raw");
+			*result = PluginUtility::FormatPerfdata(cr->Get("performance_data"));
 			return true;
 		} else if (macro == "LASTSERVICECHECK") {
 			*result = Convert::ToString((long)cr->Get("execution_end"));

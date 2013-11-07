@@ -76,7 +76,7 @@ Dictionary::Ptr PluginUtility::ParseCheckOutput(const String& output)
 	}
 
 	result->Set("output", text);
-	result->Set("performance_data_raw", perfdata);
+	result->Set("performance_data", ParsePerfdata(perfdata));
 
 	return result;
 }
