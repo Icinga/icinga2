@@ -47,7 +47,7 @@ class Query : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Query);
 
-	Query(const std::vector<String>& lines, const String& log_path);
+	Query(const std::vector<String>& lines, const String& compat_log_path);
 
 	bool Execute(const Stream::Ptr& stream);
 

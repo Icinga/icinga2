@@ -47,6 +47,8 @@ protected:
 
 	static Value ConnectionsAccessor(const Value& row);
 	static Value ConnectionsRateAccessor(const Value& row);
+        static Value ServiceChecksAccessor(const Value& row);
+        static Value ServiceChecksRateAccessor(const Value& row);
 	static Value ExternalCommandsAccessor(const Value& row);
 	static Value ExternalCommandsRateAccessor(const Value& row);
 	static Value NagiosPidAccessor(const Value& row);

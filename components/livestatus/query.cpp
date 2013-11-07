@@ -47,7 +47,7 @@ using namespace livestatus;
 static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
 
-Query::Query(const std::vector<String>& lines, const String& log_path)
+Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1),
 	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
@@ -64,7 +64,7 @@ Query::Query(const std::vector<String>& lines, const String& log_path)
 	}
 	Log(LogDebug, "livestatus", msg);
 
-	m_CompatLogPath = log_path;
+	m_CompatLogPath = compat_log_path;
 
 	/* default separators */
 	m_Separators.push_back("\n");

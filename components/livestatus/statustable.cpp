@@ -47,8 +47,8 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "connections", Column(&StatusTable::ConnectionsAccessor, objectAccessor));
 	table->AddColumn(prefix + "connections_rate", Column(&StatusTable::ConnectionsRateAccessor, objectAccessor));
 
-	table->AddColumn(prefix + "service_checks", Column(&Table::ZeroAccessor, objectAccessor));
-	table->AddColumn(prefix + "service_checks_rate", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "service_checks", Column(&StatusTable::ServiceChecksAccessor, objectAccessor));
+	table->AddColumn(prefix + "service_checks_rate", Column(&StatusTable::ServiceChecksRateAccessor, objectAccessor));
 
 	table->AddColumn(prefix + "host_checks", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "host_checks_rate", Column(&Table::ZeroAccessor, objectAccessor));
@@ -120,6 +120,18 @@ Value StatusTable::ConnectionsAccessor(const Value& row)
 Value StatusTable::ConnectionsRateAccessor(const Value& row)
 {
 	return (LivestatusListener::GetConnections() / (Utility::GetTime() - Application::GetStartTime()));
+}
+
+Value StatusTable::ServiceChecksAccessor(const Value& row)
+{
+	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	return CIB::GetActiveChecksStatistics(timespan);
+}
+
+Value StatusTable::ServiceChecksRateAccessor(const Value& row)
+{
+	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	return (CIB::GetActiveChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::ExternalCommandsAccessor(const Value& row)
