@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/qstring.h"
+#include "base/value.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/compare.hpp>
@@ -83,6 +84,12 @@ String& String::operator+=(const String& rhs)
 String& String::operator+=(const char *rhs)
 {
 	m_Data += rhs;
+	return *this;
+}
+
+String& String::operator+=(const Value& rhs)
+{
+	m_Data += static_cast<String>(rhs);
 	return *this;
 }
 

@@ -28,6 +28,8 @@
 
 namespace icinga {
 
+class Value;
+
 /**
  * String class.
  *
@@ -64,6 +66,7 @@ public:
 
 	String& operator+=(const String& rhs);
 	String& operator+=(const char *rhs);
+	String& operator+=(const Value& rhs);
 	String& operator+=(char rhs);
 
 	bool IsEmpty(void) const;
