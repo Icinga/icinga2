@@ -1,0 +1,45 @@
+#!/bin/sh
+# postrm script for icinga2-common
+
+set -e
+
+# shorthand
+en="/etc/icinga2/classicui"
+
+. /usr/share/debconf/confmodule
+
+# Apache2
+disable_apache2() {
+    if [ -e /usr/share/apache2/apache2-maintscript-helper ] ; then
+        echo "disabling Apache2 configuration ..."
+        . /usr/share/apache2/apache2-maintscript-helper
+        apache2_invoke disconf icinga2-classicui
+    fi
+    if [ -L /etc/apache2/conf.d/icinga-web.conf ]; then
+        echo "removing link /etc/apache2/conf.d/icinga2-classicui.conf ..."
+        # remove link to config
+        rm -f /etc/apache2/conf.d/icinga2-classicui.conf
+        # reload webserver
+        [ -x $(which invoke-rc.d) ] && invoke-rc.d apache2 reload || true
+    fi
+}
+case "$1" in
+    purge)
+        disable_apache2 "$@"
+        rm -f "$en/htpasswd.users"
+    ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        disable_apache2 "$@"
+
+    ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

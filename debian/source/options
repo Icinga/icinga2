@@ -1,0 +1,2 @@
+tar-ignore = "obj-*-*"
+tar-ignore = ".git"

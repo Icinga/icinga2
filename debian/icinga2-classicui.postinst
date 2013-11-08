@@ -1,0 +1,106 @@
+#!/bin/sh
+# postinst script for icinga2-classicui
+
+set -e
+
+. /usr/share/debconf/confmodule
+
+# shorthand
+en="/etc/icinga2/classicui"
+
+# location of the default apache configuration for icinga
+apacheconf=$en/apache2.conf
+# location of the default htpasswd authentication file.
+htpw=$en/htpasswd.users
+
+setperm() {
+    user="$1"
+    group="$2"
+    mode="$3"
+    file="$4"
+    shift 4
+    # only do something when no setting exists
+    if ! dpkg-statoverride --list "$file" >/dev/null 2>&1; then
+      chown "$user":"$group" "$file"
+      chmod "$mode" "$file"
+    fi
+}
+
+
+case "$1" in
+    configure)
+        if [ -x "`which icinga2-enable-feature`" ]; then
+            echo "enabling icinga2 feature compatlog and statusdata"
+            icinga2-enable-feature compatlog
+            icinga2-enable-feature statusdata
+
+            echo "reloading icinga2"
+            [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
+        fi
+
+        echo "enabling Apache2 config..."
+        COMMON_STATE=$(dpkg-query -f '${Status}' -W 'apache2.2-common' 2>/dev/null | awk '{print $3}' || true)
+
+        # NEW method for Apache >= 2.4
+        if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
+            . /usr/share/apache2/apache2-maintscript-helper
+
+            apache2_invoke enconf icinga2-classicui
+
+        # OLD methods for Apache < 2.4
+        elif [ "$COMMON_STATE" = "installed" ] || [ "$COMMON_STATE" = "unpacked" ] ; then
+            # create symlink if not existing
+            [ -f /etc/apache2/conf.d/icinga2-classicui.conf ] || ln -vs ../../icinga2/classicui/apache2.conf /etc/apache2/conf.d/icinga2-classicui.conf
+
+            # reload webserver
+            [ -x $(which invoke-rc.d) ] && invoke-rc.d apache2 reload
+        fi
+
+        ###
+        # Admin password
+        ###
+        db_get icinga2-classicui/adminpassword
+        admpass="$RET"
+
+        test -f "$htpw" || touch "$htpw"
+        setperm root www-data 0640 "$htpw"
+
+        # we reset the password every run, so if it exists we're running
+        # after being specifically given a password and can unconditionally set it.
+        # XXX there's no way of setting the pw w/out giving it on the cmdline? wtf?
+        if [ -n "$admpass" ]; then
+            #unfortunatly that method only works with 2.4
+            if htpasswd 2>&1 | grep -q ' -i'; then
+                echo "$admpass" | htpasswd -i "$htpw" icingaadmin
+            else
+                htpasswd -b "$htpw" icingaadmin "$admpass"
+            fi
+        fi
+
+        # everything went well, so now let's reset the password
+        db_set icinga2-classicui/adminpassword ""
+        db_set icinga2-classicui/adminpassword-repeat ""
+        # ... done with debconf here
+        db_stop
+
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+init_failed ()
+{
+    echo "Icinga 2 was unable to start due to configuration errors.";
+    echo "Please fix them and manually restart the icinga2 daemon using";
+    echo " ´service icinga2 start´";
+}
+
+#DEBHELPER#
+
+exit 0

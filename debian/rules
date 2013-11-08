@@ -1,0 +1,31 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -f config.log
+	rm -f config.status
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+		-DCMAKE_INSTALL_SYSCONFDIR=/etc \
+		-DICINGA2_USER=nagios \
+		-DICINGA2_GROUP=nagios \
+		-DICINGA2_COMMAND_USER=nagios \
+		-DICINGA2_COMMAND_GROUP=www-data
+
+override_dh_install:
+	dh_install
+	# remove ido files from other packages
+	if [ -d debian/icinga2-common/ ]; then rm debian/icinga2-common/etc/icinga2/features-available/ido-*; fi
+	rm debian/icinga2-bin/usr/lib/*/icinga2/libdb_ido_*
+
+override_dh_installinit:
+	dh_installinit --name=icinga2
+
+# vi: noexpandtab :

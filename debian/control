@@ -1,0 +1,117 @@
+Source: icinga2
+Section: admin
+Priority: extra
+Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian.org>
+Uploaders: Alexander Wirt <formorer@debian.org>, Markus Frosch <markus@lazyfrosch.de>
+Build-Depends: cmake (>= 2.8.9),
+               make (>= 3.81),
+               bison,
+               debhelper (>= 9),
+               doxygen,
+               flex,
+               g++ (>= 1.96),
+               libboost-dev,
+               libboost-program-options-dev,
+               libboost-system-dev,
+               libboost-test-dev,
+               libboost-thread-dev,
+               libboost-regex-dev,
+               libltdl-dev,
+               libmysqlclient-dev,
+               libpq-dev,
+               libssl-dev,
+               libtool,
+               po-debconf,
+               python-dev
+Standards-Version: 3.9.4
+Homepage: http://www.icinga.org
+
+Package: icinga2
+Architecture: any
+Depends: icinga2-bin (= ${binary:Version}),
+         icinga2-common (= ${source:Version}),
+         ${misc:Depends}
+Recommends: icinga2-doc
+Description: host and network monitoring system
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This is the metapackage to install all Icinga 2 features.
+
+Package: icinga2-common
+Architecture: all
+Depends: adduser, ${misc:Depends}, ${perl:Depends}
+Description: host and network monitoring system - common files
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides configuration and some basic helper scripts.
+
+Package: icinga2-bin
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: icinga2-common (= ${source:Version}),
+         ${misc:Depends}, ${shlibs:Depends}
+Description: host and network monitoring system - daemon
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides the Icinga 2 daemon.
+
+Package: icinga2-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Description: host and network monitoring system - documentation
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides the Icinga 2 documentation.
+
+Package: icinga2-classicui
+Architecture: all
+Depends: icinga2-common (= ${source:Version}),
+         icinga-cgi (>= 1.9.0~),
+         ${misc:Depends}
+Recommends: apache2 | httpd
+Description: host and network monitoring system - classic ui integration
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides the integration into Icinga Classic UI.
+
+Package: icinga2-ido-mysql
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: icinga2-common (= ${source:Version}),
+         icinga2-bin (= ${binary:Version}),
+         ${shlibs:Depends}, ${misc:Depends}
+Recommends: mysql-client
+Suggests: mysql-server
+Description: host and network monitoring system - IDO for MySQL
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides the IDO module for the MySQL database.
+
+Package: icinga2-ido-pgsql
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: icinga2-common (= ${source:Version}),
+         icinga2-bin (= ${binary:Version}),
+         ${shlibs:Depends}, ${misc:Depends}
+Recommends: postgresql-client
+Suggests: postgresql
+Description: host and network monitoring system - IDO for PostgreSQL
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides the IDO module for the PostgreSQL database.
+

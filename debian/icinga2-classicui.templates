@@ -1,0 +1,34 @@
+# These templates have been copied from the icinga-cgi package
+#
+# Only slight modifications have been made.
+# ------------------------------------------------------------
+#
+# These templates have been reviewed by the debian-l10n-english
+# team
+#
+# If modifications/additions/rewording are needed, please ask
+# debian-l10n-english@lists.debian.org for advice.
+#
+# Even minor modifications require translation updates and such
+# changes should be coordinated with translators and reviewers.
+
+Template: icinga2-classicui/adminpassword
+Type: password
+_Description: Icinga 2 ClassicUI administration password:
+ Please provide the password to be created with the "icingaadmin" user.
+ .
+ This is the username and password to use when connecting to the Icinga
+ server after completing the configuration. If you do not provide
+ a password, you will have to configure access to Icinga manually
+ later on.
+
+Template: icinga2-classicui/adminpassword-repeat
+Type: password
+_Description: Re-enter password to verify:
+ Please enter the same user password again to verify you have typed it
+ correctly.
+
+Template: icinga2-classicui/adminpassword-mismatch
+Type: error
+_Description: Password input error
+ The two passwords you entered were not the same. Please try again.

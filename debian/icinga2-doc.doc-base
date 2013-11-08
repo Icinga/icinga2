@@ -1,0 +1,10 @@
+Document: icinga2
+Title: Icinga 2 Documentation
+Author: Icinga Developement Team
+Abstract: Icinga 2 user and administrator's documentation
+Section: Network/Monitoring
+
+Format: HTML
+Index: /usr/share/doc/icinga2/htdocs/index.html
+Files: /usr/share/doc/icinga2/htdocs/*.html
+
