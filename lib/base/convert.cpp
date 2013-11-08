@@ -22,22 +22,8 @@
 
 using namespace icinga;
 
-long Convert::ToLong(const String& val)
-{
-	return boost::lexical_cast<long>(val);
-}
-
-double Convert::ToDouble(const String& val)
-{
-	return boost::lexical_cast<double>(val);
-}
-
 bool Convert::ToBool(const String& val)
 {
 	return (ToLong(val) != 0);
 }
 
-String Convert::ToString(const Value& val)
-{
-	return static_cast<String>(val);
-}

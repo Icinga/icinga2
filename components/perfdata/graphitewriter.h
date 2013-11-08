@@ -50,7 +50,7 @@ private:
         Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
-        void SendMetric(const Service::Ptr& service, const String& name, double value);
+        void SendMetric(const String& prefix, const String& name, double value);
         static void SanitizeMetric(String& str);
 
         void ReconnectTimerHandler(void);

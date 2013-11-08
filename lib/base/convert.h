@@ -22,6 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/value.h"
+#include <boost/lexical_cast.hpp>
 
 namespace icinga
 {
@@ -34,10 +35,25 @@ namespace icinga
 class I2_BASE_API Convert
 {
 public:
-	static long ToLong(const String& val);
-	static double ToDouble(const String& val);
+	template<typename T>
+	static long ToLong(const T& val)
+	{
+		return boost::lexical_cast<long>(val);
+	}
+
+	template<typename T>
+	static double ToDouble(const T& val)
+	{
+		return boost::lexical_cast<double>(val);
+	}
+
 	static bool ToBool(const String& val);
-	static String ToString(const Value& val);
+
+	template<typename T>
+	static String ToString(const T& val)
+	{
+		return boost::lexical_cast<String>(val);
+	}
 
 private:
 	Convert(void);

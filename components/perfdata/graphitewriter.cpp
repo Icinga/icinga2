@@ -84,13 +84,22 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;
 
+	/* TODO: sanitize host and service names */
+	String hostName = service->GetHost()->GetName();
+	String serviceName = service->GetShortName();   
+
+	SanitizeMetric(hostName);
+	SanitizeMetric(serviceName);
+
+	String prefix = "icinga." + hostName + "." + serviceName;
+
 	/* basic metrics */
-	SendMetric(service, "current_attempt", service->GetCheckAttempt());
-	SendMetric(service, "max_check_attempts", service->GetMaxCheckAttempts());
-	SendMetric(service, "state_type", service->GetStateType());
-	SendMetric(service, "state", service->GetState());
-	SendMetric(service, "latency", Service::CalculateLatency(cr));
-	SendMetric(service, "execution_time", Service::CalculateExecutionTime(cr));
+	SendMetric(prefix, "current_attempt", service->GetCheckAttempt());
+	SendMetric(prefix, "max_check_attempts", service->GetMaxCheckAttempts());
+	SendMetric(prefix, "state_type", service->GetStateType());
+	SendMetric(prefix, "state", service->GetState());
+	SendMetric(prefix, "latency", Service::CalculateLatency(cr));
+	SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
 
 	Value pdv = cr->Get("performance_data");
 
@@ -109,23 +118,16 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 		else
 			valueNum = static_cast<PerfdataValue::Ptr>(value)->GetValue();
 
-		SendMetric(service, key, valueNum);
+		SendMetric(prefix, key, valueNum);
 	}
 }
 
-void GraphiteWriter::SendMetric(const Service::Ptr& service, const String& name, double value)
+void GraphiteWriter::SendMetric(const String& prefix, const String& name, double value)
 {
-	/* TODO: sanitize host and service names */
-	String hostName = service->GetHost()->GetName();
-	String serviceName = service->GetShortName();	
+	std::ostringstream msgbuf;
+	msgbuf << prefix << "." << name << " " << value << " " << static_cast<long>(Utility::GetTime()) << "\n";
 
-	SanitizeMetric(hostName);
-	SanitizeMetric(serviceName);
-
-	String metricPrefix = hostName + "." + serviceName;
-	String graphitePrefix = "icinga";
-
-	String metric = graphitePrefix + "." + metricPrefix + "." + name + " " + Convert::ToString(value) + " " + Convert::ToString(static_cast<long>(Utility::GetTime())) + "\n";
+	String metric = msgbuf.str();
 	Log(LogDebug, "perfdata", "GraphiteWriter: Add to metric list:'" + metric + "'.");
 
 	ObjectLock olock(this);
