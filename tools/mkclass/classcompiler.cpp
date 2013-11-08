@@ -168,25 +168,31 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		std::cout << "\t\t" << "int real_id = id - " << "TypeImpl<" << klass.Parent << ">::StaticGetFieldCount();" << std::endl
 		<< "\t\t" << "if (real_id < 0) { return " << "TypeImpl<" << klass.Parent << ">::StaticGetFieldInfo(id); }" << std::endl;
 
-	std::cout << "\t\t" << "switch (";
+	if (klass.Fields.size() > 0) {
+		std::cout << "\t\t" << "switch (";
 
-	if (!klass.Parent.empty())
-		std::cout << "real_id";
-	else
-		std::cout << "id";
+		if (!klass.Parent.empty())
+			std::cout << "real_id";
+		else
+			std::cout << "id";
 
-	std::cout << ") {" << std::endl;
+		std::cout << ") {" << std::endl;
 
-	num = 0;
-	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-		std::cout << "\t\t\t" << "case " << num << ":" << std::endl
-			<< "\t\t\t\t" << "return Field(" << num << ", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
-		num++;
+		num = 0;
+		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			std::cout << "\t\t\t" << "case " << num << ":" << std::endl
+				<< "\t\t\t\t" << "return Field(" << num << ", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
+			num++;
+		}
+
+		std::cout << "\t\t\t" << "default:" << std::endl
+				  << "\t\t";
 	}
 
-	std::cout << "\t\t\t" << "default:" << std::endl
-		<< "\t\t\t\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl
-		<< "\t\t" << "}" << std::endl;
+	std::cout << "\t\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl;
+
+	if (klass.Fields.size() > 0)
+		std::cout << "\t\t" << "}" << std::endl;
 
 	std::cout << "\t" << "}" << std::endl << std::endl;
 
