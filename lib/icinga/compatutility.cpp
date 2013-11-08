@@ -559,8 +559,7 @@ String CompatUtility::GetCheckResultPerfdata(const Dictionary::Ptr& cr)
 	if (!cr)
 		return String();
 
-	Dictionary::Ptr perfdata = cr->Get("performance_data");
-	return PluginUtility::FormatPerfdata(perfdata);
+	return PluginUtility::FormatPerfdata(cr->Get("performance_data"));
 }
 
 String CompatUtility::EscapeString(const String& str)
