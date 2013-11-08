@@ -30,7 +30,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(CheckResultReader);
 REGISTER_TYPE(CheckResultReader);
 
 /**

@@ -25,7 +25,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(User);
 REGISTER_TYPE(User);
 
 void User::OnConfigLoaded(void)

@@ -28,7 +28,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(CheckerComponent);
 REGISTER_TYPE(CheckerComponent);
 
 void CheckerComponent::Start(void)

@@ -31,7 +31,7 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(DbConnection);
+REGISTER_TYPE(DbConnection);
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 

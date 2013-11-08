@@ -34,7 +34,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(ClusterListener);
 REGISTER_TYPE(ClusterListener);
 
 /**

@@ -22,7 +22,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(NotificationCommand);
 REGISTER_TYPE(NotificationCommand);
 
 Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notification,

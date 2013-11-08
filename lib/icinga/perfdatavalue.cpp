@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(PerfdataValue);
+REGISTER_TYPE(PerfdataValue);
 
 PerfdataValue::PerfdataValue(void)
 { }

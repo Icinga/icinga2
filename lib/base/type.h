@@ -95,7 +95,7 @@ struct FactoryHelper
 	}
 };
 
-#define REGISTER_NTYPE(type) \
+#define REGISTER_TYPE(type) \
 	namespace { \
 		void RegisterType(void) \
 		{ \

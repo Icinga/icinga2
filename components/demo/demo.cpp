@@ -23,7 +23,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(Demo);
 REGISTER_TYPE(Demo);
 
 /**

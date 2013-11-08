@@ -34,7 +34,6 @@
 using namespace icinga;
 using namespace livestatus;
 
-REGISTER_NTYPE(LivestatusListener);
 REGISTER_TYPE(LivestatusListener);
 REGISTER_SCRIPTFUNCTION(ValidateSocketType, &LivestatusListener::ValidateSocketType);
 
