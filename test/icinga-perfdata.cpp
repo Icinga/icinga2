@@ -24,6 +24,12 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_perfdata)
 
+BOOST_AUTO_TEST_CASE(empty)
+{
+	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("");
+	BOOST_CHECK(pd->GetLength() == 0);
+}
+
 BOOST_AUTO_TEST_CASE(simple)
 {
 	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456");
@@ -45,7 +51,7 @@ BOOST_AUTO_TEST_CASE(multiple)
 
 BOOST_AUTO_TEST_CASE(uom)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456b");
+	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456B");
 
 	PerfdataValue::Ptr pv = pd->Get("test");
 	BOOST_CHECK(pv);
@@ -59,12 +65,12 @@ BOOST_AUTO_TEST_CASE(uom)
 	BOOST_CHECK(pv->GetMax() == Empty);
 
 	String str = PluginUtility::FormatPerfdata(pd);
-	BOOST_CHECK(str == "test=123456b");
+	BOOST_CHECK(str == "test=123456B");
 }
 
 BOOST_AUTO_TEST_CASE(warncritminmax)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456b;1000;2000;3000;4000");
+	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456B;1000;2000;3000;4000");
 
 	PerfdataValue::Ptr pv = pd->Get("test");
 	BOOST_CHECK(pv);
@@ -78,7 +84,7 @@ BOOST_AUTO_TEST_CASE(warncritminmax)
 	BOOST_CHECK(pv->GetMax() == 4000);
 
 	String str = PluginUtility::FormatPerfdata(pd);
-	BOOST_CHECK(str == "test=123456b;1000;2000;3000;4000");
+	BOOST_CHECK(str == "test=123456B;1000;2000;3000;4000");
 }
 
 BOOST_AUTO_TEST_CASE(invalid)
