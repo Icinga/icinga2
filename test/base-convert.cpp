@@ -43,11 +43,8 @@ BOOST_AUTO_TEST_CASE(todouble)
 BOOST_AUTO_TEST_CASE(tostring)
 {
 	BOOST_CHECK(Convert::ToString(7) == "7");
-	BOOST_CHECK(Convert::ToString(7.3) == "7.3");
+	BOOST_CHECK(Convert::ToString(7.5) == "7.5");
 	BOOST_CHECK(Convert::ToString("hello") == "hello");
-
-	Object::Ptr object = make_shared<Object>();
-	BOOST_CHECK(Convert::ToString(object) == "Object of type 'icinga::Object'");
 }
 
 BOOST_AUTO_TEST_CASE(tobool)
