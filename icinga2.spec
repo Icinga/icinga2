@@ -64,6 +64,7 @@ BuildRequires: flex
 BuildRequires: bison
 BuildRequires: %{apachename}
 
+# redhat
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # el5 requires EPEL
@@ -83,10 +84,16 @@ Requires: boost-thread >= 1.41
 Requires: boost-regex >= 1.41
 %endif
 %endif
+#redhat
 
+# suse
 %if "%{_vendor}" == "suse"
-%if 0%{?sles_version} >= 1110
-BuildRequires: libgfortran46
+# sles
+# note: sles_version macro is not set in SLES11 anymore
+# note: sles service packs are not under version control
+%if 0%{?suse_version} == 1110
+BuildRequires: gcc-fortran
+BuildRequires: libgfortran43
 BuildRequires: boost-license%{sles_boost_version}
 BuildRequires: boost-devel >= 1.41
 Requires: boost-license%{sles_boost_version}
@@ -94,7 +101,9 @@ Requires: libboost_program_options%{sles_boost_version}
 Requires: libboost_system%{sles_boost_version}
 Requires: libboost_test%{sles_boost_version}
 Requires: libboost_thread%{sles_boost_version}
-%else
+Requires: libboost_regex%{sles_boost_version}
+%endif
+# opensuse
 %if 0%{?suse_version} >= 1210
 BuildRequires: boost-devel >= 1.41
 Requires: libboost_program_options%{opensuse_boost_version}
@@ -104,7 +113,7 @@ Requires: libboost_thread%{opensuse_boost_version}
 Requires: libboost_regex%{opensuse_boost_version}
 %endif
 %endif
-%endif
+# suse
 
 Requires: %{name}-common = %{version}
 
