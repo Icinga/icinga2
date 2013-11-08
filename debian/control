@@ -3,23 +3,22 @@ Section: admin
 Priority: extra
 Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian.org>
 Uploaders: Alexander Wirt <formorer@debian.org>, Markus Frosch <markus@lazyfrosch.de>
-Build-Depends: automake,
-               autoconf,
-               autotools-dev,
+Build-Depends: cmake (>= 2.8.9),
+               make (>= 3.81),
                bison,
                debhelper (>= 9),
-               dh-autoreconf,
                doxygen,
                flex,
                g++ (>= 1.96),
                libboost-dev,
                libboost-program-options-dev,
-               libboost-signals-dev,
                libboost-system-dev,
                libboost-test-dev,
                libboost-thread-dev,
+               libboost-regex-dev,
                libltdl-dev,
                libmysqlclient-dev,
+               libpq-dev,
                libssl-dev,
                libtool,
                po-debconf,
@@ -100,4 +99,19 @@ Description: host and network monitoring system - IDO for MySQL
  Better description to come.
  .
  This package provides the IDO module for the MySQL database.
+
+Package: icinga2-ido-pgsql
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: icinga2-common (= ${source:Version}),
+         icinga2-bin (= ${binary:Version}),
+         ${shlibs:Depends}, ${misc:Depends}
+Recommends: postgresql-client
+Suggests: postgresql
+Description: host and network monitoring system - IDO for PostgreSQL
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides the IDO module for the PostgreSQL database.
 

@@ -37,13 +37,20 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 # check run directory
 check_run () {
-    if [ ! -d '/var/run/icinga2' ];
-    then
-        mkdir /var/run/icinga2
-        chown nagios:nagios /var/run/icinga2
-        chmod 0750 /var/run/icinga2
-    fi
+    test -d '/var/run/icinga2' || mkdir /var/run/icinga2
+    test -d '/var/run/icinga2/cmd' || mkdir /var/run/icinga2/cmd
+
+    chown nagios:nagios /var/run/icinga2
+    chmod 0755 /var/run/icinga2
+
+    chown nagios:www-data /var/run/icinga2/cmd
+    chmod 2710 /var/run/icinga2/cmd
 }
+
+check_config () {
+  $DAEMON -C $DAEMON_ARGS
+}
+
 
 #
 # Function that starts the daemon/service
@@ -107,6 +114,12 @@ check_run
 
 case "$1" in
   start)
+    log_action_msg "checking Icinga2 configuration"
+    if ! check_config; then
+        log_failure_msg "config test failed!"
+        log_end_msg 1
+    fi
+
 	log_daemon_msg "Starting $DESC" "$NAME"
 	do_start
 	case "$?" in
@@ -126,11 +139,23 @@ case "$1" in
 	status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
 	;;
   reload|force-reload)
+    log_action_msg "checking Icinga2 configuration"
+    if ! check_config; then
+        log_failure_msg "config test failed!"
+        log_end_msg 1
+    fi
+
 	log_daemon_msg "Reloading $DESC" "$NAME"
 	do_reload
 	log_end_msg $?
 	;;
   restart)
+    log_action_msg "checking Icinga2 configuration"
+    if ! check_config; then
+        log_failure_msg "config test failed!"
+        log_end_msg 1
+    fi
+
 	log_daemon_msg "Restarting $DESC" "$NAME"
 	do_stop
 	case "$?" in

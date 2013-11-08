@@ -1,0 +1,5 @@
+debian/tmp/etc/icinga2/features-available/ido-pgsql.conf
+usr/lib/*/icinga2/libdb_ido_pgsql*
+components/db_ido_pgsql/schema/*.sql usr/share/icinga2-ido-pgsql/schema
+# for later
+#components/db_ido_pgsql/schema/upgrades/*.sql usr/share/icinga2-ido-pgsql/schema/upgrades

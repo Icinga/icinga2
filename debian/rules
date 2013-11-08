@@ -1,11 +1,9 @@
 #!/usr/bin/make -f
 
-#export DH_VERBOSE=1
-
-export NOCONFIGURE=1
+export DH_VERBOSE=1
 
 %:
-	dh $@  --with autotools-dev
+	dh $@
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -13,23 +11,19 @@ override_dh_auto_clean:
 	rm -f config.status
 
 override_dh_auto_configure:
-	./autogen.sh
-	dh_auto_configure -- --enable-python \
-        --with-icinga-user=root \
-        --with-icinga-group=bin \
-        --with-icingacmd-user=root \
-        --with-icingacmd-group=bin
-
-override_dh_auto_install:
-	dh_auto_install
-	# cleanup dependencies in .la files
-	sed -i "/dependency_libs/ s/'.*'/''/" `find debian/tmp/ -name '*.la'`
+	dh_auto_configure -- \
+		-DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+		-DCMAKE_INSTALL_SYSCONFDIR=/etc \
+		-DICINGA2_USER=nagios \
+		-DICINGA2_GROUP=nagios \
+		-DICINGA2_COMMAND_USER=nagios \
+		-DICINGA2_COMMAND_GROUP=www-data
 
 override_dh_install:
 	dh_install
 	# remove ido files from other packages
-	if [ -d debian/icinga2-common/ ]; then rm debian/icinga2-common/etc/icinga2/features-available/ido-mysql*; fi
-	rm debian/icinga2-bin/usr/lib/*/icinga2/libdb_ido_mysql*
+	if [ -d debian/icinga2-common/ ]; then rm debian/icinga2-common/etc/icinga2/features-available/ido-*; fi
+	rm debian/icinga2-bin/usr/lib/*/icinga2/libdb_ido_*
 
 override_dh_installinit:
 	dh_installinit --name=icinga2
