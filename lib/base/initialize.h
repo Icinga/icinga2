@@ -34,8 +34,10 @@ inline bool InitializeOnceHelper(InitializeFunc func)
 	return true;
 }
 
-#define INITIALIZE_ONCE(name, func) \
-	I2_EXPORT bool l_InitializeOnce ## name(InitializeOnceHelper(func))
+#define INITIALIZE_ONCE(func) \
+	namespace { \
+		I2_EXPORT bool l_InitializeOnce(InitializeOnceHelper(func)); \
+	}
 
 }
 

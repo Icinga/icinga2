@@ -33,7 +33,7 @@ using namespace icinga;
 static Timer::Ptr l_RetentionTimer;
 
 REGISTER_TYPE(IcingaApplication);
-INITIALIZE_ONCE(IcingaApplication, &IcingaApplication::StaticInitialize);
+INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
 
 void IcingaApplication::StaticInitialize(void)
 {

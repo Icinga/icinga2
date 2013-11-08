@@ -35,7 +35,7 @@ REGISTER_TYPE(DbConnection);
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
-INITIALIZE_ONCE(DbConnection, &DbConnection::StaticInitialize);
+INITIALIZE_ONCE(&DbConnection::StaticInitialize);
 
 void DbConnection::Start(void)
 {

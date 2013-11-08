@@ -104,7 +104,7 @@ struct FactoryHelper
 			icinga::Type::Register(GetType<type>()); \
 		} \
 		\
-		INITIALIZE_ONCE(type, RegisterType); \
+		INITIALIZE_ONCE(RegisterType); \
 	}
 
 }

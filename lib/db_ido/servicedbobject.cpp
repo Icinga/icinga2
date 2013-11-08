@@ -38,7 +38,7 @@ using namespace icinga;
 
 REGISTER_DBTYPE(Service, "service", DbObjectTypeService, "service_object_id", ServiceDbObject);
 
-INITIALIZE_ONCE(ServiceDbObject, &ServiceDbObject::StaticInitialize);
+INITIALIZE_ONCE(&ServiceDbObject::StaticInitialize);
 
 void ServiceDbObject::StaticInitialize(void)
 {
