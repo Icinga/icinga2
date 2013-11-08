@@ -28,7 +28,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(NotificationComponent);
 REGISTER_TYPE(NotificationComponent);
 
 /**

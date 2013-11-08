@@ -33,7 +33,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(Service);
 REGISTER_TYPE(Service);
 
 boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> Service::OnAcknowledgementSet;

@@ -24,8 +24,8 @@
 
 using namespace icinga;
 
-DynamicType::DynamicType(const String& name, const DynamicType::ObjectFactory& factory)
-	: m_Name(name), m_ObjectFactory(factory)
+DynamicType::DynamicType(const String& name)
+	: m_Name(name)
 { }
 
 DynamicType::Ptr DynamicType::GetByName(const String& name)
@@ -34,8 +34,20 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 
 	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(name);
 
-	if (tt == InternalGetTypeMap().end())
-		return DynamicType::Ptr();
+	if (tt == InternalGetTypeMap().end()) {
+		const Type *type = Type::GetByName(name);
+
+		if (!type || !Type::GetByName("DynamicObject")->IsAssignableFrom(type)
+		    || type->IsAbstract())
+			return DynamicType::Ptr();
+
+		DynamicType::Ptr dtype = make_shared<DynamicType>(name);
+
+		InternalGetTypeMap()[type->GetName()] = dtype;
+		InternalGetTypeVector().push_back(dtype);
+
+		return dtype;
+	}
 
 	return tt->second;
 }
@@ -112,36 +124,17 @@ DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 	return nt->second;
 }
 
-void DynamicType::RegisterType(const DynamicType::Ptr& type)
-{
-	boost::mutex::scoped_lock lock(GetStaticMutex());
-
-	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(type->GetName());
-
-	if (tt != InternalGetTypeMap().end())
-		BOOST_THROW_EXCEPTION(std::runtime_error("Cannot register class for type '" +
-		    type->GetName() + "': Objects of this type already exist."));
-
-	InternalGetTypeMap()[type->GetName()] = type;
-	InternalGetTypeVector().push_back(type);
-}
-
 DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate)
 {
 	ASSERT(!OwnsLock());
 
-	ObjectFactory factory;
+	const Type *type = Type::GetByName(m_Name);
 
-	{
-		ObjectLock olock(this);
-		factory = m_ObjectFactory;
-	}
-
-	DynamicObject::Ptr object = factory();
+	Object::Ptr object = type->Instantiate();
 
 	Deserialize(object, serializedUpdate, FAConfig);
 
-	return object;
+	return dynamic_pointer_cast<DynamicObject>(object);
 }
 
 boost::mutex& DynamicType::GetStaticMutex(void)

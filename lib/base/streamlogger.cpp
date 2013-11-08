@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(StreamLogger);
+REGISTER_TYPE(StreamLogger);
 
 boost::mutex StreamLogger::m_Mutex;
 

@@ -32,7 +32,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(Notification);
 REGISTER_TYPE(Notification);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> Notification::OnNextNotificationChanged;

@@ -37,7 +37,7 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(DynamicObject);
+REGISTER_TYPE(DynamicObject);
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;

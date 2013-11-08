@@ -22,7 +22,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(Domain);
 REGISTER_TYPE(Domain);
 
 int Domain::GetPrivileges(const String& instance) const

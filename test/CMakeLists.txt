@@ -47,6 +47,10 @@ add_boost_test(base
         base_object/construct
         base_object/getself
         base_object/weak
+        base_serialize/scalar
+        base_serialize/array
+        base_serialize/dictionary
+        base_serialize/object
         base_shellescape/escape_basic
         base_shellescape/escape_quoted
         base_stacktrace/stacktrace

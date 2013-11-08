@@ -39,7 +39,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(CompatLogger);
 REGISTER_TYPE(CompatLogger);
 REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationMethod);
 

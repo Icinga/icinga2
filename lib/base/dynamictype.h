@@ -36,15 +36,11 @@ class I2_BASE_API DynamicType : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DynamicType);
 
-	typedef boost::function<DynamicObject::Ptr (void)> ObjectFactory;
-
-	DynamicType(const String& name, const ObjectFactory& factory);
+	DynamicType(const String& name);
 
 	String GetName(void) const;
 
 	static DynamicType::Ptr GetByName(const String& name);
-
-	static void RegisterType(const DynamicType::Ptr& type);
 
 	DynamicObject::Ptr CreateObject(const Dictionary::Ptr& serializedUpdate);
 	DynamicObject::Ptr GetObject(const String& name) const;
@@ -72,7 +68,6 @@ public:
 
 private:
 	String m_Name;
-	ObjectFactory m_ObjectFactory;
 
 	typedef std::map<String, DynamicObject::Ptr, string_iless> ObjectMap;
 	typedef std::vector<DynamicObject::Ptr> ObjectVector;
@@ -89,46 +84,6 @@ private:
 
 	static std::vector<DynamicObject::Ptr> GetObjects(const String& type);
 };
-
-/**
- * A registry for DynamicType objects.
- *
- * @ingroup base
- */
-class DynamicTypeRegistry : public Registry<DynamicTypeRegistry, DynamicType::Ptr>
-{ };
-
-/**
- * Helper class for registering DynamicObject implementation classes.
- *
- * @ingroup base
- */
-class RegisterTypeHelper
-{
-public:
-	RegisterTypeHelper(const String& name, const DynamicType::ObjectFactory& factory)
-	{
-		DynamicType::Ptr type = make_shared<DynamicType>(name, factory);
-		DynamicType::RegisterType(type);
-	}
-};
-
-/**
- * Factory function for DynamicObject-based classes.
- *
- * @ingroup base
- */
-template<typename T>
-shared_ptr<T> DynamicObjectFactory(void)
-{
-	return make_shared<T>();
-}
-
-#define REGISTER_TYPE_ALIAS(type, alias) \
-	I2_EXPORT icinga::RegisterTypeHelper g_RegisterDT_ ## type(alias, DynamicObjectFactory<type>);
-
-#define REGISTER_TYPE(type) \
-	REGISTER_TYPE_ALIAS(type, #type)
 
 }
 

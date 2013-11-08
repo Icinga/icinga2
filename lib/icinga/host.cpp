@@ -38,7 +38,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(Host);
 REGISTER_TYPE(Host);
 
 void Host::Start(void)

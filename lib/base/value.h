@@ -73,6 +73,9 @@ public:
 	operator double(void) const;
 	operator String(void) const;
 
+	bool operator==(bool rhs);
+	bool operator!=(bool rhs);
+
 	bool operator==(int rhs);
 	bool operator!=(int rhs);
 

@@ -43,7 +43,7 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(Application);
+REGISTER_TYPE(Application);
 
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;

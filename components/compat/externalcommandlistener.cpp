@@ -27,7 +27,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(ExternalCommandListener);
 REGISTER_TYPE(ExternalCommandListener);
 
 /**

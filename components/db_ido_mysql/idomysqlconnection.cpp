@@ -33,7 +33,6 @@
 
 using namespace icinga;
 
-REGISTER_NTYPE(IdoMysqlConnection);
 REGISTER_TYPE(IdoMysqlConnection);
 
 #define SCHEMA_VERSION "1.10.0"
