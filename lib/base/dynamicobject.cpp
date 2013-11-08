@@ -37,6 +37,8 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(DynamicObject);
+
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
@@ -221,15 +223,14 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 			persistentObject->Set("type", type->GetName());
 			persistentObject->Set("name", object->GetName());
 
-			Dictionary::Ptr update = Serializer::Serialize(object, attributeTypes);
+			Dictionary::Ptr update = Serialize(object, attributeTypes);
 
 			if (!update)
 				continue;
 
 			persistentObject->Set("update", update);
 
-			Value value = persistentObject;
-			String json = value.Serialize();
+			String json = JsonSerialize(persistentObject);
 
 			NetString::WriteStringToStream(sfp, json);
 		}
@@ -264,7 +265,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	String message;
 	while (NetString::ReadStringFromStream(sfp, &message)) {
-		Dictionary::Ptr persistentObject = Value::Deserialize(message);
+		Dictionary::Ptr persistentObject = JsonDeserialize(message);
 
 		String type = persistentObject->Get("type");
 		String name = persistentObject->Get("name");
@@ -280,7 +281,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 		if (object) {
 			ASSERT(!object->IsActive());
 			Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type + "'.");
-			Serializer::Deserialize(object, update, attributeTypes);
+			Deserialize(object, update, attributeTypes);
 			object->OnStateLoaded();
 		}
 

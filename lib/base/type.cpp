@@ -17,42 +17,51 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "demo/demo.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
+#include "base/type.h"
 
 using namespace icinga;
 
-REGISTER_NTYPE(Demo);
-REGISTER_TYPE(Demo);
-
-/**
- * Starts the component.
- */
-void Demo::Start(void)
+Type::TypeMap& Type::GetTypes(void)
 {
-	DynamicObject::Start();
+	static TypeMap types;
 
-	m_DemoTimer = make_shared<Timer>();
-	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired.connect(boost::bind(&Demo::DemoTimerHandler, this));
-	m_DemoTimer->Start();
+	return types;
 }
 
-/**
- * Stops the component.
- */
-void Demo::Stop(void)
+void Type::Register(const Type *type)
 {
-	/* Nothing to do here. */
+	VERIFY(GetByName(type->GetName()) == NULL);
+
+	GetTypes()[type->GetName()] = type;
 }
 
-/**
- * Periodically sends a demo::HelloWorld message.
- *
- * @param - Event arguments for the timer.
- */
-void Demo::DemoTimerHandler(void)
+const Type *Type::GetByName(const String& name)
 {
-	Log(LogInformation, "demo", "Hello World!");
+	std::map<String, const Type *>::const_iterator it;
+
+	it = GetTypes().find(name);
+
+	if (it == GetTypes().end())
+		return NULL;
+
+	return it->second;
+}
+
+Object::Ptr Type::Instantiate(void) const
+{
+	return m_Factory();
+}
+
+bool Type::IsAssignableFrom(const Type *other) const
+{
+	for (const Type *t = other; t; t = t->GetBaseType())
+		if (t == this)
+			return true;
+
+	return false;
+}
+
+void Type::SetFactory(const Type::Factory& factory)
+{
+	m_Factory = factory;
 }

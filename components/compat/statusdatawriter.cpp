@@ -41,6 +41,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(StatusDataWriter);
 REGISTER_TYPE(StatusDataWriter);
 
 /**

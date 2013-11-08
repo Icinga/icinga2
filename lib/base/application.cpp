@@ -25,6 +25,7 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/debug.h"
+#include "base/type.h"
 #include "base/scriptvariable.h"
 #include "icinga-version.h"
 #include <sstream>
@@ -41,6 +42,8 @@
 #include <iostream>
 
 using namespace icinga;
+
+REGISTER_NTYPE(Application);
 
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;

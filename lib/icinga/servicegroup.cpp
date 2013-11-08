@@ -28,6 +28,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(ServiceGroup);
 REGISTER_TYPE(ServiceGroup);
 
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const

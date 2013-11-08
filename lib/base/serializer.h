@@ -21,25 +21,23 @@
 #define SERIALIZER_H
 
 #include "base/i2-base.h"
-#include "base/dictionary.h"
+#include "base/value.h"
 
 namespace icinga
 {
 
-/**
- * Serializer utilities.
- *
- * @ingroup base
- */
-class I2_BASE_API Serializer
+enum FieldAttribute
 {
-public:
-	static Dictionary::Ptr Serialize(const Object::Ptr& object, int attributeTypes);
-	static void Deserialize(const Object::Ptr& object, const Dictionary::Ptr& update, int attributeTypes);
-
-private:
-	Serializer(void);
+	FAConfig = 1,
+	FAState = 2
 };
+
+I2_BASE_API String JsonSerialize(const Value& value);
+I2_BASE_API Value JsonDeserialize(const String& data);
+
+I2_BASE_API Value Serialize(const Value& value, int attributeTypes = FAState);
+I2_BASE_API Value Deserialize(const Value& value, int attributeTypes = FAState);
+I2_BASE_API Value Deserialize(const Object::Ptr& object, const Value& value, int attributeTypes = FAState);
 
 }
 

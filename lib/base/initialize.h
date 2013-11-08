@@ -35,7 +35,7 @@ inline bool InitializeOnceHelper(InitializeFunc func)
 }
 
 #define INITIALIZE_ONCE(name, func) \
-	bool l_InitializeOnce ## name(InitializeOnceHelper(func));
+	I2_EXPORT bool l_InitializeOnce ## name(InitializeOnceHelper(func))
 
 }
 

@@ -185,11 +185,6 @@ public:
 };
 
 template<typename T>
-class TypeImpl
-{
-};
-
-template<typename T>
 class ObjectImpl
 {
 };

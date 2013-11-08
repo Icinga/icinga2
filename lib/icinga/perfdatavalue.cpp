@@ -6,6 +6,11 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(PerfdataValue);
+
+PerfdataValue::PerfdataValue(void)
+{ }
+
 PerfdataValue::PerfdataValue(double value, bool counter, const String& unit,
     const Value& warn, const Value& crit, const Value& min, const Value& max)
 {

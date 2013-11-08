@@ -34,6 +34,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(ClusterListener);
 REGISTER_TYPE(ClusterListener);
 
 /**
@@ -210,13 +211,12 @@ void ClusterListener::PersistMessage(const Endpoint::Ptr& source, const Dictiona
 	if (source)
 		pmessage->Set("source", source->GetName());
 
-	pmessage->Set("message", Value(message).Serialize());
+	pmessage->Set("message", JsonSerialize(message));
 	pmessage->Set("security", message->Get("security"));
 
 	ObjectLock olock(this);
 	if (m_LogFile) {
-		String json = Value(pmessage).Serialize();
-		NetString::WriteStringToStream(m_LogFile, json);
+		NetString::WriteStringToStream(m_LogFile, JsonSerialize(pmessage));
 		m_LogMessageCount++;
 		SetLogMessageTimestamp(ts);
 
@@ -404,7 +404,7 @@ void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr
 					if (!NetString::ReadStringFromStream(lstream, &message))
 						break;
 
-					pmessage = Value::Deserialize(message);
+					pmessage = JsonDeserialize(message);
 				} catch (std::exception&) {
 					Log(LogWarning, "cluster", "Unexpected end-of-file for cluster log: " + path);
 
@@ -539,8 +539,7 @@ void ClusterListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	message->Set("method", "cluster::Config");
 	message->Set("params", params);
 
-	String json = Value(message).Serialize();
-	NetString::WriteStringToStream(tlsStream, json);
+	NetString::WriteStringToStream(tlsStream, JsonSerialize(message));
 
 	ReplayLog(endpoint, tlsStream);
 }

@@ -26,7 +26,7 @@ mkclass_target(sysloglogger.ti sysloglogger.th)
 
 add_library(base SHARED
   application.cpp application.th array.cpp bufferedstream.cpp consolelogger.cpp
-  consolelogger.th convert.cpp dictionary.cpp  dynamicobject.cpp
+  consolelogger.th convert.cpp dictionary.cpp dynamicobject.cpp
   dynamicobject.th dynamictype.cpp exception.cpp fifo.cpp filelogger.cpp
   filelogger.th logger.cpp logger.th netstring.cpp networkstream.cpp object.cpp
   objectlock.cpp process.cpp process-unix.cpp process-windows.cpp qstring.cpp
@@ -34,7 +34,7 @@ add_library(base SHARED
   scriptinterpreter.cpp scriptlanguage.cpp scriptvariable.cpp serializer.cpp
   socket.cpp stacktrace.cpp stdiostream.cpp stream_bio.cpp stream.cpp
   streamlogger.cpp streamlogger.th sysloglogger.cpp sysloglogger.th tcpsocket.cpp
-  threadpool.cpp timer.cpp tlsstream.cpp tlsutility.cpp unixsocket.cpp
+  threadpool.cpp timer.cpp tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp
   utility.cpp value.cpp workqueue.cpp zlibstream.cpp
 )
 

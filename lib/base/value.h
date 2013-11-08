@@ -118,9 +118,6 @@ public:
 	static Value FromJson(cJSON *json);
 	cJSON *ToJson(void) const;
 
-	String Serialize(void) const;
-	static Value Deserialize(const String& jsonString);
-
 	ValueType GetType(void) const;
 
 private:

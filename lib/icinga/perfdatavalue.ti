@@ -5,13 +5,13 @@ namespace icinga
 
 class PerfdataValue
 {
-	[state] double Value;
-	[state] bool Counter;
-	[state] String Unit;
-	[state] Value Crit;
-	[state] Value Warn;
-	[state] Value Min;
-	[state] Value Max;
+	[state] double value;
+	[state] bool counter;
+	[state] String unit;
+	[state] Value crit;
+	[state] Value warn;
+	[state] Value min;
+	[state] Value max;
 };
 
 }

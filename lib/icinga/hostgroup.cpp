@@ -27,6 +27,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(HostGroup);
 REGISTER_TYPE(HostGroup);
 
 std::set<Host::Ptr> HostGroup::GetMembers(void) const

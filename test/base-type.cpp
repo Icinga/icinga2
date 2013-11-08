@@ -17,42 +17,50 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "demo/demo.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
+#include "icinga/perfdatavalue.h"
+#include "base/dictionary.h"
+#include "base/objectlock.h"
+#include "base/application.h"
+#include "base/type.h"
+#include <boost/test/unit_test.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
-REGISTER_NTYPE(Demo);
-REGISTER_TYPE(Demo);
+BOOST_AUTO_TEST_SUITE(base_type)
 
-/**
- * Starts the component.
- */
-void Demo::Start(void)
+BOOST_AUTO_TEST_CASE(gettype)
 {
-	DynamicObject::Start();
+	const Type *t = GetType<Application>();
 
-	m_DemoTimer = make_shared<Timer>();
-	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired.connect(boost::bind(&Demo::DemoTimerHandler, this));
-	m_DemoTimer->Start();
+	BOOST_CHECK(t);
 }
 
-/**
- * Stops the component.
- */
-void Demo::Stop(void)
+BOOST_AUTO_TEST_CASE(assign)
 {
-	/* Nothing to do here. */
+	const Type *t1 = GetType<Application>();
+	const Type *t2 = GetType<DynamicObject>();
+
+	BOOST_CHECK(t1->IsAssignableFrom(t1));
+	BOOST_CHECK(t2->IsAssignableFrom(t1));
+	BOOST_CHECK(!t1->IsAssignableFrom(t2));
 }
 
-/**
- * Periodically sends a demo::HelloWorld message.
- *
- * @param - Event arguments for the timer.
- */
-void Demo::DemoTimerHandler(void)
+BOOST_AUTO_TEST_CASE(byname)
 {
-	Log(LogInformation, "demo", "Hello World!");
+	const Type *t = Type::GetByName("Application");
+
+	BOOST_CHECK(t);
 }
+
+BOOST_AUTO_TEST_CASE(instantiate)
+{
+	const Type *t = Type::GetByName("PerfdataValue");
+
+	Object::Ptr p = t->Instantiate();
+
+	BOOST_CHECK(p);
+}
+
+BOOST_AUTO_TEST_SUITE_END()

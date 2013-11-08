@@ -30,6 +30,7 @@
 #include "base/utility.h"
 #include "base/scriptfunction.h"
 #include "base/debug.h"
+#include "base/serializer.h"
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
 #include <boost/tuple/tuple.hpp>
@@ -37,6 +38,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(Host);
 REGISTER_TYPE(Host);
 
 void Host::Start(void)
@@ -265,7 +267,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 
 		return Service::GetByNamePair(dict->Get("host"), dict->Get("service"));
 	} else {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid: " + name.Serialize()));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid: " + JsonSerialize(name)));
 	}
 }
 

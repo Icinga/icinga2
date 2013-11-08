@@ -4,7 +4,7 @@
 namespace icinga
 {
 
-class DbConnection : DynamicObject
+abstract class DbConnection : DynamicObject
 {
 	[config] String table_prefix {
 		default {{{ return "icinga_"; }}}

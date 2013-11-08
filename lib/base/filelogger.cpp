@@ -23,6 +23,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(FileLogger);
 REGISTER_TYPE(FileLogger);
 
 /**

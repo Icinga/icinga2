@@ -21,6 +21,8 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(Command);
+
 bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();

@@ -3,7 +3,7 @@
 namespace icinga
 {
 
-class Command : DynamicObject
+abstract class Command : DynamicObject
 {
 	[config] Value command (CommandLine);
 	[config] Value timeout {

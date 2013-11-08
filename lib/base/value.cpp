@@ -154,31 +154,6 @@ Value Value::FromJson(cJSON *json)
 }
 
 /**
- * Serializes a variant into a string.
- *
- * @returns A string representing this variant.
- */
-String Value::Serialize(void) const
-{
-	cJSON *json = ToJson();
-
-	char *jsonString;
-
-	if (Application::IsDebugging())
-		jsonString = cJSON_Print(json);
-	else
-		jsonString = cJSON_PrintUnformatted(json);
-
-	cJSON_Delete(json);
-
-	String result = jsonString;
-
-	free(jsonString);
-
-	return result;
-}
-
-/**
  * Serializes the variant.
  *
  * @returns A JSON object representing this variant.
@@ -199,9 +174,10 @@ cJSON *Value::ToJson(void) const
 			} else if (IsObjectType<Array>()) {
 				Array::Ptr array = *this;
 				return array->ToJson();
-			} else {
-				Log(LogDebug, "base", "Ignoring unknown object while converting variant to JSON.");
+			} else if (IsEmpty()) {
 				return cJSON_CreateNull();
+			} else {
+				BOOST_THROW_EXCEPTION(std::runtime_error("Unknown object type."));
 			}
 
 		case ValueEmpty:
@@ -210,25 +186,6 @@ cJSON *Value::ToJson(void) const
 		default:
 			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid variant type."));
 	}
-}
-
-/**
- * Deserializes the string representation of a variant.
- *
- * @param jsonString A JSON string obtained from Value::Serialize
- * @returns The newly deserialized variant.
- */
-Value Value::Deserialize(const String& jsonString)
-{
-	cJSON *json = cJSON_Parse(jsonString.CStr());
-
-	if (!json)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid JSON String: " + jsonString));
-
-	Value value = FromJson(json);
-	cJSON_Delete(json);
-
-	return value;
 }
 
 /**

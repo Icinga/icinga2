@@ -19,6 +19,7 @@
 
 #include "base/dictionary.h"
 #include "base/objectlock.h"
+#include "base/serializer.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -161,16 +162,16 @@ BOOST_AUTO_TEST_CASE(clone)
 	BOOST_CHECK(dictionary->Get("test2") == "hello world");
 }
 
-BOOST_AUTO_TEST_CASE(serialize)
+BOOST_AUTO_TEST_CASE(json)
 {
 	Dictionary::Ptr dictionary = make_shared<Dictionary>();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
-	String json = Value(dictionary).Serialize();
+	String json = JsonSerialize(dictionary);
 	BOOST_CHECK(json.GetLength() > 0);
-	Dictionary::Ptr deserialized = Value::Deserialize(json);
+	Dictionary::Ptr deserialized = JsonDeserialize(json);
 	BOOST_CHECK(deserialized->GetLength() == 2);
 	BOOST_CHECK(deserialized->Get("test1") == 7);
 	BOOST_CHECK(deserialized->Get("test2") == "hello world");

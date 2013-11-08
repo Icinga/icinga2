@@ -33,6 +33,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(IdoPgsqlConnection);
 REGISTER_TYPE(IdoPgsqlConnection);
 
 #define SCHEMA_VERSION "1.10.0"

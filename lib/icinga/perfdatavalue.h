@@ -12,7 +12,9 @@ class I2_ICINGA_API PerfdataValue : public ObjectImpl<PerfdataValue>
 public:
 	DECLARE_PTR_TYPEDEFS(PerfdataValue);
 
-	PerfdataValue(double value, bool counter, const String& unit,
+	PerfdataValue(void);
+
+	PerfdataValue(double value, bool counter = false, const String& unit = "",
 	    const Value& warn = Empty, const Value& crit = Empty,
 	    const Value& min = Empty, const Value& max = Empty);
 

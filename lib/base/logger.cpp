@@ -29,6 +29,8 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(Logger);
+
 std::set<Logger::Ptr> Logger::m_Loggers;
 boost::mutex Logger::m_Mutex;
 

@@ -23,6 +23,7 @@
 #ifndef _WIN32
 using namespace icinga;
 
+REGISTER_NTYPE(SyslogLogger);
 REGISTER_TYPE(SyslogLogger);
 
 /**

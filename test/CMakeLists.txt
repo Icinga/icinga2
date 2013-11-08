@@ -19,16 +19,16 @@ include(BoostTestTargets)
 
 add_boost_test(base
   SOURCES base-array.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp
-          base-match.cpp base-netstring.cpp base-object.cpp base-shellescape.cpp
-          base-stacktrace.cpp base-string.cpp base-timer.cpp base-value.cpp
-          icinga-perfdata.cpp test.cpp
+          base-match.cpp base-netstring.cpp base-object.cpp base-serialize.cpp
+          base-shellescape.cpp base-stacktrace.cpp base-string.cpp base-timer.cpp
+          base-type.cpp base-value.cpp icinga-perfdata.cpp test.cpp
   LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
         base_array/remove
         base_array/foreach
         base_array/clone
-        base_array/serialize
+        base_array/json
         base_convert/tolong
         base_convert/todouble
         base_convert/tostring
@@ -39,7 +39,7 @@ add_boost_test(base
         base_dictionary/foreach
         base_dictionary/remove
         base_dictionary/clone
-        base_dictionary/serialize
+        base_dictionary/json
         base_fifo/construct
         base_fifo/io
         base_match/tolong

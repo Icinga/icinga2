@@ -37,6 +37,7 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/utility.h"
+#include "base/serializer.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -370,7 +371,7 @@ void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns,
 			fp << m_Separators[0];
 		}
 	} else if (m_OutputFormat == "json") {
-		fp << Value(rs).Serialize();
+		fp << JsonSerialize(rs);
 	}
 }
 

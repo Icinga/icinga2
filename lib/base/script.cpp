@@ -26,6 +26,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(Script);
 REGISTER_TYPE(Script);
 
 void Script::Start(void)

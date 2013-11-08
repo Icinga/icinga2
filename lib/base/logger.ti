@@ -3,7 +3,7 @@
 namespace icinga
 {
 
-class Logger : DynamicObject
+abstract class Logger : DynamicObject
 {
 	[config] String severity;
 };

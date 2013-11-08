@@ -3,7 +3,7 @@
 namespace icinga
 {
 
-class Application : DynamicObject
+abstract class Application : DynamicObject
 {
 };
 

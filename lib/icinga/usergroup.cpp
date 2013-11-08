@@ -27,6 +27,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(UserGroup);
 REGISTER_TYPE(UserGroup);
 
 std::set<User::Ptr> UserGroup::GetMembers(void) const

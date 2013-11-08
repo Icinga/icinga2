@@ -20,6 +20,7 @@
 #ifndef CHECKERCOMPONENT_H
 #define CHECKERCOMPONENT_H
 
+#include "checker/checkercomponent.th"
 #include "icinga/service.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
@@ -63,7 +64,7 @@ struct ServiceNextCheckExtractor
 /**
  * @ingroup checker
  */
-class CheckerComponent : public DynamicObject
+class CheckerComponent : public ObjectImpl<CheckerComponent>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckerComponent);

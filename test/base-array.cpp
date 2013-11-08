@@ -19,6 +19,7 @@
 
 #include "base/array.h"
 #include "base/objectlock.h"
+#include "base/serializer.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 
@@ -104,17 +105,17 @@ BOOST_AUTO_TEST_CASE(clone)
 	BOOST_CHECK(clone->Get(2) == 5);
 }
 
-BOOST_AUTO_TEST_CASE(serialize)
+BOOST_AUTO_TEST_CASE(json)
 {
 	Array::Ptr array = make_shared<Array>();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
 
-	String json = Value(array).Serialize();
+	String json = JsonSerialize(array);
 	BOOST_CHECK(json.GetLength() > 0);
 
-	Array::Ptr deserialized = Value::Deserialize(json);
+	Array::Ptr deserialized = JsonDeserialize(json);
 	BOOST_CHECK(deserialized);
 	BOOST_CHECK(deserialized->GetLength() == 3);
 	BOOST_CHECK(deserialized->Get(0) == 7);

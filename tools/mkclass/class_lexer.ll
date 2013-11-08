@@ -27,14 +27,14 @@ using namespace icinga;
 #include "class_parser.hh"
 
 #define YY_EXTRA_TYPE ClassCompiler *
-#define YY_USER_ACTION 							\
-do {											\
-	yylloc->path = yyextra->GetPath();			\
-	yylloc->first_line = yylineno;				\
-	yylloc->first_column = yycolumn;			\
-	yylloc->last_line = yylineno;				\
-	yylloc->last_column = yycolumn + yyleng - 1;\
-	yycolumn += yyleng;							\
+#define YY_USER_ACTION 					\
+do {							\
+	yylloc->path = yyextra->GetPath();		\
+	yylloc->first_line = yylineno;			\
+	yylloc->first_column = yycolumn;		\
+	yylloc->last_line = yylineno;			\
+	yylloc->last_column = yycolumn + yyleng - 1;	\
+	yycolumn += yyleng;				\
 } while (0);
 
 #define YY_INPUT(buf, result, max_size)			\

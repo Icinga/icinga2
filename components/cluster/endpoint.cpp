@@ -28,6 +28,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(Endpoint);
 REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;

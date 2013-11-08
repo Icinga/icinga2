@@ -22,15 +22,12 @@
 
 #include "base/i2-base.h"
 #include "base/qstring.h"
+#include "base/serializer.h"
+#include "base/initialize.h"
+#include <boost/function.hpp>
 
 namespace icinga
 {
-
-enum FieldAttribute
-{
-	FAConfig = 1,
-	FAState = 2
-};
 
 struct Field
 {
@@ -46,11 +43,69 @@ struct Field
 class I2_BASE_API Type
 {
 public:
-	virtual Type *GetBaseType(void) const = 0;
+	typedef boost::function<Object::Ptr (void)> Factory;
+
+	virtual String GetName(void) const = 0;
+	virtual const Type *GetBaseType(void) const = 0;
+	virtual bool IsAbstract(void) const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
 	virtual Field GetFieldInfo(int id) const = 0;
 	virtual int GetFieldCount(void) const = 0;
+
+	Object::Ptr Instantiate(void) const;
+
+	bool IsAssignableFrom(const Type *other) const;
+
+	static void Register(const Type *type);
+	static const Type *GetByName(const String& name);
+
+	void SetFactory(const Factory& factory);
+
+private:
+	typedef std::map<String, const Type *> TypeMap;
+
+	static TypeMap& GetTypes(void);
+
+	Factory m_Factory;
 };
+
+template<typename T>
+class TypeImpl
+{
+};
+
+template<typename T>
+Type *GetType(void)
+{
+	return TypeImpl<T>::GetInstance();
+}
+
+template<typename T>
+shared_ptr<T> ObjectFactory(void)
+{
+	return make_shared<T>();
+}
+
+template<typename T>
+struct FactoryHelper
+{
+	Type::Factory GetFactory(void)
+	{
+		return ObjectFactory<T>;
+	}
+};
+
+#define REGISTER_NTYPE(type) \
+	namespace { \
+		void RegisterType(void) \
+		{ \
+			icinga::Type *t = icinga::GetType<type>(); \
+			t->SetFactory(FactoryHelper<type>().GetFactory()); \
+			icinga::Type::Register(GetType<type>()); \
+		} \
+		\
+		INITIALIZE_ONCE(type, RegisterType); \
+	}
 
 }
 

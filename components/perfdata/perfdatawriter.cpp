@@ -30,6 +30,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(PerfdataWriter);
 REGISTER_TYPE(PerfdataWriter);
 
 void PerfdataWriter::Start(void)

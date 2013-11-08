@@ -29,6 +29,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(TimePeriod);
 REGISTER_TYPE(TimePeriod);
 REGISTER_SCRIPTFUNCTION(EmptyTimePeriod, &TimePeriod::EmptyTimePeriodUpdate);
 REGISTER_SCRIPTFUNCTION(EvenMinutesTimePeriod, &TimePeriod::EvenMinutesTimePeriodUpdate);

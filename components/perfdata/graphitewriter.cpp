@@ -42,6 +42,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(GraphiteWriter);
 REGISTER_TYPE(GraphiteWriter);
 
 void GraphiteWriter::Start(void)

@@ -92,8 +92,20 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		<< "{" << std::endl
 		<< "public:" << std::endl;
 
+	/* GetName */
+	std::cout << "\t" << "virtual String GetName(void) const" << std::endl
+		  << "\t" << "{" << std::endl
+		  << "\t\t" << "return \"" << klass.Name << "\";" << std::endl
+		  << "\t" << "}" << std::endl << std::endl;
+
+	/* IsAbstract */
+	std::cout << "\t" << "virtual bool IsAbstract(void) const" << std::endl
+		  << "\t" << "{" << std::endl
+		  << "\t\t" << "return " << (klass.Abstract ? "true" : "false") << ";" << std::endl
+		  << "\t" << "}" << std::endl << std::endl;
+
 	/* GetBaseType */
-	std::cout << "\t" << "virtual Type *GetBaseType(void) const" << std::endl
+	std::cout << "\t" << "virtual const Type *GetBaseType(void) const" << std::endl
 		<< "\t" << "{" << std::endl;
 
 	std::cout << "\t\t" << "return ";
@@ -365,6 +377,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	}
 
 	std::cout << "};" << std::endl << std::endl;
+
+	/* FactoryHelper */
+	if (klass.Abstract) {
+		std::cout << "template<>" << std::endl
+			  << "struct FactoryHelper<" << klass.Name << ">" << std::endl
+			  << "{" << std::endl
+			  << "\t" << "Type::Factory GetFactory(void)" << std::endl
+			  << "\t" << "{" << std::endl
+			  << "\t\t" << "return Type::Factory();"
+			  << "\t" << "}"
+			  << "};" << std::endl << std::endl;
+	}
 }
 
 void ClassCompiler::CompileFile(const std::string& path)

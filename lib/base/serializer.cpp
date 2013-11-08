@@ -19,30 +19,93 @@
 
 #include "base/serializer.h"
 #include "base/type.h"
+#include "base/application.h"
+#include "base/objectlock.h"
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <cJSON.h>
 
 using namespace icinga;
 
-Dictionary::Ptr Serializer::Serialize(const Object::Ptr& object, int attributeTypes)
+/**
+ * Serializes a Value into a JSON string.
+ *
+ * @returns A string representing the Value.
+ */
+String icinga::JsonSerialize(const Value& value)
 {
-	const Type *type = object->GetReflectionType();
+	cJSON *json = value.ToJson();
 
-	Dictionary::Ptr update = make_shared<Dictionary>();
+	char *jsonString;
 
-	for (int i = 0; i < type->GetFieldCount(); i++) {
-		Field field = type->GetFieldInfo(i);
+	if (Application::IsDebugging())
+		jsonString = cJSON_Print(json);
+	else
+		jsonString = cJSON_PrintUnformatted(json);
 
-		if ((field.Attributes & attributeTypes) == 0)
-			continue;
+	cJSON_Delete(json);
 
-		update->Set(field.Name, object->GetField(i));
-	}
+	String result = jsonString;
 
-	return update;
+	free(jsonString);
+
+	return result;
 }
 
-void Serializer::Deserialize(const Object::Ptr& object, const Dictionary::Ptr& update, int attributeTypes)
+/**
+ * Deserializes the string representation of a Value.
+ *
+ * @param data A JSON string obtained from JsonSerialize
+ * @returns The newly deserialized Value.
+ */
+Value icinga::JsonDeserialize(const String& data)
 {
-	const Type *type = object->GetReflectionType();
+	cJSON *json = cJSON_Parse(data.CStr());
+
+	if (!json)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid JSON String: " + data));
+
+	Value value = Value::FromJson(json);
+	cJSON_Delete(json);
+
+	return value;
+}
+
+static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
+{
+	Array::Ptr result = make_shared<Array>();
+
+	ObjectLock olock(input);
+
+	BOOST_FOREACH(const Value& value, input) {
+		result->Add(Serialize(value, attributeTypes));
+	}
+
+	return result;
+}
+
+static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int attributeTypes)
+{
+	Dictionary::Ptr result = make_shared<Dictionary>();
+
+	ObjectLock olock(input);
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), input) {
+		result->Set(key, Serialize(value, attributeTypes));
+	}
+
+	return result;
+}
+
+static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
+{
+	const Type *type = input->GetReflectionType();
+
+	VERIFY(type);
+
+	Dictionary::Ptr fields = make_shared<Dictionary>();
 
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
@@ -50,9 +113,117 @@ void Serializer::Deserialize(const Object::Ptr& object, const Dictionary::Ptr& u
 		if ((field.Attributes & attributeTypes) == 0)
 			continue;
 
-		if (!update->Contains(field.Name))
+		fields->Set(field.Name, Serialize(input->GetField(i), attributeTypes));
+	}
+
+	fields->Set("__type", type->GetName());
+
+	return fields;
+}
+
+static Array::Ptr DeserializeArray(const Array::Ptr& input, int attributeTypes)
+{
+	Array::Ptr result = make_shared<Array>();
+
+	ObjectLock olock(input);
+
+	BOOST_FOREACH(const Value& value, input) {
+		result->Add(Deserialize(value, attributeTypes));
+	}
+
+	return result;
+}
+
+static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, int attributeTypes)
+{
+	Dictionary::Ptr result = make_shared<Dictionary>();
+
+	ObjectLock olock(input);
+
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), input) {
+		result->Set(key, Deserialize(value, attributeTypes));
+	}
+
+	return result;
+}
+
+static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary::Ptr& input, int attributeTypes)
+{
+	const Type *type;
+
+	if (object)
+		type = object->GetReflectionType();
+	else
+		type = Type::GetByName(input->Get("__type"));
+
+	if (!type)
+		return object;
+
+	Object::Ptr instance = object;
+
+	if (!instance)
+		instance = type->Instantiate();
+
+	for (int i = 0; i < type->GetFieldCount(); i++) {
+		Field field = type->GetFieldInfo(i);
+
+		if ((field.Attributes & attributeTypes) == 0)
 			continue;
 
-		object->SetField(i, update->Get(field.Name));
+		if (!input->Contains(field.Name))
+			continue;
+
+		instance->SetField(i, Deserialize(input->Get(field.Name), attributeTypes));
 	}
+
+	return instance;
+}
+
+Value icinga::Serialize(const Value& value, int attributeTypes)
+{
+	if (!value.IsObject())
+		return value;
+
+	Object::Ptr input = value;
+
+	Array::Ptr array = dynamic_pointer_cast<Array>(input);
+
+	if (array != NULL)
+		return SerializeArray(array, attributeTypes);
+
+	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
+
+	if (dict != NULL)
+		return SerializeDictionary(dict, attributeTypes);
+
+	return SerializeObject(input, attributeTypes);
+}
+
+Value icinga::Deserialize(const Value& value, int attributeTypes)
+{
+	return Deserialize(Object::Ptr(), value, attributeTypes);
+}
+
+Value icinga::Deserialize(const Object::Ptr& object, const Value& value, int attributeTypes)
+{
+	if (!value.IsObject())
+		return value;
+
+	Object::Ptr input = value;
+
+	Array::Ptr array = dynamic_pointer_cast<Array>(input);
+
+	if (array != NULL)
+		return DeserializeArray(array, attributeTypes);
+
+	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
+
+	ASSERT(dict != NULL);
+
+	if (!dict->Contains("__type"))
+		return DeserializeDictionary(dict, attributeTypes);
+
+	return DeserializeObject(object, dict, attributeTypes);
 }

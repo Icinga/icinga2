@@ -23,6 +23,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(ConsoleLogger);
 REGISTER_TYPE(ConsoleLogger);
 
 /**

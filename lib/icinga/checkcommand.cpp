@@ -22,6 +22,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(CheckCommand);
 REGISTER_TYPE(CheckCommand);
 
 Dictionary::Ptr CheckCommand::Execute(const Service::Ptr& service)

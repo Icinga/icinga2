@@ -1,7 +1,7 @@
 namespace icinga
 {
 
-class DynamicObject
+abstract class DynamicObject
 {
 	[config] String __name (Name);
 	[config, get_protected] String __type (TypeName);

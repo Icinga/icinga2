@@ -22,6 +22,7 @@
 
 using namespace icinga;
 
+REGISTER_NTYPE(EventCommand);
 REGISTER_TYPE(EventCommand);
 
 void EventCommand::Execute(const Service::Ptr& service)
