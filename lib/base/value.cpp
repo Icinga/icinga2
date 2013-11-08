@@ -198,6 +198,19 @@ ValueType Value::GetType(void) const
 	return static_cast<ValueType>(m_Value.which());
 }
 
+bool Value::operator==(bool rhs)
+{
+	if (!IsScalar())
+		return false;
+
+	return static_cast<double>(*this) == rhs;
+}
+
+bool Value::operator!=(bool rhs)
+{
+	return !(*this == rhs);
+}
+
 bool Value::operator==(int rhs)
 {
 	if (!IsScalar())
