@@ -88,7 +88,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	/* TypeImpl */
 	std::cout << "template<>" << std::endl
 		<< "class TypeImpl<" << klass.Name << ">"
-		<< " : public Type, public Singleton<TypeImpl<" << klass.Name << "> >" << std::endl
+		<< " : public Type" << std::endl
 		<< "{" << std::endl
 		<< "public:" << std::endl;
 
@@ -111,7 +111,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	std::cout << "\t\t" << "return ";
 
 	if (!klass.Parent.empty())
-		std::cout << "Singleton<TypeImpl<" << klass.Parent << "> >::GetInstance()";
+		std::cout << "Type::GetByName(\"" << klass.Parent << "\")";
 	else
 		std::cout << "NULL";
 
@@ -220,7 +220,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	/* GetReflectionType */
 	std::cout << "\t" << "virtual const Type *GetReflectionType(void) const" << std::endl
 			  << "\t" << "{" << std::endl
-			  << "\t\t" << "return TypeImpl<" << klass.Name << ">::GetInstance();" << std::endl
+			  << "\t\t" << "return Type::GetByName(\"" << klass.Name << "\");" << std::endl
 			  << "\t" << "}" << std::endl << std::endl;
 
 	if (!klass.Fields.empty()) {
@@ -408,7 +408,6 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 
 	std::cout << "#include \"base/object.h\"" << std::endl
 			  << "#include \"base/type.h\"" << std::endl
-			  << "#include \"base/singleton.h\"" << std::endl
 			  << "#include \"base/debug.h\"" << std::endl
 			  << "#include \"base/value.h\"" << std::endl
 			  << "#include \"base/array.h\"" << std::endl

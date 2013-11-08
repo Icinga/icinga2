@@ -54,9 +54,10 @@ Object::Ptr Type::Instantiate(void) const
 
 bool Type::IsAssignableFrom(const Type *other) const
 {
-	for (const Type *t = other; t; t = t->GetBaseType())
+	for (const Type *t = other; t; t = t->GetBaseType()) {
 		if (t == this)
 			return true;
+	}
 
 	return false;
 }

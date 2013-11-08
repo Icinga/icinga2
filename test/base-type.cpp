@@ -32,15 +32,15 @@ BOOST_AUTO_TEST_SUITE(base_type)
 
 BOOST_AUTO_TEST_CASE(gettype)
 {
-	const Type *t = GetType<Application>();
+	const Type *t = Type::GetByName("Application");
 
 	BOOST_CHECK(t);
 }
 
 BOOST_AUTO_TEST_CASE(assign)
 {
-	const Type *t1 = GetType<Application>();
-	const Type *t2 = GetType<DynamicObject>();
+	const Type *t1 = Type::GetByName("Application");
+	const Type *t2 = Type::GetByName("DynamicObject");
 
 	BOOST_CHECK(t1->IsAssignableFrom(t1));
 	BOOST_CHECK(t2->IsAssignableFrom(t1));

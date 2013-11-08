@@ -37,7 +37,7 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 	if (tt == InternalGetTypeMap().end()) {
 		const Type *type = Type::GetByName(name);
 
-		if (!type || !GetType<DynamicObject>()->IsAssignableFrom(type)
+		if (!type || !Type::GetByName("DynamicObject")->IsAssignableFrom(type)
 		    || type->IsAbstract())
 			return DynamicType::Ptr();
 

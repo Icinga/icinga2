@@ -75,12 +75,6 @@ class TypeImpl
 };
 
 template<typename T>
-Type *GetType(void)
-{
-	return TypeImpl<T>::GetInstance();
-}
-
-template<typename T>
 shared_ptr<T> ObjectFactory(void)
 {
 	return make_shared<T>();
@@ -99,9 +93,9 @@ struct FactoryHelper
 	namespace { \
 		void RegisterType(void) \
 		{ \
-			icinga::Type *t = icinga::GetType<type>(); \
+			icinga::Type *t = new TypeImpl<type>(); \
 			t->SetFactory(FactoryHelper<type>().GetFactory()); \
-			icinga::Type::Register(GetType<type>()); \
+			icinga::Type::Register(t); \
 		} \
 		\
 		INITIALIZE_ONCE(RegisterType); \
