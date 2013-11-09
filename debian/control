@@ -16,11 +16,9 @@ Build-Depends: cmake (>= 2.8.7),
                libboost-test-dev,
                libboost-thread-dev,
                libboost-regex-dev,
-               libltdl-dev,
                libmysqlclient-dev,
                libpq-dev,
                libssl-dev,
-               libtool,
                po-debconf,
                python-dev
 Standards-Version: 3.9.4
