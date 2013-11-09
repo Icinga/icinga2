@@ -23,6 +23,7 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
+#include "base/convert.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -34,9 +35,9 @@ static std::map<int, String> l_LegacyDowntimesCache;
 static std::map<String, Service::WeakPtr> l_DowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 
-boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnDowntimeAdded;
-boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnDowntimeRemoved;
-boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> Service::OnDowntimeTriggered;
+boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> Service::OnDowntimeAdded;
+boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> Service::OnDowntimeRemoved;
+boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&)> Service::OnDowntimeTriggered;
 
 int Service::GetNextDowntimeID(void)
 {
@@ -45,7 +46,7 @@ int Service::GetNextDowntimeID(void)
 	return l_NextDowntimeID;
 }
 
-String Service::AddDowntime(const String& comment_id,
+String Service::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration, const String& id, const String& authority)
 {
@@ -56,17 +57,16 @@ String Service::AddDowntime(const String& comment_id,
 	else
 		uid = id;
 
-	Dictionary::Ptr downtime = make_shared<Dictionary>();
-	downtime->Set("id", uid);
-	downtime->Set("entry_time", Utility::GetTime());
-	downtime->Set("comment_id", comment_id);
-	downtime->Set("start_time", startTime);
-	downtime->Set("end_time", endTime);
-	downtime->Set("fixed", fixed);
-	downtime->Set("duration", duration);
-	downtime->Set("triggered_by", triggeredBy);
-	downtime->Set("triggers", make_shared<Dictionary>());
-	downtime->Set("trigger_time", 0);
+	Downtime::Ptr downtime = make_shared<Downtime>();
+	downtime->SetId(uid);
+	downtime->SetEntryTime(Utility::GetTime());
+	downtime->SetAuthor(author);
+	downtime->SetComment(comment);
+	downtime->SetStartTime(startTime);
+	downtime->SetEndTime(endTime);
+	downtime->SetFixed(fixed);
+	downtime->SetDuration(duration);
+	downtime->SetTriggeredBy(triggeredBy);
 
 	int legacy_id;
 
@@ -75,13 +75,13 @@ String Service::AddDowntime(const String& comment_id,
 		legacy_id = l_NextDowntimeID++;
 	}
 
-	downtime->Set("legacy_id", legacy_id);
+	downtime->SetLegacyId(legacy_id);
 
 	if (!triggeredBy.IsEmpty()) {
 		Service::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
 		Dictionary::Ptr otherDowntimes = otherOwner->GetDowntimes();
-		Dictionary::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
-		Dictionary::Ptr triggers = otherDowntime->Get("triggers");
+		Downtime::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
+		Dictionary::Ptr triggers = otherDowntime->GetTriggers();
 
 		{
 			ObjectLock olock(otherOwner);
@@ -97,7 +97,7 @@ String Service::AddDowntime(const String& comment_id,
 		l_DowntimesCache[uid] = GetSelf();
 	}
 
-	Log(LogWarning, "icinga", "added downtime with ID '" + downtime->Get("legacy_id") + "'.");
+	Log(LogWarning, "icinga", "added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnDowntimeAdded), GetSelf(), downtime, authority));
 
@@ -113,14 +113,12 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
-	Dictionary::Ptr downtime = downtimes->Get(id);
+	Downtime::Ptr downtime = downtimes->Get(id);
 
 	if (!downtime)
 		return;
 
-	String comment_id = downtime->Get("comment_id");
-
-	int legacy_id = downtime->Get("legacy_id");
+	int legacy_id = downtime->GetLegacyId();
 
 	downtimes->Remove(id);
 
@@ -130,11 +128,9 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 		l_DowntimesCache.erase(id);
 	}
 
-	RemoveComment(comment_id);
+	downtime->SetWasCancelled(cancelled);
 
-	downtime->Set("was_cancelled", cancelled);
-
-	Log(LogWarning, "icinga", "removed downtime with ID '" + downtime->Get("legacy_id") + "' from service '" + owner->GetName() + "'.");
+	Log(LogWarning, "icinga", "removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
 
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnDowntimeRemoved), owner, downtime, authority));
 }
@@ -162,33 +158,33 @@ void Service::TriggerDowntimes(void)
 void Service::TriggerDowntime(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
-	Dictionary::Ptr downtime = GetDowntimeByID(id);
+	Downtime::Ptr downtime = GetDowntimeByID(id);
 
 	if (!downtime)
 		return;
 
 	if (IsDowntimeActive(downtime) && IsDowntimeTriggered(downtime)) {
-		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + downtime->Get("legacy_id") + "': already triggered.");
+		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "': already triggered.");
 		return;
 	}
 
 	if (IsDowntimeExpired(downtime)) {
-		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + downtime->Get("legacy_id") + "': expired.");
+		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "': expired.");
 		return;
 	}
 
 	double now = Utility::GetTime();
 
-	if (now < downtime->Get("start_time") ||
-	    now > downtime->Get("end_time"))
+	if (now < downtime->GetStartTime() ||
+	    now > downtime->GetEndTime())
 		return;
 
-	Log(LogDebug, "icinga", "Triggering downtime with ID '" + downtime->Get("legacy_id") + "'.");
+	Log(LogDebug, "icinga", "Triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
 
-	if (downtime->Get("trigger_time") == 0)
-		downtime->Set("trigger_time", now);
+	if (downtime->GetTriggerTime() == 0)
+		downtime->SetTriggerTime(now);
 
-	Dictionary::Ptr triggers = downtime->Get("triggers");
+	Dictionary::Ptr triggers = downtime->GetTriggers();
 	ObjectLock olock(triggers);
 	String tid;
 	BOOST_FOREACH(boost::tie(tid, boost::tuples::ignore), triggers) {
@@ -216,52 +212,52 @@ Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
 	return l_DowntimesCache[id].lock();
 }
 
-Dictionary::Ptr Service::GetDowntimeByID(const String& id)
+Downtime::Ptr Service::GetDowntimeByID(const String& id)
 {
 	Service::Ptr owner = GetOwnerByDowntimeID(id);
 
 	if (!owner)
-		return Dictionary::Ptr();
+		return Downtime::Ptr();
 
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
 	if (downtimes)
 		return downtimes->Get(id);
 
-	return Dictionary::Ptr();
+	return Downtime::Ptr();
 }
 
-bool Service::IsDowntimeActive(const Dictionary::Ptr& downtime)
+bool Service::IsDowntimeActive(const Downtime::Ptr& downtime)
 {
 	double now = Utility::GetTime();
 
-	if (now < downtime->Get("start_time") ||
-	    now > downtime->Get("end_time"))
+	if (now < downtime->GetStartTime() ||
+	    now > downtime->GetEndTime())
 		return false;
 
-	if (static_cast<bool>(downtime->Get("fixed")))
+	if (downtime->GetFixed())
 		return true;
 
-	double triggerTime = downtime->Get("trigger_time");
+	double triggerTime = downtime->GetTriggerTime();
 
 	if (triggerTime == 0)
 		return false;
 
-	return (triggerTime + downtime->Get("duration") < now);
+	return (triggerTime + downtime->GetDuration() < now);
 }
 
-bool Service::IsDowntimeTriggered(const Dictionary::Ptr& downtime)
+bool Service::IsDowntimeTriggered(const Downtime::Ptr& downtime)
 {
 	double now = Utility::GetTime();
 
-	double triggerTime = downtime->Get("trigger_time");
+	double triggerTime = downtime->GetTriggerTime();
 
 	return (triggerTime > 0 && triggerTime <= now);
 }
 
-bool Service::IsDowntimeExpired(const Dictionary::Ptr& downtime)
+bool Service::IsDowntimeExpired(const Downtime::Ptr& downtime)
 {
-	return (downtime->Get("end_time") < Utility::GetTime());
+	return (downtime->GetEndTime() < Utility::GetTime());
 }
 
 void Service::StartDowntimesExpiredTimer(void)
@@ -285,9 +281,9 @@ void Service::AddDowntimesToCache(void)
 	ObjectLock olock(downtimes);
 
 	String id;
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
-		int legacy_id = downtime->Get("legacy_id");
+		int legacy_id = downtime->GetLegacyId();
 
 		if (legacy_id >= l_NextDowntimeID)
 			l_NextDowntimeID = legacy_id + 1;
@@ -307,7 +303,7 @@ void Service::RemoveExpiredDowntimes(void)
 		ObjectLock olock(downtimes);
 
 		String id;
-		Dictionary::Ptr downtime;
+		Downtime::Ptr downtime;
 		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 			if (IsDowntimeExpired(downtime))
 				expiredDowntimes.push_back(id);
@@ -332,7 +328,7 @@ bool Service::IsInDowntime(void) const
 
 	ObjectLock olock(downtimes);
 
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
 		if (Service::IsDowntimeActive(downtime))
 			return true;
@@ -348,7 +344,7 @@ int Service::GetDowntimeDepth(void) const
 
 	ObjectLock olock(downtimes);
 
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
 		if (Service::IsDowntimeActive(downtime))
 			downtime_depth++;

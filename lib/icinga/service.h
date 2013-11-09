@@ -27,6 +27,7 @@
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
 #include "icinga/comment.h"
+#include "icinga/downtime.h"
 #include "base/i2-base.h"
 #include "base/array.h"
 #include <boost/signals2.hpp>
@@ -34,18 +35,6 @@
 
 namespace icinga
 {
-
-/**
- * The state of a service downtime.
- *
- * @ingroup icinga
- */
-enum DowntimeState
-{
-	DowntimeStarted = 0,
-	DowntimeCancelled = 1,
-	DowntimeStopped = 2
-};
 
 /**
  * The state of service flapping.
@@ -58,18 +47,6 @@ enum FlappingState
 	FlappingDisabled = 1,
 	FlappingStopped = 2,
 	FlappingEnabled = 3
-};
-
-/**
- * The state of a changed downtime
- *
- * @ingroup icinga
- */
-enum DowntimeChangedType
-{
-	DowntimeChangedAdded = 0,
-	DowntimeChangedUpdated = 1,
-	DowntimeChangedDeleted = 2
 };
 
 /**
@@ -191,10 +168,10 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentRemoved;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeAdded;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeAdded;
+	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnDowntimeTriggered;
+	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&)> OnDowntimeTriggered;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnEventCommandExecuted;
@@ -206,7 +183,7 @@ public:
 
 	int GetDowntimeDepth(void) const;
 
-	String AddDowntime(const String& comment_id,
+	String AddDowntime(const String& author, const String& comment,
 	    double startTime, double endTime, bool fixed,
 	    const String& triggeredBy, double duration,
 	    const String& id = String(), const String& authority = String());
@@ -218,11 +195,11 @@ public:
 
 	static String GetDowntimeIDFromLegacyID(int id);
 	static Service::Ptr GetOwnerByDowntimeID(const String& id);
-	static Dictionary::Ptr GetDowntimeByID(const String& id);
+	static Downtime::Ptr GetDowntimeByID(const String& id);
 
-	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
-	static bool IsDowntimeTriggered(const Dictionary::Ptr& downtime);
-	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
+	static bool IsDowntimeActive(const Downtime::Ptr& downtime);
+	static bool IsDowntimeTriggered(const Downtime::Ptr& downtime);
+	static bool IsDowntimeExpired(const Downtime::Ptr& downtime);
 
 	void StartDowntimesExpiredTimer(void);
 

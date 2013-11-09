@@ -175,7 +175,7 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 	ObjectLock olock(downtimes);
 
 	String id;
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
@@ -186,23 +186,23 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 			fp << "servicedowntime {" << "\n"
 			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
 
-		Dictionary::Ptr triggeredByObj = Service::GetDowntimeByID(downtime->Get("triggered_by"));
+		Downtime::Ptr triggeredByObj = Service::GetDowntimeByID(downtime->GetTriggeredBy());
 		int triggeredByLegacy = 0;
 		if (triggeredByObj)
-			triggeredByLegacy = triggeredByObj->Get("legacy_id");
+			triggeredByLegacy = triggeredByObj->GetLegacyId();
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
-		   << "\t" << "downtime_id=" << static_cast<String>(downtime->Get("legacy_id")) << "\n"
-		   << "\t" << "entry_time=" << static_cast<double>(downtime->Get("entry_time")) << "\n"
-		   << "\t" << "start_time=" << static_cast<double>(downtime->Get("start_time")) << "\n"
-		   << "\t" << "end_time=" << static_cast<double>(downtime->Get("end_time")) << "\n"
+		   << "\t" << "downtime_id=" << downtime->GetLegacyId() << "\n"
+		   << "\t" << "entry_time=" << downtime->GetEntryTime() << "\n"
+		   << "\t" << "start_time=" << downtime->GetStartTime() << "\n"
+		   << "\t" << "end_time=" << downtime->GetEndTime() << "\n"
 		   << "\t" << "triggered_by=" << triggeredByLegacy << "\n"
-		   << "\t" << "fixed=" << static_cast<long>(downtime->Get("fixed")) << "\n"
-		   << "\t" << "duration=" << static_cast<long>(downtime->Get("duration")) << "\n"
+		   << "\t" << "fixed=" << static_cast<long>(downtime->GetFixed()) << "\n"
+		   << "\t" << "duration=" << static_cast<long>(downtime->GetDuration()) << "\n"
 		   << "\t" << "is_in_effect=" << (Service::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
-		   << "\t" << "author=" << static_cast<String>(downtime->Get("author")) << "\n"
-		   << "\t" << "comment=" << static_cast<String>(downtime->Get("comment")) << "\n"
-		   << "\t" << "trigger_time=" << static_cast<double>(downtime->Get("trigger_time")) << "\n"
+		   << "\t" << "author=" << downtime->GetAuthor() << "\n"
+		   << "\t" << "comment=" << downtime->GetComment() << "\n"
+		   << "\t" << "trigger_time=" << downtime->GetTriggerTime() << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}

@@ -80,8 +80,8 @@ private:
         static void AddComments(const Service::Ptr& service);
         static void RemoveComments(const Service::Ptr& service);
 
-        static void AddDowntimeInternal(const Service::Ptr& service, const Dictionary::Ptr& downtime, bool historical);
-        static void AddDowntimeByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& downtime, bool historical);
+        static void AddDowntimeInternal(const Service::Ptr& service, const Downtime::Ptr& downtime, bool historical);
+        static void AddDowntimeByType(const DynamicObject::Ptr& object, const Downtime::Ptr& downtime, bool historical);
         static void AddDowntimes(const Service::Ptr& service);
         static void RemoveDowntimes(const Service::Ptr& service);
 
@@ -91,21 +91,21 @@ private:
 	static void AddComment(const Service::Ptr& service, const Comment::Ptr& comment);
 	static void RemoveComment(const Service::Ptr& service, const Comment::Ptr& comment);
 
-	static void AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
-	static void RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
-	static void TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+	static void AddDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime);
+	static void RemoveDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime);
+	static void TriggerDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime);
 
         /* History */
         static void AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment);
-	static void AddDowntimeHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+	static void AddDowntimeHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
         static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry);
         static void AddContactNotificationHistory(const Service::Ptr& service, const User::Ptr& user);
 	static void AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text);
 	static void AddStateChangeHistory(const Service::Ptr& service, const CheckResult::Ptr& cr, StateType type);
 
 	static void AddCheckResultLogHistory(const Service::Ptr& service, const CheckResult::Ptr &cr);
-        static void AddTriggerDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
-        static void AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        static void AddTriggerDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
+        static void AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
 	static void AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author, const String& comment_text);
         static void AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state);
 

@@ -78,35 +78,35 @@ Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::Obje
 
 Value DowntimesTable::AuthorAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("author");
+	return downtime->GetAuthor();
 }
 
 Value DowntimesTable::CommentAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("comment");
+	return downtime->GetComment();
 }
 
 Value DowntimesTable::IdAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("legacy_id");
+	return downtime->GetLegacyId();
 }
 
 Value DowntimesTable::EntryTimeAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return static_cast<int>(downtime->Get("entry_time"));
+	return static_cast<int>(downtime->GetEntryTime());
 }
 
 Value DowntimesTable::TypeAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 	// 1 .. active, 0 .. pending
 	return (Service::IsDowntimeActive(downtime) ? 1 : 0);
 }
@@ -120,35 +120,35 @@ Value DowntimesTable::IsServiceAccessor(const Value& row)
 
 Value DowntimesTable::StartTimeAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return static_cast<int>(downtime->Get("start_time"));
+	return static_cast<int>(downtime->GetStartTime());
 }
 
 Value DowntimesTable::EndTimeAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return static_cast<int>(downtime->Get("end_time"));
+	return static_cast<int>(downtime->GetEndTime());
 }
 
 Value DowntimesTable::FixedAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("fixed");
+	return downtime->GetFixed();
 }
 
 Value DowntimesTable::DurationAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("duration");
+	return downtime->GetDuration();
 }
 
 Value DowntimesTable::TriggeredByAccessor(const Value& row)
 {
-	Dictionary::Ptr downtime = Service::GetDowntimeByID(row);
+	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 
-	return downtime->Get("triggered_by");
+	return downtime->GetTriggeredBy();
 }

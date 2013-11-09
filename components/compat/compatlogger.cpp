@@ -147,7 +147,7 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckRe
 /**
  * @threadsafety Always.
  */
-void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -193,7 +193,7 @@ void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dic
 /**
  * @threadsafety Always.
  */
-void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -206,7 +206,7 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dict
 	String downtime_output;
 	String downtime_state_str;
 
-	if (downtime->Get("was_cancelled") == true) {
+	if (downtime->GetWasCancelled()) {
 		downtime_output = "Scheduled downtime for service has been cancelled.";
 		downtime_state_str = "CANCELLED";
 	} else {

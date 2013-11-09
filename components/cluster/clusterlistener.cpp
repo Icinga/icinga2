@@ -869,7 +869,7 @@ void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const C
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -888,14 +888,14 @@ void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Di
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeRemovedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
 	params->Set("service", service->GetName());
-	params->Set("id", downtime->Get("id"));
+	params->Set("id", downtime->GetId());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
@@ -1249,12 +1249,12 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Dictionary::Ptr downtime = params->Get("downtime");
+		Downtime::Ptr downtime = params->Get("downtime");
 
-		service->AddDowntime(downtime->Get("comment_id"),
-		    downtime->Get("start_time"), downtime->Get("end_time"),
-		    downtime->Get("fixed"), downtime->Get("triggered_by"),
-		    downtime->Get("duration"), downtime->Get("id"), sender->GetName());
+		service->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
+		    downtime->GetStartTime(), downtime->GetEndTime(),
+		    downtime->GetFixed(), downtime->GetTriggeredBy(),
+		    downtime->GetDuration(), downtime->GetId(), sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveDowntime") {

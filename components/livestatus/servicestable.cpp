@@ -1044,7 +1044,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 	ObjectLock olock(downtimes);
 
 	String id;
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 
 		if (!downtime)
@@ -1053,7 +1053,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 		if (Service::IsDowntimeExpired(downtime))
 			continue;
 
-		ids->Add(downtime->Get("legacy_id"));
+		ids->Add(downtime->GetLegacyId());
 	}
 
 	return ids;
@@ -1073,7 +1073,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 	ObjectLock olock(downtimes);
 
 	String id;
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 
 		if (!downtime)
@@ -1083,9 +1083,9 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 			continue;
 
 		Array::Ptr downtime_info = make_shared<Array>();
-		downtime_info->Add(downtime->Get("legacy_id"));
-		downtime_info->Add(downtime->Get("author"));
-		downtime_info->Add(downtime->Get("comment"));
+		downtime_info->Add(downtime->GetLegacyId());
+		downtime_info->Add(downtime->GetAuthor());
+		downtime_info->Add(downtime->GetComment());
 		ids->Add(downtime_info);
 	}
 

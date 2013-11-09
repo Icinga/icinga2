@@ -94,8 +94,8 @@ private:
 	void EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
 	void CommentAddedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority);
 	void CommentRemovedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority);
-	void DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
-	void DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
+	void DowntimeAddedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
+	void DowntimeRemovedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
 	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 

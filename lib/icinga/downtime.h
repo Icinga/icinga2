@@ -17,57 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COMPATLOGGER_H
-#define COMPATLOGGER_H
+#ifndef DOWNTIME_H
+#define DOWNTIME_H
 
-#include "compat/compatlogger.th"
-#include "icinga/service.h"
-#include "base/timer.h"
-#include <fstream>
+#include "icinga/i2-icinga.h"
+#include "icinga/downtime.th"
 
 namespace icinga
 {
 
 /**
- * An Icinga compat log writer.
+ * A service downtime.
  *
- * @ingroup compat
+ * @ingroup icinga
  */
-class CompatLogger : public ObjectImpl<CompatLogger>
+class I2_ICINGA_API Downtime : public ObjectImpl<Downtime>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CompatLogger);
-	DECLARE_TYPENAME(CompatLogger);
-
-	CompatLogger(void);
-
-	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
-
-protected:
-	virtual void Start(void);
-
-private:
-	double m_LastRotation;
-
-	void WriteLine(const String& line);
-	void Flush(void);
-
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
-	void NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr, const String& author, const String& comment_text, const String& command_name);
-	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
-	void TriggerDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime);
-	void RemoveDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime);
-	void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);
-	void EventCommandHandler(const Service::Ptr& service);
-
-	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-	void ScheduleNextRotation(void);
-
-	std::ofstream m_OutputFile;
-	void ReopenFile(bool rotate);
+	DECLARE_PTR_TYPEDEFS(Downtime);
 };
 
 }
 
-#endif /* COMPATLOGGER_H */
+#endif /* DOWNTIME_H */

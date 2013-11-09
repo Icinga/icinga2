@@ -20,6 +20,7 @@ mkclass_target(checkresult.ti checkresult.th)
 mkclass_target(command.ti command.th)
 mkclass_target(comment.ti comment.th)
 mkclass_target(domain.ti domain.th)
+mkclass_target(downtime.ti downtime.th)
 mkclass_target(eventcommand.ti eventcommand.th)
 mkclass_target(hostgroup.ti hostgroup.th)
 mkclass_target(host.ti host.th)
@@ -38,14 +39,15 @@ mkembedconfig_target(icinga-type.conf icinga-type.cpp)
 add_library(icinga SHARED
   api.cpp api.h checkcommand.cpp checkcommand.th checkresult.cpp checkresult.th
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp
-  domain.cpp domain.th eventcommand.cpp eventcommand.th externalcommandprocessor.cpp host.cpp
-  host.th hostgroup.cpp hostgroup.th icingaapplication.cpp icingaapplication.th
-  macroprocessor.cpp macroresolver.cpp notificationcommand.cpp notificationcommand.th
-  notification.cpp notification.th perfdatavalue.cpp perfdatavalue.th
-  pluginutility.cpp service-check.cpp service-comment.cpp service.cpp
-  service-downtime.cpp service-event.cpp service-flapping.cpp service.th
-  servicegroup.cpp servicegroup.th service-notification.cpp timeperiod.cpp
-  timeperiod.th user.cpp user.th usergroup.cpp usergroup.th icinga-type.cpp
+  domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
+  externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
+  icingaapplication.cpp icingaapplication.th macroprocessor.cpp macroresolver.cpp
+  notificationcommand.cpp notificationcommand.th notification.cpp notification.th
+  perfdatavalue.cpp perfdatavalue.th pluginutility.cpp service-check.cpp
+  service-comment.cpp service.cpp service-downtime.cpp service-event.cpp
+  service-flapping.cpp service.th servicegroup.cpp servicegroup.th
+  service-notification.cpp timeperiod.cpp timeperiod.th user.cpp user.th
+  usergroup.cpp usergroup.th icinga-type.cpp
 )
 
 target_link_libraries(icinga ${Boost_LIBRARIES} base config)
