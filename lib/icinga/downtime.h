@@ -17,45 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef GRAPHITEWRITER_H
-#define GRAPHITEWRITER_H
+#ifndef DOWNTIME_H
+#define DOWNTIME_H
 
-#include "perfdata/graphitewriter.th"
-#include "icinga/service.h"
-#include "base/dynamicobject.h"
-#include "base/tcpsocket.h"
-#include "base/timer.h"
-#include <fstream>
+#include "icinga/i2-icinga.h"
+#include "icinga/downtime.th"
 
 namespace icinga
 {
 
 /**
- * An Icinga graphite writer.
+ * A service downtime.
  *
- * @ingroup perfdata
+ * @ingroup icinga
  */
-class GraphiteWriter : public ObjectImpl<GraphiteWriter>
+class I2_ICINGA_API Downtime : public ObjectImpl<Downtime>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
-	DECLARE_TYPENAME(GraphiteWriter);
+	DECLARE_PTR_TYPEDEFS(Downtime);
 
-protected:
-	virtual void Start(void);
+	bool IsActive(void) const;
+	bool IsTriggered(void) const;
+	bool IsExpired(void) const;
 
-private:
-	Stream::Ptr m_Stream;
-        
-	Timer::Ptr m_ReconnectTimer;
-
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
-        void SendMetric(const String& prefix, const String& name, double value);
-        static void SanitizeMetric(String& str);
-
-	void ReconnectTimerHandler(void);
 };
 
 }
 
-#endif /* GRAPHITEWRITER_H */
+#endif /* DOWNTIME_H */

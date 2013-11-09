@@ -23,7 +23,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Command);
 
-bool Command::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
+bool Command::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();
 

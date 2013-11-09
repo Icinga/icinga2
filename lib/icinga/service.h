@@ -26,6 +26,8 @@
 #include "icinga/host.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
+#include "icinga/comment.h"
+#include "icinga/downtime.h"
 #include "base/i2-base.h"
 #include "base/array.h"
 #include <boost/signals2.hpp>
@@ -33,31 +35,6 @@
 
 namespace icinga
 {
-
-/**
- * The type of a service comment.
- *
- * @ingroup icinga
- */
-enum CommentType
-{
-	CommentUser = 1,
-	CommentDowntime = 2,
-	CommentFlapping = 3,
-	CommentAcknowledgement = 4
-};
-
-/**
- * The state of a service downtime.
- *
- * @ingroup icinga
- */
-enum DowntimeState
-{
-	DowntimeStarted = 0,
-	DowntimeCancelled = 1,
-	DowntimeStopped = 2
-};
 
 /**
  * The state of service flapping.
@@ -70,18 +47,6 @@ enum FlappingState
 	FlappingDisabled = 1,
 	FlappingStopped = 2,
 	FlappingEnabled = 3
-};
-
-/**
- * The state of a changed downtime
- *
- * @ingroup icinga
- */
-enum DowntimeChangedType
-{
-	DowntimeChangedAdded = 0,
-	DowntimeChangedUpdated = 1,
-	DowntimeChangedDeleted = 2
 };
 
 /**
@@ -172,16 +137,16 @@ public:
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced, const String& authority = String());
 
-	static void UpdateStatistics(const Dictionary::Ptr& cr);
+	static void UpdateStatistics(const CheckResult::Ptr& cr);
 
 	void ExecuteCheck(void);
-	void ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority = String());
+	void ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority = String());
 
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags);
 
-	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
-	static double CalculateLatency(const Dictionary::Ptr& cr);
+	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
+	static double CalculateLatency(const CheckResult::Ptr& cr);
 
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
@@ -196,29 +161,29 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnablePassiveChecksChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableNotificationsChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableFlappingChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, StateType, const String&)> OnStateChange;
-	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
-	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&, const String&)> OnNotificationSentToUser;
-	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentAdded;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentRemoved;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeAdded;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const String&)> OnNewCheckResult;
+	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, StateType, const String&)> OnStateChange;
+	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> OnNotificationsRequested;
+	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> OnNotificationSentToUser;
+	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
+	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentAdded;
+	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentRemoved;
+	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeAdded;
+	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&)> OnDowntimeTriggered;
+	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&)> OnDowntimeTriggered;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnEventCommandExecuted;
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
 
 	int GetDowntimeDepth(void) const;
 
-	String AddDowntime(const String& comment_id,
+	String AddDowntime(const String& author, const String& comment,
 	    double startTime, double endTime, bool fixed,
 	    const String& triggeredBy, double duration,
 	    const String& id = String(), const String& authority = String());
@@ -230,11 +195,7 @@ public:
 
 	static String GetDowntimeIDFromLegacyID(int id);
 	static Service::Ptr GetOwnerByDowntimeID(const String& id);
-	static Dictionary::Ptr GetDowntimeByID(const String& id);
-
-	static bool IsDowntimeActive(const Dictionary::Ptr& downtime);
-	static bool IsDowntimeTriggered(const Dictionary::Ptr& downtime);
-	static bool IsDowntimeExpired(const Dictionary::Ptr& downtime);
+	static Downtime::Ptr GetDowntimeByID(const String& id);
 
 	void StartDowntimesExpiredTimer(void);
 
@@ -253,15 +214,13 @@ public:
 
 	static String GetCommentIDFromLegacyID(int id);
 	static Service::Ptr GetOwnerByCommentID(const String& id);
-	static Dictionary::Ptr GetCommentByID(const String& id);
-
-	static bool IsCommentExpired(const Dictionary::Ptr& comment);
+	static Comment::Ptr GetCommentByID(const String& id);
 
 	/* Notifications */
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled, const String& authority = String());
 
-	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
+	void SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author = "", const String& text = "");
 
 	std::set<Notification::Ptr> GetNotifications(void) const;
 	void AddNotification(const Notification::Ptr& notification);

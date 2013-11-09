@@ -101,11 +101,10 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 		return;
 	}
 
-	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(attrs["output"]);
-	result->Set("state", PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
-	result->Set("execution_start", Convert::ToDouble(attrs["start_time"]));
-	result->Set("execution_end", Convert::ToDouble(attrs["finish_time"]));
-	result->Set("active", 1);
+	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(attrs["output"]);
+	result->SetState(PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
+	result->SetExecutionStart(Convert::ToDouble(attrs["start_time"]));
+	result->SetExecutionEnd(Convert::ToDouble(attrs["finish_time"]));
 
 	service->ProcessCheckResult(result);
 

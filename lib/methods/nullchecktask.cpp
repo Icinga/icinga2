@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
-Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
+CheckResult::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 {
 	char name[255];
 
@@ -43,10 +43,10 @@ Dictionary::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Utility::GetTime());
 
-	Dictionary::Ptr cr = make_shared<Dictionary>();
-	cr->Set("output", output);
-	cr->Set("performance_data", perfdata);
-	cr->Set("state", StateOK);
+	CheckResult::Ptr cr = make_shared<CheckResult>();
+	cr->SetOutput(output);
+	cr->SetPerformanceData(perfdata);
+	cr->SetState(StateOK);
 
 	return cr;
 }

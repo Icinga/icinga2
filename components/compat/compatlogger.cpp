@@ -72,14 +72,14 @@ void CompatLogger::Start(void)
 /**
  * @threadsafety Always.
  */
-void CompatLogger::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr &cr)
+void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
 		return;
 
-	Dictionary::Ptr vars_after = cr->Get("vars_after");
+	Dictionary::Ptr vars_after = cr->GetVarsAfter();
 
 	long state_after = vars_after->Get("state");
 	long stateType_after = vars_after->Get("state_type");
@@ -87,7 +87,7 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const Diction
 	bool reachable_after = vars_after->Get("reachable");
 	bool host_reachable_after = vars_after->Get("host_reachable");
 
-	Dictionary::Ptr vars_before = cr->Get("vars_before");
+	Dictionary::Ptr vars_before = cr->GetVarsBefore();
 
 	if (vars_before) {
 		long state_before = vars_before->Get("state");
@@ -147,7 +147,7 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const Diction
 /**
  * @threadsafety Always.
  */
-void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -193,7 +193,7 @@ void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dic
 /**
  * @threadsafety Always.
  */
-void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime)
+void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -206,7 +206,7 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dict
 	String downtime_output;
 	String downtime_state_str;
 
-	if (downtime->Get("was_cancelled") == true) {
+	if (downtime->GetWasCancelled()) {
 		downtime_output = "Scheduled downtime for service has been cancelled.";
 		downtime_state_str = "CANCELLED";
 	} else {
@@ -251,8 +251,8 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Dict
  * @threadsafety Always.
  */
 void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user,
-		NotificationType const& notification_type, Dictionary::Ptr const& cr,
-		const String& author, const String& comment_text, const String& command_name)
+    NotificationType const& notification_type, CheckResult::Ptr const& cr,
+    const String& author, const String& comment_text, const String& command_name)
 {
         Host::Ptr host = service->GetHost();
 
@@ -505,7 +505,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		ObjectLock olock(hc);
 
 		String output;
-		Dictionary::Ptr cr = hc->GetLastCheckResult();
+		CheckResult::Ptr cr = hc->GetLastCheckResult();
 
 		if (cr) {
 			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -530,7 +530,7 @@ void CompatLogger::ReopenFile(bool rotate)
 			continue;
 
 		String output;
-		Dictionary::Ptr cr = service->GetLastCheckResult();
+		CheckResult::Ptr cr = service->GetLastCheckResult();
 
 		if (cr) {
 			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);

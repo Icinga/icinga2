@@ -24,7 +24,7 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckCommand);
 
-Dictionary::Ptr CheckCommand::Execute(const Service::Ptr& service)
+CheckResult::Ptr CheckCommand::Execute(const Service::Ptr& service)
 {
 	std::vector<Value> arguments;
 	arguments.push_back(service);

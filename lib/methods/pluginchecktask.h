@@ -34,7 +34,7 @@ namespace icinga
 class I2_METHODS_API PluginCheckTask
 {
 public:
-	static Dictionary::Ptr ScriptFunc(const Service::Ptr& service);
+	static CheckResult::Ptr ScriptFunc(const Service::Ptr& service);
 
 private:
 	PluginCheckTask(void);

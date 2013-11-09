@@ -29,7 +29,7 @@
 using namespace icinga;
 
 Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
-    const Dictionary::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
+	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
 {
 	Value result;
 
@@ -58,7 +58,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 }
 
 bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
-    const Dictionary::Ptr& cr, String *result)
+    const CheckResult::Ptr& cr, String *result)
 {
 	BOOST_FOREACH(const MacroResolver::Ptr& resolver, resolvers) {
 		if (resolver->ResolveMacro(macro, cr, result))
@@ -70,7 +70,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroRe
 
 
 String MacroProcessor::InternalResolveMacros(const String& str, const std::vector<MacroResolver::Ptr>& resolvers,
-    const Dictionary::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
+	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
 {
 	size_t offset, pos_first, pos_second;
 	offset = 0;

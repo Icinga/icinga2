@@ -46,7 +46,7 @@ void PerfdataWriter::Start(void)
 	RotateFile();
 }
 
-void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
+void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;

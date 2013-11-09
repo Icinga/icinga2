@@ -17,45 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef GRAPHITEWRITER_H
-#define GRAPHITEWRITER_H
+#ifndef COMMENT_H
+#define COMMENT_H
 
-#include "perfdata/graphitewriter.th"
-#include "icinga/service.h"
-#include "base/dynamicobject.h"
-#include "base/tcpsocket.h"
-#include "base/timer.h"
-#include <fstream>
+#include "icinga/i2-icinga.h"
+#include "icinga/comment.th"
 
 namespace icinga
 {
 
 /**
- * An Icinga graphite writer.
+ * A service comment.
  *
- * @ingroup perfdata
+ * @ingroup icinga
  */
-class GraphiteWriter : public ObjectImpl<GraphiteWriter>
+class I2_ICINGA_API Comment : public ObjectImpl<Comment>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
-	DECLARE_TYPENAME(GraphiteWriter);
+	DECLARE_PTR_TYPEDEFS(Comment);
 
-protected:
-	virtual void Start(void);
-
-private:
-	Stream::Ptr m_Stream;
-        
-	Timer::Ptr m_ReconnectTimer;
-
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
-        void SendMetric(const String& prefix, const String& name, double value);
-        static void SanitizeMetric(String& str);
-
-	void ReconnectTimerHandler(void);
+	bool IsExpired(void) const;
 };
 
 }
 
-#endif /* GRAPHITEWRITER_H */
+#endif /* COMMENT_H */

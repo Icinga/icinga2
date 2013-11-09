@@ -21,6 +21,7 @@
 #define MACRORESOLVER_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/checkresult.h"
 #include "base/dictionary.h"
 #include "base/qstring.h"
 
@@ -37,7 +38,7 @@ class I2_ICINGA_API MacroResolver
 public:
 	DECLARE_PTR_TYPEDEFS(MacroResolver);
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const = 0;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const = 0;
 };
 
 class I2_ICINGA_API StaticMacroResolver : public Object, public MacroResolver
@@ -49,7 +50,7 @@ public:
 
 	void Add(const String& macro, const String& value);
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 private:
 	Dictionary::Ptr m_Macros;

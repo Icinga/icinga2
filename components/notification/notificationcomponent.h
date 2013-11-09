@@ -43,7 +43,7 @@ private:
 
 	void NotificationTimerHandler(void);
 	void SendNotificationsHandler(const Service::Ptr& service, NotificationType type,
-	    const Dictionary::Ptr& cr, const String& author, const String& text);
+	    const CheckResult::Ptr& cr, const String& author, const String& text);
 };
 
 }

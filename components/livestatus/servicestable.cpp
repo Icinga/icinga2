@@ -214,7 +214,7 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
         resolvers.push_back(commandObj);
         resolvers.push_back(IcingaApplication::GetInstance());
 
-        Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
+        Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 
         String buf;
         if (commandLine.IsObjectType<Array>()) {
@@ -262,7 +262,7 @@ Value ServicesTable::PluginOutputAccessor(const Value& row)
 		return Empty;
 
 	String output;
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
 		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -280,7 +280,7 @@ Value ServicesTable::LongPluginOutputAccessor(const Value& row)
 		return Empty;
 
 	String long_output;
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
 		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -298,7 +298,7 @@ Value ServicesTable::PerfDataAccessor(const Value& row)
 		return Empty;
 
 	String perfdata;
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr)
 		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
@@ -375,10 +375,7 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("notes");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::NotesUrlAccessor(const Value& row)
@@ -415,10 +412,7 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("notes_url");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::ActionUrlAccessor(const Value& row)
@@ -455,10 +449,7 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("action_url");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::IconImageAccessor(const Value& row)
@@ -495,10 +486,7 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("icon_image");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::IconImageAltAccessor(const Value& row)
@@ -1056,16 +1044,16 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 	ObjectLock olock(downtimes);
 
 	String id;
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 
 		if (!downtime)
 			continue;
 
-		if (Service::IsDowntimeExpired(downtime))
+		if (downtime->IsExpired())
 			continue;
 
-		ids->Add(downtime->Get("legacy_id"));
+		ids->Add(downtime->GetLegacyId());
 	}
 
 	return ids;
@@ -1085,19 +1073,19 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 	ObjectLock olock(downtimes);
 
 	String id;
-	Dictionary::Ptr downtime;
+	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 
 		if (!downtime)
 			continue;
 
-		if (Service::IsDowntimeExpired(downtime))
+		if (downtime->IsExpired())
 			continue;
 
 		Array::Ptr downtime_info = make_shared<Array>();
-		downtime_info->Add(downtime->Get("legacy_id"));
-		downtime_info->Add(downtime->Get("author"));
-		downtime_info->Add(downtime->Get("comment"));
+		downtime_info->Add(downtime->GetLegacyId());
+		downtime_info->Add(downtime->GetAuthor());
+		downtime_info->Add(downtime->GetComment());
 		ids->Add(downtime_info);
 	}
 
@@ -1118,16 +1106,16 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 
 		if (!comment)
 			continue;
 
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
-		ids->Add(comment->Get("legacy_id"));
+		ids->Add(comment->GetLegacyId());
 	}
 
 	return ids;
@@ -1147,19 +1135,19 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 
 		if (!comment)
 			continue;
 
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
 		Array::Ptr comment_info = make_shared<Array>();
-		comment_info->Add(comment->Get("legacy_id"));
-		comment_info->Add(comment->Get("author"));
-		comment_info->Add(comment->Get("text"));
+		comment_info->Add(comment->GetLegacyId());
+		comment_info->Add(comment->GetAuthor());
+		comment_info->Add(comment->GetText());
 		ids->Add(comment_info);
 	}
 
@@ -1180,21 +1168,21 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 
 		if (!comment)
 			continue;
 
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
 		Array::Ptr comment_info = make_shared<Array>();
-		comment_info->Add(comment->Get("legacy_id"));
-		comment_info->Add(comment->Get("author"));
-		comment_info->Add(comment->Get("text"));
-		comment_info->Add(comment->Get("entry_type"));
-		comment_info->Add(static_cast<int>(comment->Get("entry_time")));
+		comment_info->Add(comment->GetLegacyId());
+		comment_info->Add(comment->GetAuthor());
+		comment_info->Add(comment->GetText());
+		comment_info->Add(comment->GetEntryType());
+		comment_info->Add(static_cast<int>(comment->GetEntryTime()));
 		ids->Add(comment_info);
 	}
 

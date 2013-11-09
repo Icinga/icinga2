@@ -169,7 +169,7 @@ String Notification::NotificationTypeToString(NotificationType type)
 	}
 }
 
-void Notification::BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force, const String& author, const String& text)
+void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
 {
 	ASSERT(!OwnsLock());
 
@@ -240,7 +240,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const Diction
 	Service::OnNotificationSentToAllUsers(GetService(), allUsers, type, cr, author, text);
 }
 
-void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author, const String& text)
+void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
 {
 	ASSERT(!OwnsLock());
 
@@ -297,7 +297,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	}
 }
 
-bool Notification::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
+bool Notification::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
 	Dictionary::Ptr macros = GetMacros();
 

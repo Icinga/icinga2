@@ -40,7 +40,7 @@ public:
 	DECLARE_TYPENAME(NotificationCommand);
 
 	virtual Dictionary::Ptr Execute(const shared_ptr<Notification>& notification,
-	    const User::Ptr& user, const Dictionary::Ptr& cr, const NotificationType& type,
+		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
 	    const String& author, const String& comment);
 };
 

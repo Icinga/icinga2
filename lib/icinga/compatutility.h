@@ -59,8 +59,8 @@ public:
 	static std::set<User::Ptr> GetServiceNotificationUsers(const Service::Ptr& service);
 	static std::set<UserGroup::Ptr> GetServiceNotificationUserGroups(const Service::Ptr& service);
 
-	static Dictionary::Ptr GetCheckResultOutput(const Dictionary::Ptr& cr);
-	static String GetCheckResultPerfdata(const Dictionary::Ptr& cr);
+	static Dictionary::Ptr GetCheckResultOutput(const CheckResult::Ptr& cr);
+	static String GetCheckResultPerfdata(const CheckResult::Ptr& cr);
 
 	static Dictionary::Ptr ConvertTimestamp(double time);
 

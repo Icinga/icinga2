@@ -17,45 +17,43 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef GRAPHITEWRITER_H
-#define GRAPHITEWRITER_H
+#include "icinga/downtime.h"
+#include "base/utility.h"
+#include "base/dynamictype.h"
 
-#include "perfdata/graphitewriter.th"
-#include "icinga/service.h"
-#include "base/dynamicobject.h"
-#include "base/tcpsocket.h"
-#include "base/timer.h"
-#include <fstream>
+using namespace icinga;
 
-namespace icinga
+REGISTER_TYPE(Downtime);
+
+bool Downtime::IsActive(void) const
 {
+	double now = Utility::GetTime();
 
-/**
- * An Icinga graphite writer.
- *
- * @ingroup perfdata
- */
-class GraphiteWriter : public ObjectImpl<GraphiteWriter>
-{
-public:
-	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
-	DECLARE_TYPENAME(GraphiteWriter);
+	if (now < GetStartTime() ||
+		now > GetEndTime())
+		return false;
 
-protected:
-	virtual void Start(void);
+	if (GetFixed())
+		return true;
 
-private:
-	Stream::Ptr m_Stream;
-        
-	Timer::Ptr m_ReconnectTimer;
+	double triggerTime = GetTriggerTime();
 
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
-        void SendMetric(const String& prefix, const String& name, double value);
-        static void SanitizeMetric(String& str);
+	if (triggerTime == 0)
+		return false;
 
-	void ReconnectTimerHandler(void);
-};
-
+	return (triggerTime + GetDuration() < now);
 }
 
-#endif /* GRAPHITEWRITER_H */
+bool Downtime::IsTriggered(void) const
+{
+	double now = Utility::GetTime();
+
+	double triggerTime = GetTriggerTime();
+
+	return (triggerTime > 0 && triggerTime <= now);
+}
+
+bool Downtime::IsExpired(void) const
+{
+	return (GetEndTime() < Utility::GetTime());
+}

@@ -30,7 +30,7 @@ void StaticMacroResolver::Add(const String& macro, const String& value)
 	m_Macros->Set(macro, value);
 }
 
-bool StaticMacroResolver::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
+bool StaticMacroResolver::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
 	if (m_Macros->Contains(macro)) {
 		*result = m_Macros->Get(macro);

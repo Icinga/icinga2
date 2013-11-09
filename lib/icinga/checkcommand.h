@@ -37,7 +37,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(CheckCommand);
 	DECLARE_TYPENAME(CheckCommand);
 
-	virtual Dictionary::Ptr Execute(const Service::Ptr& service);
+	virtual CheckResult::Ptr Execute(const Service::Ptr& service);
 };
 
 }

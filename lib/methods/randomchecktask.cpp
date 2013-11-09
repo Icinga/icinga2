@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 
-Dictionary::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
+CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 {
 	char name[255];
 
@@ -43,10 +43,10 @@ Dictionary::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Utility::GetTime());
 
-	Dictionary::Ptr cr = make_shared<Dictionary>();
-	cr->Set("output", output);
-	cr->Set("performance_data", perfdata);
-	cr->Set("state", static_cast<ServiceState>(Utility::Random() % 4));
+	CheckResult::Ptr cr = make_shared<CheckResult>();
+	cr->SetOutput(output);
+	cr->SetPerformanceData(perfdata);
+	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
 
 	return cr;
 }

@@ -214,14 +214,14 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
-	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(arguments[2]);
-	result->Set("state", PluginUtility::ExitStatusToState(exitStatus));
+	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[2]);
+	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
 
-	result->Set("schedule_start", time);
-	result->Set("schedule_end", time);
-	result->Set("execution_start", time);
-	result->Set("execution_end", time);
-	result->Set("active", 0);
+	result->SetScheduleStart(time);
+	result->SetScheduleEnd(time);
+	result->SetExecutionStart(time);
+	result->SetExecutionEnd(time);
+	result->SetActive(false);
 
 	Log(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
 	hc->ProcessCheckResult(result);
@@ -250,14 +250,14 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
-	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(arguments[3]);
-	result->Set("state", PluginUtility::ExitStatusToState(exitStatus));
+	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[3]);
+	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
 
-	result->Set("schedule_start", time);
-	result->Set("schedule_end", time);
-	result->Set("execution_start", time);
-	result->Set("execution_end", time);
-	result->Set("active", 0);
+	result->SetScheduleStart(time);
+	result->SetScheduleEnd(time);
+	result->SetExecutionStart(time);
+	result->SetExecutionEnd(time);
+	result->SetActive(false);
 
 	Log(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);
@@ -1009,8 +1009,7 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<Str
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-	String comment_id = service->AddComment(CommentDowntime, arguments[7], arguments[8], Convert::ToDouble(arguments[3]));
-	(void) service->AddDowntime(comment_id,
+	(void) service->AddDowntime(arguments[7], arguments[8],
 	    Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
 	    Convert::ToBool(arguments[4]), triggeredBy, Convert::ToDouble(arguments[6]));
 }
@@ -1044,8 +1043,7 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 	Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
 	Service::Ptr service = host->GetCheckService();
 	if (service) {
-		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
-		(void) service->AddDowntime(comment_id,
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -1079,8 +1077,7 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
-		(void) service->AddDowntime(comment_id,
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -1105,8 +1102,7 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 		Log(LogInformation, "icinga", "Creating downtime for host " + host->GetName());
 		Service::Ptr service = host->GetCheckService();
 		if (service) {
-			String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
-			(void) service->AddDowntime(comment_id,
+			(void) service->AddDowntime(arguments[6], arguments[7],
 			    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 			    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 		}
@@ -1142,8 +1138,7 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
-		(void) service->AddDowntime(comment_id,
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -1179,8 +1174,7 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 
 	BOOST_FOREACH(const Service::Ptr& service, services) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
-		(void) service->AddDowntime(comment_id,
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}
@@ -1203,8 +1197,7 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Log(LogInformation, "icinga", "Creating downtime for service " + service->GetName());
-		String comment_id = service->AddComment(CommentDowntime, arguments[6], arguments[7], Convert::ToDouble(arguments[2]));
-		(void) service->AddDowntime(comment_id,
+		(void) service->AddDowntime(arguments[6], arguments[7],
 		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 		    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
 	}

@@ -32,9 +32,9 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> Service::OnNewCheckResult;
-boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, StateType, const String&)> Service::OnStateChange;
-boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
+boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const String&)> Service::OnNewCheckResult;
+boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, StateType, const String&)> Service::OnStateChange;
+boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
 boost::signals2::signal<void (const Service::Ptr&, double, const String&)> Service::OnNextCheckChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextCheckChanged;
 boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextNotificationChanged;
@@ -129,11 +129,11 @@ bool Service::HasBeenChecked(void) const
 
 double Service::GetLastCheck(void) const
 {
-	Dictionary::Ptr cr = GetLastCheckResult();
+	CheckResult::Ptr cr = GetLastCheckResult();
 	double schedule_end = -1;
 
 	if (cr)
-		schedule_end = cr->Get("schedule_end");
+		schedule_end = cr->GetScheduleEnd();
 
 	return schedule_end;
 }
@@ -180,26 +180,26 @@ void Service::SetForceNextCheck(bool forced, const String& authority)
 	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnForceNextCheckChanged), GetSelf(), forced, authority));
 }
 
-void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority)
+void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
 {
 	double now = Utility::GetTime();
 
-	if (!cr->Contains("schedule_start"))
-		cr->Set("schedule_start", now);
+	if (cr->GetScheduleStart() == 0)
+		cr->SetScheduleStart(now);
 
-	if (!cr->Contains("schedule_end"))
-		cr->Set("schedule_end", now);
+	if (cr->GetScheduleEnd() == 0)
+		cr->SetScheduleEnd(now);
 
-	if (!cr->Contains("execution_start"))
-		cr->Set("execution_start", now);
+	if (cr->GetExecutionStart() == 0)
+		cr->SetExecutionStart(now);
 
-	if (!cr->Contains("execution_end"))
-		cr->Set("execution_end", now);
+	if (cr->GetExecutionEnd() == 0)
+		cr->SetExecutionEnd(now);
 
-	String check_source = cr->Get("check_source");
+	String check_source = cr->GetCheckSource();
 
 	if (check_source.IsEmpty())
-		cr->Set("check_source", authority);
+		cr->SetCheckSource(authority);
 
 	bool reachable = IsReachable();
 
@@ -212,13 +212,13 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	Dictionary::Ptr old_cr = GetLastCheckResult();
+	CheckResult::Ptr old_cr = GetLastCheckResult();
 	ServiceState old_state = GetState();
 	StateType old_stateType = GetStateType();
 	long old_attempt = GetCheckAttempt();
 	bool recovery;
 
-	if (old_cr && cr->Get("execution_start") < old_cr->Get("execution_start"))
+	if (old_cr && cr->GetExecutionStart() < old_cr->GetExecutionStart())
 		return;
 
 	/* The ExecuteCheck function already sets the old state, but we need to do it again
@@ -229,7 +229,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 	long attempt;
 
-	if (cr->Get("state") == StateOK) {
+	if (cr->GetState() == StateOK) {
 		if (old_state == StateOK && old_stateType == StateTypeSoft)
 			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
 
@@ -250,12 +250,17 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 		recovery = false;
 
-		if (cr->Get("state") == StateWarning)
-			SetLastStateWarning(Utility::GetTime());
-		if (cr->Get("state") == StateCritical)
-			SetLastStateCritical(Utility::GetTime());
-		if (cr->Get("state") == StateUnknown)
-			SetLastStateUnknown(Utility::GetTime());
+		switch (cr->GetState()) {
+			case StateWarning:
+				SetLastStateWarning(Utility::GetTime());
+				break;
+			case StateCritical:
+				SetLastStateCritical(Utility::GetTime());
+				break;
+			case StateUnknown:
+				SetLastStateUnknown(Utility::GetTime());
+				break;
+		}
 	}
 
 	if (!reachable)
@@ -263,8 +268,7 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 
 	SetCheckAttempt(attempt);
 
-	int state = cr->Get("state");
-	SetState(static_cast<ServiceState>(state));
+	SetState(cr->GetState());
 
 	bool call_eventhandler = false;
 	bool stateChange = (old_state != GetState());
@@ -341,9 +345,9 @@ void Service::ProcessCheckResult(const Dictionary::Ptr& cr, const String& author
 	vars_after->Set("host_reachable", host_reachable);
 
 	if (old_cr)
-		cr->Set("vars_before", old_cr->Get("vars_after"));
+		cr->SetVarsBefore(old_cr->GetVarsAfter());
 
-	cr->Set("vars_after", vars_after);
+	cr->SetVarsAfter(vars_after);
 
 	olock.Lock();
 	SetLastCheckResult(cr);
@@ -457,13 +461,11 @@ void Service::ExecuteCheck(void)
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
-	Dictionary::Ptr checkInfo = make_shared<Dictionary>();
-	checkInfo->Set("schedule_start", GetNextCheck());
-	checkInfo->Set("execution_start", Utility::GetTime());
+	double before_check = Utility::GetTime();
 
 	Service::Ptr self = GetSelf();
 
-	Dictionary::Ptr result;
+	CheckResult::Ptr result;
 
 	try {
 		CheckCommand::Ptr command = GetCheckCommand();
@@ -482,32 +484,25 @@ void Service::ExecuteCheck(void)
 
 		Log(LogWarning, "icinga", message);
 
-		result = make_shared<Dictionary>();
-		result->Set("state", StateUnknown);
-		result->Set("output", message);
+		result = make_shared<CheckResult>();
+		result->SetState(StateUnknown);
+		result->SetOutput(message);
 	}
 
-	checkInfo->Set("execution_end", Utility::GetTime());
-	checkInfo->Set("schedule_end", Utility::GetTime());
+	double after_check = Utility::GetTime();
 
 	if (result) {
-		if (!result->Contains("schedule_start"))
-			result->Set("schedule_start", checkInfo->Get("schedule_start"));
+		if (!result->GetScheduleStart() == 0)
+			result->SetScheduleStart(before_check);
 
-		if (!result->Contains("schedule_end"))
-			result->Set("schedule_end", checkInfo->Get("schedule_end"));
+		if (!result->GetScheduleEnd() == 0)
+			result->SetScheduleEnd(after_check);
 
-		if (!result->Contains("execution_start"))
-			result->Set("execution_start", checkInfo->Get("execution_start"));
+		if (!result->GetExecutionStart() == 0)
+			result->SetExecutionStart(before_check);
 
-		if (!result->Contains("execution_end"))
-			result->Set("execution_end", checkInfo->Get("execution_end"));
-
-		if (!result->Contains("macros"))
-			result->Set("macros", checkInfo->Get("macros"));
-
-		if (!result->Contains("active"))
-			result->Set("active", 1);
+		if (!result->GetExecutionEnd() == 0)
+			result->SetExecutionEnd(after_check);
 	}
 
 	if (result)
@@ -524,50 +519,33 @@ void Service::ExecuteCheck(void)
 	}
 }
 
-void Service::UpdateStatistics(const Dictionary::Ptr& cr)
+void Service::UpdateStatistics(const CheckResult::Ptr& cr)
 {
-	time_t ts;
-	Value schedule_end = cr->Get("schedule_end");
-	if (!schedule_end.IsEmpty())
-		ts = static_cast<time_t>(schedule_end);
-	else
+	time_t ts = cr->GetScheduleEnd();
+
+	if (ts == 0)
 		ts = static_cast<time_t>(Utility::GetTime());
 
-	Value active = cr->Get("active");
-	if (active.IsEmpty() || static_cast<long>(active))
+	if (cr->GetActive())
 		CIB::UpdateActiveChecksStatistics(ts, 1);
 	else
 		CIB::UpdatePassiveChecksStatistics(ts, 1);
 }
 
-double Service::CalculateExecutionTime(const Dictionary::Ptr& cr)
+double Service::CalculateExecutionTime(const CheckResult::Ptr& cr)
 {
-	double execution_start = 0, execution_end = 0;
+	if (!cr)
+		return 0;
 
-	if (cr) {
-		if (!cr->Contains("execution_start") || !cr->Contains("execution_end"))
-			return 0;
-
-		execution_start = cr->Get("execution_start");
-		execution_end = cr->Get("execution_end");
-	}
-
-	return (execution_end - execution_start);
+	return cr->GetExecutionEnd() - cr->GetExecutionStart();
 }
 
-double Service::CalculateLatency(const Dictionary::Ptr& cr)
+double Service::CalculateLatency(const CheckResult::Ptr& cr)
 {
-	double schedule_start = 0, schedule_end = 0;
+	if (!cr)
+		return 0;
 
-	if (cr) {
-		if (!cr->Contains("schedule_start") || !cr->Contains("schedule_end"))
-			return 0;
-
-		schedule_start = cr->Get("schedule_start");
-		schedule_end = cr->Get("schedule_end");
-	}
-
-	double latency = (schedule_end - schedule_start) - CalculateExecutionTime(cr);
+	double latency = (cr->GetScheduleEnd() - cr->GetScheduleStart()) - CalculateExecutionTime(cr);
 
 	if (latency < 0)
 		latency = 0;

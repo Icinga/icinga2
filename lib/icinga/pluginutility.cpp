@@ -47,9 +47,9 @@ ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 	}
 }
 
-Dictionary::Ptr PluginUtility::ParseCheckOutput(const String& output)
+CheckResult::Ptr PluginUtility::ParseCheckOutput(const String& output)
 {
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	CheckResult::Ptr result = make_shared<CheckResult>();
 
 	String text;
 	String perfdata;
@@ -75,8 +75,8 @@ Dictionary::Ptr PluginUtility::ParseCheckOutput(const String& output)
 		}
 	}
 
-	result->Set("output", text);
-	result->Set("performance_data", ParsePerfdata(perfdata));
+	result->SetOutput(text);
+	result->SetPerformanceData(ParsePerfdata(perfdata));
 
 	return result;
 }

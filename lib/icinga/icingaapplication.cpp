@@ -93,7 +93,7 @@ Dictionary::Ptr IcingaApplication::GetMacros(void) const
 	return ScriptVariable::Get("IcingaMacros");
 }
 
-bool IcingaApplication::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
+bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
 	double now = Utility::GetTime();
 

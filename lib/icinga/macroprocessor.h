@@ -41,15 +41,15 @@ public:
 	typedef boost::function<String (const String&)> EscapeCallback;
 
 	static Value ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
-	    const Dictionary::Ptr& cr, const EscapeCallback& escapeFn = EscapeCallback(), const Array::Ptr& escapeMacros = Array::Ptr());
+		const CheckResult::Ptr& cr, const EscapeCallback& escapeFn = EscapeCallback(), const Array::Ptr& escapeMacros = Array::Ptr());
 	static bool ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
-	    const Dictionary::Ptr& cr, String *result);
+		const CheckResult::Ptr& cr, String *result);
 
 private:
 	MacroProcessor(void);
 
 	static String InternalResolveMacros(const String& str,
-	    const std::vector<MacroResolver::Ptr>& resolvers, const Dictionary::Ptr& cr,
+		const std::vector<MacroResolver::Ptr>& resolvers, const CheckResult::Ptr& cr,
 	    const EscapeCallback& escapeFn, const Array::Ptr& escapeMacros);
 };
 

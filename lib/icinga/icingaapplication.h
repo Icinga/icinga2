@@ -47,7 +47,7 @@ public:
 	String GetPidPath(void) const;
 	Dictionary::Ptr GetMacros(void) const;
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);

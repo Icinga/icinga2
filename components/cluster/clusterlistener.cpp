@@ -660,7 +660,7 @@ void ClusterListener::SetSecurityInfo(const Dictionary::Ptr& message, const Dyna
 	message->Set("security", security);
 }
 
-void ClusterListener::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority)
+void ClusterListener::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -831,7 +831,7 @@ void ClusterListener::EnableFlappingChangedHandler(const Service::Ptr& service, 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
+void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -850,14 +850,14 @@ void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Dic
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
+void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
 	params->Set("service", service->GetName());
-	params->Set("id", comment->Get("id"));
+	params->Set("id", comment->GetId());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
@@ -869,7 +869,7 @@ void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const D
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -888,14 +888,14 @@ void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Di
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeRemovedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
 	params->Set("service", service->GetName());
-	params->Set("id", downtime->Get("id"));
+	params->Set("id", downtime->GetId());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
@@ -1012,7 +1012,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Dictionary::Ptr cr = params->Get("check_result");
+		CheckResult::Ptr cr = params->Get("check_result");
 
 		if (!cr)
 			return;
@@ -1206,11 +1206,10 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Dictionary::Ptr comment = params->Get("comment");
+		Comment::Ptr comment = params->Get("comment");
 
-		long type = static_cast<long>(comment->Get("entry_type"));
-		service->AddComment(static_cast<CommentType>(type), comment->Get("author"),
-		    comment->Get("text"), comment->Get("expire_time"), comment->Get("id"), sender->GetName());
+		service->AddComment(comment->GetEntryType(), comment->GetAuthor(),
+		    comment->GetText(), comment->GetExpireTime(), comment->GetId(), sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveComment") {
@@ -1250,12 +1249,12 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Dictionary::Ptr downtime = params->Get("downtime");
+		Downtime::Ptr downtime = params->Get("downtime");
 
-		service->AddDowntime(downtime->Get("comment_id"),
-		    downtime->Get("start_time"), downtime->Get("end_time"),
-		    downtime->Get("fixed"), downtime->Get("triggered_by"),
-		    downtime->Get("duration"), downtime->Get("id"), sender->GetName());
+		service->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
+		    downtime->GetStartTime(), downtime->GetEndTime(),
+		    downtime->GetFixed(), downtime->GetTriggeredBy(),
+		    downtime->GetDuration(), downtime->GetId(), sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveDowntime") {

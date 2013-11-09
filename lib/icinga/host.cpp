@@ -542,7 +542,7 @@ String Host::StateTypeToString(StateType type)
 		return "HARD";
 }
 
-bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
+bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
 	if (macro == "HOSTNAME") {
 		*result = GetName();
@@ -554,7 +554,7 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 	}
 
 	Service::Ptr hc = GetCheckService();
-	Dictionary::Ptr hccr;
+	CheckResult::Ptr hccr;
 
 	if (hc) {
 		ServiceState state = hc->GetState();
@@ -618,13 +618,13 @@ bool Host::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *res
 			*result = Convert::ToString(Service::CalculateExecutionTime(hccr));
 			return true;
 		} else if (macro == "HOSTOUTPUT") {
-			*result = hccr->Get("output");
+			*result = hccr->GetOutput();
 			return true;
 		} else if (macro == "HOSTPERFDATA") {
-			*result = PluginUtility::FormatPerfdata(hccr->Get("performance_data"));
+			*result = PluginUtility::FormatPerfdata(hccr->GetPerformanceData());
 			return true;
 		} else if (macro == "LASTHOSTCHECK") {
-			*result = Convert::ToString((long)hccr->Get("schedule_start"));
+			*result = Convert::ToString((long)hccr->GetScheduleStart());
 			return true;
 		}
 	}

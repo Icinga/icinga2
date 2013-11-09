@@ -83,7 +83,7 @@ private:
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
-	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);
+	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const String& authority);
 	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
 	void NextNotificationChangedHandler(const Notification::Ptr& notification, double nextCheck, const String& authority);
 	void ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority);
@@ -92,10 +92,10 @@ private:
 	void EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
 	void EnableNotificationsChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
 	void EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
-	void CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority);
-	void CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority);
-	void DowntimeAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
-	void DowntimeRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime, const String& authority);
+	void CommentAddedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority);
+	void CommentRemovedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority);
+	void DowntimeAddedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
+	void DowntimeRemovedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
 	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
 	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
 
