@@ -831,7 +831,7 @@ void ClusterListener::EnableFlappingChangedHandler(const Service::Ptr& service, 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
+void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -850,14 +850,14 @@ void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Dic
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const Dictionary::Ptr& comment, const String& authority)
+void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
 	params->Set("service", service->GetName());
-	params->Set("id", comment->Get("id"));
+	params->Set("id", comment->GetId());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
@@ -1206,11 +1206,10 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Dictionary::Ptr comment = params->Get("comment");
+		Comment::Ptr comment = params->Get("comment");
 
-		long type = static_cast<long>(comment->Get("entry_type"));
-		service->AddComment(static_cast<CommentType>(type), comment->Get("author"),
-		    comment->Get("text"), comment->Get("expire_time"), comment->Get("id"), sender->GetName());
+		service->AddComment(comment->GetEntryType(), comment->GetAuthor(),
+		    comment->GetText(), comment->GetExpireTime(), comment->GetId(), sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveComment") {

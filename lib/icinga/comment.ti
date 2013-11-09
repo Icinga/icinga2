@@ -1,0 +1,30 @@
+namespace icinga
+{
+
+code {{{
+/**
+ * The type of a service comment.
+ *
+ * @ingroup icinga
+ */
+enum CommentType
+{
+	CommentUser = 1,
+	CommentDowntime = 2,
+	CommentFlapping = 3,
+	CommentAcknowledgement = 4
+};
+}}}
+
+class Comment
+{
+	[state] String id;
+	[state] double entry_time;
+	[state, enum] CommentType entry_type;
+	[state] String author;
+	[state] String text;
+	[state] double expire_time;
+	[state] int legacy_id;
+};
+
+}

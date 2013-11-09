@@ -26,6 +26,7 @@
 #include "icinga/host.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
+#include "icinga/comment.h"
 #include "base/i2-base.h"
 #include "base/array.h"
 #include <boost/signals2.hpp>
@@ -33,19 +34,6 @@
 
 namespace icinga
 {
-
-/**
- * The type of a service comment.
- *
- * @ingroup icinga
- */
-enum CommentType
-{
-	CommentUser = 1,
-	CommentDowntime = 2,
-	CommentFlapping = 3,
-	CommentAcknowledgement = 4
-};
 
 /**
  * The state of a service downtime.
@@ -201,8 +189,8 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> OnNotificationSentToUser;
 	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentAdded;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentRemoved;
+	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentAdded;
+	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
@@ -253,9 +241,9 @@ public:
 
 	static String GetCommentIDFromLegacyID(int id);
 	static Service::Ptr GetOwnerByCommentID(const String& id);
-	static Dictionary::Ptr GetCommentByID(const String& id);
+	static Comment::Ptr GetCommentByID(const String& id);
 
-	static bool IsCommentExpired(const Dictionary::Ptr& comment);
+	static bool IsCommentExpired(const Comment::Ptr& comment);
 
 	/* Notifications */
 	bool GetEnableNotifications(void) const;

@@ -1493,7 +1493,7 @@ Value HostsTable::CommentsAccessor(const Value& row)
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 
 		if (!comment)
@@ -1502,7 +1502,7 @@ Value HostsTable::CommentsAccessor(const Value& row)
 		if (Service::IsCommentExpired(comment))
 			continue;
 
-		ids->Add(comment->Get("legacy_id"));
+		ids->Add(comment->GetLegacyId());
 	}
 
 	return ids;
@@ -1528,7 +1528,7 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 
 		if (!comment)
@@ -1538,9 +1538,9 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 			continue;
 
 		Array::Ptr comment_info = make_shared<Array>();
-		comment_info->Add(comment->Get("legacy_id"));
-		comment_info->Add(comment->Get("author"));
-		comment_info->Add(comment->Get("text"));
+		comment_info->Add(comment->GetLegacyId());
+		comment_info->Add(comment->GetAuthor());
+		comment_info->Add(comment->GetText());
 		ids->Add(comment_info);
 	}
 
@@ -1567,7 +1567,7 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 
 		if (!comment)
@@ -1577,11 +1577,11 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 			continue;
 
 		Array::Ptr comment_info = make_shared<Array>();
-		comment_info->Add(comment->Get("legacy_id"));
-		comment_info->Add(comment->Get("author"));
-		comment_info->Add(comment->Get("text"));
-		comment_info->Add(comment->Get("entry_type"));
-		comment_info->Add(static_cast<int>(comment->Get("entry_time")));
+		comment_info->Add(comment->GetLegacyId());
+		comment_info->Add(comment->GetAuthor());
+		comment_info->Add(comment->GetText());
+		comment_info->Add(comment->GetEntryType());
+		comment_info->Add(static_cast<int>(comment->GetEntryTime()));
 		ids->Add(comment_info);
 	}
 

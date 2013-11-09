@@ -75,8 +75,8 @@ protected:
 	virtual void OnStatusUpdate(void);
 
 private:
-        static void AddCommentInternal(const Service::Ptr& service, const Dictionary::Ptr& comment, bool historical);
-        static void AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment, bool historical);
+	static void AddCommentInternal(const Service::Ptr& service, const Comment::Ptr& comment, bool historical);
+	static void AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical);
         static void AddComments(const Service::Ptr& service);
         static void RemoveComments(const Service::Ptr& service);
 
@@ -88,16 +88,16 @@ private:
         static void AddLogHistory(const Service::Ptr& service, String buffer, LogEntryType type);
 
         /* Status */
-	static void AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
-	static void RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment);
+	static void AddComment(const Service::Ptr& service, const Comment::Ptr& comment);
+	static void RemoveComment(const Service::Ptr& service, const Comment::Ptr& comment);
 
 	static void AddDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 	static void RemoveDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 	static void TriggerDowntime(const Service::Ptr& service, const Dictionary::Ptr& downtime);
 
         /* History */
-        static void AddCommentHistory(const Service::Ptr& service, const Dictionary::Ptr& comment);
-        static void AddDowntimeHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+        static void AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment);
+	static void AddDowntimeHistory(const Service::Ptr& service, const Dictionary::Ptr& downtime);
         static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry);
         static void AddContactNotificationHistory(const Service::Ptr& service, const User::Ptr& user);
 	static void AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text);

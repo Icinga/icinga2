@@ -371,23 +371,23 @@ void ServiceDbObject::AddComments(const Service::Ptr& service)
 	ObjectLock olock(comments);
 
 	String comment_id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(comment_id, comment), comments) {
 		AddComment(service, comment);
 	}
 }
 
-void ServiceDbObject::AddComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
+void ServiceDbObject::AddComment(const Service::Ptr& service, const Comment::Ptr& comment)
 {
 	AddCommentInternal(service, comment, false);
 }
 
-void ServiceDbObject::AddCommentHistory(const Service::Ptr& service, const Dictionary::Ptr& comment)
+void ServiceDbObject::AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment)
 {
 	AddCommentInternal(service, comment, true);
 }
 
-void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Dictionary::Ptr& comment, bool historical)
+void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Comment::Ptr& comment, bool historical)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -399,48 +399,48 @@ void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Dict
 		return;
 	}
 
-	Log(LogDebug, "db_ido", "adding service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "adding service comment (id = " + Convert::ToString(comment->GetLegacyId()) + ") for '" + service->GetName() + "'");
 
 	/* add the service comment */
 	AddCommentByType(service, comment, historical);
 
 	/* add the hostcheck service comment to the host as well */
 	if (host->GetCheckService() == service) {
-		Log(LogDebug, "db_ido", "adding host comment (id = " + comment->Get("legacy_id") + ") for '" + host->GetName() + "'");
+		Log(LogDebug, "db_ido", "adding host comment (id = " + Convert::ToString(comment->GetLegacyId()) + ") for '" + host->GetName() + "'");
 		AddCommentByType(host, comment, historical);
 	}
 }
 
-void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Dictionary::Ptr& comment, bool historical)
+void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical)
 {
-	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
-	unsigned long entry_time_usec = (comment->Get("entry_time") - entry_time) * 1000 * 1000;
+	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
+	unsigned long entry_time_usec = (comment->GetEntryTime() - entry_time) * 1000 * 1000;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
 	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	fields1->Set("entry_time_usec", entry_time_usec);
-	fields1->Set("entry_type", comment->Get("entry_type"));
+	fields1->Set("entry_type", comment->GetEntryType());
 	fields1->Set("object_id", object);
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
 		/* requires idoutils 1.10 schema fix */
-		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
+		fields1->Set("internal_comment_id", comment->GetLegacyId());
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
-		fields1->Set("internal_comment_id", comment->Get("legacy_id"));
+		fields1->Set("internal_comment_id", comment->GetLegacyId());
 	} else {
 		Log(LogDebug, "db_ido", "unknown object type for adding comment.");
 		return;
 	}
 
 	fields1->Set("comment_time", DbValue::FromTimestamp(entry_time)); /* same as entry_time */
-	fields1->Set("author_name", comment->Get("author"));
-	fields1->Set("comment_data", comment->Get("text"));
+	fields1->Set("author_name", comment->GetAuthor());
+	fields1->Set("comment_data", comment->GetText());
 	fields1->Set("is_persistent", 1);
 	fields1->Set("comment_source", 1); /* external */
-	fields1->Set("expires", (comment->Get("expire_time") > 0) ? 1 : 0);
-	fields1->Set("expiration_time", comment->Get("expire_time"));
+	fields1->Set("expires", (comment->GetExpireTime() > 0) ? 1 : 0);
+	fields1->Set("expiration_time", comment->GetExpireTime());
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbQuery query1;
@@ -479,7 +479,7 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 	}
 }
 
-void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionary::Ptr& comment)
+void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Comment::Ptr& comment)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -491,7 +491,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 		return;
 	}
 
-	Log(LogDebug, "db_ido", "removing service comment (id = " + comment->Get("legacy_id") + ") for '" + service->GetName() + "'");
+	Log(LogDebug, "db_ido", "removing service comment (id = " + Convert::ToString(comment->GetLegacyId()) + ") for '" + service->GetName() + "'");
 
 	/* Status */
 	DbQuery query1;
@@ -500,7 +500,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	query1.Category = DbCatComment;
 	query1.WhereCriteria = make_shared<Dictionary>();
 	query1.WhereCriteria->Set("object_id", service);
-	query1.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
+	query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
 	OnQuery(query1);
 
 	/* delete hostcheck service's host comments */
@@ -510,7 +510,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	}
 
 	/* History - update deletion time for service (and host in case) */
-	unsigned long entry_time = static_cast<long>(comment->Get("entry_time"));
+	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
 
 	double now = Utility::GetTime();
 	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
@@ -526,7 +526,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Dictionar
 	query2.Fields = fields2;
 
 	query2.WhereCriteria = make_shared<Dictionary>();
-	query2.WhereCriteria->Set("internal_comment_id", comment->Get("legacy_id"));
+	query2.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
 	query2.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
 	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 

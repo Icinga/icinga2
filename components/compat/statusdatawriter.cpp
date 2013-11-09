@@ -76,7 +76,7 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner,
 	ObjectLock olock(comments);
 
 	String id;
-	Dictionary::Ptr comment;
+	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
 		if (Service::IsCommentExpired(comment))
 			continue;
@@ -88,14 +88,14 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner,
 			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
-		   << "\t" << "comment_id=" << static_cast<String>(comment->Get("legacy_id")) << "\n"
-		   << "\t" << "entry_time=" << static_cast<double>(comment->Get("entry_time")) << "\n"
-		   << "\t" << "entry_type=" << static_cast<long>(comment->Get("entry_type")) << "\n"
+		   << "\t" << "comment_id=" << comment->GetLegacyId() << "\n"
+		   << "\t" << "entry_time=" << comment->GetEntryTime() << "\n"
+		   << "\t" << "entry_type=" << comment->GetEntryType() << "\n"
 		   << "\t" << "persistent=" << 1 << "\n"
-		   << "\t" << "author=" << static_cast<String>(comment->Get("author")) << "\n"
-		   << "\t" << "comment_data=" << static_cast<String>(comment->Get("text")) << "\n"
-		   << "\t" << "expires=" << (static_cast<double>(comment->Get("expire_time")) != 0 ? 1 : 0) << "\n"
-		   << "\t" << "expire_time=" << static_cast<double>(comment->Get("expire_time")) << "\n"
+		   << "\t" << "author=" << comment->GetAuthor() << "\n"
+		   << "\t" << "comment_data=" << comment->GetText() << "\n"
+		   << "\t" << "expires=" << (comment->GetExpireTime() != 0 ? 1 : 0) << "\n"
+		   << "\t" << "expire_time=" << comment->GetExpireTime() << "\n"
 		   << "\t" << "}" << "\n"
 		   << "\n";
 	}
