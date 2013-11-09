@@ -78,7 +78,7 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner,
 	String id;
 	Comment::Ptr comment;
 	BOOST_FOREACH(boost::tie(id, comment), comments) {
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
 		if (type == CompatTypeHost)
@@ -177,7 +177,7 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 	String id;
 	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
-		if (Service::IsDowntimeExpired(downtime))
+		if (downtime->IsExpired())
 			continue;
 
 		if (type == CompatTypeHost)
@@ -199,7 +199,7 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 		   << "\t" << "triggered_by=" << triggeredByLegacy << "\n"
 		   << "\t" << "fixed=" << static_cast<long>(downtime->GetFixed()) << "\n"
 		   << "\t" << "duration=" << static_cast<long>(downtime->GetDuration()) << "\n"
-		   << "\t" << "is_in_effect=" << (Service::IsDowntimeActive(downtime) ? 1 : 0) << "\n"
+		   << "\t" << "is_in_effect=" << (downtime->IsActive() ? 1 : 0) << "\n"
 		   << "\t" << "author=" << downtime->GetAuthor() << "\n"
 		   << "\t" << "comment=" << downtime->GetComment() << "\n"
 		   << "\t" << "trigger_time=" << downtime->GetTriggerTime() << "\n"

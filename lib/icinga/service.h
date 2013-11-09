@@ -197,10 +197,6 @@ public:
 	static Service::Ptr GetOwnerByDowntimeID(const String& id);
 	static Downtime::Ptr GetDowntimeByID(const String& id);
 
-	static bool IsDowntimeActive(const Downtime::Ptr& downtime);
-	static bool IsDowntimeTriggered(const Downtime::Ptr& downtime);
-	static bool IsDowntimeExpired(const Downtime::Ptr& downtime);
-
 	void StartDowntimesExpiredTimer(void);
 
 	bool IsInDowntime(void) const;
@@ -219,8 +215,6 @@ public:
 	static String GetCommentIDFromLegacyID(int id);
 	static Service::Ptr GetOwnerByCommentID(const String& id);
 	static Comment::Ptr GetCommentByID(const String& id);
-
-	static bool IsCommentExpired(const Comment::Ptr& comment);
 
 	/* Notifications */
 	bool GetEnableNotifications(void) const;

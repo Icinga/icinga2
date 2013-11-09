@@ -163,13 +163,6 @@ Comment::Ptr Service::GetCommentByID(const String& id)
 	return Comment::Ptr();
 }
 
-bool Service::IsCommentExpired(const Comment::Ptr& comment)
-{
-	double expire_time = comment->GetExpireTime();
-
-	return (expire_time != 0 && expire_time < Utility::GetTime());
-}
-
 void Service::AddCommentsToCache(void)
 {
 	Log(LogDebug, "icinga", "Updating Service comments cache.");
@@ -227,7 +220,7 @@ void Service::RemoveExpiredComments(void)
 		String id;
 		Comment::Ptr comment;
 		BOOST_FOREACH(boost::tie(id, comment), comments) {
-			if (IsCommentExpired(comment))
+			if (comment->IsExpired())
 				expiredComments.push_back(id);
 		}
 	}

@@ -18,8 +18,42 @@
  ******************************************************************************/
 
 #include "icinga/downtime.h"
+#include "base/utility.h"
 #include "base/dynamictype.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(Downtime);
+
+bool Downtime::IsActive(void) const
+{
+	double now = Utility::GetTime();
+
+	if (now < GetStartTime() ||
+		now > GetEndTime())
+		return false;
+
+	if (GetFixed())
+		return true;
+
+	double triggerTime = GetTriggerTime();
+
+	if (triggerTime == 0)
+		return false;
+
+	return (triggerTime + GetDuration() < now);
+}
+
+bool Downtime::IsTriggered(void) const
+{
+	double now = Utility::GetTime();
+
+	double triggerTime = GetTriggerTime();
+
+	return (triggerTime > 0 && triggerTime <= now);
+}
+
+bool Downtime::IsExpired(void) const
+{
+	return (GetEndTime() < Utility::GetTime());
+}

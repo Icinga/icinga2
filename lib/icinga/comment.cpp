@@ -18,8 +18,16 @@
  ******************************************************************************/
 
 #include "icinga/comment.h"
+#include "base/utility.h"
 #include "base/dynamictype.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(Comment);
+
+bool Comment::IsExpired(void) const
+{
+	double expire_time = GetExpireTime();
+
+	return (expire_time != 0 && expire_time < Utility::GetTime());
+}

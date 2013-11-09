@@ -163,26 +163,20 @@ void Service::TriggerDowntime(const String& id)
 	if (!downtime)
 		return;
 
-	if (IsDowntimeActive(downtime) && IsDowntimeTriggered(downtime)) {
+	if (downtime->IsActive() && downtime->IsTriggered()) {
 		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "': already triggered.");
 		return;
 	}
 
-	if (IsDowntimeExpired(downtime)) {
+	if (downtime->IsExpired()) {
 		Log(LogDebug, "icinga", "Not triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "': expired.");
 		return;
 	}
 
-	double now = Utility::GetTime();
-
-	if (now < downtime->GetStartTime() ||
-	    now > downtime->GetEndTime())
-		return;
-
 	Log(LogDebug, "icinga", "Triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
 
 	if (downtime->GetTriggerTime() == 0)
-		downtime->SetTriggerTime(now);
+		downtime->SetTriggerTime(Utility::GetTime());
 
 	Dictionary::Ptr triggers = downtime->GetTriggers();
 	ObjectLock olock(triggers);
@@ -225,39 +219,6 @@ Downtime::Ptr Service::GetDowntimeByID(const String& id)
 		return downtimes->Get(id);
 
 	return Downtime::Ptr();
-}
-
-bool Service::IsDowntimeActive(const Downtime::Ptr& downtime)
-{
-	double now = Utility::GetTime();
-
-	if (now < downtime->GetStartTime() ||
-	    now > downtime->GetEndTime())
-		return false;
-
-	if (downtime->GetFixed())
-		return true;
-
-	double triggerTime = downtime->GetTriggerTime();
-
-	if (triggerTime == 0)
-		return false;
-
-	return (triggerTime + downtime->GetDuration() < now);
-}
-
-bool Service::IsDowntimeTriggered(const Downtime::Ptr& downtime)
-{
-	double now = Utility::GetTime();
-
-	double triggerTime = downtime->GetTriggerTime();
-
-	return (triggerTime > 0 && triggerTime <= now);
-}
-
-bool Service::IsDowntimeExpired(const Downtime::Ptr& downtime)
-{
-	return (downtime->GetEndTime() < Utility::GetTime());
 }
 
 void Service::StartDowntimesExpiredTimer(void)
@@ -305,7 +266,7 @@ void Service::RemoveExpiredDowntimes(void)
 		String id;
 		Downtime::Ptr downtime;
 		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
-			if (IsDowntimeExpired(downtime))
+			if (downtime->IsExpired())
 				expiredDowntimes.push_back(id);
 		}
 	}
@@ -330,7 +291,7 @@ bool Service::IsInDowntime(void) const
 
 	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
-		if (Service::IsDowntimeActive(downtime))
+		if (downtime->IsActive())
 			return true;
 	}
 
@@ -346,7 +307,7 @@ int Service::GetDowntimeDepth(void) const
 
 	Downtime::Ptr downtime;
 	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
-		if (Service::IsDowntimeActive(downtime))
+		if (downtime->IsActive())
 			downtime_depth++;
 	}
 

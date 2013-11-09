@@ -108,7 +108,7 @@ Value DowntimesTable::TypeAccessor(const Value& row)
 {
 	Downtime::Ptr downtime = Service::GetDowntimeByID(row);
 	// 1 .. active, 0 .. pending
-	return (Service::IsDowntimeActive(downtime) ? 1 : 0);
+	return (downtime->IsActive() ? 1 : 0);
 }
 
 Value DowntimesTable::IsServiceAccessor(const Value& row)

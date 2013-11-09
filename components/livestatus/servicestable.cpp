@@ -1050,7 +1050,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 		if (!downtime)
 			continue;
 
-		if (Service::IsDowntimeExpired(downtime))
+		if (downtime->IsExpired())
 			continue;
 
 		ids->Add(downtime->GetLegacyId());
@@ -1079,7 +1079,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 		if (!downtime)
 			continue;
 
-		if (Service::IsDowntimeExpired(downtime))
+		if (downtime->IsExpired())
 			continue;
 
 		Array::Ptr downtime_info = make_shared<Array>();
@@ -1112,7 +1112,7 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 		if (!comment)
 			continue;
 
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
 		ids->Add(comment->GetLegacyId());
@@ -1141,7 +1141,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 		if (!comment)
 			continue;
 
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
 		Array::Ptr comment_info = make_shared<Array>();
@@ -1174,7 +1174,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 		if (!comment)
 			continue;
 
-		if (Service::IsCommentExpired(comment))
+		if (comment->IsExpired())
 			continue;
 
 		Array::Ptr comment_info = make_shared<Array>();

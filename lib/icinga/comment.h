@@ -35,6 +35,8 @@ class I2_ICINGA_API Comment : public ObjectImpl<Comment>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Comment);
+
+	bool IsExpired(void) const;
 };
 
 }
