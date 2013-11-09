@@ -79,8 +79,6 @@ BOOST_AUTO_TEST_CASE(object)
 {
 	PerfdataValue::Ptr pdv = make_shared<PerfdataValue>(100, true, "bytes");
 
-	std::cout << JsonSerialize(Serialize(pdv)) << std::endl;
-
 	PerfdataValue::Ptr result = Deserialize(Serialize(pdv));
 
 	BOOST_CHECK(result->GetValue() == pdv->GetValue());
