@@ -175,7 +175,11 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		if (!input->Contains(field.Name))
 			continue;
 
-		instance->SetField(i, Deserialize(input->Get(field.Name), attributeTypes));
+		try {
+			instance->SetField(i, Deserialize(input->Get(field.Name), attributeTypes));
+		} catch (const std::exception&) {
+			instance->SetField(i, Empty);
+		}
 	}
 
 	return instance;
