@@ -35,7 +35,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
+CheckResult::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 {
 	CheckCommand::Ptr commandObj = service->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
@@ -73,12 +73,12 @@ Dictionary::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 
 	String output = pr.Output;
 	output.Trim();
-	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(output);
-	result->Set("command", command);
-	result->Set("state", PluginUtility::ExitStatusToState(pr.ExitStatus));
-	result->Set("exit_state", pr.ExitStatus);
-	result->Set("execution_start", pr.ExecutionStart);
-	result->Set("execution_end", pr.ExecutionEnd);
+	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(output);
+	result->SetCommand(command);
+	result->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));
+	result->SetExitStatus(pr.ExitStatus);
+	result->SetExecutionStart(pr.ExecutionStart);
+	result->SetExecutionEnd(pr.ExecutionEnd);
 
 	return result;
 }

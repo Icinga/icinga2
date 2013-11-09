@@ -91,7 +91,7 @@ class Service : DynamicObject
 	[state] bool last_reachable {
 		default {{{ return true; }}}
 	};
-	[state] Dictionary::Ptr last_check_result;
+	[state] CheckResult::Ptr last_check_result;
 	[state] double last_state_change {
 		default {{{ return Application::GetStartTime(); }}}
 	};

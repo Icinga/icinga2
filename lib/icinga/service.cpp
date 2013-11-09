@@ -309,7 +309,7 @@ void Service::SetModifiedAttributes(int flags)
 		SetOverrideRetryInterval(Empty);
 }
 
-bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const
+bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const
 {
 	if (macro == "SERVICEDESC") {
 		*result = GetShortName();
@@ -391,13 +391,13 @@ bool Service::ResolveMacro(const String& macro, const Dictionary::Ptr& cr, Strin
 			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
 			return true;
 		} else if (macro == "SERVICEOUTPUT") {
-			*result = cr->Get("output");
+			*result = cr->GetOutput();
 			return true;
 		} else if (macro == "SERVICEPERFDATA") {
-			*result = PluginUtility::FormatPerfdata(cr->Get("performance_data"));
+			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 			return true;
 		} else if (macro == "LASTSERVICECHECK") {
-			*result = Convert::ToString((long)cr->Get("execution_end"));
+			*result = Convert::ToString((long)cr->GetExecutionEnd());
 			return true;
 		}
 	}

@@ -74,11 +74,11 @@ public:
 	void UpdateNotificationNumber(void);
 	void ResetNotificationNumber(void);
 
-	void BeginExecuteNotification(NotificationType type, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
+	void BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
 	static String NotificationTypeToString(NotificationType type);
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	static boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> OnNextNotificationChanged;
 
@@ -87,7 +87,7 @@ protected:
 	virtual void Stop(void);
 
 private:
-	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const Dictionary::Ptr& cr, bool force, const String& author = "", const String& text = "");
+	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 };
 
 }

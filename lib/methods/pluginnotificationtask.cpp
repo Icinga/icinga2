@@ -33,7 +33,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc);
 
-void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const Dictionary::Ptr& cr, int itype,
+void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
     const String& author, const String& comment)
 {
 	NotificationCommand::Ptr commandObj = notification->GetNotificationCommand();

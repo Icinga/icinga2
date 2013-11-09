@@ -269,7 +269,7 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
+	Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 
 	String buf;
 	if (commandLine.IsObjectType<Array>()) {
@@ -403,10 +403,7 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("notes");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value HostsTable::NotesUrlAccessor(const Value& row)
@@ -451,10 +448,7 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("notes_url");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value HostsTable::ActionUrlAccessor(const Value& row)
@@ -499,10 +493,7 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("action_url");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value HostsTable::PluginOutputAccessor(const Value& row)
@@ -518,7 +509,7 @@ Value HostsTable::PluginOutputAccessor(const Value& row)
 
 	if(hc) {
 		String output;
-		Dictionary::Ptr cr = hc->GetLastCheckResult();
+		CheckResult::Ptr cr = hc->GetLastCheckResult();
 
 		if (cr) {
 			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -541,7 +532,7 @@ Value HostsTable::PerfDataAccessor(const Value& row)
 	String perfdata;
 
 	if (hc) {
-		Dictionary::Ptr cr = hc->GetLastCheckResult();
+		CheckResult::Ptr cr = hc->GetLastCheckResult();
 
 		if (cr)
 			perfdata = CompatUtility::GetCheckResultPerfdata(cr);
@@ -593,10 +584,7 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("icon_image");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value HostsTable::IconImageAltAccessor(const Value& row)
@@ -642,7 +630,7 @@ Value HostsTable::LongPluginOutputAccessor(const Value& row)
 
 	if (hc) {
 		String long_output;
-		Dictionary::Ptr cr = hc->GetLastCheckResult();
+		CheckResult::Ptr cr = hc->GetLastCheckResult();
 
 		if (cr) {
 			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -2050,7 +2038,7 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 		svc_add->Add(service->HasBeenChecked() ? 1 : 0);
 
 		String output;
-		Dictionary::Ptr cr = service->GetLastCheckResult();
+		CheckResult::Ptr cr = service->GetLastCheckResult();
 
 		if (cr) {
 			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);

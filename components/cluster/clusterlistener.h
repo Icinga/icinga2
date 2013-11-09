@@ -83,7 +83,7 @@ private:
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
-	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority);
+	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const String& authority);
 	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
 	void NextNotificationChangedHandler(const Notification::Ptr& notification, double nextCheck, const String& authority);
 	void ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority);

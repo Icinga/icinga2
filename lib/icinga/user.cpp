@@ -66,7 +66,7 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 	return TimePeriod::GetByName(GetNotificationPeriodRaw());
 }
 
-bool User::ResolveMacro(const String& macro, const Dictionary::Ptr&, String *result) const
+bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
 	if (macro == "USERNAME" || macro == "CONTACTNAME") {
 		*result = GetName();

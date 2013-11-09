@@ -78,7 +78,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	m_Stream = make_shared<BufferedStream>(net_stream);
 }
 
-void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr)
+void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;
@@ -100,7 +100,7 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Dicti
 	SendMetric(prefix, "latency", Service::CalculateLatency(cr));
 	SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
 
-	Value pdv = cr->Get("performance_data");
+	Value pdv = cr->GetPerformanceData();
 
 	if (!pdv.IsObjectType<Dictionary>())
 		return;

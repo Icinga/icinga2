@@ -1,0 +1,54 @@
+namespace icinga
+{
+
+code {{{
+/**
+ * The state of a service.
+ *
+ * @ingroup icinga
+ */
+enum ServiceState
+{
+	StateOK = 0,
+	StateWarning = 1,
+	StateCritical = 2,
+	StateUnknown = 3
+};
+
+/**
+ * The state type of a host or service.
+ *
+ * @ingroup icinga
+ */
+enum StateType
+{
+	StateTypeSoft = 0,
+	StateTypeHard = 1
+};
+}}}
+
+class CheckResult
+{
+	[state] double schedule_start;
+	[state] double schedule_end;
+	[state] double execution_start;
+	[state] double execution_end;
+
+	[state] String command;
+	[state] int exit_status;
+
+	[state, enum] ServiceState "state";
+	[state] String output;
+	[state] Value performance_data;
+
+	[state] bool active {
+		default {{{ return true; }}}
+	};
+
+	[state] String check_source;
+
+	[state] Dictionary::Ptr vars_before;
+	[state] Dictionary::Ptr vars_after;
+};
+
+}

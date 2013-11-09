@@ -660,7 +660,7 @@ void ClusterListener::SetSecurityInfo(const Dictionary::Ptr& message, const Dyna
 	message->Set("security", security);
 }
 
-void ClusterListener::CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr, const String& authority)
+void ClusterListener::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -1012,7 +1012,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Dictionary::Ptr cr = params->Get("check_result");
+		CheckResult::Ptr cr = params->Get("check_result");
 
 		if (!cr)
 			return;

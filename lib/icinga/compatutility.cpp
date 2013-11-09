@@ -184,17 +184,17 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	else
 		check_period_str = "24x7";
 
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
 		Dictionary::Ptr output_bag = GetCheckResultOutput(cr);
 		output = output_bag->Get("output");
 		long_output = output_bag->Get("long_output");
 
-		check_source = cr->Get("check_source");
+		check_source = cr->GetCheckSource();
 
 		perfdata = GetCheckResultPerfdata(cr);
-		schedule_end = cr->Get("schedule_end");
+		schedule_end = cr->GetScheduleEnd();
 	}
 
 	int state = service->GetState();
@@ -521,7 +521,7 @@ std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const S
 	return usergroups;
 }
 
-Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
+Dictionary::Ptr CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
 		return Empty;
@@ -530,7 +530,7 @@ Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
 	String output;
 	Dictionary::Ptr bag = make_shared<Dictionary>();
 
-	String raw_output = cr->Get("output");
+	String raw_output = cr->GetOutput();
 
 	/*
 	 * replace semi-colons with colons in output
@@ -554,12 +554,12 @@ Dictionary::Ptr CompatUtility::GetCheckResultOutput(const Dictionary::Ptr& cr)
 	return bag;
 }
 
-String CompatUtility::GetCheckResultPerfdata(const Dictionary::Ptr& cr)
+String CompatUtility::GetCheckResultPerfdata(const CheckResult::Ptr& cr)
 {
 	if (!cr)
 		return String();
 
-	return PluginUtility::FormatPerfdata(cr->Get("performance_data"));
+	return PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 }
 
 String CompatUtility::EscapeString(const String& str)

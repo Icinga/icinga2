@@ -31,8 +31,8 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
-boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&, const String&)> Service::OnNotificationSentToUser;
+boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
+boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> Service::OnNotificationSentToUser;
 
 void Service::ResetNotificationNumbers(void)
 {
@@ -42,7 +42,7 @@ void Service::ResetNotificationNumbers(void)
 	}
 }
 
-void Service::SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author, const String& text)
+void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	bool force = GetForceNextNotification();
 

@@ -35,7 +35,7 @@ class I2_METHODS_API PluginNotificationTask
 {
 public:
 	static void ScriptFunc(const Notification::Ptr& notification,
-	    const User::Ptr& user, const Dictionary::Ptr& cr, int itype,
+	    const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
 	    const String& author, const String& comment);
 
 private:

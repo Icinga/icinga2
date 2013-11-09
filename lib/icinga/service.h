@@ -172,16 +172,16 @@ public:
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced, const String& authority = String());
 
-	static void UpdateStatistics(const Dictionary::Ptr& cr);
+	static void UpdateStatistics(const CheckResult::Ptr& cr);
 
 	void ExecuteCheck(void);
-	void ProcessCheckResult(const Dictionary::Ptr& cr, const String& authority = String());
+	void ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority = String());
 
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags);
 
-	static double CalculateExecutionTime(const Dictionary::Ptr& cr);
-	static double CalculateLatency(const Dictionary::Ptr& cr);
+	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
+	static double CalculateLatency(const CheckResult::Ptr& cr);
 
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
@@ -196,11 +196,11 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnablePassiveChecksChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableNotificationsChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableFlappingChanged;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnNewCheckResult;
-	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, StateType, const String&)> OnStateChange;
-	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const Dictionary::Ptr&, const String&, const String&)> OnNotificationsRequested;
-	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&, const String&)> OnNotificationSentToUser;
-	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const Dictionary::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
+	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const String&)> OnNewCheckResult;
+	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, StateType, const String&)> OnStateChange;
+	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> OnNotificationsRequested;
+	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> OnNotificationSentToUser;
+	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnCommentRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, const Dictionary::Ptr&, const String&)> OnDowntimeAdded;
@@ -211,7 +211,7 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, const String&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnEventCommandExecuted;
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	/* Downtimes */
 	static int GetNextDowntimeID(void);
@@ -261,7 +261,7 @@ public:
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled, const String& authority = String());
 
-	void SendNotifications(NotificationType type, const Dictionary::Ptr& cr, const String& author = "", const String& text = "");
+	void SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author = "", const String& text = "");
 
 	std::set<Notification::Ptr> GetNotifications(void) const;
 	void AddNotification(const Notification::Ptr& notification);

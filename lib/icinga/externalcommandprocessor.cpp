@@ -214,14 +214,14 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
-	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(arguments[2]);
-	result->Set("state", PluginUtility::ExitStatusToState(exitStatus));
+	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[2]);
+	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
 
-	result->Set("schedule_start", time);
-	result->Set("schedule_end", time);
-	result->Set("execution_start", time);
-	result->Set("execution_end", time);
-	result->Set("active", 0);
+	result->SetScheduleStart(time);
+	result->SetScheduleEnd(time);
+	result->SetExecutionStart(time);
+	result->SetExecutionEnd(time);
+	result->SetActive(false);
 
 	Log(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
 	hc->ProcessCheckResult(result);
@@ -250,14 +250,14 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
-	Dictionary::Ptr result = PluginUtility::ParseCheckOutput(arguments[3]);
-	result->Set("state", PluginUtility::ExitStatusToState(exitStatus));
+	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[3]);
+	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
 
-	result->Set("schedule_start", time);
-	result->Set("schedule_end", time);
-	result->Set("execution_start", time);
-	result->Set("execution_end", time);
-	result->Set("active", 0);
+	result->SetScheduleStart(time);
+	result->SetScheduleEnd(time);
+	result->SetExecutionStart(time);
+	result->SetExecutionEnd(time);
+	result->SetActive(false);
 
 	Log(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);

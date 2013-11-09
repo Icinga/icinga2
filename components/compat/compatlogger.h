@@ -52,14 +52,14 @@ private:
 	void WriteLine(const String& line);
 	void Flush(void);
 
-	void CheckResultHandler(const Service::Ptr& service, const Dictionary::Ptr& cr);
+	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
 	void DowntimeHandler(const Service::Ptr& service, DowntimeState downtime_state);
-	void NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, Dictionary::Ptr const& cr, const String& author, const String& comment_text, const String& command_name);
+	void NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr, const String& author, const String& comment_text, const String& command_name);
 	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
-        void TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
-        void RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
-        void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);
-        void EventCommandHandler(const Service::Ptr& service);
+	void TriggerDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+	void RemoveDowntimeHandler(const Service::Ptr& service, const Dictionary::Ptr& downtime);
+	void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);
+	void EventCommandHandler(const Service::Ptr& service);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);

@@ -214,7 +214,7 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
         resolvers.push_back(commandObj);
         resolvers.push_back(IcingaApplication::GetInstance());
 
-        Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, Dictionary::Ptr(), Utility::EscapeShellCmd);
+        Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 
         String buf;
         if (commandLine.IsObjectType<Array>()) {
@@ -262,7 +262,7 @@ Value ServicesTable::PluginOutputAccessor(const Value& row)
 		return Empty;
 
 	String output;
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
 		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -280,7 +280,7 @@ Value ServicesTable::LongPluginOutputAccessor(const Value& row)
 		return Empty;
 
 	String long_output;
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
 		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
@@ -298,7 +298,7 @@ Value ServicesTable::PerfDataAccessor(const Value& row)
 		return Empty;
 
 	String perfdata;
-	Dictionary::Ptr cr = service->GetLastCheckResult();
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr)
 		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
@@ -375,10 +375,7 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("notes");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::NotesUrlAccessor(const Value& row)
@@ -415,10 +412,7 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("notes_url");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::ActionUrlAccessor(const Value& row)
@@ -455,10 +449,7 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("action_url");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::IconImageAccessor(const Value& row)
@@ -495,10 +486,7 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 
 	Value value = custom->Get("icon_image");
 
-	Dictionary::Ptr cr;
-	Value value_expanded = MacroProcessor::ResolveMacros(value, resolvers, cr, Utility::EscapeShellCmd);
-
-	return value_expanded;
+	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::IconImageAltAccessor(const Value& row)

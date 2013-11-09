@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/host.th"
 #include "icinga/macroresolver.h"
+#include "icinga/checkresult.h"
 #include "base/array.h"
 #include "base/dictionary.h"
 
@@ -88,7 +89,7 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	virtual bool ResolveMacro(const String& macro, const Dictionary::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 protected:
 	virtual void Start(void);

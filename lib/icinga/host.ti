@@ -3,32 +3,6 @@
 namespace icinga
 {
 
-code {{{
-/**
- * The state of a service.
- *
- * @ingroup icinga
- */
-enum ServiceState
-{
-	StateOK = 0,
-	StateWarning = 1,
-	StateCritical = 2,
-	StateUnknown = 3
-};
-
-/**
- * The state type of a host or service.
- *
- * @ingroup icinga
- */
-enum StateType
-{
-	StateTypeSoft = 0,
-	StateTypeHard = 1
-};
-}}}
-
 class Host : DynamicObject
 {
 	[config] String display_name {

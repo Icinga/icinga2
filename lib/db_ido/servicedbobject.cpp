@@ -856,7 +856,7 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 }
 
 void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
-				      const Dictionary::Ptr& cr, const String& author, const String& text)
+    const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -907,7 +907,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 }
 
 /* statehistory */
-void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const Dictionary::Ptr& cr, StateType type)
+void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const CheckResult::Ptr& cr, StateType type)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -961,14 +961,14 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const D
 }
 
 /* logentries */
-void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, const Dictionary::Ptr &cr)
+void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, const CheckResult::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
 
 	if (!host)
 		return;
 
-	Dictionary::Ptr vars_after = cr->Get("vars_after");
+	Dictionary::Ptr vars_after = cr->GetVarsAfter();
 
 	long state_after = vars_after->Get("state");
 	long stateType_after = vars_after->Get("state_type");
@@ -976,7 +976,7 @@ void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, cons
 	bool reachable_after = vars_after->Get("reachable");
 	bool host_reachable_after = vars_after->Get("host_reachable");
 
-	Dictionary::Ptr vars_before = cr->Get("vars_before");
+	Dictionary::Ptr vars_before = cr->GetVarsBefore();
 
 	if (vars_before) {
 		long state_before = vars_before->Get("state");
@@ -1008,12 +1008,12 @@ void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, cons
 			return;
 	}
 
-        String output;
+	String output;
 
-        if (cr) {
+	if (cr) {
 		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
 		output = output_bag->Get("output");
-        }
+	}
 
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE ALERT: "
@@ -1132,7 +1132,7 @@ void ServiceDbObject::AddRemoveDowntimeLogHistory(const Service::Ptr& service, c
 }
 
 void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user,
-    NotificationType const& notification_type, Dictionary::Ptr const& cr,
+    NotificationType notification_type, const CheckResult::Ptr& cr,
     const String& author, const String& comment_text)
 {
         Host::Ptr host = service->GetHost();
@@ -1153,42 +1153,42 @@ void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service,
 		author_comment = ";" + author + ";" + comment_text;
 	}
 
-        if (!cr)
-                return;
+	if (!cr)
+		return;
 
-        String output;
+	String output;
 
-        if (cr) {
+	if (cr) {
 		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
 		output = output_bag->Get("output");
-        }
+	}
 
-        std::ostringstream msgbuf;
-        msgbuf << "SERVICE NOTIFICATION: "
-		<< user->GetName() << ";"
-                << host->GetName() << ";"
-                << service->GetShortName() << ";"
-                << notification_type_str << " "
-		<< "(" << Service::StateToString(service->GetState()) << ");"
-		<< check_command << ";"
-		<< output << author_comment
-                << "";
+	std::ostringstream msgbuf;
+	msgbuf << "SERVICE NOTIFICATION: "
+	       << user->GetName() << ";"
+	       << host->GetName() << ";"
+	       << service->GetShortName() << ";"
+	       << notification_type_str << " "
+	       << "(" << Service::StateToString(service->GetState()) << ");"
+	       << check_command << ";"
+	       << output << author_comment
+	       << "";
 
-        AddLogHistory(service, msgbuf.str(), LogEntryTypeServiceNotification);
+	AddLogHistory(service, msgbuf.str(), LogEntryTypeServiceNotification);
 
-        if (service == host->GetCheckService()) {
-                std::ostringstream msgbuf;
-                msgbuf << "HOST NOTIFICATION: "
-			<< user->GetName() << ";"
-                        << host->GetName() << ";"
-			<< notification_type_str << " "
-			<< "(" << Service::StateToString(service->GetState()) << ");"
-			<< check_command << ";"
-			<< output << author_comment
-                        << "";
+	if (service == host->GetCheckService()) {
+		std::ostringstream msgbuf;
+		msgbuf << "HOST NOTIFICATION: "
+		       << user->GetName() << ";"
+		       << host->GetName() << ";"
+		       << notification_type_str << " "
+		       << "(" << Service::StateToString(service->GetState()) << ");"
+		       << check_command << ";"
+		       << output << author_comment
+		       << "";
 
-                AddLogHistory(service, msgbuf.str(), LogEntryTypeHostNotification);
-        }
+		AddLogHistory(service, msgbuf.str(), LogEntryTypeHostNotification);
+	}
 }
 
 void ServiceDbObject::AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state)
@@ -1338,7 +1338,7 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 }
 
 /* servicechecks */
-void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const Dictionary::Ptr &cr)
+void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const CheckResult::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -1378,10 +1378,10 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	fields1->Set("end_time_usec", time_bag_end->Get("time_usec"));
 	fields1->Set("command_object_id", service->GetCheckCommand());
 	fields1->Set("command_args", Empty);
-	fields1->Set("command_line", cr->Get("command"));
+	fields1->Set("command_line", cr->GetCommand());
 	fields1->Set("execution_time", attrs->Get("check_execution_time"));
 	fields1->Set("latency", attrs->Get("check_latency"));
-	fields1->Set("return_code", cr->Get("exit_state"));
+	fields1->Set("return_code", cr->GetExitStatus());
 	fields1->Set("output", attrs->Get("plugin_output"));
 	fields1->Set("long_output", attrs->Get("long_plugin_output"));
 	fields1->Set("perfdata", attrs->Get("performance_data"));
@@ -1394,11 +1394,12 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	if (host->GetCheckService() == service) {
 		query1.Table = "hostchecks";
 
-		fields1->Remove("service_object_id");
-		fields1->Set("host_object_id", host);
-		fields1->Set("state", host->GetState());
-		fields1->Set("state_type", host->GetStateType());
-		query1.Fields = fields1;
+		Dictionary::Ptr fields2 = fields1->ShallowClone();
+		fields2->Remove("service_object_id");
+		fields2->Set("host_object_id", host);
+		fields2->Set("state", host->GetState());
+		fields2->Set("state_type", host->GetStateType());
+		query1.Fields = fields2;
 		OnQuery(query1);
 	}
 }

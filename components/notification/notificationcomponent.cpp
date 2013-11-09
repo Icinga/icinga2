@@ -105,7 +105,7 @@ void NotificationComponent::NotificationTimerHandler(void)
  * Processes icinga::SendNotifications messages.
  */
 void NotificationComponent::SendNotificationsHandler(const Service::Ptr& service, NotificationType type,
-    const Dictionary::Ptr& cr, const String& author, const String& text)
+    const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	service->SendNotifications(static_cast<NotificationType>(type), cr, author, text);
 }
