@@ -99,7 +99,7 @@ String Service::AddDowntime(const String& author, const String& comment,
 
 	Log(LogWarning, "icinga", "added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnDowntimeAdded), GetSelf(), downtime, authority));
+	OnDowntimeAdded(GetSelf(), downtime, authority);
 
 	return uid;
 }
@@ -132,7 +132,7 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 
 	Log(LogWarning, "icinga", "removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnDowntimeRemoved), owner, downtime, authority));
+	OnDowntimeRemoved(owner, downtime, authority);
 }
 
 void Service::TriggerDowntimes(void)
@@ -185,7 +185,7 @@ void Service::TriggerDowntime(const String& id)
 		TriggerDowntime(tid);
 	}
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnDowntimeTriggered), owner, downtime));
+	OnDowntimeTriggered(owner, downtime);
 }
 
 String Service::GetDowntimeIDFromLegacyID(int id)
