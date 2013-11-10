@@ -34,7 +34,7 @@ class CheckResult
 	[state] double execution_start;
 	[state] double execution_end;
 
-	[state] String command;
+	[state] Value command;
 	[state] int exit_status;
 
 	[state, enum] ServiceState "state";
