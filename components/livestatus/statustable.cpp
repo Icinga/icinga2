@@ -150,7 +150,7 @@ Value StatusTable::NagiosPidAccessor(const Value& row)
 
 Value StatusTable::ProgramStartAccessor(const Value& row)
 {
-	return Application::GetStartTime();
+	return static_cast<long>(Application::GetStartTime());
 }
 
 Value StatusTable::NumHostsAccessor(const Value& row)
