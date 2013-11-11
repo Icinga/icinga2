@@ -39,7 +39,6 @@
 #include <boost/bind.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 Table::Table(void)
 { }

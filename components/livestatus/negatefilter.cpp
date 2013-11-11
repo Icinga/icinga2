@@ -20,7 +20,6 @@
 #include "livestatus/negatefilter.h"
 
 using namespace icinga;
-using namespace livestatus;
 
 NegateFilter::NegateFilter(const Filter::Ptr& inner)
 	: m_Inner(inner)

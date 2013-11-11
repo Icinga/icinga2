@@ -27,7 +27,6 @@
 #include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 ContactsTable::ContactsTable(void)
 {

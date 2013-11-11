@@ -1,19 +1,10 @@
 #include "base/dynamicobject.h"
 #include "base/application.h"
 
-namespace livestatus
-{
-
-code {{{
-class LivestatusListener;
-}}}
-
-}
-
 namespace icinga
 {
 
-class livestatus::LivestatusListener : DynamicObject {
+class LivestatusListener : DynamicObject {
 	[config] String socket_type {
 		default {{{ return "unix"; }}}
 	};

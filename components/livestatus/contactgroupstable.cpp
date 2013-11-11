@@ -23,7 +23,6 @@
 #include <boost/foreach.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 ContactGroupsTable::ContactGroupsTable(void)
 {

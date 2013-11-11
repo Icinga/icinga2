@@ -19,7 +19,7 @@
 
 #include "livestatus/countaggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 CountAggregator::CountAggregator(void)
     : m_Count(0)

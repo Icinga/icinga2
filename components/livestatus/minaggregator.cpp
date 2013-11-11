@@ -19,7 +19,7 @@
 
 #include "livestatus/minaggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 MinAggregator::MinAggregator(const String& attr)
     : m_Min(0)

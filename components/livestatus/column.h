@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-namespace livestatus
+namespace icinga
 {
 
 class Column

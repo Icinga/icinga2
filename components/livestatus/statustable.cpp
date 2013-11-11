@@ -28,7 +28,6 @@
 #include "base/application.h"
 
 using namespace icinga;
-using namespace livestatus;
 
 StatusTable::StatusTable(void)
 {

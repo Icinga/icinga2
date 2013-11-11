@@ -45,7 +45,6 @@
 #include <fstream>
 
 using namespace icinga;
-using namespace livestatus;
 
 LogTable::LogTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until)
 {

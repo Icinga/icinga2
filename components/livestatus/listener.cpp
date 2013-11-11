@@ -32,7 +32,6 @@
 #include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 REGISTER_TYPE(LivestatusListener);
 REGISTER_SCRIPTFUNCTION(ValidateSocketType, &LivestatusListener::ValidateSocketType);

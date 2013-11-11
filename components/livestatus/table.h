@@ -25,7 +25,7 @@
 #include "base/dictionary.h"
 #include <vector>
 
-namespace livestatus
+namespace icinga
 {
 
 class Filter;

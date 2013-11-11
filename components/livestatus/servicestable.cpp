@@ -35,7 +35,6 @@
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 ServicesTable::ServicesTable(void)
 {

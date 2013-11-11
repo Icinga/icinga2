@@ -26,7 +26,6 @@
 #include <boost/foreach.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 DowntimesTable::DowntimesTable(void)
 {

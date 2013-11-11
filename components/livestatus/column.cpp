@@ -20,7 +20,6 @@
 #include "livestatus/column.h"
 
 using namespace icinga;
-using namespace livestatus;
 
 Column::Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor)
 	: m_ValueAccessor(valueAccessor), m_ObjectAccessor(objectAccessor)

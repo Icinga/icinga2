@@ -26,7 +26,6 @@
 #include <boost/regex.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 AttributeFilter::AttributeFilter(const String& column, const String& op, const String& operand)
 	: m_Column(column), m_Operator(op), m_Operand(operand)

@@ -22,7 +22,7 @@
 
 #include "livestatus/table.h"
 
-namespace livestatus
+namespace icinga
 {
 
 /**

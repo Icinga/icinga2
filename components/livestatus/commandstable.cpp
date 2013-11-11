@@ -29,7 +29,6 @@
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 CommandsTable::CommandsTable(void)
 {

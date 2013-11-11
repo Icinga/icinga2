@@ -28,7 +28,6 @@
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 TimePeriodsTable::TimePeriodsTable(void)
 {

@@ -20,7 +20,7 @@
 #include "livestatus/stdaggregator.h"
 #include <math.h>
 
-using namespace livestatus;
+using namespace icinga;
 
 StdAggregator::StdAggregator(const String& attr)
     : m_StdSum(0), m_StdQSum(0), m_StdCount(0)

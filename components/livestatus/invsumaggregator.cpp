@@ -19,7 +19,7 @@
 
 #include "livestatus/invsumaggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 InvSumAggregator::InvSumAggregator(const String& attr)
     : m_InvSum(0)

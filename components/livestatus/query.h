@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-namespace livestatus
+namespace icinga
 {
 
 enum LivestatusError

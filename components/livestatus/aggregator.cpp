@@ -19,7 +19,7 @@
 
 #include "livestatus/aggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 Aggregator::Aggregator(void)
 { }

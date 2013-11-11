@@ -23,7 +23,7 @@
 #include "livestatus/table.h"
 #include "livestatus/aggregator.h"
 
-namespace livestatus
+namespace icinga
 {
 
 /**

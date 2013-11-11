@@ -19,7 +19,7 @@
 
 #include "livestatus/maxaggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 MaxAggregator::MaxAggregator(const String& attr)
     : m_Max(0)

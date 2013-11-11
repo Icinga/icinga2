@@ -19,7 +19,7 @@
 
 #include "livestatus/avgaggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 AvgAggregator::AvgAggregator(const String& attr)
     : m_Avg(0), m_AvgCount(0)

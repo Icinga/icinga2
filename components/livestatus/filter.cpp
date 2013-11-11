@@ -19,7 +19,7 @@
 
 #include "livestatus/filter.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 Filter::Filter(void)
 { }

@@ -25,7 +25,6 @@
 #include <boost/foreach.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 HostGroupsTable::HostGroupsTable(void)
 {

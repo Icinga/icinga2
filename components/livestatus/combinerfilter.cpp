@@ -20,7 +20,6 @@
 #include "livestatus/combinerfilter.h"
 
 using namespace icinga;
-using namespace livestatus;
 
 CombinerFilter::CombinerFilter(void)
 { }

@@ -19,7 +19,7 @@
 
 #include "livestatus/sumaggregator.h"
 
-using namespace livestatus;
+using namespace icinga;
 
 SumAggregator::SumAggregator(const String& attr)
     : m_Sum(0)

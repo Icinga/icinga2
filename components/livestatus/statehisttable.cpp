@@ -46,7 +46,6 @@
 #include <fstream>
 
 using namespace icinga;
-using namespace livestatus;
 
 StateHistTable::StateHistTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until)
 {

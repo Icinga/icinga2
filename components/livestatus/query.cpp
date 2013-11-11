@@ -43,7 +43,6 @@
 #include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
-using namespace livestatus;
 
 static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;

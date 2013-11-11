@@ -24,7 +24,7 @@
 
 using namespace icinga;
 
-namespace livestatus
+namespace icinga
 {
 
 /**
