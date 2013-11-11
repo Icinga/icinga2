@@ -18,6 +18,15 @@ LICENSE file included in the package.
 Support for Icinga 2 is available in a number of ways. Please have a look at
 the support overview page at [https://support.icinga.org].
 
+## What's New in Version 0.0.4
+
+* IDO: PostgreSQL support
+* IDO: implemented options to filter which kind of events are written to the database
+* Livestatus: implemented support for the log and statehist tables
+* Livestatus: implemented regex filters (~ and ~~)
+* Replaced autotools-based build system with cmake
+* Lots of bug fixes and performance improvements
+
 ## What's New in Version 0.0.3
 
 * `StatusDataWriter` and `ExternalCommandListener` (former `Compat`) and `CompatLogger`
