@@ -47,7 +47,7 @@
 
 Summary: network monitoring application
 Name: icinga2
-Version: 0.0.3
+Version: 0.0.4
 Release: %{revision}%{?dist}
 License: GPLv2+
 Group: Applications/System
