@@ -74,6 +74,9 @@ void DynamicObject::SetAuthority(const String& type, bool value)
 		if (old_value == value)
 			return;
 
+		if (GetAuthorityInfo() == NULL)
+			SetAuthorityInfo(make_shared<Dictionary>());
+
 		GetAuthorityInfo()->Set(type, value);
 	}
 
@@ -84,7 +87,7 @@ bool DynamicObject::HasAuthority(const String& type) const
 {
 	Dictionary::Ptr authorityInfo = GetAuthorityInfo();
 
-	if (!authorityInfo->Contains(type))
+	if (!authorityInfo || !authorityInfo->Contains(type))
 		return true;
 
 	return authorityInfo->Get(type);
