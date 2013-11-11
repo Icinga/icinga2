@@ -443,13 +443,15 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 		Array::Ptr row = make_shared<Array>();
 
 		/*
-		 * add columns selected next to stats
+		 * add selected columns next to stats
 		 * may not be accurate for grouping!
 		 */
-		BOOST_FOREACH(const String& columnName, columns) {
-			Column column = table->GetColumn(columnName);
+		if (objects.size() > 0 && m_Columns.size() > 0) {
+			BOOST_FOREACH(const String& columnName, m_Columns) {
+				Column column = table->GetColumn(columnName);
 
-			row->Add(column.ExtractValue(objects[0])); // first object wins
+				row->Add(column.ExtractValue(objects[0])); // first object wins
+			}
 		}
 
 		for (size_t i = 0; i < m_Aggregators.size(); i++)
