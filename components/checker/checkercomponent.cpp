@@ -19,6 +19,7 @@
 
 #include "checker/checkercomponent.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/cib.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
@@ -183,7 +184,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_IdleServices.size();
+		msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_IdleServices.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
 	}
 
 	Log(LogInformation, "checker", msgbuf.str());

@@ -94,7 +94,7 @@ void Service::SetNextCheck(double nextCheck, const String& authority)
 {
 	SetNextCheckRaw(nextCheck);
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(Service::OnNextCheckChanged), GetSelf(), nextCheck, authority));
+	OnNextCheckChanged(GetSelf(), nextCheck, authority);
 }
 
 double Service::GetNextCheck(void)
@@ -150,7 +150,7 @@ void Service::SetEnableActiveChecks(bool enabled, const String& authority)
 {
 	SetOverrideEnableActiveChecks(enabled);
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnableActiveChecksChanged), GetSelf(), enabled, authority));
+	OnEnableActiveChecksChanged(GetSelf(), enabled, authority);
 }
 
 bool Service::GetEnablePassiveChecks(void) const
@@ -165,7 +165,7 @@ void Service::SetEnablePassiveChecks(bool enabled, const String& authority)
 {
 	SetOverrideEnablePassiveChecks(enabled);
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnEnablePassiveChecksChanged), GetSelf(), enabled, authority));
+	OnEnablePassiveChecksChanged(GetSelf(), enabled, authority);
 }
 
 bool Service::GetForceNextCheck(void) const
@@ -177,7 +177,7 @@ void Service::SetForceNextCheck(bool forced, const String& authority)
 {
 	SetForceNextCheckRaw(forced);
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnForceNextCheckChanged), GetSelf(), forced, authority));
+	OnForceNextCheckChanged(GetSelf(), forced, authority);
 }
 
 void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
@@ -367,15 +367,13 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 //			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
 //			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNewCheckResult), GetSelf(), cr, authority));
+	OnNewCheckResult(GetSelf(), cr, authority);
 	OnStateChanged(GetSelf());
 
-	if (hardChange) {
-		Utility::QueueAsyncCallback(boost::bind(boost::ref(OnStateChange), GetSelf(), cr, StateTypeHard, authority));
-	}
-	else if (stateChange) {
-		Utility::QueueAsyncCallback(boost::bind(boost::ref(OnStateChange), GetSelf(), cr, StateTypeSoft, authority));
-	}
+	if (hardChange)
+		OnStateChange(GetSelf(), cr, StateTypeHard, authority);
+	else if (stateChange)
+		OnStateChange(GetSelf(), cr, StateTypeSoft, authority);
 
 	if (call_eventhandler)
 		ExecuteEventHandler();

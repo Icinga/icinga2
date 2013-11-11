@@ -72,9 +72,10 @@ void Service::OnConfigLoaded(void)
 		}
 	}
 
-	Host::Ptr host = GetHost();
-	if (host)
-		host->AddService(GetSelf());
+	m_Host = Host::GetByName(GetHostRaw());
+
+	if (m_Host)
+		m_Host->AddService(GetSelf());
 
 	UpdateSlaveNotifications();
 }
@@ -95,7 +96,7 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 
 Host::Ptr Service::GetHost(void) const
 {
-	return Host::GetByName(GetHostRaw());
+	return m_Host;
 }
 
 bool Service::IsHostCheck(void) const
@@ -199,8 +200,7 @@ void Service::AcknowledgeProblem(const String& author, const String& comment, Ac
 
 	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 
-	boost::function<void (void)> f = boost::bind(boost::ref(Service::OnAcknowledgementSet), GetSelf(), author, comment, type, expiry, authority);
-	Utility::QueueAsyncCallback(f);
+	OnAcknowledgementSet(GetSelf(), author, comment, type, expiry, authority);
 }
 
 void Service::ClearAcknowledgement(const String& authority)
@@ -210,7 +210,7 @@ void Service::ClearAcknowledgement(const String& authority)
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnAcknowledgementCleared), GetSelf(), authority));
+	OnAcknowledgementCleared(GetSelf(), authority);
 }
 
 std::set<Host::Ptr> Service::GetParentHosts(void) const
@@ -228,7 +228,7 @@ std::set<Host::Ptr> Service::GetParentHosts(void) const
 	if (dependencies) {
 		ObjectLock olock(dependencies);
 
-		BOOST_FOREACH(const Value& dependency, dependencies) {
+		BOOST_FOREACH(const String& dependency, dependencies) {
 			Host::Ptr host = Host::GetByName(dependency);
 
 			if (!host)

@@ -10,9 +10,7 @@ abstract class DynamicObject
 	[config] Array::Ptr domains;
 	[config] Array::Ptr authorities;
 	[get_protected] bool active;
-	Dictionary::Ptr authority_info {
-		default {{{ return make_shared<Dictionary>(); }}}
-	};
+	Dictionary::Ptr authority_info;
 	[protected] Dictionary::Ptr extensions;
 };
 

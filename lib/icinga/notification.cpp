@@ -130,7 +130,7 @@ void Notification::SetNextNotification(double time, const String& authority)
 {
 	SetNextNotificationRaw(time);
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnNextNotificationChanged), GetSelf(), time, authority));
+	OnNextNotificationChanged(GetSelf(), time, authority);
 }
 
 void Notification::UpdateNotificationNumber(void)

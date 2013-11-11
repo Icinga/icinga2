@@ -174,10 +174,8 @@ cJSON *Value::ToJson(void) const
 			} else if (IsObjectType<Array>()) {
 				Array::Ptr array = *this;
 				return array->ToJson();
-			} else if (IsEmpty()) {
-				return cJSON_CreateNull();
 			} else {
-				BOOST_THROW_EXCEPTION(std::runtime_error("Unknown object type."));
+				return cJSON_CreateNull();
 			}
 
 		case ValueEmpty:

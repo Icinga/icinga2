@@ -47,17 +47,7 @@ struct ServiceNextCheckExtractor
 	 */
 	double operator()(const Service::Ptr& service)
 	{
-		if (!service->HasAuthority("checker"))
-			return Utility::GetTime() + 60;
-
-		double next = service->GetNextCheck();
-
-		while (next == 0) {
-			service->UpdateNextCheck();
-			next = service->GetNextCheck();
-		}
-
-		return next;
+		return service->GetNextCheck();
 	}
 };
 

@@ -79,7 +79,7 @@ String Service::AddComment(CommentType entryType, const String& author,
 		l_CommentsCache[uid] = GetSelf();
 	}
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnCommentAdded), GetSelf(), comment, authority));
+	OnCommentAdded(GetSelf(), comment, authority);
 
 	return uid;
 }
@@ -126,7 +126,7 @@ void Service::RemoveComment(const String& id, const String& authority)
 		l_CommentsCache.erase(id);
 	}
 
-	Utility::QueueAsyncCallback(boost::bind(boost::ref(OnCommentRemoved), owner, comment, authority));
+	OnCommentRemoved(owner, comment, authority);
 }
 
 String Service::GetCommentIDFromLegacyID(int id)

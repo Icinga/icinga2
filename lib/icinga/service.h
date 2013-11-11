@@ -255,6 +255,8 @@ protected:
 	virtual void OnConfigLoaded(void);
 
 private:
+	Host::Ptr m_Host;
+
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
 
