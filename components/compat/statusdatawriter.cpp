@@ -114,7 +114,7 @@ void StatusDataWriter::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& t
 		String key;
 		Value value;
 		BOOST_FOREACH(boost::tie(key, value), ranges) {
-			fp << "\t" << key << "\t" << Convert::ToString(value) << "\n";
+			fp << "\t" << key << "\t" << value << "\n";
 		}
 	}
 
@@ -151,7 +151,7 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 			fp << " \"" << CompatUtility::EscapeString(arg) << "\"";
 		}
 	} else if (!commandLine.IsEmpty()) {
-		fp << CompatUtility::EscapeString(Convert::ToString(commandLine));
+		fp << CompatUtility::EscapeString(commandLine);
 	} else {
 		fp << "<internal>";
 	}
@@ -543,7 +543,7 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObjec
 		    key != "icon_image" && key != "icon_image_alt" && key != "statusmap_image" && "2d_coords")
 			fp << "_";
 
-		fp << key << "\t" << Convert::ToString(value) << "\n";
+		fp << key << "\t" << value << "\n";
 	}
 }
 

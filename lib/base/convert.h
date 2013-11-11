@@ -55,6 +55,9 @@ public:
 		return boost::lexical_cast<String>(val);
 	}
 
+	static String ToString(const String& val);
+	static String ToString(const Value& val);
+
 private:
 	Convert(void);
 };

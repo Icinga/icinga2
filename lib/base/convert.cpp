@@ -27,3 +27,12 @@ bool Convert::ToBool(const String& val)
 	return (ToLong(val) != 0);
 }
 
+String Convert::ToString(const String& val)
+{
+	return val;
+}
+
+String Convert::ToString(const Value& val)
+{
+	return val;
+}

@@ -557,7 +557,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 				}
 
 				cols += key;
-				values += Convert::ToString(value);
+				values += value;
 			} else {
 				if (!first)
 					qbuf << ", ";
