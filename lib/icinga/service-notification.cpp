@@ -149,10 +149,6 @@ void Service::UpdateSlaveNotifications(void)
 		ExpressionList::Ptr nfc_exprl = make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
 
-		std::vector<String> dpath;
-		dpath.push_back("templates");
-		nfc_exprl->ErasePath(dpath);
-
 		builder->AddExpressionList(nfc_exprl);
 
 		ConfigItem::Ptr notificationItem = builder->Compile();

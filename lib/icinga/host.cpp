@@ -197,10 +197,6 @@ void Host::UpdateSlaveServices(void)
 		ExpressionList::Ptr svc_exprl = make_shared<ExpressionList>();
 		item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
 
-		std::vector<String> dpath;
-		dpath.push_back("templates");
-		svc_exprl->ErasePath(dpath);
-
 		builder->AddExpressionList(svc_exprl);
 
 		ConfigItem::Ptr serviceItem = builder->Compile();
