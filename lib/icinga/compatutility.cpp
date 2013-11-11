@@ -187,9 +187,9 @@ Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& se
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
-		Dictionary::Ptr output_bag = GetCheckResultOutput(cr);
-		output = output_bag->Get("output");
-		long_output = output_bag->Get("long_output");
+		std::pair<String, String> output_bag = GetCheckResultOutput(cr);
+		output = output_bag.first;
+		long_output = output_bag.second;
 
 		check_source = cr->GetCheckSource();
 
@@ -521,14 +521,13 @@ std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const S
 	return usergroups;
 }
 
-Dictionary::Ptr CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
+std::pair<String, String> CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
-		return Empty;
+		return std::make_pair(Empty, Empty);
 
 	String long_output;
 	String output;
-	Dictionary::Ptr bag = make_shared<Dictionary>();
 
 	String raw_output = cr->GetOutput();
 
@@ -549,9 +548,7 @@ Dictionary::Ptr CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 
 	output = EscapeString(output);
 
-	bag->Set("output", output);
-	bag->Set("long_output", long_output);
-	return bag;
+	return std::make_pair(output, long_output);
 }
 
 String CompatUtility::GetCheckResultPerfdata(const CheckResult::Ptr& cr)
@@ -569,17 +566,12 @@ String CompatUtility::EscapeString(const String& str)
 	return result;
 }
 
-Dictionary::Ptr CompatUtility::ConvertTimestamp(double time)
+std::pair<unsigned long, unsigned long> CompatUtility::ConvertTimestamp(double time)
 {
-	Dictionary::Ptr time_bag = make_shared<Dictionary>();
-
 	unsigned long time_sec = static_cast<long>(time);
 	unsigned long time_usec = (time - time_sec) * 1000 * 1000;
 
-	time_bag->Set("time_sec", time_sec);
-	time_bag->Set("time_usec", time_usec);
-
-	return time_bag;
+	return std::make_pair(time_sec, time_usec);
 }
 
 int CompatUtility::MapNotificationReasonType(NotificationType type)

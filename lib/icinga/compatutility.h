@@ -59,10 +59,10 @@ public:
 	static std::set<User::Ptr> GetServiceNotificationUsers(const Service::Ptr& service);
 	static std::set<UserGroup::Ptr> GetServiceNotificationUserGroups(const Service::Ptr& service);
 
-	static Dictionary::Ptr GetCheckResultOutput(const CheckResult::Ptr& cr);
+	static std::pair<String, String> GetCheckResultOutput(const CheckResult::Ptr& cr);
 	static String GetCheckResultPerfdata(const CheckResult::Ptr& cr);
 
-	static Dictionary::Ptr ConvertTimestamp(double time);
+	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
 
 	static int MapNotificationReasonType(NotificationType type);
 	static int MapExternalCommandType(const String& name);

@@ -513,7 +513,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Comment::
 	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query2;
 	query2.Table = "commenthistory";
@@ -521,8 +521,8 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Comment::
 	query2.Category = DbCatComment;
 
 	Dictionary::Ptr fields2 = make_shared<Dictionary>();
-	fields2->Set("deletion_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields2->Set("deletion_time_usec", time_bag->Get("time_usec"));
+	fields2->Set("deletion_time", DbValue::FromTimestamp(time_bag.first));
+	fields2->Set("deletion_time_usec", time_bag.second);
 	query2.Fields = fields2;
 
 	query2.WhereCriteria = make_shared<Dictionary>();
@@ -681,7 +681,7 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Downtime
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query3;
 	query3.Table = "downtimehistory";
@@ -690,8 +690,8 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Downtime
 
 	Dictionary::Ptr fields3 = make_shared<Dictionary>();
 	fields3->Set("was_cancelled", downtime->GetWasCancelled() ? 1 : 0);
-	fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields3->Set("actual_end_time_usec", time_bag->Get("time_usec"));
+	fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
+	fields3->Set("actual_end_time_usec", time_bag.second);
 	query3.Fields = fields3;
 
 	query3.WhereCriteria = make_shared<Dictionary>();
@@ -719,7 +719,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Downtim
 	Log(LogDebug, "db_ido", "updating triggered service downtime (id = " + Convert::ToString(downtime->GetLegacyId()) + ") for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	/* Status */
 	DbQuery query1;
@@ -729,8 +729,8 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Downtim
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
 	fields1->Set("was_started", 1);
-	fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("actual_start_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("actual_start_time_usec", time_bag.second);
 	fields1->Set("is_in_effect", 1);
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -757,8 +757,8 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Downtim
 	Dictionary::Ptr fields3 = make_shared<Dictionary>();
 	fields3->Set("was_started", 1);
 	fields3->Set("is_in_effect", 1);
-	fields3->Set("actual_start_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields3->Set("actual_start_time_usec", time_bag->Get("time_usec"));
+	fields3->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
+	fields3->Set("actual_start_time_usec", time_bag.second);
 	fields3->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	query3.Fields = fields3;
 
@@ -784,7 +784,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	Log(LogDebug, "db_ido", "add acknowledgement history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	unsigned long end_time = static_cast<long>(expiry);
 
@@ -794,8 +794,8 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	query1.Category = DbCatAcknowledgement;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("entry_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("entry_time_usec", time_bag.second);
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("object_id", service);
 	fields1->Set("state", service->GetState());
@@ -829,7 +829,7 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 
 	/* start and end happen at the same time */
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query1;
 	query1.Table = "contactnotifications";
@@ -838,10 +838,10 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
 	fields1->Set("contact_object_id", user);
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("start_time_usec", time_bag->Get("time_usec"));
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("end_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("start_time_usec", time_bag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("end_time_usec", time_bag.second);
 
 	fields1->Set("notification_id", 0); /* DbConnection class fills in real ID */
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -867,7 +867,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 
 	/* start and end happen at the same time */
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query1;
 	query1.Table = "notifications";
@@ -878,16 +878,16 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	fields1->Set("notification_type", 1); /* service */
 	fields1->Set("notification_reason", CompatUtility::MapNotificationReasonType(type));
 	fields1->Set("object_id", service);
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("start_time_usec", time_bag->Get("time_usec"));
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("end_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("start_time_usec", time_bag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("end_time_usec", time_bag.second);
 	fields1->Set("state", service->GetState());
 
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		fields1->Set("output", output_bag->Get("output"));
-		fields1->Set("long_output", output_bag->Get("long_output"));
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		fields1->Set("output", output_bag.first);
+		fields1->Set("long_output", output_bag.second);
 	}
 
 	fields1->Set("escalated", 0);
@@ -917,7 +917,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	Log(LogDebug, "db_ido", "add state change history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query1;
 	query1.Table = "statehistory";
@@ -925,8 +925,8 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	query1.Category = DbCatStateHistory;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	fields1->Set("state_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("state_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("state_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("state_time_usec", time_bag.second);
 	fields1->Set("object_id", service);
 	fields1->Set("state_change", 1); /* service */
 	fields1->Set("state", service->GetState());
@@ -937,9 +937,9 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	fields1->Set("last_hard_state", service->GetLastHardState());
 
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		fields1->Set("output", output_bag->Get("output"));
-		fields1->Set("long_output", output_bag->Get("long_output"));
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		fields1->Set("output", output_bag.first);
+		fields1->Set("long_output", output_bag.second);
 	}
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -1011,8 +1011,8 @@ void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, cons
 	String output;
 
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag->Get("output");
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag.first;
 	}
 
 	std::ostringstream msgbuf;
@@ -1159,8 +1159,8 @@ void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service,
 	String output;
 
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag->Get("output");
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag.first;
 	}
 
 	std::ostringstream msgbuf;
@@ -1251,7 +1251,7 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	Log(LogDebug, "db_ido", "add log entry history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query1;
 	query1.Table = "logentries";
@@ -1259,9 +1259,9 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	query1.Category = DbCatLog;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	fields1->Set("logentry_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("entry_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("logentry_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("entry_time_usec", time_bag.second);
 	fields1->Set("object_id", service); // added in 1.10 see #4754
 	fields1->Set("logentry_type", type);
 	fields1->Set("logentry_data", buffer);
@@ -1289,7 +1289,7 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 	Log(LogDebug, "db_ido", "add flapping history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query1;
 	query1.Table = "flappinghistory";
@@ -1298,8 +1298,8 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
 
-	fields1->Set("event_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("event_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("event_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("event_time_usec", time_bag.second);
 
 	switch (flapping_state) {
 		case FlappingStarted:
@@ -1367,15 +1367,15 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	fields1->Set("state_type", attrs->Get("state_type"));
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	double end = now + attrs->Get("check_execution_time");
-	Dictionary::Ptr time_bag_end = CompatUtility::ConvertTimestamp(end);
+	std::pair<unsigned long, unsigned long> time_bag_end = CompatUtility::ConvertTimestamp(now);
 
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("start_time_usec", time_bag->Get("time_usec"));
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag_end->Get("time_sec")));
-	fields1->Set("end_time_usec", time_bag_end->Get("time_usec"));
+	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("start_time_usec", time_bag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("end_time_usec", time_bag.second);
 	fields1->Set("command_object_id", service->GetCheckCommand());
 	fields1->Set("command_args", Empty);
 	fields1->Set("command_line", cr->GetCommand());
@@ -1415,7 +1415,7 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 	Log(LogDebug, "db_ido", "add eventhandler history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
-	Dictionary::Ptr time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
 	DbQuery query1;
 	query1.Table = "eventhandlers";
@@ -1429,10 +1429,10 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 	fields1->Set("state", service->GetState());
 	fields1->Set("state_type", service->GetStateType());
 
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("start_time_usec", time_bag->Get("time_usec"));
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag->Get("time_sec")));
-	fields1->Set("end_time_usec", time_bag->Get("time_usec"));
+	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("start_time_usec", time_bag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("end_time_usec", time_bag.second);
 	fields1->Set("command_object_id", service->GetEventCommand());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */

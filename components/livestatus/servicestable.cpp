@@ -264,8 +264,8 @@ Value ServicesTable::PluginOutputAccessor(const Value& row)
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag->Get("output");
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag.first;
 	}
 
 	return output;
@@ -282,8 +282,8 @@ Value ServicesTable::LongPluginOutputAccessor(const Value& row)
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		long_output = output_bag->Get("long_output");
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		long_output = output_bag.second;
 	}
 
 	return long_output;

@@ -102,8 +102,8 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckRe
 
 	String output;
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag->Get("output");
+		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag.first;
 	}
 
 	std::ostringstream msgbuf;
@@ -271,8 +271,8 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
 
 	String output;
 	if (cr) {
-		Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag->Get("output");
+		std::pair<String, String>  output_bag = CompatUtility::GetCheckResultOutput(cr);
+		output = output_bag.first;
 	}
 
         std::ostringstream msgbuf;
@@ -508,8 +508,8 @@ void CompatLogger::ReopenFile(bool rotate)
 		CheckResult::Ptr cr = hc->GetLastCheckResult();
 
 		if (cr) {
-			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-			output = output_bag->Get("output");
+			std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+			output = output_bag.first;
 		}
 
 		std::ostringstream msgbuf;
@@ -533,8 +533,8 @@ void CompatLogger::ReopenFile(bool rotate)
 		CheckResult::Ptr cr = service->GetLastCheckResult();
 
 		if (cr) {
-			Dictionary::Ptr output_bag = CompatUtility::GetCheckResultOutput(cr);
-			output = output_bag->Get("output");
+			std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
+			output = output_bag.first;
 		}
 
 		std::ostringstream msgbuf;
