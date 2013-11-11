@@ -63,24 +63,24 @@ Value PerfdataValue::Parse(const String& perfdata)
 	boost::algorithm::to_lower(unit);
 
 	if (unit == "us") {
-		value /= 1000 * 1000;
+		value /= 1000.0 * 1000.0;
 		unit = "seconds";
 	} else if (unit == "ms") {
-		value /= 1000;
+		value /= 1000.0;
 		unit = "seconds";
 	} else if (unit == "s") {
 		unit = "seconds";
 	} else if (unit == "tb") {
-		value *= 1024 * 1024 * 1024 * 1024;
+		value *= 1024.0 * 1024.0 * 1024.0 * 1024.0;
 		unit = "bytes";
 	} else if (unit == "gb") {
-		value *= 1024 * 1024 * 1024;
+		value *= 1024.0 * 1024.0 * 1024.0;
 		unit = "bytes";
 	} else if (unit == "mb") {
-		value *= 1024 * 1024;
+		value *= 1024.0 * 1024.0;
 		unit = "bytes";
 	} else if (unit == "kb") {
-		value *= 1024;
+		value *= 1024.0;
 		unit = "bytes";
 	} else if (unit == "b") {
 		unit = "bytes";
