@@ -17,28 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#include "methods/icingachecktask.h"
+#include "icinga/cib.h"
+#include "base/application.h"
+#include "base/utility.h"
+#include "base/scriptfunction.h"
 
-template CheckCommand "icinga-check-command" {
-	methods = {
-		execute = "IcingaCheck"
-	}
+using namespace icinga;
+
+REGISTER_SCRIPTFUNCTION(IcingaCheck, &IcingaCheckTask::ScriptFunc);
+
+CheckResult::Ptr IcingaCheckTask::ScriptFunc(const Service::Ptr&)
+{
+	double interval = Utility::GetTime() - Application::GetStartTime();
+
+	if (interval > 60)
+		interval = 60;
+
+	Dictionary::Ptr perfdata = make_shared<Dictionary>();
+	perfdata->Set("active_checks", CIB::GetActiveChecksStatistics(interval) / interval);
+	perfdata->Set("passive_checks", CIB::GetPassiveChecksStatistics(interval) / interval);
+
+	CheckResult::Ptr cr = make_shared<CheckResult>();
+	cr->SetOutput("Icinga 2 is running.");
+	cr->SetPerformanceData(perfdata);
+	cr->SetState(StateOK);
+
+	return cr;
 }
 
-template CheckCommand "plugin-check-command" {
-	methods = {
-		execute = "PluginCheck"
-	}
-}
-
-template NotificationCommand "plugin-notification-command" {
-	methods = {
-		execute = "PluginNotification"
-	}
-}
-
-template EventCommand "plugin-event-command" {
-	methods = {
-		execute = "PluginEvent"
-	}
-}
