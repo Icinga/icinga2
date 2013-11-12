@@ -5,9 +5,9 @@
 # configuration file.  Customize the paths, etc. as
 # needed to fit your system.
 
-ScriptAlias /icinga/cgi-bin "/usr/lib64/icinga/cgi"
+ScriptAlias /icinga/cgi-bin "@CMAKE_INSTALL_FULL_LIBDIR@/icinga/cgi"
 
-<Directory "/usr/lib64/icinga/cgi">
+<Directory "@CMAKE_INSTALL_FULL_LIBDIR@/icinga/cgi">
 #  SSLRequireSSL
    Options ExecCGI
    AllowOverride None
@@ -18,13 +18,13 @@ ScriptAlias /icinga/cgi-bin "/usr/lib64/icinga/cgi"
 #  Allow from 127.0.0.1
    AuthName "Icinga Access"
    AuthType Basic
-   AuthUserFile /etc/icinga/passwd
+   AuthUserFile @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga/passwd
    Require valid-user
 </Directory>
 
-Alias /icinga "/usr/share/icinga/"
+Alias /icinga "@CMAKE_INSTALL_FULL_DATADIR@/icinga/"
 
-<Directory "/usr/share/icinga/">
+<Directory "@CMAKE_INSTALL_FULL_DATADIR@/icinga/">
 #  SSLRequireSSL
    Options None
    AllowOverride All
@@ -35,7 +35,7 @@ Alias /icinga "/usr/share/icinga/"
 #  Allow from 127.0.0.1
    AuthName "Icinga Access"
    AuthType Basic
-   AuthUserFile /etc/icinga/passwd
+   AuthUserFile @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga/passwd
    Require valid-user
 </Directory>
 
