@@ -1,6 +1,14 @@
 Icinga 2.x CHANGELOG
 ====================
 
+0.0.4 - 2013/11/12
+
+* IDO: PostgreSQL support
+* IDO: implemented options to filter which kind of events are written to the database
+* Livestatus: implemented support for the log and statehist tables
+* Livestatus: implemented regex filters (~ and ~~)
+* Replaced autotools-based build system with cmake
+* Lots of bug fixes and performance improvements
 
 0.0.3 - 2013/10/24
 
