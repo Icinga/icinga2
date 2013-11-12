@@ -1,0 +1,18 @@
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
+  <Metadata>
+    <Identity Id="Icinga2Visualizers.VS2013.D1DFF2F5-FB30-41FE-8EEF-0CEB97ABBC6B" Version="0.0.4" Language="en-US" Publisher="Icinga Development Team" />
+    <DisplayName>Icinga 2 Debugger Visualizers for Visual Studio</DisplayName>
+    <Description xml:space="preserve">Icinga 2 Debugger Visualizers</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Premium" />
+    <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Pro" />
+    <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Ultimate" />
+    <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.VSWinDesktopExpress" />
+  </Installation>
+  <Dependencies></Dependencies>
+  <Assets>
+    <Asset Type="NativeVisualizer" Path="Visualizers\icinga2.natvis" />
+    <Asset Type="StepFilter" Path="Visualizers\icinga2.natstepfilter" />
+  </Assets>
+</PackageManifest>

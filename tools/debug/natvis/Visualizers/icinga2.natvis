@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="icinga::String">
+    <DisplayString>{m_Data}</DisplayString>
+  </Type>
+
+  <Type Name="icinga::Value">
+    <DisplayString Condition="m_Value.which_ == 0">Empty</DisplayString>
+    <DisplayString>{m_Value}</DisplayString>
+  </Type>
+
+  <Type Name="icinga::Array">
+    <DisplayString>{m_Data}</DisplayString>
+  </Type>
+
+  <Type Name="icinga::Dictionary">
+    <DisplayString>{m_Data}</DisplayString>
+  </Type>
+</AutoVisualizer>
