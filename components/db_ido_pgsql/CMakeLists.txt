@@ -22,9 +22,11 @@ if(PostgreSQL_FOUND)
 
     mkembedconfig_target(db_ido_pgsql-type.conf db_ido_pgsql-type.cpp)
 
+    link_directories(${PostgreSQL_LIBRARY_DIRS})
+    include_directories(${PostgreSQL_INCLUDE_DIRS})
+
     add_library(db_ido_pgsql SHARED idopgsqlconnection.cpp idopgsqlconnection.th db_ido_pgsql-type.cpp)
 
-    include_directories(${PostgreSQL_INCLUDE_DIR})
     target_link_libraries(db_ido_pgsql ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} base config icinga db_ido)
 
     set_target_properties (
