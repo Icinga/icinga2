@@ -61,6 +61,9 @@ void ClusterListener::Start(void)
 
 	m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 
+	if (!GetCrlPath().IsEmpty())
+		AddCRLToSSLContext(m_SSLContext, GetCrlPath());
+
 	/* create the primary JSON-RPC listener */
 	if (!GetBindPort().IsEmpty())
 		AddListener(GetBindPort());

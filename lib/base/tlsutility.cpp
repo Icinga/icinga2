@@ -99,6 +99,38 @@ shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, 
 }
 
 /**
+ * Loads a CRL and appends its certificates to the specified SSL context.
+ *
+ * @param context The SSL context.
+ * @param crlPath The path to the CRL file.
+ */
+void AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPath)
+{
+	X509_STORE *x509_store = SSL_CTX_get_cert_store(context.get());
+
+	X509_LOOKUP *lookup;
+	lookup = X509_STORE_add_lookup(x509_store, X509_LOOKUP_file());
+
+	if (!lookup) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("X509_STORE_add_lookup")
+			<< errinfo_openssl_error(ERR_get_error()));
+	}
+
+	if (X509_LOOKUP_load_file(lookup, crlPath.CStr(), X509_FILETYPE_PEM) != 0) {
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("X509_LOOKUP_load_file")
+			<< errinfo_openssl_error(ERR_get_error())
+			<< boost::errinfo_file_name(crlPath));
+	}
+
+	X509_VERIFY_PARAM *param = X509_VERIFY_PARAM_new();
+	X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK);
+	SSL_CTX_set1_param(context.get(), param);
+	X509_VERIFY_PARAM_free(param);
+}
+
+/**
  * Retrieves the common name for an X509 certificate.
  *
  * @param certificate The X509 certificate.
