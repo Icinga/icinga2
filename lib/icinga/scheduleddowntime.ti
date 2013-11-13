@@ -1,0 +1,22 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class ScheduledDowntime : DynamicObject
+{
+	[config, protected] String host (HostRaw);
+	[config, protected] String service (ServiceRaw);
+
+	[config] String author;
+	[config] String comment;
+
+	[config] double duration;
+	[config] bool fixed {
+		default {{{ return true; }}}
+	};
+
+	[config] Dictionary::Ptr ranges;
+};
+
+}

@@ -744,3 +744,28 @@ int Utility::Random(void)
 
 	return rand();
 }
+
+tm Utility::LocalTime(time_t ts)
+{
+#ifdef _MSC_VER
+	tm *result = localtime(&ts);
+
+	if (temp == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("localtime")
+		    << boost::errinfo_errno(errno));
+	}
+
+	return *result;
+#else /* _MSC_VER */
+	tm result;
+
+	if (localtime_r(&ts, &result) == NULL) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("localtime_r")
+		    << boost::errinfo_errno(errno));
+	}
+
+	return result;
+#endif /* _MSC_VER */
+}

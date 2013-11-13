@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
+#include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -47,7 +48,8 @@ int Service::GetNextDowntimeID(void)
 
 String Service::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
-    const String& triggeredBy, double duration, const String& id, const String& authority)
+    const String& triggeredBy, double duration, const String& scheduledBy,
+    const String& id, const String& authority)
 {
 	String uid;
 
@@ -66,6 +68,7 @@ String Service::AddDowntime(const String& author, const String& comment,
 	downtime->SetFixed(fixed);
 	downtime->SetDuration(duration);
 	downtime->SetTriggeredBy(triggeredBy);
+	downtime->SetScheduledBy(scheduledBy);
 
 	int legacy_id;
 
@@ -82,10 +85,7 @@ String Service::AddDowntime(const String& author, const String& comment,
 		Downtime::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
 		Dictionary::Ptr triggers = otherDowntime->GetTriggers();
 
-		{
-			ObjectLock olock(otherOwner);
-			triggers->Set(triggeredBy, triggeredBy);
-		}
+		triggers->Set(triggeredBy, triggeredBy);
 	}
 
 	GetDowntimes()->Set(uid, downtime);
@@ -96,7 +96,8 @@ String Service::AddDowntime(const String& author, const String& comment,
 		l_DowntimesCache[uid] = GetSelf();
 	}
 
-	Log(LogWarning, "icinga", "added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
+	Log(LogDebug, "icinga", "Added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) +
+	    "' between '" + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime) + "' and '" + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) + "'.");
 
 	OnDowntimeAdded(GetSelf(), downtime, authority);
 
@@ -129,7 +130,7 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 
 	downtime->SetWasCancelled(cancelled);
 
-	Log(LogWarning, "icinga", "removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
+	Log(LogDebug, "icinga", "Removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
 
 	OnDowntimeRemoved(owner, downtime, authority);
 }
@@ -230,7 +231,9 @@ void Service::StartDowntimesExpiredTimer(void)
 
 void Service::AddDowntimesToCache(void)
 {
+#ifdef _DEBUG
 	Log(LogDebug, "icinga", "Updating Service downtimes cache.");
+#endif /* _DEBUG */
 
 	Dictionary::Ptr downtimes = GetDowntimes();
 
@@ -311,4 +314,66 @@ int Service::GetDowntimeDepth(void) const
 	}
 
 	return downtime_depth;
+}
+
+void Service::UpdateSlaveScheduledDowntimes(void)
+{
+	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
+
+	/* Don't create slave scheduled downtimes unless we own this object */
+	if (!item)
+		return;
+
+	/* Service scheduled downtime descs */
+	Dictionary::Ptr descs = GetScheduledDowntimeDescriptions();
+
+	if (!descs)
+		return;
+
+	ObjectLock olock(descs);
+
+	BOOST_FOREACH(const Dictionary::Pair& kv, descs) {
+		std::ostringstream namebuf;
+		namebuf << GetName() << ":" << kv.first;
+		String name = namebuf.str();
+
+		std::vector<String> path;
+		path.push_back("scheduled_downtimes");
+		path.push_back(kv.first);
+
+		DebugInfo di;
+		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
+
+		if (di.Path.IsEmpty())
+			di = item->GetDebugInfo();
+
+		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+		builder->SetType("ScheduledDowntime");
+		builder->SetName(name);
+		builder->AddExpression("host", OperatorSet, GetHost()->GetName());
+		builder->AddExpression("service", OperatorSet, GetShortName());
+
+		Dictionary::Ptr scheduledDowntime = kv.second;
+
+		Array::Ptr templates = scheduledDowntime->Get("templates");
+
+		if (templates) {
+			ObjectLock tlock(templates);
+
+			BOOST_FOREACH(const Value& tmpl, templates) {
+				builder->AddParent(tmpl);
+			}
+		}
+
+		/* Clone attributes from the scheduled downtime expression list. */
+		ExpressionList::Ptr sd_exprl = make_shared<ExpressionList>();
+		item->GetLinkedExpressionList()->ExtractPath(path, sd_exprl);
+
+		builder->AddExpressionList(sd_exprl);
+
+		ConfigItem::Ptr scheduledDowntimeItem = builder->Compile();
+		scheduledDowntimeItem->Register();
+		DynamicObject::Ptr dobj = scheduledDowntimeItem->Commit();
+		dobj->OnConfigLoaded();
+	}
 }

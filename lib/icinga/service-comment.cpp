@@ -163,7 +163,9 @@ Comment::Ptr Service::GetCommentByID(const String& id)
 
 void Service::AddCommentsToCache(void)
 {
+#ifdef _DEBUG
 	Log(LogDebug, "icinga", "Updating Service comments cache.");
+#endif /* _DEBUG */
 
 	Dictionary::Ptr comments = GetComments();
 

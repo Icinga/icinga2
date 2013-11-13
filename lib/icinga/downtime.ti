@@ -13,6 +13,7 @@ class Downtime
 	[state] bool fixed;
 	[state] double duration;
 	[state] String triggered_by;
+	[state] String scheduled_by;
 	[state] Dictionary::Ptr triggers {
 		default {{{ return make_shared<Dictionary>(); }}}
 	};

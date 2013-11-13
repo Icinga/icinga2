@@ -17,13 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/legacytimeperiod.h"
+#include "icinga/legacytimeperiod.h"
 #include "base/scriptfunction.h"
 #include "base/convert.h"
 #include "base/exception.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/debug.h"
+#include "base/utility.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
@@ -141,12 +142,12 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 	if (timespec.GetLength() == 10 && timespec[4] == '-' && timespec[7] == '-') {
 		int year = Convert::ToLong(timespec.SubStr(0, 4));
 		int month = Convert::ToLong(timespec.SubStr(5, 2));
-		int day = Convert::ToLong(timespec.SubStr(7, 2));
+		int day = Convert::ToLong(timespec.SubStr(8, 2));
 
 		if (begin) {
 			begin->tm_year = year - 1900;
 			begin->tm_mon = month;
-			begin->tm_mday = day;
+			begin->tm_mday = day + 1;
 			begin->tm_hour = 0;
 			begin->tm_min = 0;
 			begin->tm_sec = 0;
@@ -155,7 +156,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		if (end) {
 			end->tm_year = year - 1900;
 			end->tm_mon = month;
-			end->tm_mday = day;
+			end->tm_mday = day + 1;
 			end->tm_hour = 24;
 			end->tm_min = 0;
 			end->tm_sec = 0;
@@ -380,6 +381,64 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 	}
 }
 
+Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const String& timeranges, tm *reference)
+{
+	tm begin, end, iter, ref;
+	time_t tsend, tsiter, tsref;
+	int stride;
+
+	for (int pass = 1; pass <= 2; pass++) {
+		if (pass == 1) {
+			ref = *reference;
+		} else {
+			ref = end;
+			ref.tm_mday++;
+		}
+
+		tsref = mktime(&ref);
+
+		ParseTimeRange(daydef, &begin, &end, &stride, &ref);
+
+		iter = begin;
+
+		tsend = mktime(&end);
+		tsiter = mktime(&iter);
+
+		do {
+			if (IsInTimeRange(&begin, &end, stride, &iter)) {
+				Array::Ptr segments = make_shared<Array>();
+				ProcessTimeRanges(timeranges, &iter, segments);
+
+				Dictionary::Ptr bestSegment;
+				double bestBegin;
+
+				BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
+					double begin = segment->Get("begin");
+
+					if (begin < tsref)
+						continue;
+
+					if (!bestSegment || begin < bestBegin) {
+						bestSegment = segment;
+						bestBegin = begin;
+					}
+				}
+
+				if (bestSegment)
+					return bestSegment;
+			}
+
+			iter.tm_mday++;
+			iter.tm_hour = 0;
+			iter.tm_min = 0;
+			iter.tm_sec = 0;
+			tsiter = mktime(&iter);
+		} while (tsiter < tsend);
+	}
+
+	return Dictionary::Ptr();
+}
+
 Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin, double end)
 {
 	Array::Ptr segments = make_shared<Array>();
@@ -389,36 +448,24 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 	if (ranges) {
 		for (int i = 0; i <= (end - begin) / (24 * 60 * 60); i++) {
 			time_t refts = begin + i * 24 * 60 * 60;
-			tm reference;
+			tm reference = Utility::LocalTime(refts);
 
+#ifdef _DEBUG
 			Log(LogDebug, "icinga", "Checking reference time " + Convert::ToString(static_cast<long>(refts)));
-
-#ifdef _MSC_VER
-			tm *temp = localtime(&refts);
-
-			if (temp == NULL) {
-				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("localtime")
-				    << boost::errinfo_errno(errno));
-			}
-
-			reference = *temp;
-#else /* _MSC_VER */
-			if (localtime_r(&refts, &reference) == NULL) {
-				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("localtime_r")
-				    << boost::errinfo_errno(errno));
-			}
-#endif /* _MSC_VER */
+#endif /* _DEBUG */
 
 			ObjectLock olock(ranges);
 			BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
 				if (!IsInDayDefinition(kv.first, &reference)) {
+#ifdef _DEBUG
 					Log(LogDebug, "icinga", "Not in day definition '" + kv.first + "'.");
+#endif /* _DEBUG */
 					continue;
 				}
 
+#ifdef _DEBUG
 				Log(LogDebug, "icinga", "In day definition '" + kv.first + "'.");
+#endif /* _DEBUG */
 
 				ProcessTimeRanges(kv.second, &reference, segments);
 			}

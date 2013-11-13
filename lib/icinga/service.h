@@ -192,7 +192,8 @@ public:
 	String AddDowntime(const String& author, const String& comment,
 	    double startTime, double endTime, bool fixed,
 	    const String& triggeredBy, double duration,
-	    const String& id = String(), const String& authority = String());
+	    const String& scheduledBy = String(), const String& id = String(),
+	    const String& authority = String());
 
 	static void RemoveDowntime(const String& id, bool cancelled, const String& = String());
 
@@ -207,6 +208,8 @@ public:
 
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
+
+	void UpdateSlaveScheduledDowntimes(void);
 
 	/* Comments */
 	static int GetNextCommentID(void);
@@ -265,6 +268,7 @@ protected:
 	virtual void Start(void);
 
 	virtual void OnConfigLoaded(void);
+	virtual void OnStateLoaded(void);
 
 private:
 	Host::Ptr m_Host;

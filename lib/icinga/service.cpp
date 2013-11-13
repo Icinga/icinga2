@@ -46,9 +46,6 @@ void Service::Start(void)
 {
 	VERIFY(GetHost());
 
-	AddDowntimesToCache();
-	AddCommentsToCache();
-
 	StartDowntimesExpiredTimer();
 
 	double now = Utility::GetTime();
@@ -80,8 +77,34 @@ void Service::OnConfigLoaded(void)
 		m_Host->AddService(GetSelf());
 
 	UpdateSlaveNotifications();
+	UpdateSlaveScheduledDowntimes();
 
 	SetSchedulingOffset(Utility::Random());
+}
+
+void Service::OnStateLoaded(void)
+{
+	AddDowntimesToCache();
+	AddCommentsToCache();
+
+	std::vector<String> ids;
+	Dictionary::Ptr downtimes = GetDowntimes();
+
+	{
+		ObjectLock dlock(downtimes);
+		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+			Downtime::Ptr downtime = kv.second;
+
+			if (downtime->GetScheduledBy().IsEmpty())
+				continue;
+
+			ids.push_back(kv.first);
+		}
+	}
+
+	BOOST_FOREACH(const String& id, ids) {
+		RemoveDowntime(id, true);
+	}
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)

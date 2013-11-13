@@ -1272,7 +1272,8 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		service->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
 		    downtime->GetStartTime(), downtime->GetEndTime(),
 		    downtime->GetFixed(), downtime->GetTriggeredBy(),
-		    downtime->GetDuration(), downtime->GetId(), sender->GetName());
+		    downtime->GetDuration(), downtime->GetScheduledBy(),
+		    downtime->GetId(), sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::RemoveDowntime") {

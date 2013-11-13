@@ -59,6 +59,7 @@ class Service : DynamicObject
 		default {{{ return 30; }}}
 	};
 	[config] Dictionary::Ptr notifications (NotificationDescriptions);
+	[config] Dictionary::Ptr scheduled_downtimes (ScheduledDowntimeDescriptions);
 	[config] bool enable_active_checks (EnableActiveChecksRaw) {
 		default {{{ return true; }}}
 	};

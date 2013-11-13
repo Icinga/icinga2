@@ -21,7 +21,7 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "icinga/timeperiod.h"
-#include "methods/legacytimeperiod.h"
+#include "icinga/legacytimeperiod.h"
 #include "base/utility.h"
 #include "base/exception.h"
 #include "base/objectlock.h"
@@ -75,25 +75,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 		if (wday == -1)
 			continue;
 
-		tm reference;
-
-#ifdef _MSC_VER
-		tm *temp = localtime(&refts);
-
-		if (temp == NULL) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("localtime")
-			    << boost::errinfo_errno(errno));
-		}
-
-		reference = *temp;
-#else /* _MSC_VER */
-		if (localtime_r(&refts, &reference) == NULL) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("localtime_r")
-			    << boost::errinfo_errno(errno));
-		}
-#endif /* _MSC_VER */
+		tm reference = Utility::LocalTime(refts);
 
 		Array::Ptr segments = make_shared<Array>();
 		LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);

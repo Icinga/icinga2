@@ -157,7 +157,9 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 {
 	ASSERT(!OwnsLock());
 
+#ifdef _DEBUG
 	Log(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
+#endif /* _DEBUG */
 
 	/* Make sure the type is valid. */
 	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
@@ -284,7 +286,9 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 			if (object->IsActive())
 				continue;
 
+#ifdef _DEBUG
 			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
+#endif /* _DEBUG */
 			object->Start();
 
 			ASSERT(object->IsActive());

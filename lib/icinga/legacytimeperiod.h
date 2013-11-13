@@ -20,7 +20,7 @@
 #ifndef LEGACYTIMEPERIOD_H
 #define LEGACYTIMEPERIOD_H
 
-#include "methods/i2-methods.h"
+#include "icinga/i2-icinga.h"
 #include "icinga/service.h"
 #include "base/dictionary.h"
 
@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_METHODS_API LegacyTimePeriod
+class I2_ICINGA_API LegacyTimePeriod
 {
 public:
 	static Array::Ptr ScriptFunc(const TimePeriod::Ptr& tp, double start, double end);
@@ -47,6 +47,7 @@ public:
 	static void ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end);
 	static Dictionary::Ptr ProcessTimeRange(const String& timerange, tm *reference);
 	static void ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result);
+	static Dictionary::Ptr FindNextSegment(const String& daydef, const String& timeranges, tm *reference);
 
 private:
 	LegacyTimePeriod(void);

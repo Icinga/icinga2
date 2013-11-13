@@ -108,6 +108,8 @@ public:
 
 	static int Random(void);
 
+	static tm LocalTime(time_t ts);
+
 private:
 	Utility(void);
 
