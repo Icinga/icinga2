@@ -39,6 +39,12 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(str == "test=123456");
 }
 
+BOOST_AUTO_TEST_CASE(quotes)
+{
+	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("'hello world'=123456");
+	BOOST_CHECK(pd->Get("hello world") == 123456);
+}
+
 BOOST_AUTO_TEST_CASE(multiple)
 {
 	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("testA=123456 testB=123456");

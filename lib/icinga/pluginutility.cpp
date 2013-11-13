@@ -97,6 +97,9 @@ Value PluginUtility::ParsePerfdata(const String& perfdata)
 
 			String key = perfdata.SubStr(begin, eqp - begin);
 
+			if (key.GetLength() > 2 && key[0] == '\'' && key[key.GetLength() - 1] == '\'')
+				key = key.SubStr(1, key.GetLength() - 2);
+
 			size_t spq = perfdata.FindFirstOf(' ', eqp);
 
 			if (spq == String::NPos)
