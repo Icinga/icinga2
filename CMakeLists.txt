@@ -81,10 +81,11 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Executable output path")
 
 include(CheckFunctionExists)
+include(CheckLibraryExists)
 check_function_exists(vfork HAVE_VFORK)
 check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)
-check_function_exists(BIO_f_zlib HAVE_BIOZLIB)
+check_library_exists(crypto BIO_f_zlib "" HAVE_BIOZLIB)
 
 include(GNUInstallDirs)
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
