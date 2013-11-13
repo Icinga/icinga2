@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <StepFilter xmlns="http://schemas.microsoft.com/vstudio/debugger/natstepfilter/2010">
-  <Function><Name>boost::.*</Name><Action>NoStepInto</Action></Function>
-  <Function><Name>std::.*</Name><Action>NoStepInto</Action></Function>
   <Function><Name>icinga::String::.*</Name><Action>NoStepInto</Action></Function>
   <Function><Name>icinga::Value::.*</Name><Action>NoStepInto</Action></Function>
   <Function><Name>icinga::Array::.*</Name><Action>NoStepInto</Action></Function>

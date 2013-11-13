@@ -11,9 +11,19 @@
 
   <Type Name="icinga::Array">
     <DisplayString>{m_Data}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_Data</ExpandedItem>
+    </Expand>
   </Type>
 
   <Type Name="icinga::Dictionary">
     <DisplayString>{m_Data}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_Data</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <Type Name="icinga::ObjectLock">
+    <DisplayString>{m_Lock}</DisplayString>
   </Type>
 </AutoVisualizer>
