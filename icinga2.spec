@@ -352,14 +352,3 @@ fi
 
 
 %changelog
-* Tue Oct 01 2013 Michael Friedrich <michael.friedrich@netways.de> - 0.0.3-1
-- revamp package
-
-* Sat May 04 2013 Michael Friedrich <michael.friedrich@netways.de> - 0.0.2-1
-- new initscript in initdir
-- itl is installed into datadir
-- man pages in mandir
-- use name macro to avoid typos
-
-* Fri Nov 19 2012 Gunnar Beutner <gunnar.beutner@netways.de> - 0.0.1-1
-- initial version
