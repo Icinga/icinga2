@@ -126,7 +126,7 @@ void AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPat
 
 	X509_VERIFY_PARAM *param = X509_VERIFY_PARAM_new();
 	X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK);
-	SSL_CTX_set1_param(context.get(), param);
+	X509_STORE_set1_param(x509_store, param);
 	X509_VERIFY_PARAM_free(param);
 }
 
