@@ -17,45 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TIMEPERIOD_H
-#define TIMEPERIOD_H
+#ifndef TIMEPERIODTASK_H
+#define TIMEPERIODTASK_H
 
-#include "icinga/i2-icinga.h"
-#include "icinga/timeperiod.th"
-#include "base/array.h"
+#include "icinga/timeperiod.h"
 
 namespace icinga
 {
 
 /**
- * A time period.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API TimePeriod : public ObjectImpl<TimePeriod>
+* Test timeperiod functions.
+*
+* @ingroup methods
+*/
+class TimePeriodTask
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TimePeriod);
-	DECLARE_TYPENAME(TimePeriod);
-
-	virtual void Start(void);
-
-	void UpdateRegion(double begin, double end, bool clearExisting);
-
-	bool IsInside(double ts) const;
-	double FindNextTransition(double begin);
+	static Array::Ptr EmptyTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
+	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 
 private:
-	void AddSegment(double s, double end);
-	void AddSegment(const Dictionary::Ptr& segment);
-	void RemoveSegment(double begin, double end);
-	void PurgeSegments(double end);
-
-	void Dump(void);
-
-	static void UpdateTimerHandler(void);
+	TimePeriodTask(void);
 };
 
 }
 
-#endif /* TIMEPERIOD_H */
+#endif /* TIMEPERIODTASK_H */

@@ -17,45 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TIMEPERIOD_H
-#define TIMEPERIOD_H
+#include "methods/timeperiodtask.h"
+#include "base/scriptfunction.h"
 
-#include "icinga/i2-icinga.h"
-#include "icinga/timeperiod.th"
-#include "base/array.h"
+using namespace icinga;
 
-namespace icinga
+REGISTER_SCRIPTFUNCTION(EmptyTimePeriod, &TimePeriodTask::EmptyTimePeriodUpdate);
+REGISTER_SCRIPTFUNCTION(EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimePeriodUpdate);
+
+Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
 {
-
-/**
- * A time period.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API TimePeriod : public ObjectImpl<TimePeriod>
-{
-public:
-	DECLARE_PTR_TYPEDEFS(TimePeriod);
-	DECLARE_TYPENAME(TimePeriod);
-
-	virtual void Start(void);
-
-	void UpdateRegion(double begin, double end, bool clearExisting);
-
-	bool IsInside(double ts) const;
-	double FindNextTransition(double begin);
-
-private:
-	void AddSegment(double s, double end);
-	void AddSegment(const Dictionary::Ptr& segment);
-	void RemoveSegment(double begin, double end);
-	void PurgeSegments(double end);
-
-	void Dump(void);
-
-	static void UpdateTimerHandler(void);
-};
-
+	Array::Ptr segments = make_shared<Array>();
+	return segments;
 }
 
-#endif /* TIMEPERIOD_H */
+Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
+{
+	Array::Ptr segments = make_shared<Array>();
+
+	for (long t = begin / 60 - 1; t * 60 < end; t++) {
+		if ((t % 2) == 0) {
+			Dictionary::Ptr segment = make_shared<Dictionary>();
+			segment->Set("begin", t * 60);
+			segment->Set("end", (t + 1) * 60);
+
+			segments->Add(segment);
+		}
+	}
+
+	return segments;
+}

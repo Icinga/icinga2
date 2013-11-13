@@ -20,7 +20,6 @@
 #include "icinga/timeperiod.h"
 #include "config/configitem.h"
 #include "base/dynamictype.h"
-#include "base/scriptfunction.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/timer.h"
@@ -30,8 +29,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(TimePeriod);
-REGISTER_SCRIPTFUNCTION(EmptyTimePeriod, &TimePeriod::EmptyTimePeriodUpdate);
-REGISTER_SCRIPTFUNCTION(EvenMinutesTimePeriod, &TimePeriod::EvenMinutesTimePeriodUpdate);
 
 static Timer::Ptr l_UpdateTimer;
 
@@ -270,29 +267,6 @@ void TimePeriod::UpdateTimerHandler(void)
 		tp->UpdateRegion(valid_end, now + 24 * 3600, false);
 		tp->Dump();
 	}
-}
-
-Array::Ptr TimePeriod::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
-{
-	Array::Ptr segments = make_shared<Array>();
-	return segments;
-}
-
-Array::Ptr TimePeriod::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
-{
-	Array::Ptr segments = make_shared<Array>();
-
-	for (long t = begin / 60 - 1; t * 60 < end; t++) {
-		if ((t % 2) == 0) {
-			Dictionary::Ptr segment = make_shared<Dictionary>();
-			segment->Set("begin", t * 60);
-			segment->Set("end", (t + 1) * 60);
-
-			segments->Add(segment);
-		}
-	}
-
-	return segments;
 }
 
 void TimePeriod::Dump(void)
