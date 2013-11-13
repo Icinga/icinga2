@@ -27,6 +27,7 @@
 #include "base/scriptfunction.h"
 #include "base/utility.h"
 #include "base/process.h"
+#include "base/objectlock.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
@@ -122,6 +123,8 @@ String PluginUtility::FormatPerfdata(const Value& perfdata)
 		return perfdata;
 
 	Dictionary::Ptr dict = perfdata;
+
+	ObjectLock olock(dict);
 
 	String key;
 	Value value;

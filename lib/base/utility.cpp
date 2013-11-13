@@ -499,7 +499,7 @@ String Utility::EscapeShellCmd(const String& s)
 
 		if (escape)
 #ifdef _WIN32
-			result += '%';
+			result += '^';
 #else /* _WIN32 */
 			result += '\\';
 #endif /* _WIN32 */
