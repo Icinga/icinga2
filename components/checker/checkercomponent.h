@@ -92,6 +92,8 @@ private:
 	void NextCheckChangedHandler(const Service::Ptr& service);
 
 	void RescheduleCheckTimer(void);
+
+	ThreadPool m_Pool;
 };
 
 }

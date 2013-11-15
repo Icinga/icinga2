@@ -23,6 +23,7 @@
 #include "base/debug.h"
 #include "base/utility.h"
 #include "base/scriptvariable.h"
+#include "base/application.h"
 #include <sstream>
 #include <iostream>
 #include <boost/bind.hpp>
@@ -252,9 +253,13 @@ void ThreadPool::ManagerThreadProc(void)
 				if (alive + tthreads < 8)
 					tthreads = 8 - alive;
 
+				/* Don't kill more than 8 threads at once. */
+				if (tthreads < -8)
+					tthreads = -8;
+
 				/* Spawn more workers if there are outstanding work items. */
 				if (tthreads > 0 && pending > 0)
-					tthreads = 8;
+					tthreads = (Utility::GetTime() - Application::GetStartTime() < 300) ? 128 : 8;
 
 				std::ostringstream msgbuf;
 				msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
@@ -276,7 +281,7 @@ void ThreadPool::ManagerThreadProc(void)
 		}
 
 		std::ostringstream msgbuf;
-		msgbuf << "Pending tasks: " << pending << "; Average latency: "
+		msgbuf << "Pool #" << m_ID << ": Pending tasks: " << pending << "; Average latency: "
 		    << (long)(avg_latency * 1000) << "ms"
 		    << "; Max latency: " << (long)(max_latency * 1000) << "ms"
 		    << "; Threads: " << alive

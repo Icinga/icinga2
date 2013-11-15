@@ -140,7 +140,7 @@ void CheckerComponent::CheckThreadProc(void)
 		Log(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
 
 		CheckerComponent::Ptr self = GetSelf();
-		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, service));
+		m_Pool.Post(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, service));
 
 		lock.lock();
 	}
