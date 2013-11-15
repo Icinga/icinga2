@@ -459,6 +459,7 @@ void Service::ExecuteCheck(void)
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
+	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
 	Service::Ptr self = GetSelf();
@@ -490,16 +491,16 @@ void Service::ExecuteCheck(void)
 	double after_check = Utility::GetTime();
 
 	if (result) {
-		if (!result->GetScheduleStart() == 0)
-			result->SetScheduleStart(before_check);
+		if (result->GetScheduleStart() == 0)
+			result->SetScheduleStart(scheduled_start);
 
-		if (!result->GetScheduleEnd() == 0)
+		if (result->GetScheduleEnd() == 0)
 			result->SetScheduleEnd(after_check);
 
-		if (!result->GetExecutionStart() == 0)
+		if (result->GetExecutionStart() == 0)
 			result->SetExecutionStart(before_check);
 
-		if (!result->GetExecutionEnd() == 0)
+		if (result->GetExecutionEnd() == 0)
 			result->SetExecutionEnd(after_check);
 	}
 
