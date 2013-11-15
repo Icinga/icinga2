@@ -253,6 +253,10 @@ void ThreadPool::ManagerThreadProc(void)
 				if (alive + tthreads < 8)
 					tthreads = 8 - alive;
 
+				/* Don't kill more than 8 threads at once. */
+				if (tthreads < -8)
+					tthreads = -8;
+
 				/* Spawn more workers if there are outstanding work items. */
 				if (tthreads > 0 && pending > 0)
 					tthreads = (Utility::GetTime() - Application::GetStartTime() < 300) ? 128 : 8;
