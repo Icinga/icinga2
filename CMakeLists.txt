@@ -94,7 +94,7 @@ check_function_exists(pipe2 HAVE_PIPE2)
 check_library_exists(crypto BIO_f_zlib "" HAVE_BIOZLIB)
 
 include(GNUInstallDirs)
-configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
 install(
   FILES README COPYING COPYING.Exceptions AUTHORS ChangeLog INSTALL NEWS
