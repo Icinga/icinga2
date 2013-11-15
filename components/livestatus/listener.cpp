@@ -132,9 +132,17 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 				break;
 		}
 
-		Query::Ptr query = make_shared<Query>(lines, GetCompatLogPath());
-		if (!query->Execute(stream))
-			break;
+		try {
+			Query::Ptr query = make_shared<Query>(lines, GetCompatLogPath());
+			if (!query->Execute(stream))
+				break;
+		} catch (const std::exception& ex) {
+			std::ostringstream info;
+			info << "Exception thrown while running livestatus query: " << std::endl
+			     << boost::diagnostic_information(ex);
+			Log(LogCritical, "livestatus", info.str());
+			return;
+		}
 	}
 
 	{
