@@ -1522,9 +1522,6 @@ void ExternalCommandProcessor::DisableServicegroupHostChecks(double, const std::
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		if (!host)
-			continue;
-
 		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
@@ -1552,9 +1549,6 @@ void ExternalCommandProcessor::DisableServicegroupPassiveHostChecks(double, cons
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
-
-		if (!host)
-			continue;
 
 		Service::Ptr hc = host->GetCheckService();
 
@@ -1617,9 +1611,6 @@ void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::v
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		if (!host)
-			continue;
-
 		Service::Ptr hc = host->GetCheckService();
 
 		if (!hc)
@@ -1647,9 +1638,6 @@ void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const
 
 	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
-
-		if (!host)
-			continue;
 
 		Service::Ptr hc = host->GetCheckService();
 

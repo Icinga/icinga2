@@ -297,9 +297,6 @@ Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& se
 
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return Dictionary::Ptr();
-
 	String check_period_str;
 	TimePeriod::Ptr check_period = service->GetCheckPeriod();
 	if (check_period)

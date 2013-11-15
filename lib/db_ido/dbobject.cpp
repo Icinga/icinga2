@@ -165,9 +165,6 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 	if (service) {
 		Host::Ptr host = service->GetHost();
 
-		if (!host)
-			return DbObject::Ptr();
-
 		name1 = service->GetHost()->GetName();
 		name2 = service->GetShortName();
 	} else {

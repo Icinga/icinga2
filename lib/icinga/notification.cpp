@@ -54,9 +54,6 @@ Service::Ptr Notification::GetService(void) const
 {
 	Host::Ptr host = Host::GetByName(GetHostRaw());
 
-	if (!host)
-		return Service::Ptr();
-
 	if (GetServiceRaw().IsEmpty())
 		return host->GetCheckService();
 	else

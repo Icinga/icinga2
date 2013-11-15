@@ -76,9 +76,6 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckRe
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	Dictionary::Ptr vars_after = cr->GetVarsAfter();
 
 	long state_after = vars_after->Get("state");
@@ -151,9 +148,6 @@ void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dow
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	if (!downtime)
 		return;
 
@@ -196,9 +190,6 @@ void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dow
 void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	if (!downtime)
 		return;
@@ -255,9 +246,6 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
     const String& author, const String& comment_text, const String& command_name)
 {
         Host::Ptr host = service->GetHost();
-
-        if (!host)
-                return;
 
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
@@ -322,9 +310,6 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
 void CompatLogger::FlappingHandler(const Service::Ptr& service, FlappingState flapping_state)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	String flapping_state_str;
 	String flapping_output;
@@ -397,9 +382,6 @@ void CompatLogger::ExternalCommandHandler(const String& command, const std::vect
 void CompatLogger::EventCommandHandler(const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	EventCommand::Ptr event_command = service->GetEventCommand();
 	String event_command_name = event_command->GetName();
@@ -525,9 +507,6 @@ void CompatLogger::ReopenFile(bool rotate)
 
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		Host::Ptr host = service->GetHost();
-
-		if (!host)
-			continue;
 
 		String output;
 		CheckResult::Ptr cr = service->GetLastCheckResult();

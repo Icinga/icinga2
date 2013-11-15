@@ -220,8 +220,7 @@ std::set<Host::Ptr> Service::GetParentHosts(void) const
 	Host::Ptr host = GetHost();
 
 	/* The service's host is implicitly a parent. */
-	if (host)
-		parents.insert(host);
+	parents.insert(host);
 
 	Array::Ptr dependencies = GetHostDependencies();
 
@@ -229,12 +228,7 @@ std::set<Host::Ptr> Service::GetParentHosts(void) const
 		ObjectLock olock(dependencies);
 
 		BOOST_FOREACH(const String& dependency, dependencies) {
-			Host::Ptr host = Host::GetByName(dependency);
-
-			if (!host)
-				continue;
-
-			parents.insert(host);
+			parents.insert(Host::GetByName(dependency));
 		}
 	}
 
@@ -254,10 +248,7 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 		BOOST_FOREACH(const Value& dependency, dependencies) {
 			Service::Ptr service = host->GetServiceByShortName(dependency);
 
-			if (!service)
-				continue;
-
-			if (service->GetName() == GetName())
+			if (!service || service->GetName() == GetName())
 				continue;
 
 			parents.insert(service);

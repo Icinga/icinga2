@@ -281,9 +281,6 @@ std::set<Host::Ptr> Host::GetParentHosts(void) const
 
 			Host::Ptr host = GetByName(value);
 
-			if (!host)
-				continue;
-
 			parents.insert(host);
 		}
 	}

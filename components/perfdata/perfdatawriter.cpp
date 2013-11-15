@@ -53,9 +53,6 @@ void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const Check
 
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(service);
 	resolvers.push_back(host);

@@ -69,9 +69,6 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner,
 
 	Host::Ptr host = owner->GetHost();
 
-	if (!host)
-		return;
-
 	ObjectLock olock(comments);
 
 	String id;
@@ -165,9 +162,6 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
 {
 	Host::Ptr host = owner->GetHost();
-
-	if (!host)
-		return;
 
 	Dictionary::Ptr downtimes = owner->GetDowntimes();
 
@@ -384,9 +378,6 @@ void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& s
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	fp << "servicestatus {" << "\n"
 	   << "\t" << "host_name=" << host->GetName() << "\n"
 	   << "\t" << "service_description=" << service->GetShortName() << "\n";
@@ -406,9 +397,6 @@ void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& s
 void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
         String check_period_str;
         TimePeriod::Ptr check_period = service->GetCheckPeriod();
@@ -504,9 +492,6 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
 		Host::Ptr host = service->GetHost();
-
-		if (!host)
-			continue;
 
 		Host::Ptr parent_host = parent->GetHost();
 
@@ -658,9 +643,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 		std::vector<String> sglist;
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 			Host::Ptr host = service->GetHost();
-
-			if (!host)
-				continue;
 
 			sglist.push_back(host->GetName());
 			sglist.push_back(service->GetShortName());

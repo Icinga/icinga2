@@ -83,9 +83,6 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return Dictionary::Ptr();
-
 	Dictionary::Ptr attrs;
 
 	{
@@ -328,9 +325,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 	/* service host config update */
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	if (host->GetCheckService() != service)
 		return;
 
@@ -348,9 +342,6 @@ void ServiceDbObject::OnStatusUpdate(void)
 	Host::Ptr host = service->GetHost();
 
 	/* update the host if hostcheck service */
-	if (!host)
-		return;
-
 	if (host->GetCheckService() != service)
 		return;
 
@@ -390,9 +381,6 @@ void ServiceDbObject::AddCommentHistory(const Service::Ptr& service, const Comme
 void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Comment::Ptr& comment, bool historical)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	if (!comment) {
 		Log(LogWarning, "db_ido", "comment does not exist. not adding it.");
@@ -459,9 +447,6 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	Log(LogDebug, "db_ido", "removing service comments for '" + service->GetName() + "'");
 
 	DbQuery query1;
@@ -483,9 +468,6 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Comment::Ptr& comment)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	if (!comment) {
 		Log(LogWarning, "db_ido", "comment does not exist. not deleting it.");
@@ -564,9 +546,6 @@ void ServiceDbObject::AddDowntimeInternal(const Service::Ptr& service, const Dow
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	if (!downtime) {
 		Log(LogWarning, "db_ido", "downtime does not exist. not adding it.");
 		return;
@@ -631,9 +610,6 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	Log(LogDebug, "db_ido", "removing service downtimes for '" + service->GetName() + "'");
 
 	DbQuery query1;
@@ -655,9 +631,6 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	if (!downtime) {
 		Log(LogWarning, "db_ido", "downtime does not exist. not adding it.");
@@ -711,9 +684,6 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Downtime
 void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	if (!downtime) {
 		Log(LogWarning, "db_ido", "downtime does not exist. not updating it.");
@@ -783,9 +753,6 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	Log(LogDebug, "db_ido", "add acknowledgement history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
@@ -828,9 +795,6 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	Log(LogDebug, "db_ido", "add contact notification history for '" + service->GetName() + "'");
 
 	/* start and end happen at the same time */
@@ -860,9 +824,6 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	Log(LogDebug, "db_ido", "add notification history for '" + service->GetName() + "'");
 
@@ -912,9 +873,6 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const CheckResult::Ptr& cr, StateType type)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	Log(LogDebug, "db_ido", "add state change history for '" + service->GetName() + "'");
 
@@ -967,9 +925,6 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, const CheckResult::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	Dictionary::Ptr vars_after = cr->GetVarsAfter();
 
@@ -1063,9 +1018,6 @@ void ServiceDbObject::AddTriggerDowntimeLogHistory(const Service::Ptr& service, 
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	if (!downtime)
 		return;
 
@@ -1094,9 +1046,6 @@ void ServiceDbObject::AddTriggerDowntimeLogHistory(const Service::Ptr& service, 
 void ServiceDbObject::AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	if (!downtime)
 		return;
@@ -1139,9 +1088,6 @@ void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service,
     const String& author, const String& comment_text)
 {
         Host::Ptr host = service->GetHost();
-
-        if (!host)
-                return;
 
 	CheckCommand::Ptr commandObj = service->GetCheckCommand();
 
@@ -1198,9 +1144,6 @@ void ServiceDbObject::AddFlappingLogHistory(const Service::Ptr& service, Flappin
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	String flapping_state_str;
 	String flapping_output;
 
@@ -1248,9 +1191,6 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 {
 	Host::Ptr host = service->GetHost();
 
-	if (!host)
-		return;
-
 	Log(LogDebug, "db_ido", "add log entry history for '" + service->GetName() + "'");
 
 	double now = Utility::GetTime();
@@ -1286,9 +1226,6 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingState flapping_state)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	Log(LogDebug, "db_ido", "add flapping history for '" + service->GetName() + "'");
 
@@ -1346,9 +1283,6 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const CheckResult::Ptr &cr)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	Log(LogDebug, "db_ido", "add service check history for '" + service->GetName() + "'");
 
@@ -1413,9 +1347,6 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
-
-	if (!host)
-		return;
 
 	Log(LogDebug, "db_ido", "add eventhandler history for '" + service->GetName() + "'");
 

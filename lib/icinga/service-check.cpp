@@ -204,11 +204,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	bool reachable = IsReachable();
 
-	Host::Ptr host = GetHost();
-	bool host_reachable = true;
-
-	if (host)
-		host_reachable = host->IsReachable();
+	bool host_reachable = GetHost()->IsReachable();
 
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
@@ -470,14 +466,7 @@ void Service::ExecuteCheck(void)
 	CheckResult::Ptr result;
 
 	try {
-		CheckCommand::Ptr command = GetCheckCommand();
-
-		if (!command) {
-			Log(LogDebug, "icinga", "No check_command found for service '" + GetName() + "'. Skipping execution.");
-			return;
-		}
-
-		result = command->Execute(GetSelf());
+		result = GetCheckCommand()->Execute(GetSelf());
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
@@ -510,9 +499,6 @@ void Service::ExecuteCheck(void)
 	if (result)
 		ProcessCheckResult(result);
 
-	/* figure out when the next check is for this service; the call to
-	 * ProcessCheckResult() should've already done this but lets do it again
-	 * just in case there was no check result. */
 	UpdateNextCheck();
 
 	{
@@ -524,9 +510,6 @@ void Service::ExecuteCheck(void)
 void Service::UpdateStatistics(const CheckResult::Ptr& cr)
 {
 	time_t ts = cr->GetScheduleEnd();
-
-	if (ts == 0)
-		ts = static_cast<time_t>(Utility::GetTime());
 
 	if (cr->GetActive())
 		CIB::UpdateActiveChecksStatistics(ts, 1);
