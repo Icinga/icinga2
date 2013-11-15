@@ -73,7 +73,7 @@ private:
 	static int m_NextID;
 
 	boost::thread_group m_Threads;
-	ThreadStats m_ThreadStats[512];
+	ThreadStats m_ThreadStats[4096];
 
 	double m_WaitTime;
 	double m_ServiceTime;
