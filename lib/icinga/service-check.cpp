@@ -108,7 +108,7 @@ void Service::UpdateNextCheck(void)
 
 	double interval;
 
-	if (GetStateType() == StateTypeSoft)
+	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != NULL)
 		interval = GetRetryInterval();
 	else
 		interval = GetCheckInterval();
