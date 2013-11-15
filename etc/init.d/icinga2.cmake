@@ -56,6 +56,7 @@ start() {
         echo "Starting Icinga 2: "
         ulimit -n 32768
 	ulimit -s 512
+	ulimit -u 16384
         $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
 
         echo "Done"
