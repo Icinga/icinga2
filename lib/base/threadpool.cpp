@@ -276,7 +276,7 @@ void ThreadPool::ManagerThreadProc(void)
 		}
 
 		std::ostringstream msgbuf;
-		msgbuf << "Pending tasks: " << pending << "; Average latency: "
+		msgbuf << "Pool #" << m_ID << ": Pending tasks: " << pending << "; Average latency: "
 		    << (long)(avg_latency * 1000) << "ms"
 		    << "; Max latency: " << (long)(max_latency * 1000) << "ms"
 		    << "; Threads: " << alive
