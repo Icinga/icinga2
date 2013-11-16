@@ -93,16 +93,16 @@ Value PerfdataValue::Parse(const String& perfdata)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data unit: " + unit));
 	}
 
-	if (tokens.size() > 1 && tokens[1] != "U")
+	if (tokens.size() > 1 && tokens[1] != "U" && tokens[1] != "")
 		warn = Convert::ToDouble(tokens[1]);
 
-	if (tokens.size() > 2 && tokens[2] != "U")
+	if (tokens.size() > 2 && tokens[2] != "U" && tokens[2] != "")
 		crit = Convert::ToDouble(tokens[2]);
 
-	if (tokens.size() > 3 && tokens[3] != "U")
+	if (tokens.size() > 3 && tokens[3] != "U" && tokens[3] != "")
 		min = Convert::ToDouble(tokens[3]);
 
-	if (tokens.size() > 4 && tokens[4] != "U")
+	if (tokens.size() > 4 && tokens[4] != "U" && tokens[4] != "")
 		max = Convert::ToDouble(tokens[4]);
 
 	return make_shared<PerfdataValue>(value, counter, unit, warn, crit, min, max);
