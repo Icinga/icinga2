@@ -235,7 +235,9 @@ install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cf
 install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apacheconfdir}/icinga.conf
 
 # fix plugin path on x64
+%if "%{_vendor}" != "suse"
 sed -i 's@plugindir = .*@plugindir = "%{_libdir}/nagios/plugins"@' %{buildroot}/%{_sysconfdir}/%{name}/conf.d/macros.conf
+%endif
 
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
