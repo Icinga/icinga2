@@ -82,6 +82,7 @@ public:
 	std::string& GetData(void);
 
 	size_t Find(const String& str, size_t pos = 0) const;
+	size_t RFind(const String& str, size_t pos = NPos) const;
 	size_t FindFirstOf(const char *s, size_t pos = 0) const;
 	size_t FindFirstOf(char ch, size_t pos = 0) const;
 	size_t FindFirstNotOf(const char *s, size_t pos = 0) const;

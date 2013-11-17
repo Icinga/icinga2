@@ -139,6 +139,11 @@ size_t String::Find(const String& str, size_t pos) const
 	return m_Data.find(str, pos);
 }
 
+size_t String::RFind(const String& str, size_t pos) const
+{
+	return m_Data.rfind(str, pos);
+}
+
 size_t String::FindFirstOf(const char *s, size_t pos) const
 {
 	return m_Data.find_first_of(s, pos);

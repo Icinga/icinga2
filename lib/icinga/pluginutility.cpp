@@ -91,6 +91,7 @@ Value PluginUtility::ParsePerfdata(const String& perfdata)
 		Dictionary::Ptr result = make_shared<Dictionary>();
 	
 		size_t begin = 0;
+		String multi_prefix;
 		
 		for (;;) {
 			size_t eqp = perfdata.FindFirstOf('=', begin);
@@ -103,6 +104,11 @@ Value PluginUtility::ParsePerfdata(const String& perfdata)
 			if (key.GetLength() > 2 && key[0] == '\'' && key[key.GetLength() - 1] == '\'')
 				key = key.SubStr(1, key.GetLength() - 2);
 
+			size_t multi_index = key.RFind("::");
+
+			if (multi_index != String::NPos)
+				multi_prefix = "";
+
 			size_t spq = perfdata.FindFirstOf(' ', eqp);
 
 			if (spq == String::NPos)
@@ -110,7 +116,13 @@ Value PluginUtility::ParsePerfdata(const String& perfdata)
 
 			String value = perfdata.SubStr(eqp + 1, spq - eqp - 1);
 
+			if (!multi_prefix.IsEmpty())
+				key = multi_prefix + "::" + key;
+
 			result->Set(key, PerfdataValue::Parse(value));
+
+			if (multi_index != String::NPos)
+				multi_prefix = key.SubStr(0, multi_index);
 
 			begin = spq + 1;
 		}

@@ -99,4 +99,11 @@ BOOST_AUTO_TEST_CASE(invalid)
 	BOOST_CHECK(PluginUtility::ParsePerfdata("test=123456;10%;20%") == "test=123456;10%;20%");
 }
 
+BOOST_AUTO_TEST_CASE(multi)
+{
+	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test::a=3 b=4");
+	BOOST_CHECK(pd->Get("test::a") == 3);
+	BOOST_CHECK(pd->Get("test::b") == 4);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
