@@ -30,6 +30,7 @@
 #include "base/objectlock.h"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -75,6 +76,8 @@ CheckResult::Ptr PluginUtility::ParseCheckOutput(const String& output)
 			text += line;
 		}
 	}
+
+	boost::algorithm::trim(perfdata);
 
 	result->SetOutput(text);
 	result->SetPerformanceData(ParsePerfdata(perfdata));
