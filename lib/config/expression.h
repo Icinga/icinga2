@@ -73,6 +73,8 @@ private:
 	ExpressionOperator m_Operator;
 	Value m_Value;
 	DebugInfo m_DebugInfo;
+
+	static Value DeepClone(const Value& value);
 };
 
 }

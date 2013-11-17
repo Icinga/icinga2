@@ -35,6 +35,37 @@ Expression::Expression(const String& key, ExpressionOperator op,
 	ASSERT(op != OperatorExecute || value.IsObjectType<ExpressionList>());
 }
 
+Value Expression::DeepClone(const Value& value)
+{
+	if (value.IsObjectType<Array>()) {
+		Array::Ptr array = value;
+		Array::Ptr result = make_shared<Array>();
+
+		ObjectLock olock(array);
+
+		BOOST_FOREACH(const Value& item, array) {
+			result->Add(DeepClone(item));
+		}
+
+		return result;
+	} else if (value.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr dict = value;
+		Dictionary::Ptr result = make_shared<Dictionary>();
+
+		ObjectLock olock(dict);
+
+		String key;
+		Value item;
+		BOOST_FOREACH(boost::tuples::tie(key, item), dict) {
+			result->Set(key, DeepClone(item));
+		}
+
+		return result;
+	}
+
+	return value;
+}
+
 void Expression::Execute(const Dictionary::Ptr& dictionary) const
 {
 	Value oldValue, newValue;
@@ -75,6 +106,8 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				dict = make_shared<Dictionary>();
 				valueExprl->Execute(dict);
 				newValue = dict;
+			} else {
+				newValue = DeepClone(newValue);
 			}
 
 			break;
@@ -104,7 +137,7 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				String key;
 				Value value;
 				BOOST_FOREACH(boost::tie(key, value), valueDict) {
-					dict->Set(key, value);
+					dict->Set(key, DeepClone(value));
 				}
 
 				newValue = dict;
@@ -112,11 +145,10 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 				if (!array)
 					array = make_shared<Array>();
 
-
 				ObjectLock olock(valueArray);
 
 				BOOST_FOREACH(const Value& value, valueArray) {
-					array->Add(value);
+					array->Add(DeepClone(value));
 				}
 
 				newValue = array;
