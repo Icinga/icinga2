@@ -117,7 +117,11 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Check
 		else
 			valueNum = static_cast<PerfdataValue::Ptr>(value)->GetValue();
 
-		SendMetric(prefix, key, valueNum);
+		String escaped_key = key;
+		SanitizeMetric(escaped_key);
+		boost::algorithm::replace_all(escaped_key, "::", ".");
+
+		SendMetric(prefix, escaped_key, valueNum);
 	}
 }
 
