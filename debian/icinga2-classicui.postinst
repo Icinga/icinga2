@@ -30,9 +30,10 @@ setperm() {
 case "$1" in
     configure)
         if [ -x "`which icinga2-enable-feature`" ]; then
-            echo "enabling icinga2 feature compatlog and statusdata"
+            echo "enabling icinga2 feature compatlog, statusdata and command"
             icinga2-enable-feature compatlog
             icinga2-enable-feature statusdata
+            icinga2-enable-feature command
 
             echo "reloading icinga2"
             [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
