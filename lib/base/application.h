@@ -116,7 +116,7 @@ private:
 	static double m_StartTime;
 
 #ifndef _WIN32
-	static void SigIntHandler(int signum);
+	static void SigIntTermHandler(int signum);
 #else /* _WIN32 */
 	static BOOL WINAPI CtrlHandler(DWORD type);
 	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);

@@ -327,17 +327,17 @@ void Application::DisplayBugMessage(void)
 
 #ifndef _WIN32
 /**
- * Signal handler for SIGINT. Prepares the application for cleanly
+ * Signal handler for SIGINT and SIGTERM. Prepares the application for cleanly
  * shutting down during the next execution of the event loop.
  *
  * @param - The signal number.
  */
-void Application::SigIntHandler(int)
+void Application::SigIntTermHandler(int signum)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = SIG_DFL;
-	sigaction(SIGINT, &sa, NULL);
+	sigaction(signum, &sa, NULL);
 
 	Application::Ptr instance = Application::GetInstance();
 
@@ -466,8 +466,9 @@ int Application::Run(void)
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &Application::SigIntHandler;
+	sa.sa_handler = &Application::SigIntTermHandler;
 	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
 
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sa, NULL);
