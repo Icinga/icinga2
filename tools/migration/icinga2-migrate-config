@@ -294,18 +294,25 @@ sub parse_icinga1_resource_cfg {
 
 sub parse_icinga1_global_macros {
     my $icinga1_cfg = shift;
+    my $global_macros;
 
     my ($icinga1_resource_file) = get_key_from_icinga1_main_cfg($icinga1_cfg, "resource_file");
 
     # resource.cfg
-    my $global_macros = parse_icinga1_resource_cfg($icinga1_resource_file);
+    if(defined($icinga1_resource_file)) {
+        $global_macros = parse_icinga1_resource_cfg($icinga1_resource_file);
+    }
 
     # special attributes in icinga.cfg (admin_*)
     my ($admin_pager) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_pager");
     my ($admin_email) = get_key_from_icinga1_main_cfg($icinga1_cfg, "admin_email");
 
-    $global_macros->{'ADMINPAGER'} = $admin_pager;
-    $global_macros->{'ADMINEMAIL'} = $admin_email;
+    if (defined($admin_pager)) {
+        $global_macros->{'ADMINPAGER'} = $admin_pager;
+    }
+    if(defined($admin_email)) {
+        $global_macros->{'ADMINEMAIL'} = $admin_email;
+    }
 
     return $global_macros;
 }
