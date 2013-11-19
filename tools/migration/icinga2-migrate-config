@@ -1319,7 +1319,7 @@ sub resolve_macro_attribute {
     # _ == custom var from host/service
     if ($macro_name =~ /^_HOST(\w+)/) {
         $attr_name = "_$1";
-        debug("MACRO RESOLVER: found Host CV '$macro_name'.");
+        #debug("MACRO RESOLVER: found Host CV '$macro_name'.");
 
         if (defined($obj->{'__I2CONVERT_HOSTNAME'})) {
             $host_name = $obj->{'__I2CONVERT_HOSTNAME'};
@@ -1332,7 +1332,7 @@ sub resolve_macro_attribute {
 
         $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
-        debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
+        #debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
         return $macro_value;
     }
     elsif ($macro_name =~ /^_SERVICE(\w+)/) {
@@ -1341,17 +1341,17 @@ sub resolve_macro_attribute {
         # if this is a host object, this macro is invalid! XXX
         return undef if defined($obj->{'__I2CONVERT_HOSTNAME'});
 
-        debug("MACRO RESOLVER: found Service CV '$macro_name'.");
+        #debug("MACRO RESOLVER: found Service CV '$macro_name'.");
         $macro_value = obj_1x_get_service_attr($cfg_obj, $obj, $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, $attr_name);
 
-        debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+        #debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
         return $macro_value;
     }
     else {
         # XXX this is way too modular to actually work with macros not having any underscores and other magic
         if ($macro_name =~ /^HOST(\w+)/) {
             $attr_name = lc $1;
-            debug("MACRO RESOLVER: found Host attribute '$macro_name'.");
+            #debug("MACRO RESOLVER: found Host attribute '$macro_name'.");
 
             if (defined($obj->{'__I2CONVERT_HOSTNAME'})) {
                 $host_name = $obj->{'__I2CONVERT_HOSTNAME'};
@@ -1364,7 +1364,7 @@ sub resolve_macro_attribute {
 
             $macro_value = obj_1x_get_host_attr($cfg_obj, $obj_host, $host_name, $attr_name);
 
-            debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
+            #debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj_host));
             return $macro_value;
         }
         elsif ($macro_name =~ /^SERVICE(\w+)/) {
@@ -1373,10 +1373,10 @@ sub resolve_macro_attribute {
             # if this is a host object, this macro is invalid! XXX
             return undef if defined($obj->{'__I2CONVERT_HOSTNAME'});
 
-            debug("MACRO RESOLVER: found Service attribute '$macro_name'.");
+            #debug("MACRO RESOLVER: found Service attribute '$macro_name'.");
             $macro_value = obj_1x_get_service_attr($cfg_obj, $obj, $obj->{'__I2CONVERT_SERVICE_HOSTNAME'}, $attr_name);
 
-            debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
+            #debug("MACRO RESOLVER: found $attr_name with value '$macro_value' on " . Dumper($obj));
             return $macro_value;
         }
         elsif ($macro_name =~ /^CONTACT(\w+)/) {
@@ -1837,7 +1837,8 @@ sub migrate_2x {
                 #say Dumper($service_event_command_2x);
 
                 # XXX do not add duplicate event commands, they must remain unique by their check_command origin!
-                if ((obj_2x_command_exists($cfg_obj_2x, $obj_1x_service->{'event_handler'}) != 1)) {
+                my $command_type = 'Event';
+                if (obj_2x_command_exists($cfg_obj_2x, $obj_1x_service->{'event_handler'}, $command_type) != 1) {
 
                     # create a new EventCommand 2x object with the original name
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Event';
@@ -1879,7 +1880,8 @@ sub migrate_2x {
             if (defined($service_check_command_2x->{'check_command_name_1x'})) {
 
                 # XXX do not add duplicate check commands, they must remain unique by their check_command origin!
-                if (obj_2x_command_exists($cfg_obj_2x, $service_check_command_2x->{'check_command_name_1x'}) != 1) {
+                my $command_type = 'Check';
+                if (obj_2x_command_exists($cfg_obj_2x, $service_check_command_2x->{'check_command_name_1x'}, $command_type) != 1) {
 
                     # create a new CheckCommand 2x object with the original name
                     $cfg_obj_2x->{'command'}->{$command_obj_cnt}->{'__I2CONVERT_COMMAND_TYPE'} = 'Check';
