@@ -107,7 +107,7 @@ void StackTrace::Initialize(void)
  */
 void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 {
-	fp << std::endl << "Stacktrace:" << std::endl;
+	fp << std::endl;
 
 #ifndef _WIN32
 #	ifdef HAVE_BACKTRACE_SYMBOLS

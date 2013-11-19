@@ -21,6 +21,7 @@
 #include "config/configitem.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
+#include "base/context.h"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
@@ -126,6 +127,8 @@ void ConfigCompiler::HandleLibrary(const String& library)
  */
 void ConfigCompiler::CompileStream(const String& path, std::istream *stream)
 {
+	CONTEXT("Compiling configuration stream with name '" + path + "'");
+
 	stream->exceptions(std::istream::badbit);
 
 	ConfigCompiler ctx(path, stream);
@@ -140,6 +143,8 @@ void ConfigCompiler::CompileStream(const String& path, std::istream *stream)
  */
 void ConfigCompiler::CompileFile(const String& path)
 {
+	CONTEXT("Compiling configuration file '" + path + "'");
+
 	std::ifstream stream;
 	stream.open(path.CStr(), std::ifstream::in);
 

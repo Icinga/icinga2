@@ -23,6 +23,8 @@
 #include "base/dynamictype.h"
 #include "base/utility.h"
 #include "base/objectlock.h"
+#include "base/context.h"
+#include "base/convert.h"
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
@@ -72,6 +74,16 @@ void icinga::Log(LogSeverity severity, const String& facility,
 	entry.Severity = severity;
 	entry.Facility = facility;
 	entry.Message = message;
+
+	if (severity >= LogWarning) {
+		ContextTrace context;
+
+		if (context.GetLength() > 0) {
+			std::ostringstream trace;
+			trace << context;
+			entry.Message += "\nContext:" + trace.str();
+		}
+	}
 
 	bool processed = false;
 

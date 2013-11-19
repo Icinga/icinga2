@@ -17,48 +17,51 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/service.h"
-#include "icinga/eventcommand.h"
-#include "icinga/icingaapplication.h"
-#include "base/context.h"
+#ifndef CONTEXT_H
+#define CONTEXT_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include "base/qstring.h"
+#include <list>
 
-boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecuted;
-
-bool Service::GetEnableEventHandler(void) const
+namespace icinga
 {
-	if (!GetOverrideEnableEventHandler().IsEmpty())
-		return GetOverrideEnableEventHandler();
-	else
-		return GetEnableEventHandlerRaw();
+
+class I2_BASE_API ContextTrace
+{
+public:
+	ContextTrace(void);
+
+	void Print(std::ostream& fp) const;
+
+	size_t GetLength(void) const;
+
+private:
+	std::list<String> m_Frames;
+};
+
+I2_BASE_API std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
+
+/**
+ * A context frame.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API ContextFrame
+{
+public:
+	ContextFrame(const String& message);
+	~ContextFrame(void);
+
+private:
+	static std::list<String>& GetFrames(void);
+
+	friend class ContextTrace;
+};
+
+/* The currentContextFrame variable has to be volatile in order to prevent
+ * the compiler from optimizing it away. */
+#define CONTEXT(message) volatile icinga::ContextFrame currentContextFrame(message)
 }
 
-void Service::SetEnableEventHandler(bool enabled)
-{
-	SetOverrideEnableEventHandler(enabled);
-}
-
-EventCommand::Ptr Service::GetEventCommand(void) const
-{
-	return EventCommand::GetByName(GetEventCommandRaw());
-}
-
-void Service::ExecuteEventHandler(void)
-{
-	CONTEXT("Executing event handler for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
-
-	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
-		return;
-
-	EventCommand::Ptr ec = GetEventCommand();
-
-	if (!ec)
-		return;
-
-	Log(LogDebug, "icinga", "Executing event handler for service '" + GetName() + "'");
-
-	ec->Execute(GetSelf());
-
-	OnEventCommandExecuted(GetSelf());
-}
+#endif /* CONTEXT_H */

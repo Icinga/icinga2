@@ -27,6 +27,7 @@
 #include "base/convert.h"
 #include "base/utility.h"
 #include "base/exception.h"
+#include "base/context.h"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -440,6 +441,8 @@ String Service::StateTypeToString(StateType type)
 
 void Service::ExecuteCheck(void)
 {
+	CONTEXT("Executing service check for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+
 	ASSERT(!OwnsLock());
 
 	bool reachable = IsReachable();

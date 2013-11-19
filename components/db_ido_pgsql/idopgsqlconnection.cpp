@@ -24,6 +24,7 @@
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/exception.h"
+#include "base/context.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_pgsql/idopgsqlconnection.h"
@@ -120,6 +121,8 @@ void IdoPgsqlConnection::ReconnectTimerHandler(void)
 void IdoPgsqlConnection::Reconnect(void)
 {
 	AssertOnWorkQueue();
+
+	CONTEXT("Reconnecting to PostgreSQL IDO database '" + GetName() + "'");
 
 	{
 		boost::mutex::scoped_lock lock(m_ConnectionMutex);

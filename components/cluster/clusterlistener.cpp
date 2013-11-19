@@ -29,6 +29,7 @@
 #include "base/zlibstream.h"
 #include "base/application.h"
 #include "base/convert.h"
+#include "base/context.h"
 #include <fstream>
 
 using namespace icinga;
@@ -358,6 +359,8 @@ void ClusterListener::LogGlobHandler(std::vector<int>& files, const String& file
 
 void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream)
 {
+	CONTEXT("Replaying log for Endpoint '" + endpoint->GetName() + "'");
+
 	int count = -1;
 	double peer_ts = endpoint->GetLocalLogPosition();
 	bool last_sync = false;
@@ -495,6 +498,8 @@ void ClusterListener::ConfigGlobHandler(const Dictionary::Ptr& config, const Str
  */
 void ClusterListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 {
+	CONTEXT("Handling new cluster client connection");
+
 	NetworkStream::Ptr netStream = make_shared<NetworkStream>(client);
 
 	TlsStream::Ptr tlsStream = make_shared<TlsStream>(netStream, role, m_SSLContext);
@@ -963,6 +968,8 @@ void ClusterListener::MessageExceptionHandler(boost::exception_ptr exp)
 
 void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)
 {
+	CONTEXT("Processing cluster message of type '" + message->Get("method") + "'");
+
 	sender->SetSeen(Utility::GetTime());
 
 	if (message->Contains("ts")) {

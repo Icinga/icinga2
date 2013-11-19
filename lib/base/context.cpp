@@ -17,48 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/service.h"
-#include "icinga/eventcommand.h"
-#include "icinga/icingaapplication.h"
 #include "base/context.h"
+#include <boost/thread/tss.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecuted;
+static boost::thread_specific_ptr<std::list<String> > l_Frames;
 
-bool Service::GetEnableEventHandler(void) const
+ContextFrame::ContextFrame(const String& message)
 {
-	if (!GetOverrideEnableEventHandler().IsEmpty())
-		return GetOverrideEnableEventHandler();
-	else
-		return GetEnableEventHandlerRaw();
+	GetFrames().push_front(message);
 }
 
-void Service::SetEnableEventHandler(bool enabled)
+ContextFrame::~ContextFrame(void)
 {
-	SetOverrideEnableEventHandler(enabled);
+	GetFrames().pop_front();
 }
 
-EventCommand::Ptr Service::GetEventCommand(void) const
+std::list<String>& ContextFrame::GetFrames(void)
 {
-	return EventCommand::GetByName(GetEventCommandRaw());
+	if (l_Frames.get() == NULL)
+		l_Frames.reset(new std::list<String>());
+
+	return *l_Frames;
 }
 
-void Service::ExecuteEventHandler(void)
+ContextTrace::ContextTrace(void)
+	: m_Frames(ContextFrame::GetFrames())
+{ }
+
+void ContextTrace::Print(std::ostream& fp) const
 {
-	CONTEXT("Executing event handler for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+	fp << std::endl;
 
-	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
-		return;
+	int i = 0;
+	BOOST_FOREACH(const String& frame, m_Frames) {
+		fp << "\t(" << i << ") " << frame << std::endl;
+		i++;
+	}
+}
 
-	EventCommand::Ptr ec = GetEventCommand();
+size_t ContextTrace::GetLength(void) const
+{
+	return m_Frames.size();
+}
 
-	if (!ec)
-		return;
-
-	Log(LogDebug, "icinga", "Executing event handler for service '" + GetName() + "'");
-
-	ec->Execute(GetSelf());
-
-	OnEventCommandExecuted(GetSelf());
+std::ostream& icinga::operator<<(std::ostream& stream, const ContextTrace& trace)
+{
+	trace.Print(stream);
+	return stream;
 }

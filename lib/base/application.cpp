@@ -363,6 +363,7 @@ void Application::SigAbrtHandler(int)
 	std::cerr << "Caught SIGABRT." << std::endl;
 
 	StackTrace trace;
+	std::cerr << "Stacktrace:" << std::endl;
 	trace.Print(std::cerr, 1);
 
 	DisplayBugMessage();
@@ -417,6 +418,7 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	std::cerr << "Unhandled SEH exception." << std::endl;
 
 	StackTrace trace(exi);
+	std::cerr << "Stacktrace:" << std::endl;
 	trace.Print(std::cerr, 1);
 
 	DisplayBugMessage();

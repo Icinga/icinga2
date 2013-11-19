@@ -21,7 +21,8 @@
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<StackTrace> l_LastStackTrace;
+static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
+static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
 #ifndef _WIN32
 extern "C"
@@ -43,15 +44,22 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 		thrown_ptr = *(void **)thrown_ptr;
 #endif /* __APPLE__ */
 
-	StackTrace trace;
-	SetLastExceptionStack(trace);
+	StackTrace stack;
+	SetLastExceptionStack(stack);
+
+	ContextTrace context;
+	SetLastExceptionContext(context);
 
 #ifndef __APPLE__
 	/* Check if thrown_ptr inherits from boost::exception. */
 	if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
 		boost::exception *ex = (boost::exception *)thrown_ptr;
 
-		*ex << StackTraceErrorInfo(trace);
+		if (boost::get_error_info<StackTraceErrorInfo>(*ex) == NULL)
+			*ex << StackTraceErrorInfo(stack);
+
+		if (boost::get_error_info<ContextTraceErrorInfo>(*ex) == NULL)
+			*ex << ContextTraceErrorInfo(context);
 	}
 #endif /* __APPLE__ */
 
@@ -61,28 +69,43 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 
 StackTrace *icinga::GetLastExceptionStack(void)
 {
-	return l_LastStackTrace.get();
+	return l_LastExceptionStack.get();
 }
 
 void icinga::SetLastExceptionStack(const StackTrace& trace)
 {
-	l_LastStackTrace.reset(new StackTrace(trace));
+	l_LastExceptionStack.reset(new StackTrace(trace));
+}
+
+ContextTrace *icinga::GetLastExceptionContext(void)
+{
+	return l_LastExceptionContext.get();
+}
+
+void icinga::SetLastExceptionContext(const ContextTrace& context)
+{
+	l_LastExceptionContext.reset(new ContextTrace(context));
 }
 
 String icinga::DiagnosticInformation(boost::exception_ptr eptr)
 {
 	StackTrace *pt = GetLastExceptionStack();
-	StackTrace trace;
+	StackTrace stack;
+
+	ContextTrace *pc = GetLastExceptionContext();
+	ContextTrace context;
 
 	if (pt)
-		trace = *pt;
+		stack = *pt;
+
+	if (pc)
+		context = *pc;
 
 	try {
 		boost::rethrow_exception(eptr);
 	} catch (const std::exception& ex) {
-		return DiagnosticInformation(ex, pt ? &trace : NULL);
+		return DiagnosticInformation(ex, pt ? &stack : NULL, pc ? &context : NULL);
 	}
 
 	return boost::diagnostic_information(eptr);
 }
-

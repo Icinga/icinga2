@@ -27,6 +27,7 @@
 #include "base/exception.h"
 #include "base/convert.h"
 #include "base/scriptvariable.h"
+#include "base/context.h"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -63,6 +64,8 @@ static String LoadAppType(const String& typeSpec)
 
 static bool LoadConfigFiles(const String& appType, bool validateOnly)
 {
+	CONTEXT("Loading configuration files");
+
 	ConfigCompilerContext::GetInstance()->Reset();
 
 	if (g_AppParams.count("config") > 0) {
