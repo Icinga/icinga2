@@ -474,6 +474,7 @@ void ServiceDbObject::RemoveComments(const Service::Ptr& service)
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
+		query1.WhereCriteria = query1.WhereCriteria->ShallowClone();
 		query1.WhereCriteria->Set("object_id", host);
 		OnQuery(query1);
 	}
@@ -505,6 +506,7 @@ void ServiceDbObject::RemoveComment(const Service::Ptr& service, const Comment::
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
+		query1.WhereCriteria = query1.WhereCriteria->ShallowClone();
 		query1.WhereCriteria->Set("object_id", host);
 		OnQuery(query1);
 	}
@@ -644,6 +646,7 @@ void ServiceDbObject::RemoveDowntimes(const Service::Ptr& service)
 
 	/* delete hostcheck service's host downtimes */
 	if (host->GetCheckService() == service) {
+		query1.WhereCriteria = query1.WhereCriteria->ShallowClone();
 		query1.WhereCriteria->Set("object_id", host);
 		OnQuery(query1);
 	}
@@ -675,6 +678,7 @@ void ServiceDbObject::RemoveDowntime(const Service::Ptr& service, const Downtime
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
+		query1.WhereCriteria = query1.WhereCriteria->ShallowClone();
 		query1.WhereCriteria->Set("object_id", host);
 		OnQuery(query1);
 	}
@@ -744,6 +748,7 @@ void ServiceDbObject::TriggerDowntime(const Service::Ptr& service, const Downtim
 
 	/* delete hostcheck service's host comments */
 	if (host->GetCheckService() == service) {
+		query1.WhereCriteria = query1.WhereCriteria->ShallowClone();
 		query1.WhereCriteria->Set("object_id", host);
 		OnQuery(query1);
 	}
@@ -809,6 +814,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
+		fields1 = fields1->ShallowClone();
 		fields1->Set("object_id", host);
 		fields1->Set("state", host->GetState());
 		query1.Fields = fields1;
@@ -898,6 +904,7 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
+		fields1 = fields1->ShallowClone();
 		fields1->Set("notification_type", 2); /* host */
 		fields1->Set("object_id", host);
 		fields1->Set("state", host->GetState());
@@ -948,6 +955,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
+		fields1 = fields1->ShallowClone();
 		fields1->Set("object_id", host);
 		fields1->Set("state_change", 0); /* host */
 		/* get host states instead */
@@ -1272,6 +1280,7 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
+		fields1 = fields1->ShallowClone();
 		fields1->Set("object_id", host); // added in 1.10 see #4754
 		query1.Fields = fields1;
 		OnQuery(query1);
@@ -1330,6 +1339,7 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
+		fields1 = fields1->ShallowClone();
 		fields1->Set("object_id", host);
 		fields1->Set("flapping_type", 0); /* host */
 		query1.Fields = fields1;
@@ -1394,12 +1404,12 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	if (host->GetCheckService() == service) {
 		query1.Table = "hostchecks";
 
-		Dictionary::Ptr fields2 = fields1->ShallowClone();
-		fields2->Remove("service_object_id");
-		fields2->Set("host_object_id", host);
-		fields2->Set("state", host->GetState());
-		fields2->Set("state_type", host->GetStateType());
-		query1.Fields = fields2;
+		fields1 = fields1->ShallowClone();
+		fields1->Remove("service_object_id");
+		fields1->Set("host_object_id", host);
+		fields1->Set("state", host->GetState());
+		fields1->Set("state_type", host->GetStateType());
+		query1.Fields = fields1;
 		OnQuery(query1);
 	}
 }
@@ -1441,6 +1451,7 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 	OnQuery(query1);
 
 	if (host->GetCheckService() == service) {
+		fields1 = fields1->ShallowClone();
 		fields1->Set("eventhandler_type", 0); /* host */
 		fields1->Set("object_id", host);
 		fields1->Set("state", host->GetState());
