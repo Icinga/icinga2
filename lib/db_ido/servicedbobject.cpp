@@ -854,11 +854,6 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 
 	query1.Fields = fields1;
 	OnQuery(query1);
-
-	if (host->GetCheckService() == service) {
-		query1.Fields = fields1;
-		OnQuery(query1);
-	}
 }
 
 void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
