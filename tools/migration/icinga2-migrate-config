@@ -29,6 +29,7 @@ icinga2-migrate-config - Migrate Icinga 1.x config to Icinga 2 format
 
 icinga2-migrate-config -c <path to icinga.cfg from Icinga 1.x>
                          -o <output directory for Icinga 2 config>
+                         [-O]
                          [-v]
                          [-h]
                          [-V]
@@ -46,6 +47,10 @@ Path to the Icinga 1.x main configuration file "icinga.cfg".
 =item -o|--outputcfgdir <output directory for icinga2 config>
 
 Directory to the Icinga 2 configuration output.
+
+=item -O|--objectscache
+
+Use objects cache file instead of cfg_dir|file in icinga.cfg.
 
 =item --hosttmpl=<template name>
 
@@ -112,6 +117,7 @@ our $opt;
 GetOptions(
     "c|icingacfgfile=s"         => \$opt->{icinga1xcfg},
     "o|outputcfgdir=s"          => \$opt->{icinga2xoutputprefix},
+    "O|objectscache"            => \$opt->{icinga1xobjectscache},
     "hosttmpl=s"                => \$opt->{hosttmpl},
     "servicetmpl=s"             => \$opt->{servicetmpl},
     "usertmpl=s"                => \$opt->{usertmpl},
@@ -216,14 +222,23 @@ if ( !-f $icinga1_cfg) {
 }
 
 # the import
-my $icinga1_cfg_obj = parse_icinga1_objects($icinga1_cfg);
-my $icinga1_cfg_obj_cache = parse_icinga1_objects_cache($icinga1_cfg);
+debug("Start Icinga 1.x config import @".time);
+my $icinga1_cfg_obj;
+if (!defined($opt->{icinga1xobjectscache})) {
+    $icinga1_cfg_obj = parse_icinga1_objects($icinga1_cfg);
+} else {
+    $icinga1_cfg_obj = parse_icinga1_objects_cache($icinga1_cfg);
+}
+
+# global macros
 my $icinga1_global_macros = parse_icinga1_global_macros($icinga1_cfg);
 
 # the conversion magic inside
+debug("Start Icinga 1.x config migration @".time);
 my $icinga2_cfg_obj = migrate_2x($icinga2_cfg, $icinga1_cfg_obj, $icinga1_cfg_obj_cache, $icinga1_global_macros);
 
 # the export
+debug("Dump Icinga 2.x config @".time);
 dump_cfg_resource_2x($icinga2_cfg, $icinga1_global_macros);
 dump_cfg_obj_2x($icinga2_cfg, $icinga2_cfg_obj);
 
@@ -234,6 +249,7 @@ print "######################################################################\n"
 
 print_sorted_hash($icinga2_cfg_obj->{'__I2_CONVERT_STATS'});
 
+debug("Icinga 2.x config migratione done @".time);
 
 =pod
 IMPORT OPTIONS
@@ -448,9 +464,6 @@ sub parse_icinga1_object_cfg {
 sub parse_icinga1_objects_cache {
     my $icinga1_cfg = shift;
 
-    # XXX not needed right now
-    return undef;
-
     # functions return array in case of multiple occurences, we'll take only the first one
     my ($object_cache_file) = get_key_from_icinga1_main_cfg($icinga1_cfg, "object_cache_file");
 
@@ -466,6 +479,7 @@ sub parse_icinga1_objects_cache {
 
     my $cfg_obj_cache = {};
 
+    print "Processing file '$cfg_file'...\n";
     $cfg_obj_cache = parse_icinga1_object_cfg($cfg_obj_cache, $object_cache_file);
 
     #say Dumper($cfg_obj_cache);
@@ -754,15 +768,16 @@ sub obj_get_tmpl_obj_by_tmpl_name {
     my $objs = shift;
     my $obj_tmpl_type = shift;
     my $obj_attr_tmpl_name = shift;
+    my $obj_attr = 'name';
 
     #debug("My objects hive: ".Dumper($objs));
 
     #debug("Checking for template name with $obj_attr_tmpl_name");
     foreach my $obj_key (keys %{@$objs{$obj_tmpl_type}}) {
         my $obj = @$objs{$obj_tmpl_type}->{$obj_key};
-        next if !defined($obj->{'name'});
+        next if !defined($obj->{$obj_attr});
         # XXX it would be safe, but we cannot garantuee it here, so better check before if we want a template or not
-        if ($obj->{'name'} eq $obj_attr_tmpl_name) {
+        if ($obj->{$obj_attr} eq $obj_attr_tmpl_name) {
             #debug("Found object: ".Dumper($obj));
             return $obj;
         }
@@ -3185,7 +3200,7 @@ sub migrate_2x {
 
     $service_object_cnt++;
 
-    say "service object count " . keys %{@$cfg_obj_2x{'service'}};
+    debug("HOST->SERVICE RELATION START: service object count " . keys %{@$cfg_obj_2x{'service'}});
 
     # "get all 'host' hashref as array in hashmap, and their keys to access it"
     foreach my $host_obj_2x_key (keys %{@$cfg_obj_2x{'host'}}) {
@@ -3373,7 +3388,7 @@ sub migrate_2x {
         # services assigned
         ######################################
         if ($obj_2x_host_service_cnt == 0 && $obj_2x_host->{'__I2CONVERT_IS_TEMPLATE'} == 0) {
-           say "Found host '". $obj_2x_host->{'__I2CONVERT_HOSTNAME'} ."' without any services";
+           debug("Found host '". $obj_2x_host->{'__I2CONVERT_HOSTNAME'} ."' without any services");
 
            # now, add the hostcheck service
            my ($host_check_command_2x, @host_command_args_1x) = convert_checkcommand($cfg_obj_1x, @$cfg_obj_1x{'command'}, $obj_2x_host, $obj_2x_host->{'__I2CONVERT_HOSTNAME'} , $global_macros_1x);
@@ -4596,8 +4611,8 @@ sub errlog {
 sub escape_str {
     my $str = shift;
 
+    $str =~s/\\/\\\\/g;
     $str =~ s/"/\\"/g;
-    $str =~ s/\\\\"/\\"/g;
 
     return $str;
 }
