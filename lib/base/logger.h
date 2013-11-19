@@ -30,7 +30,7 @@ namespace icinga
 {
 
 /**
- * A lot entry.
+ * A log entry.
  *
  * @ingroup base
  */
