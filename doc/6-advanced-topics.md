@@ -147,7 +147,8 @@ enable the required libraries in the icinga2.conf configuration file:
 
 ### Configure the ClusterListener Object
 
-The ClusterListener needs to be configured on every node in the cluster with the following settings:
+The ClusterListener needs to be configured on every node in the cluster with the
+following settings:
 
   Configuration Setting    |Value
   -------------------------|------------------------------------
@@ -175,24 +176,28 @@ A sample config part can look like this:
       peers = [ "icinga-node-2" ]
     }
 
-Peers configures the direction used to connect multiple nodes together. If have a three node cluster consisting of
+Peers configures the direction used to connect multiple nodes together. If have
+a three node cluster consisting of
 
 * node-1
 * node-2
 * node-3
 
-and `node-3` is only reachable from `node-2`, you have to consider this in your peer configuration
+and `node-3` is only reachable from `node-2`, you have to consider this in your
+peer configuration
 
 ### Configure Cluster Endpoints
 
-In addition to the configured port and hostname every endpoint can have specific abilities to send configfiles to other nodes and limit the hosts allowed to send config-files.
+In addition to the configured port and hostname every endpoint can have specific
+abilities to send configuration files to other nodes and limit the hosts allowed
+to send configuration files.
 
   Configuration Setting    |Value
   -------------------------|------------------------------------
   host                     | hostname
   port                     | port
   accept_config            | defines all nodes allowed to send configs
-  config_files             | defines all files to be send to that node - MUST BE ABSOLUTE PATH
+  config_files             | defines all files to be send to that node - MUST BE AN ABSOLUTE PATH
   ------------------------- ------------------------------------
 
 A sample config part can look like this:
@@ -209,6 +214,13 @@ A sample config part can look like this:
 
 If you update the configuration files on the configured file sender, it will
 force a restart on all receiving nodes after validating the new config.
+
+By default these configuration files are saved in /var/lib/icinga2/cluster/config.
+In order to load configuration files which were received from a remote Icinga 2
+instance you will have to add the following include directive to your
+`icinga2.conf` configuration file:
+
+    include (IcingaLocalStateDir + "/lib/icinga2/cluster/config/*/*")
 
 ## Dependencies
 
