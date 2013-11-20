@@ -111,6 +111,8 @@ private:
 	void SetSecurityInfo(const Dictionary::Ptr& message, const DynamicObject::Ptr& object, int privs);
 
 	void PersistMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message);
+
+	static void MessageExceptionHandler(boost::exception_ptr exp);
 };
 
 }
