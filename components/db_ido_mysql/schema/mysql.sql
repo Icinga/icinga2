@@ -917,6 +917,7 @@ CREATE TABLE IF NOT EXISTS icinga_programstatus (
   modified_service_attributes  int default 0,
   global_host_event_handler TEXT character set latin1  default '',
   global_service_event_handler TEXT character set latin1  default '',
+  config_dump_in_progress smallint default 0,
   PRIMARY KEY  (programstatus_id),
   UNIQUE KEY instance_id (instance_id)
 ) ENGINE=InnoDB  COMMENT='Current program status information';
@@ -1526,6 +1527,6 @@ CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
-INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.10.0', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.10.0', modify_time=NOW();
+INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.11.0', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.11.0', modify_time=NOW();
 
 

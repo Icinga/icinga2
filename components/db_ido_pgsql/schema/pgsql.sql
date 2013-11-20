@@ -4,9 +4,6 @@
 --
 -- Copyright (c) 2009-2013 Icinga Development Team (http://www.icinga.org)
 --
--- initial version: 2009-05-13 Markus Manzke
--- current version: 2012-04-19 Michael Friedrich <michael.friedrich@univie.ac.at>
---
 -- --------------------------------------------------------
 
 --
@@ -947,6 +944,7 @@ CREATE TABLE  icinga_programstatus (
   modified_service_attributes INTEGER  default 0,
   global_host_event_handler TEXT  default '',
   global_service_event_handler TEXT  default '',
+  config_dump_in_progress INTEGER default 0,
   CONSTRAINT PK_programstatus_id PRIMARY KEY (programstatus_id) ,
   CONSTRAINT UQ_programstatus UNIQUE (instance_id)
 ) ;
@@ -1557,5 +1555,5 @@ CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.10.0');
+SELECT updatedbversion('1.11.0');
 
