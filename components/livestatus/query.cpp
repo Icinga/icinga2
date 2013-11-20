@@ -498,7 +498,7 @@ void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data
 		} catch (const std::exception& ex) {
 			std::ostringstream info;
 			info << "Exception thrown while writing to the livestatus socket: " << std::endl
-			     << boost::diagnostic_information(ex);
+			     << DiagnosticInformation(ex);
 			Log(LogCritical, "livestatus", info.str());
 		}
 	}
@@ -518,7 +518,7 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 	} catch (const std::exception& ex) {
 		std::ostringstream info;
 		info << "Exception thrown while writing to the livestatus socket: " << std::endl
-		     << boost::diagnostic_information(ex);
+		     << DiagnosticInformation(ex);
 		Log(LogCritical, "livestatus", info.str());
 	}
 }
@@ -537,11 +537,7 @@ bool Query::Execute(const Stream::Ptr& stream)
 		else
 			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid livestatus query verb."));
 	} catch (const std::exception& ex) {
-		StackTrace *st = Exception::GetLastStackTrace();
-		std::ostringstream info;
-		st->Print(info);
-		Log(LogDebug, "livestatus", info.str());
-		SendResponse(stream, LivestatusErrorQuery, boost::diagnostic_information(ex));
+		SendResponse(stream, LivestatusErrorQuery, DiagnosticInformation(ex));
 	}
 
 	if (!m_KeepAlive) {

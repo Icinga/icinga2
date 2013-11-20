@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<StackTrace> Exception::m_LastStackTrace;
+static boost::thread_specific_ptr<StackTrace> l_LastStackTrace;
 
 #ifndef _WIN32
 extern "C"
@@ -44,7 +44,7 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 #endif /* __APPLE__ */
 
 	StackTrace trace;
-	Exception::SetLastStackTrace(trace);
+	SetLastExceptionStack(trace);
 
 #ifndef __APPLE__
 	/* Check if thrown_ptr inherits from boost::exception. */
@@ -59,13 +59,30 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 }
 #endif /* _WIN32 */
 
-StackTrace *Exception::GetLastStackTrace(void)
+StackTrace *icinga::GetLastExceptionStack(void)
 {
-	return m_LastStackTrace.get();
+	return l_LastStackTrace.get();
 }
 
-void Exception::SetLastStackTrace(const StackTrace& trace)
+void icinga::SetLastExceptionStack(const StackTrace& trace)
 {
-	m_LastStackTrace.reset(new StackTrace(trace));
+	l_LastStackTrace.reset(new StackTrace(trace));
+}
+
+String icinga::DiagnosticInformation(boost::exception_ptr eptr)
+{
+	StackTrace *pt = GetLastExceptionStack();
+	StackTrace trace;
+
+	if (pt)
+		trace = *pt;
+
+	try {
+		boost::rethrow_exception(eptr);
+	} catch (const std::exception& ex) {
+		return DiagnosticInformation(ex, pt ? &trace : NULL);
+	}
+
+	return boost::diagnostic_information(eptr);
 }
 

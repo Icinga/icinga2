@@ -22,7 +22,6 @@
 #include "base/debug.h"
 #include "base/logger_fwd.h"
 #include <boost/bind.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 

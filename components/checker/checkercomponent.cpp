@@ -24,7 +24,7 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/logger_fwd.h"
-#include <boost/exception/diagnostic_information.hpp>
+#include "base/exception.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -151,7 +151,7 @@ void CheckerComponent::ExecuteCheckHelper(const Service::Ptr& service)
 	try {
 		service->ExecuteCheck();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + boost::diagnostic_information(ex));
+		Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + DiagnosticInformation(ex));
 	}
 
 	{

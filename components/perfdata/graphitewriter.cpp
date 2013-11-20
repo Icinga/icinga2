@@ -33,12 +33,12 @@
 #include "base/stream.h"
 #include "base/networkstream.h"
 #include "base/bufferedstream.h"
+#include "base/exception.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -143,7 +143,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
-		       << boost::diagnostic_information(ex);
+		       << DiagnosticInformation(ex);
 
 		Log(LogCritical, "base", msgbuf.str());
 

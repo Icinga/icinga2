@@ -26,7 +26,6 @@
 #include "base/array.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -330,7 +329,7 @@ PyObject *PythonLanguage::PyCallNativeFunction(PyObject *self, PyObject *args)
 	} catch (const std::exception& ex) {
 		PyEval_RestoreThread(tstate);
 
-		String message = boost::diagnostic_information(ex);
+		String message = DiagnosticInformation(ex);
 		PyErr_SetString(PyExc_RuntimeError, message.CStr());
 
 		return NULL;

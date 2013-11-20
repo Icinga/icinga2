@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/logger_fwd.h"
+#include "base/exception.h"
 #include "config/configitembuilder.h"
 
 using namespace icinga;
@@ -74,7 +75,7 @@ void Endpoint::SendMessage(const Dictionary::Ptr& message)
 		JsonRpc::SendMessage(client, message);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
-		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << boost::diagnostic_information(ex);
+		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << DiagnosticInformation(ex);
 		Log(LogWarning, "cluster", msgbuf.str());
 
 		m_Client.reset();
@@ -91,7 +92,7 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 		try {
 			message = JsonRpc::ReadMessage(stream);
 		} catch (const std::exception& ex) {
-			Log(LogWarning, "cluster", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + boost::diagnostic_information(ex));
+			Log(LogWarning, "cluster", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + DiagnosticInformation(ex));
 
 			m_Client.reset();
 

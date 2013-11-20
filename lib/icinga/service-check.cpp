@@ -26,8 +26,8 @@
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/utility.h"
+#include "base/exception.h"
 #include <boost/foreach.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -478,7 +478,7 @@ void Service::ExecuteCheck(void)
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during check for service '"
-		       << GetName() << "': " << boost::diagnostic_information(ex);
+		       << GetName() << "': " << DiagnosticInformation(ex);
 		String message = msgbuf.str();
 
 		Log(LogWarning, "icinga", message);

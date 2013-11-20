@@ -26,9 +26,9 @@
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include "base/convert.h"
+#include "base/exception.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -296,7 +296,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Exception occured during notification for service '"
-		       << GetService()->GetName() << "': " << boost::diagnostic_information(ex);
+		       << GetService()->GetName() << "': " << DiagnosticInformation(ex);
 		Log(LogWarning, "icinga", msgbuf.str());
 	}
 }

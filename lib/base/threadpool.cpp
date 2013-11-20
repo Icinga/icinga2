@@ -24,10 +24,10 @@
 #include "base/utility.h"
 #include "base/scriptvariable.h"
 #include "base/application.h"
+#include "base/exception.h"
 #include <sstream>
 #include <iostream>
 #include <boost/bind.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -124,7 +124,7 @@ void ThreadPool::QueueThreadProc(int tid)
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception thrown in event handler: " << std::endl
-			       << boost::diagnostic_information(ex);
+			       << DiagnosticInformation(ex);
 
 			Log(LogCritical, "base", msgbuf.str());
 		} catch (...) {

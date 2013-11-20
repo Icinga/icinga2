@@ -29,7 +29,6 @@
 #include "base/application.h"
 #include "base/scriptfunction.h"
 #include "base/convert.h"
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -139,7 +138,7 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 		} catch (const std::exception& ex) {
 			std::ostringstream info;
 			info << "Exception thrown while running livestatus query: " << std::endl
-			     << boost::diagnostic_information(ex);
+			     << DiagnosticInformation(ex);
 			Log(LogCritical, "livestatus", info.str());
 			return;
 		}

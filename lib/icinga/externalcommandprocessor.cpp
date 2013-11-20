@@ -30,10 +30,10 @@
 #include "base/objectlock.h"
 #include "base/application.h"
 #include "base/utility.h"
+#include "base/exception.h"
 #include <fstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
@@ -982,7 +982,7 @@ void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& ar
 			Execute(line);
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
-			msgbuf << "External command failed: " << boost::diagnostic_information(ex);
+			msgbuf << "External command failed: " << DiagnosticInformation(ex);
 			Log(LogWarning, "icinga", msgbuf.str());
 		}
 	}

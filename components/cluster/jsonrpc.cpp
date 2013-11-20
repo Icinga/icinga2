@@ -22,7 +22,6 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/serializer.h"
-#include <boost/exception/diagnostic_information.hpp>
 #include <iostream>
 
 using namespace icinga;

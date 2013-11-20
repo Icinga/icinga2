@@ -34,7 +34,6 @@
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -399,23 +398,12 @@ void Application::ExceptionHandler(void)
 	sigaction(SIGABRT, &sa, NULL);
 #endif /* _WIN32 */
 
-	bool has_trace = false;
-
 	try {
 		throw;
 	} catch (const std::exception& ex) {
 		std::cerr << std::endl
-			  << boost::diagnostic_information(ex)
+			  << DiagnosticInformation(ex)
 			  << std::endl;
-
-		has_trace = (boost::get_error_info<StackTraceErrorInfo>(ex) != NULL);
-	} catch (...) {
-		std::cerr << "Exception of unknown type." << std::endl;
-	}
-
-	if (!has_trace) {
-		StackTrace trace;
-		trace.Print(std::cerr, 1);
 	}
 
 	DisplayBugMessage();

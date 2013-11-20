@@ -30,7 +30,6 @@
 #include "base/application.h"
 #include "base/convert.h"
 #include <fstream>
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -646,7 +645,7 @@ void ClusterListener::ClusterTimerHandler(void)
 			} catch (std::exception& ex) {
 				std::ostringstream msgbuf;
 				msgbuf << "Exception occured while reconnecting to endpoint '"
-				       << endpoint->GetName() << "': " << boost::diagnostic_information(ex);
+				       << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 				Log(LogWarning, "cluster", msgbuf.str());
 			}
 		}
@@ -959,7 +958,7 @@ void ClusterListener::AsyncMessageHandler(const Endpoint::Ptr& sender, const Dic
 
 void ClusterListener::MessageExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogCritical, "cluster", "Exception while processing cluster message: " + boost::diagnostic_information(exp));
+	Log(LogCritical, "cluster", "Exception while processing cluster message: " + DiagnosticInformation(exp));
 }
 
 void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message)

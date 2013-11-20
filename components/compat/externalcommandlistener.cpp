@@ -23,7 +23,6 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/application.h"
-#include <boost/exception/diagnostic_information.hpp>
 
 using namespace icinga;
 
@@ -120,7 +119,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 				ExternalCommandProcessor::Execute(command);
 			} catch (const std::exception& ex) {
 				std::ostringstream msgbuf;
-				msgbuf << "External command failed: " << boost::diagnostic_information(ex);
+				msgbuf << "External command failed: " << DiagnosticInformation(ex);
 				Log(LogWarning, "compat", msgbuf.str());
 			}
 		}

@@ -23,7 +23,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
-#include <boost/exception/diagnostic_information.hpp>
+#include "base/exception.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -90,7 +90,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception occured during notification for service '"
-			       << GetName() << "': " << boost::diagnostic_information(ex);
+			       << GetName() << "': " << DiagnosticInformation(ex);
 			String message = msgbuf.str();
 
 			Log(LogWarning, "icinga", message);

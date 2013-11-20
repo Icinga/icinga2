@@ -28,6 +28,8 @@
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/exception_ptr.hpp>
 
 #ifdef _WIN32
 #	include <boost/algorithm/string/trim.hpp>
@@ -36,22 +38,31 @@
 namespace icinga
 {
 
-/**
- * Base class for all exceptions.
- *
- * @ingroup base
- */
-class I2_BASE_API Exception
-{
-public:
-	static StackTrace *GetLastStackTrace(void);
-	static void SetLastStackTrace(const StackTrace& trace);
-
-private:
-	static boost::thread_specific_ptr<StackTrace> m_LastStackTrace;
-};
+I2_BASE_API StackTrace *GetLastExceptionStack(void);
+I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
+
+template<typename T>
+String DiagnosticInformation(const T& ex, StackTrace *trace = NULL)
+{
+	std::ostringstream result;
+
+	result << boost::diagnostic_information(ex);
+
+	if (boost::get_error_info<StackTraceErrorInfo>(ex) == NULL) {
+		result << std::endl;
+
+		if (trace)
+			result << *trace;
+		else
+			result << *GetLastExceptionStack();
+	}
+
+	return result.str();
+}
+
+I2_BASE_API String DiagnosticInformation(boost::exception_ptr eptr);
 
 class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception { };
 

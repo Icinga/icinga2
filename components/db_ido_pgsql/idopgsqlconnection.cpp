@@ -27,7 +27,6 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_pgsql/idopgsqlconnection.h"
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -67,7 +66,7 @@ void IdoPgsqlConnection::Stop(void)
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogCritical, "db_ido_pgsql", "Exception during database operation: " + boost::diagnostic_information(exp));
+	Log(LogCritical, "db_ido_pgsql", "Exception during database operation: " + DiagnosticInformation(exp));
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 

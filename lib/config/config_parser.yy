@@ -31,9 +31,9 @@
 #include "base/utility.h"
 #include "base/array.h"
 #include "base/scriptvariable.h"
+#include "base/exception.h"
 #include <sstream>
 #include <stack>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/foreach.hpp>
 
 #define YYLTYPE icinga::DebugInfo
@@ -140,7 +140,7 @@ void ConfigCompiler::Compile(void)
 	try {
 		yyparse(this);
 	} catch (const std::exception& ex) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, boost::diagnostic_information(ex));
+		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
 }
 

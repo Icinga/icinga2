@@ -35,7 +35,6 @@
 #include "base/application.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 
