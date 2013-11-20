@@ -138,6 +138,8 @@ void IdoMysqlConnection::Reconnect(void)
 			reconnect = true;
 		}
 
+		ClearIDCache();
+
 		String ihost, iuser, ipasswd, idb;
 		const char *host, *user , *passwd, *db;
 		long port;
@@ -587,6 +589,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 		if (type == DbQueryInsert && query.ConfigUpdate)
 			SetInsertID(query.Object, GetLastInsertID());
 	}
+
 	if (type == DbQueryInsert && query.Table == "notifications") { // FIXME remove hardcoded table name
 		m_LastNotificationID = GetLastInsertID();
 		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(m_LastNotificationID)));

@@ -47,6 +47,8 @@ public:
 	void SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetInsertID(const DbObject::Ptr& dbobj) const;
 
+	void ClearIDCache(void);
+
 	void SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
 	bool GetConfigUpdate(const DbObject::Ptr& dbobj) const;
 

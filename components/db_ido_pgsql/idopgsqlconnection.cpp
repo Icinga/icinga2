@@ -139,6 +139,8 @@ void IdoPgsqlConnection::Reconnect(void)
 			}
 		}
 
+		ClearIDCache();
+
 		String ihost, iport, iuser, ipasswd, idb;
 		const char *host, *port, *user , *passwd, *db;
 

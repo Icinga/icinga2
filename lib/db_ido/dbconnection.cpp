@@ -201,6 +201,12 @@ DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 	return it->second;
 }
 
+void DbConnection::ClearIDCache(void)
+{
+	m_ObjectIDs.clear();
+	m_InsertIDs.clear();
+}
+
 void DbConnection::SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
 {
 	if (hasupdate)
