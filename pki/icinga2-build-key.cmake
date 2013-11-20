@@ -23,7 +23,7 @@ fi
 [ -z "$REQ_STATE" ] && export REQ_STATE="Some-State"
 [ -z "$REQ_ORGANISATION" ] && export REQ_ORGANISATION="Internet Widgits Pty Ltd"
 [ -z "$REQ_ORG_UNIT" ] && export REQ_ORG_UNIT="Monitoring"
-[ -z "$REQ_COMMON_NAME"] && export REQ_COMMON_NAME="Icinga CA"
+[ -z "$REQ_COMMON_NAME" ] && export REQ_COMMON_NAME="Icinga CA"
 [ -z "$REQ_DAYS" ] && export REQ_DAYS="3650"
 
 REQ_COMMON_NAME="$name" KEY_DIR="$ICINGA_CA" openssl req -config $ICINGA2PKIDIR/openssl.cnf -new -newkey rsa:4096 -keyform PEM -keyout $ICINGA_CA/$name.key -outform PEM -out $ICINGA_CA/$name.csr -nodes && \
