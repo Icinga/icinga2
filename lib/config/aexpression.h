@@ -33,6 +33,7 @@ namespace icinga
 enum AOperator
 {
 	AEReturn,
+	AENegate,
 	AEAdd,
 	AESubtract,
 	AEMultiply,

@@ -555,6 +555,10 @@ aexpression: T_STRING
 		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1)));
 		free($1);
 	}
+	| '~' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2)));
+	}
 	| aexpression '+' aexpression
 	{
 		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));

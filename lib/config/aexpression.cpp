@@ -30,7 +30,7 @@ AExpression::AExpression(AOperator op, const AValue& operand1)
 AExpression::AExpression(AOperator op, const AValue& operand1, const AValue& operand2)
 	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2)
 {
-	ASSERT(op == AEAdd || op == AESubtract || op == AEMultiply || op == AEDivide ||
+	ASSERT(op == AEAdd || op == AENegate || op == AESubtract || op == AEMultiply || op == AEDivide ||
 		op == AEBinaryAnd || op == AEBinaryOr || op == AEShiftLeft || op == AEShiftRight);
 }
 
@@ -44,6 +44,8 @@ Value AExpression::Evaluate(const Object::Ptr& thisRef) const
 	switch (m_Operator) {
 		case AEReturn:
 			return left;
+		case AENegate:
+			return ~(long)left;
 		case AEAdd:
 			if (left.GetType() == ValueString || right.GetType() == ValueString)
 				return (String)left + (String)right;
