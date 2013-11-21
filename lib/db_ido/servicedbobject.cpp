@@ -211,14 +211,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 	/* service dependencies */
 	Log(LogDebug, "db_ido", "service dependencies for '" + service->GetName() + "'");
 
-	DbQuery query_del1;
-	query_del1.Table = GetType()->GetTable() + "dependencies";
-	query_del1.Type = DbQueryDelete;
-	query_del1.Category = DbCatConfig;
-	query_del1.WhereCriteria = make_shared<Dictionary>();
-	query_del1.WhereCriteria->Set("dependent_service_object_id", service);
-	OnQuery(query_del1);
-
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
 		Log(LogDebug, "db_ido", "service parents: " + parent->GetName());
 
@@ -276,14 +268,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 	/* custom variables */
 	Log(LogDebug, "db_ido", "service customvars for '" + service->GetName() + "'");
 
-	DbQuery query_del2;
-	query_del2.Table = "customvariables";
-	query_del2.Type = DbQueryDelete;
-	query_del2.Category = DbCatConfig;
-	query_del2.WhereCriteria = make_shared<Dictionary>();
-	query_del2.WhereCriteria->Set("object_id", service);
-	OnQuery(query_del2);
-
 	Dictionary::Ptr customvars;
 
 	{
@@ -292,7 +276,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	if (customvars) {
-		ObjectLock olock (customvars);
+		ObjectLock olock(customvars);
 
 		String key;
 		Value value;
@@ -317,8 +301,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* update comments and downtimes on config change */
-	RemoveComments(service);
-	RemoveDowntimes(service);
 	AddComments(service);
 	AddDowntimes(service);
 

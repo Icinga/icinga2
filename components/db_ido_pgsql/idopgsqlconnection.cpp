@@ -237,6 +237,7 @@ void IdoPgsqlConnection::ClearConfigTables(void)
 {
 	/* TODO make hardcoded table names modular */
 	ClearConfigTable("commands");
+	ClearConfigTable("comments");
 	ClearConfigTable("contact_addresses");
 	ClearConfigTable("contact_notificationcommands");
 	ClearConfigTable("contactgroup_members");
@@ -250,6 +251,7 @@ void IdoPgsqlConnection::ClearConfigTables(void)
 	ClearConfigTable("hostgroup_members");
 	ClearConfigTable("hostgroups");
 	ClearConfigTable("hosts");
+	ClearConfigTable("scheduleddowntime");
 	ClearConfigTable("service_contactgroups");
 	ClearConfigTable("service_contacts");
 	ClearConfigTable("servicedependencies");

@@ -48,9 +48,6 @@ void Service::Start(void)
 
 	VERIFY(GetHost());
 
-	SetSchedulingOffset(Utility::Random());
-	UpdateNextCheck();
-
 	AddDowntimesToCache();
 	AddCommentsToCache();
 
@@ -78,6 +75,11 @@ void Service::OnConfigLoaded(void)
 		m_Host->AddService(GetSelf());
 
 	UpdateSlaveNotifications();
+
+	SetSchedulingOffset(Utility::Random());
+
+	if (GetNextCheck() < Utility::GetTime() + 300)
+		SetNextCheck(Utility::GetTime() + Utility::Random() % 300);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
