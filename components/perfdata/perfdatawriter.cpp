@@ -74,7 +74,7 @@ void PerfdataWriter::RotateFile(void)
 {
 	ObjectLock olock(this);
 
-	String tempFile = GetPerfdataPath();
+	String tempFile = GetTempPath();
 
 	if (m_OutputFile.good()) {
 		m_OutputFile.close();

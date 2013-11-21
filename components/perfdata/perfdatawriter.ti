@@ -9,6 +9,9 @@ class PerfdataWriter : DynamicObject
 	[config] String perfdata_path {
 		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/perfdata"; }}}
 	};
+	[config] String temp_path {
+		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/tmp/perfdata"; }}}
+	};
 	[config] String format_template {
 		default {{{
 			return "DATATYPE::SERVICEPERFDATA\t"
