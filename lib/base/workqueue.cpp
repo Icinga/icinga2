@@ -51,8 +51,10 @@ void WorkQueue::Enqueue(const WorkCallback& item)
 
 	ASSERT(!m_Stopped);
 
-	while (m_Items.size() >= m_MaxItems)
-		m_CV.wait(lock);
+	if (boost::this_thread::get_id() != GetThreadId()) {
+		while (m_Items.size() >= m_MaxItems)
+			m_CV.wait(lock);
+	}
 
 	m_Items.push_back(item);
 	m_CV.notify_all();
