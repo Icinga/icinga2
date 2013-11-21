@@ -57,23 +57,24 @@ private:
 		ThreadBusy
 	};
 
-	struct ThreadStats
+	struct WorkerThread
 	{
 		ThreadState State;
 		bool Zombie;
 		double Utilization;
 		double LastUpdate;
+		boost::thread *Thread;
 
-		ThreadStats(ThreadState state = ThreadDead)
-			: State(state), Zombie(false), Utilization(0), LastUpdate(0)
+		WorkerThread(ThreadState state = ThreadDead)
+			: State(state), Zombie(false), Utilization(0), LastUpdate(0), Thread(NULL)
 		{ }
 	};
 
 	int m_ID;
 	static int m_NextID;
 
-	boost::thread_group m_Threads;
-	ThreadStats m_ThreadStats[4096];
+	boost::thread_group m_ThreadGroup;
+	WorkerThread m_Threads[4096];
 
 	double m_WaitTime;
 	double m_ServiceTime;
