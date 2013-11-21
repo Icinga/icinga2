@@ -16,7 +16,7 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 find_package(BISON 2.3.0 REQUIRED)
-find_package(FLEX 2.5.37 REQUIRED)
+find_package(FLEX 2.5.31 REQUIRED)
 
 bison_target(class_parser class_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc)
 flex_target(class_lexer class_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc)
