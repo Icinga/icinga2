@@ -17,67 +17,51 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef CONTEXT_H
+#define CONTEXT_H
 
 #include "base/i2-base.h"
-#include "base/logger.th"
-#include "base/dynamicobject.h"
-#include "base/logger_fwd.h"
-#include <set>
+#include "base/qstring.h"
+#include <list>
 
 namespace icinga
 {
 
-/**
- * A log entry.
- *
- * @ingroup base
- */
-struct LogEntry {
-	double Timestamp; /**< The timestamp when this log entry was created. */
-	LogSeverity Severity; /**< The severity of this log entry. */
-	String Facility; /**< The facility this log entry belongs to. */
-	String Message; /**< The log entry's message. */
-};
-
-/**
- * A log provider.
- *
- * @ingroup base
- */
-class I2_BASE_API Logger : public ObjectImpl<Logger>
+class I2_BASE_API ContextTrace
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Logger);
+	ContextTrace(void);
 
-	static String SeverityToString(LogSeverity severity);
-	static LogSeverity StringToSeverity(const String& severity);
+	void Print(std::ostream& fp) const;
 
-	LogSeverity GetMinSeverity(void) const;
-
-	/**
-	 * Processes the log entry and writes it to the log that is
-	 * represented by this ILogger object.
-	 *
-	 * @param entry The log entry that is to be processed.
-	 */
-	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
-
-	static std::set<Logger::Ptr> GetLoggers(void);
-
-protected:
-	virtual void Start(void);
-	virtual void Stop(void);
+	size_t GetLength(void) const;
 
 private:
-	static boost::mutex m_Mutex;
-	static std::set<Logger::Ptr> m_Loggers;
-
-	friend void Log(LogSeverity severity, const String& facility,
-	    const String& message);
+	std::list<String> m_Frames;
 };
 
+I2_BASE_API std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
+
+/**
+ * A context frame.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API ContextFrame
+{
+public:
+	ContextFrame(const String& message);
+	~ContextFrame(void);
+
+private:
+	static std::list<String>& GetFrames(void);
+
+	friend class ContextTrace;
+};
+
+/* The currentContextFrame variable has to be volatile in order to prevent
+ * the compiler from optimizing it away. */
+#define CONTEXT(message) volatile icinga::ContextFrame currentContextFrame(message)
 }
 
-#endif /* LOGGER_H */
+#endif /* CONTEXT_H */

@@ -17,67 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#include "base/context.h"
+#include <boost/thread/tss.hpp>
+#include <boost/foreach.hpp>
 
-#include "base/i2-base.h"
-#include "base/logger.th"
-#include "base/dynamicobject.h"
-#include "base/logger_fwd.h"
-#include <set>
+using namespace icinga;
 
-namespace icinga
+static boost::thread_specific_ptr<std::list<String> > l_Frames;
+
+ContextFrame::ContextFrame(const String& message)
 {
-
-/**
- * A log entry.
- *
- * @ingroup base
- */
-struct LogEntry {
-	double Timestamp; /**< The timestamp when this log entry was created. */
-	LogSeverity Severity; /**< The severity of this log entry. */
-	String Facility; /**< The facility this log entry belongs to. */
-	String Message; /**< The log entry's message. */
-};
-
-/**
- * A log provider.
- *
- * @ingroup base
- */
-class I2_BASE_API Logger : public ObjectImpl<Logger>
-{
-public:
-	DECLARE_PTR_TYPEDEFS(Logger);
-
-	static String SeverityToString(LogSeverity severity);
-	static LogSeverity StringToSeverity(const String& severity);
-
-	LogSeverity GetMinSeverity(void) const;
-
-	/**
-	 * Processes the log entry and writes it to the log that is
-	 * represented by this ILogger object.
-	 *
-	 * @param entry The log entry that is to be processed.
-	 */
-	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
-
-	static std::set<Logger::Ptr> GetLoggers(void);
-
-protected:
-	virtual void Start(void);
-	virtual void Stop(void);
-
-private:
-	static boost::mutex m_Mutex;
-	static std::set<Logger::Ptr> m_Loggers;
-
-	friend void Log(LogSeverity severity, const String& facility,
-	    const String& message);
-};
-
+	GetFrames().push_front(message);
 }
 
-#endif /* LOGGER_H */
+ContextFrame::~ContextFrame(void)
+{
+	GetFrames().pop_front();
+}
+
+std::list<String>& ContextFrame::GetFrames(void)
+{
+	if (l_Frames.get() == NULL)
+		l_Frames.reset(new std::list<String>());
+
+	return *l_Frames;
+}
+
+ContextTrace::ContextTrace(void)
+	: m_Frames(ContextFrame::GetFrames())
+{ }
+
+void ContextTrace::Print(std::ostream& fp) const
+{
+	fp << std::endl;
+
+	int i = 0;
+	BOOST_FOREACH(const String& frame, m_Frames) {
+		fp << "\t(" << i << ") " << frame << std::endl;
+		i++;
+	}
+}
+
+size_t ContextTrace::GetLength(void) const
+{
+	return m_Frames.size();
+}
+
+std::ostream& icinga::operator<<(std::ostream& stream, const ContextTrace& trace)
+{
+	trace.Print(stream);
+	return stream;
+}

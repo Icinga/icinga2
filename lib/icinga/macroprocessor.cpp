@@ -23,6 +23,7 @@
 #include "base/array.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/context.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -60,6 +61,8 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
     const CheckResult::Ptr& cr, String *result)
 {
+	CONTEXT("Resolving macro '" + macro + "'");
+
 	BOOST_FOREACH(const MacroResolver::Ptr& resolver, resolvers) {
 		if (resolver->ResolveMacro(macro, cr, result))
 			return true;
@@ -72,6 +75,8 @@ bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroRe
 String MacroProcessor::InternalResolveMacros(const String& str, const std::vector<MacroResolver::Ptr>& resolvers,
 	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
 {
+	CONTEXT("Resolving macros for string '" + str + "'");
+
 	size_t offset, pos_first, pos_second;
 	offset = 0;
 

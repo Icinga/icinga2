@@ -20,6 +20,7 @@
 #include "icinga/service.h"
 #include "icinga/eventcommand.h"
 #include "icinga/icingaapplication.h"
+#include "base/context.h"
 
 using namespace icinga;
 
@@ -45,6 +46,8 @@ EventCommand::Ptr Service::GetEventCommand(void) const
 
 void Service::ExecuteEventHandler(void)
 {
+	CONTEXT("Executing event handler for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+
 	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
 		return;
 

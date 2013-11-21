@@ -25,6 +25,7 @@
 #include "base/timer.h"
 #include "base/utility.h"
 #include "base/exception.h"
+#include "base/context.h"
 #include "config/configitembuilder.h"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
@@ -44,6 +45,8 @@ void Service::ResetNotificationNumbers(void)
 
 void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
+	CONTEXT("Sending notifications for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+
 	bool force = GetForceNextNotification();
 
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {

@@ -23,6 +23,7 @@
 #include "base/i2-base.h"
 #include "base/qstring.h"
 #include "base/stacktrace.h"
+#include "base/context.h"
 #include <sstream>
 #include <boost/thread/tss.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -41,10 +42,14 @@ namespace icinga
 I2_BASE_API StackTrace *GetLastExceptionStack(void);
 I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);
 
+I2_BASE_API ContextTrace *GetLastExceptionContext(void);
+I2_BASE_API void SetLastExceptionContext(const ContextTrace& context);
+
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
+typedef boost::error_info<ContextTrace, ContextTrace> ContextTraceErrorInfo;
 
 template<typename T>
-String DiagnosticInformation(const T& ex, StackTrace *trace = NULL)
+String DiagnosticInformation(const T& ex, StackTrace *stack = NULL, ContextTrace *context = NULL)
 {
 	std::ostringstream result;
 
@@ -53,10 +58,19 @@ String DiagnosticInformation(const T& ex, StackTrace *trace = NULL)
 	if (boost::get_error_info<StackTraceErrorInfo>(ex) == NULL) {
 		result << std::endl;
 
-		if (trace)
-			result << *trace;
+		if (stack)
+			result << *stack;
 		else
 			result << *GetLastExceptionStack();
+	}
+
+	if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
+		result << std::endl;
+
+		if (context)
+			result << *context;
+		else
+			result << *GetLastExceptionContext();
 	}
 
 	return result.str();

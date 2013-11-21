@@ -122,6 +122,8 @@ void IdoMysqlConnection::Reconnect(void)
 {
 	AssertOnWorkQueue();
 
+	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
+
 	{
 		boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
