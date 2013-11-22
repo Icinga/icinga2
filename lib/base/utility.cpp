@@ -385,7 +385,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 	for (gp = gr.gl_pathv, left = gr.gl_pathc; left > 0; gp++, left--) {
 		struct stat statbuf;
 
-		if (lstat(*gp, &statbuf) < 0)
+		if (stat(*gp, &statbuf) < 0)
 			continue;
 
 		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
