@@ -206,10 +206,8 @@ void IdoMysqlConnection::Reconnect(void)
 		/* clear config tables for the initial config dump */
 		ClearConfigTables();
 
-		Query("UPDATE " + GetTablePrefix() + "objects SET is_active = 0");
-
 		std::ostringstream q1buf;
-		q1buf << "SELECT object_id, objecttype_id, name1, name2 FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
+		q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
 		rows = Query(q1buf.str());
 
 		ObjectLock olock(rows);
@@ -221,6 +219,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 			DbObject::Ptr dbobj = dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
 			SetObjectID(dbobj, DbReference(row->Get("object_id")));
+			SetObjectActive(dbobj, row->Get("is_active"));
 		}
 
 		Query("BEGIN");
@@ -239,7 +238,9 @@ void IdoMysqlConnection::ClearConfigTables(void)
 	ClearConfigTable("contactgroup_members");
 	ClearConfigTable("contactgroups");
 	ClearConfigTable("contacts");
+	ClearConfigTable("contactstatus");
 	ClearConfigTable("customvariables");
+	ClearConfigTable("customvariablestatus");
 	ClearConfigTable("host_contactgroups");
 	ClearConfigTable("host_contacts");
 	ClearConfigTable("host_parenthosts");
@@ -247,6 +248,8 @@ void IdoMysqlConnection::ClearConfigTables(void)
 	ClearConfigTable("hostgroup_members");
 	ClearConfigTable("hostgroups");
 	ClearConfigTable("hosts");
+	ClearConfigTable("hoststatus");
+	ClearConfigTable("programstatus");
 	ClearConfigTable("scheduleddowntime");
 	ClearConfigTable("service_contactgroups");
 	ClearConfigTable("service_contacts");
@@ -254,6 +257,7 @@ void IdoMysqlConnection::ClearConfigTables(void)
 	ClearConfigTable("servicegroup_members");
 	ClearConfigTable("servicegroups");
 	ClearConfigTable("services");
+	ClearConfigTable("servicestatus");
 	ClearConfigTable("timeperiod_timeranges");
 	ClearConfigTable("timeperiods");
 }
@@ -349,14 +353,8 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(MYSQL_RES *result)
 	Dictionary::Ptr dict = make_shared<Dictionary>();
 
 	mysql_field_seek(result, 0);
-	for (field = mysql_fetch_field(result), i = 0; field; field = mysql_fetch_field(result), i++) {
-		Value value;
-
-		if (field)
-			value = String(row[i], row[i] + lengths[i]);
-
-		dict->Set(field->name, value);
-	}
+	for (field = mysql_fetch_field(result), i = 0; field; field = mysql_fetch_field(result), i++)
+		dict->Set(field->name, String(row[i], row[i] + lengths[i]));
 
 	return dict;
 }
@@ -519,12 +517,8 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 
 		if (hasid)
 			type = DbQueryUpdate;
-		else {
-			if (query.WhereCriteria)
-				Query("DELETE FROM " + GetTablePrefix() + query.Table + where.str());
-
+		else
 			type = DbQueryInsert;
-		}
 	} else
 		type = query.Type;
 

@@ -194,22 +194,6 @@ void HostDbObject::OnConfigUpdate(void)
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
 	/* parents, host dependencies */
-	DbQuery query_del1;
-	query_del1.Table = GetType()->GetTable() + "_parenthosts";
-	query_del1.Type = DbQueryDelete;
-	query_del1.Category = DbCatConfig;
-	query_del1.WhereCriteria = make_shared<Dictionary>();
-	query_del1.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
-	OnQuery(query_del1);
-
-	DbQuery query_del2;
-	query_del2.Table = GetType()->GetTable() + "dependencies";
-	query_del2.Type = DbQueryDelete;
-	query_del2.Category = DbCatConfig;
-	query_del2.WhereCriteria = make_shared<Dictionary>();
-	query_del2.WhereCriteria->Set("dependent_host_object_id", host);
-	OnQuery(query_del2);
-
 	BOOST_FOREACH(const Host::Ptr& parent, host->GetParentHosts()) {
 		Log(LogDebug, "db_ido", "host parents: " + parent->GetName());
 
@@ -283,14 +267,6 @@ void HostDbObject::OnConfigUpdate(void)
 
 	/* custom variables */
 	Log(LogDebug, "ido", "host customvars for '" + host->GetName() + "'");
-
-	DbQuery query_del3;
-	query_del3.Table = "customvariables";
-	query_del3.Type = DbQueryDelete;
-	query_del3.Category = DbCatConfig;
-	query_del3.WhereCriteria = make_shared<Dictionary>();
-	query_del3.WhereCriteria->Set("object_id", host);
-	OnQuery(query_del3);
 
 	Dictionary::Ptr customvars;
 	{

@@ -201,10 +201,24 @@ DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 	return it->second;
 }
 
+void DbConnection::SetObjectActive(const DbObject::Ptr& dbobj, bool active)
+{
+	if (active)
+		m_ActiveObjects.insert(dbobj);
+	else
+		m_ActiveObjects.erase(dbobj);
+}
+
+bool DbConnection::GetObjectActive(const DbObject::Ptr& dbobj) const
+{
+	return (m_ActiveObjects.find(dbobj) != m_ActiveObjects.end());
+}
+
 void DbConnection::ClearIDCache(void)
 {
 	m_ObjectIDs.clear();
 	m_InsertIDs.clear();
+	m_ActiveObjects.clear();
 }
 
 void DbConnection::SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
@@ -246,7 +260,9 @@ void DbConnection::UpdateAllObjects(void)
 			DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
 
 			if (dbobj) {
-				ActivateObject(dbobj);
+				if (!GetObjectActive(dbobj))
+					ActivateObject(dbobj);
+
 				dbobj->SendConfigUpdate();
 				dbobj->SendStatusUpdate();
 			}

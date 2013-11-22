@@ -47,6 +47,9 @@ public:
 	void SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetInsertID(const DbObject::Ptr& dbobj) const;
 
+	void SetObjectActive(const DbObject::Ptr& dbobj, bool active);
+	bool GetObjectActive(const DbObject::Ptr& dbobj) const;
+
 	void ClearIDCache(void);
 
 	void SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
@@ -69,6 +72,7 @@ protected:
 private:
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
+	std::set<DbObject::Ptr> m_ActiveObjects;
 	std::set<DbObject::Ptr> m_ConfigUpdates;
 	std::set<DbObject::Ptr> m_StatusUpdates;
 	Timer::Ptr m_CleanUpTimer;
