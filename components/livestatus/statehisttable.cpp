@@ -518,8 +518,8 @@ Value StateHistTable::DurationPartUnmonitoredAccessor(const Value& row)
 
 void StateHistTable::CreateLogIndex(const String& path)
 {
-	Utility::Glob(path + "/icinga.log", boost::bind(&StateHistTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)));
-	Utility::Glob(path + "/archives/*.log", boost::bind(&StateHistTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)));
+	Utility::Glob(path + "/icinga.log", boost::bind(&StateHistTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)), GlobFile);
+	Utility::Glob(path + "/archives/*.log", boost::bind(&StateHistTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)), GlobFile);
 }
 
 void StateHistTable::CreateLogIndexFileHandler(const String& path, std::map<unsigned long, String>& index)

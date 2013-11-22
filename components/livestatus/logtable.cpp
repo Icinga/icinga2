@@ -291,8 +291,8 @@ Value LogTable::CommandNameAccessor(const Value& row)
 
 void LogTable::CreateLogIndex(const String& path)
 {
-	Utility::Glob(path + "/icinga.log", boost::bind(&LogTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)));
-	Utility::Glob(path + "/archives/*.log", boost::bind(&LogTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)));
+	Utility::Glob(path + "/icinga.log", boost::bind(&LogTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)), GlobFile);
+	Utility::Glob(path + "/archives/*.log", boost::bind(&LogTable::CreateLogIndexFileHandler, _1, boost::ref(m_LogFileIndex)), GlobFile);
 }
 
 void LogTable::CreateLogIndexFileHandler(const String& path, std::map<unsigned long, String>& index)

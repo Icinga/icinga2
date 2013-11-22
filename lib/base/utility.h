@@ -43,6 +43,12 @@ struct THREADNAME_INFO
 #	pragma pack(pop)
 #endif
 
+enum GlobType
+{
+	GlobFile = 1,
+	GlobDirectory = 2
+};
+
 /**
  * Helper functions.
  *
@@ -69,7 +75,7 @@ public:
 
 	static String NewUniqueID(void);
 
-	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback);
+	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
 
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
 

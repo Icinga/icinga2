@@ -35,6 +35,8 @@
 #include <sys/wait.h>
 #include <glob.h>
 #include <dlfcn.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)

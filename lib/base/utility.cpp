@@ -320,8 +320,10 @@ String Utility::NewUniqueID(void)
  * Calls the specified callback for each file matching the path specification.
  *
  * @param pathSpec The path specification.
+ * @param callback The callback which is invoked for each matching file.
+ * @param type The file type (a combination of GlobFile and GlobDirectory)
  */
-bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback)
+bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type)
 {
 #ifdef _WIN32
 	HANDLE handle;
@@ -342,6 +344,12 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 	}
 
 	do {
+		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobDirectory))
+			continue;
+
+		if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobFile))
+			continue;
+
 		callback(DirName(pathSpec) + "/" + wfd.cFileName);
 	} while (FindNextFile(handle, &wfd));
 
@@ -375,6 +383,20 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 	size_t left;
 	char **gp;
 	for (gp = gr.gl_pathv, left = gr.gl_pathc; left > 0; gp++, left--) {
+		struct stat statbuf;
+
+		if (lstat(*gp, &statbuf) < 0)
+			continue;
+
+		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
+			continue;
+
+		if (S_ISDIR(statbuf.st_mode) && !(type & GlobDirectory))
+			continue;
+
+		if (!S_ISDIR(statbuf.st_mode) && !(type & GlobFile))
+			continue;
+
 		callback(*gp);
 	}
 

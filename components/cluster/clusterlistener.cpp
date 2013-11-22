@@ -383,7 +383,7 @@ void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr
 		count = 0;
 
 		std::vector<int> files;
-		Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterListener::LogGlobHandler, boost::ref(files), _1));
+		Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
 		BOOST_FOREACH(int ts, files) {
@@ -479,6 +479,8 @@ void ClusterListener::ReplayLog(const Endpoint::Ptr& endpoint, const Stream::Ptr
 
 void ClusterListener::ConfigGlobHandler(const Dictionary::Ptr& config, const String& file, bool basename)
 {
+	CONTEXT("Creating config update for file '" + file + "'");
+
 	Dictionary::Ptr elem = make_shared<Dictionary>();
 
 	std::ifstream fp(file.CStr());
@@ -532,7 +534,7 @@ void ClusterListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 	if (configFiles) {
 		ObjectLock olock(configFiles);
 		BOOST_FOREACH(const String& pattern, configFiles) {
-			Utility::Glob(pattern, boost::bind(&ClusterListener::ConfigGlobHandler, boost::cref(config), _1, false));
+			Utility::Glob(pattern, boost::bind(&ClusterListener::ConfigGlobHandler, boost::cref(config), _1, false), GlobFile);
 		}
 	}
 
@@ -591,7 +593,7 @@ void ClusterListener::ClusterTimerHandler(void)
 	}
 
 	std::vector<int> files;
-	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterListener::LogGlobHandler, boost::ref(files), _1));
+	Utility::Glob(GetClusterDir() + "log/*", boost::bind(&ClusterListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
 	std::sort(files.begin(), files.end());
 
 	BOOST_FOREACH(int ts, files) {
@@ -1391,7 +1393,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		}
 
 		Dictionary::Ptr localConfig = make_shared<Dictionary>();
-		Utility::Glob(dir + "/*", boost::bind(&ClusterListener::ConfigGlobHandler, boost::cref(localConfig), _1, true));
+		Utility::Glob(dir + "/*", boost::bind(&ClusterListener::ConfigGlobHandler, boost::cref(localConfig), _1, true), GlobFile);
 
 		bool configChange = false;
 
