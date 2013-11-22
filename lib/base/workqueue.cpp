@@ -51,13 +51,19 @@ void WorkQueue::Enqueue(const WorkCallback& item)
 
 	ASSERT(!m_Stopped);
 
-	if (boost::this_thread::get_id() != GetThreadId()) {
+	bool wq_thread = (boost::this_thread::get_id() == GetThreadId());
+
+	if (!wq_thread) {
 		while (m_Items.size() >= m_MaxItems)
 			m_CV.wait(lock);
 	}
 
 	m_Items.push_back(item);
-	m_CV.notify_all();
+
+	if (wq_thread)
+		ProcessItems(lock);
+	else
+		m_CV.notify_all();
 }
 
 void WorkQueue::Join(void)
@@ -87,21 +93,9 @@ void WorkQueue::DefaultExceptionCallback(boost::exception_ptr exp)
 	throw;
 }
 
-void WorkQueue::WorkerThreadProc(void)
+void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	std::ostringstream idbuf;
-	idbuf << "WQ #" << m_ID;
-	Utility::SetThreadName(idbuf.str());
-
-	for (;;) {
-		while (m_Items.empty() && !m_Joined)
-			m_CV.wait(lock);
-
-		if (m_Joined)
-			break;
-
+	while (!m_Items.empty()) {
 		try {
 			WorkCallback wi = m_Items.front();
 			m_Items.pop_front();
@@ -120,6 +114,25 @@ void WorkQueue::WorkerThreadProc(void)
 		}
 
 		lock.lock();
+	}
+}
+
+void WorkQueue::WorkerThreadProc(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	std::ostringstream idbuf;
+	idbuf << "WQ #" << m_ID;
+	Utility::SetThreadName(idbuf.str());
+
+	for (;;) {
+		while (m_Items.empty() && !m_Joined)
+			m_CV.wait(lock);
+
+		if (m_Joined)
+			break;
+
+		ProcessItems(lock);
 	}
 
 	m_Stopped = true;

@@ -65,6 +65,7 @@ private:
 	std::deque<WorkCallback> m_Items;
 	ExceptionCallback m_ExceptionCallback;
 
+	void ProcessItems(boost::mutex::scoped_lock& lock);
 	void WorkerThreadProc(void);
 
 	static void DefaultExceptionCallback(boost::exception_ptr exp);
