@@ -40,13 +40,13 @@ void UnixSocket::Bind(const String& path)
 {
 	unlink(path.CStr());
 
-	sockaddr_un sun;
-	memset(&sun, 0, sizeof(sun));
-	sun.sun_family = AF_UNIX;
-	strncpy(sun.sun_path, path.CStr(), sizeof(sun.sun_path));
-	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
+	sockaddr_un s_un;
+	memset(&s_un, 0, sizeof(s_un));
+	s_un.sun_family = AF_UNIX;
+	strncpy(s_un.sun_path, path.CStr(), sizeof(s_un.sun_path));
+	s_un.sun_path[sizeof(s_un.sun_path) - 1] = '\0';
 
-	if (bind(GetFD(), (sockaddr *)&sun, SUN_LEN(&sun)) < 0) {
+	if (bind(GetFD(), (sockaddr *)&s_un, SUN_LEN(&s_un)) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("bind")
 		    << boost::errinfo_errno(errno));
@@ -55,13 +55,13 @@ void UnixSocket::Bind(const String& path)
 
 void UnixSocket::Connect(const String& path)
 {
-	sockaddr_un sun;
-	memset(&sun, 0, sizeof(sun));
-	sun.sun_family = AF_UNIX;
-	strncpy(sun.sun_path, path.CStr(), sizeof(sun.sun_path));
-	sun.sun_path[sizeof(sun.sun_path) - 1] = '\0';
+	sockaddr_un s_un;
+	memset(&s_un, 0, sizeof(s_un));
+	s_un.sun_family = AF_UNIX;
+	strncpy(s_un.sun_path, path.CStr(), sizeof(s_un.sun_path));
+	s_un.sun_path[sizeof(s_un.sun_path) - 1] = '\0';
 
-	if (connect(GetFD(), (sockaddr *)&sun, SUN_LEN(&sun)) < 0 && errno != EINPROGRESS) {
+	if (connect(GetFD(), (sockaddr *)&s_un, SUN_LEN(&s_un)) < 0 && errno != EINPROGRESS) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("connect")
 		    << boost::errinfo_errno(errno));

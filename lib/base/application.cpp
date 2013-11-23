@@ -525,7 +525,14 @@ void Application::UpdatePidFile(const String& filename)
 
 	Utility::SetCloExec(fd);
 
-	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+	struct flock lock;
+
+	lock.l_start = 0;
+	lock.l_len = 0;
+	lock.l_type = F_WRLCK;
+	lock.l_whence = SEEK_SET;
+
+	if (fcntl(fd, F_SETLK, &lock) < 0) {
 		Log(LogCritical, "base", "Could not lock PID file. Make sure that only one instance of the application is running.");
 
 		_exit(EXIT_FAILURE);
