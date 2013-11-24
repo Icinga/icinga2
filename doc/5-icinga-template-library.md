@@ -58,6 +58,18 @@ plugindir       | **Required.** The directory containing this plugin.
 state           | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
 text            | **Optional.** Plugin output. Defaults to "Check was successful.".
 
+### passive
+
+Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
+
+Macros:
+
+Name            | Description
+----------------|--------------
+plugindir       | **Required.** The directory containing this plugin.
+state           | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
+text            | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
+
 ### tcp
 
 Check command object for the `check_tcp` plugin.

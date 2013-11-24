@@ -30,6 +30,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # so you can take notice and act accordingly.
     auto_correct: true
 
+  # forward port for nsca-ng. See note above regarding auto_correct
+  config.vm.network :forwarded_port, guest: 5668, host: 5668, auto_correct: true
+
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   # config.vm.network :private_network, ip: "192.168.33.10"
