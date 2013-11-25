@@ -45,7 +45,7 @@
 
 %define logmsg logger -t %{name}/rpm
 
-Summary: network monitoring application
+Summary: Network monitoring application
 Name: icinga2
 Version: 0.0.4
 Release: %{revision}%{?dist}
@@ -259,11 +259,15 @@ then
 	%{_sbindir}/icinga2-enable-feature ido-mysql
 fi
 
+exit 0
+
 %postun ido-mysql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
 	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-mysql
 fi
+
+exit 0
 
 %post ido-pgsql
 if [ ${1:-0} -eq 1 ]
@@ -272,11 +276,15 @@ then
 	%{_sbindir}/icinga2-enable-feature ido-pgsql
 fi
 
+exit 0
+
 %postun ido-pgsql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
 	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-pgsql
 fi
+
+exit 0
 
 %post classicui-config
 if [ ${1:-0} -eq 1 ]
@@ -287,6 +295,8 @@ then
         %{_sbindir}/icinga2-enable-feature command
 fi
 
+exit 0
+
 %postun classicui-config
 if [ "$1" = "0" ]; then
         # deinstallation of the package - remove feature
@@ -295,17 +305,20 @@ if [ "$1" = "0" ]; then
         test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature command
 fi
 
+exit 0
+
 %files
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-available
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-enabled
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
-%config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-enabled/*.conf
+%config(noreplace) %{_sysconfdir}/%{name}/features-enabled/*.conf
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-migrate-config
 %{_bindir}/%{name}-build-ca
@@ -313,6 +326,7 @@ fi
 %{_sbindir}/%{name}-enable-feature
 %{_sbindir}/%{name}-disable-feature
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
+%exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_libdir}/%{name}
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/itl
@@ -322,10 +336,10 @@ fi
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
-%attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/run/%{name}
+%attr(0755,%{icinga_user},%{icinga_group}) %ghost %{_localstatedir}/run/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
 
-%attr(2755,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/run/icinga2/cmd
+%attr(2755,%{icinga_user},%{icingacmd_group}) %ghost %{_localstatedir}/run/icinga2/cmd
 
 %files common
 %defattr(-,root,root,-)
@@ -354,6 +368,7 @@ fi
 
 %files classicui-config
 %defattr(-,root,root,-)
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{icingaclassicconfdir}
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
