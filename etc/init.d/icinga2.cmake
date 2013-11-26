@@ -48,7 +48,11 @@ fi
 # Start Icinga 2
 start() {
 	mkdir -p $(dirname -- $ICINGA2_PID_FILE)
+	chown $ICINGA2_USER:$ICINGA2_GROUP $(dirname -- $ICINGA2_PID_FILE)
+
 	mkdir -p $(dirname -- $ICINGA2_ERROR_LOG)
+	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $(dirname -- $ICINGA2_ERROR_LOG)
+	chmod 750 $(dirname -- $ICINGA2_ERROR_LOG)
 
 	mkdir -p $ICINGA2_STATE_DIR/run/icinga2/cmd
 	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_STATE_DIR/run/icinga2/cmd

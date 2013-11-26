@@ -368,7 +368,7 @@ exit 0
 
 %files classicui-config
 %defattr(-,root,root,-)
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{icingaclassicconfdir}
+%attr(0751,%{icinga_user},%{icinga_group}) %dir %{icingaclassicconfdir}
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
