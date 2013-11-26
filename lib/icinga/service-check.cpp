@@ -47,7 +47,19 @@ boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFl
 
 CheckCommand::Ptr Service::GetCheckCommand(void) const
 {
-	return CheckCommand::GetByName(GetCheckCommandRaw());
+	String command;
+
+	if (!GetOverrideCheckCommand().IsEmpty())
+		command = GetOverrideCheckCommand();
+	else
+		command = GetCheckCommandRaw();
+
+	return CheckCommand::GetByName(command);
+}
+
+void Service::SetCheckCommand(const CheckCommand::Ptr& command)
+{
+	SetOverrideCheckCommand(command->GetName());
 }
 
 TimePeriod::Ptr Service::GetCheckPeriod(void) const

@@ -193,6 +193,8 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::DisableSvcEventHandler);
 	RegisterCommand("CHANGE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::ChangeHostEventHandler);
 	RegisterCommand("CHANGE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::ChangeSvcEventHandler);
+	RegisterCommand("CHANGE_HOST_CHECK_COMMAND", &ExternalCommandProcessor::ChangeHostCheckCommand);
+	RegisterCommand("CHANGE_SVC_CHECK_COMMAND", &ExternalCommandProcessor::ChangeSvcCheckCommand);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -2054,7 +2056,7 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vec
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
 	EventCommand::Ptr command = EventCommand::GetByName(arguments[2]);
 
@@ -2067,5 +2069,55 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vec
 		ObjectLock olock(service);
 
 		service->SetEventCommand(command);
+	}
+}
+
+void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change check command for non-existent host '" + arguments[0] + "'"));
+
+	Service::Ptr hc = host->GetCheckService();
+
+	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[2]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Check command '" + arguments[1] + "' does not exist."));
+
+	Log(LogInformation, "icinga", "Changing check command for host '" + arguments[0] + "' to '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetCheckCommand(command);
+	}
+}
+
+void ExternalCommandProcessor::ChangeSvcCheckCommand(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change check command for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[2]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Check command '" + arguments[2] + "' does not exist."));
+
+	Log(LogInformation, "icinga", "Changing check command for service '" + arguments[1] + "' to '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetCheckCommand(command);
 	}
 }

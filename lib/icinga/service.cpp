@@ -304,6 +304,9 @@ int Service::GetModifiedAttributes(void) const
 	if (!GetOverrideEventCommand().IsEmpty())
 		attrs |= ModAttrEventHandlerCommand;
 
+	if (!GetOverrideCheckCommand().IsEmpty())
+		attrs |= ModAttrCheckCommand;
+
 	// TODO: finish
 
 	return attrs;
@@ -337,6 +340,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrEventHandlerCommand) == 0)
 		SetOverrideEventCommand(Empty);
+
+	if ((flags & ModAttrCheckCommand) == 0)
+		SetOverrideCheckCommand(Empty);
 }
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const

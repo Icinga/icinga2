@@ -109,6 +109,8 @@ public:
 
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
+	void SetCheckCommand(const shared_ptr<CheckCommand>& command);
+
 	TimePeriod::Ptr GetCheckPeriod(void) const;
 
 	double GetCheckInterval(void) const;
