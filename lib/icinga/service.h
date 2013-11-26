@@ -109,13 +109,19 @@ public:
 
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
+	void SetCheckCommand(const shared_ptr<CheckCommand>& command);
+
 	TimePeriod::Ptr GetCheckPeriod(void) const;
+	void SetCheckPeriod(const TimePeriod::Ptr& tp);
 
 	double GetCheckInterval(void) const;
 	void SetCheckInterval(double interval);
 
 	double GetRetryInterval(void) const;
 	void SetRetryInterval(double interval);
+
+	int GetMaxCheckAttempts(void) const;
+	void SetMaxCheckAttempts(int attempts);
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
@@ -235,7 +241,9 @@ public:
 
 	/* Event Handler */
 	void ExecuteEventHandler(void);
+
 	shared_ptr<EventCommand> GetEventCommand(void) const;
+	void SetEventCommand(const shared_ptr<EventCommand>& command);
 
 	bool GetEnableEventHandler(void) const;
 	void SetEnableEventHandler(bool enabled);
@@ -248,6 +256,10 @@ public:
 
 	bool IsFlapping(void) const;
 	void UpdateFlappingStatus(bool stateChange);
+
+	/* Performance data */
+	bool GetEnablePerfdata(void) const;
+	void SetEnablePerfdata(bool enabled, const String& authority = String());
 
 protected:
 	virtual void Start(void);

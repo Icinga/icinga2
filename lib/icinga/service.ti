@@ -34,7 +34,7 @@ class Service : DynamicObject
 	[config] Array::Ptr service_dependencies;
 	[config] Array::Ptr groups;
 	[config, protected] String check_command (CheckCommandRaw);
-	[config] int max_check_attempts {
+	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
 		default {{{ return 3; }}}
 	};
 	[config, protected] String check_period (CheckPeriodRaw);
@@ -66,6 +66,15 @@ class Service : DynamicObject
 		default {{{ return true; }}}
 	};
 	[config] bool enable_event_handler (EnableEventHandlerRaw) {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_notifications (EnableNotificationsRaw) {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_flapping (EnableFlappingRaw) {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_perfdata (EnablePerfdataRaw) {
 		default {{{ return true; }}}
 	};
 
@@ -115,24 +124,22 @@ class Service : DynamicObject
 	[state] Dictionary::Ptr downtimes {
 		default {{{ return make_shared<Dictionary>(); }}}
 	};
-	[state] bool enable_notifications (EnableNotificationsRaw) {
-		default {{{ return true; }}}
-	};
 	[state] bool force_next_notification (ForceNextNotificationRaw);
 	[state] int flapping_positive;
 	[state] int flapping_negative;
 	[state] double flapping_last_change;
-	[state] bool enable_flapping (EnableFlappingRaw) {
-		default {{{ return true; }}}
-	};
-	[state] bool enable_perfdata {
-		default {{{ return true; }}}
-	};
+	[state] Value override_enable_notifications;
 	[state] Value override_enable_active_checks;
 	[state] Value override_enable_passive_checks;
+	[state] Value override_enable_flapping;
+	[state] Value override_enable_perfdata;
 	[state] Value override_check_interval;
 	[state] Value override_retry_interval;
 	[state] Value override_enable_event_handler;
+	[state] Value override_event_command;
+	[state] Value override_check_command;
+	[state] Value override_max_check_attempts;
+	[state] Value override_check_period;
 };
 
 }

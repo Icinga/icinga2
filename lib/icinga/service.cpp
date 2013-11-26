@@ -260,9 +260,25 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
+bool Service::GetEnablePerfdata(void) const
+{
+	if (!GetOverrideEnablePerfdata().IsEmpty())
+		return GetOverrideEnablePerfdata();
+	else
+		return GetEnablePerfdataRaw();
+}
+
+void Service::SetEnablePerfdata(bool enabled, const String& authority)
+{
+	SetOverrideEnablePerfdata(enabled);
+}
+
 int Service::GetModifiedAttributes(void) const
 {
 	int attrs = 0;
+
+	if (!GetOverrideEnableNotifications().IsEmpty())
+		attrs |= ModAttrNotificationsEnabled;
 
 	if (!GetOverrideEnableActiveChecks().IsEmpty())
 		attrs |= ModAttrActiveChecksEnabled;
@@ -270,14 +286,32 @@ int Service::GetModifiedAttributes(void) const
 	if (!GetOverrideEnablePassiveChecks().IsEmpty())
 		attrs |= ModAttrPassiveChecksEnabled;
 
+	if (!GetOverrideEnableFlapping().IsEmpty())
+		attrs |= ModAttrFlapDetectionEnabled;
+
 	if (!GetOverrideEnableEventHandler().IsEmpty())
 		attrs |= ModAttrEventHandlerEnabled;
+
+	if (!GetOverrideEnablePerfdata().IsEmpty())
+		attrs |= ModAttrPerformanceDataEnabled;
 
 	if (!GetOverrideCheckInterval().IsEmpty())
 		attrs |= ModAttrNormalCheckInterval;
 
 	if (!GetOverrideRetryInterval().IsEmpty())
 		attrs |= ModAttrRetryCheckInterval;
+
+	if (!GetOverrideEventCommand().IsEmpty())
+		attrs |= ModAttrEventHandlerCommand;
+
+	if (!GetOverrideCheckCommand().IsEmpty())
+		attrs |= ModAttrCheckCommand;
+
+	if (!GetOverrideMaxCheckAttempts().IsEmpty())
+		attrs |= ModAttrMaxCheckAttempts;
+
+	if (!GetOverrideCheckPeriod().IsEmpty())
+		attrs |= ModAttrCheckTimeperiod;
 
 	// TODO: finish
 
@@ -286,20 +320,41 @@ int Service::GetModifiedAttributes(void) const
 
 void Service::SetModifiedAttributes(int flags)
 {
+	if ((flags & ModAttrNotificationsEnabled) == 0)
+		SetOverrideEnableNotifications(Empty);
+
 	if ((flags & ModAttrActiveChecksEnabled) == 0)
 		SetOverrideEnableActiveChecks(Empty);
 
 	if ((flags & ModAttrPassiveChecksEnabled) == 0)
 		SetOverrideEnablePassiveChecks(Empty);
 
+	if ((flags & ModAttrFlapDetectionEnabled) == 0)
+		SetOverrideEnableFlapping(Empty);
+
 	if ((flags & ModAttrEventHandlerEnabled) == 0)
 		SetOverrideEnableEventHandler(Empty);
+
+	if ((flags & ModAttrPerformanceDataEnabled) == 0)
+		SetOverrideEnablePerfdata(Empty);
 
 	if ((flags & ModAttrNormalCheckInterval) == 0)
 		SetOverrideCheckInterval(Empty);
 
 	if ((flags & ModAttrRetryCheckInterval) == 0)
 		SetOverrideRetryInterval(Empty);
+
+	if ((flags & ModAttrEventHandlerCommand) == 0)
+		SetOverrideEventCommand(Empty);
+
+	if ((flags & ModAttrCheckCommand) == 0)
+		SetOverrideCheckCommand(Empty);
+
+	if ((flags & ModAttrMaxCheckAttempts) == 0)
+		SetOverrideMaxCheckAttempts(Empty);
+
+	if ((flags & ModAttrCheckTimeperiod) == 0)
+		SetOverrideCheckPeriod(Empty);
 }
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const

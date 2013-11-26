@@ -141,6 +141,14 @@ private:
 	static void DisableHostEventHandler(double time, const std::vector<String>& arguments);
 	static void EnableSvcEventHandler(double time, const std::vector<String>& arguments);
 	static void DisableSvcEventHandler(double time, const std::vector<String>& arguments);
+	static void ChangeHostEventHandler(double time, const std::vector<String>& arguments);
+	static void ChangeSvcEventHandler(double time, const std::vector<String>& arguments);
+	static void ChangeHostCheckCommand(double time, const std::vector<String>& arguments);
+	static void ChangeSvcCheckCommand(double time, const std::vector<String>& arguments);
+	static void ChangeMaxHostCheckAttempts(double time, const std::vector<String>& arguments);
+	static void ChangeMaxSvcCheckAttempts(double time, const std::vector<String>& arguments);
+	static void ChangeHostCheckTimeperiod(double time, const std::vector<String>& arguments);
+	static void ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments);
 };
 
 }

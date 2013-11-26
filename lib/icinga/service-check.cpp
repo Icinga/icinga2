@@ -47,12 +47,36 @@ boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFl
 
 CheckCommand::Ptr Service::GetCheckCommand(void) const
 {
-	return CheckCommand::GetByName(GetCheckCommandRaw());
+	String command;
+
+	if (!GetOverrideCheckCommand().IsEmpty())
+		command = GetOverrideCheckCommand();
+	else
+		command = GetCheckCommandRaw();
+
+	return CheckCommand::GetByName(command);
+}
+
+void Service::SetCheckCommand(const CheckCommand::Ptr& command)
+{
+	SetOverrideCheckCommand(command->GetName());
 }
 
 TimePeriod::Ptr Service::GetCheckPeriod(void) const
 {
-	return TimePeriod::GetByName(GetCheckPeriodRaw());
+	String tp;
+
+	if (!GetOverrideCheckPeriod().IsEmpty())
+		tp = GetOverrideCheckPeriod();
+	else
+		tp = GetCheckPeriodRaw();
+
+	return TimePeriod::GetByName(tp);
+}
+
+void Service::SetCheckPeriod(const TimePeriod::Ptr& tp)
+{
+	SetOverrideCheckPeriod(tp->GetName());
 }
 
 double Service::GetCheckInterval(void) const
@@ -179,6 +203,19 @@ void Service::SetForceNextCheck(bool forced, const String& authority)
 	SetForceNextCheckRaw(forced);
 
 	OnForceNextCheckChanged(GetSelf(), forced, authority);
+}
+
+int Service::GetMaxCheckAttempts(void) const
+{
+	if (!GetOverrideMaxCheckAttempts().IsEmpty())
+		return GetOverrideMaxCheckAttempts();
+	else
+		return GetMaxCheckAttemptsRaw();
+}
+
+void Service::SetMaxCheckAttempts(int attempts)
+{
+	SetOverrideMaxCheckAttempts(attempts);
 }
 
 void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
