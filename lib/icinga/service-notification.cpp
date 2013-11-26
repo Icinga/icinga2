@@ -166,7 +166,7 @@ bool Service::GetEnableNotifications(void) const
 	if (!GetOverrideEnableNotifications().IsEmpty())
 		return GetOverrideEnableNotifications();
 	else
-		return GetEnableNotifications();
+		return GetEnableNotificationsRaw();
 }
 
 void Service::SetEnableNotifications(bool enabled, const String& authority)

@@ -42,12 +42,15 @@ double Service::GetFlappingCurrent(void) const
 
 bool Service::GetEnableFlapping(void) const
 {
-	return GetEnableFlappingRaw();
+	if (!GetOverrideEnableFlapping().IsEmpty())
+		return GetOverrideEnableFlapping();
+	else
+		return GetEnableFlappingRaw();
 }
 
 void Service::SetEnableFlapping(bool enabled, const String& authority)
 {
-	SetEnableFlappingRaw(enabled);
+	SetOverrideEnableFlapping(enabled);
 
 	OnFlappingChanged(GetSelf(), enabled ? FlappingEnabled : FlappingDisabled);
 	OnEnableFlappingChanged(GetSelf(), enabled, authority);

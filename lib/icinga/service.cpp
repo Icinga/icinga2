@@ -273,6 +273,9 @@ int Service::GetModifiedAttributes(void) const
 	if (!GetOverrideEnablePassiveChecks().IsEmpty())
 		attrs |= ModAttrPassiveChecksEnabled;
 
+	if (!GetOverrideEnableFlapping().IsEmpty())
+		attrs |= ModAttrFlapDetectionEnabled;
+
 	if (!GetOverrideEnableEventHandler().IsEmpty())
 		attrs |= ModAttrEventHandlerEnabled;
 
@@ -297,6 +300,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrPassiveChecksEnabled) == 0)
 		SetOverrideEnablePassiveChecks(Empty);
+
+	if ((flags & ModAttrFlapDetectionEnabled) == 0)
+		SetOverrideEnableFlapping(Empty);
 
 	if ((flags & ModAttrEventHandlerEnabled) == 0)
 		SetOverrideEnableEventHandler(Empty);
