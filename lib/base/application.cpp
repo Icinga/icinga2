@@ -312,16 +312,31 @@ bool Application::IsDebugging(void)
 }
 
 /**
+ * Display version information.
+ */
+void Application::DisplayVersionMessage(void)
+{
+	std::cerr << "***" << std::endl
+		  << "* Application version: " << GetVersion() << std::endl
+		  << "* Installation root: " << GetPrefixDir() << std::endl
+		  << "* Local state directory: " << GetLocalStateDir() << std::endl
+		  << "* Package data directory: " << GetPkgDataDir() << std::endl
+		  << "* State path: " << GetStatePath() << std::endl
+		  << "* PID path: " << GetPidPath() << std::endl
+		  << "* Application type: " << GetApplicationType() << std::endl
+		  << "***" << std::endl;
+}
+
+/**
  * Displays a message that tells users what to do when they encounter a bug.
  */
 void Application::DisplayBugMessage(void)
 {
 	std::cerr << "***" << std::endl
-		  << "*** This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << std::endl
-		  << "*** please submit a bug report at https://dev.icinga.org/ and include this stack trace as well as any other" << std::endl
-		  << "*** information that might be useful in order to reproduce this problem." << std::endl
-		  << "***" << std::endl
-		  << std::endl;
+		  << "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << std::endl
+		  << "* please submit a bug report at https://dev.icinga.org/ and include this stack trace as well as any other" << std::endl
+		  << "* information that might be useful in order to reproduce this problem." << std::endl
+		  << "***" << std::endl;
 }
 
 #ifndef _WIN32
@@ -360,7 +375,10 @@ void Application::SigAbrtHandler(int)
 	sigaction(SIGABRT, &sa, NULL);
 #endif /* _WIN32 */
 
-	std::cerr << "Caught SIGABRT." << std::endl;
+	std::cerr << "Caught SIGABRT." << std::endl
+		  << std::endl;
+
+	DisplayVersionMessage();
 
 	StackTrace trace;
 	std::cerr << "Stacktrace:" << std::endl;
@@ -399,6 +417,11 @@ void Application::ExceptionHandler(void)
 	sigaction(SIGABRT, &sa, NULL);
 #endif /* _WIN32 */
 
+	std::cerr << "Caught unhandled exception." << std::endl
+		  << std::endl;
+
+	DisplayVersionMessage();
+
 	try {
 		throw;
 	} catch (const std::exception& ex) {
@@ -415,7 +438,10 @@ void Application::ExceptionHandler(void)
 #ifdef _WIN32
 LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 {
-	std::cerr << "Unhandled SEH exception." << std::endl;
+	DisplayVersionMessage();
+
+	std::cerr << "Caught unhandled SEH exception." << std::endl
+		  << std::endl;
 
 	StackTrace trace(exi);
 	std::cerr << "Stacktrace:" << std::endl;

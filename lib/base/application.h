@@ -122,6 +122,7 @@ private:
 	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
+	static void DisplayVersionMessage(void);
 	static void DisplayBugMessage(void);
 
 	static void SigAbrtHandler(int signum);
