@@ -310,6 +310,9 @@ int Service::GetModifiedAttributes(void) const
 	if (!GetOverrideMaxCheckAttempts().IsEmpty())
 		attrs |= ModAttrMaxCheckAttempts;
 
+	if (!GetOverrideCheckPeriod().IsEmpty())
+		attrs |= ModAttrCheckTimeperiod;
+
 	// TODO: finish
 
 	return attrs;
@@ -349,6 +352,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrMaxCheckAttempts) == 0)
 		SetOverrideMaxCheckAttempts(Empty);
+
+	if ((flags & ModAttrCheckTimeperiod) == 0)
+		SetOverrideCheckPeriod(Empty);
 }
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const

@@ -139,6 +139,7 @@ class Service : DynamicObject
 	[state] Value override_event_command;
 	[state] Value override_check_command;
 	[state] Value override_max_check_attempts;
+	[state] Value override_check_period;
 };
 
 }

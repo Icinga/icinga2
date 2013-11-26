@@ -147,6 +147,8 @@ private:
 	static void ChangeSvcCheckCommand(double time, const std::vector<String>& arguments);
 	static void ChangeMaxHostCheckAttempts(double time, const std::vector<String>& arguments);
 	static void ChangeMaxSvcCheckAttempts(double time, const std::vector<String>& arguments);
+	static void ChangeHostCheckTimeperiod(double time, const std::vector<String>& arguments);
+	static void ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments);
 };
 
 }

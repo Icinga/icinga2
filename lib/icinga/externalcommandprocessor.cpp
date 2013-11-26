@@ -197,6 +197,8 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("CHANGE_SVC_CHECK_COMMAND", &ExternalCommandProcessor::ChangeSvcCheckCommand);
 	RegisterCommand("CHANGE_MAX_HOST_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxHostCheckAttempts);
 	RegisterCommand("CHANGE_MAX_SVC_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxSvcCheckAttempts);
+	RegisterCommand("CHANGE_HOST_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeHostCheckTimeperiod);
+	RegisterCommand("CHANGE_SVC_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeSvcCheckTimeperiod);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -2165,5 +2167,55 @@ void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double time, const std:
 		ObjectLock olock(service);
 
 		service->SetMaxCheckAttempts(attempts);
+	}
+}
+
+void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change check period for non-existent host '" + arguments[0] + "'"));
+
+	Service::Ptr hc = host->GetCheckService();
+
+	TimePeriod::Ptr tp = TimePeriod::GetByName(arguments[2]);
+
+	if (!tp)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period '" + arguments[1] + "' does not exist."));
+
+	Log(LogInformation, "icinga", "Changing check period for host '" + arguments[0] + "' to '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetCheckPeriod(tp);
+	}
+}
+
+void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change check period for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	TimePeriod::Ptr tp = TimePeriod::GetByName(arguments[2]);
+
+	if (!tp)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period '" + arguments[2] + "' does not exist."));
+
+	Log(LogInformation, "icinga", "Changing check period for service '" + arguments[1] + "' to '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetCheckPeriod(tp);
 	}
 }

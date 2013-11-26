@@ -64,7 +64,19 @@ void Service::SetCheckCommand(const CheckCommand::Ptr& command)
 
 TimePeriod::Ptr Service::GetCheckPeriod(void) const
 {
-	return TimePeriod::GetByName(GetCheckPeriodRaw());
+	String tp;
+
+	if (!GetOverrideCheckPeriod().IsEmpty())
+		tp = GetOverrideCheckPeriod();
+	else
+		tp = GetCheckPeriodRaw();
+
+	return TimePeriod::GetByName(tp);
+}
+
+void Service::SetCheckPeriod(const TimePeriod::Ptr& tp)
+{
+	SetOverrideCheckPeriod(tp->GetName());
 }
 
 double Service::GetCheckInterval(void) const

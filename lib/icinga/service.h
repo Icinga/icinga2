@@ -112,6 +112,7 @@ public:
 	void SetCheckCommand(const shared_ptr<CheckCommand>& command);
 
 	TimePeriod::Ptr GetCheckPeriod(void) const;
+	void SetCheckPeriod(const TimePeriod::Ptr& tp);
 
 	double GetCheckInterval(void) const;
 	void SetCheckInterval(double interval);
