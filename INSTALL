@@ -67,6 +67,16 @@ You can specify an alternative installation prefix using -DCMAKE_INSTALL_PREFIX:
 
 $ cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
+In addition to CMAKE_INSTALL_PREFIX the following Icinga-specific cmake
+variables are supported:
+
+- ICINGA2_USER: The user Icinga 2 should run as; defaults to "icinga"
+- ICINGA2_GROUP: The group Icinga 2 should run as; defaults to "icinga"
+- ICINGA2_COMMAND_USER: The command user Icinga 2 should use; defaults to "icinga"
+- ICINGA2_COMMAND_GROUP: The command group Icinga 2 should use; default to "icingacmd"
+- CMAKE_INSTALL_SYSCONFDIR: The configuration directory; defaults to CMAKE_INSTALL_PREFIX/etc
+- CMAKE_INSTALL_LOCALSTATEDIR: The state directory; defaults to CMAKE_INSTALL_PREFIX/var
+
 Running Icinga 2
 ----------------
 
