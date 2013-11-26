@@ -141,6 +141,8 @@ private:
 	static void DisableHostEventHandler(double time, const std::vector<String>& arguments);
 	static void EnableSvcEventHandler(double time, const std::vector<String>& arguments);
 	static void DisableSvcEventHandler(double time, const std::vector<String>& arguments);
+	static void ChangeHostEventHandler(double time, const std::vector<String>& arguments);
+	static void ChangeSvcEventHandler(double time, const std::vector<String>& arguments);
 };
 
 }

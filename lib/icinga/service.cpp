@@ -301,6 +301,9 @@ int Service::GetModifiedAttributes(void) const
 	if (!GetOverrideRetryInterval().IsEmpty())
 		attrs |= ModAttrRetryCheckInterval;
 
+	if (!GetOverrideEventCommand().IsEmpty())
+		attrs |= ModAttrEventHandlerCommand;
+
 	// TODO: finish
 
 	return attrs;
@@ -331,6 +334,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrRetryCheckInterval) == 0)
 		SetOverrideRetryInterval(Empty);
+
+	if ((flags & ModAttrEventHandlerCommand) == 0)
+		SetOverrideEventCommand(Empty);
 }
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const

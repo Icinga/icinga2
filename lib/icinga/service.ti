@@ -136,6 +136,7 @@ class Service : DynamicObject
 	[state] Value override_check_interval;
 	[state] Value override_retry_interval;
 	[state] Value override_enable_event_handler;
+	[state] Value override_event_command;
 };
 
 }

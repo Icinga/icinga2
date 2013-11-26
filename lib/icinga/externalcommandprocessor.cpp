@@ -25,6 +25,7 @@
 #include "icinga/servicegroup.h"
 #include "icinga/pluginutility.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/eventcommand.h"
 #include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
@@ -190,6 +191,8 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::DisableHostEventHandler);
 	RegisterCommand("ENABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::EnableSvcEventHandler);
 	RegisterCommand("DISABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::DisableSvcEventHandler);
+	RegisterCommand("CHANGE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::ChangeHostEventHandler);
+	RegisterCommand("CHANGE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::ChangeSvcEventHandler);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -1987,7 +1990,7 @@ void ExternalCommandProcessor::EnableSvcEventHandler(double time, const std::vec
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable event handlerfor non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
 	Log(LogInformation, "icinga", "Enabling event handler for service '" + arguments[1] + "'");
 
@@ -2006,7 +2009,7 @@ void ExternalCommandProcessor::DisableSvcEventHandler(double time, const std::ve
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable event handlerfor non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
 	Log(LogInformation, "icinga", "Disabling event handler for service '" + arguments[1] + "'");
 
@@ -2014,5 +2017,55 @@ void ExternalCommandProcessor::DisableSvcEventHandler(double time, const std::ve
 		ObjectLock olock(service);
 
 		service->SetEnableEventHandler(false);
+	}
+}
+
+void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
+
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for non-existent host '" + arguments[0] + "'"));
+
+	Service::Ptr hc = host->GetCheckService();
+
+	EventCommand::Ptr command = EventCommand::GetByName(arguments[2]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[1] + "' does not exist."));
+
+	Log(LogInformation, "icinga", "Changing event handler for host '" + arguments[0] + "' to '" + arguments[1] + "'");
+
+	{
+		ObjectLock olock(hc);
+
+		hc->SetEventCommand(command);
+	}
+}
+
+void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
+
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	EventCommand::Ptr command = EventCommand::GetByName(arguments[2]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[2] + "' does not exist."));
+
+	Log(LogInformation, "icinga", "Changing event handler for service '" + arguments[1] + "' to '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetEventCommand(command);
 	}
 }

@@ -41,7 +41,19 @@ void Service::SetEnableEventHandler(bool enabled)
 
 EventCommand::Ptr Service::GetEventCommand(void) const
 {
-	return EventCommand::GetByName(GetEventCommandRaw());
+	String command;
+
+	if (!GetOverrideEventCommand().IsEmpty())
+		command = GetOverrideEventCommand();
+	else
+		command = GetEventCommandRaw();
+
+	return EventCommand::GetByName(command);
+}
+
+void Service::SetEventCommand(const EventCommand::Ptr& command)
+{
+	SetOverrideEventCommand(command->GetName());
 }
 
 void Service::ExecuteEventHandler(void)

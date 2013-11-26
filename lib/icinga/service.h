@@ -235,7 +235,9 @@ public:
 
 	/* Event Handler */
 	void ExecuteEventHandler(void);
+
 	shared_ptr<EventCommand> GetEventCommand(void) const;
+	void SetEventCommand(const shared_ptr<EventCommand>& command);
 
 	bool GetEnableEventHandler(void) const;
 	void SetEnableEventHandler(bool enabled);
