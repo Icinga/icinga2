@@ -119,6 +119,9 @@ public:
 	double GetRetryInterval(void) const;
 	void SetRetryInterval(double interval);
 
+	int GetMaxCheckAttempts(void) const;
+	void SetMaxCheckAttempts(int attempts);
+
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
 

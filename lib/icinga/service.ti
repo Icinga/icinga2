@@ -34,7 +34,7 @@ class Service : DynamicObject
 	[config] Array::Ptr service_dependencies;
 	[config] Array::Ptr groups;
 	[config, protected] String check_command (CheckCommandRaw);
-	[config] int max_check_attempts {
+	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
 		default {{{ return 3; }}}
 	};
 	[config, protected] String check_period (CheckPeriodRaw);
@@ -138,6 +138,7 @@ class Service : DynamicObject
 	[state] Value override_enable_event_handler;
 	[state] Value override_event_command;
 	[state] Value override_check_command;
+	[state] Value override_max_check_attempts;
 };
 
 }

@@ -307,6 +307,9 @@ int Service::GetModifiedAttributes(void) const
 	if (!GetOverrideCheckCommand().IsEmpty())
 		attrs |= ModAttrCheckCommand;
 
+	if (!GetOverrideMaxCheckAttempts().IsEmpty())
+		attrs |= ModAttrMaxCheckAttempts;
+
 	// TODO: finish
 
 	return attrs;
@@ -343,6 +346,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrCheckCommand) == 0)
 		SetOverrideCheckCommand(Empty);
+
+	if ((flags & ModAttrMaxCheckAttempts) == 0)
+		SetOverrideMaxCheckAttempts(Empty);
 }
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const

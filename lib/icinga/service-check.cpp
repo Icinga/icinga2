@@ -193,6 +193,19 @@ void Service::SetForceNextCheck(bool forced, const String& authority)
 	OnForceNextCheckChanged(GetSelf(), forced, authority);
 }
 
+int Service::GetMaxCheckAttempts(void) const
+{
+	if (!GetOverrideMaxCheckAttempts().IsEmpty())
+		return GetOverrideMaxCheckAttempts();
+	else
+		return GetMaxCheckAttemptsRaw();
+}
+
+void Service::SetMaxCheckAttempts(int attempts)
+{
+	SetOverrideMaxCheckAttempts(attempts);
+}
+
 void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
 {
 	double now = Utility::GetTime();
