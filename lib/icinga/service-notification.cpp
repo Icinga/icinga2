@@ -163,12 +163,15 @@ void Service::UpdateSlaveNotifications(void)
 
 bool Service::GetEnableNotifications(void) const
 {
-	return GetEnableNotificationsRaw();
+	if (!GetOverrideEnableNotifications().IsEmpty())
+		return GetOverrideEnableNotifications();
+	else
+		return GetEnableNotifications();
 }
 
 void Service::SetEnableNotifications(bool enabled, const String& authority)
 {
-	SetEnableNotificationsRaw(enabled);
+	SetOverrideEnableActiveChecks(enabled);
 
 	OnEnableNotificationsChanged(GetSelf(), enabled, authority);
 }

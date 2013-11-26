@@ -68,6 +68,9 @@ class Service : DynamicObject
 	[config] bool enable_event_handler (EnableEventHandlerRaw) {
 		default {{{ return true; }}}
 	};
+	[config] bool enable_notifications (EnableNotificationsRaw) {
+		default {{{ return true; }}}
+	};
 
 	[state] double next_check (NextCheckRaw);
 	[state] int check_attempt {
@@ -115,9 +118,6 @@ class Service : DynamicObject
 	[state] Dictionary::Ptr downtimes {
 		default {{{ return make_shared<Dictionary>(); }}}
 	};
-	[state] bool enable_notifications (EnableNotificationsRaw) {
-		default {{{ return true; }}}
-	};
 	[state] bool force_next_notification (ForceNextNotificationRaw);
 	[state] int flapping_positive;
 	[state] int flapping_negative;
@@ -128,6 +128,7 @@ class Service : DynamicObject
 	[state] bool enable_perfdata {
 		default {{{ return true; }}}
 	};
+	[state] Value override_enable_notifications;
 	[state] Value override_enable_active_checks;
 	[state] Value override_enable_passive_checks;
 	[state] Value override_check_interval;

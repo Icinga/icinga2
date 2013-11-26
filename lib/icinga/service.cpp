@@ -264,6 +264,9 @@ int Service::GetModifiedAttributes(void) const
 {
 	int attrs = 0;
 
+	if (!GetOverrideEnableNotifications().IsEmpty())
+		attrs |= ModAttrNotificationsEnabled;
+
 	if (!GetOverrideEnableActiveChecks().IsEmpty())
 		attrs |= ModAttrActiveChecksEnabled;
 
@@ -286,6 +289,9 @@ int Service::GetModifiedAttributes(void) const
 
 void Service::SetModifiedAttributes(int flags)
 {
+	if ((flags & ModAttrNotificationsEnabled) == 0)
+		SetOverrideEnableNotifications(Empty);
+
 	if ((flags & ModAttrActiveChecksEnabled) == 0)
 		SetOverrideEnableActiveChecks(Empty);
 
