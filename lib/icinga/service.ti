@@ -74,6 +74,9 @@ class Service : DynamicObject
 	[config] bool enable_flapping (EnableFlappingRaw) {
 		default {{{ return true; }}}
 	};
+	[config] bool enable_perfdata (EnablePerfdataRaw) {
+		default {{{ return true; }}}
+	};
 
 	[state] double next_check (NextCheckRaw);
 	[state] int check_attempt {
@@ -125,13 +128,11 @@ class Service : DynamicObject
 	[state] int flapping_positive;
 	[state] int flapping_negative;
 	[state] double flapping_last_change;
-	[state] bool enable_perfdata {
-		default {{{ return true; }}}
-	};
 	[state] Value override_enable_notifications;
 	[state] Value override_enable_active_checks;
 	[state] Value override_enable_passive_checks;
 	[state] Value override_enable_flapping;
+	[state] Value override_enable_perfdata;
 	[state] Value override_check_interval;
 	[state] Value override_retry_interval;
 	[state] Value override_enable_event_handler;

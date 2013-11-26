@@ -249,6 +249,10 @@ public:
 	bool IsFlapping(void) const;
 	void UpdateFlappingStatus(bool stateChange);
 
+	/* Performance data */
+	bool GetEnablePerfdata(void) const;
+	void SetEnablePerfdata(bool enabled, const String& authority = String());
+
 protected:
 	virtual void Start(void);
 

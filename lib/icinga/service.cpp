@@ -260,6 +260,19 @@ std::set<Service::Ptr> Service::GetParentServices(void) const
 	return parents;
 }
 
+bool Service::GetEnablePerfdata(void) const
+{
+	if (!GetOverrideEnablePerfdata().IsEmpty())
+		return GetOverrideEnablePerfdata();
+	else
+		return GetEnablePerfdataRaw();
+}
+
+void Service::SetEnablePerfdata(bool enabled, const String& authority)
+{
+	SetOverrideEnablePerfdata(enabled);
+}
+
 int Service::GetModifiedAttributes(void) const
 {
 	int attrs = 0;
@@ -278,6 +291,9 @@ int Service::GetModifiedAttributes(void) const
 
 	if (!GetOverrideEnableEventHandler().IsEmpty())
 		attrs |= ModAttrEventHandlerEnabled;
+
+	if (!GetOverrideEnablePerfdata().IsEmpty())
+		attrs |= ModAttrPerformanceDataEnabled;
 
 	if (!GetOverrideCheckInterval().IsEmpty())
 		attrs |= ModAttrNormalCheckInterval;
@@ -306,6 +322,9 @@ void Service::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrEventHandlerEnabled) == 0)
 		SetOverrideEnableEventHandler(Empty);
+
+	if ((flags & ModAttrPerformanceDataEnabled) == 0)
+		SetOverrideEnablePerfdata(Empty);
 
 	if ((flags & ModAttrNormalCheckInterval) == 0)
 		SetOverrideCheckInterval(Empty);
