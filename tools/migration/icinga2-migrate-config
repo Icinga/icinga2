@@ -1609,6 +1609,9 @@ sub convert_checkcommand {
     # split by ! and take only the check command
     my ($real_command_name_1x, @command_args_1x) = split /!/, $check_command;
 
+    # sanitize object name
+    $real_command_name_1x = strip_object_name($real_command_name_1x);
+
     # ignore objects with empty check_command attribute
     #return if (!defined($real_command_name_1x));
 
