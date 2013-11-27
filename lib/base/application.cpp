@@ -610,6 +610,26 @@ void Application::DeclarePrefixDir(const String& path)
 }
 
 /**
+ * Retrives the path of the sysconf dir.
+ *
+ * @returns The path.
+ */
+String Application::GetSysconfDir(void)
+{
+	return ScriptVariable::Get("IcingaSysconfDir");
+}
+
+/**
+ * Sets the path of the sysconf dir.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareSysconfDir(const String& path)
+{
+	ScriptVariable::Declare("IcingaSysconfDir", path);
+}
+
+/**
  * Retrieves the path for the local state dir.
  *
  * @returns The path.

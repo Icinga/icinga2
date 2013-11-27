@@ -73,6 +73,9 @@ public:
 	static String GetPrefixDir(void);
 	static void DeclarePrefixDir(const String& path);
 
+	static String GetSysconfDir(void);
+	static void DeclareSysconfDir(const String& path);
+
 	static String GetLocalStateDir(void);
 	static void DeclareLocalStateDir(const String& path);
 
