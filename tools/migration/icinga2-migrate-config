@@ -433,7 +433,8 @@ sub parse_icinga1_object_cfg {
                     $attr =~ /groups/ ||
                     $attr =~ /members/ ||
                     $attr =~ /use/ ||
-                    $attr =~ /parents/
+                    $attr =~ /parents/ ||
+                    $attr =~ /_period/
                 ) {
                 $val = strip_object_name($val);
             }
@@ -479,7 +480,7 @@ sub parse_icinga1_objects_cache {
 
     my $cfg_obj_cache = {};
 
-    print "Processing file '$cfg_file'...\n";
+    print "Processing file '$object_cache_file'...\n";
     $cfg_obj_cache = parse_icinga1_object_cfg($cfg_obj_cache, $object_cache_file);
 
     #say Dumper($cfg_obj_cache);
