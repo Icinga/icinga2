@@ -6,6 +6,9 @@ export DH_VERBOSE=1
 	dh $@
 
 override_dh_auto_clean:
+	# configure icinga2 to get icinga-version.h
+	dh_auto_configure
+	# now clean build dir
 	dh_auto_clean
 	rm -f config.log
 	rm -f config.status
