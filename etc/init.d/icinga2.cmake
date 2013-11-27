@@ -7,7 +7,7 @@
 # Provides:          icinga2
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
-# Default-Start:     2 3 4 5
+# Default-Start:     2 3 5
 # Default-Stop:      0 1 6
 # Short-Description: icinga2 host/service/network monitoring and management system
 # Description:       Icinga 2 is a monitoring and management system for hosts, services and networks.

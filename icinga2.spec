@@ -252,6 +252,31 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
+%if 0%{?suse_version}
+%post
+%{fillup_and_insserv icinga2}
+%postun
+%restart_on_update icinga2
+%insserv_cleanup
+%preun
+%stop_on_removal icinga2
+
+%else
+
+%post
+/sbin/chkconfig --add icinga2
+%postun
+if [ "$1" -ge  "1" ]; then
+	/sbin/service icinga2 condrestart >/dev/null 2>&1 || :
+fi
+%preun
+if [ "$1" = "0" ]; then
+	/sbin/service icinga2 stop > /dev/null 2>&1
+	/sbin/chkconfig --del icinga2
+fi
+
+%endif
+
 %post ido-mysql
 if [ ${1:-0} -eq 1 ]
 then
