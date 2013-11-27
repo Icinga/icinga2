@@ -319,6 +319,7 @@ void Application::DisplayVersionMessage(void)
 	std::cerr << "***" << std::endl
 		  << "* Application version: " << GetVersion() << std::endl
 		  << "* Installation root: " << GetPrefixDir() << std::endl
+		  << "* Sysconf directory: " << GetSysconfDir() << std::endl
 		  << "* Local state directory: " << GetLocalStateDir() << std::endl
 		  << "* Package data directory: " << GetPkgDataDir() << std::endl
 		  << "* State path: " << GetStatePath() << std::endl
