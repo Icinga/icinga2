@@ -198,6 +198,7 @@ int main(int argc, char **argv)
 	Application::InstallExceptionHandlers();
 
 	Application::DeclarePrefixDir(ICINGA_PREFIX);
+	Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
 	Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
 	Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
 
