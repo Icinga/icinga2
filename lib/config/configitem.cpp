@@ -144,8 +144,6 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 {
 	ASSERT(!OwnsLock());
 
-	String type, name;
-
 	Log(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
 
 	/* Make sure the type is valid. */
@@ -154,7 +152,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (!dtype)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Type '" + GetType() + "' does not exist."));
 
-	if (m_DynamicObject.lock() || dtype->GetObject(m_Name))
+	if (dtype->GetObject(GetName()))
 	    BOOST_THROW_EXCEPTION(std::runtime_error("An object with type '" + GetType() + "' and name '" + GetName() + "' already exists."));
 
 	if (IsAbstract())
@@ -197,18 +195,6 @@ void ConfigItem::Register(void)
 
 		m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
 	}
-}
-
-/**
- * Retrieves the DynamicObject that belongs to the configuration item.
- *
- * @returns The DynamicObject.
- */
-DynamicObject::Ptr ConfigItem::GetDynamicObject(void) const
-{
-	ObjectLock olock(this);
-
-	return m_DynamicObject.lock();
 }
 
 /**

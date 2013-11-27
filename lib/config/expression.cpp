@@ -192,7 +192,7 @@ void Expression::ExtractPath(const std::vector<String>& path, const ExpressionLi
 	}
 }
 
-void Expression::ExtractFiltered(const std::set<String, string_iless>& keys, const shared_ptr<ExpressionList>& result) const
+void Expression::ExtractFiltered(const std::set<String>& keys, const shared_ptr<ExpressionList>& result) const
 {
 	if (keys.find(m_Key) != keys.end()) {
 		result->AddExpression(*this);

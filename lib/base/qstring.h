@@ -151,30 +151,16 @@ struct string_iless : std::binary_function<String, String, bool>
 {
 	bool operator()(const String& s1, const String& s2) const
 	{
-		return strcasecmp(s1.CStr(), s2.CStr()) < 0;
+		 return strcasecmp(s1.CStr(), s2.CStr()) < 0;
 
-		/* The "right" way would be to do this - however the
-		 * overhead is _massive_ due to the repeated non-inlined
-		 * function calls:
+		 /* The "right" way would be to do this - however the
+		  * overhead is _massive_ due to the repeated non-inlined
+		  * function calls:
 
-		return lexicographical_compare(s1.Begin(), s1.End(),
-		    s2.Begin(), s2.End(), boost::algorithm::is_iless());
+		 return lexicographical_compare(s1.Begin(), s1.End(),
+		     s2.Begin(), s2.End(), boost::algorithm::is_iless());
 
-		 */
-	}
-};
-
-struct pair_string_iless : std::binary_function<std::pair<String, String>, std::pair<String, String>, bool>
-{
-	bool operator()(const std::pair<String, String>& p1, const std::pair<String, String>& p2) const
-	{
-		if (string_iless()(p1.first, p2.first))
-			return true;
-
-		if (string_iless()(p2.first, p1.first))
-			return false;
-
-		return string_iless()(p1.second, p2.second);
+		  */
 	}
 };
 

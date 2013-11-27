@@ -40,8 +40,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(DbType);
 
 	typedef boost::function<shared_ptr<DbObject> (const shared_ptr<DbType>&, const String&, const String&)> ObjectFactory;
-	typedef std::map<String, DbType::Ptr, string_iless> TypeMap;
-	typedef std::map<std::pair<String, String>, shared_ptr<DbObject>, pair_string_iless> ObjectMap;
+	typedef std::map<String, DbType::Ptr> TypeMap;
+	typedef std::map<std::pair<String, String>, shared_ptr<DbObject> > ObjectMap;
 
 	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 

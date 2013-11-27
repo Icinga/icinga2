@@ -55,8 +55,6 @@ public:
 	DynamicObject::Ptr Commit(void);
 	void Register(void);
 
-	DynamicObject::Ptr GetDynamicObject(void) const;
-
 	DebugInfo GetDebugInfo(void) const;
 
 	static ConfigItem::Ptr GetObject(const String& type,
@@ -82,12 +80,9 @@ private:
 
 	ExpressionList::Ptr m_LinkedExpressionList;
 
-	DynamicObject::WeakPtr m_DynamicObject; /**< The instantiated version
-                                                 * of this configuration item */
-
 	static boost::mutex m_Mutex;
 
-	typedef std::map<std::pair<String, String>, ConfigItem::Ptr, pair_string_iless> ItemMap;
+	typedef std::map<std::pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,

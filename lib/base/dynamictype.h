@@ -69,13 +69,13 @@ public:
 private:
 	String m_Name;
 
-	typedef std::map<String, DynamicObject::Ptr, string_iless> ObjectMap;
+	typedef std::map<String, DynamicObject::Ptr> ObjectMap;
 	typedef std::vector<DynamicObject::Ptr> ObjectVector;
 
 	ObjectMap m_ObjectMap;
 	ObjectVector m_ObjectVector;
 
-	typedef std::map<String, DynamicType::Ptr, string_iless> TypeMap;
+	typedef std::map<String, DynamicType::Ptr> TypeMap;
 	typedef std::vector<DynamicType::Ptr> TypeVector;
 
 	static TypeMap& InternalGetTypeMap(void);

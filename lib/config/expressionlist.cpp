@@ -62,7 +62,7 @@ void ExpressionList::ExtractPath(const std::vector<String>& path, const Expressi
 	}
 }
 
-void ExpressionList::ExtractFiltered(const std::set<String, string_iless>& keys, const ExpressionList::Ptr& result) const
+void ExpressionList::ExtractFiltered(const std::set<String>& keys, const ExpressionList::Ptr& result) const
 {
 	BOOST_FOREACH(const Expression& expression, m_Expressions) {
 		expression.ExtractFiltered(keys, result);

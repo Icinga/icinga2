@@ -41,7 +41,7 @@ template<typename U, typename T>
 class Registry
 {
 public:
-	typedef std::map<String, T, string_iless> ItemMap;
+	typedef std::map<String, T> ItemMap;
 
 	static Registry<U, T> *GetInstance(void)
 	{
