@@ -303,19 +303,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 	/* update comments and downtimes on config change */
 	AddComments(service);
 	AddDowntimes(service);
-
-	/* service host config update */
-	Host::Ptr host = service->GetHost();
-
-	if (host->GetCheckService() != service)
-		return;
-
-	DbObject::Ptr dbobj = GetOrCreateByObject(host);
-
-	if (!dbobj)
-		return;
-
-	dbobj->SendConfigUpdate();
 }
 
 void ServiceDbObject::OnStatusUpdate(void)
