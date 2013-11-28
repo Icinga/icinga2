@@ -31,6 +31,15 @@
 namespace icinga
 {
 
+typedef boost::function<void (void)> WorkCallback;
+
+struct WorkItem
+{
+
+	WorkCallback Callback;
+	bool AllowInterleaved;
+};
+
 /**
  * A workqueue.
  *
@@ -39,13 +48,12 @@ namespace icinga
 class I2_BASE_API WorkQueue
 {
 public:
-	typedef boost::function<void (void)> WorkCallback;
 	typedef boost::function<void (boost::exception_ptr)> ExceptionCallback;
 
 	WorkQueue(size_t maxItems = 25000);
 	~WorkQueue(void);
 
-	void Enqueue(const WorkCallback& item);
+	void Enqueue(const WorkCallback& callback, bool allowInterleaved = false);
 	void Join(void);
 
 	boost::thread::id GetThreadId(void) const;
@@ -62,10 +70,11 @@ private:
 	size_t m_MaxItems;
 	bool m_Joined;
 	bool m_Stopped;
-	std::deque<WorkCallback> m_Items;
+	std::deque<WorkItem> m_Items;
 	ExceptionCallback m_ExceptionCallback;
+	double m_LastStatus;
 
-	void ProcessItems(boost::mutex::scoped_lock& lock);
+	void ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved);
 	void WorkerThreadProc(void);
 
 	static void DefaultExceptionCallback(boost::exception_ptr exp);

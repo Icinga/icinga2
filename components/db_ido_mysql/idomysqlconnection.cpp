@@ -99,7 +99,7 @@ void IdoMysqlConnection::Disconnect(void)
 
 void IdoMysqlConnection::TxTimerHandler(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::NewTransaction, this));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::NewTransaction, this), true);
 }
 
 void IdoMysqlConnection::NewTransaction(void)
@@ -280,7 +280,7 @@ Array::Ptr IdoMysqlConnection::Query(const String& query)
 			<< errinfo_database_query(query)
 		);
 
-	MYSQL_RES *result = mysql_store_result(&m_Connection);
+	MYSQL_RES *result = mysql_use_result(&m_Connection);
 
 	if (!result) {
 		if (mysql_field_count(&m_Connection) > 0)
@@ -465,7 +465,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query), true);
 }
 
 void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
@@ -595,7 +595,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 
 void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), true);
 }
 
 void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)

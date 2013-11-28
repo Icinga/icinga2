@@ -21,6 +21,7 @@
 #include "base/utility.h"
 #include "base/debug.h"
 #include "base/logger_fwd.h"
+#include "base/convert.h"
 #include <boost/bind.hpp>
 
 using namespace icinga;
@@ -29,7 +30,8 @@ int WorkQueue::m_NextID = 1;
 
 WorkQueue::WorkQueue(size_t maxItems)
 	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Joined(false),
-	  m_Stopped(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
+	  m_Stopped(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback),
+	  m_LastStatus(0)
 {
 	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
 }
@@ -45,7 +47,7 @@ WorkQueue::~WorkQueue(void)
  * Enqueues a work item. Work items are guaranteed to be executed in the order
  * they were enqueued in.
  */
-void WorkQueue::Enqueue(const WorkCallback& item)
+void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -58,10 +60,14 @@ void WorkQueue::Enqueue(const WorkCallback& item)
 			m_CV.wait(lock);
 	}
 
+	WorkItem item;
+	item.Callback = callback;
+	item.AllowInterleaved = allowInterleaved;
+
 	m_Items.push_back(item);
 
 	if (wq_thread)
-		ProcessItems(lock);
+		ProcessItems(lock, true);
 	else
 		m_CV.notify_all();
 }
@@ -93,16 +99,27 @@ void WorkQueue::DefaultExceptionCallback(boost::exception_ptr exp)
 	throw;
 }
 
-void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock)
+void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved)
 {
 	while (!m_Items.empty()) {
 		try {
-			WorkCallback wi = m_Items.front();
+			WorkItem wi = m_Items.front();
+
+			if (interleaved && !wi.AllowInterleaved)
+				return;
+
 			m_Items.pop_front();
 			m_CV.notify_all();
 
+			double now = Utility::GetTime();
+
+			if (m_LastStatus + 10 < now) {
+				Log(LogInformation, "base", "WQ items: " + Convert::ToString(m_Items.size()));
+				m_LastStatus = now;
+			}
+
 			lock.unlock();
-			wi();
+			wi.Callback();
 		} catch (const std::exception& ex) {
 			lock.lock();
 
@@ -132,7 +149,7 @@ void WorkQueue::WorkerThreadProc(void)
 		if (m_Joined)
 			break;
 
-		ProcessItems(lock);
+		ProcessItems(lock, false);
 	}
 
 	m_Stopped = true;
