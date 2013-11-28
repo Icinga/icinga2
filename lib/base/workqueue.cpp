@@ -21,6 +21,7 @@
 #include "base/utility.h"
 #include "base/debug.h"
 #include "base/logger_fwd.h"
+#include "base/convert.h"
 #include <boost/bind.hpp>
 
 using namespace icinga;
@@ -29,7 +30,8 @@ int WorkQueue::m_NextID = 1;
 
 WorkQueue::WorkQueue(size_t maxItems)
 	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Joined(false),
-	  m_Stopped(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
+	  m_Stopped(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback),
+	  m_LastStatus(0)
 {
 	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
 }
@@ -108,6 +110,13 @@ void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved)
 
 			m_Items.pop_front();
 			m_CV.notify_all();
+
+			double now = Utility::GetTime();
+
+			if (m_LastStatus + 10 < now) {
+				Log(LogInformation, "base", "WQ items: " + Convert::ToString(m_Items.size()));
+				m_LastStatus = now;
+			}
 
 			lock.unlock();
 			wi.Callback();

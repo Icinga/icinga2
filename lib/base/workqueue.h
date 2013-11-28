@@ -72,6 +72,7 @@ private:
 	bool m_Stopped;
 	std::deque<WorkItem> m_Items;
 	ExceptionCallback m_ExceptionCallback;
+	double m_LastStatus;
 
 	void ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved);
 	void WorkerThreadProc(void);
