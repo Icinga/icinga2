@@ -31,15 +31,18 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckerComponent);
 
-void CheckerComponent::Start(void)
+void CheckerComponent::OnConfigLoaded(void)
 {
-	DynamicObject::Start();
-
 	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 	DynamicObject::OnAuthorityChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
 	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
+}
+
+void CheckerComponent::Start(void)
+{
+	DynamicObject::Start();
 
 	m_Stopped = false;
 
@@ -49,10 +52,6 @@ void CheckerComponent::Start(void)
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
-
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		ObjectHandler(service);
-	}
 }
 
 void CheckerComponent::Stop(void)

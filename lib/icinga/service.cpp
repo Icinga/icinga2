@@ -44,14 +44,19 @@ Service::Service(void)
 
 void Service::Start(void)
 {
-	DynamicObject::Start();
-
 	VERIFY(GetHost());
 
 	AddDowntimesToCache();
 	AddCommentsToCache();
 
 	StartDowntimesExpiredTimer();
+
+	double now = Utility::GetTime();
+
+	if (GetNextCheck() < now + 300)
+		SetNextCheck(now + Utility::Random() % 300);
+
+	DynamicObject::Start();
 }
 
 void Service::OnConfigLoaded(void)
@@ -77,9 +82,6 @@ void Service::OnConfigLoaded(void)
 	UpdateSlaveNotifications();
 
 	SetSchedulingOffset(Utility::Random());
-
-	if (GetNextCheck() < Utility::GetTime() + 300)
-		SetNextCheck(Utility::GetTime() + Utility::Random() % 300);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)

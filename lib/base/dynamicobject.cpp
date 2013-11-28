@@ -45,11 +45,6 @@ boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnState
 boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
 
 DynamicObject::DynamicObject(void)
-{
-	SetActive(false);
-}
-
-DynamicObject::~DynamicObject(void)
 { }
 
 DynamicType::Ptr DynamicObject::GetType(void) const

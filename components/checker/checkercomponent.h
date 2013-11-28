@@ -67,6 +67,7 @@ public:
 		>
 	> ServiceSet;
 
+	virtual void OnConfigLoaded(void);
 	virtual void Start(void);
 	virtual void Stop(void);
 
