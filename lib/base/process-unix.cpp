@@ -129,6 +129,8 @@ ProcessResult Process::Run(void)
 		(void) close(fds[0]);
 		(void) close(fds[1]);
 
+		(void) nice(5);
+
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
 			perror("execvpe() failed.");
 			_exit(128);
