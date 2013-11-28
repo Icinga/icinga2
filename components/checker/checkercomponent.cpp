@@ -121,9 +121,12 @@ void CheckerComponent::CheckThreadProc(void)
 
 		/* reschedule the service if checks are disabled */
 		if (!check) {
+			m_IdleServices.insert(service);
+			lock.unlock();
+
 			service->UpdateNextCheck();
 
-			m_IdleServices.insert(service);
+			lock.lock();
 
 			continue;
 		}
