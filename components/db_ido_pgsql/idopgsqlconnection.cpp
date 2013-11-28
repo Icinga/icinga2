@@ -99,7 +99,7 @@ void IdoPgsqlConnection::Disconnect(void)
 
 void IdoPgsqlConnection::TxTimerHandler(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::NewTransaction, this));
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::NewTransaction, this), true);
 }
 
 void IdoPgsqlConnection::NewTransaction(void)
@@ -481,7 +481,7 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query));
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query), true);
 }
 
 void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
@@ -616,7 +616,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
 
 void IdoPgsqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age));
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), true);
 }
 
 void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
