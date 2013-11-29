@@ -76,6 +76,7 @@ public:
 	static String NewUniqueID(void);
 
 	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
+	static bool GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
 
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
 

@@ -212,6 +212,7 @@ name				{ yylval->type = TypeName; return T_TYPE_NAME; }
 object				return T_OBJECT;
 template			return T_TEMPLATE;
 include				return T_INCLUDE;
+include_recursive		return T_INCLUDE_RECURSIVE;
 library				return T_LIBRARY;
 inherits			return T_INHERITS;
 null				return T_NULL;

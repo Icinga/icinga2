@@ -386,7 +386,9 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 		struct stat statbuf;
 
 		if (stat(*gp, &statbuf) < 0)
-			continue;
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("stat")
+			    << boost::errinfo_errno(errno));
 
 		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
 			continue;
@@ -403,6 +405,121 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 	globfree(&gr);
 
 	return true;
+#endif /* _WIN32 */
+}
+
+/**
+ * Calls the specified callback for each file in the specified directory
+ * or any of its child directories if the file name matches the specified
+ * pattern.
+ *
+ * @param path The path.
+ * @param pattern The pattern.
+ * @param callback The callback which is invoked for each matching file.
+ * @param type The file type (a combination of GlobFile and GlobDirectory)
+ */
+bool Utility::GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type)
+{
+#ifdef _WIN32
+	HANDLE handle;
+	WIN32_FIND_DATA wfd;
+
+	String pathSpec = path + "/*";
+
+	handle = FindFirstFile(pathSpec.CStr(), &wfd);
+
+	if (handle == INVALID_HANDLE_VALUE) {
+		DWORD errorCode = GetLastError();
+
+		if (errorCode == ERROR_FILE_NOT_FOUND)
+			return false;
+
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << boost::errinfo_api_function("FindFirstFile")
+			<< errinfo_win32_error(errorCode)
+		    << boost::errinfo_file_name(pathSpec));
+	}
+
+	do {
+		String cpath = path + "/" + wfd.cFileName;
+
+		if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			GlobRecursive(cpath, pattern, callback, type);
+
+		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobDirectory))
+			continue;
+
+		if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobFile))
+			continue;
+
+		if (!Utility::Match(pattern, wfd.cFileName))
+			continue;
+
+		callback(cpath);
+	} while (FindNextFile(handle, &wfd));
+
+	if (!FindClose(handle)) {
+		BOOST_THROW_EXCEPTION(win32_error()
+		    << boost::errinfo_api_function("FindClose")
+		    << errinfo_win32_error(GetLastError()));
+	}
+
+	return true;
+#else /* _WIN32 */
+	DIR *dirp;
+
+	dirp = opendir(path.CStr());
+
+	if (dirp == NULL)
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("opendir")
+		    << boost::errinfo_errno(errno));
+
+	while (dirp) {
+		dirent ent, *pent;
+
+		if (readdir_r(dirp, &ent, &pent) < 0)
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("readdir_r")
+			    << boost::errinfo_errno(errno));
+
+		if (!pent)
+			break;
+
+		if (strcmp(ent.d_name, ".") == 0 || strcmp(ent.d_name, "..") == 0)
+			continue;
+
+		String cpath = path + "/" + ent.d_name;
+
+		struct stat statbuf;
+
+		if (lstat(cpath.CStr(), &statbuf) < 0)
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("lstat")
+			    << boost::errinfo_errno(errno));
+
+		if (S_ISDIR(statbuf.st_mode))
+			GlobRecursive(cpath, pattern, callback, type);
+
+		if (stat(cpath.CStr(), &statbuf) < 0)
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("stat")
+			    << boost::errinfo_errno(errno));
+
+		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
+			continue;
+
+		if (S_ISDIR(statbuf.st_mode) && !(type & GlobDirectory))
+			continue;
+
+		if (!S_ISDIR(statbuf.st_mode) && !(type & GlobFile))
+			continue;
+
+		if (!Utility::Match(pattern, ent.d_name))
+			continue;
+
+		callback(cpath);
+	}
 #endif /* _WIN32 */
 }
 

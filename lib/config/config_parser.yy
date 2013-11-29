@@ -91,6 +91,7 @@ using namespace icinga;
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
+%token T_INCLUDE_RECURSIVE "include_recursive (T_INCLUDE_RECURSIVE)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_PARTIAL "partial (T_PARTIAL)"
@@ -153,7 +154,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | library | variable
+statement: object | type | include | include_recursive | library | variable
 	;
 
 include: T_INCLUDE value
@@ -166,6 +167,20 @@ include: T_INCLUDE value
 		context->HandleInclude($2, true, yylloc);
 		free($2);
 	}
+	;
+
+include_recursive: T_INCLUDE_RECURSIVE value
+	{
+		context->HandleIncludeRecursive(*$2, "*.conf", yylloc);
+		delete $2;
+	}
+	| T_INCLUDE_RECURSIVE value value
+	{
+		context->HandleIncludeRecursive(*$2, *$3, yylloc);
+		delete $2;
+		delete $3;
+	}
+	;
 
 library: T_LIBRARY T_STRING
 	{

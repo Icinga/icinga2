@@ -38,6 +38,7 @@
 #include <dlfcn.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
 
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
