@@ -21,6 +21,7 @@
 #define WORKQUEUE_H
 
 #include "base/i2-base.h"
+#include "base/timer.h"
 #include <deque>
 #include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
@@ -50,7 +51,7 @@ class I2_BASE_API WorkQueue
 public:
 	typedef boost::function<void (boost::exception_ptr)> ExceptionCallback;
 
-	WorkQueue(size_t maxItems = 2500000);
+	WorkQueue(size_t maxItems = 25000);
 	~WorkQueue(void);
 
 	void Enqueue(const WorkCallback& callback, bool allowInterleaved = false);
@@ -65,17 +66,19 @@ private:
 	static int m_NextID;
 
 	boost::mutex m_Mutex;
-	boost::condition_variable m_CV;
+	boost::condition_variable m_CVEmpty;
+	boost::condition_variable m_CVFull;
 	boost::thread m_Thread;
 	size_t m_MaxItems;
 	bool m_Joined;
 	bool m_Stopped;
 	std::deque<WorkItem> m_Items;
 	ExceptionCallback m_ExceptionCallback;
-	double m_LastStatus;
+	Timer::Ptr m_StatusTimer;
 
 	void ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved);
 	void WorkerThreadProc(void);
+	void StatusTimerHandler(void);
 
 	static void DefaultExceptionCallback(boost::exception_ptr exp);
 };
