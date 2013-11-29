@@ -242,7 +242,7 @@ router's firewall.
         templates = "generic-service",
         check_command = "ping4"
       }
-      
+
       macros = {
         address = "192.168.1.1",
       },
@@ -251,10 +251,12 @@ router's firewall.
     object Host "google-dns" {
       services["ping4"] = {
         templates = "generic-service",
-        check_command = "ping4"
-        service_dependencies = { "dsl-router", "ping4" }
+        check_command = "ping4",
+        service_dependencies = [
+          { host = "dsl-router", service = "ping4" }
+        ]
       }
-      
+
       macros = {
         address = "8.8.8.8",
       }, 
