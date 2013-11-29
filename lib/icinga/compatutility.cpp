@@ -461,22 +461,21 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 	if (!custom)
 		return Dictionary::Ptr();
 
-        ObjectLock olock(custom);
-        String key;
-        Value value;
-        BOOST_FOREACH(boost::tie(key, value), custom) {
-
-                if (key == "notes" ||
+	ObjectLock olock(custom);
+	String key;
+	Value value;
+	BOOST_FOREACH(boost::tie(key, value), custom) {
+		if (key == "notes" ||
 		    key == "action_url" ||
 		    key == "notes_url" ||
 		    key == "icon_image" ||
 		    key == "icon_image_alt" ||
 		    key == "statusmap_image" ||
 		    key == "2d_coords")
-                        continue;
+			continue;
 
 		customvars->Set(key, value);
-        }
+	}
 
 	return customvars;
 }
@@ -497,8 +496,8 @@ std::set<User::Ptr> CompatUtility::GetServiceNotificationUsers(const Service::Pt
 		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
 			std::set<User::Ptr> members = ug->GetMembers();
 			std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
-                }
-        }
+		}
+	}
 
 	return allUsers;
 }
@@ -512,8 +511,8 @@ std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const S
 
 		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {
 			usergroups.insert(ug);
-                }
-        }
+		}
+	}
 
 	return usergroups;
 }
