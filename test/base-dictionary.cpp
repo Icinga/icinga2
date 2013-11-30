@@ -82,23 +82,21 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 	bool seen_test1 = false, seen_test2 = false;
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), dictionary) {
-		BOOST_CHECK(key == "test1" || key == "test2");
+	BOOST_FOREACH(const Dictionary::Pair& kv, dictionary) {
+		BOOST_CHECK(kv.first == "test1" || kv.first == "test2");
 
-		if (key == "test1") {
+		if (kv.first == "test1") {
 			BOOST_CHECK(!seen_test1);
 			seen_test1 = true;
 
-			BOOST_CHECK(value == 7);
+			BOOST_CHECK(kv.second == 7);
 
 			continue;
-		} else if (key == "test2") {
+		} else if (kv.first == "test2") {
 			BOOST_CHECK(!seen_test2);
 			seen_test2 = true;
 
-			BOOST_CHECK(value == "hello world");
+			BOOST_CHECK(kv.second == "hello world");
 		}
 	}
 

@@ -29,7 +29,6 @@
 #include "base/convert.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -277,14 +276,12 @@ void HostDbObject::OnConfigUpdate(void)
 	if (customvars) {
 		ObjectLock olock (customvars);
 
-		String key;
-		Value value;
-		BOOST_FOREACH(boost::tie(key, value), customvars) {
-			Log(LogDebug, "db_ido", "host customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
+		BOOST_FOREACH(const Dictionary::Pair& kv, customvars) {
+			Log(LogDebug, "db_ido", "host customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 
 			Dictionary::Ptr fields3 = make_shared<Dictionary>();
-			fields3->Set("varname", Convert::ToString(key));
-			fields3->Set("varvalue", Convert::ToString(value));
+			fields3->Set("varname", Convert::ToString(kv.first));
+			fields3->Set("varvalue", Convert::ToString(kv.second));
 			fields3->Set("config_type", 1);
 			fields3->Set("has_been_modified", 0);
 			fields3->Set("object_id", host);

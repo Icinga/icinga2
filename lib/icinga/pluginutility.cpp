@@ -135,7 +135,7 @@ Value PluginUtility::ParsePerfdata(const String& perfdata)
 
 String PluginUtility::FormatPerfdata(const Value& perfdata)
 {
-	String output;
+	std::ostringstream result;
 
 	if (!perfdata.IsObjectType<Dictionary>())
 		return perfdata;
@@ -144,14 +144,15 @@ String PluginUtility::FormatPerfdata(const Value& perfdata)
 
 	ObjectLock olock(dict);
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), dict) {
-		if (!output.IsEmpty())
-			output += " ";
+	bool first = true;
+	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+		if (!first)
+			result << " ";
+		else
+			first = false;
 
-		output += key + "=" + PerfdataValue::Format(value);
+		result << kv.first << "=" << PerfdataValue::Format(kv.second);
 	}
 
-	return output;
+	return result.str();
 }

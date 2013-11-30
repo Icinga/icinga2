@@ -26,7 +26,6 @@
 #include "base/exception.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -70,10 +69,8 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 
 	time_t refts = Utility::GetTime();
 	ObjectLock olock(ranges);
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), ranges) {
-		int wday = LegacyTimePeriod::WeekdayFromString(key);
+	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+		int wday = LegacyTimePeriod::WeekdayFromString(kv.first);
 
 		if (wday == -1)
 			continue;
@@ -99,7 +96,7 @@ void TimePeriodDbObject::OnConfigUpdate(void)
 #endif /* _MSC_VER */
 
 		Array::Ptr segments = make_shared<Array>();
-		LegacyTimePeriod::ProcessTimeRanges(value, &reference, segments);
+		LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);
 
 		ObjectLock olock(segments);
 		BOOST_FOREACH(const Value& vsegment, segments) {

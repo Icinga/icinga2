@@ -31,7 +31,6 @@
 #include "icinga/externalcommandprocessor.h"
 #include "icinga/compatutility.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
@@ -278,14 +277,12 @@ void ServiceDbObject::OnConfigUpdate(void)
 	if (customvars) {
 		ObjectLock olock(customvars);
 
-		String key;
-		Value value;
-		BOOST_FOREACH(boost::tie(key, value), customvars) {
-			Log(LogDebug, "db_ido", "service customvar key: '" + key + "' value: '" + Convert::ToString(value) + "'");
+		BOOST_FOREACH(const Dictionary::Pair& kv, customvars) {
+			Log(LogDebug, "db_ido", "service customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 
 			Dictionary::Ptr fields2 = make_shared<Dictionary>();
-			fields2->Set("varname", Convert::ToString(key));
-			fields2->Set("varvalue", Convert::ToString(value));
+			fields2->Set("varname", Convert::ToString(kv.first));
+			fields2->Set("varvalue", Convert::ToString(kv.second));
 			fields2->Set("config_type", 1);
 			fields2->Set("has_been_modified", 0);
 			fields2->Set("object_id", service);
@@ -330,10 +327,8 @@ void ServiceDbObject::AddComments(const Service::Ptr& service)
 
 	ObjectLock olock(comments);
 
-	String comment_id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(boost::tie(comment_id, comment), comments) {
-		AddComment(service, comment);
+	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+		AddComment(service, kv.second);
 	}
 }
 
@@ -494,10 +489,8 @@ void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
 
 	ObjectLock olock(downtimes);
 
-	String downtime_id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(downtime_id, downtime), downtimes) {
-		AddDowntime(service, downtime);
+	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+		AddDowntime(service, kv.second);
 	}
 }
 

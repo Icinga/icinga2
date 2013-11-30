@@ -43,6 +43,8 @@ public:
 	 */
 	typedef std::map<String, Value>::iterator Iterator;
 
+	typedef std::pair<String, Value> Pair;
+
 	Value Get(const char *key) const;
 	Value Get(const String& key) const;
 	void Set(const String& key, const Value& value);

@@ -22,7 +22,6 @@
 #include "base/application.h"
 #include "base/objectlock.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <cJSON.h>
 
 using namespace icinga;
@@ -90,10 +89,8 @@ static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int att
 
 	ObjectLock olock(input);
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), input) {
-		result->Set(key, Serialize(value, attributeTypes));
+	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
+		result->Set(kv.first, Serialize(kv.second, attributeTypes));
 	}
 
 	return result;
@@ -140,10 +137,8 @@ static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, int a
 
 	ObjectLock olock(input);
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), input) {
-		result->Set(key, Deserialize(value, attributeTypes));
+	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
+		result->Set(kv.first, Deserialize(kv.second, attributeTypes));
 	}
 
 	return result;

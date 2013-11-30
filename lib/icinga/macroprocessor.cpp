@@ -24,7 +24,6 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/context.h"
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;

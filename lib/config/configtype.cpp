@@ -22,7 +22,6 @@
 #include "base/objectlock.h"
 #include "base/convert.h"
 #include "base/scriptfunction.h"
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -145,18 +144,16 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 	ObjectLock olock(dictionary);
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), dictionary) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, dictionary) {
 		TypeValidationResult overallResult = ValidationUnknownField;
 		std::vector<TypeRuleList::Ptr> subRuleLists;
 		String hint;
 
-		locations.push_back("Attribute '" + key + "'");
+		locations.push_back("Attribute '" + kv.first + "'");
 
 		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 			TypeRuleList::Ptr subRuleList;
-			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList, &hint);
+			TypeValidationResult result = ruleList->ValidateAttribute(kv.first, kv.second, &subRuleList, &hint);
 
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
@@ -184,10 +181,10 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 			ConfigCompilerContext::GetInstance()->AddMessage(true, message);
 		}
 
-		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
-			ValidateDictionary(value, subRuleLists, locations);
-		else if (!subRuleLists.empty() && value.IsObjectType<Array>())
-			ValidateArray(value, subRuleLists, locations);
+		if (!subRuleLists.empty() && kv.second.IsObjectType<Dictionary>())
+			ValidateDictionary(kv.second, subRuleLists, locations);
+		else if (!subRuleLists.empty() && kv.second.IsObjectType<Array>())
+			ValidateArray(kv.second, subRuleLists, locations);
 
 		locations.pop_back();
 	}

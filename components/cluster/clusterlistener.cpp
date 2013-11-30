@@ -1401,13 +1401,11 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (localConfig->GetLength() != remoteConfig->GetLength())
 			configChange = true;
 
-		String key;
-		Value value;
 		ObjectLock olock(remoteConfig);
-		BOOST_FOREACH(boost::tie(key, value), remoteConfig) {
-			Dictionary::Ptr remoteFile = value;
+		BOOST_FOREACH(const Dictionary::Pair& kv, remoteConfig) {
+			Dictionary::Ptr remoteFile = kv.second;
 			bool writeFile = false;
-			String hash = SHA256(key);
+			String hash = SHA256(kv.first);
 			String path = dir + "/" + hash;
 			
 			if (!localConfig->Contains(hash))
@@ -1437,8 +1435,8 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		olock.Unlock();
 
 		ObjectLock olock2(localConfig);
-		BOOST_FOREACH(boost::tie(key, boost::tuples::ignore), localConfig) {
-			String path = dir + "/" + key;
+		BOOST_FOREACH(const Dictionary::Pair& kv, localConfig) {
+			String path = dir + "/" + kv.first;
 			Log(LogInformation, "cluster", "Removing obsolete config file: " + path);
 			(void) unlink(path.CStr());
 			configChange = true;

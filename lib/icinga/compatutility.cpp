@@ -26,7 +26,6 @@
 #include "base/debug.h"
 #include "base/convert.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -464,14 +463,14 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 	ObjectLock olock(custom);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
+	BOOST_FOREACH(const Dictionary::Pair& kv, custom) {
+		if (kv.first == "notes" ||
+		    kv.first == "action_url" ||
+		    kv.first == "notes_url" ||
+		    kv.first == "icon_image" ||
+		    kv.first == "icon_image_alt" ||
+		    kv.first == "statusmap_image" ||
+		    kv.first == "2d_coords")
 			continue;
 
 		customvars->Set(key, value);

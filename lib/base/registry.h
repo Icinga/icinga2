@@ -27,7 +27,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 
 namespace icinga
 {
@@ -87,9 +86,10 @@ public:
 			items = m_Items;
 		}
 
-		String name;
-		BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), items) {
-			OnUnregistered(name);
+		typedef typename std::pair<String, T> ItemMapPair;
+
+		BOOST_FOREACH(const ItemMapPair& kv, items) {
+			OnUnregistered(kv.first);
 		}
 
 		{

@@ -25,7 +25,6 @@
 #include "base/logger_fwd.h"
 #include "base/debug.h"
 #include <sstream>
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -170,10 +169,8 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	{
 		ObjectLock olock(properties);
 
-		String key;
-		Value data;
-		BOOST_FOREACH(boost::tie(key, data), properties) {
-			attrs->Set(key, data);
+		BOOST_FOREACH(const Dictionary::Pair& kv, properties) {
+			attrs->Set(kv.first, kv.second);
 		}
 	}
 
@@ -243,9 +240,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	Log(LogInformation, "config", "Linking config items...");
 
-	ConfigItem::Ptr item;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
-		item->Link();
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		kv.second->Link();
 	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
@@ -253,8 +249,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	Log(LogInformation, "config", "Validating config items (step 1)...");
 
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
-		item->ValidateItem();
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		kv.second->ValidateItem();
 	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
@@ -264,8 +260,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	std::vector<DynamicObject::Ptr> objects;
 
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
-		DynamicObject::Ptr object = item->Commit();
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		DynamicObject::Ptr object = kv.second->Commit();
 
 		if (object)
 			objects.push_back(object);
@@ -277,8 +273,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
 
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, item), m_Items) {
-		item->ValidateItem();
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		kv.second->ValidateItem();
 	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
