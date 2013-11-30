@@ -26,6 +26,7 @@
 #include "config/configitem.h"
 #include "base/array.h"
 #include "base/registry.h"
+#include "base/singleton.h"
 
 namespace icinga
 {
@@ -72,6 +73,12 @@ private:
 	static String LocationToString(const std::vector<String>& locations);
 
 	static void AddParentRules(std::vector<TypeRuleList::Ptr>& ruleLists, const ConfigType::Ptr& item);
+};
+
+class I2_CONFIG_API ConfigTypeRegistry : public Registry<ConfigTypeRegistry, ConfigType::Ptr>
+{
+public:
+	static ConfigTypeRegistry *GetInstance(void);
 };
 
 }

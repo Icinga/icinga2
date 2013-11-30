@@ -22,6 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/registry.h"
+#include "base/singleton.h"
 #include "base/value.h"
 
 namespace icinga
@@ -41,6 +42,15 @@ public:
 
 private:
 	static Registry<ScriptVariable, Value> m_Registry;
+};
+
+class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, Value>
+{
+public:
+	static inline ScriptVariableRegistry *GetInstance(void)
+	{
+		return Singleton<ScriptVariableRegistry>::GetInstance();
+	}
 };
 
 }

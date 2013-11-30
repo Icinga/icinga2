@@ -22,7 +22,6 @@
 #include "base/convert.h"
 #include "base/debug.h"
 #include "base/utility.h"
-#include "base/scriptvariable.h"
 #include "base/application.h"
 #include "base/exception.h"
 #include <sstream>

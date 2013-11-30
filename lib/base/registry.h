@@ -21,7 +21,6 @@
 #define REGISTRY_H
 
 #include "base/i2-base.h"
-#include "base/singleton.h"
 #include "base/qstring.h"
 #include <map>
 #include <boost/thread/mutex.hpp>
@@ -41,11 +40,6 @@ class Registry
 {
 public:
 	typedef std::map<String, T> ItemMap;
-
-	static Registry<U, T> *GetInstance(void)
-	{
-		return Singleton<Registry<U, T> >::GetInstance();
-	}
 
 	void RegisterIfNew(const String& name, const T& item)
 	{

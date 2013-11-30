@@ -278,20 +278,26 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 void ConfigType::Register(void)
 {
-	Registry<ConfigType, ConfigType::Ptr>::GetInstance()->Register(GetName(), GetSelf());
+	ConfigTypeRegistry::GetInstance()->Register(GetName(), GetSelf());
 }
 
 ConfigType::Ptr ConfigType::GetByName(const String& name)
 {
-	return Registry<ConfigType, ConfigType::Ptr>::GetInstance()->GetItem(name);
+	return ConfigTypeRegistry::GetInstance()->GetItem(name);
 }
 
-Registry<ConfigType, ConfigType::Ptr>::ItemMap ConfigType::GetTypes(void)
+ConfigTypeRegistry::ItemMap ConfigType::GetTypes(void)
 {
-	return Registry<ConfigType, ConfigType::Ptr>::GetInstance()->GetItems();
+	return ConfigTypeRegistry::GetInstance()->GetItems();
 }
 
 void ConfigType::DiscardTypes(void)
 {
-	Registry<ConfigType, ConfigType::Ptr>::GetInstance()->Clear();
+	ConfigTypeRegistry::GetInstance()->Clear();
 }
+
+ConfigTypeRegistry *ConfigTypeRegistry::GetInstance(void)
+{
+	return Singleton<ConfigTypeRegistry>::GetInstance();
+}
+

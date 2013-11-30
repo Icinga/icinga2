@@ -23,6 +23,8 @@
 #include "config/i2-config.h"
 #include "config/debuginfo.h"
 #include "base/registry.h"
+#include "base/initialize.h"
+#include "base/singleton.h"
 #include <iostream>
 #include <boost/function.hpp>
 
@@ -72,24 +74,23 @@ private:
 };
 
 class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>
-{ };
-
-/**
- * Helper class for registering config fragments.
- *
- * @ingroup base
- */
-class RegisterConfigFragmentHelper
 {
 public:
-	RegisterConfigFragmentHelper(const String& name, const String& fragment)
+	static inline ConfigFragmentRegistry *GetInstance(void)
 	{
-		ConfigFragmentRegistry::GetInstance()->Register(name, fragment);
+		return Singleton<ConfigFragmentRegistry>::GetInstance();
 	}
 };
 
 #define REGISTER_CONFIG_FRAGMENT(id, name, fragment) \
-	I2_EXPORT icinga::RegisterConfigFragmentHelper g_RegisterCF_ ## id(name, fragment)
+	namespace { \
+		void RegisterConfigFragment(void) \
+		{ \
+			icinga::ConfigFragmentRegistry::GetInstance()->Register(name, fragment); \
+		} \
+		\
+		INITIALIZE_ONCE(RegisterConfigFragment); \
+	}
 
 }
 

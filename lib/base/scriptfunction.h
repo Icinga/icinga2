@@ -22,6 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/registry.h"
+#include "base/singleton.h"
 #include "base/value.h"
 #include "base/scriptfunctionwrapper.h"
 #include <vector>
@@ -56,7 +57,10 @@ private:
  * @ingroup base
  */
 class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunctionRegistry, ScriptFunction::Ptr>
-{ };
+{
+public:
+	static ScriptFunctionRegistry *GetInstance(void);
+};
 
 /**
  * Helper class for registering ScriptFunction implementation classes.
