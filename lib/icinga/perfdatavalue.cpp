@@ -112,8 +112,9 @@ String PerfdataValue::Format(const Value& perfdata)
 {
 	if (perfdata.IsObjectType<PerfdataValue>()) {
 		PerfdataValue::Ptr pdv = perfdata;
+		std::ostringstream result;
 
-		String output = Convert::ToString(pdv->GetValue());
+		result << pdv->GetValue();
 
 		String unit;
 
@@ -126,25 +127,25 @@ String PerfdataValue::Format(const Value& perfdata)
 		else if (pdv->GetUnit() == "bytes")
 			unit = "B";
 
-		output += unit;
+		result << unit;
 
 		if (!pdv->GetWarn().IsEmpty()) {
-			output += ";" + pdv->GetWarn();
+			result << ";" << pdv->GetWarn();
 
 			if (!pdv->GetCrit().IsEmpty()) {
-				output += ";" + pdv->GetCrit();
+				result << ";" << pdv->GetCrit();
 
 				if (!pdv->GetMin().IsEmpty()) {
-					output += ";" + pdv->GetMin();
+					result << ";" << pdv->GetMin();
 
 					if (!pdv->GetMax().IsEmpty()) {
-						output += ";" + pdv->GetMax();
+						result << ";" << pdv->GetMax();
 					}
 				}
 			}
 		}
 
-		return output;
+		return result.str();
 	} else {
 		return perfdata;
 	}
