@@ -89,7 +89,7 @@ public:
 	{
 		DynamicObject::Ptr object = GetObject(T::GetTypeName(), name);
 
-		return dynamic_pointer_cast<T>(object);
+		return static_pointer_cast<T>(object);
 	}
 
 	static void DumpObjects(const String& filename, int attributeTypes = FAState);
