@@ -26,6 +26,7 @@
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/utility.h"
+#include "base/context.h"
 #include "base/application.h"
 
 using namespace icinga;
@@ -48,6 +49,8 @@ void PerfdataWriter::Start(void)
 
 void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
+	CONTEXT("Writing performance data for service '" + service->GetShortName() + "' on host '" + service->GetHost()->GetName() + "'");
+
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;
 
