@@ -23,7 +23,6 @@
 #include "base/debug.h"
 #include "base/array.h"
 #include <sstream>
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -54,10 +53,8 @@ Value Expression::DeepClone(const Value& value)
 
 		ObjectLock olock(dict);
 
-		String key;
-		Value item;
-		BOOST_FOREACH(boost::tuples::tie(key, item), dict) {
-			result->Set(key, DeepClone(item));
+		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			result->Set(kv.first, DeepClone(kv.second));
 		}
 
 		return result;
@@ -136,8 +133,8 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 
 				String key;
 				Value value;
-				BOOST_FOREACH(boost::tie(key, value), valueDict) {
-					dict->Set(key, DeepClone(value));
+				BOOST_FOREACH(const Dictionary::Pair& kv, valueDict) {
+					dict->Set(kv.first, DeepClone(kv.second));
 				}
 
 				newValue = dict;

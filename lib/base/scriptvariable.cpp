@@ -22,11 +22,9 @@
 
 using namespace icinga;
 
-Registry<ScriptVariable, Value> ScriptVariable::m_Registry;
-
 Value ScriptVariable::Get(const String& name)
 {
-	Value value = m_Registry.GetItem(name);
+	Value value = ScriptVariableRegistry::GetInstance()->GetItem(name);
 	if (value.IsEmpty())
 		Log(LogWarning, "icinga", "Tried to access empty variable: " + name);
 
@@ -35,10 +33,10 @@ Value ScriptVariable::Get(const String& name)
 
 void ScriptVariable::Set(const String& name, const Value& value)
 {
-	m_Registry.Register(name, value);
+	ScriptVariableRegistry::GetInstance()->Register(name, value);
 }
 
 void ScriptVariable::Declare(const String& name, const Value& value)
 {
-	m_Registry.RegisterIfNew(name, value);
+	ScriptVariableRegistry::GetInstance()->RegisterIfNew(name, value);
 }

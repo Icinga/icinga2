@@ -19,6 +19,7 @@
 
 #include "base/scriptfunction.h"
 #include "base/registry.h"
+#include "base/singleton.h"
 
 using namespace icinga;
 
@@ -36,3 +37,9 @@ RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptF
 	ScriptFunction::Ptr func = make_shared<ScriptFunction>(function);
 	ScriptFunctionRegistry::GetInstance()->Register(name, func);
 }
+
+ScriptFunctionRegistry *ScriptFunctionRegistry::GetInstance(void)
+{
+	return Singleton<ScriptFunctionRegistry>::GetInstance();
+}
+

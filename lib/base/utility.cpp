@@ -418,7 +418,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
  * @param callback The callback which is invoked for each matching file.
  * @param type The file type (a combination of GlobFile and GlobDirectory)
  */
-void Utility::GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type)
+bool Utility::GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type)
 {
 #ifdef _WIN32
 	HANDLE handle;
@@ -463,8 +463,6 @@ void Utility::GlobRecursive(const String& path, const String& pattern, const boo
 		    << boost::errinfo_api_function("FindClose")
 		    << errinfo_win32_error(GetLastError()));
 	}
-
-	return true;
 #else /* _WIN32 */
 	DIR *dirp;
 
@@ -521,6 +519,8 @@ void Utility::GlobRecursive(const String& path, const String& pattern, const boo
 		callback(cpath);
 	}
 #endif /* _WIN32 */
+
+	return true;
 }
 
 #ifndef _WIN32

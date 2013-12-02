@@ -56,7 +56,7 @@ public:
 		std::vector<shared_ptr<T> > objects;
 
 		BOOST_FOREACH(const DynamicObject::Ptr& object, GetObjects(T::GetTypeName())) {
-			shared_ptr<T> tobject = dynamic_pointer_cast<T>(object);
+			shared_ptr<T> tobject = static_pointer_cast<T>(object);
 
 			ASSERT(tobject);
 

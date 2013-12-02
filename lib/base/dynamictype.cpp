@@ -134,7 +134,7 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 
 	Deserialize(object, serializedUpdate, FAConfig);
 
-	return dynamic_pointer_cast<DynamicObject>(object);
+	return static_pointer_cast<DynamicObject>(object);
 }
 
 boost::mutex& DynamicType::GetStaticMutex(void)

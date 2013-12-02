@@ -485,18 +485,17 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 		where << " WHERE ";
 
 		ObjectLock olock(query.WhereCriteria);
-		String key;
 		Value value;
 		bool first = true;
 
-		BOOST_FOREACH(boost::tie(key, value), query.WhereCriteria) {
-			if (!FieldToEscapedString(key, value, &value))
+		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
+			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return;
 
 			if (!first)
 				where << " AND ";
 
-			where << key << " = " << value;
+			where << kv.first << " = " << value;
 
 			if (first)
 				first = false;
@@ -537,31 +536,30 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 	}
 
 	if (type == DbQueryInsert || type == DbQueryUpdate) {
-		String cols;
-		String values;
+		std::ostringstream colbuf, valbuf;
 
 		ObjectLock olock(query.Fields);
 
-		String key;
-		Value value;
 		bool first = true;
-		BOOST_FOREACH(boost::tie(key, value), query.Fields) {
-			if (!FieldToEscapedString(key, value, &value))
+		BOOST_FOREACH(const Dictionary::Pair& kv, query.Fields) {
+			Value value;
+
+			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return;
 
 			if (type == DbQueryInsert) {
 				if (!first) {
-					cols += ", ";
-					values += ", ";
+					colbuf << ", ";
+					valbuf << ", ";
 				}
 
-				cols += key;
-				values += value;
+				colbuf << kv.first;
+				valbuf << value;
 			} else {
 				if (!first)
 					qbuf << ", ";
 
-				qbuf << " " << key << " = " << value;
+				qbuf << " " << kv.first << " = " << value;
 			}
 
 			if (first)
@@ -569,7 +567,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 		}
 
 		if (type == DbQueryInsert)
-			qbuf << " (" << cols << ") VALUES (" << values << ")";
+			qbuf << " (" << colbuf.str() << ") VALUES (" << valbuf.str() << ")";
 	}
 
 	if (type != DbQueryInsert)

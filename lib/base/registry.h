@@ -21,13 +21,11 @@
 #define REGISTRY_H
 
 #include "base/i2-base.h"
-#include "base/singleton.h"
 #include "base/qstring.h"
 #include <map>
 #include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 
 namespace icinga
 {
@@ -42,11 +40,6 @@ class Registry
 {
 public:
 	typedef std::map<String, T> ItemMap;
-
-	static Registry<U, T> *GetInstance(void)
-	{
-		return Singleton<Registry<U, T> >::GetInstance();
-	}
 
 	void RegisterIfNew(const String& name, const T& item)
 	{
@@ -87,9 +80,10 @@ public:
 			items = m_Items;
 		}
 
-		String name;
-		BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), items) {
-			OnUnregistered(name);
+		typedef typename std::pair<String, T> ItemMapPair;
+
+		BOOST_FOREACH(const ItemMapPair& kv, items) {
+			OnUnregistered(kv.first);
 		}
 
 		{

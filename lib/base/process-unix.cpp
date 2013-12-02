@@ -24,7 +24,6 @@
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include <boost/bind.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
@@ -92,12 +91,10 @@ ProcessResult Process::Run(void)
 	if (m_ExtraEnvironment) {
 		ObjectLock olock(m_ExtraEnvironment);
 
-		String key;
-		Value value;
 		int index = envc;
-		BOOST_FOREACH(boost::tie(key, value), m_ExtraEnvironment) {
-			String kv = key + "=" + Convert::ToString(value);
-			envp[index] = strdup(kv.CStr());
+		BOOST_FOREACH(const Dictionary::Pair& kv, m_ExtraEnvironment) {
+			String skv = kv.first + "=" + Convert::ToString(kv.second);
+			envp[index] = strdup(skv.CStr());
 			index++;
 		}
 	}

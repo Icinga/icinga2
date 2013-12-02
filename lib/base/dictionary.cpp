@@ -21,7 +21,6 @@
 #include "base/objectlock.h"
 #include "base/debug.h"
 #include <cJSON.h>
-#include <boost/tuple/tuple.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 
@@ -211,10 +210,8 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
 
 	Dictionary::Ptr clone = make_shared<Dictionary>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), m_Data) {
-		clone->Set(key, value);
+	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+		clone->Set(kv.first, kv.second);
 	}
 
 	return clone;
@@ -252,10 +249,8 @@ cJSON *Dictionary::ToJson(void) const
 	try {
 		ObjectLock olock(this);
 
-		String key;
-		Value value;
-		BOOST_FOREACH(boost::tie(key, value), m_Data) {
-			cJSON_AddItemToObject(json, key.CStr(), value.ToJson());
+		BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+			cJSON_AddItemToObject(json, kv.first.CStr(), kv.second.ToJson());
 		}
 	} catch (...) {
 		cJSON_Delete(json);

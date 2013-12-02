@@ -20,7 +20,7 @@ project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 endif()
@@ -77,9 +77,14 @@ if(APPLE)
   set(CMAKE_INSTALL_NAME_DIR "@executable_path/../lib/icinga2")
 endif(APPLE)
 
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -g")
+endif()
+
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif()
 
 if(MSVC)

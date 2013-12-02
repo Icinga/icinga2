@@ -97,10 +97,14 @@ public:
 		if (IsEmpty())
 			return shared_ptr<T>();
 
+#ifdef _DEBUG
 		shared_ptr<T> object = dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
 
 		if (!object)
 			BOOST_THROW_EXCEPTION(std::bad_cast());
+#else /* _DEBUG */
+		shared_ptr<T> object = static_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
+#endif /* _DEBUG */
 
 		return object;
 	}

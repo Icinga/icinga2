@@ -27,7 +27,6 @@
 #include "base/exception.h"
 #include "base/context.h"
 #include "config/configitembuilder.h"
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -110,16 +109,14 @@ void Service::UpdateSlaveNotifications(void)
 
 	ObjectLock olock(descs);
 
-	String nfcname;
-	Value nfcdesc;
-	BOOST_FOREACH(boost::tie(nfcname, nfcdesc), descs) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, descs) {
 		std::ostringstream namebuf;
-		namebuf << GetName() << ":" << nfcname;
+		namebuf << GetName() << ":" << kv.first;
 		String name = namebuf.str();
 
 		std::vector<String> path;
 		path.push_back("notifications");
-		path.push_back(nfcname);
+		path.push_back(kv.first);
 
 		DebugInfo di;
 		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
@@ -133,10 +130,7 @@ void Service::UpdateSlaveNotifications(void)
 		builder->AddExpression("host", OperatorSet, GetHost()->GetName());
 		builder->AddExpression("service", OperatorSet, GetShortName());
 
-		if (!nfcdesc.IsObjectType<Dictionary>())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Notification description must be a dictionary."));
-
-		Dictionary::Ptr notification = nfcdesc;
+		Dictionary::Ptr notification = kv.second;
 
 		Array::Ptr templates = notification->Get("templates");
 

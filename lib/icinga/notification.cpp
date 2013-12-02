@@ -27,7 +27,6 @@
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/exception.h"
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;

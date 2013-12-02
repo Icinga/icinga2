@@ -33,7 +33,6 @@
 #include "base/serializer.h"
 #include "config/configitembuilder.h"
 #include "config/configcompilercontext.h"
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -151,19 +150,14 @@ void Host::UpdateSlaveServices(void)
 		return;
 
 	ObjectLock olock(service_descriptions);
-	String svcname;
-	Value svcdesc;
-	BOOST_FOREACH(boost::tie(svcname, svcdesc), service_descriptions) {
-		if (svcdesc.IsScalar())
-			svcname = svcdesc;
-
+	BOOST_FOREACH(const Dictionary::Pair& kv, service_descriptions) {
 		std::ostringstream namebuf;
-		namebuf << GetName() << ":" << svcname;
+		namebuf << GetName() << ":" << kv.first;
 		String name = namebuf.str();
 
 		std::vector<String> path;
 		path.push_back("services");
-		path.push_back(svcname);
+		path.push_back(kv.first);
 
 		DebugInfo di;
 		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
@@ -175,13 +169,13 @@ void Host::UpdateSlaveServices(void)
 		builder->SetType("Service");
 		builder->SetName(name);
 		builder->AddExpression("host", OperatorSet, GetName());
-		builder->AddExpression("display_name", OperatorSet, svcname);
-		builder->AddExpression("short_name", OperatorSet, svcname);
+		builder->AddExpression("display_name", OperatorSet, kv.first);
+		builder->AddExpression("short_name", OperatorSet, kv.first);
 
-		if (!svcdesc.IsObjectType<Dictionary>())
+		if (!kv.second.IsObjectType<Dictionary>())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
 
-		Dictionary::Ptr service = svcdesc;
+		Dictionary::Ptr service = kv.second;
 
 		Array::Ptr templates = service->Get("templates");
 
@@ -211,14 +205,9 @@ std::set<Service::Ptr> Host::GetServices(void) const
 	boost::mutex::scoped_lock lock(m_ServicesMutex);
 
 	std::set<Service::Ptr> services;
-	Service::WeakPtr wservice;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, wservice), m_Services) {
-		Service::Ptr service = wservice.lock();
-
-		if (!service)
-			continue;
-
-		services.insert(service);
+	typedef std::pair<String, Service::Ptr> ServicePair;
+	BOOST_FOREACH(const ServicePair& kv, m_Services) {
+		services.insert(kv.second);
 	}
 
 	return services;

@@ -73,7 +73,7 @@ void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 	if (wq_thread)
 		ProcessItems(lock, true);
 	else
-		m_CVEmpty.notify_one();
+		m_CVEmpty.notify_all();
 }
 
 void WorkQueue::Join(void)
@@ -119,7 +119,7 @@ void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved)
 			return;
 
 		m_Items.pop_front();
-		m_CVFull.notify_all();
+		m_CVFull.notify_one();
 
 		lock.unlock();
 

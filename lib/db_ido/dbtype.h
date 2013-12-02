@@ -23,6 +23,7 @@
 #include "db_ido/i2-db_ido.h"
 #include "base/object.h"
 #include "base/registry.h"
+#include "base/singleton.h"
 
 namespace icinga
 {
@@ -75,8 +76,14 @@ private:
  *
  * @ingroup ido
  */
-class DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
-{ };
+class I2_DB_IDO_API DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
+{
+public:
+	static inline DbTypeRegistry *GetInstance(void)
+	{
+		return Singleton<DbTypeRegistry>::GetInstance();
+	}
+};
 
 /**
  * Helper class for registering DynamicObject implementation classes.

@@ -24,7 +24,6 @@
 #include "base/timer.h"
 #include "base/utility.h"
 #include "base/convert.h"
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -144,9 +143,8 @@ void Service::TriggerDowntimes(void)
 	{
 		ObjectLock olock(downtimes);
 
-		String id;
-		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), downtimes) {
-			ids.push_back(id);
+		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+			ids.push_back(kv.first);
 		}
 	}
 
@@ -180,9 +178,8 @@ void Service::TriggerDowntime(const String& id)
 
 	Dictionary::Ptr triggers = downtime->GetTriggers();
 	ObjectLock olock(triggers);
-	String tid;
-	BOOST_FOREACH(boost::tie(tid, boost::tuples::ignore), triggers) {
-		TriggerDowntime(tid);
+	BOOST_FOREACH(const Dictionary::Pair& kv, triggers) {
+		TriggerDowntime(kv.first);
 	}
 
 	OnDowntimeTriggered(owner, downtime);
@@ -241,16 +238,16 @@ void Service::AddDowntimesToCache(void)
 
 	ObjectLock olock(downtimes);
 
-	String id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+		Downtime::Ptr downtime = kv.second;
+
 		int legacy_id = downtime->GetLegacyId();
 
 		if (legacy_id >= l_NextDowntimeID)
 			l_NextDowntimeID = legacy_id + 1;
 
-		l_LegacyDowntimesCache[legacy_id] = id;
-		l_DowntimesCache[id] = GetSelf();
+		l_LegacyDowntimesCache[legacy_id] = kv.first;
+		l_DowntimesCache[kv.first] = GetSelf();
 	}
 }
 
@@ -263,11 +260,11 @@ void Service::RemoveExpiredDowntimes(void)
 	{
 		ObjectLock olock(downtimes);
 
-		String id;
-		Downtime::Ptr downtime;
-		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+			Downtime::Ptr downtime = kv.second;
+
 			if (downtime->IsExpired())
-				expiredDowntimes.push_back(id);
+				expiredDowntimes.push_back(kv.first);
 		}
 	}
 
@@ -289,8 +286,9 @@ bool Service::IsInDowntime(void) const
 
 	ObjectLock olock(downtimes);
 
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+		Downtime::Ptr downtime = kv.second;
+
 		if (downtime->IsActive())
 			return true;
 	}
@@ -305,8 +303,9 @@ int Service::GetDowntimeDepth(void) const
 
 	ObjectLock olock(downtimes);
 
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(boost::tuples::ignore, downtime), downtimes) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+		Downtime::Ptr downtime = kv.second;
+
 		if (downtime->IsActive())
 			downtime_depth++;
 	}

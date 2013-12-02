@@ -26,7 +26,6 @@
 #include "base/debug.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -413,17 +412,15 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 #endif /* _MSC_VER */
 
 			ObjectLock olock(ranges);
-			String key;
-			Value value;
-			BOOST_FOREACH(boost::tie(key, value), ranges) {
-				if (!IsInDayDefinition(key, &reference)) {
-					Log(LogDebug, "icinga", "Not in day definition '" + key + "'.");
+			BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+				if (!IsInDayDefinition(kv.first, &reference)) {
+					Log(LogDebug, "icinga", "Not in day definition '" + kv.first + "'.");
 					continue;
 				}
 
-				Log(LogDebug, "icinga", "In day definition '" + key + "'.");
+				Log(LogDebug, "icinga", "In day definition '" + kv.first + "'.");
 
-				ProcessTimeRanges(value, &reference, segments);
+				ProcessTimeRanges(kv.second, &reference, segments);
 			}
 		}
 	}

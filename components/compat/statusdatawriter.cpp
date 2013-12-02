@@ -71,9 +71,9 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner,
 
 	ObjectLock olock(comments);
 
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(boost::tie(id, comment), comments) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+		Comment::Ptr comment = kv.second;
+
 		if (comment->IsExpired())
 			continue;
 
@@ -107,10 +107,8 @@ void StatusDataWriter::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& t
 
 	if (ranges) {
 		ObjectLock olock(ranges);
-		String key;
-		Value value;
-		BOOST_FOREACH(boost::tie(key, value), ranges) {
-			fp << "\t" << key << "\t" << value << "\n";
+		BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+			fp << "\t" << kv.first << "\t" << kv.second << "\n";
 		}
 	}
 
@@ -167,9 +165,9 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 
 	ObjectLock olock(downtimes);
 
-	String id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+		Downtime::Ptr downtime = kv.second;
+
 		if (downtime->IsExpired())
 			continue;
 
@@ -518,16 +516,14 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObjec
 		return;
 
 	ObjectLock olock(custom);
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, custom) {
 		fp << "\t";
 
-		if (key != "notes" && key != "action_url" && key != "notes_url" &&
-		    key != "icon_image" && key != "icon_image_alt" && key != "statusmap_image" && "2d_coords")
+		if (kv.first != "notes" && kv.first != "action_url" && kv.first != "notes_url" &&
+		    kv.first != "icon_image" && kv.first != "icon_image_alt" && kv.first != "statusmap_image" && kv.first != "2d_coords")
 			fp << "_";
 
-		fp << key << "\t" << value << "\n";
+		fp << kv.first << "\t" << kv.second << "\n";
 	}
 }
 

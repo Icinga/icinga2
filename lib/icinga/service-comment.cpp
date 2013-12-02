@@ -24,7 +24,6 @@
 #include "base/timer.h"
 #include "base/utility.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -90,12 +89,11 @@ void Service::RemoveAllComments(void)
 	Dictionary::Ptr comments = GetComments();
 
 	ObjectLock olock(comments);
-	String id;
-	BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), comments) {
-		ids.push_back(id);
+	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+		ids.push_back(kv.first);
 	}
 
-	BOOST_FOREACH(id, ids) {
+	BOOST_FOREACH(const String& id, ids) {
 		RemoveComment(id);
 	}
 }
@@ -173,16 +171,16 @@ void Service::AddCommentsToCache(void)
 
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(boost::tie(id, comment), comments) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+		Comment::Ptr comment = kv.second;
+
 		int legacy_id = comment->GetLegacyId();
 
 		if (legacy_id >= l_NextCommentID)
 			l_NextCommentID = legacy_id + 1;
 
-		l_LegacyCommentsCache[legacy_id] = id;
-		l_CommentsCache[id] = GetSelf();
+		l_LegacyCommentsCache[legacy_id] = kv.first;
+		l_CommentsCache[kv.first] = GetSelf();
 	}
 }
 
@@ -195,11 +193,11 @@ void Service::RemoveCommentsByType(int type)
 	{
 		ObjectLock olock(comments);
 
-		String id;
-		Comment::Ptr comment;
-		BOOST_FOREACH(boost::tie(id, comment), comments) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+			Comment::Ptr comment = kv.second;
+
 			if (comment->GetEntryType() == type)
-				removedComments.push_back(id);
+				removedComments.push_back(kv.first);
 		}
 	}
 
@@ -217,11 +215,11 @@ void Service::RemoveExpiredComments(void)
 	{
 		ObjectLock olock(comments);
 
-		String id;
-		Comment::Ptr comment;
-		BOOST_FOREACH(boost::tie(id, comment), comments) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+			Comment::Ptr comment = kv.second;
+
 			if (comment->IsExpired())
-				expiredComments.push_back(id);
+				expiredComments.push_back(kv.first);
 		}
 	}
 

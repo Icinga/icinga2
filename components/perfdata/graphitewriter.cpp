@@ -107,17 +107,16 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Check
 
 	Dictionary::Ptr perfdata = pdv;
 
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), perfdata) {
+	ObjectLock olock(perfdata);
+	BOOST_FOREACH(const Dictionary::Pair& kv, perfdata) {
 		double valueNum;
 
-		if (!value.IsObjectType<PerfdataValue>())
-			valueNum = value;
+		if (!kv.second.IsObjectType<PerfdataValue>())
+			valueNum = kv.second;
 		else
-			valueNum = static_cast<PerfdataValue::Ptr>(value)->GetValue();
+			valueNum = static_cast<PerfdataValue::Ptr>(kv.second)->GetValue();
 
-		String escaped_key = key;
+		String escaped_key = kv.first;
 		SanitizeMetric(escaped_key);
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
