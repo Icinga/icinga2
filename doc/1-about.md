@@ -18,6 +18,21 @@ LICENSE file included in the package.
 Support for Icinga 2 is available in a number of ways. Please have a look at
 the support overview page at [https://support.icinga.org].
 
+
+## What's New in Version 0.0.5
+
+* Cluster: Implement support for CRLs
+* Implement modified attributes
+* Log messages providing more context
+* Default log is a file (rather than syslog)
+* Improve latency after start-up
+* NSCA-ng support for the Vagrant demo VM
+* Configuration: Recursively include configuration files matching a certain pattern
+* IDO: Improve performance
+* Migration: Add fallback for objects.cache instead of cfg_{dir,file}
+* Lots of bugfixes and performance improvements
+* Package fixes (Note: GPG key of packages.icinga.org has been updated)
+
 ## What's New in Version 0.0.4
 
 * IDO: PostgreSQL support

@@ -1,6 +1,20 @@
 Icinga 2.x CHANGELOG
 ====================
 
+0.0.5 - 2013/12/03
+
+* Cluster: Implement support for CRLs
+* Implement modified attributes
+* Log messages providing more context
+* Default log is a file (rather than syslog)
+* Improve latency after start-up
+* NSCA-ng support for the Vagrant demo VM
+* Configuration: Recursively include configuration files matching a certain pattern
+* IDO: Improve performance
+* Migration: Add fallback for objects.cache instead of cfg_{dir,file}
+* Lots of bugfixes and performance improvements
+* Package fixes (Note: GPG key of packages.icinga.org has been updated)
+
 0.0.4 - 2013/11/12
 
 * IDO: PostgreSQL support
