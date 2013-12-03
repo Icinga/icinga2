@@ -79,8 +79,7 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item)
 	if (item->IsAbstract())
 		return;
 
-	Dictionary::Ptr attrs = make_shared<Dictionary>();
-	item->GetLinkedExpressionList()->Execute(attrs);
+	Dictionary::Ptr attrs = item->GetProperties();
 
 	std::vector<String> locations;
 	DebugInfo debugInfo  = item->GetDebugInfo();

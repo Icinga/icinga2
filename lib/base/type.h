@@ -32,10 +32,10 @@ namespace icinga
 struct Field
 {
 	int ID;
-	String Name;
+	const char *Name;
 	int Attributes;
 
-	Field(int id, const String& name, int attributes)
+	Field(int id, const char *name, int attributes)
 		: ID(id), Name(name), Attributes(attributes)
 	{ }
 };

@@ -105,6 +105,9 @@ void ConfigItem::Link(void)
 {
 	ObjectLock olock(this);
 
+	if (m_LinkedExpressionList)
+		return;
+
 	m_LinkedExpressionList = make_shared<ExpressionList>();
 
 	BOOST_FOREACH(const String& name, m_ParentNames) {
@@ -118,7 +121,7 @@ void ConfigItem::Link(void)
 		} else {
 			parent->Link();
 
-			ExpressionList::Ptr pexprl = parent->GetLinkedExpressionList();
+			ExpressionList::Ptr pexprl = parent->m_LinkedExpressionList;
 			m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
 		}
 	}
@@ -126,15 +129,26 @@ void ConfigItem::Link(void)
 	m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, m_ExpressionList, m_DebugInfo));
 }
 
-ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void) const
+ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 {
-	ObjectLock olock(this);
+	if (!m_LinkedExpressionList)
+		Link();
 
 	return m_LinkedExpressionList;
 }
 
+Dictionary::Ptr ConfigItem::GetProperties(void)
+{
+	if (!m_Properties) {
+		m_Properties = make_shared<Dictionary>();
+		GetLinkedExpressionList()->Execute(m_Properties);
+	}
+
+	return m_Properties;
+}
+
 /**
- * Commits the configuration item by creating or updating a DynamicObject
+ * Commits the configuration item by creating a DynamicObject
  * object.
  *
  * @returns The DynamicObject that was created/updated.
@@ -157,24 +171,9 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (IsAbstract())
 		return DynamicObject::Ptr();
 
-	/* Create a fake update in the format that
-	 * DynamicObject::Deserialize expects. */
-	Dictionary::Ptr attrs = make_shared<Dictionary>();
+	Dictionary::Ptr properties = GetProperties();
 
-	Link();
-
-	Dictionary::Ptr properties = make_shared<Dictionary>();
-	GetLinkedExpressionList()->Execute(properties);
-
-	{
-		ObjectLock olock(properties);
-
-		BOOST_FOREACH(const Dictionary::Pair& kv, properties) {
-			attrs->Set(kv.first, kv.second);
-		}
-	}
-
-	DynamicObject::Ptr dobj = dtype->CreateObject(attrs);
+	DynamicObject::Ptr dobj = dtype->CreateObject(properties);
 	dobj->Register();
 
 	return dobj;
@@ -237,12 +236,6 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 {
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
-
-	Log(LogInformation, "config", "Linking config items...");
-
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		kv.second->Link();
-	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;

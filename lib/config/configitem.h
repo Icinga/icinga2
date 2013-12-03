@@ -48,9 +48,8 @@ public:
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
 	void Link(void);
-	ExpressionList::Ptr GetLinkedExpressionList(void) const;
-
-	void GetProperties(void);
+	ExpressionList::Ptr GetLinkedExpressionList(void);
+	Dictionary::Ptr GetProperties(void);
 
 	DynamicObject::Ptr Commit(void);
 	void Register(void);
@@ -79,6 +78,7 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	ExpressionList::Ptr m_LinkedExpressionList;
+	Dictionary::Ptr m_Properties;
 
 	static boost::mutex m_Mutex;
 
