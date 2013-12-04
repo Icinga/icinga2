@@ -573,6 +573,7 @@ aexpression: T_STRING
 	| '~' aexpression
 	{
 		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2)));
+		delete $2;
 	}
 	| aexpression '+' aexpression
 	{
