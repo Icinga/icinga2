@@ -89,12 +89,12 @@ class TestSuite(object):
         subprocess.call(command, shell=True)
 
     def _copy_test(self, path):
-        self._copy_file(path, os.path.join(self._config['tests']['destination'],
+        self._copy_file(path, os.path.join(self._config['settings']['test_root'],
                                            os.path.basename(path)))
 
     def _run_test(self, path):
         command = self._config['commands']['exec']
-        target = os.path.join(self._config['tests']['destination'],
+        target = os.path.join(self._config['settings']['test_root'],
                               os.path.basename(path))
         p = subprocess.Popen(command.format(target), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
