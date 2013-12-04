@@ -17,7 +17,8 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="icinga2 monitoring daemon"
 NAME=icinga2
 DAEMON=/usr/sbin/icinga2
-DAEMON_ARGS="-c /etc/icinga2/icinga2.conf -e /var/log/icinga2/icinga2.err -d -u nagios -g nagios"
+DAEMON_CONFIG="/etc/icinga2/icinga2.conf"
+DAEMON_ARGS="-e /var/log/icinga2/icinga2.err -d -u nagios -g nagios"
 PIDFILE=/var/run/icinga2/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -48,7 +49,10 @@ check_run () {
 }
 
 check_config () {
-  $DAEMON -C $DAEMON_ARGS
+  if ! $DAEMON --validate -c "$DAEMON_CONFIG" >/dev/null 2>&1; then
+    # blark output
+    $DAEMON --validate -c "$DAEMON_CONFIG"
+  fi
 }
 
 
@@ -64,7 +68,7 @@ do_start()
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
-		$DAEMON_ARGS \
+		-c "$DAEMON_CONFIG" $DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
 	# to handle requests from services started subsequently which depend
@@ -118,6 +122,7 @@ case "$1" in
     if ! check_config; then
         log_failure_msg "config test failed!"
         log_end_msg 1
+        exit 1
     fi
 
 	log_daemon_msg "Starting $DESC" "$NAME"
@@ -143,6 +148,7 @@ case "$1" in
     if ! check_config; then
         log_failure_msg "config test failed!"
         log_end_msg 1
+        exit 1
     fi
 
 	log_daemon_msg "Reloading $DESC" "$NAME"
@@ -154,6 +160,7 @@ case "$1" in
     if ! check_config; then
         log_failure_msg "config test failed!"
         log_end_msg 1
+        exit 1
     fi
 
 	log_daemon_msg "Restarting $DESC" "$NAME"
