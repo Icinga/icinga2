@@ -53,7 +53,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	}
 
 	fields->Set("alias", attrs->Get("alias"));
-	fields->Set("display_name", attrs->Get("display_name"));
+	fields->Set("display_name", host->GetDisplayName());
 
 	fields->Set("address", attrs->Get("address"));
 	fields->Set("address6", attrs->Get("address6"));
