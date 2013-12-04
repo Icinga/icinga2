@@ -730,6 +730,17 @@ void Application::DeclareApplicationType(const String& type)
 	ScriptVariable::Set("ApplicationType", type, false);
 }
 
+void Application::MakeVariablesConstant(void)
+{
+	ScriptVariable::GetByName("IcingaPrefixDir")->SetConstant(true);
+	ScriptVariable::GetByName("IcingaSysconfDir")->SetConstant(true);
+	ScriptVariable::GetByName("IcingaLocalStateDir")->SetConstant(true);
+	ScriptVariable::GetByName("IcingaPkgDataDir")->SetConstant(true);
+	ScriptVariable::GetByName("IcingaStatePath")->SetConstant(true);
+	ScriptVariable::GetByName("IcingaPidPath")->SetConstant(true);
+	ScriptVariable::GetByName("ApplicationType")->SetConstant(true);
+}
+
 /**
  * Returns the global thread pool.
  *

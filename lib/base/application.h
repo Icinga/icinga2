@@ -91,6 +91,8 @@ public:
 	static String GetApplicationType(void);
 	static void DeclareApplicationType(const String& type);
 
+	static void MakeVariablesConstant(void);
+
 	static ThreadPool& GetTP(void);
 
 	static String GetVersion(void);

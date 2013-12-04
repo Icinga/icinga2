@@ -71,6 +71,9 @@ ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, 
 		sv = make_shared<ScriptVariable>(value);
 		ScriptVariableRegistry::GetInstance()->Register(name, sv);
 	} else if (overwrite) {
+		if (sv->IsConstant())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to modify read-only script variable '" + name + "'"));
+
 		sv->SetData(value);
 	}
 

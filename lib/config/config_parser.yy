@@ -74,7 +74,8 @@ using namespace icinga;
 %token <op> T_MINUS_EQUAL "-= (T_MINUS_EQUAL)"
 %token <op> T_MULTIPLY_EQUAL "*= (T_MULTIPLY_EQUAL)"
 %token <op> T_DIVIDE_EQUAL "/= (T_DIVIDE_EQUAL)"
-%token T_SET "set (T_SET)"
+%token T_VAR "var (T_VAR)"
+%token T_CONST "const (T_CONST)"
 %token T_SHIFT_LEFT "<< (T_SHIFT_LEFT)"
 %token T_SHIFT_RIGHT ">> (T_SHIFT_RIGHT)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
@@ -113,6 +114,7 @@ using namespace icinga;
 %type <slist> object_inherits_specifier
 %type <aexpr> aterm
 %type <aexpr> aexpression
+%type <num> variable_decl
 %left '+' '-'
 %left '*' '/'
 %left '&'
@@ -187,8 +189,9 @@ library: T_LIBRARY T_STRING
 		context->HandleLibrary($2);
 		free($2);
 	}
+	;
 
-variable: T_SET identifier T_EQUAL value
+variable: variable_decl identifier T_EQUAL value
 	{
 		Value *value = $4;
 		if (value->IsObjectType<ExpressionList>()) {
@@ -199,10 +202,25 @@ variable: T_SET identifier T_EQUAL value
 			value = new Value(dict);
 		}
 
-		ScriptVariable::Set($2, *value);
+		ScriptVariable::Ptr sv = ScriptVariable::Set($2, *value);
+
+		if (!$1)
+			sv->SetConstant(true);
+
 		free($2);
 		delete value;
 	}
+	;
+
+variable_decl: T_VAR
+	{
+		$$ = true;
+	}
+	| T_CONST
+	{
+		$$ = false;
+	}
+	;
 
 identifier: T_IDENTIFIER
 	| T_STRING
