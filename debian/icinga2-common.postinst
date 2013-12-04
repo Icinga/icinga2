@@ -16,6 +16,24 @@ setperm() {
     fi
 }
 
+is_fresh_install()
+{
+    if [ -z "$2" ] ; then
+        return 0
+    fi
+    return 1
+}
+
+enable_default_features() {
+    if is_fresh_install $@; then
+        echo "enabling default icinga2 features"
+        for feature in checker notification mainlog; do
+            icinga2-enable-feature $feature
+        done
+    fi
+    # handle new default features here in the future
+}
+
 case "$1" in
     configure)
         if ! getent passwd nagios > /dev/null ; then
@@ -38,6 +56,8 @@ case "$1" in
         setperm nagios www-data 0750 /var/cache/icinga2
         setperm nagios nagios 0750 /var/spool/icinga2
 
+        # enable default features
+        enable_default_features $@
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

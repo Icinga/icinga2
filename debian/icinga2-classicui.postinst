@@ -26,18 +26,31 @@ setperm() {
     fi
 }
 
+is_fresh_install()
+{
+    if [ -z "$2" ] ; then
+        return 0
+    fi
+    return 1
+}
+
+enable_features_for_classic() {
+    if is_fresh_install $@; then
+        echo "enabling icinga2 features for classicui"
+
+        for feature in compatlog statusdata command; do
+            icinga2-enable-feature $feature
+        done
+
+        echo "reloading icinga2"
+        [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
+    fi
+    # handle new default features here in the future
+}
 
 case "$1" in
     configure)
-        if [ -x "`which icinga2-enable-feature`" ]; then
-            echo "enabling icinga2 feature compatlog, statusdata and command"
-            icinga2-enable-feature compatlog
-            icinga2-enable-feature statusdata
-            icinga2-enable-feature command
-
-            echo "reloading icinga2"
-            [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
-        fi
+        enable_features_for_classic $@
 
         echo "enabling Apache2 config..."
         COMMON_STATE=$(dpkg-query -f '${Status}' -W 'apache2.2-common' 2>/dev/null | awk '{print $3}' || true)

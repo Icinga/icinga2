@@ -22,6 +22,11 @@ override_dh_auto_configure:
 		-DICINGA2_COMMAND_USER=nagios \
 		-DICINGA2_COMMAND_GROUP=www-data
 
+override_dh_auto_install:
+	dh_auto_install
+	# remove features-enabled - these will be activated by postinst later
+	rm -r debian/tmp/etc/icinga2/features-enabled/*
+
 override_dh_install:
 	dh_install
 	# remove ido files from other packages
