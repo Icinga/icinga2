@@ -6,8 +6,12 @@ export DH_VERBOSE=1
 	dh $@
 
 override_dh_auto_clean:
-	# configure icinga2 to get icinga-version.h
-	dh_auto_configure
+	# ensure icinga-version.h.fallback to be present
+	rm -rf debian-prebuild/
+	mkdir debian-prebuild
+	cd debian-prebuild/ && cmake ../debian/
+	cp debian-prebuild/icinga-version.h.fallback .
+	rm -rf debian-prebuild/
 	# now clean build dir
 	dh_auto_clean
 	rm -f config.log
