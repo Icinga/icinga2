@@ -607,7 +607,7 @@ String Application::GetPrefixDir(void)
  */
 void Application::DeclarePrefixDir(const String& path)
 {
-	ScriptVariable::Declare("IcingaPrefixDir", path);
+	ScriptVariable::Set("IcingaPrefixDir", path, false);
 }
 
 /**
@@ -627,7 +627,7 @@ String Application::GetSysconfDir(void)
  */
 void Application::DeclareSysconfDir(const String& path)
 {
-	ScriptVariable::Declare("IcingaSysconfDir", path);
+	ScriptVariable::Set("IcingaSysconfDir", path, false);
 }
 
 /**
@@ -647,7 +647,7 @@ String Application::GetLocalStateDir(void)
  */
 void Application::DeclareLocalStateDir(const String& path)
 {
-	ScriptVariable::Declare("IcingaLocalStateDir", path);
+	ScriptVariable::Set("IcingaLocalStateDir", path, false);
 }
 
 /**
@@ -667,7 +667,7 @@ String Application::GetPkgDataDir(void)
  */
 void Application::DeclarePkgDataDir(const String& path)
 {
-	ScriptVariable::Declare("IcingaPkgDataDir", path);
+	ScriptVariable::Set("IcingaPkgDataDir", path, false);
 }
 
 /**
@@ -687,7 +687,7 @@ String Application::GetStatePath(void)
  */
 void Application::DeclareStatePath(const String& path)
 {
-	ScriptVariable::Declare("IcingaStatePath", path);
+	ScriptVariable::Set("IcingaStatePath", path, false);
 }
 
 /**
@@ -707,7 +707,7 @@ String Application::GetPidPath(void)
  */
 void Application::DeclarePidPath(const String& path)
 {
-	ScriptVariable::Declare("IcingaPidPath", path);
+	ScriptVariable::Set("IcingaPidPath", path, false);
 }
 
 /**
@@ -727,7 +727,7 @@ String Application::GetApplicationType(void)
  */
 void Application::DeclareApplicationType(const String& type)
 {
-	ScriptVariable::Declare("ApplicationType", type);
+	ScriptVariable::Set("ApplicationType", type, false);
 }
 
 /**

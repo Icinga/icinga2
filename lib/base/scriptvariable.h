@@ -29,22 +29,34 @@ namespace icinga
 {
 
 /**
- * Global registry for script variables.
+ * A script variables.
  *
  * @ingroup base
  */
-class I2_BASE_API ScriptVariable
+class I2_BASE_API ScriptVariable : public Object
 {
 public:
+	DECLARE_PTR_TYPEDEFS(ScriptVariable);
+
+	ScriptVariable(const Value& data);
+
+	void SetConstant(bool constant);
+	bool IsConstant(void) const;
+
+	void SetData(const Value& data);
+	Value GetData(void) const;
+
+	static ScriptVariable::Ptr GetByName(const String& name);
+
 	static Value Get(const String& name);
-	static void Set(const String& name, const Value& value);
-	static void Declare(const String& name, const Value& value);
+	static ScriptVariable::Ptr Set(const String& name, const Value& value, bool overwrite = true);
 
 private:
-	static Registry<ScriptVariable, Value> m_Registry;
+	Value m_Data;
+	bool m_Constant;
 };
 
-class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, Value>
+class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, ScriptVariable::Ptr>
 {
 public:
 	static inline ScriptVariableRegistry *GetInstance(void)
