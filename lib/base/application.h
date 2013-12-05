@@ -51,6 +51,8 @@ public:
 	 */
 	virtual int Main(void) = 0;
 
+	static void SetResourceLimits(void);
+
 	static int GetArgC(void);
 	static void SetArgC(int argc);
 

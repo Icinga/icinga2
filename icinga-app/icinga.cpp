@@ -187,6 +187,8 @@ int main(int argc, char **argv)
 {
 	Application::SetStartTime(Utility::GetTime());
 
+	Application::SetResourceLimits();
+
 	/* Set thread title. */
 	Utility::SetThreadName("Main Thread", false);
 

@@ -112,6 +112,32 @@ Application::Ptr Application::GetInstance(void)
 	return m_Instance->GetSelf();
 }
 
+void Application::SetResourceLimits(void)
+{
+#ifndef _WIN32
+#	ifdef RLIMIT_NOFILE
+	rlimit rl;
+	rl.rlim_cur = 16 * 1024;
+	rl.rlim_max = rl.rlim_cur;
+
+	if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
+		Log(LogCritical, "base", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
+#	else /* RLIMIT_NOFILE */
+	Log(LogCritical, "base", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
+#	endif /* RLIMIT_NOFILE */
+
+#	ifdef RLIMIT_NPROC
+	rl.rlim_cur = 16 * 1024;
+	rl.rlim_max = rl.rlim_cur;
+
+	if (setrlimit(RLIMIT_NPROC, &rl) < 0)
+		Log(LogCritical, "base", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
+#	else /* RLIMIT_NPROC */
+	Log(LogCritical, "base", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
+#	endif /* RLIMIT_NPROC */
+#endif /* _WIN32 */
+}
+
 int Application::GetArgC(void)
 {
 	return m_ArgC;
