@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ ! -f /var/cache/icinga2/status.dat ];
+then
+    sudo icinga2-enable-feature statusdata 1> /dev/null
+    sudo service icinga2 restart 1> /dev/null
+
+    n=0
+    while [ $n -lt 3 ]
+    do
+        sleep 15
+
+        if [ -f /var/cache/icinga2/status.dat ];
+        then
+            break
+        fi
+
+        n=$(( $n + 1))
+    done
+
+    if [ $n -eq 3 ];
+    then
+        echo "Icinga2 status.dat not found"
+        exit 1
+    fi
+fi
+
+echo "Icinga2 status.dat found"
+
+if [ -f /var/cache/icinga2/objects.cache ];
+then
+    echo "Icinga2 objects.cache found"
+    exit 0
+else
+    echo "Icinga2 objects.cache not found"
+    exit 1
+fi
