@@ -219,6 +219,8 @@ void DbConnection::ClearIDCache(void)
 	m_ObjectIDs.clear();
 	m_InsertIDs.clear();
 	m_ActiveObjects.clear();
+	m_ConfigUpdates.clear();
+	m_StatusUpdates.clear();
 }
 
 void DbConnection::SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
