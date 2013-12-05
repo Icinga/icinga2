@@ -79,15 +79,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 {
 	Dictionary::Ptr fields = make_shared<Dictionary>();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
-
 	Host::Ptr host = service->GetHost();
-
-	Dictionary::Ptr attrs;
-
-	{
-		ObjectLock olock(service);
-		attrs = CompatUtility::GetServiceConfigAttributes(service);
-	}
 
 	fields->Set("host_object_id", host);
 	fields->Set("display_name", service->GetDisplayName());
@@ -95,48 +87,48 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	fields->Set("check_command_args", Empty);
 	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
 	fields->Set("eventhandler_command_args", Empty);
-	fields->Set("notification_timeperiod_object_id", Notification::GetByName(attrs->Get("notification_period")));
+	fields->Set("notification_timeperiod_object_id", Notification::GetByName(CompatUtility::GetServiceNotificationNotificationPeriod(service)));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("failure_prediction_options", Empty);
-	fields->Set("check_interval", attrs->Get("check_interval"));
-	fields->Set("retry_interval", attrs->Get("retry_interval"));
-	fields->Set("max_check_attempts", attrs->Get("max_check_attempts"));
+	fields->Set("check_interval", CompatUtility::GetServiceCheckInterval(service));
+	fields->Set("retry_interval", CompatUtility::GetServiceRetryInterval(service));
+	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
 	fields->Set("first_notification_delay", Empty);
-	fields->Set("notification_interval", attrs->Get("notification_interval"));
-	fields->Set("notify_on_warning", attrs->Get("notify_on_warning"));
-	fields->Set("notify_on_unknown", attrs->Get("notify_on_unknown"));
-	fields->Set("notify_on_critical", attrs->Get("notify_on_critical"));
-	fields->Set("notify_on_recovery", attrs->Get("notify_on_recovery"));
-	fields->Set("notify_on_flapping", attrs->Get("notify_on_flapping"));
-	fields->Set("notify_on_downtime", attrs->Get("notify_on_downtime"));
+	fields->Set("notification_interval", CompatUtility::GetServiceNotificationNotificationInterval(service));
+	fields->Set("notify_on_warning", CompatUtility::GetServiceNotifyOnWarning(service));
+	fields->Set("notify_on_unknown", CompatUtility::GetServiceNotifyOnUnknown(service));
+	fields->Set("notify_on_critical", CompatUtility::GetServiceNotifyOnCritical(service));
+	fields->Set("notify_on_recovery", CompatUtility::GetServiceNotifyOnRecovery(service));
+	fields->Set("notify_on_flapping", CompatUtility::GetServiceNotifyOnFlapping(service));
+	fields->Set("notify_on_downtime", CompatUtility::GetServiceNotifyOnDowntime(service));
 	fields->Set("stalk_on_ok", 0);
 	fields->Set("stalk_on_warning", 0);
 	fields->Set("stalk_on_unknown", 0);
 	fields->Set("stalk_on_critical", 0);
-	fields->Set("is_volatile", attrs->Get("is_volatile"));
-	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
+	fields->Set("is_volatile", CompatUtility::GetServiceIsVolatile(service));
+	fields->Set("flap_detection_enabled", CompatUtility::GetServiceFlapDetectionEnabled(service));
 	fields->Set("flap_detection_on_ok", Empty);
 	fields->Set("flap_detection_on_warning", Empty);
 	fields->Set("flap_detection_on_unknown", Empty);
 	fields->Set("flap_detection_on_critical", Empty);
-	fields->Set("low_flap_threshold", attrs->Get("low_flap_threshold"));
-	fields->Set("high_flap_threshold", attrs->Get("high_flap_threshold"));
-	fields->Set("process_performance_data", attrs->Get("process_performance_data"));
-	fields->Set("freshness_checks_enabled", attrs->Get("freshness_checks_enabled"));
-	fields->Set("freshness_threshold", Empty);
-	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
-	fields->Set("event_handler_enabled", attrs->Get("event_handler_enabled"));
-	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
+	fields->Set("low_flap_threshold", CompatUtility::GetServiceLowFlapThreshold(service));
+	fields->Set("high_flap_threshold", CompatUtility::GetServiceHighFlapThreshold(service));
+	fields->Set("process_performance_data", CompatUtility::GetServiceProcessPerformanceData(service));
+	fields->Set("freshness_checks_enabled", CompatUtility::GetServiceFreshnessChecksEnabled(service));
+	fields->Set("freshness_threshold", CompatUtility::GetServiceFreshnessThreshold(service));
+	fields->Set("passive_checks_enabled", CompatUtility::GetServicePassiveChecksEnabled(service));
+	fields->Set("event_handler_enabled", CompatUtility::GetServiceEventHandlerEnabled(service));
+	fields->Set("active_checks_enabled", CompatUtility::GetServiceActiveChecksEnabled(service));
 	fields->Set("retain_status_information", Empty);
 	fields->Set("retain_nonstatus_information", Empty);
-	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
+	fields->Set("notifications_enabled", CompatUtility::GetServiceNotificationsEnabled(service));
 	fields->Set("obsess_over_service", Empty);
 	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("notes", attrs->Get("notes"));
-	fields->Set("notes_url", attrs->Get("notes_url"));
-	fields->Set("action_url", attrs->Get("action_url"));
-	fields->Set("icon_image", attrs->Get("icon_image"));
-	fields->Set("icon_image_alt", attrs->Get("icon_image_alt"));
+	fields->Set("notes", CompatUtility::GetCustomAttributeConfig(service, "notes"));
+	fields->Set("notes_url", CompatUtility::GetCustomAttributeConfig(service, "notes_url"));
+	fields->Set("action_url", CompatUtility::GetCustomAttributeConfig(service, "action_url"));
+	fields->Set("icon_image", CompatUtility::GetCustomAttributeConfig(service, "icon_image"));
+	fields->Set("icon_image_alt", CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt"));
 
 	return fields;
 }
@@ -145,55 +137,60 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 {
 	Dictionary::Ptr fields = make_shared<Dictionary>();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
-	Dictionary::Ptr attrs;
+	CheckResult::Ptr cr = service->GetLastCheckResult();
 
-	{
-		ObjectLock olock(service);
-		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeService);
+	if (cr) {
+		fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
+		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+		fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+		fields->Set("check_source", cr->GetCheckSource());
 	}
 
-	fields->Set("output", attrs->Get("plugin_output"));
-	fields->Set("long_output", attrs->Get("long_plugin_output"));
-	fields->Set("perfdata", attrs->Get("performance_data"));
-	fields->Set("check_source", attrs->Get("check_source"));
-	fields->Set("current_state", attrs->Get("current_state"));
-	fields->Set("has_been_checked", attrs->Get("has_been_checked"));
-	fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
-	fields->Set("current_check_attempt", attrs->Get("current_attempt"));
-	fields->Set("max_check_attempts", attrs->Get("max_attempts"));
-	fields->Set("last_check", DbValue::FromTimestamp(attrs->Get("last_check")));
-	fields->Set("next_check", DbValue::FromTimestamp(attrs->Get("next_check")));
-	fields->Set("check_type", attrs->Get("check_type"));
-	fields->Set("last_state_change", DbValue::FromTimestamp(attrs->Get("last_state_change")));
-	fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
-	fields->Set("last_time_ok", DbValue::FromTimestamp(attrs->Get("last_time_ok")));
-	fields->Set("last_time_warning", DbValue::FromTimestamp(attrs->Get("last_time_warn")));
-	fields->Set("last_time_critical", DbValue::FromTimestamp(attrs->Get("last_time_critical")));
-	fields->Set("last_time_unknown", DbValue::FromTimestamp(attrs->Get("last_time_unknown")));
-	fields->Set("state_type", attrs->Get("state_type"));
-	fields->Set("last_notification", DbValue::FromTimestamp(attrs->Get("last_notification")));
-	fields->Set("next_notification", DbValue::FromTimestamp(attrs->Get("next_notification")));
+	fields->Set("current_state", CompatUtility::GetServiceCurrentState(service));
+	fields->Set("has_been_checked", CompatUtility::GetServiceHasBeenChecked(service));
+	fields->Set("should_be_scheduled", CompatUtility::GetServiceShouldBeScheduled(service));
+	fields->Set("current_check_attempt", service->GetCheckAttempt());
+	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
+
+	if (cr)
+		fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
+
+	fields->Set("next_check", DbValue::FromTimestamp(service->GetNextCheck()));
+	fields->Set("check_type", CompatUtility::GetServiceCheckType(service));
+	fields->Set("last_state_change", DbValue::FromTimestamp(service->GetLastStateChange()));
+	fields->Set("last_hard_state_change", DbValue::FromTimestamp(service->GetLastHardStateChange()));
+	fields->Set("last_time_ok", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateOK())));
+	fields->Set("last_time_warning", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateWarning())));
+	fields->Set("last_time_critical", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateCritical())));
+	fields->Set("last_time_unknown", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateUnknown())));
+	fields->Set("state_type", service->GetStateType());
+	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetServiceNotificationLastNotification(service)));
+	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetServiceNotificationNextNotification(service)));
 	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
-	fields->Set("problem_has_been_acknowledged", attrs->Get("problem_has_been_acknowledged"));
-	fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
-	fields->Set("current_notification_number", attrs->Get("current_notification_number"));
-	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
-	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
-	fields->Set("event_handler_enabled", attrs->Get("event_handler_enabled"));
-	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
-	fields->Set("is_flapping", attrs->Get("is_flapping"));
-	fields->Set("percent_state_change", attrs->Get("percent_state_change"));
-	fields->Set("latency", attrs->Get("check_latency"));
-	fields->Set("execution_time", attrs->Get("check_execution_time"));
-	fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
-	fields->Set("process_performance_data", attrs->Get("process_performance_data"));
-	fields->Set("event_handler", attrs->Get("event_handler"));
-	fields->Set("check_command", attrs->Get("check_command"));
-	fields->Set("normal_check_interval", attrs->Get("check_interval"));
-	fields->Set("retry_check_interval", attrs->Get("retry_interval"));
+	fields->Set("notifications_enabled", CompatUtility::GetServiceNotificationsEnabled(service));
+	fields->Set("problem_has_been_acknowledged", CompatUtility::GetServiceProblemHasBeenAcknowledged(service));
+	fields->Set("acknowledgement_type", CompatUtility::GetServiceAcknowledgementType(service));
+	fields->Set("current_notification_number", CompatUtility::GetServiceNotificationNotificationNumber(service));
+	fields->Set("passive_checks_enabled", CompatUtility::GetServicePassiveChecksEnabled(service));
+	fields->Set("active_checks_enabled", CompatUtility::GetServiceActiveChecksEnabled(service));
+	fields->Set("event_handler_enabled", CompatUtility::GetServiceEventHandlerEnabled(service));
+	fields->Set("flap_detection_enabled", CompatUtility::GetServiceFlapDetectionEnabled(service));
+	fields->Set("is_flapping", CompatUtility::GetServiceIsFlapping(service));
+	fields->Set("percent_state_change", CompatUtility::GetServicePercentStateChange(service));
+
+	if (cr) {
+		fields->Set("latency", Service::CalculateLatency(cr));
+		fields->Set("execution_time", Service::CalculateExecutionTime(cr));
+	}
+
+	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
+	fields->Set("process_performance_data", CompatUtility::GetServiceProcessPerformanceData(service));
+	fields->Set("event_handler", CompatUtility::GetServiceEventHandler(service));
+	fields->Set("check_command", CompatUtility::GetServiceCheckCommand(service));
+	fields->Set("normal_check_interval", CompatUtility::GetServiceCheckInterval(service));
+	fields->Set("retry_check_interval", CompatUtility::GetServiceRetryInterval(service));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("modified_service_attributes", attrs->Get("modified_attributes"));
+	fields->Set("modified_service_attributes", service->GetModifiedAttributes());
 
 	return fields;
 }
@@ -739,7 +736,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	fields1->Set("entry_time_usec", time_bag.second);
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("object_id", service);
-	fields1->Set("state", service->GetState());
+	fields1->Set("state", CompatUtility::GetServiceCurrentState(service));
 	fields1->Set("author_name", author);
 	fields1->Set("comment_data", comment);
 	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
@@ -813,12 +810,11 @@ void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const 
 	fields1->Set("start_time_usec", time_bag.second);
 	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("end_time_usec", time_bag.second);
-	fields1->Set("state", service->GetState());
+	fields1->Set("state", CompatUtility::GetServiceCurrentState(service));
 
 	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		fields1->Set("output", output_bag.first);
-		fields1->Set("long_output", output_bag.second);
+		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
+		fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 	}
 
 	fields1->Set("escalated", 0);
@@ -858,7 +854,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	fields1->Set("state_time_usec", time_bag.second);
 	fields1->Set("object_id", service);
 	fields1->Set("state_change", 1); /* service */
-	fields1->Set("state", service->GetState());
+	fields1->Set("state", CompatUtility::GetServiceCurrentState(service));
 	fields1->Set("state_type", service->GetStateType());
 	fields1->Set("current_check_attempt", service->GetCheckAttempt());
 	fields1->Set("max_check_attempts", service->GetMaxCheckAttempts());
@@ -866,9 +862,8 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	fields1->Set("last_hard_state", service->GetLastHardState());
 
 	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		fields1->Set("output", output_bag.first);
-		fields1->Set("long_output", output_bag.second);
+		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
+		fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 	}
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -937,10 +932,8 @@ void ServiceDbObject::AddCheckResultLogHistory(const Service::Ptr& service, cons
 
 	String output;
 
-	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag.first;
-	}
+	if (cr)
+		output = CompatUtility::GetCheckResultOutput(cr);
 
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE ALERT: "
@@ -1076,10 +1069,8 @@ void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service,
 
 	String output;
 
-	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag.first;
-	}
+	if (cr)
+		output = CompatUtility::GetCheckResultOutput(cr);
 
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE NOTIFICATION: "
@@ -1251,6 +1242,9 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 /* servicechecks */
 void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const CheckResult::Ptr &cr)
 {
+	if (!cr)
+		return;
+
 	Host::Ptr host = service->GetHost();
 
 	Log(LogDebug, "db_ido", "add service check history for '" + service->GetName() + "'");
@@ -1261,38 +1255,33 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	query1.Category = DbCatCheck;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	Dictionary::Ptr attrs;
+	double execution_time = Service::CalculateExecutionTime(cr);
 
-	{
-		ObjectLock olock(service);
-		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeService);
-	}
-
-	fields1->Set("check_type", attrs->Get("check_type"));
-	fields1->Set("current_check_attempt", attrs->Get("current_attempt"));
-	fields1->Set("max_check_attempts", attrs->Get("max_attempts"));
-	fields1->Set("state", attrs->Get("current_state"));
-	fields1->Set("state_type", attrs->Get("state_type"));
+	fields1->Set("check_type", CompatUtility::GetServiceCheckType(service));
+	fields1->Set("current_check_attempt", service->GetCheckAttempt());
+	fields1->Set("max_check_attempts", service->GetMaxCheckAttempts());
+	fields1->Set("state", CompatUtility::GetServiceCurrentState(service));
+	fields1->Set("state_type", service->GetStateType());
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
-	double end = now + attrs->Get("check_execution_time");
-	std::pair<unsigned long, unsigned long> time_bag_end = CompatUtility::ConvertTimestamp(now);
+	double end = now + execution_time;
+	std::pair<unsigned long, unsigned long> time_bag_end = CompatUtility::ConvertTimestamp(end);
 
 	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("start_time_usec", time_bag.second);
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("end_time_usec", time_bag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(time_bag_end.first));
+	fields1->Set("end_time_usec", time_bag_end.second);
 	fields1->Set("command_object_id", service->GetCheckCommand());
 	fields1->Set("command_args", Empty);
 	fields1->Set("command_line", cr->GetCommand());
-	fields1->Set("execution_time", attrs->Get("check_execution_time"));
-	fields1->Set("latency", attrs->Get("check_latency"));
+	fields1->Set("execution_time", execution_time);
+	fields1->Set("latency", Service::CalculateLatency(cr));
 	fields1->Set("return_code", cr->GetExitStatus());
-	fields1->Set("output", attrs->Get("plugin_output"));
-	fields1->Set("long_output", attrs->Get("long_plugin_output"));
-	fields1->Set("perfdata", attrs->Get("performance_data"));
+	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
+	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+	fields1->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -1331,7 +1320,7 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 
 	fields1->Set("eventhandler_type", 1); /* service */
 	fields1->Set("object_id", service);
-	fields1->Set("state", service->GetState());
+	fields1->Set("state", CompatUtility::GetServiceCurrentState(service));
 	fields1->Set("state_type", service->GetStateType());
 
 	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));

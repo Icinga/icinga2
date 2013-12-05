@@ -45,76 +45,81 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 
 	Service::Ptr service = host->GetCheckService();
 
-	Dictionary::Ptr attrs;
-
-	{
-		ObjectLock olock(host);
-		attrs = CompatUtility::GetHostConfigAttributes(host);
-	}
-
-	fields->Set("alias", attrs->Get("alias"));
+	fields->Set("alias", CompatUtility::GetHostAlias(host));
 	fields->Set("display_name", host->GetDisplayName());
-
-	fields->Set("address", attrs->Get("address"));
-	fields->Set("address6", attrs->Get("address6"));
+	fields->Set("address", CompatUtility::GetHostAddress(host));
+	fields->Set("address6", CompatUtility::GetHostAddress6(host));
 
 	if (service) {
 		fields->Set("check_command_object_id", service->GetCheckCommand());
 		fields->Set("check_command_args", Empty);
 		fields->Set("eventhandler_command_object_id", service->GetEventCommand());
 		fields->Set("eventhandler_command_args", Empty);
+		fields->Set("notification_timeperiod_object_id", Notification::GetByName(CompatUtility::GetServiceNotificationNotificationPeriod(service)));
+		fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+		fields->Set("failure_prediction_options", Empty);
+		fields->Set("check_interval", CompatUtility::GetServiceCheckInterval(service));
+		fields->Set("retry_interval", CompatUtility::GetServiceRetryInterval(service));
+		fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
+
+		fields->Set("first_notification_delay", Empty);
+
+		fields->Set("notification_interval", CompatUtility::GetServiceNotificationNotificationInterval(service));
+		/* requires host check service */
+		fields->Set("notify_on_down", CompatUtility::GetHostNotifyOnDown(host));
+		fields->Set("notify_on_unreachable", CompatUtility::GetHostNotifyOnDown(host));
+
+		fields->Set("notify_on_recovery", CompatUtility::GetServiceNotifyOnRecovery(service));
+		fields->Set("notify_on_flapping", CompatUtility::GetServiceNotifyOnFlapping(service));
+		fields->Set("notify_on_downtime", CompatUtility::GetServiceNotifyOnDowntime(service));
+
+		fields->Set("stalk_on_up", Empty);
+		fields->Set("stalk_on_down", Empty);
+		fields->Set("stalk_on_unreachable", Empty);
+
+		fields->Set("flap_detection_enabled", CompatUtility::GetServiceFlapDetectionEnabled(service));
+		fields->Set("flap_detection_on_up", Empty);
+		fields->Set("flap_detection_on_down", Empty);
+		fields->Set("flap_detection_on_unreachable", Empty);
+		fields->Set("low_flap_threshold", CompatUtility::GetServiceLowFlapThreshold(service));
+		fields->Set("high_flap_threshold", CompatUtility::GetServiceHighFlapThreshold(service));
 	}
 
-	fields->Set("notification_timeperiod_object_id", Notification::GetByName(attrs->Get("notification_period")));
+	fields->Set("process_performance_data", 0);
 
-	if (service)
-		fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+	if (service) {
+		fields->Set("freshness_checks_enabled", CompatUtility::GetServiceFreshnessChecksEnabled(service));
+		fields->Set("freshness_threshold", CompatUtility::GetServiceFreshnessThreshold(service));
+		fields->Set("passive_checks_enabled", CompatUtility::GetServicePassiveChecksEnabled(service));
+		fields->Set("event_handler_enabled", CompatUtility::GetServiceEventHandlerEnabled(service));
+		fields->Set("active_checks_enabled", CompatUtility::GetServiceActiveChecksEnabled(service));
+	}
 
-	fields->Set("failure_prediction_options", Empty);
-
-	fields->Set("check_interval", attrs->Get("check_interval"));
-	fields->Set("retry_interval", attrs->Get("retry_interval"));
-	fields->Set("max_check_attempts", attrs->Get("max_check_attempts"));
-
-	fields->Set("first_notification_delay", Empty);
-	fields->Set("notification_interval", attrs->Get("notification_interval"));
-	fields->Set("notify_on_down", attrs->Get("notify_on_down"));
-	fields->Set("notify_on_unreachable", attrs->Get("notify_on_unreachable"));
-	fields->Set("notify_on_recovery", attrs->Get("notify_on_recovery"));
-	fields->Set("notify_on_flapping", attrs->Get("notify_on_flapping"));
-	fields->Set("notify_on_downtime", attrs->Get("notify_on_downtime"));
-
-	fields->Set("stalk_on_up", Empty);
-	fields->Set("stalk_on_down", Empty);
-	fields->Set("stalk_on_unreachable", Empty);
-
-	fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
-	fields->Set("flap_detection_on_up", Empty);
-	fields->Set("flap_detection_on_down", Empty);
-	fields->Set("flap_detection_on_unreachable", Empty);
-	fields->Set("low_flap_threshold", attrs->Get("low_flap_threshold"));
-	fields->Set("high_flap_threshold", attrs->Get("high_flap_threshold"));
-	fields->Set("process_performance_data", attrs->Get("process_performance_data"));
-	fields->Set("freshness_checks_enabled", attrs->Get("check_freshness"));
-	fields->Set("freshness_threshold", Empty);
-	fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
-	fields->Set("event_handler_enabled", attrs->Get("event_handler_enabled"));
-	fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
 	fields->Set("retain_status_information", 1);
 	fields->Set("retain_nonstatus_information", 1);
-	fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
+
+	if (service)
+		fields->Set("notifications_enabled", CompatUtility::GetServiceNotificationsEnabled(service));
+
 	fields->Set("obsess_over_host", 0);
 	fields->Set("failure_prediction_enabled", 0);
 
-	fields->Set("notes", attrs->Get("notes"));
-	fields->Set("notes_url", attrs->Get("notes_url"));
-	fields->Set("action_url", attrs->Get("action_url"));
-	fields->Set("icon_image", attrs->Get("icon_image"));
-	fields->Set("icon_image_alt", attrs->Get("icon_image_alt"));
-	fields->Set("statusmap_image", attrs->Get("statusmap_image"));
-	fields->Set("have_2d_coords", attrs->Get("have_2d_coords"));
-	fields->Set("x_2d", attrs->Get("x_2d"));
-	fields->Set("y_2d", attrs->Get("y_2d"));
+	fields->Set("notes", CompatUtility::GetCustomAttributeConfig(host, "notes"));
+	fields->Set("notes_url", CompatUtility::GetCustomAttributeConfig(host, "notes_url"));
+	fields->Set("action_url", CompatUtility::GetCustomAttributeConfig(host, "action_url"));
+	fields->Set("icon_image", CompatUtility::GetCustomAttributeConfig(host, "icon_image"));
+	fields->Set("icon_image_alt", CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt"));
+	fields->Set("statusmap_image", CompatUtility::GetCustomAttributeConfig(host, "statusmap_image"));
+
+	Host2dCoords coords = CompatUtility::GetHost2dCoords(host);
+
+	fields->Set("have_2d_coords", coords.have_2d_coords);
+
+	if (coords.have_2d_coords) {
+		fields->Set("x_2d", coords.x_2d);
+		fields->Set("y_2d", coords.y_2d);
+	}
+
 	/* deprecated in 1.x */
 	fields->Set("have_3d_coords", 0);
 
@@ -127,55 +132,61 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 	Service::Ptr service = host->GetCheckService();
 
-	Dictionary::Ptr attrs;
-
 	/* fetch service status, or dump a pending hoststatus */
 	if (service) {
-		ObjectLock olock(service);
-		attrs = CompatUtility::GetServiceStatusAttributes(service, CompatTypeHost);
+		CheckResult::Ptr cr = service->GetLastCheckResult();
 
-		fields->Set("output", attrs->Get("plugin_output"));
-		fields->Set("long_output", attrs->Get("long_plugin_output"));
-		fields->Set("perfdata", attrs->Get("performance_data"));
-		fields->Set("check_source", attrs->Get("check_source"));
-		fields->Set("current_state", attrs->Get("current_state"));
-		fields->Set("has_been_checked", attrs->Get("has_been_checked"));
-		fields->Set("should_be_scheduled", attrs->Get("should_be_scheduled"));
-		fields->Set("current_check_attempt", attrs->Get("current_attempt"));
-		fields->Set("max_check_attempts", attrs->Get("max_attempts"));
-		fields->Set("last_check", DbValue::FromTimestamp(attrs->Get("last_check")));
-		fields->Set("next_check", DbValue::FromTimestamp(attrs->Get("next_check")));
-		fields->Set("check_type", attrs->Get("check_type"));
-		fields->Set("last_state_change", DbValue::FromTimestamp(attrs->Get("last_state_change")));
-		fields->Set("last_hard_state_change", DbValue::FromTimestamp(attrs->Get("last_hard_state_change")));
-		fields->Set("last_time_up", DbValue::FromTimestamp(attrs->Get("last_time_up")));
-		fields->Set("last_time_down", DbValue::FromTimestamp(attrs->Get("last_time_down")));
-		fields->Set("last_time_unreachable", DbValue::FromTimestamp(attrs->Get("last_time_unreachable")));
-		fields->Set("state_type", attrs->Get("state_type"));
-		fields->Set("last_notification", DbValue::FromTimestamp(attrs->Get("last_notification")));
-		fields->Set("next_notification", DbValue::FromTimestamp(attrs->Get("next_notification")));
+		if (cr) {
+			fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
+			fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+			fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+			fields->Set("check_source", cr->GetCheckSource());
+		}
+
+		fields->Set("current_state", host->GetState());
+		fields->Set("has_been_checked", CompatUtility::GetServiceHasBeenChecked(service));
+		fields->Set("should_be_scheduled", CompatUtility::GetServiceShouldBeScheduled(service));
+		fields->Set("current_check_attempt", service->GetCheckAttempt());
+		fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
+
+		if (cr)
+			fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
+
+		fields->Set("next_check", DbValue::FromTimestamp(service->GetNextCheck()));
+		fields->Set("check_type", CompatUtility::GetServiceCheckType(service));
+		fields->Set("last_state_change", DbValue::FromTimestamp(service->GetLastStateChange()));
+		fields->Set("last_hard_state_change", DbValue::FromTimestamp(service->GetLastHardStateChange()));
+		fields->Set("last_time_up", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateUp())));
+		fields->Set("last_time_down", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateDown())));
+		fields->Set("last_time_unreachable", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateUnreachable())));
+		fields->Set("state_type", service->GetStateType());
+		fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetServiceNotificationLastNotification(service)));
+		fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetServiceNotificationNextNotification(service)));
 		fields->Set("no_more_notifications", Empty);
-		fields->Set("notifications_enabled", attrs->Get("notifications_enabled"));
-		fields->Set("problem_has_been_acknowledged", attrs->Get("problem_has_been_acknowledged"));
-		fields->Set("acknowledgement_type", attrs->Get("acknowledgement_type"));
-		fields->Set("current_notification_number", attrs->Get("current_notification_number"));
-		fields->Set("passive_checks_enabled", attrs->Get("passive_checks_enabled"));
-		fields->Set("active_checks_enabled", attrs->Get("active_checks_enabled"));
-		fields->Set("eventhandler_enabled", attrs->Get("eventhandler_enabled"));
-		fields->Set("flap_detection_enabled", attrs->Get("flap_detection_enabled"));
-		fields->Set("is_flapping", attrs->Get("is_flapping"));
-		fields->Set("percent_state_change", attrs->Get("percent_state_change"));
-		fields->Set("latency", attrs->Get("check_latency"));
-		fields->Set("execution_time", attrs->Get("check_execution_time"));
-		fields->Set("scheduled_downtime_depth", attrs->Get("scheduled_downtime_depth"));
+		fields->Set("notifications_enabled", CompatUtility::GetServiceNotificationsEnabled(service));
+		fields->Set("problem_has_been_acknowledged", CompatUtility::GetServiceProblemHasBeenAcknowledged(service));
+		fields->Set("acknowledgement_type", CompatUtility::GetServiceAcknowledgementType(service));
+		fields->Set("current_notification_number", CompatUtility::GetServiceNotificationNotificationNumber(service));
+		fields->Set("passive_checks_enabled", CompatUtility::GetServicePassiveChecksEnabled(service));
+		fields->Set("active_checks_enabled", CompatUtility::GetServiceActiveChecksEnabled(service));
+		fields->Set("event_handler_enabled", CompatUtility::GetServiceEventHandlerEnabled(service));
+		fields->Set("flap_detection_enabled", CompatUtility::GetServiceFlapDetectionEnabled(service));
+		fields->Set("is_flapping", CompatUtility::GetServiceIsFlapping(service));
+		fields->Set("percent_state_change", CompatUtility::GetServicePercentStateChange(service));
+
+		if (cr) {
+			fields->Set("latency", Service::CalculateLatency(cr));
+			fields->Set("execution_time", Service::CalculateExecutionTime(cr));
+		}
+		fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
 		fields->Set("failure_prediction_enabled", Empty);
-		fields->Set("process_performance_data", attrs->Get("process_performance_data"));
+		fields->Set("process_performance_data", 0); /* this is a host which does not process any perf data */
 		fields->Set("obsess_over_host", Empty);
-		fields->Set("modified_host_attributes", attrs->Get("modified_attributes"));
-		fields->Set("event_handler", attrs->Get("event_handler"));
-		fields->Set("check_command", attrs->Get("check_command"));
-		fields->Set("normal_check_interval", attrs->Get("check_interval"));
-		fields->Set("retry_check_interval", attrs->Get("retry_interval"));
+		fields->Set("modified_host_attributes", service->GetModifiedAttributes());
+		fields->Set("event_handler", CompatUtility::GetServiceEventHandler(service));
+		fields->Set("check_command", CompatUtility::GetServiceCheckCommand(service));
+		fields->Set("normal_check_interval", CompatUtility::GetServiceCheckInterval(service));
+		fields->Set("retry_check_interval", CompatUtility::GetServiceRetryInterval(service));
 		fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	}
 	else {

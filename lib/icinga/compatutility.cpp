@@ -21,6 +21,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/pluginutility.h"
+#include "base/utility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/debug.h"
@@ -33,389 +34,9 @@
 
 using namespace icinga;
 
-Dictionary::Ptr CompatUtility::GetHostConfigAttributes(const Host::Ptr& host)
+/* command */
+String CompatUtility::GetCommandLine(const Command::Ptr& command)
 {
-	Dictionary::Ptr attr = make_shared<Dictionary>();
-	Dictionary::Ptr service_attr = make_shared<Dictionary>();
-
-	ASSERT(host->OwnsLock());
-
-	/* host config attributes */
-	Dictionary::Ptr custom;
-	Dictionary::Ptr macros;
-	std::vector<String> notification_options;
-
-	/* dicts */
-	macros = host->GetMacros();
-	custom = host->GetCustom();
-
-	if (macros) {
-		attr->Set("address", macros->Get("address"));
-		attr->Set("address6", macros->Get("address6"));
-	}
-
-	if (custom) {
-		attr->Set("notes", custom->Get("notes"));
-		attr->Set("notes_url", custom->Get("notes_url"));
-		attr->Set("action_url", custom->Get("action_url"));
-		attr->Set("icon_image", custom->Get("icon_image"));
-		attr->Set("icon_image_alt", custom->Get("icon_image_alt"));
-
-		attr->Set("statusmap_image", custom->Get("statusmap_image"));
-		attr->Set("2d_coords", custom->Get("2d_coords"));
-
-		if (!custom->Get("2d_coords").IsEmpty()) {
-			std::vector<String> tokens;
-			String coords = custom->Get("2d_coords");
-			boost::algorithm::split(tokens, coords, boost::is_any_of(","));
-
-			if (tokens.size() == 2) {
-				attr->Set("have_2d_coords", 1);
-				attr->Set("x_2d", tokens[0]);
-				attr->Set("y_2d", tokens[1]);
-			}
-			else
-				attr->Set("have_2d_coords", 0);
-		}
-		else
-			attr->Set("have_2d_coords", 0);
-
-		/* deprecated in 1.x, but empty */
-		attr->Set("vrml_image", Empty);
-		attr->Set("3d_coords", Empty);
-		attr->Set("have_3d_coords", 0);
-		attr->Set("x_3d", Empty);
-		attr->Set("y_3d", Empty);
-		attr->Set("z_3d", Empty);
-	}
-
-	/* alias */
-	if (!host->GetDisplayName().IsEmpty())
-		attr->Set("alias", host->GetName());
-	else
-		attr->Set("alias", host->GetDisplayName());
-
-	/* get additonal attributes from check service */
-	Service::Ptr service = host->GetCheckService();
-
-	if (service) {
-		unsigned long notification_type_filter = 0;
-		unsigned long notification_state_filter = 0;
-
-		ObjectLock olock(service);
-
-		BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-			if (notification->GetNotificationTypeFilter())
-				notification_type_filter = notification->GetNotificationTypeFilter();
-
-			if (notification->GetNotificationStateFilter())
-				notification_state_filter = notification->GetNotificationStateFilter();
-		}
-
-		/* notification state filters */
-		if (notification_state_filter & (1<<StateWarning) ||
-		    notification_state_filter & (1<<StateCritical)) {
-			attr->Set("notify_on_down", 1);
-			notification_options.push_back("d");
-		}
-
-		/* notification type filters */
-		if (notification_type_filter & (1<<NotificationRecovery)) {
-			attr->Set("notify_on_recovery", 1);
-			notification_options.push_back("r");
-		}
-		if (notification_type_filter & (1<<NotificationFlappingStart) ||
-		    notification_type_filter & (1<<NotificationFlappingEnd)) {
-			attr->Set("notify_on_flapping", 1);
-			notification_options.push_back("f");
-		}
-		if (notification_type_filter & (1<<NotificationDowntimeStart) ||
-		    notification_type_filter & (1<<NotificationDowntimeEnd) ||
-		    notification_type_filter & (1<<NotificationDowntimeRemoved)) {
-			attr->Set("notify_on_downtime", 1);
-			notification_options.push_back("s");
-		}
-
-		service_attr = CompatUtility::GetServiceConfigAttributes(service);
-
-		attr->Set("check_period", service_attr->Get("check_period"));
-		attr->Set("check_interval", service_attr->Get("check_interval"));
-		attr->Set("retry_interval", service_attr->Get("retry_interval"));
-		attr->Set("max_check_attempts", service_attr->Get("max_check_attempts"));
-		attr->Set("active_checks_enabled", service_attr->Get("active_checks_enabled"));
-		attr->Set("passive_checks_enabled", service_attr->Get("passive_checks_enabled"));
-		attr->Set("flap_detection_enabled", service_attr->Get("flap_detection_enabled"));
-		attr->Set("low_flap_threshold", service_attr->Get("low_flap_threshold"));
-		attr->Set("high_flap_threshold", service_attr->Get("high_flap_threshold"));
-		attr->Set("notifications_enabled", service_attr->Get("notifications_enabled"));
-		attr->Set("eventhandler_enabled", service_attr->Get("eventhandler_enabled"));
-		attr->Set("is_volatile", service_attr->Get("is_volatile"));
-		attr->Set("notifications_enabled", service_attr->Get("notifications_enabled"));
-		attr->Set("notification_options", boost::algorithm::join(notification_options, ","));
-		attr->Set("notification_interval", service_attr->Get("notification_interval"));
-		attr->Set("process_performance_data", service_attr->Get("process_performance_data"));
-		attr->Set("notification_period", service_attr->Get("notification_period"));
-		attr->Set("check_freshness", service_attr->Get("check_freshness"));
-		attr->Set("check_command", service_attr->Get("check_command"));
-		attr->Set("event_handler", service_attr->Get("event_handler"));
-	}
-
-	return attr;
-}
-
-Dictionary::Ptr CompatUtility::GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type)
-{
-	Dictionary::Ptr attr = make_shared<Dictionary>();
-
-	ASSERT(service->OwnsLock());
-
-	String raw_output;
-	String output;
-	String long_output;
-	String perfdata;
-	String check_source;
-	double schedule_end = -1;
-
-	String check_period_str;
-	TimePeriod::Ptr check_period = service->GetCheckPeriod();
-	if (check_period)
-		check_period_str = check_period->GetName();
-	else
-		check_period_str = "24x7";
-
-	CheckResult::Ptr cr = service->GetLastCheckResult();
-
-	if (cr) {
-		std::pair<String, String> output_bag = GetCheckResultOutput(cr);
-		output = output_bag.first;
-		long_output = output_bag.second;
-
-		check_source = cr->GetCheckSource();
-
-		perfdata = GetCheckResultPerfdata(cr);
-		schedule_end = cr->GetScheduleEnd();
-	}
-
-	int state = service->GetState();
-
-	if (state > StateUnknown)
-		state = StateUnknown;
-
-	if (type == CompatTypeHost) {
-		if (state == StateOK || state == StateWarning)
-			state = 0; /* UP */
-		else
-			state = 1; /* DOWN */
-
-		Host::Ptr host = service->GetHost();
-
-		ASSERT(host);
-
-		if (!host->IsReachable())
-			state = 2; /* UNREACHABLE */
-
-		attr->Set("last_time_up", host->GetLastStateUp());
-		attr->Set("last_time_down", host->GetLastStateDown());
-		attr->Set("last_time_unreachable", host->GetLastStateUnreachable());
-	} else {
-		attr->Set("last_time_ok", service->GetLastStateOK());
-		attr->Set("last_time_warn", service->GetLastStateWarning());
-		attr->Set("last_time_critical", service->GetLastStateCritical());
-		attr->Set("last_time_unknown", service->GetLastStateUnknown());
-	}
-
-	double last_notification = 0;
-	double next_notification = 0;
-	int notification_number = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetLastNotification() > last_notification)
-			last_notification = notification->GetLastNotification();
-
-		if (notification->GetNextNotification() < next_notification)
-			next_notification = notification->GetNextNotification();
-
-		if (notification->GetNotificationNumber() > notification_number)
-			notification_number = notification->GetNotificationNumber();
-	}
-
-	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
-	if (checkcommand)
-		attr->Set("check_command", "check_" + checkcommand->GetName());
-
-	EventCommand::Ptr eventcommand = service->GetEventCommand();
-	if (eventcommand)
-		attr->Set("event_handler", "event_" + eventcommand->GetName());
-
-	attr->Set("check_period", check_period_str);
-	attr->Set("check_interval", service->GetCheckInterval() / 60.0);
-	attr->Set("retry_interval", service->GetRetryInterval() / 60.0);
-	attr->Set("has_been_checked", (service->GetLastCheckResult() ? 1 : 0));
-	attr->Set("should_be_scheduled", 1);
-	attr->Set("check_execution_time", Service::CalculateExecutionTime(cr));
-	attr->Set("check_latency", Service::CalculateLatency(cr));
-	attr->Set("current_state", state);
-	attr->Set("state_type", service->GetStateType());
-	attr->Set("plugin_output", output);
-	attr->Set("long_plugin_output", long_output);
-	attr->Set("performance_data", perfdata);
-	attr->Set("check_source", check_source);
-	attr->Set("check_type", (service->GetEnableActiveChecks() ? 0 : 1));
-	attr->Set("last_check", schedule_end);
-	attr->Set("next_check", service->GetNextCheck());
-	attr->Set("current_attempt", service->GetCheckAttempt());
-	attr->Set("max_attempts", service->GetMaxCheckAttempts());
-	attr->Set("last_state_change", service->GetLastStateChange());
-	attr->Set("last_hard_state_change", service->GetLastHardStateChange());
-	attr->Set("last_update", static_cast<long>(time(NULL)));
-	attr->Set("process_performance_data", 1); /* always enabled */
-	attr->Set("freshness_checks_enabled", 1); /* always enabled */
-	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
-	attr->Set("event_handler_enabled", 1); /* always enabled */
-	attr->Set("active_checks_enabled", (service->GetEnableActiveChecks() ? 1 : 0));
-	attr->Set("passive_checks_enabled", (service->GetEnablePassiveChecks() ? 1 : 0));
-	attr->Set("flap_detection_enabled", (service->GetEnableFlapping() ? 1 : 0));
-	attr->Set("is_flapping", (service->IsFlapping() ? 1 : 0));
-	attr->Set("percent_state_change", Convert::ToString(service->GetFlappingCurrent()));
-	attr->Set("problem_has_been_acknowledged", (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0));
-	attr->Set("acknowledgement_type", static_cast<int>(service->GetAcknowledgement()));
-	attr->Set("acknowledgement_end_time", service->GetAcknowledgementExpiry());
-	attr->Set("scheduled_downtime_depth", (service->IsInDowntime() ? 1 : 0));
-	attr->Set("last_notification", last_notification);
-	attr->Set("next_notification", next_notification);
-	attr->Set("current_notification_number", notification_number);
-	attr->Set("modified_attributes", service->GetModifiedAttributes());
-
-	return attr;
-}
-
-Dictionary::Ptr CompatUtility::GetServiceConfigAttributes(const Service::Ptr& service)
-{
-	Dictionary::Ptr attr = make_shared<Dictionary>();
-
-	ASSERT(service->OwnsLock());
-
-	Host::Ptr host = service->GetHost();
-
-	String check_period_str;
-	TimePeriod::Ptr check_period = service->GetCheckPeriod();
-	if (check_period)
-		check_period_str = check_period->GetName();
-	else
-		check_period_str = "24x7";
-
-	double notification_interval = -1;
-	String notification_period;
-	unsigned long notification_type_filter = 0;
-	unsigned long notification_state_filter = 0;
-
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
-			notification_interval = notification->GetNotificationInterval();
-
-		if (notification->GetNotificationPeriod())
-			notification_period = notification->GetNotificationPeriod()->GetName();
-
-		if (notification->GetNotificationTypeFilter())
-			notification_type_filter = notification->GetNotificationTypeFilter();
-
-		if (notification->GetNotificationStateFilter())
-			notification_state_filter = notification->GetNotificationStateFilter();
-
-		Log(LogDebug, "icinga", "notification_type_filter: " + Convert::ToString(notification_type_filter) + " notification_state_filter: " + Convert::ToString(notification_state_filter));
-	}
-
-
-	if (notification_interval == -1)
-		notification_interval = 60;
-
-	String check_command_str;
-	String event_command_str;
-	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
-	EventCommand::Ptr eventcommand = service->GetEventCommand();
-
-	if (checkcommand)
-		check_command_str = checkcommand->GetName();
-
-	if (eventcommand)
-		event_command_str = eventcommand->GetName();
-
-	Dictionary::Ptr custom;
-	Dictionary::Ptr macros;
-	std::vector<String> notification_options;
-
-	/* dicts */
-	custom = service->GetCustom();
-	macros = service->GetMacros();
-
-	/* notification state filters */
-	if (notification_state_filter & (1<<StateWarning)) {
-		attr->Set("notify_on_warning", 1);
-		notification_options.push_back("w");
-	}
-	if (notification_state_filter & (1<<StateUnknown)) {
-		attr->Set("notify_on_unknown", 1);
-		notification_options.push_back("u");
-	}
-	if (notification_state_filter & (1<<StateCritical)) {
-		attr->Set("notify_on_critical", 1);
-		notification_options.push_back("c");
-	}
-
-	/* notification type filters */
-	if (notification_type_filter & (1<<NotificationRecovery)) {
-		attr->Set("notify_on_recovery", 1);
-		notification_options.push_back("r");
-	}
-	if (notification_type_filter & (1<<NotificationFlappingStart) ||
-			notification_type_filter & (1<<NotificationFlappingEnd)) {
-		attr->Set("notify_on_flapping", 1);
-		notification_options.push_back("f");
-	}
-	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
-			notification_type_filter & (1<<NotificationDowntimeEnd) ||
-			notification_type_filter & (1<<NotificationDowntimeRemoved)) {
-		attr->Set("notify_on_downtime", 1);
-		notification_options.push_back("s");
-	}
-
-	attr->Set("check_period", check_period_str);
-	attr->Set("check_interval", service->GetCheckInterval() / 60.0);
-	attr->Set("retry_interval", service->GetRetryInterval() / 60.0);
-	attr->Set("max_check_attempts", service->GetMaxCheckAttempts());
-	attr->Set("active_checks_enabled", (service->GetEnableActiveChecks() ? 1 : 0));
-	attr->Set("passive_checks_enabled", (service->GetEnablePassiveChecks() ? 1 : 0));
-	attr->Set("flap_detection_enabled", (service->GetEnableFlapping() ? 1 : 0));
-	attr->Set("low_flap_threshold", service->GetFlappingThreshold());
-	attr->Set("high_flap_threshold", service->GetFlappingThreshold());
-	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
-	attr->Set("eventhandler_enabled", 1); /* always 1 */
-	attr->Set("is_volatile", (service->GetVolatile() ? 1 : 0));
-	attr->Set("notifications_enabled", (service->GetEnableNotifications() ? 1 : 0));
-	attr->Set("notification_options", boost::algorithm::join(notification_options, ","));
-	attr->Set("notification_interval", notification_interval / 60.0);
-	attr->Set("process_performance_data", 1); /* always 1 */
-	attr->Set("notification_period", notification_period);
-	attr->Set("check_freshness", 1); /* always 1 */
-	attr->Set("check_command", check_command_str);
-	attr->Set("event_handler", event_command_str);
-
-	/* custom attr */
-	if (custom) {
-		attr->Set("notes", custom->Get("notes"));
-		attr->Set("notes_url", custom->Get("notes_url"));
-		attr->Set("action_url", custom->Get("action_url"));
-		attr->Set("icon_image", custom->Get("icon_image"));
-		attr->Set("icon_image_alt", custom->Get("icon_image_alt"));
-	}
-
-	return attr;
-
-}
-
-Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& command)
-{
-	Dictionary::Ptr attr = make_shared<Dictionary>();
-
 	Value commandLine = command->GetCommandLine();
 
 	String commandline;
@@ -434,14 +55,354 @@ Dictionary::Ptr CompatUtility::GetCommandConfigAttributes(const Command::Ptr& co
 		commandline = "<internal>";
 	}
 
-	attr->Set("command_line", commandline);
+	return commandline;
+}
 
-	return attr;
+/* host */
+String CompatUtility::GetHostAlias(const Host::Ptr& host)
+{
+	ASSERT(host->OwnsLock());
+
+	if (!host->GetDisplayName().IsEmpty())
+		return host->GetName();
+	else
+		return host->GetDisplayName();
+}
+
+String CompatUtility::GetHostAddress(const Host::Ptr& host)
+{
+	ASSERT(host->OwnsLock());
+
+	Dictionary::Ptr macros = host->GetMacros();
+
+	String address;
+
+	if (macros) {
+		address = macros->Get("address");
+	}
+
+	return address;
+}
+
+String CompatUtility::GetHostAddress6(const Host::Ptr& host)
+{
+	ASSERT(host->OwnsLock());
+
+	Dictionary::Ptr macros = host->GetMacros();
+
+	String address6;
+
+	if (macros) {
+		address6 = macros->Get("address6");
+	}
+
+	return address6;
+}
+
+Host2dCoords CompatUtility::GetHost2dCoords(const Host::Ptr& host)
+{
+	ASSERT(host->OwnsLock());
+
+	Dictionary::Ptr custom = host->GetCustom();
+	Host2dCoords bag;
+
+	if (custom) {
+		bag.have_2d_coords = (custom->Get("x_2d") && custom->Get("y_2d") ? 1 : 0);
+
+		if (bag.have_2d_coords == 1) {
+			bag.x_2d = custom->Get("x_2d");
+			bag.y_2d = custom->Get("y_2d");
+		}
+	} else {
+		bag.have_2d_coords = 0;
+	}
+
+	return bag;
+}
+
+int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
+{
+	ASSERT(host->OwnsLock());
+
+	Service::Ptr service = host->GetCheckService();
+
+	if (!service)
+		return 0;
+
+	unsigned long notification_state_filter = GetServiceNotificationStateFilter(service);
+
+	if (notification_state_filter & (1<<StateCritical) ||
+	    notification_state_filter & (1<<StateWarning))
+		return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
+{
+	ASSERT(host->OwnsLock());
+
+	Service::Ptr service = host->GetCheckService();
+
+	if (!service)
+		return 0;
+
+	unsigned long notification_state_filter = GetServiceNotificationStateFilter(service);
+
+	if (notification_state_filter & (1<<StateUnknown))
+		return 1;
+
+	return 0;
+}
+
+/* service */
+int CompatUtility::GetServiceCurrentState(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	int state = service->GetState();
+
+	if (state > StateUnknown)
+		return StateUnknown;
+
+	return state;
+}
+
+int CompatUtility::GetServiceShouldBeScheduled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnableActiveChecks() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceCheckType(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnableActiveChecks() ? 0 : 1);
+}
+
+double CompatUtility::GetServiceCheckInterval(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return service->GetCheckInterval() / 60.0;
+}
+
+double CompatUtility::GetServiceRetryInterval(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return service->GetRetryInterval() / 60.0;
+}
+
+String CompatUtility::GetServiceCheckPeriod(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	TimePeriod::Ptr check_period = service->GetCheckPeriod();
+	if (check_period)
+		return check_period->GetName();
+	else
+		return "24x7";
+}
+
+int CompatUtility::GetServiceHasBeenChecked(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetLastCheckResult() ? 1 : 0);
 }
 
 
+int CompatUtility::GetServiceProblemHasBeenAcknowledged(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0);
+}
+
+int CompatUtility::GetServiceAcknowledgementType(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return static_cast<int>(service->GetAcknowledgement());
+}
+
+int CompatUtility::GetServicePassiveChecksEnabled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnablePassiveChecks() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceActiveChecksEnabled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnableActiveChecks() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceEventHandlerEnabled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEventCommand() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceFlapDetectionEnabled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnableFlapping() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceIsFlapping(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->IsFlapping() ? 1 : 0);
+}
+
+String CompatUtility::GetServicePercentStateChange(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return Convert::ToString(service->GetFlappingCurrent());
+}
+
+int CompatUtility::GetServiceProcessPerformanceData(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnablePerfdata() ? 1 : 0);
+}
+
+String CompatUtility::GetServiceEventHandler(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	String event_command_str;
+	EventCommand::Ptr eventcommand = service->GetEventCommand();
+
+	if (eventcommand)
+		event_command_str = eventcommand->GetName();
+
+	return event_command_str;
+}
+
+String CompatUtility::GetServiceCheckCommand(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	String check_command_str;
+	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
+
+	if (checkcommand)
+		check_command_str = checkcommand->GetName();
+
+	return check_command_str;
+}
+
+int CompatUtility::GetServiceIsVolatile(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetVolatile() ? 1 : 0);
+}
+
+double CompatUtility::GetServiceLowFlapThreshold(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return service->GetFlappingThreshold();
+}
+
+double CompatUtility::GetServiceHighFlapThreshold(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return service->GetFlappingThreshold();
+}
+
+int CompatUtility::GetServiceFreshnessChecksEnabled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetCheckInterval() > 0 ? 1 : 0);
+}
+
+int CompatUtility::GetServiceFreshnessThreshold(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return static_cast<int>(service->GetCheckInterval());
+}
+
+double CompatUtility::GetServiceStaleness(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	if (service->HasBeenChecked() && service->GetLastCheck() > 0)
+		return (Utility::GetTime() - service->GetLastCheck()) / (service->GetCheckInterval() * 3600);
+
+	return 0.0;
+}
+
+int CompatUtility::GetServiceIsAcknowledged(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->IsAcknowledged() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceNoMoreNotifications(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+        if (CompatUtility::GetServiceNotificationNotificationInterval(service) == 0 && !service->GetVolatile())
+                return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetServiceInCheckPeriod(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	TimePeriod::Ptr timeperiod = service->GetCheckPeriod();
+
+	/* none set means always checked */
+	if (!timeperiod)
+		return 1;
+
+	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
+}
+
+int CompatUtility::GetServiceInNotificationPeriod(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
+
+		/* first notification wins */
+		if (timeperiod)
+			return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
+	}
+
+	/* none set means always notified */
+	return 1;
+}
+
+//fixme structs
+/* custom attr */
 Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr& object)
 {
+	ASSERT(service->OwnsLock());
+
 	Dictionary::Ptr custom;
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
@@ -479,8 +440,261 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 	return customvars;
 }
 
+String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name)
+{
+	ASSERT(service->OwnsLock());
+
+	Dictionary::Ptr custom;
+
+	if (object->GetType() == DynamicType::GetByName("Host")) {
+		custom = static_pointer_cast<Host>(object)->GetCustom();
+	} else if (object->GetType() == DynamicType::GetByName("Service")) {
+		custom = static_pointer_cast<Service>(object)->GetCustom();
+	} else if (object->GetType() == DynamicType::GetByName("User")) {
+		custom = static_pointer_cast<User>(object)->GetCustom();
+	} else {
+		Log(LogDebug, "icinga", "unknown object type for custom attributes");
+		return Empty;
+	}
+
+	if (!custom)
+		return Empty;
+
+	return custom->Get(name);
+}
+
+/* notifications */
+int CompatUtility::GetServiceNotificationsEnabled(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	return (service->GetEnableNotifications() ? 1 : 0);
+}
+
+int CompatUtility::GetServiceNotificationLastNotification(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	double last_notification = 0.0;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification->GetLastNotification() > last_notification)
+			last_notification = notification->GetLastNotification();
+	}
+
+	return static_cast<int>(last_notification);
+}
+
+int CompatUtility::GetServiceNotificationNextNotification(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	double next_notification = 0.0;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification->GetNextNotification() < next_notification)
+			next_notification = notification->GetNextNotification();
+	}
+
+	return static_cast<int>(next_notification);
+}
+
+int CompatUtility::GetServiceNotificationNotificationNumber(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	int notification_number = 0;
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification->GetNotificationNumber() > notification_number)
+			notification_number = notification->GetNotificationNumber();
+	}
+
+	return notification_number;
+}
+
+double CompatUtility::GetServiceNotificationNotificationInterval(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	double notification_interval = -1;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
+			notification_interval = notification->GetNotificationInterval();
+	}
+
+	if (notification_interval == -1)
+		notification_interval = 60;
+
+	return notification_interval / 60.0;
+}
+
+String CompatUtility::GetServiceNotificationNotificationPeriod(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	TimePeriod::Ptr notification_period;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+
+		if (notification->GetNotificationPeriod())
+			notification_period = notification->GetNotificationPeriod();
+	}
+
+	if (!notification_period)
+		return Empty;
+
+	return notification_period->GetName();
+}
+
+String CompatUtility::GetServiceNotificationNotificationOptions(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	bool is_hostcheck = (service->GetHost()->GetCheckService() == service);
+
+	unsigned long notification_type_filter = 0;
+	unsigned long notification_state_filter = 0;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		if (notification->GetNotificationTypeFilter())
+			notification_type_filter = notification->GetNotificationTypeFilter();
+
+		if (notification->GetNotificationStateFilter())
+			notification_state_filter = notification->GetNotificationStateFilter();
+	}
+
+	std::vector<String> notification_options;
+
+	/* notification state filters */
+	if (notification_state_filter & (1<<StateWarning)) {
+		notification_options.push_back("w");
+	}
+	if (notification_state_filter & (1<<StateUnknown)) {
+		notification_options.push_back("u");
+	}
+	if (notification_state_filter & (1<<StateCritical)) {
+		notification_options.push_back("c");
+	}
+
+	/* notification type filters */
+	if (notification_type_filter & (1<<NotificationRecovery)) {
+		notification_options.push_back("r");
+	}
+	if (notification_type_filter & (1<<NotificationFlappingStart) ||
+			notification_type_filter & (1<<NotificationFlappingEnd)) {
+		notification_options.push_back("f");
+	}
+	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
+			notification_type_filter & (1<<NotificationDowntimeEnd) ||
+			notification_type_filter & (1<<NotificationDowntimeRemoved)) {
+		notification_options.push_back("s");
+	}
+
+	return boost::algorithm::join(notification_options, ",");
+}
+
+int CompatUtility::GetServiceNotificationTypeFilter(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	unsigned long notification_type_filter = 0;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		if (notification->GetNotificationTypeFilter())
+			notification_type_filter = notification->GetNotificationTypeFilter();
+	}
+
+	return notification_type_filter;
+}
+
+int CompatUtility::GetServiceNotificationStateFilter(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	unsigned long notification_state_filter = 0;
+
+	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+		ObjectLock olock(notification);
+
+		if (notification->GetNotificationStateFilter())
+			notification_state_filter = notification->GetNotificationStateFilter();
+	}
+
+	return notification_state_filter;
+}
+
+int CompatUtility::GetServiceNotifyOnWarning(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	if (GetServiceNotificationStateFilter(service) & (1<<StateWarning))
+		return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetServiceNotifyOnCritical(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	if (GetServiceNotificationStateFilter(service) & (1<<StateCritical))
+		return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetServiceNotifyOnUnknown(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	if (GetServiceNotificationStateFilter(service) & (1<<StateUnknown))
+		return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetServiceNotifyOnRecovery(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	if (GetServiceNotificationTypeFilter(service) & (1<<NotificationRecovery))
+		return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetServiceNotifyOnFlapping(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	unsigned long notification_type_filter = GetServiceNotificationTypeFilter(service);
+
+	if (notification_type_filter & (1<<NotificationFlappingStart) ||
+	    notification_type_filter & (1<<NotificationFlappingEnd))
+		return 1;
+
+	return 0;
+}
+
+int CompatUtility::GetServiceNotifyOnDowntime(const Service::Ptr& service)
+{
+	ASSERT(service->OwnsLock());
+
+	unsigned long notification_type_filter = GetServiceNotificationTypeFilter(service);
+
+	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
+	    notification_type_filter & (1<<NotificationDowntimeEnd) ||
+	    notification_type_filter & (1<<NotificationDowntimeRemoved))
+		return 1;
+
+	return 0;
+}
+
 std::set<User::Ptr> CompatUtility::GetServiceNotificationUsers(const Service::Ptr& service)
 {
+	ASSERT(service->OwnsLock());
+
 	/* Service -> Notifications -> (Users + UserGroups -> Users) */
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
@@ -503,6 +717,8 @@ std::set<User::Ptr> CompatUtility::GetServiceNotificationUsers(const Service::Pt
 
 std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const Service::Ptr& service)
 {
+	ASSERT(service->OwnsLock());
+
 	std::set<UserGroup::Ptr> usergroups;
 	/* Service -> Notifications -> UserGroups */
 	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
@@ -516,10 +732,30 @@ std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const S
 	return usergroups;
 }
 
-std::pair<String, String> CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
+String CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 {
 	if (!cr)
-		return std::make_pair(Empty, Empty);
+		return Empty;
+
+	String output;
+
+	String raw_output = cr->GetOutput();
+
+	/*
+	 * replace semi-colons with colons in output
+	 * semi-colon is used as delimiter in various interfaces
+	 */
+	boost::algorithm::replace_all(raw_output, ";", ":");
+
+	size_t line_end = raw_output.Find("\n");
+
+	return raw_output.SubStr(0, line_end);
+}
+
+String CompatUtility::GetCheckResultLongOutput(const CheckResult::Ptr& cr)
+{
+	if (!cr)
+		return Empty;
 
 	String long_output;
 	String output;
@@ -534,16 +770,12 @@ std::pair<String, String> CompatUtility::GetCheckResultOutput(const CheckResult:
 
 	size_t line_end = raw_output.Find("\n");
 
-	output = raw_output.SubStr(0, line_end);
-
 	if (line_end > 0 && line_end != String::NPos) {
 		long_output = raw_output.SubStr(line_end+1, raw_output.GetLength());
-		long_output = EscapeString(long_output);
+		return EscapeString(long_output);
 	}
 
-	output = EscapeString(output);
-
-	return std::make_pair(output, long_output);
+	return Empty;
 }
 
 String CompatUtility::GetCheckResultPerfdata(const CheckResult::Ptr& cr)
@@ -880,7 +1112,7 @@ int CompatUtility::MapExternalCommandType(const String& name)
 	if (name == "SET_SVC_NOTIFICATION_NUMBER")
 		return 143;
 	if (name == "CHANGE_HOST_CHECK_TIMEPERIOD")
-		return 144;  
+		return 144;
 	if (name == "CHANGE_SVC_CHECK_TIMEPERIOD")
 		return 145;
 	if (name == "PROCESS_FILE")

@@ -233,10 +233,8 @@ Value ServicesTable::PluginOutputAccessor(const Value& row)
 	String output;
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
-	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag.first;
-	}
+	if (cr)
+		output = CompatUtility::GetCheckResultOutput(cr);
 
 	return output;
 }
@@ -251,10 +249,8 @@ Value ServicesTable::LongPluginOutputAccessor(const Value& row)
 	String long_output;
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
-	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		long_output = output_bag.second;
-	}
+	if (cr)
+		long_output = CompatUtility::GetCheckResultLongOutput(cr);
 
 	return long_output;
 }
@@ -282,17 +278,7 @@ Value ServicesTable::NotificationPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		ObjectLock olock(notification);
-
-		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
-
-		/* XXX first notification wins */
-		if (timeperiod)
-			return timeperiod->GetName();
-	}
-
-	return Empty;
+	return CompatUtility::GetServiceNotificationNotificationPeriod(service);
 }
 
 Value ServicesTable::CheckPeriodAccessor(const Value& row)
@@ -302,12 +288,7 @@ Value ServicesTable::CheckPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	TimePeriod::Ptr timeperiod = service->GetCheckPeriod();
-
-	if (!timeperiod)
-		return Empty;
-
-	return timeperiod->GetName();
+	return CompatUtility::GetServiceCheckPeriod(service);
 }
 
 Value ServicesTable::NotesAccessor(const Value& row)
@@ -317,12 +298,7 @@ Value ServicesTable::NotesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	return custom->Get("notes");
+	return CompatUtility::GetCustomAttributeConfig(service, "notes");
 }
 
 Value ServicesTable::NotesExpandedAccessor(const Value& row)
@@ -332,17 +308,12 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value value = custom->Get("notes");
+	Value value = CompatUtility::GetCustomAttributeConfig(service, "notes");
 
 	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
@@ -354,12 +325,7 @@ Value ServicesTable::NotesUrlAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	return custom->Get("notes_url");
+	return CompatUtility::GetCustomAttributeConfig(service, "notes_url");
 }
 
 Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
@@ -369,17 +335,12 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value value = custom->Get("notes_url");
+	Value value = CompatUtility::GetCustomAttributeConfig(service, "notes_url");
 
 	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
@@ -391,12 +352,7 @@ Value ServicesTable::ActionUrlAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	return custom->Get("action_url");
+	return CompatUtility::GetCustomAttributeConfig(service, "action_url");
 }
 
 Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
@@ -406,17 +362,12 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value value = custom->Get("action_url");
+	Value value = CompatUtility::GetCustomAttributeConfig(service, "action_url");
 
 	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
@@ -428,12 +379,7 @@ Value ServicesTable::IconImageAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	return custom->Get("icon_image");
+	return CompatUtility::GetCustomAttributeConfig(service, "icon_image");
 }
 
 Value ServicesTable::IconImageExpandedAccessor(const Value& row)
@@ -443,17 +389,12 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(service);
 	resolvers.push_back(service->GetHost());
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value value = custom->Get("icon_image");
+	Value value = CompatUtility::GetCustomAttributeConfig(service, "icon_image");
 
 	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
@@ -465,12 +406,7 @@ Value ServicesTable::IconImageAltAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr custom = service->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	return custom->Get("icon_image_alt");
+	return CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt");
 }
 
 Value ServicesTable::MaxCheckAttemptsAccessor(const Value& row)
@@ -500,7 +436,7 @@ Value ServicesTable::StateAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetState();
+	return CompatUtility::GetServiceCurrentState(service);
 }
 
 Value ServicesTable::HasBeenCheckedAccessor(const Value& row)
@@ -510,7 +446,7 @@ Value ServicesTable::HasBeenCheckedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->HasBeenChecked() ? 1 : 0);
+	return CompatUtility::GetServiceHasBeenChecked(service);
 }
 
 Value ServicesTable::LastStateAccessor(const Value& row)
@@ -550,7 +486,7 @@ Value ServicesTable::CheckTypeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetEnableActiveChecks() ? 0 : 1);
+	return CompatUtility::GetServiceCheckType(service);
 }
 
 Value ServicesTable::AcknowledgedAccessor(const Value& row)
@@ -560,10 +496,8 @@ Value ServicesTable::AcknowledgedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* important: lock acknowledgements */
-	ObjectLock olock(service);
 
-	return (service->IsAcknowledged() ? 1 : 0);
+	return CompatUtility::GetServiceIsAcknowledged(service);
 }
 
 Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
@@ -586,17 +520,7 @@ Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* XXX take the smallest notification_interval */
-        double notification_interval = -1;
-        BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-                if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
-                        notification_interval = notification->GetNotificationInterval();
-        }
-
-        if (notification_interval == 0 && !service->GetVolatile())
-                return 1;
-
-	return 0;
+        return CompatUtility::GetServiceNoMoreNotifications(service);
 }
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)
@@ -666,14 +590,7 @@ Value ServicesTable::LastNotificationAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* XXX Service -> Notifications, latest wins */
-	double last_notification = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetLastNotification() > last_notification)
-			last_notification = notification->GetLastNotification();
-	}
-
-	return static_cast<int>(last_notification);
+	return CompatUtility::GetServiceNotificationLastNotification(service);
 }
 
 Value ServicesTable::NextNotificationAccessor(const Value& row)
@@ -683,14 +600,7 @@ Value ServicesTable::NextNotificationAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* XXX Service -> Notifications, latest wins */
-	double next_notification = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetNextNotification() < next_notification)
-			next_notification = notification->GetNextNotification();
-	}
-
-	return static_cast<int>(next_notification);
+	return CompatUtility::GetServiceNotificationNextNotification(service);
 }
 
 Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
@@ -700,14 +610,7 @@ Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* XXX Service -> Notifications, biggest wins */
-	int notification_number = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetNotificationNumber() > notification_number)
-			notification_number = notification->GetNotificationNumber();
-	}
-
-	return notification_number;
+	return CompatUtility::GetServiceNotificationNotificationNumber(service);
 }
 
 Value ServicesTable::LastStateChangeAccessor(const Value& row)
@@ -757,7 +660,7 @@ Value ServicesTable::ChecksEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetEnableActiveChecks() ? 1 : 0);
+	return CompatUtility::GetServiceActiveChecksEnabled(service);
 }
 
 Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -767,7 +670,7 @@ Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetEnablePassiveChecks() ? 1 : 0);
+	return CompatUtility::GetServicePassiveChecksEnabled(service);
 }
 
 Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
@@ -777,12 +680,7 @@ Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	EventCommand::Ptr eventcommand = service->GetEventCommand();
-
-	if (eventcommand)
-		return 1;
-
-	return 0;
+	return CompatUtility::GetServiceEventHandlerEnabled(service);
 }
 
 Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
@@ -792,7 +690,7 @@ Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetEnableNotifications() ? 1 : 0);
+	return CompatUtility::GetServiceNotificationsEnabled(service);
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
@@ -802,7 +700,7 @@ Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetEnableActiveChecks() ? 1 : 0);
+	return CompatUtility::GetServiceActiveChecksEnabled(service);
 }
 
 Value ServicesTable::CheckOptionsAccessor(const Value& row)
@@ -818,13 +716,17 @@ Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetEnableFlapping() ? 1 : 0);
+	return CompatUtility::GetServiceFlapDetectionEnabled(service);
 }
 
 Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 {
-	/* always enabled */
-	return 1;
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (!service)
+		return Empty;
+
+	return CompatUtility::GetServiceFreshnessChecksEnabled(service);
 }
 
 Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
@@ -850,10 +752,7 @@ Value ServicesTable::StalenessAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	if (service->HasBeenChecked() && service->GetLastCheck() > 0)
-		return (Utility::GetTime() - service->GetLastCheck()) / (service->GetCheckInterval() * 3600);
-
-	return Empty;
+	return CompatUtility::GetServiceStaleness(service);
 }
 
 Value ServicesTable::CheckIntervalAccessor(const Value& row)
@@ -863,7 +762,7 @@ Value ServicesTable::CheckIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetCheckInterval() / 60.0);
+	return CompatUtility::GetServiceCheckInterval(service);
 }
 
 Value ServicesTable::RetryIntervalAccessor(const Value& row)
@@ -873,7 +772,7 @@ Value ServicesTable::RetryIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (service->GetRetryInterval() / 60.0);
+	return CompatUtility::GetServiceRetryInterval(service);
 }
 
 Value ServicesTable::NotificationIntervalAccessor(const Value& row)
@@ -883,17 +782,7 @@ Value ServicesTable::NotificationIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* XXX take the smallest notification_interval */
-        double notification_interval = -1;
-        BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-                if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
-                        notification_interval = notification->GetNotificationInterval();
-        }
-
-        if (notification_interval == -1)
-                notification_interval = 60;
-
-	return (notification_interval / 60.0);
+	return CompatUtility::GetServiceNotificationNotificationInterval(service);
 }
 
 Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
@@ -903,7 +792,7 @@ Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetFlappingThreshold();
+	return CompatUtility::GetServiceLowFlapThreshold(service);
 }
 
 Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
@@ -913,7 +802,7 @@ Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetFlappingThreshold();
+	return CompatUtility::GetServiceHighFlapThreshold(service);
 }
 
 Value ServicesTable::LatencyAccessor(const Value& row)
@@ -943,7 +832,7 @@ Value ServicesTable::PercentStateChangeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return service->GetFlappingCurrent();
+	return CompatUtility::GetServicePercentStateChange(service);
 }
 
 Value ServicesTable::InCheckPeriodAccessor(const Value& row)
@@ -953,13 +842,7 @@ Value ServicesTable::InCheckPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	TimePeriod::Ptr timeperiod = service->GetCheckPeriod();
-
-	/* none set means always checked */
-	if (!timeperiod)
-		return 1;
-
-	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
+	return CompatUtility::GetServiceInCheckPeriod(service);
 }
 
 Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
@@ -969,18 +852,7 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		ObjectLock olock(notification);
-
-		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
-
-		/* XXX first notification wins */
-		if (timeperiod)
-			return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
-	}
-
-	/* none set means always notified */
-	return 1;
+	return CompatUtility::GetServiceInNotificationPeriod(service);
 }
 
 Value ServicesTable::ContactsAccessor(const Value& row)

@@ -39,6 +39,12 @@ enum CompatObjectType
 	CompatTypeHost
 };
 
+typedef struct {
+	int have_2d_coords;
+	String x_2d;
+	String y_2d;
+} Host2dCoords;
+
 /**
  * Compatibility utility functions.
  *
@@ -47,21 +53,80 @@ enum CompatObjectType
 class I2_ICINGA_API CompatUtility
 {
 public:
-	static Dictionary::Ptr GetHostConfigAttributes(const Host::Ptr& host);
 
-	static Dictionary::Ptr GetServiceStatusAttributes(const Service::Ptr& service, CompatObjectType type);
-	static Dictionary::Ptr GetServiceConfigAttributes(const Service::Ptr& service);
+	/* host */
+	static String GetHostAlias(const Host::Ptr& host);
+	static String GetHostAddress(const Host::Ptr& host);
+	static String GetHostAddress6(const Host::Ptr& host);
+	static Host2dCoords GetHost2dCoords(const Host::Ptr& host);
+	static int GetHostNotifyOnDown(const Host::Ptr& host);
+	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 
-	static Dictionary::Ptr GetCommandConfigAttributes(const Command::Ptr& command);
+	/* service */
+	static int GetServiceCurrentState(const Service::Ptr& service);
+	static int GetServiceShouldBeScheduled(const Service::Ptr& service);
+	static int GetServiceCheckType(const Service::Ptr& service);
+	static double GetServiceCheckInterval(const Service::Ptr& service);
+	static double GetServiceRetryInterval(const Service::Ptr& service);
+	static String GetServiceCheckPeriod(const Service::Ptr& service);
+	static int GetServiceHasBeenChecked(const Service::Ptr& service);
+	static int GetServiceProblemHasBeenAcknowledged(const Service::Ptr& service);
+	static int GetServiceAcknowledgementType(const Service::Ptr& service);
+	static int GetServicePassiveChecksEnabled(const Service::Ptr& service);
+	static int GetServiceActiveChecksEnabled(const Service::Ptr& service);
+	static int GetServiceEventHandlerEnabled(const Service::Ptr& service);
+	static int GetServiceFlapDetectionEnabled(const Service::Ptr& service);
+	static int GetServiceIsFlapping(const Service::Ptr& service);
+	static String GetServicePercentStateChange(const Service::Ptr& service);
+	static int GetServiceProcessPerformanceData(const Service::Ptr& service);
 
-	static Dictionary::Ptr GetCustomVariableConfig(const DynamicObject::Ptr& object);
+	static String GetServiceEventHandler(const Service::Ptr& service);
+	static String GetServiceCheckCommand(const Service::Ptr& service);
+
+	static int GetServiceIsVolatile(const Service::Ptr& service);
+	static double GetServiceLowFlapThreshold(const Service::Ptr& service);
+	static double GetServiceHighFlapThreshold(const Service::Ptr& service);
+	static int GetServiceFreshnessChecksEnabled(const Service::Ptr& service);
+	static int GetServiceFreshnessThreshold(const Service::Ptr& service);
+	static double GetServiceStaleness(const Service::Ptr& service);
+	static int GetServiceIsAcknowledged(const Service::Ptr& service);
+	static int GetServiceNoMoreNotifications(const Service::Ptr& service);
+	static int GetServiceInCheckPeriod(const Service::Ptr& service);
+	static int GetServiceInNotificationPeriod(const Service::Ptr& service);
+
+	/* notification */
+	static int GetServiceNotificationsEnabled(const Service::Ptr& service);
+	static int GetServiceNotificationLastNotification(const Service::Ptr& service);
+	static int GetServiceNotificationNextNotification(const Service::Ptr& service);
+	static int GetServiceNotificationNotificationNumber(const Service::Ptr& service);
+	static double GetServiceNotificationNotificationInterval(const Service::Ptr& service);
+	static String GetServiceNotificationNotificationPeriod(const Service::Ptr& service);
+	static String GetServiceNotificationNotificationOptions(const Service::Ptr& service);
+	static int GetServiceNotificationTypeFilter(const Service::Ptr& service);
+	static int GetServiceNotificationStateFilter(const Service::Ptr& service);
+	static int GetServiceNotifyOnWarning(const Service::Ptr& service);
+	static int GetServiceNotifyOnCritical(const Service::Ptr& service);
+	static int GetServiceNotifyOnUnknown(const Service::Ptr& service);
+	static int GetServiceNotifyOnRecovery(const Service::Ptr& service);
+	static int GetServiceNotifyOnFlapping(const Service::Ptr& service);
+	static int GetServiceNotifyOnDowntime(const Service::Ptr& service);
 
 	static std::set<User::Ptr> GetServiceNotificationUsers(const Service::Ptr& service);
 	static std::set<UserGroup::Ptr> GetServiceNotificationUserGroups(const Service::Ptr& service);
 
-	static std::pair<String, String> GetCheckResultOutput(const CheckResult::Ptr& cr);
+	/* command */
+	static String GetCommandLine(const Command::Ptr& command);
+
+	/* custom attribute */
+	static String GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name);
+	static Dictionary::Ptr GetCustomVariableConfig(const DynamicObject::Ptr& object);
+
+	/* check result */
+	static String GetCheckResultOutput(const CheckResult::Ptr& cr);
+	static String GetCheckResultLongOutput(const CheckResult::Ptr& cr);
 	static String GetCheckResultPerfdata(const CheckResult::Ptr& cr);
 
+	/* misc */
 	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
 
 	static int MapNotificationReasonType(NotificationType type);

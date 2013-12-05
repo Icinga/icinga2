@@ -98,10 +98,8 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckRe
 	}
 
 	String output;
-	if (cr) {
-		std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag.first;
-	}
+	if (cr)
+		output = CompatUtility::GetCheckResultOutput(cr);
 
 	std::ostringstream msgbuf;
 	msgbuf << "SERVICE ALERT: "
@@ -258,10 +256,8 @@ void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const Us
                 return;
 
 	String output;
-	if (cr) {
-		std::pair<String, String>  output_bag = CompatUtility::GetCheckResultOutput(cr);
-		output = output_bag.first;
-	}
+	if (cr)
+		output = CompatUtility::GetCheckResultOutput(cr);
 
         std::ostringstream msgbuf;
         msgbuf << "SERVICE NOTIFICATION: "
@@ -489,10 +485,8 @@ void CompatLogger::ReopenFile(bool rotate)
 		String output;
 		CheckResult::Ptr cr = hc->GetLastCheckResult();
 
-		if (cr) {
-			std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-			output = output_bag.first;
-		}
+		if (cr)
+			output = CompatUtility::GetCheckResultOutput(cr);
 
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT HOST STATE: "
@@ -511,10 +505,8 @@ void CompatLogger::ReopenFile(bool rotate)
 		String output;
 		CheckResult::Ptr cr = service->GetLastCheckResult();
 
-		if (cr) {
-			std::pair<String, String> output_bag = CompatUtility::GetCheckResultOutput(cr);
-			output = output_bag.first;
-		}
+		if (cr)
+			output = CompatUtility::GetCheckResultOutput(cr);
 
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT SERVICE STATE: "
