@@ -56,7 +56,7 @@ void StatusDataWriter::Start(void)
 	DynamicObject::Start();
 
 	m_StatusTimer = make_shared<Timer>();
-	m_StatusTimer->SetInterval(15);
+	m_StatusTimer->SetInterval(GetUpdateInterval());
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&StatusDataWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);

@@ -12,6 +12,9 @@ class StatusDataWriter : DynamicObject
 	[config] String objects_path {
 		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/objects.cache"; }}}
 	};
+	[config] double update_interval {
+		default {{{ return 15; }}}
+	};
 };
 
 }
