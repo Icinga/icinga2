@@ -243,6 +243,9 @@ install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apachecon
 sed -i 's@plugindir = .*@plugindir = "%{_libdir}/nagios/plugins"@' %{buildroot}/%{_sysconfdir}/%{name}/conf.d/macros.conf
 %endif
 
+# remove features-enabled symlinks
+rm -f %{buildroot}/%{_sysconfdir}/%{name}/features-enabled/*.conf
+
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 
@@ -252,23 +255,61 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
+# suse
 %if 0%{?suse_version}
 %post
 %{fillup_and_insserv icinga2}
+
+if [ ${1:-0} -eq 1 ]
+then
+	# initial installation, enable default features
+	%{_sbindir}/icinga2-enable-feature checker
+	%{_sbindir}/icinga2-enable-feature notification
+	%{_sbindir}/icinga2-enable-feature mainlog
+fi
+
+exit 0
 %postun
 %restart_on_update icinga2
 %insserv_cleanup
+
+if [ "$1" = "0" ]; then
+	# deinstallation of the package - remove enabled features
+	rm -rf %{_sysconfdir}/%{name}/features-enabled
+fi
+
+exit 0
+
 %preun
 %stop_on_removal icinga2
 
+# rhel
 %else
 
 %post
 /sbin/chkconfig --add icinga2
+
+if [ ${1:-0} -eq 1 ]
+then
+	# initial installation, enable default features
+	%{_sbindir}/icinga2-enable-feature checker
+	%{_sbindir}/icinga2-enable-feature notification
+	%{_sbindir}/icinga2-enable-feature mainlog
+fi
+
+exit 0
+
 %postun
 if [ "$1" -ge  "1" ]; then
 	/sbin/service icinga2 condrestart >/dev/null 2>&1 || :
 fi
+
+if [ "$1" = "0" ]; then
+	# deinstallation of the package - remove enabled features
+	rm -rf %{_sysconfdir}/%{name}/features-enabled
+fi
+
+exit 0
 %preun
 if [ "$1" = "0" ]; then
 	/sbin/service icinga2 stop > /dev/null 2>&1
@@ -276,6 +317,7 @@ if [ "$1" = "0" ]; then
 fi
 
 %endif
+# suse/rhel
 
 %post ido-mysql
 if [ ${1:-0} -eq 1 ]
@@ -344,7 +386,6 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
-%config(noreplace) %{_sysconfdir}/%{name}/features-enabled/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-migrate-config
