@@ -70,12 +70,12 @@ void TimePeriod::AddSegment(double begin, double end)
 			if (segment->Get("begin") <= begin && segment->Get("end") >= end)
 				return; /* New segment is fully contained in this segment. */
 
-			if (segment->Get("begin") < begin && segment->Get("end") > begin) {
+			if (segment->Get("begin") <= begin && segment->Get("end") >= begin) {
 				segment->Set("end", end); /* Extend an existing segment. */
 				return;
 			}
 
-			if (segment->Get("begin") > begin && segment->Get("begin") < end) {
+			if (segment->Get("begin") >= begin && segment->Get("begin") <= end) {
 				segment->Set("begin", begin); /* Extend an existing segment. */
 				return;
 			}
