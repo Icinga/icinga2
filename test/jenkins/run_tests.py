@@ -12,6 +12,12 @@ from optparse import OptionParser
 from xml.dom.minidom import getDOMImplementation
 
 
+try:
+    from subprocess import DEVNULL
+except ImportError:
+    DEVNULL = open(os.devnull, 'w')
+
+
 class TestSuite(object):
     def __init__(self, configpath):
         self._tests = []
@@ -78,15 +84,15 @@ class TestSuite(object):
 
     def _remove_file(self, path):
         command = self._config['commands']['clean'].format(path)
-        subprocess.call(command, shell=True)
+        subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL, shell=True)
 
     def _exec_command(self, command):
         command = self._config['commands']['exec'].format(command)
-        subprocess.call(command, shell=True)
+        subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL, shell=True)
 
     def _copy_file(self, source, destination):
         command = self._config['commands']['copy'].format(source, destination)
-        subprocess.call(command, shell=True)
+        subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL, shell=True)
 
     def _copy_test(self, path):
         self._copy_file(path, os.path.join(self._config['settings']['test_root'],
