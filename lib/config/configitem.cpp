@@ -178,7 +178,14 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	DynamicObject::Ptr dobj = dtype->CreateObject(properties);
 	dobj->Register();
 
+	m_Object = dobj;
+	
 	return dobj;
+}
+
+DynamicObject::Ptr ConfigItem::GetObject(void) const
+{
+	return m_Object;
 }
 
 /**
@@ -186,13 +193,9 @@ DynamicObject::Ptr ConfigItem::Commit(void)
  */
 void ConfigItem::Register(void)
 {
-	ASSERT(!OwnsLock());
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-	{
-		ObjectLock olock(this);
-
-		m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
-	}
+	m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
 }
 
 /**
@@ -244,34 +247,49 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	Log(LogInformation, "config", "Validating config items (step 1)...");
 
+	ThreadPool tp(32);
+	
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		kv.second->ValidateItem();
+		tp.Post(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
+	
+	tp.Join();
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	Log(LogInformation, "config", "Activating config items");
-
-	std::vector<DynamicObject::Ptr> objects;
+	Log(LogInformation, "config", "Comitting config items");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		DynamicObject::Ptr object = kv.second->Commit();
+		tp.Post(boost::bind(&ConfigItem::Commit, kv.second));
+	}
+	
+	tp.Join();
+	
+	std::vector<DynamicObject::Ptr> objects;
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		DynamicObject::Ptr object = kv.second->GetObject();
 
 		if (object)
 			objects.push_back(object);
 	}
-
+	
+	Log(LogInformation, "config", "Triggering OnConfigLoaded signal for config items");
+	
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
-		object->OnConfigLoaded();
+		tp.Post(boost::bind(&DynamicObject::OnConfigLoaded, object));
 	}
+	
+	tp.Join();
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		kv.second->ValidateItem();
+		tp.Post(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
 
+	tp.Join();
+	
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
@@ -281,6 +299,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(Application::GetStatePath());
 
+	Log(LogInformation, "config", "Triggering Start signal for config items");
+	
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			if (object->IsActive())
@@ -289,11 +309,21 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 #ifdef _DEBUG
 			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
 #endif /* _DEBUG */
-			object->Start();
-
+			tp.Post(boost::bind(&DynamicObject::Start, object));
+		}
+	}
+	
+	tp.Join();
+	
+#ifdef _DEBUG
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			ASSERT(object->IsActive());
 		}
 	}
+#endif /* _DEBUG */
+
+	Log(LogInformation, "config", "Activated all objects.");
 
 	return true;
 }

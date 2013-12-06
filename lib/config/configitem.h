@@ -61,6 +61,8 @@ public:
 
 	void ValidateItem(void);
 
+        DynamicObject::Ptr GetObject(void) const;
+        
 	static bool ActivateItems(bool validateOnly);
 	static void DiscardItems(void);
 
@@ -79,6 +81,8 @@ private:
 
 	ExpressionList::Ptr m_LinkedExpressionList;
 	Dictionary::Ptr m_Properties;
+        
+        DynamicObject::Ptr m_Object;
 
 	static boost::mutex m_Mutex;
 
