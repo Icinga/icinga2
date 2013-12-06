@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 from datetime import datetime, timedelta
 
 
+CHECK_INTERVAL = 10 # minutes; The actual interval are 5 minutes but as other
+                    # tests might restart Icinga we need to take any
+                    # rescheduling into account
+
 TABLE_PREFIX = 'icinga_'
 TABLES = [
     # Central tables
@@ -130,9 +134,10 @@ def check_last_host_status_update(check_info):
     for info in check_info:
         if info['alias'] == 'localhost':
             last_check = datetime.fromtimestamp(float(info['last_check']))
-            if datetime.now() - last_check > timedelta(minutes=5, seconds=10):
+            if datetime.now() - last_check > timedelta(minutes=CHECK_INTERVAL,
+                                                       seconds=10):
                 print 'The last status update of host "localhost"' \
-                      ' was more than 5 minutes ago'
+                      ' was more than {0} minutes ago'.format(CHECK_INTERVAL)
                 return False
         elif info['alias'] == 'nsca-ng':
             if float(info['last_check']) > 0:
@@ -152,10 +157,12 @@ def check_last_service_status_update(check_info):
     for info in check_info:
         if info['display_name'] in EXAMPLE_CONFIG.get(info['alias'], []):
             last_check = datetime.fromtimestamp(float(info['last_check']))
-            if datetime.now() - last_check > timedelta(minutes=5, seconds=10):
+            if datetime.now() - last_check > timedelta(minutes=CHECK_INTERVAL,
+                                                       seconds=10):
                 print 'The last status update of service "{0}" of' \
-                      ' host "{1}" was more than 5 minutes ago' \
-                      ''.format(info['display_name'], info['alias'])
+                      ' host "{1}" was more than {2} minutes ago' \
+                      ''.format(info['display_name'], info['alias'],
+                                CHECK_INTERVAL)
                 return False
 
     print 'The updates of all example services are processed as configured'
