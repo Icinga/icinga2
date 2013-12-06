@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+from __future__ import unicode_literals
+
+import sys
+import subprocess
+
+import ido_tests
+
+PSQL = b"/usr/bin/psql"
+PARAMS = b"-nq -U icinga -d icinga -c".split()
+SEPARATOR = '|'
+ENVIRONMENT = {
+    b'PGPASSWORD': b'icinga'
+    }
+
+
+def run_query(query):
+    p = subprocess.Popen([PSQL] + PARAMS + [query.encode('utf-8')],
+                         stdout=subprocess.PIPE, env=ENVIRONMENT)
+    return parse_result([l.decode('utf-8') for l in p.stdout.readlines()])
+
+
+def parse_result(resultset):
+    result, header = [], None
+    for line in (l for l in resultset if SEPARATOR in l):
+        columns = [c.strip() for c in line.split(SEPARATOR)]
+        if header is None:
+            header = columns
+        else:
+            result.append(dict((header[i], v) for i, v in enumerate(columns)))
+    return result
+
+
+def main():
+    if not ido_tests.validate_tables([d['Name'] for d in run_query('\\dt')
+                                                if d['Type'] == 'table']):
+        return 1
+
+    host_info = run_query('select * from icinga_hosts')
+    if not ido_tests.verify_host_config(host_info):
+        return 1
+
+    service_info = run_query(
+        'select c2.alias, c1.* from icinga_services as c1 '
+        'inner join icinga_hosts as c2'
+        ' on c1.host_object_id = c2.host_object_id'
+        )
+    if not ido_tests.verify_service_config(service_info):
+        return 1
+
+    hostchecks_data = run_query(
+        'select c.alias, unix_timestamp(s.last_check) as last_check'
+        ' from icinga_hoststatus as s '
+        'inner join icinga_hosts as c'
+        ' on s.host_object_id = c.host_object_id'
+        )
+    if not ido_tests.check_last_host_status_update(hostchecks_data):
+        return 1
+
+    servicechecks_data = run_query(
+        'select c2.alias, c1.display_name, unix_timestamp(s.last_check) as last_check'
+        ' from icinga_servicestatus as s '
+        'inner join icinga_services as c1'
+        ' on s.service_object_id = c1.service_object_id '
+        'inner join icinga_hosts as c2'
+        ' on c1.host_object_id = c2.host_object_id'
+        )
+    if not ido_tests.check_last_service_status_update(servicechecks_data):
+        return 1
+
+    logentry_info = run_query(
+        'select hosts.alias,'
+        '       max(unix_timestamp(logs.entry_time)) as entry_time,'
+        '       max(unix_timestamp(hist.state_time)) as state_time'
+        ' from icinga_logentries as logs '
+        'inner join icinga_hosts as hosts'
+        ' on logs.object_id = hosts.host_object_id '
+        'inner join icinga_statehistory as hist'
+        ' on hist.object_id = hosts.host_object_id '
+        "where hosts.alias = 'localhost' and hist.state_type = 1 "
+        'group by hosts.alias'
+        )
+    if not ido_tests.check_logentries(logentry_info):
+        return 1
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+
