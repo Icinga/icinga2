@@ -25,7 +25,9 @@ is_fresh_install()
 }
 
 enable_default_features() {
-    if is_fresh_install $@; then
+    FIX_VERSION="0.0.5+icingasnap201312070000"
+    if is_fresh_install $@ \
+       || dpkg --compare-versions "$2" lt "$FIX_VERSION"; then
         echo "enabling default icinga2 features"
         for feature in checker notification mainlog; do
             icinga2-enable-feature $feature
