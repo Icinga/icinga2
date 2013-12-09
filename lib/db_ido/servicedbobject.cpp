@@ -550,6 +550,7 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 	}
 
 	fields1->Set("author_name", downtime->GetAuthor());
+	fields1->Set("comment_data", downtime->GetComment());
 	fields1->Set("triggered_by_id", Service::GetDowntimeByID(downtime->GetTriggeredBy()));
 	fields1->Set("is_fixed", downtime->GetFixed());
 	fields1->Set("duration", downtime->GetDuration());
