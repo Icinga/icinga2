@@ -26,6 +26,8 @@
 #include "base/convert.h"
 #include "base/application.h"
 #include "base/utility.h"
+#include "base/exception.h"
+#include "base/context.h"
 #include <fstream>
 
 using namespace icinga;
@@ -48,11 +50,15 @@ void CheckResultReader::Start(void)
  */
 void CheckResultReader::ReadTimerHandler(void) const
 {
+	CONTEXT("Processing check result files in '" + GetSpoolDir() + "'");
+
 	Utility::Glob(GetSpoolDir() + "/c??????.ok", boost::bind(&CheckResultReader::ProcessCheckResultFile, this, _1));
 }
 
 void CheckResultReader::ProcessCheckResultFile(const String& path) const
 {
+	CONTEXT("Processing check result file '" + path + "'");
+
 	String crfile = String(path.Begin(), path.End() - 3); /* Remove the ".ok" extension. */
 
 	std::ifstream fp;
@@ -80,8 +86,17 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	}
 
 	/* Remove the checkresult files. */
-	(void)unlink(path.CStr());
-	(void)unlink(crfile.CStr());
+	if (unlink(path.CStr()) < 0)
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("unlink")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(path));
+
+	if (unlink(crfile.CStr()) < 0)
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("unlink")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(crfile));
 
 	Host::Ptr host = Host::GetByName(attrs["host_name"]);
 
@@ -120,4 +135,3 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 		service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 	}
 }
-

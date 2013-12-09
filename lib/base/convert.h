@@ -38,13 +38,25 @@ public:
 	template<typename T>
 	static long ToLong(const T& val)
 	{
-		return boost::lexical_cast<long>(val);
+		try {
+			return boost::lexical_cast<long>(val);
+		} catch (std::exception&) {
+			std::ostringstream msgbuf;
+			msgbuf << "Can't convert '" << val << "' to an integer.";
+			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		}
 	}
 
 	template<typename T>
 	static double ToDouble(const T& val)
 	{
-		return boost::lexical_cast<double>(val);
+		try {
+			return boost::lexical_cast<double>(val);
+		} catch (std::exception&) {
+			std::ostringstream msgbuf;
+			msgbuf << "Can't convert '" << val << "' to a floating point number.";
+			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		}
 	}
 
 	static bool ToBool(const String& val);
