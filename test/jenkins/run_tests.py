@@ -84,15 +84,15 @@ class TestSuite(object):
 
     def _remove_file(self, path):
         command = self._config['commands']['clean'].format(path)
-        subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL, shell=True)
+        subprocess.call(command, stdout=DEVNULL, shell=True)
 
     def _exec_command(self, command):
         command = self._config['commands']['exec'].format(command)
-        subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL, shell=True)
+        subprocess.call(command, stdout=DEVNULL, shell=True)
 
     def _copy_file(self, source, destination):
         command = self._config['commands']['copy'].format(source, destination)
-        subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL, shell=True)
+        subprocess.call(command, stdout=DEVNULL, shell=True)
 
     def _copy_test(self, path):
         self._copy_file(path, os.path.join(self._config['settings']['test_root'],
@@ -117,6 +117,9 @@ def parse_commandline():
     parser = OptionParser(version='0.1')
     parser.add_option('-C', '--config', default="run_tests.conf",
                       help='The path to the config file to use [%default]')
+    parser.add_option('-O', '--output',
+                      help='The file which to save the test results. '
+                           '(By default this goes to stdout)')
     return parser.parse_args()
 
 
@@ -128,7 +131,14 @@ def main():
         suite.add_test(path)
 
     suite.run()
-    print suite.get_report().encode('utf-8')
+
+    report = suite.get_report()
+    if options.output is None:
+        print report.encode('utf-8')
+    else:
+        with open(options.output, 'w') as f:
+            f.write(report.encode('utf-8'))
+
     return 0
 
 
