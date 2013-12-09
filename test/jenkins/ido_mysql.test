@@ -4,7 +4,12 @@ from __future__ import unicode_literals
 import sys
 import subprocess
 
-import ido_tests
+try:
+    import ido_tests
+    IDO_TESTS_FOUND = True
+except ImportError:
+    IDO_TESTS_FOUND = False
+
 
 MYSQL = b"/usr/bin/mysql"
 PARAMS = b"-t -D icinga -u icinga --password=icinga -e".split()
@@ -82,5 +87,8 @@ def main():
 
 
 if __name__ == '__main__':
+    if not IDO_TESTS_FOUND:
+        raise
+
     sys.exit(main())
 

@@ -4,7 +4,12 @@ from __future__ import unicode_literals
 import sys
 import subprocess
 
-import ido_tests
+try:
+    import ido_tests
+    IDO_TESTS_FOUND = True
+except ImportError:
+    IDO_TESTS_FOUND = False
+
 
 PSQL = b"/usr/bin/psql"
 PARAMS = b"-nq -U icinga -d icinga -c".split()
@@ -87,5 +92,8 @@ def main():
 
 
 if __name__ == '__main__':
+    if not IDO_TESTS_FOUND:
+        raise
+
     sys.exit(main())
 
