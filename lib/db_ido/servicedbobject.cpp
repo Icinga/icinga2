@@ -325,10 +325,10 @@ void ServiceDbObject::AddComments(const Service::Ptr& service)
 	/* dump all comments */
 	Dictionary::Ptr comments = service->GetComments();
 
-	ObjectLock olock(comments);
-
 	if (comments->GetLength() > 0)
 		RemoveComments(service);
+
+	ObjectLock olock(comments);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
 		AddComment(service, kv.second);
@@ -490,10 +490,10 @@ void ServiceDbObject::AddDowntimes(const Service::Ptr& service)
 	/* dump all downtimes */
 	Dictionary::Ptr downtimes = service->GetDowntimes();
 
-	ObjectLock olock(downtimes);
-
 	if (downtimes->GetLength() > 0)
 		RemoveDowntimes(service);
+
+	ObjectLock olock(downtimes);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
 		AddDowntime(service, kv.second);
