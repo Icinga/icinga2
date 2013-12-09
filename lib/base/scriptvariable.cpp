@@ -80,3 +80,8 @@ ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, 
 	return sv;
 }
 
+ScriptVariableRegistry *ScriptVariableRegistry::GetInstance(void)
+{
+	return Singleton<ScriptVariableRegistry>::GetInstance();
+}
+

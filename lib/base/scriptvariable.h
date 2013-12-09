@@ -59,10 +59,7 @@ private:
 class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, ScriptVariable::Ptr>
 {
 public:
-	static inline ScriptVariableRegistry *GetInstance(void)
-	{
-		return Singleton<ScriptVariableRegistry>::GetInstance();
-	}
+	static ScriptVariableRegistry *GetInstance(void);
 };
 
 }
