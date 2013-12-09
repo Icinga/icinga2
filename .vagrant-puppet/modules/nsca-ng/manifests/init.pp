@@ -30,6 +30,11 @@ class nsca-ng-server {
     command => 'lokkit -p 5668:tcp'
   }
 
+  user { "nsca":
+    ensure => "present",
+    groups => "icingacmd"
+  }
+
   service { 'nsca-ng':
     enable => true,
     ensure => running,
@@ -39,7 +44,7 @@ class nsca-ng-server {
   }
 
   file { '/etc/nsca-ng.cfg':
-    content => template('nsca-ng/nsca-ng.cfg'),
+    source => 'puppet:////vagrant/.vagrant-puppet/files/etc/nsca-ng.cfg',
     require => Package['nsca-ng-server'],
     notify => Service['nsca-ng']
   }
@@ -68,18 +73,21 @@ class nsca-ng-client {
   }
 
   file { '/etc/icinga2/conf.d/passive.conf':
-    content => template('nsca-ng/passive.conf'),
+    source => 'puppet:////vagrant/.vagrant-puppet/files/etc/icinga2/conf.d/passive.conf',
     require => Package['nsca-ng-client'],
     notify => Service['icinga2']
   }
 
   file { '/etc/send_nsca.cfg':
-    content => template('nsca-ng/send_nsca.cfg'),
+    source => 'puppet:////vagrant/.vagrant-puppet/files/etc/send_nsca.cfg',
+    owner => 'root',
+    group => 'root',
+    mode => '0600',
     require => Package['nsca-ng-client'],
   }
 
   file { '/home/vagrant/passive_result':
-    content => template('nsca-ng/passive_result'),
+    source => 'puppet:////vagrant/.vagrant-puppet/files/home/vagrant/passive_result',
     require => Package['nsca-ng-client'],
   }
 }
