@@ -33,6 +33,7 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/application.h"
+#include "base/context.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -60,6 +61,8 @@ void StatusDataWriter::Start(void)
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&StatusDataWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
+
+	Utility::QueueAsyncCallback(boost::bind(&StatusDataWriter::UpdateObjectsCache, this));
 }
 
 void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
@@ -527,53 +530,12 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObjec
 	}
 }
 
-/**
- * Periodically writes the status.dat and objects.cache files.
- */
-void StatusDataWriter::StatusTimerHandler(void)
+void StatusDataWriter::UpdateObjectsCache(void)
 {
-	Log(LogInformation, "compat", "Writing compat status information");
+	CONTEXT("Writing objects.cache file");
 
-	String statuspath = GetStatusPath();
 	String objectspath = GetObjectsPath();
-	String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
 	String objectspathtmp = objectspath + ".tmp";
-
-	std::ofstream statusfp;
-	statusfp.open(statuspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
-
-	statusfp << std::fixed;
-
-	statusfp << "# Icinga status file" << "\n"
-		 << "# This file is auto-generated. Do not modify this file." << "\n"
-		 << "\n";
-
-	statusfp << "info {" << "\n"
-		 << "\t" << "created=" << Utility::GetTime() << "\n"
-		 << "\t" << "version=" << Application::GetVersion() << "\n"
-		 << "\t" << "}" << "\n"
-		 << "\n";
-
-	statusfp << "programstatus {" << "\n"
-		 << "\t" << "icinga_pid=" << Utility::GetPid() << "\n"
-		 << "\t" << "daemon_mode=1" << "\n"
-		 << "\t" << "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
-		 << "\t" << "active_service_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0) << "\n"
-		 << "\t" << "passive_service_checks_enabled=1" << "\n"
-		 << "\t" << "active_host_checks_enabled=1" << "\n"
-		 << "\t" << "passive_host_checks_enabled=1" << "\n"
-		 << "\t" << "check_service_freshness=1" << "\n"
-		 << "\t" << "check_host_freshness=1" << "\n"
-		 << "\t" << "enable_notifications=" << (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) << "\n"
-		 << "\t" << "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
-		 << "\t" << "enable_failure_prediction=0" << "\n"
-		 << "\t" << "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
-		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
-		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
-		 << "\t" << "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
-		 << "\t" << "next_comment_id=" << Service::GetNextCommentID() << "\n"
-		 << "\t" << "}" << "\n"
-		 << "\n";
 
 	std::ofstream objectfp;
 	objectfp.open(objectspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
@@ -585,11 +547,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 		 << "\n";
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		std::ostringstream tempstatusfp;
-		tempstatusfp << std::fixed;
-		DumpHostStatus(tempstatusfp, host);
-		statusfp << tempstatusfp.str();
-
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 		DumpHostObject(tempobjectfp, host);
@@ -614,11 +571,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		std::ostringstream tempstatusfp;
-		tempstatusfp << std::fixed;
-		DumpServiceStatus(tempstatusfp, service);
-		statusfp << tempstatusfp.str();
-
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 		DumpServiceObject(tempobjectfp, service);
@@ -701,15 +653,86 @@ void StatusDataWriter::StatusTimerHandler(void)
 		DumpTimePeriod(objectfp, tp);
 	}
 
-	statusfp.close();
 	objectfp.close();
 
 #ifdef _WIN32
-	_unlink(statuspath.CStr());
 	_unlink(objectspath.CStr());
 #endif /* _WIN32 */
 
+	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(objectspathtmp));
+	}
+}
+
+/**
+ * Periodically writes the status.dat and objects.cache files.
+ */
+void StatusDataWriter::StatusTimerHandler(void)
+{
+	Log(LogInformation, "compat", "Writing status.dat file");
+
+	String statuspath = GetStatusPath();
+	String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
+
+	std::ofstream statusfp;
+	statusfp.open(statuspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+
+	statusfp << std::fixed;
+
+	statusfp << "# Icinga status file" << "\n"
+		 << "# This file is auto-generated. Do not modify this file." << "\n"
+		 << "\n";
+
+	statusfp << "info {" << "\n"
+		 << "\t" << "created=" << Utility::GetTime() << "\n"
+		 << "\t" << "version=" << Application::GetVersion() << "\n"
+		 << "\t" << "}" << "\n"
+		 << "\n";
+
+	statusfp << "programstatus {" << "\n"
+		 << "\t" << "icinga_pid=" << Utility::GetPid() << "\n"
+		 << "\t" << "daemon_mode=1" << "\n"
+		 << "\t" << "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
+		 << "\t" << "active_service_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0) << "\n"
+		 << "\t" << "passive_service_checks_enabled=1" << "\n"
+		 << "\t" << "active_host_checks_enabled=1" << "\n"
+		 << "\t" << "passive_host_checks_enabled=1" << "\n"
+		 << "\t" << "check_service_freshness=1" << "\n"
+		 << "\t" << "check_host_freshness=1" << "\n"
+		 << "\t" << "enable_notifications=" << (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) << "\n"
+		 << "\t" << "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
+		 << "\t" << "enable_failure_prediction=0" << "\n"
+		 << "\t" << "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
+		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
+		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
+		 << "\t" << "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
+		 << "\t" << "next_comment_id=" << Service::GetNextCommentID() << "\n"
+		 << "\t" << "}" << "\n"
+		 << "\n";
+
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		std::ostringstream tempstatusfp;
+		tempstatusfp << std::fixed;
+		DumpHostStatus(tempstatusfp, host);
+		statusfp << tempstatusfp.str();
+	}
+
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		std::ostringstream tempstatusfp;
+		tempstatusfp << std::fixed;
+		DumpServiceStatus(tempstatusfp, service);
+		statusfp << tempstatusfp.str();
+	}
+
 	statusfp.close();
+
+#ifdef _WIN32
+	_unlink(statuspath.CStr());
+#endif /* _WIN32 */
+
 	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
@@ -717,12 +740,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    << boost::errinfo_file_name(statuspathtmp));
 	}
 
-	objectfp.close();
-	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(objectspathtmp));
-	}
+	Log(LogInformation, "compat", "Finished writing status.dat file");
 }
 

@@ -93,6 +93,7 @@ private:
 
 	void DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object);
 
+	void UpdateObjectsCache(void);
 	void StatusTimerHandler(void);
 };
 
