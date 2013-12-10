@@ -30,8 +30,22 @@ echo "Icinga2 status.dat found"
 if [ -f /var/cache/icinga2/objects.cache ];
 then
     echo "Icinga2 objects.cache found"
-    exit 0
 else
     echo "Icinga2 objects.cache not found"
     exit 1
+fi
+
+status_time=$(stat --format="%Y" /var/cache/icinga2/status.dat)
+
+now=$(date +"%s")
+sleep $(((15 + 5) - ($now - $status_time)))
+
+new_status_time=$(stat --format="%Y" /var/cache/icinga2/status.dat)
+
+if [ $new_status_time -eq $status_time ];
+then
+    echo "Icinga2 status.dat is not being updated"
+    exit 1
+else
+    echo "Icinga2 status.dat is being updated"
 fi
