@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/debug.h"
+#include "base/workqueue.h"
 #include <sstream>
 #include <boost/foreach.hpp>
 
@@ -258,13 +259,13 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	Log(LogInformation, "config", "Validating config items (step 1)...");
 
-	ThreadPool tp(32);
+	ParallelWorkQueue upq;
 	
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		tp.Post(boost::bind(&ConfigItem::ValidateItem, kv.second));
+		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
 	
-	tp.Join();
+	upq.Join();
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
@@ -272,10 +273,10 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	Log(LogInformation, "config", "Comitting config items");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		tp.Post(boost::bind(&ConfigItem::Commit, kv.second));
+		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second));
 	}
 	
-	tp.Join();
+	upq.Join();
 	
 	std::vector<DynamicObject::Ptr> objects;
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
@@ -288,18 +289,18 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	Log(LogInformation, "config", "Triggering OnConfigLoaded signal for config items");
 	
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
-		tp.Post(boost::bind(&DynamicObject::OnConfigLoaded, object));
+		upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, object));
 	}
 	
-	tp.Join();
+	upq.Join();
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		tp.Post(boost::bind(&ConfigItem::ValidateItem, kv.second));
+		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
 
-	tp.Join();
+	upq.Join();
 	
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
@@ -320,11 +321,11 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 #ifdef _DEBUG
 			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
 #endif /* _DEBUG */
-			tp.Post(boost::bind(&DynamicObject::Start, object));
+			upq.Enqueue(boost::bind(&DynamicObject::Start, object));
 		}
 	}
 	
-	tp.Join();
+	upq.Join();
 	
 #ifdef _DEBUG
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {

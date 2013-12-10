@@ -29,8 +29,8 @@ using namespace icinga;
 int WorkQueue::m_NextID = 1;
 
 WorkQueue::WorkQueue(size_t maxItems)
-	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Joined(false),
-	  m_Stopped(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
+	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Stopped(false),
+	  m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
 {
 	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
 
@@ -42,9 +42,7 @@ WorkQueue::WorkQueue(size_t maxItems)
 
 WorkQueue::~WorkQueue(void)
 {
-	Join();
-
-	ASSERT(m_Stopped);
+	Join(true);
 }
 
 /**
@@ -61,8 +59,6 @@ void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	ASSERT(!m_Stopped);
-
 	if (!wq_thread) {
 		while (m_Items.size() >= m_MaxItems)
 			m_CVFull.wait(lock);
@@ -72,18 +68,24 @@ void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 
 	if (wq_thread)
 		ProcessItems(lock, true);
-	else
+	else if (m_Items.size() == 1)
 		m_CVEmpty.notify_all();
 }
 
-void WorkQueue::Join(void)
+void WorkQueue::Join(bool stop)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Joined = true;
-	m_CVEmpty.notify_all();
 
-	while (!m_Stopped)
-		m_CVFull.wait(lock);
+	while (!m_Items.empty())
+		m_CVStarved.wait(lock);
+
+	if (stop) {
+		m_Stopped = true;
+		m_CVEmpty.notify_all();
+		lock.unlock();
+
+		m_Thread.join();
+	}
 }
 
 boost::thread::id WorkQueue::GetThreadId(void) const
@@ -118,14 +120,11 @@ void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved)
 		if (interleaved && !wi.AllowInterleaved)
 			return;
 
-		m_Items.pop_front();
-		m_CVFull.notify_one();
-
 		lock.unlock();
 
 		try {
 			wi.Callback();
-		} catch (const std::exception& ex) {
+		} catch (const std::exception&) {
 			lock.lock();
 
 			ExceptionCallback callback = m_ExceptionCallback;
@@ -136,7 +135,14 @@ void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved)
 		}
 
 		lock.lock();
+
+		m_Items.pop_front();
+
+		if (m_Items.size() + 1 == m_MaxItems)
+			m_CVFull.notify_one();
 	}
+
+	m_CVStarved.notify_all();
 }
 
 void WorkQueue::WorkerThreadProc(void)
@@ -148,15 +154,36 @@ void WorkQueue::WorkerThreadProc(void)
 	Utility::SetThreadName(idbuf.str());
 
 	for (;;) {
-		while (m_Items.empty() && !m_Joined)
+		while (m_Items.empty() && !m_Stopped)
 			m_CVEmpty.wait(lock);
 
-		if (m_Joined)
+		if (m_Stopped)
 			break;
 
 		ProcessItems(lock, false);
 	}
+}
 
-	m_Stopped = true;
-	m_CVFull.notify_all();
+
+ParallelWorkQueue::ParallelWorkQueue(void)
+	: m_QueueCount(boost::thread::hardware_concurrency()),
+	  m_Queues(new WorkQueue[m_QueueCount]),
+	  m_Index(0)
+{ }
+
+ParallelWorkQueue::~ParallelWorkQueue(void)
+{
+	delete[] m_Queues;
+}
+
+void ParallelWorkQueue::Enqueue(const boost::function<void(void)>& callback)
+{
+	m_Index++;
+	m_Queues[m_Index % m_QueueCount].Enqueue(callback);
+}
+
+void ParallelWorkQueue::Join(void)
+{
+	for (unsigned int i = 0; i < m_QueueCount; i++)
+		m_Queues[i].Join();
 }

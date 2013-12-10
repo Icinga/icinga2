@@ -55,7 +55,7 @@ public:
 	~WorkQueue(void);
 
 	void Enqueue(const WorkCallback& callback, bool allowInterleaved = false);
-	void Join(void);
+	void Join(bool stop = false);
 
 	boost::thread::id GetThreadId(void) const;
 
@@ -68,9 +68,9 @@ private:
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CVEmpty;
 	boost::condition_variable m_CVFull;
+	boost::condition_variable m_CVStarved;
 	boost::thread m_Thread;
 	size_t m_MaxItems;
-	bool m_Joined;
 	bool m_Stopped;
 	std::deque<WorkItem> m_Items;
 	ExceptionCallback m_ExceptionCallback;
@@ -81,6 +81,21 @@ private:
 	void StatusTimerHandler(void);
 
 	static void DefaultExceptionCallback(boost::exception_ptr exp);
+};
+
+class I2_BASE_API ParallelWorkQueue
+{
+public:
+	ParallelWorkQueue(void);
+	~ParallelWorkQueue(void);
+
+	void Enqueue(const boost::function<void(void)>& callback);
+	void Join(void);
+
+private:
+	unsigned int m_QueueCount;
+	WorkQueue *m_Queues;
+	unsigned int m_Index;
 };
 
 }
