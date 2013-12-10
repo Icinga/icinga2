@@ -1,14 +1,29 @@
 #!/bin/sh
-if [ "$1" != "run-by-jenkins" ]; then
-	echo "This script should not be run manually."
+if [ "$1" != "--force" ]; then
+	echo 'This script is NOT intended to be ran by an individual user.' \
+         'If you are not human, pass "--force" as the first option to it!'
 	exit 1
 fi
 
-echo "10.10.27.1 packages.icinga.org" >> /etc/hosts
+if [ $# -lt 3 ]; then
+    echo 'Too few arguments. You need to pass "--force <user> <host>"' \
+         'to run this script.'
+    exit 1
+fi
 
-groupadd vagrant
 
-rmdir /vagrant && ln -s /root/icinga2 /vagrant
-puppet apply --modulepath=/vagrant/.vagrant-puppet/modules /vagrant/.vagrant-puppet/manifests/default.pp
+user=$2
+host=$3
+
+SSH_OPTIONS="-o PasswordAuthentication=no"
+SSH="ssh $SSH_OPTIONS $user@$host"
+
+$SSH "mkdir -p /tmp/icinga2/puppet-stuff"
+scp -r ../../.vagrant-puppet $user@$host:/tmp/icinga2/puppet-stuff
+
+$SSH "groupadd vagrant"
+$SSH "echo '10.10.27.1 packages.icinga.org' >> /etc/hosts"
+$SSH "puppet apply --modulepath=/tmp/icinga2/puppet-stuff/modules" \
+     "             /tmp/icinga2/puppet-stuff/manifests/default.pp"
 
 exit 0
