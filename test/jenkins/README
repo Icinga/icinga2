@@ -8,11 +8,12 @@ This directory contains a few scripts primarily used by build.icinga.org.
   is applied to the VM. (Usually not of interest for the typical user.)
 
 * run_tests.sh
-  This is a wrapper script intended to be ran manually by a user.
+  This is a wrapper script intended to be ran manually by a user. (Note
+  that you need to start this project's vagrant box for this to work!)
 
 * run_tests.py
-  The actual test-runner. Accepts one option (-C|--config) and expects
-  one or more filenames or -patterns that should be run on the VM.
+  The actual test-runner. Accepts two options (-C|--config, -O|--output) and
+  expects one or more filenames or -patterns that should be run on the VM.
 
 * run_tests.conf
   The default configuration file for the test-runner. (Used when running
