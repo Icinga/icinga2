@@ -219,6 +219,17 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return ConfigItem::Ptr();
 }
 
+bool ConfigItem::HasObject(const String& type, const String& name)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	ConfigItem::ItemMap::iterator it;
+
+	it = m_Items.find(std::make_pair(type, name));
+
+	return (it != m_Items.end());
+}
+
 void ConfigItem::ValidateItem(void)
 {
 	if (m_Validated)
