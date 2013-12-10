@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
 
-
 CHECK_INTERVAL = 10 # minutes; The actual interval are 5 minutes but as other
                     # tests might restart Icinga we need to take any
                     # rescheduling into account

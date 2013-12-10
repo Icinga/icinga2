@@ -2,41 +2,14 @@
 from __future__ import unicode_literals
 
 import sys
-import subprocess
 
-try:
-    import ido_tests
-    IDO_TESTS_FOUND = True
-except ImportError:
-    IDO_TESTS_FOUND = False
-
-
-PSQL = b"/usr/bin/psql"
-PARAMS = b"-nq -U icinga -d icinga -c".split()
-SEPARATOR = '|'
-ENVIRONMENT = {
-    b'PGPASSWORD': b'icinga'
-    }
-
-
-def run_query(query):
-    p = subprocess.Popen([PSQL] + PARAMS + [query.encode('utf-8')],
-                         stdout=subprocess.PIPE, env=ENVIRONMENT)
-    return parse_result([l.decode('utf-8') for l in p.stdout.readlines()])
-
-
-def parse_result(resultset):
-    result, header = [], None
-    for line in (l for l in resultset if SEPARATOR in l):
-        columns = [c.strip() for c in line.split(SEPARATOR)]
-        if header is None:
-            header = columns
-        else:
-            result.append(dict((header[i], v) for i, v in enumerate(columns)))
-    return result
+import utils
+import ido_tests
 
 
 def main():
+    run_query = lambda q: utils.run_pgsql_query(q, b'/usr/bin/psql')
+
     if not ido_tests.validate_tables([d['Name'] for d in run_query('\\dt')
                                                 if d['Type'] == 'table']):
         return 1
@@ -92,8 +65,5 @@ def main():
 
 
 if __name__ == '__main__':
-    if not IDO_TESTS_FOUND:
-        raise
-
     sys.exit(main())
 
