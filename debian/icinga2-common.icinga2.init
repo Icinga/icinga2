@@ -74,6 +74,18 @@ do_start()
 }
 
 #
+# Function that starts the daemon/service in foreground for debugging
+#
+do_foreground()
+{
+  start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test \
+    || return 1
+  start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON -- \
+    -c "$DAEMON_CONFIG" -u "$DAEMON_USER" -g "$DAEMON_GROUP" $DAEMON_ARGS \
+    || return 2
+}
+
+#
 # Function that stops the daemon/service
 #
 do_stop()
@@ -138,6 +150,39 @@ case "$1" in
       2) log_end_msg 1 ;;
     esac
     ;;
+  foreground)
+    do_check_config
+    log_action_msg "Starting $DESC in foreground"
+    status=0
+    trap 'status=2;' INT # handle intr here
+    for i in 1 2; do
+      do_foreground || status="$?"
+      case "$status" in
+        0)
+          log_success_msg "$NAME ended graceful"
+          break
+          ;;
+        1)
+          if [ "$i" -eq 1 ]; then
+            log_warning_msg "$NAME already running!"
+            log_begin_msg "Do you want to stop $NAME before going foreground? [y/N] "
+            read -r question
+            if [ "$question" = "y" ] || [ "$question" = "yes" ]; then
+              do_stop
+              continue
+            fi
+          fi
+          log_failure_msg "$NAME already running! Please stop before starting in foreground!"
+          break
+          ;;
+        2)
+          log_failure_msg "$NAME ended"
+          break
+          ;;
+      esac
+    done
+    exit $status
+    ;;
   stop)
     log_daemon_msg "Stopping $DESC" "$NAME"
     do_stop
@@ -178,7 +223,7 @@ case "$1" in
     do_check_config 1
     ;;
   *)
-    echo "Usage: $SCRIPTNAME {start|stop|status|reload|force-reload|restart|checkconfig}" >&2
+    echo "Usage: $SCRIPTNAME {start|stop|status|reload|force-reload|restart|checkconfig|foreground}" >&2
     exit 3
     ;;
 esac
