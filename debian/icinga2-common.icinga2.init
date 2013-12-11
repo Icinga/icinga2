@@ -20,6 +20,7 @@ DAEMON=/usr/sbin/icinga2
 DAEMON_CONFIG="/etc/icinga2/icinga2.conf"
 DAEMON_USER=nagios
 DAEMON_GROUP=nagios
+DAEMON_CMDGROUP=www-data
 DAEMON_ARGS="-e /var/log/icinga2/icinga2.err"
 PIDFILE=/var/run/icinga2/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
@@ -43,10 +44,10 @@ check_run () {
   test -d '/var/run/icinga2' || mkdir /var/run/icinga2
   test -d '/var/run/icinga2/cmd' || mkdir /var/run/icinga2/cmd
 
-  chown nagios:nagios /var/run/icinga2
+  chown "$DAEMON_USER":"$DAEMON_GROUP" /var/run/icinga2
   chmod 0755 /var/run/icinga2
 
-  chown nagios:www-data /var/run/icinga2/cmd
+  chown "$DAEMON_USER":"$DAEMON_CMDGROUP" /var/run/icinga2/cmd
   chmod 2710 /var/run/icinga2/cmd
 }
 
