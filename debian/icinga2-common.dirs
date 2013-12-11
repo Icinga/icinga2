@@ -6,3 +6,4 @@ var/log/icinga2
 var/log/icinga2/compat/archives
 var/spool/icinga2
 var/spool/icinga2/perfdata
+var/spool/icinga2/tmp
