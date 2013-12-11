@@ -126,10 +126,10 @@ bool StreamLogger::IsTty(std::ostream& stream)
 {
 #ifndef _WIN32
 	/* Eww... */
-	if (stream == std::cout)
+	if (&stream == &std::cout)
 		return isatty(fileno(stdout));
 
-	if (stream == std::cerr)
+	if (&stream == &std::cerr)
 		return isatty(fileno(stderr));
 #endif /*_ WIN32 */
 
