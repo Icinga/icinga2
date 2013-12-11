@@ -18,7 +18,9 @@ DESC="icinga2 monitoring daemon"
 NAME=icinga2
 DAEMON=/usr/sbin/icinga2
 DAEMON_CONFIG="/etc/icinga2/icinga2.conf"
-DAEMON_ARGS="-e /var/log/icinga2/icinga2.err -d -u nagios -g nagios"
+DAEMON_USER=nagios
+DAEMON_GROUP=nagios
+DAEMON_ARGS="-e /var/log/icinga2/icinga2.err"
 PIDFILE=/var/run/icinga2/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -49,10 +51,10 @@ check_run () {
 }
 
 check_config () {
-  if ! $DAEMON --validate -c "$DAEMON_CONFIG" >/dev/null 2>&1; then
-    # blark output
-    $DAEMON --validate -c "$DAEMON_CONFIG"
-  fi
+    if ! $DAEMON --validate -u "$DAEMON_USER" -g "$DAEMON_GROUP" -c "$DAEMON_CONFIG" >/dev/null 2>&1; then
+        # blark output
+        $DAEMON --validate -u "$DAEMON_USER" -g "$DAEMON_GROUP" -c "$DAEMON_CONFIG"
+    fi
 }
 
 
@@ -68,7 +70,7 @@ do_start()
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
-		-c "$DAEMON_CONFIG" $DAEMON_ARGS \
+		-c "$DAEMON_CONFIG" -u "$DAEMON_USER" -g "$DAEMON_GROUP" -d $DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
 	# to handle requests from services started subsequently which depend

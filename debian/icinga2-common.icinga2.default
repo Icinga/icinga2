@@ -1,4 +1,6 @@
 # default settings for icinga2's initscript
 
 #DAEMON_CONFIG="/etc/icinga2/icinga2.conf"
-#DAEMON_ARGS="-e /var/log/icinga2/icinga2.err -d -u nagios -g nagios"
+#DAEMON_USER=nagios
+#DAEMON_GROUP=nagios
+#DAEMON_ARGS="-e /var/log/icinga2/icinga2.err"
