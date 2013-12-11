@@ -28,5 +28,6 @@ fi
 
 REQ_COMMON_NAME="$name" KEY_DIR="$ICINGA_CA" openssl req -config $ICINGA2PKIDIR/openssl.cnf -new -newkey rsa:4096 -keyform PEM -keyout $ICINGA_CA/$name.key -outform PEM -out $ICINGA_CA/$name.csr -nodes && \
 	openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$name.csr -outform PEM -out $ICINGA_CA/$name.tmp -CAserial $ICINGA_CA/serial && \
+	chmod 600 $ICINGA_CA/$name.key && \
 	openssl x509 -in $ICINGA_CA/$name.tmp -text >  $ICINGA_CA/$name.crt && \
 	rm -f $ICINGA_CA/$name.csr $ICINGA_CA/$name.tmp
