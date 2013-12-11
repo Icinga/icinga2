@@ -6,12 +6,14 @@ export DH_VERBOSE=1
 	dh $@
 
 override_dh_auto_clean:
+ifeq ($(shell test -d .git && echo "git"),git) # verify we are in a GIT repo
 	# ensure icinga-version.h.fallback to be present
 	rm -rf debian-prebuild/
 	mkdir debian-prebuild
 	cd debian-prebuild/ && cmake ../debian/
 	cp debian-prebuild/icinga-version.h.fallback .
 	rm -rf debian-prebuild/
+endif
 	# now clean build dir
 	dh_auto_clean
 	rm -f config.log
