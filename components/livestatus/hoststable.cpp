@@ -236,42 +236,11 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 	if (!hc)
 		return Empty;
 
-	CheckCommand::Ptr commandObj = hc->GetCheckCommand();
+	CheckCommand::Ptr checkcommand = hc->GetCheckCommand();
+	if (checkcommand)
+		return checkcommand->GetName(); /* this is the name without '!' args */
 
-	if (!commandObj)
-		return Empty;
-
-	Value raw_command = commandObj->GetCommandLine();
-
-	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(hc);
-	resolvers.push_back(host);
-	resolvers.push_back(commandObj);
-	resolvers.push_back(IcingaApplication::GetInstance());
-
-	Value commandLine = MacroProcessor::ResolveMacros(raw_command, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
-
-	String buf;
-	if (commandLine.IsObjectType<Array>()) {
-		Array::Ptr args = commandLine;
-
-		ObjectLock olock(args);
-		String arg;
-		BOOST_FOREACH(arg, args) {
-			// This is obviously incorrect for non-trivial cases.
-			String argitem = " \"" + arg + "\"";
-			boost::algorithm::replace_all(argitem, "\n", "\\n");
-			buf += argitem;
-		}
-	} else if (!commandLine.IsEmpty()) {
-		String args = Convert::ToString(commandLine);
-		boost::algorithm::replace_all(args, "\n", "\\n");
-		buf += args;
-	} else {
-		buf += "<internal>";
-	}
-
-	return buf;
+	return Empty;
 }
 
 Value HostsTable::EventHandlerAccessor(const Value& row)
