@@ -520,13 +520,15 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObjec
 
 	ObjectLock olock(custom);
 	BOOST_FOREACH(const Dictionary::Pair& kv, custom) {
-		fp << "\t";
+		if (!kv.first.IsEmpty()) {
+			fp << "\t";
 
-		if (kv.first != "notes" && kv.first != "action_url" && kv.first != "notes_url" &&
-		    kv.first != "icon_image" && kv.first != "icon_image_alt" && kv.first != "statusmap_image" && kv.first != "2d_coords")
-			fp << "_";
+			if (kv.first != "notes" && kv.first != "action_url" && kv.first != "notes_url" &&
+			    kv.first != "icon_image" && kv.first != "icon_image_alt" && kv.first != "statusmap_image" && kv.first != "2d_coords")
+				fp << "_";
 
-		fp << kv.first << "\t" << kv.second << "\n";
+			fp << kv.first << "\t" << kv.second << "\n";
+		}
 	}
 }
 
