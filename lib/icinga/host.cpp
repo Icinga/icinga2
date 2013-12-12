@@ -152,7 +152,7 @@ void Host::UpdateSlaveServices(void)
 	ObjectLock olock(service_descriptions);
 	BOOST_FOREACH(const Dictionary::Pair& kv, service_descriptions) {
 		std::ostringstream namebuf;
-		namebuf << GetName() << ":" << kv.first;
+		namebuf << GetName() << "!" << kv.first;
 		String name = namebuf.str();
 
 		std::vector<String> path;

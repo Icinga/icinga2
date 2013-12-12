@@ -352,9 +352,9 @@ object_declaration identifier T_STRING object_inherits_specifier expressionlist
 
 		item->SetType($3);
 
-		if (strchr($4, ':') != NULL) {
+		if (strchr($4, '!') != NULL) {
 			std::ostringstream msgbuf;
-			msgbuf << "Name for object '" << $4 << "' of type '" << $3 << "' is invalid: Object names may not contain ':'";
+			msgbuf << "Name for object '" << $4 << "' of type '" << $3 << "' is invalid: Object names may not contain '!'";
 			free($3);
 			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 		}
