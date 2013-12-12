@@ -109,6 +109,22 @@ size_t Array::GetLength(void) const
 }
 
 /**
+ * Insert the given value at the specified index
+ *
+ * @param index The index
+ * @param value The value to add
+ */
+void Array::Insert(unsigned int index, const Value& value)
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	ASSERT(index <= m_Data.size());
+
+	m_Data.insert(m_Data.begin() + index, value);
+}
+
+/**
  * Removes the specified index from the array.
  *
  * @param index The index.

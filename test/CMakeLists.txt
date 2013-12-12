@@ -26,6 +26,7 @@ add_boost_test(base
   LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
+        base_array/insert
         base_array/remove
         base_array/foreach
         base_array/clone

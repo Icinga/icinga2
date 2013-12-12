@@ -51,6 +51,7 @@ public:
 
 	size_t GetLength(void) const;
 
+	void Insert(unsigned int index, const Value& value);
 	void Remove(unsigned int index);
 	void Remove(Iterator it);
 

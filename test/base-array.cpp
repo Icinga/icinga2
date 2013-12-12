@@ -53,6 +53,27 @@ BOOST_AUTO_TEST_CASE(getset)
 	BOOST_CHECK(array->Get(1) == 5);
 }
 
+BOOST_AUTO_TEST_CASE(insert)
+{
+	Array::Ptr array = make_shared<Array>();
+
+	array->Insert(0, 11);
+	array->Insert(1, 22);
+	BOOST_CHECK(array->GetLength() == 2);
+	BOOST_CHECK(array->Get(1) == 22);
+
+	array->Insert(0, 33);
+	BOOST_CHECK(array->GetLength() == 3);
+	BOOST_CHECK(array->Get(0) == 33);
+	BOOST_CHECK(array->Get(1) == 11);
+
+	array->Insert(1, 44);
+	BOOST_CHECK(array->GetLength() == 4);
+	BOOST_CHECK(array->Get(0) == 33);
+	BOOST_CHECK(array->Get(1) == 44);
+	BOOST_CHECK(array->Get(2) == 11);
+}
+
 BOOST_AUTO_TEST_CASE(remove)
 {
 	Array::Ptr array = make_shared<Array>();
