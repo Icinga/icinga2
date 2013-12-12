@@ -403,6 +403,7 @@ void Application::SigAbrtHandler(int)
 #endif /* _WIN32 */
 
 	std::cerr << "Caught SIGABRT." << std::endl
+		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
 		  << std::endl;
 
 	DisplayVersionMessage();
@@ -445,6 +446,7 @@ void Application::ExceptionHandler(void)
 #endif /* _WIN32 */
 
 	std::cerr << "Caught unhandled exception." << std::endl
+		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
 		  << std::endl;
 
 	DisplayVersionMessage();
@@ -468,6 +470,7 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	DisplayVersionMessage();
 
 	std::cerr << "Caught unhandled SEH exception." << std::endl
+		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
 		  << std::endl;
 
 	StackTrace trace(exi);
