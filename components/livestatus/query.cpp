@@ -85,6 +85,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 	m_Verb = verb;
 
 	if (m_Verb == "COMMAND") {
+		m_KeepAlive = true;
 		m_Command = target;
 	} else if (m_Verb == "GET") {
 		m_Table = target;
@@ -113,6 +114,8 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 			m_ResponseHeader = params;
 		else if (header == "OutputFormat")
 			m_OutputFormat = params;
+		else if (header == "KeepAlive")
+			m_KeepAlive = (params == "on");
 		else if (header == "Columns")
 			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
 		else if (header == "Separators")
