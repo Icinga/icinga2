@@ -25,6 +25,13 @@ if [ -z "$1" ]; then
 	done
 
 	echo
+	echo -n "Enabled features: "
+
+	for file in $ICINGA2CONFDIR/features-enabled/*.conf; do
+		echo -n "$(basename -- $file .conf) "
+	done
+
+	echo
 
 	exit 1
 fi
