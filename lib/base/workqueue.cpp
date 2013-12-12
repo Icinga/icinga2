@@ -23,6 +23,7 @@
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -30,7 +31,7 @@ int WorkQueue::m_NextID = 1;
 
 WorkQueue::WorkQueue(size_t maxItems)
 	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Stopped(false),
-	  m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
+	  m_Processing(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
 {
 	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
 
@@ -47,15 +48,23 @@ WorkQueue::~WorkQueue(void)
 
 /**
  * Enqueues a work item. Work items are guaranteed to be executed in the order
- * they were enqueued in.
+ * they were enqueued in except when allowInterleaved is true in which case
+ * the new work item might be run immediately if it's being enqueued from
+ * within the WorkQueue thread.
  */
 void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 {
+	bool wq_thread = (boost::this_thread::get_id() == GetThreadId());
+
+	if (wq_thread && allowInterleaved) {
+		callback();
+
+		return;
+	}
+
 	WorkItem item;
 	item.Callback = callback;
 	item.AllowInterleaved = allowInterleaved;
-
-	bool wq_thread = (boost::this_thread::get_id() == GetThreadId());
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -66,9 +75,7 @@ void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 
 	m_Items.push_back(item);
 
-	if (wq_thread)
-		ProcessItems(lock, true);
-	else if (m_Items.size() == 1)
+	if (m_Items.size() == 1)
 		m_CVEmpty.notify_all();
 }
 
@@ -76,7 +83,7 @@ void WorkQueue::Join(bool stop)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (!m_Items.empty())
+	while (m_Processing || !m_Items.empty())
 		m_CVStarved.wait(lock);
 
 	if (stop) {
@@ -112,46 +119,13 @@ void WorkQueue::StatusTimerHandler(void)
 	Log(LogInformation, "base", "WQ #" + Convert::ToString(m_ID) + " items: " + Convert::ToString(m_Items.size()));
 }
 
-void WorkQueue::ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved)
-{
-	while (!m_Items.empty()) {
-		WorkItem wi = m_Items.front();
-
-		if (interleaved && !wi.AllowInterleaved)
-			return;
-
-		lock.unlock();
-
-		try {
-			wi.Callback();
-		} catch (const std::exception&) {
-			lock.lock();
-
-			ExceptionCallback callback = m_ExceptionCallback;
-
-			lock.unlock();
-
-			callback(boost::current_exception());
-		}
-
-		lock.lock();
-
-		m_Items.pop_front();
-
-		if (m_Items.size() + 1 == m_MaxItems)
-			m_CVFull.notify_one();
-	}
-
-	m_CVStarved.notify_all();
-}
-
 void WorkQueue::WorkerThreadProc(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
 	std::ostringstream idbuf;
 	idbuf << "WQ #" << m_ID;
 	Utility::SetThreadName(idbuf.str());
+
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for (;;) {
 		while (m_Items.empty() && !m_Stopped)
@@ -160,10 +134,38 @@ void WorkQueue::WorkerThreadProc(void)
 		if (m_Stopped)
 			break;
 
-		ProcessItems(lock, false);
+		std::deque<WorkItem> items;
+		m_Items.swap(items);
+
+		if (items.size() >= m_MaxItems)
+			m_CVFull.notify_all();
+
+		m_Processing = true;
+
+		lock.unlock();
+
+		BOOST_FOREACH(WorkItem& wi, items) {
+			try {
+				wi.Callback();
+			}
+			catch (const std::exception&) {
+				lock.lock();
+
+				ExceptionCallback callback = m_ExceptionCallback;
+
+				lock.unlock();
+
+				callback(boost::current_exception());
+			}
+		}
+
+		lock.lock();
+
+		m_Processing = false;
+
+		m_CVStarved.notify_all();
 	}
 }
-
 
 ParallelWorkQueue::ParallelWorkQueue(void)
 	: m_QueueCount(boost::thread::hardware_concurrency()),

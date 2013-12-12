@@ -28,6 +28,7 @@
 #include "base/objectlock.h"
 #include "base/convert.h"
 #include "base/utility.h"
+#include "base/initialize.h"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
 
@@ -38,16 +39,14 @@ REGISTER_TYPE(Service);
 boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> Service::OnAcknowledgementSet;
 boost::signals2::signal<void (const Service::Ptr&, const String&)> Service::OnAcknowledgementCleared;
 
+INITIALIZE_ONCE(&Service::StartDowntimesExpiredTimer);
+
 Service::Service(void)
 	: m_CheckRunning(false)
 { }
 
 void Service::Start(void)
 {
-	VERIFY(GetHost());
-
-	StartDowntimesExpiredTimer();
-
 	double now = Utility::GetTime();
 
 	if (GetNextCheck() < now + 300)

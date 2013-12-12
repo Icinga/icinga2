@@ -36,7 +36,6 @@ typedef boost::function<void (void)> WorkCallback;
 
 struct WorkItem
 {
-
 	WorkCallback Callback;
 	bool AllowInterleaved;
 };
@@ -72,11 +71,11 @@ private:
 	boost::thread m_Thread;
 	size_t m_MaxItems;
 	bool m_Stopped;
+	bool m_Processing;
 	std::deque<WorkItem> m_Items;
 	ExceptionCallback m_ExceptionCallback;
 	Timer::Ptr m_StatusTimer;
 
-	void ProcessItems(boost::mutex::scoped_lock& lock, bool interleaved);
 	void WorkerThreadProc(void);
 	void StatusTimerHandler(void);
 

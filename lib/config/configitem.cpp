@@ -104,7 +104,7 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 
 void ConfigItem::Link(void)
 {
-	ObjectLock olock(this);
+	ASSERT(OwnsLock());
 
 	if (m_LinkedExpressionList)
 		return;
@@ -132,6 +132,8 @@ void ConfigItem::Link(void)
 
 ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 {
+	ASSERT(OwnsLock());
+
 	if (!m_LinkedExpressionList)
 		Link();
 
@@ -140,6 +142,10 @@ ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 
 Dictionary::Ptr ConfigItem::GetProperties(void)
 {
+	ASSERT(!OwnsLock());
+
+	ObjectLock olock(this);
+
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
 		GetLinkedExpressionList()->Execute(m_Properties);
@@ -184,19 +190,17 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	return dobj;
 }
 
-DynamicObject::Ptr ConfigItem::GetObject(void) const
-{
-	return m_Object;
-}
-
 /**
  * Registers the configuration item.
  */
 void ConfigItem::Register(void)
 {
+	std::pair<String, String> key = std::make_pair(m_Type, m_Name);
+	ConfigItem::Ptr self = GetSelf();
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
+	m_Items[key] = self;
 }
 
 /**
@@ -208,11 +212,14 @@ void ConfigItem::Register(void)
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
+	std::pair<String, String> key = std::make_pair(type, name);
 	ConfigItem::ItemMap::iterator it;
 
-	it = m_Items.find(std::make_pair(type, name));
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		it = m_Items.find(key);
+	}
 
 	if (it != m_Items.end())
 		return it->second;
@@ -222,11 +229,14 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 
 bool ConfigItem::HasObject(const String& type, const String& name)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
+	std::pair<String, String> key = std::make_pair(type, name);
 	ConfigItem::ItemMap::iterator it;
 
-	it = m_Items.find(std::make_pair(type, name));
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		it = m_Items.find(key);
+	}
 
 	return (it != m_Items.end());
 }
@@ -280,7 +290,7 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	
 	std::vector<DynamicObject::Ptr> objects;
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		DynamicObject::Ptr object = kv.second->GetObject();
+		DynamicObject::Ptr object = kv.second->m_Object;
 
 		if (object)
 			objects.push_back(object);
@@ -342,5 +352,7 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 void ConfigItem::DiscardItems(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	m_Items.clear();
 }

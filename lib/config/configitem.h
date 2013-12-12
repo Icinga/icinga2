@@ -47,7 +47,6 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	void Link(void);
 	ExpressionList::Ptr GetLinkedExpressionList(void);
 	Dictionary::Ptr GetProperties(void);
 
@@ -61,13 +60,12 @@ public:
 	static bool HasObject(const String& type, const String& name);
 
 	void ValidateItem(void);
-
-        DynamicObject::Ptr GetObject(void) const;
         
 	static bool ActivateItems(bool validateOnly);
 	static void DiscardItems(void);
 
 private:
+	void Link(void);
 	ExpressionList::Ptr GetExpressionList(void) const;
 
 	String m_Type; /**< The object type. */
