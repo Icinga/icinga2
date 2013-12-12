@@ -48,7 +48,7 @@ protected:
 
 private:
 	void ServerThreadProc(const Socket::Ptr& server);
-	void ClientThreadProc(const Socket::Ptr& client);
+	void ClientHandler(const Socket::Ptr& client);
 };
 
 }

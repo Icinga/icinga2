@@ -19,6 +19,7 @@
 
 #include "livestatus/listener.h"
 #include "config/configcompilercontext.h"
+#include "base/utility.h"
 #include "base/objectlock.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
@@ -103,12 +104,11 @@ void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 
 		Log(LogInformation, "livestatus", "Client connected");
 
-		boost::thread thread(boost::bind(&LivestatusListener::ClientThreadProc, this, client));
-		thread.detach();
+		Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client));
 	}
 }
 
-void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
+void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 {
 	{
 		boost::mutex::scoped_lock lock(l_ComponentMutex);
@@ -131,17 +131,9 @@ void LivestatusListener::ClientThreadProc(const Socket::Ptr& client)
 				break;
 		}
 
-		try {
-			Query::Ptr query = make_shared<Query>(lines, GetCompatLogPath());
-			if (!query->Execute(stream))
-				break;
-		} catch (const std::exception& ex) {
-			std::ostringstream info;
-			info << "Exception thrown while running livestatus query: " << std::endl
-			     << DiagnosticInformation(ex);
-			Log(LogCritical, "livestatus", info.str());
-			return;
-		}
+		Query::Ptr query = make_shared<Query>(lines, GetCompatLogPath());
+		if (!query->Execute(stream))
+			break;
 	}
 
 	{
