@@ -95,17 +95,13 @@ void Service::RemoveNotification(const Notification::Ptr& notification)
 
 void Service::UpdateSlaveNotifications(void)
 {
-	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
-
-	/* Don't create slave notifications unless we own this object */
-	if (!item)
-		return;
-
 	/* Service notification descs */
 	Dictionary::Ptr descs = GetNotificationDescriptions();
 
-	if (!descs)
+	if (!descs || descs->GetLength() == 0)
 		return;
+
+	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
 
 	ObjectLock olock(descs);
 

@@ -221,12 +221,10 @@ Downtime::Ptr Service::GetDowntimeByID(const String& id)
 
 void Service::StartDowntimesExpiredTimer(void)
 {
-        if (!l_DowntimesExpireTimer) {
-		l_DowntimesExpireTimer = make_shared<Timer>();
-		l_DowntimesExpireTimer->SetInterval(60);
-		l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
-		l_DowntimesExpireTimer->Start();
-        }
+	l_DowntimesExpireTimer = make_shared<Timer>();
+	l_DowntimesExpireTimer->SetInterval(60);
+	l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
+	l_DowntimesExpireTimer->Start();
 }
 
 void Service::AddDowntimesToCache(void)
@@ -318,17 +316,13 @@ int Service::GetDowntimeDepth(void) const
 
 void Service::UpdateSlaveScheduledDowntimes(void)
 {
-	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
-
-	/* Don't create slave scheduled downtimes unless we own this object */
-	if (!item)
-		return;
-
 	/* Service scheduled downtime descs */
 	Dictionary::Ptr descs = GetScheduledDowntimeDescriptions();
 
-	if (!descs)
+	if (!descs || descs->GetLength() == 0)
 		return;
+
+	ConfigItem::Ptr item = ConfigItem::GetObject("Service", GetName());
 
 	ObjectLock olock(descs);
 

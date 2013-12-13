@@ -45,8 +45,6 @@ bool TypeRule::MatchName(const String& name) const
 
 bool TypeRule::MatchValue(const Value& value, String *hint) const
 {
-	ConfigItem::Ptr item;
-
 	if (value.IsEmpty())
 		return true;
 
@@ -78,9 +76,7 @@ bool TypeRule::MatchValue(const Value& value, String *hint) const
 			if (!value.IsScalar())
 				return false;
 
-			item = ConfigItem::GetObject(m_NameType, value);
-
-			if (!item) {
+			if (!ConfigItem::HasObject(m_NameType, value)) {
 				*hint = "Object '" + value + "' of type '" + m_NameType + "' does not exist.";
 				return false;
 			}

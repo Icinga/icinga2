@@ -181,7 +181,7 @@ void Application::RunEventLoop(void) const
 	GetTP().Stop();
 	m_ShuttingDown = false;
 
-	GetTP().Join();
+	GetTP().Join(true);
 
 	Timer::Uninitialize();
 #endif /* _DEBUG */

@@ -142,6 +142,8 @@ private:
 	std::string m_Path;
 	std::istream *m_Input;
 	void *m_Scanner;
+
+	static unsigned long SDBM(const std::string& str, size_t len);
 };
 
 }

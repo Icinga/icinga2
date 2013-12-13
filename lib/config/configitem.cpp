@@ -24,6 +24,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/debug.h"
+#include "base/workqueue.h"
 #include <sstream>
 #include <boost/foreach.hpp>
 
@@ -103,7 +104,7 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 
 void ConfigItem::Link(void)
 {
-	ObjectLock olock(this);
+	ASSERT(OwnsLock());
 
 	if (m_LinkedExpressionList)
 		return;
@@ -131,6 +132,8 @@ void ConfigItem::Link(void)
 
 ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 {
+	ASSERT(OwnsLock());
+
 	if (!m_LinkedExpressionList)
 		Link();
 
@@ -139,6 +142,10 @@ ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 
 Dictionary::Ptr ConfigItem::GetProperties(void)
 {
+	ASSERT(!OwnsLock());
+
+	ObjectLock olock(this);
+
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
 		GetLinkedExpressionList()->Execute(m_Properties);
@@ -178,6 +185,8 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	DynamicObject::Ptr dobj = dtype->CreateObject(properties);
 	dobj->Register();
 
+	m_Object = dobj;
+	
 	return dobj;
 }
 
@@ -186,13 +195,12 @@ DynamicObject::Ptr ConfigItem::Commit(void)
  */
 void ConfigItem::Register(void)
 {
-	ASSERT(!OwnsLock());
+	std::pair<String, String> key = std::make_pair(m_Type, m_Name);
+	ConfigItem::Ptr self = GetSelf();
 
-	{
-		ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-		m_Items[std::make_pair(m_Type, m_Name)] = GetSelf();
-	}
+	m_Items[key] = self;
 }
 
 /**
@@ -204,16 +212,33 @@ void ConfigItem::Register(void)
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-
+	std::pair<String, String> key = std::make_pair(type, name);
 	ConfigItem::ItemMap::iterator it;
 
-	it = m_Items.find(std::make_pair(type, name));
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		it = m_Items.find(key);
+	}
 
 	if (it != m_Items.end())
 		return it->second;
 
 	return ConfigItem::Ptr();
+}
+
+bool ConfigItem::HasObject(const String& type, const String& name)
+{
+	std::pair<String, String> key = std::make_pair(type, name);
+	ConfigItem::ItemMap::iterator it;
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		it = m_Items.find(key);
+	}
+
+	return (it != m_Items.end());
 }
 
 void ConfigItem::ValidateItem(void)
@@ -244,34 +269,49 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	Log(LogInformation, "config", "Validating config items (step 1)...");
 
+	ParallelWorkQueue upq;
+	
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		kv.second->ValidateItem();
+		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
+	
+	upq.Join();
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	Log(LogInformation, "config", "Activating config items");
-
-	std::vector<DynamicObject::Ptr> objects;
+	Log(LogInformation, "config", "Comitting config items");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		DynamicObject::Ptr object = kv.second->Commit();
+		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second));
+	}
+	
+	upq.Join();
+	
+	std::vector<DynamicObject::Ptr> objects;
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		DynamicObject::Ptr object = kv.second->m_Object;
 
 		if (object)
 			objects.push_back(object);
 	}
-
+	
+	Log(LogInformation, "config", "Triggering OnConfigLoaded signal for config items");
+	
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
-		object->OnConfigLoaded();
+		upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, object));
 	}
+	
+	upq.Join();
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		kv.second->ValidateItem();
+		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
 
+	upq.Join();
+	
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
@@ -281,6 +321,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	/* restore the previous program state */
 	DynamicObject::RestoreObjects(Application::GetStatePath());
 
+	Log(LogInformation, "config", "Triggering Start signal for config items");
+	
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			if (object->IsActive())
@@ -289,16 +331,28 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 #ifdef _DEBUG
 			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
 #endif /* _DEBUG */
-			object->Start();
-
+			upq.Enqueue(boost::bind(&DynamicObject::Start, object));
+		}
+	}
+	
+	upq.Join();
+	
+#ifdef _DEBUG
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			ASSERT(object->IsActive());
 		}
 	}
+#endif /* _DEBUG */
+
+	Log(LogInformation, "config", "Activated all objects.");
 
 	return true;
 }
 
 void ConfigItem::DiscardItems(void)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	m_Items.clear();
 }

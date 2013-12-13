@@ -40,6 +40,7 @@
 using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
+boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
 
 /**
  * Demangles a symbol name.
@@ -704,12 +705,18 @@ String Utility::GetThreadName(void)
 	return *name;
 }
 
-unsigned long Utility::SDBM(const String& str)
+unsigned long Utility::SDBM(const String& str, size_t len)
 {
 	unsigned long hash = 0;
+	size_t current = 0;
 
 	BOOST_FOREACH(char c, str) {
+		if (current >= len)
+			break;
+
 		hash = c + (hash << 6) + (hash << 16) - hash;
+
+		current++;
 	}
 
 	return hash;
@@ -739,10 +746,18 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 
 int Utility::Random(void)
 {
-	static boost::mutex mtx;
-	boost::mutex::scoped_lock lock(mtx);
-
+#ifdef _WIN32
 	return rand();
+#else /* _WIN32 */
+	unsigned int *seed = m_RandSeed.get();
+
+	if (!seed) {
+		seed = new unsigned int(Utility::GetTime());
+		m_RandSeed.reset(seed);
+	}
+
+	return rand_r(seed);
+#endif /* _WIN32 */
 }
 
 tm Utility::LocalTime(time_t ts)

@@ -138,16 +138,12 @@ void Host::UpdateSlaveServices(void)
 {
 	ASSERT(!OwnsLock());
 
-	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
-
-	/* Don't create slave services unless we own this object */
-	if (!item)
-		return;
-
 	Dictionary::Ptr service_descriptions = GetServiceDescriptions();
 
-	if (!service_descriptions)
+	if (!service_descriptions ||service_descriptions->GetLength() == 0)
 		return;
+
+	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
 
 	ObjectLock olock(service_descriptions);
 	BOOST_FOREACH(const Dictionary::Pair& kv, service_descriptions) {

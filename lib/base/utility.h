@@ -102,7 +102,7 @@ public:
 	static void SetThreadName(const String& name, bool os = true);
 	static String GetThreadName(void);
 
-	static unsigned long SDBM(const String& str);
+	static unsigned long SDBM(const String& str, size_t len = String::NPos);
 
 	static int CompareVersion(const String& v1, const String& v2);
 
@@ -114,6 +114,7 @@ private:
 	Utility(void);
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
+	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
 };
 
 }

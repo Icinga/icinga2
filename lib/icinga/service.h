@@ -204,7 +204,7 @@ public:
 	static Service::Ptr GetOwnerByDowntimeID(const String& id);
 	static Downtime::Ptr GetDowntimeByID(const String& id);
 
-	void StartDowntimesExpiredTimer(void);
+	static void StartDowntimesExpiredTimer(void);
 
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);

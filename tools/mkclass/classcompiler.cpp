@@ -21,6 +21,8 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <map>
+#include <vector>
 
 using namespace icinga;
 
@@ -75,6 +77,27 @@ void ClassCompiler::HandleNamespaceEnd(const ClassDebugInfo& locp)
 void ClassCompiler::HandleCode(const std::string& code, const ClassDebugInfo& locp)
 {
 	std::cout << code << std::endl;
+}
+
+unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::string::npos)
+{
+	unsigned long hash = 0;
+	size_t current = 0;
+
+	std::string::const_iterator it;
+
+	for (it = str.begin(); it != str.end(); it++) {
+		if (current >= len)
+                        break;
+
+		char c = *it;
+
+                hash = c + (hash << 6) + (hash << 16) - hash;
+
+                current++;
+        }
+
+        return hash;
 }
 
 void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
@@ -136,11 +159,47 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 
 	std::cout << ";" << std::endl << std::endl;
 
-	int num = 0;
-	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-		std::cout << "\t\t" << "if (name == \"" << it->Name << "\")" << std::endl
-			<< "\t\t\t" << "return offset + " << num << ";" << std::endl;
-		num++;
+	std::map<int, std::vector<std::pair<int, std::string> > > jumptable;
+
+	int hlen = 0, collisions = 0;
+
+	do {
+		int num = 0;
+
+		hlen++;
+		jumptable.clear();
+		collisions = 0;
+
+		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			int hash = static_cast<int>(SDBM(it->Name, hlen));
+			jumptable[hash].push_back(std::make_pair(num, it->Name));
+			num++;
+
+			if (jumptable[hash].size() > 1)
+				collisions++;
+		}
+	} while (collisions >= 5 && hlen < 8);
+
+	if (!klass.Fields.empty()) {
+		std::cout << "\t\tswitch (static_cast<int>(Utility::SDBM(name, " << hlen << "))) {" << std::endl;
+
+		std::map<int, std::vector<std::pair<int, std::string> > >::const_iterator itj;
+
+		for (itj = jumptable.begin(); itj != jumptable.end(); itj++) {
+			std::cout << "\t\t\tcase " << itj->first << ":" << std::endl;
+
+			std::vector<std::pair<int, std::string> >::const_iterator itf;
+
+			for (itf = itj->second.begin(); itf != itj->second.end(); itf++) {
+				std::cout << "\t\t\t\t" << "if (name == \"" << itf->second << "\")" << std::endl
+					<< "\t\t\t\t\t" << "return offset + " << itf->first << ";" << std::endl;
+			}
+
+			std::cout << std::endl
+				  << "\t\t\t\tbreak;" << std::endl;
+		}
+
+		std::cout << "\t\t}" << std::endl;
 	}
 
 	std::cout << std::endl
@@ -178,7 +237,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 
 		std::cout << ") {" << std::endl;
 
-		num = 0;
+		size_t num = 0;
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 			std::cout << "\t\t\t" << "case " << num << ":" << std::endl
 				<< "\t\t\t\t" << "return Field(" << num << ", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
@@ -259,7 +318,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 
 		std::cout << ") {" << std::endl;
 
-		num = 0;
+		size_t num = 0;
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 			std::cout << "\t\t\t" << "case " << num << ":" << std::endl
 					  << "\t\t\t\t" << "Set" << it->GetFriendlyName() << "(";
@@ -417,7 +476,8 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 			  << "#include \"base/debug.h\"" << std::endl
 			  << "#include \"base/value.h\"" << std::endl
 			  << "#include \"base/array.h\"" << std::endl
-			  << "#include \"base/dictionary.h\"" << std::endl << std::endl
+			  << "#include \"base/dictionary.h\"" << std::endl
+			  << "#include \"base/utility.h\"" << std::endl << std::endl
 			  << "#ifdef _MSC_VER" << std::endl
 			  << "#pragma warning( push )" << std::endl
 			  << "#pragma warning( disable : 4244 )" << std::endl
