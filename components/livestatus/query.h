@@ -83,7 +83,7 @@ private:
 	unsigned long m_LogTimeUntil;
 	String m_CompatLogPath;
 
-	void PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs);
+	void PrintResultSet(std::ostream& fp, const Array::Ptr& rs);
 	void PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level);
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);

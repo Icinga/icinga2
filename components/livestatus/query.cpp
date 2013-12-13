@@ -105,7 +105,6 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 		size_t col_index = line.FindFirstOf(":");
 		String header = line.SubStr(0, col_index);
 		String params;
-		std::vector<String> separators;
 
 		if (line.GetLength() > col_index + 2)
 			params = line.SubStr(col_index + 2);
@@ -116,9 +115,12 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 			m_OutputFormat = params;
 		else if (header == "KeepAlive")
 			m_KeepAlive = (params == "on");
-		else if (header == "Columns")
+		else if (header == "Columns") {
+			m_ColumnHeaders = false; // Might be explicitly re-enabled later on
 			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
-		else if (header == "Separators")
+		} else if (header == "Separators") {
+			std::vector<String> separators;
+
 			boost::algorithm::split(separators, params, boost::is_any_of(" "));
 			/* ugly ascii long to char conversion, but works */
 			if (separators.size() > 0)
@@ -129,7 +131,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 				m_Separators[2] = String(1, static_cast<char>(Convert::ToLong(separators[2])));
 			if (separators.size() > 3)
 				m_Separators[3] = String(1, static_cast<char>(Convert::ToLong(separators[3])));
-		else if (header == "ColumnHeaders")
+		} else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Filter") {
 			Filter::Ptr filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
@@ -334,23 +336,8 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 	return filter;
 }
 
-void Query::PrintResultSet(std::ostream& fp, const std::vector<String>& columns, const Array::Ptr& rs)
+void Query::PrintResultSet(std::ostream& fp, const Array::Ptr& rs)
 {
-	if (m_OutputFormat == "csv" && m_Columns.size() == 0 && m_ColumnHeaders) {
-		bool first = true;
-
-		BOOST_FOREACH(const String& column, columns) {
-			if (first)
-				first = false;
-			else
-				fp << m_Separators[1];
-
-			fp << column;
-		}
-
-		fp << m_Separators[0];
-	}
-
 	if (m_OutputFormat == "csv") {
 		ObjectLock olock(rs);
 
@@ -418,13 +405,23 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	Array::Ptr rs = make_shared<Array>();
 
 	if (m_Aggregators.empty()) {
+		Array::Ptr header = make_shared<Array>();
+
 		BOOST_FOREACH(const Value& object, objects) {
 			Array::Ptr row = make_shared<Array>();
 
 			BOOST_FOREACH(const String& columnName, columns) {
 				Column column = table->GetColumn(columnName);
 
+				if (m_ColumnHeaders)
+					header->Add(columnName);
+
 				row->Add(column.ExtractValue(object));
+			}
+
+			if (m_ColumnHeaders) {
+				rs->Add(header);
+				m_ColumnHeaders = false;
 			}
 
 			rs->Add(row);
@@ -441,6 +438,21 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			stats[index] = aggregator->GetResult();
 			index++;
+		}
+
+		/* add column headers both for raw and aggregated data */
+		if (m_ColumnHeaders) {
+			Array::Ptr header = make_shared<Array>();
+
+			BOOST_FOREACH(const String& columnName, m_Columns) {
+				header->Add(columnName);
+			}
+
+			for (size_t i = 1; i < m_Aggregators.size(); i++) {
+				header->Add("stats_" + Convert::ToString(i));
+			}
+
+			rs->Add(header);
 		}
 
 		Array::Ptr row = make_shared<Array>();
@@ -461,12 +473,10 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 			row->Add(stats[i]);
 
 		rs->Add(row);
-
-		m_ColumnHeaders = false;
 	}
 
 	std::ostringstream result;
-	PrintResultSet(result, columns, rs);
+	PrintResultSet(result, rs);
 
 	SendResponse(stream, LivestatusErrorOK, result.str());
 }
