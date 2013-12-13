@@ -22,6 +22,7 @@
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
+#include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/debug.h"
 #include "base/workqueue.h"
@@ -186,7 +187,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	dobj->Register();
 
 	m_Object = dobj;
-	
+
 	return dobj;
 }
 
@@ -270,11 +271,11 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	Log(LogInformation, "config", "Validating config items (step 1)...");
 
 	ParallelWorkQueue upq;
-	
+
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
 	}
-	
+
 	upq.Join();
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
@@ -285,9 +286,9 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second));
 	}
-	
+
 	upq.Join();
-	
+
 	std::vector<DynamicObject::Ptr> objects;
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		DynamicObject::Ptr object = kv.second->m_Object;
@@ -295,13 +296,13 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 		if (object)
 			objects.push_back(object);
 	}
-	
+
 	Log(LogInformation, "config", "Triggering OnConfigLoaded signal for config items");
-	
+
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 		upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, object));
 	}
-	
+
 	upq.Join();
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
@@ -311,7 +312,12 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	}
 
 	upq.Join();
-	
+
+	/* log stats for external parsers */
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		Log(LogInformation, "config", "Checked " + Convert::ToString(type->GetObjects().size()) + " " + type->GetName() + "(s).");
+	}
+
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
@@ -322,7 +328,7 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	DynamicObject::RestoreObjects(Application::GetStatePath());
 
 	Log(LogInformation, "config", "Triggering Start signal for config items");
-	
+
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			if (object->IsActive())
@@ -334,9 +340,9 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 			upq.Enqueue(boost::bind(&DynamicObject::Start, object));
 		}
 	}
-	
+
 	upq.Join();
-	
+
 #ifdef _DEBUG
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
