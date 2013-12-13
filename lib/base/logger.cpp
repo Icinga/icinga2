@@ -88,6 +88,9 @@ void icinga::Log(LogSeverity severity, const String& facility,
 	bool processed = false;
 
 	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
+		if (!logger->IsActive())
+			continue;
+
 		{
 			ObjectLock llock(logger);
 
