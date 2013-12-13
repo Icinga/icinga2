@@ -260,3 +260,10 @@ plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 oid             | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 community       | **Optional.** The SNMP community. Defaults to "public".
+
+### icinga
+
+Check command for the built-in `icinga` check. This check returns performance
+data for the current Icinga instance.
+
+The `icinga` check command does not support any macros.
