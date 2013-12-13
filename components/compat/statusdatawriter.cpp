@@ -86,25 +86,25 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Service::Ptr& owner,
 			fp << "servicecomment {" << "\n"
 			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
 
-		fp << "\t" << "host_name=" << host->GetName() << "\n"
-		   << "\t" << "comment_id=" << comment->GetLegacyId() << "\n"
-		   << "\t" << "entry_time=" << comment->GetEntryTime() << "\n"
-		   << "\t" << "entry_type=" << comment->GetEntryType() << "\n"
-		   << "\t" << "persistent=" << 1 << "\n"
-		   << "\t" << "author=" << comment->GetAuthor() << "\n"
-		   << "\t" << "comment_data=" << comment->GetText() << "\n"
-		   << "\t" << "expires=" << (comment->GetExpireTime() != 0 ? 1 : 0) << "\n"
-		   << "\t" << "expire_time=" << comment->GetExpireTime() << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
+		fp << "\t" "host_name=" << host->GetName() << "\n"
+		      "\t" "comment_id=" << comment->GetLegacyId() << "\n"
+		      "\t" "entry_time=" << comment->GetEntryTime() << "\n"
+		      "\t" "entry_type=" << comment->GetEntryType() << "\n"
+		      "\t" "persistent=" "1" "\n"
+		      "\t" "author=" << comment->GetAuthor() << "\n"
+		      "\t" "comment_data=" << comment->GetText() << "\n"
+		      "\t" "expires=" << (comment->GetExpireTime() != 0 ? 1 : 0) << "\n"
+		      "\t" "expire_time=" << comment->GetExpireTime() << "\n"
+		      "\t" "}" "\n"
+		      "\n";
 	}
 }
 
 void StatusDataWriter::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp)
 {
-	fp << "define timeperiod {" << "\n"
-	   << "\t" << "timeperiod_name" << "\t" << tp->GetName() << "\n"
-	   << "\t" << "alias" << "\t" << tp->GetName() << "\n";
+	fp << "define timeperiod {" "\n"
+	      "\t" "timeperiod_name" "\t" << tp->GetName() << "\n"
+	      "\t" "alias" "\t" << tp->GetName() << "\n";
 
 	Dictionary::Ptr ranges = tp->GetRanges();
 
@@ -115,14 +115,14 @@ void StatusDataWriter::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& t
 		}
 	}
 
-	fp << "\t" << "}" << "\n"
-	   << "\n";
+	fp << "\t" "}" "\n"
+	      "\n";
 }
 
 void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command)
 {
-	fp << "define command {" << "\n"
-	   << "\t" << "command_name\t";
+	fp << "define command {" "\n"
+	      "\t" "command_name\t";
 
 
 	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
@@ -134,7 +134,7 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 
 	fp << command->GetName() << "\n";
 
-	fp << "\t" << "command_line\t";
+	fp << "\t" "command_line\t";
 
 	Value commandLine = command->GetCommandLine();
 
@@ -154,9 +154,8 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 	}
 
 	fp << "\n";
-
-	fp << "\t" << "}" << "\n"
-	   << "\n";
+	      "\t" "}" "\n"
+	      "\n";
 
 }
 
@@ -175,10 +174,10 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 			continue;
 
 		if (type == CompatTypeHost)
-			fp << "hostdowntime {" << "\n";
+			fp << "hostdowntime {" "\n";
 		else
 			fp << "servicedowntime {" << "\n"
-			   << "\t" << "service_description=" << owner->GetShortName() << "\n";
+			      "\t" "service_description=" << owner->GetShortName() << "\n";
 
 		Downtime::Ptr triggeredByObj = Service::GetDowntimeByID(downtime->GetTriggeredBy());
 		int triggeredByLegacy = 0;
@@ -186,19 +185,19 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner
 			triggeredByLegacy = triggeredByObj->GetLegacyId();
 
 		fp << "\t" << "host_name=" << host->GetName() << "\n"
-		   << "\t" << "downtime_id=" << downtime->GetLegacyId() << "\n"
-		   << "\t" << "entry_time=" << downtime->GetEntryTime() << "\n"
-		   << "\t" << "start_time=" << downtime->GetStartTime() << "\n"
-		   << "\t" << "end_time=" << downtime->GetEndTime() << "\n"
-		   << "\t" << "triggered_by=" << triggeredByLegacy << "\n"
-		   << "\t" << "fixed=" << static_cast<long>(downtime->GetFixed()) << "\n"
-		   << "\t" << "duration=" << static_cast<long>(downtime->GetDuration()) << "\n"
-		   << "\t" << "is_in_effect=" << (downtime->IsActive() ? 1 : 0) << "\n"
-		   << "\t" << "author=" << downtime->GetAuthor() << "\n"
-		   << "\t" << "comment=" << downtime->GetComment() << "\n"
-		   << "\t" << "trigger_time=" << downtime->GetTriggerTime() << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
+		      "\t" "downtime_id=" << downtime->GetLegacyId() << "\n"
+		      "\t" "entry_time=" << downtime->GetEntryTime() << "\n"
+		      "\t" "start_time=" << downtime->GetStartTime() << "\n"
+		      "\t" "end_time=" << downtime->GetEndTime() << "\n"
+		      "\t" "triggered_by=" << triggeredByLegacy << "\n"
+		      "\t" "fixed=" << static_cast<long>(downtime->GetFixed()) << "\n"
+		      "\t" "duration=" << static_cast<long>(downtime->GetDuration()) << "\n"
+		      "\t" "is_in_effect=" << (downtime->IsActive() ? 1 : 0) << "\n"
+		      "\t" "author=" << downtime->GetAuthor() << "\n"
+		      "\t" "comment=" << downtime->GetComment() << "\n"
+		      "\t" "trigger_time=" << downtime->GetTriggerTime() << "\n"
+		      "\t" "}" "\n"
+		      "\n";
 	}
 }
 
@@ -214,12 +213,12 @@ void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 		DumpServiceStatusAttrs(fp, hc, CompatTypeHost);
 
 	/* ugly but cgis parse only that */
-	fp << "\t" << "last_time_up=" << host->GetLastStateUp() << "\n"
-	   << "\t" << "last_time_down=" << host->GetLastStateDown() << "\n"
-	   << "\t" << "last_time_unreachable=" << host->GetLastStateUnreachable() << "\n";
+	fp << "\t" "last_time_up=" << host->GetLastStateUp() << "\n"
+	      "\t" "last_time_down=" << host->GetLastStateDown() << "\n"
+	      "\t" "last_time_unreachable=" << host->GetLastStateUnreachable() << "\n";
 
-	fp << "\t" << "}" << "\n"
-	   << "\n";
+	fp << "\t" "}" "\n"
+	      "\n";
 
 	if (hc) {
 		DumpDowntimes(fp, hc, CompatTypeHost);
@@ -229,23 +228,23 @@ void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 
 void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
-	fp << "define host {" << "\n"
-	   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
-	   << "\t" << "display_name" << "\t" << host->GetDisplayName() << "\n"
-	   << "\t" << "alias" << "\t" << host->GetDisplayName() << "\n"
-	   << "\t" << "address" << "\t" << CompatUtility::GetHostAddress(host) << "\n"
-	   << "\t" << "address6" << "\t" << CompatUtility::GetHostAddress6(host) << "\n"
-	   << "\t" << "notes" << "\t" << CompatUtility::GetCustomAttributeConfig(host, "notes") << "\n"
-	   << "\t" << "notes_url" << "\t" << CompatUtility::GetCustomAttributeConfig(host, "notes_url") << "\n"
-	   << "\t" << "action_url" << "\t" << CompatUtility::GetCustomAttributeConfig(host, "action_url") << "\n"
-	   << "\t" << "icon_image" << "\t" << CompatUtility::GetCustomAttributeConfig(host, "icon_image") << "\n"
-	   << "\t" << "icon_image_alt" << "\t" << CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt") << "\n"
-	   << "\t" << "statusmap_image" << "\t" << CompatUtility::GetCustomAttributeConfig(host, "statusmap_image") << "\n";
+	fp << "define host {" "\n"
+	      "\t" "host_name" "\t" << host->GetName() << "\n"
+	      "\t" "display_name" "\t" << host->GetDisplayName() << "\n"
+	      "\t" "alias" "\t" << host->GetDisplayName() << "\n"
+	      "\t" "address" "\t" << CompatUtility::GetHostAddress(host) << "\n"
+	      "\t" "address6" "\t" << CompatUtility::GetHostAddress6(host) << "\n"
+	      "\t" "notes" "\t" << CompatUtility::GetCustomAttributeConfig(host, "notes") << "\n"
+	      "\t" "notes_url" "\t" << CompatUtility::GetCustomAttributeConfig(host, "notes_url") << "\n"
+	      "\t" "action_url" "\t" << CompatUtility::GetCustomAttributeConfig(host, "action_url") << "\n"
+	      "\t" "icon_image" "\t" << CompatUtility::GetCustomAttributeConfig(host, "icon_image") << "\n"
+	      "\t" "icon_image_alt" "\t" << CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt") << "\n"
+	      "\t" "statusmap_image" "\t" << CompatUtility::GetCustomAttributeConfig(host, "statusmap_image") << "\n";
 
 	std::set<Host::Ptr> parents = host->GetParentHosts();
 
 	if (!parents.empty()) {
-		fp << "\t" << "parents" << "\t";
+		fp << "\t" "parents" "\t";
 		DumpNameList(fp, parents);
 		fp << "\n";
 	}
@@ -254,51 +253,51 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	if (hc) {
 		ObjectLock olock(hc);
 
-		fp << "\t" << "check_interval" << "\t" << CompatUtility::GetServiceCheckInterval(hc) << "\n"
-		   << "\t" << "retry_interval" << "\t" << CompatUtility::GetServiceRetryInterval(hc) << "\n"
-		   << "\t" << "max_check_attempts" << "\t" << hc->GetMaxCheckAttempts() << "\n"
-		   << "\t" << "active_checks_enabled" << "\t" << (hc->GetEnableActiveChecks() ? 1 : 0) << "\n"
-		   << "\t" << "passive_checks_enabled" << "\t" << (hc->GetEnablePassiveChecks() ? 1 : 0) << "\n"
-		   << "\t" << "notifications_enabled" << "\t" << (hc->GetEnableNotifications() ? 1 : 0) << "\n"
-		   << "\t" << "notification_options" << "\t" << "d,u,r" << "\n"
-		   << "\t" << "notification_interval" << "\t" << CompatUtility::GetServiceNotificationNotificationInterval(hc) << "\n"
-		   << "\t" << "event_handler_enabled" << "\t" << (hc->GetEnableEventHandler() ? 1 : 0) << "\n";
+		fp << "\t" "check_interval" "\t" << CompatUtility::GetServiceCheckInterval(hc) << "\n"
+		      "\t" "retry_interval" "\t" << CompatUtility::GetServiceRetryInterval(hc) << "\n"
+		      "\t" "max_check_attempts" "\t" << hc->GetMaxCheckAttempts() << "\n"
+		      "\t" "active_checks_enabled" "\t" << CompatUtility::GetServiceActiveChecksEnabled(hc) << "\n"
+		      "\t" "passive_checks_enabled" "\t" << CompatUtility::GetServicePassiveChecksEnabled(hc) << "\n"
+		      "\t" "notifications_enabled" "\t" << CompatUtility::GetServiceNotificationsEnabled(hc) << "\n"
+		      "\t" "notification_options" "\t" << "d,u,r" << "\n"
+		      "\t" "notification_interval" "\t" << CompatUtility::GetServiceNotificationNotificationInterval(hc) << "\n"
+		      "\t" "event_handler_enabled" "\t" << CompatUtility::GetServiceEventHandlerEnabled(hc) << "\n";
 
 		CheckCommand::Ptr checkcommand = hc->GetCheckCommand();
 		if (checkcommand)
-			fp << "\t" << "check_command" << "\t" << "check_" << checkcommand->GetName() << "\n";
+			fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "\n";
 
 		EventCommand::Ptr eventcommand = hc->GetEventCommand();
 		if (eventcommand)
-			fp << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
+			fp << "\t" "event_handler" "\t" "event_" << eventcommand->GetName() << "\n";
 
-		fp << "\t" << "check_period" << "\t" << CompatUtility::GetServiceCheckPeriod(hc) << "\n";
+		fp << "\t" "check_period" "\t" << CompatUtility::GetServiceCheckPeriod(hc) << "\n";
 
-		fp << "\t" << "contacts" << "\t";
+		fp << "\t" "contacts" "\t";
 		DumpNameList(fp, CompatUtility::GetServiceNotificationUsers(hc));
 		fp << "\n";
 
-		fp << "\t" << "contact_groups" << "\t";
+		fp << "\t" "contact_groups" "\t";
 		DumpNameList(fp, CompatUtility::GetServiceNotificationUserGroups(hc));
 		fp << "\n";
 
-		fp << "\t" << "initial_state" << "\t" << "o" << "\n"
-		   << "\t" << "low_flap_threshold" << "\t" << hc->GetFlappingThreshold() << "\n"
-		   << "\t" << "high_flap_threshold" << "\t" << hc->GetFlappingThreshold() << "\n"
-		   << "\t" << "process_perf_data" << "\t" << 1 << "\n"
-		   << "\t" << "check_freshness" << "\t" << 1 << "\n";
+		fp << "\t" << "initial_state" "\t" "o" "\n"
+		      "\t" "low_flap_threshold" "\t" << hc->GetFlappingThreshold() << "\n"
+		      "\t" "high_flap_threshold" "\t" << hc->GetFlappingThreshold() << "\n"
+		      "\t" "process_perf_data" "\t" "1" "\n"
+		      "\t" "check_freshness" "\t" "1" "\n";
 
 	} else {
-		fp << "\t" << "check_interval" << "\t" << 60 << "\n"
-		   << "\t" << "retry_interval" << "\t" << 60 << "\n"
-		   << "\t" << "max_check_attempts" << "\t" << 1 << "\n"
-		   << "\t" << "active_checks_enabled" << "\t" << 0 << "\n"
-		   << "\t" << "passive_checks_enabled" << "\t" << 0 << "\n"
-		   << "\t" << "notifications_enabled" << "\t" << 0 << "\n";
+		fp << "\t" << "check_interval" "\t" "60" "\n"
+		      "\t" "retry_interval" "\t" "60" "\n"
+		      "\t" "max_check_attempts" "\t" "1" "\n"
+		      "\t" "active_checks_enabled" "\t" "0" << "\n"
+		      "\t" "passive_checks_enabled" "\t" "0" "\n"
+		      "\t" "notifications_enabled" "\t" "0" "\n";
 
 	}
 
-	fp << "\t" << "host_groups" << "\t";
+	fp << "\t" "host_groups" "\t";
 	bool first = true;
 
         Array::Ptr groups = host->GetGroups();
@@ -324,8 +323,8 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 
 	DumpCustomAttributes(fp, host);
 
-	fp << "\t" << "}" << "\n"
-	   << "\n";
+	fp << "\t" "}" "\n"
+	      "\n";
 }
 
 void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type)
@@ -333,70 +332,70 @@ void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::P
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
 	fp << "\t" << "check_command=check_" << CompatUtility::GetServiceCheckCommand(service) << "\n"
-	   << "\t" << "event_handler=event_" << CompatUtility::GetServiceEventHandler(service) << "\n"
-	   << "\t" << "check_period=" << CompatUtility::GetServiceCheckPeriod(service) << "\n"
-	   << "\t" << "check_interval=" << CompatUtility::GetServiceCheckInterval(service) << "\n"
-	   << "\t" << "retry_interval=" << CompatUtility::GetServiceRetryInterval(service) << "\n"
-	   << "\t" << "has_been_checked=" << CompatUtility::GetServiceHasBeenChecked(service) << "\n"
-	   << "\t" << "should_be_scheduled=" << CompatUtility::GetServiceShouldBeScheduled(service) << "\n";
+	      "\t" "event_handler=event_" << CompatUtility::GetServiceEventHandler(service) << "\n"
+	      "\t" "check_period=" << CompatUtility::GetServiceCheckPeriod(service) << "\n"
+	      "\t" "check_interval=" << CompatUtility::GetServiceCheckInterval(service) << "\n"
+	      "\t" "retry_interval=" << CompatUtility::GetServiceRetryInterval(service) << "\n"
+	      "\t" "has_been_checked=" << CompatUtility::GetServiceHasBeenChecked(service) << "\n"
+	      "\t" "should_be_scheduled=" << CompatUtility::GetServiceShouldBeScheduled(service) << "\n";
 
 	if (cr) {
 	   fp << "\t" << "check_execution_time=" << static_cast<double>(Service::CalculateExecutionTime(cr)) << "\n"
-	      << "\t" << "check_latency=" << static_cast<double>(Service::CalculateLatency(cr)) << "\n";
+	         "\t" "check_latency=" << static_cast<double>(Service::CalculateLatency(cr)) << "\n";
 	}
 
 	fp << "\t" << "current_state=" << CompatUtility::GetServiceCurrentState(service) << "\n"
-	   << "\t" << "state_type=" << service->GetStateType() << "\n"
-	   << "\t" << "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
-	   << "\t" << "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
-	   << "\t" << "performance_data=" << CompatUtility::GetCheckResultPerfdata(cr) << "\n";
+	      "\t" "state_type=" << service->GetStateType() << "\n"
+	      "\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
+	      "\t" "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
+	      "\t" "performance_data=" << CompatUtility::GetCheckResultPerfdata(cr) << "\n";
 
 	if (cr) {
 	   fp << "\t" << "check_source=" << cr->GetCheckSource() << "\n"
-	      << "\t" << "last_check=" << static_cast<long>(cr->GetScheduleEnd()) << "\n";
+	         "\t" "last_check=" << static_cast<long>(cr->GetScheduleEnd()) << "\n";
 	}
 
 	fp << "\t" << "next_check=" << static_cast<long>(service->GetNextCheck()) << "\n"
-	   << "\t" << "current_attempt=" << service->GetCheckAttempt() << "\n"
-	   << "\t" << "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
-	   << "\t" << "last_state_change=" << static_cast<long>(service->GetLastStateChange()) << "\n"
-	   << "\t" << "last_hard_state_change=" << static_cast<long>(service->GetLastHardStateChange()) << "\n"
-	   << "\t" << "last_time_ok=" << static_cast<int>(service->GetLastStateOK()) << "\n"
-	   << "\t" << "last_time_warn=" << static_cast<int>(service->GetLastStateWarning()) << "\n"
-	   << "\t" << "last_time_critical=" << static_cast<int>(service->GetLastStateCritical()) << "\n"
-	   << "\t" << "last_time_unknown=" << static_cast<int>(service->GetLastStateUnknown()) << "\n"
-	   << "\t" << "last_update=" << static_cast<long>(time(NULL)) << "\n"
-	   << "\t" << "notifications_enabled=" << CompatUtility::GetServiceNotificationsEnabled(service) << "\n"
-	   << "\t" << "active_checks_enabled=" << CompatUtility::GetServiceActiveChecksEnabled(service) << "\n"
-	   << "\t" << "passive_checks_enabled=" << CompatUtility::GetServicePassiveChecksEnabled(service) << "\n"
-	   << "\t" << "flap_detection_enabled=" << CompatUtility::GetServiceFlapDetectionEnabled(service) << "\n"
-	   << "\t" << "is_flapping=" << CompatUtility::GetServiceIsFlapping(service) << "\n"
-	   << "\t" << "percent_state_change=" << CompatUtility::GetServicePercentStateChange(service) << "\n"
-	   << "\t" << "problem_has_been_acknowledged=" << CompatUtility::GetServiceProblemHasBeenAcknowledged(service) << "\n"
-	   << "\t" << "acknowledgement_type=" << CompatUtility::GetServiceAcknowledgementType(service) << "\n"
-	   << "\t" << "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
-	   << "\t" << "scheduled_downtime_depth=" << service->GetDowntimeDepth() << "\n"
-	   << "\t" << "last_notification=" << CompatUtility::GetServiceNotificationLastNotification(service) << "\n"
-	   << "\t" << "next_notification=" << CompatUtility::GetServiceNotificationNextNotification(service) << "\n"
-	   << "\t" << "current_notification_number=" << CompatUtility::GetServiceNotificationNotificationNumber(service) << "\n"
-	   << "\t" << "modified_attributes=" << service->GetModifiedAttributes() << "\n";
+	      "\t" "current_attempt=" << service->GetCheckAttempt() << "\n"
+	      "\t" "max_attempts=" << service->GetMaxCheckAttempts() << "\n"
+	      "\t" "last_state_change=" << static_cast<long>(service->GetLastStateChange()) << "\n"
+	      "\t" "last_hard_state_change=" << static_cast<long>(service->GetLastHardStateChange()) << "\n"
+	      "\t" "last_time_ok=" << static_cast<int>(service->GetLastStateOK()) << "\n"
+	      "\t" "last_time_warn=" << static_cast<int>(service->GetLastStateWarning()) << "\n"
+	      "\t" "last_time_critical=" << static_cast<int>(service->GetLastStateCritical()) << "\n"
+	      "\t" "last_time_unknown=" << static_cast<int>(service->GetLastStateUnknown()) << "\n"
+	      "\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
+	      "\t" "notifications_enabled=" << CompatUtility::GetServiceNotificationsEnabled(service) << "\n"
+	      "\t" "active_checks_enabled=" << CompatUtility::GetServiceActiveChecksEnabled(service) << "\n"
+	      "\t" "passive_checks_enabled=" << CompatUtility::GetServicePassiveChecksEnabled(service) << "\n"
+	      "\t" "flap_detection_enabled=" << CompatUtility::GetServiceFlapDetectionEnabled(service) << "\n"
+	      "\t" "is_flapping=" << CompatUtility::GetServiceIsFlapping(service) << "\n"
+	      "\t" "percent_state_change=" << CompatUtility::GetServicePercentStateChange(service) << "\n"
+	      "\t" "problem_has_been_acknowledged=" << CompatUtility::GetServiceProblemHasBeenAcknowledged(service) << "\n"
+	      "\t" "acknowledgement_type=" << CompatUtility::GetServiceAcknowledgementType(service) << "\n"
+	      "\t" "acknowledgement_end_time=" << service->GetAcknowledgementExpiry() << "\n"
+	      "\t" "scheduled_downtime_depth=" << service->GetDowntimeDepth() << "\n"
+	      "\t" "last_notification=" << CompatUtility::GetServiceNotificationLastNotification(service) << "\n"
+	      "\t" "next_notification=" << CompatUtility::GetServiceNotificationNextNotification(service) << "\n"
+	      "\t" "current_notification_number=" << CompatUtility::GetServiceNotificationNotificationNumber(service) << "\n"
+	      "\t" "modified_attributes=" << service->GetModifiedAttributes() << "\n";
 }
 
 void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
 {
 	Host::Ptr host = service->GetHost();
 
-	fp << "servicestatus {" << "\n"
-	   << "\t" << "host_name=" << host->GetName() << "\n"
-	   << "\t" << "service_description=" << service->GetShortName() << "\n";
+	fp << "servicestatus {" "\n"
+	      "\t" "host_name=" << host->GetName() << "\n"
+	      "\t" "service_description=" << service->GetShortName() << "\n";
 
 	{
 		ObjectLock olock(service);
 		DumpServiceStatusAttrs(fp, service, CompatTypeService);
 	}
 
-	fp << "\t" << "}" << "\n"
-	   << "\n";
+	fp << "\t" "}" "\n"
+	      "\n";
 
 	DumpDowntimes(fp, service, CompatTypeService);
 	DumpComments(fp, service, CompatTypeService);
@@ -409,53 +408,53 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 	{
 		ObjectLock olock(service);
 
-		fp << "define service {" << "\n"
-		   << "\t" << "host_name" << "\t" << host->GetName() << "\n"
-		   << "\t" << "service_description" << "\t" << service->GetShortName() << "\n"
-		   << "\t" << "display_name" << "\t" << service->GetDisplayName() << "\n"
-		   << "\t" << "check_period" << "\t" << CompatUtility::GetServiceCheckPeriod(service) << "\n"
-		   << "\t" << "check_interval" << "\t" << CompatUtility::GetServiceCheckInterval(service) << "\n"
-		   << "\t" << "retry_interval" << "\t" << CompatUtility::GetServiceRetryInterval(service) << "\n"
-		   << "\t" << "max_check_attempts" << "\t" << service->GetMaxCheckAttempts() << "\n"
-		   << "\t" << "active_checks_enabled" << "\t" << (service->GetEnableActiveChecks() ? 1 : 0) << "\n"
-		   << "\t" << "passive_checks_enabled" << "\t" << (service->GetEnablePassiveChecks() ? 1 : 0) << "\n"
-		   << "\t" << "flap_detection_enabled" << "\t" << (service->GetEnableFlapping() ? 1 : 0) << "\n"
-		   << "\t" << "is_volatile" << "\t" << (service->GetVolatile() ? 1 : 0) << "\n"
-		   << "\t" << "notifications_enabled" << "\t" << (service->GetEnableNotifications() ? 1 : 0) << "\n"
-		   << "\t" << "notification_options" << "\t" << CompatUtility::GetServiceNotificationNotificationOptions(service) << "\n"
-		   << "\t" << "notification_interval" << "\t" << CompatUtility::GetServiceNotificationNotificationInterval(service) << "\n"
-		   << "\t" << "notification_period" << "\t" << CompatUtility::GetServiceNotificationNotificationPeriod(service) << "\n"
-		   << "\t" << "event_handler_enabled" << "\t" << (service->GetEnableEventHandler() ? 1 : 0) << "\n";
+		fp << "define service {" "\n"
+		      "\t" "host_name" "\t" << host->GetName() << "\n"
+		      "\t" "service_description" "\t" << service->GetShortName() << "\n"
+		      "\t" "display_name" "\t" << service->GetDisplayName() << "\n"
+		      "\t" "check_period" "\t" << CompatUtility::GetServiceCheckPeriod(service) << "\n"
+		      "\t" "check_interval" "\t" << CompatUtility::GetServiceCheckInterval(service) << "\n"
+		      "\t" "retry_interval" "\t" << CompatUtility::GetServiceRetryInterval(service) << "\n"
+		      "\t" "max_check_attempts" "\t" << service->GetMaxCheckAttempts() << "\n"
+		      "\t" "active_checks_enabled" "\t" << CompatUtility::GetServiceActiveChecksEnabled(service) << "\n"
+		      "\t" "passive_checks_enabled" "\t" << CompatUtility::GetServicePassiveChecksEnabled(service) << "\n"
+		      "\t" "flap_detection_enabled" "\t" << CompatUtility::GetServiceFlapDetectionEnabled(service) << "\n"
+		      "\t" "is_volatile" "\t" << CompatUtility::GetServiceIsVolatile(service) << "\n"
+		      "\t" "notifications_enabled" "\t" << CompatUtility::GetServiceNotificationsEnabled(service) << "\n"
+		      "\t" "notification_options" "\t" << CompatUtility::GetServiceNotificationNotificationOptions(service) << "\n"
+		      "\t" "notification_interval" "\t" << CompatUtility::GetServiceNotificationNotificationInterval(service) << "\n"
+		      "\t" "notification_period" "\t" << CompatUtility::GetServiceNotificationNotificationPeriod(service) << "\n"
+		      "\t" "event_handler_enabled" "\t" << CompatUtility::GetServiceEventHandlerEnabled(service) << "\n";
 
 		CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 		if (checkcommand)
-			fp << "\t" << "check_command" << "\t" << "check_" << checkcommand->GetName() << "\n";
+			fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "\n";
 
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
 		if (eventcommand)
-			fp << "\t" << "event_handler" << "\t" << "event_" << eventcommand->GetName() << "\n";
+			fp << "\t" "event_handler" "\t" "event_" << eventcommand->GetName() << "\n";
 
-                fp << "\t" << "contacts" << "\t";
+                fp << "\t" "contacts" "\t";
                 DumpNameList(fp, CompatUtility::GetServiceNotificationUsers(service));
                 fp << "\n";
 
-                fp << "\t" << "contact_groups" << "\t";
+                fp << "\t" "contact_groups" "\t";
                 DumpNameList(fp, CompatUtility::GetServiceNotificationUserGroups(service));
                 fp << "\n";
 
-                fp << "\t" << "initial_state" << "\t" << "o" << "\n"
-                   << "\t" << "low_flap_threshold" << "\t" << service->GetFlappingThreshold() << "\n"
-                   << "\t" << "high_flap_threshold" << "\t" << service->GetFlappingThreshold() << "\n"
-                   << "\t" << "process_perf_data" << "\t" << 1 << "\n"
-                   << "\t" << "check_freshness" << "\t" << 1 << "\n"
-		   << "\t" << "notes" << "\t" << CompatUtility::GetCustomAttributeConfig(service, "notes") << "\n"
-		   << "\t" << "notes_url" << "\t" << CompatUtility::GetCustomAttributeConfig(service, "notes_url") << "\n"
-		   << "\t" << "action_url" << "\t" << CompatUtility::GetCustomAttributeConfig(service, "action_url") << "\n"
-		   << "\t" << "icon_image" << "\t" << CompatUtility::GetCustomAttributeConfig(service, "icon_image") << "\n"
-		   << "\t" << "icon_image_alt" << "\t" << CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt") << "\n";
+                fp << "\t" "initial_state" "\t" "o" "\n"
+                      "\t" "low_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
+                      "\t" "high_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
+                      "\t" "process_perf_data" "\t" "1" "\n"
+                      "\t" "check_freshness" << "\t" "1" "\n"
+		      "\t" "notes" "\t" << CompatUtility::GetCustomAttributeConfig(service, "notes") << "\n"
+		      "\t" "notes_url" "\t" << CompatUtility::GetCustomAttributeConfig(service, "notes_url") << "\n"
+		      "\t" "action_url" "\t" << CompatUtility::GetCustomAttributeConfig(service, "action_url") << "\n"
+		      "\t" "icon_image" "\t" << CompatUtility::GetCustomAttributeConfig(service, "icon_image") << "\n"
+		      "\t" "icon_image_alt" "\t" << CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt") << "\n";
 	}
 
-	fp << "\t" << "service_groups" << "\t";
+	fp << "\t" "service_groups" "\t";
 	bool first = true;
 
         Array::Ptr groups = service->GetGroups();
@@ -481,8 +480,8 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 
 	DumpCustomAttributes(fp, service);
 
-	fp << "\t" << "}" << "\n"
-	   << "\n";
+	fp << "\t" "}" "\n"
+	      "\n";
 
 	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
 		Host::Ptr host = service->GetHost();
@@ -492,15 +491,15 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		if (!parent_host)
 			continue;
 
-		fp << "define servicedependency {" << "\n"
-		   << "\t" << "dependent_host_name" << "\t" << host->GetName() << "\n"
-		   << "\t" << "dependent_service_description" << "\t" << service->GetShortName() << "\n"
-		   << "\t" << "host_name" << "\t" << parent_host->GetName() << "\n"
-		   << "\t" << "service_description" << "\t" << parent->GetShortName() << "\n"
-		   << "\t" << "execution_failure_criteria" << "\t" << "n" << "\n"
-		   << "\t" << "notification_failure_criteria" << "\t" << "w,u,c" << "\n"
-		   << "\t" << "}" << "\n"
-		   << "\n";
+		fp << "define servicedependency {" "\n"
+		      "\t" "dependent_host_name" "\t" << host->GetName() << "\n"
+		      "\t" "dependent_service_description" "\t" << service->GetShortName() << "\n"
+		      "\t" "host_name" "\t" << parent_host->GetName() << "\n"
+		      "\t" "service_description" "\t" << parent->GetShortName() << "\n"
+		      "\t" "execution_failure_criteria" "\t" "n" "\n"
+		      "\t" "notification_failure_criteria" "\t" "w,u,c" "\n"
+		      "\t" "}" "\n"
+		      "\n";
 	}
 }
 
@@ -537,9 +536,9 @@ void StatusDataWriter::UpdateObjectsCache(void)
 
 	objectfp << std::fixed;
 
-	objectfp << "# Icinga objects cache file" << "\n"
-		 << "# This file is auto-generated. Do not modify this file." << "\n"
-		 << "\n";
+	objectfp << "# Icinga objects cache file" "\n"
+		    "# This file is auto-generated. Do not modify this file." "\n"
+		    "\n";
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		std::ostringstream tempobjectfp;
@@ -552,15 +551,15 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
-		tempobjectfp << "define hostgroup {" << "\n"
-			 << "\t" << "hostgroup_name" << "\t" << hg->GetName() << "\n";
+		tempobjectfp << "define hostgroup {" "\n"
+				"\t" "hostgroup_name" "\t" << hg->GetName() << "\n";
 
 		DumpCustomAttributes(tempobjectfp, hg);
 
-		tempobjectfp << "\t" << "members" << "\t";
+		tempobjectfp << "\t" "members" "\t";
 		DumpNameList(tempobjectfp, hg->GetMembers());
 		tempobjectfp << "\n"
-			     << "\t" << "}" << "\n";
+			        "\t" "}" "\n";
 
 		objectfp << tempobjectfp.str();
 	}
@@ -576,12 +575,12 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
-		tempobjectfp << "define servicegroup {" << "\n"
-			 << "\t" << "servicegroup_name" << "\t" << sg->GetName() << "\n";
+		tempobjectfp << "define servicegroup {" "\n"
+			 	"\t" "servicegroup_name" "\t" << sg->GetName() << "\n";
 
 		DumpCustomAttributes(tempobjectfp, sg);
 
-		tempobjectfp << "\t" << "members" << "\t";
+		tempobjectfp << "\t" "members" "\t";
 
 		std::vector<String> sglist;
 		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
@@ -594,7 +593,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		DumpStringList(tempobjectfp, sglist);
 
 		tempobjectfp << "\n"
-			 << "}" << "\n";
+			 	"}" "\n";
 
 		objectfp << tempobjectfp.str();
 	}
@@ -603,15 +602,15 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
-		tempobjectfp << "define contact {" << "\n"
-			 << "\t" << "contact_name" << "\t" << user->GetName() << "\n"
-			 << "\t" << "alias" << "\t" << user->GetDisplayName() << "\n"
-			 << "\t" << "service_notification_options" << "\t" << "w,u,c,r,f,s" << "\n"
-			 << "\t" << "host_notification_options" << "\t" << "d,u,r,f,s" << "\n"
-			 << "\t" << "host_notifications_enabled" << "\t" << 1 << "\n"
-			 << "\t" << "service_notifications_enabled" << "\t" << 1 << "\n"
-			 << "\t" << "}" << "\n"
-			 << "\n";
+		tempobjectfp << "define contact {" "\n"
+				"\t" "contact_name" "\t" << user->GetName() << "\n"
+				"\t" "alias" "\t" << user->GetDisplayName() << "\n"
+				"\t" "service_notification_options" "\t" "w,u,c,r,f,s" "\n"
+			 	"\t" "host_notification_options""\t" "d,u,r,f,s" "\n"
+				"\t" "host_notifications_enabled" "\t" "1" "\n"
+				"\t" "service_notifications_enabled" "\t" "1" "\n"
+				"\t" "}" "\n"
+				"\n";
 
 		objectfp << tempobjectfp.str();
 	}
@@ -620,14 +619,14 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
-		tempobjectfp << "define contactgroup {" << "\n"
-			 << "\t" << "contactgroup_name" << "\t" << ug->GetName() << "\n"
-			 << "\t" << "alias" << "\t" << ug->GetDisplayName() << "\n";
+		tempobjectfp << "define contactgroup {" "\n"
+				"\t" "contactgroup_name" "\t" << ug->GetName() << "\n"
+				"\t" "alias" "\t" << ug->GetDisplayName() << "\n";
 
-		tempobjectfp << "\t" << "members" << "\t";
+		tempobjectfp << "\t" "members" "\t";
 		DumpNameList(tempobjectfp, ug->GetMembers());
 		tempobjectfp << "\n"
-			     << "\t" << "}" << "\n";
+			        "\t" "}" "\n";
 
 		objectfp << tempobjectfp.str();
 	}
@@ -677,36 +676,36 @@ void StatusDataWriter::StatusTimerHandler(void)
 
 	statusfp << std::fixed;
 
-	statusfp << "# Icinga status file" << "\n"
-		 << "# This file is auto-generated. Do not modify this file." << "\n"
-		 << "\n";
+	statusfp << "# Icinga status file" "\n"
+		    "# This file is auto-generated. Do not modify this file." "\n"
+		    "\n";
 
-	statusfp << "info {" << "\n"
-		 << "\t" << "created=" << Utility::GetTime() << "\n"
-		 << "\t" << "version=" << Application::GetVersion() << "\n"
-		 << "\t" << "}" << "\n"
-		 << "\n";
+	statusfp << "info {" "\n"
+		    "\t" "created=" << Utility::GetTime() << "\n"
+		    "\t" "version=" << Application::GetVersion() << "\n"
+		    "\t" "}" "\n"
+		    "\n";
 
-	statusfp << "programstatus {" << "\n"
-		 << "\t" << "icinga_pid=" << Utility::GetPid() << "\n"
-		 << "\t" << "daemon_mode=1" << "\n"
-		 << "\t" << "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
-		 << "\t" << "active_service_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0) << "\n"
-		 << "\t" << "passive_service_checks_enabled=1" << "\n"
-		 << "\t" << "active_host_checks_enabled=1" << "\n"
-		 << "\t" << "passive_host_checks_enabled=1" << "\n"
-		 << "\t" << "check_service_freshness=1" << "\n"
-		 << "\t" << "check_host_freshness=1" << "\n"
-		 << "\t" << "enable_notifications=" << (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) << "\n"
-		 << "\t" << "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
-		 << "\t" << "enable_failure_prediction=0" << "\n"
-		 << "\t" << "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
-		 << "\t" << "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
-		 << "\t" << "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
-		 << "\t" << "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
-		 << "\t" << "next_comment_id=" << Service::GetNextCommentID() << "\n"
-		 << "\t" << "}" << "\n"
-		 << "\n";
+	statusfp << "programstatus {" "\n"
+		    "\t" "icinga_pid=" << Utility::GetPid() << "\n"
+		    "\t" "daemon_mode=1" "\n"
+		    "\t" "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
+		    "\t" "active_service_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0) << "\n"
+		    "\t" "passive_service_checks_enabled=1" "\n"
+		    "\t" "active_host_checks_enabled=1" "\n"
+		    "\t" "passive_host_checks_enabled=1" "\n"
+		    "\t" "check_service_freshness=1" "\n"
+		    "\t" "check_host_freshness=1" "\n"
+		    "\t" "enable_notifications=" << (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) << "\n"
+		    "\t" "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
+		    "\t" "enable_failure_prediction=0" "\n"
+		    "\t" "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
+		    "\t" "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
+		    "\t" "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
+		    "\t" "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
+		    "\t" "next_comment_id=" << Service::GetNextCommentID() << "\n"
+		    "\t" "}" "\n"
+		    "\n";
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		std::ostringstream tempstatusfp;
