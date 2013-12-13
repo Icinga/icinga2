@@ -161,21 +161,24 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 	if (!instance)
 		instance = type->Instantiate();
 
-	for (int i = 0; i < type->GetFieldCount(); i++) {
-		Field field = type->GetFieldInfo(i);
+	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
+		if (kv.first.IsEmpty())
+			continue;
+
+		int fid = type->GetFieldId(kv.first);
+	
+		if (fid < 0)
+			continue;
+
+		Field field = type->GetFieldInfo(fid);
 
 		if ((field.Attributes & attributeTypes) == 0)
 			continue;
 
-		Value value = input->Get(field.Name);
-
-		if (value.IsEmpty())
-			continue;
-
 		try {
-			instance->SetField(i, Deserialize(value, attributeTypes));
+			instance->SetField(fid, Deserialize(kv.second, attributeTypes));
 		} catch (const std::exception&) {
-			instance->SetField(i, Empty);
+			instance->SetField(fid, Empty);
 		}
 	}
 

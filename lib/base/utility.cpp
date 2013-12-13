@@ -705,12 +705,18 @@ String Utility::GetThreadName(void)
 	return *name;
 }
 
-unsigned long Utility::SDBM(const String& str)
+unsigned long Utility::SDBM(const String& str, size_t len)
 {
 	unsigned long hash = 0;
+	size_t current = 0;
 
 	BOOST_FOREACH(char c, str) {
+		if (current >= len)
+			break;
+
 		hash = c + (hash << 6) + (hash << 16) - hash;
+
+		current++;
 	}
 
 	return hash;
