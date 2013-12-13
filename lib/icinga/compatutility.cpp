@@ -397,11 +397,10 @@ int CompatUtility::GetServiceInNotificationPeriod(const Service::Ptr& service)
 	return 1;
 }
 
-//fixme structs
 /* custom attr */
 Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr& object)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(object->OwnsLock());
 
 	Dictionary::Ptr custom;
 
@@ -442,7 +441,7 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 
 String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(object->OwnsLock());
 
 	Dictionary::Ptr custom;
 
