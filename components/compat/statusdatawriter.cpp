@@ -153,10 +153,8 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 		fp << "<internal>";
 	}
 
-	fp << "\n";
-	      "\t" "}" "\n"
+	fp << "\n" "\t" "}" "\n"
 	      "\n";
-
 }
 
 void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type)
