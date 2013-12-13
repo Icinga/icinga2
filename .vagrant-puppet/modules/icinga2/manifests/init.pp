@@ -82,8 +82,9 @@ class icinga2-ido-pgsql {
 
   exec { 'populate-icinga2-ido-pgsql-db':
     path => '/bin:/usr/bin:/sbin:/usr/sbin',
+    environment => ['PGPASSWORD=icinga'],
     unless => 'psql -U icinga -d icinga -c "SELECT * FROM icinga_dbversion;" &> /dev/null',
-    command => 'sudo -u postgres psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-$(rpm -q icinga2-ido-pgsql | cut -d\'-\' -f4)/schema/pgsql.sql',
+    command => 'psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-$(rpm -q icinga2-ido-pgsql | cut -d\'-\' -f4)/schema/pgsql.sql',
     require => [ Package['icinga2-ido-pgsql'], Exec['create-pgsql-icinga2-ido-db'] ]
   }
 
