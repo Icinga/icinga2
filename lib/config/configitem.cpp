@@ -337,7 +337,7 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 #ifdef _DEBUG
 			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
 #endif /* _DEBUG */
-			upq.Enqueue(boost::bind(&DynamicObject::Start, object));
+			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
 		}
 	}
 

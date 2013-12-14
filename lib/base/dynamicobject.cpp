@@ -150,9 +150,24 @@ void DynamicObject::Register(void)
 void DynamicObject::Start(void)
 {
 	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
 
-	ASSERT(!IsActive());
-	SetActive(true);
+	SetStartCalled(true);
+}
+
+void DynamicObject::Activate(void)
+{
+	ASSERT(!OwnsLock());
+
+	Start();
+
+	ASSERT(GetStartCalled());
+
+	{
+		ObjectLock olock(this);
+		ASSERT(!IsActive());
+		SetActive(true);
+	}
 
 	OnStarted(GetSelf());
 }
@@ -160,9 +175,27 @@ void DynamicObject::Start(void)
 void DynamicObject::Stop(void)
 {
 	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
 
-	ASSERT(IsActive());
-	SetActive(false);
+	SetStopCalled(true);
+}
+
+void DynamicObject::Deactivate(void)
+{
+	ASSERT(!OwnsLock());
+
+	{
+		ObjectLock olock(this);
+
+		if (!IsActive())
+			return;
+
+		SetActive(false);
+	}
+
+	Stop();
+
+	ASSERT(GetStopCalled());
 
 	OnStopped(GetSelf());
 }
@@ -299,8 +332,7 @@ void DynamicObject::StopObjects(void)
 {
 	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
-			if (object->IsActive())
-				object->Stop();
+			object->Deactivate();
 		}
 	}
 }
