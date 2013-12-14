@@ -114,8 +114,16 @@ void Service::UpdateSlaveNotifications(void)
 		path.push_back("notifications");
 		path.push_back(kv.first);
 
+		ExpressionList::Ptr exprl;
+
+		{
+			ObjectLock ilock(exprl);
+
+			exprl = item->GetLinkedExpressionList();
+		}
+
 		DebugInfo di;
-		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
+		exprl->FindDebugInfoPath(path, di);
 
 		if (di.Path.IsEmpty())
 			di = item->GetDebugInfo();
@@ -140,7 +148,7 @@ void Service::UpdateSlaveNotifications(void)
 
 		/* Clone attributes from the notification expression list. */
 		ExpressionList::Ptr nfc_exprl = make_shared<ExpressionList>();
-		item->GetLinkedExpressionList()->ExtractPath(path, nfc_exprl);
+		exprl->ExtractPath(path, nfc_exprl);
 
 		builder->AddExpressionList(nfc_exprl);
 

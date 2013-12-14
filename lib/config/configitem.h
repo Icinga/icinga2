@@ -65,7 +65,6 @@ public:
 	static void DiscardItems(void);
 
 private:
-	void Link(void);
 	ExpressionList::Ptr GetExpressionList(void) const;
 
 	String m_Type; /**< The object type. */

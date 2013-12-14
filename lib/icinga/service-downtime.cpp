@@ -335,8 +335,16 @@ void Service::UpdateSlaveScheduledDowntimes(void)
 		path.push_back("scheduled_downtimes");
 		path.push_back(kv.first);
 
+		ExpressionList::Ptr exprl;
+
+		{
+			ObjectLock ilock(item);
+
+			exprl = item->GetLinkedExpressionList();
+		}
+
 		DebugInfo di;
-		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
+		exprl->FindDebugInfoPath(path, di);
 
 		if (di.Path.IsEmpty())
 			di = item->GetDebugInfo();
@@ -361,7 +369,7 @@ void Service::UpdateSlaveScheduledDowntimes(void)
 
 		/* Clone attributes from the scheduled downtime expression list. */
 		ExpressionList::Ptr sd_exprl = make_shared<ExpressionList>();
-		item->GetLinkedExpressionList()->ExtractPath(path, sd_exprl);
+		exprl->ExtractPath(path, sd_exprl);
 
 		builder->AddExpressionList(sd_exprl);
 

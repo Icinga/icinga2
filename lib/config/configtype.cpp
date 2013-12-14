@@ -79,11 +79,21 @@ void ConfigType::ValidateItem(const ConfigItem::Ptr& item)
 	if (item->IsAbstract())
 		return;
 
-	Dictionary::Ptr attrs = item->GetProperties();
+	Dictionary::Ptr attrs;
+	DebugInfo debugInfo;
+	String type, name;
+
+	{
+		ObjectLock olock(item);
+
+		attrs = item->GetProperties();
+		debugInfo = item->GetDebugInfo();
+		type = item->GetType();
+		name = item->GetName();
+	}
 
 	std::vector<String> locations;
-	DebugInfo debugInfo  = item->GetDebugInfo();
-	locations.push_back("Object '" + item->GetName() + "' (Type: '" + item->GetType() + "') at " + debugInfo.Path + ":" + Convert::ToString(debugInfo.FirstLine));
+	locations.push_back("Object '" + name + "' (Type: '" + type + "') at " + debugInfo.Path + ":" + Convert::ToString(debugInfo.FirstLine));
 
 	std::vector<TypeRuleList::Ptr> ruleLists;
 	AddParentRules(ruleLists, GetSelf());

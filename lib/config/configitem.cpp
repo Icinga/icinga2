@@ -103,12 +103,12 @@ ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
 	return m_ExpressionList;
 }
 
-void ConfigItem::Link(void)
+ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 {
 	ASSERT(OwnsLock());
 
 	if (m_LinkedExpressionList)
-		return;
+		return m_LinkedExpressionList;
 
 	m_LinkedExpressionList = make_shared<ExpressionList>();
 
@@ -121,31 +121,25 @@ void ConfigItem::Link(void)
 			    " exist (" << m_DebugInfo << ")";
 			ConfigCompilerContext::GetInstance()->AddMessage(true, message.str());
 		} else {
-			parent->Link();
+			ExpressionList::Ptr pexprl;
 
-			ExpressionList::Ptr pexprl = parent->m_LinkedExpressionList;
+			{
+				ObjectLock olock(parent);
+				pexprl = parent->GetLinkedExpressionList();
+			}
+
 			m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
 		}
 	}
 
 	m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, m_ExpressionList, m_DebugInfo));
-}
-
-ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
-{
-	ASSERT(OwnsLock());
-
-	if (!m_LinkedExpressionList)
-		Link();
 
 	return m_LinkedExpressionList;
 }
 
 Dictionary::Ptr ConfigItem::GetProperties(void)
 {
-	ASSERT(!OwnsLock());
-
-	ObjectLock olock(this);
+	ASSERT(OwnsLock());
 
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
@@ -181,7 +175,13 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (IsAbstract())
 		return DynamicObject::Ptr();
 
-	Dictionary::Ptr properties = GetProperties();
+	Dictionary::Ptr properties;
+
+	{
+		ObjectLock olock(this);
+
+		properties = GetProperties();
+	}
 
 	DynamicObject::Ptr dobj = dtype->CreateObject(properties);
 	dobj->Register();

@@ -155,8 +155,16 @@ void Host::UpdateSlaveServices(void)
 		path.push_back("services");
 		path.push_back(kv.first);
 
+		ExpressionList::Ptr exprl;
+
+		{
+			ObjectLock ilock(item);
+
+			exprl = item->GetLinkedExpressionList();
+		}
+
 		DebugInfo di;
-		item->GetLinkedExpressionList()->FindDebugInfoPath(path, di);
+		exprl->FindDebugInfoPath(path, di);
 
 		if (di.Path.IsEmpty())
 			di = item->GetDebugInfo();
@@ -185,7 +193,7 @@ void Host::UpdateSlaveServices(void)
 
 		/* Clone attributes from the service expression list. */
 		ExpressionList::Ptr svc_exprl = make_shared<ExpressionList>();
-		item->GetLinkedExpressionList()->ExtractPath(path, svc_exprl);
+		exprl->ExtractPath(path, svc_exprl);
 
 		builder->AddExpressionList(svc_exprl);
 
