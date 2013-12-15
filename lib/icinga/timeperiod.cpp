@@ -32,16 +32,19 @@ REGISTER_TYPE(TimePeriod);
 
 static Timer::Ptr l_UpdateTimer;
 
+INITIALIZE_ONCE(&TimePeriod::StaticInitialize);
+
+void TimePeriod::StaticInitialize(void)
+{
+	l_UpdateTimer = make_shared<Timer>();
+	l_UpdateTimer->SetInterval(300);
+	l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
+	l_UpdateTimer->Start();
+}
+
 void TimePeriod::Start(void)
 {
 	DynamicObject::Start();
-
-	if (!l_UpdateTimer) {
-		l_UpdateTimer = make_shared<Timer>();
-		l_UpdateTimer->SetInterval(300);
-		l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
-		l_UpdateTimer->Start();
-	}
 
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();
