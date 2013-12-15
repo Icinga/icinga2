@@ -38,6 +38,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(TimePeriod);
 	DECLARE_TYPENAME(TimePeriod);
 
+	static void StaticInitialize(void);
+
 	virtual void Start(void);
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
