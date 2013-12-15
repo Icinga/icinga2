@@ -281,7 +281,7 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	Log(LogInformation, "config", "Comitting config items");
+	Log(LogInformation, "config", "Committing config items");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second));
