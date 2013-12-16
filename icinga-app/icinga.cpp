@@ -21,7 +21,7 @@
 #include "config/configcompiler.h"
 #include "config/configitembuilder.h"
 #include "base/application.h"
-#include "base/logger_fwd.h"
+#include "base/logger.h"
 #include "base/timer.h"
 #include "base/utility.h"
 #include "base/exception.h"
@@ -370,6 +370,7 @@ int main(int argc, char **argv)
 			errorLog = g_AppParams["errorlog"].as<String>();
 
 		Daemonize(errorLog);
+		Logger::DisableConsoleLog();
 	}
 
 	bool validateOnly = g_AppParams.count("validate");

@@ -323,7 +323,7 @@ void ThreadPool::Queue::SpawnWorker(boost::thread_group& group)
 {
 	for (size_t i = 0; i < sizeof(Threads) / sizeof(Threads[0]); i++) {
 		if (Threads[i].State == ThreadDead) {
-			Log(LogDebug, "debug", "Spawning worker thread.");
+			Log(LogDebug, "base", "Spawning worker thread.");
 
 			Threads[i] = WorkerThread(ThreadIdle);
 			Threads[i].Thread = group.create_thread(boost::bind(&ThreadPool::WorkerThread::ThreadProc, boost::ref(Threads[i]), boost::ref(*this)));

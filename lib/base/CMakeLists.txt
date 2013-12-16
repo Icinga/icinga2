@@ -16,7 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 mkclass_target(application.ti application.th)
-mkclass_target(consolelogger.ti consolelogger.th)
 mkclass_target(dynamicobject.ti dynamicobject.th)
 mkclass_target(filelogger.ti filelogger.th)
 mkclass_target(logger.ti logger.th)
@@ -25,17 +24,17 @@ mkclass_target(streamlogger.ti streamlogger.th)
 mkclass_target(sysloglogger.ti sysloglogger.th)
 
 add_library(base SHARED
-  application.cpp application.th array.cpp bufferedstream.cpp consolelogger.cpp
-  consolelogger.th context.cpp convert.cpp dictionary.cpp dynamicobject.cpp
-  dynamicobject.th dynamictype.cpp exception.cpp fifo.cpp filelogger.cpp
-  filelogger.th logger.cpp logger.th netstring.cpp networkstream.cpp object.cpp
-  objectlock.cpp process.cpp process-unix.cpp process-windows.cpp qstring.cpp
-  ringbuffer.cpp script.cpp script.th scriptfunction.cpp scriptfunctionwrapper.cpp
-  scriptinterpreter.cpp scriptlanguage.cpp scriptvariable.cpp serializer.cpp
-  socket.cpp stacktrace.cpp stdiostream.cpp stream_bio.cpp stream.cpp
-  streamlogger.cpp streamlogger.th sysloglogger.cpp sysloglogger.th tcpsocket.cpp
-  threadpool.cpp timer.cpp tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp
-  utility.cpp value.cpp workqueue.cpp zlibstream.cpp
+  application.cpp application.th array.cpp bufferedstream.cpp context.cpp
+  convert.cpp dictionary.cpp dynamicobject.cpp dynamicobject.th dynamictype.cpp
+  exception.cpp fifo.cpp filelogger.cpp filelogger.th logger.cpp logger.th
+  netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp
+  process-unix.cpp process-windows.cpp qstring.cpp ringbuffer.cpp script.cpp
+  script.th scriptfunction.cpp scriptfunctionwrapper.cpp scriptinterpreter.cpp
+  scriptlanguage.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
+  stdiostream.cpp stream_bio.cpp stream.cpp streamlogger.cpp streamlogger.th
+  sysloglogger.cpp sysloglogger.th tcpsocket.cpp threadpool.cpp timer.cpp
+  tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
+  workqueue.cpp zlibstream.cpp
 )
 
 target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)
