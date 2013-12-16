@@ -21,17 +21,13 @@
 #include "base/process.h"
 #include "base/array.h"
 #include "base/objectlock.h"
-#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
 Process::Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment)
 	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600)
-{
-	Log(LogDebug, "base", "Running command '" + boost::algorithm::join(arguments, " ") + "'.");
-}
+{ }
 
 std::vector<String> Process::SplitCommand(const Value& command)
 {

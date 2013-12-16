@@ -27,6 +27,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 #ifndef _WIN32
 #include <execvpe.h>
@@ -67,6 +68,8 @@ ProcessResult Process::Run(void)
 #endif /* HAVE_PIPE2 */
 
 	// build argv
+	Log(LogDebug, "base", "Running command '" + boost::algorithm::join(m_Arguments, " ") + "'.");
+
 	char **argv = new char *[m_Arguments.size() + 1];
 
 	for (unsigned int i = 0; i < m_Arguments.size(); i++)
@@ -153,7 +156,7 @@ ProcessResult Process::Run(void)
 	int fd = fds[0];
 	(void) close(fds[1]);
 
-		char buffer[512];
+	char buffer[512];
 
 	std::ostringstream outputStream;
 
