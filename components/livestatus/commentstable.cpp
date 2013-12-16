@@ -63,21 +63,23 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 		ObjectLock olock(comments);
 
 		String id;
-		BOOST_FOREACH(boost::tie(id, boost::tuples::ignore), comments) {
+		Comment::Ptr comment;
+		BOOST_FOREACH(boost::tie(id, comment), comments) {
 			if (Service::GetOwnerByCommentID(id) == service)
-				addRowFn(id);
+				addRowFn(comment);
 		}
 	}
 }
 
 Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
 {
-	return Service::GetOwnerByCommentID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
+	return Service::GetOwnerByCommentID(comment->GetId());
 }
 
 Value CommentsTable::AuthorAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
@@ -87,7 +89,7 @@ Value CommentsTable::AuthorAccessor(const Value& row)
 
 Value CommentsTable::CommentAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
@@ -97,7 +99,7 @@ Value CommentsTable::CommentAccessor(const Value& row)
 
 Value CommentsTable::IdAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
@@ -107,7 +109,7 @@ Value CommentsTable::IdAccessor(const Value& row)
 
 Value CommentsTable::EntryTimeAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
@@ -137,7 +139,7 @@ Value CommentsTable::IsServiceAccessor(const Value& row)
 
 Value CommentsTable::EntryTypeAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
@@ -147,7 +149,7 @@ Value CommentsTable::EntryTypeAccessor(const Value& row)
 
 Value CommentsTable::ExpiresAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
@@ -157,7 +159,7 @@ Value CommentsTable::ExpiresAccessor(const Value& row)
 
 Value CommentsTable::ExpireTimeAccessor(const Value& row)
 {
-	Comment::Ptr comment = Service::GetCommentByID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
 	if (!comment)
 		return Empty;
