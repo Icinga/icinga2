@@ -62,25 +62,27 @@ Value PerfdataValue::Parse(const String& perfdata)
 
 	boost::algorithm::to_lower(unit);
 
+	double base = 1.0;
+
 	if (unit == "us") {
-		value /= 1000.0 * 1000.0;
+		base /= (1000.0 * 1000.0);
 		unit = "seconds";
 	} else if (unit == "ms") {
-		value /= 1000.0;
+		base /= 1000.0;
 		unit = "seconds";
 	} else if (unit == "s") {
 		unit = "seconds";
 	} else if (unit == "tb") {
-		value *= 1024.0 * 1024.0 * 1024.0 * 1024.0;
+		base *= 1024.0 * 1024.0 * 1024.0 * 1024.0;
 		unit = "bytes";
 	} else if (unit == "gb") {
-		value *= 1024.0 * 1024.0 * 1024.0;
+		base *= 1024.0 * 1024.0 * 1024.0;
 		unit = "bytes";
 	} else if (unit == "mb") {
-		value *= 1024.0 * 1024.0;
+		base *= 1024.0 * 1024.0;
 		unit = "bytes";
 	} else if (unit == "kb") {
-		value *= 1024.0;
+		base *= 1024.0;
 		unit = "bytes";
 	} else if (unit == "b") {
 		unit = "bytes";
@@ -104,6 +106,14 @@ Value PerfdataValue::Parse(const String& perfdata)
 
 	if (tokens.size() > 4 && tokens[4] != "U" && tokens[4] != "")
 		max = Convert::ToDouble(tokens[4]);
+
+	if (base != 1.0) {
+		value = value * base;
+		warn = warn * base;
+		crit = crit * base;
+		min = min * base;
+		max = max * base;
+	}
 
 	return make_shared<PerfdataValue>(value, counter, unit, warn, crit, min, max);
 }
