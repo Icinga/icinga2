@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ ! -e /var/run/icinga2/cmd/livestatus ];
+then
+    sudo icinga2-enable-feature livestatus 1> /dev/null
+    sudo service icinga2 restart 1> /dev/null
+    sleep 1
+
+    if [ ! -e /var/run/icinga2/cmd/livestatus ];
+    then
+        echo "Icinga2 Livestatus socket not found"
+        exit 1
+    fi
+fi
+
+echo "Icinga2 Livestatus socket found"
+exit 0

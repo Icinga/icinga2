@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -f /var/run/icinga2/icinga2.pid ];
+then
+    echo "Icinga2 pidfile found"
+    exit 0
+else
+    echo "Icinga2 pidfile not found"
+    exit 1
+fi

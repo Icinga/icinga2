@@ -16,3 +16,8 @@ file { '/etc/motd':
   owner => root,
   group => root
 }
+
+user { 'vagrant':
+  groups  => 'icingacmd',
+  require => Group['icingacmd']
+}
