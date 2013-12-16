@@ -119,7 +119,8 @@ Value CommentsTable::EntryTimeAccessor(const Value& row)
 
 Value CommentsTable::TypeAccessor(const Value& row)
 {
-	Service::Ptr svc = Service::GetOwnerByCommentID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
+	Service::Ptr svc = Service::GetOwnerByCommentID(comment->GetId());
 
 	if (!svc)
 		return Empty;
@@ -129,7 +130,8 @@ Value CommentsTable::TypeAccessor(const Value& row)
 
 Value CommentsTable::IsServiceAccessor(const Value& row)
 {
-	Service::Ptr svc = Service::GetOwnerByCommentID(row);
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
+	Service::Ptr svc = Service::GetOwnerByCommentID(comment->GetId());
 
 	if (!svc)
 		return Empty;
