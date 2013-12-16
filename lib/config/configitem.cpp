@@ -315,7 +315,8 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	/* log stats for external parsers */
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		Log(LogInformation, "config", "Checked " + Convert::ToString(type->GetObjects().size()) + " " + type->GetName() + "(s).");
+		if (type->GetObjects().size() > 0)
+			Log(LogInformation, "config", "Checked " + Convert::ToString(type->GetObjects().size()) + " " + type->GetName() + "(s).");
 	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
