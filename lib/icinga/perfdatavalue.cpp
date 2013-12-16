@@ -124,7 +124,7 @@ String PerfdataValue::Format(const Value& perfdata)
 		PerfdataValue::Ptr pdv = perfdata;
 		std::ostringstream result;
 
-		result << pdv->GetValue();
+		result << Convert::ToString(pdv->GetValue());
 
 		String unit;
 
