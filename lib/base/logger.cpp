@@ -35,6 +35,7 @@ REGISTER_TYPE(Logger);
 
 std::set<Logger::Ptr> Logger::m_Loggers;
 boost::mutex Logger::m_Mutex;
+bool Logger::m_ConsoleLogEnabled = true;
 
 /**
  * Constructor for the Logger class.
@@ -85,20 +86,14 @@ void icinga::Log(LogSeverity severity, const String& facility,
 		}
 	}
 
-	bool processed = false;
-
 	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
-		{
-			ObjectLock llock(logger);
+		ObjectLock llock(logger);
 
-			if (!logger->IsActive())
-				continue;
+		if (!logger->IsActive())
+			continue;
 
-			if (entry.Severity >= logger->GetMinSeverity())
-				logger->ProcessLogEntry(entry);
-		}
-
-		processed = true;
+		if (entry.Severity >= logger->GetMinSeverity())
+			logger->ProcessLogEntry(entry);
 	}
 
 	LogSeverity defaultLogLevel;
@@ -108,7 +103,7 @@ void icinga::Log(LogSeverity severity, const String& facility,
 	else
 		defaultLogLevel = LogInformation;
 
-	if (!processed && entry.Severity >= defaultLogLevel) {
+	if (Logger::IsConsoleLogEnabled() && entry.Severity >= defaultLogLevel) {
 		static bool tty = StreamLogger::IsTty(std::cout);
 
 		StreamLogger::ProcessLogEntry(std::cout, tty, entry);
@@ -168,3 +163,14 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 }
+
+void Logger::DisableConsoleLog(void)
+{
+	m_ConsoleLogEnabled = false;
+}
+
+bool Logger::IsConsoleLogEnabled(void)
+{
+	return m_ConsoleLogEnabled;
+}
+

@@ -66,6 +66,9 @@ public:
 
 	static std::set<Logger::Ptr> GetLoggers(void);
 
+	static void DisableConsoleLog(void);
+	static bool IsConsoleLogEnabled(void);
+
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);
@@ -73,6 +76,7 @@ protected:
 private:
 	static boost::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
+	static bool m_ConsoleLogEnabled;
 
 	friend void Log(LogSeverity severity, const String& facility,
 	    const String& message);
