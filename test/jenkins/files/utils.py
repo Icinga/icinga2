@@ -82,10 +82,14 @@ def _parse_pgsql_result(resultset):
     return result
 
 
+class LiveStatusError(Exception):
+    pass
+
+
 class LiveStatusSocket(object):
     options = [
-        'OutputFormat: json',
         'KeepAlive: on',
+        'OutputFormat: json',
         'ResponseHeader: fixed16'
         ]
 
@@ -108,17 +112,34 @@ class LiveStatusSocket(object):
         self.sock.close()
 
     def query(self, command):
-        full_command = '\n'.join([command] + self.options)
-        self.send(full_command + '\n')
-        return self.recv()
+        self.send(command)
+        statuscode, response = self.recv()
+
+        if statuscode != 200:
+            raise LiveStatusError(statuscode, response)
+
+        return response
 
     def send(self, query):
-        print repr(query)
-        self.sock.sendall(query.encode('utf-8'))
+        full_query = '\n'.join([query] + self.options)
+        self.sock.sendall((full_query + '\n\n').encode('utf-8'))
 
     def recv(self):
+        response = b''
         response_header = self.sock.recv(16)
         response_code = int(response_header[:3])
         response_length = int(response_header[3:].strip())
-        return json.loads(self.sock.recv(response_length).decode('utf-8'))
+
+        if response_length > 0:
+            while len(response) < response_length:
+                response += self.sock.recv(response_length - len(response))
+
+            response = response.decode('utf-8')
+
+            try:
+                response = json.loads(response)
+            except ValueError:
+                pass
+
+        return response_code, response
 
