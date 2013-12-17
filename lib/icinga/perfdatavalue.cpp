@@ -65,7 +65,7 @@ Value PerfdataValue::Parse(const String& perfdata)
 	double base = 1.0;
 
 	if (unit == "us") {
-		base /= (1000.0 * 1000.0);
+		base /= 1000.0 * 1000.0;
 		unit = "seconds";
 	} else if (unit == "ms") {
 		base /= 1000.0;
@@ -107,13 +107,19 @@ Value PerfdataValue::Parse(const String& perfdata)
 	if (tokens.size() > 4 && tokens[4] != "U" && tokens[4] != "")
 		max = Convert::ToDouble(tokens[4]);
 
-	if (base != 1.0) {
-		value = value * base;
+	value = value * base;
+
+	if (!warn.IsEmpty())
 		warn = warn * base;
+
+	if (!crit.IsEmpty())
 		crit = crit * base;
+
+	if (!min.IsEmpty())
 		min = min * base;
+
+	if (!max.IsEmpty())
 		max = max * base;
-	}
 
 	return make_shared<PerfdataValue>(value, counter, unit, warn, crit, min, max);
 }

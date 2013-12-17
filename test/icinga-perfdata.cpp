@@ -72,6 +72,33 @@ BOOST_AUTO_TEST_CASE(uom)
 
 	String str = PluginUtility::FormatPerfdata(pd);
 	BOOST_CHECK(str == "test=123456B");
+
+	pd = PluginUtility::ParsePerfdata("test=1000ms;200;500");
+	BOOST_CHECK(pd);
+
+	pv = pd->Get("test");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "seconds");
+	BOOST_CHECK(pv->GetWarn() == 0.2);
+	BOOST_CHECK(pv->GetCrit() == 0.5);
+
+	pd = PluginUtility::ParsePerfdata("test=1000ms");
+	BOOST_CHECK(pd);
+
+	pv = pd->Get("test");
+	BOOST_CHECK(pv);
+
+	BOOST_CHECK(pv->GetValue() == 1);
+	BOOST_CHECK(pv->GetUnit() == "seconds");
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetMin() == Empty);
+	BOOST_CHECK(pv->GetMax() == Empty);
+
+	str = PluginUtility::FormatPerfdata(pd);
+	BOOST_CHECK(str == "test=1s");
 }
 
 BOOST_AUTO_TEST_CASE(warncritminmax)
