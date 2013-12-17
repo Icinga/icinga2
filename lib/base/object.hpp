@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
+#include "base/thinmutex.hpp"
 #include <boost/thread/thread.hpp>
 
 #ifndef _DEBUG
@@ -179,17 +180,13 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-#ifndef _DEBUG
-	typedef boost::mutex MutexType;
-#else /* _DEBUG */
-	typedef boost::recursive_mutex MutexType;
+	mutable ThinMutex m_Mutex;
 
+#ifdef _DEBUG
 	static boost::mutex m_DebugMutex;
 	mutable bool m_Locked;
 	mutable boost::thread::id m_LockOwner;
 #endif /* _DEBUG */
-
-	mutable MutexType m_Mutex;
 
 	friend struct ObjectLock;
 };

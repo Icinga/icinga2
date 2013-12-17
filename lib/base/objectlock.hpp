@@ -40,7 +40,7 @@ public:
 
 private:
 	const Object *m_Object;
-	Object::MutexType::scoped_lock m_Lock;
+	bool m_Locked;
 };
 
 }

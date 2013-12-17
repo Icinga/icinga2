@@ -23,7 +23,7 @@
 using namespace icinga;
 
 ObjectLock::ObjectLock(void)
-	: m_Object(NULL), m_Lock()
+	: m_Object(NULL), m_Locked(false)
 { }
 
 ObjectLock::~ObjectLock(void)
@@ -32,14 +32,14 @@ ObjectLock::~ObjectLock(void)
 }
 
 ObjectLock::ObjectLock(const Object::Ptr& object)
-	: m_Object(object.get()), m_Lock()
+	: m_Object(object.get()), m_Locked(false)
 {
 	if (m_Object)
 		Lock();
 }
 
 ObjectLock::ObjectLock(const Object *object)
-	: m_Object(object), m_Lock()
+	: m_Object(object), m_Locked(false)
 {
 	if (m_Object)
 		Lock();
@@ -47,10 +47,11 @@ ObjectLock::ObjectLock(const Object *object)
 
 void ObjectLock::Lock(void)
 {
-	ASSERT(!m_Lock.owns_lock() && m_Object != NULL);
+	ASSERT(!m_Locked && m_Object != NULL);
 	ASSERT(!m_Object->OwnsLock());
 
-	m_Lock = Object::MutexType::scoped_lock(m_Object->m_Mutex);
+	m_Object->m_Mutex.Lock();
+	m_Locked = true;
 
 #ifdef _DEBUG
 	{
@@ -66,11 +67,13 @@ void ObjectLock::Unlock(void)
 #ifdef _DEBUG
 	{
 		boost::mutex::scoped_lock lock(Object::m_DebugMutex);
-
-		if (m_Lock.owns_lock())
+		if (m_Locked)
 			m_Object->m_Locked = false;
 	}
 #endif /* _DEBUG */
 
-	m_Lock = Object::MutexType::scoped_lock();
+	if (m_Locked) {
+		m_Object->m_Mutex.Unlock();
+		m_Locked = false;
+	}
 }

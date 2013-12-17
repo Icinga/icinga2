@@ -30,7 +30,7 @@ set(base_SOURCES
   ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp
   scriptutils.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp 
-  sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp threadpool.cpp timer.cpp
+  sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp thinmutex.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
   value-operators.cpp workqueue.cpp
 )
