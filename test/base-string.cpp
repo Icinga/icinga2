@@ -79,6 +79,21 @@ BOOST_AUTO_TEST_CASE(trim)
 	BOOST_CHECK(s4 == "hello");
 }
 
+BOOST_AUTO_TEST_CASE(contains)
+{
+	String s1 = "hello world";
+	String s2 = "hello";
+	BOOST_CHECK(s1.Contains(s2));
+
+	String s3 = "  hello world  ";
+	String s4 = "  hello";
+	BOOST_CHECK(s3.Contains(s4));
+
+	String s5 = "  hello world  ";
+	String s6 = "world  ";
+	BOOST_CHECK(s5.Contains(s6));
+}
+
 BOOST_AUTO_TEST_CASE(replace)
 {
 	String s = "hello";

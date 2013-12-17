@@ -91,6 +91,7 @@ public:
 	void Replace(size_t first, size_t second, const String& str);
 
 	void Trim(void);
+	bool Contains(const String& str) const;
 
 	void swap(String& str);
 	Iterator erase(Iterator first, Iterator last);

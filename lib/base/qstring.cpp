@@ -22,6 +22,8 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/compare.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -177,6 +179,11 @@ void String::Replace(size_t first, size_t second, const String& str)
 void String::Trim(void)
 {
 	boost::algorithm::trim(m_Data);
+}
+
+bool String::Contains(const String& str) const
+{
+	return boost::algorithm::contains(m_Data, str);
 }
 
 void String::swap(String& str)
