@@ -39,16 +39,12 @@ public:
 	DECLARE_PTR_TYPEDEFS(CompatLogger);
 	DECLARE_TYPENAME(CompatLogger);
 
-	CompatLogger(void);
-
 	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
 
 protected:
 	virtual void Start(void);
 
 private:
-	double m_LastRotation;
-
 	void WriteLine(const String& line);
 	void Flush(void);
 
