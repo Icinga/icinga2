@@ -42,10 +42,6 @@ using namespace icinga;
 REGISTER_TYPE(CompatLogger);
 REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationMethod);
 
-CompatLogger::CompatLogger(void)
-	: m_LastRotation(0)
-{ }
-
 /**
  * @threadsafety Always.
  */

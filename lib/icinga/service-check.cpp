@@ -285,6 +285,9 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 		recovery = false;
 
 		switch (cr->GetState()) {
+			case StateOK:
+				/* Nothing to do here. */
+				break;
 			case StateWarning:
 				SetLastStateWarning(Utility::GetTime());
 				break;

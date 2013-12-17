@@ -548,8 +548,6 @@ String CompatUtility::GetServiceNotificationNotificationOptions(const Service::P
 {
 	ASSERT(service->OwnsLock());
 
-	bool is_hostcheck = (service->GetHost()->GetCheckService() == service);
-
 	unsigned long notification_type_filter = 0;
 	unsigned long notification_state_filter = 0;
 
