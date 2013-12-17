@@ -222,6 +222,16 @@ instance you will have to add the following include directive to your
 
     include (IcingaLocalStateDir + "/lib/icinga2/cluster/config/*/*")
 
+### Initial Sync
+
+In order to make sure that all of your cluster nodes have the same state you will
+have to pick one of the nodes as your initial "master" and copy its state file
+to all the other nodes.
+
+You can find the state file in `/var/lib/icinga2/icinga2.state`. Before copying
+the state file you should make sure that all your cluster nodes are properly shut
+down.
+
 ## Dependencies
 
 Icinga 2 uses host and service dependencies as attribute directly on the host or
