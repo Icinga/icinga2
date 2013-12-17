@@ -134,24 +134,7 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 
 	fp << command->GetName() << "\n";
 
-	fp << "\t" "command_line\t";
-
-	Value commandLine = command->GetCommandLine();
-
-	if (commandLine.IsObjectType<Array>()) {
-		Array::Ptr args = commandLine;
-
-		ObjectLock olock(args);
-		String arg;
-		BOOST_FOREACH(arg, args) {
-			// This is obviously incorrect for non-trivial cases.
-			fp << " \"" << CompatUtility::EscapeString(arg) << "\"";
-		}
-	} else if (!commandLine.IsEmpty()) {
-		fp << CompatUtility::EscapeString(commandLine);
-	} else {
-		fp << "<internal>";
-	}
+	fp << "\t" "command_line" "\t" << CompatUtility::GetCommandLine(command);
 
 	fp << "\n" "\t" "}" "\n"
 	      "\n";

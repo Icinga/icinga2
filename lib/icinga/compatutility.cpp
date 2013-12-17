@@ -39,7 +39,7 @@ String CompatUtility::GetCommandLine(const Command::Ptr& command)
 {
 	Value commandLine = command->GetCommandLine();
 
-	String commandline;
+	String result;
 	if (commandLine.IsObjectType<Array>()) {
 		Array::Ptr args = commandLine;
 
@@ -47,15 +47,15 @@ String CompatUtility::GetCommandLine(const Command::Ptr& command)
 		String arg;
 		BOOST_FOREACH(arg, args) {
 			// This is obviously incorrect for non-trivial cases.
-			commandline = " \"" + EscapeString(arg) + "\"";
+			result += " \"" + EscapeString(arg) + "\"";
 		}
 	} else if (!commandLine.IsEmpty()) {
-		commandline = EscapeString(Convert::ToString(commandLine));
+		result = EscapeString(Convert::ToString(commandLine));
 	} else {
-		commandline = "<internal>";
+		result = "<internal>";
 	}
 
-	return commandline;
+	return result;
 }
 
 /* host */
