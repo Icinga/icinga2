@@ -29,36 +29,6 @@ using namespace icinga;
 namespace icinga
 {
 
-enum LogStateHistType {
-    LogStateHistTypeHostAlert,
-    LogStateHistTypeHostDowntimeAlert,
-    LogStateHistTypeHostFlapping,
-    LogStateHistTypeHostNotification,
-    LogStateHistTypeHostInitialState,
-    LogStateHistTypeHostCurrentState,
-    LogStateHistTypeServiceAlert,
-    LogStateHistTypeServiceDowntimeAlert,
-    LogStateHistTypeServiceFlapping,
-    LogStateHistTypeServiceNotification,
-    LogStateHistTypeServiceInitialState,
-    LogStateHistTypeServiceCurrentState,
-    LogStateHistTypeTimeperiodTransition,
-    LogStateHistTypeVersion,
-    LogStateHistTypeInitialStates,
-    LogStateHistTypeProgramStarting
-};
-
-enum LogStateHistClass {
-    LogStateHistClassInfo = 0,
-    LogStateHistClassAlert = 1,
-    LogStateHistClassProgram = 2,
-    LogStateHistClassNotification = 3,
-    LogStateHistClassPassive = 4,
-    LogStateHistClassCommand = 5,
-    LogStateHistClassState = 6,
-    LogStateHistClassText = 7
-};
-
 /**
  * @ingroup livestatus
  */
@@ -73,6 +43,8 @@ public:
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
 	virtual String GetName(void) const;
+
+	void UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno);
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
@@ -108,16 +80,11 @@ protected:
 	static Value DurationPartUnmonitoredAccessor(const Value& row);
 
 private:
-        std::map<unsigned long, String> m_LogFileIndex;
+        std::map<unsigned int, String> m_LogFileIndex;
         std::map<Service::Ptr, Array::Ptr> m_ServicesCache;
-        unsigned long m_TimeFrom;
-        unsigned long m_TimeUntil;
+        unsigned int m_TimeFrom;
+        unsigned int m_TimeUntil;
         boost::mutex m_Mutex;
-
-        void CreateLogIndex(const String& path);
-        static void CreateLogIndexFileHandler(const String& path, std::map<unsigned long, String>& index);
-        void GetLogStateHistClassType(const String& text, int& log_class, int& log_type);
-        Dictionary::Ptr GetStateHistAttributes(const String& type, const String& options);
 };
 
 }

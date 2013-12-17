@@ -28,36 +28,6 @@ using namespace icinga;
 namespace icinga
 {
 
-enum LogType {
-    LogTypeHostAlert,
-    LogTypeHostDowntimeAlert,
-    LogTypeHostFlapping,
-    LogTypeHostNotification,
-    LogTypeHostInitialState,
-    LogTypeHostCurrentState,
-    LogTypeServiceAlert,
-    LogTypeServiceDowntimeAlert,
-    LogTypeServiceFlapping,
-    LogTypeServiceNotification,
-    LogTypeServiceInitialState,
-    LogTypeServiceCurrentState,
-    LogTypeTimeperiodTransition,
-    LogTypeVersion,
-    LogTypeInitialStates,
-    LogTypeProgramStarting
-};
-
-enum LogClass {
-    LogClassInfo = 0,
-    LogClassAlert = 1,
-    LogClassProgram = 2,
-    LogClassNotification = 3,
-    LogClassPassive = 4,
-    LogClassCommand = 5,
-    LogClassState = 6,
-    LogClassText = 7
-};
-
 /**
  * @ingroup livestatus
  */
@@ -72,6 +42,8 @@ public:
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
 	virtual String GetName(void) const;
+
+        void UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno);
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
@@ -96,18 +68,13 @@ protected:
 	static Value HostNameAccessor(const Value& row);
 	static Value ContactNameAccessor(const Value& row);
 	static Value CommandNameAccessor(const Value& row);
-        
+
 private:
-        std::map<unsigned long, String> m_LogFileIndex;
-        std::map<unsigned long, Dictionary::Ptr> m_RowsCache;
-        unsigned long m_TimeFrom;
-        unsigned long m_TimeUntil;
+        std::map<unsigned int, String> m_LogFileIndex;
+        std::map<unsigned int, Dictionary::Ptr> m_RowsCache;
+        unsigned int m_TimeFrom;
+        unsigned int m_TimeUntil;
         boost::mutex m_Mutex;
-        
-        void CreateLogIndex(const String& path);
-        static void CreateLogIndexFileHandler(const String& path, std::map<unsigned long, String>& index);
-        void GetLogClassType(const String& text, int& log_class, int& log_type);
-        Dictionary::Ptr GetLogEntryAttributes(const String& type, const String& options);
 };
 
 }

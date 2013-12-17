@@ -17,58 +17,63 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TABLE_H
-#define TABLE_H
+#ifndef LOGUTILITY_H
+#define LOGUTILITY_H
 
-#include "livestatus/column.h"
-#include "base/object.h"
-#include "base/dictionary.h"
-#include <vector>
+#include "livestatus/table.h"
+#include <boost/thread/mutex.hpp>
+
+using namespace icinga;
 
 namespace icinga
 {
 
-class Filter;
+enum LogEntryType {
+    LogEntryTypeHostAlert,
+    LogEntryTypeHostDowntimeAlert,
+    LogEntryTypeHostFlapping,
+    LogEntryTypeHostNotification,
+    LogEntryTypeHostInitialState,
+    LogEntryTypeHostCurrentState,
+    LogEntryTypeServiceAlert,
+    LogEntryTypeServiceDowntimeAlert,
+    LogEntryTypeServiceFlapping,
+    LogEntryTypeServiceNotification,
+    LogEntryTypeServiceInitialState,
+    LogEntryTypeServiceCurrentState,
+    LogEntryTypeTimeperiodTransition,
+    LogEntryTypeVersion,
+    LogEntryTypeInitialStates,
+    LogEntryTypeProgramStarting
+};
+
+enum LogEntryClass {
+    LogEntryClassInfo = 0,
+    LogEntryClassAlert = 1,
+    LogEntryClassProgram = 2,
+    LogEntryClassNotification = 3,
+    LogEntryClassPassive = 4,
+    LogEntryClassCommand = 5,
+    LogEntryClassState = 6,
+    LogEntryClassText = 7
+};
 
 /**
  * @ingroup livestatus
  */
-class Table : public Object
+class LogUtility
 {
+
 public:
-	DECLARE_PTR_TYPEDEFS(Table);
-
-	typedef boost::function<void (const Value&)> AddRowFunction;
-
-	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
-
-	virtual String GetName(void) const = 0;
-
-	std::vector<Value> FilterRows(const shared_ptr<Filter>& filter);
-
-	void AddColumn(const String& name, const Column& column);
-	Column GetColumn(const String& name) const;
-	std::vector<String> GetColumnNames(void) const;
-
-        virtual void UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno);
-
-protected:
-	Table(void);
-
-	virtual void FetchRows(const AddRowFunction& addRowFn) = 0;
-
-	static Value ZeroAccessor(const Value&);
-	static Value OneAccessor(const Value&);
-	static Value EmptyStringAccessor(const Value&);
-	static Value EmptyArrayAccessor(const Value&);
-	static Value EmptyDictionaryAccessor(const Value&);
+	static void CreateLogIndex(const String& path, std::map<unsigned int, String>& index);
+	static void CreateLogIndexFileHandler(const String& path, std::map<unsigned int, String>& index);
+	static void CreateLogCache(std::map<unsigned int, String> index, Table *table, const unsigned int& from, const unsigned int& until);
+	static Dictionary::Ptr GetAttributes(const String& text);
 
 private:
-	std::map<String, Column> m_Columns;
-
-	void FilteredAddRow(std::vector<Value>& rs, const shared_ptr<Filter>& filter, const Value& row);
+	LogUtility(void);
 };
 
 }
 
-#endif /* TABLE_H */
+#endif /* LOGUTILITY_H */
