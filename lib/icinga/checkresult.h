@@ -35,6 +35,8 @@ class I2_ICINGA_API CheckResult : public ObjectImpl<CheckResult>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckResult);
+
+	static void StaticInitialize(void);
 };
 
 }

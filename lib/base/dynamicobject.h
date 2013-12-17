@@ -52,6 +52,8 @@ class I2_BASE_API DynamicObject : public ObjectImpl<DynamicObject>
 public:
 	DECLARE_PTR_TYPEDEFS(DynamicObject);
 
+	static void StaticInitialize(void);
+
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;

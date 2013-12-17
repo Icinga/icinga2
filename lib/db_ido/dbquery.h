@@ -68,6 +68,8 @@ struct I2_DB_IDO_API DbQuery
 	bool ConfigUpdate;
 	bool StatusUpdate;
 
+	static void StaticInitialize(void);
+
 	DbQuery(void)
 		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false)
 	{ }

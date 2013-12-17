@@ -63,7 +63,7 @@ Value ScriptVariable::Get(const String& name)
 	return sv->GetData();
 }
 
-ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, bool overwrite)
+ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, bool overwrite, bool make_const)
 {
 	ScriptVariable::Ptr sv = GetByName(name);
 
@@ -76,6 +76,9 @@ ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, 
 
 		sv->SetData(value);
 	}
+
+	if (make_const)
+		sv->SetConstant(true);
 
 	return sv;
 }

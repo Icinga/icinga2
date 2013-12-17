@@ -18,5 +18,27 @@
  ******************************************************************************/
 
 #include "db_ido/dbquery.h"
+#include "base/initialize.h"
+#include "base/scriptvariable.h"
 
 using namespace icinga;
+
+void DbQuery::StaticInitialize(void)
+{
+	ScriptVariable::Set("DbCatConfig", DbCatConfig, true, true);
+	ScriptVariable::Set("DbCatState", DbCatState, true, true);
+	ScriptVariable::Set("DbCatAcknowledgement", DbCatAcknowledgement, true, true);
+	ScriptVariable::Set("DbCatComment", DbCatComment, true, true);
+	ScriptVariable::Set("DbCatDowntime", DbCatDowntime, true, true);
+	ScriptVariable::Set("DbCatEventHandler", DbCatEventHandler, true, true);
+	ScriptVariable::Set("DbCatExternalCommand", DbCatExternalCommand, true, true);
+	ScriptVariable::Set("DbCatFlapping", DbCatFlapping, true, true);
+	ScriptVariable::Set("DbCatCheck", DbCatCheck, true, true);
+	ScriptVariable::Set("DbCatLog", DbCatLog, true, true);
+	ScriptVariable::Set("DbCatNotification", DbCatNotification, true, true);
+	ScriptVariable::Set("DbCatProgramStatus", DbCatProgramStatus, true, true);
+	ScriptVariable::Set("DbCatRetention", DbCatRetention, true, true);
+	ScriptVariable::Set("DbCatStateHistory", DbCatStateHistory, true, true);
+
+	ScriptVariable::Set("DbCatEverything", ~(unsigned int)0, true, true);
+}

@@ -16,6 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 install(
-  FILES command.conf command-common.conf constants.conf itl.conf timeperiod.conf
+  FILES command.conf command-common.conf itl.conf timeperiod.conf
   DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2/itl
 )

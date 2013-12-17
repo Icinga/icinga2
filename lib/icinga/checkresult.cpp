@@ -19,7 +19,24 @@
 
 #include "icinga/checkresult.h"
 #include "base/dynamictype.h"
+#include "base/initialize.h"
+#include "base/scriptvariable.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(CheckResult);
+INITIALIZE_ONCE(&CheckResult::StaticInitialize);
+
+void CheckResult::StaticInitialize(void)
+{
+	ScriptVariable::Set("StateOK", StateOK, true, true);
+	ScriptVariable::Set("StateWarning", StateWarning, true, true);
+	ScriptVariable::Set("StateCritical", StateCritical, true, true);
+	ScriptVariable::Set("StateUnknown", StateUnknown, true, true);
+
+	ScriptVariable::Set("StateFilterOK", 1 << StateOK, true, true);
+	ScriptVariable::Set("StateFilterWarning", 1 << StateWarning, true, true);
+	ScriptVariable::Set("StateFilterCritical", 1 << StateCritical, true, true);
+	ScriptVariable::Set("StateFilterUnknown", 1 << StateUnknown, true, true);
+}
+

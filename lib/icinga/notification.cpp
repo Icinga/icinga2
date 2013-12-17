@@ -27,13 +27,39 @@
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/exception.h"
+#include "base/initialize.h"
+#include "base/scriptvariable.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Notification);
+INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> Notification::OnNextNotificationChanged;
+
+void Notification::StaticInitialize(void)
+{
+	ScriptVariable::Set("NotificationDowntimeStart", NotificationDowntimeStart, true, true);
+	ScriptVariable::Set("NotificationDowntimeEnd", NotificationDowntimeEnd, true, true);
+	ScriptVariable::Set("NotificationDowntimeRemoved", NotificationDowntimeRemoved, true, true);
+	ScriptVariable::Set("NotificationCustom", NotificationCustom, true, true);
+	ScriptVariable::Set("NotificationAcknowledgement", NotificationAcknowledgement, true, true);
+	ScriptVariable::Set("NotificationProblem", NotificationProblem, true, true);
+	ScriptVariable::Set("NotificationRecovery", NotificationRecovery, true, true);
+	ScriptVariable::Set("NotificationFlappingStart", NotificationFlappingStart, true, true);
+	ScriptVariable::Set("NotificationFlappingEnd", NotificationFlappingEnd, true, true);
+
+	ScriptVariable::Set("NotificationFilterDowntimeStart", 1 << NotificationDowntimeStart, true, true);
+	ScriptVariable::Set("NotificationFilterDowntimeEnd", 1 << NotificationDowntimeEnd, true, true);
+	ScriptVariable::Set("NotificationFilterDowntimeRemoved", 1 << NotificationDowntimeRemoved, true, true);
+	ScriptVariable::Set("NotificationFilterCustom", 1 << NotificationCustom, true, true);
+	ScriptVariable::Set("NotificationFilterAcknowledgement", 1 << NotificationAcknowledgement, true, true);
+	ScriptVariable::Set("NotificationFilterProblem", 1 << NotificationProblem, true, true);
+	ScriptVariable::Set("NotificationFilterRecovery", 1 << NotificationRecovery, true, true);
+	ScriptVariable::Set("NotificationFilterFlappingStart", 1 << NotificationFlappingStart, true, true);
+	ScriptVariable::Set("NotificationFilterFlappingEnd", 1 << NotificationFlappingEnd, true, true);
+}
 
 void Notification::Start(void)
 {

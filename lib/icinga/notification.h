@@ -62,6 +62,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(Notification);
 	DECLARE_TYPENAME(Notification);
 
+	static void StaticInitialize(void);
+
 	shared_ptr<Service> GetService(void) const;
 	shared_ptr<NotificationCommand> GetNotificationCommand(void) const;
 	TimePeriod::Ptr GetNotificationPeriod(void) const;

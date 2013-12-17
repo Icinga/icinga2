@@ -28,6 +28,8 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/scriptfunction.h"
+#include "base/initialize.h"
+#include "base/scriptvariable.h"
 #include <fstream>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -38,11 +40,22 @@
 using namespace icinga;
 
 REGISTER_TYPE(DynamicObject);
+INITIALIZE_ONCE(&DynamicObject::StaticInitialize);
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
 boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
+
+void DynamicObject::StaticInitialize(void)
+{
+	ScriptVariable::Set("DomainPrivRead", DomainPrivRead, true, true);
+	ScriptVariable::Set("DomainPrivCheckResult", DomainPrivCheckResult, true, true);
+	ScriptVariable::Set("DomainPrivCommand", DomainPrivCommand, true, true);
+
+	ScriptVariable::Set("DomainPrevReadOnly", DomainPrivRead, true, true);
+	ScriptVariable::Set("DomainPrivReadWrite", DomainPrivRead | DomainPrivCheckResult | DomainPrivCommand, true, true);
+}
 
 DynamicObject::DynamicObject(void)
 { }
