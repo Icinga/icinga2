@@ -86,8 +86,6 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 	ObjectLock olock(ranges);
 	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
-		tm rangeref;
-
 		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
 
 		if (!segment)
