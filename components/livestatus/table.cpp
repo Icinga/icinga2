@@ -146,3 +146,8 @@ Value Table::EmptyDictionaryAccessor(const Value&)
 {
 	return make_shared<Dictionary>();
 }
+
+void Table::UpdateLogCache(const Dictionary::Ptr&, int, int)
+{
+	/* does nothing by default */
+}

@@ -62,6 +62,7 @@ add_boost_test(base
         base_string/clear
         base_string/append
         base_string/trim
+	base_string/contains
         base_string/replace
         base_string/index
         base_string/find
