@@ -183,7 +183,7 @@ void String::Trim(void)
 
 bool String::Contains(const String& str) const
 {
-	return boost::algorithm::contains(m_Data, str);
+	return (m_Data.find(str) != std::string::npos);
 }
 
 void String::swap(String& str)
