@@ -149,15 +149,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 
 	/* StaticGetFieldId */
 	std::cout << "\t" << "static int StaticGetFieldId(const String& name)" << std::endl
-		<< "\t" << "{" << std::endl
-		<< "\t\t" << "int offset = ";
+		<< "\t" << "{" << std::endl;
 
-	if (!klass.Parent.empty())
-		std::cout << "TypeImpl<" << klass.Parent << ">::StaticGetFieldCount()";
-	else
-		std::cout << "0";
+	if (!klass.Fields.empty()) {
+		std::cout << "\t\t" << "int offset = ";
 
-	std::cout << ";" << std::endl << std::endl;
+		if (!klass.Parent.empty())
+			std::cout << "TypeImpl<" << klass.Parent << ">::StaticGetFieldCount()";
+		else
+			std::cout << "0";
+
+		std::cout << ";" << std::endl << std::endl;
+	}
 
 	std::map<int, std::vector<std::pair<int, std::string> > > jumptable;
 
