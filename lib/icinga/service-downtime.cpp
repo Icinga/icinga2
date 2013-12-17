@@ -70,6 +70,11 @@ String Service::AddDowntime(const String& author, const String& comment,
 	downtime->SetTriggeredBy(triggeredBy);
 	downtime->SetScheduledBy(scheduledBy);
 
+	if (!triggeredBy.IsEmpty()) {
+		Downtime::Ptr triggerDowntime = GetDowntimeByID(triggeredBy);
+		downtime->SetTriggeredByLegacyId(triggerDowntime->GetLegacyId());
+	}
+
 	int legacy_id;
 
 	{

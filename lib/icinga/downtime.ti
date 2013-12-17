@@ -12,6 +12,7 @@ class Downtime
 	[state] double trigger_time;
 	[state] bool fixed;
 	[state] double duration;
+	[state] int triggered_by_legacy_id;
 	[state] String triggered_by;
 	[state] String scheduled_by;
 	[state] Dictionary::Ptr triggers {
