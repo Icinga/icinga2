@@ -117,7 +117,7 @@ void Service::UpdateSlaveNotifications(void)
 		ExpressionList::Ptr exprl;
 
 		{
-			ObjectLock ilock(exprl);
+			ObjectLock ilock(item);
 
 			exprl = item->GetLinkedExpressionList();
 		}
