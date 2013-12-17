@@ -77,9 +77,11 @@ String CompatUtility::GetHostAddress(const Host::Ptr& host)
 
 	String address;
 
-	if (macros) {
+	if (macros)
 		address = macros->Get("address");
-	}
+
+	if (address.IsEmpty())
+		address = host->GetName();
 
 	return address;
 }
@@ -92,9 +94,11 @@ String CompatUtility::GetHostAddress6(const Host::Ptr& host)
 
 	String address6;
 
-	if (macros) {
+	if (macros)
 		address6 = macros->Get("address6");
-	}
+
+	if (address6.IsEmpty())
+		address6 = host->GetName();
 
 	return address6;
 }
