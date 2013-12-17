@@ -71,7 +71,6 @@ void StateHistTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, 
 	String host_name = bag->Get("host_name");
 	String service_description = bag->Get("service_description");
 	unsigned long state = bag->Get("state");
-	int log_class = bag->Get("log_class");
 	int log_type = bag->Get("log_type");
 	String state_type = bag->Get("state_type"); //SOFT, HARD, STARTED, STOPPED, ...
 	String log_line = bag->Get("message"); /* use message from log table */
@@ -131,7 +130,6 @@ void StateHistTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, 
 		}
 
 		/* state duration */
-		bool gone = state_hist_bag->Get("gone"); /* this requires initial state logging and setting it if not found TODO */
 
 		/* determine service notifications notification_period and compare against current timestamp */
 		bool in_notification_period = true;
