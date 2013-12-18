@@ -21,7 +21,7 @@
 #define STATEHISTTABLE_H
 
 #include "icinga/service.h"
-#include "livestatus/table.h"
+#include "livestatus/historytable.h"
 #include <boost/thread/mutex.hpp>
 
 using namespace icinga;
@@ -32,19 +32,19 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class StateHistTable : public Table
+class StateHistTable : public HistoryTable
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StateHistTable);
 
-	StateHistTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until);
+	StateHistTable(const String& compat_log_path, time_t from, time_t until);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
 	virtual String GetName(void) const;
 
-	void UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno);
+	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn);
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
@@ -80,11 +80,11 @@ protected:
 	static Value DurationPartUnmonitoredAccessor(const Value& row);
 
 private:
-        std::map<unsigned int, String> m_LogFileIndex;
+        std::map<time_t, String> m_LogFileIndex;
         std::map<Service::Ptr, Array::Ptr> m_ServicesCache;
-        unsigned int m_TimeFrom;
-        unsigned int m_TimeUntil;
-        boost::mutex m_Mutex;
+        time_t m_TimeFrom;
+        time_t m_TimeUntil;
+        String m_CompatLogPath;
 };
 
 }

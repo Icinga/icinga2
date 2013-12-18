@@ -20,8 +20,7 @@
 #ifndef LOGUTILITY_H
 #define LOGUTILITY_H
 
-#include "livestatus/table.h"
-#include <boost/thread/mutex.hpp>
+#include "livestatus/historytable.h"
 
 using namespace icinga;
 
@@ -65,9 +64,9 @@ class LogUtility
 {
 
 public:
-	static void CreateLogIndex(const String& path, std::map<unsigned int, String>& index);
-	static void CreateLogIndexFileHandler(const String& path, std::map<unsigned int, String>& index);
-	static void CreateLogCache(std::map<unsigned int, String> index, Table *table, const unsigned int& from, const unsigned int& until);
+	static void CreateLogIndex(const String& path, std::map<time_t, String>& index);
+	static void CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index);
+	static void CreateLogCache(std::map<time_t, String> index, HistoryTable *table, time_t from, time_t until, const AddRowFunction& addRowFn);
 	static Dictionary::Ptr GetAttributes(const String& text);
 
 private:

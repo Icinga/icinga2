@@ -17,56 +17,25 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TABLE_H
-#define TABLE_H
+#ifndef HISTORYTABLE_H
+#define HISTORYTABLE_H
 
-#include "livestatus/column.h"
-#include "base/object.h"
+#include "livestatus/table.h"
 #include "base/dictionary.h"
-#include <vector>
 
 namespace icinga
 {
 
-typedef boost::function<void (const Value&)> AddRowFunction;
-
-class Filter;
 
 /**
  * @ingroup livestatus
  */
-class Table : public Object
+class HistoryTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Table);
-
-	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
-
-	virtual String GetName(void) const = 0;
-
-	std::vector<Value> FilterRows(const shared_ptr<Filter>& filter);
-
-	void AddColumn(const String& name, const Column& column);
-	Column GetColumn(const String& name) const;
-	std::vector<String> GetColumnNames(void) const;
-
-protected:
-	Table(void);
-
-	virtual void FetchRows(const AddRowFunction& addRowFn) = 0;
-
-	static Value ZeroAccessor(const Value&);
-	static Value OneAccessor(const Value&);
-	static Value EmptyStringAccessor(const Value&);
-	static Value EmptyArrayAccessor(const Value&);
-	static Value EmptyDictionaryAccessor(const Value&);
-
-private:
-	std::map<String, Column> m_Columns;
-
-	void FilteredAddRow(std::vector<Value>& rs, const shared_ptr<Filter>& filter, const Value& row);
+        virtual void UpdateLogEntries(const Dictionary::Ptr& bag, int line_count, int lineno, const AddRowFunction& addRowFn);
 };
 
 }
 
-#endif /* TABLE_H */
+#endif /* HISTORYTABLE_H */

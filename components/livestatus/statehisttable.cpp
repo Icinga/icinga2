@@ -48,32 +48,25 @@
 
 using namespace icinga;
 
-StateHistTable::StateHistTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until)
+StateHistTable::StateHistTable(const String& compat_log_path, time_t from, time_t until)
 {
-	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(from) + " until " + Convert::ToString(until));
-
-	/* store from & until for FetchRows */
+	/* store attributes for FetchRows */
 	m_TimeFrom = from;
 	m_TimeUntil = until;
-
-	/* create log file index */
-	LogUtility::CreateLogIndex(compat_log_path, m_LogFileIndex);
-
-	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, from, until);
+	m_CompatLogPath = compat_log_path;
 
 	AddColumns(this);
 }
 
-void StateHistTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno)
+void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
 {
-	unsigned int time = bag->Get("time");
-	String host_name = bag->Get("host_name");
-	String service_description = bag->Get("service_description");
-	unsigned long state = bag->Get("state");
-	int log_type = bag->Get("log_type");
-	String state_type = bag->Get("state_type"); //SOFT, HARD, STARTED, STOPPED, ...
-	String log_line = bag->Get("message"); /* use message from log table */
+	unsigned int time = log_entry_attrs->Get("time");
+	String host_name = log_entry_attrs->Get("host_name");
+	String service_description = log_entry_attrs->Get("service_description");
+	unsigned long state = log_entry_attrs->Get("state");
+	int log_type = log_entry_attrs->Get("log_type");
+	String state_type = log_entry_attrs->Get("state_type"); //SOFT, HARD, STARTED, STOPPED, ...
+	String log_line = log_entry_attrs->Get("message"); /* use message from log table */
 
 	Service::Ptr state_hist_service;
 
@@ -123,11 +116,8 @@ void StateHistTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, 
 
 		Log(LogDebug, "livestatus", "statehist: Adding new service '" + state_hist_service->GetName() + "' to services cache.");
 	} else {
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			state_hist_service_states = m_ServicesCache[state_hist_service];
-			state_hist_bag = state_hist_service_states->Get(state_hist_service_states->GetLength()-1); /* fetch latest state from history */
-		}
+		state_hist_service_states = m_ServicesCache[state_hist_service];
+		state_hist_bag = state_hist_service_states->Get(state_hist_service_states->GetLength()-1); /* fetch latest state from history */
 
 		/* state duration */
 
@@ -212,10 +202,9 @@ void StateHistTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, 
 
 	}
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_ServicesCache[state_hist_service] = state_hist_service_states;
-	}
+	m_ServicesCache[state_hist_service] = state_hist_service_states;
+
+	/* TODO find a way to directly call addRowFn() - right now m_ServicesCache depends on historical lines ("already seen service") */
 }
 
 void StateHistTable::AddColumns(Table *table, const String& prefix,
@@ -260,6 +249,14 @@ String StateHistTable::GetName(void) const
 
 void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 {
+	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
+
+	/* create log file index */
+	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
+
+	/* generate log cache */
+	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
+
 	Service::Ptr state_hist_service;
 
 	BOOST_FOREACH(boost::tie(state_hist_service, boost::tuples::ignore), m_ServicesCache) {

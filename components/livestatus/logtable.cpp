@@ -47,33 +47,17 @@
 
 using namespace icinga;
 
-LogTable::LogTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until)
+LogTable::LogTable(const String& compat_log_path, time_t from, time_t until)
 {
-	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(from) + " until " + Convert::ToString(until));
-
-	/* store from & until for FetchRows */
+	/* store attributes for FetchRows */
 	m_TimeFrom = from;
 	m_TimeUntil = until;
-
-	/* create log file index */
-	LogUtility::CreateLogIndex(compat_log_path, m_LogFileIndex);
-
-	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, from, until);
+	m_CompatLogPath = compat_log_path;
 
 	AddColumns(this);
 }
 
-void LogTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno)
-{
-	/* additional attributes only for log table */
-	bag->Set("lineno", lineno);
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_RowsCache[line_count] = bag;
-	}
-}
 
 void LogTable::AddColumns(Table *table, const String& prefix,
     const Column::ObjectAccessor& objectAccessor)
@@ -107,12 +91,22 @@ String LogTable::GetName(void) const
 
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	unsigned long line_count;
+	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
 
-	BOOST_FOREACH(boost::tie(line_count, boost::tuples::ignore), m_RowsCache) {
-		/* pass a dictionary with "line_count" as key */
-		addRowFn(m_RowsCache[line_count]);
-	}
+	/* create log file index */
+	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
+
+	/* generate log cache */
+	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
+}
+
+/* gets called in LogUtility::CreateLogCache */
+void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
+{
+	/* additional attributes only for log table */
+	log_entry_attrs->Set("lineno", lineno);
+
+	addRowFn(log_entry_attrs);
 }
 
 Object::Ptr LogTable::HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)

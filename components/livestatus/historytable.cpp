@@ -17,56 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TABLE_H
-#define TABLE_H
+#include "livestatus/historytable.h"
 
-#include "livestatus/column.h"
-#include "base/object.h"
-#include "base/dictionary.h"
-#include <vector>
+using namespace icinga;
 
-namespace icinga
+void HistoryTable::UpdateLogEntries(const Dictionary::Ptr&, int, int, const AddRowFunction&)
 {
-
-typedef boost::function<void (const Value&)> AddRowFunction;
-
-class Filter;
-
-/**
- * @ingroup livestatus
- */
-class Table : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(Table);
-
-	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
-
-	virtual String GetName(void) const = 0;
-
-	std::vector<Value> FilterRows(const shared_ptr<Filter>& filter);
-
-	void AddColumn(const String& name, const Column& column);
-	Column GetColumn(const String& name) const;
-	std::vector<String> GetColumnNames(void) const;
-
-protected:
-	Table(void);
-
-	virtual void FetchRows(const AddRowFunction& addRowFn) = 0;
-
-	static Value ZeroAccessor(const Value&);
-	static Value OneAccessor(const Value&);
-	static Value EmptyStringAccessor(const Value&);
-	static Value EmptyArrayAccessor(const Value&);
-	static Value EmptyDictionaryAccessor(const Value&);
-
-private:
-	std::map<String, Column> m_Columns;
-
-	void FilteredAddRow(std::vector<Value>& rs, const shared_ptr<Filter>& filter, const Value& row);
-};
-
+	/* does nothing by default */
 }
-
-#endif /* TABLE_H */
