@@ -26,10 +26,16 @@ parentheses):
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev
                                   on Debian)
 * GNU bison (bison)
-* GNU flex (flex)
+* GNU flex (flex) >= 2.5.35
 * optional: Doxygen (doxygen)
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
 * optional: Python (python-devel on RHEL, python-dev on Debian)
+
+Note: RHEL5 ships an ancient flex version. Updated packages are available for
+example from the repoforge buildtools repository.
+
+http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/{i386,x86_64}/buildtools/
+
 
 User Requirements
 -----------------

@@ -16,6 +16,8 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 cmake_minimum_required(VERSION 2.6)
+set(BOOST_MIN_VERSION "1.41.0")
+
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -59,7 +61,8 @@ if(WIN32)
   add_definitions(-DBOOST_ALL_NO_LIB)
 endif()
 
-find_package(Boost 1.41.0 COMPONENTS thread system program_options regex REQUIRED)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS thread system program_options regex REQUIRED)
+
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 

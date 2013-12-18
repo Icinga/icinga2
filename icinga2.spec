@@ -60,7 +60,7 @@ BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
 BuildRequires: cmake
-BuildRequires: flex
+BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: %{apachename}
 
@@ -219,12 +219,18 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
 	     -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+# Boost_VERSION 1.41.0 vs 101400 - disable build tests
+# details in https://dev.icinga.org/issues/5033
 CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
  -DBOOST_INCLUDEDIR=/usr/include/boost141 \
- -DBoost_ADDITIONAL_VERSIONS='1.41;1.41.0'"
+ -DBoost_ADDITIONAL_VERSIONS='1.41;1.41.0' \
+ -DBoost_NO_SYSTEM_PATHS=TRUE \
+ -DBUILD_TESTING=FALSE \
+ -DBoost_NO_BOOST_CMAKE=TRUE"
 %endif
 %endif
-cmake $CMAKE_OPTS . 
+
+cmake $CMAKE_OPTS .
 
 make %{?_smp_mflags}
 
