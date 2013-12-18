@@ -44,7 +44,7 @@ public:
 
 	virtual String GetName(void) const;
 
-	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno);
+	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn);
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);

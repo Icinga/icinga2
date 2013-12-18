@@ -58,7 +58,7 @@ StateHistTable::StateHistTable(const String& compat_log_path, time_t from, time_
 	AddColumns(this);
 }
 
-void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno)
+void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
 {
 	unsigned int time = log_entry_attrs->Get("time");
 	String host_name = log_entry_attrs->Get("host_name");
@@ -203,6 +203,8 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 	}
 
 	m_ServicesCache[state_hist_service] = state_hist_service_states;
+
+	/* TODO find a way to directly call addRowFn() - right now m_ServicesCache depends on historical lines ("already seen service") */
 }
 
 void StateHistTable::AddColumns(Table *table, const String& prefix,
@@ -253,7 +255,7 @@ void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
 
 	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil);
+	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
 
 	Service::Ptr state_hist_service;
 

@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-void HistoryTable::UpdateLogEntries(const Dictionary::Ptr&, int, int)
+void HistoryTable::UpdateLogEntries(const Dictionary::Ptr&, int, int, const AddRowFunction&)
 {
 	/* does nothing by default */
 }

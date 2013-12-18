@@ -74,7 +74,7 @@ void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, 
 }
 
 void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *table,
-    time_t from, time_t until)
+    time_t from, time_t until, const AddRowFunction& addRowFn)
 {
 	ASSERT(table);
 
@@ -108,7 +108,7 @@ void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *ta
 				continue;
 			}
 
-			table->UpdateLogEntries(log_entry_attrs, line_count, lineno);
+			table->UpdateLogEntries(log_entry_attrs, line_count, lineno, addRowFn);
 
 			line_count++;
 			lineno++;
@@ -117,8 +117,6 @@ void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *ta
 		fp.close();
 	}
 }
-
-
 
 Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 {
@@ -261,9 +259,9 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 
 		bag->Set("contact_name", tokens[0]);
 		bag->Set("host_name", tokens[1]);
-		bag->Set("state_type", tokens[2]);
+		bag->Set("state_type", tokens[2].CStr());
                 bag->Set("state", Service::StateFromString(tokens[3]));
-		bag->Set("command_name", atoi(tokens[4].CStr()));
+		bag->Set("command_name", tokens[4]);
 		bag->Set("plugin_output", tokens[5]);
 
 		bag->Set("log_class", LogEntryClassNotification);
@@ -277,9 +275,9 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		bag->Set("contact_name", tokens[0]);
 		bag->Set("host_name", tokens[1]);
                 bag->Set("service_description", tokens[2]);
-		bag->Set("state_type", tokens[3]);
+		bag->Set("state_type", tokens[3].CStr());
                 bag->Set("state", Service::StateFromString(tokens[4]));
-		bag->Set("command_name", atoi(tokens[5].CStr()));
+		bag->Set("command_name", tokens[5]);
 		bag->Set("plugin_output", tokens[6]);
 
 		bag->Set("log_class", LogEntryClassNotification);

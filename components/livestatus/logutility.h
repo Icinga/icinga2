@@ -66,7 +66,7 @@ class LogUtility
 public:
 	static void CreateLogIndex(const String& path, std::map<time_t, String>& index);
 	static void CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index);
-	static void CreateLogCache(std::map<time_t, String> index, HistoryTable *table, time_t from, time_t until);
+	static void CreateLogCache(std::map<time_t, String> index, HistoryTable *table, time_t from, time_t until, const AddRowFunction& addRowFn);
 	static Dictionary::Ptr GetAttributes(const String& text);
 
 private:

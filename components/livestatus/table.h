@@ -28,6 +28,8 @@
 namespace icinga
 {
 
+typedef boost::function<void (const Value&)> AddRowFunction;
+
 class Filter;
 
 /**
@@ -37,8 +39,6 @@ class Table : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Table);
-
-	typedef boost::function<void (const Value&)> AddRowFunction;
 
 	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
 

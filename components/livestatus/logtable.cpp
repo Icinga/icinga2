@@ -57,13 +57,7 @@ LogTable::LogTable(const String& compat_log_path, time_t from, time_t until)
 	AddColumns(this);
 }
 
-void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno)
-{
-	/* additional attributes only for log table */
-	log_entry_attrs->Set("lineno", lineno);
 
-	m_RowsCache[line_count] = log_entry_attrs;
-}
 
 void LogTable::AddColumns(Table *table, const String& prefix,
     const Column::ObjectAccessor& objectAccessor)
@@ -103,14 +97,16 @@ void LogTable::FetchRows(const AddRowFunction& addRowFn)
 	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
 
 	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil);
+	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
+}
 
-	unsigned long line_count;
+/* gets called in LogUtility::CreateLogCache */
+void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
+{
+	/* additional attributes only for log table */
+	log_entry_attrs->Set("lineno", lineno);
 
-	BOOST_FOREACH(boost::tie(line_count, boost::tuples::ignore), m_RowsCache) {
-		/* pass a dictionary with "line_count" as key */
-		addRowFn(m_RowsCache[line_count]);
-	}
+	addRowFn(log_entry_attrs);
 }
 
 Object::Ptr LogTable::HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
