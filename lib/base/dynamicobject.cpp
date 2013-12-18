@@ -327,7 +327,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 #ifdef _DEBUG
 			Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type + "'.");
 #endif /* _DEBUG */
-			Deserialize(object, update, attributeTypes);
+			Deserialize(object, update, false, attributeTypes);
 			object->OnStateLoaded();
 		}
 

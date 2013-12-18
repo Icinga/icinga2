@@ -121,10 +121,10 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 		  << "\t\t" << "return \"" << klass.Name << "\";" << std::endl
 		  << "\t" << "}" << std::endl << std::endl;
 
-	/* IsAbstract */
-	std::cout << "\t" << "virtual bool IsAbstract(void) const" << std::endl
+	/* GetAttributes */
+	std::cout << "\t" << "virtual int GetAttributes(void) const" << std::endl
 		  << "\t" << "{" << std::endl
-		  << "\t\t" << "return " << (klass.Abstract ? "true" : "false") << ";" << std::endl
+		  << "\t\t" << "return " << klass.Attributes << ";" << std::endl
 		  << "\t" << "}" << std::endl << std::endl;
 
 	/* GetBaseType */
@@ -447,7 +447,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	std::cout << "};" << std::endl << std::endl;
 
 	/* FactoryHelper */
-	if (klass.Abstract) {
+	if (klass.Attributes & TAAbstract) {
 		std::cout << "template<>" << std::endl
 			  << "struct FactoryHelper<" << klass.Name << ">" << std::endl
 			  << "{" << std::endl

@@ -1030,7 +1030,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		CheckResult::Ptr cr = Deserialize(params->Get("check_result"));
+		CheckResult::Ptr cr = Deserialize(params->Get("check_result"), true);
 
 		if (!cr)
 			return;
@@ -1224,7 +1224,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Comment::Ptr comment = Deserialize(params->Get("comment"));
+		Comment::Ptr comment = Deserialize(params->Get("comment"), true);
 
 		service->AddComment(comment->GetEntryType(), comment->GetAuthor(),
 		    comment->GetText(), comment->GetExpireTime(), comment->GetId(), sender->GetName());
@@ -1267,7 +1267,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		Downtime::Ptr downtime = Deserialize(params->Get("downtime"));
+		Downtime::Ptr downtime = Deserialize(params->Get("downtime"), true);
 
 		service->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
 		    downtime->GetStartTime(), downtime->GetEndTime(),

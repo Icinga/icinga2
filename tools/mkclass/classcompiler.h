@@ -103,11 +103,17 @@ struct Field
 	}
 };
 
+enum TypeAttribute
+{
+	TAAbstract = 1,
+	TASafe = 2
+};
+
 struct Klass
 {
 	std::string Name;
 	std::string Parent;
-	bool Abstract;
+	int Attributes;
 	std::vector<Field> Fields;
 };
 

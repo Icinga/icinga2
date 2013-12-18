@@ -16,7 +16,7 @@ enum CommentType
 };
 }}}
 
-class Comment
+safe class Comment
 {
 	[state] String id;
 	[state] double entry_time;

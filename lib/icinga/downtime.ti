@@ -1,7 +1,7 @@
 namespace icinga
 {
 
-class Downtime
+safe class Downtime
 {
 	[state] String id;
 	[state] double entry_time;

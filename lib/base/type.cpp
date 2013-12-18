@@ -52,6 +52,16 @@ Object::Ptr Type::Instantiate(void) const
 	return m_Factory();
 }
 
+bool Type::IsAbstract(void) const
+{
+	return GetAttributes() & TAAbstract;
+}
+
+bool Type::IsSafe(void) const
+{
+	return GetAttributes() & TASafe;
+}
+
 bool Type::IsAssignableFrom(const Type *other) const
 {
 	for (const Type *t = other; t; t = t->GetBaseType()) {

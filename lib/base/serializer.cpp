@@ -118,20 +118,20 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 	return fields;
 }
 
-static Array::Ptr DeserializeArray(const Array::Ptr& input, int attributeTypes)
+static Array::Ptr DeserializeArray(const Array::Ptr& input, bool safe_mode, int attributeTypes)
 {
 	Array::Ptr result = make_shared<Array>();
 
 	ObjectLock olock(input);
 
 	BOOST_FOREACH(const Value& value, input) {
-		result->Add(Deserialize(value, attributeTypes));
+		result->Add(Deserialize(value, safe_mode, attributeTypes));
 	}
 
 	return result;
 }
 
-static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, int attributeTypes)
+static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, bool safe_mode, int attributeTypes)
 {
 	Dictionary::Ptr result = make_shared<Dictionary>();
 
@@ -144,7 +144,7 @@ static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, int a
 	return result;
 }
 
-static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary::Ptr& input, int attributeTypes)
+static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary::Ptr& input, bool safe_mode, int attributeTypes)
 {
 	const Type *type;
 
@@ -158,8 +158,12 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 
 	Object::Ptr instance = object;
 
-	if (!instance)
+	if (!instance) {
+		if (safe_mode && !type->IsSafe())
+			BOOST_THROW_EXCEPTION(std::runtime_error("Tried to instantiate type '" + type->GetName() + "' which is not marked as safe."));
+
 		instance = type->Instantiate();
+	}
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
 		if (kv.first.IsEmpty())
@@ -176,7 +180,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 			continue;
 
 		try {
-			instance->SetField(fid, Deserialize(kv.second, attributeTypes));
+			instance->SetField(fid, Deserialize(kv.second, safe_mode, attributeTypes));
 		} catch (const std::exception&) {
 			instance->SetField(fid, Empty);
 		}
@@ -205,12 +209,12 @@ Value icinga::Serialize(const Value& value, int attributeTypes)
 	return SerializeObject(input, attributeTypes);
 }
 
-Value icinga::Deserialize(const Value& value, int attributeTypes)
+Value icinga::Deserialize(const Value& value, bool safe_mode, int attributeTypes)
 {
-	return Deserialize(Object::Ptr(), value, attributeTypes);
+	return Deserialize(Object::Ptr(), value, safe_mode, attributeTypes);
 }
 
-Value icinga::Deserialize(const Object::Ptr& object, const Value& value, int attributeTypes)
+Value icinga::Deserialize(const Object::Ptr& object, const Value& value, bool safe_mode, int attributeTypes)
 {
 	if (!value.IsObject())
 		return value;
@@ -220,14 +224,14 @@ Value icinga::Deserialize(const Object::Ptr& object, const Value& value, int att
 	Array::Ptr array = dynamic_pointer_cast<Array>(input);
 
 	if (array != NULL)
-		return DeserializeArray(array, attributeTypes);
+		return DeserializeArray(array, safe_mode, attributeTypes);
 
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(input);
 
 	ASSERT(dict != NULL);
 
 	if (!dict->Contains("__type"))
-		return DeserializeDictionary(dict, attributeTypes);
+		return DeserializeDictionary(dict, safe_mode, attributeTypes);
 
-	return DeserializeObject(object, dict, attributeTypes);
+	return DeserializeObject(object, dict, safe_mode, attributeTypes);
 }

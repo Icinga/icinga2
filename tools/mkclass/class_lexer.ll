@@ -118,7 +118,8 @@ static char *lb_steal(lex_buf *lb)
 class				{ return T_CLASS; }
 namespace			{ return T_NAMESPACE; }
 code				{ return T_CODE; }
-abstract			{ return T_ABSTRACT; }
+abstract			{ yylval->num = TAAbstract; return T_CLASS_ATTRIBUTE; }
+safe				{ yylval->num = TASafe; return T_CLASS_ATTRIBUTE; }
 config				{ yylval->num = FAConfig; return T_FIELD_ATTRIBUTE; }
 state				{ yylval->num = FAState; return T_FIELD_ATTRIBUTE; }
 enum				{ yylval->num = FAEnum; return T_FIELD_ATTRIBUTE; }

@@ -40,6 +40,12 @@ struct Field
 	{ }
 };
 
+enum TypeAttribute
+{
+	TAAbstract = 1,
+	TASafe = 2
+};
+
 class I2_BASE_API Type
 {
 public:
@@ -47,7 +53,7 @@ public:
 
 	virtual String GetName(void) const = 0;
 	virtual const Type *GetBaseType(void) const = 0;
-	virtual bool IsAbstract(void) const = 0;
+	virtual int GetAttributes(void) const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
 	virtual Field GetFieldInfo(int id) const = 0;
 	virtual int GetFieldCount(void) const = 0;
@@ -55,6 +61,9 @@ public:
 	Object::Ptr Instantiate(void) const;
 
 	bool IsAssignableFrom(const Type *other) const;
+
+	bool IsAbstract(void) const;
+	bool IsSafe(void) const;
 
 	static void Register(const Type *type);
 	static const Type *GetByName(const String& name);

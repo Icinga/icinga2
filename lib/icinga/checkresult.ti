@@ -27,7 +27,7 @@ enum StateType
 };
 }}}
 
-class CheckResult
+safe class CheckResult
 {
 	[state] double schedule_start;
 	[state] double schedule_end;
