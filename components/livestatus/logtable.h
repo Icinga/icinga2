@@ -74,6 +74,7 @@ private:
         std::map<time_t, Dictionary::Ptr> m_RowsCache;
         time_t m_TimeFrom;
         time_t m_TimeUntil;
+        String m_CompatLogPath;
 };
 
 }

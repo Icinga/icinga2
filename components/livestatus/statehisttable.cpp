@@ -50,17 +50,10 @@ using namespace icinga;
 
 StateHistTable::StateHistTable(const String& compat_log_path, time_t from, time_t until)
 {
-	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(from) + " until " + Convert::ToString(until));
-
-	/* store from & until for FetchRows */
+	/* store attributes for FetchRows */
 	m_TimeFrom = from;
 	m_TimeUntil = until;
-
-	/* create log file index */
-	LogUtility::CreateLogIndex(compat_log_path, m_LogFileIndex);
-
-	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, from, until);
+	m_CompatLogPath = compat_log_path;
 
 	AddColumns(this);
 }
@@ -254,6 +247,14 @@ String StateHistTable::GetName(void) const
 
 void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 {
+	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
+
+	/* create log file index */
+	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
+
+	/* generate log cache */
+	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil);
+
 	Service::Ptr state_hist_service;
 
 	BOOST_FOREACH(boost::tie(state_hist_service, boost::tuples::ignore), m_ServicesCache) {

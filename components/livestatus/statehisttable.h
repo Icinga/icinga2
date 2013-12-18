@@ -84,6 +84,7 @@ private:
         std::map<Service::Ptr, Array::Ptr> m_ServicesCache;
         time_t m_TimeFrom;
         time_t m_TimeUntil;
+        String m_CompatLogPath;
 };
 
 }
