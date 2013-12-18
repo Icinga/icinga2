@@ -113,3 +113,16 @@ Description: host and network monitoring system - IDO for PostgreSQL
  .
  This package provides the IDO module for the PostgreSQL database.
 
+Package: icinga2-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: icinga2-bin (= ${binary:Version}),
+         ${misc:Depends}
+Description: host and network monitoring system - debug symbols
+ Icinga 2 is still in development and not ready for production use!
+ .
+ Better description to come.
+ .
+ This package provides debug symbols for Icinga 2.
+
