@@ -2073,7 +2073,7 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::ve
 	if (!hc)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for host '" + arguments[0] + "' which has no check service."));
 
-	EventCommand::Ptr command = EventCommand::GetByName(arguments[2]);
+	EventCommand::Ptr command = EventCommand::GetByName(arguments[1]);
 
 	if (!command)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[1] + "' does not exist."));
@@ -2089,7 +2089,7 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::ve
 
 void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
+	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -2126,7 +2126,7 @@ void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::ve
 	if (!hc)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change check command for host '" + arguments[0] + "' which has no check service."));
 
-	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[2]);
+	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[1]);
 
 	if (!command)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Check command '" + arguments[1] + "' does not exist."));
@@ -2142,7 +2142,7 @@ void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::ve
 
 void ExternalCommandProcessor::ChangeSvcCheckCommand(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
+	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -2179,7 +2179,7 @@ void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double time, const std
 	if (!hc)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change max check attempts for host '" + arguments[0] + "' which has no check service."));
 
-	int attempts = Convert::ToLong(arguments[2]);
+	int attempts = Convert::ToLong(arguments[1]);
 
 	Log(LogInformation, "icinga", "Changing max check attempts for host '" + arguments[0] + "' to '" + arguments[1] + "'");
 
@@ -2192,7 +2192,7 @@ void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double time, const std
 
 void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
+	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -2226,7 +2226,7 @@ void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std:
 	if (!hc)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change check period for host '" + arguments[0] + "' which has no check service."));
 
-	TimePeriod::Ptr tp = TimePeriod::GetByName(arguments[2]);
+	TimePeriod::Ptr tp = TimePeriod::GetByName(arguments[1]);
 
 	if (!tp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period '" + arguments[1] + "' does not exist."));
@@ -2242,7 +2242,7 @@ void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std:
 
 void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
+	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
