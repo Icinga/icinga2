@@ -74,6 +74,14 @@ bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 	} else if (macro == "USERDISPLAYNAME" || macro == "CONTACTALIAS") {
 		*result = GetDisplayName();
 		return true;
+	} else if (macro.SubStr(0, 5) == "_USER") {
+		Dictionary::Ptr custom = GetCustom();
+		*result = custom ? custom->Get(macro.SubStr(5)) : "";
+		return true;
+	} else if (macro.SubStr(0, 8) == "_CONTACT") {
+		Dictionary::Ptr custom = GetCustom();
+		*result = custom ? custom->Get(macro.SubStr(8)) : "";
+		return true;
 	} else {
 		String tmacro;
 

@@ -615,6 +615,12 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		}
 	}
 
+	if (macro.SubStr(0, 5) == "_HOST") {
+		Dictionary::Ptr custom = GetCustom();
+		*result = custom ? custom->Get(macro.SubStr(5)) : "";
+		return true;
+	}
+
 	Dictionary::Ptr macros = GetMacros();
 
 	String name = macro;

@@ -474,6 +474,12 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Stri
 		}
 	}
 
+	if (macro.SubStr(0, 8) == "_SERVICE") {
+		Dictionary::Ptr custom = GetCustom();
+		*result = custom ? custom->Get(macro.SubStr(8)) : "";
+		return true;
+	}
+
 	Dictionary::Ptr macros = GetMacros();
 
 	if (macros && macros->Contains(macro)) {
