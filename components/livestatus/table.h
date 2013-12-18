@@ -50,8 +50,6 @@ public:
 	Column GetColumn(const String& name) const;
 	std::vector<String> GetColumnNames(void) const;
 
-        virtual void UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno);
-
 protected:
 	Table(void);
 

@@ -17,62 +17,25 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LOGUTILITY_H
-#define LOGUTILITY_H
+#ifndef HISTORYTABLE_H
+#define HISTORYTABLE_H
 
-#include "livestatus/historytable.h"
-
-using namespace icinga;
+#include "livestatus/table.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
 
-enum LogEntryType {
-    LogEntryTypeHostAlert,
-    LogEntryTypeHostDowntimeAlert,
-    LogEntryTypeHostFlapping,
-    LogEntryTypeHostNotification,
-    LogEntryTypeHostInitialState,
-    LogEntryTypeHostCurrentState,
-    LogEntryTypeServiceAlert,
-    LogEntryTypeServiceDowntimeAlert,
-    LogEntryTypeServiceFlapping,
-    LogEntryTypeServiceNotification,
-    LogEntryTypeServiceInitialState,
-    LogEntryTypeServiceCurrentState,
-    LogEntryTypeTimeperiodTransition,
-    LogEntryTypeVersion,
-    LogEntryTypeInitialStates,
-    LogEntryTypeProgramStarting
-};
-
-enum LogEntryClass {
-    LogEntryClassInfo = 0,
-    LogEntryClassAlert = 1,
-    LogEntryClassProgram = 2,
-    LogEntryClassNotification = 3,
-    LogEntryClassPassive = 4,
-    LogEntryClassCommand = 5,
-    LogEntryClassState = 6,
-    LogEntryClassText = 7
-};
 
 /**
  * @ingroup livestatus
  */
-class LogUtility
+class HistoryTable : public Table
 {
-
 public:
-	static void CreateLogIndex(const String& path, std::map<time_t, String>& index);
-	static void CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index);
-	static void CreateLogCache(std::map<time_t, String> index, HistoryTable *table, time_t from, time_t until);
-	static Dictionary::Ptr GetAttributes(const String& text);
-
-private:
-	LogUtility(void);
+        virtual void UpdateLogEntries(const Dictionary::Ptr& bag, int line_count, int lineno);
 };
 
 }
 
-#endif /* LOGUTILITY_H */
+#endif /* HISTORYTABLE_H */

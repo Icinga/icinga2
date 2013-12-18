@@ -47,7 +47,7 @@
 
 using namespace icinga;
 
-LogTable::LogTable(const String& compat_log_path, const unsigned long& from, const unsigned long& until)
+LogTable::LogTable(const String& compat_log_path, time_t from, time_t until)
 {
 	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(from) + " until " + Convert::ToString(until));
 
@@ -64,15 +64,12 @@ LogTable::LogTable(const String& compat_log_path, const unsigned long& from, con
 	AddColumns(this);
 }
 
-void LogTable::UpdateLogCache(const Dictionary::Ptr& bag, int line_count, int lineno)
+void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno)
 {
 	/* additional attributes only for log table */
-	bag->Set("lineno", lineno);
+	log_entry_attrs->Set("lineno", lineno);
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_RowsCache[line_count] = bag;
-	}
+	m_RowsCache[line_count] = log_entry_attrs;
 }
 
 void LogTable::AddColumns(Table *table, const String& prefix,

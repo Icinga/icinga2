@@ -38,13 +38,13 @@
 
 using namespace icinga;
 
-void LogUtility::CreateLogIndex(const String& path, std::map<unsigned int, String>& index)
+void LogUtility::CreateLogIndex(const String& path, std::map<time_t, String>& index)
 {
 	Utility::Glob(path + "/icinga.log", boost::bind(&LogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
 	Utility::Glob(path + "/archives/*.log", boost::bind(&LogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
 }
 
-void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<unsigned int, String>& index)
+void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index)
 {
 	std::ifstream stream;
 	stream.open(path.CStr(), std::ifstream::in);
@@ -64,7 +64,7 @@ void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<unsigned
 
 	/* extract timestamp */
 	buffer[11] = 0;
-	unsigned int ts_start = atoi(buffer+1);
+	time_t ts_start = atoi(buffer+1);
 
 	stream.close();
 
@@ -73,11 +73,10 @@ void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<unsigned
 	index[ts_start] = path;
 }
 
-void LogUtility::CreateLogCache(std::map<unsigned int, String> index, Table *table,
-    const unsigned int& from, const unsigned int& until)
+void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *table,
+    time_t from, time_t until)
 {
-	if (!table)
-		return;
+	ASSERT(table);
 
 	/* m_LogFileIndex map tells which log files are involved ordered by their start timestamp */
 	unsigned int ts;
@@ -101,15 +100,15 @@ void LogUtility::CreateLogCache(std::map<unsigned int, String> index, Table *tab
 			if (line.empty())
 				continue; /* Ignore empty lines */
 
-			Dictionary::Ptr bag = LogUtility::GetAttributes(line);
+			Dictionary::Ptr log_entry_attrs = LogUtility::GetAttributes(line);
 
 			/* no attributes available - invalid log line */
-			if (!bag) {
+			if (!log_entry_attrs) {
 				Log(LogDebug, "livestatus", "Skipping invalid log line: '" + line + "'.");
 				continue;
 			}
 
-			table->UpdateLogCache(bag, line_count, lineno);
+			table->UpdateLogEntries(log_entry_attrs, line_count, lineno);
 
 			line_count++;
 			lineno++;
@@ -155,7 +154,6 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 	bag->Set("attempt", 0);
 	bag->Set("message", text); /* used as 'message' in log table, and 'log_output' in statehist table */
 
-	/* Host States */
 	if (type.Contains("INITIAL HOST STATE") ||
 	    type.Contains("CURRENT HOST STATE") ||
 	    type.Contains("HOST ALERT")) {
@@ -182,8 +180,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		}
 
 		return bag;
-	}
-	else if (type.Contains("HOST DOWNTIME ALERT") ||
+	} else if (type.Contains("HOST DOWNTIME ALERT") ||
 		 type.Contains("HOST FLAPPING ALERT")) {
 		if (tokens.size() < 3)
 			return bag;
@@ -201,9 +198,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		}
 
 		return bag;
-	}
-	/* Service States */
-	else if (type.Contains("INITIAL SERVICE STATE") ||
+	} else if (type.Contains("INITIAL SERVICE STATE") ||
 		 type.Contains("CURRENT SERVICE STATE") ||
 		 type.Contains("SERVICE ALERT")) {
 		if (tokens.size() < 6)
@@ -230,8 +225,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		}
 
 		return bag;
-	}
-	else if (type.Contains("SERVICE DOWNTIME ALERT") ||
+	} else if (type.Contains("SERVICE DOWNTIME ALERT") ||
 		 type.Contains("SERVICE FLAPPING ALERT")) {
 		if (tokens.size() < 4)
 			return bag;
@@ -250,9 +244,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		}
 
 		return bag;
-	}
-	/* Timeperiods */
-	else if (type.Contains("TIMEPERIOD TRANSITION")) {
+	} else if (type.Contains("TIMEPERIOD TRANSITION")) {
 		if (tokens.size() < 4)
 			return bag;
 
@@ -263,9 +255,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		bag->Set("service_description", tokens[1]);
 		bag->Set("state_type", tokens[2]);
 		bag->Set("comment", tokens[3]);
-	}
-	/* Notifications */
-	else if (type.Contains("HOST NOTIFICATION")) {
+	} else if (type.Contains("HOST NOTIFICATION")) {
 		if (tokens.size() < 6)
 			return bag;
 
@@ -280,8 +270,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		bag->Set("log_type", LogEntryTypeHostNotification);
 
 		return bag;
-	}
-	else if (type.Contains("SERVICE NOTIFICATION")) {
+	} else if (type.Contains("SERVICE NOTIFICATION")) {
 		if (tokens.size() < 7)
 			return bag;
 
@@ -297,9 +286,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
 		bag->Set("log_type", LogEntryTypeServiceNotification);
 
 		return bag;
-	}
-        /* Passive Checks */
-	else if (type.Contains("PASSIVE HOST CHECK")) {
+	} else if (type.Contains("PASSIVE HOST CHECK")) {
 		if (tokens.size() < 3)
 			return bag;
 
@@ -310,8 +297,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
                 bag->Set("log_class", LogEntryClassPassive);
 
                 return bag;
-	}
-	else if (type.Contains("PASSIVE SERVICE CHECK")) {
+	} else if (type.Contains("PASSIVE SERVICE CHECK")) {
 		if (tokens.size() < 4)
 			return bag;
 
@@ -323,28 +309,22 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
                 bag->Set("log_class", LogEntryClassPassive);
 
                 return bag;
-	}
-	/* External Command */
-	else if (type.Contains("EXTERNAL COMMAND")) {
+	} else if (type.Contains("EXTERNAL COMMAND")) {
 		bag->Set("log_class", LogEntryClassCommand);
 		/* string processing not implemented in 1.x */
 
                 return bag;
-	}
-	/* normal text entries */
-	else if (type.Contains("LOG VERSION")) {
+	} else if (type.Contains("LOG VERSION")) {
 		bag->Set("log_class", LogEntryClassProgram);
 		bag->Set("log_type", LogEntryTypeVersion);
 
                 return bag;
-	}
-	else if (type.Contains("logging initial states")) {
+	} else if (type.Contains("logging initial states")) {
 		bag->Set("log_class", LogEntryClassProgram);
 		bag->Set("log_type", LogEntryTypeInitialStates);
 
                 return bag;
-	}
-	else if (type.Contains("starting... (PID=")) {
+	} else if (type.Contains("starting... (PID=")) {
 		bag->Set("log_class", LogEntryClassProgram);
 		bag->Set("log_type", LogEntryTypeProgramStarting);
 
