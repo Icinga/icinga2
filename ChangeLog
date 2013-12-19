@@ -1,6 +1,28 @@
 Icinga 2.x CHANGELOG
 ====================
 
+0.0.6 - 2013/12/19
+
+* Scheduled Downtimes as configuration object (also known as "Recurring Downtimes").
+* Log command arguments
+* Performance improvements for the config compiler
+* Config validation provides stats at the end
+* icinga2-enable-feature lists already enabled features
+* Add support for latency statistics to IcingaCheckTask
+* Implement support for using custom attributes as macros
+* StatusDataWriter update interval as config attribute
+* Improve performance with fetching data for status.dat/objects.cache, DB IDO and Livestatus
+* Livestatus History Table performance improvements
+
+Changes
+
+* Generated object names (host with services array) use an exclamation mark instead of a colon
+as seperator. State file objects with downtimes, comments, etc are invalid (unknown) for that
+reason.
+* Script variables are set using 'var' and 'const' instead of the previous 'set' identifier
+* ITL constants are now embedded in libicinga
+* Removed the ConsoleLogger object and keep the default console log enabled until we daemonize
+
 0.0.5 - 2013/12/03
 
 * Cluster: Implement support for CRLs
