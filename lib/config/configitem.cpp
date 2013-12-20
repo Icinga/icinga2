@@ -141,12 +141,9 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 {
 	ASSERT(OwnsLock());
 
-	if (!m_Properties) {
-		m_Properties = make_shared<Dictionary>();
-		GetLinkedExpressionList()->Execute(m_Properties);
-	}
-
-	return m_Properties;
+	Dictionary::Ptr properties = make_shared<Dictionary>();
+	GetLinkedExpressionList()->Execute(properties);
+	return properties;
 }
 
 /**

@@ -78,7 +78,6 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	ExpressionList::Ptr m_LinkedExpressionList;
-	Dictionary::Ptr m_Properties;
         
         DynamicObject::Ptr m_Object;
 
