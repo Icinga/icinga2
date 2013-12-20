@@ -18,6 +18,6 @@ file { '/etc/motd':
 }
 
 user { 'vagrant':
-  groups  => 'icingacmd',
-  require => Group['icingacmd']
+  groups  => ['icinga', 'icingacmd'],
+  require => [User['icinga'], Group['icingacmd']]
 }
