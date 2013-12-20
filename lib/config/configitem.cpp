@@ -313,6 +313,9 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 
 	upq.Join();
 
+	ConfigItem::DiscardItems();
+	ConfigType::DiscardTypes();
+
 	/* log stats for external parsers */
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		if (type->GetObjects().size() > 0)

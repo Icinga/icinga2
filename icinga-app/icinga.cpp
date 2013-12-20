@@ -113,9 +113,6 @@ static bool LoadConfigFiles(const String& appType, bool validateOnly)
 	if (!result)
 		return false;
 
-	ConfigItem::DiscardItems();
-	ConfigType::DiscardTypes();
-
 	return true;
 }
 
