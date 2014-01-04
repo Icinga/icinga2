@@ -1,5 +1,5 @@
 include apache
-include icinga-classicui
+include icinga2-classicui
 include icinga-web
 include nagios-plugins
 include nsca-ng

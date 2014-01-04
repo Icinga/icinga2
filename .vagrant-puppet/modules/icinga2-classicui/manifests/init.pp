@@ -1,4 +1,4 @@
-class icinga-classicui {
+class icinga2-classicui {
   include icinga-rpm-snapshot
   include icinga2
 
