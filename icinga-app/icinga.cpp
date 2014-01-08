@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2013 Icinga Development Team (http://www.icinga.org/)   *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 		if (g_AppParams.count("version")) {
 			std::cout  << " (Version: " << Application::GetVersion() << ")";
 			std::cout << std::endl
-				  << "Copyright (c) 2012-2013 Icinga Development Team (http://www.icinga.org)" << std::endl
+				  << "Copyright (c) 2012-present Icinga Development Team (http://www.icinga.org)" << std::endl
 				  << "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
 				  << "This is free software: you are free to change and redistribute it." << std::endl
 				  << "There is NO WARRANTY, to the extent permitted by law.";
