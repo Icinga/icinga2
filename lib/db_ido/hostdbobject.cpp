@@ -175,8 +175,8 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 		fields->Set("percent_state_change", CompatUtility::GetServicePercentStateChange(service));
 
 		if (cr) {
-			fields->Set("latency", Service::CalculateLatency(cr));
-			fields->Set("execution_time", Service::CalculateExecutionTime(cr));
+			fields->Set("latency", Convert::ToString(Service::CalculateLatency(cr)));
+			fields->Set("execution_time", Convert::ToString(Service::CalculateExecutionTime(cr)));
 		}
 		fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
 		fields->Set("failure_prediction_enabled", Empty);

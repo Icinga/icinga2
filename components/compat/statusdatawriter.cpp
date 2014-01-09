@@ -321,8 +321,8 @@ void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::P
 	      "\t" "should_be_scheduled=" << CompatUtility::GetServiceShouldBeScheduled(service) << "\n";
 
 	if (cr) {
-	   fp << "\t" << "check_execution_time=" << static_cast<double>(Service::CalculateExecutionTime(cr)) << "\n"
-	         "\t" "check_latency=" << static_cast<double>(Service::CalculateLatency(cr)) << "\n";
+	   fp << "\t" << "check_execution_time=" << Convert::ToString(Service::CalculateExecutionTime(cr)) << "\n"
+	         "\t" "check_latency=" << Convert::ToString(Service::CalculateLatency(cr)) << "\n";
 	}
 
 	fp << "\t" << "current_state=" << CompatUtility::GetServiceCurrentState(service) << "\n"

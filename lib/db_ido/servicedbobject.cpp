@@ -179,8 +179,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("percent_state_change", CompatUtility::GetServicePercentStateChange(service));
 
 	if (cr) {
-		fields->Set("latency", Service::CalculateLatency(cr));
-		fields->Set("execution_time", Service::CalculateExecutionTime(cr));
+		fields->Set("latency", Convert::ToString(Service::CalculateLatency(cr)));
+		fields->Set("execution_time", Convert::ToString(Service::CalculateExecutionTime(cr)));
 	}
 
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
@@ -1276,8 +1276,8 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	fields1->Set("command_object_id", service->GetCheckCommand());
 	fields1->Set("command_args", Empty);
 	fields1->Set("command_line", cr->GetCommand());
-	fields1->Set("execution_time", execution_time);
-	fields1->Set("latency", Service::CalculateLatency(cr));
+	fields1->Set("execution_time", Convert::ToString(execution_time));
+	fields1->Set("latency", Convert::ToString(Service::CalculateLatency(cr)));
 	fields1->Set("return_code", cr->GetExitStatus());
 	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
