@@ -209,18 +209,31 @@ void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 
 void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
+	String notes = CompatUtility::GetCustomAttributeConfig(host, "notes");
+	String notes_url = CompatUtility::GetCustomAttributeConfig(host, "notes_url");
+	String action_url = CompatUtility::GetCustomAttributeConfig(host, "action_url");
+	String icon_image = CompatUtility::GetCustomAttributeConfig(host, "icon_image");
+	String icon_image_alt = CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt");
+	String statusmap_image = CompatUtility::GetCustomAttributeConfig(host, "statusmap_image");
+
 	fp << "define host {" "\n"
 	      "\t" "host_name" "\t" << host->GetName() << "\n"
 	      "\t" "display_name" "\t" << host->GetDisplayName() << "\n"
 	      "\t" "alias" "\t" << host->GetDisplayName() << "\n"
 	      "\t" "address" "\t" << CompatUtility::GetHostAddress(host) << "\n"
-	      "\t" "address6" "\t" << CompatUtility::GetHostAddress6(host) << "\n"
-	      "\t" "notes" "\t" << CompatUtility::GetCustomAttributeConfig(host, "notes") << "\n"
-	      "\t" "notes_url" "\t" << CompatUtility::GetCustomAttributeConfig(host, "notes_url") << "\n"
-	      "\t" "action_url" "\t" << CompatUtility::GetCustomAttributeConfig(host, "action_url") << "\n"
-	      "\t" "icon_image" "\t" << CompatUtility::GetCustomAttributeConfig(host, "icon_image") << "\n"
-	      "\t" "icon_image_alt" "\t" << CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt") << "\n"
-	      "\t" "statusmap_image" "\t" << CompatUtility::GetCustomAttributeConfig(host, "statusmap_image") << "\n";
+	      "\t" "address6" "\t" << CompatUtility::GetHostAddress6(host) << "\n";
+	if (!notes.IsEmpty())
+	      fp << "\t" "notes" "\t" << notes << "\n";
+	if (!notes_url.IsEmpty())
+	      fp << "\t" "notes_url" "\t" << notes_url << "\n";
+	if (!action_url.IsEmpty())
+	      fp << "\t" "action_url" "\t" << action_url << "\n";
+	if (!icon_image.IsEmpty())
+	      fp << "\t" "icon_image" "\t" << icon_image << "\n";
+	if (!icon_image_alt.IsEmpty())
+	      fp << "\t" "icon_image_alt" "\t" << icon_image_alt << "\n";
+	if (!statusmap_image.IsEmpty())
+	      fp << "\t" "statusmap_image" "\t" << statusmap_image << "\n";
 
 	std::set<Host::Ptr> parents = host->GetParentHosts();
 
@@ -423,16 +436,27 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
                 DumpNameList(fp, CompatUtility::GetServiceNotificationUserGroups(service));
                 fp << "\n";
 
+		String notes = CompatUtility::GetCustomAttributeConfig(service, "notes");
+		String notes_url = CompatUtility::GetCustomAttributeConfig(service, "notes_url");
+		String action_url = CompatUtility::GetCustomAttributeConfig(service, "action_url");
+		String icon_image = CompatUtility::GetCustomAttributeConfig(service, "icon_image");
+		String icon_image_alt = CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt");
+
                 fp << "\t" "initial_state" "\t" "o" "\n"
                       "\t" "low_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
                       "\t" "high_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
                       "\t" "process_perf_data" "\t" "1" "\n"
-                      "\t" "check_freshness" << "\t" "1" "\n"
-		      "\t" "notes" "\t" << CompatUtility::GetCustomAttributeConfig(service, "notes") << "\n"
-		      "\t" "notes_url" "\t" << CompatUtility::GetCustomAttributeConfig(service, "notes_url") << "\n"
-		      "\t" "action_url" "\t" << CompatUtility::GetCustomAttributeConfig(service, "action_url") << "\n"
-		      "\t" "icon_image" "\t" << CompatUtility::GetCustomAttributeConfig(service, "icon_image") << "\n"
-		      "\t" "icon_image_alt" "\t" << CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt") << "\n";
+                      "\t" "check_freshness" << "\t" "1" "\n";
+		if (!notes.IsEmpty())
+		      fp << "\t" "notes" "\t" << notes << "\n";
+		if (!notes_url.IsEmpty())
+		      fp << "\t" "notes_url" "\t" << notes_url << "\n";
+		if (!action_url.IsEmpty())
+		      fp << "\t" "action_url" "\t" << action_url << "\n";
+		if (!icon_image.IsEmpty())
+		      fp << "\t" "icon_image" "\t" << icon_image << "\n";
+		if (!icon_image_alt.IsEmpty())
+		      fp << "\t" "icon_image_alt" "\t" << icon_image_alt << "\n";
 	}
 
 	fp << "\t" "service_groups" "\t";
