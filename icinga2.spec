@@ -29,7 +29,12 @@
 %define apachegroup apache
 %endif
 %if "%{_vendor}" == "suse"
+# opensuse 13
+%if 0%{?suse_version} >= 1310
+%define opensuse_boost_version 1_53_0
+%else
 %define opensuse_boost_version 1_49_0
+%endif
 %define sles_boost_version 1_54_0
 %define apachename apache2
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
