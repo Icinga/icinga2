@@ -338,8 +338,13 @@ void StatusDataWriter::DumpServiceStatusAttrs(std::ostream& fp, const Service::P
 	         "\t" "check_latency=" << Convert::ToString(Service::CalculateLatency(cr)) << "\n";
 	}
 
-	fp << "\t" << "current_state=" << CompatUtility::GetServiceCurrentState(service) << "\n"
-	      "\t" "state_type=" << service->GetStateType() << "\n"
+	if (type == CompatTypeHost && service->IsHostCheck()) {
+		fp << "\t" << "current_state=" << service->GetHost()->GetState() << "\n";
+	} else {
+		fp << "\t" << "current_state=" << CompatUtility::GetServiceCurrentState(service) << "\n";
+	}
+
+	fp << "\t" "state_type=" << service->GetStateType() << "\n"
 	      "\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
 	      "\t" "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
 	      "\t" "performance_data=" << CompatUtility::GetCheckResultPerfdata(cr) << "\n";
