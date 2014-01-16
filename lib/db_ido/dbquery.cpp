@@ -23,6 +23,8 @@
 
 using namespace icinga;
 
+INITIALIZE_ONCE(&DbQuery::StaticInitialize);
+
 void DbQuery::StaticInitialize(void)
 {
 	ScriptVariable::Set("DbCatConfig", DbCatConfig, true, true);
