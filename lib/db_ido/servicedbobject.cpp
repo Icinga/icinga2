@@ -1284,6 +1284,7 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	fields1->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	fields1->Set("service_object_id", service);
 
 	query1.Fields = fields1;
 	OnQuery(query1);
