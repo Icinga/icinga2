@@ -21,7 +21,7 @@ The Vagrant VM is based on CentOS 6.4 and uses the official Icinga 2 RPM
 packages from `packages.icinga.org`.
 
 In addition to installing Icinga 2 the Vagrant script also installs the Icinga
-1.x Classic UI and the check plugins that are available from the Nagios Plugins
+1.x Classic UI and the check plugins that are available from the Monitoring Plugins
 project.
 
 The Classic UI is available at [http://localhost:8080/icinga](http://localhost:8080/icinga).

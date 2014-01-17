@@ -325,12 +325,14 @@ Modified Attributes can be reset using external commands.
 
 ## Plugin API
 
-Currently the native plugin api inherited from the `Nagios Plugins` project is available.
+Currently the native plugin api inherited from the `Monitoring Plugins` (former
+`Nagios Plugins`) project is available.
 Future specifications will be documented here.
 
-### Nagios Plugin API
+### Monitoring Plugin API
 
-The `Nagios Plugin API` is defined the [Nagios Plugins Development Guidelines](https://www.nagios-plugins.org/doc/guidelines.html).
+The `Monitoring Plugin API` (former `Nagios Plugin API`) is defined in the
+[Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
 
 
 
