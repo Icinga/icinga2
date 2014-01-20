@@ -169,7 +169,7 @@ bool Service::GetEnableNotifications(void) const
 
 void Service::SetEnableNotifications(bool enabled, const String& authority)
 {
-	SetOverrideEnableActiveChecks(enabled);
+	SetOverrideEnableNotifications(enabled);
 
 	OnEnableNotificationsChanged(GetSelf(), enabled, authority);
 }
