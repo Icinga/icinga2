@@ -68,6 +68,7 @@ class TestSuite(object):
             self._copy_test(path)
             self._results[test_name] = self._run_test(path)
             self._apply_setup_routines(test_name, 'teardown')
+            self._remove_test(test_name)
 
     def _apply_setup_routines(self, test_name, context):
         instructions = next((t[1].get(context)
@@ -97,6 +98,10 @@ class TestSuite(object):
     def _copy_test(self, path):
         self._copy_file(path, os.path.join(self._config['settings']['test_root'],
                                            os.path.basename(path)))
+
+    def _remove_test(self, test_name):
+        test_root = self._config['settings']['test_root']
+        self._remove_file(os.path.join(test_root, test_name))
 
     def _run_test(self, path):
         command = self._config['commands']['exec']

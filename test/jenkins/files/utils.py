@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os
+import time
 import json
 import socket
 import subprocess
@@ -61,7 +62,8 @@ def _parse_mysql_result(resultset):
         if header is None:
             header = columns
         else:
-            result.append(dict((header[i], v) for i, v in enumerate(columns)))
+            result.append(dict((header[i], v if v != 'NULL' else None)
+                               for i, v in enumerate(columns)))
     return result
 
 
@@ -96,6 +98,8 @@ class LiveStatusSocket(object):
     def __init__(self, path):
         self.path = path
 
+        self._connected = False
+
     def __enter__(self):
         self.connect()
         return self
@@ -106,10 +110,22 @@ class LiveStatusSocket(object):
     def connect(self):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.connect(self.path)
+        self._connected = True
+
+    def reconnect(self, timeout=30):
+        start = time.time()
+        while not self._connected and time.time() - start < timeout:
+            try:
+                self.connect()
+            except socket.error, error:
+                if error.errno != 111:
+                    raise
 
     def close(self):
-        self.sock.shutdown(socket.SHUT_RDWR)
-        self.sock.close()
+        if self._connected:
+            self.sock.shutdown(socket.SHUT_RDWR)
+            self.sock.close()
+            self._connected = False
 
     def query(self, command):
         self.send(command)
@@ -121,10 +137,16 @@ class LiveStatusSocket(object):
         return response
 
     def send(self, query):
+        if not self._connected:
+            raise RuntimeError('Tried to write to closed socket')
+
         full_query = '\n'.join([query] + self.options)
         self.sock.sendall((full_query + '\n\n').encode('utf-8'))
 
     def recv(self):
+        if not self._connected:
+            raise RuntimeError('Tried to read from closed socket')
+
         response = b''
         response_header = self.sock.recv(16)
         response_code = int(response_header[:3])

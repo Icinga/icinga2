@@ -13,6 +13,10 @@ class icinga2 {
     alias => 'icinga2-doc'
   }
 
+  package { 'mailx':
+    ensure => installed,
+  }
+
   service { 'icinga2':
     enable => true,
     ensure => running,
