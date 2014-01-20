@@ -918,7 +918,7 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const
 		{
 			ObjectLock olock(service);
 
-			service->SetEnablePassiveChecks(true);
+			service->SetEnablePassiveChecks(false);
 		}
 	}
 }
@@ -1615,6 +1615,26 @@ void ExternalCommandProcessor::EnableHostgroupPassiveHostChecks(double, const st
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
 
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	if (!hg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable hostgroup passive host checks for non-existent hostgroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Service::Ptr hc = host->GetCheckService();
+
+		if (!hc) {
+			Log(LogInformation, "icinga", "Cannot enable passive checks for host '" + host->GetName() + "' which has no check service.");
+		} else {
+			Log(LogInformation, "icinga", "Enabling passive checks for host '" + host->GetName() + "'");
+
+			{
+				ObjectLock olock(hc);
+
+				hc->SetEnablePassiveChecks(true);
+			}
+		}
+	}
 }
 
 void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::vector<String>& arguments)
@@ -1669,7 +1689,7 @@ void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const
 			{
 				ObjectLock olock(hc);
 
-				hc->SetEnablePassiveChecks(false);
+				hc->SetEnablePassiveChecks(true);
 			}
 		}
 	}
