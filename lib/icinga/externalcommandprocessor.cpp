@@ -199,6 +199,14 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("CHANGE_MAX_SVC_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxSvcCheckAttempts);
 	RegisterCommand("CHANGE_HOST_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeHostCheckTimeperiod);
 	RegisterCommand("CHANGE_SVC_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeSvcCheckTimeperiod);
+	RegisterCommand("ENABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupHostNotifications);
+	RegisterCommand("ENABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupSvcNotifications);
+	RegisterCommand("DISABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupHostNotifications);
+	RegisterCommand("DISABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupSvcNotifications);
+	RegisterCommand("ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableServicegroupHostNotifications);
+	RegisterCommand("DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupHostNotifications);
+	RegisterCommand("ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableServicegroupSvcNotifications);
+	RegisterCommand("DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupSvcNotifications);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
@@ -2281,5 +2289,205 @@ void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::
 		ObjectLock olock(service);
 
 		service->SetCheckPeriod(tp);
+	}
+}
+
+void ExternalCommandProcessor::EnableHostgroupHostNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	if (!hg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host notifications for non-existent hostgroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Service::Ptr hc = host->GetCheckService();
+
+		if (!hc) {
+			Log(LogInformation, "icinga", "Cannot enable notifications for host '" + host->GetName() + "' which has no check service.");
+		} else {
+			Log(LogInformation, "icinga", "Enabling notifications for host '" + host->GetName() + "'");
+
+			{
+				ObjectLock olock(hc);
+
+				hc->SetEnableNotifications(true);
+			}
+		}
+	}
+}
+
+void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	if (!hg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service notifications for non-existent hostgroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			Log(LogInformation, "icinga", "Enabling notifications for service '" + service->GetName() + "'");
+
+			{
+				ObjectLock olock(service);
+
+				service->SetEnableNotifications(true);
+			}
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableHostgroupHostNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	if (!hg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host notifications for non-existent hostgroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		Service::Ptr hc = host->GetCheckService();
+
+		if (!hc) {
+			Log(LogInformation, "icinga", "Cannot disable notifications for host '" + host->GetName() + "' which has no check service.");
+		} else {
+			Log(LogInformation, "icinga", "Disabling notifications for host '" + host->GetName() + "'");
+
+			{
+				ObjectLock olock(hc);
+
+				hc->SetEnableNotifications(false);
+			}
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
+
+	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
+
+	if (!hg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service notifications for non-existent hostgroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			Log(LogInformation, "icinga", "Disabling notifications for service '" + service->GetName() + "'");
+
+			{
+				ObjectLock olock(service);
+
+				service->SetEnableNotifications(false);
+			}
+		}
+	}
+}
+
+void ExternalCommandProcessor::EnableServicegroupHostNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	if (!sg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host notifications for non-existent servicegroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Host::Ptr host = service->GetHost();
+
+		Service::Ptr hc = host->GetCheckService();
+
+		if (!hc) {
+			Log(LogInformation, "icinga", "Cannot enable notifications for host '" + host->GetName() + "' which has no check service.");
+		} else {
+			Log(LogInformation, "icinga", "Enabling notifications for host '" + host->GetName() + "'");
+
+			{
+				ObjectLock olock(hc);
+
+				hc->SetEnableNotifications(true);
+			}
+		}
+	}
+}
+
+void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	if (!sg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service notifications for non-existent servicegroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Log(LogInformation, "icinga", "Enabling notifications for service '" + service->GetName() + "'");
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableNotifications(true);
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableServicegroupHostNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	if (!sg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host notifications for non-existent servicegroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Host::Ptr host = service->GetHost();
+
+		Service::Ptr hc = host->GetCheckService();
+
+		if (!hc) {
+			Log(LogInformation, "icinga", "Cannot disable notifications for host '" + host->GetName() + "' which has no check service.");
+		} else {
+			Log(LogInformation, "icinga", "Disabling notifications for host '" + host->GetName() + "'");
+
+			{
+				ObjectLock olock(hc);
+
+				hc->SetEnableNotifications(false);
+			}
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double time, const std::vector<String>& arguments)
+{
+	if (arguments.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
+
+	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
+
+	if (!sg)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service notifications for non-existent servicegroup '" + arguments[0] + "'"));
+
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		Log(LogInformation, "icinga", "Disabling notifications for service '" + service->GetName() + "'");
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableNotifications(false);
+		}
 	}
 }

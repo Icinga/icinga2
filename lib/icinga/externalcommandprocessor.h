@@ -149,6 +149,14 @@ private:
 	static void ChangeMaxSvcCheckAttempts(double time, const std::vector<String>& arguments);
 	static void ChangeHostCheckTimeperiod(double time, const std::vector<String>& arguments);
 	static void ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments);
+	static void EnableHostgroupHostNotifications(double time, const std::vector<String>& arguments);
+	static void EnableHostgroupSvcNotifications(double time, const std::vector<String>& arguments);
+	static void DisableHostgroupHostNotifications(double time, const std::vector<String>& arguments);
+	static void DisableHostgroupSvcNotifications(double time, const std::vector<String>& arguments);
+	static void EnableServicegroupHostNotifications(double time, const std::vector<String>& arguments);
+	static void EnableServicegroupSvcNotifications(double time, const std::vector<String>& arguments);
+	static void DisableServicegroupHostNotifications(double time, const std::vector<String>& arguments);
+	static void DisableServicegroupSvcNotifications(double time, const std::vector<String>& arguments);
 };
 
 }
