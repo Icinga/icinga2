@@ -262,8 +262,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* custom variables */
-	Log(LogDebug, "db_ido", "service customvars for '" + service->GetName() + "'");
-
 	Dictionary::Ptr customvars;
 
 	{
@@ -272,25 +270,29 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	if (customvars) {
+		Log(LogDebug, "db_ido", "Dumping service customvars for '" + service->GetName() + "'");
+
 		ObjectLock olock(customvars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, customvars) {
-			Log(LogDebug, "db_ido", "service customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
+			if (!kv.first.IsEmpty()) {
+				Log(LogDebug, "db_ido", "service customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 
-			Dictionary::Ptr fields2 = make_shared<Dictionary>();
-			fields2->Set("varname", Convert::ToString(kv.first));
-			fields2->Set("varvalue", Convert::ToString(kv.second));
-			fields2->Set("config_type", 1);
-			fields2->Set("has_been_modified", 0);
-			fields2->Set("object_id", service);
-			fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
+				Dictionary::Ptr fields2 = make_shared<Dictionary>();
+				fields2->Set("varname", Convert::ToString(kv.first));
+				fields2->Set("varvalue", Convert::ToString(kv.second));
+				fields2->Set("config_type", 1);
+				fields2->Set("has_been_modified", 0);
+				fields2->Set("object_id", service);
+				fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-			DbQuery query2;
-			query2.Table = "customvariables";
-			query2.Type = DbQueryInsert;
-			query2.Category = DbCatConfig;
-			query2.Fields = fields2;
-			OnQuery(query2);
+				DbQuery query2;
+				query2.Table = "customvariables";
+				query2.Type = DbQueryInsert;
+				query2.Category = DbCatConfig;
+				query2.Fields = fields2;
+				OnQuery(query2);
+			}
 		}
 	}
 

@@ -425,19 +425,17 @@ Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr&
 		return Dictionary::Ptr();
 
 	ObjectLock olock(custom);
-	String key;
-	Value value;
 	BOOST_FOREACH(const Dictionary::Pair& kv, custom) {
-		if (kv.first == "notes" ||
-		    kv.first == "action_url" ||
-		    kv.first == "notes_url" ||
-		    kv.first == "icon_image" ||
-		    kv.first == "icon_image_alt" ||
-		    kv.first == "statusmap_image" ||
-		    kv.first == "2d_coords")
-			continue;
-
-		customvars->Set(key, value);
+		if (!kv.first.IsEmpty()) {
+			if (kv.first != "notes" &&
+			    kv.first != "action_url" &&
+			    kv.first != "notes_url" &&
+			    kv.first != "icon_image" &&
+			    kv.first != "icon_image_alt" &&
+			    kv.first != "statusmap_image" &&
+			    kv.first != "2d_coords")
+				customvars->Set(kv.first, kv.second);
+		}
 	}
 
 	return customvars;

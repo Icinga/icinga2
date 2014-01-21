@@ -276,8 +276,6 @@ void HostDbObject::OnConfigUpdate(void)
 	}
 
 	/* custom variables */
-	Log(LogDebug, "ido", "host customvars for '" + host->GetName() + "'");
-
 	Dictionary::Ptr customvars;
 	{
 		ObjectLock olock(host);
@@ -285,25 +283,29 @@ void HostDbObject::OnConfigUpdate(void)
 	}
 
 	if (customvars) {
+		Log(LogDebug, "ido", "Dumping host customvars for '" + host->GetName() + "'");
+
 		ObjectLock olock (customvars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, customvars) {
-			Log(LogDebug, "db_ido", "host customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
+			if (!kv.first.IsEmpty()) {
+				Log(LogDebug, "db_ido", "host customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 
-			Dictionary::Ptr fields3 = make_shared<Dictionary>();
-			fields3->Set("varname", Convert::ToString(kv.first));
-			fields3->Set("varvalue", Convert::ToString(kv.second));
-			fields3->Set("config_type", 1);
-			fields3->Set("has_been_modified", 0);
-			fields3->Set("object_id", host);
-			fields3->Set("instance_id", 0); /* DbConnection class fills in real ID */
+				Dictionary::Ptr fields3 = make_shared<Dictionary>();
+				fields3->Set("varname", Convert::ToString(kv.first));
+				fields3->Set("varvalue", Convert::ToString(kv.second));
+				fields3->Set("config_type", 1);
+				fields3->Set("has_been_modified", 0);
+				fields3->Set("object_id", host);
+				fields3->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-			DbQuery query3;
-			query3.Table = "customvariables";
-			query3.Type = DbQueryInsert;
-			query3.Category = DbCatConfig;
-			query3.Fields = fields3;
-			OnQuery(query3);
+				DbQuery query3;
+				query3.Table = "customvariables";
+				query3.Type = DbQueryInsert;
+				query3.Category = DbCatConfig;
+				query3.Fields = fields3;
+				OnQuery(query3);
+			}
 		}
 	}
 }
