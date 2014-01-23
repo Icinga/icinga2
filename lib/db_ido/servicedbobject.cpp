@@ -394,7 +394,7 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const C
 	fields1->Set("is_persistent", 1);
 	fields1->Set("comment_source", 1); /* external */
 	fields1->Set("expires", (comment->GetExpireTime() > 0) ? 1 : 0);
-	fields1->Set("expiration_time", comment->GetExpireTime());
+	fields1->Set("expiration_time", DbValue::FromTimestamp(comment->GetExpireTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbQuery query1;
