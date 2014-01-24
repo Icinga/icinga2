@@ -232,6 +232,29 @@ You can find the state file in `/var/lib/icinga2/icinga2.state`. Before copying
 the state file you should make sure that all your cluster nodes are properly shut
 down.
 
+### Assign Services to Cluster Nodes
+
+By default all services are distributed among the cluster nodes with the `Checker`
+feature enabled.
+If you require specific services to be only executed by one or more checker nodes
+within the cluster, you must define `authorities` as additional service object
+attribute. Required Endpoints must be defined as array.
+
+    object Host "dmz-host1" inherits "generic-host" {
+      services["dmz-oracledb"] = {
+        templates = [ "generic-service" ],
+        authorities = [ "icinga-node-1" ],
+      }
+    }
+
+> **Tip**
+>
+> Most common usecase is building a classic Master-Slave-Setup. The master node
+> does not have the `Checker` feature enabled, and the slave nodes are checking
+> services based on their location, inheriting from a global service template
+> defining the authorities.
+
+
 ## Dependencies
 
 Icinga 2 uses host and service dependencies as attribute directly on the host or
