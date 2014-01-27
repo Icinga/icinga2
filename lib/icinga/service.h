@@ -169,16 +169,25 @@ public:
 	static boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> OnEnableFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const String&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, StateType, const String&)> OnStateChange;
-	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> OnNotificationsRequested;
-	static boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> OnNotificationSentToUser;
-	static boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> OnNotificationSentToAllUsers;
+	static boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&,
+	    const String&, const String&)> OnNotificationsRequested;
+	static boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const std::set<User::Ptr>&,
+	    const NotificationType&, const CheckResult::Ptr&, const String&,
+	    const String&)> OnNotificationSendStart;
+	static boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const User::Ptr&,
+	    const NotificationType&, const CheckResult::Ptr&, const String&,
+	    const String&, const String&)> OnNotificationSentToUser;
+	static boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const std::set<User::Ptr>&,
+	    const NotificationType&, const CheckResult::Ptr&, const String&,
+	    const String&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> OnCommentRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeAdded;
 	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Service::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&)> OnDowntimeTriggered;
-	static boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> OnAcknowledgementSet;
+	static boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType,
+					     double, const String&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Service::Ptr&, const String&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Service::Ptr&)> OnEventCommandExecuted;
 

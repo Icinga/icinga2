@@ -52,13 +52,13 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddCommentHistory, _1, _2));
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntimeHistory, _1, _2));
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
-	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddContactNotificationHistory, _1, _2));
-	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6));
+	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddContactNotificationHistory, _1, _2, _3));
+	Service::OnNotificationSendStart.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 
 	Service::OnStateChange.connect(boost::bind(&ServiceDbObject::AddStateChangeHistory, _1, _2, _3));
 
 	Service::OnNewCheckResult.connect(bind(&ServiceDbObject::AddCheckResultLogHistory, _1, _2));
-	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6));
+	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
 	Service::OnFlappingChanged.connect(bind(&ServiceDbObject::AddFlappingLogHistory, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::AddTriggerDowntimeLogHistory, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::AddRemoveDowntimeLogHistory, _1, _2));
@@ -759,7 +759,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 
 /* notifications */
 
-void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service, const User::Ptr& user)
+void ServiceDbObject::AddContactNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service, const User::Ptr& user)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -788,7 +788,7 @@ void ServiceDbObject::AddContactNotificationHistory(const Service::Ptr& service,
 	OnQuery(query1);
 }
 
-void ServiceDbObject::AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
+void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	Host::Ptr host = service->GetHost();
@@ -1047,7 +1047,7 @@ void ServiceDbObject::AddRemoveDowntimeLogHistory(const Service::Ptr& service, c
 	}
 }
 
-void ServiceDbObject::AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user,
+void ServiceDbObject::AddNotificationSentLogHistory(const Notification::Ptr& notification, const Service::Ptr& service, const User::Ptr& user,
     NotificationType notification_type, const CheckResult::Ptr& cr,
     const String& author, const String& comment_text)
 {

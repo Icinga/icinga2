@@ -98,15 +98,20 @@ private:
         /* History */
         static void AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment);
 	static void AddDowntimeHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
-        static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry);
-        static void AddContactNotificationHistory(const Service::Ptr& service, const User::Ptr& user);
-	static void AddNotificationHistory(const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text);
+        static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment,
+            AcknowledgementType type, double expiry);
+        static void AddContactNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service, const User::Ptr& user);
+	static void AddNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service,
+            const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
+            const String& text);
 	static void AddStateChangeHistory(const Service::Ptr& service, const CheckResult::Ptr& cr, StateType type);
 
 	static void AddCheckResultLogHistory(const Service::Ptr& service, const CheckResult::Ptr &cr);
         static void AddTriggerDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
         static void AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
-	static void AddNotificationSentLogHistory(const Service::Ptr& service, const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author, const String& comment_text);
+	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Service::Ptr& service,
+            const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
+            const String& comment_text);
         static void AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state);
 
         static void AddFlappingHistory(const Service::Ptr& service, FlappingState flapping_state);

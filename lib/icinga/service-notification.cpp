@@ -31,8 +31,12 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&, const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
-boost::signals2::signal<void (const Service::Ptr&, const User::Ptr&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> Service::OnNotificationSentToUser;
+boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const std::set<User::Ptr>&,
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
+boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const std::set<User::Ptr>&,
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationSendStart;
+boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const User::Ptr&,
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> Service::OnNotificationSentToUser;
 
 void Service::ResetNotificationNumbers(void)
 {
@@ -63,6 +67,8 @@ void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& c
 
 	if (notifications.empty())
 		Log(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
+
+	Log(LogDebug, "icinga", "Service '" + GetName() + "' has " + notifications.size() + " notification(s).");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {

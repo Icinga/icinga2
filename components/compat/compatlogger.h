@@ -49,7 +49,9 @@ private:
 	void Flush(void);
 
 	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
-	void NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr, const String& author, const String& comment_text, const String& command_name);
+	void NotificationSentHandler(const Notification::Ptr& notification, const Service::Ptr& service,
+            const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
+            const String& author, const String& comment_text, const String& command_name);
 	void FlappingHandler(const Service::Ptr& service, FlappingState flapping_state);
 	void TriggerDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime);
 	void RemoveDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime);

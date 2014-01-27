@@ -50,7 +50,7 @@ void CompatLogger::Start(void)
 	DynamicObject::Start();
 
 	Service::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Service::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7));
+	Service::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
 	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
@@ -235,8 +235,8 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Down
 /**
  * @threadsafety Always.
  */
-void CompatLogger::NotificationSentHandler(const Service::Ptr& service, const User::Ptr& user,
-    NotificationType const& notification_type, CheckResult::Ptr const& cr,
+void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Service::Ptr& service,
+    const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
     const String& author, const String& comment_text, const String& command_name)
 {
         Host::Ptr host = service->GetHost();
