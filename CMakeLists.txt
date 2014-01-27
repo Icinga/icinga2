@@ -44,7 +44,7 @@ set(CPACK_PACKAGE_CONTACT "Icinga Development Team")
 set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
 set(CPACK_WIX_UPGRADE_GUID "68C75073-7CEF-4FC9-8DA5-581758729696")
-set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/)
+set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/" )
 include(CPack)
 
 include(GetGitRevisionDescription)
