@@ -25,7 +25,7 @@ using namespace icinga;
 
 UnixSocket::UnixSocket(void)
 {
-	int fd = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
+	int fd = socket(AF_UNIX, SOCK_STREAM, 0);
 
 	if (fd < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
