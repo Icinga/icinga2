@@ -29,6 +29,8 @@
 namespace icinga
 {
 
+typedef shared_ptr<PGresult> IdoPgsqlResult;
+
 /**
  * An IDO pgSQL database connection.
  *
@@ -60,10 +62,10 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
 
-	Array::Ptr Query(const String& query);
+	IdoPgsqlResult Query(const String& query);
 	DbReference GetSequenceValue(const String& table, const String& column);
 	String Escape(const String& s);
-	Dictionary::Ptr FetchRow(PGresult *result, int row);
+	Dictionary::Ptr FetchRow(const IdoPgsqlResult& result, int row);
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);

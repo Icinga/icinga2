@@ -165,12 +165,15 @@ void IdoMysqlConnection::Reconnect(void)
 		m_Connected = true;
 
 		String dbVersionName = "idoutils";
-		Array::Ptr version_rows = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
+		IdoMysqlResult result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
 
-		if (version_rows->GetLength() == 0)
+		Dictionary::Ptr version_row = FetchRow(result);
+
+		if (!version_row)
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema does not provide any valid version! Verify your schema installation."));
 
-		Dictionary::Ptr version_row = version_rows->Get(0);
+		DiscardRows(result);
+
 		String version = version_row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
@@ -180,13 +183,16 @@ void IdoMysqlConnection::Reconnect(void)
 
 		String instanceName = GetInstanceName();
 
-		Array::Ptr rows = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
+		result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
 
-		if (rows->GetLength() == 0) {
+		Dictionary::Ptr row = FetchRow(result);
+
+		if (!row) {
 			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + Escape(GetInstanceDescription()) + "')");
 			m_InstanceID = GetLastInsertID();
 		} else {
-			Dictionary::Ptr row = rows->Get(0);
+			DiscardRows(result);
+
 			m_InstanceID = DbReference(row->Get("instance_id"));
 		}
 
@@ -208,10 +214,9 @@ void IdoMysqlConnection::Reconnect(void)
 
 		std::ostringstream q1buf;
 		q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
-		rows = Query(q1buf.str());
+		result = Query(q1buf.str());
 
-		ObjectLock olock(rows);
-		BOOST_FOREACH(const Dictionary::Ptr& row, rows) {
+		while ((row = FetchRow(result))) {
 			DbType::Ptr dbtype = DbType::GetByID(row->Get("objecttype_id"));
 
 			if (!dbtype)
@@ -267,7 +272,7 @@ void IdoMysqlConnection::ClearConfigTable(const String& table)
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
 
-Array::Ptr IdoMysqlConnection::Query(const String& query)
+IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
 
@@ -290,23 +295,10 @@ Array::Ptr IdoMysqlConnection::Query(const String& query)
 				<< errinfo_database_query(query)
 			);
 
-		return Array::Ptr();
+		return IdoMysqlResult();
 	}
 
-	Array::Ptr rows = make_shared<Array>();
-
-	for (;;) {
-		Dictionary::Ptr row = FetchRow(result);
-
-		if (!row)
-			break;
-
-		rows->Add(row);
-	}
-
-	mysql_free_result(result);
-
-	return rows;
+	return IdoMysqlResult(result, std::ptr_fun(mysql_free_result));
 }
 
 DbReference IdoMysqlConnection::GetLastInsertID(void)
@@ -332,7 +324,7 @@ String IdoMysqlConnection::Escape(const String& s)
 	return result;
 }
 
-Dictionary::Ptr IdoMysqlConnection::FetchRow(MYSQL_RES *result)
+Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
 {
 	AssertOnWorkQueue();
 
@@ -340,23 +332,31 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(MYSQL_RES *result)
 	MYSQL_FIELD *field;
 	unsigned long *lengths, i;
 
-	row = mysql_fetch_row(result);
+	row = mysql_fetch_row(result.get());
 
 	if (!row)
 		return Dictionary::Ptr();
 
-	lengths = mysql_fetch_lengths(result);
+	lengths = mysql_fetch_lengths(result.get());
 
 	if (!lengths)
 		return Dictionary::Ptr();
 
 	Dictionary::Ptr dict = make_shared<Dictionary>();
 
-	mysql_field_seek(result, 0);
-	for (field = mysql_fetch_field(result), i = 0; field; field = mysql_fetch_field(result), i++)
+	mysql_field_seek(result.get(), 0);
+	for (field = mysql_fetch_field(result.get()), i = 0; field; field = mysql_fetch_field(result.get()), i++)
 		dict->Set(field->name, String(row[i], row[i] + lengths[i]));
 
 	return dict;
+}
+
+void IdoMysqlConnection::DiscardRows(const IdoMysqlResult& result)
+{
+	Dictionary::Ptr row;
+
+	while ((row = FetchRow(result)))
+		; /* empty loop body */
 }
 
 void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)

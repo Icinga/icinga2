@@ -29,6 +29,8 @@
 namespace icinga
 {
 
+typedef shared_ptr<MYSQL_RES> IdoMysqlResult;
+
 /**
  * An IDO MySQL database connection.
  *
@@ -61,10 +63,11 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
 
-	Array::Ptr Query(const String& query);
+	IdoMysqlResult Query(const String& query);
 	DbReference GetLastInsertID(void);
 	String Escape(const String& s);
-	Dictionary::Ptr FetchRow(MYSQL_RES *result);
+	Dictionary::Ptr FetchRow(const IdoMysqlResult& result);
+	void DiscardRows(const IdoMysqlResult& result);
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);

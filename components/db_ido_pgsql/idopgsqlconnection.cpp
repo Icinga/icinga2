@@ -172,12 +172,13 @@ void IdoPgsqlConnection::Reconnect(void)
 		}
 
 		String dbVersionName = "idoutils";
-		Array::Ptr version_rows = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
+		IdoPgsqlResult result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
 
-		if (version_rows->GetLength() == 0)
+		Dictionary::Ptr version_row = FetchRow(result, 0);
+
+		if (!version_row)
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema does not provide any valid version! Verify your schema installation."));
 
-		Dictionary::Ptr version_row = version_rows->Get(0);
 		String version = version_row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
@@ -187,13 +188,14 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		String instanceName = GetInstanceName();
 
-		Array::Ptr rows = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
+		result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
 
-		if (rows->GetLength() == 0) {
+		Dictionary::Ptr row = FetchRow(result, 0);
+
+		if (!row) {
 			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + Escape(GetInstanceDescription()) + "')");
 			m_InstanceID = GetSequenceValue(GetTablePrefix() + "instances", "instance_id");
 		} else {
-			Dictionary::Ptr row = rows->Get(0);
 			m_InstanceID = DbReference(row->Get("instance_id"));
 		}
 
@@ -212,10 +214,12 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		std::ostringstream q1buf;
 		q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
-		rows = Query(q1buf.str());
+		result = Query(q1buf.str());
 
-		ObjectLock olock(rows);
-		BOOST_FOREACH(const Dictionary::Ptr& row, rows) {
+		int index = 0;
+		while ((row = FetchRow(result, index))) {
+			index++;
+
 			DbType::Ptr dbtype = DbType::GetByID(row->Get("objecttype_id"));
 
 			if (!dbtype)
@@ -271,7 +275,7 @@ void IdoPgsqlConnection::ClearConfigTable(const String& table)
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
 
-Array::Ptr IdoPgsqlConnection::Query(const String& query)
+IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
 
@@ -286,7 +290,7 @@ Array::Ptr IdoPgsqlConnection::Query(const String& query)
 		);
 
 	if (PQresultStatus(result) == PGRES_COMMAND_OK)
-		return Array::Ptr();
+		return IdoPgsqlResult();
 
 	if (PQresultStatus(result) != PGRES_TUPLES_OK) {
 		String message = PQresultErrorMessage(result);
@@ -299,35 +303,18 @@ Array::Ptr IdoPgsqlConnection::Query(const String& query)
 		);
 	}
 
-	Array::Ptr rows = make_shared<Array>();
-
-	int rownum = 0;
-
-	for (;;) {
-		Dictionary::Ptr row = FetchRow(result, rownum);
-
-		if (!row)
-			break;
-
-		rows->Add(row);
-
-		rownum++;
-	}
-
-	PQclear(result);
-
-	return rows;
+	return IdoPgsqlResult(result, std::ptr_fun(PQclear));
 }
 
 DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const String& column)
 {
 	AssertOnWorkQueue();
 
-	Array::Ptr rows = Query("SELECT CURRVAL(pg_get_serial_sequence('" + Escape(table) + "', '" + Escape(column) + "')) AS id");
+	IdoPgsqlResult result = Query("SELECT CURRVAL(pg_get_serial_sequence('" + Escape(table) + "', '" + Escape(column) + "')) AS id");
 
-	ASSERT(rows->GetLength() == 1);
+	Dictionary::Ptr row = FetchRow(result, 0);
 
-	Dictionary::Ptr row = rows->Get(0);
+	ASSERT(row);
 
 	std::ostringstream msgbuf;
 	msgbuf << "Sequence Value: " << row->Get("id");
@@ -352,24 +339,24 @@ String IdoPgsqlConnection::Escape(const String& s)
 	return result;
 }
 
-Dictionary::Ptr IdoPgsqlConnection::FetchRow(PGresult *result, int row)
+Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int row)
 {
 	AssertOnWorkQueue();
 
-	if (row >= PQntuples(result))
+	if (row >= PQntuples(result.get()))
 		return Dictionary::Ptr();
 
-	int columns = PQnfields(result);
+	int columns = PQnfields(result.get());
 
 	Dictionary::Ptr dict = make_shared<Dictionary>();
 
 	for (int column = 0; column < columns; column++) {
 		Value value;
 
-		if (!PQgetisnull(result, row, column))
-			value = PQgetvalue(result, row, column);
+		if (!PQgetisnull(result.get(), row, column))
+			value = PQgetvalue(result.get(), row, column);
 
-		dict->Set(PQfname(result, column), value);
+		dict->Set(PQfname(result.get(), column), value);
 	}
 
 	return dict;
