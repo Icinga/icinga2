@@ -52,8 +52,8 @@ void ServiceDbObject::StaticInitialize(void)
 	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddCommentHistory, _1, _2));
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntimeHistory, _1, _2));
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
-	Service::OnNotificationSentToUser.connect(bind(&ServiceDbObject::AddContactNotificationHistory, _1, _2, _3));
-	Service::OnNotificationSendStart.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
+
+	Service::OnNotificationSentToAllUsers.connect(bind(&ServiceDbObject::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 
 	Service::OnStateChange.connect(boost::bind(&ServiceDbObject::AddStateChangeHistory, _1, _2, _3));
 
@@ -758,36 +758,6 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 }
 
 /* notifications */
-
-void ServiceDbObject::AddContactNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service, const User::Ptr& user)
-{
-	Host::Ptr host = service->GetHost();
-
-	Log(LogDebug, "db_ido", "add contact notification history for '" + service->GetName() + "'");
-
-	/* start and end happen at the same time */
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
-
-	DbQuery query1;
-	query1.Table = "contactnotifications";
-	query1.Type = DbQueryInsert;
-	query1.Category = DbCatNotification;
-
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	fields1->Set("contact_object_id", user);
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("start_time_usec", time_bag.second);
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("end_time_usec", time_bag.second);
-
-	fields1->Set("notification_id", 0); /* DbConnection class fills in real ID */
-	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-	query1.Fields = fields1;
-	OnQuery(query1);
-}
-
 void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service, const std::set<User::Ptr>& users, NotificationType type,
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
@@ -833,6 +803,29 @@ void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notificati
 		fields1->Set("state", host->GetState());
 		query1.Fields = fields1;
 		OnQuery(query1);
+	}
+
+	DbQuery query2;
+	query2.Table = "contactnotifications";
+	query2.Type = DbQueryInsert;
+	query2.Category = DbCatNotification;
+
+	/* filtered users */
+	BOOST_FOREACH(const User::Ptr& user, users) {
+		Log(LogDebug, "db_ido", "add contact notification history for service '" + service->GetName() + "' and user '" + user->GetName() + "'.");
+
+		Dictionary::Ptr fields2 = make_shared<Dictionary>();
+		fields2->Set("contact_object_id", user);
+		fields2->Set("start_time", DbValue::FromTimestamp(time_bag.first));
+		fields2->Set("start_time_usec", time_bag.second);
+		fields2->Set("end_time", DbValue::FromTimestamp(time_bag.first));
+		fields2->Set("end_time_usec", time_bag.second);
+
+		fields2->Set("notification_id", 0); /* DbConnection class fills in real ID */
+		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		query2.Fields = fields2;
+		OnQuery(query2);
 	}
 }
 

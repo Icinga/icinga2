@@ -78,6 +78,8 @@ public:
 
 	void BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
+	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force);
+
 	static String NotificationTypeToString(NotificationType type);
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;

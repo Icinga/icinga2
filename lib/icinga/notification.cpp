@@ -258,15 +258,23 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 	Service::OnNotificationSendStart(GetSelf(), GetService(), allUsers, type, cr, author, text);
 
+	std::set<User::Ptr> allNotifiedUsers;
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
+		if (!CheckNotificationUserFilters(type, user, force))
+			continue;
+
 		Log(LogDebug, "icinga", "Sending notification for user '" + user->GetName() + "'");
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
+
+		/* collect all notified users */
+		allNotifiedUsers.insert(user);
 	}
 
-	Service::OnNotificationSentToAllUsers(GetSelf(), GetService(), allUsers, type, cr, author, text);
+	/* used in db_ido for notification history */
+	Service::OnNotificationSentToAllUsers(GetSelf(), GetService(), allNotifiedUsers, type, cr, author, text);
 }
 
-void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
+bool Notification::CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force)
 {
 	ASSERT(!OwnsLock());
 
@@ -276,7 +284,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': user not in timeperiod");
-			return;
+			return false;
 		}
 
 		unsigned long ftype = 1 << type;
@@ -284,7 +292,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		if (!(ftype & user->GetNotificationTypeFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': type filter does not match");
-			return;
+			return false;
 		}
 
 		unsigned long fstate = 1 << GetService()->GetState();
@@ -292,9 +300,16 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		if (!(fstate & user->GetNotificationStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': state filter does not match");
-			return;
+			return false;
 		}
 	}
+
+	return true;
+}
+
+void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
+{
+	ASSERT(!OwnsLock());
 
 	try {
 		NotificationCommand::Ptr command = GetNotificationCommand();
@@ -312,6 +327,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			SetLastNotification(Utility::GetTime());
 		}
 
+		/* required by compatlogger */
 		Service::OnNotificationSentToUser(GetSelf(), GetService(), user, type, cr, author, text, command->GetName());
 
 		Log(LogInformation, "icinga", "Completed sending notification for service '" + GetService()->GetName() + "'");
