@@ -83,8 +83,7 @@ private:
 	void InternalExecuteQuery(const DbQuery& query);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
-	void ClearConfigTables(void);
-	void ClearConfigTable(const String& table);
+	virtual void ClearConfigTable(const String& table);
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

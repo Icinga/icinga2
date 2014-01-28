@@ -236,40 +236,6 @@ void IdoPgsqlConnection::Reconnect(void)
 	UpdateAllObjects();
 }
 
-void IdoPgsqlConnection::ClearConfigTables(void)
-{
-	/* TODO make hardcoded table names modular */
-	ClearConfigTable("commands");
-	ClearConfigTable("comments");
-	ClearConfigTable("contact_addresses");
-	ClearConfigTable("contact_notificationcommands");
-	ClearConfigTable("contactgroup_members");
-	ClearConfigTable("contactgroups");
-	ClearConfigTable("contacts");
-	ClearConfigTable("contactstatus");
-	ClearConfigTable("customvariables");
-	ClearConfigTable("customvariablestatus");
-	ClearConfigTable("host_contactgroups");
-	ClearConfigTable("host_contacts");
-	ClearConfigTable("host_parenthosts");
-	ClearConfigTable("hostdependencies");
-	ClearConfigTable("hostgroup_members");
-	ClearConfigTable("hostgroups");
-	ClearConfigTable("hosts");
-	ClearConfigTable("hoststatus");
-	ClearConfigTable("programstatus");
-	ClearConfigTable("scheduleddowntime");
-	ClearConfigTable("service_contactgroups");
-	ClearConfigTable("service_contacts");
-	ClearConfigTable("servicedependencies");
-	ClearConfigTable("servicegroup_members");
-	ClearConfigTable("servicegroups");
-	ClearConfigTable("services");
-	ClearConfigTable("servicestatus");
-	ClearConfigTable("timeperiod_timeranges");
-	ClearConfigTable("timeperiods");
-}
-
 void IdoPgsqlConnection::ClearConfigTable(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));

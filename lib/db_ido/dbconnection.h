@@ -72,6 +72,8 @@ protected:
 
 	void UpdateAllObjects(void);
 
+	void ClearConfigTables(void);
+
 private:
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
@@ -82,6 +84,8 @@ private:
 	Timer::Ptr m_CleanUpTimer;
 
 	void CleanUpHandler(void);
+
+	virtual void ClearConfigTable(const String& table) = 0;
 
 	static Timer::Ptr m_ProgramStatusTimer;
 
