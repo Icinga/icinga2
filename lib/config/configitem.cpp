@@ -26,6 +26,7 @@
 #include "base/logger_fwd.h"
 #include "base/debug.h"
 #include "base/workqueue.h"
+#include "base/exception.h"
 #include <sstream>
 #include <boost/foreach.hpp>
 
@@ -326,7 +327,11 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 		return true;
 
 	/* restore the previous program state */
-	DynamicObject::RestoreObjects(Application::GetStatePath());
+	try {
+		DynamicObject::RestoreObjects(Application::GetStatePath());
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "config", "Failed to restore state file: " + DiagnosticInformation(ex));
+	}
 
 	Log(LogInformation, "config", "Triggering Start signal for config items");
 
