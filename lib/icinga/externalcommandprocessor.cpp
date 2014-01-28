@@ -235,7 +235,17 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
 	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[2]);
-	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
+
+	ServiceState state;
+
+	if (exitStatus == 0)
+		state = StateOK;
+	else if (exitStatus == 1)
+		state = StateCritical;
+	else
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status code: " + arguments[2]));
+
+	result->SetState(state);
 
 	result->SetScheduleStart(time);
 	result->SetScheduleEnd(time);
