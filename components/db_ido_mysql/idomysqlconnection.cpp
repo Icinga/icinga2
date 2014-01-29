@@ -413,7 +413,7 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 		return true;
 	}
 	if (key == "notification_id") {
-		*result = static_cast<long>(m_LastNotificationID);
+		*result = static_cast<long>(GetNotificationInsertID(value));
 		return true;
 	}
 
@@ -585,9 +585,9 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 			SetInsertID(query.Object, GetLastInsertID());
 	}
 
-	if (type == DbQueryInsert && query.Table == "notifications") { // FIXME remove hardcoded table name
-		m_LastNotificationID = GetLastInsertID();
-		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(m_LastNotificationID)));
+	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name
+		SetNotificationInsertID(query.NotificationObject, GetLastInsertID());
+		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetLastInsertID())));
 	}
 }
 

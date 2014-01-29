@@ -201,6 +201,26 @@ DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 	return it->second;
 }
 
+void DbConnection::SetNotificationInsertID(const DynamicObject::Ptr& obj, const DbReference& dbref)
+{
+	if (dbref.IsValid())
+		m_NotificationInsertIDs[obj] = dbref;
+	else
+		m_NotificationInsertIDs.erase(obj);
+}
+
+DbReference DbConnection::GetNotificationInsertID(const DynamicObject::Ptr& obj) const
+{
+	std::map<DynamicObject::Ptr, DbReference>::const_iterator it;
+
+	it = m_NotificationInsertIDs.find(obj);
+
+	if (it == m_NotificationInsertIDs.end())
+		return DbReference();
+
+	return it->second;
+}
+
 void DbConnection::SetObjectActive(const DbObject::Ptr& dbobj, bool active)
 {
 	if (active)
@@ -218,6 +238,7 @@ void DbConnection::ClearIDCache(void)
 {
 	m_ObjectIDs.clear();
 	m_InsertIDs.clear();
+	m_NotificationInsertIDs.clear();
 	m_ActiveObjects.clear();
 	m_ConfigUpdates.clear();
 	m_StatusUpdates.clear();

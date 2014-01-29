@@ -52,7 +52,6 @@ protected:
 
 private:
 	DbReference m_InstanceID;
-	DbReference m_LastNotificationID;
 
 	WorkQueue m_QueryQueue;
 

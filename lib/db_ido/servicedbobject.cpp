@@ -773,6 +773,8 @@ void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notificati
 	query1.Table = "notifications";
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatNotification;
+	/* store the object ptr for caching the insert id for this object */
+	query1.NotificationObject = notification;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
 	fields1->Set("notification_type", 1); /* service */
@@ -821,7 +823,7 @@ void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notificati
 		fields2->Set("end_time", DbValue::FromTimestamp(time_bag.first));
 		fields2->Set("end_time_usec", time_bag.second);
 
-		fields2->Set("notification_id", 0); /* DbConnection class fills in real ID */
+		fields2->Set("notification_id", notification); /* DbConnection class fills in real ID from notification insert id cache */
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		query2.Fields = fields2;

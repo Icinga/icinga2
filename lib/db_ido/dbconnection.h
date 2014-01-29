@@ -47,6 +47,9 @@ public:
 	void SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetInsertID(const DbObject::Ptr& dbobj) const;
 
+	void SetNotificationInsertID(const DynamicObject::Ptr& obj, const DbReference& dbref);
+	DbReference GetNotificationInsertID(const DynamicObject::Ptr& obj) const;
+
 	void SetObjectActive(const DbObject::Ptr& dbobj, bool active);
 	bool GetObjectActive(const DbObject::Ptr& dbobj) const;
 
@@ -72,6 +75,7 @@ protected:
 private:
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
+        std::map<DynamicObject::Ptr, DbReference> m_NotificationInsertIDs;
 	std::set<DbObject::Ptr> m_ActiveObjects;
 	std::set<DbObject::Ptr> m_ConfigUpdates;
 	std::set<DbObject::Ptr> m_StatusUpdates;

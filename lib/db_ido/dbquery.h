@@ -22,6 +22,7 @@
 
 #include "db_ido/i2-db_ido.h"
 #include "base/dictionary.h"
+#include "base/dynamicobject.h"
 
 namespace icinga
 {
@@ -65,6 +66,7 @@ struct I2_DB_IDO_API DbQuery
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
 	shared_ptr<DbObject> Object;
+	shared_ptr<DynamicObject> NotificationObject;
 	bool ConfigUpdate;
 	bool StatusUpdate;
 

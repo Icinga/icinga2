@@ -416,7 +416,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		return true;
 	}
 	if (key == "notification_id") {
-		*result = static_cast<long>(m_LastNotificationID);
+		*result = static_cast<long>(GetNotificationInsertID(value));
 		return true;
 	}
 
@@ -592,9 +592,11 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
 			SetInsertID(query.Object, GetSequenceValue(GetTablePrefix() + query.Table, idField));
 		}
 	}
-	if (type == DbQueryInsert && query.Table == "notifications") { // FIXME remove hardcoded table name
-		m_LastNotificationID = GetSequenceValue(GetTablePrefix() + "notifications", "notification_id");
-		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(m_LastNotificationID)));
+
+	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name
+		String idField = "notification_id";
+		SetNotificationInsertID(query.NotificationObject, GetSequenceValue(GetTablePrefix() + query.Table, idField));
+		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetSequenceValue(GetTablePrefix() + query.Table, idField))));
 	}
 }
 
