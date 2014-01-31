@@ -44,14 +44,14 @@ public:
 	typedef std::map<String, DbType::Ptr> TypeMap;
 	typedef std::map<std::pair<String, String>, shared_ptr<DbObject> > ObjectMap;
 
-	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
+	DbType(const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 
-	String GetName(void) const;
+	std::vector<String> GetNames(void) const;
 	String GetTable(void) const;
 	long GetTypeID(void) const;
 	String GetIDColumn(void) const;
 
-	static void RegisterType(const DbType::Ptr& type);
+	static void RegisterType(const String& name, const DbType::Ptr& type);
 
 	static DbType::Ptr GetByName(const String& name);
 	static DbType::Ptr GetByID(long tid);
@@ -59,7 +59,7 @@ public:
 	shared_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
 
 private:
-	String m_Name;
+	std::vector<String> m_Names;
 	String m_Table;
 	long m_TypeID;
 	String m_IDColumn;
@@ -95,8 +95,14 @@ class RegisterDbTypeHelper
 public:
 	RegisterDbTypeHelper(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
 	{
-		DbType::Ptr dbtype = make_shared<DbType>(name, table, tid, idcolumn, factory);
-		DbType::RegisterType(dbtype);
+		DbType::Ptr dbtype;
+
+		dbtype = DbType::GetByID(tid);
+
+		if (!dbtype)
+			dbtype = make_shared<DbType>(table, tid, idcolumn, factory);
+
+		DbType::RegisterType(name, dbtype);
 	}
 };
 

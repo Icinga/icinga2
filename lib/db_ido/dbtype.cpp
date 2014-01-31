@@ -26,13 +26,14 @@
 
 using namespace icinga;
 
-DbType::DbType(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
-	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
+DbType::DbType(const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
+	: m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
 { }
 
-String DbType::GetName(void) const
+std::vector<String> DbType::GetNames(void) const
 {
-	return m_Name;
+	boost::mutex::scoped_lock lock(GetStaticMutex());
+	return m_Names;
 }
 
 String DbType::GetTable(void) const
@@ -50,10 +51,11 @@ String DbType::GetIDColumn(void) const
 	return m_IDColumn;
 }
 
-void DbType::RegisterType(const DbType::Ptr& type)
+void DbType::RegisterType(const String& name, const DbType::Ptr& type)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
-	GetTypes()[type->GetName()] = type;
+	type->m_Names.push_back(name);
+	GetTypes()[name] = type;
 }
 
 DbType::Ptr DbType::GetByName(const String& name)
