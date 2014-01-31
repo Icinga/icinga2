@@ -49,6 +49,7 @@ protected:
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
 	virtual void ExecuteQuery(const DbQuery& query);
         virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
+	virtual void FillIDCache(const DbType::Ptr& type);
 
 private:
 	DbReference m_InstanceID;
@@ -57,12 +58,14 @@ private:
 
 	boost::mutex m_ConnectionMutex;
 	PGconn *m_Connection;
+	int m_AffectedRows;
 
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
 
 	IdoPgsqlResult Query(const String& query);
 	DbReference GetSequenceValue(const String& table, const String& column);
+	int GetAffectedRows(void);
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(const IdoPgsqlResult& result, int row);
 
@@ -78,7 +81,7 @@ private:
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
 
-	void InternalExecuteQuery(const DbQuery& query);
+	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	virtual void ClearConfigTable(const String& table);

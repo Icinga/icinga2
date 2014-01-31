@@ -183,17 +183,33 @@ DbReference DbConnection::GetObjectID(const DbObject::Ptr& dbobj) const
 
 void DbConnection::SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref)
 {
+	SetInsertID(dbobj->GetType(), GetObjectID(dbobj), dbref);
+}
+
+void DbConnection::SetInsertID(const DbType::Ptr& type, const DbReference& objid, const DbReference& dbref)
+{
+	if (!objid.IsValid())
+		return;
+
 	if (dbref.IsValid())
-		m_InsertIDs[dbobj] = dbref;
+		m_InsertIDs[std::make_pair(type, objid)] = dbref;
 	else
-		m_InsertIDs.erase(dbobj);
+		m_InsertIDs.erase(std::make_pair(type, objid));
 }
 
 DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 {
-	std::map<DbObject::Ptr, DbReference>::const_iterator it;
+	return GetInsertID(dbobj->GetType(), GetObjectID(dbobj));
+}
 
-	it = m_InsertIDs.find(dbobj);
+DbReference DbConnection::GetInsertID(const DbType::Ptr& type, const DbReference& objid) const
+{
+	if (!objid.IsValid())
+		return DbReference();
+
+	std::map<std::pair<DbType::Ptr, DbReference>, DbReference>::const_iterator it;
+
+	it = m_InsertIDs.find(std::make_pair(type, objid));
 
 	if (it == m_InsertIDs.end())
 		return DbReference();
@@ -293,17 +309,17 @@ void DbConnection::UpdateAllObjects(void)
 	}
 }
 
-void DbConnection::ClearConfigTables(void)
+void DbConnection::PrepareDatabase(void)
 {
 	/* TODO make hardcoded table names modular */
-	ClearConfigTable("commands");
+	//ClearConfigTable("commands");
 	ClearConfigTable("comments");
 	ClearConfigTable("contact_addresses");
 	ClearConfigTable("contact_notificationcommands");
 	ClearConfigTable("contactgroup_members");
-	ClearConfigTable("contactgroups");
-	ClearConfigTable("contacts");
-	ClearConfigTable("contactstatus");
+	//ClearConfigTable("contactgroups");
+	//ClearConfigTable("contacts");
+	//ClearConfigTable("contactstatus");
 	ClearConfigTable("customvariables");
 	ClearConfigTable("customvariablestatus");
 	ClearConfigTable("host_contactgroups");
@@ -311,18 +327,22 @@ void DbConnection::ClearConfigTables(void)
 	ClearConfigTable("host_parenthosts");
 	ClearConfigTable("hostdependencies");
 	ClearConfigTable("hostgroup_members");
-	ClearConfigTable("hostgroups");
-	ClearConfigTable("hosts");
-	ClearConfigTable("hoststatus");
+	//ClearConfigTable("hostgroups");
+	//ClearConfigTable("hosts");
+	//ClearConfigTable("hoststatus");
 	ClearConfigTable("programstatus");
 	ClearConfigTable("scheduleddowntime");
-	ClearConfigTable("service_contactgroups");
-	ClearConfigTable("service_contacts");
-	ClearConfigTable("servicedependencies");
-	ClearConfigTable("servicegroup_members");
-	ClearConfigTable("servicegroups");
-	ClearConfigTable("services");
-	ClearConfigTable("servicestatus");
-	ClearConfigTable("timeperiod_timeranges");
-	ClearConfigTable("timeperiods");
+	//ClearConfigTable("service_contactgroups");
+	//ClearConfigTable("service_contacts");
+	//ClearConfigTable("servicedependencies");
+	//ClearConfigTable("servicegroup_members");
+	//ClearConfigTable("servicegroups");
+	//ClearConfigTable("services");
+	//ClearConfigTable("servicestatus");
+	//ClearConfigTable("timeperiod_timeranges");
+	//ClearConfigTable("timeperiods");
+
+	BOOST_FOREACH(const DbType::Ptr& type, DbType::GetAllTypes()) {
+		FillIDCache(type);
+	}
 }

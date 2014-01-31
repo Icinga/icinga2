@@ -210,7 +210,7 @@ void IdoPgsqlConnection::Reconnect(void)
 		    + "', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 		/* clear config tables for the initial config dump */
-		ClearConfigTables();
+		PrepareDatabase();
 
 		std::ostringstream q1buf;
 		q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
@@ -269,6 +269,9 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		);
 	}
 
+	char *rowCount = PQcmdTuples(result);
+	m_AffectedRows = atoi(rowCount);
+
 	return IdoPgsqlResult(result, std::ptr_fun(PQclear));
 }
 
@@ -287,6 +290,13 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	Log(LogDebug, "db_ido_pgsql", msgbuf.str());
 
 	return DbReference(Convert::ToLong(row->Get("id")));
+}
+
+int IdoPgsqlConnection::GetAffectedRows(void)
+{
+	AssertOnWorkQueue();
+
+	return m_AffectedRows;
 }
 
 String IdoPgsqlConnection::Escape(const String& s)
@@ -434,10 +444,10 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query), true);
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), true);
 }
 
-void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
+void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -471,6 +481,10 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
 		}
 	}
 
+	type = typeOverride ? *typeOverride : query.Type;
+
+	bool upsert = false;
+
 	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
 		bool hasid = false;
 
@@ -483,12 +497,11 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
 		else
 			ASSERT(!"Invalid query flags.");
 
-		if (hasid)
-			type = DbQueryUpdate;
-		else
-			type = DbQueryInsert;
-	} else
-		type = query.Type;
+		if (!hasid)
+			upsert = true;
+
+		type = DbQueryUpdate;
+	}
 
 	switch (type) {
 		case DbQueryInsert:
@@ -543,6 +556,15 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query)
 
 	Query(qbuf.str());
 
+	if (upsert && GetAffectedRows() == 0) {
+		lock.unlock();
+
+		DbQueryType to = DbQueryInsert;
+		InternalExecuteQuery(query, &to);
+
+		return;
+	}
+
 	if (query.Object) {
 		if (query.ConfigUpdate)
 			SetConfigUpdate(query.Object, true);
@@ -581,4 +603,18 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
 	    " < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ")");
+}
+
+void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
+{
+	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id FROM " + GetTablePrefix() + type->GetTable() + "s";
+	IdoPgsqlResult result = Query(query);
+
+	Dictionary::Ptr row;
+
+	int index = 0;
+	while ((row = FetchRow(result, index))) {
+		index++;
+		SetInsertID(type, DbReference(row->Get("object_id")), DbReference(row->Get(type->GetTable() + "_id")));
+	}
 }
