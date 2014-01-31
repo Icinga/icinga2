@@ -23,6 +23,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
+#include "base/scriptvariable.h"
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -107,7 +108,12 @@ ProcessResult Process::Run(void)
 	m_ExtraEnvironment.reset();
 
 #ifdef HAVE_VFORK
-	m_Pid = vfork();
+	Value use_vfork = ScriptVariable::Get("IcingaUseVfork");
+
+	if (use_vfork.IsEmpty() || static_cast<bool>(use_vfork))
+		m_Pid = vfork();
+	else
+		m_Pid = fork();
 #else /* HAVE_VFORK */
 	m_Pid = fork();
 #endif /* HAVE_VFORK */
