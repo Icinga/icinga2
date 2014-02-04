@@ -176,6 +176,11 @@ A sample config part can look like this:
       peers = [ "icinga-node-2" ]
     }
 
+> **Note**
+>
+> The certificate files must be readable by the user Icinga 2 is running as. Also,
+> the private key file should not be world-readable.
+
 Peers configures the direction used to connect multiple nodes together. If have
 a three node cluster consisting of
 
