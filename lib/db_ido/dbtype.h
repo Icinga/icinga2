@@ -24,6 +24,7 @@
 #include "base/object.h"
 #include "base/registry.h"
 #include "base/singleton.h"
+#include <set>
 
 namespace icinga
 {
