@@ -243,6 +243,10 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
+	/* override problem notifications with their current state string */
+	if (notification_type == NotificationProblem)
+		notification_type_str = Service::StateToString(service->GetState());
+
 	String author_comment = "";
 	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
 		author_comment = author + ";" + comment_text;
@@ -260,8 +264,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 		<< user->GetName() << ";"
                 << host->GetName() << ";"
                 << service->GetShortName() << ";"
-                << notification_type_str << " "
-		<< "(" << Service::StateToString(service->GetState()) << ");"
+                << notification_type_str << ";"
 		<< command_name << ";"
 		<< output << ";"
 		<< author_comment
