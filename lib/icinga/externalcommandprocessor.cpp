@@ -243,7 +243,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	else if (exitStatus == 1)
 		state = StateCritical;
 	else
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status code: " + arguments[2]));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status code: " + arguments[1]));
 
 	result->SetState(state);
 
