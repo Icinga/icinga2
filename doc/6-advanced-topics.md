@@ -176,6 +176,13 @@ A sample config part can look like this:
       peers = [ "icinga-node-2" ]
     }
 
+> **Note**
+> The certificate files and directory must be readable by the user Icinga 2 that the daemon is running. Also,
+> the private key file should not be world-readable.
+
+
+# chown -R icinga /etc/icinga2/ca/
+
 Peers configures the direction used to connect multiple nodes together. If have
 a three node cluster consisting of
 
