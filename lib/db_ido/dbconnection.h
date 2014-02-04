@@ -45,7 +45,9 @@ public:
 	DbReference GetObjectID(const DbObject::Ptr& dbobj) const;
 
 	void SetInsertID(const DbObject::Ptr& dbobj, const DbReference& dbref);
+	void SetInsertID(const DbType::Ptr& type, const DbReference& objid, const DbReference& dbref);
 	DbReference GetInsertID(const DbObject::Ptr& dbobj) const;
+	DbReference GetInsertID(const DbType::Ptr& type, const DbReference& objid) const;
 
 	void SetNotificationInsertID(const DynamicObject::Ptr& obj, const DbReference& dbref);
 	DbReference GetNotificationInsertID(const DynamicObject::Ptr& obj) const;
@@ -69,12 +71,15 @@ protected:
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
 
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_column, double max_age);
+	virtual void FillIDCache(const DbType::Ptr& type) = 0;
 
 	void UpdateAllObjects(void);
 
+	void PrepareDatabase(void);
+
 private:
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
-	std::map<DbObject::Ptr, DbReference> m_InsertIDs;
+	std::map<std::pair<DbType::Ptr, DbReference>, DbReference> m_InsertIDs;
         std::map<DynamicObject::Ptr, DbReference> m_NotificationInsertIDs;
 	std::set<DbObject::Ptr> m_ActiveObjects;
 	std::set<DbObject::Ptr> m_ConfigUpdates;
@@ -82,6 +87,8 @@ private:
 	Timer::Ptr m_CleanUpTimer;
 
 	void CleanUpHandler(void);
+
+	virtual void ClearConfigTable(const String& table) = 0;
 
 	static Timer::Ptr m_ProgramStatusTimer;
 

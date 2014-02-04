@@ -58,6 +58,8 @@ public:
 
 	shared_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
 
+	static std::set<DbType::Ptr> GetAllTypes(void);
+
 private:
 	std::vector<String> m_Names;
 	String m_Table;

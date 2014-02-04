@@ -159,7 +159,7 @@ void IdoMysqlConnection::Reconnect(void)
 		if (!mysql_init(&m_Connection))
 			BOOST_THROW_EXCEPTION(std::bad_alloc());
 
-		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, NULL, 0))
+		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, NULL, CLIENT_FOUND_ROWS))
 			BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
 
 		m_Connected = true;
@@ -210,7 +210,7 @@ void IdoMysqlConnection::Reconnect(void)
 		    + "', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 		/* clear config tables for the initial config dump */
-		ClearConfigTables();
+		PrepareDatabase();
 
 		std::ostringstream q1buf;
 		q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
@@ -233,40 +233,6 @@ void IdoMysqlConnection::Reconnect(void)
 	UpdateAllObjects();
 }
 
-void IdoMysqlConnection::ClearConfigTables(void)
-{
-	/* TODO make hardcoded table names modular */
-	ClearConfigTable("commands");
-	ClearConfigTable("comments");
-	ClearConfigTable("contact_addresses");
-	ClearConfigTable("contact_notificationcommands");
-	ClearConfigTable("contactgroup_members");
-	ClearConfigTable("contactgroups");
-	ClearConfigTable("contacts");
-	ClearConfigTable("contactstatus");
-	ClearConfigTable("customvariables");
-	ClearConfigTable("customvariablestatus");
-	ClearConfigTable("host_contactgroups");
-	ClearConfigTable("host_contacts");
-	ClearConfigTable("host_parenthosts");
-	ClearConfigTable("hostdependencies");
-	ClearConfigTable("hostgroup_members");
-	ClearConfigTable("hostgroups");
-	ClearConfigTable("hosts");
-	ClearConfigTable("hoststatus");
-	ClearConfigTable("programstatus");
-	ClearConfigTable("scheduleddowntime");
-	ClearConfigTable("service_contactgroups");
-	ClearConfigTable("service_contacts");
-	ClearConfigTable("servicedependencies");
-	ClearConfigTable("servicegroup_members");
-	ClearConfigTable("servicegroups");
-	ClearConfigTable("services");
-	ClearConfigTable("servicestatus");
-	ClearConfigTable("timeperiod_timeranges");
-	ClearConfigTable("timeperiods");
-}
-
 void IdoMysqlConnection::ClearConfigTable(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
@@ -284,6 +250,8 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 		        << errinfo_message(mysql_error(&m_Connection))
 			<< errinfo_database_query(query)
 		);
+
+	m_AffectedRows = mysql_affected_rows(&m_Connection);
 
 	MYSQL_RES *result = mysql_use_result(&m_Connection);
 
@@ -306,6 +274,13 @@ DbReference IdoMysqlConnection::GetLastInsertID(void)
 	AssertOnWorkQueue();
 
 	return DbReference(mysql_insert_id(&m_Connection));
+}
+
+int IdoMysqlConnection::GetAffectedRows(void)
+{
+	AssertOnWorkQueue();
+
+	return m_AffectedRows;
 }
 
 String IdoMysqlConnection::Escape(const String& s)
@@ -465,10 +440,10 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query), true);
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), true);
 }
 
-void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
+void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -502,7 +477,11 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 		}
 	}
 
-	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
+	type = typeOverride ? *typeOverride : query.Type;
+
+	bool upsert = false;
+
+	if ((type & DbQueryInsert) && (type & DbQueryUpdate)) {
 		bool hasid = false;
 
 		ASSERT(query.Object);
@@ -514,12 +493,11 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 		else
 			ASSERT(!"Invalid query flags.");
 
-		if (hasid)
-			type = DbQueryUpdate;
-		else
-			type = DbQueryInsert;
-	} else
-		type = query.Type;
+		if (!hasid)
+			upsert = true;
+
+		type = DbQueryUpdate;
+	}
 
 	switch (type) {
 		case DbQueryInsert:
@@ -575,6 +553,15 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query)
 
 	Query(qbuf.str());
 
+	if (upsert && GetAffectedRows() == 0) {
+		lock.unlock();
+
+		DbQueryType to = DbQueryInsert;
+		InternalExecuteQuery(query, &to);
+
+		return;
+	}
+
 	if (query.Object) {
 		if (query.ConfigUpdate)
 			SetConfigUpdate(query.Object, true);
@@ -606,4 +593,16 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
 	    " < FROM_UNIXTIME(" + Convert::ToString(static_cast<long>(max_age)) + ")");
+}
+
+void IdoMysqlConnection::FillIDCache(const DbType::Ptr& type)
+{
+	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id FROM " + GetTablePrefix() + type->GetTable() + "s";
+	IdoMysqlResult result = Query(query);
+
+	Dictionary::Ptr row;
+
+	while ((row = FetchRow(result))) {
+		SetInsertID(type, DbReference(row->Get("object_id")), DbReference(row->Get(type->GetTable() + "_id")));
+	}
 }

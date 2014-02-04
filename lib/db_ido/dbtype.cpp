@@ -112,3 +112,16 @@ DbType::TypeMap& DbType::GetTypes(void)
 	static DbType::TypeMap tm;
 	return tm;
 }
+
+std::set<DbType::Ptr> DbType::GetAllTypes(void)
+{
+	std::set<DbType::Ptr> result;
+
+	boost::mutex::scoped_lock lock(GetStaticMutex());
+	std::pair<String, DbType::Ptr> kv;
+	BOOST_FOREACH(kv, GetTypes()) {
+		result.insert(kv.second);
+	}
+
+	return result;
+}
