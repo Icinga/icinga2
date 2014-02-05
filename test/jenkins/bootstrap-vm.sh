@@ -21,7 +21,9 @@ SSH="ssh $SSH_OPTIONS $user@$host"
 $SSH "mkdir /vagrant"
 scp -qr ../../.vagrant-puppet $user@$host:/vagrant
 
-$SSH "groupadd vagrant"
+$SSH "useradd vagrant"
+$SSH "su -c 'mkdir -p -m 0700 ~/.ssh' vagrant"
+$SSH "su -c \"echo '`cat ~/.ssh/id_rsa.pub`' >> ~/.ssh/authorized_keys\" vagrant"
 $SSH "echo '10.10.27.1 packages.icinga.org' >> /etc/hosts"
 $SSH "puppet apply --modulepath=/vagrant/.vagrant-puppet/modules" \
      "             /vagrant/.vagrant-puppet/manifests/default.pp"
