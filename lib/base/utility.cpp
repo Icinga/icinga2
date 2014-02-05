@@ -477,10 +477,13 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 	while (dirp) {
 		dirent ent, *pent;
 
-		if (readdir_r(dirp, &ent, &pent) < 0)
+		if (readdir_r(dirp, &ent, &pent) < 0) {
+			closedir(dirp);
+
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("readdir_r")
 			    << boost::errinfo_errno(errno));
+		}
 
 		if (!pent)
 			break;
@@ -492,18 +495,24 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 		struct stat statbuf;
 
-		if (lstat(cpath.CStr(), &statbuf) < 0)
+		if (lstat(cpath.CStr(), &statbuf) < 0) {
+			closedir(dirp);
+
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("lstat")
 			    << boost::errinfo_errno(errno));
+		}
 
 		if (S_ISDIR(statbuf.st_mode))
 			GlobRecursive(cpath, pattern, callback, type);
 
-		if (stat(cpath.CStr(), &statbuf) < 0)
+		if (stat(cpath.CStr(), &statbuf) < 0) {
+			closedir(dirp);
+
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("stat")
 			    << boost::errinfo_errno(errno));
+		}
 
 		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
 			continue;
@@ -519,6 +528,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 		callback(cpath);
 	}
+
+	closedir(dirp);
 #endif /* _WIN32 */
 
 	return true;
