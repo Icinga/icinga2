@@ -85,15 +85,23 @@ class TestSuite(object):
 
     def _remove_file(self, path):
         command = self._config['commands']['clean'].format(path)
-        subprocess.call(command, stdout=DEVNULL, shell=True)
+        rc = subprocess.call(command, stdout=DEVNULL, shell=True)
+        if rc != 0:
+            print 'WARNING: Cannot remove file "{0}" ({1})'.format(path, rc)
 
     def _exec_command(self, command):
         command = self._config['commands']['exec'].format(command)
-        subprocess.call(command, stdout=DEVNULL, shell=True)
+        rc = subprocess.call(command, stdout=DEVNULL, shell=True)
+        if rc != 0:
+            print 'WARNING: Command "{0}" exited with exit code "{1}"' \
+                  ''.format(command, rc)
 
     def _copy_file(self, source, destination):
         command = self._config['commands']['copy'].format(source, destination)
-        subprocess.call(command, stdout=DEVNULL, shell=True)
+        rc = subprocess.call(command, stdout=DEVNULL, shell=True)
+        if rc != 0:
+            print 'WARNING: Cannot copy file "{0}" to "{1}" ({2})' \
+                  ''.format(source, destination, rc)
 
     def _copy_test(self, path):
         self._copy_file(path, os.path.join(self._config['settings']['test_root'],

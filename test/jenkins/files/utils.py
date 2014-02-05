@@ -117,9 +117,14 @@ class LiveStatusSocket(object):
         while not self._connected and time.time() - start < timeout:
             try:
                 self.connect()
-            except socket.error, error:
-                if error.errno != 111:
-                    raise
+            except socket.error:
+                # Icinga2 does some "magic" with the socket during startup
+                # which causes random errors being raised (EACCES, ENOENT, ..)
+                # so we just ignore them until the timeout is reached
+                time.sleep(1)
+        if not self._connected:
+            # Raise the very last exception once the timeout is reached
+            raise
 
     def close(self):
         if self._connected:
