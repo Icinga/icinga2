@@ -485,7 +485,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 	bool upsert = false;
 
-	if ((query.Type & DbQueryInsert) && (query.Type & DbQueryUpdate)) {
+	if ((type & DbQueryInsert) && (type & DbQueryUpdate)) {
 		bool hasid = false;
 
 		ASSERT(query.Object);
