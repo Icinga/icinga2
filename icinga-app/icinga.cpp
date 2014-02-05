@@ -334,6 +334,8 @@ int main(int argc, char **argv)
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
 	Application::DeclarePidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
 
+	ScriptVariable::Set("IcingaUseVfork", true, false, true);
+
 	Application::MakeVariablesConstant();
 
 	Log(LogInformation, "icinga-app", "Icinga application loader (version: " + Application::GetVersion() + ")");
