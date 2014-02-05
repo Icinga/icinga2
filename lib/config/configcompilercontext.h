@@ -53,6 +53,8 @@ public:
 
 private:
         std::vector<ConfigCompilerMessage> m_Messages;
+
+	mutable boost::mutex m_Mutex;
 };
 
 }
