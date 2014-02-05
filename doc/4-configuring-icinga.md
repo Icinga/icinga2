@@ -1,1 +1,1 @@
-# Configuring Icinga
+# <a id="configuring-icinga2"></a> Configuring Icinga 2
