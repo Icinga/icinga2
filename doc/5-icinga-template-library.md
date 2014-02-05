@@ -1,6 +1,6 @@
-# Icinga Template Library
+# <a id="icinga-template-library"></a> Icinga Template Library
 
-## Overview
+## <a id="itl-overview"></a> Overview
 
 The Icinga Template Library (ITL) implements standard templates and object
 definitions for commonly used services.
@@ -10,9 +10,9 @@ file:
 
     include <itl/itl.conf>
 
-## Check Commands
+## <a id="itl-check-commands"></a> Check Commands
 
-### ping4
+### <a id="itl-ping4"></a> ping4
 
 Check command object for the `check_ping` plugin.
 
@@ -29,7 +29,7 @@ cpl             | **Optional.** The packet loss critical threshold in %. Default
 packets         | **Optional.** The number of packets to send. Defaults to 5.
 timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
-### ping6
+### <a id="itl-ping6"></a> ping6
 
 Check command object for the `check_ping` plugin.
 
@@ -46,7 +46,7 @@ cpl             | **Optional.** The packet loss critical threshold in %. Default
 packets         | **Optional.** The number of packets to send. Defaults to 5.
 timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
-### dummy
+### <a id="itl-dummy"></a> dummy
 
 Check command object for the `check_dummy` plugin.
 
@@ -58,7 +58,7 @@ plugindir       | **Required.** The directory containing this plugin.
 state           | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
 text            | **Optional.** Plugin output. Defaults to "Check was successful.".
 
-### passive
+### <a id="itl-passive"></a> passive
 
 Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
 
@@ -70,7 +70,7 @@ plugindir       | **Required.** The directory containing this plugin.
 state           | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
 text            | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
 
-### tcp
+### <a id="itl-tcp"></a> tcp
 
 Check command object for the `check_tcp` plugin.
 
@@ -82,7 +82,7 @@ plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 port            | **Required.** The port that should be checked.
 
-### udp
+### <a id="itl-udp"></a> udp
 
 Check command object for the `check_udp` plugin.
 
@@ -94,7 +94,7 @@ plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 port            | **Required.** The port that should be checked.
 
-### http_vhost
+### <a id="itl-http-vhost"></a> http_vhost
 
 Check command object for the `check_http` plugin.
 
@@ -105,7 +105,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 vhost           | **Required.** The name of the virtual host that should be checked.
 
-### http_ip
+### <a id="itl-http-ip"></a> http_ip
 
 Check command object for the `check_http` plugin.
 
@@ -116,7 +116,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
-### https_vhost
+### <a id="itl-https-vhost"></a> https_vhost
 
 Check command object for the `check_http` plugin.
 
@@ -127,7 +127,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 vhost           | **Required.** The name of the virtual host that should be checked.
 
-### https_ip
+### <a id="itl-https-ip"></a> https_ip
 
 Check command object for the `check_http` plugin.
 
@@ -138,7 +138,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
-### smtp
+### <a id="itl-smtp"></a> smtp
 
 Check command object for the `check_smtp` plugin.
 
@@ -149,7 +149,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
-### ssmtp
+### <a id="itl-ssmtp"></a> ssmtp
 
 Check command object for the `check_ssmtp` plugin.
 
@@ -161,7 +161,7 @@ plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 port            | **Optional.** The port that should be checked. Defaults to 465.
 
-### ntp_time
+### <a id="itl-ntp-time"></a> ntp_time
 
 Check command object for the `check_ntp_time` plugin.
 
@@ -172,7 +172,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
-### ssh
+### <a id="itl-ssh"></a> ssh
 
 Check command object for the `check_ssh` plugin.
 
@@ -183,7 +183,7 @@ Name            | Description
 plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
-### disk
+### <a id="itl-disk"></a> disk
 
 Check command object for the `check_disk` plugin.
 
@@ -195,7 +195,7 @@ plugindir       | **Required.** The directory containing this plugin.
 wfree           | **Optional.** The free space warning threshold in %. Defaults to 20.
 cfree           | **Optional.** The free space critical threshold in %. Defaults to 10.
 
-### users
+### <a id="itl-users"></a> users
 
 Check command object for the `check_disk` plugin.
 
@@ -207,7 +207,7 @@ plugindir       | **Required.** The directory containing this plugin.
 wgreater        | **Optional.** The user count warning threshold. Defaults to 20.
 cgreater        | **Optional.** The user count warning threshold. Defaults to 50.
 
-### processes
+### <a id="itl-processes"></a> processes
 
 Check command object for the `check_processes` plugin.
 
@@ -219,7 +219,7 @@ plugindir       | **Required.** The directory containing this plugin.
 wgreater        | **Optional.** The process count warning threshold. Defaults to 250.
 cgreater        | **Optional.** The process count warning threshold. Defaults to 400.
 
-### load
+### <a id="itl-load"></a> load
 
 Check command object for the `check_load` plugin.
 
@@ -235,7 +235,7 @@ cload1          | **Optional.** The 1-minute critical threshold. Defaults to 10.
 cload5          | **Optional.** The 5-minute critical threshold. Defaults to 6.
 cload15         | **Optional.** The 15-minute critical threshold. Defaults to 4.
 
-### snmp
+### <a id="itl-snmp"></a> snmp
 
 Check command object for the `check_snmp` plugin.
 
@@ -248,7 +248,7 @@ address         | **Required.** The host's address.
 oid             | **Required.** The SNMP OID.
 community       | **Optional.** The SNMP community. Defaults to "public".
 
-### snmp-uptime
+### <a id="itl-snmp-uptime"></a> snmp-uptime
 
 Check command object for the `check_snmp` plugin.
 
@@ -261,7 +261,7 @@ address         | **Required.** The host's address.
 oid             | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 community       | **Optional.** The SNMP community. Defaults to "public".
 
-### icinga
+### <a id="itl-icinga"></a> icinga
 
 Check command for the built-in `icinga` check. This check returns performance
 data for the current Icinga instance.

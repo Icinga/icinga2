@@ -1,12 +1,12 @@
-# Migrating from Icinga 1.x
+# <a id="migrating-from-icinga-1x"></a> Migrating from Icinga 1.x
 
-## Configuration Migration
+## <a id="configuration-migration"></a> Configuration Migration
 
 The Icinga 2 configuration format introduces plenty of behavioral changes. In
 order to ease migration from Icinga 1.x,
 Icinga 2 ships its own config migration script.
 
-### Configuration Migration Script
+### <a id="configuration-migration-script"></a> Configuration Migration Script
 
 Due to the complexity of the Icinga 1.x configuration format the migration
 script might not currently work for all use cases.
@@ -29,10 +29,9 @@ possible.
     # mkdir /etc/icinga2/conf.d/migrate
     # /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o /etc/icinga2/conf.d/migrate
 
-
-### Manual Config Migration
+### <a id="manual-config-migration"></a> Manual Config Migration
 
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the Icinga 2 proposed way of doing configuration right.
 
-Please read the next chapter to get an idea about the differences between 1.x and 2.
+Please read the [next chapter](#differences-1x-2) to get an idea about the differences between 1.x and 2.

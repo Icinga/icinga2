@@ -1,25 +1,26 @@
-# About Icinga 2
+# <a id="about-icinga2"></a> About Icinga 2
 
-## What is Icinga 2?
+## <a id="what-is-icinga2"></a> What is Icinga 2?
 
 Icinga 2 is an enterprise-grade open source monitoring system which keeps watch over networks
 and any conceivable network resource, notifies the user of errors and recoveries and generates
 performance data for reporting. Scalable and extensible, Icinga 2 can monitor complex, large
 environments across dispersed locations.
 
-## Licensing
+## <a id="licensing"></a> Licensing
 
 Icinga 2 and the Icinga 2 documentation are licensed under the terms of the GNU
 General Public License Version 2, you will find a copy of this license in the
 LICENSE file included in the package.
 
-## Support
+## <a id="support"></a> Support
 
 Support for Icinga 2 is available in a number of ways. Please have a look at
 the support overview page at [https://support.icinga.org].
 
+## <a id="whats-new"></a> What's new
 
-## What's New in Version 0.0.6
+### What's New in Version 0.0.6
 
 * Scheduled Downtimes as configuration object (also known as "Recurring Downtimes").
 * Log command arguments
@@ -32,7 +33,7 @@ the support overview page at [https://support.icinga.org].
 * Improve performance with fetching data for status.dat/objects.cache, DB IDO and Livestatus
 * Livestatus History Table performance improvements
 
-### Changes
+#### Changes
 * Generated object names (host with services array) use an exclamation mark instead of a colon
 as seperator. State file objects with downtimes, comments, etc are invalid (unknown) for that
 reason.
@@ -40,7 +41,7 @@ reason.
 * ITL constants are now embedded in libicinga
 * Removed the ConsoleLogger object and keep the default console log enabled until we daemonize
 
-## What's New in Version 0.0.5
+### What's New in Version 0.0.5
 
 * Cluster: Implement support for CRLs
 * Implement modified attributes
@@ -54,7 +55,7 @@ reason.
 * Lots of bugfixes and performance improvements
 * Package fixes (Note: GPG key of packages.icinga.org has been updated)
 
-## What's New in Version 0.0.4
+### What's New in Version 0.0.4
 
 * IDO: PostgreSQL support
 * IDO: implemented options to filter which kind of events are written to the database
@@ -63,7 +64,7 @@ reason.
 * Replaced autotools-based build system with cmake
 * Lots of bug fixes and performance improvements
 
-## What's New in Version 0.0.3
+### What's New in Version 0.0.3
 
 * `StatusDataWriter` and `ExternalCommandListener` (former `Compat`) and `CompatLogger`
 (former CompatLog) for status.dat/objects.cache/icinga2.cmd/icinga.log for Icinga 1.x Classic UI support

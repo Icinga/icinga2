@@ -1,6 +1,6 @@
-# Advanced Topics
+# <a id="advanced-topics"></a> Advanced Topics
 
-## Downtimes
+## <a id="downtimes"></a> Downtimes
 
 Downtimes can be scheduled for planned server maintenance or
 any other targetted service outage you are aware of in advance.
@@ -18,7 +18,7 @@ tools calculating the SLAs based on the state and downtime history.
 > will be more than `1`. This is useful when you want to extend
 > your maintenance window taking longer than expected.
 
-### Fixed and Flexible Downtimes
+### <a id="fixed-flexible-downtimes"></a> Fixed and Flexible Downtimes
 
 A `fixed` downtime will be activated at the defined start time, and
 removed at the end time. During this time window the service state
@@ -46,7 +46,7 @@ For that reason, you may want to schedule a downtime between 07:30 and
 its trigger time until the duration is over. After that, the downtime
 is removed (may happen before or after the actual end time!).
 
-### Scheduling a downtime
+### <a id="scheduling-downtime"></a> Scheduling a downtime
 
 This can either happen through a web interface (Icinga 1.x Classic UI or Web)
 or by using the external command pipe provided by the `ExternalCommandListener`
@@ -60,7 +60,7 @@ independent from that time span.
 >
 > Modern web interfaces treat services in a downtime as `handled`.
 
-### Triggered Downtimes
+### <a id="triggered-downtimes"></a> Triggered Downtimes
 
 This is optional when scheduling a downtime. If there is already a downtime
 scheduled for a future maintenance, the current downtime can be triggered by
@@ -68,7 +68,43 @@ that downtime. This renders useful if you have scheduled a host downtime and
 are now scheduling a child host's downtime getting triggered by the parent
 downtime on NOT-OK state change.
 
-## Comments
+### <a id="recurring-downtimes"></a> Recurring Downtimes
+
+[ScheduledDowntime objects](#objecttype-scheduleddowntime) can be used to set up
+recurring downtimes for services.
+
+Example:
+
+    template ScheduledDowntime "backup-downtime" {
+      author = "icingaadmin",
+      comment = "Scheduled downtime for backup",
+
+      ranges = {
+        monday = "02:00-03:00",
+        tuesday = "02:00-03:00",
+        wednesday = "02:00-03:00",
+        thursday = "02:00-03:00",
+        friday = "02:00-03:00",
+        saturday = "02:00-03:00",
+        sunday = "02:00-03:00"
+      }
+    }
+
+    object Host "localhost" inherits "generic-host" {
+      ...
+      services["load"] = {
+        templates = [ "generic-service" ],
+
+        check_command = "load",
+
+        scheduled_downtimes["backup"] = {
+          templates = [ "backup-downtime" ]
+        }
+      },
+    }
+
+
+## <a id="comments"></a> Comments
 
 Comments can be added at runtime and are persistent over restarts. You can
 add useful information for others on repeating incidents (for example
@@ -79,7 +115,7 @@ Adding and deleting comment actions are possible through the external command pi
 provided with the `ExternalCommandListener` configuration. The caller must
 pass the comment id in case of manipulating an existing comment.
 
-## Acknowledgements
+## <a id="acknowledgements"></a> Acknowledgements
 
 If a problem is alerted and notified you may signal the other notification
 receipients that you are aware of the problem and will handle it.
@@ -94,7 +130,7 @@ to all notified users.
 >
 > Modern web interfaces treat acknowledged problems as `handled`.
 
-### Expiring Acknowledgements
+### <a id="expiring-acknowledgements"></a> Expiring Acknowledgements
 
 Once a problem is acknowledged it may disappear from your `handled problems`
 dashboard and no-one ever looks at it again since it will suppress
@@ -107,7 +143,7 @@ you can define an expiration time when acknowledging the problem.
 Icinga 2 will clear the acknowledgement when expired and start to
 re-notify if the problem persists.
 
-## Cluster
+## <a id="cluster"></a> Cluster
 
 An Icinga 2 cluster consists of two or more nodes and can reside on multiple
 architectures. The base concept of Icinga 2 is the possibility to add additional
@@ -115,7 +151,7 @@ features using components. In case of a cluster setup you have to add the
 cluster feature to all nodes. Before you start configuring the diffent nodes
 it's necessary to setup the underlying communication layer based on SSL.
 
-### Certificate Authority and Certificates
+### <a id="certificate-authority-certificates"></a> Certificate Authority and Certificates
 
 Icinga 2 comes with two scripts helping you to create CA and node certificates
 for you Icinga 2 Cluster.
@@ -138,14 +174,14 @@ Please create a certificate and a key file for every node in the Icinga 2
 Cluster and save the CA key in case you want to set up certificates for
 additional nodes at a later date.
 
-### Enable the Cluster Configuration
+### <a id="enable-cluster-configuration"></a> Enable the Cluster Configuration
 
 Until the cluster-component is moved into an independent feature you have to
 enable the required libraries in the icinga2.conf configuration file:
 
     library "cluster"
 
-### Configure the ClusterListener Object
+### <a id="configure-clusterlistener-object"></a> Configure the ClusterListener Object
 
 The ClusterListener needs to be configured on every node in the cluster with the
 following settings:
@@ -191,7 +227,7 @@ a three node cluster consisting of
 and `node-3` is only reachable from `node-2`, you have to consider this in your
 peer configuration
 
-### Configure Cluster Endpoints
+### <a id="configure-cluster-endpoints"></a> Configure Cluster Endpoints
 
 In addition to the configured port and hostname every endpoint can have specific
 abilities to send configuration files to other nodes and limit the hosts allowed
@@ -227,7 +263,7 @@ instance you will have to add the following include directive to your
 
     include (IcingaLocalStateDir + "/lib/icinga2/cluster/config/*/*")
 
-### Initial Sync
+### <a id="initial-cluster-sync"></a> Initial Cluster Sync
 
 In order to make sure that all of your cluster nodes have the same state you will
 have to pick one of the nodes as your initial "master" and copy its state file
@@ -237,7 +273,7 @@ You can find the state file in `/var/lib/icinga2/icinga2.state`. Before copying
 the state file you should make sure that all your cluster nodes are properly shut
 down.
 
-### Assign Services to Cluster Nodes
+### <a id="assign-services-to-cluster-nodes"></a> Assign Services to Cluster Nodes
 
 By default all services are distributed among the cluster nodes with the `Checker`
 feature enabled.
@@ -260,7 +296,7 @@ attribute. Required Endpoints must be defined as array.
 > defining the authorities.
 
 
-## Dependencies
+## <a id="dependencies"></a> Dependencies
 
 Icinga 2 uses host and service dependencies as attribute directly on the host or
 service object or template. A service can depend on a host, and vice versa. A
@@ -302,7 +338,7 @@ router's firewall.
       host_dependencies = [ "dsl-router" ]
     }
 
-## Check Result Freshness
+## <a id="check-result-freshness"></a> Check Result Freshness
 
 In Icinga 2 active check freshness is enabled by default. It is determined by the
 `check_interval` attribute and no incoming check results in that period of time.
@@ -316,7 +352,7 @@ Passive check freshness is calculated from the `check_interval` attribute if set
 If the freshness checks are invalid, a new check is executed defined by the
 `check_command` attribute.
 
-## Check Flapping
+## <a id="check-flapping"></a> Check Flapping
 
 The flapping algorithm used in Icinga 2 does not store the past states but
 calculcates the flapping threshold from a single value based on counters and
@@ -328,7 +364,7 @@ configuration attribute named `flapping_threshold`.
 > Flapping must be explicitely enabled seting the `Service` object attribute
 > `enable_flapping = 1`.
 
-## Volatile Services
+## <a id="volatile-services"></a> Volatile Services
 
 By default all services remain in a non-volatile state. When a problem
 occurs, the `SOFT` state applies and once `max_check_attempts` attribute
@@ -341,7 +377,7 @@ state type if the service stays in a `NOT-OK` state. That way each
 service recheck will automatically trigger a notification unless the
 service is acknowledged or in a scheduled downtime.
 
-## Modified Attributes
+## <a id="modified-attributes"></a> Modified Attributes
 
 Icinga 2 allows you to modify defined object attributes at runtime different to
 the local configuration object attributes. These modified attributes are
@@ -351,13 +387,13 @@ modified attributes in its state file and restores them on restart.
 Modified Attributes can be reset using external commands.
 
 
-## Plugin API
+## <a id="plugin-api"></a> Plugin API
 
 Currently the native plugin api inherited from the `Monitoring Plugins` (former
 `Nagios Plugins`) project is available.
 Future specifications will be documented here.
 
-### Monitoring Plugin API
+### <a id="monitoring-plugin-api"></a> Monitoring Plugin API
 
 The `Monitoring Plugin API` (former `Nagios Plugin API`) is defined in the
 [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).

@@ -1,6 +1,6 @@
 # <a id="differences-1x-2"></a> Differences between Icinga 1.x and 2
 
-## Configuration Format
+## <a id="differences-1x-2-configuration-format"></a> Configuration Format
 
 Icinga 1.x supports two configuration formats: key-value-based settings in the
 `icinga.cfg` configuration file and object-based in included files (`cfg_dir`,
@@ -22,7 +22,7 @@ if it's the main configuration file, or any included file.
         enable_notifications = 0,
     }
 
-### Sample Configuration and ITL
+### <a id="differences-1x-2-sample-configuration-itl"></a> Sample Configuration and ITL
 
 While Icinga 1.x ships sample configuration and templates spread in various
 object files Icinga 2 moves all templates into the Icinga Template Library (ITL)
@@ -35,7 +35,7 @@ The ITL will be updated on every release and should not be edited by the user.
 > Sample configuration files are located in the `conf.d/` directory which is
 > included in `icinga2.conf` by default.
 
-### Include Files and Directories
+### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories
 
 In Icinga 1.x the `icinga.cfg` file contains `cfg_file` and `cfg_dir`
 directives. The `cfg_dir` directive recursively includes all files with a `.cfg`
@@ -58,7 +58,7 @@ suffix does not matter as long as it matches the (wildcard) include expression.
 >
 > By convention the `.conf` suffix is used for Icinga 2 configuration files.
 
-## Resource File and Global Macros
+## <a id="differences-1x-2-resource-file-global-macros"></a> Resource File and Global Macros
 
 Global macros such as for the plugin directory, usernames and passwords can be
 set in the `resource.cfg` configuration file in Icinga 1.x. By convention the
@@ -75,7 +75,7 @@ Icinga 2 uses a global `IcingaMacros` variable which is set in the
     }
 
 
-## Comments
+## <a id="differences-1x-2-comments"></a> Comments
 
 In Icinga 1.x comments are made using a leading hash (`#`) or a semi-colon (`;`)
 for inline comments.
@@ -83,9 +83,9 @@ for inline comments.
 In Icinga 2 comments can either be encapsulated by `/*` and `*/` (allowing for
 multi-line comments) or starting with two slashes (`//`).
 
-## Object names
+## <a id="differences-1x-2-object-names"></a> Object names
 
-Object names must not contain a colon (`:`). Use the `display_name` attribute
+Object names must not contain a colon (`!`). Use the `display_name` attribute
 to specify user-friendly names which should be shown in UIs (supported by
 Icinga 1.x Classic UI and Web).
 
@@ -99,7 +99,7 @@ services) like in Icinga 1.x but directly after their type definition.
 
     object Service "localhost-ping4" { }
 
-## Templates
+## <a id="differences-1x-2-templates"></a> Templates
 
 In Icinga 1.x templates are identified using the `register 0` setting. Icinga 2
 uses the `template` identifier:
@@ -118,7 +118,7 @@ comma-separated list with template names in double quotes.
     object Service "testservice" inherits "tmpl1", "tmpl2", "tmpl3" {
     }
 
-## Object attributes
+## <a id="differences-1x-2-object-attributes"></a> Object attributes
 
 Icinga 1.x separates attribute and value with whitespaces/tabs. Icinga 2
 requires an equal sign (=) between them.
@@ -144,7 +144,7 @@ with double quotes as well.
 Unlike in Icinga 1.x all attributes within the current object must be
 terminated with a comma (,).
 
-### Alias vs. Display Name
+### <a id="differences-1x-2-alias-display-name"></a> Alias vs. Display Name
 
 In Icinga 1.x a host can have an `alias` and a `display_name` attribute used
 for a more descriptive name. A service only can have a `display_name` attribute.
@@ -152,9 +152,9 @@ The `alias` is used for group, timeperiod, etc. objects too.
 Icinga 2 only supports the `display_name` attribute which is also taken into
 account by Icinga 1.x Classic UI and Web.
 
-## Custom Attributes
+## <a id="differences-1x-2-custom-attributes"></a> Custom Attributes
 
-### Action Url, Notes Url, Notes
+### <a id="differences-1x-2-action-url-notes-url-notes"></a> Action Url, Notes Url, Notes
 
 Icinga 1.x objects support configuration attributes not required as runtime
 values but for external ressources such as Icinga 1.x Classic UI or Web.
@@ -177,7 +177,7 @@ or `Service` objects:
 
 External interfaces will recognize and display these attributes accordingly.
 
-### Custom Variables
+### <a id="differences-1x-2-custom-variables"></a> Custom Variables
 
 Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`).
 In Icinga 2 these attributes must be added to the `custom`dictionary.
@@ -189,11 +189,11 @@ In Icinga 2 these attributes must be added to the `custom`dictionary.
 
 > **Note**
 >
-> If you are planning to access custom variables as runtime macros you should
-> add them to the macros dictionary instead!
+> If you are planning to access custom variables as runtime macros you may access
+> them with `_HOST`name as known from Icinga 1.x
 
 
-## Host Service Relation
+## <a id="differences-1x-2-host-service-relation"></a> Host Service Relation
 
 In Icinga 1.x a service object is associated with a host by defining the
 `host_name` attribute in the service definition. Alternate methods refer
@@ -207,7 +207,7 @@ inline service definitions can reference service templates.
 Linking a service to a host is still possible with the 'host' attribute in
 a service object in Icinga 2.
 
-## Users
+## <a id="differences-1x-2-users"></a> Users
 
 Contacts have been renamed to Users (same for groups). A user does not
 only provide attributes and macros used for notifications, but is also
@@ -221,7 +221,7 @@ provide the contact and contactgroups attributes for services for compatibility
 reasons. These values are calculated from all services, their notifications,
 and their users.
 
-## Macros
+## <a id="differences-1x-2-macros"></a> Macros
 
 Various object attributes and runtime variables can be accessed as macros in
 commands in Icinga 1.x - Icinga 2 supports all required [macros](#macros).
@@ -241,7 +241,7 @@ commands in Icinga 1.x - Icinga 2 supports all required [macros](#macros).
   CONTACTPAGER           | USERPAGER
 
 
-### Command Macros
+### <a id="differences-1x-2-command-macros"></a> Command Macros
 
 If you have previously used Icinga 1.x you may already be familiar with
 user and argument macros (e.g., `USER1` or `ARG1`). Unlike in Icinga 1.x macros
@@ -285,7 +285,7 @@ With the freely definable macros in Icinga 2 it looks like this:
 > $USER1$ macro. It also replaces the Icinga 1.x notation with $ARGn$ with freely
 > definable macros.
 
-### Environment Macros
+### <a id="differences-1x-2-environment-macros"></a> Environment Macros
 
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
@@ -293,15 +293,15 @@ Icinga 2.
 Macros exported into the environment must be set using the `export_macros`
 attribute in command objects.
 
-## Checks
+## <a id="differences-1x-2-checks"></a> Checks
 
-### Host Check
+### <a id="differences-1x-2-host-check"></a> Host Check
 
 Unlike in Icinga 1.x hosts are not checkable objects in Icinga 2. Instead hosts
 inherit their state from the service that is specified using the `check`
 attribute.
 
-### Check Output
+### <a id="differences-1x-2-check-output"></a> Check Output
 
 Icinga 2 does not make a difference between `output` (first line) and
 `long_output` (remaining lines) like in Icinga 1.x. Performance Data is
@@ -311,20 +311,20 @@ The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
 split the raw output into `output` (first line) and `long_output` (remaining
 lines) for compatibility reasons.
 
-### Initial State
+### <a id="differences-1x-2-initial-state"></a> Initial State
 
 Icinga 1.x uses the `max_service_check_spread` setting to specify a timerange
 where the initial state checks must have happened. Icinga 2 will use the
 `retry_interval` setting instead and `check_interval` divided by 5 if
 `retry_interval` is not defined.
 
-### Performance Data
+### <a id="differences-1x-2-performance-data"></a> Performance Data
 
 There is no host performance data generated in Icinga 2 because there are no
 real host checks. Therefore the PerfDataWriter will only write service
 performance data files.
 
-## Commands
+## <a id="differences-1x-2-commands"></a> Commands
 
 Unlike in Icinga 1.x there are 3 different command types in Icinga 2:
 `CheckCommand`, `NotificationCommand` and EventCommand`.
@@ -343,7 +343,7 @@ as array to the `command_line` attribute i.e. for better readability.
 It's also possible to define default macros for the command itself which can be
 overridden by a service macro.
 
-## Groups
+## <a id="differences-1x-2-groups"></a> Groups
 
 In Icinga 2 hosts, services and users are added to groups using the `groups`
 attribute in the object. The old way of listing all group members in the group's
@@ -365,7 +365,7 @@ Host groups in Icinga 2 cannot be used to associate services with all members
 of that group. The example above shows how to use templates to accomplish
 the same effect.
 
-## Notifications
+## <a id="differences-1x-2-notifications"></a> Notifications
 
 Notifications are a new object type in Icinga 2. Imagine the following
 notification configuration problem in Icinga 1.x:
@@ -415,7 +415,7 @@ In Icinga 2 it will look like this:
     Service -> Notification -> NotificationCommand
                             -> User, UserGroup
 
-### Escalations
+### <a id="differences-1x-2-escalations"></a> Escalations
 
 Escalations in Icinga 1.x require a separated object matching on existing
 objects. Escalations happen between a defined start and end time which is
@@ -439,7 +439,7 @@ happens.
 That's not necessary with Icinga 2 only requiring an additional notification
 object for the escalation itself.
 
-### Notification Options
+### <a id="differences-1x-2-notification-options"></a> Notification Options
 
 Unlike Icinga 1.x with the 'notification_options' attribute with comma-separated
 state and type filters, Icinga 2 uses two configuration attributes for that.
@@ -463,7 +463,7 @@ and flapping type (start, end, ...).
 > Notification state and type filters are only valid configuration attributes for
 > `Notification` and `User` objects.
 
-## Dependencies and Parents
+## <a id="differences-1x-2-dependencies-parents"></a> Dependencies and Parents
 
 In Icinga 1.x it's possible to define host parents to determine network reachability
 and keep a host's state unreachable rather than down.
@@ -481,7 +481,7 @@ The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
 support the Icinga 1.x schema with dependencies and parent attributes for
 compatibility reasons.
 
-## Flapping
+## <a id="differences-1x-2-flapping"></a> Flapping
 
 The Icinga 1.x flapping detection uses the last 21 states of a service. This
 value is hardcoded and cannot be changed. The algorithm on determining a flapping state
@@ -495,7 +495,7 @@ The algorithm used in Icinga 2 does not store the past states but calculcates th
 threshold from a single value based on counters and half-life values. Icinga 2 compares
 the value with a single flapping threshold configuration attribute.
 
-## Check Result Freshness
+## <a id="differences-1x-2-check-result-freshness"></a> Check Result Freshness
 
 Freshness of check results must be explicitely enabled in Icinga 1.x. The attribute
 `freshness_treshold` defines the threshold in seconds. Once the threshold is triggered, an
@@ -508,14 +508,14 @@ freshness is calculated from the `check_interval` attribute if set. There is no 
 `freshness_threshold` attribute in Icinga 2. If the freshness checks are invalid, a new
 service check is forced.
 
-## State Retention
+## <a id="differences-1x-2-state-retention"></a> State Retention
 
 Icinga 1.x uses the `retention.dat` file to save its state in order to be able
 to reload it after a restart. In Icinga 2 this file is called `icinga2.state`.
 
 The format objects are stored in is not compatible with Icinga 1.x.
 
-## Logging
+## <a id="differences-1x-2-logging"></a> Logging
 
 Icinga 1.x supports syslog facilities and writes its own `icinga.log` log file
 and archives. These logs are used in Icinga 1.x Classic UI to generate
@@ -527,7 +527,7 @@ The native Icinga 2 logging facilities are split into three configuration object
 FileLogger, StreamLogger. Each of them got their own severity and target configuration.
 
 
-## Broker Modules and Features
+## <a id="differences-1x-2-broker-modules-features"></a> Broker Modules and Features
 
 Icinga 1.x broker modules are incompatible with Icinga 2.
 
@@ -543,7 +543,7 @@ to have one Icinga instance write to multiple IDO databases. Due to the way
 objects work in Icinga 2 it is possible to set up multiple IDO database instances.
 
 
-## Distributed Monitoring
+## <a id="differences-1x-2-distributed-monitoring"></a> Distributed Monitoring
 
 Icinga 1.x uses the native "obsess over host/service" method which requires the NSCA addon
 passing the slave's checkresults passively onto the master's external command pipe.

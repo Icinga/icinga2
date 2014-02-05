@@ -31,3 +31,7 @@ An instance of icinga-web is installed at [http://localhost:8080/icinga-web](htt
 The username is `root` and the password is `password`.
 
 SSH login is available using `vagrant ssh`.
+
+## <a id="vagrant-windows"></a> Vagrant on Windows
+
+TODO
