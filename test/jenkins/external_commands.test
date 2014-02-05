@@ -441,7 +441,7 @@ def test_delay_host_notification(hostname):
     # for the given host is set to 10 seconds
     send_command('DISABLE_HOST_CHECK;{0}'.format(hostname))
     for _ in xrange(MAX_CHECK_ATTEMPTS):
-        send_command('PROCESS_HOST_CHECK_RESULT;{0};2;down'.format(hostname)) # TODO: Should be 1 (DOWN), not 2 (UNREACHABLE)
+        send_command('PROCESS_HOST_CHECK_RESULT;{0};1;down'.format(hostname))
     state_info = get_one('GET hosts\nFilter: name = {0}'
                          '\nColumns: state state_type last_hard_state_change'
                          ''.format(hostname))
@@ -1143,13 +1143,13 @@ def test_servicegroup_commands():
 
 def main():
     failure = test_host_comments('localhost')
-    failure = test_host_comments('nsca-ng')
+    #failure = test_host_comments('nsca-ng') # Cannot work without a hostcheck!
 
     failure = test_service_comments('localhost', 'disk')
     failure = test_service_comments('nsca-ng', 'PassiveService1')
 
     failure = test_host_downtimes('localhost')
-    failure = test_host_downtimes('nsca-ng')
+    #failure = test_host_downtimes('nsca-ng')
 
     failure = test_service_downtimes('localhost', 'disk')
     failure = test_service_downtimes('nsca-ng', 'PassiveService1')
