@@ -20,6 +20,13 @@ the support overview page at [https://support.icinga.org].
 
 ## <a id="whats-new"></a> What's new
 
+### What's New in Version 0.0.7
+
+* DB IDO performance improvements on startup
+* Fix notification_id handling in DB IDO
+* More automated tests (based on the Vagrant VM)
+* New documentation chapters
+
 ### What's New in Version 0.0.6
 
 * Scheduled Downtimes as configuration object (also known as "Recurring Downtimes").
