@@ -1277,6 +1277,7 @@ CREATE TABLE IF NOT EXISTS icinga_statehistory (
   last_hard_state smallint default 0,
   output TEXT character set latin1  default '',
   long_output TEXT  default '',
+  check_source varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (statehistory_id)
 ) ENGINE=InnoDB COMMENT='Historical host and service state changes';
 
@@ -1523,6 +1524,9 @@ CREATE INDEX tperiod_tid_d_ss_es ON icinga_timeperiod_timeranges (timeperiod_id,
 CREATE INDEX sla_idx_sthist ON icinga_statehistory (object_id, state_time DESC);
 CREATE INDEX sla_idx_dohist ON icinga_downtimehistory (object_id, actual_start_time, actual_end_time);
 CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
+
+-- #4985
+CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, comment_time, internal_comment_id);
 
 -- -----------------------------------------
 -- set dbversion

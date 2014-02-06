@@ -861,6 +861,7 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	if (cr) {
 		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+		fields1->Set("check_source", cr->GetCheckSource());
 	}
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */

@@ -1303,6 +1303,7 @@ CREATE TABLE  icinga_statehistory (
   last_hard_state INTEGER  default '-1',
   output TEXT  default '',
   long_output TEXT  default '',
+  check_source varchar(255) default NULL,
   CONSTRAINT PK_statehistory_id PRIMARY KEY (statehistory_id) 
 ) ;
 
@@ -1550,6 +1551,8 @@ CREATE INDEX sla_idx_sthist ON icinga_statehistory (object_id, state_time DESC);
 CREATE INDEX sla_idx_dohist ON icinga_downtimehistory (object_id, actual_start_time, actual_end_time);
 CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
 
+-- #4985
+CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, comment_time, internal_comment_id);
 
 -- -----------------------------------------
 -- set dbversion
