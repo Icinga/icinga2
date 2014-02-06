@@ -20,6 +20,7 @@
 #include "methods/icingachecktask.h"
 #include "icinga/cib.h"
 #include "icinga/service.h"
+#include "icinga/icingaapplication.h"
 #include "base/application.h"
 #include "base/utility.h"
 #include "base/scriptfunction.h"
@@ -64,6 +65,7 @@ CheckResult::Ptr IcingaCheckTask::ScriptFunc(const Service::Ptr&)
 	cr->SetOutput("Icinga 2 is running.");
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(StateOK);
+	cr->SetCheckSource(IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	return cr;
 }

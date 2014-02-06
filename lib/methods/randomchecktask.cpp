@@ -20,6 +20,7 @@
 #ifndef _WIN32
 #	include <stdlib.h>
 #endif /* _WIN32 */
+#include "icinga/icingaapplication.h"
 #include "methods/randomchecktask.h"
 #include "base/utility.h"
 #include "base/convert.h"
@@ -47,6 +48,7 @@ CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
+	cr->SetCheckSource(IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	return cr;
 }

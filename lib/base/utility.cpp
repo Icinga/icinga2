@@ -755,6 +755,16 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	return 0;
 }
 
+String Utility::GetHostName(void)
+{
+	char name[255];
+
+	if (gethostname(name, sizeof(name)) < 0)
+		strcpy(name, "<unknown host>");
+
+	return String(name);
+}
+
 int Utility::Random(void)
 {
 #ifdef _WIN32

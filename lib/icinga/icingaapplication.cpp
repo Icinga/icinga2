@@ -42,6 +42,7 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptVariable::Set("IcingaEnableFlapping", true);
 	ScriptVariable::Set("IcingaEnableChecks", true);
 	ScriptVariable::Set("IcingaEnablePerfdata", true);
+	ScriptVariable::Set("IcingaNodeName", Utility::GetHostName());
 }
 
 /**
@@ -91,6 +92,11 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
 	return ScriptVariable::Get("IcingaMacros");
+}
+
+String IcingaApplication::GetIcingaNodeName(void) const
+{
+	return 	ScriptVariable::Get("IcingaNodeName");
 }
 
 bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
