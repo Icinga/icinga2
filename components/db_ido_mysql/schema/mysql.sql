@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS icinga_acknowledgements (
   persistent_comment smallint default 0,
   notify_contacts smallint default 0,
   end_time timestamp default '0000-00-00 00:00:00',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (acknowledgement_id)
 ) ENGINE=InnoDB COMMENT='Current and historical host and service acknowledgements';
 
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS icinga_commenthistory (
   expiration_time timestamp  default '0000-00-00 00:00:00',
   deletion_time timestamp  default '0000-00-00 00:00:00',
   deletion_time_usec  int default 0,
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (commenthistory_id),
   UNIQUE KEY instance_id (instance_id,object_id,comment_time,internal_comment_id)
 ) ENGINE=InnoDB  COMMENT='Historical host and service comments';
@@ -232,6 +234,7 @@ CREATE TABLE IF NOT EXISTS icinga_contactnotifications (
   start_time_usec  int default 0,
   end_time timestamp  default '0000-00-00 00:00:00',
   end_time_usec  int default 0,
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (contactnotification_id),
   UNIQUE KEY instance_id (instance_id,contact_object_id,start_time,start_time_usec)
 ) ENGINE=InnoDB  COMMENT='Historical record of contact notifications';
@@ -407,6 +410,7 @@ CREATE TABLE IF NOT EXISTS icinga_downtimehistory (
   was_cancelled smallint default 0,
   is_in_effect smallint default 0,
   trigger_time timestamp  default '0000-00-00 00:00:00',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (downtimehistory_id),
   UNIQUE KEY instance_id (instance_id,object_id,entry_time,internal_downtime_id)
 ) ENGINE=InnoDB  COMMENT='Historical scheduled host and service downtime';
@@ -437,6 +441,7 @@ CREATE TABLE IF NOT EXISTS icinga_eventhandlers (
   return_code smallint default 0,
   output TEXT character set latin1  default '',
   long_output TEXT  default '',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (eventhandler_id),
   UNIQUE KEY instance_id (instance_id,object_id,start_time,start_time_usec)
 ) ENGINE=InnoDB COMMENT='Historical host and service event handlers';
@@ -454,6 +459,7 @@ CREATE TABLE IF NOT EXISTS icinga_externalcommands (
   command_type smallint default 0,
   command_name varchar(128) character set latin1  default '',
   command_args TEXT character set latin1  default '',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (externalcommand_id)
 ) ENGINE=InnoDB  COMMENT='Historical record of processed external commands';
 
@@ -477,6 +483,7 @@ CREATE TABLE IF NOT EXISTS icinga_flappinghistory (
   high_threshold double  default '0',
   comment_time timestamp  default '0000-00-00 00:00:00',
   internal_comment_id bigint unsigned default 0,
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (flappinghistory_id)
 ) ENGINE=InnoDB  COMMENT='Current and historical record of host and service flapping';
 
@@ -511,6 +518,7 @@ CREATE TABLE IF NOT EXISTS icinga_hostchecks (
   output TEXT character set latin1  default '',
   long_output TEXT  default '',
   perfdata TEXT character set latin1  default '',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (hostcheck_id)
 ) ENGINE=InnoDB  COMMENT='Historical host checks';
 
@@ -820,6 +828,7 @@ CREATE TABLE IF NOT EXISTS icinga_logentries (
   realtime_data smallint default 0,
   inferred_data_extracted smallint default 0,
   object_id bigint unsigned default NULL,
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (logentry_id)
 ) ENGINE=InnoDB COMMENT='Historical record of log entries';
 
@@ -844,6 +853,7 @@ CREATE TABLE IF NOT EXISTS icinga_notifications (
   long_output TEXT  default '',
   escalated smallint default 0,
   contacts_notified smallint default 0,
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (notification_id),
   UNIQUE KEY instance_id (instance_id,object_id,start_time,start_time_usec)
 ) ENGINE=InnoDB  COMMENT='Historical record of host and service notifications';
@@ -881,6 +891,7 @@ CREATE TABLE IF NOT EXISTS icinga_processevents (
   program_name varchar(16) character set latin1  default '',
   program_version varchar(20) character set latin1  default '',
   program_date varchar(10) character set latin1  default '',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (processevent_id)
 ) ENGINE=InnoDB  COMMENT='Historical Icinga process events';
 
@@ -995,6 +1006,7 @@ CREATE TABLE IF NOT EXISTS icinga_servicechecks (
   output TEXT character set latin1  default '',
   long_output TEXT  default '',
   perfdata TEXT character set latin1  default '',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (servicecheck_id)
 ) ENGINE=InnoDB  COMMENT='Historical service checks';
 
@@ -1278,6 +1290,7 @@ CREATE TABLE IF NOT EXISTS icinga_statehistory (
   output TEXT character set latin1  default '',
   long_output TEXT  default '',
   check_source varchar(255) character set latin1 default NULL,
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (statehistory_id)
 ) ENGINE=InnoDB COMMENT='Historical host and service state changes';
 
@@ -1301,6 +1314,7 @@ CREATE TABLE IF NOT EXISTS icinga_systemcommands (
   return_code smallint default 0,
   output TEXT character set latin1  default '',
   long_output TEXT  default '',
+  icinga_node varchar(255) character set latin1 default NULL,
   PRIMARY KEY  (systemcommand_id),
   UNIQUE KEY instance_id (instance_id,start_time,start_time_usec)
 ) ENGINE=InnoDB  COMMENT='Historical system commands that are executed';
