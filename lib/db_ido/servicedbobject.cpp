@@ -30,6 +30,7 @@
 #include "icinga/eventcommand.h"
 #include "icinga/externalcommandprocessor.h"
 #include "icinga/compatutility.h"
+#include "icinga/icingaapplication.h"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 
@@ -402,6 +403,7 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const C
 		query1.Table = "comments";
 	} else {
 		query1.Table = "commenthistory";
+		fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 	}
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatComment;
@@ -567,6 +569,7 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 		query1.Table = "scheduleddowntime";
 	} else {
 		query1.Table = "downtimehistory";
+		fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 	}
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatDowntime;
@@ -743,6 +746,7 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	fields1->Set("comment_data", comment);
 	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
 	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query1.Fields = fields1;
@@ -793,6 +797,7 @@ void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notificati
 
 	fields1->Set("escalated", 0);
 	fields1->Set("contacts_notified", static_cast<long>(users.size()));
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query1.Fields = fields1;
@@ -861,8 +866,10 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	if (cr) {
 		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+		fields1->Set("check_source", cr->GetCheckSource());
 	}
 
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query1.Fields = fields1;
@@ -1165,6 +1172,7 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 	fields1->Set("object_id", service); // added in 1.10 see #4754
 	fields1->Set("logentry_type", type);
 	fields1->Set("logentry_data", buffer);
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -1221,6 +1229,7 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 	fields1->Set("percent_state_change", service->GetFlappingCurrent());
 	fields1->Set("low_threshold", service->GetFlappingThreshold());
 	fields1->Set("high_threshold", service->GetFlappingThreshold());
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -1279,6 +1288,7 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 	fields1->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	fields1->Set("service_object_id", service);
@@ -1326,6 +1336,7 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("end_time_usec", time_bag.second);
 	fields1->Set("command_object_id", service->GetEventCommand());
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -1359,6 +1370,7 @@ void ServiceDbObject::AddExternalCommandHistory(double time, const String& comma
 	fields1->Set("command_type", CompatUtility::MapExternalCommandType(command));
 	fields1->Set("command_name", command);
 	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
+	fields1->Set("icinga_node", IcingaApplication::GetInstance()->GetIcingaNodeName());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
