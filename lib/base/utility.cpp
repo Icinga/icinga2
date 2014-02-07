@@ -472,7 +472,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 	if (dirp == NULL)
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("opendir")
-		    << boost::errinfo_errno(errno));
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(path));
 
 	while (dirp) {
 		dirent ent, *pent;
@@ -482,7 +483,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("readdir_r")
-			    << boost::errinfo_errno(errno));
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(path));
 		}
 
 		if (!pent)
@@ -500,7 +502,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("lstat")
-			    << boost::errinfo_errno(errno));
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(cpath));
 		}
 
 		if (S_ISDIR(statbuf.st_mode))
@@ -511,7 +514,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("stat")
-			    << boost::errinfo_errno(errno));
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(cpath));
 		}
 
 		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
