@@ -33,13 +33,8 @@ REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 
 CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 {
-	char name[255];
-
-	if (gethostname(name, sizeof(name)) < 0)
-		strcpy(name, "<unknown host>");
-
 	String output = "Hello from ";
-	output += name;
+	output += Utility::GetHostName();
 
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Utility::GetTime());
@@ -48,7 +43,7 @@ CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
-	cr->SetCheckSource(IcingaApplication::GetInstance()->GetIcingaNodeName());
+	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	return cr;
 }

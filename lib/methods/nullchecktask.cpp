@@ -32,13 +32,8 @@ REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
 CheckResult::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 {
-	char name[255];
-
-	if (gethostname(name, sizeof(name)) < 0)
-		strcpy(name, "<unknown host>");
-
 	String output = "Hello from ";
-	output += name;
+	output += Utility::GetHostName();
 
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Utility::GetTime());

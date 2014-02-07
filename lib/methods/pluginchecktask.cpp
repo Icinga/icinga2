@@ -79,7 +79,7 @@ CheckResult::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 	result->SetExitStatus(pr.ExitStatus);
 	result->SetExecutionStart(pr.ExecutionStart);
 	result->SetExecutionEnd(pr.ExecutionEnd);
-	result->SetCheckSource(IcingaApplication::GetInstance()->GetIcingaNodeName());
+	result->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	return result;
 }
