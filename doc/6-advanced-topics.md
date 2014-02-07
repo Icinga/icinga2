@@ -273,6 +273,7 @@ You can find the state file in `/var/lib/icinga2/icinga2.state`. Before copying
 the state file you should make sure that all your cluster nodes are properly shut
 down.
 
+
 ### <a id="assign-services-to-cluster-nodes"></a> Assign Services to Cluster Nodes
 
 By default all services are distributed among the cluster nodes with the `Checker`
@@ -295,6 +296,29 @@ attribute. Required Endpoints must be defined as array.
 > services based on their location, inheriting from a global service template
 > defining the authorities.
 
+### <a id="cluster-health-check"></a> Cluster Health Check
+
+The Icinga 2 [ITL](#itl) ships an internal check command checking all configured
+`EndPoints` in the cluster setup. The check result will become critical if
+one or more configured nodes are not connected.
+
+Example:
+
+    object Host "icinga2a" inherits "generic-host" {
+      services["cluster"] = {
+        templates = [ "generic-service" ],
+        check_interval = 1m,
+        check_command = "cluster",
+        authorities = [ "icinga2a" ]
+      },
+    }
+
+> **Note**
+>
+> Each cluster node should execute its own local cluster health check to
+> get an idea about network related connection problems from different
+> point of views. Use the `authorities` attribute to assign the service
+> check to the configured node.
 
 ## <a id="dependencies"></a> Dependencies
 

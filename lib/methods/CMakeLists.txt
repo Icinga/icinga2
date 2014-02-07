@@ -16,12 +16,12 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 add_library(methods SHARED
-  icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
+  clusterchecktask.cpp icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
   randomchecktask.cpp timeperiodtask.cpp
 )
 
-target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(methods ${Boost_LIBRARIES} base config icinga cluster)
 
 set_target_properties (
   methods PROPERTIES

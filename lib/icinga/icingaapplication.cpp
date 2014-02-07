@@ -96,7 +96,7 @@ Dictionary::Ptr IcingaApplication::GetMacros(void) const
 
 String IcingaApplication::GetNodeName(void) const
 {
-	return 	ScriptVariable::Get("IcingaNodeName");
+	return ScriptVariable::Get("IcingaNodeName");
 }
 
 bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const

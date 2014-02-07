@@ -17,34 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#ifndef CLUSTERCHECKTASK_H
+#define CLUSTERCHECKTASK_H
 
-template CheckCommand "icinga-check-command" {
-	methods = {
-		execute = "IcingaCheck"
-	}
+#include "methods/i2-methods.h"
+#include "icinga/service.h"
+
+namespace icinga
+{
+
+/**
+ * Cluster check type.
+ *
+ * @ingroup methods
+ */
+class I2_METHODS_API ClusterCheckTask
+{
+public:
+	static CheckResult::Ptr ScriptFunc(const Service::Ptr& service);
+
+private:
+	ClusterCheckTask(void);
+};
+
 }
 
-template CheckCommand "cluster-check-command" {
-	methods = {
-		execute = "ClusterCheck"
-	}
-}
-
-template CheckCommand "plugin-check-command" {
-	methods = {
-		execute = "PluginCheck"
-	}
-}
-
-template NotificationCommand "plugin-notification-command" {
-	methods = {
-		execute = "PluginNotification"
-	}
-}
-
-template EventCommand "plugin-event-command" {
-	methods = {
-		execute = "PluginEvent"
-	}
-}
+#endif /* CLUSTERCHECKTASK_H */
