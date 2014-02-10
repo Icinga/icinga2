@@ -18,6 +18,11 @@
  ******************************************************************************/
 
 #include "icinga/cib.h"
+#include "icinga/service.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
+#include "base/dynamictype.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -42,4 +47,122 @@ void CIB::UpdatePassiveChecksStatistics(long tv, int num)
 int CIB::GetPassiveChecksStatistics(long timespan)
 {
 	return m_PassiveChecksStatistics.GetValues(timespan);
+}
+
+ServiceCheckStatistics CIB::CalculateServiceCheckStats(void)
+{
+	double min_latency = -1, max_latency = 0, sum_latency = 0;
+	int count_latency = 0;
+	double min_execution_time = -1, max_execution_time = 0, sum_execution_time = 0;
+	int count_execution_time = 0;
+
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		ObjectLock olock(service);
+
+		CheckResult::Ptr cr = service->GetLastCheckResult();
+
+		/* latency */
+		double latency = Service::CalculateLatency(cr);
+
+		if (min_latency == -1 || latency < min_latency)
+			min_latency = latency;
+
+		if (latency > max_latency)
+			max_latency = latency;
+
+		sum_latency += latency;
+		count_latency++;
+
+		/* execution_time */
+		double execution_time = Service::CalculateExecutionTime(cr);
+
+		if (min_execution_time == -1 || execution_time < min_execution_time)
+			min_execution_time = execution_time;
+
+		if (execution_time > max_execution_time)
+			max_execution_time = execution_time;
+
+		sum_execution_time += execution_time;
+		count_execution_time++;
+	}
+
+	ServiceCheckStatistics scs = {0};
+
+	scs.min_latency = min_latency;
+	scs.max_latency = max_latency;
+	scs.avg_latency = sum_latency / count_latency;
+	scs.min_execution_time = min_execution_time;
+	scs.max_execution_time = max_execution_time;
+	scs.avg_execution_time = sum_execution_time / count_execution_time;
+
+	return scs;
+}
+
+ServiceStatistics CIB::CalculateServiceStats(void)
+{
+	ServiceStatistics ss = {0};
+
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		ObjectLock olock(service);
+
+		CheckResult::Ptr cr = service->GetLastCheckResult();
+
+		if (service->GetState() == StateOK)
+			ss.services_ok++;
+		if (service->GetState() == StateWarning)
+			ss.services_warning++;
+		if (service->GetState() == StateCritical)
+			ss.services_critical++;
+		if (service->GetState() == StateUnknown)
+			ss.services_unknown++;
+
+		if (!cr)
+			ss.services_pending++;
+		if (!service->IsReachable())
+			ss.services_unreachable++;
+
+		if (service->IsFlapping())
+			ss.services_flapping++;
+		if (service->IsInDowntime())
+			ss.services_in_downtime++;
+		if (service->IsAcknowledged())
+			ss.services_acknowledged++;
+	}
+
+	return ss;
+}
+
+HostStatistics CIB::CalculateHostStats(void)
+{
+	HostStatistics hs = {0};
+
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		ObjectLock olock(host);
+
+		if (host->GetState() == HostUp)
+			hs.hosts_up++;
+		if (host->GetState() == HostDown)
+			hs.hosts_down++;
+		if (host->GetState() == HostUnreachable)
+			hs.hosts_unreachable++;
+
+		Service::Ptr hc = host->GetCheckService();
+
+		if (!hc) {
+			hs.hosts_pending++;
+			continue; /* skip host service check counting */
+		}
+
+		if (!hc->GetLastCheckResult())
+			hs.hosts_pending++;
+
+		if (hc->IsFlapping())
+			hs.hosts_flapping++;
+		if (hc->IsInDowntime())
+			hs.hosts_in_downtime++;
+		if (hc->IsAcknowledged())
+			hs.hosts_acknowledged++;
+	}
+
+	return hs;
 }
