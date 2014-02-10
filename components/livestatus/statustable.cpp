@@ -71,13 +71,13 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "enable_notifications", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "execute_service_checks", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_service_checks", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "execute_host_checks", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "execute_host_checks", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_host_checks", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "enable_event_handlers", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_services", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_hosts", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_service_freshness", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_host_freshness", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_host_freshness", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "enable_flap_detection", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "process_performance_data", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_external_commands", Column(&Table::OneAccessor, objectAccessor));
