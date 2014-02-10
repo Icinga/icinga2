@@ -255,6 +255,9 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		        << errinfo_database_query(query)
 		);
 
+	char *rowCount = PQcmdTuples(result);
+	m_AffectedRows = atoi(rowCount);
+
 	if (PQresultStatus(result) == PGRES_COMMAND_OK)
 		return IdoPgsqlResult();
 
@@ -268,9 +271,6 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		        << errinfo_database_query(query)
 		);
 	}
-
-	char *rowCount = PQcmdTuples(result);
-	m_AffectedRows = atoi(rowCount);
 
 	return IdoPgsqlResult(result, std::ptr_fun(PQclear));
 }
