@@ -8,6 +8,7 @@ class Endpoint : DynamicObject
 	[config] String host;
 	[config] String port;
 	[config] Array::Ptr config_files;
+	[config] Array::Ptr config_files_recursive;
 	[config] Array::Ptr accept_config;
 
 	[state] double seen;

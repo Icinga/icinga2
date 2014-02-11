@@ -538,6 +538,23 @@ void ClusterListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		}
 	}
 
+	Array::Ptr configFilesRecursive = endpoint->GetConfigFilesRecursive();
+
+	if (configFilesRecursive) {
+		ObjectLock olock(configFilesRecursive);
+		BOOST_FOREACH(const Value& configFile, configFilesRecursive) {
+			if (configFile.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr configFileDict = configFile;
+				String path = configFileDict->Get("path");
+				String pattern = configFileDict->Get("pattern");
+				Utility::GlobRecursive(path, pattern, boost::bind(&ClusterListener::ConfigGlobHandler, boost::cref(config), _1, false), GlobFile);
+			} else {
+				String configFilePath = configFile;
+				Utility::GlobRecursive(configFilePath, "*.conf", boost::bind(&ClusterListener::ConfigGlobHandler, boost::cref(config), _1, false), GlobFile);
+			}
+		}
+	}
+
 	Log(LogInformation, "cluster", "Sending " + Convert::ToString(static_cast<long>(config->GetLength())) + " config files to endpoint '" + endpoint->GetName() + "'.");
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
