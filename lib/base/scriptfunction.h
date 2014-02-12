@@ -43,7 +43,7 @@ public:
 
 	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
 
-	explicit ScriptFunction(const Callback& function);
+	ScriptFunction(const Callback& function);
 
 	Value Invoke(const std::vector<Value>& arguments);
 
