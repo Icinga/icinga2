@@ -124,6 +124,8 @@ void IdoMysqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
+	std::vector<DbObject::Ptr> active_dbobjs;
+
 	{
 		boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -225,12 +227,24 @@ void IdoMysqlConnection::Reconnect(void)
 			DbObject::Ptr dbobj = dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
 			SetObjectID(dbobj, DbReference(row->Get("object_id")));
 			SetObjectActive(dbobj, row->Get("is_active"));
+
+			if (GetObjectActive(dbobj))
+				active_dbobjs.push_back(dbobj);
 		}
 
 		Query("BEGIN");
 	}
 
 	UpdateAllObjects();
+
+	/* deactivate all deleted configuration objects */
+	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
+		if (dbobj->GetObject() == NULL) {
+			Log(LogDebug, "db_ido", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
+			    "' name2: '" + Convert::ToString(dbobj->GetName2() + "'.")));
+			DeactivateObject(dbobj);
+		}
+	}
 }
 
 void IdoMysqlConnection::ClearConfigTable(const String& table)
