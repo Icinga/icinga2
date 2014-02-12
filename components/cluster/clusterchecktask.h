@@ -20,7 +20,6 @@
 #ifndef CLUSTERCHECKTASK_H
 #define CLUSTERCHECKTASK_H
 
-#include "methods/i2-methods.h"
 #include "icinga/service.h"
 
 namespace icinga
@@ -31,7 +30,7 @@ namespace icinga
  *
  * @ingroup methods
  */
-class I2_METHODS_API ClusterCheckTask
+class ClusterCheckTask
 {
 public:
 	static CheckResult::Ptr ScriptFunc(const Service::Ptr& service);

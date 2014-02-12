@@ -20,7 +20,10 @@ mkclass_target(endpoint.ti endpoint.th)
 
 mkembedconfig_target(cluster-type.conf cluster-type.cpp)
 
-add_library(cluster SHARED clusterlistener.cpp clusterlistener.th endpoint.cpp endpoint.th jsonrpc.cpp cluster-type.cpp)
+add_library(cluster SHARED
+  clusterchecktask.cpp clusterlistener.cpp clusterlistener.th
+  endpoint.cpp endpoint.th jsonrpc.cpp cluster-type.cpp
+)
 
 target_link_libraries(cluster ${Boost_LIBRARIES} base config icinga)
 

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/clusterchecktask.h"
+#include "cluster/clusterchecktask.h"
 #include "cluster/endpoint.h"
 #include "cluster/clusterlistener.h"
 #include "icinga/cib.h"
