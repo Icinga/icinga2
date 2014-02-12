@@ -203,9 +203,7 @@ variable: variable_decl identifier T_EQUAL value
 		}
 
 		ScriptVariable::Ptr sv = ScriptVariable::Set($2, *value);
-
-		if (!$1)
-			sv->SetConstant(true);
+		sv->SetConstant(true);
 
 		free($2);
 		delete value;
