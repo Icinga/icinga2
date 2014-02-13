@@ -61,6 +61,9 @@ private:
 	Timer::Ptr m_ClusterTimer;
 	void ClusterTimerHandler(void);
 
+	Timer::Ptr m_StatusTimer;
+        void StatusTimerHandler(void);
+
 	std::set<TcpSocket::Ptr> m_Servers;
 
 	void AddListener(const String& service);
@@ -107,12 +110,15 @@ private:
 
 	static bool SupportsChecks(void);
 	static bool SupportsNotifications(void);
+        static bool SupportsFeature(const String& name);
 
 	void SetSecurityInfo(const Dictionary::Ptr& message, const DynamicObject::Ptr& object, int privs);
 
 	void PersistMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message);
 
 	static void MessageExceptionHandler(boost::exception_ptr exp);
+
+        Dictionary::Ptr GetClusterStatus(void);
 };
 
 }
