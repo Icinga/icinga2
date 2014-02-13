@@ -42,6 +42,13 @@ CheckResult::Ptr IcingaCheckTask::ScriptFunc(const Service::Ptr&)
 	perfdata->Set("active_checks", CIB::GetActiveChecksStatistics(interval) / interval);
 	perfdata->Set("passive_checks", CIB::GetPassiveChecksStatistics(interval) / interval);
 
+	perfdata->Set("active_checks_1min", CIB::GetActiveChecksStatistics(60));
+	perfdata->Set("passive_checks_1min", CIB::GetPassiveChecksStatistics(60));
+	perfdata->Set("active_checks_5min", CIB::GetActiveChecksStatistics(60 * 5));
+	perfdata->Set("passive_checks_5min", CIB::GetPassiveChecksStatistics(60 * 5));
+	perfdata->Set("active_checks_15min", CIB::GetActiveChecksStatistics(60 * 15));
+	perfdata->Set("passive_checks_15min", CIB::GetPassiveChecksStatistics(60 * 15));
+
 	ServiceCheckStatistics scs = CIB::CalculateServiceCheckStats();
 
 	perfdata->Set("min_latency", scs.min_latency);
