@@ -51,6 +51,8 @@ public:
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 	String GetClusterDir(void) const;
 
+        Dictionary::Ptr GetClusterStatus(void);
+
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 
@@ -117,8 +119,6 @@ private:
 	void PersistMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message);
 
 	static void MessageExceptionHandler(boost::exception_ptr exp);
-
-        Dictionary::Ptr GetClusterStatus(void);
 };
 
 }
