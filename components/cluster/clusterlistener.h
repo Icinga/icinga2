@@ -51,6 +51,8 @@ public:
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 	String GetClusterDir(void) const;
 
+        Dictionary::Ptr GetClusterStatus(void);
+
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 
@@ -60,6 +62,9 @@ private:
 
 	Timer::Ptr m_ClusterTimer;
 	void ClusterTimerHandler(void);
+
+	Timer::Ptr m_StatusTimer;
+        void StatusTimerHandler(void);
 
 	std::set<TcpSocket::Ptr> m_Servers;
 
@@ -107,6 +112,7 @@ private:
 
 	static bool SupportsChecks(void);
 	static bool SupportsNotifications(void);
+        static bool SupportsFeature(const String& name);
 
 	void SetSecurityInfo(const Dictionary::Ptr& message, const DynamicObject::Ptr& object, int privs);
 

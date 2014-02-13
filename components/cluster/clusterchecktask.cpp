@@ -37,52 +37,55 @@ REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
 
 CheckResult::Ptr ClusterCheckTask::ScriptFunc(const Service::Ptr&)
 {
-	double interval = Utility::GetTime() - Application::GetStartTime();
-
-	if (interval > 60)
-		interval = 60;
-
-	double count_endpoints = 0;
-	std::vector<String> not_connected_endpoints;
-	std::vector<String> connected_endpoints;
-
+	Dictionary::Ptr status;
 	BOOST_FOREACH(const ClusterListener::Ptr& cluster_listener, DynamicType::GetObjects<ClusterListener>()) {
-		String identity = cluster_listener->GetIdentity();
-
-		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-			count_endpoints++;
-
-			if(!endpoint->IsConnected() && endpoint->GetName() != identity)
-				not_connected_endpoints.push_back(endpoint->GetName());
-			else if(endpoint->IsConnected() && endpoint->GetName() != identity)
-				connected_endpoints.push_back(endpoint->GetName());
-		}
+		/* XXX there's only one cluster listener */
+		status = cluster_listener->GetClusterStatus();
 	}
 
-	std::sort(not_connected_endpoints.begin(), not_connected_endpoints.end());
-	std::sort(connected_endpoints.begin(), connected_endpoints.end());
+	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
+	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
+
+	/* remove unneeded perfdata */
+	status->Set("conn_endpoints", Empty);
+	status->Set("not_conn_endpoints", Empty);
 
 	ServiceState state = StateOK;
-	String output = "Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(connected_endpoints.size()) + " (" +
-	    boost::algorithm::join(connected_endpoints, ",") + ").";
+	String output = "Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) + " (" +
+	    connected_endpoints + ").";
 
-	if (not_connected_endpoints.size() > 0) {
+	if (status->Get("num_not_conn_endpoints") > 0) {
 		state = StateCritical;
-		output = "Icinga 2 Cluster Problem: " + Convert::ToString(not_connected_endpoints.size()) +
-		    " Endpoints (" + boost::algorithm::join(not_connected_endpoints, ",") + ") not connected.";
+		output = "Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
+		    " Endpoints (" + not_connected_endpoints + ") not connected.";
 	}
-
-	Dictionary::Ptr perfdata = make_shared<Dictionary>();
-	perfdata->Set("num_endpoints", count_endpoints);
-	perfdata->Set("num_conn_endpoints", connected_endpoints.size());
-	perfdata->Set("num_not_conn_endpoints", not_connected_endpoints.size());
 
 	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput(output);
-	cr->SetPerformanceData(perfdata);
+	cr->SetPerformanceData(status);
 	cr->SetState(state);
 	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	return cr;
+}
+
+String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
+{
+	bool first = true;
+	String str;
+
+	if (arr) {
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const Value& value, arr) {
+			if (first)
+				first = false;
+			else
+				str += ",";
+
+			str += Convert::ToString(value);
+		}
+	}
+
+	return str;
 }
 
