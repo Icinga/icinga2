@@ -136,14 +136,6 @@ void Application::SetResourceLimits(void)
 	Log(LogDebug, "base", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
 #endif /* _WIN32 */
-
-#	ifdef RLIMIT_STACK
-	rl.rlim_cur = 128 * 1024;
-	rl.rlim_max = rl.rlim_cur;
-
-	if (setrlimit(RLIMIT_STACK, &rl) < 0)
-		Log(LogDebug, "base", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
-#	endif /* RLIMIT_STACK */
 }
 
 int Application::GetArgC(void)
