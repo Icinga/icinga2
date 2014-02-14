@@ -85,6 +85,14 @@ class TestSuite(object):
             testresult.setAttribute('classname', 'vm')
             testresult.setAttribute('name', name)
 
+            totaltests = document.createElement('tests')
+            totaltests.appendChild(document.createTextNode(str(info['total'])))
+            testresult.appendChild(totaltests)
+
+            failedtests = document.createElement('failures')
+            failedtests.appendChild(document.createTextNode(str(info['failures'])))
+            testresult.appendChild(failedtests)
+
             systemout = document.createElement('system-out')
             systemout.appendChild(document.createTextNode(info['stdout']))
             testresult.appendChild(systemout)
