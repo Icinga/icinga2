@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 import os
 import sys
 import time
+import socket
 
 import utils
 
 
+LIVESTATUS_PATH = '/var/run/icinga2/cmd/livestatus'
 LS_HOST_COLUMNS = [
     'name',
     'name',
@@ -108,14 +110,22 @@ def convert_output(value):
 
 def success(msg):
     print '[OK] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
 
 
 def fail(msg):
     print '[FAIL] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
 
 
 def info(msg):
     print '[INFO] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
+
+
+def error(msg):
+    print '[ERROR] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
 
 
 def main():
@@ -206,5 +216,10 @@ def main():
 
 
 if __name__ == '__main__':
-    with utils.LiveStatusSocket('/var/run/icinga2/cmd/livestatus') as LIVESTATUS:
-        sys.exit(main())
+    try:
+        with utils.LiveStatusSocket(LIVESTATUS_PATH) as LIVESTATUS:
+            sys.exit(main())
+    except (OSError, IOError, socket.error), e:
+        error('Could not connect to Livestatus socket: {0} ({1})'
+              ''.format(LIVESTATUS_PATH, unicode(e)))
+

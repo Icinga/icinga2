@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import sys
 from datetime import datetime, timedelta
 
 CHECK_INTERVAL = 10 # minutes; The actual interval are 5 minutes but as other
@@ -78,20 +79,39 @@ EXAMPLE_CONFIG = {
 }
 
 
+def success(msg):
+    print '[OK] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
+    return True
+
+
+def fail(msg):
+    print '[FAIL] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
+    return False
+
+
+def info(msg):
+    print '[INFO] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
+
+
 def validate_tables(tables):
     """
     Return whether all tables of the IDO database scheme exist in
     the given table listing
 
     """
-    missing = [n for n in TABLES if TABLE_PREFIX + n not in tables]
-    if missing:
-        print 'Some tables are missing in the IDO'
-        print 'Missing tables: ' + ', '.join(missing)
-        return False
+    info('Checking database scheme... (tables)')
+    failures = False
+    for table in (TABLE_PREFIX + n for n in TABLES):
+        if table in tables:
+            success('Found table "{0}" in database'.format(table))
+        else:
+            fail('Could not find table "{0}" in database'.format(table))
+            failures = True
 
-    print 'All tables were found in the IDO'
-    return True
+    return not failures
 
 
 def verify_host_config(config_data):
@@ -99,12 +119,16 @@ def verify_host_config(config_data):
     Return whether the example hosts exist in the given "hosts" table
 
     """
-    if len([1 for e in config_data if e['alias'] in EXAMPLE_CONFIG]) == 2:
-        print 'All example hosts are stored in the IDO'
-        return True
+    info('Checking example host configuration...')
+    failures = False
+    for hostname in EXAMPLE_CONFIG:
+        if not any(1 for e in config_data if e['alias'] == hostname):
+            fail('Could not find host "{0}"'.format(hostname))
+            failures = True
+        else:
+            success('Found host "{0}"'.format(hostname))
 
-    print 'Some example hosts are missing in the IDO'
-    return False
+    return not failures
 
 
 def verify_service_config(config_data):
@@ -112,17 +136,21 @@ def verify_service_config(config_data):
     Return whether the example services exist in the given "services" table
 
     """
+    info('Checking example service configuration...')
+    failures = False
     for hostname, servicename in ((h, s) for h, ss in EXAMPLE_CONFIG.iteritems()
                                          for s in ss):
-        # Not very efficient, but suitable for just two hosts...
         if not any(1 for c in config_data
                      if c['alias'] == hostname and
                         c['display_name'] == servicename):
-            print 'The config stored in the IDO is missing some services'
-            return False
+            fail('Could not find service "{0}" on host "{1}"'
+                 ''.format(servicename, hostname))
+            failures = True
+        else:
+            success('Found service "{0}" on host "{1}"'
+                    ''.format(servicename, hostname))
 
-    print 'The service config stored in the IDO is correct'
-    return True
+    return not failures
 
 
 def check_last_host_status_update(check_info):
@@ -130,22 +158,30 @@ def check_last_host_status_update(check_info):
     Return whether the example hosts are checked as scheduled
 
     """
-    for info in check_info:
-        if info['alias'] == 'localhost':
-            last_check = datetime.fromtimestamp(float(info['last_check']))
+    info('Checking last host status updates...')
+    failures = False
+    for host_info in check_info:
+        if host_info['alias'] == 'localhost':
+            last_check = datetime.fromtimestamp(float(host_info['last_check']))
             if datetime.now() - last_check > timedelta(minutes=CHECK_INTERVAL,
                                                        seconds=10):
-                print 'The last status update of host "localhost"' \
-                      ' was more than {0} minutes ago'.format(CHECK_INTERVAL)
-                return False
-        elif info['alias'] == 'nsca-ng':
-            if float(info['last_check']) > 0:
-                print 'The host "nsca-ng" was checked even though' \
-                      ' it should not be actively checked'
-                return False
+                fail('The last status update of host "{0}" was more than {1} '
+                     'minutes ago'.format(host_info['alias'], CHECK_INTERVAL))
+                failures = True
+            else:
+                success('Host "{0}" is being updated'.format(host_info['alias']))
+        elif host_info['alias'] == 'nsca-ng':
+            if float(host_info['last_check']) > 0:
+                fail('The host "{0}" was checked even though it has'
+                     ' no check service'.format(host_info['alias']))
+                failures = True
+            else:
+                success('Host "{0}" is not being checked because there '
+                        'is no check service'.format(host_info['alias']))
+        else:
+            info('Skipping host "{0}"'.format(host_info['alias']))
 
-    print 'The updates of both example hosts are processed as configured'
-    return True
+    return not failures
 
 
 def check_last_service_status_update(check_info):
@@ -153,19 +189,26 @@ def check_last_service_status_update(check_info):
     Return whether the example services are checked as scheduled
 
     """
-    for info in check_info:
-        if info['display_name'] in EXAMPLE_CONFIG.get(info['alias'], []):
-            last_check = datetime.fromtimestamp(float(info['last_check']))
+    info('Checking last service status updates...')
+    failures = False
+    for svc_info in check_info:
+        if svc_info['display_name'] in EXAMPLE_CONFIG.get(svc_info['alias'], []):
+            last_check = datetime.fromtimestamp(float(svc_info['last_check']))
             if datetime.now() - last_check > timedelta(minutes=CHECK_INTERVAL,
                                                        seconds=10):
-                print 'The last status update of service "{0}" of' \
-                      ' host "{1}" was more than {2} minutes ago' \
-                      ''.format(info['display_name'], info['alias'],
-                                CHECK_INTERVAL)
-                return False
+                fail('The last status update of service "{0}" on'
+                     ' host "{1}" was more than {2} minutes ago'
+                     ''.format(svc_info['display_name'], svc_info['alias'],
+                               CHECK_INTERVAL))
+                failures = True
+            else:
+                success('Service "{0}" on host "{1}" is being updated'
+                        ''.format(svc_info['display_name'], svc_info['alias']))
+        else:
+            info('Skipping service "{0}" on host "{1}"'
+                 ''.format(svc_info['display_name'], svc_info['alias']))
 
-    print 'The updates of all example services are processed as configured'
-    return True
+    return not failures
 
 
 def check_logentries(logentry_info):
@@ -174,17 +217,15 @@ def check_logentries(logentry_info):
     and refers to its very last hard status change
 
     """
+    info('Checking status log for host "localhost"...')
     if logentry_info and logentry_info[0]['alias'] == 'localhost':
         entry_time = datetime.fromtimestamp(float(logentry_info[0]['entry_time']))
         state_time = datetime.fromtimestamp(float(logentry_info[0]['state_time']))
         if entry_time - state_time > timedelta(seconds=10):
-            print 'The last hard state of host "localhost"' \
-                  ' seems not to have been logged'
-            return False
+            return fail('The last hard state of host "localhost"'
+                        ' seems not to have been logged')
     else:
-        print 'No logs found in the IDO for host "localhost"'
-        return False
+        return fail('No logs found in the IDO for host "localhost"')
 
-    print 'The last hard state of host "localhost" was properly logged'
-    return True
+    return success('The last hard state of host "localhost" was properly logged')
 

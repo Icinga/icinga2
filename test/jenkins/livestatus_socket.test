@@ -8,10 +8,10 @@ then
 
     if [ ! -e /var/run/icinga2/cmd/livestatus ];
     then
-        echo "Icinga2 Livestatus socket not found"
+        echo "[FAIL] Icinga2 Livestatus socket not found"
         exit 1
     fi
 fi
 
-echo "Icinga2 Livestatus socket found"
+echo "[OK] Icinga2 Livestatus socket found"
 exit 0

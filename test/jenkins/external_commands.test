@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import random
+import socket
 import subprocess
 
 try:
@@ -20,6 +21,7 @@ import utils
 ICINGA_UID = 'icinga'
 USERNAME = 'Icinga 2 Admin'
 MAX_CHECK_ATTEMPTS = 3
+LIVESTATUS_PATH = '/var/run/icinga2/cmd/livestatus'
 
 
 def send_command(command, quiet=False):
@@ -61,11 +63,19 @@ def restart_icinga():
 
 def success(msg):
     print '[OK] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
     return False
 
 
 def fail(msg):
     print '[FAIL] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
+    return True
+
+
+def error(msg):
+    print '[ERROR] {0}'.format(msg).encode('utf-8')
+    sys.stdout.flush()
     return True
 
 
@@ -548,7 +558,10 @@ def test_disabling_scheduling_host_checks(hostname):
                                      ' INNER JOIN icinga_hosts AS h'
                                      ' ON h.host_object_id = c.host_object_id'
                                      ' WHERE h.alias = "{0}"'
-                                     ''.format(hostname))['e_time'])
+                                     ''.format(hostname)).get('e_time', -1))
+    if execution_time == -1:
+        return fail('Unable to fetch the maximum execution time of'
+                    ' host "{0}" from the IDO'.format(hostname))
 
     send_command('DISABLE_HOST_CHECK;{0}'.format(hostname))
     scheduled_check = time.time() + 4
@@ -602,7 +615,10 @@ def test_disabling_scheduling_service_checks(hostname, servicename):
                                      ' INNER JOIN icinga_hosts as h'
                                      ' ON h.host_object_id = s.host_object_id'
                                      ' WHERE h.alias = "{0}" AND s.display_name = "{1}"'
-                                     ''.format(hostname, servicename))['e_time'])
+                                     ''.format(hostname, servicename)).get('e_time', -1))
+    if execution_time == -1:
+        return fail('Unable to fetch the maximum execution time of service "{0}"'
+                    ' on host "{1}" from the IDO'.format(hostname, servicename))
 
     send_command('DISABLE_SVC_CHECK;{0};{1}'.format(hostname, servicename))
     scheduled_check = time.time() + 4
@@ -1193,6 +1209,10 @@ def main():
 
 
 if __name__ == '__main__':
-    with utils.LiveStatusSocket('/var/run/icinga2/cmd/livestatus') as LIVESTATUS:
-        sys.exit(main())
+    try:
+        with utils.LiveStatusSocket(LIVESTATUS_PATH) as LIVESTATUS:
+            sys.exit(main())
+    except (OSError, IOError, socket.error), e:
+        error('Could not connect to Livestatus socket: {0} ({1})'
+              ''.format(LIVESTATUS_PATH, unicode(e)))
 

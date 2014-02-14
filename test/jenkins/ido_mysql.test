@@ -8,15 +8,17 @@ import ido_tests
 
 
 def main():
+    failures = False
+
     run_query = lambda q: utils.run_mysql_query(q, b'/usr/bin/mysql')
 
     if not ido_tests.validate_tables([d['Tables_in_icinga']
                                       for d in run_query('show tables')]):
-        return 1
+        return 1 # Bail out as we cannot proceed without any data
 
     host_info = run_query('select * from icinga_hosts')
     if not ido_tests.verify_host_config(host_info):
-        return 1
+        return 1 # Bail out as we cannot proceed without any data
 
     service_info = run_query(
         'select c2.alias, c1.* from icinga_services as c1 '
@@ -24,7 +26,7 @@ def main():
         ' on c1.host_object_id = c2.host_object_id'
         )
     if not ido_tests.verify_service_config(service_info):
-        return 1
+        return 1 # Bail out as we cannot proceed without any data
 
     hostchecks_data = run_query(
         'select c.alias, unix_timestamp(s.last_check) as last_check'
@@ -33,7 +35,7 @@ def main():
         ' on s.host_object_id = c.host_object_id'
         )
     if not ido_tests.check_last_host_status_update(hostchecks_data):
-        return 1
+        failures = True
 
     servicechecks_data = run_query(
         'select c2.alias, c1.display_name, unix_timestamp(s.last_check) as last_check'
@@ -44,7 +46,7 @@ def main():
         ' on c1.host_object_id = c2.host_object_id'
         )
     if not ido_tests.check_last_service_status_update(servicechecks_data):
-        return 1
+        failures = True
 
     logentry_info = run_query(
         'select hosts.alias,'
@@ -57,9 +59,9 @@ def main():
         ' on hist.object_id = hosts.host_object_id and hist.state_type = 1'
         )
     if not ido_tests.check_logentries(logentry_info):
-        return 1
+        failures = True
 
-    return 0
+    return 1 if failures else 0
 
 
 if __name__ == '__main__':

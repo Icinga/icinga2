@@ -138,6 +138,7 @@ status() {
 		echo "Running"
 	else
 		echo "Not running"
+		exit 3
 	fi
 }
 
