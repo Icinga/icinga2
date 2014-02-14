@@ -28,6 +28,9 @@ class icinga2 {
   file { "/etc/icinga2/features-enabled/*":
     notify => Service['icinga2']
   }
+
+  icinga2::feature { 'livestatus':
+  }
 }
 
 class icinga2-ido-mysql {
