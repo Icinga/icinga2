@@ -25,6 +25,7 @@ mkclass_target(eventcommand.ti eventcommand.th)
 mkclass_target(hostgroup.ti hostgroup.th)
 mkclass_target(host.ti host.th)
 mkclass_target(icingaapplication.ti icingaapplication.th)
+mkclass_target(icingastatuswriter.ti icingastatuswriter.th)
 mkclass_target(notificationcommand.ti notificationcommand.th)
 mkclass_target(notification.ti notification.th)
 mkclass_target(perfdatavalue.ti perfdatavalue.th)
@@ -42,7 +43,8 @@ add_library(icinga SHARED
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp
   domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
   externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
-  icingaapplication.cpp icingaapplication.th legacytimeperiod.cpp
+  icingaapplication.cpp icingaapplication.th icingastatuswriter.cpp
+  icingastatuswriter.th legacytimeperiod.cpp
   macroprocessor.cpp macroresolver.cpp notificationcommand.cpp notificationcommand.th
   notification.cpp notification.th perfdatavalue.cpp perfdatavalue.th
   pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th service-check.cpp

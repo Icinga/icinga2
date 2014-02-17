@@ -17,46 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type ClusterListener {
-	%attribute string "cert_path",
-	%require "cert_path",
+#ifndef ICINGASTATUSWRITER_H
+#define ICINGASTATUSWRITER_H
 
-	%attribute string "key_path",
-	%require "key_path",
+#include "icinga/icingastatuswriter.th"
+#include "icinga/host.h"
+#include "icinga/service.h"
+#include "icinga/command.h"
+#include "icinga/compatutility.h"
+#include "base/objectlock.h"
+#include "base/timer.h"
+#include "base/utility.h"
+#include <boost/thread/thread.hpp>
+#include <iostream>
 
-	%attribute string "ca_path",
-	%require "ca_path",
+namespace icinga
+{
 
-	%attribute string "crl_path",
+/**
+ * @ingroup compat
+ */
+class IcingaStatusWriter : public ObjectImpl<IcingaStatusWriter>
+{
+public:
+	DECLARE_PTR_TYPEDEFS(IcingaStatusWriter);
 
-	%attribute string "bind_host",
-	%attribute string "bind_port",
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Dictionary::Ptr GetStatusData(void);
 
-	%attribute array "peers" {
-		%attribute name(Endpoint) "*"
-	}
+protected:
+	virtual void Start(void);
+
+private:
+	Timer::Ptr m_StatusTimer;
+	void StatusTimerHandler(void);
+};
+
 }
 
-type Endpoint {
-	%require "host",
-	%attribute string "host",
-
-	%require "port",
-	%attribute string "port",
-
-	%attribute array "config_files" {
-		%attribute string "*"
-	},
-
-	%attribute array "config_files_recursive" {
-		%attribute string "*",
-		%attribute dictionary "*" {
-			%attribute string "path",
-			%attribute string "pattern"
-		}
-	},
-
-	%attribute array "accept_config" {
-		%attribute name(Endpoint) "*"
-	}
-}
+#endif /* ICINGASTATUSWRITER_H */

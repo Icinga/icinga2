@@ -15,12 +15,6 @@ class ClusterListener : DynamicObject
 	[config] Array::Ptr peers;
 	[state] double log_message_timestamp;
 	String identity;
-	[config] String status_path {
-		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/cluster/cluster.json"; }}}
-	};
-	[config] double status_update_interval {
-		default {{{ return 15; }}}
-	};
 };
 
 }

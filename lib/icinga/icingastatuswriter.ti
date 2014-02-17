@@ -1,0 +1,17 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace icinga
+{
+
+class IcingaStatusWriter : DynamicObject
+{
+	[config] String status_path {
+		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/status.json"; }}}
+	};
+	[config] double update_interval {
+		default {{{ return 15; }}}
+	};
+};
+
+}

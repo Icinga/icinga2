@@ -65,9 +65,6 @@ private:
 	Timer::Ptr m_ClusterTimer;
 	void ClusterTimerHandler(void);
 
-	Timer::Ptr m_StatusTimer;
-        void StatusTimerHandler(void);
-
 	std::set<TcpSocket::Ptr> m_Servers;
 
 	void AddListener(const String& service);
