@@ -36,6 +36,8 @@ class NotificationComponent : public ObjectImpl<NotificationComponent>
 public:
 	DECLARE_PTR_TYPEDEFS(NotificationComponent);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 	virtual void Start(void);
 
 private:

@@ -17,38 +17,65 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CHECKRESULTREADER_H
-#define CHECKRESULTREADER_H
+#ifndef STATSFUNCTION_H
+#define STATSFUNCTION_H
 
-#include "compat/checkresultreader.th"
-#include "base/timer.h"
-#include <fstream>
+#include "base/i2-base.h"
+#include "base/registry.h"
+#include "base/singleton.h"
+#include "base/value.h"
+#include "base/dictionary.h"
+#include <vector>
+#include <boost/function.hpp>
 
 namespace icinga
 {
 
 /**
- * An Icinga checkresult reader.
+ * A stats function that can be used to execute a stats task.
  *
- * @ingroup compat
+ * @ingroup base
  */
-class CheckResultReader : public ObjectImpl<CheckResultReader>
+class I2_BASE_API StatsFunction : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CheckResultReader);
-	DECLARE_TYPENAME(CheckResultReader);
+	DECLARE_PTR_TYPEDEFS(StatsFunction);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	typedef boost::function<Value (Dictionary::Ptr& status, Dictionary::Ptr& perfdata)> Callback;
 
-protected:
-	virtual void Start(void);
+	StatsFunction(const Callback& function);
+
+	Value Invoke(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 private:
-	Timer::Ptr m_ReadTimer;
-	void ReadTimerHandler(void) const;
-	void ProcessCheckResultFile(const String& path) const;
+	Callback m_Callback;
 };
+
+/**
+ * A registry for script functions.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API StatsFunctionRegistry : public Registry<StatsFunctionRegistry, StatsFunction::Ptr>
+{
+public:
+	static StatsFunctionRegistry *GetInstance(void);
+};
+
+/**
+ * Helper class for registering StatsFunction implementation classes.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API RegisterStatsFunctionHelper
+{
+public:
+	RegisterStatsFunctionHelper(const String& name, const StatsFunction::Callback& function);
+};
+
+#define REGISTER_STATSFUNCTION(name, callback) \
+	I2_EXPORT icinga::RegisterStatsFunctionHelper g_RegisterSF_ ## name(#name, callback)
 
 }
 
-#endif /* CHECKRESULTREADER_H */
+#endif /* STATSFUNCTION_H */

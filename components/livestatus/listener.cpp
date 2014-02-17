@@ -29,6 +29,7 @@
 #include "base/networkstream.h"
 #include "base/application.h"
 #include "base/scriptfunction.h"
+#include "base/statsfunction.h"
 #include "base/convert.h"
 
 using namespace icinga;
@@ -39,6 +40,16 @@ REGISTER_SCRIPTFUNCTION(ValidateSocketType, &LivestatusListener::ValidateSocketT
 static int l_ClientsConnected = 0;
 static int l_Connections = 0;
 static boost::mutex l_ComponentMutex;
+
+REGISTER_STATSFUNCTION(LivestatusListenerStats, &LivestatusListener::StatsFunc);
+
+Value LivestatusListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("livestatus_connections", l_Connections);
+
+	return 0;
+}
 
 /**
  * Starts the component.

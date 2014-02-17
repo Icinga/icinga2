@@ -17,38 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CHECKRESULTREADER_H
-#define CHECKRESULTREADER_H
+#include "base/statsfunction.h"
+#include "base/registry.h"
+#include "base/singleton.h"
 
-#include "compat/checkresultreader.th"
-#include "base/timer.h"
-#include <fstream>
+using namespace icinga;
 
-namespace icinga
+StatsFunction::StatsFunction(const Callback& function)
+	: m_Callback(function)
+{ }
+
+Value StatsFunction::Invoke(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-
-/**
- * An Icinga checkresult reader.
- *
- * @ingroup compat
- */
-class CheckResultReader : public ObjectImpl<CheckResultReader>
-{
-public:
-	DECLARE_PTR_TYPEDEFS(CheckResultReader);
-	DECLARE_TYPENAME(CheckResultReader);
-
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
-
-protected:
-	virtual void Start(void);
-
-private:
-	Timer::Ptr m_ReadTimer;
-	void ReadTimerHandler(void) const;
-	void ProcessCheckResultFile(const String& path) const;
-};
-
+	return m_Callback(status, perfdata);
 }
 
-#endif /* CHECKRESULTREADER_H */
+RegisterStatsFunctionHelper::RegisterStatsFunctionHelper(const String& name, const StatsFunction::Callback& function)
+{
+	StatsFunction::Ptr func = make_shared<StatsFunction>(function);
+	StatsFunctionRegistry::GetInstance()->Register(name, func);
+}
+
+StatsFunctionRegistry *StatsFunctionRegistry::GetInstance(void)
+{
+	return Singleton<StatsFunctionRegistry>::GetInstance();
+}
+

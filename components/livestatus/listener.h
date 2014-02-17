@@ -38,6 +38,8 @@ class LivestatusListener : public ObjectImpl<LivestatusListener>
 public:
 	DECLARE_PTR_TYPEDEFS(LivestatusListener);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 	static int GetClientsConnected(void);
 	static int GetConnections(void);
 

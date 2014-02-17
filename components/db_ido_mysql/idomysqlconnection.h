@@ -41,6 +41,8 @@ class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
 public:
 	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);

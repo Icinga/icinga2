@@ -45,6 +45,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(ClusterListener);
 	DECLARE_TYPENAME(ClusterListener);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 	virtual void Start(void);
 	virtual void Stop(void);
 

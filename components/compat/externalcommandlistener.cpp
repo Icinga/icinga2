@@ -23,10 +23,21 @@
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/application.h"
+#include "base/statsfunction.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(ExternalCommandListener);
+
+REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::StatsFunc);
+
+Value ExternalCommandListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("externalcommandlisterner_", 1);
+
+	return 0;
+}
 
 /**
  * Starts the component.

@@ -25,11 +25,20 @@
 #include "base/utility.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
+#include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(CheckerComponent);
+REGISTER_STATSFUNCTION(CheckerComponentStats, &CheckerComponent::StatsFunc);
+
+Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	status->Set("checkercomponent_", 1);
+
+	return 0;
+}
 
 void CheckerComponent::OnConfigLoaded(void)
 {

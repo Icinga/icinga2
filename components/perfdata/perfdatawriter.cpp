@@ -28,10 +28,21 @@
 #include "base/utility.h"
 #include "base/context.h"
 #include "base/application.h"
+#include "base/statsfunction.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataWriter);
+
+REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
+
+Value PerfdataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("perfdatawriter_", 1);
+
+	return 0;
+}
 
 void PerfdataWriter::Start(void)
 {

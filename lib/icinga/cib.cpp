@@ -22,7 +22,9 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/dynamictype.h"
+#include "base/statsfunction.h"
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -166,3 +168,24 @@ HostStatistics CIB::CalculateHostStats(void)
 
 	return hs;
 }
+
+
+std::pair<Dictionary::Ptr, Dictionary::Ptr> CIB::GetFeatureStats(void)
+{
+	Dictionary::Ptr status = make_shared<Dictionary>();
+	Dictionary::Ptr perfdata = make_shared<Dictionary>();
+
+	String name;
+	Value ret;
+	BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), StatsFunctionRegistry::GetInstance()->GetItems()) {
+		StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem(name);
+
+		if (!func)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + name + "' does not exist."));
+
+		ret = func->Invoke(status, perfdata);
+	}
+
+	return std::make_pair(status, perfdata);
+}
+

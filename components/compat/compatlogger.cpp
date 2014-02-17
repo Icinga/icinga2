@@ -34,6 +34,7 @@
 #include "base/application.h"
 #include "base/utility.h"
 #include "base/scriptfunction.h"
+#include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -41,6 +42,16 @@ using namespace icinga;
 
 REGISTER_TYPE(CompatLogger);
 REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationMethod);
+
+REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
+
+Value CompatLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("compatlogger_", 1);
+
+	return 0;
+}
 
 /**
  * @threadsafety Always.

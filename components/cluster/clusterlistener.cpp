@@ -31,11 +31,21 @@
 #include "base/application.h"
 #include "base/convert.h"
 #include "base/context.h"
+#include "base/statsfunction.h"
 #include <fstream>
 
 using namespace icinga;
 
 REGISTER_TYPE(ClusterListener);
+
+REGISTER_STATSFUNCTION(ClusterListenerStats, &ClusterListener::StatsFunc);
+
+Value ClusterListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	status->Set("clusterlistener_", 1);
+
+	return 0;
+}
 
 /**
  * Starts the component.
@@ -1637,22 +1647,11 @@ Dictionary::Ptr ClusterListener::GetClusterStatus(void)
 	bag->Set("not_conn_endpoints", not_connected_endpoints);
 
 	/* features */
-	bag->Set("feature_CheckerComponent", SupportsChecks() ? 1 : 0);
-	bag->Set("feature_NotificationComponent", SupportsNotifications() ? 1 : 0);
+	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats = CIB::GetFeatureStats();
 
-	/* XXX find a more generic way of getting features as a list */
-	bag->Set("feature_IdoMysqlConnection", SupportsFeature("IdoMysqlConnection") ? 1 : 0);
-	bag->Set("feature_IdoPgsqlConnection", SupportsFeature("IdoPgsqlConnection") ? 1 : 0);
-	bag->Set("feature_StatusDataWriter", SupportsFeature("StatusDataWriter") ? 1 : 0);
-	bag->Set("feature_CompatLogger", SupportsFeature("CompatLogger") ? 1 : 0);
-	bag->Set("feature_ExternalCommandListener", SupportsFeature("ExternalCommandListener") ? 1 : 0);
-	bag->Set("feature_CheckResultReader", SupportsFeature("CheckResultReader") ? 1 : 0);
-	bag->Set("feature_LivestatusListener", SupportsFeature("LivestatusListener") ? 1 : 0);
-	bag->Set("feature_GraphiteWriter", SupportsFeature("GraphiteWriter") ? 1 : 0);
-	bag->Set("feature_PerfdataWriter", SupportsFeature("PerfdataWriter") ? 1 : 0);
-	bag->Set("feature_FileLogger", SupportsFeature("FileLogger") ? 1 : 0);
-	bag->Set("feature_SyslogLogger", SupportsFeature("SyslogLogger") ? 1 : 0);
-
+	/* XXX find a more clean way */
+	bag->Set("feature_status", stats.first);
+	bag->Set("feature_perfdata", stats.second);
 
 	/* icinga stats */
 	double interval = Utility::GetTime() - Application::GetStartTime();

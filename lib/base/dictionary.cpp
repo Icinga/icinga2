@@ -59,7 +59,7 @@ struct DictionaryKeyLessComparer
 };
 
 /**
- * Restrieves a value from a dictionary.
+ * Retrieves a value from a dictionary.
  *
  * @param key The key whose value should be retrieved.
  * @returns The value of an empty value if the key was not found.

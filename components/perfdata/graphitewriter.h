@@ -41,6 +41,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
 	DECLARE_TYPENAME(GraphiteWriter);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 protected:
 	virtual void Start(void);
 

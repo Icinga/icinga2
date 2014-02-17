@@ -40,6 +40,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
 	DECLARE_TYPENAME(PerfdataWriter);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 protected:
 	virtual void Start(void);
 

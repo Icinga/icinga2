@@ -27,6 +27,7 @@
 #include "base/timer.h"
 #include "base/scriptvariable.h"
 #include "base/initialize.h"
+#include "base/statsfunction.h"
 
 using namespace icinga;
 
@@ -43,6 +44,16 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptVariable::Set("IcingaEnableChecks", true);
 	ScriptVariable::Set("IcingaEnablePerfdata", true);
 	ScriptVariable::Set("IcingaNodeName", Utility::GetHostName());
+}
+
+REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
+
+Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("icingaapplication_", 1);
+
+	return 0;
 }
 
 /**

@@ -36,6 +36,8 @@ class I2_BASE_API FileLogger : public ObjectImpl<FileLogger>
 public:
 	DECLARE_PTR_TYPEDEFS(FileLogger);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 	virtual void Start(void);
 };
 

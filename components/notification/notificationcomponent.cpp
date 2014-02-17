@@ -24,11 +24,22 @@
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include "base/exception.h"
+#include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(NotificationComponent);
+
+REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::StatsFunc);
+
+Value NotificationComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("notification_", 1);
+
+	return 0;
+}
 
 /**
  * Starts the component.

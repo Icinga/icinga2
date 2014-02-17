@@ -31,7 +31,7 @@ add_library(base SHARED
   process-unix.cpp process-windows.cpp qstring.cpp ringbuffer.cpp script.cpp
   script.th scriptfunction.cpp scriptfunctionwrapper.cpp scriptinterpreter.cpp
   scriptlanguage.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
-  stdiostream.cpp stream_bio.cpp stream.cpp streamlogger.cpp streamlogger.th
+  statsfunction.cpp stdiostream.cpp stream_bio.cpp stream.cpp streamlogger.cpp streamlogger.th
   sysloglogger.cpp sysloglogger.th tcpsocket.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
   workqueue.cpp zlibstream.cpp

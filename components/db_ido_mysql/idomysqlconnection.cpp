@@ -24,6 +24,7 @@
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/exception.h"
+#include "base/statsfunction.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_mysql/idomysqlconnection.h"
@@ -32,9 +33,18 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(IdoMysqlConnection);
-
 #define SCHEMA_VERSION "1.11.0"
+
+REGISTER_TYPE(IdoMysqlConnection);
+REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
+
+Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("ido_mysql_version_req", SCHEMA_VERSION);
+
+	return 0;
+}
 
 void IdoMysqlConnection::Start(void)
 {

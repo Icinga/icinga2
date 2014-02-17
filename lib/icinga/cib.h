@@ -22,6 +22,7 @@
 
 #include "icinga/i2-icinga.h"
 #include "base/ringbuffer.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
@@ -75,6 +76,8 @@ public:
         static ServiceCheckStatistics CalculateServiceCheckStats(void);
         static ServiceStatistics CalculateServiceStats(void);
         static HostStatistics CalculateHostStats(void);
+
+        static std::pair<Dictionary::Ptr, Dictionary::Ptr> GetFeatureStats(void);
 
 private:
 	CIB(void);

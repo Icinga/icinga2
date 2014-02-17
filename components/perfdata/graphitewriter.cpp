@@ -34,6 +34,7 @@
 #include "base/networkstream.h"
 #include "base/bufferedstream.h"
 #include "base/exception.h"
+#include "base/statsfunction.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
@@ -43,6 +44,16 @@
 using namespace icinga;
 
 REGISTER_TYPE(GraphiteWriter);
+
+REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
+
+Value GraphiteWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("graphite_writer_", 1);
+
+	return 0;
+}
 
 void GraphiteWriter::Start(void)
 {

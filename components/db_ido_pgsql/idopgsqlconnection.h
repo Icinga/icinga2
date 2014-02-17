@@ -41,6 +41,8 @@ class IdoPgsqlConnection : public ObjectImpl<IdoPgsqlConnection>
 public:
 	DECLARE_PTR_TYPEDEFS(IdoPgsqlConnection);
 
+        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);

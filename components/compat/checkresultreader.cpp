@@ -29,11 +29,22 @@
 #include "base/utility.h"
 #include "base/exception.h"
 #include "base/context.h"
+#include "base/statsfunction.h"
 #include <fstream>
 
 using namespace icinga;
 
 REGISTER_TYPE(CheckResultReader);
+
+REGISTER_STATSFUNCTION(CheckResultReaderStats, &CheckResultReader::StatsFunc);
+
+Value CheckResultReader::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("checkresultreader_", 1);
+
+	return 0;
+}
 
 /**
  * @threadsafety Always.

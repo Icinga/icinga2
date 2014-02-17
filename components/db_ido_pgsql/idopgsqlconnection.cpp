@@ -25,6 +25,7 @@
 #include "base/dynamictype.h"
 #include "base/exception.h"
 #include "base/context.h"
+#include "base/statsfunction.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido_pgsql/idopgsqlconnection.h"
@@ -33,9 +34,19 @@
 
 using namespace icinga;
 
+#define SCHEMA_VERSION "1.11.0"
+
 REGISTER_TYPE(IdoPgsqlConnection);
 
-#define SCHEMA_VERSION "1.11.0"
+REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
+
+Value IdoPgsqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("ido_pgsql_version_req", SCHEMA_VERSION);
+
+	return 0;
+}
 
 void IdoPgsqlConnection::Start(void)
 {

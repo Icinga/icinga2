@@ -34,6 +34,7 @@
 #include "base/exception.h"
 #include "base/application.h"
 #include "base/context.h"
+#include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -42,6 +43,16 @@
 using namespace icinga;
 
 REGISTER_TYPE(StatusDataWriter);
+
+REGISTER_STATSFUNCTION(StatusDataWriterStats, &StatusDataWriter::StatsFunc);
+
+Value StatusDataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("statusdatawriter_", 1);
+
+	return 0;
+}
 
 /**
  * Hint: The reason why we're using "\n" rather than std::endl is because

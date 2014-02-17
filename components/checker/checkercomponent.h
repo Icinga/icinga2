@@ -71,6 +71,8 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+
 private:
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;

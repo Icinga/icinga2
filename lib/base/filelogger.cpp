@@ -19,11 +19,22 @@
 
 #include "base/filelogger.h"
 #include "base/dynamictype.h"
+#include "base/statsfunction.h"
 #include <fstream>
 
 using namespace icinga;
 
 REGISTER_TYPE(FileLogger);
+
+REGISTER_STATSFUNCTION(FileLoggerStats, &FileLogger::StatsFunc);
+
+Value FileLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("filelogger_", 1);
+
+	return 0;
+}
 
 /**
  * Constructor for the FileLogger class.

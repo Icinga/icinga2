@@ -19,11 +19,22 @@
 
 #include "base/sysloglogger.h"
 #include "base/dynamictype.h"
+#include "base/statsfunction.h"
 
 #ifndef _WIN32
 using namespace icinga;
 
 REGISTER_TYPE(SyslogLogger);
+
+REGISTER_STATSFUNCTION(SyslogLoggerStats, &SyslogLogger::StatsFunc);
+
+Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+{
+	/* FIXME */
+	status->Set("sysloglogger_", 1);
+
+	return 0;
+}
 
 /**
  * Processes a log entry and outputs it to syslog.
