@@ -45,8 +45,18 @@ REGISTER_STATSFUNCTION(LivestatusListenerStats, &LivestatusListener::StatsFunc);
 
 Value LivestatusListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("livestatus_connections", l_Connections);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, DynamicType::GetObjects<LivestatusListener>()) {
+		Dictionary::Ptr stats = make_shared<Dictionary>();
+		stats->Set("connections", l_Connections);
+
+		nodes->Set(livestatuslistener->GetName(), stats);
+
+		perfdata->Set("livestatuslistener_" + livestatuslistener->GetName() + "_connections", l_Connections);
+	}
+
+	status->Set("livestatuslistener", nodes);
 
 	return 0;
 }

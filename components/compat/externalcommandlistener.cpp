@@ -33,8 +33,13 @@ REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::S
 
 Value ExternalCommandListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("externalcommandlisterner_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, DynamicType::GetObjects<ExternalCommandListener>()) {
+		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats
+	}
+
+	status->Set("externalcommandlistener", nodes);
 
 	return 0;
 }

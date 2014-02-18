@@ -49,8 +49,13 @@ REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
 Value GraphiteWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("graphite_writer_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const GraphiteWriter::Ptr& graphitewriter, DynamicType::GetObjects<GraphiteWriter>()) {
+		nodes->Set(graphitewriter->GetName(), 1); //add more stats
+	}
+
+	status->Set("graphitewriter", nodes);
 
 	return 0;
 }

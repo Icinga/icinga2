@@ -50,8 +50,24 @@ REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
 
 Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("icingaapplication_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, DynamicType::GetObjects<IcingaApplication>()) {
+		Dictionary::Ptr stats = make_shared<Dictionary>();
+		stats->Set("node_name", icingaapplication->GetNodeName());
+		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());
+		stats->Set("enable_event_handlers", icingaapplication->GetEnableEventHandlers());
+		stats->Set("enable_flapping", icingaapplication->GetEnableFlapping());
+		stats->Set("enable_checks", icingaapplication->GetEnableChecks());
+		stats->Set("enable_perfdata", icingaapplication->GetEnablePerfdata());
+		stats->Set("pid", Utility::GetPid());
+		stats->Set("program_start", Application::GetStartTime());
+		stats->Set("version", Application::GetVersion());
+
+		nodes->Set(icingaapplication->GetName(), stats);
+	}
+
+	status->Set("icingaapplication", nodes);
 
 	return 0;
 }

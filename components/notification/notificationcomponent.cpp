@@ -35,8 +35,13 @@ REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::Stats
 
 Value NotificationComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("notification_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, DynamicType::GetObjects<NotificationComponent>()) {
+		nodes->Set(notification_component->GetName(), 1); //add more stats
+	}
+
+	status->Set("notificationcomponent", nodes);
 
 	return 0;
 }

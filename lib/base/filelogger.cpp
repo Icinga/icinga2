@@ -30,8 +30,13 @@ REGISTER_STATSFUNCTION(FileLoggerStats, &FileLogger::StatsFunc);
 
 Value FileLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("filelogger_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const FileLogger::Ptr& filelogger, DynamicType::GetObjects<FileLogger>()) {
+		nodes->Set(filelogger->GetName(), 1); //add more stats
+	}
+
+	status->Set("filelogger", nodes);
 
 	return 0;
 }

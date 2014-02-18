@@ -58,6 +58,7 @@ class CheckerComponent : public ObjectImpl<CheckerComponent>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CheckerComponent);
+	DECLARE_TYPENAME(CheckerComponent);
 
 	typedef boost::multi_index_container<
 		Service::Ptr,
@@ -72,6 +73,8 @@ public:
 	virtual void Stop(void);
 
 	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	unsigned long GetIdleServices(void);
+	unsigned long GetPendingServices(void);
 
 private:
 	boost::mutex m_Mutex;

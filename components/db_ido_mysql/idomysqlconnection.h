@@ -40,6 +40,7 @@ class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
+	DECLARE_TYPENAME(IdoMysqlConnection);
 
         static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 

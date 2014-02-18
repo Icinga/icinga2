@@ -40,8 +40,22 @@ REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
 
 Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("ido_mysql_version_req", SCHEMA_VERSION);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const IdoMysqlConnection::Ptr& idomysqlconnection, DynamicType::GetObjects<IdoMysqlConnection>()) {
+		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
+
+		Dictionary::Ptr stats = make_shared<Dictionary>();
+		stats->Set("version", SCHEMA_VERSION);
+		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
+		stats->Set("query_queue_items", items);
+
+		nodes->Set(idomysqlconnection->GetName(), stats);
+
+		perfdata->Set("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", items);
+	}
+
+	status->Set("idomysqlconnection", nodes);
 
 	return 0;
 }

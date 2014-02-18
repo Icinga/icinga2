@@ -47,8 +47,13 @@ REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
 
 Value CompatLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("compatlogger_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, DynamicType::GetObjects<CompatLogger>()) {
+		nodes->Set(compat_logger->GetName(), 1); //add more stats
+	}
+
+	status->Set("compatlogger", nodes);
 
 	return 0;
 }

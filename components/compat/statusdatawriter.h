@@ -41,6 +41,7 @@ class StatusDataWriter : public ObjectImpl<StatusDataWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StatusDataWriter);
+	DECLARE_TYPENAME(StatusDataWriter);
 
 	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 

@@ -31,11 +31,29 @@
 using namespace icinga;
 
 REGISTER_TYPE(CheckerComponent);
+
 REGISTER_STATSFUNCTION(CheckerComponentStats, &CheckerComponent::StatsFunc);
 
 Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	status->Set("checkercomponent_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const CheckerComponent::Ptr& checker, DynamicType::GetObjects<CheckerComponent>()) {
+		unsigned long idle = checker->GetIdleServices();
+		unsigned long pending = checker->GetPendingServices();
+
+		Dictionary::Ptr stats = make_shared<Dictionary>();
+		stats->Set("idle", idle);
+		stats->Set("pending", pending);
+
+		nodes->Set(checker->GetName(), stats);
+
+		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
+		perfdata->Set(perfdata_prefix + "idle", idle);
+		perfdata->Set(perfdata_prefix + "pending", pending);
+	}
+
+	status->Set("checkercomponent", nodes);
 
 	return 0;
 }
@@ -240,4 +258,18 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 	idx.erase(service);
 	idx.insert(service);
 	m_CV.notify_all();
+}
+
+unsigned long CheckerComponent::GetIdleServices(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	return m_IdleServices.size();
+}
+
+unsigned long CheckerComponent::GetPendingServices(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	return m_PendingServices.size();
 }

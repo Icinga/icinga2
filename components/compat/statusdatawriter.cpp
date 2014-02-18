@@ -48,8 +48,13 @@ REGISTER_STATSFUNCTION(StatusDataWriterStats, &StatusDataWriter::StatsFunc);
 
 Value StatusDataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("statusdatawriter_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const StatusDataWriter::Ptr& statusdatawriter, DynamicType::GetObjects<StatusDataWriter>()) {
+		nodes->Set(statusdatawriter->GetName(), 1); //add more stats
+	}
+
+	status->Set("statusdatawriter", nodes);
 
 	return 0;
 }

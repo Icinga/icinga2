@@ -107,6 +107,13 @@ void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
 	m_ExceptionCallback = callback;
 }
 
+size_t WorkQueue::GetLength(void)
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	return m_Items.size();
+}
+
 void WorkQueue::DefaultExceptionCallback(boost::exception_ptr exp)
 {
 	throw;

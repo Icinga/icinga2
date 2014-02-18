@@ -42,11 +42,20 @@ REGISTER_STATSFUNCTION(ClusterListenerStats, &ClusterListener::StatsFunc);
 
 Value ClusterListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	status->Set("clusterlistener_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
 
 	BOOST_FOREACH(const ClusterListener::Ptr& cluster_listener, DynamicType::GetObjects<ClusterListener>()) {
-		status->Set("clusterlistener_" + cluster_listener->GetName(), cluster_listener->GetClusterStatus());
+		stats = cluster_listener->GetClusterStatus();
+		nodes->Set(cluster_listener->GetName(), stats.first);
+
+		String perfdata_prefix = "clusterlistener_" + cluster_listener->GetName() + "_";
+		BOOST_FOREACH(Dictionary::Pair const& kv, stats.second) {
+			perfdata->Set(perfdata_prefix + kv.first, kv.second);
+		}
 	}
+
+	status->Set("clusterlistener", nodes);
 
 	return 0;
 }
@@ -1584,13 +1593,14 @@ bool ClusterListener::SupportsFeature(const String& name)
 	return !type->GetObjects().empty();
 }
 
-Dictionary::Ptr ClusterListener::GetClusterStatus(void)
+std::pair<Dictionary::Ptr, Dictionary::Ptr> ClusterListener::GetClusterStatus(void)
 {
-	Dictionary::Ptr bag = make_shared<Dictionary>();
+	Dictionary::Ptr status = make_shared<Dictionary>();
+	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 
 	/* cluster stats */
-	bag->Set("node", IcingaApplication::GetInstance()->GetNodeName());
-	bag->Set("identity", GetIdentity());
+	status->Set("node", IcingaApplication::GetInstance()->GetNodeName());
+	status->Set("identity", GetIdentity());
 
 	double count_endpoints = 0;
 	Array::Ptr not_connected_endpoints = make_shared<Array>();
@@ -1608,12 +1618,16 @@ Dictionary::Ptr ClusterListener::GetClusterStatus(void)
 	std::sort(not_connected_endpoints->Begin(), not_connected_endpoints->End());
 	std::sort(connected_endpoints->Begin(), connected_endpoints->End());
 
-	bag->Set("num_endpoints", count_endpoints);
-	bag->Set("num_conn_endpoints", connected_endpoints->GetLength());
-	bag->Set("num_not_conn_endpoints", not_connected_endpoints->GetLength());
-	bag->Set("conn_endpoints", connected_endpoints);
-	bag->Set("not_conn_endpoints", not_connected_endpoints);
+	status->Set("num_endpoints", count_endpoints);
+	status->Set("num_conn_endpoints", connected_endpoints->GetLength());
+	status->Set("num_not_conn_endpoints", not_connected_endpoints->GetLength());
+	status->Set("conn_endpoints", connected_endpoints);
+	status->Set("not_conn_endpoints", not_connected_endpoints);
 
-	return bag;
+	perfdata->Set("num_endpoints", count_endpoints);
+	perfdata->Set("num_conn_endpoints", connected_endpoints->GetLength());
+	perfdata->Set("num_not_conn_endpoints", not_connected_endpoints->GetLength());
+
+	return std::make_pair(status, perfdata);
 }
 

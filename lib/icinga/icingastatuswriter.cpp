@@ -48,8 +48,13 @@ REGISTER_STATSFUNCTION(IcingaStatusWriterStats, &IcingaStatusWriter::StatsFunc);
 
 Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("icingastatuswriter_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const IcingaStatusWriter::Ptr& icingastatuswriter, DynamicType::GetObjects<IcingaStatusWriter>()) {
+		nodes->Set(icingastatuswriter->GetName(), 1); //add more stats
+	}
+
+	status->Set("icingastatuswriter", nodes);
 
 	return 0;
 }
@@ -85,50 +90,54 @@ Dictionary::Ptr IcingaStatusWriter::GetStatusData(void)
 	bag->Set("feature_perfdata", stats.second);
 
 	/* icinga stats */
+	Dictionary::Ptr icinga_stats = make_shared<Dictionary>();
+
 	double interval = Utility::GetTime() - Application::GetStartTime();
 
 	if (interval > 60)
 		interval = 60;
 
-	bag->Set("active_checks", CIB::GetActiveChecksStatistics(interval) / interval);
-	bag->Set("passive_checks", CIB::GetPassiveChecksStatistics(interval) / interval);
+	icinga_stats->Set("active_checks", CIB::GetActiveChecksStatistics(interval) / interval);
+	icinga_stats->Set("passive_checks", CIB::GetPassiveChecksStatistics(interval) / interval);
 
-	bag->Set("active_checks_1min", CIB::GetActiveChecksStatistics(60));
-	bag->Set("passive_checks_1min", CIB::GetPassiveChecksStatistics(60));
-	bag->Set("active_checks_5min", CIB::GetActiveChecksStatistics(60 * 5));
-	bag->Set("passive_checks_5min", CIB::GetPassiveChecksStatistics(60 * 5));
-	bag->Set("active_checks_15min", CIB::GetActiveChecksStatistics(60 * 15));
-	bag->Set("passive_checks_15min", CIB::GetPassiveChecksStatistics(60 * 15));
+	icinga_stats->Set("active_checks_1min", CIB::GetActiveChecksStatistics(60));
+	icinga_stats->Set("passive_checks_1min", CIB::GetPassiveChecksStatistics(60));
+	icinga_stats->Set("active_checks_5min", CIB::GetActiveChecksStatistics(60 * 5));
+	icinga_stats->Set("passive_checks_5min", CIB::GetPassiveChecksStatistics(60 * 5));
+	icinga_stats->Set("active_checks_15min", CIB::GetActiveChecksStatistics(60 * 15));
+	icinga_stats->Set("passive_checks_15min", CIB::GetPassiveChecksStatistics(60 * 15));
 
 	ServiceCheckStatistics scs = CIB::CalculateServiceCheckStats();
 
-	bag->Set("min_latency", scs.min_latency);
-	bag->Set("max_latency", scs.max_latency);
-	bag->Set("avg_latency", scs.avg_latency);
-	bag->Set("min_execution_time", scs.min_latency);
-	bag->Set("max_execution_time", scs.max_latency);
-	bag->Set("avg_execution_time", scs.avg_execution_time);
+	icinga_stats->Set("min_latency", scs.min_latency);
+	icinga_stats->Set("max_latency", scs.max_latency);
+	icinga_stats->Set("avg_latency", scs.avg_latency);
+	icinga_stats->Set("min_execution_time", scs.min_latency);
+	icinga_stats->Set("max_execution_time", scs.max_latency);
+	icinga_stats->Set("avg_execution_time", scs.avg_execution_time);
 
 	ServiceStatistics ss = CIB::CalculateServiceStats();
 
-	bag->Set("num_services_ok", ss.services_ok);
-	bag->Set("num_services_warning", ss.services_warning);
-	bag->Set("num_services_critical", ss.services_critical);
-	bag->Set("num_services_unknown", ss.services_unknown);
-	bag->Set("num_services_pending", ss.services_pending);
-	bag->Set("num_services_unreachable", ss.services_unreachable);
-	bag->Set("num_services_flapping", ss.services_flapping);
-	bag->Set("num_services_in_downtime", ss.services_in_downtime);
-	bag->Set("num_services_acknowledged", ss.services_acknowledged);
+	icinga_stats->Set("num_services_ok", ss.services_ok);
+	icinga_stats->Set("num_services_warning", ss.services_warning);
+	icinga_stats->Set("num_services_critical", ss.services_critical);
+	icinga_stats->Set("num_services_unknown", ss.services_unknown);
+	icinga_stats->Set("num_services_pending", ss.services_pending);
+	icinga_stats->Set("num_services_unreachable", ss.services_unreachable);
+	icinga_stats->Set("num_services_flapping", ss.services_flapping);
+	icinga_stats->Set("num_services_in_downtime", ss.services_in_downtime);
+	icinga_stats->Set("num_services_acknowledged", ss.services_acknowledged);
 
 	HostStatistics hs = CIB::CalculateHostStats();
 
-	bag->Set("num_hosts_up", hs.hosts_up);
-	bag->Set("num_hosts_down", hs.hosts_down);
-	bag->Set("num_hosts_unreachable", hs.hosts_unreachable);
-	bag->Set("num_hosts_flapping", hs.hosts_flapping);
-	bag->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
-	bag->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
+	icinga_stats->Set("num_hosts_up", hs.hosts_up);
+	icinga_stats->Set("num_hosts_down", hs.hosts_down);
+	icinga_stats->Set("num_hosts_unreachable", hs.hosts_unreachable);
+	icinga_stats->Set("num_hosts_flapping", hs.hosts_flapping);
+	icinga_stats->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
+	icinga_stats->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
+
+	bag->Set("icinga_status", icinga_stats);
 
 	return bag;
 }

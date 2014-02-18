@@ -40,8 +40,13 @@ REGISTER_STATSFUNCTION(CheckResultReaderStats, &CheckResultReader::StatsFunc);
 
 Value CheckResultReader::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("checkresultreader_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, DynamicType::GetObjects<CheckResultReader>()) {
+		nodes->Set(checkresultreader->GetName(), 1); //add more stats
+	}
+
+	status->Set("checkresultreader", nodes);
 
 	return 0;
 }

@@ -53,7 +53,7 @@ public:
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 	String GetClusterDir(void) const;
 
-        Dictionary::Ptr GetClusterStatus(void);
+        std::pair<Dictionary::Ptr, Dictionary::Ptr> GetClusterStatus(void);
 
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;

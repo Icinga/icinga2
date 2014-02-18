@@ -169,7 +169,10 @@ HostStatistics CIB::CalculateHostStats(void)
 	return hs;
 }
 
-
+/*
+ * 'perfdata' must be a flat dictionary with double values
+ * 'status' dictionary can contain multiple levels of dictionaries
+ */
 std::pair<Dictionary::Ptr, Dictionary::Ptr> CIB::GetFeatureStats(void)
 {
 	Dictionary::Ptr status = make_shared<Dictionary>();

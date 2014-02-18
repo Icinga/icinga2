@@ -60,6 +60,8 @@ public:
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
+	size_t GetLength(void);
+
 private:
 	int m_ID;
 	static int m_NextID;

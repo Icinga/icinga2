@@ -74,7 +74,7 @@ public:
 };
 
 #define REGISTER_STATSFUNCTION(name, callback) \
-	I2_EXPORT icinga::RegisterStatsFunctionHelper g_RegisterSF_ ## name(#name, callback)
+	I2_EXPORT icinga::RegisterStatsFunctionHelper g_RegisterStF_ ## name(#name, callback)
 
 }
 

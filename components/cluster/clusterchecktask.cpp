@@ -37,18 +37,21 @@ REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
 
 CheckResult::Ptr ClusterCheckTask::ScriptFunc(const Service::Ptr&)
 {
-	Dictionary::Ptr status;
+	/* fetch specific cluster status */
+	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
 	BOOST_FOREACH(const ClusterListener::Ptr& cluster_listener, DynamicType::GetObjects<ClusterListener>()) {
 		/* XXX there's only one cluster listener */
-		status = cluster_listener->GetClusterStatus();
+		stats = cluster_listener->GetClusterStatus();
 	}
+
+	Dictionary::Ptr status = stats.first;
+
+	/* use feature stats perfdata */
+	std::pair<Dictionary::Ptr, Dictionary::Ptr> feature_stats = CIB::GetFeatureStats();
+	Dictionary::Ptr perfdata = feature_stats.second;
 
 	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
 	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
-
-	/* remove unneeded perfdata */
-	status->Set("conn_endpoints", Empty);
-	status->Set("not_conn_endpoints", Empty);
 
 	ServiceState state = StateOK;
 	String output = "Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) + " (" +
@@ -62,7 +65,7 @@ CheckResult::Ptr ClusterCheckTask::ScriptFunc(const Service::Ptr&)
 
 	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput(output);
-	cr->SetPerformanceData(status);
+	cr->SetPerformanceData(perfdata);
 	cr->SetState(state);
 	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 

@@ -40,6 +40,7 @@ class IdoPgsqlConnection : public ObjectImpl<IdoPgsqlConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IdoPgsqlConnection);
+        DECLARE_TYPENAME(IdoPgsqlConnection);
 
         static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 

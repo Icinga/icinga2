@@ -42,8 +42,22 @@ REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
 
 Value IdoPgsqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("ido_pgsql_version_req", SCHEMA_VERSION);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const IdoPgsqlConnection::Ptr& idopgsqlconnection, DynamicType::GetObjects<IdoPgsqlConnection>()) {
+		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
+
+		Dictionary::Ptr stats = make_shared<Dictionary>();
+		stats->Set("version", SCHEMA_VERSION);
+		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
+		stats->Set("query_queue_items", items);
+
+		nodes->Set(idopgsqlconnection->GetName(), stats);
+
+		perfdata->Set("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", items);
+	}
+
+	status->Set("idopgsqlconnection", nodes);
 
 	return 0;
 }

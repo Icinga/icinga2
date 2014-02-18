@@ -37,6 +37,7 @@ class ExternalCommandListener : public ObjectImpl<ExternalCommandListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ExternalCommandListener);
+        DECLARE_TYPENAME(ExternalCommandListener);
 
         static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 

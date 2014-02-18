@@ -30,8 +30,13 @@ REGISTER_STATSFUNCTION(SyslogLoggerStats, &SyslogLogger::StatsFunc);
 
 Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 {
-	/* FIXME */
-	status->Set("sysloglogger_", 1);
+	Dictionary::Ptr nodes = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const SyslogLogger::Ptr& sysloglogger, DynamicType::GetObjects<SyslogLogger>()) {
+		nodes->Set(sysloglogger->GetName(), 1); //add more stats
+	}
+
+	status->Set("sysloglogger", nodes);
 
 	return 0;
 }

@@ -41,6 +41,7 @@ class IcingaStatusWriter : public ObjectImpl<IcingaStatusWriter>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IcingaStatusWriter);
+	DECLARE_TYPENAME(IcingaStatusWriter);
 
 	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 	static Dictionary::Ptr GetStatusData(void);
