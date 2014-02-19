@@ -1,10 +1,12 @@
 #!/bin/sh
 
-if sudo test -f /var/log/icinga2/icinga2.log;
+logfile_path="/var/log/icinga2/icinga2.log"
+
+if sudo test -f $logfile_path;
 then
-    echo "[OK] Icinga2 log file found"
+    echo "[OK] Icinga2 log file found ($logfile_path)"
     exit 0
 else
-    echo "[FAIL] Icinga2 log file not found"
+    echo "[FAIL] Icinga2 log file not found ($logfile_path)"
     exit 1
 fi

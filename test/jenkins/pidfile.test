@@ -1,10 +1,12 @@
 #!/bin/sh
 
-if [ -f /var/run/icinga2/icinga2.pid ];
+pidfile_path="/var/run/icinga2/icinga2.pid"
+
+if [ -f $pidfile_path ];
 then
-    echo "[OK] Icinga2 pidfile found"
+    echo "[OK] Icinga2 pidfile found ($pidfile_path)"
     exit 0
 else
-    echo "[FAIL] Icinga2 pidfile not found"
+    echo "[FAIL] Icinga2 pidfile not found ($pidfile_path)"
     exit 1
 fi

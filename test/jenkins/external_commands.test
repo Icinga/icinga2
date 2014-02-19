@@ -1159,51 +1159,51 @@ def test_servicegroup_commands():
 
 def main():
     failure = test_host_comments('localhost')
-    #failure &= test_host_comments('nsca-ng') # Cannot work without a hostcheck!
+    #failure |= test_host_comments('nsca-ng') # Cannot work without a hostcheck!
 
-    failure &= test_service_comments('localhost', 'disk')
-    failure &= test_service_comments('nsca-ng', 'PassiveService1')
+    failure |= test_service_comments('localhost', 'disk')
+    failure |= test_service_comments('nsca-ng', 'PassiveService1')
 
-    failure &= test_host_downtimes('localhost')
-    #failure &= test_host_downtimes('nsca-ng')
+    failure |= test_host_downtimes('localhost')
+    #failure |= test_host_downtimes('nsca-ng')
 
-    failure &= test_service_downtimes('localhost', 'disk')
-    failure &= test_service_downtimes('nsca-ng', 'PassiveService1')
+    failure |= test_service_downtimes('localhost', 'disk')
+    failure |= test_service_downtimes('nsca-ng', 'PassiveService1')
 
-    failure &= test_host_problem_acknowledgements('localhost')
-    failure &= test_remove_host_acknowledgements('localhost')
-    failure &= test_expiring_host_acknowledgements('localhost')
+    failure |= test_host_problem_acknowledgements('localhost')
+    failure |= test_remove_host_acknowledgements('localhost')
+    failure |= test_expiring_host_acknowledgements('localhost')
 
-    failure &= test_change_host_check_command('localhost', 'disk')
-    failure &= test_change_service_check_command('localhost', 'disk', 'ping4')
-    failure &= test_change_host_check_timeperiod('localhost', 'none')
-    failure &= test_change_service_check_timeperiod('localhost', 'disk', 'none')
-    failure &= test_change_host_max_check_attempts('localhost')
-    failure &= test_change_service_max_check_attempts('localhost', 'disk')
-    failure &= test_change_host_normal_check_interval('localhost')
-    failure &= test_change_service_normal_check_interval('localhost', 'disk')
-    failure &= test_change_host_retry_check_interval('localhost')
-    failure &= test_change_service_retry_check_interval('localhost', 'disk')
-    failure &= test_change_host_modified_attributes('localhost')
+    failure |= test_change_host_check_command('localhost', 'disk')
+    failure |= test_change_service_check_command('localhost', 'disk', 'ping4')
+    failure |= test_change_host_check_timeperiod('localhost', 'none')
+    failure |= test_change_service_check_timeperiod('localhost', 'disk', 'none')
+    failure |= test_change_host_max_check_attempts('localhost')
+    failure |= test_change_service_max_check_attempts('localhost', 'disk')
+    failure |= test_change_host_normal_check_interval('localhost')
+    failure |= test_change_service_normal_check_interval('localhost', 'disk')
+    failure |= test_change_host_retry_check_interval('localhost')
+    failure |= test_change_service_retry_check_interval('localhost', 'disk')
+    failure |= test_change_host_modified_attributes('localhost')
 
-    failure &= test_delay_service_notification('localhost', 'disk')
-    failure &= test_delay_host_notification('localhost')
+    failure |= test_delay_service_notification('localhost', 'disk')
+    failure |= test_delay_host_notification('localhost')
 
-    failure &= test_disabling_scheduling_host_checks('localhost')
-    failure &= test_disabling_scheduling_service_checks('localhost', 'disk')
+    failure |= test_disabling_scheduling_host_checks('localhost')
+    failure |= test_disabling_scheduling_service_checks('localhost', 'disk')
 
-    failure &= test_shutdown_restart_process()
+    failure |= test_shutdown_restart_process()
 
-    failure &= test_passive_host_checkresult_processing('localhost')
-    failure &= test_passive_svc_checkresult_processing('localhost', 'disk')
+    failure |= test_passive_host_checkresult_processing('localhost')
+    failure |= test_passive_svc_checkresult_processing('localhost', 'disk')
 
-    failure &= test_process_file('localhost')
+    failure |= test_process_file('localhost')
 
-    failure &= test_custom_host_notifications('localhost')
-    failure &= test_custom_svc_notifications('localhost', 'disk')
+    failure |= test_custom_host_notifications('localhost')
+    failure |= test_custom_svc_notifications('localhost', 'disk')
 
-    failure &= test_hostgroup_commands()
-    failure &= test_servicegroup_commands()
+    failure |= test_hostgroup_commands()
+    failure |= test_servicegroup_commands()
 
     return 1 if failure else 0
 
