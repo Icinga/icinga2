@@ -307,7 +307,6 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	SetState(cr->GetState());
 
-	bool call_eventhandler = false;
 	bool stateChange = (old_state != GetState());
 	if (stateChange) {
 		SetLastStateChange(now);
@@ -333,8 +332,6 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 				service->SetNextCheck(Utility::GetTime());
 			}
 		}
-
-		call_eventhandler = true;
 	}
 
 	bool remove_acknowledgement_comments = false;
@@ -412,7 +409,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	else if (stateChange)
 		OnStateChange(GetSelf(), cr, StateTypeSoft, authority);
 
-	if (call_eventhandler)
+	if (GetStateType() == StateTypeSoft || hardChange || recovery)
 		ExecuteEventHandler();
 
 	if (send_downtime_notification)
