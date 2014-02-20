@@ -257,6 +257,7 @@ If you update the configuration files on the configured file sender, it will
 force a restart on all receiving nodes after validating the new config.
 
 By default these configuration files are saved in /var/lib/icinga2/cluster/config.
+
 In order to load configuration files which were received from a remote Icinga 2
 instance you will have to add the following include directive to your
 `icinga2.conf` configuration file:
@@ -319,6 +320,22 @@ Example:
 > get an idea about network related connection problems from different
 > point of views. Use the `authorities` attribute to assign the service
 > check to the configured node.
+
+### <a id="host-multiple-cluster-nodes"></a> Host With Multiple Cluster Nodes
+
+Special scenarios might require multiple cluster nodes running on a single host.
+By default Icinga 2 and its features will drop their runtime data below the prefix
+`IcingaLocalStateDir`. By default packages will set that path to `/var`.
+You can either set that variable as constant configuration
+definition in [icinga2.conf](#icinga2-conf) or pass it as runtime variable to
+the Icinga 2 daemon.
+
+    # icinga2 -c /etc/icinga2/node1/icinga2.conf -DIcingaLocalStateDir=/opt/node1/var
+
+> **Note**
+>
+> You are required to ship the same directory layout known from a default
+> Icinga 2 installation. Details in [Runtime Locations](#runtime-locations).
 
 ## <a id="dependencies"></a> Dependencies
 
