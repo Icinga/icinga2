@@ -62,20 +62,17 @@ def restart_icinga():
 
 
 def success(msg):
-    print '[OK] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
+    utils.Logger.ok(msg + '\n')
     return False
 
 
 def fail(msg):
-    print '[FAIL] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
+    utils.Logger.fail(msg + '\n')
     return True
 
 
 def error(msg):
-    print '[ERROR] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
+    utils.Logger.error(msg + '\n')
     return True
 
 

@@ -108,24 +108,13 @@ def convert_output(value):
             return STATE_MAP.get(value, value)
 
 
-def success(msg):
-    print '[OK] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
-
-
-def fail(msg):
-    print '[FAIL] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
-
-
-def info(msg):
-    print '[INFO] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
-
-
-def error(msg):
-    print '[ERROR] {0}'.format(msg).encode('utf-8')
-    sys.stdout.flush()
+def validate_time_format(inputstr, formatstr):
+    try:
+        time.strptime(inputstr, formatstr)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def main():
@@ -133,84 +122,147 @@ def main():
     host_info = get_one('GET hosts\nFilter: name = localhost'
                         '\nColumns: event_handler')
     if host_info.get('event_handler') != 'test_event':
-        fail('Could not assign eventcommand "test_event" to host "localhost"')
+        utils.Logger.fail('Could not assign eventcommand "test_event"'
+                          ' to host "localhost"\n')
         return 1
-    success('Successfully assigned an eventcommand to host "localhost"')
+    utils.Logger.ok('Successfully assigned an eventcommand'
+                    ' to host "localhost"\n')
 
     send_command('PROCESS_HOST_CHECK_RESULT;localhost;1;A negative result to'
                  ' trigger an eventhandler|some interesting perfdata!')
     event_output = get_event_output()
     if not event_output:
         send_command('CHANGE_HOST_EVENT_HANDLER;localhost;')
-        fail('Could not trigger the eventcommand')
+        utils.Logger.fail('Could not trigger the eventcommand\n')
         return 1
-    success('Successfully triggered the eventcommand')
+    utils.Logger.ok('Successfully triggered the eventcommand\n')
     failure = False
 
-    info('Checking host macros...')
+    utils.Logger.info('Checking host macros...\n')
     host_info = get_one('GET hosts\nFilter: name = localhost\nColumns: {0}'
                         ''.format(' '.join(c for c in LS_HOST_COLUMNS if c)))
     if event_output[0] != host_info['name']*2:
         failure = True
-        fail('Escaping environment variables seems not to properly working')
-        fail(' Expected: {0!r} Got: {1!r}'.format(host_info['name']*2,
-                                                  event_output[0]))
+        utils.Logger.fail('Escaping environment variables '
+                          'seems not to properly working\n')
+        utils.Logger.fail(' Expected: {0!r} Got: {1!r}\n'
+                          ''.format(host_info['name']*2, event_output[0]))
+    else:
+        utils.Logger.ok('Escaped environment variables'
+                        ' are properly processed\n')
     for i, column in enumerate(LS_HOST_COLUMNS[1:], 1):
         if column is not None:
-            output_value = convert_output(event_output[i])
+            macro_name, _, macro_value = event_output[i].partition('=')
+            output_value = convert_output(macro_value)
             if output_value != host_info[column]:
                 failure = True
-                fail('{0!r} is unequal to {1!r} ({2})'.format(output_value,
-                                                              host_info[column],
-                                                              column))
+                utils.Logger.fail('Macro "{0}" returns an incorrect value. '
+                                  'Expected "{2}" but got "{1}"\n'
+                                  ''.format(macro_name, output_value,
+                                            host_info[column]))
+            else:
+                utils.Logger.ok('Macro "{0}" returns the correct value\n'
+                                ''.format(macro_name))
 
-    info('Checking service macros...')
+    utils.Logger.info('Checking service macros...\n')
     svc_info = get_one('GET services\nFilter: description = ping4\nColumns: {0}'
                        ''.format(' '.join(c for c in LS_SVC_COLUMNS if c)))
     for i, column in enumerate(LS_SVC_COLUMNS, len(LS_HOST_COLUMNS)):
         if column is not None:
-            output_value = convert_output(event_output[i])
+            macro_name, _, macro_value = event_output[i].partition('=')
+            output_value = convert_output(macro_value)
             if output_value != svc_info[column]:
                 failure = True
-                fail('{0!r} is unequal to {1!r} ({2})'.format(output_value,
-                                                              svc_info[column],
-                                                              column))
+                utils.Logger.fail('Macro "{0}" returns an incorrect value. '
+                                  'Expected "{2}" but got "{1}"\n'
+                                  ''.format(macro_name, output_value,
+                                            svc_info[column]))
+            else:
+                utils.Logger.ok('Macro "{0}" returns the correct value\n'
+                                ''.format(macro_name))
 
-    info('Checking global macros...')
-
-    info('Checking command macros...')
-    if convert_output(event_output[-1]) != 1337:
+    utils.Logger.info('Checking global macros...\n')
+    timet = convert_output(event_output[-6].partition('=')[2])
+    if not isinstance(timet, int):
         failure = True
-        fail('The command macro "custom_macro" is not being substituted')
+        utils.Logger.fail('Macro "TIMET" does not return a timestamp. '
+                          'Expected int but got: {0!r}\n'.format(timet))
+    else:
+        utils.Logger.ok('Macro "TIMET" returns the correct value\n')
+    longdatetime = event_output[-5].partition('=')[2]
+    longdatetime_format = '%Y-%m-%d %H:%M:%S +0000'
+    if not validate_time_format(longdatetime, longdatetime_format):
+        failure = True
+        utils.Logger.fail('Macro "LONGDATETIME" returns an incorrect value.'
+                          ' Expected value of format "{0}" but got "{1}"\n'
+                          ''.format(longdatetime_format, longdatetime))
+    else:
+        utils.Logger.ok('Macro "LONGDATETIME" returns the correct value\n')
+    shortdatetime = event_output[-4].partition('=')[2]
+    shortdatetime_format = '%Y-%m-%d %H:%M:%S'
+    if not validate_time_format(shortdatetime, shortdatetime_format):
+        failure = True
+        utils.Logger.fail('Macro "SHORTDATETIME" returns an incorrect value.'
+                          ' Expected value of format "{0}" but got "{1}"\n'
+                          ''.format(shortdatetime_format, shortdatetime))
+    else:
+        utils.Logger.ok('Macro "SHORTDATETIME" returns the correct value\n')
+    m_date = event_output[-3].partition('=')[2]
+    m_date_format = '%Y-%m-%d'
+    if not validate_time_format(m_date, m_date_format):
+        failure = True
+        utils.Logger.fail('Macro "DATE" returns an incorrect value. '
+                          'Expected value of format "{0}" but got "{1}"\n'
+                          ''.format(m_date_format, m_date))
+    else:
+        utils.Logger.ok('Macro "DATE" returns the correct value\n')
+    m_time = event_output[-2].partition('=')[2]
+    m_time_format = '%H:%M:%S +0000'
+    if not validate_time_format(m_time, m_time_format):
+        failure = True
+        utils.Logger.fail('Macro "TIME" returns an incorrect value. '
+                          'Expected value of format "{0}" but got "{1}"\n'
+                          ''.format(m_time_format, m_time))
+    else:
+        utils.Logger.ok('Macro "TIME" returns the correct value\n')
+
+    utils.Logger.info('Checking command macros...\n')
+    if convert_output(event_output[-1].partition('=')[2]) != 1337:
+        failure = True
+        utils.Logger.fail('The command macro "custom_macro"'
+                          ' is not being substituted\n')
+    else:
+        utils.Logger.ok('The command macro "custom_macro"'
+                        ' is correctly substituted\n')
 
     send_command('DISABLE_HOST_EVENT_HANDLER;localhost')
     send_command('PROCESS_HOST_CHECK_RESULT;localhost;0;A positive result that'
                  ' should not trigger an eventhandler')
     if get_event_output():
         failure = True
-        fail('Could not disable the eventcommand')
+        utils.Logger.fail('Could not disable the eventcommand\n')
     else:
-        success('Successfully disabled the eventcommand')
+        utils.Logger.ok('Successfully disabled the eventcommand\n')
 
     send_command('ENABLE_HOST_EVENT_HANDLER;localhost')
     host_info = get_one('GET hosts\nFilter: name = localhost'
                         '\nColumns: event_handler_enabled')
     if host_info['event_handler_enabled'] != 1:
         failure = True
-        fail('Could not re-enable the eventcommand')
+        utils.Logger.fail('Could not re-enable the eventcommand\n')
     else:
-        success('Successfully re-enabled the eventcommand')
+        utils.Logger.ok('Successfully re-enabled the eventcommand\n')
 
     send_command('CHANGE_HOST_EVENT_HANDLER;localhost;')
     host_info = get_one('GET hosts\nFilter: name = localhost'
                         '\nColumns: event_handler')
     if host_info['event_handler']:
         failure = True
-        fail('Could not remove eventcommand "test_event"'
-             ' assigned to host "localhost"')
+        utils.Logger.fail('Could not remove eventcommand "test_event"'
+                          ' assigned to host "localhost"\n')
     else:
-        success('Successfully removed the eventcommand'
-                ' assigned to host "localhost"')
+        utils.Logger.ok('Successfully removed the eventcommand'
+                        ' assigned to host "localhost"\n')
 
     return 1 if failure else 0
 
@@ -220,6 +272,6 @@ if __name__ == '__main__':
         with utils.LiveStatusSocket(LIVESTATUS_PATH) as LIVESTATUS:
             sys.exit(main())
     except (OSError, IOError, socket.error), e:
-        error('Could not connect to Livestatus socket: {0} ({1})'
-              ''.format(LIVESTATUS_PATH, unicode(e)))
+        utils.Logger.error('Could not connect to Livestatus socket: {0} ({1})'
+                           '\n'.format(LIVESTATUS_PATH, unicode(e)))
 
