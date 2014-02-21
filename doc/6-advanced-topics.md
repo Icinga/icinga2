@@ -332,11 +332,6 @@ the Icinga 2 daemon.
 
     # icinga2 -c /etc/icinga2/node1/icinga2.conf -DIcingaLocalStateDir=/opt/node1/var
 
-> **Note**
->
-> You are required to ship the same directory layout known from a default
-> Icinga 2 installation. Details in [Runtime Locations](#runtime-locations).
-
 ## <a id="dependencies"></a> Dependencies
 
 Icinga 2 uses host and service dependencies as attribute directly on the host or
