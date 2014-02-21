@@ -22,13 +22,13 @@ mkembedconfig_target(db_ido-type.conf db_ido-type.cpp)
 add_library(db_ido SHARED
   commanddbobject.cpp dbconnection.cpp dbconnection.th dbconnection.th
   db_ido-type.cpp dbobject.cpp dbquery.cpp dbreference.cpp dbtype.cpp
-  dbvalue.cpp hostdbobject.cpp hostgroupdbobject.cpp servicedbobject.cpp
-  servicegroupdbobject.cpp timeperioddbobject.cpp userdbobject.cpp
-  usergroupdbobject.cpp
+  dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp hostgroupdbobject.cpp
+  servicedbobject.cpp servicegroupdbobject.cpp timeperioddbobject.cpp
+  userdbobject.cpp usergroupdbobject.cpp
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga cluster)
 
 set_target_properties (
   db_ido PROPERTIES

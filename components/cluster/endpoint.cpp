@@ -32,6 +32,7 @@ using namespace icinga;
 REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
+boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
 boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
 
 /**
@@ -61,6 +62,10 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 		thread.detach();
 
 		OnConnected(GetSelf());
+		Log(LogWarning, "cluster", "Endpoint connected: " + GetName());
+	} else {
+		OnDisconnected(GetSelf());
+		Log(LogWarning, "cluster", "Endpoint disconnected: " + GetName());
 	}
 }
 
@@ -79,6 +84,9 @@ void Endpoint::SendMessage(const Dictionary::Ptr& message)
 		Log(LogWarning, "cluster", msgbuf.str());
 
 		m_Client.reset();
+
+		OnDisconnected(GetSelf());
+		Log(LogWarning, "cluster", "Endpoint disconnected: " + GetName());
 	}
 }
 
@@ -95,6 +103,9 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 			Log(LogWarning, "cluster", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + DiagnosticInformation(ex));
 
 			m_Client.reset();
+
+			OnDisconnected(GetSelf());
+			Log(LogWarning, "cluster", "Endpoint disconnected: " + GetName());
 
 			return;
 		}

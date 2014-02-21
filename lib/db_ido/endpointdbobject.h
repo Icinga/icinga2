@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,50 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ENDPOINT_H
-#define ENDPOINT_H
+#ifndef ENDPOINTDBOBJECT_H
+#define ENDPOINTDBOBJECT_H
 
-#include "cluster/endpoint.th"
-#include "base/stream.h"
-#include "base/array.h"
-#include <boost/signals2.hpp>
+#include "db_ido/dbobject.h"
+#include "base/dynamicobject.h"
+#include "cluster/endpoint.h"
 
 namespace icinga
 {
 
-class EndpointManager;
-
 /**
- * An endpoint that can be used to send and receive messages.
+ * A Command database object.
  *
- * @ingroup cluster
+ * @ingroup ido
  */
-class Endpoint : public ObjectImpl<Endpoint>
+class EndpointDbObject : public DbObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Endpoint);
-	DECLARE_TYPENAME(Endpoint);
+	DECLARE_PTR_TYPEDEFS(EndpointDbObject);
 
-	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
-        static boost::signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
-	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
+	EndpointDbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2);
 
-	Stream::Ptr GetClient(void) const;
-	void SetClient(const Stream::Ptr& client);
+        static void StaticInitialize(void);
 
-	bool IsConnected(void) const;
-
-	void SendMessage(const Dictionary::Ptr& request);
-
-	bool HasFeature(const String& type) const;
+	virtual Dictionary::Ptr GetConfigFields(void) const;
+	virtual Dictionary::Ptr GetStatusFields(void) const;
 
 private:
-	Stream::Ptr m_Client;
-	boost::thread m_Thread;
-
-	void MessageThreadProc(const Stream::Ptr& stream);
+        static void UpdateConnectedStatus(const Endpoint::Ptr& endpoint);
 };
 
 }
 
-#endif /* ENDPOINT_H */
+#endif /* ENDPOINTDBOBJECT_H */
