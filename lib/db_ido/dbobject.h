@@ -79,7 +79,7 @@ public:
 	static boost::signals2::signal<void (const DbQuery&)> OnQuery;
 
 	void SendConfigUpdate(void);
-	void SendStatusUpdate(void);
+	void SendStatusUpdate(const String& authority = String());
 
 	double GetLastConfigUpdate(void) const;
 	double GetLastStatusUpdate(void) const;
@@ -100,7 +100,7 @@ private:
 	double m_LastConfigUpdate;
 	double m_LastStatusUpdate;
 
-	static void StateChangedHandler(const DynamicObject::Ptr& object);
+	static void StateChangedHandler(const DynamicObject::Ptr& object, const String& authority);
 
 	friend class DbType;
 };

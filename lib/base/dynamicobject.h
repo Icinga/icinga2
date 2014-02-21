@@ -56,7 +56,7 @@ public:
 
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&)> OnStateChanged;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> OnAuthorityChanged;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);

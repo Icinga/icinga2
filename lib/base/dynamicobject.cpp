@@ -44,7 +44,7 @@ INITIALIZE_ONCE(&DynamicObject::StaticInitialize);
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
+boost::signals2::signal<void (const DynamicObject::Ptr&, const String&)> DynamicObject::OnStateChanged;
 boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
 
 void DynamicObject::StaticInitialize(void)
