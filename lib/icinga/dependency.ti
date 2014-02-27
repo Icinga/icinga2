@@ -1,0 +1,25 @@
+#include "base/dynamicobject.h"
+#include "icinga/service.h"
+
+namespace icinga
+{
+
+class Dependency : DynamicObject
+{
+	[config] String child_host (ChildHostRaw);
+	[config] String child_service (ChildServiceRaw);
+
+	[config] String parent_host  (ParentHostRaw);
+	[config] String parent_service (ParentServiceRaw);
+
+	[config] String period (PeriodRaw);
+
+	[config] int state_filter {
+		default {{{ return (1 << StateOK) | (1 << StateWarning); }}}
+	};
+
+	[config] bool disable_checks;
+	[config] bool disable_notifications;
+};
+
+}

@@ -84,54 +84,15 @@ void Host::Stop(void)
 	// TODO: unregister slave services/notifications?
 }
 
-bool Host::IsReachable(void) const
+bool Host::IsReachable(DependencyType dt, shared_ptr<Dependency> *failedDependency) const
 {
 	ASSERT(!OwnsLock());
 
-	std::set<Service::Ptr> parentServices = GetParentServices();
+	Service::Ptr hc = GetCheckService();
+	if (!hc)
+		return true;
 
-	BOOST_FOREACH(const Service::Ptr& service, parentServices) {
-		ObjectLock olock(service);
-
-		/* ignore pending services */
-		if (!service->GetLastCheckResult())
-			continue;
-
-		/* ignore soft states */
-		if (service->GetStateType() == StateTypeSoft)
-			continue;
-
-		/* ignore services states OK and Warning */
-		if (service->GetState() == StateOK ||
-		    service->GetState() == StateWarning)
-			continue;
-
-		return false;
-	}
-
-	std::set<Host::Ptr> parentHosts = GetParentHosts();
-
-	BOOST_FOREACH(const Host::Ptr& host, parentHosts) {
-		Service::Ptr hc = host->GetCheckService();
-
-		/* ignore hosts that don't have a check */
-		if (!hc)
-			continue;
-
-		ObjectLock olock(hc);
-
-		/* ignore soft states */
-		if (hc->GetStateType() == StateTypeSoft)
-			continue;
-
-		/* ignore hosts that are up */
-		if (hc->GetState() == StateOK)
-			continue;
-
-		return false;
-	}
-
-	return true;
+	return hc->IsReachable(dt, failedDependency);
 }
 
 void Host::UpdateSlaveServices(void)
@@ -238,7 +199,14 @@ int Host::GetTotalServices(void) const
 
 Service::Ptr Host::GetServiceByShortName(const Value& name) const
 {
-	if (name.IsScalar()) {
+	if (name.IsEmpty()) {
+		Service::Ptr hc = GetCheckService();
+
+		if (!hc)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Host does not have a host check service: " + GetName()));
+
+		return hc;
+	} else if (name.IsScalar()) {
 		{
 			boost::mutex::scoped_lock lock(m_ServicesMutex);
 
@@ -259,48 +227,6 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 	}
 }
 
-std::set<Host::Ptr> Host::GetParentHosts(void) const
-{
-	std::set<Host::Ptr> parents;
-
-	Array::Ptr dependencies = GetHostDependencies();
-
-	if (dependencies) {
-		ObjectLock olock(dependencies);
-
-		BOOST_FOREACH(const Value& value, dependencies) {
-			if (value == GetName())
-				continue;
-
-			Host::Ptr host = GetByName(value);
-
-			parents.insert(host);
-		}
-	}
-
-	return parents;
-}
-
-std::set<Host::Ptr> Host::GetChildHosts(void) const
-{
-	std::set<Host::Ptr> children;
-
-        BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		Array::Ptr dependencies = host->GetHostDependencies();
-
-		if (dependencies) {
-			ObjectLock olock(dependencies);
-
-			BOOST_FOREACH(const Value& value, dependencies) {
-				if (value == GetName())
-					children.insert(host);
-			}
-		}
-	}
-
-	return children;
-}
-
 Service::Ptr Host::GetCheckService(void) const
 {
 	String host_check = GetCheck();
@@ -311,21 +237,48 @@ Service::Ptr Host::GetCheckService(void) const
 	return GetServiceByShortName(host_check);
 }
 
+std::set<Host::Ptr> Host::GetParentHosts(void) const
+{
+	std::set<Host::Ptr> result;
+	Service::Ptr hc = GetCheckService();
+
+	if (hc)
+		result = hc->GetParentHosts();
+
+	return result;
+}
+
+std::set<Host::Ptr> Host::GetChildHosts(void) const
+{
+	std::set<Host::Ptr> result;
+	Service::Ptr hc = GetCheckService();
+
+	if (hc)
+		result = hc->GetChildHosts();
+
+	return result;
+}
+
 std::set<Service::Ptr> Host::GetParentServices(void) const
 {
-	std::set<Service::Ptr> parents;
+	std::set<Service::Ptr> result;
+	Service::Ptr hc = GetCheckService();
 
-	Array::Ptr dependencies = GetServiceDependencies();
+	if (hc)
+		result = hc->GetParentServices();
 
-	if (dependencies) {
-		ObjectLock olock(dependencies);
+	return result;
+}
 
-		BOOST_FOREACH(const Value& value, dependencies) {
-			parents.insert(GetServiceByShortName(value));
-		}
-	}
+std::set<Service::Ptr> Host::GetChildServices(void) const
+{
+	std::set<Service::Ptr> result;
+	Service::Ptr hc = GetCheckService();
 
-	return parents;
+	if (hc)
+		result = hc->GetChildServices();
+
+	return result;
 }
 
 HostState Host::CalculateState(ServiceState state, bool reachable)

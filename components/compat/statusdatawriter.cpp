@@ -27,6 +27,7 @@
 #include "icinga/timeperiod.h"
 #include "icinga/notificationcommand.h"
 #include "icinga/compatutility.h"
+#include "icinga/dependency.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
@@ -508,25 +509,6 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 
 	fp << "\t" "}" "\n"
 	      "\n";
-
-	BOOST_FOREACH(const Service::Ptr& parent, service->GetParentServices()) {
-		Host::Ptr host = service->GetHost();
-
-		Host::Ptr parent_host = parent->GetHost();
-
-		if (!parent_host)
-			continue;
-
-		fp << "define servicedependency {" "\n"
-		      "\t" "dependent_host_name" "\t" << host->GetName() << "\n"
-		      "\t" "dependent_service_description" "\t" << service->GetShortName() << "\n"
-		      "\t" "host_name" "\t" << parent_host->GetName() << "\n"
-		      "\t" "service_description" "\t" << parent->GetShortName() << "\n"
-		      "\t" "execution_failure_criteria" "\t" "n" "\n"
-		      "\t" "notification_failure_criteria" "\t" "w,u,c" "\n"
-		      "\t" "}" "\n"
-		      "\n";
-	}
 }
 
 void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
@@ -671,6 +653,28 @@ void StatusDataWriter::UpdateObjectsCache(void)
 
 	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
 		DumpTimePeriod(objectfp, tp);
+	}
+
+	BOOST_FOREACH(const Dependency::Ptr& dep, DynamicType::GetObjects<Dependency>()) {
+		Service::Ptr parent_service = dep->GetParentService();
+
+		if (!parent_service)
+			continue;
+
+		Service::Ptr child_service = dep->GetChildService();
+
+		if (!child_service)
+			continue;
+
+		objectfp << "define servicedependency {" "\n"
+			    "\t" "dependent_host_name" "\t" << child_service->GetHost()->GetName() << "\n"
+			    "\t" "dependent_service_description" "\t" << child_service->GetShortName() << "\n"
+			    "\t" "host_name" "\t" << parent_service->GetHost()->GetName() << "\n"
+			    "\t" "service_description" "\t" << parent_service->GetShortName() << "\n"
+			    "\t" "execution_failure_criteria" "\t" "n" "\n"
+			    "\t" "notification_failure_criteria" "\t" "w,u,c" "\n"
+			    "\t" "}" "\n"
+			    "\n";
 	}
 
 	objectfp.close();

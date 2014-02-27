@@ -240,6 +240,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 		cr->SetCheckSource(authority);
 
 	bool reachable = IsReachable();
+	bool notification_reachable = IsReachable(DependencyNotification);
 
 	bool host_reachable = GetHost()->IsReachable();
 
@@ -358,7 +359,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	Service::UpdateStatistics(cr);
 
 	bool in_downtime = IsInDowntime();
-	bool send_notification = hardChange && reachable && !in_downtime && !IsAcknowledged();
+	bool send_notification = hardChange && notification_reachable && !in_downtime && !IsAcknowledged();
 
 	if (old_state == StateOK && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */

@@ -31,6 +31,7 @@ namespace icinga
 {
 
 class Service;
+class Dependency;
 
 /**
  * The state of a host.
@@ -42,6 +43,13 @@ enum HostState
 	HostUp = 0,
 	HostDown = 1,
 	HostUnreachable = 2
+};
+
+enum DependencyType
+{
+	DependencyState,
+	DependencyCheckExecution,
+	DependencyNotification
 };
 
 /**
@@ -56,11 +64,13 @@ public:
 	DECLARE_TYPENAME(Host);
 
 	shared_ptr<Service> GetCheckService(void) const;
+
 	std::set<Host::Ptr> GetParentHosts(void) const;
 	std::set<Host::Ptr> GetChildHosts(void) const;
 	std::set<shared_ptr<Service> > GetParentServices(void) const;
+	std::set<shared_ptr<Service> > GetChildServices(void) const;
 
-	bool IsReachable() const;
+	bool IsReachable(DependencyType dt = DependencyState, shared_ptr<Dependency> *failedDependency = NULL) const;
 
 	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
 

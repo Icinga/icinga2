@@ -30,8 +30,6 @@ class Service : DynamicObject
 		}}}
 	};
 	[config] Dictionary::Ptr macros;
-	[config] Array::Ptr host_dependencies;
-	[config] Array::Ptr service_dependencies;
 	[config] Array::Ptr groups;
 	[config, protected] String check_command (CheckCommandRaw);
 	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
@@ -60,6 +58,7 @@ class Service : DynamicObject
 	};
 	[config] Dictionary::Ptr notifications (NotificationDescriptions);
 	[config] Dictionary::Ptr scheduled_downtimes (ScheduledDowntimeDescriptions);
+	[config] Dictionary::Ptr dependencies (DependencyDescriptions);
 	[config] bool enable_active_checks (EnableActiveChecksRaw) {
 		default {{{ return true; }}}
 	};

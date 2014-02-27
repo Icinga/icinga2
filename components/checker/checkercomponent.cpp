@@ -132,6 +132,11 @@ void CheckerComponent::CheckThreadProc(void)
 		bool check = true;
 
 		if (!forced) {
+			if (!service->IsReachable(DependencyCheckExecution)) {
+				Log(LogDebug, "icinga", "Skipping check for service '" + service->GetName() + "': Dependency failed.");
+				check = false;
+			}
+
 			if (!service->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableChecks()) {
 				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
 				check = false;

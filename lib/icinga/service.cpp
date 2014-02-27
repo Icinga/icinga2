@@ -23,6 +23,7 @@
 #include "icinga/icingaapplication.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/pluginutility.h"
+#include "icinga/dependency.h"
 #include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -77,6 +78,7 @@ void Service::OnConfigLoaded(void)
 
 	UpdateSlaveNotifications();
 	UpdateSlaveScheduledDowntimes();
+	UpdateSlaveDependencies();
 
 	SetSchedulingOffset(Utility::Random());
 }
@@ -138,60 +140,6 @@ bool Service::IsHostCheck(void) const
 
 }
 
-bool Service::IsReachable(void) const
-{
-	ASSERT(!OwnsLock());
-
-	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
-		/* ignore ourselves */
-		if (service->GetName() == GetName())
-			continue;
-
-		ObjectLock olock(service);
-
-		/* ignore pending services */
-		if (!service->GetLastCheckResult())
-			continue;
-
-		/* ignore soft states */
-		if (service->GetStateType() == StateTypeSoft)
-			continue;
-
-		/* ignore services states OK and Warning */
-		if (service->GetState() == StateOK ||
-		    service->GetState() == StateWarning)
-			continue;
-
-		return false;
-	}
-
-	BOOST_FOREACH(const Host::Ptr& host, GetParentHosts()) {
-		Service::Ptr hc = host->GetCheckService();
-
-		/* ignore hosts that don't have a hostcheck */
-		if (!hc)
-			continue;
-
-		/* ignore ourselves */
-		if (hc->GetName() == GetName())
-			continue;
-
-		ObjectLock olock(hc);
-
-		/* ignore soft states */
-		if (hc->GetStateType() == StateTypeSoft)
-			continue;
-
-		/* ignore hosts that are up */
-		if (hc->GetState() == StateOK)
-			continue;
-
-		return false;
-	}
-
-	return true;
-}
-
 AcknowledgementType Service::GetAcknowledgement(void)
 {
 	ASSERT(OwnsLock());
@@ -237,51 +185,6 @@ void Service::ClearAcknowledgement(const String& authority)
 	SetAcknowledgementExpiry(0);
 
 	OnAcknowledgementCleared(GetSelf(), authority);
-}
-
-std::set<Host::Ptr> Service::GetParentHosts(void) const
-{
-	std::set<Host::Ptr> parents;
-
-	Host::Ptr host = GetHost();
-
-	/* The service's host is implicitly a parent. */
-	parents.insert(host);
-
-	Array::Ptr dependencies = GetHostDependencies();
-
-	if (dependencies) {
-		ObjectLock olock(dependencies);
-
-		BOOST_FOREACH(const String& dependency, dependencies) {
-			parents.insert(Host::GetByName(dependency));
-		}
-	}
-
-	return parents;
-}
-
-std::set<Service::Ptr> Service::GetParentServices(void) const
-{
-	std::set<Service::Ptr> parents;
-
-	Host::Ptr host = GetHost();
-	Array::Ptr dependencies = GetServiceDependencies();
-
-	if (host && dependencies) {
-		ObjectLock olock(dependencies);
-
-		BOOST_FOREACH(const Value& dependency, dependencies) {
-			Service::Ptr service = host->GetServiceByShortName(dependency);
-
-			if (!service || service->GetName() == GetName())
-				continue;
-
-			parents.insert(service);
-		}
-	}
-
-	return parents;
 }
 
 bool Service::GetEnablePerfdata(void) const

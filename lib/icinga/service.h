@@ -96,11 +96,13 @@ public:
 	Host::Ptr GetHost(void) const;
 
 	std::set<Host::Ptr> GetParentHosts(void) const;
+	std::set<Host::Ptr> GetChildHosts(void) const;
 	std::set<Service::Ptr> GetParentServices(void) const;
+	std::set<Service::Ptr> GetChildServices(void) const;
 
 	bool IsHostCheck(void) const;
 
-	bool IsReachable(void) const;
+	bool IsReachable(DependencyType dt = DependencyState, shared_ptr<Dependency> *failedDependency = NULL, int rstack = 0) const;
 
 	AcknowledgementType GetAcknowledgement(void);
 
@@ -273,6 +275,17 @@ public:
 	bool GetEnablePerfdata(void) const;
 	void SetEnablePerfdata(bool enabled, const String& authority = String());
 
+	/* Dependencies */
+	void AddDependency(const shared_ptr<Dependency>& dep);
+	void RemoveDependency(const shared_ptr<Dependency>& dep);
+	std::set<shared_ptr<Dependency> > GetDependencies(void) const;
+
+	void AddReverseDependency(const shared_ptr<Dependency>& dep);
+	void RemoveReverseDependency(const shared_ptr<Dependency>& dep);
+	std::set<shared_ptr<Dependency> > GetReverseDependencies(void) const;
+
+	void UpdateSlaveDependencies(void);
+
 protected:
 	virtual void Start(void);
 
@@ -297,6 +310,11 @@ private:
 
 	/* Notifications */
 	std::set<Notification::Ptr> m_Notifications;
+
+	/* Dependencies */
+	mutable boost::mutex m_DependencyMutex;
+	std::set<shared_ptr<Dependency> > m_Dependencies;
+	std::set<shared_ptr<Dependency> > m_ReverseDependencies;
 };
 
 }
