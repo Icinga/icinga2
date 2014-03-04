@@ -12,6 +12,10 @@ file { '/etc/httpd/conf.d/icinga2-doc.conf':
   notify => Service['apache']
 }
 
+package { [ 'vim-enhanced', 'mailx' ]:
+  ensure => 'installed'
+}
+
 file { '/etc/motd':
   source => 'puppet:////vagrant/.vagrant-puppet/files/etc/motd',
   owner => root,
