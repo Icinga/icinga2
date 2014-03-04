@@ -1420,6 +1420,7 @@ ALTER TABLE icinga_servicechecks ADD COLUMN endpoint_object_id bigint default NU
 ALTER TABLE icinga_statehistory ADD COLUMN endpoint_object_id bigint default NULL;
 ALTER TABLE icinga_systemcommands ADD COLUMN endpoint_object_id bigint default NULL;
 
+
 -- -----------------------------------------
 -- add index (delete)
 -- -----------------------------------------
