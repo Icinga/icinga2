@@ -65,7 +65,6 @@ CREATE TABLE  icinga_acknowledgements (
   persistent_comment INTEGER  default 0,
   notify_contacts INTEGER  default 0,
   end_time timestamp with time zone default '1970-01-01 00:00:00',
-  icinga_node text default NULL,
   CONSTRAINT PK_acknowledgement_id PRIMARY KEY (acknowledgement_id) 
 ) ;
 
@@ -109,7 +108,6 @@ CREATE TABLE  icinga_commenthistory (
   expiration_time timestamp with time zone default '1970-01-01 00:00:00',
   deletion_time timestamp with time zone default '1970-01-01 00:00:00',
   deletion_time_usec INTEGER  default 0,
-  icinga_node text default NULL,
   CONSTRAINT PK_commenthistory_id PRIMARY KEY (commenthistory_id) ,
   CONSTRAINT UQ_commenthistory UNIQUE (instance_id,object_id,comment_time,internal_comment_id)
 );
@@ -260,7 +258,6 @@ CREATE TABLE  icinga_contactnotifications (
   start_time_usec INTEGER  default 0,
   end_time timestamp with time zone default '1970-01-01 00:00:00',
   end_time_usec INTEGER  default 0,
-  icinga_node text default NULL,
   CONSTRAINT PK_contactnotification_id PRIMARY KEY (contactnotification_id) ,
   CONSTRAINT UQ_contactnotifications UNIQUE (instance_id,contact_object_id,start_time,start_time_usec)
 ) ;
@@ -437,7 +434,6 @@ CREATE TABLE  icinga_downtimehistory (
   was_cancelled INTEGER  default 0,
   is_in_effect INTEGER  default 0,
   trigger_time timestamp with time zone default '1970-01-01 00:00:00',
-  icinga_node text default NULL,
   CONSTRAINT PK_downtimehistory_id PRIMARY KEY (downtimehistory_id) ,
   CONSTRAINT UQ_downtimehistory UNIQUE (instance_id,object_id,entry_time,internal_downtime_id)
 ) ;
@@ -468,7 +464,6 @@ CREATE TABLE  icinga_eventhandlers (
   return_code INTEGER  default 0,
   output TEXT  default '',
   long_output TEXT  default '',
-  icinga_node text default NULL,
   CONSTRAINT PK_eventhandler_id PRIMARY KEY (eventhandler_id) ,
   CONSTRAINT UQ_eventhandlers UNIQUE (instance_id,object_id,start_time,start_time_usec)
 ) ;
@@ -486,7 +481,6 @@ CREATE TABLE  icinga_externalcommands (
   command_type INTEGER  default 0,
   command_name TEXT  default '',
   command_args TEXT  default '',
-  icinga_node text default NULL,
   CONSTRAINT PK_externalcommand_id PRIMARY KEY (externalcommand_id) 
 ) ;
 
@@ -510,7 +504,6 @@ CREATE TABLE  icinga_flappinghistory (
   high_threshold double precision  default 0,
   comment_time timestamp with time zone default '1970-01-01 00:00:00',
   internal_comment_id bigint default 0,
-  icinga_node text default NULL,
   CONSTRAINT PK_flappinghistory_id PRIMARY KEY (flappinghistory_id) 
 ) ;
 
@@ -545,7 +538,6 @@ CREATE TABLE  icinga_hostchecks (
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
-  icinga_node text default NULL,
   CONSTRAINT PK_hostcheck_id PRIMARY KEY (hostcheck_id) 
 ) ;
 
@@ -854,7 +846,6 @@ CREATE TABLE  icinga_logentries (
   realtime_data INTEGER  default 0,
   inferred_data_extracted INTEGER  default 0,
   object_id bigint default NULL,
-  icinga_node text default NULL,
   CONSTRAINT PK_logentry_id PRIMARY KEY (logentry_id) 
 ) ;
 
@@ -879,7 +870,6 @@ CREATE TABLE  icinga_notifications (
   long_output TEXT  default '',
   escalated INTEGER  default 0,
   contacts_notified INTEGER  default 0,
-  icinga_node text default NULL,
   CONSTRAINT PK_notification_id PRIMARY KEY (notification_id) ,
   CONSTRAINT UQ_notifications UNIQUE (instance_id,object_id,start_time,start_time_usec)
 ) ;
@@ -918,7 +908,6 @@ CREATE TABLE  icinga_processevents (
   program_name TEXT  default '',
   program_version TEXT  default '',
   program_date TEXT  default '',
-  icinga_node text default NULL,
   CONSTRAINT PK_processevent_id PRIMARY KEY (processevent_id) 
 ) ;
 
@@ -1033,7 +1022,6 @@ CREATE TABLE  icinga_servicechecks (
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
-  icinga_node text default NULL,
   CONSTRAINT PK_servicecheck_id PRIMARY KEY (servicecheck_id) 
 ) ;
 
@@ -1316,7 +1304,6 @@ CREATE TABLE  icinga_statehistory (
   output TEXT  default '',
   long_output TEXT  default '',
   check_source varchar(255) default NULL,
-  icinga_node text default NULL,
   CONSTRAINT PK_statehistory_id PRIMARY KEY (statehistory_id) 
 ) ;
 
@@ -1340,7 +1327,6 @@ CREATE TABLE  icinga_systemcommands (
   return_code INTEGER  default 0,
   output TEXT  default '',
   long_output TEXT  default '',
-  icinga_node text default NULL,
   CONSTRAINT PK_systemcommand_id PRIMARY KEY (systemcommand_id) ,
   CONSTRAINT UQ_systemcommands UNIQUE (instance_id,start_time,start_time_usec)
 ) ;
