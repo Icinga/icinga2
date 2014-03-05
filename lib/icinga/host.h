@@ -102,7 +102,6 @@ public:
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 protected:
-	virtual void Start(void);
 	virtual void Stop(void);
 
 	virtual void OnConfigLoaded(void);

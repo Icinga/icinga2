@@ -39,9 +39,9 @@ using namespace icinga;
 
 REGISTER_TYPE(Host);
 
-void Host::Start(void)
+void Host::OnConfigLoaded(void)
 {
-	DynamicObject::Start();
+	DynamicObject::OnConfigLoaded();
 
 	ASSERT(!OwnsLock());
 
@@ -57,10 +57,7 @@ void Host::Start(void)
 				hg->AddMember(GetSelf());
 		}
 	}
-}
 
-void Host::OnConfigLoaded(void)
-{
 	UpdateSlaveServices();
 }
 
