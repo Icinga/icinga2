@@ -104,6 +104,7 @@ include(CheckLibraryExists)
 check_function_exists(vfork HAVE_VFORK)
 check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)
+check_function_exists(dladdr HAVE_DLADDR)
 check_library_exists(crypto BIO_f_zlib "" HAVE_BIOZLIB)
 
 include(GNUInstallDirs)

@@ -20,6 +20,8 @@
 #include "base/stacktrace.h"
 #include "base/qstring.h"
 #include "base/utility.h"
+#include "base/convert.h"
+#include <boost/algorithm/string/trim.hpp>
 
 #ifdef HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>
@@ -98,6 +100,39 @@ void StackTrace::Initialize(void)
 }
 
 /**
+ * Looks up source file name and line number information for the specified
+ * ELF executable and RVA.
+ *
+ * @param exe The ELF file.
+ * @param rva The RVA.
+ * @returns Source file and line number.
+ */
+String StackTrace::Addr2Line(const String& exe, uintptr_t rva)
+{
+#ifndef _WIN32
+	std::ostringstream msgbuf;
+	msgbuf << "addr2line -s -e " << exe << " " << std::hex << rva;
+
+	String args = msgbuf.str();
+
+	FILE *fp = popen(args.CStr(), "r");
+
+	if (!fp)
+		return "RVA: " + Convert::ToString(rva);
+
+	char buffer[512];
+	fgets(buffer, sizeof(buffer), fp);
+
+	String line = buffer;
+	boost::algorithm::trim_right(line);
+
+	return line;
+#else /* _WIN32 */
+	return String();
+#endif /* _WIN32 */
+}
+
+/**
  * Prints a stacktrace to the specified stream.
  *
  * @param fp The stream.
@@ -118,7 +153,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 
 		char *sym_begin = strchr(messages[i], '(');
 
-		if (sym_begin != NULL) {
+		if (sym_begin) {
 			char *sym_end = strchr(sym_begin, '+');
 
 			if (sym_end != NULL) {
@@ -128,7 +163,23 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 				if (sym_demangled.IsEmpty())
 					sym_demangled = "<unknown function>";
 
-				message = String(messages[i], sym_begin) + ": " + sym_demangled + " (" + String(sym_end);
+				String path = String(messages[i], sym_begin);
+
+				size_t slashp = path.RFind("/");
+
+				if (slashp != String::NPos)
+					path = path.SubStr(slashp + 1);
+
+				message = path + ": " + sym_demangled + " (" + String(sym_end);
+
+#ifdef HAVE_DLADDR
+				Dl_info dli;
+
+				if (dladdr(m_Frames[i], &dli) > 0) {
+					uintptr_t rva = reinterpret_cast<uintptr_t>(m_Frames[i]) - reinterpret_cast<uintptr_t>(dli.dli_fbase);
+					message += " (" + Addr2Line(dli.dli_fname, rva) + ")";
+				}
+#endif /* HAVE_DLADDR */
 			}
 		}
 
