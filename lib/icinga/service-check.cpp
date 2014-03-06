@@ -264,7 +264,9 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	long attempt;
 
-	if (cr->GetState() == StateOK) {
+	if (!old_cr) {
+		SetStateType(StateTypeHard);
+	} else if (cr->GetState() == StateOK) {
 		if (old_state == StateOK && old_stateType == StateTypeSoft)
 			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
 
