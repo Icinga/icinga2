@@ -334,7 +334,7 @@ void DbConnection::PrepareDatabase(void)
 	ClearConfigTable("scheduleddowntime");
 	//ClearConfigTable("service_contactgroups");
 	//ClearConfigTable("service_contacts");
-	//ClearConfigTable("servicedependencies");
+	ClearConfigTable("servicedependencies");
 	//ClearConfigTable("servicegroup_members");
 	//ClearConfigTable("servicegroups");
 	//ClearConfigTable("services");
