@@ -334,10 +334,13 @@ the Icinga 2 daemon.
 
 ## <a id="dependencies"></a> Dependencies
 
-Icinga 2 uses host and service dependencies as attribute directly on the host or
-service object or template. A service can depend on a host, and vice versa. A
-service has an implicit dependeny (parent) to its host. A host to host
-dependency acts implicit as host parent relation.
+Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects either directly
+defined or as inline definition as `dependencies` dictionary. The `parent_host` and `parent_service`
+attributes are mandatory, `child_host` and `child_service` attributes are obsolete within
+inline definitions in an existing service object or service inline definition.
+
+A service can depend on a host, and vice versa. A service has an implicit dependeny (parent)
+to its host. A host to host dependency acts implicit as host parent relation.
 
 A common scenario is the Icinga 2 server behind a router. Checking internet
 access by pinging the Google DNS server `google-dns` is a common method, but
@@ -345,7 +348,9 @@ will fail in case the `dsl-router` host is down. Therefore the example below
 defines a host dependency which acts implicit as parent relation too.
 
 Furthermore the host may be reachable but ping samples are dropped by the
-router's firewall.
+router's firewall. In case the `dsl-router``ping4` service check fails, all
+further checks for the `google-dns` `ping4` service should be suppressed.
+This is achieved by setting the `disable_checks` attribute to `true`.
 
     object Host "dsl-router" {
       services["ping4"] = {
@@ -362,16 +367,21 @@ router's firewall.
       services["ping4"] = {
         templates = "generic-service",
         check_command = "ping4",
-        service_dependencies = [
-          { host = "dsl-router", service = "ping4" }
-        ]
+        dependencies["dsl-router-ping4"] = {
+          parent_host = "dsl-router",
+          parent_service = "ping4",
+          disable_checks = true
+        }
       }
 
       macros = {
         address = "8.8.8.8",
       }, 
       
-      host_dependencies = [ "dsl-router" ]
+      dependencies["dsl-router"] = {
+        parent_host = "dsl-router"
+      },
+
     }
 
 ## <a id="check-result-freshness"></a> Check Result Freshness
