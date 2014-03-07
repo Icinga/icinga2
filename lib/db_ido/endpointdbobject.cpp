@@ -63,7 +63,7 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 
 	fields->Set("identity", endpoint->GetName());
 	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
-	fields->Set("is_connected", endpoint->IsConnected() ? 1 : 0);
+	fields->Set("is_connected", EndpointIsConnected(endpoint));
 
 	return fields;
 }
@@ -77,7 +77,7 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 	query1.Type = DbQueryUpdate;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	fields1->Set("is_connected", endpoint->IsConnected() ? 1 : 0);
+	fields1->Set("is_connected", EndpointIsConnected(endpoint));
 	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query1.Fields = fields1;
 
@@ -86,4 +86,15 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	OnQuery(query1);
+}
+
+int EndpointDbObject::EndpointIsConnected(const Endpoint::Ptr& endpoint)
+{
+	unsigned int is_connected = endpoint->IsConnected() ? 1 : 0;
+
+	/* if identity is equal to node, fake is_connected */
+	if (endpoint->GetName() == IcingaApplication::GetInstance()->GetNodeName())
+		is_connected = 1;
+
+	return is_connected;
 }

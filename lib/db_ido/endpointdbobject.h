@@ -46,6 +46,7 @@ public:
 
 private:
         static void UpdateConnectedStatus(const Endpoint::Ptr& endpoint);
+        static int EndpointIsConnected(const Endpoint::Ptr& endpoint);
 };
 
 }
