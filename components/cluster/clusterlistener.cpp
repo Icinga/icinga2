@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "cluster/clusterlistener.h"
-#include "cluster/endpoint.h"
+#include "remote/endpoint.h"
 #include "icinga/cib.h"
 #include "icinga/domain.h"
 #include "icinga/icingaapplication.h"

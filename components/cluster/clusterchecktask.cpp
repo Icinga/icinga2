@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "cluster/clusterchecktask.h"
-#include "cluster/endpoint.h"
 #include "cluster/clusterlistener.h"
+#include "remote/endpoint.h"
 #include "icinga/cib.h"
 #include "icinga/service.h"
 #include "icinga/icingaapplication.h"

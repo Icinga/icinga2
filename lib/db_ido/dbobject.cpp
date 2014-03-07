@@ -21,7 +21,7 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "icinga/service.h"
-#include "cluster/endpoint.h"
+#include "remote/endpoint.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"

@@ -1,5 +1,5 @@
 # Icinga 2
-# Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)
+# Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,10 +15,27 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_subdirectory(base)
-add_subdirectory(config)
-add_subdirectory(icinga)
-add_subdirectory(db_ido)
-add_subdirectory(methods)
-add_subdirectory(hello)
-add_subdirectory(remote)
+mkclass_target(endpoint.ti endpoint.th)
+
+mkembedconfig_target(remote-type.conf remote-type.cpp)
+
+add_library(remote SHARED
+  endpoint.cpp endpoint.th jsonrpc.cpp remote-type.cpp
+)
+
+target_link_libraries(remote ${Boost_LIBRARIES} base config)
+
+set_target_properties (
+  icinga PROPERTIES
+  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_ICINGA_BUILD
+  FOLDER Lib
+)
+
+install(
+  TARGETS remote
+  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
+)
+
+

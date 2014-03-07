@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,37 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ENDPOINTDBOBJECT_H
-#define ENDPOINTDBOBJECT_H
+#ifndef JSONRPC_H
+#define JSONRPC_H
 
-#include "db_ido/dbobject.h"
-#include "base/dynamicobject.h"
-#include "remote/endpoint.h"
+#include "base/stream.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
 
 /**
- * A Command database object.
+ * A JSON-RPC connection.
  *
- * @ingroup ido
+ * @ingroup remote
  */
-class EndpointDbObject : public DbObject
+class JsonRpc
 {
 public:
-	DECLARE_PTR_TYPEDEFS(EndpointDbObject);
-
-	EndpointDbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2);
-
-        static void StaticInitialize(void);
-
-	virtual Dictionary::Ptr GetConfigFields(void) const;
-	virtual Dictionary::Ptr GetStatusFields(void) const;
+	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
+	static Dictionary::Ptr ReadMessage(const Stream::Ptr& stream);
 
 private:
-        static void UpdateConnectedStatus(const Endpoint::Ptr& endpoint);
+	JsonRpc(void);
 };
 
 }
 
-#endif /* ENDPOINTDBOBJECT_H */
+#endif /* JSONRPC_H */

@@ -17,30 +17,50 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef ENDPOINT_H
+#define ENDPOINT_H
 
+#include "remote/endpoint.th"
 #include "base/stream.h"
-#include "base/dictionary.h"
+#include "base/array.h"
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
 
+class EndpointManager;
+
 /**
- * A JSON-RPC connection.
+ * An endpoint that can be used to send and receive messages.
  *
  * @ingroup cluster
  */
-class JsonRpc
+class Endpoint : public ObjectImpl<Endpoint>
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static Dictionary::Ptr ReadMessage(const Stream::Ptr& stream);
+	DECLARE_PTR_TYPEDEFS(Endpoint);
+	DECLARE_TYPENAME(Endpoint);
+
+	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+        static boost::signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
+	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
+
+	Stream::Ptr GetClient(void) const;
+	void SetClient(const Stream::Ptr& client);
+
+	bool IsConnected(void) const;
+
+	void SendMessage(const Dictionary::Ptr& request);
+
+	bool HasFeature(const String& type) const;
 
 private:
-	JsonRpc(void);
+	Stream::Ptr m_Client;
+	boost::thread m_Thread;
+
+	void MessageThreadProc(const Stream::Ptr& stream);
 };
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* ENDPOINT_H */

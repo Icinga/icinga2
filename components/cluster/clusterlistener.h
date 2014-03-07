@@ -31,7 +31,7 @@
 #include "base/stdiostream.h"
 #include "base/workqueue.h"
 #include "icinga/service.h"
-#include "cluster/endpoint.h"
+#include "remote/endpoint.h"
 
 namespace icinga
 {
