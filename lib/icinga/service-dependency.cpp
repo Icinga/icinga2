@@ -170,7 +170,7 @@ void Service::UpdateSlaveDependencies(void)
 		if (pass == 0)
 			descs = GetHost()->GetDependencyDescriptions();
 		else
-			GetDependencyDescriptions();
+			descs = GetDependencyDescriptions();
 
 		if (!descs || descs->GetLength() == 0)
 			continue;
@@ -180,7 +180,7 @@ void Service::UpdateSlaveDependencies(void)
 		if (pass == 0)
 			item = ConfigItem::GetObject("Host", GetHost()->GetName());
 		else
-			ConfigItem::GetObject("Service", GetName());
+			item = ConfigItem::GetObject("Service", GetName());
 
 		ObjectLock olock(descs);
 
