@@ -25,8 +25,8 @@ the support overview page at [https://support.icinga.org].
 * Add [Dependency](#objecttype-dependency) object for advanced host/service dependency definition
 * Add optional [IcingaNodeName](#global-constants) for cluster feature
 * Populate check_source attribute with the checker's node name
-* [Cluster](#objecttype-clusterlistener) supports recursive config includes
-* Add [Cluster health check]#(cluster-health-check)
+* [Cluster](#objecttype-endpoint) supports recursive config includes
+* Add [Cluster health check](#cluster-health-check)
 * Add more performance data to the [Icinga health check](#itl-icinga)
 * Add [IcingaStatusWriter](#objecttype-icingastatuswriter) feature writing a status json file
 * Smoother pending service checking during startup
