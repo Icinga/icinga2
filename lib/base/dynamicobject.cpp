@@ -53,7 +53,7 @@ void DynamicObject::StaticInitialize(void)
 	ScriptVariable::Set("DomainPrivCheckResult", DomainPrivCheckResult, true, true);
 	ScriptVariable::Set("DomainPrivCommand", DomainPrivCommand, true, true);
 
-	ScriptVariable::Set("DomainPrevReadOnly", DomainPrivRead, true, true);
+	ScriptVariable::Set("DomainPrivReadOnly", DomainPrivRead, true, true);
 	ScriptVariable::Set("DomainPrivReadWrite", DomainPrivRead | DomainPrivCheckResult | DomainPrivCommand, true, true);
 }
 

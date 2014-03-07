@@ -244,7 +244,7 @@ to send configuration files.
 A sample config part can look like this:
 
     /**
-     * Configure endpoints for cluster configuration
+     * Configure config master endpoint
      */
 	
     object Endpoint "icinga-node-1" {
@@ -255,6 +255,18 @@ A sample config part can look like this:
 
 If you update the configuration files on the configured file sender, it will
 force a restart on all receiving nodes after validating the new config.
+
+A sample config part for a config receiver endpoint can look like this:
+
+    /**
+     * Configure config receiver endpoint
+     */
+
+    object Endpoint "icinga-node-2" {
+      host = "icinga-node-2.localdomain",
+      port = 8888,
+      accept_config = [ "icinga-node-1" ]
+    }
 
 By default these configuration files are saved in /var/lib/icinga2/cluster/config.
 
@@ -331,6 +343,38 @@ definition in [icinga2.conf](#icinga2-conf) or pass it as runtime variable to
 the Icinga 2 daemon.
 
     # icinga2 -c /etc/icinga2/node1/icinga2.conf -DIcingaLocalStateDir=/opt/node1/var
+
+## <a id="domains"></a> Domains
+
+A [Service](#objecttype-service) object can be restricted using the `domains` attribute
+array specifying endpoint privileges.
+A Domain object specifices the ACLs applied for each [Endpoint](#objecttype-endpoint).
+
+The following example assigns the domain `dmz-db` to the service `dmz-oracledb`. Endpoint
+`icinga-node-dmz-1` does not allow any object modification (no commands, check results) and only
+relays local messages to the remote node(s). The endpoint `icinga-node-dmz-2` processes all
+messages read and write (accept check results, commands and also relay messages to remote
+nodes).
+
+That way the service `dmz-oracledb` on endpoint `icinga-node-dmz-1` will not be modified
+by any cluster event message, and could be checked by the local authority too presenting
+a different state history. `icinga-node-dmz-2` still receives all cluster message updates
+from the `icinga-node-dmz-1` endpoint.
+
+    object Host "dmz-host1" inherits "generic-host" {
+      services["dmz-oracledb"] = {
+        templates = [ "generic-service" ],
+        domains = [ "dmz-db" ],
+        authorities = [ "icinga-node-dmz-1", "icinga-node-dmz-2"],
+      }
+    }
+
+    object Domain "dmz-db" {
+      acl = {
+        icinga-node-dmz-1 = (DomainPrivReadOnly),
+        icinga-node-dmz-2 = (DomainPrivReadWrite)
+      }
+    }
 
 ## <a id="dependencies"></a> Dependencies
 
