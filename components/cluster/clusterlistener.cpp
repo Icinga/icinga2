@@ -1066,7 +1066,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!service)
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+		if (!service->HasPrivileges(sender->GetName(), DomainPrivCheckResult)) {
 			Log(LogDebug, "cluster", "Not accepting cluster::CheckResult message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
 			return;
 		}
