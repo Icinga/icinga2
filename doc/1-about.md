@@ -20,6 +20,35 @@ the support overview page at [https://support.icinga.org].
 
 ## <a id="whats-new"></a> What's new
 
+### What's New in Version 0.0.8
+
+* Add [Dependency](#objecttype-dependency) object for advanced host/service dependency definition
+* Add optional [IcingaNodeName](#global-constants) for cluster feature
+* Populate check_source attribute with the checker's node name
+* [Cluster](#objecttype-clusterlistener) supports recursive config includes
+* Add [Cluster health check]#(cluster-health-check)
+* Add more performance data to the [Icinga health check](#itl-icinga)
+* Add [IcingaStatusWriter](#objecttype-icingastatuswriter) feature writing a status json file
+* Smoother pending service checking during startup
+* Reduce virtual memory usage
+* Stack traces include file names and line numbers
+* Treat script variables as constants preventing override
+* Fix pending services are being checked with the retry interval
+* DB IDO: Fix deleted objects are not marked as is_active=0
+* DB IDO: additional fields for cluster/checker nodes
+
+#### Changes
+* {host,service}_dependencies attributes have been changed to [Dependency](#objecttype-dependency)
+objects supporting new attributes: `disable_checks`, 'disable_notifications`, `state_filter`,
+`period`. For better readability, there is `parent_service` and `child_service` for example.
+
+> **Note**
+>
+> Update your existing configuration!
+
+* DB IDO: Schema updates for 0.0.8: [MySQL](#upgrading-mysql-db) [PostgreSQL](#upgrading-postgresql-db)
+
+
 ### What's New in Version 0.0.7
 
 * DB IDO performance improvements on startup
