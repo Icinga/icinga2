@@ -88,9 +88,11 @@ void Service::RemoveAllComments(void)
 	std::vector<String> ids;
 	Dictionary::Ptr comments = GetComments();
 
-	ObjectLock olock(comments);
-	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
-		ids.push_back(kv.first);
+	{
+		ObjectLock olock(comments);
+		BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
+			ids.push_back(kv.first);
+		}
 	}
 
 	BOOST_FOREACH(const String& id, ids) {
