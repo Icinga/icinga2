@@ -5,6 +5,14 @@
 -- -----------------------------------------
 ALTER TABLE icinga_statehistory ADD COLUMN check_source varchar(255) character set latin1 default NULL;
 
+-- -----------------------------------------
+-- #5731
+-- -----------------------------------------
+ALTER TABLE icinga_conninfo MODIFY agent_version VARCHAR(32);
+ALTER TABLE icinga_conninfo MODIFY disposition VARCHAR(32);
+ALTER TABLE icinga_conninfo MODIFY connect_source VARCHAR(32);
+ALTER TABLE icinga_conninfo MODIFY connect_type VARCHAR(32);
+
 -- --------------------------------------------------------
 -- Icinga 2 specific schema extensions
 -- --------------------------------------------------------
