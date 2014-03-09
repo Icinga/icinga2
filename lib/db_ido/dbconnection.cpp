@@ -311,7 +311,12 @@ void DbConnection::UpdateAllObjects(void)
 
 void DbConnection::PrepareDatabase(void)
 {
-	/* TODO make hardcoded table names modular */
+	/* 
+	 * only clear tables on reconnect which
+	 * cannot be updated by their existing ids
+	 * for details check https://dev.icinga.org/issues/5565
+	 */
+
 	//ClearConfigTable("commands");
 	ClearConfigTable("comments");
 	ClearConfigTable("contact_addresses");
