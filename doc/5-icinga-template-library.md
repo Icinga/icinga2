@@ -205,7 +205,7 @@ Name            | Description
 ----------------|--------------
 plugindir       | **Required.** The directory containing this plugin.
 wgreater        | **Optional.** The user count warning threshold. Defaults to 20.
-cgreater        | **Optional.** The user count warning threshold. Defaults to 50.
+cgreater        | **Optional.** The user count critical threshold. Defaults to 50.
 
 ### <a id="itl-processes"></a> processes
 
@@ -217,7 +217,7 @@ Name            | Description
 ----------------|--------------
 plugindir       | **Required.** The directory containing this plugin.
 wgreater        | **Optional.** The process count warning threshold. Defaults to 250.
-cgreater        | **Optional.** The process count warning threshold. Defaults to 400.
+cgreater        | **Optional.** The process count critical threshold. Defaults to 400.
 
 ### <a id="itl-load"></a> load
 

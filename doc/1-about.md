@@ -71,7 +71,7 @@ objects supporting new attributes: `disable_checks`, 'disable_notifications`, `s
 
 #### Changes
 * Generated object names (host with services array) use an exclamation mark instead of a colon
-as seperator. State file objects with downtimes, comments, etc are invalid (unknown) for that
+as separator. State file objects with downtimes, comments, etc are invalid (unknown) for that
 reason.
 * Script variables are set using 'var' and 'const' instead of the previous 'set' identifier
 * ITL constants are now embedded in libicinga
@@ -108,7 +108,7 @@ reason.
 * `IdoMysqlConnection` for Icinga 1.x Reporting, NagVis
 * `LivestatusListener` for addons using the livestatus interface (history tables tbd)
 * `PerfDataWriter` for graphing addons such as PNP/inGraph/graphite (can be loaded multiple times!)
-* `GraphiteWriter` for sending metrics to directly to graphite carbon sockets
+* `GraphiteWriter` for sending metrics directly to graphite carbon sockets
 * `CheckResultReader` to collect Icinga 1.x slave checkresults (migrate your distributed setup step-by-step)
 * `ClusterListener` for real distributed architecture including config and runtime data (checks, comments, downtimes) sync and replay
 * `SyslogLogger`, `FileLogger` and `ConsoleLogger` for different types of logging

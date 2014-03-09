@@ -2,7 +2,7 @@
 
 ## <a id="configuration-migration"></a> Configuration Migration
 
-The Icinga 2 configuration format introduces plenty of behavioral changes. In
+The Icinga 2 configuration format introduces plenty of behavioural changes. In
 order to ease migration from Icinga 1.x,
 Icinga 2 ships its own config migration script.
 

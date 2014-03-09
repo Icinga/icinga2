@@ -157,7 +157,7 @@ account by Icinga 1.x Classic UI and Web.
 ### <a id="differences-1x-2-action-url-notes-url-notes"></a> Action Url, Notes Url, Notes
 
 Icinga 1.x objects support configuration attributes not required as runtime
-values but for external ressources such as Icinga 1.x Classic UI or Web.
+values but for external resources such as Icinga 1.x Classic UI or Web.
 The `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`
 attributes for host and service objects, additionally `statusmap_image` and
 `2d_coords` for the host's representation in status maps.

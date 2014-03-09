@@ -14,7 +14,7 @@ tools calculating the SLAs based on the state and downtime history.
 > **Note**
 >
 > Downtimes may overlap with their start and end times. If there
-> are multiple downtimes triggered, the overall downtime depth
+> are multiple downtimes triggered for one object, the overall downtime depth
 > will be more than `1`. This is useful when you want to extend
 > your maintenance window taking longer than expected.
 
@@ -33,8 +33,8 @@ schedule a `fixed` downtime starting at 23:00 and ending at 24:00.
 
 Unlike a `fixed` downtime, a `flexible` downtime end does not necessarily
 happen at the provided end time. Instead the downtime will be triggered
-in the time span defined by start and end time, but then last a defined
-duration in minutes.
+by the state change in the time span defined by start and end time, but
+then last a defined duration in minutes.
 
 Imagine the following scenario: Your service is frequently polled
 by users trying to grab free deleted domains for immediate registration.
@@ -225,7 +225,7 @@ a three node cluster consisting of
 * node-3
 
 and `node-3` is only reachable from `node-2`, you have to consider this in your
-peer configuration
+peer configuration.
 
 ### <a id="configure-cluster-endpoints"></a> Configure Cluster Endpoints
 
@@ -383,7 +383,7 @@ defined or as inline definition as `dependencies` dictionary. The `parent_host` 
 attributes are mandatory, `child_host` and `child_service` attributes are obsolete within
 inline definitions in an existing service object or service inline definition.
 
-A service can depend on a host, and vice versa. A service has an implicit dependeny (parent)
+A service can depend on a host, and vice versa. A service has an implicit dependency (parent)
 to its host. A host to host dependency acts implicit as host parent relation.
 
 A common scenario is the Icinga 2 server behind a router. Checking internet
@@ -451,7 +451,7 @@ configuration attribute named `flapping_threshold`.
 
 > **Note**
 >
-> Flapping must be explicitely enabled seting the `Service` object attribute
+> Flapping must be explicitely enabled setting the `Service` object attribute
 > `enable_flapping = 1`.
 
 ## <a id="volatile-services"></a> Volatile Services
