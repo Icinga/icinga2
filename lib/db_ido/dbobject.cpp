@@ -40,6 +40,7 @@ DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const St
 
 void DbObject::StaticInitialize(void)
 {
+	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
 }
 

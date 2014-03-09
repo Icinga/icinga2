@@ -405,6 +405,8 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 //			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
 	OnNewCheckResult(GetSelf(), cr, authority);
+
+	/* signal status updates to for example db_ido */
 	OnStateChanged(GetSelf());
 
 	if (hardChange)
@@ -536,10 +538,11 @@ void Service::ExecuteCheck(void)
 			result->SetExecutionEnd(after_check);
 	}
 
+	/* update next check before processing any result */
+	UpdateNextCheck();
+
 	if (result)
 		ProcessCheckResult(result);
-
-	UpdateNextCheck();
 
 	{
 		ObjectLock olock(this);
