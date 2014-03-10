@@ -262,7 +262,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	SetLastStateType(old_stateType);
 	SetLastReachable(reachable);
 
-	long attempt;
+	long attempt = 1;
 
 	if (!old_cr) {
 		SetStateType(StateTypeHard);
@@ -270,14 +270,12 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 		if (old_state == StateOK && old_stateType == StateTypeSoft)
 			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
 
-		attempt = 1;
 		recovery = true;
 		ResetNotificationNumbers();
 		SetLastStateOK(Utility::GetTime());
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-			attempt = 1;
 		} else if (GetStateType() == StateTypeSoft || GetState() == StateOK) {
 			SetStateType(StateTypeSoft);
 			attempt = old_attempt + 1;
