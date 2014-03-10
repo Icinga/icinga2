@@ -1404,6 +1404,12 @@ CREATE TABLE IF NOT EXISTS icinga_endpointstatus (
 
 ALTER TABLE icinga_servicestatus ADD COLUMN endpoint_object_id bigint default NULL;
 ALTER TABLE icinga_hoststatus ADD COLUMN endpoint_object_id bigint default NULL;
+ALTER TABLE icinga_contactstatus ADD COLUMN endpoint_object_id bigint default NULL;
+ALTER TABLE icinga_programstatus ADD COLUMN endpoint_object_id bigint default NULL;
+ALTER TABLE icinga_comments ADD COLUMN endpoint_object_id bigint default NULL;
+ALTER TABLE icinga_scheduleddowntime ADD COLUMN endpoint_object_id bigint default NULL;
+ALTER TABLE icinga_runtimevariables ADD COLUMN endpoint_object_id bigint default NULL;
+ALTER TABLE icinga_customvariablestatus ADD COLUMN endpoint_object_id bigint default NULL;
 
 ALTER TABLE icinga_acknowledgements ADD COLUMN endpoint_object_id bigint default NULL;
 ALTER TABLE icinga_commenthistory ADD COLUMN endpoint_object_id bigint default NULL;
