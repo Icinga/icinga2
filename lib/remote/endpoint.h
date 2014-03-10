@@ -23,6 +23,7 @@
 #include "remote/endpoint.th"
 #include "base/stream.h"
 #include "base/array.h"
+#include "remote/i2-remote.h"
 #include <boost/signals2.hpp>
 
 namespace icinga
@@ -35,7 +36,7 @@ class EndpointManager;
  *
  * @ingroup cluster
  */
-class Endpoint : public ObjectImpl<Endpoint>
+class I2_REMOTE_API Endpoint : public ObjectImpl<Endpoint>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Endpoint);

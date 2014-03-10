@@ -23,12 +23,13 @@ add_library(remote SHARED
   endpoint.cpp endpoint.th jsonrpc.cpp remote-type.cpp
 )
 
+include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(remote ${Boost_LIBRARIES} base config)
 
 set_target_properties (
-  icinga PROPERTIES
+  remote PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_ICINGA_BUILD
+  DEFINE_SYMBOL I2_REMOTE_BUILD
   FOLDER Lib
 )
 

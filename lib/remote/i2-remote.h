@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,31 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
-
-#include "base/stream.h"
-#include "base/dictionary.h"
-#include "remote/i2-remote.h"
-
-namespace icinga
-{
+#ifndef I2REMOTE_H
+#define I2REMOTE_H
 
 /**
- * A JSON-RPC connection.
+ * @defgroup remote Remote library
  *
- * @ingroup remote
+ * The Icinga library implements remote cluster functionality.
  */
-class I2_REMOTE_API JsonRpc
-{
-public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static Dictionary::Ptr ReadMessage(const Stream::Ptr& stream);
 
-private:
-	JsonRpc(void);
-};
+#include "base/i2-base.h"
 
-}
+#ifdef I2_REMOTE_BUILD
+#	define I2_REMOTE_API I2_EXPORT
+#else /* I2_REMOTE_BUILD */
+#	define I2_REMOTE_API I2_IMPORT
+#endif /* I2_REMOTE_BUILD */
 
-#endif /* JSONRPC_H */
+#endif /* I2REMOTE_H */

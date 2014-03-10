@@ -28,7 +28,7 @@ add_library(db_ido SHARED
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga cluster)
+target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   db_ido PROPERTIES
