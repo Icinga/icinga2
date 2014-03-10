@@ -116,7 +116,7 @@ String MacroProcessor::InternalResolveMacros(const String& str, const std::vecto
 		}
 
 		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro);
-		offset = pos_first + resolved_macro.GetLength();
+		offset = pos_first + resolved_macro.GetLength() + 1;
 	}
 
 	return result;
