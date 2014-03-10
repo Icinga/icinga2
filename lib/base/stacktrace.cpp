@@ -122,6 +122,7 @@ String StackTrace::Addr2Line(const String& exe, uintptr_t rva)
 
 	char buffer[512];
 	fgets(buffer, sizeof(buffer), fp);
+	fclose(fp);
 
 	String line = buffer;
 	boost::algorithm::trim_right(line);
