@@ -45,6 +45,8 @@
 %define icinga_user icinga
 %define icinga_group icinga
 %define icingacmd_group icingacmd
+%define icingaweb2name icingaweb2
+%define icingaweb2version 2.0.0
 
 %define icingaclassicconfdir %{_sysconfdir}/icinga
 
@@ -60,6 +62,17 @@ Source: %{name}-%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
+Requires: %{name}-bin = %{version}
+#Requires: %{name}-ido-mysql = %{version}
+#Requires: %{icingaweb2name} >= %{icingaweb2version}
+
+%description
+Meta package for Icinga 2 Core, DB IDO and Web.
+
+%package bin
+Summary:      Icinga 2 binaries and libraries
+Group:        Applications/System
+
 BuildRequires: doxygen
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
@@ -67,7 +80,6 @@ BuildRequires: libstdc++-devel
 BuildRequires: cmake
 BuildRequires: flex >= 2.5.35
 BuildRequires: bison
-BuildRequires: %{apachename}
 
 # redhat
 %if "%{_vendor}" == "redhat"
@@ -122,8 +134,9 @@ Requires: libboost_regex%{opensuse_boost_version}
 
 Requires: %{name}-common = %{version}
 
-%description
-Icinga is a general-purpose network monitoring application.
+%description bin
+Icinga 2 is a general-purpose network monitoring application.
+Provides binaries and libraries for Icinga 2 Core.
 
 %package common
 Summary:      Common Icinga 2 configuration
@@ -200,6 +213,7 @@ IDOUtils schema >= 1.10
 %package classicui-config
 Summary:      Icinga 2 Classic UI Standalone configuration
 Group:        Applications/System
+BuildRequires: %{apachename}
 Requires:     %{apachename}
 Requires:     %{name} = %{version}-%{release}
 Provides:     icinga-classicui-config
