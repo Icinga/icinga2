@@ -25,6 +25,7 @@
 #include "base/utility.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
+#include "base/convert.h"
 #include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 
@@ -49,8 +50,8 @@ Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perf
 		nodes->Set(checker->GetName(), stats);
 
 		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
-		perfdata->Set(perfdata_prefix + "idle", idle);
-		perfdata->Set(perfdata_prefix + "pending", pending);
+		perfdata->Set(perfdata_prefix + "idle", Convert::ToDouble(idle));
+		perfdata->Set(perfdata_prefix + "pending", Convert::ToDouble(pending));
 	}
 
 	status->Set("checkercomponent", nodes);

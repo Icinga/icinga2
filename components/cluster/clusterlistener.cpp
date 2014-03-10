@@ -1625,8 +1625,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ClusterListener::GetClusterStatus(vo
 	status->Set("not_conn_endpoints", not_connected_endpoints);
 
 	perfdata->Set("num_endpoints", count_endpoints);
-	perfdata->Set("num_conn_endpoints", connected_endpoints->GetLength());
-	perfdata->Set("num_not_conn_endpoints", not_connected_endpoints->GetLength());
+	perfdata->Set("num_conn_endpoints", Convert::ToDouble(connected_endpoints->GetLength()));
+	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(not_connected_endpoints->GetLength()));
 
 	return std::make_pair(status, perfdata);
 }

@@ -53,7 +53,7 @@ Value LivestatusListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 		nodes->Set(livestatuslistener->GetName(), stats);
 
-		perfdata->Set("livestatuslistener_" + livestatuslistener->GetName() + "_connections", l_Connections);
+		perfdata->Set("livestatuslistener_" + livestatuslistener->GetName() + "_connections", Convert::ToDouble(l_Connections));
 	}
 
 	status->Set("livestatuslistener", nodes);

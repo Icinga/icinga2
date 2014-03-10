@@ -37,7 +37,7 @@ CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 	output += Utility::GetHostName();
 
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
-	perfdata->Set("time", Utility::GetTime());
+	perfdata->Set("time", Convert::ToDouble(Utility::GetTime()));
 
 	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput(output);

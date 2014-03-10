@@ -54,7 +54,7 @@ Value IdoPgsqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 		nodes->Set(idopgsqlconnection->GetName(), stats);
 
-		perfdata->Set("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", items);
+		perfdata->Set("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", Convert::ToDouble(items));
 	}
 
 	status->Set("idopgsqlconnection", nodes);

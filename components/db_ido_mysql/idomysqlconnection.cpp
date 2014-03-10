@@ -52,7 +52,7 @@ Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 		nodes->Set(idomysqlconnection->GetName(), stats);
 
-		perfdata->Set("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", items);
+		perfdata->Set("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", Convert::ToDouble(items));
 	}
 
 	status->Set("idomysqlconnection", nodes);
