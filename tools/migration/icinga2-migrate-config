@@ -3466,7 +3466,7 @@ sub migrate_2x {
             # now link the service desc to hostcheck
             $cfg_obj_2x->{'host'}->{$host_obj_2x_key}->{'__I2CONVERT_HOSTCHECK'} = $obj_2x_service_service_description;
 
-            say "Added hostcheck $obj_2x_service_service_description to host $obj_2x_host->{'__I2CONVERT_HOSTNAME'}";
+            #say "Added hostcheck $obj_2x_service_service_description to host $obj_2x_host->{'__I2CONVERT_HOSTNAME'}";
 
         }
     }
@@ -3538,7 +3538,7 @@ sub open_cfg_file {
     my $file = shift;
     my $FH;
 
-    say "writing file '$file'...\n";
+    #say "writing file '$file'...\n";
     open($FH, ">".$file);
 
     if (!-w $FH) {
@@ -3599,7 +3599,7 @@ sub dump_cfg_resource_2x {
 
     start_object_type_config_dump($icinga2_cfg, 'resource');
 
-    dump_config_line($icinga2_cfg, "set IcingaMacros = {");
+    dump_config_line($icinga2_cfg, "const IcingaMacros = {");
     foreach my $global_macro_2x_key (sort keys %{$icinga2_global_macros}) {
         dump_config_line($icinga2_cfg, "\t\"$global_macro_2x_key\" = \"$icinga2_global_macros->{$global_macro_2x_key}\",");
     }
@@ -3847,15 +3847,15 @@ sub dump_service_2x {
     # servicedependencies (1.x deps)
     ####################################################
     if(defined($service_2x->{'__I2CONVERT_PARENT_SERVICES'})) {
-        dump_config_line($icinga2_cfg, "\tservice_dependencies = [");
-
         #say Dumper($service_2x);
         # this is a hash with keys
         foreach my $servicedep_key (keys %{$service_2x->{'__I2CONVERT_PARENT_SERVICES'}}) {
             my $servicedep = $service_2x->{'__I2CONVERT_PARENT_SERVICES'}->{$servicedep_key};
-            dump_config_line($icinga2_cfg, "\t\t{ host = \"$servicedep->{'host'}\", service = \"$servicedep->{'service'}\" },");
+            dump_config_line($icinga2_cfg, "\tdependencies[\"".$servicedep->{'host'}."-".$servicedep->{'service'}."\"] = {");
+            dump_config_line($icinga2_cfg, "\t\tparent_host = \"$servicedep->{'host'}\",");
+            dump_config_line($icinga2_cfg, "\t\tparent_service = \"$servicedep->{'service'}\"");
+            dump_config_line($icinga2_cfg, "\t},");
         }
-        dump_config_line($icinga2_cfg, "\t],");
     }
 
     ####################################################
@@ -4025,8 +4025,11 @@ sub dump_host_2x {
     # hostdependencies (1.x deps and parents combined)
     ####################################################
     if(defined($host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'})) {
-        my $hostdependency_hosts = join '", "', @{$host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'}};
-        dump_config_line($icinga2_cfg, "\thost_dependencies = [ \"$hostdependency_hosts\" ],");
+        foreach my $parent_host (@{$host_2x->{'__I2CONVERT_PARENT_HOSTNAMES'}}) {
+            dump_config_line($icinga2_cfg, "\tdependencies[\"$parent_host\"] = {");
+            dump_config_line($icinga2_cfg, "\t\tparent_host = \"$parent_host\"");
+            dump_config_line($icinga2_cfg, "\t},");
+        }
     }
 
     ####################################################
@@ -4502,7 +4505,7 @@ sub dump_command_2x {
     #say Dumper($command_2x);
     # skip used commands
     if ($command_2x->{'__I2_CONVERT_NOTIFICATION_COMMAND_USED'} == 1) {
-        say "Skipping already processed notification command" . Dumper($command_2x);
+        #say "Skipping already processed notification command" . Dumper($command_2x);
         return;
     }
 
