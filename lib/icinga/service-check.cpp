@@ -361,6 +361,9 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	bool in_downtime = IsInDowntime();
 	bool send_notification = hardChange && notification_reachable && !in_downtime && !IsAcknowledged();
 
+	if (!old_cr)
+		send_notification = false; /* Don't send notifications for the initial state change */
+
 	if (old_state == StateOK && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 
