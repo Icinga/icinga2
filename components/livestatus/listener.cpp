@@ -152,6 +152,9 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 				break;
 		}
 
+		if (lines.empty())
+			break;
+
 		Query::Ptr query = make_shared<Query>(lines, GetCompatLogPath());
 		if (!query->Execute(stream))
 			break;
