@@ -1615,9 +1615,6 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ClusterListener::GetClusterStatus(vo
 			connected_endpoints->Add(endpoint->GetName());
 	}
 
-	std::sort(not_connected_endpoints->Begin(), not_connected_endpoints->End());
-	std::sort(connected_endpoints->Begin(), connected_endpoints->End());
-
 	status->Set("num_endpoints", count_endpoints);
 	status->Set("num_conn_endpoints", connected_endpoints->GetLength());
 	status->Set("num_not_conn_endpoints", not_connected_endpoints->GetLength());
