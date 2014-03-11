@@ -399,7 +399,7 @@ fi
 
 exit 0
 
-%files
+%files bin
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
