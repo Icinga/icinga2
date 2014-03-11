@@ -51,7 +51,7 @@ void Service::Start(void)
 	double now = Utility::GetTime();
 
 	if (GetNextCheck() < now + 300)
-		SetNextCheck(now + Utility::Random() % 300);
+		UpdateNextCheck();
 
 	DynamicObject::Start();
 }
