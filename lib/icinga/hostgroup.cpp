@@ -31,15 +31,18 @@ REGISTER_TYPE(HostGroup);
 
 std::set<Host::Ptr> HostGroup::GetMembers(void) const
 {
+	boost::mutex::scoped_lock lock(m_HostGroupMutex);
 	return m_Members;
 }
 
 void HostGroup::AddMember(const Host::Ptr& host)
 {
+	boost::mutex::scoped_lock lock(m_HostGroupMutex);
 	m_Members.insert(host);
 }
 
 void HostGroup::RemoveMember(const Host::Ptr& host)
 {
+	boost::mutex::scoped_lock lock(m_HostGroupMutex);
 	m_Members.erase(host);
 }

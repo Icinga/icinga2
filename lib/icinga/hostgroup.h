@@ -43,6 +43,7 @@ public:
 	void RemoveMember(const Host::Ptr& host);
 
 private:
+	mutable boost::mutex m_HostGroupMutex;
 	std::set<Host::Ptr> m_Members;
 };
 

@@ -31,15 +31,18 @@ REGISTER_TYPE(UserGroup);
 
 std::set<User::Ptr> UserGroup::GetMembers(void) const
 {
+	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	return m_Members;
 }
 
 void UserGroup::AddMember(const User::Ptr& user)
 {
+	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	m_Members.insert(user);
 }
 
 void UserGroup::RemoveMember(const User::Ptr& user)
 {
+	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	m_Members.erase(user);
 }

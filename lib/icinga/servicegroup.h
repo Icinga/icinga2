@@ -43,6 +43,7 @@ public:
 	void RemoveMember(const Service::Ptr& service);
 
 private:
+	mutable boost::mutex m_ServiceGroupMutex;
 	std::set<Service::Ptr> m_Members;
 };
 

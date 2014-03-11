@@ -32,15 +32,18 @@ REGISTER_TYPE(ServiceGroup);
 
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 {
+	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	return m_Members;
 }
 
 void ServiceGroup::AddMember(const Service::Ptr& service)
 {
+	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	m_Members.insert(service);
 }
 
 void ServiceGroup::RemoveMember(const Service::Ptr& service)
 {
+	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	m_Members.erase(service);
 }
