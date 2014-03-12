@@ -22,13 +22,11 @@
 #ifdef _WIN32
 using namespace icinga;
 
-ProcessResult Process::Run(void)
+void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 {
-	ProcessResult pr;
-
 	// TODO: implement
-
-	return pr;
+	ProcessResult;
+	callback(pr);
 }
 
 #endif /* _WIN32 */

@@ -65,8 +65,8 @@ void Process::StaticInitialize(void)
 		    << boost::errinfo_errno(errno));
 	}
 
-	Utility::SetCloExec(fds[0]);
-	Utility::SetCloExec(fds[1]);
+	Utility::SetCloExec(l_EventFDs[0]);
+	Utility::SetCloExec(l_EventFDs[1]);
 #endif /* HAVE_PIPE2 */
 
 	Utility::SetNonBlocking(l_EventFDs[0]);
