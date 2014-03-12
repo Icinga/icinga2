@@ -97,7 +97,7 @@ private:
 
 		bool Stopped;
 
-		WorkerThread Threads[256];
+		WorkerThread Threads[16];
 
 		Queue(void)
 			: WaitTime(0), ServiceTime(0), TaskCount(0), Stopped(false)
@@ -118,7 +118,7 @@ private:
 	boost::condition_variable m_MgmtCV;
 	bool m_Stopped;
 
-	Queue m_Queues[16];
+	Queue m_Queues[4];
 
 	void ManagerThreadProc(void);
 	void StatsThreadProc(void);
