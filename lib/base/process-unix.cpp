@@ -320,7 +320,7 @@ bool Process::DoEvents(void)
 	m_Result.Output = output;
 
 	if (m_Callback)
-		m_Callback(m_Result);
+		Utility::QueueAsyncCallback(boost::bind(m_Callback, m_Result));
 
 	return false;
 }
