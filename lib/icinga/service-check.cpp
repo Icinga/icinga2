@@ -220,6 +220,11 @@ void Service::SetMaxCheckAttempts(int attempts)
 
 void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
 {
+	{
+		ObjectLock olock(this);
+		m_CheckRunning = false;
+	}
+
 	double now = Utility::GetTime();
 
 	if (cr->GetScheduleStart() == 0)
@@ -500,55 +505,20 @@ void Service::ExecuteCheck(void)
 		SetLastReachable(reachable);
 	}
 
+	UpdateNextCheck();
+
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
 	Service::Ptr self = GetSelf();
 
-	CheckResult::Ptr result;
+	CheckResult::Ptr result = make_shared<CheckResult>();
 
-	try {
-		result = GetCheckCommand()->Execute(GetSelf());
-	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Exception occured during check for service '"
-		       << GetName() << "': " << DiagnosticInformation(ex);
-		String message = msgbuf.str();
+	result->SetScheduleStart(scheduled_start);
+	result->SetExecutionStart(before_check);
 
-		Log(LogWarning, "icinga", message);
-
-		result = make_shared<CheckResult>();
-		result->SetState(StateUnknown);
-		result->SetOutput(message);
-	}
-
-	double after_check = Utility::GetTime();
-
-	if (result) {
-		if (result->GetScheduleStart() == 0)
-			result->SetScheduleStart(scheduled_start);
-
-		if (result->GetScheduleEnd() == 0)
-			result->SetScheduleEnd(after_check);
-
-		if (result->GetExecutionStart() == 0)
-			result->SetExecutionStart(before_check);
-
-		if (result->GetExecutionEnd() == 0)
-			result->SetExecutionEnd(after_check);
-	}
-
-	/* update next check before processing any result */
-	UpdateNextCheck();
-
-	if (result)
-		ProcessCheckResult(result);
-
-	{
-		ObjectLock olock(this);
-		m_CheckRunning = false;
-	}
+	Utility::QueueAsyncCallback(boost::bind(&CheckCommand::Execute, GetCheckCommand(), GetSelf(), result));
 }
 
 void Service::UpdateStatistics(const CheckResult::Ptr& cr)

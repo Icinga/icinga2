@@ -24,9 +24,10 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckCommand);
 
-CheckResult::Ptr CheckCommand::Execute(const Service::Ptr& service)
+void CheckCommand::Execute(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	std::vector<Value> arguments;
 	arguments.push_back(service);
-	return InvokeMethod("execute", arguments);
+	arguments.push_back(cr);
+	InvokeMethod("execute", arguments);
 }

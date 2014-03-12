@@ -21,6 +21,7 @@
 #include "base/exception.h"
 #include "base/convert.h"
 #include "base/objectlock.h"
+#include "base/initialize.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include "base/scriptvariable.h"
@@ -43,11 +44,104 @@ extern char **environ;
 #define environ (*_NSGetEnviron())
 #endif /* __APPLE__ */
 
-ProcessResult Process::Run(void)
-{
-	ProcessResult result;
+static boost::mutex l_ProcessMutex;
+static std::map<int, Process::Ptr> l_Processes;
+static int l_EventFDs[2];
 
-	result.ExecutionStart = Utility::GetTime();
+INITIALIZE_ONCE(&Process::StaticInitialize);
+
+void Process::StaticInitialize(void)
+{
+#ifdef HAVE_PIPE2
+	if (pipe2(l_EventFDs, O_CLOEXEC) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("pipe2")
+		    << boost::errinfo_errno(errno));
+	}
+#else /* HAVE_PIPE2 */
+	if (pipe(l_EventFDs) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("pipe")
+		    << boost::errinfo_errno(errno));
+	}
+
+	Utility::SetCloExec(fds[0]);
+	Utility::SetCloExec(fds[1]);
+#endif /* HAVE_PIPE2 */
+
+	Utility::SetNonBlocking(l_EventFDs[0]);
+	Utility::SetNonBlocking(l_EventFDs[1]);
+
+	boost::thread t(&Process::IOThreadProc);
+	t.detach();
+}
+
+void Process::IOThreadProc(void)
+{
+	pollfd *pfds = NULL;
+	int count = 0;
+
+	for (;;) {
+		double timeout = 1;
+
+		{
+			boost::mutex::scoped_lock lock(l_ProcessMutex);
+
+			count = 1 + l_Processes.size();
+			pfds = reinterpret_cast<pollfd *>(realloc(pfds, sizeof(pollfd) * count));
+
+			pfds[0].fd = l_EventFDs[0];
+			pfds[0].events = POLLIN;
+			pfds[0].revents = 0;
+
+			int i = 1;
+			std::pair<int, Process::Ptr> kv;
+			BOOST_FOREACH(kv, l_Processes) {
+				pfds[i].fd = kv.second->m_FD;
+				pfds[i].events = POLLIN;
+				pfds[i].revents = 0;
+
+				if (kv.second->GetTimeout() != 0 && kv.second->GetTimeout() < timeout)
+				    timeout = kv.second->GetTimeout();
+
+				i++;
+			}
+		}
+
+		int rc = poll(pfds, count, timeout * 1000);
+
+		if (rc < 0)
+			continue;
+
+		{
+			boost::mutex::scoped_lock lock(l_ProcessMutex);
+
+			if (pfds[0].revents & (POLLIN|POLLHUP|POLLERR)) {
+				char buffer[512];
+				(void) read(l_EventFDs[0], buffer, sizeof(buffer));
+			}
+
+			for (int i = 1; i < count; i++) {
+				if (pfds[i].revents & (POLLIN|POLLHUP|POLLERR)) {
+					std::map<int, Process::Ptr>::iterator it;
+					it = l_Processes.find(pfds[i].fd);
+
+					if (it == l_Processes.end())
+						continue; /* This should never happen. */
+
+					if (!it->second->DoEvents()) {
+						(void) close(it->first);
+						l_Processes.erase(it);
+					}
+				}
+			}
+		}
+	}
+}
+
+void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
+{
+	m_Result.ExecutionStart = Utility::GetTime();
 
 	int fds[2];
 
@@ -159,50 +253,50 @@ ProcessResult Process::Run(void)
 
 	delete [] envp;
 
-	int fd = fds[0];
 	(void) close(fds[1]);
 
-	char buffer[512];
+	Utility::SetNonBlocking(fds[0]);
 
-	std::ostringstream outputStream;
+	m_FD = fds[0];
+	m_Callback = callback;
 
-	pollfd pfd;
-	pfd.fd = fd;
-	pfd.events = POLLIN;
-	pfd.revents = 0;
+	{
+		boost::mutex::scoped_lock lock(l_ProcessMutex);
+		l_Processes[m_FD] = GetSelf();
+	}
 
-	for (;;) {
-		int rc1, timeout;
+	(void) write(l_EventFDs[1], "T", 1);
+}
 
-		timeout = 0;
+bool Process::DoEvents(void)
+{
+	if (m_Timeout != 0) {
+		double timeout = m_Timeout - (Utility::GetTime() - m_Result.ExecutionStart);
 
-		if (m_Timeout != 0) {
-			timeout = m_Timeout - (Utility::GetTime() - result.ExecutionStart);
-
-			if (timeout < 0) {
-				outputStream << "<Timeout exceeded.>";
-				kill(m_Pid, SIGKILL);
-				break;
-			}
-		}
-
-		rc1 = poll(&pfd, 1, timeout * 1000);
-
-		if (rc1 > 0) {
-			int rc2 = read(fd, buffer, sizeof(buffer));
-
-			if (rc2 <= 0)
-				break;
-
-			outputStream.write(buffer, rc2);
+		if (timeout < 0) {
+			m_OutputStream << "<Timeout exceeded.>";
+			kill(m_Pid, SIGKILL);
 		}
 	}
 
-	String output = outputStream.str();
+	char buffer[512];
+	for (;;) {
+		int rc = read(m_FD, buffer, sizeof(buffer));
+
+		if (rc < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+			return true;
+
+		if (rc > 0) {
+			m_OutputStream.write(buffer, rc);
+			return true;
+		}
+
+		break;
+	}
+
+	String output = m_OutputStream.str();
 
 	int status, exitcode;
-
-	(void) close(fd);
 
 	if (waitpid(m_Pid, &status, 0) != m_Pid) {
 		BOOST_THROW_EXCEPTION(posix_error()
@@ -221,11 +315,14 @@ ProcessResult Process::Run(void)
 		exitcode = 128;
 	}
 
-	result.ExecutionEnd = Utility::GetTime();
-	result.ExitStatus = exitcode;
-	result.Output = output;
+	m_Result.ExecutionEnd = Utility::GetTime();
+	m_Result.ExitStatus = exitcode;
+	m_Result.Output = output;
 
-	return result;
+	if (m_Callback)
+		m_Callback(m_Result);
+
+	return false;
 }
 
 #endif /* _WIN32 */

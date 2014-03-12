@@ -82,8 +82,11 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	process->SetTimeout(commandObj->GetTimeout());
 
-	ProcessResult pr = process->Run();
+	process->Run(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, service, command, _1));
+}
 
+void PluginNotificationTask::ProcessFinishedHandler(const Service::Ptr& service, const Value& command, const ProcessResult& pr)
+{
 	if (pr.ExitStatus != 0) {
 		std::ostringstream msgbuf;
 		msgbuf << "Notification command '" << command << "' for service '"

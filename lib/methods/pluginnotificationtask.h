@@ -22,6 +22,8 @@
 
 #include "methods/i2-methods.h"
 #include "icinga/notification.h"
+#include "icinga/service.h"
+#include "base/process.h"
 
 namespace icinga
 {
@@ -40,6 +42,8 @@ public:
 
 private:
 	PluginNotificationTask(void);
+
+	static void ProcessFinishedHandler(const Service::Ptr& service, const Value& command, const ProcessResult& pr);
 };
 
 }

@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(IcingaCheck, &IcingaCheckTask::ScriptFunc);
 
-CheckResult::Ptr IcingaCheckTask::ScriptFunc(const Service::Ptr&)
+void IcingaCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	double interval = Utility::GetTime() - Application::GetStartTime();
 
@@ -79,12 +79,11 @@ CheckResult::Ptr IcingaCheckTask::ScriptFunc(const Service::Ptr&)
 	perfdata->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
 	perfdata->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
 
-	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput("Icinga 2 is running.");
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(StateOK);
 	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
-	return cr;
+	service->ProcessCheckResult(cr);
 }
 

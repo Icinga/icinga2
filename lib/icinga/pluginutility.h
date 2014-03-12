@@ -39,7 +39,7 @@ class I2_ICINGA_API PluginUtility
 {
 public:
 	static ServiceState ExitStatusToState(int exitStatus);
-	static CheckResult::Ptr ParseCheckOutput(const String& output);
+	static std::pair<String, Value> ParseCheckOutput(const String& output);
 
 	static Value ParsePerfdata(const String& perfdata);
 	static String FormatPerfdata(const Value& perfdata);

@@ -63,9 +63,14 @@ public:
 	void SetTimeout(double timeout);
 	double GetTimeout(void) const;
 
-	ProcessResult Run(void);
+	void Run(const boost::function<void (const ProcessResult&)>& callback = boost::function<void (const ProcessResult&)>());
 
 	static std::vector<String> SplitCommand(const Value& command);
+
+#ifndef _WIN32
+	static void StaticInitialize(void);
+#endif /* _WIN32 */
+
 private:
 	std::vector<String> m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
@@ -74,7 +79,13 @@ private:
 
 #ifndef _WIN32
 	pid_t m_Pid;
+	int m_FD;
+	std::ostringstream m_OutputStream;
+	boost::function<void (const ProcessResult&)> m_Callback;
+	ProcessResult m_Result;
 
+	static void IOThreadProc(void);
+	bool DoEvents(void);
 #endif /* _WIN32 */
 };
 

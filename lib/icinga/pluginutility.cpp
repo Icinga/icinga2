@@ -49,10 +49,8 @@ ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 	}
 }
 
-CheckResult::Ptr PluginUtility::ParseCheckOutput(const String& output)
+std::pair<String, Value> PluginUtility::ParseCheckOutput(const String& output)
 {
-	CheckResult::Ptr result = make_shared<CheckResult>();
-
 	String text;
 	String perfdata;
 
@@ -79,10 +77,7 @@ CheckResult::Ptr PluginUtility::ParseCheckOutput(const String& output)
 
 	boost::algorithm::trim(perfdata);
 
-	result->SetOutput(text);
-	result->SetPerformanceData(ParsePerfdata(perfdata));
-
-	return result;
+	return std::make_pair(text, ParsePerfdata(perfdata));
 }
 
 Value PluginUtility::ParsePerfdata(const String& perfdata)

@@ -234,7 +234,10 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
-	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[2]);
+	CheckResult::Ptr result = make_shared<CheckResult>();
+	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(arguments[2]);
+	result->SetOutput(co.first);
+	result->SetPerformanceData(co.second);
 
 	ServiceState state;
 
@@ -281,7 +284,10 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
-	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(arguments[3]);
+	CheckResult::Ptr result = make_shared<CheckResult>();
+	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(arguments[3]);
+	result->SetOutput(co.first);
+	result->SetPerformanceData(co.second);
 	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
 
 	result->SetScheduleStart(time);

@@ -35,7 +35,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-CheckResult::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
+void PluginCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	CheckCommand::Ptr commandObj = service->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
@@ -65,22 +65,28 @@ CheckResult::Ptr PluginCheckTask::ScriptFunc(const Service::Ptr& service)
 		}
 	}
 
+	cr->SetCommand(command);
+
 	Process::Ptr process = make_shared<Process>(Process::SplitCommand(command), envMacros);
 
 	process->SetTimeout(commandObj->GetTimeout());
 
-	ProcessResult pr = process->Run();
+	process->Run(boost::bind(&PluginCheckTask::ProcessFinishedHandler, service, cr, _1));
 
-	String output = pr.Output;
-	output.Trim();
-	CheckResult::Ptr result = PluginUtility::ParseCheckOutput(output);
-	result->SetCommand(command);
-	result->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));
-	result->SetExitStatus(pr.ExitStatus);
-	result->SetExecutionStart(pr.ExecutionStart);
-	result->SetExecutionEnd(pr.ExecutionEnd);
-	result->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
-
-	return result;
 }
 
+void PluginCheckTask::ProcessFinishedHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const ProcessResult& pr)
+{
+	String output = pr.Output;
+	output.Trim();
+	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(output);
+	cr->SetOutput(co.first);
+	cr->SetPerformanceData(co.second);
+	cr->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));
+	cr->SetExitStatus(pr.ExitStatus);
+	cr->SetExecutionStart(pr.ExecutionStart);
+	cr->SetExecutionEnd(pr.ExecutionEnd);
+	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
+
+	service->ProcessCheckResult(cr);
+}

@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
-CheckResult::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
+void NullCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	String output = "Hello from ";
 	output += Utility::GetHostName();
@@ -38,11 +38,10 @@ CheckResult::Ptr NullCheckTask::ScriptFunc(const Service::Ptr&)
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Convert::ToDouble(Utility::GetTime()));
 
-	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(StateOK);
 
-	return cr;
+	service->ProcessCheckResult(cr);
 }
 
