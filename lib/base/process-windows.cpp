@@ -26,7 +26,7 @@ void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 {
 	// TODO: implement
 	ProcessResult;
-	callback(pr);
+	callback();
 }
 
 #endif /* _WIN32 */
