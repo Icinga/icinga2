@@ -79,7 +79,7 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "check_service_freshness", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_host_freshness", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "enable_flap_detection", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&StatusTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_external_commands", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "program_start", Column(&StatusTable::ProgramStartAccessor, objectAccessor));
 	table->AddColumn(prefix + "last_command_check", Column(&Table::ZeroAccessor, objectAccessor));
@@ -146,6 +146,11 @@ Value StatusTable::ExternalCommandsRateAccessor(const Value& row)
 Value StatusTable::NagiosPidAccessor(const Value& row)
 {
 	return Utility::GetPid();
+}
+
+Value StatusTable::ProcessPerformanceDataAccessor(const Value&)
+{
+	return (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0);
 }
 
 Value StatusTable::ProgramStartAccessor(const Value& row)

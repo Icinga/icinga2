@@ -52,6 +52,7 @@ protected:
 	static Value ExternalCommandsAccessor(const Value& row);
 	static Value ExternalCommandsRateAccessor(const Value& row);
 	static Value NagiosPidAccessor(const Value& row);
+        static Value ProcessPerformanceDataAccessor(const Value& row);
 	static Value ProgramStartAccessor(const Value& row);
 	static Value NumHostsAccessor(const Value& row);
 	static Value NumServicesAccessor(const Value& row);

@@ -295,7 +295,7 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 		fp << "\t" << "initial_state" "\t" "o" "\n"
 		      "\t" "low_flap_threshold" "\t" << hc->GetFlappingThreshold() << "\n"
 		      "\t" "high_flap_threshold" "\t" << hc->GetFlappingThreshold() << "\n"
-		      "\t" "process_perf_data" "\t" "1" "\n"
+		      "\t" "process_perf_data" "\t" << CompatUtility::GetServiceProcessPerformanceData(hc) << "\n"
 		      "\t" "check_freshness" "\t" "1" "\n";
 
 	} else {
@@ -467,7 +467,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
                 fp << "\t" "initial_state" "\t" "o" "\n"
                       "\t" "low_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
                       "\t" "high_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
-                      "\t" "process_perf_data" "\t" "1" "\n"
+                      "\t" "process_perf_data" "\t" << CompatUtility::GetServiceProcessPerformanceData(service) << "\n"
                       "\t" "check_freshness" << "\t" "1" "\n";
 		if (!notes.IsEmpty())
 		      fp << "\t" "notes" "\t" << notes << "\n";

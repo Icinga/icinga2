@@ -92,7 +92,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "accept_passive_checks", Column(&ServicesTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&ServicesTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "notifications_enabled", Column(&ServicesTable::NotificationsEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&ServicesTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&ServicesTable::ActiveChecksEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_options", Column(&ServicesTable::CheckOptionsAccessor, objectAccessor));
@@ -691,6 +691,16 @@ Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 		return Empty;
 
 	return CompatUtility::GetServiceNotificationsEnabled(service);
+}
+
+Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
+{
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (!service)
+		return Empty;
+
+	return 	CompatUtility::GetServiceProcessPerformanceData(service);
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)

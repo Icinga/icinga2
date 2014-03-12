@@ -100,7 +100,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Fields->Set("event_handlers_enabled", 1);
 	query2.Fields->Set("flap_detection_enabled", 1);
 	query2.Fields->Set("failure_prediction_enabled", 1);
-	query2.Fields->Set("process_performance_data", 1);
+	query2.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
 	DbObject::OnQuery(query2);
 
 	DbQuery query3;

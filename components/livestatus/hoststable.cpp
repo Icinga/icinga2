@@ -73,7 +73,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "max_check_attempts", Column(&HostsTable::MaxCheckAttemptsAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&HostsTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_checks", Column(&HostsTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&HostsTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledgement_type", Column(&HostsTable::AcknowledgementTypeAccessor, objectAccessor));
@@ -435,25 +435,9 @@ Value HostsTable::PluginOutputAccessor(const Value& row)
 	return output;
 }
 
-Value HostsTable::PerfDataAccessor(const Value& row)
+Value HostsTable::PerfDataAccessor(const Value&)
 {
-	/* use hostcheck service */
-	Host::Ptr host = static_cast<Host::Ptr>(row);
-
-	if (!host)
-		return Empty;
-
-	Service::Ptr hc = host->GetCheckService();
-	String perfdata;
-
-	if (hc) {
-		CheckResult::Ptr cr = hc->GetLastCheckResult();
-
-		if (cr)
-			perfdata = CompatUtility::GetCheckResultPerfdata(cr);
-	}
-
-	return perfdata;
+	return Empty;
 }
 
 Value HostsTable::IconImageAccessor(const Value& row)
