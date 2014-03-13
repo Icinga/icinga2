@@ -12,7 +12,7 @@ file { '/etc/httpd/conf.d/icinga2-doc.conf':
   notify => Service['apache']
 }
 
-package { [ 'vim-enhanced', 'mailx' ]:
+package { 'vim-enhanced':
   ensure => 'installed'
 }
 
