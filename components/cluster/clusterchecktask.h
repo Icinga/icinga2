@@ -33,7 +33,7 @@ namespace icinga
 class ClusterCheckTask
 {
 public:
-	static CheckResult::Ptr ScriptFunc(const Service::Ptr& service);
+	static void ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr);
 
 private:
 	ClusterCheckTask(void);

@@ -35,7 +35,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
 
-CheckResult::Ptr ClusterCheckTask::ScriptFunc(const Service::Ptr&)
+void ClusterCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	/* fetch specific cluster status */
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
@@ -63,13 +63,11 @@ CheckResult::Ptr ClusterCheckTask::ScriptFunc(const Service::Ptr&)
 		    " Endpoints (" + not_connected_endpoints + ") not connected.";
 	}
 
-	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(state);
 	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
-
-	return cr;
+	service->ProcessCheckResult(cr);
 }
 
 String ClusterCheckTask::FormatArray(const Array::Ptr& arr)

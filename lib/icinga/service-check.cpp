@@ -489,6 +489,8 @@ void Service::ExecuteCheck(void)
 
 	ASSERT(!OwnsLock());
 
+	UpdateNextCheck();
+
 	bool reachable = IsReachable();
 
 	{
@@ -504,8 +506,6 @@ void Service::ExecuteCheck(void)
 		SetLastStateType(GetLastStateType());
 		SetLastReachable(reachable);
 	}
-
-	UpdateNextCheck();
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
