@@ -184,16 +184,12 @@ void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 #endif /* HAVE_PIPE2 */
 
 	// build argv
-	Log(LogDebug, "base", "Running command '" + boost::algorithm::join(m_Arguments, " ") + "'.");
-
 	char **argv = new char *[m_Arguments.size() + 1];
 
 	for (unsigned int i = 0; i < m_Arguments.size(); i++)
 		argv[i] = strdup(m_Arguments[i].CStr());
 
 	argv[m_Arguments.size()] = NULL;
-
-	m_Arguments.clear();
 
 	// build envp
 	int envc = 0;
@@ -261,6 +257,11 @@ void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 	}
 
 	// parent process
+
+	Log(LogDebug, "base", "Running command '" + boost::algorithm::join(m_Arguments, " ") +
+	                      "': PID " + Convert::ToString(m_Pid));
+
+	m_Arguments.clear();
 
 	// free arguments
 	for (int i = 0; argv[i] != NULL; i++)
