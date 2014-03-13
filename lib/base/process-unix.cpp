@@ -47,6 +47,7 @@ extern char **environ;
 static boost::mutex l_ProcessMutex;
 static std::map<int, Process::Ptr> l_Processes;
 static int l_EventFDs[2];
+static boost::once_flag l_OnceFlag = BOOST_ONCE_INIT;
 
 INITIALIZE_ONCE(&Process::StaticInitialize);
 
@@ -71,7 +72,11 @@ void Process::StaticInitialize(void)
 
 	Utility::SetNonBlocking(l_EventFDs[0]);
 	Utility::SetNonBlocking(l_EventFDs[1]);
+}
 
+void Process::ThreadInitialize(void)
+{
+	/* Note to self: Make sure this runs _after_ we've daemonized. */
 	boost::thread t(&Process::IOThreadProc);
 	t.detach();
 }
@@ -141,6 +146,8 @@ void Process::IOThreadProc(void)
 
 void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 {
+	boost::call_once(l_OnceFlag, &Process::ThreadInitialize);
+
 	m_Result.ExecutionStart = Utility::GetTime();
 
 	int fds[2];

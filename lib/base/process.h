@@ -69,6 +69,7 @@ public:
 
 #ifndef _WIN32
 	static void StaticInitialize(void);
+	static void ThreadInitialize(void);
 #endif /* _WIN32 */
 
 private:
