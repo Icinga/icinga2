@@ -666,8 +666,12 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 
 	Log(LogInformation, "icinga", "Removing acknowledgement for service '" + service->GetName() + "'");
 
-	ObjectLock olock(service);
-	service->ClearAcknowledgement();
+	{
+		ObjectLock olock(service);
+		service->ClearAcknowledgement();
+	}
+
+	service->RemoveCommentsByType(CommentAcknowledgement);
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<String>& arguments)
