@@ -25,8 +25,10 @@ using namespace icinga;
 void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 {
 	// TODO: implement
-	ProcessResult;
-	callback();
+	ProcessResult pr;
+
+	if (callback)
+		callback(pr);
 }
 
 #endif /* _WIN32 */
