@@ -87,7 +87,9 @@ void Process::IOThreadProc(void)
 	int count = 0;
 
 	for (;;) {
-		double timeout = 1;
+		double now, timeout = -1;
+
+		now = Utility::GetTime();
 
 		{
 			boost::mutex::scoped_lock lock(l_ProcessMutex);
@@ -106,8 +108,12 @@ void Process::IOThreadProc(void)
 				pfds[i].events = POLLIN;
 				pfds[i].revents = 0;
 
-				if (kv.second->GetTimeout() != 0 && kv.second->GetTimeout() < timeout)
-				    timeout = kv.second->GetTimeout();
+				if (kv.second->m_Timeout != 0) {
+					double delta = kv.second->m_Timeout - (now - kv.second->m_Result.ExecutionStart);
+
+					if (timeout == -1 || delta < timeout)
+						timeout = delta;
+				}
 
 				i++;
 			}
@@ -295,7 +301,7 @@ bool Process::DoEvents(void)
 
 		if (rc > 0) {
 			m_OutputStream.write(buffer, rc);
-			return true;
+			continue;
 		}
 
 		break;
