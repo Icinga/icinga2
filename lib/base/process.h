@@ -85,8 +85,9 @@ private:
 	boost::function<void (const ProcessResult&)> m_Callback;
 	ProcessResult m_Result;
 
-	static void IOThreadProc(void);
+	static void IOThreadProc(int tid);
 	bool DoEvents(void);
+	int GetTID(void) const;
 #endif /* _WIN32 */
 };
 
