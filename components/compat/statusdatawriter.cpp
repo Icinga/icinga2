@@ -553,6 +553,13 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		tempobjectfp << std::fixed;
 		DumpHostObject(tempobjectfp, host);
 		objectfp << tempobjectfp.str();
+
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			std::ostringstream tempobjectfp;
+			tempobjectfp << std::fixed;
+			DumpServiceObject(tempobjectfp, service);
+			objectfp << tempobjectfp.str();
+		}
 	}
 
 	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjects<HostGroup>()) {
@@ -569,13 +576,6 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		tempobjectfp << "\n"
 			        "\t" "}" "\n";
 
-		objectfp << tempobjectfp.str();
-	}
-
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		std::ostringstream tempobjectfp;
-		tempobjectfp << std::fixed;
-		DumpServiceObject(tempobjectfp, service);
 		objectfp << tempobjectfp.str();
 	}
 
@@ -742,13 +742,13 @@ void StatusDataWriter::StatusTimerHandler(void)
 		tempstatusfp << std::fixed;
 		DumpHostStatus(tempstatusfp, host);
 		statusfp << tempstatusfp.str();
-	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		std::ostringstream tempstatusfp;
-		tempstatusfp << std::fixed;
-		DumpServiceStatus(tempstatusfp, service);
-		statusfp << tempstatusfp.str();
+		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+			std::ostringstream tempstatusfp;
+			tempstatusfp << std::fixed;
+			DumpServiceStatus(tempstatusfp, service);
+			statusfp << tempstatusfp.str();
+		}
 	}
 
 	statusfp.close();
