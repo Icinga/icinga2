@@ -58,12 +58,6 @@ start() {
 	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_STATE_DIR/run/icinga2/cmd
 	chmod 2755 $ICINGA2_STATE_DIR/run/icinga2/cmd
 
-        echo "Validating the configuration file:"
-        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C; then
-                echo "Not starting Icinga 2 due to configuration errors."
-                exit 1
-        fi
-
         echo "Starting Icinga 2: "
         $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
 
@@ -125,8 +119,13 @@ reload() {
 checkconfig() {
 	printf "Checking configuration:"
 
-	echo "Validating the configuration file:"
-	exec $DAEMON -c $ICINGA2_CONFIG_FILE -C
+        echo "Validating the configuration file:"
+        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C; then
+                echo "Not "$1"ing Icinga 2 due to configuration errors."
+                if [ "x$2" = "xfail" ]; then
+			exit 1
+		fi
+        fi
 }
 
 # Print status for Icinga 2
@@ -145,6 +144,7 @@ status() {
 ### main logic ###
 case "$1" in
   start)
+	checkconfig start fail
         start
         ;;
   stop)
@@ -154,10 +154,12 @@ case "$1" in
         status
         ;;
   restart|condrestart)
+	checkconfig restart fail
         stop nofail
         start
         ;;
   reload)
+	checkconfig reload fail
 	reload
 	;;
   checkconfig)
