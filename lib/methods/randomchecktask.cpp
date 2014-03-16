@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 
-CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
+void RandomCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
 {
 	String output = "Hello from ";
 	output += Utility::GetHostName();
@@ -39,12 +39,11 @@ CheckResult::Ptr RandomCheckTask::ScriptFunc(const Service::Ptr&)
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Convert::ToDouble(Utility::GetTime()));
 
-	CheckResult::Ptr cr = make_shared<CheckResult>();
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
 	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
-	return cr;
+	service->ProcessCheckResult(cr);
 }
 
