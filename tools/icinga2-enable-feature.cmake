@@ -49,18 +49,24 @@ if [ "$TOOL" = "icinga2-enable-feature" ]; then
 		exit 0
 	fi
 
-	ln -s ../features-available/$FEATURE.conf $ICINGA2CONFDIR/features-enabled/
-
-	echo "Module '$FEATURE' was enabled."
+	if ! ln -s ../features-available/$FEATURE.conf $ICINGA2CONFDIR/features-enabled/; then
+	echo "Enabling '$FEATURE' failed. Check permissions for $ICINGA2CONFDIR/features-enabled/"
+		exit 1
+	else
+		echo "Module '$FEATURE' was enabled."
+	fi
 elif [ "$TOOL" = "icinga2-disable-feature" ]; then
 	if [ ! -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
 		echo "The feature '$FEATURE' is already disabled."
 		exit 0
 	fi
 
-	rm -f $ICINGA2CONFDIR/features-enabled/$FEATURE.conf
-
-	echo "Module '$FEATURE' was disabled."
+	if ! rm -f $ICINGA2CONFDIR/features-enabled/$FEATURE.conf; then
+	echo "Disabling '$FEATURE' failed. Check permissions for $ICINGA2CONFDIR/features-enabled/$FEATURE.conf"
+		exit 1
+	else
+		echo "Module '$FEATURE' was disabled."
+	fi
 fi
 
 echo "Make sure to restart Icinga 2 for these changes to take effect."
