@@ -518,7 +518,7 @@ void Service::ExecuteCheck(void)
 	result->SetScheduleStart(scheduled_start);
 	result->SetExecutionStart(before_check);
 
-	Utility::QueueAsyncCallback(boost::bind(&CheckCommand::Execute, GetCheckCommand(), GetSelf(), result));
+	GetCheckCommand()->Execute(GetSelf(), result);
 }
 
 void Service::UpdateStatistics(const CheckResult::Ptr& cr)
