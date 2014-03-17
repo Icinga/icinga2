@@ -2123,17 +2123,22 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::ve
 	if (!hc)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for host '" + arguments[0] + "' which has no check service."));
 
-	EventCommand::Ptr command = EventCommand::GetByName(arguments[1]);
+	/* empty command string implicitely disables event handler */
+	if (arguments[1].IsEmpty()) {
+		hc->SetEnableEventHandler(false);
+	} else {
+		EventCommand::Ptr command = EventCommand::GetByName(arguments[1]);
 
-	if (!command)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[1] + "' does not exist."));
+		if (!command)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[1] + "' does not exist."));
 
-	Log(LogInformation, "icinga", "Changing event handler for host '" + arguments[0] + "' to '" + arguments[1] + "'");
+		Log(LogInformation, "icinga", "Changing event handler for host '" + arguments[0] + "' to '" + arguments[1] + "'");
 
-	{
-		ObjectLock olock(hc);
+		{
+			ObjectLock olock(hc);
 
-		hc->SetEventCommand(command);
+			hc->SetEventCommand(command);
+		}
 	}
 }
 
@@ -2147,17 +2152,22 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vec
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	EventCommand::Ptr command = EventCommand::GetByName(arguments[2]);
+	/* empty command string implicitely disables event handler */
+	if (arguments[2].IsEmpty()) {
+		service->SetEnableEventHandler(false);
+	} else {
+		EventCommand::Ptr command = EventCommand::GetByName(arguments[2]);
 
-	if (!command)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[2] + "' does not exist."));
+		if (!command)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[2] + "' does not exist."));
 
-	Log(LogInformation, "icinga", "Changing event handler for service '" + arguments[1] + "' to '" + arguments[2] + "'");
+		Log(LogInformation, "icinga", "Changing event handler for service '" + arguments[1] + "' to '" + arguments[2] + "'");
 
-	{
-		ObjectLock olock(service);
+		{
+			ObjectLock olock(service);
 
-		service->SetEventCommand(command);
+			service->SetEventCommand(command);
+		}
 	}
 }
 
