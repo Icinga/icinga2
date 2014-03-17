@@ -244,6 +244,9 @@ void Timer::AdjustTimers(double adjustment)
 	for (it = idx.begin(); it != idx.end(); it++) {
 		Timer::Ptr timer = it->lock();
 
+		if (!timer)
+			continue;
+
 		if (abs(now - (timer->m_Next + adjustment)) <
 		    abs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
