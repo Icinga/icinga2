@@ -120,7 +120,7 @@ checkconfig() {
 	printf "Checking configuration:"
 
         echo "Validating the configuration file:"
-        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C; then
+        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C -u $ICINGA2_USER -g $ICINGA2_GROUP; then
                 echo "Not "$1"ing Icinga 2 due to configuration errors."
                 if [ "x$2" = "xfail" ]; then
 			exit 1
