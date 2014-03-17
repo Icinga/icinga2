@@ -174,10 +174,10 @@ void Application::RunEventLoop(void) const
 		Utility::Sleep(0.5);
 
 	Log(LogInformation, "base", "Shutting down Icinga...");
+	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
 #ifdef _DEBUG
-	DynamicObject::StopObjects();
 	GetTP().Stop();
 	m_ShuttingDown = false;
 

@@ -84,12 +84,15 @@ void CheckerComponent::Start(void)
 
 void CheckerComponent::Stop(void)
 {
+	Log(LogInformation, "checker", "Checker stopped.");
+
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Stopped = true;
 		m_CV.notify_all();
 	}
 
+	m_ResultTimer->Stop();
 	m_Thread.join();
 }
 

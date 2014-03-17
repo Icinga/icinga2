@@ -87,7 +87,7 @@ stop() {
 		
 			printf '.'
 			
-			sleep 1
+			sleep 3
 		done
 	fi
 
