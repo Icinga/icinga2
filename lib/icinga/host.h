@@ -24,6 +24,7 @@
 #include "icinga/host.th"
 #include "icinga/macroresolver.h"
 #include "icinga/checkresult.h"
+#include "config/applyrule.h"
 #include "base/array.h"
 #include "base/dictionary.h"
 
@@ -100,6 +101,9 @@ public:
 	static String StateTypeToString(StateType state);
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
+
+	static void RegisterApplyRuleHandler(void);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 
 protected:
 	virtual void Stop(void);

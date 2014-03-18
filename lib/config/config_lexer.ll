@@ -222,6 +222,9 @@ false				{ yylval->num = 0; return T_NUMBER; }
 set				return T_VAR;
 var				return T_VAR;
 const				return T_CONST;
+apply				return T_APPLY;
+to				return T_TO;
+where				return T_WHERE;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;
 [a-zA-Z_][:a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }

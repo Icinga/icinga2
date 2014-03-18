@@ -27,11 +27,13 @@
 #include "config/typerule.h"
 #include "config/typerulelist.h"
 #include "config/aexpression.h"
+#include "config/applyrule.h"
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"
 #include "base/scriptvariable.h"
 #include "base/exception.h"
+#include "base/dynamictype.h"
 #include <sstream>
 #include <stack>
 #include <boost/foreach.hpp>
@@ -98,6 +100,9 @@ using namespace icinga;
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_PARTIAL "partial (T_PARTIAL)"
+%token T_APPLY "apply (T_APPLY)"
+%token T_TO "to (T_TO)"
+%token T_WHERE "where (T_WHERE)"
 %type <text> identifier
 %type <array> array
 %type <array> array_items
@@ -158,7 +163,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | include_recursive | library | variable
+statement: object | type | include | include_recursive | library | variable | apply
 	;
 
 include: T_INCLUDE value
@@ -672,4 +677,18 @@ value: simplevalue
 		delete $1;
 	}
 	;
+
+optional_template: /* empty */
+	| T_TEMPLATE
+	;
+
+apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE aterm
+	{
+		if (!ApplyRule::IsValidCombination($3, $6)) {
+			BOOST_THROW_EXCEPTION(std::invalid_argument("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'."));
+		}
+
+		ApplyRule::AddRule($3, $4, $6, *$8, yylloc);
+		delete $8;
+	}
 %%
