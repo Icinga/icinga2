@@ -65,6 +65,10 @@ Value AExpression::Evaluate(const Object::Ptr& thisRef) const
 			return (long)left << (long)right;
 		case AEShiftRight:
 			return (long)left >> (long)right;
+		case AEEqual:
+			return left == right;
+		case AENotEqual:
+			return left != right;
 		default:
 			ASSERT(!"Invalid operator.");
 	}

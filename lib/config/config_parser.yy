@@ -69,7 +69,9 @@ using namespace icinga;
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
-%token <op> T_EQUAL "= (T_EQUAL)"
+%token <op> T_EQUAL "== (T_EQUAL)"
+%token <op> T_NOT_EQUAL "!= (T_NOT_EQUAL)"
+%token <op> T_SET "= (T_SET)"
 %token <op> T_PLUS_EQUAL "+= (T_PLUS_EQUAL)"
 %token <op> T_MINUS_EQUAL "-= (T_MINUS_EQUAL)"
 %token <op> T_MULTIPLY_EQUAL "*= (T_MULTIPLY_EQUAL)"
@@ -191,7 +193,7 @@ library: T_LIBRARY T_STRING
 	}
 	;
 
-variable: variable_decl identifier T_EQUAL value
+variable: variable_decl identifier T_SET value
 	{
 		Value *value = $4;
 		if (value->IsObjectType<ExpressionList>()) {
@@ -480,7 +482,7 @@ expression: identifier operator value
 	}
 	;
 
-operator: T_EQUAL
+operator: T_SET
 	| T_PLUS_EQUAL
 	| T_MINUS_EQUAL
 	| T_MULTIPLY_EQUAL
@@ -590,6 +592,18 @@ aexpression: T_STRING
 	{
 		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2)));
 		delete $2;
+	}
+	| aexpression T_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_NOT_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENotEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		delete $1;
+		delete $3;
 	}
 	| aexpression '+' aexpression
 	{

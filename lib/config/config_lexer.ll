@@ -232,7 +232,9 @@ const				return T_CONST;
 -?[0-9]+(\.[0-9]+)?m		{ yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?s		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
-=				{ yylval->op = OperatorSet; return T_EQUAL; }
+==				{ yylval->op = OperatorEqual; return T_EQUAL; }
+!=				{ yylval->op = OperatorNotEqual; return T_NOT_EQUAL; }
+=				{ yylval->op = OperatorSet; return T_SET; }
 \+=				{ yylval->op = OperatorPlus; return T_PLUS_EQUAL; }
 -=				{ yylval->op = OperatorMinus; return T_MINUS_EQUAL; }
 \*=				{ yylval->op = OperatorMultiply; return T_MULTIPLY_EQUAL; }

@@ -41,7 +41,9 @@ enum AOperator
 	AEBinaryAnd,
 	AEBinaryOr,
 	AEShiftLeft,
-	AEShiftRight
+	AEShiftRight,
+	AEEqual,
+	AENotEqual,
 };
 
 /**
