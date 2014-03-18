@@ -43,9 +43,7 @@ enum ExpressionOperator
 	OperatorPlus,
 	OperatorMinus,
 	OperatorMultiply,
-	OperatorDivide,
-	OperatorEqual, /* Not used for Expressions */
-	OperatorNotEqual, /* Not used for Expressions */
+	OperatorDivide
 };
 
 class ExpressionList;

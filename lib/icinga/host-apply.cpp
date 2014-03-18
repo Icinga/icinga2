@@ -43,6 +43,11 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 		Dictionary::Ptr locals = make_shared<Dictionary>();
 		locals->Set("host", host->GetName());
 
+		Array::Ptr groups = host->GetGroups();
+		if (!groups)
+			groups = make_shared<Array>();
+		locals->Set("hostgroups", groups);
+
 		BOOST_FOREACH(const ApplyRule& rule, rules) {
 			std::ostringstream msgbuf;
 			msgbuf << "Evaluating 'apply' rule (" << rule.GetDebugInfo() << ")";
@@ -79,8 +84,6 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			serviceItem->Register();
 			DynamicObject::Ptr dobj = serviceItem->Commit();
 			dobj->OnConfigLoaded();
-
-			Log(LogInformation, "icinga", "Rule result: " + Convert::ToString(result));
 		}
 	}
 }

@@ -227,6 +227,12 @@ to				return T_TO;
 where				return T_WHERE;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;
+==				return T_EQUAL;
+!=				return T_NOT_EQUAL;
+!in				return T_NOT_IN;
+in				return T_IN;
+&&				return T_LOGICAL_AND;
+\|\|				return T_LOGICAL_OR;
 [a-zA-Z_][:a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \<[^\>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 -?[0-9]+(\.[0-9]+)?ms		{ yylval->num = strtod(yytext, NULL) / 1000; return T_NUMBER; }
@@ -235,8 +241,6 @@ where				return T_WHERE;
 -?[0-9]+(\.[0-9]+)?m		{ yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?s		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
-==				{ yylval->op = OperatorEqual; return T_EQUAL; }
-!=				{ yylval->op = OperatorNotEqual; return T_NOT_EQUAL; }
 =				{ yylval->op = OperatorSet; return T_SET; }
 \+=				{ yylval->op = OperatorPlus; return T_PLUS_EQUAL; }
 -=				{ yylval->op = OperatorMinus; return T_MINUS_EQUAL; }

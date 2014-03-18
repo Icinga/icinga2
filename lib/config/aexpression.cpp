@@ -18,17 +18,21 @@
  ******************************************************************************/
 
 #include "config/aexpression.h"
+#include "base/array.h"
+#include "base/serializer.h"
+#include "base/context.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
-AExpression::AExpression(AOperator op, const AValue& operand1)
-	: m_Operator(op), m_Operand1(operand1)
+AExpression::AExpression(AOperator op, const AValue& operand1, const DebugInfo& di)
+	: m_Operator(op), m_Operand1(operand1), m_DebugInfo(di)
 {
 	ASSERT(op == AEReturn);
 }
 
-AExpression::AExpression(AOperator op, const AValue& operand1, const AValue& operand2)
-	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2)
+AExpression::AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di)
+	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2), m_DebugInfo(di)
 {
 	ASSERT(op == AEAdd || op == AENegate || op == AESubtract || op == AEMultiply || op == AEDivide ||
 		op == AEBinaryAnd || op == AEBinaryOr || op == AEShiftLeft || op == AEShiftRight);
@@ -37,9 +41,15 @@ AExpression::AExpression(AOperator op, const AValue& operand1, const AValue& ope
 Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 {
 	Value left, right;
+	Array::Ptr arr;
+	bool found;
 
 	left = m_Operand1.Evaluate(locals);
 	right = m_Operand2.Evaluate(locals);
+
+	std::ostringstream msgbuf;
+	msgbuf << "Evaluating AExpression " << m_DebugInfo << "; left=" << JsonSerialize(left) << "; right=" << JsonSerialize(right);
+	CONTEXT(msgbuf.str());
 
 	switch (m_Operator) {
 		case AEReturn:
@@ -69,6 +79,26 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 			return left == right;
 		case AENotEqual:
 			return left != right;
+		case AEIn:
+			if (!right.IsObjectType<Array>())
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
+
+			arr = right;
+			found = false;
+			BOOST_FOREACH(const Value& value, arr) {
+				if (value == left) {
+					found = true;
+					break;
+				}
+			}
+
+			return found;
+		case AENotIn:
+			return left != right;
+		case AELogicalAnd:
+			return (long)left && (long)right;
+		case AELogicalOr:
+			return (long)left || (long)right;
 		default:
 			ASSERT(!"Invalid operator.");
 	}

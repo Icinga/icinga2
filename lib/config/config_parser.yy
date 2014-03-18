@@ -71,8 +71,6 @@ using namespace icinga;
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
-%token <op> T_EQUAL "== (T_EQUAL)"
-%token <op> T_NOT_EQUAL "!= (T_NOT_EQUAL)"
 %token <op> T_SET "= (T_SET)"
 %token <op> T_PLUS_EQUAL "+= (T_PLUS_EQUAL)"
 %token <op> T_MINUS_EQUAL "-= (T_MINUS_EQUAL)"
@@ -82,6 +80,12 @@ using namespace icinga;
 %token T_CONST "const (T_CONST)"
 %token T_SHIFT_LEFT "<< (T_SHIFT_LEFT)"
 %token T_SHIFT_RIGHT ">> (T_SHIFT_RIGHT)"
+%token T_EQUAL "== (T_EQUAL)"
+%token T_NOT_EQUAL "!= (T_NOT_EQUAL)"
+%token T_IN "in (T_IN)"
+%token T_NOT_IN "!in (T_NOT_IN)"
+%token T_LOGICAL_AND "&& (T_LOGICAL_AND)"
+%token T_LOGICAL_OR "|| (T_LOGICAL_OR)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
 %token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
@@ -122,6 +126,12 @@ using namespace icinga;
 %type <aexpr> aterm
 %type <aexpr> aexpression
 %type <num> variable_decl
+%left T_LOGICAL_OR
+%left T_LOGICAL_AND
+%left T_IN
+%left T_NOT_IN
+%nonassoc T_EQUAL
+%nonassoc T_NOT_EQUAL
 %left '+' '-'
 %left '*' '/'
 %left '&'
@@ -581,82 +591,106 @@ aterm: '(' aexpression ')'
 
 aexpression: simplevalue
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, *$1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, *$1), yylloc));
 		delete $1;
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1), yylloc));
 		free($1);
 	}
 	| '~' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2)));
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
 		delete $2;
 	}
-	| aexpression T_EQUAL aexpression
+	| '(' aexpression ')'
 	{
-		$$ = new Value(make_shared<AExpression>(AEEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression T_NOT_EQUAL aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AENotEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
+		$$ = $2;
 	}
 	| aexpression '+' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '-' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '*' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '/' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '&' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '|' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_IN aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_NOT_IN aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENotIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_NOT_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENotEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_SHIFT_LEFT aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_SHIFT_RIGHT aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
+		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}
-	| '(' aexpression ')'
+	| aexpression T_LOGICAL_AND aexpression
 	{
-		$$ = $2;
+		$$ = new Value(make_shared<AExpression>(AELogicalAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_LOGICAL_OR aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AELogicalOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
 	}
 	;
 
