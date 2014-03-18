@@ -30,6 +30,10 @@ and includes that in the sample configuration.
 
 The ITL will be updated on every release and should not be edited by the user.
 
+There are still generic templates available for your convenience which may or may
+not be re-used in your configuration. For instance, `generic-service` includes
+all required attributes except `check_command` for an inline service.
+
 > **Note**
 >
 > Sample configuration files are located in the `conf.d/` directory which is
@@ -47,11 +51,19 @@ configuration errors in Icinga 1.x.
     cfg_dir=/etc/icinga/objects
 
 Icinga 2 supports wildcard includes and relative paths, e.g. for including
-`conf.d/*.conf` in the same directory. A global search path for includes is
-available for advanced features like the Icinga Template Library (ITL). The file
-suffix does not matter as long as it matches the (wildcard) include expression.
+`conf.d/*.conf` in the same directory.
 
     include "conf.d/*.conf"
+
+If you want to include files and directories recursively, you need to define
+a seperate option and add the directory and an option pattern.
+
+    include_recursive "conf.d" "*.conf"
+
+A global search path for includes is available for advanced features like
+the Icinga Template Library (ITL). The file suffix does not matter as long
+as it matches the (wildcard) include expression.
+
     include <itl/itl.conf>
 
 > **Best Practice**
@@ -64,7 +76,7 @@ Global macros such as for the plugin directory, usernames and passwords can be
 set in the `resource.cfg` configuration file in Icinga 1.x. By convention the
 `USER1` macro is used to define the directory for the plugins.
 
-Icinga 2 uses a global `IcingaMacros` variable which is set in the
+Icinga 2 uses a global `IcingaMacros` constant variable which is set in the
 `conf.d/macros.conf` file:
 
     /**
@@ -73,6 +85,10 @@ Icinga 2 uses a global `IcingaMacros` variable which is set in the
     set IcingaMacros = {
       plugindir = "/usr/lib/nagios/plugins"
     }
+
+> **Note**
+>
+> [Global macros](#global-constants) can only be defined once.
 
 
 ## <a id="differences-1x-2-comments"></a> Comments
@@ -554,4 +570,4 @@ and configuration distribution problems Icinga 1.x distributed monitoring curren
 
 Icinga 2 implements a new built-in distributed monitoring architecture, including config and check
 distribution, IPv4/IPv6 support, SSL certificates and domain support for DMZ. High Availability
-and load balancing are also part of the Icinga 2 Cluster setup.
+and load balancing are also part of the Icinga 2 [Cluster](#cluster) setup.
