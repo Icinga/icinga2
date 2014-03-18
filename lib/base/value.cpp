@@ -196,7 +196,7 @@ ValueType Value::GetType(void) const
 	return static_cast<ValueType>(m_Value.which());
 }
 
-bool Value::operator==(bool rhs)
+bool Value::operator==(bool rhs) const
 {
 	if (!IsScalar())
 		return false;
@@ -204,12 +204,12 @@ bool Value::operator==(bool rhs)
 	return static_cast<double>(*this) == rhs;
 }
 
-bool Value::operator!=(bool rhs)
+bool Value::operator!=(bool rhs) const
 {
 	return !(*this == rhs);
 }
 
-bool Value::operator==(int rhs)
+bool Value::operator==(int rhs) const
 {
 	if (!IsScalar())
 		return false;
@@ -217,12 +217,12 @@ bool Value::operator==(int rhs)
 	return static_cast<double>(*this) == rhs;
 }
 
-bool Value::operator!=(int rhs)
+bool Value::operator!=(int rhs) const
 {
 	return !(*this == rhs);
 }
 
-bool Value::operator==(double rhs)
+bool Value::operator==(double rhs) const
 {
 	if (!IsScalar())
 		return false;
@@ -230,32 +230,32 @@ bool Value::operator==(double rhs)
 	return static_cast<double>(*this) == rhs;
 }
 
-bool Value::operator!=(double rhs)
+bool Value::operator!=(double rhs) const
 {
 	return !(*this == rhs);
 }
 
-bool Value::operator==(const char *rhs)
+bool Value::operator==(const char *rhs) const
 {
 	return static_cast<String>(*this) == rhs;
 }
 
-bool Value::operator!=(const char *rhs)
+bool Value::operator!=(const char *rhs) const
 {
 	return !(*this == rhs);
 }
 
-bool Value::operator==(const String& rhs)
+bool Value::operator==(const String& rhs) const
 {
 	return static_cast<String>(*this) == rhs;
 }
 
-bool Value::operator!=(const String& rhs)
+bool Value::operator!=(const String& rhs) const
 {
 	return !(*this == rhs);
 }
 
-bool Value::operator==(const Value& rhs)
+bool Value::operator==(const Value& rhs) const
 {
 	if (IsEmpty() != rhs.IsEmpty())
 		return false;
@@ -275,7 +275,7 @@ bool Value::operator==(const Value& rhs)
 		return static_cast<String>(*this) == static_cast<String>(rhs);
 }
 
-bool Value::operator!=(const Value& rhs)
+bool Value::operator!=(const Value& rhs) const
 {
 	return !(*this == rhs);
 }
