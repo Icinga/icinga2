@@ -56,7 +56,7 @@ Icinga 2 supports wildcard includes and relative paths, e.g. for including
     include "conf.d/*.conf"
 
 If you want to include files and directories recursively, you need to define
-a seperate option and add the directory and an option pattern.
+a separate option and add the directory and an option pattern.
 
     include_recursive "conf.d" "*.conf"
 
