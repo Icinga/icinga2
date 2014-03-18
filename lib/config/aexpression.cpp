@@ -94,7 +94,19 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 
 			return found;
 		case AENotIn:
-			return left != right;
+			if (!right.IsObjectType<Array>())
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
+
+			arr = right;
+			found = false;
+			BOOST_FOREACH(const Value& value, arr) {
+				if (value == left) {
+					found = true;
+					break;
+				}
+			}
+
+			return !found;
 		case AELogicalAnd:
 			return (long)left && (long)right;
 		case AELogicalOr:
