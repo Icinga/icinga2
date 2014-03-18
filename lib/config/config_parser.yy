@@ -579,14 +579,10 @@ aterm: '(' aexpression ')'
 		$$ = $2;
 	}
 
-aexpression: T_STRING
+aexpression: simplevalue
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
-		free($1);
-	}
-	| T_NUMBER
-	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, *$1)));
+		delete $1;
 	}
 	| T_IDENTIFIER
 	{
