@@ -385,6 +385,8 @@ inline definitions in an existing service object or service inline definition.
 
 A service can depend on a host, and vice versa. A service has an implicit dependency (parent)
 to its host. A host to host dependency acts implicit as host parent relation.
+When dependencies are calculated, not only the immediate parent is taken into
+account but all parents are inherited.
 
 A common scenario is the Icinga 2 server behind a router. Checking internet
 access by pinging the Google DNS server `google-dns` is a common method, but
