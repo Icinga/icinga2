@@ -22,7 +22,7 @@
 
 #include "config/i2-config.h"
 #include "config/avalue.h"
-#include "base/object.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
@@ -57,7 +57,7 @@ public:
 	AExpression(AOperator op, const AValue& operand1);
 	AExpression(AOperator op, const AValue& operand1, const AValue& operand2);
 
-	Value Evaluate(const Object::Ptr& thisRef) const;
+	Value Evaluate(const Dictionary::Ptr& locals) const;
 
 private:
 	AOperator m_Operator;

@@ -34,12 +34,12 @@ AExpression::AExpression(AOperator op, const AValue& operand1, const AValue& ope
 		op == AEBinaryAnd || op == AEBinaryOr || op == AEShiftLeft || op == AEShiftRight);
 }
 
-Value AExpression::Evaluate(const Object::Ptr& thisRef) const
+Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 {
 	Value left, right;
 
-	left = m_Operand1.Evaluate(thisRef);
-	right = m_Operand2.Evaluate(thisRef);
+	left = m_Operand1.Evaluate(locals);
+	right = m_Operand2.Evaluate(locals);
 
 	switch (m_Operator) {
 		case AEReturn:

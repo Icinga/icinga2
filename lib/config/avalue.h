@@ -22,7 +22,7 @@
 
 #include "config/i2-config.h"
 #include "base/value.h"
-#include "base/object.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
@@ -50,7 +50,7 @@ public:
 	AValue(const shared_ptr<AExpression>& expr);
 	AValue(AValueType type, const Value& value);
 
-	Value Evaluate(const Object::Ptr& thisRef) const;
+	Value Evaluate(const Dictionary::Ptr& locals) const;
 
 private:
 	AValueType m_Type;

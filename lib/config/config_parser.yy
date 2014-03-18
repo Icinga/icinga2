@@ -668,7 +668,7 @@ value: simplevalue
 	| aterm
 	{
 		AExpression::Ptr aexpr = *$1;
-		$$ = new Value(aexpr->Evaluate(Object::Ptr()));
+		$$ = new Value(aexpr->Evaluate(Dictionary::Ptr()));
 		delete $1;
 	}
 	;
