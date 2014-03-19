@@ -33,6 +33,7 @@ class I2_METHODS_API UtilityFuncs
 {
 public:
 	static bool Regex(const String& pattern, const String& text);
+	static int Len(const Value& value);
 
 private:
 	UtilityFuncs(void);

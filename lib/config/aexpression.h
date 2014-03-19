@@ -50,7 +50,11 @@ enum AOperator
 	AELogicalAnd,
 	AELogicalOr,
 	AEFunctionCall,
-	AEArray
+	AEArray,
+	AELessThan,
+	AEGreaterThan,
+	AELessThanOrEqual,
+	AEGreaterThanOrEqual
 };
 
 /**

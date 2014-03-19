@@ -139,6 +139,14 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 			}
 
 			return arr2;
+		case AELessThan:
+			return (long)left < (long)right;
+		case AEGreaterThan:
+			return (long)left > (long)right;
+		case AELessThanOrEqual:
+			return (long)left <= (long)right;
+		case AEGreaterThanOrEqual:
+			return (long)left >= (long)right;
 		default:
 			ASSERT(!"Invalid operator.");
 	}

@@ -86,6 +86,8 @@ using namespace icinga;
 %token T_NOT_IN "!in (T_NOT_IN)"
 %token T_LOGICAL_AND "&& (T_LOGICAL_AND)"
 %token T_LOGICAL_OR "|| (T_LOGICAL_OR)"
+%token T_LESS_THAN_OR_EQUAL "<= (T_LESS_THAN_OR_EQUAL)"
+%token T_GREATER_THAN_OR_EQUAL ">= (T_GREATER_THAN_OR_EQUAL)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
 %token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
@@ -624,6 +626,30 @@ aexpression: T_STRING
 	| aexpression T_NOT_IN aexpression
 	{
 		$$ = new Value(make_shared<AExpression>(AENotIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_LESS_THAN_OR_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AELessThanOrEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_GREATER_THAN_OR_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEGreaterThanOrEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '<' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AELessThan, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '>' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEGreaterThan, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
 		delete $1;
 		delete $3;
 	}

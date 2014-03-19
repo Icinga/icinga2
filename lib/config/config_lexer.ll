@@ -227,6 +227,8 @@ to				return T_TO;
 where				return T_WHERE;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;
+\<=				return T_LESS_THAN_OR_EQUAL;
+\>=				return T_GREATER_THAN_OR_EQUAL;
 ==				return T_EQUAL;
 !=				return T_NOT_EQUAL;
 !in				return T_NOT_IN;

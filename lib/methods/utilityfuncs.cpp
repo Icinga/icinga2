@@ -20,16 +20,33 @@
 #include "methods/utilityfuncs.h"
 #include "base/scriptfunction.h"
 #include "base/utility.h"
+#include "base/convert.h"
+#include "base/array.h"
+#include "base/dictionary.h"
 #include <boost/regex.hpp>
 
 using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(regex, &UtilityFuncs::Regex);
 REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
+REGISTER_SCRIPTFUNCTION(len, &UtilityFuncs::Len);
 
 bool UtilityFuncs::Regex(const String& pattern, const String& text)
 {
 	boost::regex expr(pattern.GetData());
 	boost::smatch what;
 	return boost::regex_search(text.GetData(), what, expr);
+}
+
+int UtilityFuncs::Len(const Value& value)
+{
+	if (value.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr dict = value;
+		return dict->GetLength();
+	} else if (value.IsObjectType<Array>()) {
+		Array::Ptr array = value;
+		return array->GetLength();
+	} else {
+		return Convert::ToString(value).GetLength();
+	}
 }
