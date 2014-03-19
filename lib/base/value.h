@@ -73,23 +73,23 @@ public:
 	operator double(void) const;
 	operator String(void) const;
 
-	bool operator==(bool rhs);
-	bool operator!=(bool rhs);
+	bool operator==(bool rhs) const;
+	bool operator!=(bool rhs) const;
 
-	bool operator==(int rhs);
-	bool operator!=(int rhs);
+	bool operator==(int rhs) const;
+	bool operator!=(int rhs) const;
 
-	bool operator==(double rhs);
-	bool operator!=(double rhs);
+	bool operator==(double rhs) const;
+	bool operator!=(double rhs) const;
 
-	bool operator==(const char *rhs);
-	bool operator!=(const char *rhs);
+	bool operator==(const char *rhs) const;
+	bool operator!=(const char *rhs) const;
 
-	bool operator==(const String& rhs);
-	bool operator!=(const String& rhs);
+	bool operator==(const String& rhs) const;
+	bool operator!=(const String& rhs) const;
 
-	bool operator==(const Value& rhs);
-	bool operator!=(const Value& rhs);
+	bool operator==(const Value& rhs) const;
+	bool operator!=(const Value& rhs) const;
 
 	template<typename T>
 	operator shared_ptr<T>(void) const

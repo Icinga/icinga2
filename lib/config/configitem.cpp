@@ -19,6 +19,7 @@
 
 #include "config/configitem.h"
 #include "config/configcompilercontext.h"
+#include "config/applyrule.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -302,6 +303,9 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	}
 
 	upq.Join();
+
+	Log(LogInformation, "config", "Evaluating 'apply' rules...");
+	ApplyRule::EvaluateRules();
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
 

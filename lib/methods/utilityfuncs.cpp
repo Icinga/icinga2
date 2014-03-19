@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,48 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AVALUE_H
-#define AVALUE_H
+#include "methods/utilityfuncs.h"
+#include "base/scriptfunction.h"
+#include "base/utility.h"
+#include <boost/regex.hpp>
 
-#include "config/i2-config.h"
-#include "base/value.h"
-#include "base/dictionary.h"
+using namespace icinga;
 
-namespace icinga
+REGISTER_SCRIPTFUNCTION(regex, &UtilityFuncs::Regex);
+REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
+
+bool UtilityFuncs::Regex(const String& pattern, const String& text)
 {
-
-/**
- * @ingroup config
- */
-enum AValueType
-{
-	ATSimple,
-	ATVariable,
-	ATThisRef,
-	ATExpression
-};
-
-class AExpression;
-
-/**
- * @ingroup config
- */
-class I2_CONFIG_API AValue
-{
-public:
-	AValue(void);
-	AValue(const shared_ptr<AExpression>& expr);
-	AValue(AValueType type, const Value& value);
-
-	Value Evaluate(const Dictionary::Ptr& locals) const;
-
-private:
-	AValueType m_Type;
-	Value m_Value;
-	shared_ptr<AExpression> m_Expression;
-};
-
+	boost::regex expr(pattern.GetData());
+	boost::smatch what;
+	return boost::regex_search(text.GetData(), what, expr);
 }
-
-#endif /* AVALUE_H */
-

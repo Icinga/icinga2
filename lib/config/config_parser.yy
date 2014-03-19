@@ -27,11 +27,13 @@
 #include "config/typerule.h"
 #include "config/typerulelist.h"
 #include "config/aexpression.h"
+#include "config/applyrule.h"
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"
 #include "base/scriptvariable.h"
 #include "base/exception.h"
+#include "base/dynamictype.h"
 #include <sstream>
 #include <stack>
 #include <boost/foreach.hpp>
@@ -69,7 +71,7 @@ using namespace icinga;
 %token <num> T_NUMBER
 %token T_NULL
 %token <text> T_IDENTIFIER
-%token <op> T_EQUAL "= (T_EQUAL)"
+%token <op> T_SET "= (T_SET)"
 %token <op> T_PLUS_EQUAL "+= (T_PLUS_EQUAL)"
 %token <op> T_MINUS_EQUAL "-= (T_MINUS_EQUAL)"
 %token <op> T_MULTIPLY_EQUAL "*= (T_MULTIPLY_EQUAL)"
@@ -78,6 +80,12 @@ using namespace icinga;
 %token T_CONST "const (T_CONST)"
 %token T_SHIFT_LEFT "<< (T_SHIFT_LEFT)"
 %token T_SHIFT_RIGHT ">> (T_SHIFT_RIGHT)"
+%token T_EQUAL "== (T_EQUAL)"
+%token T_NOT_EQUAL "!= (T_NOT_EQUAL)"
+%token T_IN "in (T_IN)"
+%token T_NOT_IN "!in (T_NOT_IN)"
+%token T_LOGICAL_AND "&& (T_LOGICAL_AND)"
+%token T_LOGICAL_OR "|| (T_LOGICAL_OR)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
 %token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
@@ -96,11 +104,12 @@ using namespace icinga;
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_PARTIAL "partial (T_PARTIAL)"
+%token T_APPLY "apply (T_APPLY)"
+%token T_TO "to (T_TO)"
+%token T_WHERE "where (T_WHERE)"
 %type <text> identifier
-%type <array> array
 %type <array> array_items
 %type <array> array_items_inner
-%type <variant> simplevalue
 %type <variant> value
 %type <expr> expression
 %type <exprl> expressions
@@ -112,13 +121,20 @@ using namespace icinga;
 %type <num> partial_specifier
 %type <slist> object_inherits_list
 %type <slist> object_inherits_specifier
-%type <aexpr> aterm
 %type <aexpr> aexpression
 %type <num> variable_decl
+%left T_LOGICAL_OR
+%left T_LOGICAL_AND
+%left T_IN
+%left T_NOT_IN
+%nonassoc T_EQUAL
+%nonassoc T_NOT_EQUAL
 %left '+' '-'
 %left '*' '/'
 %left '&'
 %left '|'
+%right '~'
+%right '!'
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -156,7 +172,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | include_recursive | library | variable
+statement: object | type | include | include_recursive | library | variable | apply
 	;
 
 include: T_INCLUDE value
@@ -191,7 +207,7 @@ library: T_LIBRARY T_STRING
 	}
 	;
 
-variable: variable_decl identifier T_EQUAL value
+variable: variable_decl identifier T_SET value
 	{
 		Value *value = $4;
 		if (value->IsObjectType<ExpressionList>()) {
@@ -480,19 +496,13 @@ expression: identifier operator value
 	}
 	;
 
-operator: T_EQUAL
+operator: T_SET
 	| T_PLUS_EQUAL
 	| T_MINUS_EQUAL
 	| T_MULTIPLY_EQUAL
 	| T_DIVIDE_EQUAL
 	{
 		$$ = $1;
-	}
-	;
-
-array: '[' array_items ']'
-	{
-		$$ = $2;
 	}
 	;
 
@@ -509,153 +519,176 @@ array_items_inner: /* empty */
 	{
 		$$ = NULL;
 	}
-	| value
+	| aexpression
 	{
 		$$ = new Array();
-
-		if ($1->IsObjectType<ExpressionList>()) {
-			ExpressionList::Ptr exprl = *$1;
-			Dictionary::Ptr dict = make_shared<Dictionary>();
-			exprl->Execute(dict);
-			delete $1;
-			$1 = new Value(dict);
-		}
-
 		$$->Add(*$1);
 		delete $1;
 	}
-	| array_items_inner ',' value
+	| array_items_inner ',' aexpression
 	{
 		if ($1)
 			$$ = $1;
 		else
 			$$ = new Array();
 
-		if ($3->IsObjectType<ExpressionList>()) {
-			ExpressionList::Ptr exprl = *$3;
-			Dictionary::Ptr dict = make_shared<Dictionary>();
-			exprl->Execute(dict);
-			delete $3;
-			$3 = new Value(dict);
-		}
-
 		$$->Add(*$3);
 		delete $3;
 	}
 	;
 
-simplevalue: T_STRING
+aexpression: T_STRING
 	{
-		$$ = new Value($1);
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), yylloc));
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Value($1);
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), yylloc));
 	}
 	| T_NULL
 	{
-		$$ = new Value();
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, Empty), yylloc));
 	}
-	| array
+	| T_IDENTIFIER '(' array_items ')'
 	{
-		if ($1 == NULL)
-			$1 = new Array();
-
-		Array::Ptr array = Array::Ptr($1);
-		$$ = new Value(array);
-	}
-	;
-
-aterm: '(' aexpression ')'
-	{
-		$$ = $2;
-	}
-
-aexpression: T_STRING
-	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
+		Array::Ptr arguments = Array::Ptr($3);
+		$$ = new Value(make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, $1), AValue(ATSimple, arguments), yylloc));
 		free($1);
-	}
-	| T_NUMBER
-	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1)));
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1)));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1), yylloc));
 		free($1);
+	}
+	| '!' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
+		delete $2;
 	}
 	| '~' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2)));
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
 		delete $2;
 	}
-	| aexpression '+' aexpression
+	| '[' array_items ']'
 	{
-		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression '-' aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression '*' aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression '/' aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression '&' aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression '|' aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression T_SHIFT_LEFT aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
-	}
-	| aexpression T_SHIFT_RIGHT aexpression
-	{
-		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3)));
-		delete $1;
-		delete $3;
+		$$ = new Value(make_shared<AExpression>(AEArray, AValue(ATSimple, Array::Ptr($2)), yylloc));
 	}
 	| '(' aexpression ')'
 	{
 		$$ = $2;
 	}
+	| aexpression '+' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '-' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '*' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '/' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '&' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression '|' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_IN aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_NOT_IN aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENotIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_NOT_EQUAL aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENotEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_SHIFT_LEFT aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_SHIFT_RIGHT aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_LOGICAL_AND aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AELogicalAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
+	| aexpression T_LOGICAL_OR aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AELogicalOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		delete $1;
+		delete $3;
+	}
 	;
 
-value: simplevalue
-	| expressionlist
+value: expressionlist
 	{
 		ExpressionList::Ptr exprl = ExpressionList::Ptr($1);
 		$$ = new Value(exprl);
 	}
-	| aterm
+	| aexpression
 	{
 		AExpression::Ptr aexpr = *$1;
-		$$ = new Value(aexpr->Evaluate(Object::Ptr()));
+		$$ = new Value(aexpr->Evaluate(Dictionary::Ptr()));
 		delete $1;
 	}
 	;
+
+optional_template: /* empty */
+	| T_TEMPLATE
+	;
+
+apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE aexpression
+	{
+		if (!ApplyRule::IsValidCombination($3, $6)) {
+			BOOST_THROW_EXCEPTION(std::invalid_argument("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'."));
+		}
+
+		ApplyRule::AddRule($3, $4, $6, *$8, yylloc);
+		delete $8;
+	}
 %%

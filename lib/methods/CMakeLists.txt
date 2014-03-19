@@ -18,7 +18,7 @@
 add_library(methods SHARED
   icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
-  randomchecktask.cpp timeperiodtask.cpp
+  randomchecktask.cpp timeperiodtask.cpp utilityfuncs.cpp
 )
 
 target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)

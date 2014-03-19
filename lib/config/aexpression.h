@@ -22,7 +22,8 @@
 
 #include "config/i2-config.h"
 #include "config/avalue.h"
-#include "base/object.h"
+#include "config/debuginfo.h"
+#include "base/dictionary.h"
 
 namespace icinga
 {
@@ -41,7 +42,15 @@ enum AOperator
 	AEBinaryAnd,
 	AEBinaryOr,
 	AEShiftLeft,
-	AEShiftRight
+	AEShiftRight,
+	AEEqual,
+	AENotEqual,
+	AEIn,
+	AENotIn,
+	AELogicalAnd,
+	AELogicalOr,
+	AEFunctionCall,
+	AEArray
 };
 
 /**
@@ -52,15 +61,16 @@ class I2_CONFIG_API AExpression : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(AExpression);
 
-	AExpression(AOperator op, const AValue& operand1);
-	AExpression(AOperator op, const AValue& operand1, const AValue& operand2);
+	AExpression(AOperator op, const AValue& operand1, const DebugInfo& di);
+	AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di);
 
-	Value Evaluate(const Object::Ptr& thisRef) const;
+	Value Evaluate(const Dictionary::Ptr& locals) const;
 
 private:
 	AOperator m_Operator;
 	AValue m_Operand1;
 	AValue m_Operand2;
+	DebugInfo m_DebugInfo;
 };
 
 }

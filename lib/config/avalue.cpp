@@ -35,17 +35,20 @@ AValue::AValue(AValueType type, const Value& value)
 	: m_Type(type), m_Value(value)
 { }
 
-Value AValue::Evaluate(const Object::Ptr& thisRef) const
+Value AValue::Evaluate(const Dictionary::Ptr& locals) const
 {
 	switch (m_Type) {
 		case ATSimple:
 			return m_Value;
 		case ATVariable:
-			return ScriptVariable::Get(m_Value);
+			if (locals && locals->Contains(m_Value))
+				return locals->Get(m_Value);
+			else
+				return ScriptVariable::Get(m_Value);
 		case ATThisRef:
 			VERIFY(!"Not implemented.");
 		case ATExpression:
-			return m_Expression->Evaluate(thisRef);
+			return m_Expression->Evaluate(locals);
 		default:
 			ASSERT(!"Invalid type.");
 	}

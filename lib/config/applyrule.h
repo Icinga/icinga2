@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,12 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AVALUE_H
-#define AVALUE_H
+#ifndef APPLYRULE_H
+#define APPLYRULE_H
 
 #include "config/i2-config.h"
-#include "base/value.h"
-#include "base/dictionary.h"
+#include "config/aexpression.h"
+#include "config/debuginfo.h"
+#include "base/dynamictype.h"
 
 namespace icinga
 {
@@ -30,35 +31,35 @@ namespace icinga
 /**
  * @ingroup config
  */
-enum AValueType
-{
-	ATSimple,
-	ATVariable,
-	ATThisRef,
-	ATExpression
-};
-
-class AExpression;
-
-/**
- * @ingroup config
- */
-class I2_CONFIG_API AValue
+class I2_CONFIG_API ApplyRule
 {
 public:
-	AValue(void);
-	AValue(const shared_ptr<AExpression>& expr);
-	AValue(AValueType type, const Value& value);
+	typedef std::pair<String, String> TypeCombination;
+	typedef boost::function<void (const std::vector<ApplyRule>& rules)> Callback;
+	typedef std::map<TypeCombination, Callback> CallbackMap;
+	typedef std::map<TypeCombination, std::vector<ApplyRule> > RuleMap;
 
-	Value Evaluate(const Dictionary::Ptr& locals) const;
+	String GetTemplate(void) const;
+	AExpression::Ptr GetExpression(void) const;
+	DebugInfo GetDebugInfo(void) const;
+
+	static void AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di);
+	static void EvaluateRules(void);
+
+	static void RegisterCombination(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback);
+	static bool IsValidCombination(const String& sourceType, const String& targetType);
 
 private:
-	AValueType m_Type;
-	Value m_Value;
-	shared_ptr<AExpression> m_Expression;
+	String m_Template;
+	AExpression::Ptr m_Expression;
+	DebugInfo m_DebugInfo;
+
+	static CallbackMap m_Callbacks;
+	static RuleMap m_Rules;
+
+	ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di);
 };
 
 }
 
-#endif /* AVALUE_H */
-
+#endif /* APPLYRULE_H */

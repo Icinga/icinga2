@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,48 +17,27 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AVALUE_H
-#define AVALUE_H
+#ifndef UTILITYFUNCS_H
+#define UTILITYFUNCS_H
 
-#include "config/i2-config.h"
-#include "base/value.h"
-#include "base/dictionary.h"
+#include "methods/i2-methods.h"
+#include "base/qstring.h"
 
 namespace icinga
 {
 
 /**
- * @ingroup config
+ * @ingroup methods
  */
-enum AValueType
-{
-	ATSimple,
-	ATVariable,
-	ATThisRef,
-	ATExpression
-};
-
-class AExpression;
-
-/**
- * @ingroup config
- */
-class I2_CONFIG_API AValue
+class I2_METHODS_API UtilityFuncs
 {
 public:
-	AValue(void);
-	AValue(const shared_ptr<AExpression>& expr);
-	AValue(AValueType type, const Value& value);
-
-	Value Evaluate(const Dictionary::Ptr& locals) const;
+	static bool Regex(const String& pattern, const String& text);
 
 private:
-	AValueType m_Type;
-	Value m_Value;
-	shared_ptr<AExpression> m_Expression;
+	UtilityFuncs(void);
 };
 
 }
 
-#endif /* AVALUE_H */
-
+#endif /* UTILITYFUNCS_H */
