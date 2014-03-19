@@ -319,7 +319,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
-		    (GetAcknowledgement() == AcknowledgementSticky && GetStateType() == StateTypeHard && GetState() == StateOK)) {
+		    (GetAcknowledgement() == AcknowledgementSticky && GetState() == StateOK)) {
 			ClearAcknowledgement();
 		}
 

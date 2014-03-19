@@ -616,7 +616,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 7 arguments."));
 
-	bool sticky = Convert::ToBool(arguments[2]);
+	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -637,7 +637,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
 
-	bool sticky = Convert::ToBool(arguments[2]);
+	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[5]);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -679,7 +679,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 6 arguments."));
 
-	bool sticky = Convert::ToBool(arguments[1]);
+	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -702,7 +702,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 7 arguments."));
 
-	bool sticky = Convert::ToBool(arguments[1]);
+	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
