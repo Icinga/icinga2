@@ -123,7 +123,6 @@ using namespace icinga;
 %type <num> partial_specifier
 %type <slist> object_inherits_list
 %type <slist> object_inherits_specifier
-%type <aexpr> aterm
 %type <aexpr> aexpression
 %type <num> variable_decl
 %left T_LOGICAL_OR
@@ -584,11 +583,6 @@ simplevalue: T_STRING
 	}
 	;
 
-aterm: '(' aexpression ')'
-	{
-		$$ = $2;
-	}
-
 aexpression: simplevalue
 	{
 		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, *$1), yylloc));
@@ -700,7 +694,7 @@ value: simplevalue
 		ExpressionList::Ptr exprl = ExpressionList::Ptr($1);
 		$$ = new Value(exprl);
 	}
-	| aterm
+	| aexpression
 	{
 		AExpression::Ptr aexpr = *$1;
 		$$ = new Value(aexpr->Evaluate(Dictionary::Ptr()));
@@ -712,7 +706,7 @@ optional_template: /* empty */
 	| T_TEMPLATE
 	;
 
-apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE aterm
+apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE aexpression
 	{
 		if (!ApplyRule::IsValidCombination($3, $6)) {
 			BOOST_THROW_EXCEPTION(std::invalid_argument("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'."));
