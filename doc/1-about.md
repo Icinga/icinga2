@@ -39,7 +39,7 @@ the support overview page at [https://support.icinga.org].
 
 #### Changes
 * {host,service}_dependencies attributes have been changed to [Dependency](#objecttype-dependency)
-objects supporting new attributes: `disable_checks`, 'disable_notifications`, `state_filter`,
+objects supporting new attributes: `disable_checks`, `disable_notifications`, `state_filter`,
 `period`. For better readability, there is `parent_service` and `child_service` for example.
 
 > **Note**
