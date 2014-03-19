@@ -733,8 +733,13 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vect
 
 	Log(LogInformation, "icinga", "Removing acknowledgement for host '" + host->GetName() + "'");
 	Service::Ptr service = host->GetCheckService();
-	if (service)
-		service->ClearAcknowledgement();
+	if (service) {
+		{
+			ObjectLock olock(service);
+			service->ClearAcknowledgement();
+		}
+		service->RemoveCommentsByType(CommentAcknowledgement);
+	}
 }
 
 void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const std::vector<String>& arguments)
