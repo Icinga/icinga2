@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,62 +17,27 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AEXPRESSION_H
-#define AEXPRESSION_H
+#ifndef UTILITYFUNCS_H
+#define UTILITYFUNCS_H
 
-#include "config/i2-config.h"
-#include "config/avalue.h"
-#include "config/debuginfo.h"
-#include "base/dictionary.h"
+#include "methods/i2-methods.h"
+#include "base/qstring.h"
 
 namespace icinga
 {
 
 /**
- * @ingroup config
+ * @ingroup methods
  */
-enum AOperator
-{
-	AEReturn,
-	AENegate,
-	AEAdd,
-	AESubtract,
-	AEMultiply,
-	AEDivide,
-	AEBinaryAnd,
-	AEBinaryOr,
-	AEShiftLeft,
-	AEShiftRight,
-	AEEqual,
-	AENotEqual,
-	AEIn,
-	AENotIn,
-	AELogicalAnd,
-	AELogicalOr,
-	AEFunctionCall,
-	AEArray
-};
-
-/**
- * @ingroup config
- */
-class I2_CONFIG_API AExpression : public Object
+class I2_METHODS_API UtilityFuncs
 {
 public:
-	DECLARE_PTR_TYPEDEFS(AExpression);
-
-	AExpression(AOperator op, const AValue& operand1, const DebugInfo& di);
-	AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di);
-
-	Value Evaluate(const Dictionary::Ptr& locals) const;
+	static bool Regex(const String& pattern, const String& text);
 
 private:
-	AOperator m_Operator;
-	AValue m_Operand1;
-	AValue m_Operand2;
-	DebugInfo m_DebugInfo;
+	UtilityFuncs(void);
 };
 
 }
 
-#endif /* TYPERULE_H */
+#endif /* UTILITYFUNCS_H */

@@ -136,6 +136,11 @@ std::string& String::GetData(void)
 	return m_Data;
 }
 
+const std::string& String::GetData(void) const
+{
+	return m_Data;
+}
+
 size_t String::Find(const String& str, size_t pos) const
 {
 	return m_Data.find(str, pos);

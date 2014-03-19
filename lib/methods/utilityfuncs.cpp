@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,62 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AEXPRESSION_H
-#define AEXPRESSION_H
+#include "methods/utilityfuncs.h"
+#include "base/scriptfunction.h"
+#include "base/utility.h"
+#include <boost/regex.hpp>
 
-#include "config/i2-config.h"
-#include "config/avalue.h"
-#include "config/debuginfo.h"
-#include "base/dictionary.h"
+using namespace icinga;
 
-namespace icinga
+REGISTER_SCRIPTFUNCTION(regex, &UtilityFuncs::Regex);
+REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
+
+bool UtilityFuncs::Regex(const String& pattern, const String& text)
 {
-
-/**
- * @ingroup config
- */
-enum AOperator
-{
-	AEReturn,
-	AENegate,
-	AEAdd,
-	AESubtract,
-	AEMultiply,
-	AEDivide,
-	AEBinaryAnd,
-	AEBinaryOr,
-	AEShiftLeft,
-	AEShiftRight,
-	AEEqual,
-	AENotEqual,
-	AEIn,
-	AENotIn,
-	AELogicalAnd,
-	AELogicalOr,
-	AEFunctionCall,
-	AEArray
-};
-
-/**
- * @ingroup config
- */
-class I2_CONFIG_API AExpression : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(AExpression);
-
-	AExpression(AOperator op, const AValue& operand1, const DebugInfo& di);
-	AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di);
-
-	Value Evaluate(const Dictionary::Ptr& locals) const;
-
-private:
-	AOperator m_Operator;
-	AValue m_Operand1;
-	AValue m_Operand2;
-	DebugInfo m_DebugInfo;
-};
-
+	boost::regex expr(pattern.GetData());
+	boost::smatch what;
+	return boost::regex_search(text.GetData(), what, expr);
 }
-
-#endif /* TYPERULE_H */

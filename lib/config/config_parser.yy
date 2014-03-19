@@ -108,10 +108,8 @@ using namespace icinga;
 %token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
 %type <text> identifier
-%type <array> array
 %type <array> array_items
 %type <array> array_items_inner
-%type <variant> simplevalue
 %type <variant> value
 %type <expr> expression
 %type <exprl> expressions
@@ -135,6 +133,8 @@ using namespace icinga;
 %left '*' '/'
 %left '&'
 %left '|'
+%right '~'
+%right '!'
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -506,12 +506,6 @@ operator: T_SET
 	}
 	;
 
-array: '[' array_items ']'
-	{
-		$$ = $2;
-	}
-	;
-
 array_items: array_items_inner
 	{
 		$$ = $1;
@@ -525,78 +519,61 @@ array_items_inner: /* empty */
 	{
 		$$ = NULL;
 	}
-	| value
+	| aexpression
 	{
 		$$ = new Array();
-
-		if ($1->IsObjectType<ExpressionList>()) {
-			ExpressionList::Ptr exprl = *$1;
-			Dictionary::Ptr dict = make_shared<Dictionary>();
-			exprl->Execute(dict);
-			delete $1;
-			$1 = new Value(dict);
-		}
-
 		$$->Add(*$1);
 		delete $1;
 	}
-	| array_items_inner ',' value
+	| array_items_inner ',' aexpression
 	{
 		if ($1)
 			$$ = $1;
 		else
 			$$ = new Array();
 
-		if ($3->IsObjectType<ExpressionList>()) {
-			ExpressionList::Ptr exprl = *$3;
-			Dictionary::Ptr dict = make_shared<Dictionary>();
-			exprl->Execute(dict);
-			delete $3;
-			$3 = new Value(dict);
-		}
-
 		$$->Add(*$3);
 		delete $3;
 	}
 	;
 
-simplevalue: T_STRING
+aexpression: T_STRING
 	{
-		$$ = new Value($1);
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), yylloc));
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Value($1);
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), yylloc));
 	}
 	| T_NULL
 	{
-		$$ = new Value();
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, Empty), yylloc));
 	}
-	| array
+	| T_IDENTIFIER '(' array_items ')'
 	{
-		if ($1 == NULL)
-			$1 = new Array();
-
-		Array::Ptr array = Array::Ptr($1);
-		$$ = new Value(array);
-	}
-	;
-
-aexpression: simplevalue
-	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, *$1), yylloc));
-		delete $1;
+		Array::Ptr arguments = Array::Ptr($3);
+		$$ = new Value(make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, $1), AValue(ATSimple, arguments), yylloc));
+		free($1);
 	}
 	| T_IDENTIFIER
 	{
 		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1), yylloc));
 		free($1);
 	}
+	| '!' aexpression
+	{
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
+		delete $2;
+	}
 	| '~' aexpression
 	{
 		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
 		delete $2;
+	}
+	| '[' array_items ']'
+	{
+		$$ = new Value(make_shared<AExpression>(AEArray, AValue(ATSimple, Array::Ptr($2)), yylloc));
 	}
 	| '(' aexpression ')'
 	{
@@ -688,8 +665,7 @@ aexpression: simplevalue
 	}
 	;
 
-value: simplevalue
-	| expressionlist
+value: expressionlist
 	{
 		ExpressionList::Ptr exprl = ExpressionList::Ptr($1);
 		$$ = new Value(exprl);

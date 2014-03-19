@@ -80,6 +80,7 @@ public:
 	size_t GetLength(void) const;
 
 	std::string& GetData(void);
+	const std::string& GetData(void) const;
 
 	size_t Find(const String& str, size_t pos = 0) const;
 	size_t RFind(const String& str, size_t pos = NPos) const;
