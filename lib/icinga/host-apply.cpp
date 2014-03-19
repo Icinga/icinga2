@@ -66,8 +66,9 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 				continue;
 			}
 
-			if (result.IsEmpty())
-				continue;
+			std::ostringstream msgbuf2;
+			msgbuf2 << "Applying service template '" << rule.GetTemplate() << "' to host '" << host->GetName() << "' for rule " << rule.GetDebugInfo();
+			Log(LogDebug, "icinga", msgbuf2.str());
 
 			std::ostringstream namebuf;
 			namebuf << host->GetName() << "!apply!" << rule.GetTemplate();
