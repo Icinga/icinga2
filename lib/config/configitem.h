@@ -27,6 +27,13 @@
 namespace icinga
 {
 
+enum ValidationType
+{
+	ValidateNone,
+	ValidateOnly,
+	ValidateStart
+};
+
 /**
  * A configuration item. Non-abstract configuration items can be used to
  * create configuration objects at runtime.
@@ -60,8 +67,8 @@ public:
 	static bool HasObject(const String& type, const String& name);
 
 	void ValidateItem(void);
-        
-	static bool ActivateItems(bool validateOnly);
+
+	static bool ActivateItems(ValidationType validate);
 	static void DiscardItems(void);
 
 private:
@@ -78,7 +85,7 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
 	ExpressionList::Ptr m_LinkedExpressionList;
-        
+
         DynamicObject::Ptr m_Object;
 
 	static boost::mutex m_Mutex;

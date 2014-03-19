@@ -259,7 +259,7 @@ void ConfigItem::ValidateItem(void)
 	m_Validated = true;
 }
 
-bool ConfigItem::ActivateItems(bool validateOnly)
+bool ConfigItem::ActivateItems(ValidationType validate)
 {
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
@@ -267,18 +267,21 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	Log(LogInformation, "config", "Validating config items (step 1)...");
-
 	ParallelWorkQueue upq;
 
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
-	}
+	if (validate != ValidateNone) {
+		Log(LogInformation, "config", "Validating config items (step 1)...");
 
-	upq.Join();
+		BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+			upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
+		}
 
-	if (ConfigCompilerContext::GetInstance()->HasErrors())
-		return false;
+		upq.Join();
+
+		if (ConfigCompilerContext::GetInstance()->HasErrors())
+			return false;
+	} else
+		Log(LogInformation, "config", "Skipping validating config items (step 1)...");
 
 	Log(LogInformation, "config", "Committing config items");
 
@@ -307,27 +310,32 @@ bool ConfigItem::ActivateItems(bool validateOnly)
 	Log(LogInformation, "config", "Evaluating 'apply' rules...");
 	ApplyRule::EvaluateRules();
 
-	Log(LogInformation, "config", "Validating config items (step 2)...");
+	if (validate != ValidateNone) {
+		Log(LogInformation, "config", "Validating config items (step 2)...");
 
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
-	}
+		BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+			upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
+		}
 
-	upq.Join();
+		upq.Join();
+	} else
+		Log(LogInformation, "config", "Skipping validating config items (step 2)...");
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();
 
-	/* log stats for external parsers */
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		if (type->GetObjects().size() > 0)
-			Log(LogInformation, "config", "Checked " + Convert::ToString(type->GetObjects().size()) + " " + type->GetName() + "(s).");
+	if (validate != ValidateNone) {
+		/* log stats for external parsers */
+		BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+			if (type->GetObjects().size() > 0)
+				Log(LogInformation, "config", "Checked " + Convert::ToString(type->GetObjects().size()) + " " + type->GetName() + "(s).");
+		}
 	}
 
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	if (validateOnly)
+	if (validate == ValidateOnly)
 		return true;
 
 	/* restore the previous program state */

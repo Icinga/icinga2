@@ -62,7 +62,7 @@ static String LoadAppType(const String& typeSpec)
 	return typeSpec.SubStr(index + 1);
 }
 
-static bool LoadConfigFiles(const String& appType, bool validateOnly)
+static bool LoadConfigFiles(const String& appType, ValidationType validate)
 {
 	CONTEXT("Loading configuration files");
 
@@ -85,7 +85,7 @@ static bool LoadConfigFiles(const String& appType, bool validateOnly)
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	bool result = ConfigItem::ActivateItems(validateOnly);
+	bool result = ConfigItem::ActivateItems(validate);
 
 	int warnings = 0, errors = 0;
 
@@ -213,6 +213,7 @@ int main(int argc, char **argv)
 		("config,c", po::value<std::vector<String> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
+		("no-validate,Z", "skip validating the configuration")
 		("debug,x", "enable debugging")
 		("daemonize,d", "detach from the controlling terminal")
 		("errorlog,e", po::value<String>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
@@ -372,12 +373,18 @@ int main(int argc, char **argv)
 		Logger::DisableConsoleLog();
 	}
 
-	bool validateOnly = g_AppParams.count("validate");
+	ValidationType validate = ValidateStart;
 
-	if (!LoadConfigFiles(appType, validateOnly))
+	if(g_AppParams.count("validate"))
+		validate = ValidateOnly;
+
+	if(g_AppParams.count("no-validate"))
+		validate = ValidateNone;
+
+	if (!LoadConfigFiles(appType, validate))
 		return EXIT_FAILURE;
 
-	if (validateOnly) {
+	if (validate == ValidateOnly) {
 		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
 	}
