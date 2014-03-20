@@ -25,6 +25,7 @@
 #include "base/initialize.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
+#include "base/convert.h"
 #include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 
@@ -38,7 +39,7 @@ INITIALIZE_ONCE(&EndpointDbObject::StaticInitialize);
 void EndpointDbObject::StaticInitialize(void)
 {
 	Endpoint::OnConnected.connect(boost::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
-	Endpoint::OnDisconnected.connect(boost::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
+	Endpoint::OnDisconnected.connect(boost::bind(&EndpointDbObject::UpdateDisconnectedStatus, _1));
 }
 
 EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -61,6 +62,8 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 	Dictionary::Ptr fields = make_shared<Dictionary>();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
 
+	Log(LogDebug, "db_ido", "update status for endpoint '" + endpoint->GetName() + "'");
+
 	fields->Set("identity", endpoint->GetName());
 	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
 	fields->Set("is_connected", EndpointIsConnected(endpoint));
@@ -70,14 +73,24 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 
 void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 {
-	Log(LogDebug, "db_ido", "update is_connected for endpoint '" + endpoint->GetName() + "'");
+	UpdateConnectedStatusInternal(endpoint, true);
+}
+
+void EndpointDbObject::UpdateDisconnectedStatus(const Endpoint::Ptr& endpoint)
+{
+	UpdateConnectedStatusInternal(endpoint, false);
+}
+
+void EndpointDbObject::UpdateConnectedStatusInternal(const Endpoint::Ptr& endpoint, bool connected)
+{
+	Log(LogDebug, "db_ido", "update is_connected=" + Convert::ToString(connected ? 1 : 0) + " for endpoint '" + endpoint->GetName() + "'");
 
 	DbQuery query1;
 	query1.Table = "endpointstatus";
 	query1.Type = DbQueryUpdate;
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
-	fields1->Set("is_connected", EndpointIsConnected(endpoint));
+	fields1->Set("is_connected", (connected ? 1 : 0));
 	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query1.Fields = fields1;
 
@@ -97,4 +110,25 @@ int EndpointDbObject::EndpointIsConnected(const Endpoint::Ptr& endpoint)
 		is_connected = 1;
 
 	return is_connected;
+}
+
+void EndpointDbObject::OnConfigUpdate(void)
+{
+	/* update current status on config dump once */
+	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
+
+	DbQuery query1;
+	query1.Table = "endpointstatus";
+	query1.Type = DbQueryInsert;
+
+	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	fields1->Set("identity", endpoint->GetName());
+	fields1->Set("node", IcingaApplication::GetInstance()->GetNodeName());
+	fields1->Set("is_connected", EndpointIsConnected(endpoint));
+	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
+	fields1->Set("endpoint_object_id", endpoint);
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query1.Fields = fields1;
+
+	OnQuery(query1);
 }

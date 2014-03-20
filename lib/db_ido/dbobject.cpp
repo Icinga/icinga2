@@ -109,15 +109,19 @@ void DbObject::SendStatusUpdate(void)
 	query.Category = DbCatState;
 	query.Fields = fields;
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
+
+	/* do not override our own endpoint dbobject id */
+	if (GetType()->GetTable() != "endpoint") {
+		String node = IcingaApplication::GetInstance()->GetNodeName();
+
+		Log(LogDebug, "db_ido", "Endpoint node: '" + node + "' status update for '" + GetObject()->GetName() + "'");
+
+		Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+		if (endpoint)
+			query.Fields->Set("endpoint_object_id", endpoint);
+	}
+
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-	String node = IcingaApplication::GetInstance()->GetNodeName();
-
-	Log(LogWarning, "db_ido", "Endpoint node: '" + node + "'");
-
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
-	if (endpoint)
-		query.Fields->Set("endpoint_object_id", endpoint);
 
 	query.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query.WhereCriteria = make_shared<Dictionary>();

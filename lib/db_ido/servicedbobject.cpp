@@ -25,6 +25,7 @@
 #include "base/initialize.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
+#include "remote/endpoint.h"
 #include "icinga/notification.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
@@ -398,6 +399,12 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const C
 	fields1->Set("expiration_time", DbValue::FromTimestamp(comment->GetExpireTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
+
 	DbQuery query1;
 	if (!historical) {
 		query1.Table = "comments";
@@ -562,6 +569,12 @@ void ServiceDbObject::AddDowntimeByType(const DynamicObject::Ptr& object, const 
 	fields1->Set("is_in_effect", Empty);
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
 
 	DbQuery query1;
 	if (!historical) {
@@ -746,6 +759,12 @@ void ServiceDbObject::AddAcknowledgementHistory(const Service::Ptr& service, con
 	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
+
 	query1.Fields = fields1;
 	OnQuery(query1);
 
@@ -795,6 +814,12 @@ void ServiceDbObject::AddNotificationHistory(const Notification::Ptr& notificati
 	fields1->Set("escalated", 0);
 	fields1->Set("contacts_notified", static_cast<long>(users.size()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
 
 	query1.Fields = fields1;
 	OnQuery(query1);
@@ -866,6 +891,12 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	}
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
 
 	query1.Fields = fields1;
 	OnQuery(query1);
@@ -1170,6 +1201,12 @@ void ServiceDbObject::AddLogHistory(const Service::Ptr& service, String buffer, 
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
+
 	query1.Fields = fields1;
 	OnQuery(query1);
 
@@ -1225,6 +1262,12 @@ void ServiceDbObject::AddFlappingHistory(const Service::Ptr& service, FlappingSt
 	fields1->Set("high_threshold", service->GetFlappingThreshold());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
 
 	query1.Fields = fields1;
 	OnQuery(query1);
@@ -1285,6 +1328,12 @@ void ServiceDbObject::AddServiceCheckHistory(const Service::Ptr& service, const 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	fields1->Set("service_object_id", service);
 
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
+
 	query1.Fields = fields1;
 	OnQuery(query1);
 
@@ -1331,6 +1380,12 @@ void ServiceDbObject::AddEventHandlerHistory(const Service::Ptr& service)
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
+
 	query1.Fields = fields1;
 	OnQuery(query1);
 
@@ -1363,6 +1418,12 @@ void ServiceDbObject::AddExternalCommandHistory(double time, const String& comma
 	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
 
 	query1.Fields = fields1;
 	OnQuery(query1);
