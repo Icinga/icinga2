@@ -42,7 +42,7 @@ DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const St
 void DbObject::StaticInitialize(void)
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1, _2));
+	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
 }
 
 void DbObject::SetObject(const DynamicObject::Ptr& object)
@@ -96,11 +96,9 @@ void DbObject::SendConfigUpdate(void)
 	OnConfigUpdate();
 }
 
-void DbObject::SendStatusUpdate(const String& authority)
+void DbObject::SendStatusUpdate(void)
 {
 	Dictionary::Ptr fields = GetStatusFields();
-
-	Endpoint::Ptr endpoint = Endpoint::GetByName(authority);
 
 	if (!fields)
 		return;
@@ -113,6 +111,11 @@ void DbObject::SendStatusUpdate(const String& authority)
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Log(LogWarning, "db_ido", "Endpoint node: '" + node + "'");
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		query.Fields->Set("endpoint_object_id", endpoint);
 
@@ -190,12 +193,12 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 	return dbobj;
 }
 
-void DbObject::StateChangedHandler(const DynamicObject::Ptr& object, const String& authority)
+void DbObject::StateChangedHandler(const DynamicObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 
 	if (!dbobj)
 		return;
 
-	dbobj->SendStatusUpdate(authority);
+	dbobj->SendStatusUpdate();
 }
