@@ -31,7 +31,6 @@
 #include "icinga/externalcommandprocessor.h"
 #include "icinga/compatutility.h"
 #include "icinga/icingaapplication.h"
-#include "remote/endpoint.h"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 
@@ -44,14 +43,14 @@ INITIALIZE_ONCE(&ServiceDbObject::StaticInitialize);
 void ServiceDbObject::StaticInitialize(void)
 {
 	/* Status */
-	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddComment, _1, _2, _3));
+	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddComment, _1, _2));
 	Service::OnCommentRemoved.connect(boost::bind(&ServiceDbObject::RemoveComment, _1, _2));
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntime, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&ServiceDbObject::RemoveDowntime, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&ServiceDbObject::TriggerDowntime, _1, _2));
 
 	/* History */
-	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddCommentHistory, _1, _2, _3));
+	Service::OnCommentAdded.connect(boost::bind(&ServiceDbObject::AddCommentHistory, _1, _2));
 	Service::OnDowntimeAdded.connect(boost::bind(&ServiceDbObject::AddDowntimeHistory, _1, _2));
 	Service::OnAcknowledgementSet.connect(boost::bind(&ServiceDbObject::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
 
@@ -332,21 +331,21 @@ void ServiceDbObject::AddComments(const Service::Ptr& service)
 	ObjectLock olock(comments);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
-		AddComment(service, kv.second, String());
+		AddComment(service, kv.second);
 	}
 }
 
-void ServiceDbObject::AddComment(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
+void ServiceDbObject::AddComment(const Service::Ptr& service, const Comment::Ptr& comment)
 {
-	AddCommentInternal(service, comment, false, authority);
+	AddCommentInternal(service, comment, false);
 }
 
-void ServiceDbObject::AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
+void ServiceDbObject::AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment)
 {
-	AddCommentInternal(service, comment, true, authority);
+	AddCommentInternal(service, comment, true);
 }
 
-void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Comment::Ptr& comment, bool historical, const String& authority)
+void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Comment::Ptr& comment, bool historical)
 {
 	Host::Ptr host = service->GetHost();
 
@@ -358,16 +357,16 @@ void ServiceDbObject::AddCommentInternal(const Service::Ptr& service, const Comm
 	Log(LogDebug, "db_ido", "adding service comment (id = " + Convert::ToString(comment->GetLegacyId()) + ") for '" + service->GetName() + "'");
 
 	/* add the service comment */
-	AddCommentByType(service, comment, historical, authority);
+	AddCommentByType(service, comment, historical);
 
 	/* add the hostcheck service comment to the host as well */
 	if (host->GetCheckService() == service) {
 		Log(LogDebug, "db_ido", "adding host comment (id = " + Convert::ToString(comment->GetLegacyId()) + ") for '" + host->GetName() + "'");
-		AddCommentByType(host, comment, historical, authority);
+		AddCommentByType(host, comment, historical);
 	}
 }
 
-void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical, const String& authority)
+void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical)
 {
 	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
 	unsigned long entry_time_usec = (comment->GetEntryTime() - entry_time) * 1000 * 1000;
@@ -398,10 +397,6 @@ void ServiceDbObject::AddCommentByType(const DynamicObject::Ptr& object, const C
 	fields1->Set("expires", (comment->GetExpireTime() > 0) ? 1 : 0);
 	fields1->Set("expiration_time", DbValue::FromTimestamp(comment->GetExpireTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-	Endpoint::Ptr endpoint = Endpoint::GetByName(authority);
-	if (endpoint)
-		fields1->Set("endpoint_object_id", endpoint);
 
 	DbQuery query1;
 	if (!historical) {
