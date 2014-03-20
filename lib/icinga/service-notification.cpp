@@ -26,6 +26,7 @@
 #include "base/utility.h"
 #include "base/exception.h"
 #include "base/context.h"
+#include "base/convert.h"
 #include "config/configitembuilder.h"
 #include <boost/foreach.hpp>
 
@@ -68,7 +69,7 @@ void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& c
 	if (notifications.empty())
 		Log(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
 
-	Log(LogDebug, "icinga", "Service '" + GetName() + "' has " + notifications.size() + " notification(s).");
+	Log(LogDebug, "icinga", "Service '" + GetName() + "' has " + Convert::ToString(notifications.size()) + " notification(s).");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {

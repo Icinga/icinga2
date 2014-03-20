@@ -81,6 +81,26 @@ bool Value::IsScalar(void) const
 }
 
 /**
+ * Checks whether the variant is a number.
+ *
+ * @returns true if the variant is a number.
+ */
+bool Value::IsNumber(void) const
+{
+	return (GetType() == ValueNumber);
+}
+
+/**
+ * Checks whether the variant is a string.
+ *
+ * @returns true if the variant is a string.
+ */
+bool Value::IsString(void) const
+{
+	return (GetType() == ValueString);
+}
+
+/**
  * Checks whether the variant is a non-null object.
  *
  * @returns true if the variant is a non-null object, false otherwise.
@@ -90,43 +110,34 @@ bool Value::IsObject(void) const
 	return !IsEmpty() && (GetType() == ValueObject);
 }
 
-Value::operator double(void) const
+bool Value::ToBool(void) const
 {
-	const double *value = boost::get<double>(&m_Value);
-
-	if (value)
-		return *value;
-
-	if (IsEmpty())
-		return 0;
-
-	return boost::lexical_cast<double>(m_Value);
-}
-
-Value::operator String(void) const
-{
-	Object *object;
-	double integral, fractional;
-
 	switch (GetType()) {
-		case ValueEmpty:
-			return String();
 		case ValueNumber:
-			fractional = modf(boost::get<double>(m_Value), &integral);
+			return static_cast<bool>(boost::get<double>(m_Value));
 
-			if (fractional != 0)
-				return boost::lexical_cast<String>(m_Value);
-			else
-				return boost::lexical_cast<String>((long)integral);
 		case ValueString:
-			return boost::get<String>(m_Value);
+			return !boost::get<String>(m_Value).IsEmpty();
+
 		case ValueObject:
-			object = boost::get<Object::Ptr>(m_Value).get();
-			return "Object of type '" + Utility::GetTypeName(typeid(*object)) + "'";
+			if (IsObjectType<Dictionary>()) {
+				Dictionary::Ptr dictionary = *this;
+				return dictionary->GetLength() > 0;
+			} else if (IsObjectType<Array>()) {
+				Array::Ptr array = *this;
+				return array->GetLength() > 0;
+			} else {
+				return true;
+			}
+
+		case ValueEmpty:
+			return false;
+
 		default:
-			BOOST_THROW_EXCEPTION(std::runtime_error("Unknown value type."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid variant type."));
 	}
 }
+
 
 /**
  * Converts a JSON object into a variant.
@@ -196,120 +207,24 @@ ValueType Value::GetType(void) const
 	return static_cast<ValueType>(m_Value.which());
 }
 
-bool Value::operator==(bool rhs) const
+String Value::GetTypeName(void) const
 {
-	if (!IsScalar())
-		return false;
+	const Type *t;
 
-	return static_cast<double>(*this) == rhs;
-}
-
-bool Value::operator!=(bool rhs) const
-{
-	return !(*this == rhs);
-}
-
-bool Value::operator==(int rhs) const
-{
-	if (!IsScalar())
-		return false;
-
-	return static_cast<double>(*this) == rhs;
-}
-
-bool Value::operator!=(int rhs) const
-{
-	return !(*this == rhs);
-}
-
-bool Value::operator==(double rhs) const
-{
-	if (!IsScalar())
-		return false;
-
-	return static_cast<double>(*this) == rhs;
-}
-
-bool Value::operator!=(double rhs) const
-{
-	return !(*this == rhs);
-}
-
-bool Value::operator==(const char *rhs) const
-{
-	return static_cast<String>(*this) == rhs;
-}
-
-bool Value::operator!=(const char *rhs) const
-{
-	return !(*this == rhs);
-}
-
-bool Value::operator==(const String& rhs) const
-{
-	return static_cast<String>(*this) == rhs;
-}
-
-bool Value::operator!=(const String& rhs) const
-{
-	return !(*this == rhs);
-}
-
-bool Value::operator==(const Value& rhs) const
-{
-	if (IsEmpty() != rhs.IsEmpty())
-		return false;
-
-	if (IsEmpty())
-		return true;
-
-	if (IsObject() != rhs.IsObject())
-		return false;
-
-	if (IsObject())
-		return static_cast<Object::Ptr>(*this) == static_cast<Object::Ptr>(rhs);
-
-	if (GetType() == ValueNumber || rhs.GetType() == ValueNumber)
-		return static_cast<double>(*this) == static_cast<double>(rhs);
-	else
-		return static_cast<String>(*this) == static_cast<String>(rhs);
-}
-
-bool Value::operator!=(const Value& rhs) const
-{
-	return !(*this == rhs);
-}
-
-Value icinga::operator+(const Value& lhs, const char *rhs)
-{
-	return static_cast<String>(lhs) + rhs;
-}
-
-Value icinga::operator+(const char *lhs, const Value& rhs)
-{
-	return lhs + static_cast<String>(rhs);
-}
-
-Value icinga::operator+(const Value& lhs, const String& rhs)
-{
-	return static_cast<String>(lhs) + rhs;
-}
-
-Value icinga::operator+(const String& lhs, const Value& rhs)
-{
-	return lhs + static_cast<String>(rhs);
-}
-
-std::ostream& icinga::operator<<(std::ostream& stream, const Value& value)
-{
-	stream << static_cast<String>(value);
-	return stream;
-}
-
-std::istream& icinga::operator>>(std::istream& stream, Value& value)
-{
-	String tstr;
-	stream >> tstr;
-	value = tstr;
-	return stream;
+	switch (GetType()) {
+		case ValueEmpty:
+			return "Empty";
+		case ValueNumber:
+			return "Number";
+		case ValueString:
+			return "String";
+		case ValueObject:
+			t = static_cast<Object::Ptr>(*this)->GetReflectionType();
+			if (!t)
+				return "Object";
+			else
+				return t->GetName();
+		default:
+			return "Invalid";
+	}
 }

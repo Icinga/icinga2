@@ -714,7 +714,12 @@ apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE a
 			BOOST_THROW_EXCEPTION(std::invalid_argument("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'."));
 		}
 
-		ApplyRule::AddRule($3, $4, $6, *$8, yylloc);
+		Array::Ptr arguments = make_shared<Array>();
+		arguments->Add(*$8);
 		delete $8;
+
+		AExpression::Ptr aexpr = make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, "bool"), AValue(ATSimple, arguments), yylloc);
+
+		ApplyRule::AddRule($3, $4, $6, aexpr, yylloc);
 	}
 %%

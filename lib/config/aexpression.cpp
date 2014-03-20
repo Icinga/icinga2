@@ -63,28 +63,33 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 		case AENegate:
 			return ~(long)left;
 		case AEAdd:
-			if (left.GetType() == ValueString || right.GetType() == ValueString)
-				return (String)left + (String)right;
-			else
-				return (double)left + (double)right;
+			return left + right;
 		case AESubtract:
-			return (double)left + (double)right;
+			return left - right;
 		case AEMultiply:
-			return (double)left * (double)right;
+			return left * right;
 		case AEDivide:
-			return (double)left / (double)right;
+			return left / right;
 		case AEBinaryAnd:
-			return (long)left & (long)right;
+			return left & right;
 		case AEBinaryOr:
-			return (long)left | (long)right;
+			return left | right;
 		case AEShiftLeft:
-			return (long)left << (long)right;
+			return left << right;
 		case AEShiftRight:
-			return (long)left >> (long)right;
+			return left >> right;
 		case AEEqual:
 			return left == right;
 		case AENotEqual:
 			return left != right;
+		case AELessThan:
+			return left < right;
+		case AEGreaterThan:
+			return left > right;
+		case AELessThanOrEqual:
+			return left <= right;
+		case AEGreaterThanOrEqual:
+			return left >= right;
 		case AEIn:
 			if (!right.IsObjectType<Array>())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
@@ -114,9 +119,9 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 
 			return !found;
 		case AELogicalAnd:
-			return (long)left && (long)right;
+			return left.ToBool() && right.ToBool();
 		case AELogicalOr:
-			return (long)left || (long)right;
+			return left.ToBool() || right.ToBool();
 		case AEFunctionCall:
 			funcName = left;
 			func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
@@ -134,19 +139,13 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 			arr = left;
 			arr2 = make_shared<Array>();
 
-			BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
-				arr2->Add(aexpr->Evaluate(locals));
+			if (arr) {
+				BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+					arr2->Add(aexpr->Evaluate(locals));
+				}
 			}
 
 			return arr2;
-		case AELessThan:
-			return (long)left < (long)right;
-		case AEGreaterThan:
-			return (long)left > (long)right;
-		case AELessThanOrEqual:
-			return (long)left <= (long)right;
-		case AEGreaterThanOrEqual:
-			return (long)left >= (long)right;
 		default:
 			ASSERT(!"Invalid operator.");
 	}

@@ -55,6 +55,7 @@ public:
 	void Remove(unsigned int index);
 	void Remove(Iterator it);
 
+	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone(void) const;
 
 	static Array::Ptr FromJson(cJSON *json);

@@ -149,6 +149,15 @@ void Array::Remove(Array::Iterator it)
 	m_Data.erase(it);
 }
 
+void Array::CopyTo(const Array::Ptr& dest) const
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+	ObjectLock xlock(dest);
+
+	std::copy(m_Data.begin(), m_Data.end(), std::back_inserter(dest->m_Data));
+}
+
 /**
  * Makes a shallow copy of an array.
  *
@@ -156,13 +165,8 @@ void Array::Remove(Array::Iterator it)
  */
 Array::Ptr Array::ShallowClone(void) const
 {
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
 	Array::Ptr clone = make_shared<Array>();
-
-	std::copy(m_Data.begin(), m_Data.end(), std::back_inserter(clone->m_Data));
-
+	CopyTo(clone);
 	return clone;
 }
 

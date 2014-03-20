@@ -198,6 +198,16 @@ void Dictionary::Remove(Dictionary::Iterator it)
 	m_Data.erase(it);
 }
 
+void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+		dest->Set(kv.first, kv.second);
+	}
+}
+
 /**
  * Makes a shallow copy of a dictionary.
  *
@@ -205,15 +215,8 @@ void Dictionary::Remove(Dictionary::Iterator it)
  */
 Dictionary::Ptr Dictionary::ShallowClone(void) const
 {
-	ASSERT(!OwnsLock());
-	ObjectLock olock(this);
-
 	Dictionary::Ptr clone = make_shared<Dictionary>();
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
-		clone->Set(kv.first, kv.second);
-	}
-
+	CopyTo(clone);
 	return clone;
 }
 

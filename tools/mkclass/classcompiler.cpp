@@ -409,7 +409,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 				prot = "public";
 
 			std::cout << prot << ":" << std::endl
-					  << "\t" << "void Set" << it->GetFriendlyName() << "(const " << it->Type << "& value)" << std::endl
+					  << "\t" << "void Set" << it->GetFriendlyName() << "(";
+
+			if (it->Type == "bool" || it->Type == "double" || it->Type == "int")
+				std::cout << it->Type;
+			else
+				std::cout << "const " << it->Type << "&";
+
+			std::cout << " value)" << std::endl
 					  << "\t" << "{" << std::endl;
 
 			if (it->SetAccessor.empty())

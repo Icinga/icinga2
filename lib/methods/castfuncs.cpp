@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,53 +17,26 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/value.h"
-#include <boost/test/unit_test.hpp>
+#include "methods/castfuncs.h"
+#include "base/scriptfunction.h"
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(base_value)
+REGISTER_SCRIPTFUNCTION(string, &CastFuncs::CastString);
+REGISTER_SCRIPTFUNCTION(number, &CastFuncs::CastNumber);
+REGISTER_SCRIPTFUNCTION(bool, &CastFuncs::CastBool);
 
-BOOST_AUTO_TEST_CASE(scalar)
+String CastFuncs::CastString(const Value& value)
 {
-	Value v;
-
-	v = 3;
-	BOOST_CHECK(v.IsScalar());
-
-	v = "hello";
-	BOOST_CHECK(v.IsScalar());
-
-	v = Empty;
-	BOOST_CHECK(!v.IsScalar());
+	return value;
 }
 
-BOOST_AUTO_TEST_CASE(convert)
+double CastFuncs::CastNumber(const Value& value)
 {
-	Value v;
-	BOOST_CHECK(v.IsEmpty());
-	BOOST_CHECK(v == "");
-	BOOST_CHECK(static_cast<double>(v) == 0);
-	BOOST_CHECK(!v.IsScalar());
-	BOOST_CHECK(!v.IsObjectType<Object>());
-
-	BOOST_CHECK(v + "hello" == "hello");
-	BOOST_CHECK("hello" + v == "hello");
+	return value;
 }
 
-BOOST_AUTO_TEST_CASE(format)
+bool CastFuncs::CastBool(const Value& value)
 {
-	Value v = 3;
-
-	std::ostringstream obuf;
-	obuf << v;
-
-	BOOST_CHECK(obuf.str() == "3");
-
-	std::istringstream ibuf("3");
-	ibuf >> v;
-
-	BOOST_CHECK(v != 3);
+	return value.ToBool();
 }
-
-BOOST_AUTO_TEST_SUITE_END()
