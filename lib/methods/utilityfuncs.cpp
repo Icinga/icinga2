@@ -25,6 +25,7 @@
 #include "base/dictionary.h"
 #include <boost/regex.hpp>
 #include <algorithm>
+#include <set>
 
 using namespace icinga;
 
