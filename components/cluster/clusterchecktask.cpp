@@ -66,7 +66,6 @@ void ClusterCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(state);
-	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 	service->ProcessCheckResult(cr);
 }
 

@@ -140,7 +140,6 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	result->SetState(PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
 	result->SetExecutionStart(Convert::ToDouble(attrs["start_time"]));
 	result->SetExecutionEnd(Convert::ToDouble(attrs["finish_time"]));
-	result->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	service->ProcessCheckResult(result);
 

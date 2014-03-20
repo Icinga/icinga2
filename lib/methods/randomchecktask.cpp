@@ -42,7 +42,6 @@ void RandomCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult:
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(static_cast<ServiceState>(Utility::Random() % 4));
-	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	service->ProcessCheckResult(cr);
 }

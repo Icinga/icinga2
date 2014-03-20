@@ -255,7 +255,6 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	result->SetExecutionStart(time);
 	result->SetExecutionEnd(time);
 	result->SetActive(false);
-	result->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	Log(LogInformation, "icinga", "Processing passive check result for host '" + arguments[0] + "'");
 	hc->ProcessCheckResult(result);
@@ -295,7 +294,6 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 	result->SetExecutionStart(time);
 	result->SetExecutionEnd(time);
 	result->SetActive(false);
-	result->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	Log(LogInformation, "icinga", "Processing passive check result for service '" + arguments[1] + "'");
 	service->ProcessCheckResult(result);

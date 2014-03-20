@@ -86,7 +86,6 @@ void PluginCheckTask::ProcessFinishedHandler(const Service::Ptr& service, const 
 	cr->SetExitStatus(pr.ExitStatus);
 	cr->SetExecutionStart(pr.ExecutionStart);
 	cr->SetExecutionEnd(pr.ExecutionEnd);
-	cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	service->ProcessCheckResult(cr);
 }

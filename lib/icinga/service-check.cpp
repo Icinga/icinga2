@@ -241,8 +241,12 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	String check_source = cr->GetCheckSource();
 
-	if (check_source.IsEmpty())
-		cr->SetCheckSource(authority);
+	if (check_source.IsEmpty()) {
+		if (authority.IsEmpty())
+			cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
+		else
+			cr->SetCheckSource(authority);
+	}
 
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
