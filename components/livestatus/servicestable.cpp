@@ -19,6 +19,7 @@
 
 #include "livestatus/servicestable.h"
 #include "livestatus/hoststable.h"
+#include "livestatus/endpointstable.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
@@ -125,6 +126,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "custom_variables", Column(&ServicesTable::CustomVariablesAccessor, objectAccessor));
 	table->AddColumn(prefix + "groups", Column(&ServicesTable::GroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "contact_groups", Column(&ServicesTable::ContactGroupsAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_source", Column(&ServicesTable::CheckSourceAccessor, objectAccessor));
 
 	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
 }
@@ -1156,6 +1158,21 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 	}
 
 	return contactgroup_names;
+}
+
+Value ServicesTable::CheckSourceAccessor(const Value& row)
+{
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (!service)
+		return Empty;
+
+	CheckResult::Ptr cr = service->GetLastCheckResult();
+
+	if (cr)
+		return cr->GetCheckSource();
+
+	return Empty;
 }
 
 
