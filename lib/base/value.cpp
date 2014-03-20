@@ -220,9 +220,14 @@ String Value::GetTypeName(void) const
 			return "String";
 		case ValueObject:
 			t = static_cast<Object::Ptr>(*this)->GetReflectionType();
-			if (!t)
-				return "Object";
-			else
+			if (!t) {
+				if (IsObjectType<Array>())
+					return "Array";
+				else if (IsObjectType<Dictionary>())
+					return "Dictionary";
+				else
+					return "Object";
+			} else
 				return t->GetName();
 		default:
 			return "Invalid";
