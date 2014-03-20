@@ -55,10 +55,8 @@ Value ScriptVariable::Get(const String& name)
 {
 	ScriptVariable::Ptr sv = GetByName(name);
 
-	if (!sv) {
-		Log(LogWarning, "icinga", "Tried to access undefined variable: " + name);
-		return Empty;
-	}
+	if (!sv)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to access undefined script variable '" + name + "'"));
 
 	return sv->GetData();
 }
