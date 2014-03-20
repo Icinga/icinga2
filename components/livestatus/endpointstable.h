@@ -17,22 +17,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type ClusterListener {
-	%attribute string "cert_path",
-	%require "cert_path",
+#ifndef ENDPOINTSTABLE_H
+#define ENDPOINTSTABLE_H
 
-	%attribute string "key_path",
-	%require "key_path",
+#include "livestatus/table.h"
 
-	%attribute string "ca_path",
-	%require "ca_path",
+using namespace icinga;
 
-	%attribute string "crl_path",
+namespace icinga
+{
 
-	%attribute string "bind_host",
-	%attribute string "bind_port",
+/**
+ * @ingroup livestatus
+ */
+class EndpointsTable : public Table
+{
+public:
+	DECLARE_PTR_TYPEDEFS(EndpointsTable);
 
-	%attribute array "peers" {
-		%attribute name(Endpoint) "*"
-	}
+	EndpointsTable(void);
+
+	static void AddColumns(Table *table, const String& prefix = String(),
+	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
+
+	virtual String GetName(void) const;
+
+protected:
+	virtual void FetchRows(const AddRowFunction& addRowFn);
+
+	static Value NameAccessor(const Value& row);
+        static Value IdentityAccessor(const Value& row);
+        static Value NodeAccessor(const Value& row);
+        static Value IsConnectedAccessor(const Value& row);
+};
+
 }
+
+#endif /* ENDPOINTSTABLE_H */

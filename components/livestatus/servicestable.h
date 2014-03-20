@@ -123,6 +123,7 @@ protected:
 	static Value CustomVariablesAccessor(const Value& row);
 	static Value GroupsAccessor(const Value& row);
 	static Value ContactGroupsAccessor(const Value& row);
+        static Value CheckSourceAccessor(const Value& row);
 };
 
 }

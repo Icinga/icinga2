@@ -16,16 +16,15 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 mkclass_target(clusterlistener.ti clusterlistener.th)
-mkclass_target(endpoint.ti endpoint.th)
 
 mkembedconfig_target(cluster-type.conf cluster-type.cpp)
 
 add_library(cluster SHARED
   clusterchecktask.cpp clusterlistener.cpp clusterlistener.th
-  endpoint.cpp endpoint.th jsonrpc.cpp cluster-type.cpp
+  cluster-type.cpp
 )
 
-target_link_libraries(cluster ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(cluster ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   cluster PROPERTIES

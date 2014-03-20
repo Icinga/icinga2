@@ -417,7 +417,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	OnNewCheckResult(GetSelf(), cr, authority);
 
 	/* signal status updates to for example db_ido */
-	OnStateChanged(GetSelf());
+	OnStateChanged(GetSelf(), authority);
 
 	if (hardChange)
 		OnStateChange(GetSelf(), cr, StateTypeHard, authority);

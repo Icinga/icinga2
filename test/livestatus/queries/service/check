@@ -1,0 +1,4 @@
+GET services
+Columns: description host_name plugin_output check_source
+ResponseHeader: fixed16
+

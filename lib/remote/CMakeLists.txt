@@ -1,5 +1,5 @@
 # Icinga 2
-# Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)
+# Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,30 +15,28 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(dbconnection.ti dbconnection.th)
+mkclass_target(endpoint.ti endpoint.th)
 
-mkembedconfig_target(db_ido-type.conf db_ido-type.cpp)
+mkembedconfig_target(remote-type.conf remote-type.cpp)
 
-add_library(db_ido SHARED
-  commanddbobject.cpp dbconnection.cpp dbconnection.th dbconnection.th
-  db_ido-type.cpp dbobject.cpp dbquery.cpp dbreference.cpp dbtype.cpp
-  dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp hostgroupdbobject.cpp
-  servicedbobject.cpp servicegroupdbobject.cpp timeperioddbobject.cpp
-  userdbobject.cpp usergroupdbobject.cpp
+add_library(remote SHARED
+  endpoint.cpp endpoint.th jsonrpc.cpp remote-type.cpp
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga remote)
+target_link_libraries(remote ${Boost_LIBRARIES} base config)
 
 set_target_properties (
-  db_ido PROPERTIES
+  remote PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_DB_IDO_BUILD
+  DEFINE_SYMBOL I2_REMOTE_BUILD
   FOLDER Lib
 )
 
 install(
-  TARGETS db_ido
+  TARGETS remote
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
+
+

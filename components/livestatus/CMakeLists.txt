@@ -19,9 +19,18 @@ mkclass_target(listener.ti listener.th)
 
 mkembedconfig_target(livestatus-type.conf livestatus-type.cpp)
 
-add_library(livestatus SHARED aggregator.cpp andfilter.cpp attributefilter.cpp avgaggregator.cpp column.cpp combinerfilter.cpp commandstable.cpp commentstable.cpp contactgroupstable.cpp contactstable.cpp countaggregator.cpp downtimestable.cpp filter.cpp historytable.cpp hostgroupstable.cpp hoststable.cpp invavgaggregator.cpp invsumaggregator.cpp listener.cpp listener.th logutility.cpp logtable.cpp maxaggregator.cpp minaggregator.cpp negatefilter.cpp orfilter.cpp query.cpp servicegroupstable.cpp servicestable.cpp statehisttable.cpp statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp timeperiodstable.cpp livestatus-type.cpp)
+add_library(livestatus SHARED aggregator.cpp andfilter.cpp attributefilter.cpp
+  avgaggregator.cpp column.cpp combinerfilter.cpp commandstable.cpp
+  commentstable.cpp contactgroupstable.cpp contactstable.cpp countaggregator.cpp
+  downtimestable.cpp endpointstable.cpp filter.cpp historytable.cpp
+  hostgroupstable.cpp hoststable.cpp invavgaggregator.cpp invsumaggregator.cpp
+  listener.cpp listener.th logutility.cpp logtable.cpp maxaggregator.cpp
+  minaggregator.cpp negatefilter.cpp orfilter.cpp query.cpp
+  servicegroupstable.cpp servicestable.cpp statehisttable.cpp
+  statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp
+  timeperiodstable.cpp livestatus-type.cpp)
 
-target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   livestatus PROPERTIES

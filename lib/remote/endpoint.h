@@ -17,22 +17,51 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type ClusterListener {
-	%attribute string "cert_path",
-	%require "cert_path",
+#ifndef ENDPOINT_H
+#define ENDPOINT_H
 
-	%attribute string "key_path",
-	%require "key_path",
+#include "remote/endpoint.th"
+#include "base/stream.h"
+#include "base/array.h"
+#include "remote/i2-remote.h"
+#include <boost/signals2.hpp>
 
-	%attribute string "ca_path",
-	%require "ca_path",
+namespace icinga
+{
 
-	%attribute string "crl_path",
+class EndpointManager;
 
-	%attribute string "bind_host",
-	%attribute string "bind_port",
+/**
+ * An endpoint that can be used to send and receive messages.
+ *
+ * @ingroup cluster
+ */
+class I2_REMOTE_API Endpoint : public ObjectImpl<Endpoint>
+{
+public:
+	DECLARE_PTR_TYPEDEFS(Endpoint);
+	DECLARE_TYPENAME(Endpoint);
 
-	%attribute array "peers" {
-		%attribute name(Endpoint) "*"
-	}
+	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
+        static boost::signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
+	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
+
+	Stream::Ptr GetClient(void) const;
+	void SetClient(const Stream::Ptr& client);
+
+	bool IsConnected(void) const;
+
+	void SendMessage(const Dictionary::Ptr& request);
+
+	bool HasFeature(const String& type) const;
+
+private:
+	Stream::Ptr m_Client;
+	boost::thread m_Thread;
+
+	void MessageThreadProc(const Stream::Ptr& stream);
+};
+
 }
+
+#endif /* ENDPOINT_H */

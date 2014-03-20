@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cluster/endpoint.h"
-#include "cluster/jsonrpc.h"
+#include "remote/endpoint.h"
+#include "remote/jsonrpc.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -32,6 +32,7 @@ using namespace icinga;
 REGISTER_TYPE(Endpoint);
 
 boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
+boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
 boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
 
 /**
@@ -61,6 +62,10 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 		thread.detach();
 
 		OnConnected(GetSelf());
+		Log(LogWarning, "remote", "Endpoint connected: " + GetName());
+	} else {
+		OnDisconnected(GetSelf());
+		Log(LogWarning, "remote", "Endpoint disconnected: " + GetName());
 	}
 }
 
@@ -76,9 +81,12 @@ void Endpoint::SendMessage(const Dictionary::Ptr& message)
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << DiagnosticInformation(ex);
-		Log(LogWarning, "cluster", msgbuf.str());
+		Log(LogWarning, "remote", msgbuf.str());
 
 		m_Client.reset();
+
+		OnDisconnected(GetSelf());
+		Log(LogWarning, "remote", "Endpoint disconnected: " + GetName());
 	}
 }
 
@@ -92,9 +100,12 @@ void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
 		try {
 			message = JsonRpc::ReadMessage(stream);
 		} catch (const std::exception& ex) {
-			Log(LogWarning, "cluster", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + DiagnosticInformation(ex));
+			Log(LogWarning, "remote", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + DiagnosticInformation(ex));
 
 			m_Client.reset();
+
+			OnDisconnected(GetSelf());
+			Log(LogWarning, "remote", "Endpoint disconnected: " + GetName());
 
 			return;
 		}

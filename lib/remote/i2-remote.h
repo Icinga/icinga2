@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,22 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-type ClusterListener {
-	%attribute string "cert_path",
-	%require "cert_path",
+#ifndef I2REMOTE_H
+#define I2REMOTE_H
 
-	%attribute string "key_path",
-	%require "key_path",
+/**
+ * @defgroup remote Remote library
+ *
+ * The Icinga library implements remote cluster functionality.
+ */
 
-	%attribute string "ca_path",
-	%require "ca_path",
+#include "base/i2-base.h"
 
-	%attribute string "crl_path",
+#ifdef I2_REMOTE_BUILD
+#	define I2_REMOTE_API I2_EXPORT
+#else /* I2_REMOTE_BUILD */
+#	define I2_REMOTE_API I2_IMPORT
+#endif /* I2_REMOTE_BUILD */
 
-	%attribute string "bind_host",
-	%attribute string "bind_port",
-
-	%attribute array "peers" {
-		%attribute name(Endpoint) "*"
-	}
-}
+#endif /* I2REMOTE_H */
