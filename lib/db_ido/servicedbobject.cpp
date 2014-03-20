@@ -145,7 +145,14 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 		fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 		fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
-		fields->Set("check_source", cr->GetCheckSource());
+
+		String check_source = cr->GetCheckSource();
+		fields->Set("check_source", check_source);
+
+		Endpoint::Ptr check_endpoint = Endpoint::GetByName(check_source);
+
+		if(check_endpoint)
+			fields->Set("check_source_object_id", check_endpoint);
 	}
 
 	fields->Set("current_state", CompatUtility::GetServiceCurrentState(service));
@@ -887,7 +894,14 @@ void ServiceDbObject::AddStateChangeHistory(const Service::Ptr& service, const C
 	if (cr) {
 		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-		fields1->Set("check_source", cr->GetCheckSource());
+
+		String check_source = cr->GetCheckSource();
+		fields1->Set("check_source", check_source);
+
+		Endpoint::Ptr check_endpoint = Endpoint::GetByName(check_source);
+
+		if(check_endpoint)
+			fields1->Set("check_source_object_id", check_endpoint);
 	}
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
