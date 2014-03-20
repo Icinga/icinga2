@@ -68,17 +68,17 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "livecheck_overflows_rate", Column(&Table::ZeroAccessor, objectAccessor));
 
 	table->AddColumn(prefix + "nagios_pid", Column(&StatusTable::NagiosPidAccessor, objectAccessor));
-	table->AddColumn(prefix + "enable_notifications", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "execute_service_checks", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "enable_notifications", Column(&StatusTable::EnableNotificationsAccessor, objectAccessor));
+	table->AddColumn(prefix + "execute_service_checks", Column(&StatusTable::ExecuteServiceChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_service_checks", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "execute_host_checks", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_host_checks", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "enable_event_handlers", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "enable_event_handlers", Column(&StatusTable::EnableEventHandlersAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_services", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_hosts", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_service_freshness", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_host_freshness", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "enable_flap_detection", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "enable_flap_detection", Column(&StatusTable::EnableFlapDetectionAccessor, objectAccessor));
 	table->AddColumn(prefix + "process_performance_data", Column(&StatusTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_external_commands", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "program_start", Column(&StatusTable::ProgramStartAccessor, objectAccessor));
@@ -111,41 +111,61 @@ void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 	addRowFn(obj);
 }
 
-Value StatusTable::ConnectionsAccessor(const Value& row)
+Value StatusTable::ConnectionsAccessor(const Value&)
 {
 	return LivestatusListener::GetConnections();
 }
 
-Value StatusTable::ConnectionsRateAccessor(const Value& row)
+Value StatusTable::ConnectionsRateAccessor(const Value&)
 {
 	return (LivestatusListener::GetConnections() / (Utility::GetTime() - Application::GetStartTime()));
 }
 
-Value StatusTable::ServiceChecksAccessor(const Value& row)
+Value StatusTable::ServiceChecksAccessor(const Value&)
 {
 	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return CIB::GetActiveChecksStatistics(timespan);
 }
 
-Value StatusTable::ServiceChecksRateAccessor(const Value& row)
+Value StatusTable::ServiceChecksRateAccessor(const Value&)
 {
 	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return (CIB::GetActiveChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 
-Value StatusTable::ExternalCommandsAccessor(const Value& row)
+Value StatusTable::ExternalCommandsAccessor(const Value&)
 {
 	return Query::GetExternalCommands();
 }
 
-Value StatusTable::ExternalCommandsRateAccessor(const Value& row)
+Value StatusTable::ExternalCommandsRateAccessor(const Value&)
 {
 	return (Query::GetExternalCommands() / (Utility::GetTime() - Application::GetStartTime()));
 }
 
-Value StatusTable::NagiosPidAccessor(const Value& row)
+Value StatusTable::NagiosPidAccessor(const Value&)
 {
 	return Utility::GetPid();
+}
+
+Value StatusTable::EnableNotificationsAccessor(const Value&)
+{
+	return (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0);
+}
+
+Value StatusTable::ExecuteServiceChecksAccessor(const Value&)
+{
+	return (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0);
+}
+
+Value StatusTable::EnableEventHandlersAccessor(const Value&)
+{
+	return (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0);
+}
+
+Value StatusTable::EnableFlapDetectionAccessor(const Value&)
+{
+	return (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0);
 }
 
 Value StatusTable::ProcessPerformanceDataAccessor(const Value&)
@@ -153,32 +173,32 @@ Value StatusTable::ProcessPerformanceDataAccessor(const Value&)
 	return (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0);
 }
 
-Value StatusTable::ProgramStartAccessor(const Value& row)
+Value StatusTable::ProgramStartAccessor(const Value&)
 {
 	return static_cast<long>(Application::GetStartTime());
 }
 
-Value StatusTable::NumHostsAccessor(const Value& row)
+Value StatusTable::NumHostsAccessor(const Value&)
 {
 	return static_cast<long>(DynamicType::GetObjects<Host>().size());
 }
 
-Value StatusTable::NumServicesAccessor(const Value& row)
+Value StatusTable::NumServicesAccessor(const Value&)
 {
 	return static_cast<long>(DynamicType::GetObjects<Service>().size());
 }
 
-Value StatusTable::ProgramVersionAccessor(const Value& row)
+Value StatusTable::ProgramVersionAccessor(const Value&)
 {
 	return Application::GetVersion();
 }
 
-Value StatusTable::LivestatusVersionAccessor(const Value& row)
+Value StatusTable::LivestatusVersionAccessor(const Value&)
 {
 	return Application::GetVersion();
 }
 
-Value StatusTable::LivestatusActiveConnectionsAccessor(const Value& row)
+Value StatusTable::LivestatusActiveConnectionsAccessor(const Value&)
 {
 	return LivestatusListener::GetClientsConnected();
 }
