@@ -366,6 +366,17 @@ object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	{
 		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(yylloc);
 
+		ConfigItem::Ptr oldItem = ConfigItem::GetObject($3, $4);
+
+		if (oldItem) {
+			std::ostringstream msgbuf;
+			msgbuf << "Object '" << $4 << "' of type '" << $3 << "' re-defined; previous definition: " << oldItem->GetDebugInfo();
+			free($3);
+			free($4);
+			delete $5;
+			BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		}
+
 		item->SetType($3);
 
 		if (strchr($4, '!') != NULL) {
