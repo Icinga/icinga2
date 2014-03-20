@@ -22,6 +22,7 @@
 
 #include "methods/i2-methods.h"
 #include "base/qstring.h"
+#include "base/array.h"
 
 namespace icinga
 {
@@ -34,6 +35,8 @@ class I2_METHODS_API UtilityFuncs
 public:
 	static bool Regex(const String& pattern, const String& text);
 	static int Len(const Value& value);
+	static Array::Ptr Union(const std::vector<Value>& arguments);
+	static Array::Ptr Intersection(const std::vector<Value>& arguments);
 
 private:
 	UtilityFuncs(void);

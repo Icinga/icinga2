@@ -55,6 +55,8 @@ public:
 	void Remove(unsigned int index);
 	void Remove(Iterator it);
 
+	void Resize(size_t new_size);
+
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone(void) const;
 

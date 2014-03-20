@@ -149,6 +149,14 @@ void Array::Remove(Array::Iterator it)
 	m_Data.erase(it);
 }
 
+void Array::Resize(size_t new_size)
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	m_Data.resize(new_size);
+}
+
 void Array::CopyTo(const Array::Ptr& dest) const
 {
 	ASSERT(!OwnsLock());

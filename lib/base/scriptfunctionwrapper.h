@@ -267,7 +267,11 @@ boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(
 	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
 }
 
-boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapScriptFunction(Value (*function)(const std::vector<Value>&));
+template<typename TR>
+boost::function<TR (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(const std::vector<Value>&))
+{
+	return boost::bind(function, _1);
+}
 
 }
 

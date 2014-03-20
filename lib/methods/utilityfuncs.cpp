@@ -24,12 +24,15 @@
 #include "base/array.h"
 #include "base/dictionary.h"
 #include <boost/regex.hpp>
+#include <algorithm>
 
 using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(regex, &UtilityFuncs::Regex);
 REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
 REGISTER_SCRIPTFUNCTION(len, &UtilityFuncs::Len);
+REGISTER_SCRIPTFUNCTION(union, &UtilityFuncs::Union);
+REGISTER_SCRIPTFUNCTION(intersection, &UtilityFuncs::Intersection);
 
 bool UtilityFuncs::Regex(const String& pattern, const String& text)
 {
@@ -49,4 +52,48 @@ int UtilityFuncs::Len(const Value& value)
 	} else {
 		return Convert::ToString(value).GetLength();
 	}
+}
+
+Array::Ptr UtilityFuncs::Union(const std::vector<Value>& arguments)
+{
+	std::set<Value> values;
+
+	BOOST_FOREACH(const Value& varr, arguments) {
+		Array::Ptr arr = varr;
+
+		BOOST_FOREACH(const Value& value, arr) {
+			values.insert(value);
+		}
+	}
+
+	Array::Ptr result = make_shared<Array>();
+	BOOST_FOREACH(const Value& value, values) {
+		result->Add(value);
+	}
+
+	return result;
+}
+
+Array::Ptr UtilityFuncs::Intersection(const std::vector<Value>& arguments)
+{
+	if (arguments.size() == 0)
+		return make_shared<Array>();
+
+	Array::Ptr result = make_shared<Array>();
+
+	Array::Ptr arr1 = static_cast<Array::Ptr>(arguments[0])->ShallowClone();
+
+	for (int i = 1; i < arguments.size(); i++) {
+		std::sort(arr1->Begin(), arr1->End());
+
+		Array::Ptr arr2 = static_cast<Array::Ptr>(arguments[i])->ShallowClone();
+		std::sort(arr2->Begin(), arr2->End());
+
+		result->Resize(std::max(arr1->GetLength(), arr2->GetLength()));
+		Array::Iterator it = std::set_intersection(arr1->Begin(), arr1->End(), arr2->Begin(), arr2->End(), result->Begin());
+		result->Resize(it - result->Begin());
+		arr1 = result;
+	}
+
+	return result;
 }

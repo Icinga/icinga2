@@ -32,8 +32,3 @@ boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapScriptF
 {
 	return boost::bind(&ScriptFunctionWrapperVV, function, _1);
 }
-
-boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapScriptFunction(Value (*function)(const std::vector<Value>&))
-{
-	return boost::bind(function, _1);
-}
