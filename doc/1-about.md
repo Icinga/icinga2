@@ -18,6 +18,14 @@ LICENSE file included in the package.
 Support for Icinga 2 is available in a number of ways. Please have a look at
 the support overview page at [https://support.icinga.org].
 
+## <a id="contribute"></a> Contribute
+
+There are many possiblities to contribute to Icinga - be it sending patches, testing and
+reporting bugs, reviewing and updating the documentation, ... every contribution
+is appreciated! :-)
+
+Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/]
+
 ## <a id="whats-new"></a> What's new
 
 ### What's New in Version 0.0.8
