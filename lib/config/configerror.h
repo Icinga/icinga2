@@ -17,54 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DEBUGINFO_H
-#define DEBUGINFO_H
+#ifndef CONFIGERROR_H
+#define CONFIGERROR_H
 
-#include "base/qstring.h"
+#include "config/i2-config.h"
+#include "config/debuginfo.h"
 
 namespace icinga
 {
 
-/**
- * Debug information for a configuration element.
- *
+/*
  * @ingroup config
  */
-struct DebugInfo
+class I2_CONFIG_API ConfigError : public std::exception
 {
-	String Path;
+public:
+	ConfigError(const String& message, const DebugInfo& di);
+	~ConfigError(void) throw();
 
-	union
-	{
-		int FirstLine;
-		int first_line;
-	};
+	const char *what(void) const throw();
+	DebugInfo GetDebugInfo(void) const;
 
-	union
-	{
-		int FirstColumn;
-		int first_column;
-	};
-
-	union
-	{
-		int LastLine;
-		int last_line;
-	};
-
-	union
-	{
-		int LastColumn;
-		int last_column;
-	};
+private:
+	String m_Message;
+	DebugInfo m_DebugInfo;
 };
-
-std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
-
-DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
-
-void ShowCodeFragment(std::ostream& out, const DebugInfo& di);
 
 }
 
-#endif /* DEBUGINFO_H */
+#endif /* CONFIGERROR_H */

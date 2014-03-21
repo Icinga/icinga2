@@ -17,54 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DEBUGINFO_H
-#define DEBUGINFO_H
+#include "config/configerror.h"
 
-#include "base/qstring.h"
+using namespace icinga;
 
-namespace icinga
+ConfigError::ConfigError(const String& message, const DebugInfo& di)
+	: m_Message(message), m_DebugInfo(di)
+{ }
+
+ConfigError::~ConfigError(void) throw()
+{ }
+
+const char *ConfigError::what(void) const throw()
 {
-
-/**
- * Debug information for a configuration element.
- *
- * @ingroup config
- */
-struct DebugInfo
-{
-	String Path;
-
-	union
-	{
-		int FirstLine;
-		int first_line;
-	};
-
-	union
-	{
-		int FirstColumn;
-		int first_column;
-	};
-
-	union
-	{
-		int LastLine;
-		int last_line;
-	};
-
-	union
-	{
-		int LastColumn;
-		int last_column;
-	};
-};
-
-std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
-
-DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
-
-void ShowCodeFragment(std::ostream& out, const DebugInfo& di);
-
+	return m_Message.CStr();
 }
 
-#endif /* DEBUGINFO_H */
+DebugInfo ConfigError::GetDebugInfo(void) const
+{
+	return m_DebugInfo;
+}

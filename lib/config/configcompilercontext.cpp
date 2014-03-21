@@ -25,11 +25,11 @@
 
 using namespace icinga;
 
-void ConfigCompilerContext::AddMessage(bool error, const String& message)
+void ConfigCompilerContext::AddMessage(bool error, const String& message, const DebugInfo& di)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	m_Messages.push_back(ConfigCompilerMessage(error, message));
+	m_Messages.push_back(ConfigCompilerMessage(error, message, di));
 }
 
 std::vector<ConfigCompilerMessage> ConfigCompilerContext::GetMessages(void) const

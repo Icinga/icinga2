@@ -121,7 +121,7 @@ ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 			std::ostringstream message;
 			message << "Parent object '" << name << "' does not"
 			    " exist (" << m_DebugInfo << ")";
-			ConfigCompilerContext::GetInstance()->AddMessage(true, message.str());
+			ConfigCompilerContext::GetInstance()->AddMessage(true, message.str(), m_DebugInfo);
 		} else {
 			ExpressionList::Ptr pexprl;
 

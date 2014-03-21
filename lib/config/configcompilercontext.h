@@ -31,9 +31,10 @@ struct I2_CONFIG_API ConfigCompilerMessage
 {
 	bool Error;
 	String Text;
+	DebugInfo Location;
 
-	ConfigCompilerMessage(bool error, const String& text)
-		: Error(error), Text(text)
+	ConfigCompilerMessage(bool error, const String& text, const DebugInfo& di)
+		: Error(error), Text(text), Location(di)
 	{ }
 };
 
@@ -43,7 +44,7 @@ struct I2_CONFIG_API ConfigCompilerMessage
 class I2_CONFIG_API ConfigCompilerContext
 {
 public:
-	void AddMessage(bool error, const String& message);
+	void AddMessage(bool error, const String& message, const DebugInfo& di = DebugInfo());
 	std::vector<ConfigCompilerMessage> GetMessages(void) const;
 	bool HasErrors(void) const;
 

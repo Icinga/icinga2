@@ -90,11 +90,22 @@ static bool LoadConfigFiles(const String& appType, ValidationType validate)
 	int warnings = 0, errors = 0;
 
 	BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
+		std::ostringstream locbuf;
+		ShowCodeFragment(locbuf, message.Location);
+		String location = locbuf.str();
+
+		String logmsg;
+
+		if (!location.IsEmpty())
+			logmsg = "Location:\n" + location;
+
+		logmsg += String("\nConfig ") + (message.Error ? "error" : "warning") + ": " + message.Text;
+
 		if (message.Error) {
-			Log(LogCritical, "config", "Config error: " + message.Text);
+			Log(LogCritical, "config", logmsg);
 			errors++;
 		} else {
-			Log(LogWarning, "config", "Config warning: " + message.Text);
+			Log(LogWarning, "config", logmsg);
 			warnings++;
 		}
 	}
