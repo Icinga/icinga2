@@ -141,9 +141,9 @@ protected:
 	static Value GroupsAccessor(const Value& row);
 	static Value ContactGroupsAccessor(const Value& row);
 	static Value ServicesAccessor(const Value& row);
-
 	static Value ServicesWithStateAccessor(const Value& row);
 	static Value ServicesWithInfoAccessor(const Value& row);
+        static Value CheckServiceAccessor(const Value& row);
 };
 
 }

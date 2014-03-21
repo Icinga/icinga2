@@ -207,8 +207,11 @@ void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 	Service::Ptr hc = host->GetCheckService();
 	ObjectLock olock(hc);
 
-	if (hc)
+	if (hc) {
+		/* only dump status data information for Classic UI */
+		fp << "\t" "check_service=" << hc->GetShortName() << "\n";
 		DumpServiceStatusAttrs(fp, hc, CompatTypeHost);
+	}
 
 	/* ugly but cgis parse only that */
 	fp << "\t" "last_time_up=" << host->GetLastStateUp() << "\n"

@@ -51,6 +51,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	fields->Set("address6", CompatUtility::GetHostAddress6(host));
 
 	if (service) {
+		fields->Set("check_service_object_id", service);
 		fields->Set("check_command_object_id", service->GetCheckCommand());
 		fields->Set("check_command_args", Empty);
 		fields->Set("eventhandler_command_object_id", service->GetEventCommand());

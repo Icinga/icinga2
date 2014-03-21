@@ -1,4 +1,4 @@
 GET hosts
-Columns: name parents childs
+Columns: name parents childs check_service
 ResponseHeader: fixed16
 
