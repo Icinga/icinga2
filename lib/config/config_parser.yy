@@ -392,13 +392,14 @@ object:
 	}
 	object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	{
-		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(DebugInfoRange(@2, @6));
+		DebugInfo di = DebugInfoRange(@2, @6);
+		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(di);
 
 		ConfigItem::Ptr oldItem = ConfigItem::GetObject($3, $4);
 
 		if (oldItem) {
 			std::ostringstream msgbuf;
-			msgbuf << "Object '" << $4 << "' of type '" << $3 << "' re-defined; previous definition: " << oldItem->GetDebugInfo();
+			msgbuf << "Object '" << $4 << "' of type '" << $3 << "' re-defined: " << di << "; previous definition: " << oldItem->GetDebugInfo();
 			free($3);
 			free($4);
 			delete $5;
