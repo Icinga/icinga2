@@ -43,6 +43,23 @@
 #define YYLTYPE icinga::DebugInfo
 #define YYERROR_VERBOSE
 
+#define YYLLOC_DEFAULT(Current, Rhs, N)					\
+do {									\
+	if (YYID (N)) {							\
+		(Current).Path = YYRHSLOC(Rhs, 1).Path;			\
+		(Current).FirstLine = YYRHSLOC(Rhs, 1).FirstLine;	\
+		(Current).FirstColumn = YYRHSLOC(Rhs, 1).FirstColumn;	\
+		(Current).LastLine = YYRHSLOC(Rhs, N).LastLine;		\
+		(Current).LastColumn = YYRHSLOC(Rhs, N).LastColumn;	\
+	} else {							\
+		(Current).Path = YYRHSLOC(Rhs, 0).Path;			\
+		(Current).FirstLine = (Current).LastLine =		\
+		YYRHSLOC(Rhs, 0).LastLine;				\
+		(Current).FirstColumn = (Current).LastColumn =		\
+		YYRHSLOC(Rhs, 0).LastColumn;				\
+	}								\
+} while (0)
+
 #define YY_LOCATION_PRINT(file, loc)			\
 do {							\
        std::ostringstream msgbuf;			\
