@@ -108,3 +108,16 @@ configuration format is explained in detail in the doc/ directory.
 By default "make install" installs example configuration files in
 /usr/local/etc/icinga2 unless you have specified a different prefix or
 sysconfdir.
+
+
+Package Builds
+--------------
+
+In order to create a snapshot tarball, create a new release directory outside
+the source tree and run cmake and make. Replace <version> with the correct
+string.
+
+$ cd ..
+$ mkdir icinga2-release && cd icinga2-release
+$ cmake ../icinga2 -DCPACK_SOURCE_GENERATE=TGZ -DCPACK_SOURCE_PACKAGE_FILE_NAME=icinga2-<version>
+$ make package_source
