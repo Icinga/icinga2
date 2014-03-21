@@ -46,7 +46,7 @@
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)					\
 do {									\
-	if (YYID (N)) {							\
+	if (N) {							\
 		(Current).Path = YYRHSLOC(Rhs, 1).Path;			\
 		(Current).FirstLine = YYRHSLOC(Rhs, 1).FirstLine;	\
 		(Current).FirstColumn = YYRHSLOC(Rhs, 1).FirstColumn;	\
