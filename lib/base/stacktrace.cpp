@@ -21,6 +21,7 @@
 #include "base/qstring.h"
 #include "base/utility.h"
 #include "base/convert.h"
+#include "base/application.h"
 #include <boost/algorithm/string/trim.hpp>
 
 #ifdef HAVE_BACKTRACE_SYMBOLS
@@ -111,7 +112,7 @@ String StackTrace::Addr2Line(const String& exe, uintptr_t rva)
 {
 #ifndef _WIN32
 	std::ostringstream msgbuf;
-	msgbuf << "addr2line -s -e " << exe << " " << std::hex << rva;
+	msgbuf << "addr2line -s -e " << Application::GetExePath(exe) << " " << std::hex << rva << " 2>/dev/null";
 
 	String args = msgbuf.str();
 
@@ -120,12 +121,15 @@ String StackTrace::Addr2Line(const String& exe, uintptr_t rva)
 	if (!fp)
 		return "RVA: " + Convert::ToString(rva);
 
-	char buffer[512];
+	char buffer[512] = {};
 	fgets(buffer, sizeof(buffer), fp);
 	fclose(fp);
 
 	String line = buffer;
 	boost::algorithm::trim_right(line);
+
+	if (line.GetLength() == 0)
+		return "RVA: " + Convert::ToString(rva);
 
 	return line;
 #else /* _WIN32 */
