@@ -51,6 +51,8 @@ DebugInfo icinga::DebugInfoRange(const DebugInfo& start, const DebugInfo& end)
 	return result;
 }
 
+#define EXTRA_LINES 2
+
 void icinga::ShowCodeFragment(std::ostream& out, const DebugInfo& di)
 {
 	if (di.Path.IsEmpty())
@@ -62,34 +64,36 @@ void icinga::ShowCodeFragment(std::ostream& out, const DebugInfo& di)
 	int lineno = 1;
 	char line[1024];
 
-	while (ifs.good() && lineno <= di.LastLine) {
+	while (ifs.good() && lineno <= di.LastLine + EXTRA_LINES) {
 		ifs.getline(line, sizeof(line));
 
 		for (int i = 0; line[i]; i++)
 			if (line[i] == '\t')
 				line[i] = ' ';
 
-		if (lineno >= di.FirstLine && lineno <= di.LastLine) {
+		if (lineno >= di.FirstLine - EXTRA_LINES && lineno <= di.LastLine + EXTRA_LINES) {
 			String pathInfo = di.Path + "(" + Convert::ToString(lineno) + "): ";
 			out << pathInfo;
 			out << line << "\n";
 
-			int start, end;
+			if (lineno >= di.FirstLine && lineno <= di.LastLine) {
+				int start, end;
 
-			start = 0;
-			end = strlen(line);
+				start = 0;
+				end = strlen(line);
 
-			if (lineno == di.FirstLine)
-				start = di.FirstColumn - 1;
+				if (lineno == di.FirstLine)
+					start = di.FirstColumn - 1;
 
-			if (lineno == di.LastLine)
-				end = di.LastColumn;
+				if (lineno == di.LastLine)
+					end = di.LastColumn;
 
-			out << String(pathInfo.GetLength(), ' ');
-			out << String(start, ' ');
-			out << String(end - start, '^');
+				out << String(pathInfo.GetLength(), ' ');
+				out << String(start, ' ');
+				out << String(end - start, '^');
 
-			out << "\n";
+				out << "\n";
+			}
 		}
 
 		lineno++;
