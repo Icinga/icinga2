@@ -76,6 +76,17 @@ inline std::ostream& operator<<(std::ostream& out, const DebugInfo& val)
 	return out;
 }
 
+inline DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end)
+{
+	DebugInfo result;
+	result.Path = start.Path;
+	result.FirstLine = start.FirstLine;
+	result.FirstColumn = start.FirstColumn;
+	result.LastLine = end.LastLine;
+	result.LastColumn = end.LastColumn;
+	return result;
+}
+
 }
 
 #endif /* DEBUGINFO_H */

@@ -1,4 +1,6 @@
 %{
+ #define YYDEBUG 1
+ 
 /******************************************************************************
  * Icinga 2                                                                   *
  * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
@@ -39,6 +41,15 @@
 #include <boost/foreach.hpp>
 
 #define YYLTYPE icinga::DebugInfo
+#define YYERROR_VERBOSE
+
+#define YY_LOCATION_PRINT(file, loc)			\
+do {							\
+       std::ostringstream msgbuf;			\
+       msgbuf << loc;					\
+       std::string str = msgbuf.str();			\
+       fputs(str.c_str(), file);			\
+} while (0)
 
 using namespace icinga;
 
@@ -179,24 +190,24 @@ statement: object | type | include | include_recursive | library | variable | ap
 
 include: T_INCLUDE value
 	{
-		context->HandleInclude(*$2, false, yylloc);
+		context->HandleInclude(*$2, false, DebugInfoRange(@1, @2));
 		delete $2;
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
-		context->HandleInclude($2, true, yylloc);
+		context->HandleInclude($2, true, DebugInfoRange(@1, @2));
 		free($2);
 	}
 	;
 
 include_recursive: T_INCLUDE_RECURSIVE value
 	{
-		context->HandleIncludeRecursive(*$2, "*.conf", yylloc);
+		context->HandleIncludeRecursive(*$2, "*.conf", DebugInfoRange(@1, @2));
 		delete $2;
 	}
 	| T_INCLUDE_RECURSIVE value value
 	{
-		context->HandleIncludeRecursive(*$2, *$3, yylloc);
+		context->HandleIncludeRecursive(*$2, *$3, DebugInfoRange(@1, @3));
 		delete $2;
 		delete $3;
 	}
@@ -256,7 +267,7 @@ type: partial_specifier T_TYPE identifier
 			if ($1)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Partial type definition for unknown type '" + name + "'"));
 
-			m_Type = make_shared<ConfigType>(name, yylloc);
+			m_Type = make_shared<ConfigType>(name, DebugInfoRange(@1, @3));
 			m_Type->Register();
 		}
 	}
@@ -316,14 +327,14 @@ typerule: T_REQUIRE T_STRING
 	}
 	| T_ATTRIBUTE type T_STRING
 	{
-		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), yylloc);
+		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), DebugInfoRange(@1, @3));
 		free($3);
 
 		m_RuleLists.top()->AddRule(rule);
 	}
 	| T_ATTRIBUTE T_TYPE_NAME '(' identifier ')' T_STRING
 	{
-		TypeRule rule($2, $4, $6, TypeRuleList::Ptr(), yylloc);
+		TypeRule rule($2, $4, $6, TypeRuleList::Ptr(), DebugInfoRange(@1, @6));
 		free($4);
 		free($6);
 
@@ -331,7 +342,7 @@ typerule: T_REQUIRE T_STRING
 	}
 	| T_ATTRIBUTE type T_STRING typerulelist
 	{
-		TypeRule rule($2, String(), $3, *$4, yylloc);
+		TypeRule rule($2, String(), $3, *$4, DebugInfoRange(@1, @4));
 		free($3);
 		delete $4;
 		m_RuleLists.top()->AddRule(rule);
@@ -362,9 +373,9 @@ object:
 	{
 		m_Abstract = false;
 	}
-object_declaration identifier T_STRING object_inherits_specifier expressionlist
+	object_declaration identifier T_STRING object_inherits_specifier expressionlist
 	{
-		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(yylloc);
+		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(DebugInfoRange(@2, @6));
 
 		ConfigItem::Ptr oldItem = ConfigItem::GetObject($3, $4);
 
@@ -491,20 +502,20 @@ expressions_inner: /* empty */
 
 expression: identifier operator value
 	{
-		$$ = new Expression($1, $2, *$3, yylloc);
+		$$ = new Expression($1, $2, *$3, DebugInfoRange(@1, @3));
 		free($1);
 		delete $3;
 	}
 	| identifier '[' T_STRING ']' operator value
 	{
-		Expression subexpr($3, $5, *$6, yylloc);
+		Expression subexpr($3, $5, *$6, DebugInfoRange(@1, @6));
 		free($3);
 		delete $6;
 
 		ExpressionList::Ptr subexprl = make_shared<ExpressionList>();
 		subexprl->AddExpression(subexpr);
 
-		$$ = new Expression($1, OperatorPlus, subexprl, yylloc);
+		$$ = new Expression($1, OperatorPlus, subexprl, DebugInfoRange(@1, @6));
 		free($1);
 	}
 	;
@@ -552,41 +563,41 @@ array_items_inner: /* empty */
 
 aexpression: T_STRING
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), @1));
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, $1), @1));
 	}
 	| T_NULL
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, Empty), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATSimple, Empty), @1));
 	}
 	| T_IDENTIFIER '(' array_items ')'
 	{
 		Array::Ptr arguments = Array::Ptr($3);
-		$$ = new Value(make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, $1), AValue(ATSimple, arguments), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, $1), AValue(ATSimple, arguments), DebugInfoRange(@1, @4)));
 		free($1);
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEReturn, AValue(ATVariable, $1), @1));
 		free($1);
 	}
 	| '!' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| '~' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), yylloc));
+		$$ = new Value(make_shared<AExpression>(AENegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| '[' array_items ']'
 	{
-		$$ = new Value(make_shared<AExpression>(AEArray, AValue(ATSimple, Array::Ptr($2)), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEArray, AValue(ATSimple, Array::Ptr($2)), DebugInfoRange(@1, @3)));
 	}
 	| '(' aexpression ')'
 	{
@@ -594,109 +605,109 @@ aexpression: T_STRING
 	}
 	| aexpression '+' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEAdd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '-' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AESubtract, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '*' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEMultiply, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '/' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEDivide, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '&' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEBinaryAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '|' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEBinaryOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @2)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_IN aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_NOT_IN aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AENotIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AENotIn, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_LESS_THAN_OR_EQUAL aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AELessThanOrEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AELessThanOrEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_GREATER_THAN_OR_EQUAL aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEGreaterThanOrEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEGreaterThanOrEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '<' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AELessThan, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AELessThan, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression '>' aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEGreaterThan, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEGreaterThan, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_EQUAL aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_NOT_EQUAL aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AENotEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AENotEqual, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_SHIFT_LEFT aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEShiftLeft, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_SHIFT_RIGHT aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AEShiftRight, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_LOGICAL_AND aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AELogicalAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AELogicalAnd, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
 	| aexpression T_LOGICAL_OR aexpression
 	{
-		$$ = new Value(make_shared<AExpression>(AELogicalOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), yylloc));
+		$$ = new Value(make_shared<AExpression>(AELogicalOr, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
 		delete $1;
 		delete $3;
 	}
@@ -729,8 +740,8 @@ apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE a
 		arguments->Add(*$8);
 		delete $8;
 
-		AExpression::Ptr aexpr = make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, "bool"), AValue(ATSimple, arguments), yylloc);
+		AExpression::Ptr aexpr = make_shared<AExpression>(AEFunctionCall, AValue(ATSimple, "bool"), AValue(ATSimple, arguments), @8);
 
-		ApplyRule::AddRule($3, $4, $6, aexpr, yylloc);
+		ApplyRule::AddRule($3, $4, $6, aexpr, DebugInfoRange(@1, @8));
 	}
 %%
