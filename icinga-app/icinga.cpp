@@ -64,8 +64,6 @@ static String LoadAppType(const String& typeSpec)
 
 static bool LoadConfigFiles(const String& appType, ValidationType validate)
 {
-	CONTEXT("Loading configuration files");
-
 	ConfigCompilerContext::GetInstance()->Reset();
 
 	if (g_AppParams.count("config") > 0) {

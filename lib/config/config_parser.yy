@@ -191,7 +191,7 @@ void ConfigCompiler::Compile(void)
 		yyparse(this);
 	} catch (const ConfigError& ex) {
 		ShowCodeFragment(std::cout, ex.GetDebugInfo());
-		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
+		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what());
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
