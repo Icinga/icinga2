@@ -38,28 +38,31 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	void *thrown_ptr = obj;
 	const std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
 	const std::type_info *boost_exc = &typeid(boost::exception);
+	const std::type_info *user_exc = &typeid(user_error);
 
 	/* Check if the exception is a pointer type. */
 	if (tinfo->__is_pointer_p())
 		thrown_ptr = *(void **)thrown_ptr;
+
+	if (!user_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
 #endif /* __APPLE__ */
+		StackTrace stack;
+		SetLastExceptionStack(stack);
 
-	StackTrace stack;
-	SetLastExceptionStack(stack);
-
-	ContextTrace context;
-	SetLastExceptionContext(context);
+		ContextTrace context;
+		SetLastExceptionContext(context);
 
 #ifndef __APPLE__
-	/* Check if thrown_ptr inherits from boost::exception. */
-	if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
-		boost::exception *ex = (boost::exception *)thrown_ptr;
+		/* Check if thrown_ptr inherits from boost::exception. */
+		if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
+			boost::exception *ex = (boost::exception *)thrown_ptr;
 
-		if (boost::get_error_info<StackTraceErrorInfo>(*ex) == NULL)
-			*ex << StackTraceErrorInfo(stack);
+			if (boost::get_error_info<StackTraceErrorInfo>(*ex) == NULL)
+				*ex << StackTraceErrorInfo(stack);
 
-		if (boost::get_error_info<ContextTraceErrorInfo>(*ex) == NULL)
-			*ex << ContextTraceErrorInfo(context);
+			if (boost::get_error_info<ContextTraceErrorInfo>(*ex) == NULL)
+				*ex << ContextTraceErrorInfo(context);
+		}
 	}
 #endif /* __APPLE__ */
 
