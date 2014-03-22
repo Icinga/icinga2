@@ -23,6 +23,7 @@
 #include "base/convert.h"
 #include "base/array.h"
 #include "base/dictionary.h"
+#include "base/logger_fwd.h"
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
@@ -34,6 +35,7 @@ REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
 REGISTER_SCRIPTFUNCTION(len, &UtilityFuncs::Len);
 REGISTER_SCRIPTFUNCTION(union, &UtilityFuncs::Union);
 REGISTER_SCRIPTFUNCTION(intersection, &UtilityFuncs::Intersection);
+REGISTER_SCRIPTFUNCTION(log, &UtilityFuncs::Log);
 
 bool UtilityFuncs::Regex(const String& pattern, const String& text)
 {
@@ -97,4 +99,9 @@ Array::Ptr UtilityFuncs::Intersection(const std::vector<Value>& arguments)
 	}
 
 	return result;
+}
+
+void UtilityFuncs::Log(const String& message)
+{
+	::Log(LogInformation, "config", message);
 }

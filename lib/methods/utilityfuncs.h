@@ -37,6 +37,7 @@ public:
 	static int Len(const Value& value);
 	static Array::Ptr Union(const std::vector<Value>& arguments);
 	static Array::Ptr Intersection(const std::vector<Value>& arguments);
+	static void Log(const String& message);
 
 private:
 	UtilityFuncs(void);
