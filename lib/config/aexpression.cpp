@@ -23,140 +23,194 @@
 #include "base/serializer.h"
 #include "base/context.h"
 #include "base/scriptfunction.h"
+#include "base/scriptvariable.h"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
 using namespace icinga;
 
-AExpression::AExpression(AOperator op, const AValue& operand1, const DebugInfo& di)
+AExpression::AExpression(OpCallback op, const Value& operand1, const DebugInfo& di)
 	: m_Operator(op), m_Operand1(operand1), m_DebugInfo(di)
-{
-	ASSERT(op == AEReturn);
-}
+{ }
 
-AExpression::AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di)
+AExpression::AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di)
 	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2), m_DebugInfo(di)
-{
-	ASSERT(op == AEAdd || op == AENegate || op == AESubtract || op == AEMultiply || op == AEDivide ||
-		op == AEBinaryAnd || op == AEBinaryOr || op == AEShiftLeft || op == AEShiftRight ||
-		op == AEEqual || op == AENotEqual || op == AEIn || op == AENotIn ||
-		op == AELogicalAnd || op == AELogicalOr || op == AEFunctionCall);
-}
+{ }
 
 Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 {
-	Value left, right;
-	Array::Ptr arr, arr2;
-	bool found;
-	String funcName;
-	ScriptFunction::Ptr func;
-	std::vector<Value> arguments;
-
-	left = m_Operand1.Evaluate(locals);
-	right = m_Operand2.Evaluate(locals);
-
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating AExpression " << m_DebugInfo << "; left=" << JsonSerialize(left) << "; right=" << JsonSerialize(right);
-	CONTEXT(msgbuf.str());
-
 	try {
-		switch (m_Operator) {
-			case AEReturn:
-				return left;
-			case AENegate:
-				return ~(long)left;
-			case AEAdd:
-				return left + right;
-			case AESubtract:
-				return left - right;
-			case AEMultiply:
-				return left * right;
-			case AEDivide:
-				return left / right;
-			case AEBinaryAnd:
-				return left & right;
-			case AEBinaryOr:
-				return left | right;
-			case AEShiftLeft:
-				return left << right;
-			case AEShiftRight:
-				return left >> right;
-			case AEEqual:
-				return left == right;
-			case AENotEqual:
-				return left != right;
-			case AELessThan:
-				return left < right;
-			case AEGreaterThan:
-				return left > right;
-			case AELessThanOrEqual:
-				return left <= right;
-			case AEGreaterThanOrEqual:
-				return left >= right;
-			case AEIn:
-				if (!right.IsObjectType<Array>())
-					BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
-
-				arr = right;
-				found = false;
-				BOOST_FOREACH(const Value& value, arr) {
-					if (value == left) {
-						found = true;
-						break;
-					}
-				}
-
-				return found;
-			case AENotIn:
-				if (!right.IsObjectType<Array>())
-					BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
-
-				arr = right;
-				found = false;
-				BOOST_FOREACH(const Value& value, arr) {
-					if (value == left) {
-						found = true;
-						break;
-					}
-				}
-
-				return !found;
-			case AELogicalAnd:
-				return left.ToBool() && right.ToBool();
-			case AELogicalOr:
-				return left.ToBool() || right.ToBool();
-			case AEFunctionCall:
-				funcName = left;
-				func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
-
-				if (!func)
-					BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
-
-				arr = right;
-				BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
-					arguments.push_back(aexpr->Evaluate(locals));
-				}
-
-				return func->Invoke(arguments);
-			case AEArray:
-				arr = left;
-				arr2 = make_shared<Array>();
-
-				if (arr) {
-					BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
-						arr2->Add(aexpr->Evaluate(locals));
-					}
-				}
-
-				return arr2;
-			default:
-				ASSERT(!"Invalid operator.");
-		}
+		return (this->*m_Operator)(locals);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
 		else
 			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression.") << boost::errinfo_nested_exception(boost::current_exception()) << errinfo_debuginfo(m_DebugInfo));
 	}
+}
+
+Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals) const
+{
+	return static_cast<AExpression::Ptr>(m_Operand1)->Evaluate(locals);
+}
+
+Value AExpression::EvaluateOperand2(const Dictionary::Ptr& locals) const
+{
+	return static_cast<AExpression::Ptr>(m_Operand2)->Evaluate(locals);
+}
+
+Value AExpression::OpLiteral(const Dictionary::Ptr& locals) const
+{
+	return m_Operand1;
+}
+
+Value AExpression::OpVariable(const Dictionary::Ptr& locals) const
+{
+	if (locals && locals->Contains(m_Operand1))
+		return locals->Get(m_Operand1);
+	else
+		return ScriptVariable::Get(m_Operand1);
+}
+
+Value AExpression::OpNegate(const Dictionary::Ptr& locals) const
+{
+	return ~(long)EvaluateOperand1(locals);
+}
+
+Value AExpression::OpAdd(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) + EvaluateOperand2(locals);
+}
+
+Value AExpression::OpSubtract(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) - EvaluateOperand2(locals);
+}
+
+Value AExpression::OpMultiply(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) * EvaluateOperand2(locals);
+}
+
+Value AExpression::OpDivide(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) / EvaluateOperand2(locals);
+}
+
+Value AExpression::OpBinaryAnd(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) & EvaluateOperand2(locals);
+}
+
+Value AExpression::OpBinaryOr(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) | EvaluateOperand2(locals);
+}
+
+Value AExpression::OpShiftLeft(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) << EvaluateOperand2(locals);
+}
+
+Value AExpression::OpShiftRight(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) >> EvaluateOperand2(locals);
+}
+
+Value AExpression::OpEqual(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) == EvaluateOperand2(locals);
+}
+
+Value AExpression::OpNotEqual(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) != EvaluateOperand2(locals);
+}
+
+Value AExpression::OpLessThan(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) < EvaluateOperand2(locals);
+}
+
+Value AExpression::OpGreaterThan(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) > EvaluateOperand2(locals);
+}
+
+Value AExpression::OpLessThanOrEqual(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) <= EvaluateOperand2(locals);
+}
+
+Value AExpression::OpGreaterThanOrEqual(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals) >= EvaluateOperand2(locals);
+}
+
+Value AExpression::OpIn(const Dictionary::Ptr& locals) const
+{
+	Value right = EvaluateOperand1(locals);
+
+	if (!right.IsObjectType<Array>())
+		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
+
+	Value left = EvaluateOperand2(locals);
+		
+	Array::Ptr arr = right;
+	bool found = false;
+	BOOST_FOREACH(const Value& value, arr) {
+		if (value == left) {
+			found = true;
+			break;
+		}
+	}
+
+	return found;
+}
+
+Value AExpression::OpNotIn(const Dictionary::Ptr& locals) const
+{
+	return !OpIn(locals);
+}
+
+Value AExpression::OpLogicalAnd(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals).ToBool() && EvaluateOperand2(locals).ToBool();
+}
+
+Value AExpression::OpLogicalOr(const Dictionary::Ptr& locals) const
+{
+	return EvaluateOperand1(locals).ToBool() || EvaluateOperand2(locals).ToBool();
+}
+
+Value AExpression::OpFunctionCall(const Dictionary::Ptr& locals) const
+{
+	String funcName = m_Operand1;
+	ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
+
+	if (!func)
+		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
+
+	Array::Ptr arr = EvaluateOperand2(locals);
+	std::vector<Value> arguments;
+	BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+		arguments.push_back(aexpr->Evaluate(locals));
+	}
+
+	return func->Invoke(arguments);
+}
+
+Value AExpression::OpArray(const Dictionary::Ptr& locals) const
+{
+	Array::Ptr arr = m_Operand1;
+	Array::Ptr result = make_shared<Array>();
+
+	if (arr) {
+		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+			result->Add(aexpr->Evaluate(locals));
+		}
+	}
+
+	return result;
 }

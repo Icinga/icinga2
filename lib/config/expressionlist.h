@@ -42,12 +42,7 @@ public:
 
 	void Execute(const Dictionary::Ptr& dictionary) const;
 
-	size_t GetLength(void) const;
-
 	void ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const;
-	void ExtractFiltered(const std::set<String>& keys, const ExpressionList::Ptr& result) const;
-
-	void ErasePath(const std::vector<String>& path);
 
 	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
 

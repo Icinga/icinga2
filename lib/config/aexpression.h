@@ -21,7 +21,6 @@
 #define AEXPRESSION_H
 
 #include "config/i2-config.h"
-#include "config/avalue.h"
 #include "config/debuginfo.h"
 #include "base/dictionary.h"
 
@@ -31,50 +30,50 @@ namespace icinga
 /**
  * @ingroup config
  */
-enum AOperator
-{
-	AEReturn,
-	AENegate,
-	AEAdd,
-	AESubtract,
-	AEMultiply,
-	AEDivide,
-	AEBinaryAnd,
-	AEBinaryOr,
-	AEShiftLeft,
-	AEShiftRight,
-	AEEqual,
-	AENotEqual,
-	AEIn,
-	AENotIn,
-	AELogicalAnd,
-	AELogicalOr,
-	AEFunctionCall,
-	AEArray,
-	AELessThan,
-	AEGreaterThan,
-	AELessThanOrEqual,
-	AEGreaterThanOrEqual
-};
-
-/**
- * @ingroup config
- */
 class I2_CONFIG_API AExpression : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(AExpression);
+	
+	typedef Value (AExpression::*OpCallback)(const Dictionary::Ptr&) const;
 
-	AExpression(AOperator op, const AValue& operand1, const DebugInfo& di);
-	AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di);
+	AExpression(OpCallback op, const Value& operand1, const DebugInfo& di);
+	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
 
 	Value Evaluate(const Dictionary::Ptr& locals) const;
 
+	Value OpLiteral(const Dictionary::Ptr& locals) const;
+	Value OpVariable(const Dictionary::Ptr& locals) const;
+	Value OpNegate(const Dictionary::Ptr& locals) const;
+	Value OpAdd(const Dictionary::Ptr& locals) const;
+	Value OpSubtract(const Dictionary::Ptr& locals) const;
+	Value OpMultiply(const Dictionary::Ptr& locals) const;
+	Value OpDivide(const Dictionary::Ptr& locals) const;
+	Value OpBinaryAnd(const Dictionary::Ptr& locals) const;
+	Value OpBinaryOr(const Dictionary::Ptr& locals) const;
+	Value OpShiftLeft(const Dictionary::Ptr& locals) const;
+	Value OpShiftRight(const Dictionary::Ptr& locals) const;
+	Value OpEqual(const Dictionary::Ptr& locals) const;
+	Value OpNotEqual(const Dictionary::Ptr& locals) const;
+	Value OpLessThan(const Dictionary::Ptr& locals) const;
+	Value OpGreaterThan(const Dictionary::Ptr& locals) const;
+	Value OpLessThanOrEqual(const Dictionary::Ptr& locals) const;
+	Value OpGreaterThanOrEqual(const Dictionary::Ptr& locals) const;
+	Value OpIn(const Dictionary::Ptr& locals) const;
+	Value OpNotIn(const Dictionary::Ptr& locals) const;
+	Value OpLogicalAnd(const Dictionary::Ptr& locals) const;
+	Value OpLogicalOr(const Dictionary::Ptr& locals) const;
+	Value OpFunctionCall(const Dictionary::Ptr& locals) const;
+	Value OpArray(const Dictionary::Ptr& locals) const;
+
 private:
-	AOperator m_Operator;
-	AValue m_Operand1;
-	AValue m_Operand2;
+	OpCallback m_Operator;
+	Value m_Operand1;
+	Value m_Operand2;
 	DebugInfo m_DebugInfo;
+
+	Value EvaluateOperand1(const Dictionary::Ptr& locals) const;
+	Value EvaluateOperand2(const Dictionary::Ptr& locals) const;
 };
 
 }

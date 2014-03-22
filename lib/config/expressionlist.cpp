@@ -33,16 +33,6 @@ void ExpressionList::AddExpression(const Expression& expression)
 }
 
 /**
- * Returns the number of items currently contained in the expression list.
- *
- * @returns The length of the list.
- */
-size_t ExpressionList::GetLength(void) const
-{
-	return m_Expressions.size();
-}
-
-/**
  * Executes the expression list.
  *
  * @param dictionary The dictionary that should be manipulated by the
@@ -59,20 +49,6 @@ void ExpressionList::ExtractPath(const std::vector<String>& path, const Expressi
 {
 	BOOST_FOREACH(const Expression& expression, m_Expressions) {
 		expression.ExtractPath(path, result);
-	}
-}
-
-void ExpressionList::ExtractFiltered(const std::set<String>& keys, const ExpressionList::Ptr& result) const
-{
-	BOOST_FOREACH(const Expression& expression, m_Expressions) {
-		expression.ExtractFiltered(keys, result);
-	}
-}
-
-void ExpressionList::ErasePath(const std::vector<String>& path)
-{
-	BOOST_FOREACH(Expression& expression, m_Expressions) {
-		expression.ErasePath(path);
 	}
 }
 

@@ -85,11 +85,6 @@ void Expression::Execute(const Dictionary::Ptr& dictionary) const
 	Array::Ptr array;
 
 	switch (m_Operator) {
-		case OperatorNop:
-			/* Nothing to do here. */
-
-			return;
-
 		case OperatorExecute:
 			if (!valueExprl)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Operand for OperatorExecute must be an ExpressionList."));
@@ -186,35 +181,6 @@ void Expression::ExtractPath(const std::vector<String>& path, const ExpressionLi
 	} else if (m_Operator == OperatorExecute) {
 		ExpressionList::Ptr exprl = m_Value;
 		exprl->ExtractPath(path, result);
-	}
-}
-
-void Expression::ExtractFiltered(const std::set<String>& keys, const shared_ptr<ExpressionList>& result) const
-{
-	if (keys.find(m_Key) != keys.end()) {
-		result->AddExpression(*this);
-	} else if (m_Operator == OperatorExecute) {
-		ExpressionList::Ptr exprl = m_Value;
-		exprl->ExtractFiltered(keys, result);
-	}
-}
-
-void Expression::ErasePath(const std::vector<String>& path)
-{
-	ASSERT(!path.empty());
-
-	if (path[0] == m_Key) {
-		if (path.size() == 1) {
-			m_Operator = OperatorNop;
-		} else if (m_Value.IsObjectType<ExpressionList>()) {
-			ExpressionList::Ptr exprl = m_Value;
-
-			std::vector<String> sub_path(path.begin() + 1, path.end());
-			exprl->ErasePath(sub_path);
-		}
-	} else if (m_Operator == OperatorExecute) {
-		ExpressionList::Ptr exprl = m_Value;
-		exprl->ErasePath(path);
 	}
 }
 
