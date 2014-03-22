@@ -18,11 +18,12 @@
  ******************************************************************************/
 
 #include "config/configerror.h"
+#include <sstream>
 
 using namespace icinga;
 
-ConfigError::ConfigError(const String& message, const DebugInfo& di)
-	: m_Message(message), m_DebugInfo(di)
+ConfigError::ConfigError(const String& message)
+	: m_Message(message)
 { }
 
 ConfigError::~ConfigError(void) throw()
@@ -33,7 +34,10 @@ const char *ConfigError::what(void) const throw()
 	return m_Message.CStr();
 }
 
-DebugInfo ConfigError::GetDebugInfo(void) const
+std::string icinga::to_string(const errinfo_debuginfo& e)
 {
-	return m_DebugInfo;
+	std::ostringstream msgbuf;
+	msgbuf << "Config location: " << e.value() << "\n";
+	ShowCodeFragment(msgbuf, e.value());
+	return msgbuf.str();
 }

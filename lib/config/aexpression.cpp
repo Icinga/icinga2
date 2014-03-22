@@ -18,11 +18,14 @@
  ******************************************************************************/
 
 #include "config/aexpression.h"
+#include "config/configerror.h"
 #include "base/array.h"
 #include "base/serializer.h"
 #include "base/context.h"
 #include "base/scriptfunction.h"
 #include <boost/foreach.hpp>
+#include <boost/exception_ptr.hpp>
+#include <boost/exception/errinfo_nested_exception.hpp>
 
 using namespace icinga;
 
@@ -57,96 +60,103 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 	msgbuf << "Evaluating AExpression " << m_DebugInfo << "; left=" << JsonSerialize(left) << "; right=" << JsonSerialize(right);
 	CONTEXT(msgbuf.str());
 
-	switch (m_Operator) {
-		case AEReturn:
-			return left;
-		case AENegate:
-			return ~(long)left;
-		case AEAdd:
-			return left + right;
-		case AESubtract:
-			return left - right;
-		case AEMultiply:
-			return left * right;
-		case AEDivide:
-			return left / right;
-		case AEBinaryAnd:
-			return left & right;
-		case AEBinaryOr:
-			return left | right;
-		case AEShiftLeft:
-			return left << right;
-		case AEShiftRight:
-			return left >> right;
-		case AEEqual:
-			return left == right;
-		case AENotEqual:
-			return left != right;
-		case AELessThan:
-			return left < right;
-		case AEGreaterThan:
-			return left > right;
-		case AELessThanOrEqual:
-			return left <= right;
-		case AEGreaterThanOrEqual:
-			return left >= right;
-		case AEIn:
-			if (!right.IsObjectType<Array>())
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
+	try {
+		switch (m_Operator) {
+			case AEReturn:
+				return left;
+			case AENegate:
+				return ~(long)left;
+			case AEAdd:
+				return left + right;
+			case AESubtract:
+				return left - right;
+			case AEMultiply:
+				return left * right;
+			case AEDivide:
+				return left / right;
+			case AEBinaryAnd:
+				return left & right;
+			case AEBinaryOr:
+				return left | right;
+			case AEShiftLeft:
+				return left << right;
+			case AEShiftRight:
+				return left >> right;
+			case AEEqual:
+				return left == right;
+			case AENotEqual:
+				return left != right;
+			case AELessThan:
+				return left < right;
+			case AEGreaterThan:
+				return left > right;
+			case AELessThanOrEqual:
+				return left <= right;
+			case AEGreaterThanOrEqual:
+				return left >= right;
+			case AEIn:
+				if (!right.IsObjectType<Array>())
+					BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
 
-			arr = right;
-			found = false;
-			BOOST_FOREACH(const Value& value, arr) {
-				if (value == left) {
-					found = true;
-					break;
+				arr = right;
+				found = false;
+				BOOST_FOREACH(const Value& value, arr) {
+					if (value == left) {
+						found = true;
+						break;
+					}
 				}
-			}
 
-			return found;
-		case AENotIn:
-			if (!right.IsObjectType<Array>())
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
+				return found;
+			case AENotIn:
+				if (!right.IsObjectType<Array>())
+					BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
 
-			arr = right;
-			found = false;
-			BOOST_FOREACH(const Value& value, arr) {
-				if (value == left) {
-					found = true;
-					break;
+				arr = right;
+				found = false;
+				BOOST_FOREACH(const Value& value, arr) {
+					if (value == left) {
+						found = true;
+						break;
+					}
 				}
-			}
 
-			return !found;
-		case AELogicalAnd:
-			return left.ToBool() && right.ToBool();
-		case AELogicalOr:
-			return left.ToBool() || right.ToBool();
-		case AEFunctionCall:
-			funcName = left;
-			func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
+				return !found;
+			case AELogicalAnd:
+				return left.ToBool() && right.ToBool();
+			case AELogicalOr:
+				return left.ToBool() || right.ToBool();
+			case AEFunctionCall:
+				funcName = left;
+				func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
 
-			if (!func)
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + funcName + "' does not exist."));
+				if (!func)
+					BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
 
-			arr = right;
-			BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
-				arguments.push_back(aexpr->Evaluate(locals));
-			}
-
-			return func->Invoke(arguments);
-		case AEArray:
-			arr = left;
-			arr2 = make_shared<Array>();
-
-			if (arr) {
+				arr = right;
 				BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
-					arr2->Add(aexpr->Evaluate(locals));
+					arguments.push_back(aexpr->Evaluate(locals));
 				}
-			}
 
-			return arr2;
-		default:
-			ASSERT(!"Invalid operator.");
+				return func->Invoke(arguments);
+			case AEArray:
+				arr = left;
+				arr2 = make_shared<Array>();
+
+				if (arr) {
+					BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+						arr2->Add(aexpr->Evaluate(locals));
+					}
+				}
+
+				return arr2;
+			default:
+				ASSERT(!"Invalid operator.");
+		}
+	} catch (const std::exception& ex) {
+		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
+			throw;
+		else
+			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression.") << boost::errinfo_nested_exception(boost::current_exception()) << errinfo_debuginfo(m_DebugInfo));
 	}
 }

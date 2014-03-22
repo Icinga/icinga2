@@ -190,7 +190,8 @@ void ConfigCompiler::Compile(void)
 	try {
 		yyparse(this);
 	} catch (const ConfigError& ex) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
+		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
@@ -285,7 +286,7 @@ type: partial_specifier T_TYPE identifier
 
 		if (!m_Type) {
 			if ($1)
-				BOOST_THROW_EXCEPTION(ConfigError("Partial type definition for unknown type '" + name + "'", DebugInfoRange(@1, @3)));
+				BOOST_THROW_EXCEPTION(ConfigError("Partial type definition for unknown type '" + name + "'") << errinfo_debuginfo(DebugInfoRange(@1, @3)));
 
 			m_Type = make_shared<ConfigType>(name, DebugInfoRange(@1, @3));
 			m_Type->Register();
@@ -406,7 +407,7 @@ object:
 			free($3);
 			free($4);
 			delete $5;
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str(), di));
+			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(di));
 		}
 
 		item->SetType($3);
@@ -415,7 +416,7 @@ object:
 			std::ostringstream msgbuf;
 			msgbuf << "Name for object '" << $4 << "' of type '" << $3 << "' is invalid: Object names may not contain '!'";
 			free($3);
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str(), @4));
+			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(@4));
 		}
 
 		free($3);
@@ -754,7 +755,7 @@ optional_template: /* empty */
 apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE aexpression
 	{
 		if (!ApplyRule::IsValidCombination($3, $6)) {
-			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'.", @1));
+			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'.") << errinfo_debuginfo(@1));
 		}
 
 		Array::Ptr arguments = make_shared<Array>();
