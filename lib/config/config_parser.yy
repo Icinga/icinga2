@@ -207,6 +207,11 @@ statements: /* empty */
 	;
 
 statement: object | type | include | include_recursive | library | variable | apply
+	{ }
+	| value
+	{
+		delete $1;
+	}
 	;
 
 include: T_INCLUDE value
