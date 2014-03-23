@@ -25,6 +25,7 @@
 #include "base/dictionary.h"
 #include "base/serializer.h"
 #include "base/logger_fwd.h"
+#include "base/application.h"
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
@@ -37,6 +38,7 @@ REGISTER_SCRIPTFUNCTION(len, &ScriptUtils::Len);
 REGISTER_SCRIPTFUNCTION(union, &ScriptUtils::Union);
 REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
 REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
+REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
@@ -108,4 +110,9 @@ void ScriptUtils::Log(const Value& message)
 		::Log(LogInformation, "config", message);
 	else
 		::Log(LogInformation, "config", JsonSerialize(message));
+}
+
+void ScriptUtils::Exit(int code)
+{
+	exit(code);
 }
