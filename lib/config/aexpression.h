@@ -36,7 +36,7 @@ class I2_CONFIG_API AExpression : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(AExpression);
 	
-	typedef Value (AExpression::*OpCallback)(const Dictionary::Ptr&) const;
+	typedef Value (*OpCallback)(const AExpression *, const Dictionary::Ptr&);
 
 	AExpression(OpCallback op, const Value& operand1, const DebugInfo& di);
 	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
@@ -47,36 +47,38 @@ public:
 
 	void MakeInline(void);
 	
-	Value OpLiteral(const Dictionary::Ptr& locals) const;
-	Value OpVariable(const Dictionary::Ptr& locals) const;
-	Value OpNegate(const Dictionary::Ptr& locals) const;
-	Value OpAdd(const Dictionary::Ptr& locals) const;
-	Value OpSubtract(const Dictionary::Ptr& locals) const;
-	Value OpMultiply(const Dictionary::Ptr& locals) const;
-	Value OpDivide(const Dictionary::Ptr& locals) const;
-	Value OpBinaryAnd(const Dictionary::Ptr& locals) const;
-	Value OpBinaryOr(const Dictionary::Ptr& locals) const;
-	Value OpShiftLeft(const Dictionary::Ptr& locals) const;
-	Value OpShiftRight(const Dictionary::Ptr& locals) const;
-	Value OpEqual(const Dictionary::Ptr& locals) const;
-	Value OpNotEqual(const Dictionary::Ptr& locals) const;
-	Value OpLessThan(const Dictionary::Ptr& locals) const;
-	Value OpGreaterThan(const Dictionary::Ptr& locals) const;
-	Value OpLessThanOrEqual(const Dictionary::Ptr& locals) const;
-	Value OpGreaterThanOrEqual(const Dictionary::Ptr& locals) const;
-	Value OpIn(const Dictionary::Ptr& locals) const;
-	Value OpNotIn(const Dictionary::Ptr& locals) const;
-	Value OpLogicalAnd(const Dictionary::Ptr& locals) const;
-	Value OpLogicalOr(const Dictionary::Ptr& locals) const;
-	Value OpFunctionCall(const Dictionary::Ptr& locals) const;
-	Value OpArray(const Dictionary::Ptr& locals) const;
-	Value OpDict(const Dictionary::Ptr& locals) const;
-	Value OpSet(const Dictionary::Ptr& locals) const;
-	Value OpSetPlus(const Dictionary::Ptr& locals) const;
-	Value OpSetMinus(const Dictionary::Ptr& locals) const;
-	Value OpSetMultiply(const Dictionary::Ptr& locals) const;
-	Value OpSetDivide(const Dictionary::Ptr& locals) const;
-	Value OpIndexer(const Dictionary::Ptr& locals) const;
+	void Dump(std::ostream& stream, int indent = 0);
+	
+	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpAdd(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpDivide(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpBinaryAnd(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpBinaryOr(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpShiftLeft(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpShiftRight(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpNotEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLessThan(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpGreaterThan(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLessThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpGreaterThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpIn(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpNotIn(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLogicalAnd(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpArray(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpDict(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSet(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals);
 
 private:
 	OpCallback m_Operator;
@@ -86,6 +88,8 @@ private:
 
 	Value EvaluateOperand1(const Dictionary::Ptr& locals) const;
 	Value EvaluateOperand2(const Dictionary::Ptr& locals) const;
+
+	static void DumpOperand(std::ostream& stream, const Value& operand, int indent);
 };
 
 }

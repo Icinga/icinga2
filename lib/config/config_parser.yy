@@ -520,7 +520,7 @@ lterm_items: lterm_items_inner
 
 lterm_items_inner: /* empty */
 	{
-		$$ = NULL;
+		$$ = new Array();
 	}
 	| lterm
 	{
@@ -540,13 +540,14 @@ lterm_items_inner: /* empty */
 	}
 	;
 
-lterm: T_IDENTIFIER lbinary_op rterm
+lterm: identifier lbinary_op rterm
 	{
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
 		if ($2 == &AExpression::OpSetPlus || $2 == &AExpression::OpSetMinus || $2 == &AExpression::OpSetMultiply || $2 == &AExpression::OpSetDivide)
 			aexpr->MakeInline();
 
 		$$ = new Value(make_shared<AExpression>($2, $1, aexpr, DebugInfoRange(@1, @3)));
+		free($1);
 		delete $3;
 	}
 	| identifier '[' T_STRING ']' lbinary_op rterm
@@ -606,7 +607,7 @@ rterm_items: rterm_items_inner
 
 rterm_items_inner: /* empty */
 	{
-		$$ = NULL;
+		$$ = new Array();
 	}
 	| rterm
 	{
