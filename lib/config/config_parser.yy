@@ -157,6 +157,7 @@ using namespace icinga;
 %type <slist> object_inherits_list
 %type <slist> object_inherits_specifier
 %type <variant> rterm
+%type <variant> rterm_scope
 %type <variant> lterm
 %type <num> variable_decl
 %left T_LOGICAL_OR
@@ -410,35 +411,38 @@ object:
 	{
 		m_Abstract = false;
 	}
-	object_declaration identifier T_STRING object_inherits_specifier rterm
+	object_declaration identifier rterm object_inherits_specifier rterm_scope
 	{
 		DebugInfo di = DebugInfoRange(@2, @6);
 		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(di);
 
-		ConfigItem::Ptr oldItem = ConfigItem::GetObject($3, $4);
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
+		delete $4;
+		
+		String name = aexpr->Evaluate(m_ModuleScope);
+
+		ConfigItem::Ptr oldItem = ConfigItem::GetObject($3, name);
 
 		if (oldItem) {
 			std::ostringstream msgbuf;
-			msgbuf << "Object '" << $4 << "' of type '" << $3 << "' re-defined: " << di << "; previous definition: " << oldItem->GetDebugInfo();
+			msgbuf << "Object '" << name << "' of type '" << $3 << "' re-defined: " << di << "; previous definition: " << oldItem->GetDebugInfo();
 			free($3);
-			free($4);
 			delete $5;
 			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(di));
 		}
 
 		item->SetType($3);
 
-		if (strchr($4, '!') != NULL) {
+		if (name.FindFirstOf("!") != String::NPos) {
 			std::ostringstream msgbuf;
-			msgbuf << "Name for object '" << $4 << "' of type '" << $3 << "' is invalid: Object names may not contain '!'";
+			msgbuf << "Name for object '" << name << "' of type '" << $3 << "' is invalid: Object names may not contain '!'";
 			free($3);
 			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(@4));
 		}
 
 		free($3);
 
-		item->SetName($4);
-		free($4);
+		item->SetName(name);
 
 		if ($5) {
 			BOOST_FOREACH(const String& parent, *$5) {
@@ -633,6 +637,12 @@ rbinary_op: '+'
 	}
 	;
 
+rterm_scope: '{' lterm_items '}'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @3)));
+	}
+	;
+
 rterm: T_STRING
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, $1, @1));
@@ -677,9 +687,9 @@ rterm: T_STRING
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @3)));
 	}
-	| '{' lterm_items '}'
+	| rterm_scope
 	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @3)));
+		$$ = $1;
 	}
 	| '(' rterm ')'
 	{
