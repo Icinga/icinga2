@@ -76,6 +76,7 @@ public:
 	Value OpSetMinus(const Dictionary::Ptr& locals) const;
 	Value OpSetMultiply(const Dictionary::Ptr& locals) const;
 	Value OpSetDivide(const Dictionary::Ptr& locals) const;
+	Value OpIndexer(const Dictionary::Ptr& locals) const;
 
 private:
 	OpCallback m_Operator;

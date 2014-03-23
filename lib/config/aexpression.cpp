@@ -102,8 +102,8 @@ void AExpression::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& 
 
 void AExpression::MakeInline(void)
 {
-	ASSERT(m_Operator == &AExpression::OpDict);
-	m_Operand2 = true;
+	if (m_Operator == &AExpression::OpDict)
+		m_Operand2 = true;
 }
 
 Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals) const
@@ -295,28 +295,62 @@ Value AExpression::OpSet(const Dictionary::Ptr& locals) const
 
 Value AExpression::OpSetPlus(const Dictionary::Ptr& locals) const
 {
-	Value result = locals->Get(m_Operand1) + EvaluateOperand2(locals);
+	Value left = locals->Get(m_Operand1);
+	AExpression::Ptr exp_right = m_Operand2;
+	Dictionary::Ptr xlocals = locals;
+
+	if (exp_right->m_Operator == &AExpression::OpDict)
+		xlocals = left;
+
+	Value result = left + EvaluateOperand2(xlocals);
 	locals->Set(m_Operand1, result);
 	return result;
 }
 
 Value AExpression::OpSetMinus(const Dictionary::Ptr& locals) const
 {
-	Value result = locals->Get(m_Operand1) - EvaluateOperand2(locals);
+	Value left = locals->Get(m_Operand1);
+	AExpression::Ptr exp_right = m_Operand2;
+	Dictionary::Ptr xlocals = locals;
+
+	if (exp_right->m_Operator == &AExpression::OpDict)
+		xlocals = left;
+
+	Value result = left - EvaluateOperand2(xlocals);
 	locals->Set(m_Operand1, result);
 	return result;
 }
 
 Value AExpression::OpSetMultiply(const Dictionary::Ptr& locals) const
 {
-	Value result = locals->Get(m_Operand1) * EvaluateOperand2(locals);
+	Value left = locals->Get(m_Operand1);
+	AExpression::Ptr exp_right = m_Operand2;
+	Dictionary::Ptr xlocals = locals;
+
+	if (exp_right->m_Operator == &AExpression::OpDict)
+		xlocals = left;
+
+	Value result = left * EvaluateOperand2(xlocals);
 	locals->Set(m_Operand1, result);
 	return result;
 }
 
 Value AExpression::OpSetDivide(const Dictionary::Ptr& locals) const
 {
-	Value result = locals->Get(m_Operand1) / EvaluateOperand2(locals);
+	Value left = locals->Get(m_Operand1);
+	AExpression::Ptr exp_right = m_Operand2;
+	Dictionary::Ptr xlocals = locals;
+
+	if (exp_right->m_Operator == &AExpression::OpDict)
+		xlocals = left;
+
+	Value result = left / EvaluateOperand2(xlocals);
 	locals->Set(m_Operand1, result);
 	return result;
+}
+
+Value AExpression::OpIndexer(const Dictionary::Ptr& locals) const
+{
+	Dictionary::Ptr dict = locals->Get(m_Operand1);
+	return dict->Get(m_Operand2);
 }

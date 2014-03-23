@@ -542,7 +542,11 @@ lterm_items_inner: /* empty */
 
 lterm: T_IDENTIFIER lbinary_op rterm
 	{
-		$$ = new Value(make_shared<AExpression>($2, $1, static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
+		if ($2 == &AExpression::OpSetPlus || $2 == &AExpression::OpSetMinus || $2 == &AExpression::OpSetMultiply || $2 == &AExpression::OpSetDivide)
+			aexpr->MakeInline();
+
+		$$ = new Value(make_shared<AExpression>($2, $1, aexpr, DebugInfoRange(@1, @3)));
 		delete $3;
 	}
 	| identifier '[' T_STRING ']' lbinary_op rterm
@@ -555,7 +559,9 @@ lterm: T_IDENTIFIER lbinary_op rterm
 		subexprl->Add(subexpr);
 		
 		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @6));
-		
+		if ($5 == &AExpression::OpSetPlus || $5 == &AExpression::OpSetMinus || $5 == &AExpression::OpSetMultiply || $5 == &AExpression::OpSetDivide)
+			expr->MakeInline();
+
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @6)));
 		free($1);
 	}
@@ -659,6 +665,12 @@ rterm: T_STRING
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
+	}
+	| identifier '[' T_STRING ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, $1, $3, DebugInfoRange(@1, @4)));
+		free($1);
+		free($3);
 	}
 	| '[' rterm_items ']'
 	{
