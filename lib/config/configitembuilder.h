@@ -21,8 +21,7 @@
 #define CONFIGITEMBUILDER_H
 
 #include "config/debuginfo.h"
-#include "config/expression.h"
-#include "config/expressionlist.h"
+#include "config/aexpression.h"
 #include "config/configitem.h"
 #include "base/object.h"
 
@@ -49,10 +48,7 @@ public:
 
 	void AddParent(const String& parent);
 
-	void AddExpression(const Expression& expr);
-	void AddExpression(const String& key, ExpressionOperator op,
-	    const Value& value);
-	void AddExpressionList(const ExpressionList::Ptr& exprl);
+	void AddExpression(const AExpression::Ptr& expr);
 
 	ConfigItem::Ptr Compile(void);
 
@@ -62,7 +58,7 @@ private:
 	bool m_Abstract; /**< Whether the item is abstract. */
 	std::vector<String> m_Parents; /**< The names of parent configuration
 				       items. */
-	ExpressionList::Ptr m_ExpressionList; /**< Expressions for this item. */
+	Array::Ptr m_Expressions; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 };
 

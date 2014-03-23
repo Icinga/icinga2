@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,44 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/expressionlist.h"
-#include <boost/foreach.hpp>
+#ifndef SCRIPTUTILS_H
+#define SCRIPTUTILS_H
 
-using namespace icinga;
+#include "base/i2-base.h"
+#include "base/qstring.h"
+#include "base/array.h"
+
+namespace icinga
+{
 
 /**
- * Adds an expression to an expression list.
- *
- * @param expression The expression that should be added.
+ * @ingroup base
  */
-void ExpressionList::AddExpression(const Expression& expression)
+class I2_BASE_API ScriptUtils
 {
-	m_Expressions.push_back(expression);
+public:
+	static bool Regex(const String& pattern, const String& text);
+	static int Len(const Value& value);
+	static Array::Ptr Union(const std::vector<Value>& arguments);
+	static Array::Ptr Intersection(const std::vector<Value>& arguments);
+	static void Log(const Value& message);
+
+private:
+	ScriptUtils(void);
+};
+
 }
 
-/**
- * Executes the expression list.
- *
- * @param dictionary The dictionary that should be manipulated by the
- *		     expressions.
- */
-void ExpressionList::Execute(const Dictionary::Ptr& dictionary) const
-{
-	BOOST_FOREACH(const Expression& expression, m_Expressions) {
-		expression.Execute(dictionary);
-	}
-}
-
-void ExpressionList::ExtractPath(const std::vector<String>& path, const ExpressionList::Ptr& result) const
-{
-	BOOST_FOREACH(const Expression& expression, m_Expressions) {
-		expression.ExtractPath(path, result);
-	}
-}
-
-void ExpressionList::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const
-{
-	BOOST_FOREACH(const Expression& expression, m_Expressions) {
-		expression.FindDebugInfoPath(path, result);
-	}
-}
+#endif /* SCRIPTUTILS_H */

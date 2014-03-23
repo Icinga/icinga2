@@ -22,6 +22,7 @@
 
 #include "config/i2-config.h"
 #include "config/debuginfo.h"
+#include "base/array.h"
 #include "base/dictionary.h"
 
 namespace icinga
@@ -41,7 +42,11 @@ public:
 	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
 
 	Value Evaluate(const Dictionary::Ptr& locals) const;
+	void ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const;
+	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
 
+	void MakeInline(void);
+	
 	Value OpLiteral(const Dictionary::Ptr& locals) const;
 	Value OpVariable(const Dictionary::Ptr& locals) const;
 	Value OpNegate(const Dictionary::Ptr& locals) const;
@@ -65,6 +70,12 @@ public:
 	Value OpLogicalOr(const Dictionary::Ptr& locals) const;
 	Value OpFunctionCall(const Dictionary::Ptr& locals) const;
 	Value OpArray(const Dictionary::Ptr& locals) const;
+	Value OpDict(const Dictionary::Ptr& locals) const;
+	Value OpSet(const Dictionary::Ptr& locals) const;
+	Value OpSetPlus(const Dictionary::Ptr& locals) const;
+	Value OpSetMinus(const Dictionary::Ptr& locals) const;
+	Value OpSetMultiply(const Dictionary::Ptr& locals) const;
+	Value OpSetDivide(const Dictionary::Ptr& locals) const;
 
 private:
 	OpCallback m_Operator;

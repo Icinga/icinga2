@@ -48,7 +48,7 @@ ConfigItem::ItemMap ConfigItem::m_Items;
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
-    bool abstract, const ExpressionList::Ptr& exprl,
+    bool abstract, const AExpression::Ptr& exprl,
     const std::vector<String>& parents, const DebugInfo& debuginfo)
 	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
 	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo)
@@ -100,20 +100,20 @@ DebugInfo ConfigItem::GetDebugInfo(void) const
  *
  * @returns The expression list.
  */
-ExpressionList::Ptr ConfigItem::GetExpressionList(void) const
+AExpression::Ptr ConfigItem::GetExpressionList(void) const
 {
 	return m_ExpressionList;
 }
 
-ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
+AExpression::Ptr ConfigItem::GetLinkedExpressionList(void)
 {
 	ASSERT(OwnsLock());
 
 	if (m_LinkedExpressionList)
 		return m_LinkedExpressionList;
 
-	m_LinkedExpressionList = make_shared<ExpressionList>();
-
+	Array::Ptr subexprs = make_shared<Array>();
+		
 	BOOST_FOREACH(const String& name, m_ParentNames) {
 		ConfigItem::Ptr parent = ConfigItem::GetObject(m_Type, name);
 
@@ -123,19 +123,21 @@ ExpressionList::Ptr ConfigItem::GetLinkedExpressionList(void)
 			    " exist (" << m_DebugInfo << ")";
 			ConfigCompilerContext::GetInstance()->AddMessage(true, message.str(), m_DebugInfo);
 		} else {
-			ExpressionList::Ptr pexprl;
+			AExpression::Ptr pexprl;
 
 			{
 				ObjectLock olock(parent);
 				pexprl = parent->GetLinkedExpressionList();
 			}
 
-			m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, pexprl, m_DebugInfo));
+			subexprs->Add(pexprl);
 		}
 	}
 
-	m_LinkedExpressionList->AddExpression(Expression("", OperatorExecute, m_ExpressionList, m_DebugInfo));
+	subexprs->Add(m_ExpressionList);
 
+	m_LinkedExpressionList = make_shared<AExpression>(&AExpression::OpDict, subexprs, true, m_DebugInfo);
+	
 	return m_LinkedExpressionList;
 }
 
@@ -144,7 +146,7 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	ASSERT(OwnsLock());
 
 	Dictionary::Ptr properties = make_shared<Dictionary>();
-	GetLinkedExpressionList()->Execute(properties);
+	GetLinkedExpressionList()->Evaluate(properties);
 	return properties;
 }
 

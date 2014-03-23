@@ -201,10 +201,19 @@ Value icinga::operator+(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) + static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
-	else if (lhs.IsObjectType<Array>() && rhs.IsObjectType<Array>()) {
+	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		Array::Ptr result = make_shared<Array>();
-		static_cast<Array::Ptr>(lhs)->CopyTo(result);
-		static_cast<Array::Ptr>(rhs)->CopyTo(result);
+		if (!lhs.IsEmpty())
+			static_cast<Array::Ptr>(lhs)->CopyTo(result);
+		if (!rhs.IsEmpty())
+			static_cast<Array::Ptr>(rhs)->CopyTo(result);
+		return result;
+	} else if ((lhs.IsObjectType<Dictionary>() || lhs.IsEmpty()) && (rhs.IsObjectType<Dictionary>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
+		Dictionary::Ptr result = make_shared<Dictionary>();
+		if (!lhs.IsEmpty())
+			static_cast<Dictionary::Ptr>(lhs)->CopyTo(result);
+		if (!rhs.IsEmpty())
+			static_cast<Dictionary::Ptr>(rhs)->CopyTo(result);
 		return result;
 	} else {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator + cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));

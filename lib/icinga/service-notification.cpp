@@ -121,7 +121,7 @@ void Service::UpdateSlaveNotifications(void)
 		path.push_back("notifications");
 		path.push_back(kv.first);
 
-		ExpressionList::Ptr exprl;
+		AExpression::Ptr exprl;
 
 		{
 			ObjectLock ilock(item);
@@ -138,8 +138,8 @@ void Service::UpdateSlaveNotifications(void)
 		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Notification");
 		builder->SetName(name);
-		builder->AddExpression("host", OperatorSet, GetHost()->GetName());
-		builder->AddExpression("service", OperatorSet, GetShortName());
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
 
 		Dictionary::Ptr notification = kv.second;
 
@@ -154,10 +154,10 @@ void Service::UpdateSlaveNotifications(void)
 		}
 
 		/* Clone attributes from the notification expression list. */
-		ExpressionList::Ptr nfc_exprl = make_shared<ExpressionList>();
+		Array::Ptr nfc_exprl = make_shared<Array>();
 		exprl->ExtractPath(path, nfc_exprl);
 
-		builder->AddExpressionList(nfc_exprl);
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, nfc_exprl, true, di));
 
 		ConfigItem::Ptr notificationItem = builder->Compile();
 		notificationItem->Register();

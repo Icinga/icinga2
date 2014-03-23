@@ -26,7 +26,7 @@
 using namespace icinga;
 
 ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false), m_ExpressionList(make_shared<ExpressionList>())
+	: m_Abstract(false), m_Expressions(make_shared<Array>())
 {
 	m_DebugInfo.FirstLine = 0;
 	m_DebugInfo.FirstColumn = 0;
@@ -35,7 +35,7 @@ ConfigItemBuilder::ConfigItemBuilder(void)
 }
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
-	: m_Abstract(false), m_ExpressionList(make_shared<ExpressionList>())
+	: m_Abstract(false), m_Expressions(make_shared<Array>())
 {
 	m_DebugInfo = debugInfo;
 }
@@ -60,21 +60,9 @@ void ConfigItemBuilder::AddParent(const String& parent)
 	m_Parents.push_back(parent);
 }
 
-void ConfigItemBuilder::AddExpression(const Expression& expr)
+void ConfigItemBuilder::AddExpression(const AExpression::Ptr& expr)
 {
-	m_ExpressionList->AddExpression(expr);
-}
-
-void ConfigItemBuilder::AddExpression(const String& key, ExpressionOperator op,
-    const Value& value)
-{
-	Expression expr(key, op, value, m_DebugInfo);
-	AddExpression(expr);
-}
-
-void ConfigItemBuilder::AddExpressionList(const ExpressionList::Ptr& exprl)
-{
-	AddExpression("", OperatorExecute, exprl);
+	m_Expressions->Add(expr);
 }
 
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
@@ -102,16 +90,12 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Configuration item '" + m_Name + "' of type '" + m_Type + "' must not inherit from itself."));
 	}
 
-	ExpressionList::Ptr exprl = make_shared<ExpressionList>();
-
-	Expression execExpr("", OperatorExecute, m_ExpressionList, m_DebugInfo);
-	exprl->AddExpression(execExpr);
-
-	Expression typeExpr("__type", OperatorSet, m_Type, m_DebugInfo);
-	exprl->AddExpression(typeExpr);
-
-	Expression nameExpr("__name", OperatorSet, m_Name, m_DebugInfo);
-	exprl->AddExpression(nameExpr);
+	Array::Ptr exprs = make_shared<Array>();
+	exprs->Add(make_shared<AExpression>(&AExpression::OpDict, m_Expressions, true, m_DebugInfo));
+	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__type", make_shared<AExpression>(&AExpression::OpLiteral, m_Type, m_DebugInfo), m_DebugInfo));
+	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__name", make_shared<AExpression>(&AExpression::OpLiteral, m_Name, m_DebugInfo), m_DebugInfo));
+	
+	AExpression::Ptr exprl = make_shared<AExpression>(&AExpression::OpDict, exprs, true, m_DebugInfo);
 
 	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
 	    m_Parents, m_DebugInfo);

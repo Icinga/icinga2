@@ -77,7 +77,7 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(rule.GetDebugInfo());
 			builder->SetType("Service");
 			builder->SetName(name);
-			builder->AddExpression("host", OperatorSet, host->GetName());
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), rule.GetDebugInfo()), rule.GetDebugInfo()));
 
 			builder->AddParent(rule.GetTemplate());
 

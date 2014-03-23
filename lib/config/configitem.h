@@ -21,7 +21,7 @@
 #define CONFIGITEM_H
 
 #include "config/i2-config.h"
-#include "config/expressionlist.h"
+#include "config/aexpression.h"
 #include "base/dynamicobject.h"
 
 namespace icinga
@@ -45,7 +45,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const String& type, const String& name, bool abstract,
-	    const ExpressionList::Ptr& exprl, const std::vector<String>& parents,
+	    const AExpression::Ptr& exprl, const std::vector<String>& parents,
 	    const DebugInfo& debuginfo);
 
 	String GetType(void) const;
@@ -54,7 +54,7 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	ExpressionList::Ptr GetLinkedExpressionList(void);
+	AExpression::Ptr GetLinkedExpressionList(void);
 	Dictionary::Ptr GetProperties(void);
 
 	DynamicObject::Ptr Commit(void);
@@ -72,21 +72,21 @@ public:
 	static void DiscardItems(void);
 
 private:
-	ExpressionList::Ptr GetExpressionList(void) const;
+	AExpression::Ptr GetExpressionList(void) const;
 
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
 	bool m_Validated; /** Whether this object has been validated. */
 
-	ExpressionList::Ptr m_ExpressionList;
+	AExpression::Ptr m_ExpressionList;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
-	ExpressionList::Ptr m_LinkedExpressionList;
+	AExpression::Ptr m_LinkedExpressionList;
 
-        DynamicObject::Ptr m_Object;
+	DynamicObject::Ptr m_Object;
 
 	static boost::mutex m_Mutex;
 

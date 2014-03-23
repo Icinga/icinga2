@@ -31,7 +31,7 @@
 using namespace icinga;
 
 AExpression::AExpression(OpCallback op, const Value& operand1, const DebugInfo& di)
-	: m_Operator(op), m_Operand1(operand1), m_DebugInfo(di)
+	: m_Operator(op), m_Operand1(operand1), m_Operand2(), m_DebugInfo(di)
 { }
 
 AExpression::AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di)
@@ -46,8 +46,64 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
 		else
-			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression.") << boost::errinfo_nested_exception(boost::current_exception()) << errinfo_debuginfo(m_DebugInfo));
+			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression: " + String(ex.what())) << boost::errinfo_nested_exception(boost::current_exception()) << errinfo_debuginfo(m_DebugInfo));
 	}
+}
+
+void AExpression::ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const
+{
+	ASSERT(!path.empty());
+
+	if (m_Operator == &AExpression::OpDict) {
+		Array::Ptr exprl = m_Operand1;
+		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
+			expr->ExtractPath(path, result);
+		}
+	} else if (m_Operator == &AExpression::OpSet && path[0] == m_Operand1) {
+		AExpression::Ptr exprl = m_Operand2;
+
+		if (path.size() == 1) {
+			result->Add(m_Operand1);
+
+			return;
+		}
+
+		std::vector<String> sub_path(path.begin() + 1, path.end());
+		exprl->ExtractPath(sub_path, result);
+	} else if (m_Operator == &AExpression::OpDict && static_cast<bool>(m_Operand2)) {
+		AExpression::Ptr exprl = m_Operand1;
+		exprl->ExtractPath(path, result);
+	}
+}
+
+void AExpression::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const
+{
+	ASSERT(!path.empty());
+
+	if (m_Operator == &AExpression::OpDict) {
+		Array::Ptr exprl = m_Operand1;
+		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
+			expr->FindDebugInfoPath(path, result);
+		}
+	} else if (m_Operator == &AExpression::OpSet && path[0] == m_Operand1) {
+		AExpression::Ptr exprl = m_Operand2;
+
+		if (path.size() == 1) {
+			result = m_DebugInfo;
+		} else {
+			std::vector<String> sub_path(path.begin() + 1, path.end());
+			exprl->FindDebugInfoPath(sub_path, result);
+		}
+	} else if (m_Operator == &AExpression::OpDict && static_cast<bool>(m_Operand2)) {
+		AExpression::Ptr exprl = m_Operand1;
+		exprl->FindDebugInfoPath(path, result);
+	}
+}
+
+void AExpression::MakeInline(void)
+{
+	ASSERT(m_Operator == &AExpression::OpDict);
+	m_Operand2 = true;
 }
 
 Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals) const
@@ -150,12 +206,12 @@ Value AExpression::OpGreaterThanOrEqual(const Dictionary::Ptr& locals) const
 
 Value AExpression::OpIn(const Dictionary::Ptr& locals) const
 {
-	Value right = EvaluateOperand1(locals);
+	Value right = EvaluateOperand2(locals);
 
 	if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
 
-	Value left = EvaluateOperand2(locals);
+	Value left = EvaluateOperand1(locals);
 		
 	Array::Ptr arr = right;
 	bool found = false;
@@ -212,5 +268,55 @@ Value AExpression::OpArray(const Dictionary::Ptr& locals) const
 		}
 	}
 
+	return result;
+}
+
+Value AExpression::OpDict(const Dictionary::Ptr& locals) const
+{
+	Array::Ptr arr = m_Operand1;
+	bool in_place = m_Operand2;
+	Dictionary::Ptr result = make_shared<Dictionary>();
+
+	if (arr) {
+		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+			aexpr->Evaluate(in_place ? locals : result);
+		}
+	}
+
+	return result;
+}
+
+Value AExpression::OpSet(const Dictionary::Ptr& locals) const
+{
+	Value right = EvaluateOperand2(locals);
+	locals->Set(m_Operand1, right);
+	return right;
+}
+
+Value AExpression::OpSetPlus(const Dictionary::Ptr& locals) const
+{
+	Value result = locals->Get(m_Operand1) + EvaluateOperand2(locals);
+	locals->Set(m_Operand1, result);
+	return result;
+}
+
+Value AExpression::OpSetMinus(const Dictionary::Ptr& locals) const
+{
+	Value result = locals->Get(m_Operand1) - EvaluateOperand2(locals);
+	locals->Set(m_Operand1, result);
+	return result;
+}
+
+Value AExpression::OpSetMultiply(const Dictionary::Ptr& locals) const
+{
+	Value result = locals->Get(m_Operand1) * EvaluateOperand2(locals);
+	locals->Set(m_Operand1, result);
+	return result;
+}
+
+Value AExpression::OpSetDivide(const Dictionary::Ptr& locals) const
+{
+	Value result = locals->Get(m_Operand1) / EvaluateOperand2(locals);
+	locals->Set(m_Operand1, result);
 	return result;
 }

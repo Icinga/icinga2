@@ -17,12 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/utilityfuncs.h"
+#include "base/scriptutils.h"
 #include "base/scriptfunction.h"
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/array.h"
 #include "base/dictionary.h"
+#include "base/serializer.h"
 #include "base/logger_fwd.h"
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -30,21 +31,21 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(regex, &UtilityFuncs::Regex);
+REGISTER_SCRIPTFUNCTION(regex, &ScriptUtils::Regex);
 REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
-REGISTER_SCRIPTFUNCTION(len, &UtilityFuncs::Len);
-REGISTER_SCRIPTFUNCTION(union, &UtilityFuncs::Union);
-REGISTER_SCRIPTFUNCTION(intersection, &UtilityFuncs::Intersection);
-REGISTER_SCRIPTFUNCTION(log, &UtilityFuncs::Log);
+REGISTER_SCRIPTFUNCTION(len, &ScriptUtils::Len);
+REGISTER_SCRIPTFUNCTION(union, &ScriptUtils::Union);
+REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
+REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
 
-bool UtilityFuncs::Regex(const String& pattern, const String& text)
+bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
 	boost::regex expr(pattern.GetData());
 	boost::smatch what;
 	return boost::regex_search(text.GetData(), what, expr);
 }
 
-int UtilityFuncs::Len(const Value& value)
+int ScriptUtils::Len(const Value& value)
 {
 	if (value.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = value;
@@ -57,7 +58,7 @@ int UtilityFuncs::Len(const Value& value)
 	}
 }
 
-Array::Ptr UtilityFuncs::Union(const std::vector<Value>& arguments)
+Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 {
 	std::set<Value> values;
 
@@ -77,7 +78,7 @@ Array::Ptr UtilityFuncs::Union(const std::vector<Value>& arguments)
 	return result;
 }
 
-Array::Ptr UtilityFuncs::Intersection(const std::vector<Value>& arguments)
+Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 {
 	if (arguments.size() == 0)
 		return make_shared<Array>();
@@ -101,7 +102,10 @@ Array::Ptr UtilityFuncs::Intersection(const std::vector<Value>& arguments)
 	return result;
 }
 
-void UtilityFuncs::Log(const String& message)
+void ScriptUtils::Log(const Value& message)
 {
-	::Log(LogInformation, "config", message);
+	if (message.IsString())
+		::Log(LogInformation, "config", message);
+	else
+		::Log(LogInformation, "config", JsonSerialize(message));
 }
