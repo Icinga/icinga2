@@ -547,9 +547,6 @@ lterm_items_inner: /* empty */
 lterm: identifier lbinary_op rterm
 	{
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
-		if ($2 == &AExpression::OpSetPlus || $2 == &AExpression::OpSetMinus || $2 == &AExpression::OpSetMultiply || $2 == &AExpression::OpSetDivide)
-			aexpr->MakeInline();
-
 		$$ = new Value(make_shared<AExpression>($2, $1, aexpr, DebugInfoRange(@1, @3)));
 		free($1);
 		delete $3;
@@ -564,9 +561,6 @@ lterm: identifier lbinary_op rterm
 		subexprl->Add(subexpr);
 		
 		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @6));
-		if ($5 == &AExpression::OpSetPlus || $5 == &AExpression::OpSetMinus || $5 == &AExpression::OpSetMultiply || $5 == &AExpression::OpSetDivide)
-			expr->MakeInline();
-
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @6)));
 		free($1);
 	}

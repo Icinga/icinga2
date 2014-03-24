@@ -397,5 +397,9 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals)
 {
 	Dictionary::Ptr dict = locals->Get(expr->m_Operand1);
+	
+	if (!dict)
+		BOOST_THROW_EXCEPTION(ConfigError("Script variable '" + expr->m_Operand1 + "' not set in this scope."));
+	
 	return dict->Get(expr->m_Operand2);
 }
