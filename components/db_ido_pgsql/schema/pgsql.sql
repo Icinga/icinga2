@@ -1372,7 +1372,7 @@ CREATE TABLE  icinga_timeperiod_timeranges (
 -- Table structure for table icinga_endpoints
 --
 
-CREATE TABLE IF NOT EXISTS icinga_endpoints (
+CREATE TABLE  icinga_endpoints (
   endpoint_id bigserial,
   instance_id bigint default 0,
   endpoint_object_id bigint default 0,
@@ -1389,7 +1389,7 @@ CREATE TABLE IF NOT EXISTS icinga_endpoints (
 -- Table structure for table icinga_endpointstatus
 --
 
-CREATE TABLE IF NOT EXISTS icinga_endpointstatus (
+CREATE TABLE  icinga_endpointstatus (
   endpointstatus_id bigserial,
   instance_id bigint default 0,
   endpoint_object_id bigint default 0,
