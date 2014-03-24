@@ -515,11 +515,14 @@ lbinary_op: T_SET
 	}
 	;
 
+comma_or_semicolon: ',' | ';'
+	;
+
 lterm_items: lterm_items_inner
 	{
 		$$ = $1;
 	}
-	| lterm_items_inner ','
+	| lterm_items_inner comma_or_semicolon
 	{
 		$$ = $1;
 	}
@@ -534,7 +537,7 @@ lterm_items_inner: /* empty */
 		$$->Add(*$1);
 		delete $1;
 	}
-	| lterm_items_inner ',' lterm
+	| lterm_items_inner comma_or_semicolon lterm
 	{
 		if ($1)
 			$$ = $1;
