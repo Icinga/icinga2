@@ -157,6 +157,8 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 		m_Properties->Set("__parent", m_Scope);
 		GetLinkedExpressionList()->Evaluate(m_Properties);
 		m_Properties->Remove("__parent");
+
+		VERIFY(m_Properties->Get("__type") == GetType() && m_Properties->Get("__name") == GetName());
 	}
 
 	return m_Properties;

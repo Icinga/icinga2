@@ -368,7 +368,10 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 
 	Value result = left + expr->EvaluateOperand2(xlocals);
 
-	xlocals->Remove("__parent");
+	if (exp_right->m_Operator == &AExpression::OpDict) {
+		Dictionary::Ptr dict = result;
+		dict->Remove("__parent");
+	}
 
 	locals->Set(expr->m_Operand1, result);
 	return result;
@@ -391,7 +394,10 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 
 	Value result = left - expr->EvaluateOperand2(xlocals);
 
-	xlocals->Remove("__parent");
+	if (exp_right->m_Operator == &AExpression::OpDict) {
+		Dictionary::Ptr dict = result;
+		dict->Remove("__parent");
+	}
 
 	locals->Set(expr->m_Operand1, result);
 	return result;
@@ -414,7 +420,10 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 
 	Value result = left * expr->EvaluateOperand2(xlocals);
 
-	xlocals->Remove("__parent");
+	if (exp_right->m_Operator == &AExpression::OpDict) {
+		Dictionary::Ptr dict = result;
+		dict->Remove("__parent");
+	}
 
 	locals->Set(expr->m_Operand1, result);
 	return result;
@@ -437,7 +446,10 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 
 	Value result = left / expr->EvaluateOperand2(xlocals);
 
-	xlocals->Remove("__parent");
+	if (exp_right->m_Operator == &AExpression::OpDict) {
+		Dictionary::Ptr dict = result;
+		dict->Remove("__parent");
+	}
 
 	locals->Set(expr->m_Operand1, result);
 	return result;
