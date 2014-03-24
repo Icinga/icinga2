@@ -68,7 +68,12 @@ void AExpression::ExtractPath(const std::vector<String>& path, const Array::Ptr&
 		AExpression::Ptr exprl = m_Operand2;
 
 		if (path.size() == 1) {
-			VERIFY(exprl->m_Operator == &AExpression::OpDict);
+			if (m_Operator == &AExpression::OpSet)
+				result->Clear();
+
+			if (exprl->m_Operator != &AExpression::OpDict)
+				BOOST_THROW_EXCEPTION(ConfigError("The '" + path[0] + "' attribute must be a dictionary.") << errinfo_debuginfo(m_DebugInfo));
+
 			Array::Ptr subexprl = exprl->m_Operand1;
 			ObjectLock olock(subexprl);
 			BOOST_FOREACH(const AExpression::Ptr& expr, subexprl) {
