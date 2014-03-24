@@ -342,7 +342,7 @@ void Service::UpdateSlaveScheduledDowntimes(void)
 		path.push_back("scheduled_downtimes");
 		path.push_back(kv.first);
 
-		ExpressionList::Ptr exprl;
+		AExpression::Ptr exprl;
 
 		{
 			ObjectLock ilock(item);
@@ -359,8 +359,8 @@ void Service::UpdateSlaveScheduledDowntimes(void)
 		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("ScheduledDowntime");
 		builder->SetName(name);
-		builder->AddExpression("host", OperatorSet, GetHost()->GetName());
-		builder->AddExpression("service", OperatorSet, GetShortName());
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
 
 		Dictionary::Ptr scheduledDowntime = kv.second;
 
@@ -375,10 +375,12 @@ void Service::UpdateSlaveScheduledDowntimes(void)
 		}
 
 		/* Clone attributes from the scheduled downtime expression list. */
-		ExpressionList::Ptr sd_exprl = make_shared<ExpressionList>();
+		Array::Ptr sd_exprl = make_shared<Array>();
 		exprl->ExtractPath(path, sd_exprl);
 
-		builder->AddExpressionList(sd_exprl);
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, sd_exprl, true, di));
+
+		builder->SetScope(item->GetScope());
 
 		ConfigItem::Ptr scheduledDowntimeItem = builder->Compile();
 		scheduledDowntimeItem->Register();

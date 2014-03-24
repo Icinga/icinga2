@@ -157,6 +157,14 @@ void Array::Resize(size_t new_size)
 	m_Data.resize(new_size);
 }
 
+void Array::Clear(void)
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	m_Data.clear();
+}
+
 void Array::CopyTo(const Array::Ptr& dest) const
 {
 	ASSERT(!OwnsLock());

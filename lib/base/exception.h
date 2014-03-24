@@ -39,6 +39,8 @@
 namespace icinga
 {
 
+class I2_BASE_API user_error : virtual public std::exception, virtual public boost::exception { };
+
 I2_BASE_API StackTrace *GetLastExceptionStack(void);
 I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);
 
@@ -55,22 +57,24 @@ String DiagnosticInformation(const T& ex, StackTrace *stack = NULL, ContextTrace
 
 	result << boost::diagnostic_information(ex);
 
-	if (boost::get_error_info<StackTraceErrorInfo>(ex) == NULL) {
-		result << std::endl;
+	if (dynamic_cast<const user_error *>(&ex) == NULL) {
+		if (boost::get_error_info<StackTraceErrorInfo>(ex) == NULL) {
+			result << std::endl;
 
-		if (stack)
-			result << *stack;
-		else
-			result << *GetLastExceptionStack();
-	}
+			if (stack)
+				result << *stack;
+			else
+				result << *GetLastExceptionStack();
+		}
 
-	if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
-		result << std::endl;
+		if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
+			result << std::endl;
 
-		if (context)
-			result << *context;
-		else
-			result << *GetLastExceptionContext();
+			if (context)
+				result << *context;
+			else
+				result << *GetLastExceptionContext();
+		}
 	}
 
 	return result.str();

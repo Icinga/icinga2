@@ -21,8 +21,8 @@
 #define AEXPRESSION_H
 
 #include "config/i2-config.h"
-#include "config/avalue.h"
 #include "config/debuginfo.h"
+#include "base/array.h"
 #include "base/dictionary.h"
 
 namespace icinga
@@ -31,50 +31,66 @@ namespace icinga
 /**
  * @ingroup config
  */
-enum AOperator
-{
-	AEReturn,
-	AENegate,
-	AEAdd,
-	AESubtract,
-	AEMultiply,
-	AEDivide,
-	AEBinaryAnd,
-	AEBinaryOr,
-	AEShiftLeft,
-	AEShiftRight,
-	AEEqual,
-	AENotEqual,
-	AEIn,
-	AENotIn,
-	AELogicalAnd,
-	AELogicalOr,
-	AEFunctionCall,
-	AEArray,
-	AELessThan,
-	AEGreaterThan,
-	AELessThanOrEqual,
-	AEGreaterThanOrEqual
-};
-
-/**
- * @ingroup config
- */
 class I2_CONFIG_API AExpression : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(AExpression);
+	
+	typedef Value (*OpCallback)(const AExpression *, const Dictionary::Ptr&);
 
-	AExpression(AOperator op, const AValue& operand1, const DebugInfo& di);
-	AExpression(AOperator op, const AValue& operand1, const AValue& operand2, const DebugInfo& di);
+	AExpression(OpCallback op, const Value& operand1, const DebugInfo& di);
+	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
 
 	Value Evaluate(const Dictionary::Ptr& locals) const;
+	void ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const;
+	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
+
+	void MakeInline(void);
+	
+	void Dump(std::ostream& stream, int indent = 0) const;
+	void Dump(void) const;
+	
+	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpAdd(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpDivide(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpBinaryAnd(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpBinaryOr(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpShiftLeft(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpShiftRight(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpNotEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLessThan(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpGreaterThan(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLessThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpGreaterThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpIn(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpNotIn(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLogicalAnd(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpArray(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpDict(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSet(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals);
 
 private:
-	AOperator m_Operator;
-	AValue m_Operand1;
-	AValue m_Operand2;
+	OpCallback m_Operator;
+	Value m_Operand1;
+	Value m_Operand2;
 	DebugInfo m_DebugInfo;
+
+	Value EvaluateOperand1(const Dictionary::Ptr& locals) const;
+	Value EvaluateOperand2(const Dictionary::Ptr& locals) const;
+
+	static void DumpOperand(std::ostream& stream, const Value& operand, int indent);
 };
 
 }

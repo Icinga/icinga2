@@ -193,7 +193,7 @@ void Service::UpdateSlaveDependencies(void)
 			path.push_back("dependencies");
 			path.push_back(kv.first);
 	
-			ExpressionList::Ptr exprl;
+			AExpression::Ptr exprl;
 
 			{
 				ObjectLock ilock(item);
@@ -210,8 +210,8 @@ void Service::UpdateSlaveDependencies(void)
 			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 			builder->SetType("Dependency");
 			builder->SetName(name);
-			builder->AddExpression("child_host", OperatorSet, GetHost()->GetName());
-			builder->AddExpression("child_service", OperatorSet, GetShortName());
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "child_host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "child_service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
 
 			Dictionary::Ptr dependency = kv.second;
 
@@ -226,10 +226,12 @@ void Service::UpdateSlaveDependencies(void)
 			}
 
 			/* Clone attributes from the scheduled downtime expression list. */
-			ExpressionList::Ptr sd_exprl = make_shared<ExpressionList>();
+			Array::Ptr sd_exprl = make_shared<Array>();
 			exprl->ExtractPath(path, sd_exprl);
 
-			builder->AddExpressionList(sd_exprl);
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, sd_exprl, true, di));
+
+			builder->SetScope(item->GetScope());
 
 			ConfigItem::Ptr dependencyItem = builder->Compile();
 			dependencyItem->Register();

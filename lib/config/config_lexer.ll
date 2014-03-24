@@ -19,7 +19,6 @@
  ******************************************************************************/
 
 #include "config/configcompiler.h"
-#include "config/expression.h"
 #include "config/typerule.h"
 #include "config/configcompilercontext.h"
 
@@ -225,16 +224,16 @@ const				return T_CONST;
 apply				return T_APPLY;
 to				return T_TO;
 where				return T_WHERE;
-\<\<				return T_SHIFT_LEFT;
-\>\>				return T_SHIFT_RIGHT;
-\<=				return T_LESS_THAN_OR_EQUAL;
-\>=				return T_GREATER_THAN_OR_EQUAL;
-==				return T_EQUAL;
-!=				return T_NOT_EQUAL;
-!in				return T_NOT_IN;
-in				return T_IN;
-&&				return T_LOGICAL_AND;
-\|\|				return T_LOGICAL_OR;
+\<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
+\>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
+\<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
+\>=				{ yylval->op = &AExpression::OpGreaterThanOrEqual; return T_GREATER_THAN_OR_EQUAL; }
+==				{ yylval->op = &AExpression::OpEqual; return T_EQUAL; }
+!=				{ yylval->op = &AExpression::OpNotEqual; return T_NOT_EQUAL; }
+!in				{ yylval->op = &AExpression::OpNotIn; return T_NOT_IN; }
+in				{ yylval->op = &AExpression::OpIn; return T_IN; }
+&&				{ yylval->op = &AExpression::OpLogicalAnd; return T_LOGICAL_AND; }
+\|\|				{ yylval->op = &AExpression::OpLogicalOr; return T_LOGICAL_OR; }
 [a-zA-Z_][:a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \<[^\>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 -?[0-9]+(\.[0-9]+)?ms		{ yylval->num = strtod(yytext, NULL) / 1000; return T_NUMBER; }
@@ -243,11 +242,19 @@ in				return T_IN;
 -?[0-9]+(\.[0-9]+)?m		{ yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?s		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
-=				{ yylval->op = OperatorSet; return T_SET; }
-\+=				{ yylval->op = OperatorPlus; return T_PLUS_EQUAL; }
--=				{ yylval->op = OperatorMinus; return T_MINUS_EQUAL; }
-\*=				{ yylval->op = OperatorMultiply; return T_MULTIPLY_EQUAL; }
-\/=				{ yylval->op = OperatorDivide; return T_DIVIDE_EQUAL; }
+=				{ yylval->op = &AExpression::OpSet; return T_SET; }
+\+=				{ yylval->op = &AExpression::OpSetPlus; return T_SET_PLUS; }
+-=				{ yylval->op = &AExpression::OpSetMinus; return T_SET_MINUS; }
+\*=				{ yylval->op = &AExpression::OpSetMultiply; return T_SET_MULTIPLY; }
+\/=				{ yylval->op = &AExpression::OpSetDivide; return T_SET_DIVIDE; }
+\+				{ yylval->op = &AExpression::OpAdd; return T_PLUS; }
+\-				{ yylval->op = &AExpression::OpSubtract; return T_MINUS; }
+\*				{ yylval->op = &AExpression::OpMultiply; return T_MULTIPLY; }
+\/				{ yylval->op = &AExpression::OpMultiply; return T_DIVIDE; }
+\&				{ yylval->op = &AExpression::OpBinaryAnd; return T_BINARY_AND; }
+\|				{ yylval->op = &AExpression::OpBinaryOr; return T_BINARY_OR; }
+\<				{ yylval->op = &AExpression::OpLessThan; return T_LESS_THAN; }
+\>				{ yylval->op = &AExpression::OpLessThan; return T_GREATER_THAN; }
 }
 
 .				return yytext[0];

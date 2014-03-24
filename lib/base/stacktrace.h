@@ -50,7 +50,6 @@ private:
 	static boost::once_flag m_OnceFlag;
 
 	static void Initialize(void);
-	static String Addr2Line(const String& exe, uintptr_t rva);
 };
 
 I2_BASE_API std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);

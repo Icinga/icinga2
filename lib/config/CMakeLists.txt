@@ -27,10 +27,10 @@ mkembedconfig_target(base-type.conf base-type.cpp)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(config SHARED
-  aexpression.cpp applyrule.cpp avalue.cpp base-type.conf base-type.cpp
+  aexpression.cpp applyrule.cpp base-type.conf base-type.cpp
   configcompilercontext.cpp configcompiler.cpp configerror.cpp configitembuilder.cpp
   configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
-  configtype.cpp debuginfo.cpp expression.cpp expressionlist.cpp typerule.cpp typerulelist.cpp
+  configtype.cpp debuginfo.cpp typerule.cpp typerulelist.cpp
 )
 
 target_link_libraries(config ${Boost_LIBRARIES} base) 

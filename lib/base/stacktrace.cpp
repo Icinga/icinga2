@@ -22,7 +22,6 @@
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/application.h"
-#include <boost/algorithm/string/trim.hpp>
 
 #ifdef HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>
@@ -101,43 +100,6 @@ void StackTrace::Initialize(void)
 }
 
 /**
- * Looks up source file name and line number information for the specified
- * ELF executable and RVA.
- *
- * @param exe The ELF file.
- * @param rva The RVA.
- * @returns Source file and line number.
- */
-String StackTrace::Addr2Line(const String& exe, uintptr_t rva)
-{
-#ifndef _WIN32
-	std::ostringstream msgbuf;
-	msgbuf << "addr2line -s -e " << Application::GetExePath(exe) << " " << std::hex << rva << " 2>/dev/null";
-
-	String args = msgbuf.str();
-
-	FILE *fp = popen(args.CStr(), "r");
-
-	if (!fp)
-		return "RVA: " + Convert::ToString(rva);
-
-	char buffer[512] = {};
-	fgets(buffer, sizeof(buffer), fp);
-	fclose(fp);
-
-	String line = buffer;
-	boost::algorithm::trim_right(line);
-
-	if (line.GetLength() == 0)
-		return "RVA: " + Convert::ToString(rva);
-
-	return line;
-#else /* _WIN32 */
-	return String();
-#endif /* _WIN32 */
-}
-
-/**
  * Prints a stacktrace to the specified stream.
  *
  * @param fp The stream.
@@ -176,15 +138,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 					path = path.SubStr(slashp + 1);
 
 				message = path + ": " + sym_demangled + " (" + String(sym_end);
-
-#ifdef HAVE_DLADDR
-				Dl_info dli;
-
-				if (dladdr(m_Frames[i], &dli) > 0) {
-					uintptr_t rva = reinterpret_cast<uintptr_t>(m_Frames[i]) - reinterpret_cast<uintptr_t>(dli.dli_fbase);
-					message += " (" + Addr2Line(dli.dli_fname, rva) + ")";
-				}
-#endif /* HAVE_DLADDR */
+				message += " (" + Utility::GetSymbolSource(m_Frames[i]) + ")";
 			}
 		}
 

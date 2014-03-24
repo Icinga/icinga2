@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-present Icinga Development Team (http://www.icinga.org) *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,66 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef EXPRESSION_H
-#define EXPRESSION_H
+#ifndef SCRIPTUTILS_H
+#define SCRIPTUTILS_H
 
-#include "config/i2-config.h"
-#include "config/debuginfo.h"
-#include "base/dictionary.h"
-#include <iostream>
-#include <vector>
-#include <set>
+#include "base/i2-base.h"
+#include "base/qstring.h"
+#include "base/array.h"
 
 namespace icinga
 {
 
 /**
- * The operator in a configuration expression.
- *
- * @ingroup config
+ * @ingroup base
  */
-enum ExpressionOperator
-{
-	OperatorNop,
-	OperatorExecute,
-	OperatorSet,
-	OperatorPlus,
-	OperatorMinus,
-	OperatorMultiply,
-	OperatorDivide
-};
-
-class ExpressionList;
-
-/**
- * A configuration expression.
- *
- * @ingroup config
- */
-struct I2_CONFIG_API Expression
+class I2_BASE_API ScriptUtils
 {
 public:
-	Expression(const String& key, ExpressionOperator op, const Value& value,
-	    const DebugInfo& debuginfo);
-
-	void Execute(const Dictionary::Ptr& dictionary) const;
-
-	void ExtractPath(const std::vector<String>& path, const shared_ptr<ExpressionList>& result) const;
-	void ExtractFiltered(const std::set<String>& keys, const shared_ptr<ExpressionList>& result) const;
-
-	void ErasePath(const std::vector<String>& path);
-
-	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
+	static bool Regex(const String& pattern, const String& text);
+	static int Len(const Value& value);
+	static Array::Ptr Union(const std::vector<Value>& arguments);
+	static Array::Ptr Intersection(const std::vector<Value>& arguments);
+	static void Log(const Value& message);
+	static void Exit(int code);
 
 private:
-	String m_Key;
-	ExpressionOperator m_Operator;
-	Value m_Value;
-	DebugInfo m_DebugInfo;
-
-	static Value DeepClone(const Value& value);
+	ScriptUtils(void);
 };
 
 }
 
-#endif /* EXPRESSION_H */
+#endif /* SCRIPTUTILS_H */

@@ -113,7 +113,7 @@ void Host::UpdateSlaveServices(void)
 		path.push_back("services");
 		path.push_back(kv.first);
 
-		ExpressionList::Ptr exprl;
+		AExpression::Ptr exprl;
 
 		{
 			ObjectLock ilock(item);
@@ -130,9 +130,9 @@ void Host::UpdateSlaveServices(void)
 		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Service");
 		builder->SetName(name);
-		builder->AddExpression("host", OperatorSet, GetName());
-		builder->AddExpression("display_name", OperatorSet, kv.first);
-		builder->AddExpression("short_name", OperatorSet, kv.first);
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetName(), di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "display_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "short_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
 
 		if (!kv.second.IsObjectType<Dictionary>())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
@@ -150,10 +150,12 @@ void Host::UpdateSlaveServices(void)
 		}
 
 		/* Clone attributes from the service expression list. */
-		ExpressionList::Ptr svc_exprl = make_shared<ExpressionList>();
+		Array::Ptr svc_exprl = make_shared<Array>();
 		exprl->ExtractPath(path, svc_exprl);
 
-		builder->AddExpressionList(svc_exprl);
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, svc_exprl, true, di));
+
+		builder->SetScope(item->GetScope());
 
 		ConfigItem::Ptr serviceItem = builder->Compile();
 		serviceItem->Register();
