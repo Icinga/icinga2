@@ -138,7 +138,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 					path = path.SubStr(slashp + 1);
 
 				message = path + ": " + sym_demangled + " (" + String(sym_end);
-				message += " (" + Utility::GetSymbolSource(m_Frames[i]);
+				message += " (" + Utility::GetSymbolSource(m_Frames[i]) + ")";
 			}
 		}
 
