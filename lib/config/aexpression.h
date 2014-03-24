@@ -48,8 +48,7 @@ public:
 	void MakeInline(void);
 	
 	void Dump(std::ostream& stream, int indent = 0) const;
-	void Dump(void) const;
-	
+
 	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals);

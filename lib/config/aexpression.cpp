@@ -145,11 +145,6 @@ void AExpression::Dump(std::ostream& stream, int indent) const
 	DumpOperand(stream, m_Operand2, indent + 1);
 }
 
-void AExpression::Dump(void) const
-{
-	Dump(std::cerr);
-}
-
 Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals) const
 {
 	return static_cast<AExpression::Ptr>(m_Operand1)->Evaluate(locals);

@@ -115,7 +115,7 @@ using namespace icinga;
 %token <op> T_PLUS "+ (T_PLUS)"
 %token <op> T_MINUS "- (T_MINUS)"
 %token <op> T_MULTIPLY "* (T_MULTIPLY)"
-%token <op> T_DIVIDE "/ (T_DIVIDE)"
+%token <op> T_DIVIDE_OP "/ (T_DIVIDE_OP)"
 %token <op> T_BINARY_AND "& (T_BINARY_AND)"
 %token <op> T_BINARY_OR "| (T_BINARY_OR)"
 %token <op> T_LESS_THAN "< (T_LESS_THAN)"
@@ -578,7 +578,7 @@ lterm: identifier lbinary_op rterm
 rbinary_op: T_PLUS
 	| T_MINUS
 	| T_MULTIPLY
-	| T_DIVIDE
+	| T_DIVIDE_OP
 	| T_BINARY_AND
 	| T_BINARY_OR
 	| T_LESS_THAN
