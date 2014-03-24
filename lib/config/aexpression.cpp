@@ -152,10 +152,16 @@ Value AExpression::OpLiteral(const AExpression *expr, const Dictionary::Ptr& loc
 
 Value AExpression::OpVariable(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	if (locals && locals->Contains(expr->m_Operand1))
-		return locals->Get(expr->m_Operand1);
-	else
-		return ScriptVariable::Get(expr->m_Operand1);
+	Dictionary::Ptr scope = locals;
+
+	while (scope) {
+		if (scope->Contains(expr->m_Operand1))
+			return scope->Get(expr->m_Operand1);
+
+		scope = scope->Get("__parent");
+	}
+
+	return ScriptVariable::Get(expr->m_Operand1);
 }
 
 Value AExpression::OpNegate(const AExpression *expr, const Dictionary::Ptr& locals)
@@ -306,11 +312,15 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 	bool in_place = expr->m_Operand2;
 	Dictionary::Ptr result = make_shared<Dictionary>();
 
+	result->Set("__parent", locals);
+
 	if (arr) {
 		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
 			aexpr->Evaluate(in_place ? locals : result);
 		}
 	}
+
+	result->Remove("__parent");
 
 	return result;
 }
