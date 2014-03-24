@@ -46,7 +46,7 @@ public:
 
 	ConfigItem(const String& type, const String& name, bool abstract,
 	    const AExpression::Ptr& exprl, const std::vector<String>& parents,
-	    const DebugInfo& debuginfo);
+	    const DebugInfo& debuginfo, const Dictionary::Ptr& scope);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -61,6 +61,8 @@ public:
 	void Register(void);
 
 	DebugInfo GetDebugInfo(void) const;
+
+	Dictionary::Ptr GetScope(void) const;
 
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
@@ -80,9 +82,11 @@ private:
 	bool m_Validated; /** Whether this object has been validated. */
 
 	AExpression::Ptr m_ExpressionList;
+	Dictionary::Ptr m_Properties;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
+	Dictionary::Ptr m_Scope; /**< variable scope. */
 
 	AExpression::Ptr m_LinkedExpressionList;
 

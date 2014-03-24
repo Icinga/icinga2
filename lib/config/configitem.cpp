@@ -49,9 +49,11 @@ ConfigItem::ItemMap ConfigItem::m_Items;
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const AExpression::Ptr& exprl,
-    const std::vector<String>& parents, const DebugInfo& debuginfo)
+    const std::vector<String>& parents, const DebugInfo& debuginfo,
+    const Dictionary::Ptr& scope)
 	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
-	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo)
+	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo),
+	  m_Scope(scope)
 {
 }
 
@@ -93,6 +95,11 @@ bool ConfigItem::IsAbstract(void) const
 DebugInfo ConfigItem::GetDebugInfo(void) const
 {
 	return m_DebugInfo;
+}
+
+Dictionary::Ptr ConfigItem::GetScope(void) const
+{
+	return m_Scope;
 }
 
 /**
@@ -145,9 +152,14 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 {
 	ASSERT(OwnsLock());
 
-	Dictionary::Ptr properties = make_shared<Dictionary>();
-	GetLinkedExpressionList()->Evaluate(properties);
-	return properties;
+	if (!m_Properties) {
+		m_Properties = make_shared<Dictionary>();
+		m_Properties->Set("__parent", m_Scope);
+		GetLinkedExpressionList()->Evaluate(m_Properties);
+		m_Properties->Remove("__parent");
+	}
+
+	return m_Properties;
 }
 
 /**

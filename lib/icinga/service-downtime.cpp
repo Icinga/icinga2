@@ -380,6 +380,8 @@ void Service::UpdateSlaveScheduledDowntimes(void)
 
 		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, sd_exprl, true, di));
 
+		builder->SetScope(item->GetScope());
+
 		ConfigItem::Ptr scheduledDowntimeItem = builder->Compile();
 		scheduledDowntimeItem->Register();
 		DynamicObject::Ptr dobj = scheduledDowntimeItem->Commit();

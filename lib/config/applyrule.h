@@ -42,8 +42,9 @@ public:
 	String GetTemplate(void) const;
 	AExpression::Ptr GetExpression(void) const;
 	DebugInfo GetDebugInfo(void) const;
+	Dictionary::Ptr GetScope(void) const;
 
-	static void AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di);
+	static void AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static void EvaluateRules(void);
 
 	static void RegisterCombination(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback);
@@ -53,11 +54,12 @@ private:
 	String m_Template;
 	AExpression::Ptr m_Expression;
 	DebugInfo m_DebugInfo;
+	Dictionary::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di);
+	ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 
 }

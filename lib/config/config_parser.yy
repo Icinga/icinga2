@@ -460,6 +460,8 @@ object:
 
 		item->SetAbstract(m_Abstract);
 
+		item->SetScope(m_ModuleScope);
+
 		item->Compile()->Register();
 		item.reset();
 	}
@@ -713,6 +715,6 @@ apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE r
 
 		AExpression::Ptr aexpr = make_shared<AExpression>(&AExpression::OpFunctionCall, "bool", make_shared<AExpression>(&AExpression::OpLiteral, arguments, @8), @8);
 
-		ApplyRule::AddRule($3, $4, $6, aexpr, DebugInfoRange(@1, @8));
+		ApplyRule::AddRule($3, $4, $6, aexpr, DebugInfoRange(@1, @8), m_ModuleScope);
 	}
 %%

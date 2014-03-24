@@ -159,6 +159,8 @@ void Service::UpdateSlaveNotifications(void)
 
 		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, nfc_exprl, true, di));
 
+		builder->SetScope(item->GetScope());
+
 		ConfigItem::Ptr notificationItem = builder->Compile();
 		notificationItem->Register();
 		DynamicObject::Ptr dobj = notificationItem->Commit();

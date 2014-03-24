@@ -45,6 +45,7 @@ public:
 	void SetType(const String& type);
 	void SetName(const String& name);
 	void SetAbstract(bool abstract);
+	void SetScope(const Dictionary::Ptr& scope);
 
 	void AddParent(const String& parent);
 
@@ -60,6 +61,7 @@ private:
 				       items. */
 	Array::Ptr m_Expressions; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
+	Dictionary::Ptr m_Scope; /**< variable scope. */
 };
 
 }

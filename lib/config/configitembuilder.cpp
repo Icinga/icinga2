@@ -55,6 +55,11 @@ void ConfigItemBuilder::SetAbstract(bool abstract)
 	m_Abstract = abstract;
 }
 
+void ConfigItemBuilder::SetScope(const Dictionary::Ptr& scope)
+{
+	m_Scope = scope;
+}
+
 void ConfigItemBuilder::AddParent(const String& parent)
 {
 	m_Parents.push_back(parent);
@@ -91,12 +96,12 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	}
 
 	Array::Ptr exprs = make_shared<Array>();
-	exprs->Add(make_shared<AExpression>(&AExpression::OpDict, m_Expressions, true, m_DebugInfo));
 	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__type", make_shared<AExpression>(&AExpression::OpLiteral, m_Type, m_DebugInfo), m_DebugInfo));
 	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__name", make_shared<AExpression>(&AExpression::OpLiteral, m_Name, m_DebugInfo), m_DebugInfo));
+	exprs->Add(make_shared<AExpression>(&AExpression::OpDict, m_Expressions, true, m_DebugInfo));
 	
 	AExpression::Ptr exprl = make_shared<AExpression>(&AExpression::OpDict, exprs, true, m_DebugInfo);
 
 	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
-	    m_Parents, m_DebugInfo);
+	    m_Parents, m_DebugInfo, m_Scope);
 }

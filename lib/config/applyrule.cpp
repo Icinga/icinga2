@@ -24,8 +24,8 @@ using namespace icinga;
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::CallbackMap ApplyRule::m_Callbacks;
 
-ApplyRule::ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di)
-	: m_Template(tmpl), m_Expression(expression), m_DebugInfo(di)
+ApplyRule::ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope)
+	: m_Template(tmpl), m_Expression(expression), m_DebugInfo(di), m_Scope(scope)
 { }
 
 String ApplyRule::GetTemplate(void) const
@@ -43,9 +43,14 @@ DebugInfo ApplyRule::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-void ApplyRule::AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di)
+Dictionary::Ptr ApplyRule::GetScope(void) const
 {
-	m_Rules[std::make_pair(sourceType, targetType)].push_back(ApplyRule(tmpl, expression, di));
+	return m_Scope;
+}
+
+void ApplyRule::AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope)
+{
+	m_Rules[std::make_pair(sourceType, targetType)].push_back(ApplyRule(tmpl, expression, di, scope));
 }
 
 void ApplyRule::EvaluateRules(void)

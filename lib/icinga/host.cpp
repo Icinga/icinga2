@@ -155,6 +155,8 @@ void Host::UpdateSlaveServices(void)
 
 		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, svc_exprl, true, di));
 
+		builder->SetScope(item->GetScope());
+
 		ConfigItem::Ptr serviceItem = builder->Compile();
 		serviceItem->Register();
 		DynamicObject::Ptr dobj = serviceItem->Commit();

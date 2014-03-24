@@ -231,6 +231,8 @@ void Service::UpdateSlaveDependencies(void)
 
 			builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, sd_exprl, true, di));
 
+			builder->SetScope(item->GetScope());
+
 			ConfigItem::Ptr dependencyItem = builder->Compile();
 			dependencyItem->Register();
 			DynamicObject::Ptr dobj = dependencyItem->Commit();
