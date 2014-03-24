@@ -129,7 +129,7 @@ void AExpression::DumpOperand(std::ostream& stream, const Value& operand, int in
 	}
 }
 
-void AExpression::Dump(std::ostream& stream, int indent)
+void AExpression::Dump(std::ostream& stream, int indent) const
 {
 	String sym = Utility::GetSymbolName(reinterpret_cast<const void *>(m_Operator));
 	stream << String(indent, ' ') << "op: " << Utility::DemangleSymbolName(sym) << "\n";
@@ -138,6 +138,11 @@ void AExpression::Dump(std::ostream& stream, int indent)
 	
 	stream << String(indent, ' ') << "right:\n";
 	DumpOperand(stream, m_Operand2, indent + 1);
+}
+
+void AExpression::Dump(void) const
+{
+	Dump(std::cerr);
 }
 
 Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals) const
