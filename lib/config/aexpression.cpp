@@ -25,6 +25,7 @@
 #include "base/scriptfunction.h"
 #include "base/scriptvariable.h"
 #include "base/utility.h"
+#include "base/objectlock.h"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -57,6 +58,7 @@ void AExpression::ExtractPath(const std::vector<String>& path, const Array::Ptr&
 
 	if (m_Operator == &AExpression::OpDict) {
 		Array::Ptr exprl = m_Operand1;
+		ObjectLock olock(exprl);
 		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
 			expr->ExtractPath(path, result);
 		}
@@ -68,6 +70,7 @@ void AExpression::ExtractPath(const std::vector<String>& path, const Array::Ptr&
 		if (path.size() == 1) {
 			VERIFY(exprl->m_Operator == &AExpression::OpDict);
 			Array::Ptr subexprl = exprl->m_Operand1;
+			ObjectLock olock(subexprl);
 			BOOST_FOREACH(const AExpression::Ptr& expr, subexprl) {
 				result->Add(expr);
 			}
@@ -86,6 +89,7 @@ void AExpression::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& 
 
 	if (m_Operator == &AExpression::OpDict) {
 		Array::Ptr exprl = m_Operand1;
+		ObjectLock olock(exprl);
 		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
 			expr->FindDebugInfoPath(path, result);
 		}
@@ -113,6 +117,7 @@ void AExpression::DumpOperand(std::ostream& stream, const Value& operand, int in
 	if (operand.IsObjectType<Array>()) {
 		Array::Ptr arr = operand;
 		stream << String(indent, ' ') << "Array:\n";
+		ObjectLock olock(arr);
 		BOOST_FOREACH(const Value& elem, arr) {
 			DumpOperand(stream, elem, indent + 1);
 		}
@@ -250,6 +255,7 @@ Value AExpression::OpIn(const AExpression *expr, const Dictionary::Ptr& locals)
 		
 	Array::Ptr arr = right;
 	bool found = false;
+	ObjectLock olock(arr);
 	BOOST_FOREACH(const Value& value, arr) {
 		if (value == left) {
 			found = true;
@@ -285,6 +291,7 @@ Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr
 
 	Array::Ptr arr = expr->EvaluateOperand2(locals);
 	std::vector<Value> arguments;
+	ObjectLock olock(arr);
 	BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
 		arguments.push_back(aexpr->Evaluate(locals));
 	}
@@ -298,6 +305,7 @@ Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& local
 	Array::Ptr result = make_shared<Array>();
 
 	if (arr) {
+		ObjectLock olock(arr);
 		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
 			result->Add(aexpr->Evaluate(locals));
 		}
@@ -315,6 +323,7 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 	result->Set("__parent", locals);
 
 	if (arr) {
+		ObjectLock olock(arr);
 		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
 			aexpr->Evaluate(in_place ? locals : result);
 		}
