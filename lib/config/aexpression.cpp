@@ -357,9 +357,14 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 
 		if (!xlocals)
 			xlocals = make_shared<Dictionary>();
+
+		xlocals->Set("__parent", locals);
 	}
 
 	Value result = left + expr->EvaluateOperand2(xlocals);
+
+	xlocals->Remove("__parent");
+
 	locals->Set(expr->m_Operand1, result);
 	return result;
 }
@@ -375,9 +380,14 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 
 		if (!xlocals)
 			xlocals = make_shared<Dictionary>();
+
+		xlocals->Set("__parent", locals);
 	}
 
 	Value result = left - expr->EvaluateOperand2(xlocals);
+
+	xlocals->Remove("__parent");
+
 	locals->Set(expr->m_Operand1, result);
 	return result;
 }
@@ -393,9 +403,14 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 
 		if (!xlocals)
 			xlocals = make_shared<Dictionary>();
+
+		xlocals->Set("__parent", locals);
 	}
 
 	Value result = left * expr->EvaluateOperand2(xlocals);
+
+	xlocals->Remove("__parent");
+
 	locals->Set(expr->m_Operand1, result);
 	return result;
 }
@@ -411,9 +426,14 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 
 		if (!xlocals)
 			xlocals = make_shared<Dictionary>();
+
+		xlocals->Set("__parent", locals);
 	}
 
 	Value result = left / expr->EvaluateOperand2(xlocals);
+
+	xlocals->Remove("__parent");
+
 	locals->Set(expr->m_Operand1, result);
 	return result;
 }
