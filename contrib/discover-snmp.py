@@ -29,18 +29,15 @@ for arg in args:
     community = ukey(arg)
     warning("IP address: %s, SNMP Community: %s" % (arg, community))
 
-    process = subprocess.Popen(["snmpwalk", "-v2c", "-c", community, arg, ".1.3.6.1.4.1.8072.1.3.2.3.1.2"], stdout=subprocess.PIPE)
+    process = subprocess.Popen(["snmpwalk", "-v2c", "-c", community, "-On", arg, ".1.3.6.1.4.1.8072.1.3.2.3.1.2"], stdout=subprocess.PIPE)
     (out, err) = process.communicate()
 
     for line in out.split("\n"):
         oid = line.split(" ")[0]
-        plugin = oid.split(".")[-1]
-        if plugin == "":
+        plugin = oid.split(".")[15:]
+        if len(plugin) == 0:
             continue
-        if plugin[0] == "\"":
-            plugin = plugin[1:]
-        if plugin[-1] == "\"":
-            plugin = plugin[:-1]
+        plugin = "".join([chr(int(ch)) for ch in plugin])
         plugins.append(plugin)
 
     print("template Host \"snmp-extend:%s\" {" % (arg))
