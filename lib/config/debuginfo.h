@@ -20,6 +20,7 @@
 #ifndef DEBUGINFO_H
 #define DEBUGINFO_H
 
+#include "config/i2-config.h"
 #include "base/qstring.h"
 
 namespace icinga
@@ -59,11 +60,11 @@ struct DebugInfo
 	};
 };
 
-std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
+I2_CONFIG_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
 
-DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
+I2_CONFIG_API DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
 
-void ShowCodeFragment(std::ostream& out, const DebugInfo& di);
+I2_CONFIG_API void ShowCodeFragment(std::ostream& out, const DebugInfo& di);
 
 }
 
