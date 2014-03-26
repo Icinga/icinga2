@@ -44,6 +44,7 @@ install_if_not_exists(icinga2/features-available/perfdata.conf ${CMAKE_INSTALL_S
 install_if_not_exists(icinga2/features-available/statusdata.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/syslog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/scripts/mail-notification.sh ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/scripts)
+install_if_not_exists(icinga2/scripts/snmp-extend.sh ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/scripts)
 install_if_not_exists(logrotate.d/icinga2 ${CMAKE_INSTALL_SYSCONFDIR}/logrotate.d)
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled\")")
