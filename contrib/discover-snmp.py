@@ -11,7 +11,7 @@ pkey = None
 
 for opt, arg in opts:
     if opt == "-?" or opt == "--help":
-        warning("Syntax: %s --key <key> <ipaddr> [<ipaddr>, ...]")
+        warning("Syntax: %s --key <key> <ipaddr>")
         sys.exit(1)
     elif opt == "-k" or opt == "--key":
         pkey = arg
@@ -20,32 +20,42 @@ if not pkey:
     warning("You must specify a key with the --key option.")
     sys.exit(1)
 
+if len(args) != 1:
+    warning("Please specify exactly one IP address.")
+    sys.exit(1)
+
+ipaddr = args[0]
+
 def ukey(ipaddr):
     return hmac.new(pkey, ipaddr, hashlib.sha256).hexdigest()[0:12]
 
-for arg in args:
-    plugins = []
+plugins = []
 
-    community = ukey(arg)
-    warning("IP address: %s, SNMP Community: %s" % (arg, community))
+community = ukey(ipaddr)
+warning("IP address: %s, SNMP Community: %s" % (ipaddr, community))
 
-    process = subprocess.Popen(["snmpwalk", "-v2c", "-c", community, "-On", arg, ".1.3.6.1.4.1.8072.1.3.2.3.1.2"], stdout=subprocess.PIPE)
-    (out, err) = process.communicate()
+process = subprocess.Popen(["snmpwalk", "-v2c", "-c", community, "-On", ipaddr, ".1.3.6.1.4.1.8072.1.3.2.3.1.2"], stdout=subprocess.PIPE)
+(out, err) = process.communicate()
 
-    for line in out.split("\n"):
-        oid = line.split(" ")[0]
-        plugin = oid.split(".")[15:]
-        if len(plugin) == 0:
-            continue
-        plugin = "".join([chr(int(ch)) for ch in plugin])
-        plugins.append(plugin)
+if process.returncode != 0:
+    sys.exit(1)
 
-    print("template Host \"snmp-extend:%s\" {" % (arg))
-    print("  macros[\"community\"] = \"%s\"," % (community))
-    for plugin in plugins:
-        print("  services[\"%s\"] = {" % (plugin))
-        print("    templates = [ \"snmp-extend-service\" ],")
-        print("    check_command = \"snmp-extend\",")
-        print("    macros[\"plugin\"] = \"%s\"" % (plugin))
-        print("  },")
-    print("}")
+for line in out.split("\n"):
+    oid = line.split(" ")[0]
+    plugin = oid.split(".")[15:]
+    if len(plugin) == 0:
+        continue
+    plugin = "".join([chr(int(ch)) for ch in plugin])
+    plugins.append(plugin)
+
+print("template Host \"snmp-extend:%s\" {" % (ipaddr))
+print("  macros[\"community\"] = \"%s\"," % (community))
+for plugin in plugins:
+    print("  services[\"%s\"] = {" % (plugin))
+    print("    templates = [ \"snmp-extend-service\" ],")
+    print("    check_command = \"snmp-extend\",")
+    print("    macros[\"plugin\"] = \"%s\"" % (plugin))
+    print("  },")
+print("}")
+
+sys.exit(0)
