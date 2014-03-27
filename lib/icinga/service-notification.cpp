@@ -126,7 +126,7 @@ void Service::UpdateSlaveNotifications(void)
 		{
 			ObjectLock ilock(item);
 
-			exprl = item->GetLinkedExpressionList();
+			exprl = item->GetExpressionList();
 		}
 
 		DebugInfo di;
@@ -138,8 +138,6 @@ void Service::UpdateSlaveNotifications(void)
 		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Notification");
 		builder->SetName(name);
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
 
 		Dictionary::Ptr notification = kv.second;
 
@@ -149,9 +147,14 @@ void Service::UpdateSlaveNotifications(void)
 			ObjectLock tlock(templates);
 
 			BOOST_FOREACH(const Value& tmpl, templates) {
-				builder->AddParent(tmpl);
+				AExpression::Ptr atype = make_shared<AExpression>(&AExpression::OpLiteral, "Notification", di);
+				AExpression::Ptr atmpl = make_shared<AExpression>(&AExpression::OpLiteral, tmpl, di);
+				builder->AddExpression(make_shared<AExpression>(&AExpression::OpImport, atype, atmpl, di));
 			}
 		}
+
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
 
 		/* Clone attributes from the notification expression list. */
 		Array::Ptr nfc_exprl = make_shared<Array>();

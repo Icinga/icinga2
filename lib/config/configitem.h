@@ -45,8 +45,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const String& type, const String& name, bool abstract,
-	    const AExpression::Ptr& exprl, const std::vector<String>& parents,
-	    const DebugInfo& debuginfo, const Dictionary::Ptr& scope);
+	    const AExpression::Ptr& exprl, const DebugInfo& debuginfo,
+	    const Dictionary::Ptr& scope);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -54,7 +54,7 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	AExpression::Ptr GetLinkedExpressionList(void);
+	AExpression::Ptr GetExpressionList(void) const;
 	Dictionary::Ptr GetProperties(void);
 
 	DynamicObject::Ptr Commit(void);
@@ -74,8 +74,6 @@ public:
 	static void DiscardItems(void);
 
 private:
-	AExpression::Ptr GetExpressionList(void) const;
-
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
@@ -87,8 +85,6 @@ private:
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
-
-	AExpression::Ptr m_LinkedExpressionList;
 
 	DynamicObject::Ptr m_Object;
 

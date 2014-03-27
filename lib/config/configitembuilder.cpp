@@ -60,11 +60,6 @@ void ConfigItemBuilder::SetScope(const Dictionary::Ptr& scope)
 	m_Scope = scope;
 }
 
-void ConfigItemBuilder::AddParent(const String& parent)
-{
-	m_Parents.push_back(parent);
-}
-
 void ConfigItemBuilder::AddExpression(const AExpression::Ptr& expr)
 {
 	m_Expressions->Add(expr);
@@ -90,18 +85,13 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
-	BOOST_FOREACH(const String& parent, m_Parents) {
-		if (parent == m_Name)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Configuration item '" + m_Name + "' of type '" + m_Type + "' must not inherit from itself."));
-	}
-
 	Array::Ptr exprs = make_shared<Array>();
 	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__type", make_shared<AExpression>(&AExpression::OpLiteral, m_Type, m_DebugInfo), m_DebugInfo));
-	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__name", make_shared<AExpression>(&AExpression::OpLiteral, m_Name, m_DebugInfo), m_DebugInfo));
 	exprs->Add(make_shared<AExpression>(&AExpression::OpDict, m_Expressions, true, m_DebugInfo));
+	exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "__name", make_shared<AExpression>(&AExpression::OpLiteral, m_Name, m_DebugInfo), m_DebugInfo));
 	
 	AExpression::Ptr exprl = make_shared<AExpression>(&AExpression::OpDict, exprs, true, m_DebugInfo);
 
 	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
-	    m_Parents, m_DebugInfo, m_Scope);
+	    m_DebugInfo, m_Scope);
 }

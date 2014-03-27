@@ -79,6 +79,7 @@ public:
 	static Value OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpImport(const AExpression *expr, const Dictionary::Ptr& locals);
 
 private:
 	OpCallback m_Operator;

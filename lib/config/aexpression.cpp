@@ -19,6 +19,7 @@
 
 #include "config/aexpression.h"
 #include "config/configerror.h"
+#include "config/configitem.h"
 #include "base/array.h"
 #include "base/serializer.h"
 #include "base/context.h"
@@ -458,4 +459,19 @@ Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& loc
 		BOOST_THROW_EXCEPTION(ConfigError("Script variable '" + expr->m_Operand1 + "' not set in this scope."));
 	
 	return dict->Get(expr->m_Operand2);
+}
+
+Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& locals)
+{
+	Value type = expr->EvaluateOperand1(locals);
+	Value name = expr->EvaluateOperand2(locals);
+
+	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
+
+	if (!item)
+		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
+
+	item->GetExpressionList()->Evaluate(locals);
+
+	return Empty;
 }

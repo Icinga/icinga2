@@ -118,7 +118,7 @@ void Host::UpdateSlaveServices(void)
 		{
 			ObjectLock ilock(item);
 
-			exprl = item->GetLinkedExpressionList();
+			exprl = item->GetExpressionList();
 		}
 
 		DebugInfo di;
@@ -130,12 +130,6 @@ void Host::UpdateSlaveServices(void)
 		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 		builder->SetType("Service");
 		builder->SetName(name);
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetName(), di), di));
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "display_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "short_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
-
-		if (!kv.second.IsObjectType<Dictionary>())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
 
 		Dictionary::Ptr service = kv.second;
 
@@ -145,9 +139,18 @@ void Host::UpdateSlaveServices(void)
 			ObjectLock olock(templates);
 
 			BOOST_FOREACH(const Value& tmpl, templates) {
-				builder->AddParent(tmpl);
+				AExpression::Ptr atype = make_shared<AExpression>(&AExpression::OpLiteral, "Service", di);
+				AExpression::Ptr atmpl = make_shared<AExpression>(&AExpression::OpLiteral, tmpl, di);
+				builder->AddExpression(make_shared<AExpression>(&AExpression::OpImport, atype, atmpl, di));
 			}
 		}
+
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetName(), di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "display_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "short_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
+
+		if (!kv.second.IsObjectType<Dictionary>())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
 
 		/* Clone attributes from the service expression list. */
 		Array::Ptr svc_exprl = make_shared<Array>();

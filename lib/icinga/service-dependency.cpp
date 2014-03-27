@@ -198,7 +198,7 @@ void Service::UpdateSlaveDependencies(void)
 			{
 				ObjectLock ilock(item);
 
-				exprl = item->GetLinkedExpressionList();
+				exprl = item->GetExpressionList();
 			}
 
 			DebugInfo di;
@@ -210,8 +210,7 @@ void Service::UpdateSlaveDependencies(void)
 			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 			builder->SetType("Dependency");
 			builder->SetName(name);
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "child_host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "child_service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
+
 
 			Dictionary::Ptr dependency = kv.second;
 
@@ -221,9 +220,14 @@ void Service::UpdateSlaveDependencies(void)
 				ObjectLock tlock(templates);
 
 				BOOST_FOREACH(const Value& tmpl, templates) {
-					builder->AddParent(tmpl);
+					AExpression::Ptr atype = make_shared<AExpression>(&AExpression::OpLiteral, "Dependency", di);
+					AExpression::Ptr atmpl = make_shared<AExpression>(&AExpression::OpLiteral, tmpl, di);
+					builder->AddExpression(make_shared<AExpression>(&AExpression::OpImport, atype, atmpl, di));
 				}
 			}
+
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "child_host", make_shared<AExpression>(&AExpression::OpLiteral, GetHost()->GetName(), di), di));
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "child_service", make_shared<AExpression>(&AExpression::OpLiteral, GetShortName(), di), di));
 
 			/* Clone attributes from the scheduled downtime expression list. */
 			Array::Ptr sd_exprl = make_shared<Array>();

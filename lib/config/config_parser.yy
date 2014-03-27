@@ -144,6 +144,7 @@ using namespace icinga;
 %token T_APPLY "apply (T_APPLY)"
 %token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
+%token T_IMPORT "import (T_IMPORT)"
 %type <text> identifier
 %type <array> rterm_items
 %type <array> rterm_items_inner
@@ -154,8 +155,6 @@ using namespace icinga;
 %type <op> rbinary_op
 %type <type> type
 %type <num> partial_specifier
-%type <slist> object_inherits_list
-%type <slist> object_inherits_specifier
 %type <variant> rterm
 %type <variant> rterm_scope
 %type <variant> lterm
@@ -411,9 +410,9 @@ object:
 	{
 		m_Abstract = false;
 	}
-	object_declaration identifier rterm object_inherits_specifier rterm_scope
+	object_declaration identifier rterm rterm_scope
 	{
-		DebugInfo di = DebugInfoRange(@2, @6);
+		DebugInfo di = DebugInfoRange(@2, @5);
 		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(di);
 
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
@@ -444,16 +443,8 @@ object:
 
 		item->SetName(name);
 
-		if ($5) {
-			BOOST_FOREACH(const String& parent, *$5) {
-				item->AddParent(parent);
-			}
-
-			delete $5;
-		}
-
-		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$6);
-		delete $6;
+		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
+		delete $5;
 
 		exprl->MakeInline();
 		item->AddExpression(exprl);
@@ -472,38 +463,6 @@ object_declaration: T_OBJECT
 	{
 		m_Abstract = true;
 	}
-
-object_inherits_list:
-	{
-		$$ = NULL;
-	}
-	| T_STRING
-	{
-		$$ = new std::vector<String>();
-		$$->push_back($1);
-		free($1);
-	}
-	| object_inherits_list ',' T_STRING
-	{
-		if ($1)
-			$$ = $1;
-		else
-			$$ = new std::vector<String>();
-
-		$$->push_back($3);
-		free($3);
-	}
-	;
-
-object_inherits_specifier:
-	{
-		$$ = NULL;
-	}
-	| T_INHERITS object_inherits_list
-	{
-		$$ = $2;
-	}
-	;
 
 lbinary_op: T_SET
 	| T_SET_PLUS
@@ -660,6 +619,13 @@ rterm: T_STRING
 		Array::Ptr arguments = Array::Ptr($3);
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunctionCall, $1, make_shared<AExpression>(&AExpression::OpLiteral, arguments, @3), DebugInfoRange(@1, @4)));
 		free($1);
+	}
+	| T_IMPORT rterm
+	{
+		AExpression::Ptr avar = make_shared<AExpression>(&AExpression::OpVariable, "__type", DebugInfoRange(@1, @2));
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$2);
+		delete $2;
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpImport, avar, aexpr, DebugInfoRange(@1, @2)));
 	}
 	| T_IDENTIFIER
 	{

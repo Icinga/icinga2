@@ -47,8 +47,6 @@ public:
 	void SetAbstract(bool abstract);
 	void SetScope(const Dictionary::Ptr& scope);
 
-	void AddParent(const String& parent);
-
 	void AddExpression(const AExpression::Ptr& expr);
 
 	ConfigItem::Ptr Compile(void);
@@ -57,8 +55,6 @@ private:
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether the item is abstract. */
-	std::vector<String> m_Parents; /**< The names of parent configuration
-				       items. */
 	Array::Ptr m_Expressions; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */

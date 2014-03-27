@@ -224,6 +224,7 @@ const				return T_CONST;
 apply				return T_APPLY;
 to				return T_TO;
 where				return T_WHERE;
+import				return T_IMPORT;
 \<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
