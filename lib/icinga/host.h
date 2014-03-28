@@ -114,8 +114,6 @@ private:
 	mutable boost::mutex m_ServicesMutex;
 	std::map<String, shared_ptr<Service> > m_Services;
 
-	void UpdateSlaveServices(void);
-
 	static void RefreshServicesCache(void);
 };
 

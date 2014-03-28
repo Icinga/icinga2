@@ -220,8 +220,6 @@ public:
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
 
-	void UpdateSlaveScheduledDowntimes(void);
-
 	/* Comments */
 	static int GetNextCommentID(void);
 
@@ -250,8 +248,6 @@ public:
 	bool GetForceNextNotification(void) const;
 
 	void ResetNotificationNumbers(void);
-
-	void UpdateSlaveNotifications(void);
 
 	/* Event Handler */
 	void ExecuteEventHandler(void);
@@ -283,8 +279,6 @@ public:
 	void AddReverseDependency(const shared_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const shared_ptr<Dependency>& dep);
 	std::set<shared_ptr<Dependency> > GetReverseDependencies(void) const;
-
-	void UpdateSlaveDependencies(void);
 
 protected:
 	virtual void Start(void);

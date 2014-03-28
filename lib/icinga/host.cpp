@@ -57,8 +57,6 @@ void Host::OnConfigLoaded(void)
 				hg->AddMember(GetSelf());
 		}
 	}
-
-	UpdateSlaveServices();
 }
 
 void Host::Stop(void)
@@ -90,81 +88,6 @@ bool Host::IsReachable(DependencyType dt, shared_ptr<Dependency> *failedDependen
 		return true;
 
 	return hc->IsReachable(dt, failedDependency);
-}
-
-void Host::UpdateSlaveServices(void)
-{
-	ASSERT(!OwnsLock());
-
-	Dictionary::Ptr service_descriptions = GetServiceDescriptions();
-
-	if (!service_descriptions ||service_descriptions->GetLength() == 0)
-		return;
-
-	ConfigItem::Ptr item = ConfigItem::GetObject("Host", GetName());
-
-	ObjectLock olock(service_descriptions);
-	BOOST_FOREACH(const Dictionary::Pair& kv, service_descriptions) {
-		std::ostringstream namebuf;
-		namebuf << GetName() << "!" << kv.first;
-		String name = namebuf.str();
-
-		std::vector<String> path;
-		path.push_back("services");
-		path.push_back(kv.first);
-
-		AExpression::Ptr exprl;
-
-		{
-			ObjectLock ilock(item);
-
-			exprl = item->GetExpressionList();
-		}
-
-		DebugInfo di;
-		exprl->FindDebugInfoPath(path, di);
-
-		if (di.Path.IsEmpty())
-			di = item->GetDebugInfo();
-
-		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
-		builder->SetType("Service");
-		builder->SetName(name);
-
-		Dictionary::Ptr service = kv.second;
-
-		Array::Ptr templates = service->Get("templates");
-
-		if (templates) {
-			ObjectLock olock(templates);
-
-			BOOST_FOREACH(const Value& tmpl, templates) {
-				AExpression::Ptr atype = make_shared<AExpression>(&AExpression::OpLiteral, "Service", di);
-				AExpression::Ptr atmpl = make_shared<AExpression>(&AExpression::OpLiteral, tmpl, di);
-				builder->AddExpression(make_shared<AExpression>(&AExpression::OpImport, atype, atmpl, di));
-			}
-		}
-
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, GetName(), di), di));
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "display_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "short_name", make_shared<AExpression>(&AExpression::OpLiteral, kv.first, di), di));
-
-		if (!kv.second.IsObjectType<Dictionary>())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Service description must be either a string or a dictionary."));
-
-		/* Clone attributes from the service expression list. */
-		Array::Ptr svc_exprl = make_shared<Array>();
-		exprl->ExtractPath(path, svc_exprl);
-
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpDict, svc_exprl, true, di));
-
-		builder->SetScope(item->GetScope());
-
-		ConfigItem::Ptr serviceItem = builder->Compile();
-		serviceItem->Register();
-		DynamicObject::Ptr dobj = serviceItem->Commit();
-		dobj->OnConfigLoaded();
-	}
 }
 
 std::set<Service::Ptr> Host::GetServices(void) const

@@ -53,66 +53,6 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 	}
 }
 
-void AExpression::ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const
-{
-	ASSERT(!path.empty());
-
-	if (m_Operator == &AExpression::OpDict) {
-		Array::Ptr exprl = m_Operand1;
-		ObjectLock olock(exprl);
-		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
-			expr->ExtractPath(path, result);
-		}
-	} else if ((m_Operator == &AExpression::OpSet || m_Operator == &AExpression::OpSetPlus ||
-	    m_Operator == &AExpression::OpSetMinus || m_Operator == &AExpression::OpSetMultiply ||
-	    m_Operator == &AExpression::OpSetDivide) && path[0] == m_Operand1) {
-		AExpression::Ptr exprl = m_Operand2;
-
-		if (path.size() == 1) {
-			if (m_Operator == &AExpression::OpSet)
-				result->Clear();
-
-			if (exprl->m_Operator != &AExpression::OpDict)
-				BOOST_THROW_EXCEPTION(ConfigError("The '" + path[0] + "' attribute must be a dictionary.") << errinfo_debuginfo(m_DebugInfo));
-
-			Array::Ptr subexprl = exprl->m_Operand1;
-			ObjectLock olock(subexprl);
-			BOOST_FOREACH(const AExpression::Ptr& expr, subexprl) {
-				result->Add(expr);
-			}
-
-			return;
-		}
-
-		std::vector<String> sub_path(path.begin() + 1, path.end());
-		exprl->ExtractPath(sub_path, result);
-	}
-}
-
-void AExpression::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const
-{
-	ASSERT(!path.empty());
-
-	if (m_Operator == &AExpression::OpDict) {
-		Array::Ptr exprl = m_Operand1;
-		ObjectLock olock(exprl);
-		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
-			expr->FindDebugInfoPath(path, result);
-		}
-	} else if ((m_Operator == &AExpression::OpSet || m_Operator == &AExpression::OpSetPlus ||
-	    m_Operator == &AExpression::OpSetMinus || m_Operator == &AExpression::OpSetMultiply ||
-	    m_Operator == &AExpression::OpSetDivide) && path[0] == m_Operand1) {
-		AExpression::Ptr exprl = m_Operand2;
-
-		if (path.size() == 1) {
-			result = m_DebugInfo;
-		} else {
-			std::vector<String> sub_path(path.begin() + 1, path.end());
-			exprl->FindDebugInfoPath(sub_path, result);
-		}
-	}
-}
-
 void AExpression::MakeInline(void)
 {
 	if (m_Operator == &AExpression::OpDict)

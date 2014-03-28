@@ -42,8 +42,6 @@ public:
 	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
 
 	Value Evaluate(const Dictionary::Ptr& locals) const;
-	void ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const;
-	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
 
 	void MakeInline(void);
 	
