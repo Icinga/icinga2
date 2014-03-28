@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/host.h"
+#include "icinga/service.h"
 #include "config/configitembuilder.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
@@ -28,14 +28,14 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&Host::RegisterApplyRuleHandler);
+INITIALIZE_ONCE(&Service::RegisterApplyRuleHandler);
 
-void Host::RegisterApplyRuleHandler(void)
+void Service::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("Service", &Host::EvaluateApplyRules, 1);
+	ApplyRule::RegisterType("Service", &Service::EvaluateApplyRules, 1);
 }
 
-void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
+void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");

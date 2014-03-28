@@ -102,9 +102,6 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
-	static void RegisterApplyRuleHandler(void);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
-
 protected:
 	virtual void Stop(void);
 

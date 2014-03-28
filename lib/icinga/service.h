@@ -280,6 +280,9 @@ public:
 	void RemoveReverseDependency(const shared_ptr<Dependency>& dep);
 	std::set<shared_ptr<Dependency> > GetReverseDependencies(void) const;
 
+	static void RegisterApplyRuleHandler(void);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
+
 protected:
 	virtual void Start(void);
 
