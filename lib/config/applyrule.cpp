@@ -69,6 +69,7 @@ bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const
 
 void ApplyRule::EvaluateRules(void)
 {
+	// TODO: priority
 	std::pair<String, std::pair<Callback, int> > kv;
 	BOOST_FOREACH(kv, m_Callbacks) {
 		RuleMap::const_iterator it = m_Rules.find(kv.first);

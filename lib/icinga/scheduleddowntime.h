@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/scheduleddowntime.th"
 #include "icinga/service.h"
+#include "config/applyrule.h"
 #include <utility>
 
 namespace icinga
@@ -43,6 +44,9 @@ public:
 
 	Service::Ptr GetService(void) const;
 
+	static void RegisterApplyRuleHandler(void);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
+	
 protected:
 	virtual void Start(void);
 

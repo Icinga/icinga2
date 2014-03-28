@@ -47,10 +47,10 @@ add_library(icinga SHARED
   icingaapplication.cpp icingaapplication.th icingastatuswriter.cpp
   icingastatuswriter.th legacytimeperiod.cpp
   macroprocessor.cpp macroresolver.cpp notificationcommand.cpp notificationcommand.th
-  notification.cpp notification.th perfdatavalue.cpp perfdatavalue.th
-  pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th service-apply.cpp service-check.cpp
-  service-comment.cpp service.cpp service-dependency.cpp service-downtime.cpp service-event.cpp
-  service-flapping.cpp service.th servicegroup.cpp servicegroup.th
+  notification.cpp notification.th notification-apply.cpp perfdatavalue.cpp perfdatavalue.th
+  pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th scheduleddowntime-apply.cpp
+  service-apply.cpp service-check.cpp service-comment.cpp service.cpp service-dependency.cpp
+  service-downtime.cpp service-event.cpp service-flapping.cpp service.th servicegroup.cpp servicegroup.th
   service-notification.cpp timeperiod.cpp timeperiod.th user.cpp user.th
   usergroup.cpp usergroup.th icinga-type.cpp
 )
