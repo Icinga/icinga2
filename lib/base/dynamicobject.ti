@@ -5,6 +5,7 @@ abstract class DynamicObject
 {
 	[config] String name (Name);
 	[config, get_protected] String type (TypeName);
+	[config, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
 	[config] Dictionary::Ptr custom;
 	[config] Array::Ptr domains;
