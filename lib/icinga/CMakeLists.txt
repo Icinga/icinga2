@@ -42,7 +42,7 @@ mkembedconfig_target(icinga-type.conf icinga-type.cpp)
 add_library(icinga SHARED
   api.cpp api.h checkcommand.cpp checkcommand.th checkresult.cpp checkresult.th
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp dependency.cpp dependency.th
-  domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
+  dependency-apply.cpp domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
   externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
   icingaapplication.cpp icingaapplication.th icingastatuswriter.cpp
   icingastatuswriter.th legacytimeperiod.cpp
