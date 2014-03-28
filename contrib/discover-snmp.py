@@ -48,14 +48,15 @@ for line in out.split("\n"):
     plugin = "".join([chr(int(ch)) for ch in plugin])
     plugins.append(plugin)
 
-print("template Host \"snmp-extend:%s\" {" % (ipaddr))
-print("  macros[\"community\"] = \"%s\"," % (community))
 for plugin in plugins:
-    print("  services[\"%s\"] = {" % (plugin))
-    print("    templates = [ \"snmp-extend-service\" ],")
-    print("    check_command = \"snmp-extend\",")
-    print("    macros[\"plugin\"] = \"%s\"" % (plugin))
-    print("  },")
-print("}")
+    print("apply Service \"%s\" {" % (plugin))
+    print("  import \"snmp-extend-service\",")
+    print()
+    print("  check_command = \"snmp-extend\",")
+    print("  macros[\"community\"] = \"%s\"," % (community))
+    print()
+    print("  assign where host.macros.address == \"%s\"" % (ipaddr))
+    print("}")
+    print()
 
 sys.exit(0)
