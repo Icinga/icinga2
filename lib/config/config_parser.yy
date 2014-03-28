@@ -165,10 +165,11 @@ using namespace icinga;
 %left T_NOT_IN
 %nonassoc T_EQUAL
 %nonassoc T_NOT_EQUAL
-%left '+' '-'
-%left '*' '/'
-%left '&'
-%left '|'
+%left T_PLUS T_MINUS
+%left T_MULTIPLY T_DIVIDE_OP
+%left T_BINARY_AND
+%left T_BINARY_OR
+%left '.'
 %right '~'
 %right '!'
 %{
@@ -528,6 +529,19 @@ lterm: identifier lbinary_op rterm
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @6)));
 		free($1);
 	}
+	| identifier '.' T_IDENTIFIER lbinary_op rterm
+	{
+		AExpression::Ptr subexpr = make_shared<AExpression>($4, $3, static_cast<AExpression::Ptr>(*$5), DebugInfoRange(@1, @5));
+		free($3);
+		delete $5;
+
+		Array::Ptr subexprl = make_shared<Array>();
+		subexprl->Add(subexpr);
+
+		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @5));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @5)));
+		free($1);
+	}
 	| rterm
 	{
 		$$ = $1;
@@ -614,6 +628,12 @@ rterm: T_STRING
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, @1));
 	}
+	| rterm '.' T_IDENTIFIER
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, static_cast<AExpression::Ptr>(*$1), make_shared<AExpression>(&AExpression::OpLiteral, $3, @3), DebugInfoRange(@1, @3)));
+		delete $1;
+		free($3);
+	}
 	| T_IDENTIFIER '(' rterm_items ')'
 	{
 		Array::Ptr arguments = Array::Ptr($3);
@@ -642,10 +662,10 @@ rterm: T_STRING
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
 	}
-	| identifier '[' T_STRING ']'
+	| rterm '[' rterm ']'
 	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, $1, $3, DebugInfoRange(@1, @4)));
-		free($1);
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @4)));
+		delete $1;
 		free($3);
 	}
 	| '[' rterm_items ']'

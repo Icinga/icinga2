@@ -27,6 +27,7 @@
 #include "base/scriptvariable.h"
 #include "base/utility.h"
 #include "base/objectlock.h"
+#include "base/object.h"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -194,7 +195,9 @@ Value AExpression::OpIn(const AExpression *expr, const Dictionary::Ptr& locals)
 {
 	Value right = expr->EvaluateOperand2(locals);
 
-	if (!right.IsObjectType<Array>())
+	if (right.IsEmpty())
+		return false;
+	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
 
 	Value left = expr->EvaluateOperand1(locals);
@@ -393,12 +396,28 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 
 Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Dictionary::Ptr dict = OpVariable(expr, locals);
-	
-	if (!dict)
-		BOOST_THROW_EXCEPTION(ConfigError("Script variable '" + expr->m_Operand1 + "' not set in this scope."));
-	
-	return dict->Get(expr->m_Operand2);
+	Value value = expr->EvaluateOperand1(locals);
+	Value index = expr->EvaluateOperand2(locals);
+
+	if (value.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr dict = value;
+		return dict->Get(index);
+	} else if (value.IsObjectType<Object>()) {
+		Object::Ptr object = value;
+		const Type *type = object->GetReflectionType();
+
+		if (!type)
+			BOOST_THROW_EXCEPTION(ConfigError("Dot operator applied to object which does not support reflection"));
+
+		int field = type->GetFieldId(index);
+
+		if (field == -1)
+			BOOST_THROW_EXCEPTION(ConfigError("Tried to access invalid property '" + index + "'"));
+
+		return object->GetField(field);
+	} else {
+		BOOST_THROW_EXCEPTION(ConfigError("Dot operator cannot be applied to type '" + value.GetTypeName() + "'"));
+	}
 }
 
 Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& locals)

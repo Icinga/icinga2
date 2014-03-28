@@ -41,12 +41,7 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");
 
 		Dictionary::Ptr locals = make_shared<Dictionary>();
-		locals->Set("host", host->GetName());
-
-		Array::Ptr groups = host->GetGroups();
-		if (!groups)
-			groups = make_shared<Array>();
-		locals->Set("hostgroups", groups);
+		locals->Set("host", host);
 
 		BOOST_FOREACH(const ApplyRule& rule, rules) {
 			DebugInfo di = rule.GetDebugInfo();
