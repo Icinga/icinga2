@@ -121,6 +121,11 @@ Value AExpression::OpNegate(const AExpression *expr, const Dictionary::Ptr& loca
 	return ~(long)expr->EvaluateOperand1(locals);
 }
 
+Value AExpression::OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals)
+{
+	return !expr->EvaluateOperand1(locals).ToBool();
+}
+
 Value AExpression::OpAdd(const AExpression *expr, const Dictionary::Ptr& locals)
 {
 	return expr->EvaluateOperand1(locals) + expr->EvaluateOperand2(locals);

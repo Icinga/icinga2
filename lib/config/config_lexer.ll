@@ -222,9 +222,10 @@ set				return T_VAR;
 var				return T_VAR;
 const				return T_CONST;
 apply				return T_APPLY;
-to				return T_TO;
 where				return T_WHERE;
 import				return T_IMPORT;
+assign				return T_ASSIGN;
+ignore				return T_IGNORE;
 \<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }

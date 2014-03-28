@@ -142,9 +142,10 @@ using namespace icinga;
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_PARTIAL "partial (T_PARTIAL)"
 %token T_APPLY "apply (T_APPLY)"
-%token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
 %token T_IMPORT "import (T_IMPORT)"
+%token T_ASSIGN "assign (T_ASSIGN)"
+%token T_IGNORE "ignore (T_IGNORE)"
 %type <text> identifier
 %type <array> rterm_items
 %type <array> rterm_items_inner
@@ -191,6 +192,10 @@ static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
+
+static bool m_Apply;
+static AExpression::Ptr m_Assign;
+static AExpression::Ptr m_Ignore;
 
 void ConfigCompiler::Compile(void)
 {
@@ -542,6 +547,34 @@ lterm: identifier lbinary_op rterm
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @5)));
 		free($1);
 	}
+	| T_IMPORT rterm
+	{
+		AExpression::Ptr avar = make_shared<AExpression>(&AExpression::OpVariable, "__type", DebugInfoRange(@1, @2));
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$2);
+		delete $2;
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpImport, avar, aexpr, DebugInfoRange(@1, @2)));
+	}
+	| T_ASSIGN T_WHERE rterm
+	{
+		if (!m_Apply)
+			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
+
+		m_Assign = make_shared<AExpression>(&AExpression::OpLogicalOr, m_Assign, static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3));
+		delete $3;
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
+	}
+	| T_IGNORE T_WHERE rterm
+	{
+		if (!m_Apply)
+			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
+
+		m_Ignore = make_shared<AExpression>(&AExpression::OpLogicalOr, m_Ignore, static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3));
+
+		delete $3;
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
+	}
 	| rterm
 	{
 		$$ = $1;
@@ -640,13 +673,6 @@ rterm: T_STRING
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunctionCall, $1, make_shared<AExpression>(&AExpression::OpLiteral, arguments, @3), DebugInfoRange(@1, @4)));
 		free($1);
 	}
-	| T_IMPORT rterm
-	{
-		AExpression::Ptr avar = make_shared<AExpression>(&AExpression::OpVariable, "__type", DebugInfoRange(@1, @2));
-		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$2);
-		delete $2;
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpImport, avar, aexpr, DebugInfoRange(@1, @2)));
-	}
 	| T_IDENTIFIER
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpVariable, $1, @1));
@@ -654,7 +680,7 @@ rterm: T_STRING
 	}
 	| '!' rterm
 	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpLogicalNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| '~' rterm
@@ -688,22 +714,36 @@ rterm: T_STRING
 	}
 	;
 
-optional_template: /* empty */
-	| T_TEMPLATE
-	;
-
-apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE rterm
+apply:
 	{
-		if (!ApplyRule::IsValidCombination($3, $6)) {
-			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'.") << errinfo_debuginfo(@1));
-		}
+		m_Apply = true;
+		m_Assign = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
+		m_Ignore = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
+	}
+	T_APPLY identifier rterm rterm
+	{
+		m_Apply = false;
 
-		Array::Ptr arguments = make_shared<Array>();
-		arguments->Add(*$8);
-		delete $8;
+		AExpression::Ptr aname = static_cast<AExpression::Ptr>(*$4);
+		delete $4;
+		String type = $3;
+		free($3);
+		String name = aname->Evaluate(m_ModuleScope);
 
-		AExpression::Ptr aexpr = make_shared<AExpression>(&AExpression::OpFunctionCall, "bool", make_shared<AExpression>(&AExpression::OpLiteral, arguments, @8), @8);
+		if (!ApplyRule::IsValidType(type))
+			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(@2));
 
-		ApplyRule::AddRule($3, $4, $6, aexpr, DebugInfoRange(@1, @8), m_ModuleScope);
+		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
+		delete $5;
+
+		exprl->MakeInline();
+
+		// assign && !ignore
+		AExpression::Ptr rex = make_shared<AExpression>(&AExpression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
+		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
+		ApplyRule::AddRule(type, name, exprl, filter, DebugInfoRange(@1, @5), m_ModuleScope);
+
+		m_Assign.reset();
+		m_Ignore.reset();
 	}
 %%

@@ -50,6 +50,7 @@ public:
 	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpAdd(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals);

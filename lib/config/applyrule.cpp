@@ -18,24 +18,31 @@
  ******************************************************************************/
 
 #include "config/applyrule.h"
+#include "base/logger_fwd.h"
 
 using namespace icinga;
 
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::CallbackMap ApplyRule::m_Callbacks;
 
-ApplyRule::ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope)
-	: m_Template(tmpl), m_Expression(expression), m_DebugInfo(di), m_Scope(scope)
+ApplyRule::ApplyRule(const String& name, const AExpression::Ptr& expression,
+    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope)
+	: m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
 { }
 
-String ApplyRule::GetTemplate(void) const
+String ApplyRule::GetName(void) const
 {
-	return m_Template;
+	return m_Name;
 }
 
 AExpression::Ptr ApplyRule::GetExpression(void) const
 {
 	return m_Expression;
+}
+
+AExpression::Ptr ApplyRule::GetFilter(void) const
+{
+	return m_Filter;
 }
 
 DebugInfo ApplyRule::GetDebugInfo(void) const
@@ -48,30 +55,37 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 	return m_Scope;
 }
 
-void ApplyRule::AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope)
+void ApplyRule::AddRule(const String& sourceType, const String& name,
+    const AExpression::Ptr& expression, const AExpression::Ptr& filter,
+    const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[std::make_pair(sourceType, targetType)].push_back(ApplyRule(tmpl, expression, di, scope));
+	m_Rules[sourceType].push_back(ApplyRule(name, expression, filter, di, scope));
+}
+
+bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const
+{
+	return m_Filter->Evaluate(scope);
 }
 
 void ApplyRule::EvaluateRules(void)
 {
-	std::pair<TypeCombination, Callback> kv;
+	std::pair<String, std::pair<Callback, int> > kv;
 	BOOST_FOREACH(kv, m_Callbacks) {
 		RuleMap::const_iterator it = m_Rules.find(kv.first);
 
 		if (it == m_Rules.end())
 			continue;
 
-		kv.second(it->second);
+		kv.second.first(it->second);
 	}
 }
 
-void ApplyRule::RegisterCombination(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback)
+void ApplyRule::RegisterType(const String& sourceType, const ApplyRule::Callback& callback, int priority)
 {
-	m_Callbacks[std::make_pair(sourceType, targetType)] = callback;
+	m_Callbacks[sourceType] = make_pair(callback, priority);
 }
 
-bool ApplyRule::IsValidCombination(const String& sourceType, const String& targetType)
+bool ApplyRule::IsValidType(const String& sourceType)
 {
-	return m_Callbacks.find(std::make_pair(sourceType, targetType)) != m_Callbacks.end();
+	return m_Callbacks.find(sourceType) != m_Callbacks.end();
 }

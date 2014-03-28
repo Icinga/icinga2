@@ -32,7 +32,7 @@ INITIALIZE_ONCE(&Host::RegisterApplyRuleHandler);
 
 void Host::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterCombination("Service", "Host", &Host::EvaluateApplyRules);
+	ApplyRule::RegisterType("Service", &Host::EvaluateApplyRules, 1);
 }
 
 void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
@@ -50,25 +50,15 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			msgbuf << "Evaluating 'apply' rule (" << di << ")";
 			CONTEXT(msgbuf.str());
 
-			Value result = rule.GetExpression()->Evaluate(locals);
-
-			try {
-				if (!static_cast<bool>(result))
-					continue;
-			} catch (...) {
-				std::ostringstream msgbuf;
-				msgbuf << "Apply rule (" << di << ") returned invalid data type, expected bool: " + JsonSerialize(result);
-				Log(LogCritical, "icinga", msgbuf.str());
-
+			if (!rule.EvaluateFilter(locals))
 				continue;
-			}
 
 			std::ostringstream msgbuf2;
-			msgbuf2 << "Applying service template '" << rule.GetTemplate() << "' to host '" << host->GetName() << "' for rule " << di;
+			msgbuf2 << "Applying service '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
 			Log(LogDebug, "icinga", msgbuf2.str());
 
 			std::ostringstream namebuf;
-			namebuf << host->GetName() << "!apply!" << rule.GetTemplate();
+			namebuf << host->GetName() << "!" << rule.GetName();
 			String name = namebuf.str();
 
 			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
@@ -76,11 +66,9 @@ void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			builder->SetName(name);
 			builder->SetScope(rule.GetScope());
 
-			AExpression::Ptr atype = make_shared<AExpression>(&AExpression::OpLiteral, "Service", di);
-			AExpression::Ptr atmpl = make_shared<AExpression>(&AExpression::OpLiteral, rule.GetTemplate(), di);
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpImport, atype, atmpl, di));
-
 			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di), di));
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "short_name", make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di), di));
+			builder->AddExpression(rule.GetExpression());
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
 			serviceItem->Register();
