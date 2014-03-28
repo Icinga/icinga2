@@ -89,12 +89,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Array::Ptr templateArray = make_shared<Array>();
 	templateArray->Add(m_Name);
 	exprs->Add(make_shared<AExpression>(&AExpression::OpSetPlus, "templates", make_shared<AExpression>(&AExpression::OpLiteral, templateArray, m_DebugInfo), m_DebugInfo));
-
-	if (!m_Abstract) {
-		exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "type", make_shared<AExpression>(&AExpression::OpLiteral, m_Type, m_DebugInfo), m_DebugInfo));
-		exprs->Add(make_shared<AExpression>(&AExpression::OpSet, "name", make_shared<AExpression>(&AExpression::OpLiteral, m_Name, m_DebugInfo), m_DebugInfo));
-	}
-
 	exprs->Add(make_shared<AExpression>(&AExpression::OpDict, m_Expressions, true, m_DebugInfo));
 	
 	AExpression::Ptr exprl = make_shared<AExpression>(&AExpression::OpDict, exprs, true, m_DebugInfo);

@@ -116,6 +116,8 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
+		m_Properties->Set("type", m_Type);
+		m_Properties->Set("name", m_Name);
 		m_Properties->Set("__parent", m_Scope);
 		GetExpressionList()->Evaluate(m_Properties);
 		m_Properties->Remove("__parent");
