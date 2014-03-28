@@ -420,6 +420,8 @@ Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& loc
 			BOOST_THROW_EXCEPTION(ConfigError("Tried to access invalid property '" + index + "'"));
 
 		return object->GetField(field);
+	} else if (value.IsEmpty()) {
+		return Empty;
 	} else {
 		BOOST_THROW_EXCEPTION(ConfigError("Dot operator cannot be applied to type '" + value.GetTypeName() + "'"));
 	}

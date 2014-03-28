@@ -146,6 +146,7 @@ using namespace icinga;
 %token T_IMPORT "import (T_IMPORT)"
 %token T_ASSIGN "assign (T_ASSIGN)"
 %token T_IGNORE "ignore (T_IGNORE)"
+
 %type <text> identifier
 %type <array> rterm_items
 %type <array> rterm_items_inner
@@ -160,19 +161,20 @@ using namespace icinga;
 %type <variant> rterm_scope
 %type <variant> lterm
 %type <num> variable_decl
+
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
-%left T_IN
-%left T_NOT_IN
 %nonassoc T_EQUAL
 %nonassoc T_NOT_EQUAL
+%nonassoc T_IN
+%nonassoc T_NOT_IN
 %left T_PLUS T_MINUS
 %left T_MULTIPLY T_DIVIDE_OP
 %left T_BINARY_AND
 %left T_BINARY_OR
-%left '.'
 %right '~'
 %right '!'
+%left '.'
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -731,7 +733,7 @@ apply:
 		String name = aname->Evaluate(m_ModuleScope);
 
 		if (!ApplyRule::IsValidType(type))
-			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(@2));
+			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
 
 		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
 		delete $5;
