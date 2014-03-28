@@ -3,8 +3,8 @@ namespace icinga
 
 abstract class DynamicObject
 {
-	[config] String __name (Name);
-	[config, get_protected] String __type (TypeName);
+	[config] String name (Name);
+	[config, get_protected] String type (TypeName);
 	[config] Dictionary::Ptr methods;
 	[config] Dictionary::Ptr custom;
 	[config] Array::Ptr domains;

@@ -120,7 +120,7 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 		GetExpressionList()->Evaluate(m_Properties);
 		m_Properties->Remove("__parent");
 
-		VERIFY(m_Properties->Get("__type") == GetType() && m_Properties->Get("__name") == GetName());
+		VERIFY(m_Properties->Get("type") == GetType() && m_Properties->Get("name") == GetName());
 	}
 
 	return m_Properties;

@@ -549,7 +549,7 @@ lterm: identifier lbinary_op rterm
 	}
 	| T_IMPORT rterm
 	{
-		AExpression::Ptr avar = make_shared<AExpression>(&AExpression::OpVariable, "__type", DebugInfoRange(@1, @2));
+		AExpression::Ptr avar = make_shared<AExpression>(&AExpression::OpVariable, "type", DebugInfoRange(@1, @2));
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$2);
 		delete $2;
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpImport, avar, aexpr, DebugInfoRange(@1, @2)));
