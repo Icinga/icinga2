@@ -2,10 +2,10 @@
 
 ## <a id="what-is-icinga2"></a> What is Icinga 2?
 
-Icinga 2 is an enterprise-grade open source monitoring system which keeps watch over networks
-and any conceivable network resource, notifies the user of errors and recoveries and generates
-performance data for reporting. Scalable and extensible, Icinga 2 can monitor complex, large
-environments across dispersed locations.
+Icinga 2 is an open source monitoring system which keeps watch over network resources,
+notifies users of outages and recoveries and generates performance data for reporting.
+Scalable and extensible, Icinga 2 can monitor complex, large environments across
+multiple locations.
 
 ## <a id="licensing"></a> Licensing
 
