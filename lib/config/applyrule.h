@@ -35,7 +35,7 @@ class I2_CONFIG_API ApplyRule
 {
 public:
 	typedef boost::function<void (const std::vector<ApplyRule>& rules)> Callback;
-	typedef std::map<String, std::pair<Callback, int> > CallbackMap;
+	typedef std::map<String, std::pair<Callback, String> > CallbackMap;
 	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
 
 	String GetName(void) const;
@@ -50,7 +50,7 @@ public:
 	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static void EvaluateRules(void);
 
-	static void RegisterType(const String& sourceType, const ApplyRule::Callback& callback, int priority);
+	static void RegisterType(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback);
 	static bool IsValidType(const String& sourceType);
 
 private:

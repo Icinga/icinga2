@@ -32,7 +32,7 @@ INITIALIZE_ONCE(&ScheduledDowntime::RegisterApplyRuleHandler);
 
 void ScheduledDowntime::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("ScheduledDowntime", &ScheduledDowntime::EvaluateApplyRules, 2);
+	ApplyRule::RegisterType("ScheduledDowntime", "Service", &ScheduledDowntime::EvaluateApplyRules);
 }
 
 void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)

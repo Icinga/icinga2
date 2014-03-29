@@ -32,7 +32,7 @@ INITIALIZE_ONCE(&Notification::RegisterApplyRuleHandler);
 
 void Notification::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("Notification", &Notification::EvaluateApplyRules, 2);
+	ApplyRule::RegisterType("Notification", "Service", &Notification::EvaluateApplyRules);
 }
 
 void Notification::EvaluateApplyRules(const std::vector<ApplyRule>& rules)

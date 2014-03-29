@@ -32,7 +32,7 @@ INITIALIZE_ONCE(&Service::RegisterApplyRuleHandler);
 
 void Service::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("Service", &Service::EvaluateApplyRules, 1);
+	ApplyRule::RegisterType("Service", "Host", &Service::EvaluateApplyRules);
 }
 
 void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)

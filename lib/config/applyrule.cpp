@@ -69,21 +69,39 @@ bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const
 
 void ApplyRule::EvaluateRules(void)
 {
-	// TODO: priority
-	std::pair<String, std::pair<Callback, int> > kv;
-	BOOST_FOREACH(kv, m_Callbacks) {
-		RuleMap::const_iterator it = m_Rules.find(kv.first);
+	std::set<String> completedTypes;
 
-		if (it == m_Rules.end())
-			continue;
+	while (completedTypes.size() < m_Callbacks.size()) {
+		std::pair<String, std::pair<Callback, String> > kv;
+		BOOST_FOREACH(kv, m_Callbacks) {
+			const String& sourceType = kv.first;
 
-		kv.second.first(it->second);
+			if (completedTypes.find(sourceType) != completedTypes.end())
+				continue;
+
+			const Callback& callback = kv.second.first;
+			const String& targetType = kv.second.second;
+
+			if (IsValidType(targetType) && completedTypes.find(targetType) == completedTypes.end())
+				continue;
+
+			completedTypes.insert(sourceType);
+
+			RuleMap::const_iterator it = m_Rules.find(kv.first);
+
+			if (it == m_Rules.end())
+				continue;
+
+			callback(it->second);
+		}
 	}
+
+	m_Rules.clear();
 }
 
-void ApplyRule::RegisterType(const String& sourceType, const ApplyRule::Callback& callback, int priority)
+void ApplyRule::RegisterType(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback)
 {
-	m_Callbacks[sourceType] = make_pair(callback, priority);
+	m_Callbacks[sourceType] = make_pair(callback, targetType);
 }
 
 bool ApplyRule::IsValidType(const String& sourceType)

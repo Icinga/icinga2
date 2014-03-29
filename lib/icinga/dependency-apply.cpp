@@ -32,7 +32,7 @@ INITIALIZE_ONCE(&Dependency::RegisterApplyRuleHandler);
 
 void Dependency::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("Dependency", &Dependency::EvaluateApplyRules, 2);
+	ApplyRule::RegisterType("Dependency", "Service", &Dependency::EvaluateApplyRules);
 }
 
 void Dependency::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
