@@ -743,7 +743,7 @@ apply:
 		// assign && !ignore
 		AExpression::Ptr rex = make_shared<AExpression>(&AExpression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
 		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
-		ApplyRule::AddRule(type, name, exprl, filter, DebugInfoRange(@1, @5), m_ModuleScope);
+		ApplyRule::AddRule(type, name, exprl, filter, DebugInfoRange(@2, @5), m_ModuleScope);
 
 		m_Assign.reset();
 		m_Ignore.reset();
