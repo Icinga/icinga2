@@ -28,6 +28,7 @@
 #include "base/utility.h"
 #include "base/objectlock.h"
 #include "base/object.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -45,6 +46,14 @@ AExpression::AExpression(OpCallback op, const Value& operand1, const Value& oper
 Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 {
 	try {
+#ifdef _DEBUG
+		if (m_Operator != &AExpression::OpLiteral) {
+			std::ostringstream msgbuf;
+			ShowCodeFragment(msgbuf, m_DebugInfo, false);
+			Log(LogDebug, "config", "Executing:\n" + msgbuf.str());
+		}
+#endif /* _DEBUG */
+
 		return m_Operator(this, locals);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
