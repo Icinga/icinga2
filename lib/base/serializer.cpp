@@ -165,6 +165,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		instance = type->Instantiate();
 	}
 
+	ObjectLock olock(input);
 	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
 		if (kv.first.IsEmpty())
 			continue;
