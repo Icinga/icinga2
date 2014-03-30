@@ -43,13 +43,11 @@ public:
 
 	void Print(std::ostream& fp, int ignoreFrames = 0) const;
 
+	static void StaticInitialize(void);
+
 private:
 	void *m_Frames[64];
 	int m_Count;
-
-	static boost::once_flag m_OnceFlag;
-
-	static void Initialize(void);
 };
 
 I2_BASE_API std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);

@@ -22,6 +22,7 @@
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/application.h"
+#include "base/initialize.h"
 
 #ifdef HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>
@@ -29,7 +30,7 @@
 
 using namespace icinga;
 
-boost::once_flag StackTrace::m_OnceFlag = BOOST_ONCE_INIT;
+INITIALIZE_ONCE(&StackTrace::StaticInitialize);
 
 #ifdef _MSC_VER
 #	pragma optimize("", off)
@@ -37,8 +38,6 @@ boost::once_flag StackTrace::m_OnceFlag = BOOST_ONCE_INIT;
 
 StackTrace::StackTrace(void)
 {
-	boost::call_once(m_OnceFlag, &StackTrace::Initialize);
-
 #ifdef HAVE_BACKTRACE_SYMBOLS
 	m_Count = backtrace(m_Frames, sizeof(m_Frames) / sizeof(m_Frames[0]));
 #else /* HAVE_BACKTRACE_SYMBOLS */
@@ -57,8 +56,6 @@ StackTrace::StackTrace(void)
 #ifdef _WIN32
 StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 {
-	boost::call_once(m_OnceFlag, &StackTrace::Initialize);
-
 	STACKFRAME64 frame;
 	int architecture;
 
@@ -91,7 +88,7 @@ StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 }
 #endif /* _WIN32 */
 
-void StackTrace::Initialize(void)
+void StackTrace::StaticInitialize(void)
 {
 #ifdef _WIN32
 	(void) SymSetOptions(SYMOPT_UNDNAME | SYMOPT_LOAD_LINES);
@@ -153,33 +150,11 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 #	endif /* HAVE_BACKTRACE_SYMBOLS */
 #else /* _WIN32 */
 	for (int i = ignoreFrames + 1; i < m_Count; i++) {
-		char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-		PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-		pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-		pSymbol->MaxNameLen = MAX_SYM_NAME;
-
-		DWORD64 dwAddress = (DWORD64)m_Frames[i];
-		DWORD dwDisplacement;
-		DWORD64 dwDisplacement64;
-
-		IMAGEHLP_LINE64 line;
-		line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-		fp << "\t(" << i - ignoreFrames - 1 << ") ";
-
-		if (SymGetLineFromAddr64(GetCurrentProcess(), dwAddress, &dwDisplacement, &line))
-			fp << line.FileName << ":" << line.LineNumber;
-		else
-			fp << "(unknown file/line)";
-
-		fp << ": ";
-
-		if (SymFromAddr(GetCurrentProcess(), dwAddress, &dwDisplacement64, pSymbol))
-			fp << pSymbol->Name << "+" << dwDisplacement64;
-		else
-			fp << "(unknown function)";
-
-		 fp << std::endl;
+		fp << "\t(" << i - ignoreFrames - 1 << ") "
+		   << Utility::GetSymbolSource(m_Frames[i])
+		   << ": "
+		   << Utility::GetSymbolName(m_Frames[i])
+		   << std::endl;
 	}
 #endif /* _WIN32 */
 }
