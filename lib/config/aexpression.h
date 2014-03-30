@@ -42,8 +42,6 @@ public:
 	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
 
 	Value Evaluate(const Dictionary::Ptr& locals) const;
-	void ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const;
-	void FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const;
 
 	void MakeInline(void);
 	
@@ -52,6 +50,7 @@ public:
 	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpAdd(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
@@ -79,6 +78,7 @@ public:
 	static Value OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpImport(const AExpression *expr, const Dictionary::Ptr& locals);
 
 private:
 	OpCallback m_Operator;

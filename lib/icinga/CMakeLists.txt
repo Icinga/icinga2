@@ -42,15 +42,15 @@ mkembedconfig_target(icinga-type.conf icinga-type.cpp)
 add_library(icinga SHARED
   api.cpp api.h checkcommand.cpp checkcommand.th checkresult.cpp checkresult.th
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp dependency.cpp dependency.th
-  domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
-  externalcommandprocessor.cpp host.cpp host.th host-apply.cpp hostgroup.cpp hostgroup.th
+  dependency-apply.cpp domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
+  externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
   icingaapplication.cpp icingaapplication.th icingastatuswriter.cpp
   icingastatuswriter.th legacytimeperiod.cpp
   macroprocessor.cpp macroresolver.cpp notificationcommand.cpp notificationcommand.th
-  notification.cpp notification.th perfdatavalue.cpp perfdatavalue.th
-  pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th service-check.cpp
-  service-comment.cpp service.cpp service-dependency.cpp service-downtime.cpp service-event.cpp
-  service-flapping.cpp service.th servicegroup.cpp servicegroup.th
+  notification.cpp notification.th notification-apply.cpp perfdatavalue.cpp perfdatavalue.th
+  pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th scheduleddowntime-apply.cpp
+  service-apply.cpp service-check.cpp service-comment.cpp service.cpp service-dependency.cpp
+  service-downtime.cpp service-event.cpp service-flapping.cpp service.th servicegroup.cpp servicegroup.th
   service-notification.cpp timeperiod.cpp timeperiod.th user.cpp user.th
   usergroup.cpp usergroup.th icinga-type.cpp
 )

@@ -89,7 +89,7 @@ static bool LoadConfigFiles(const String& appType, ValidationType validate)
 
 	BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
 		std::ostringstream locbuf;
-		ShowCodeFragment(locbuf, message.Location);
+		ShowCodeFragment(locbuf, message.Location, true);
 		String location = locbuf.str();
 
 		String logmsg;

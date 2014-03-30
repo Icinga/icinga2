@@ -76,10 +76,6 @@ void Service::OnConfigLoaded(void)
 	if (m_Host)
 		m_Host->AddService(GetSelf());
 
-	UpdateSlaveNotifications();
-	UpdateSlaveScheduledDowntimes();
-	UpdateSlaveDependencies();
-
 	SetSchedulingOffset(Utility::Random());
 }
 

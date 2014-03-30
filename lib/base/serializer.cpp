@@ -113,7 +113,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 		fields->Set(field.Name, Serialize(input->GetField(i), attributeTypes));
 	}
 
-	fields->Set("__type", type->GetName());
+	fields->Set("type", type->GetName());
 
 	return fields;
 }
@@ -151,7 +151,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 	if (object)
 		type = object->GetReflectionType();
 	else
-		type = Type::GetByName(input->Get("__type"));
+		type = Type::GetByName(input->Get("type"));
 
 	if (!type)
 		return object;
@@ -165,6 +165,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		instance = type->Instantiate();
 	}
 
+	ObjectLock olock(input);
 	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
 		if (kv.first.IsEmpty())
 			continue;
@@ -230,7 +231,7 @@ Value icinga::Deserialize(const Object::Ptr& object, const Value& value, bool sa
 
 	ASSERT(dict != NULL);
 
-	if (!dict->Contains("__type"))
+	if (!dict->Contains("type"))
 		return DeserializeDictionary(dict, safe_mode, attributeTypes);
 
 	return DeserializeObject(object, dict, safe_mode, attributeTypes);

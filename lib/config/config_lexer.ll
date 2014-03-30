@@ -197,33 +197,33 @@ static char *lb_steal(lex_buf *lb)
 [ \t\r\n]			/* ignore whitespace */
 
 <INITIAL>{
-type				return T_TYPE;
-dictionary			{ yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
-array				{ yylval->type = TypeArray; return T_TYPE_ARRAY; }
-number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
-string				{ yylval->type = TypeString; return T_TYPE_STRING; }
-scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }
-any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
-name				{ yylval->type = TypeName; return T_TYPE_NAME; }
+%type				return T_TYPE;
+%dictionary			{ yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
+%array				{ yylval->type = TypeArray; return T_TYPE_ARRAY; }
+%number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
+%string				{ yylval->type = TypeString; return T_TYPE_STRING; }
+%scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }
+%any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
+%name				{ yylval->type = TypeName; return T_TYPE_NAME; }
 %validator			{ return T_VALIDATOR; }
 %require			{ return T_REQUIRE; }
 %attribute			{ return T_ATTRIBUTE; }
+%inherits			return T_INHERITS;
 object				return T_OBJECT;
 template			return T_TEMPLATE;
 include				return T_INCLUDE;
 include_recursive		return T_INCLUDE_RECURSIVE;
 library				return T_LIBRARY;
-inherits			return T_INHERITS;
 null				return T_NULL;
 partial				return T_PARTIAL;
 true				{ yylval->num = 1; return T_NUMBER; }
 false				{ yylval->num = 0; return T_NUMBER; }
-set				return T_VAR;
-var				return T_VAR;
 const				return T_CONST;
 apply				return T_APPLY;
-to				return T_TO;
 where				return T_WHERE;
+import				return T_IMPORT;
+assign				return T_ASSIGN;
+ignore				return T_IGNORE;
 \<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }

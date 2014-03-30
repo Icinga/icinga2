@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/dependency.th"
 #include "icinga/service.h"
+#include "config/applyrule.h"
 #include "base/array.h"
 #include "base/dictionary.h"
 
@@ -46,6 +47,9 @@ public:
 	TimePeriod::Ptr GetPeriod(void) const;
 
 	bool IsAvailable(DependencyType dt) const;
+
+	static void RegisterApplyRuleHandler(void);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 
 protected:
 	virtual void OnStateLoaded(void);

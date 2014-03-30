@@ -34,32 +34,37 @@ namespace icinga
 class I2_CONFIG_API ApplyRule
 {
 public:
-	typedef std::pair<String, String> TypeCombination;
 	typedef boost::function<void (const std::vector<ApplyRule>& rules)> Callback;
-	typedef std::map<TypeCombination, Callback> CallbackMap;
-	typedef std::map<TypeCombination, std::vector<ApplyRule> > RuleMap;
+	typedef std::map<String, std::pair<Callback, String> > CallbackMap;
+	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
 
-	String GetTemplate(void) const;
+	String GetName(void) const;
 	AExpression::Ptr GetExpression(void) const;
+	AExpression::Ptr GetFilter(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Dictionary::Ptr GetScope(void) const;
 
-	static void AddRule(const String& sourceType, const String& tmpl, const String& targetType, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope);
+	bool EvaluateFilter(const Dictionary::Ptr& scope) const;
+
+	static void AddRule(const String& sourceType, const String& name, const AExpression::Ptr& expression,
+	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static void EvaluateRules(void);
 
-	static void RegisterCombination(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback);
-	static bool IsValidCombination(const String& sourceType, const String& targetType);
+	static void RegisterType(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback);
+	static bool IsValidType(const String& sourceType);
 
 private:
-	String m_Template;
+	String m_Name;
 	AExpression::Ptr m_Expression;
+	AExpression::Ptr m_Filter;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ApplyRule(const String& tmpl, const AExpression::Ptr& expression, const DebugInfo& di, const Dictionary::Ptr& scope);
+	ApplyRule(const String& tmpl, const AExpression::Ptr& expression,
+	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 
 }

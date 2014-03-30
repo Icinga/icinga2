@@ -123,15 +123,17 @@ uses the `template` identifier:
     template Service "ping4-template" { }
 
 Icinga 1.x objects inherit from templates using the `use` attribute.
-Icinga 2 uses the keyword `inherits` after the object name and requires a
-comma-separated list with template names in double quotes.
+Icinga 2 uses the keyword `import` with template names in double quotes.
 
     define service {
         service_description testservice
         use                 tmpl1,tmpl2,tmpl3
     }
 
-    object Service "testservice" inherits "tmpl1", "tmpl2", "tmpl3" {
+    object Service "testservice" {
+      import "tmpl1",
+      import "tmpl2",
+      import "tmpl3"
     }
 
 ## <a id="differences-1x-2-object-attributes"></a> Object attributes
@@ -216,12 +218,8 @@ In Icinga 1.x a service object is associated with a host by defining the
 to `hostgroup_name` or behavior changing regular expression. It's not possible
 to define a service definition within a host definition.
 
-The preferred way of associating hosts with services in Icinga 2 are services
-defined inline to the host object (or template) definition. Icinga 2 will
-implicitely create a new service object on configuration activation. These
-inline service definitions can reference service templates.
-Linking a service to a host is still possible with the 'host' attribute in
-a service object in Icinga 2.
+The preferred way of associating hosts with services in Icinga 2 is by
+using the `apply` keyword.
 
 ## <a id="differences-1x-2-users"></a> Users
 
@@ -369,17 +367,22 @@ The preferred way of assigning objects to groups is by using a template:
 
     template Host "dev-host" {
       groups += [ "dev-hosts" ],
-
-      services["http"] = {
-        check_command = [ "http-ip" ]
-      }
     }
 
-    object Host "web-dev" inherits "dev-host" { }
+    object Host "web-dev" {
+      import "dev-host"
+    }
 
-Host groups in Icinga 2 cannot be used to associate services with all members
-of that group. The example above shows how to use templates to accomplish
-the same effect.
+In order to associate a service with all hosts in a host group the `apply`
+keyword can be used:
+
+    apply Service "ping" {
+      import "generic-service",
+
+      check_command = "ping4",
+
+      assign where "group" in host.groups
+    }
 
 ## <a id="differences-1x-2-notifications"></a> Notifications
 

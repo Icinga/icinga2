@@ -128,7 +128,28 @@ String Utility::GetSymbolName(const void *addr)
 		return dli.dli_sname;
 #endif /* HAVE_DLADDR */
 
-	return "";
+#ifdef _WIN32
+	char buffer[sizeof(SYMBOL_INFO)+MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+
+	DWORD64 dwAddress = (DWORD64)addr;
+	DWORD64 dwDisplacement;
+
+	IMAGEHLP_LINE64 line;
+	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+	if (SymFromAddr(GetCurrentProcess(), dwAddress, &dwDisplacement, pSymbol)) {
+		char output[256];
+		if (UnDecorateSymbolName(pSymbol->Name, output, sizeof(output), UNDNAME_COMPLETE))
+			return String(output) + "+" + Convert::ToString(dwDisplacement);
+		else
+			return String(pSymbol->Name) + "+" + Convert::ToString(dwDisplacement);
+	}
+#endif /* _WIN32 */
+
+	return "(unknown function)";
 }
 
 String Utility::GetSymbolSource(const void *addr)
@@ -142,7 +163,23 @@ String Utility::GetSymbolSource(const void *addr)
 	}
 #endif /* HAVE_DLADDR */
 
-	return "";
+#ifdef _WIN32
+	char buffer[sizeof(SYMBOL_INFO)+MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+
+	DWORD64 dwAddress = (DWORD64)addr;
+	DWORD dwDisplacement;
+
+	IMAGEHLP_LINE64 line;
+	line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+	if (SymGetLineFromAddr64(GetCurrentProcess(), dwAddress, &dwDisplacement, &line))
+		return String(line.FileName) + ":" + Convert::ToString(line.LineNumber);
+#endif /* _WIN32 */
+
+	return "(unknown file/line)";
 }
 
 /**

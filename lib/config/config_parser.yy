@@ -69,6 +69,13 @@ do {							\
 
 using namespace icinga;
 
+static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *left, Value *right, DebugInfo& diLeft, DebugInfo& diRight)
+{
+	*result = new Value(make_shared<AExpression>(op, static_cast<AExpression::Ptr>(*left), static_cast<AExpression::Ptr>(*right), DebugInfoRange(diLeft, diRight)));
+	delete left;
+	delete right;
+}
+
 %}
 
 %pure-parser
@@ -121,7 +128,6 @@ using namespace icinga;
 %token <op> T_LESS_THAN "< (T_LESS_THAN)"
 %token <op> T_GREATER_THAN "> (T_GREATER_THAN)"
 
-%token T_VAR "var (T_VAR)"
 %token T_CONST "const (T_CONST)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
@@ -142,8 +148,11 @@ using namespace icinga;
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_PARTIAL "partial (T_PARTIAL)"
 %token T_APPLY "apply (T_APPLY)"
-%token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
+%token T_IMPORT "import (T_IMPORT)"
+%token T_ASSIGN "assign (T_ASSIGN)"
+%token T_IGNORE "ignore (T_IGNORE)"
+
 %type <text> identifier
 %type <array> rterm_items
 %type <array> rterm_items_inner
@@ -151,27 +160,25 @@ using namespace icinga;
 %type <array> lterm_items_inner
 %type <variant> typerulelist
 %type <op> lbinary_op
-%type <op> rbinary_op
 %type <type> type
 %type <num> partial_specifier
-%type <slist> object_inherits_list
-%type <slist> object_inherits_specifier
 %type <variant> rterm
 %type <variant> rterm_scope
 %type <variant> lterm
-%type <num> variable_decl
+
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
+%left T_BINARY_OR
+%left T_BINARY_AND
 %left T_IN
 %left T_NOT_IN
-%nonassoc T_EQUAL
-%nonassoc T_NOT_EQUAL
-%left '+' '-'
-%left '*' '/'
-%left '&'
-%left '|'
-%right '~'
-%right '!'
+%left T_EQUAL T_NOT_EQUAL
+%left T_LESS_THAN T_LESS_THAN_OR_EQUAL T_GREATER_THAN T_GREATER_THAN_OR_EQUAL
+%left T_SHIFT_LEFT T_SHIFT_RIGHT
+%left T_PLUS T_MINUS
+%left T_MULTIPLY T_DIVIDE_OP
+%right '!' '~'
+%left '.' '(' '['
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -191,6 +198,10 @@ static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
+
+static bool m_Apply;
+static AExpression::Ptr m_Assign;
+static AExpression::Ptr m_Ignore;
 
 void ConfigCompiler::Compile(void)
 {
@@ -215,7 +226,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | include_recursive | library | variable | apply
+statement: object | type | include | include_recursive | library | constant | apply
 	{ }
 	| lterm
 	{
@@ -265,7 +276,7 @@ library: T_LIBRARY T_STRING
 	}
 	;
 
-variable: variable_decl identifier T_SET rterm
+constant: T_CONST identifier T_SET rterm
 	{
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
 		delete $4;
@@ -274,16 +285,6 @@ variable: variable_decl identifier T_SET rterm
 		sv->SetConstant(true);
 
 		free($2);
-	}
-	;
-
-variable_decl: T_VAR
-	{
-		$$ = true;
-	}
-	| T_CONST
-	{
-		$$ = false;
 	}
 	;
 
@@ -411,9 +412,9 @@ object:
 	{
 		m_Abstract = false;
 	}
-	object_declaration identifier rterm object_inherits_specifier rterm_scope
+	object_declaration identifier rterm rterm_scope
 	{
-		DebugInfo di = DebugInfoRange(@2, @6);
+		DebugInfo di = DebugInfoRange(@2, @5);
 		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(di);
 
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
@@ -444,16 +445,8 @@ object:
 
 		item->SetName(name);
 
-		if ($5) {
-			BOOST_FOREACH(const String& parent, *$5) {
-				item->AddParent(parent);
-			}
-
-			delete $5;
-		}
-
-		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$6);
-		delete $6;
+		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
+		delete $5;
 
 		exprl->MakeInline();
 		item->AddExpression(exprl);
@@ -472,38 +465,6 @@ object_declaration: T_OBJECT
 	{
 		m_Abstract = true;
 	}
-
-object_inherits_list:
-	{
-		$$ = NULL;
-	}
-	| T_STRING
-	{
-		$$ = new std::vector<String>();
-		$$->push_back($1);
-		free($1);
-	}
-	| object_inherits_list ',' T_STRING
-	{
-		if ($1)
-			$$ = $1;
-		else
-			$$ = new std::vector<String>();
-
-		$$->push_back($3);
-		free($3);
-	}
-	;
-
-object_inherits_specifier:
-	{
-		$$ = NULL;
-	}
-	| T_INHERITS object_inherits_list
-	{
-		$$ = $2;
-	}
-	;
 
 lbinary_op: T_SET
 	| T_SET_PLUS
@@ -551,48 +512,73 @@ lterm_items_inner: /* empty */
 
 lterm: identifier lbinary_op rterm
 	{
-		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
-		$$ = new Value(make_shared<AExpression>($2, $1, aexpr, DebugInfoRange(@1, @3)));
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
 		free($1);
+
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
+		$$ = new Value(make_shared<AExpression>($2, aindex, aexpr, DebugInfoRange(@1, @3)));
 		delete $3;
 	}
-	| identifier '[' T_STRING ']' lbinary_op rterm
+	| identifier '[' rterm ']' lbinary_op rterm
 	{
-		AExpression::Ptr subexpr = make_shared<AExpression>($5, $3, static_cast<AExpression::Ptr>(*$6), DebugInfoRange(@1, @6));
-		free($3);
+		AExpression::Ptr subexpr = make_shared<AExpression>($5, static_cast<AExpression::Ptr>(*$3), static_cast<AExpression::Ptr>(*$6), DebugInfoRange(@1, @6));
+		delete $3;
 		delete $6;
 
 		Array::Ptr subexprl = make_shared<Array>();
 		subexprl->Add(subexpr);
 		
-		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @6));
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @6)));
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
 		free($1);
+
+		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @6));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, aindex, expr, DebugInfoRange(@1, @6)));
+	}
+	| identifier '.' T_IDENTIFIER lbinary_op rterm
+	{
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
+		AExpression::Ptr subexpr = make_shared<AExpression>($4, aindex, static_cast<AExpression::Ptr>(*$5), DebugInfoRange(@1, @5));
+		free($3);
+		delete $5;
+
+		Array::Ptr subexprl = make_shared<Array>();
+		subexprl->Add(subexpr);
+
+		AExpression::Ptr aindexl = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
+		free($1);
+
+		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @5));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, aindexl, expr, DebugInfoRange(@1, @5)));
+	}
+	| T_IMPORT rterm
+	{
+		AExpression::Ptr avar = make_shared<AExpression>(&AExpression::OpVariable, "type", DebugInfoRange(@1, @2));
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$2);
+		delete $2;
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpImport, avar, aexpr, DebugInfoRange(@1, @2)));
+	}
+	| T_ASSIGN T_WHERE rterm
+	{
+		if (!m_Apply)
+			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
+
+		m_Assign = make_shared<AExpression>(&AExpression::OpLogicalOr, m_Assign, static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3));
+		delete $3;
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
+	}
+	| T_IGNORE T_WHERE rterm
+	{
+		if (!m_Apply)
+			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
+
+		m_Ignore = make_shared<AExpression>(&AExpression::OpLogicalOr, m_Ignore, static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3));
+
+		delete $3;
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
 	}
 	| rterm
-	{
-		$$ = $1;
-	}
-	;
-
-rbinary_op: T_PLUS
-	| T_MINUS
-	| T_MULTIPLY
-	| T_DIVIDE_OP
-	| T_BINARY_AND
-	| T_BINARY_OR
-	| T_LESS_THAN
-	| T_GREATER_THAN
-	| T_LESS_THAN_OR_EQUAL
-	| T_GREATER_THAN_OR_EQUAL
-	| T_EQUAL
-	| T_NOT_EQUAL
-	| T_IN
-	| T_NOT_IN
-	| T_LOGICAL_AND
-	| T_LOGICAL_OR
-	| T_SHIFT_LEFT
-	| T_SHIFT_RIGHT
 	{
 		$$ = $1;
 	}
@@ -630,12 +616,6 @@ rterm_items_inner: /* empty */
 	}
 	;
 
-rbinary_op: '+'
-	{
-		$$ = &AExpression::OpAdd;
-	}
-	;
-
 rterm_scope: '{' lterm_items '}'
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @3)));
@@ -655,6 +635,12 @@ rterm: T_STRING
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, @1));
 	}
+	| rterm '.' T_IDENTIFIER
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, static_cast<AExpression::Ptr>(*$1), make_shared<AExpression>(&AExpression::OpLiteral, $3, @3), DebugInfoRange(@1, @3)));
+		delete $1;
+		free($3);
+	}
 	| T_IDENTIFIER '(' rterm_items ')'
 	{
 		Array::Ptr arguments = Array::Ptr($3);
@@ -668,7 +654,7 @@ rterm: T_STRING
 	}
 	| '!' rterm
 	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpLogicalNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| '~' rterm
@@ -676,10 +662,10 @@ rterm: T_STRING
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpNegate, static_cast<AExpression::Ptr>(*$2), DebugInfoRange(@1, @2)));
 		delete $2;
 	}
-	| identifier '[' T_STRING ']'
+	| rterm '[' rterm ']'
 	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, $1, $3, DebugInfoRange(@1, @4)));
-		free($1);
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpIndexer, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @4)));
+		delete $1;
 		free($3);
 	}
 	| '[' rterm_items ']'
@@ -694,30 +680,56 @@ rterm: T_STRING
 	{
 		$$ = $2;
 	}
-	| rterm rbinary_op rterm
+	| rterm T_LOGICAL_OR rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_LOGICAL_AND rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_BINARY_OR rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_BINARY_AND rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_IN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_NOT_IN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_NOT_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_LESS_THAN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_LESS_THAN_OR_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_GREATER_THAN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_GREATER_THAN_OR_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_SHIFT_LEFT rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_SHIFT_RIGHT rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_PLUS rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_MINUS rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_MULTIPLY rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	;
+
+apply:
 	{
-		$$ = new Value(make_shared<AExpression>($2, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
-		delete $1;
-		delete $3;
+		m_Apply = true;
+		m_Assign = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
+		m_Ignore = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 	}
-	;
-
-optional_template: /* empty */
-	| T_TEMPLATE
-	;
-
-apply: T_APPLY optional_template identifier identifier T_TO identifier T_WHERE rterm
+	T_APPLY identifier rterm rterm
 	{
-		if (!ApplyRule::IsValidCombination($3, $6)) {
-			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with types '" + String($3) + "' and '" + String($6) + "'.") << errinfo_debuginfo(@1));
-		}
+		m_Apply = false;
 
-		Array::Ptr arguments = make_shared<Array>();
-		arguments->Add(*$8);
-		delete $8;
+		AExpression::Ptr aname = static_cast<AExpression::Ptr>(*$4);
+		delete $4;
+		String type = $3;
+		free($3);
+		String name = aname->Evaluate(m_ModuleScope);
 
-		AExpression::Ptr aexpr = make_shared<AExpression>(&AExpression::OpFunctionCall, "bool", make_shared<AExpression>(&AExpression::OpLiteral, arguments, @8), @8);
+		if (!ApplyRule::IsValidType(type))
+			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
 
-		ApplyRule::AddRule($3, $4, $6, aexpr, DebugInfoRange(@1, @8), m_ModuleScope);
+		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
+		delete $5;
+
+		exprl->MakeInline();
+
+		// assign && !ignore
+		AExpression::Ptr rex = make_shared<AExpression>(&AExpression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
+		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
+		ApplyRule::AddRule(type, name, exprl, filter, DebugInfoRange(@2, @5), m_ModuleScope);
+
+		m_Assign.reset();
+		m_Ignore.reset();
 	}
 %%

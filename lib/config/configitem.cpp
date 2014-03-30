@@ -44,15 +44,13 @@ ConfigItem::ItemMap ConfigItem::m_Items;
  * @param unit The unit of the item.
  * @param abstract Whether the item is a template.
  * @param exprl Expression list for the item.
- * @param parents Parent objects for the item.
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const AExpression::Ptr& exprl,
-    const std::vector<String>& parents, const DebugInfo& debuginfo,
-    const Dictionary::Ptr& scope)
+    const DebugInfo& debuginfo, const Dictionary::Ptr& scope)
 	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
-	  m_ExpressionList(exprl), m_ParentNames(parents), m_DebugInfo(debuginfo),
+	  m_ExpressionList(exprl), m_DebugInfo(debuginfo),
 	  m_Scope(scope)
 {
 }
@@ -112,53 +110,19 @@ AExpression::Ptr ConfigItem::GetExpressionList(void) const
 	return m_ExpressionList;
 }
 
-AExpression::Ptr ConfigItem::GetLinkedExpressionList(void)
-{
-	ASSERT(OwnsLock());
-
-	if (m_LinkedExpressionList)
-		return m_LinkedExpressionList;
-
-	Array::Ptr subexprs = make_shared<Array>();
-		
-	BOOST_FOREACH(const String& name, m_ParentNames) {
-		ConfigItem::Ptr parent = ConfigItem::GetObject(m_Type, name);
-
-		if (!parent) {
-			std::ostringstream message;
-			message << "Parent object '" << name << "' does not"
-			    " exist (" << m_DebugInfo << ")";
-			ConfigCompilerContext::GetInstance()->AddMessage(true, message.str(), m_DebugInfo);
-		} else {
-			AExpression::Ptr pexprl;
-
-			{
-				ObjectLock olock(parent);
-				pexprl = parent->GetLinkedExpressionList();
-			}
-
-			subexprs->Add(pexprl);
-		}
-	}
-
-	subexprs->Add(m_ExpressionList);
-
-	m_LinkedExpressionList = make_shared<AExpression>(&AExpression::OpDict, subexprs, true, m_DebugInfo);
-	
-	return m_LinkedExpressionList;
-}
-
 Dictionary::Ptr ConfigItem::GetProperties(void)
 {
 	ASSERT(OwnsLock());
 
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
+		m_Properties->Set("type", m_Type);
+		m_Properties->Set("name", m_Name);
 		m_Properties->Set("__parent", m_Scope);
-		GetLinkedExpressionList()->Evaluate(m_Properties);
+		GetExpressionList()->Evaluate(m_Properties);
 		m_Properties->Remove("__parent");
 
-		VERIFY(m_Properties->Get("__type") == GetType() && m_Properties->Get("__name") == GetName());
+		VERIFY(m_Properties->Get("type") == GetType() && m_Properties->Get("name") == GetName());
 	}
 
 	return m_Properties;

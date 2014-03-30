@@ -102,9 +102,6 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
-	static void RegisterApplyRuleHandler(void);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
-
 protected:
 	virtual void Stop(void);
 
@@ -113,8 +110,6 @@ protected:
 private:
 	mutable boost::mutex m_ServicesMutex;
 	std::map<String, shared_ptr<Service> > m_Services;
-
-	void UpdateSlaveServices(void);
 
 	static void RefreshServicesCache(void);
 };

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/host.h"
+#include "icinga/service.h"
 #include "config/configitembuilder.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
@@ -28,59 +28,56 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&Host::RegisterApplyRuleHandler);
+INITIALIZE_ONCE(&Notification::RegisterApplyRuleHandler);
 
-void Host::RegisterApplyRuleHandler(void)
+void Notification::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterCombination("Service", "Host", &Host::EvaluateApplyRules);
+	ApplyRule::RegisterType("Notification", "Service", &Notification::EvaluateApplyRules);
 }
 
-void Host::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
+void Notification::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
 
 		Dictionary::Ptr locals = make_shared<Dictionary>();
-		locals->Set("host", host->GetName());
-
-		Array::Ptr groups = host->GetGroups();
-		if (!groups)
-			groups = make_shared<Array>();
-		locals->Set("hostgroups", groups);
+		locals->Set("host", service->GetHost());
+		locals->Set("service", service);
 
 		BOOST_FOREACH(const ApplyRule& rule, rules) {
+			DebugInfo di = rule.GetDebugInfo();
+
 			std::ostringstream msgbuf;
-			msgbuf << "Evaluating 'apply' rule (" << rule.GetDebugInfo() << ")";
+			msgbuf << "Evaluating 'apply' rule (" << di << ")";
 			CONTEXT(msgbuf.str());
 
-			Value result = rule.GetExpression()->Evaluate(locals);
-
-			try {
-				if (!static_cast<bool>(result))
-					continue;
-			} catch (...) {
-				std::ostringstream msgbuf;
-				msgbuf << "Apply rule (" << rule.GetDebugInfo() << ") returned invalid data type, expected bool: " + JsonSerialize(result);
-				Log(LogCritical, "icinga", msgbuf.str());
-
+			if (!rule.EvaluateFilter(locals))
 				continue;
-			}
 
 			std::ostringstream msgbuf2;
-			msgbuf2 << "Applying service template '" << rule.GetTemplate() << "' to host '" << host->GetName() << "' for rule " << rule.GetDebugInfo();
+			msgbuf2 << "Applying notification '" << rule.GetName() << "' to service '" << service->GetName() << "' for rule " << di;
 			Log(LogDebug, "icinga", msgbuf2.str());
 
 			std::ostringstream namebuf;
-			namebuf << host->GetName() << "!apply!" << rule.GetTemplate();
+			namebuf << service->GetName() << "!" << rule.GetName();
 			String name = namebuf.str();
 
-			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(rule.GetDebugInfo());
-			builder->SetType("Service");
+			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+			builder->SetType("Notification");
 			builder->SetName(name);
 			builder->SetScope(rule.GetScope());
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), rule.GetDebugInfo()), rule.GetDebugInfo()));
 
-			builder->AddParent(rule.GetTemplate());
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+			    make_shared<AExpression>(&AExpression::OpLiteral, "host", di),
+			    make_shared<AExpression>(&AExpression::OpLiteral, service->GetHost()->GetName(), di),
+			    di));
+
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+			    make_shared<AExpression>(&AExpression::OpLiteral, "service", di),
+			    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
+			    di));
+
+			builder->AddExpression(rule.GetExpression());
 
 			ConfigItem::Ptr serviceItem = builder->Compile();
 			serviceItem->Register();

@@ -180,7 +180,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 		}
 
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetInstance()->AddMessage(false, "Unknown attribute: " + LocationToString(locations));
+			ConfigCompilerContext::GetInstance()->AddMessage(true, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType) {
 			String message = "Invalid value for attribute: " + LocationToString(locations);
 

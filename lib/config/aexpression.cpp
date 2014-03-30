@@ -19,6 +19,7 @@
 
 #include "config/aexpression.h"
 #include "config/configerror.h"
+#include "config/configitem.h"
 #include "base/array.h"
 #include "base/serializer.h"
 #include "base/context.h"
@@ -26,6 +27,8 @@
 #include "base/scriptvariable.h"
 #include "base/utility.h"
 #include "base/objectlock.h"
+#include "base/object.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -43,72 +46,20 @@ AExpression::AExpression(OpCallback op, const Value& operand1, const Value& oper
 Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 {
 	try {
+#ifdef _DEBUG
+		if (m_Operator != &AExpression::OpLiteral) {
+			std::ostringstream msgbuf;
+			ShowCodeFragment(msgbuf, m_DebugInfo, false);
+			Log(LogDebug, "config", "Executing:\n" + msgbuf.str());
+		}
+#endif /* _DEBUG */
+
 		return m_Operator(this, locals);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
 		else
 			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression: " + String(ex.what())) << boost::errinfo_nested_exception(boost::current_exception()) << errinfo_debuginfo(m_DebugInfo));
-	}
-}
-
-void AExpression::ExtractPath(const std::vector<String>& path, const Array::Ptr& result) const
-{
-	ASSERT(!path.empty());
-
-	if (m_Operator == &AExpression::OpDict) {
-		Array::Ptr exprl = m_Operand1;
-		ObjectLock olock(exprl);
-		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
-			expr->ExtractPath(path, result);
-		}
-	} else if ((m_Operator == &AExpression::OpSet || m_Operator == &AExpression::OpSetPlus ||
-	    m_Operator == &AExpression::OpSetMinus || m_Operator == &AExpression::OpSetMultiply ||
-	    m_Operator == &AExpression::OpSetDivide) && path[0] == m_Operand1) {
-		AExpression::Ptr exprl = m_Operand2;
-
-		if (path.size() == 1) {
-			if (m_Operator == &AExpression::OpSet)
-				result->Clear();
-
-			if (exprl->m_Operator != &AExpression::OpDict)
-				BOOST_THROW_EXCEPTION(ConfigError("The '" + path[0] + "' attribute must be a dictionary.") << errinfo_debuginfo(m_DebugInfo));
-
-			Array::Ptr subexprl = exprl->m_Operand1;
-			ObjectLock olock(subexprl);
-			BOOST_FOREACH(const AExpression::Ptr& expr, subexprl) {
-				result->Add(expr);
-			}
-
-			return;
-		}
-
-		std::vector<String> sub_path(path.begin() + 1, path.end());
-		exprl->ExtractPath(sub_path, result);
-	}
-}
-
-void AExpression::FindDebugInfoPath(const std::vector<String>& path, DebugInfo& result) const
-{
-	ASSERT(!path.empty());
-
-	if (m_Operator == &AExpression::OpDict) {
-		Array::Ptr exprl = m_Operand1;
-		ObjectLock olock(exprl);
-		BOOST_FOREACH(const AExpression::Ptr& expr, exprl) {
-			expr->FindDebugInfoPath(path, result);
-		}
-	} else if ((m_Operator == &AExpression::OpSet || m_Operator == &AExpression::OpSetPlus ||
-	    m_Operator == &AExpression::OpSetMinus || m_Operator == &AExpression::OpSetMultiply ||
-	    m_Operator == &AExpression::OpSetDivide) && path[0] == m_Operand1) {
-		AExpression::Ptr exprl = m_Operand2;
-
-		if (path.size() == 1) {
-			result = m_DebugInfo;
-		} else {
-			std::vector<String> sub_path(path.begin() + 1, path.end());
-			exprl->FindDebugInfoPath(sub_path, result);
-		}
 	}
 }
 
@@ -177,6 +128,11 @@ Value AExpression::OpVariable(const AExpression *expr, const Dictionary::Ptr& lo
 Value AExpression::OpNegate(const AExpression *expr, const Dictionary::Ptr& locals)
 {
 	return ~(long)expr->EvaluateOperand1(locals);
+}
+
+Value AExpression::OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals)
+{
+	return !expr->EvaluateOperand1(locals).ToBool();
 }
 
 Value AExpression::OpAdd(const AExpression *expr, const Dictionary::Ptr& locals)
@@ -253,7 +209,9 @@ Value AExpression::OpIn(const AExpression *expr, const Dictionary::Ptr& locals)
 {
 	Value right = expr->EvaluateOperand2(locals);
 
-	if (!right.IsObjectType<Array>())
+	if (right.IsEmpty())
+		return false;
+	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
 
 	Value left = expr->EvaluateOperand1(locals);
@@ -341,14 +299,16 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 
 Value AExpression::OpSet(const AExpression *expr, const Dictionary::Ptr& locals)
 {
+	Value index = expr->EvaluateOperand1(locals);
 	Value right = expr->EvaluateOperand2(locals);
-	locals->Set(expr->m_Operand1, right);
+	locals->Set(index, right);
 	return right;
 }
 
 Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -368,13 +328,14 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -394,13 +355,14 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -420,13 +382,14 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -446,16 +409,49 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Dictionary::Ptr dict = OpVariable(expr, locals);
-	
-	if (!dict)
-		BOOST_THROW_EXCEPTION(ConfigError("Script variable '" + expr->m_Operand1 + "' not set in this scope."));
-	
-	return dict->Get(expr->m_Operand2);
+	Value value = expr->EvaluateOperand1(locals);
+	Value index = expr->EvaluateOperand2(locals);
+
+	if (value.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr dict = value;
+		return dict->Get(index);
+	} else if (value.IsObjectType<Object>()) {
+		Object::Ptr object = value;
+		const Type *type = object->GetReflectionType();
+
+		if (!type)
+			BOOST_THROW_EXCEPTION(ConfigError("Dot operator applied to object which does not support reflection"));
+
+		int field = type->GetFieldId(index);
+
+		if (field == -1)
+			BOOST_THROW_EXCEPTION(ConfigError("Tried to access invalid property '" + index + "'"));
+
+		return object->GetField(field);
+	} else if (value.IsEmpty()) {
+		return Empty;
+	} else {
+		BOOST_THROW_EXCEPTION(ConfigError("Dot operator cannot be applied to type '" + value.GetTypeName() + "'"));
+	}
+}
+
+Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& locals)
+{
+	Value type = expr->EvaluateOperand1(locals);
+	Value name = expr->EvaluateOperand2(locals);
+
+	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
+
+	if (!item)
+		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
+
+	item->GetExpressionList()->Evaluate(locals);
+
+	return Empty;
 }

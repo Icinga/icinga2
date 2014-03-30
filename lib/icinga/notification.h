@@ -25,6 +25,7 @@
 #include "icinga/user.h"
 #include "icinga/usergroup.h"
 #include "icinga/timeperiod.h"
+#include "config/applyrule.h"
 #include "base/array.h"
 
 namespace icinga
@@ -86,6 +87,9 @@ public:
 
 	static boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> OnNextNotificationChanged;
 
+	static void RegisterApplyRuleHandler(void);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
+	
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);

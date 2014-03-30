@@ -61,19 +61,22 @@ String DiagnosticInformation(const T& ex, StackTrace *stack = NULL, ContextTrace
 		if (boost::get_error_info<StackTraceErrorInfo>(ex) == NULL) {
 			result << std::endl;
 
+			if (!stack)
+				stack = GetLastExceptionStack();
+			
 			if (stack)
 				result << *stack;
-			else
-				result << *GetLastExceptionStack();
+				
 		}
 
 		if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
 			result << std::endl;
 
+			if (!context)
+				context = GetLastExceptionContext();
+
 			if (context)
 				result << *context;
-			else
-				result << *GetLastExceptionContext();
 		}
 	}
 
