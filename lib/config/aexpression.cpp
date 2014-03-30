@@ -299,14 +299,16 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 
 Value AExpression::OpSet(const AExpression *expr, const Dictionary::Ptr& locals)
 {
+	Value index = expr->EvaluateOperand1(locals);
 	Value right = expr->EvaluateOperand2(locals);
-	locals->Set(expr->m_Operand1, right);
+	locals->Set(index, right);
 	return right;
 }
 
 Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -326,13 +328,14 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -352,13 +355,14 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -378,13 +382,14 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 
 Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	Value left = locals->Get(expr->m_Operand1);
+	Value index = expr->EvaluateOperand1(locals);
+	Value left = locals->Get(index);
 	AExpression::Ptr exp_right = expr->m_Operand2;
 	Dictionary::Ptr xlocals = locals;
 
@@ -404,7 +409,7 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 		dict->Remove("__parent");
 	}
 
-	locals->Set(expr->m_Operand1, result);
+	locals->Set(index, result);
 	return result;
 }
 

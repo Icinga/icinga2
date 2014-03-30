@@ -67,8 +67,16 @@ void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			builder->SetName(name);
 			builder->SetScope(rule.GetScope());
 
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, service->GetHost()->GetName(), di), di));
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "service", make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di), di));
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+			    make_shared<AExpression>(&AExpression::OpLiteral, "host", di),
+			    make_shared<AExpression>(&AExpression::OpLiteral, service->GetHost()->GetName(), di),
+			    di));
+
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+			    make_shared<AExpression>(&AExpression::OpLiteral, "service", di),
+			    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
+			    di));
+
 			builder->AddExpression(rule.GetExpression());
 
 			ConfigItem::Ptr serviceItem = builder->Compile();

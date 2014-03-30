@@ -66,8 +66,16 @@ void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			builder->SetName(name);
 			builder->SetScope(rule.GetScope());
 
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "host", make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di), di));
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet, "short_name", make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di), di));
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+			    make_shared<AExpression>(&AExpression::OpLiteral, "host", di), 
+			    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+			    di));
+
+			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+			    make_shared<AExpression>(&AExpression::OpLiteral, "short_name", di),
+			    make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di),
+			    di));
+
 			builder->AddExpression(rule.GetExpression());
 
 			ConfigItem::Ptr serviceItem = builder->Compile();

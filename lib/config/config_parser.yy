@@ -524,36 +524,43 @@ lterm_items_inner: /* empty */
 
 lterm: identifier lbinary_op rterm
 	{
-		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
-		$$ = new Value(make_shared<AExpression>($2, $1, aexpr, DebugInfoRange(@1, @3)));
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
 		free($1);
+
+		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$3);
+		$$ = new Value(make_shared<AExpression>($2, aindex, aexpr, DebugInfoRange(@1, @3)));
 		delete $3;
 	}
-	| identifier '[' T_STRING ']' lbinary_op rterm
+	| identifier '[' rterm ']' lbinary_op rterm
 	{
-		AExpression::Ptr subexpr = make_shared<AExpression>($5, $3, static_cast<AExpression::Ptr>(*$6), DebugInfoRange(@1, @6));
-		free($3);
+		AExpression::Ptr subexpr = make_shared<AExpression>($5, static_cast<AExpression::Ptr>(*$3), static_cast<AExpression::Ptr>(*$6), DebugInfoRange(@1, @6));
+		delete $3;
 		delete $6;
 
 		Array::Ptr subexprl = make_shared<Array>();
 		subexprl->Add(subexpr);
 		
-		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @6));
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @6)));
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
 		free($1);
+
+		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @6));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, aindex, expr, DebugInfoRange(@1, @6)));
 	}
 	| identifier '.' T_IDENTIFIER lbinary_op rterm
 	{
-		AExpression::Ptr subexpr = make_shared<AExpression>($4, $3, static_cast<AExpression::Ptr>(*$5), DebugInfoRange(@1, @5));
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
+		AExpression::Ptr subexpr = make_shared<AExpression>($4, aindex, static_cast<AExpression::Ptr>(*$5), DebugInfoRange(@1, @5));
 		free($3);
 		delete $5;
 
 		Array::Ptr subexprl = make_shared<Array>();
 		subexprl->Add(subexpr);
 
-		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @5));
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, $1, expr, DebugInfoRange(@1, @5)));
+		AExpression::Ptr aindexl = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
 		free($1);
+
+		AExpression::Ptr expr = make_shared<AExpression>(&AExpression::OpDict, subexprl, DebugInfoRange(@1, @5));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpSetPlus, aindexl, expr, DebugInfoRange(@1, @5)));
 	}
 	| T_IMPORT rterm
 	{
