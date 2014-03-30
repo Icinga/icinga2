@@ -79,6 +79,9 @@ public:
 	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals);
 	static Value OpImport(const AExpression *expr, const Dictionary::Ptr& locals);
+	static Value OpFunction(const AExpression* expr, const Dictionary::Ptr& locals);
+	static Value OpApply(const AExpression* expr, const Dictionary::Ptr& locals);
+	static Value OpObject(const AExpression* expr, const Dictionary::Ptr& locals);
 
 private:
 	OpCallback m_Operator;
@@ -90,6 +93,9 @@ private:
 	Value EvaluateOperand2(const Dictionary::Ptr& locals) const;
 
 	static void DumpOperand(std::ostream& stream, const Value& operand, int indent);
+
+	static Value FunctionWrapper(const std::vector<Value>& arguments, const Array::Ptr& funcargs,
+	    const AExpression::Ptr& expr, const Dictionary::Ptr& scope);
 };
 
 }

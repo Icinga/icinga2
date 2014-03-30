@@ -81,6 +81,11 @@ ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, 
 	return sv;
 }
 
+void ScriptVariable::Unregister(const String& name)
+{
+	ScriptVariableRegistry::GetInstance()->Unregister(name);
+}
+
 ScriptVariableRegistry *ScriptVariableRegistry::GetInstance(void)
 {
 	return Singleton<ScriptVariableRegistry>::GetInstance();

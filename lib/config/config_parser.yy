@@ -152,10 +152,14 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %token T_IMPORT "import (T_IMPORT)"
 %token T_ASSIGN "assign (T_ASSIGN)"
 %token T_IGNORE "ignore (T_IGNORE)"
+%token T_FUNCTION "function (T_FUNCTION)"
+%token T_LAMBDA "lambda (T_LAMBDA)"
 
 %type <text> identifier
 %type <array> rterm_items
 %type <array> rterm_items_inner
+%type <array> identifier_items
+%type <array> identifier_items_inner
 %type <array> lterm_items
 %type <array> lterm_items_inner
 %type <variant> typerulelist
@@ -165,6 +169,8 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %type <variant> rterm
 %type <variant> rterm_scope
 %type <variant> lterm
+%type <variant> object
+%type <variant> apply
 
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
@@ -226,7 +232,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | include_recursive | library | constant | apply
+statement: type | include | include_recursive | library | constant
 	{ }
 	| lterm
 	{
@@ -414,49 +420,21 @@ object:
 	}
 	object_declaration identifier rterm rterm_scope
 	{
-		DebugInfo di = DebugInfoRange(@2, @5);
-		ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(di);
-
-		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
-		delete $4;
+		Array::Ptr args = make_shared<Array>();
 		
-		String name = aexpr->Evaluate(m_ModuleScope);
+		args->Add(m_Abstract);
 
-		ConfigItem::Ptr oldItem = ConfigItem::GetObject($3, name);
-
-		if (oldItem) {
-			std::ostringstream msgbuf;
-			msgbuf << "Object '" << name << "' of type '" << $3 << "' re-defined: " << di << "; previous definition: " << oldItem->GetDebugInfo();
-			free($3);
-			delete $5;
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(di));
-		}
-
-		item->SetType($3);
-
-		if (name.FindFirstOf("!") != String::NPos) {
-			std::ostringstream msgbuf;
-			msgbuf << "Name for object '" << name << "' of type '" << $3 << "' is invalid: Object names may not contain '!'";
-			free($3);
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(@4));
-		}
-
+		args->Add($3);
 		free($3);
 
-		item->SetName(name);
+		args->Add(*$4);
+		delete $4;
 
-		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
+		AExpression::Ptr exprl = *$5;
 		delete $5;
-
 		exprl->MakeInline();
-		item->AddExpression(exprl);
 
-		item->SetAbstract(m_Abstract);
-
-		item->SetScope(m_ModuleScope);
-
-		item->Compile()->Register();
-		item.reset();
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
 	}
 	;
 
@@ -465,6 +443,38 @@ object_declaration: T_OBJECT
 	{
 		m_Abstract = true;
 	}
+
+identifier_items: identifier_items_inner
+	{
+		$$ = $1;
+	}
+	| identifier_items_inner ','
+	{
+		$$ = $1;
+	}
+	;
+
+identifier_items_inner: /* empty */
+	{
+		$$ = new Array();
+	}
+	| identifier
+	{
+		$$ = new Array();
+		$$->Add($1);
+		free($1);
+	}
+	| identifier_items_inner ',' identifier
+	{
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new Array();
+
+		$$->Add($3);
+		free($3);
+	}
+	;
 
 lbinary_op: T_SET
 	| T_SET_PLUS
@@ -536,7 +546,7 @@ lterm: identifier lbinary_op rterm
 	}
 	| identifier '.' T_IDENTIFIER lbinary_op rterm
 	{
-		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $1, @1);
+		AExpression::Ptr aindex = make_shared<AExpression>(&AExpression::OpLiteral, $3, @3);
 		AExpression::Ptr subexpr = make_shared<AExpression>($4, aindex, static_cast<AExpression::Ptr>(*$5), DebugInfoRange(@1, @5));
 		free($3);
 		delete $5;
@@ -577,6 +587,14 @@ lterm: identifier lbinary_op rterm
 		delete $3;
 
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
+	}
+	| apply
+	{
+		$$ = $1;
+	}
+	| object
+	{
+		$$ = $1;
 	}
 	| rterm
 	{
@@ -641,10 +659,10 @@ rterm: T_STRING
 		delete $1;
 		free($3);
 	}
-	| T_IDENTIFIER '(' rterm_items ')'
+	| rterm '(' rterm_items ')'
 	{
 		Array::Ptr arguments = Array::Ptr($3);
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunctionCall, $1, make_shared<AExpression>(&AExpression::OpLiteral, arguments, @3), DebugInfoRange(@1, @4)));
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunctionCall, static_cast<AExpression::Ptr>(*$1), make_shared<AExpression>(&AExpression::OpLiteral, arguments, @3), DebugInfoRange(@1, @4)));
 		free($1);
 	}
 	| T_IDENTIFIER
@@ -698,6 +716,44 @@ rterm: T_STRING
 	| rterm T_MINUS rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
 	| rterm T_MULTIPLY rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| T_FUNCTION identifier '(' identifier_items ')' rterm_scope
+	{
+		Array::Ptr arr = make_shared<Array>();
+
+		arr->Add($2);
+		free($2);
+
+		AExpression::Ptr aexpr = *$6;
+		delete $6;
+		aexpr->MakeInline();
+		arr->Add(aexpr);
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunction, arr, Array::Ptr($4), DebugInfoRange(@1, @6)));
+	}
+	| T_FUNCTION '(' identifier_items ')' rterm_scope
+	{
+		Array::Ptr arr = make_shared<Array>();
+
+		arr->Add(Empty);
+
+		AExpression::Ptr aexpr = *$5;
+		delete $5;
+		aexpr->MakeInline();
+		arr->Add(aexpr);
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunction, arr, Array::Ptr($3), DebugInfoRange(@1, @5)));
+	}
+	| T_LAMBDA identifier_items ':' rterm
+	{
+		Array::Ptr arr = make_shared<Array>();
+
+		arr->Add(Empty);
+
+		arr->Add(*$4);
+		delete $4;
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunction, arr, Array::Ptr($2), DebugInfoRange(@1, @4)));
+	}
 	;
 
 apply:
@@ -714,7 +770,6 @@ apply:
 		delete $4;
 		String type = $3;
 		free($3);
-		String name = aname->Evaluate(m_ModuleScope);
 
 		if (!ApplyRule::IsValidType(type))
 			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
@@ -727,7 +782,13 @@ apply:
 		// assign && !ignore
 		AExpression::Ptr rex = make_shared<AExpression>(&AExpression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
 		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
-		ApplyRule::AddRule(type, name, exprl, filter, DebugInfoRange(@2, @5), m_ModuleScope);
+
+		Array::Ptr args = make_shared<Array>();
+		args->Add(type);
+		args->Add(aname);
+		args->Add(filter);
+
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpApply, args, exprl, DebugInfoRange(@2, @5)));
 
 		m_Assign.reset();
 		m_Ignore.reset();

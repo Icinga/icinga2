@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/scriptfunction.h"
+#include "base/scriptvariable.h"
 #include "base/registry.h"
 #include "base/singleton.h"
 
@@ -32,10 +33,29 @@ Value ScriptFunction::Invoke(const std::vector<Value>& arguments)
 	return m_Callback(arguments);
 }
 
-RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
+ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
 {
+	return ScriptFunctionRegistry::GetInstance()->GetItem(name);
+}
+
+void ScriptFunction::Register(const String& name, const ScriptFunction::Callback& function)
+{
+	ScriptVariable::Ptr sv = ScriptVariable::Set(name, name);
+	sv->SetConstant(true);
+
 	ScriptFunction::Ptr func = make_shared<ScriptFunction>(function);
 	ScriptFunctionRegistry::GetInstance()->Register(name, func);
+}
+
+void ScriptFunction::Unregister(const String& name)
+{
+	ScriptVariable::Unregister(name);
+	ScriptFunctionRegistry::GetInstance()->Unregister(name);
+}
+
+RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
+{
+	ScriptFunction::Register(name, function);
 }
 
 ScriptFunctionRegistry *ScriptFunctionRegistry::GetInstance(void)

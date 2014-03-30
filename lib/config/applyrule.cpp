@@ -64,7 +64,10 @@ void ApplyRule::AddRule(const String& sourceType, const String& name,
 
 bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const
 {
-	return m_Filter->Evaluate(scope);
+	scope->Set("__parent", m_Scope);
+	bool result = m_Filter->Evaluate(scope);
+	scope->Remove("__parent");
+	return result;
 }
 
 void ApplyRule::EvaluateRules(void)

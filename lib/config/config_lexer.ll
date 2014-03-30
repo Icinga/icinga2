@@ -224,6 +224,8 @@ where				return T_WHERE;
 import				return T_IMPORT;
 assign				return T_ASSIGN;
 ignore				return T_IGNORE;
+function			return T_FUNCTION;
+lambda				return T_LAMBDA;
 \<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
@@ -234,7 +236,7 @@ ignore				return T_IGNORE;
 in				{ yylval->op = &AExpression::OpIn; return T_IN; }
 &&				{ yylval->op = &AExpression::OpLogicalAnd; return T_LOGICAL_AND; }
 \|\|				{ yylval->op = &AExpression::OpLogicalOr; return T_LOGICAL_OR; }
-[a-zA-Z_][:a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
+[a-zA-Z_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 \<[^\>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
 -?[0-9]+(\.[0-9]+)?ms		{ yylval->num = strtod(yytext, NULL) / 1000; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?d		{ yylval->num = strtod(yytext, NULL) * 60 * 60 * 24; return T_NUMBER; }

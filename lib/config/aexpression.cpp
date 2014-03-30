@@ -20,6 +20,8 @@
 #include "config/aexpression.h"
 #include "config/configerror.h"
 #include "config/configitem.h"
+#include "config/configitembuilder.h"
+#include "config/applyrule.h"
 #include "base/array.h"
 #include "base/serializer.h"
 #include "base/context.h"
@@ -246,8 +248,8 @@ Value AExpression::OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& l
 
 Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	String funcName = expr->m_Operand1;
-	ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
+	String funcName = expr->EvaluateOperand1(locals);
+	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
 
 	if (!func)
 		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
@@ -452,6 +454,88 @@ Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& loca
 		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
 
 	item->GetExpressionList()->Evaluate(locals);
+
+	return Empty;
+}
+
+Value AExpression::FunctionWrapper(const std::vector<Value>& arguments, const Array::Ptr& funcargs, const AExpression::Ptr& expr, const Dictionary::Ptr& scope)
+{
+	if (arguments.size() < funcargs->GetLength())
+		BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
+
+	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("__parent", scope);
+
+	for (int i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
+		locals->Set(funcargs->Get(i), arguments[i]);
+
+	return expr->Evaluate(locals);
+}
+
+Value AExpression::OpFunction(const AExpression* expr, const Dictionary::Ptr& locals)
+{
+	Array::Ptr left = expr->m_Operand1;
+	AExpression::Ptr aexpr = left->Get(1);
+	String name = left->Get(0);
+
+	if (name.IsEmpty())
+		name = "__lambda" + Utility::NewUniqueID();
+
+	Array::Ptr funcargs = expr->m_Operand2;
+	ScriptFunction::Callback callback = boost::bind(&AExpression::FunctionWrapper, _1, funcargs, aexpr, locals);
+	ScriptFunction::Register(name, callback);
+	return name;
+}
+
+Value AExpression::OpApply(const AExpression* expr, const Dictionary::Ptr& locals)
+{
+	Array::Ptr left = expr->m_Operand1;
+	AExpression::Ptr exprl = expr->m_Operand2;
+	String type = left->Get(0);
+	AExpression::Ptr aname = left->Get(1);
+	AExpression::Ptr filter = left->Get(2);
+
+	String name = aname->Evaluate(locals);
+
+	ApplyRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, locals);
+
+	return Empty;
+}
+
+Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& locals)
+{
+	Array::Ptr left = expr->m_Operand1;
+	AExpression::Ptr exprl = expr->m_Operand2;
+	bool abstract = left->Get(0);
+	String type = left->Get(1);
+	AExpression::Ptr aname = left->Get(2);
+
+	String name = aname->Evaluate(locals);
+
+	ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(expr->m_DebugInfo);
+
+	ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, name);
+
+	if (oldItem) {
+		std::ostringstream msgbuf;
+		msgbuf << "Object '" << name << "' of type '" << type << "' re-defined: " << expr->m_DebugInfo << "; previous definition: " << oldItem->GetDebugInfo();
+		BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(expr->m_DebugInfo));
+	}
+
+	item->SetType(type);
+
+	if (name.FindFirstOf("!") != String::NPos) {
+		std::ostringstream msgbuf;
+		msgbuf << "Name for object '" << name << "' of type '" << type << "' is invalid: Object names may not contain '!'";
+		BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(expr->m_DebugInfo));
+	}
+
+	item->SetName(name);
+
+	item->AddExpression(exprl);
+	item->SetAbstract(abstract);
+	item->SetScope(locals);
+	item->Compile()->Register();
 
 	return Empty;
 }

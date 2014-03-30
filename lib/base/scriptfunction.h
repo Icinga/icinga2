@@ -47,6 +47,10 @@ public:
 
 	Value Invoke(const std::vector<Value>& arguments);
 
+	static ScriptFunction::Ptr GetByName(const String& name);
+	static void Register(const String& name, const ScriptFunction::Callback& function);
+	static void Unregister(const String& name);
+
 private:
 	Callback m_Callback;
 };

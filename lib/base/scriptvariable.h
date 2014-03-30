@@ -47,6 +47,7 @@ public:
 	Value GetData(void) const;
 
 	static ScriptVariable::Ptr GetByName(const String& name);
+	static void Unregister(const String& name);
 
 	static Value Get(const String& name);
 	static ScriptVariable::Ptr Set(const String& name, const Value& value, bool overwrite = true, bool make_const = false);
