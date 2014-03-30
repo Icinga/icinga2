@@ -69,6 +69,13 @@ do {							\
 
 using namespace icinga;
 
+static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *left, Value *right, DebugInfo& diLeft, DebugInfo& diRight)
+{
+	*result = new Value(make_shared<AExpression>(op, static_cast<AExpression::Ptr>(*left), static_cast<AExpression::Ptr>(*right), DebugInfoRange(diLeft, diRight)));
+	delete left;
+	delete right;
+}
+
 %}
 
 %pure-parser
@@ -154,7 +161,6 @@ using namespace icinga;
 %type <array> lterm_items_inner
 %type <variant> typerulelist
 %type <op> lbinary_op
-%type <op> rbinary_op
 %type <type> type
 %type <num> partial_specifier
 %type <variant> rterm
@@ -164,17 +170,17 @@ using namespace icinga;
 
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
-%nonassoc T_EQUAL
-%nonassoc T_NOT_EQUAL
-%nonassoc T_IN
-%nonassoc T_NOT_IN
+%left T_BINARY_OR
+%left T_BINARY_AND
+%left T_IN
+%left T_NOT_IN
+%left T_EQUAL T_NOT_EQUAL
+%left T_LESS_THAN T_LESS_THAN_OR_EQUAL T_GREATER_THAN T_GREATER_THAN_OR_EQUAL
+%left T_SHIFT_LEFT T_SHIFT_RIGHT
 %left T_PLUS T_MINUS
 %left T_MULTIPLY T_DIVIDE_OP
-%left T_BINARY_AND
-%left T_BINARY_OR
-%right '~'
-%right '!'
-%left '.'
+%right '!' '~'
+%left '.' '(' '['
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -582,29 +588,6 @@ lterm: identifier lbinary_op rterm
 		$$ = $1;
 	}
 	;
-
-rbinary_op: T_PLUS
-	| T_MINUS
-	| T_MULTIPLY
-	| T_DIVIDE_OP
-	| T_BINARY_AND
-	| T_BINARY_OR
-	| T_LESS_THAN
-	| T_GREATER_THAN
-	| T_LESS_THAN_OR_EQUAL
-	| T_GREATER_THAN_OR_EQUAL
-	| T_EQUAL
-	| T_NOT_EQUAL
-	| T_IN
-	| T_NOT_IN
-	| T_LOGICAL_AND
-	| T_LOGICAL_OR
-	| T_SHIFT_LEFT
-	| T_SHIFT_RIGHT
-	{
-		$$ = $1;
-	}
-	;
 	
 rterm_items: rterm_items_inner
 	{
@@ -635,12 +618,6 @@ rterm_items_inner: /* empty */
 
 		$$->Add(*$3);
 		delete $3;
-	}
-	;
-
-rbinary_op: '+'
-	{
-		$$ = &AExpression::OpAdd;
 	}
 	;
 
@@ -708,12 +685,24 @@ rterm: T_STRING
 	{
 		$$ = $2;
 	}
-	| rterm rbinary_op rterm
-	{
-		$$ = new Value(make_shared<AExpression>($2, static_cast<AExpression::Ptr>(*$1), static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3)));
-		delete $1;
-		delete $3;
-	}
+	| rterm T_LOGICAL_OR rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_LOGICAL_AND rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_BINARY_OR rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_BINARY_AND rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_IN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_NOT_IN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_NOT_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_LESS_THAN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_LESS_THAN_OR_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_GREATER_THAN rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_GREATER_THAN_OR_EQUAL rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_SHIFT_LEFT rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_SHIFT_RIGHT rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_PLUS rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_MINUS rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_MULTIPLY rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
+	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
 	;
 
 apply:
