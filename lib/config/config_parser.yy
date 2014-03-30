@@ -128,7 +128,6 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %token <op> T_LESS_THAN "< (T_LESS_THAN)"
 %token <op> T_GREATER_THAN "> (T_GREATER_THAN)"
 
-%token T_VAR "var (T_VAR)"
 %token T_CONST "const (T_CONST)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
@@ -166,7 +165,6 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %type <variant> rterm
 %type <variant> rterm_scope
 %type <variant> lterm
-%type <num> variable_decl
 
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
@@ -228,7 +226,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: object | type | include | include_recursive | library | variable | apply
+statement: object | type | include | include_recursive | library | constant | apply
 	{ }
 	| lterm
 	{
@@ -278,7 +276,7 @@ library: T_LIBRARY T_STRING
 	}
 	;
 
-variable: variable_decl identifier T_SET rterm
+constant: T_CONST identifier T_SET rterm
 	{
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
 		delete $4;
@@ -287,16 +285,6 @@ variable: variable_decl identifier T_SET rterm
 		sv->SetConstant(true);
 
 		free($2);
-	}
-	;
-
-variable_decl: T_VAR
-	{
-		$$ = true;
-	}
-	| T_CONST
-	{
-		$$ = false;
 	}
 	;
 
