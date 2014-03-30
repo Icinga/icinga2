@@ -1448,7 +1448,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			Dictionary::Ptr remoteFile = kv.second;
 			bool writeFile = false;
 			String hash = SHA256(kv.first);
-			String path = dir + "/" + hash;
+			String path = dir + "/" + hash + ".conf";
 			
 			if (!localConfig->Contains(hash))
 				writeFile = true;
