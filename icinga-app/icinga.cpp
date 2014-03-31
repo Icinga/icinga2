@@ -67,7 +67,7 @@ static bool LoadConfigFiles(const String& appType, ValidationType validate)
 	ConfigCompilerContext::GetInstance()->Reset();
 
 	if (g_AppParams.count("config") > 0) {
-		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<String> >()) {
+		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<std::string> >()) {
 			ConfigCompiler::CompileFile(configPath);
 		}
 	}
@@ -216,19 +216,19 @@ int main(int argc, char **argv)
 	desc.add_options()
 		("help", "show this help message")
 		("version,V", "show version information")
-		("library,l", po::value<std::vector<String> >(), "load a library")
-		("include,I", po::value<std::vector<String> >(), "add include search directory")
-		("define,D", po::value<std::vector<String> >(), "define a constant")
-		("config,c", po::value<std::vector<String> >(), "parse a configuration file")
+		("library,l", po::value<std::vector<std::string> >(), "load a library")
+		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
+		("define,D", po::value<std::vector<std::string> >(), "define a constant")
+		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
 		("no-validate,Z", "skip validating the configuration")
 		("debug,x", "enable debugging")
 		("daemonize,d", "detach from the controlling terminal")
-		("errorlog,e", po::value<String>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
+		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
-		("user,u", po::value<String>(), "user to run Icinga as")
-		("group,g", po::value<String>(), "group to run Icinga as")
+		("user,u", po::value<std::string>(), "user to run Icinga as")
+		("group,g", po::value<std::string>(), "group to run Icinga as")
 #endif
 	;
 
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 
 #ifndef _WIN32
 	if (g_AppParams.count("group")) {
-		String group = g_AppParams["group"].as<String>();
+		String group = g_AppParams["group"].as<std::string>();
 
 		errno = 0;
 		struct group *gr = getgrnam(group.CStr());
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 	}
 
 	if (g_AppParams.count("user")) {
-		String user = g_AppParams["user"].as<String>();
+		String user = g_AppParams["user"].as<std::string>();
 
 		errno = 0;
 		struct passwd *pw = getpwnam(user.CStr());
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 	}
 
 	if (g_AppParams.count("define")) {
-		BOOST_FOREACH(const String& define, g_AppParams["define"].as<std::vector<String> >()) {
+		BOOST_FOREACH(const String& define, g_AppParams["define"].as<std::vector<std::string> >()) {
 			String key, value;
 			size_t pos = define.FindFirstOf('=');
 			if (pos != String::NPos) {
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 	String appType = LoadAppType(Application::GetApplicationType());
 
 	if (g_AppParams.count("library")) {
-		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<std::vector<String> >()) {
+		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<std::vector<std::string> >()) {
 			(void) Utility::LoadExtensionLibrary(libraryName);
 		}
 	}
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
 	ConfigCompiler::AddIncludeSearchDir(Application::GetPkgDataDir());
 
 	if (g_AppParams.count("include")) {
-		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<std::vector<String> >()) {
+		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<std::vector<std::string> >()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}
@@ -376,7 +376,7 @@ int main(int argc, char **argv)
 		String errorLog;
 
 		if (g_AppParams.count("errorlog"))
-			errorLog = g_AppParams["errorlog"].as<String>();
+			errorLog = g_AppParams["errorlog"].as<std::string>();
 
 		Daemonize(errorLog);
 		Logger::DisableConsoleLog();

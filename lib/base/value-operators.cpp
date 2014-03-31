@@ -51,9 +51,9 @@ Value::operator String(void) const
 			fractional = modf(boost::get<double>(m_Value), &integral);
 
 			if (fractional != 0)
-				return boost::lexical_cast<String>(m_Value);
+				return boost::lexical_cast<std::string>(m_Value);
 			else
-				return boost::lexical_cast<String>((long)integral);
+				return boost::lexical_cast<std::string>((long)integral);
 		case ValueString:
 			return boost::get<String>(m_Value);
 		case ValueObject:

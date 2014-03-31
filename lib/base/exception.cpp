@@ -34,7 +34,7 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	if (real_cxa_throw == 0)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
-#ifndef __APPLE__
+#ifdef __GLIBC__
 	void *thrown_ptr = obj;
 	const std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
 	const std::type_info *boost_exc = &typeid(boost::exception);
@@ -45,14 +45,14 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 		thrown_ptr = *(void **)thrown_ptr;
 
 	if (!user_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
-#endif /* __APPLE__ */
+#endif /* __GLIBCXX__ */
 		StackTrace stack;
 		SetLastExceptionStack(stack);
 
 		ContextTrace context;
 		SetLastExceptionContext(context);
 
-#ifndef __APPLE__
+#ifdef __GLIBCXX__
 		/* Check if thrown_ptr inherits from boost::exception. */
 		if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
 			boost::exception *ex = (boost::exception *)thrown_ptr;
@@ -64,7 +64,7 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 				*ex << ContextTraceErrorInfo(context);
 		}
 	}
-#endif /* __APPLE__ */
+#endif /* __GLIBCXX__ */
 
 	real_cxa_throw(obj, pvtinfo, dest);
 }

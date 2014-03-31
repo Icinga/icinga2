@@ -64,7 +64,7 @@ public:
 	template<typename T>
 	static String ToString(const T& val)
 	{
-		return boost::lexical_cast<String>(val);
+		return boost::lexical_cast<std::string>(val);
 	}
 
 	static String ToString(const String& val);
