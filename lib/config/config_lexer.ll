@@ -45,6 +45,8 @@ do {							\
 	result = yyextra->ReadInput(buf, max_size);	\
 } while (0)
 
+extern int ignore_newlines;
+
 struct lex_buf {
 	char *buf;
 	size_t size;
@@ -194,7 +196,7 @@ static char *lb_steal(lex_buf *lb)
 
 
 \/\/[^\n]*			/* ignore C++-style comments */
-[ \t\r\n]			/* ignore whitespace */
+[ \t]				/* ignore whitespace */
 
 <INITIAL>{
 %type				return T_TYPE;
@@ -259,6 +261,7 @@ in				{ yylval->op = &AExpression::OpIn; return T_IN; }
 \>				{ yylval->op = &AExpression::OpLessThan; return T_GREATER_THAN; }
 }
 
+[\r\n]+				{ if (!ignore_newlines) return T_NEWLINE; }
 .				return yytext[0];
 
 %%

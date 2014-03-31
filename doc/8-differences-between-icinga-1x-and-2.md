@@ -16,10 +16,10 @@ the Icinga daemon at startup.
 Icinga 2 supports objects and (global) variables, but does not make a difference
 if it's the main configuration file, or any included file.
 
-    set IcingaEnableNotifications = 1,
+    const IcingaEnableNotifications = true
 
     object Service "test" {
-        enable_notifications = 0,
+        enable_notifications = 0
     }
 
 ### <a id="differences-1x-2-sample-configuration-itl"></a> Sample Configuration and ITL
@@ -132,8 +132,8 @@ Icinga 2 uses the keyword `import` with template names in double quotes.
     }
 
     object Service "testservice" {
-      import "tmpl1",
-      import "tmpl2",
+      import "tmpl1"
+      import "tmpl2"
       import "tmpl3"
     }
 
@@ -147,7 +147,7 @@ requires an equal sign (=) between them.
     }
 
     object Service "test" {
-        check_interval = 5m,
+        check_interval = 5m
     }
 
 > **Note**
@@ -185,13 +185,13 @@ These attributes can be set using the `custom` dictionary in Icinga 2 `Host`
 or `Service` objects:
 
     custom = {
-        notes = "Icinga 2 is the best!",
-        notes_url = "http://docs.icinga.org",
-        action_url = "http://dev.icinga.org",
-        icon_image = "../../images/logos/Stats2.png",
-        icon_image_alt = "icinga2 alt icon text",
-        "2d_coords" = "1,2",
-        statusmap_image = "../../images/logos/icinga.gif",
+        notes = "Icinga 2 is the best!"
+        notes_url = "http://docs.icinga.org"
+        action_url = "http://dev.icinga.org"
+        icon_image = "../../images/logos/Stats2.png"
+        icon_image_alt = "icinga2 alt icon text"
+        "2d_coords" = "1,2"
+        statusmap_image = "../../images/logos/icinga.gif"
     }
 
 External interfaces will recognize and display these attributes accordingly.
@@ -202,8 +202,8 @@ Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`)
 In Icinga 2 these attributes must be added to the `custom`dictionary.
 
     custom = {
-        DN = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org",
-        CV = "my custom cmdb description",
+        DN = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
+        CV = "my custom cmdb description"
     }
 
 > **Note**
@@ -281,15 +281,15 @@ are separated from the command name using an exclamation mark (`!`).
 With the freely definable macros in Icinga 2 it looks like this:
 
     object CheckCommand "ping4" {
-        command = PluginDir + "/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$",
+        command = PluginDir + "/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$"
     }
 
     object Service "PING" {
-        check_command = "ping4",
+        check_command = "ping4"
         macros = {
-            wrta = 100,
-            wpl = 20,
-            crta = 500,
+            wrta = 100
+            wpl = 20
+            crta = 500
             cpl = 60
         }
     }
@@ -367,7 +367,7 @@ attribute in the object. The old way of listing all group members in the group's
 The preferred way of assigning objects to groups is by using a template:
 
     template Host "dev-host" {
-      groups += [ "dev-hosts" ],
+      groups += [ "dev-hosts" ]
     }
 
     object Host "web-dev" {
@@ -378,9 +378,9 @@ In order to associate a service with all hosts in a host group the `apply`
 keyword can be used:
 
     apply Service "ping" {
-      import "generic-service",
+      import "generic-service"
 
-      check_command = "ping4",
+      check_command = "ping4"
 
       assign where "group" in host.groups
     }

@@ -69,6 +69,8 @@ do {							\
 
 using namespace icinga;
 
+int ignore_newlines = 0;
+
 static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *left, Value *right, DebugInfo& diLeft, DebugInfo& diRight)
 {
 	*result = new Value(make_shared<AExpression>(op, static_cast<AExpression::Ptr>(*left), static_cast<AExpression::Ptr>(*right), DebugInfoRange(diLeft, diRight)));
@@ -97,6 +99,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 	Array *array;
 }
 
+%token T_NEWLINE "new-line"
 %token <text> T_STRING
 %token <text> T_STRING_ANGLE
 %token <num> T_NUMBER
@@ -185,6 +188,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %left T_MULTIPLY T_DIVIDE_OP
 %right '!' '~'
 %left '.' '(' '['
+%right ':'
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -232,7 +236,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: type | include | include_recursive | library | constant
+statement: type | include | include_recursive | library | constant | newlines
 	{ }
 	| lterm
 	{
@@ -242,7 +246,7 @@ statement: type | include | include_recursive | library | constant
 	}
 	;
 
-include: T_INCLUDE rterm
+include: T_INCLUDE rterm sep
 	{
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$2);
 		delete $2;
@@ -263,26 +267,26 @@ include_recursive: T_INCLUDE_RECURSIVE rterm
 
 		context->HandleIncludeRecursive(aexpr->Evaluate(m_ModuleScope), "*.conf", DebugInfoRange(@1, @2));
 	}
-	| T_INCLUDE_RECURSIVE rterm rterm
+	| T_INCLUDE_RECURSIVE rterm ',' rterm
 	{
 		AExpression::Ptr aexpr1 = static_cast<AExpression::Ptr>(*$2);
 		delete $2;
 
-		AExpression::Ptr aexpr2 = static_cast<AExpression::Ptr>(*$3);
-		delete $3;
+		AExpression::Ptr aexpr2 = static_cast<AExpression::Ptr>(*$4);
+		delete $4;
 
-		context->HandleIncludeRecursive(aexpr1->Evaluate(m_ModuleScope), aexpr2->Evaluate(m_ModuleScope), DebugInfoRange(@1, @3));
+		context->HandleIncludeRecursive(aexpr1->Evaluate(m_ModuleScope), aexpr2->Evaluate(m_ModuleScope), DebugInfoRange(@1, @4));
 	}
 	;
 
-library: T_LIBRARY T_STRING
+library: T_LIBRARY T_STRING sep
 	{
 		context->HandleLibrary($2);
 		free($2);
 	}
 	;
 
-constant: T_CONST identifier T_SET rterm
+constant: T_CONST identifier T_SET rterm sep
 	{
 		AExpression::Ptr aexpr = static_cast<AExpression::Ptr>(*$4);
 		delete $4;
@@ -316,7 +320,7 @@ type: partial_specifier T_TYPE identifier
 			m_Type->Register();
 		}
 	}
-	type_inherits_specifier typerulelist
+	type_inherits_specifier typerulelist sep
 	{
 		TypeRuleList::Ptr ruleList = *$6;
 		m_Type->GetRuleList()->AddRules(ruleList);
@@ -353,11 +357,11 @@ typerulelist: '{'
 	;
 
 typerules: typerules_inner
-	| typerules_inner ','
+	| typerules_inner sep
 
 typerules_inner: /* empty */
 	| typerule
-	| typerules_inner ',' typerule
+	| typerules_inner sep typerule
 	;
 
 typerule: T_REQUIRE T_STRING
@@ -418,7 +422,7 @@ object:
 	{
 		m_Abstract = false;
 	}
-	object_declaration identifier rterm rterm_scope
+	object_declaration identifier rterm rterm_scope sep
 	{
 		Array::Ptr args = make_shared<Array>();
 		
@@ -486,14 +490,11 @@ lbinary_op: T_SET
 	}
 	;
 
-comma_or_semicolon: ',' | ';'
-	;
-
 lterm_items: lterm_items_inner
 	{
 		$$ = $1;
 	}
-	| lterm_items_inner comma_or_semicolon
+	| lterm_items_inner sep
 	{
 		$$ = $1;
 	}
@@ -508,7 +509,7 @@ lterm_items_inner: /* empty */
 		$$->Add(*$1);
 		delete $1;
 	}
-	| lterm_items_inner comma_or_semicolon lterm
+	| lterm_items_inner sep lterm
 	{
 		if ($1)
 			$$ = $1;
@@ -624,17 +625,31 @@ rterm_items_inner: /* empty */
 	}
 	| rterm_items_inner ',' rterm
 	{
-		if ($1)
-			$$ = $1;
-		else
-			$$ = new Array();
-
+		$$ = $1;
 		$$->Add(*$3);
 		delete $3;
 	}
+	| rterm_items_inner ',' newlines rterm
+	{
+		$$ = $1;
+		$$->Add(*$4);
+		delete $4;
+	}
 	;
 
-rterm_scope: '{' lterm_items '}'
+rterm_scope: '{' newlines lterm_items newlines '}'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($3), DebugInfoRange(@1, @5)));
+	}
+	| '{' newlines lterm_items '}'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($3), DebugInfoRange(@1, @4)));
+	}
+	| '{' lterm_items newlines '}'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @4)));
+	}
+	| '{' lterm_items '}'
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @3)));
 	}
@@ -686,6 +701,18 @@ rterm: T_STRING
 		delete $1;
 		free($3);
 	}
+	| '[' newlines rterm_items newlines ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @5)));
+	}
+	| '[' rterm_items newlines ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @4)));
+	}
+	| '[' newlines rterm_items ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @4)));
+	}
 	| '[' rterm_items ']'
 	{
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @3)));
@@ -694,9 +721,14 @@ rterm: T_STRING
 	{
 		$$ = $1;
 	}
-	| '(' rterm ')'
+	| '('
 	{
-		$$ = $2;
+		ignore_newlines++;
+	}
+	rterm ')'
+	{
+		ignore_newlines--;
+		$$ = $3;
 	}
 	| rterm T_LOGICAL_OR rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
 	| rterm T_LOGICAL_AND rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
@@ -793,4 +825,18 @@ apply:
 		m_Assign.reset();
 		m_Ignore.reset();
 	}
+	;
+
+newlines: T_NEWLINE
+	| newlines T_NEWLINE
+	;
+
+/* required separator */
+sep: ',' newlines
+	| ','
+	| ';' newlines
+	| ';'
+	| newlines
+	;
+
 %%
