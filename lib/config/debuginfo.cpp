@@ -94,6 +94,11 @@ void icinga::ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbo
 			if (lineno == di.LastLine)
 				end = di.LastColumn;
 
+			if (start < 0) {
+				end -= start;
+				start = 0;
+			}
+
 			out << String(pathInfo.GetLength(), ' ');
 			out << String(start, ' ');
 			out << String(end - start, '^');
