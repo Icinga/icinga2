@@ -34,7 +34,7 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	if (real_cxa_throw == 0)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
-#ifdef __GLIBC__
+#ifdef __GLIBCXX__
 	void *thrown_ptr = obj;
 	const std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
 	const std::type_info *boost_exc = &typeid(boost::exception);
