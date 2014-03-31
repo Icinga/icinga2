@@ -34,6 +34,8 @@ using namespace icinga;
 do {							\
 	yylloc->Path = yyextra->GetPath();		\
 	yylloc->FirstLine = yylineno;			\
+	if (yycolumn < 1)				\
+		yycolumn = 1;				\
 	yylloc->FirstColumn = yycolumn;			\
 	yylloc->LastLine = yylineno;			\
 	yylloc->LastColumn = yycolumn + yyleng - 1;	\
