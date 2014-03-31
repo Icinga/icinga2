@@ -265,7 +265,7 @@ install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apachecon
 
 # fix plugin path on x64
 %if "%{_vendor}" != "suse"
-sed -i 's@plugindir = .*@plugindir = "%{_libdir}/nagios/plugins"@' %{buildroot}/%{_sysconfdir}/%{name}/conf.d/macros.conf
+sed -i 's@PluginDir = .*@PluginDir = "%{_libdir}/nagios/plugins"@' %{buildroot}/%{_sysconfdir}/%{name}/constants.conf
 %endif
 
 # remove features-enabled symlinks

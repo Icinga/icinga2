@@ -10,6 +10,9 @@ file:
 
     include <itl/itl.conf>
 
+The ITL assumes that there's a global constant named `PluginDir` which contains
+the path of the plugins from the Monitoring Plugins project.
+
 ## <a id="itl-check-commands"></a> Check Commands
 
 ### <a id="itl-ping4"></a> ping4
@@ -20,7 +23,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 wrta            | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
 wpl             | **Optional.** The packet loss warning threshold in %. Defaults to 5.
@@ -37,7 +39,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address6        | **Required.** The host's IPv6 address.
 wrta            | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
 wpl             | **Optional.** The packet loss warning threshold in %. Defaults to 5.
@@ -54,7 +55,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 state           | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
 text            | **Optional.** Plugin output. Defaults to "Check was successful.".
 
@@ -66,7 +66,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 state           | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
 text            | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
 
@@ -78,7 +77,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 port            | **Required.** The port that should be checked.
 
@@ -90,7 +88,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 port            | **Required.** The port that should be checked.
 
@@ -102,7 +99,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 vhost           | **Required.** The name of the virtual host that should be checked.
 
 ### <a id="itl-http-ip"></a> http_ip
@@ -113,7 +109,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
 ### <a id="itl-https-vhost"></a> https_vhost
@@ -124,7 +119,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 vhost           | **Required.** The name of the virtual host that should be checked.
 
 ### <a id="itl-https-ip"></a> https_ip
@@ -135,7 +129,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
 ### <a id="itl-smtp"></a> smtp
@@ -146,7 +139,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
 ### <a id="itl-ssmtp"></a> ssmtp
@@ -157,7 +149,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 port            | **Optional.** The port that should be checked. Defaults to 465.
 
@@ -169,7 +160,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
 ### <a id="itl-ssh"></a> ssh
@@ -180,7 +170,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 
 ### <a id="itl-disk"></a> disk
@@ -191,7 +180,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 wfree           | **Optional.** The free space warning threshold in %. Defaults to 20.
 cfree           | **Optional.** The free space critical threshold in %. Defaults to 10.
 
@@ -203,7 +191,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 wgreater        | **Optional.** The user count warning threshold. Defaults to 20.
 cgreater        | **Optional.** The user count critical threshold. Defaults to 50.
 
@@ -215,7 +202,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 wgreater        | **Optional.** The process count warning threshold. Defaults to 250.
 cgreater        | **Optional.** The process count critical threshold. Defaults to 400.
 
@@ -227,7 +213,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 wload1          | **Optional.** The 1-minute warning threshold. Defaults to 5.
 wload5          | **Optional.** The 5-minute warning threshold. Defaults to 4.
 wload15         | **Optional.** The 15-minute warning threshold. Defaults to 3.
@@ -243,7 +228,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 oid             | **Required.** The SNMP OID.
 community       | **Optional.** The SNMP community. Defaults to "public".
@@ -256,7 +240,6 @@ Macros:
 
 Name            | Description
 ----------------|--------------
-plugindir       | **Required.** The directory containing this plugin.
 address         | **Required.** The host's address.
 oid             | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 community       | **Optional.** The SNMP community. Defaults to "public".

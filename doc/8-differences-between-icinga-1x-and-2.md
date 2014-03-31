@@ -76,15 +76,16 @@ Global macros such as for the plugin directory, usernames and passwords can be
 set in the `resource.cfg` configuration file in Icinga 1.x. By convention the
 `USER1` macro is used to define the directory for the plugins.
 
-Icinga 2 uses a global `IcingaMacros` constant variable which is set in the
-`conf.d/macros.conf` file:
+Icinga 2 uses global constants instead. In the default config these are
+set in the `constants.conf` configuration file:
 
     /**
-     * Global macros
-    */
-    set IcingaMacros = {
-      plugindir = "/usr/lib/nagios/plugins"
-    }
+     * This file defines global constants which can be used in
+     * the other configuration files. At a minimum the
+     * PluginDir constant should be defined.
+     */
+
+    const PluginDir = "/usr/lib/nagios/plugins"
 
 > **Note**
 >
@@ -280,7 +281,7 @@ are separated from the command name using an exclamation mark (`!`).
 With the freely definable macros in Icinga 2 it looks like this:
 
     object CheckCommand "ping4" {
-        command = "$plugindir$/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$",
+        command = PluginDir + "/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$",
     }
 
     object Service "PING" {
@@ -295,7 +296,7 @@ With the freely definable macros in Icinga 2 it looks like this:
 
 > **Note**
 >
-> Tip: The above example uses the global $plugindir$ macro instead of the Icinga 1.x
+> Tip: The above example uses the global `PluginDir` constant instead of the Icinga 1.x
 > $USER1$ macro. It also replaces the Icinga 1.x notation with $ARGn$ with freely
 > definable macros.
 
