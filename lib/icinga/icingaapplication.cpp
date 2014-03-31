@@ -118,7 +118,12 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 
 Dictionary::Ptr IcingaApplication::GetMacros(void) const
 {
-	return ScriptVariable::Get("IcingaMacros");
+	ScriptVariable::Ptr sv = ScriptVariable::GetByName("IcingaMacros");
+
+	if (!sv)
+		return Dictionary::Ptr();
+
+	return sv->GetData();
 }
 
 String IcingaApplication::GetNodeName(void) const
