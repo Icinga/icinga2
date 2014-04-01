@@ -160,9 +160,6 @@ must be escaped with a backslash (e.g. in command line).
 If an attribute identifier starts with a number, it must be encapsulated
 with double quotes as well.
 
-Unlike in Icinga 1.x all attributes within the current object must be
-terminated with a comma (,).
-
 ### <a id="differences-1x-2-alias-display-name"></a> Alias vs. Display Name
 
 In Icinga 1.x a host can have an `alias` and a `display_name` attribute used
