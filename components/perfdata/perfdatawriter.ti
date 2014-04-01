@@ -6,13 +6,30 @@ namespace icinga
 
 class PerfdataWriter : DynamicObject
 {
-	[config] String perfdata_path {
-		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/perfdata"; }}}
+	[config] String host_perfdata_path {
+		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/host-perfdata"; }}}
 	};
-	[config] String temp_path {
-		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/tmp/perfdata"; }}}
+	[config] String service_perfdata_path {
+		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/perfdata/service-perfdata"; }}}
 	};
-	[config] String format_template {
+	[config] String host_temp_path {
+		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/tmp/host-perfdata"; }}}
+	};
+	[config] String service_temp_path {
+		default {{{ return Application::GetLocalStateDir() + "/spool/icinga2/tmp/service-perfdata"; }}}
+	};
+	[config] String host_format_template {
+		default {{{
+			return "DATATYPE::HOSTPERFDATA\t"
+			    "TIMET::$TIMET$\t"
+			    "HOSTNAME::$HOSTNAME$\t"
+			    "HOSTPERFDATA::$HOSTPERFDATA$\t"
+			    "HOSTCHECKCOMMAND::$HOSTCHECKCOMMAND$\t"
+			    "HOSTSTATE::$HOSTSTATE$\t"
+			    "HOSTSTATETYPE::$HOSTSTATETYPE$";
+		}}}
+	};
+	[config] String service_format_template {
 		default {{{
 			return "DATATYPE::SERVICEPERFDATA\t"
 			    "TIMET::$TIMET$\t"

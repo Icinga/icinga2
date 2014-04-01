@@ -51,8 +51,9 @@ private:
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);
 
-	std::ofstream m_OutputFile;
-	void RotateFile(void);
+	std::ofstream m_ServiceOutputFile;
+        std::ofstream m_HostOutputFile;
+	void RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path);
 };
 
 }

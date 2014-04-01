@@ -82,7 +82,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 			return;
 		}
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "perfdata", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");	
+		Log(LogWarning, "perfdata", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");
 	}
 
 	TcpSocket::Ptr socket = make_shared<TcpSocket>();
@@ -99,16 +99,17 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Check
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
 		return;
 
-	/* TODO: sanitize host and service names */
-	String hostName = service->GetHost()->GetName();
-	String serviceName = service->GetShortName();   
+	Host::Ptr host = service->GetHost();
+
+	String hostName = host->GetName();
+	String serviceName = service->GetShortName();
 
 	SanitizeMetric(hostName);
 	SanitizeMetric(serviceName);
 
 	String prefix = "icinga." + hostName + "." + serviceName;
 
-	/* basic metrics */
+	/* service metrics */
 	SendMetric(prefix, "current_attempt", service->GetCheckAttempt());
 	SendMetric(prefix, "max_check_attempts", service->GetMaxCheckAttempts());
 	SendMetric(prefix, "state_type", service->GetStateType());
@@ -116,6 +117,25 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Check
 	SendMetric(prefix, "latency", Service::CalculateLatency(cr));
 	SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
 
+	SendPerfdata(prefix, cr);
+
+	if (service == host->GetCheckService()) {
+		prefix = "icinga." + hostName; // TODO works?
+
+		/* host metrics */
+		SendMetric(prefix, "current_attempt", service->GetCheckAttempt());
+		SendMetric(prefix, "max_check_attempts", service->GetMaxCheckAttempts());
+		SendMetric(prefix, "state_type", host->GetStateType());
+		SendMetric(prefix, "state", host->GetState());
+		SendMetric(prefix, "latency", Service::CalculateLatency(cr));
+		SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
+
+		SendPerfdata(prefix, cr);
+	}
+}
+
+void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& cr)
+{
 	Value pdv = cr->GetPerformanceData();
 
 	if (!pdv.IsObjectType<Dictionary>())

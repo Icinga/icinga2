@@ -53,6 +53,7 @@ private:
 
 	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
         void SendMetric(const String& prefix, const String& name, double value);
+        void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr);
         static void SanitizeMetric(String& str);
 
 	void ReconnectTimerHandler(void);

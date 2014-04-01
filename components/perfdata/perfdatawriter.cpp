@@ -60,7 +60,8 @@ void PerfdataWriter::Start(void)
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();
 
-	RotateFile();
+	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
+	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
 void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr)
@@ -77,36 +78,52 @@ void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const Check
 	resolvers.push_back(host);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	String line = MacroProcessor::ResolveMacros(GetFormatTemplate(), resolvers, cr);
+	String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr);
 
-	ObjectLock olock(this);
-	if (!m_OutputFile.good())
-		return;
+	{
+		ObjectLock olock(this);
+		if (!m_ServiceOutputFile.good())
+			return;
 
-	m_OutputFile << line << "\n";
+		m_ServiceOutputFile << line << "\n";
+	}
+
+	if (service == host->GetCheckService()) {
+		resolvers.clear();
+		resolvers.push_back(host);
+		resolvers.push_back(IcingaApplication::GetInstance());
+		line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr);
+
+		{
+			ObjectLock olock(this);
+			if (!m_HostOutputFile.good())
+				return;
+
+			m_HostOutputFile << line << "\n";
+		}
+	}
 }
 
-void PerfdataWriter::RotateFile(void)
+void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path)
 {
 	ObjectLock olock(this);
 
-	String tempFile = GetTempPath();
+	if (output.good()) {
+		output.close();
 
-	if (m_OutputFile.good()) {
-		m_OutputFile.close();
-
-		String finalFile = GetPerfdataPath() + "." + Convert::ToString((long)Utility::GetTime());
-		(void) rename(tempFile.CStr(), finalFile.CStr());
+		String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
+		(void) rename(temp_path.CStr(), finalFile.CStr());
 	}
 
-	m_OutputFile.open(tempFile.CStr());
+	output.open(temp_path.CStr());
 
-	if (!m_OutputFile.good())
-		Log(LogWarning, "icinga", "Could not open perfdata file '" + tempFile + "' for writing. Perfdata will be lost.");
+	if (!output.good())
+		Log(LogWarning, "icinga", "Could not open perfdata file '" + temp_path + "' for writing. Perfdata will be lost.");
 }
 
 void PerfdataWriter::RotationTimerHandler(void)
 {
-	RotateFile();
+	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
+	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 

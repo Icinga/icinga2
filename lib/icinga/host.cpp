@@ -487,6 +487,15 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		} else if (macro == "HOSTPERFDATA") {
 			*result = PluginUtility::FormatPerfdata(hccr->GetPerformanceData());
 			return true;
+		} else if (macro == "HOSTCHECKCOMMAND") {
+			CheckCommand::Ptr commandObj = hc->GetCheckCommand();
+
+			if (commandObj)
+				*result = commandObj->GetName();
+			else
+				*result = "";
+
+			return true;
 		} else if (macro == "LASTHOSTCHECK") {
 			*result = Convert::ToString((long)hccr->GetScheduleStart());
 			return true;

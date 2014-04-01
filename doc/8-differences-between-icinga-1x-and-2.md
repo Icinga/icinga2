@@ -330,12 +330,6 @@ where the initial state checks must have happened. Icinga 2 will use the
 `retry_interval` setting instead and `check_interval` divided by 5 if
 `retry_interval` is not defined.
 
-### <a id="differences-1x-2-performance-data"></a> Performance Data
-
-There is no host performance data generated in Icinga 2 because there are no
-real host checks. Therefore the PerfDataWriter will only write service
-performance data files.
-
 ## <a id="differences-1x-2-commands"></a> Commands
 
 Unlike in Icinga 1.x there are 3 different command types in Icinga 2:
