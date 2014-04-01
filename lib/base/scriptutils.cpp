@@ -104,12 +104,30 @@ Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 	return result;
 }
 
-void ScriptUtils::Log(const Value& message)
+void ScriptUtils::Log(const std::vector<Value>& arguments)
 {
+	if (arguments.size() != 1 && arguments.size() != 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid number of arguments for log()"));
+
+	LogSeverity severity;
+	String facility;
+	Value message;
+
+	if (arguments.size() == 1) {
+		severity = LogInformation;
+		facility = "config";
+		message = arguments[0];
+	} else {
+		int sval = static_cast<int>(arguments[0]);
+		severity = static_cast<LogSeverity>(sval);
+		facility = arguments[1];
+		message = arguments[2];
+	}
+
 	if (message.IsString())
-		::Log(LogInformation, "config", message);
+		::Log(severity, facility, message);
 	else
-		::Log(LogInformation, "config", JsonSerialize(message));
+		::Log(severity, facility, JsonSerialize(message));
 }
 
 void ScriptUtils::Exit(int code)

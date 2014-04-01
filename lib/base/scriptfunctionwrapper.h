@@ -30,6 +30,7 @@ namespace icinga
 {
 
 Value ScriptFunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments);
+Value ScriptFunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments);
 
 boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapScriptFunction(void (*function)(void));
 
@@ -271,6 +272,11 @@ template<typename TR>
 boost::function<TR (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(const std::vector<Value>&))
 {
 	return boost::bind(function, _1);
+}
+
+inline boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(const std::vector<Value>&))
+{
+	return boost::bind(&ScriptFunctionWrapperVA, function, _1);
 }
 
 }

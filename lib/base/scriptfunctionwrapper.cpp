@@ -28,6 +28,13 @@ Value icinga::ScriptFunctionWrapperVV(void (*function)(void), const std::vector<
 	return Empty;
 }
 
+Value icinga::ScriptFunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments)
+{
+	function(arguments);
+
+	return Empty;
+}
+
 boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapScriptFunction(void (*function)(void))
 {
 	return boost::bind(&ScriptFunctionWrapperVV, function, _1);

@@ -25,6 +25,7 @@
 #include "base/objectlock.h"
 #include "base/context.h"
 #include "base/convert.h"
+#include "base/scriptvariable.h"
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
@@ -32,10 +33,19 @@
 using namespace icinga;
 
 REGISTER_TYPE(Logger);
+INITIALIZE_ONCE(&Logger::StaticInitialize);
 
 std::set<Logger::Ptr> Logger::m_Loggers;
 boost::mutex Logger::m_Mutex;
 bool Logger::m_ConsoleLogEnabled = true;
+
+void Logger::StaticInitialize(void)
+{
+	ScriptVariable::Set("LogDebug", LogDebug, true, true);
+	ScriptVariable::Set("LogInformation", LogInformation, true, true);
+	ScriptVariable::Set("LogWarning", LogWarning, true, true);
+	ScriptVariable::Set("LogCritical", LogCritical, true, true);
+}
 
 /**
  * Constructor for the Logger class.

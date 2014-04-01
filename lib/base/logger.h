@@ -69,6 +69,8 @@ public:
 	static void DisableConsoleLog(void);
 	static bool IsConsoleLogEnabled(void);
 
+	static void StaticInitialize(void);
+
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);
