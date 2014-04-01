@@ -261,7 +261,7 @@ in				{ yylval->op = &AExpression::OpIn; return T_IN; }
 \>				{ yylval->op = &AExpression::OpLessThan; return T_GREATER_THAN; }
 }
 
-[\r\n]+				{ if (!ignore_newlines) return T_NEWLINE; }
+[\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!ignore_newlines) return T_NEWLINE; }
 .				return yytext[0];
 
 %%
