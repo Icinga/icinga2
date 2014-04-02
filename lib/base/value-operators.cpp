@@ -21,7 +21,9 @@
 #include "base/array.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"
+#include "base/objectlock.h"
 #include <cJSON.h>
+#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 
 using namespace icinga;
@@ -244,7 +246,33 @@ Value icinga::operator-(const Value& lhs, const Value& rhs)
 {
 	if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) - static_cast<double>(rhs);
-	else
+	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
+		if (lhs.IsEmpty())
+			return make_shared<Array>();
+
+		Array::Ptr result = make_shared<Array>();
+		Array::Ptr left = lhs;
+		Array::Ptr right = rhs;
+
+		ObjectLock olock(left);
+		BOOST_FOREACH(const Value& lv, left) {
+			bool found = false;
+			ObjectLock xlock(right);
+			BOOST_FOREACH(const Value& rv, right) {
+				if (lv == rv) {
+					found = true;
+					break;
+				}
+			}
+
+			if (found)
+				continue;
+
+			result->Add(lv);
+		}
+
+		return result;
+	} else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator - cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
