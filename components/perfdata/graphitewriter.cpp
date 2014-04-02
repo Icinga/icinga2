@@ -120,7 +120,7 @@ void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const Check
 	SendPerfdata(prefix, cr);
 
 	if (service == host->GetCheckService()) {
-		prefix = "icinga." + hostName; // TODO works?
+		prefix = "icinga." + hostName;
 
 		/* host metrics */
 		SendMetric(prefix, "current_attempt", service->GetCheckAttempt());
