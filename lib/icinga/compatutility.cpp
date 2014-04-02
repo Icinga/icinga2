@@ -111,17 +111,44 @@ Host2dCoords CompatUtility::GetHost2dCoords(const Host::Ptr& host)
 	Host2dCoords bag;
 
 	if (custom) {
-		bag.have_2d_coords = (custom->Get("x_2d") && custom->Get("y_2d") ? 1 : 0);
+		String coords = custom->Get("2d_coords");
+		bag.have_2d_coords = (!coords.IsEmpty() ? 1 : 0);
+
+		std::vector<String> tokens;
+		boost::algorithm::split(tokens, coords, boost::is_any_of(","));
+
+		if (tokens.size() != 2)
+			bag.have_2d_coords = 0;
 
 		if (bag.have_2d_coords == 1) {
-			bag.x_2d = custom->Get("x_2d");
-			bag.y_2d = custom->Get("y_2d");
+			bag.x_2d = tokens[0];
+			bag.y_2d = tokens[1];
 		}
 	} else {
 		bag.have_2d_coords = 0;
 	}
 
 	return bag;
+}
+
+String CompatUtility::GetHost2dCoordX(const Host::Ptr& host)
+{
+	Host2dCoords bag = GetHost2dCoords(host);
+
+	if (bag.have_2d_coords == 0)
+		return Empty;
+
+	return bag.x_2d;
+}
+
+String CompatUtility::GetHost2dCoordY(const Host::Ptr& host)
+{
+	Host2dCoords bag = GetHost2dCoords(host);
+
+	if (bag.have_2d_coords == 0)
+		return Empty;
+
+	return bag.y_2d;
 }
 
 int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)

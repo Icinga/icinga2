@@ -59,6 +59,8 @@ public:
 	static String GetHostAddress(const Host::Ptr& host);
 	static String GetHostAddress6(const Host::Ptr& host);
 	static Host2dCoords GetHost2dCoords(const Host::Ptr& host);
+	static String GetHost2dCoordX(const Host::Ptr& host);
+	static String GetHost2dCoordY(const Host::Ptr& host);
 	static int GetHostNotifyOnDown(const Host::Ptr& host);
 	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 

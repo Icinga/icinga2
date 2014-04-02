@@ -347,11 +347,6 @@ Value HostsTable::NotesUrlAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr custom = host->GetCustom();
-
-	if (!custom)
-		return Empty;
-
 	return CompatUtility::GetCustomAttributeConfig(host, "notes_url");
 }
 
@@ -1066,20 +1061,7 @@ Value HostsTable::X2dAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr custom = host->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	String coords = custom->Get("2d_coords");
-
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, coords, boost::is_any_of(","));
-
-	if (tokens.size() != 2)
-		return Empty;
-
-	return tokens[0];
+	return CompatUtility::GetHost2dCoordX(host);
 }
 
 Value HostsTable::Y2dAccessor(const Value& row)
@@ -1089,20 +1071,7 @@ Value HostsTable::Y2dAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr custom = host->GetCustom();
-
-	if (!custom)
-		return Empty;
-
-	String coords = custom->Get("2d_coords");
-
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, coords, boost::is_any_of(","));
-
-	if (tokens.size() != 2)
-		return Empty;
-
-	return tokens[1];
+	return CompatUtility::GetHost2dCoordY(host);
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)
