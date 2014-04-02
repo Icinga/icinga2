@@ -233,15 +233,21 @@ Value DynamicObject::InvokeMethod(const String& method,
 	if (!methods)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
 
-	String funcName = methods->Get(method);
+	Value funcName = methods->Get(method);
 
 	if (funcName.IsEmpty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
 
-	ScriptFunction::Ptr func = ScriptFunctionRegistry::GetInstance()->GetItem(funcName);
+	ScriptFunction::Ptr func;
 
-	if (!func)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + funcName + "' does not exist."));
+	if (funcName.IsObjectType<ScriptFunction>()) {
+		func = funcName;
+	} else {
+		func = ScriptFunction::GetByName(funcName);
+
+		if (!func)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + String(funcName) + "' does not exist."));
+	}
 
 	return func->Invoke(arguments);
 }

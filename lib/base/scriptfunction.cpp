@@ -35,31 +35,27 @@ Value ScriptFunction::Invoke(const std::vector<Value>& arguments)
 
 ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
 {
-	return ScriptFunctionRegistry::GetInstance()->GetItem(name);
+	ScriptVariable::Ptr sv = ScriptVariable::GetByName(name);
+
+	if (!sv)
+		return ScriptFunction::Ptr();
+
+	return sv->GetData();
 }
 
-void ScriptFunction::Register(const String& name, const ScriptFunction::Callback& function)
+void ScriptFunction::Register(const String& name, const ScriptFunction::Ptr& function)
 {
-	ScriptVariable::Ptr sv = ScriptVariable::Set(name, name);
+	ScriptVariable::Ptr sv = ScriptVariable::Set(name, function);
 	sv->SetConstant(true);
-
-	ScriptFunction::Ptr func = make_shared<ScriptFunction>(function);
-	ScriptFunctionRegistry::GetInstance()->Register(name, func);
 }
 
 void ScriptFunction::Unregister(const String& name)
 {
 	ScriptVariable::Unregister(name);
-	ScriptFunctionRegistry::GetInstance()->Unregister(name);
 }
 
 RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
 {
-	ScriptFunction::Register(name, function);
-}
-
-ScriptFunctionRegistry *ScriptFunctionRegistry::GetInstance(void)
-{
-	return Singleton<ScriptFunctionRegistry>::GetInstance();
+	ScriptFunction::Register(name, make_shared<ScriptFunction>(function));
 }
 

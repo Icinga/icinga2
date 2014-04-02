@@ -48,22 +48,11 @@ public:
 	Value Invoke(const std::vector<Value>& arguments);
 
 	static ScriptFunction::Ptr GetByName(const String& name);
-	static void Register(const String& name, const ScriptFunction::Callback& function);
+	static void Register(const String& name, const ScriptFunction::Ptr& function);
 	static void Unregister(const String& name);
 
 private:
 	Callback m_Callback;
-};
-
-/**
- * A registry for script functions.
- *
- * @ingroup base
- */
-class I2_BASE_API ScriptFunctionRegistry : public Registry<ScriptFunctionRegistry, ScriptFunction::Ptr>
-{
-public:
-	static ScriptFunctionRegistry *GetInstance(void);
 };
 
 /**

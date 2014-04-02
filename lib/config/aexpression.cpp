@@ -248,8 +248,14 @@ Value AExpression::OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& l
 
 Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals)
 {
-	String funcName = expr->EvaluateOperand1(locals);
-	ScriptFunction::Ptr func = ScriptFunction::GetByName(funcName);
+	Value funcName = expr->EvaluateOperand1(locals);
+
+	ScriptFunction::Ptr func;
+
+	if (funcName.IsObjectType<ScriptFunction>())
+		func = funcName;
+	else
+		func = ScriptFunction::GetByName(funcName);
 
 	if (!func)
 		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
@@ -478,13 +484,13 @@ Value AExpression::OpFunction(const AExpression* expr, const Dictionary::Ptr& lo
 	AExpression::Ptr aexpr = left->Get(1);
 	String name = left->Get(0);
 
-	if (name.IsEmpty())
-		name = "__lambda" + Utility::NewUniqueID();
-
 	Array::Ptr funcargs = expr->m_Operand2;
-	ScriptFunction::Callback callback = boost::bind(&AExpression::FunctionWrapper, _1, funcargs, aexpr, locals);
-	ScriptFunction::Register(name, callback);
-	return name;
+	ScriptFunction::Ptr func = make_shared<ScriptFunction>(boost::bind(&AExpression::FunctionWrapper, _1, funcargs, aexpr, locals));
+
+	if (!name.IsEmpty())
+		ScriptFunction::Register(name, func);
+
+	return func;
 }
 
 Value AExpression::OpApply(const AExpression* expr, const Dictionary::Ptr& locals)
