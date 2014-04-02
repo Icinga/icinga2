@@ -781,8 +781,12 @@ rterm: T_STRING
 
 		arr->Add(Empty);
 
-		arr->Add(*$4);
+		Array::Ptr arrex = make_shared<Array>();
+		arrex->Add(make_shared<AExpression>(&AExpression::OpSet, make_shared<AExpression>(&AExpression::OpLiteral, "__result", @4), *$4, @4));
 		delete $4;
+		AExpression::Ptr aexpr = make_shared<AExpression>(&AExpression::OpDict, arrex, true, @4);
+
+		arr->Add(aexpr);
 
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunction, arr, Array::Ptr($2), DebugInfoRange(@1, @4)));
 	}

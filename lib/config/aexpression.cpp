@@ -475,7 +475,8 @@ Value AExpression::FunctionWrapper(const std::vector<Value>& arguments, const Ar
 	for (int i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
 		locals->Set(funcargs->Get(i), arguments[i]);
 
-	return expr->Evaluate(locals);
+	expr->Evaluate(locals);
+	return locals->Get("__result");
 }
 
 Value AExpression::OpFunction(const AExpression* expr, const Dictionary::Ptr& locals)
