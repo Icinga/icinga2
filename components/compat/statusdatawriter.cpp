@@ -516,13 +516,13 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 
 void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
 {
-	Dictionary::Ptr custom = object->GetCustom();
+	Dictionary::Ptr vars = object->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return;
 
-	ObjectLock olock(custom);
-	BOOST_FOREACH(const Dictionary::Pair& kv, custom) {
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		if (!kv.first.IsEmpty()) {
 			fp << "\t";
 

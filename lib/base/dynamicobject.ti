@@ -7,7 +7,7 @@ abstract class DynamicObject
 	[config, get_protected] String type (TypeName);
 	[config, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
-	[config] Dictionary::Ptr custom;
+	[config] Dictionary::Ptr vars;
 	[config] Array::Ptr domains;
 	[config] Array::Ptr authorities;
 	[get_protected] bool active;

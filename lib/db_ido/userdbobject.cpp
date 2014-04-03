@@ -42,11 +42,11 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 
 	fields->Set("alias", user->GetDisplayName());
 
-	Dictionary::Ptr macros = user->GetMacros();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (macros) { /* Yuck. */
-		fields->Set("email_address", macros->Get("email"));
-		fields->Set("pager_address", macros->Get("pager"));
+	if (vars) { /* Yuck. */
+		fields->Set("email_address", vars->Get("email"));
+		fields->Set("pager_address", vars->Get("pager"));
 	}
 
 	fields->Set("host_timeperiod_object_id", user->GetNotificationPeriod());
@@ -93,12 +93,12 @@ void UserDbObject::OnConfigUpdate(void)
 	/* contact addresses */
 	Log(LogDebug, "db_ido", "contact addresses for '" + user->GetName() + "'");
 
-	Dictionary::Ptr macros = user->GetMacros();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (macros) { /* This is sparta. */
+	if (vars) { /* This is sparta. */
 		for (int i = 1; i <= 6; i++) {
 			String key = "address" + Convert::ToString(i);
-			String val = macros->Get(key);
+			String val = vars->Get(key);
 
 			if (val.IsEmpty())
 				continue;

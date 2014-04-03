@@ -76,32 +76,32 @@ Value ServiceGroupsTable::AliasAccessor(const Value& row)
 
 Value ServiceGroupsTable::NotesAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<ServiceGroup::Ptr>(row)->GetCustom();
+	Dictionary::Ptr vars = static_cast<ServiceGroup::Ptr>(row)->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
-	return custom->Get("notes");
+	return vars->Get("notes");
 }
 
 Value ServiceGroupsTable::NotesUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<ServiceGroup::Ptr>(row)->GetCustom();
+	Dictionary::Ptr vars = static_cast<ServiceGroup::Ptr>(row)->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
-	return custom->Get("notes_url");
+	return vars->Get("notes_url");
 }
 
 Value ServiceGroupsTable::ActionUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr custom = static_cast<ServiceGroup::Ptr>(row)->GetCustom();
+	Dictionary::Ptr vars = static_cast<ServiceGroup::Ptr>(row)->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
-	return custom->Get("action_url");
+	return vars->Get("action_url");
 }
 
 Value ServiceGroupsTable::MembersAccessor(const Value& row)

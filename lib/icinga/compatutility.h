@@ -121,7 +121,7 @@ public:
 
 	/* custom attribute */
 	static String GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name);
-	static Dictionary::Ptr GetCustomVariableConfig(const DynamicObject::Ptr& object);
+	static Dictionary::Ptr GetCustomAttributeConfig(const DynamicObject::Ptr& object);
 
 	/* check result */
 	static String GetCheckResultOutput(const CheckResult::Ptr& cr);

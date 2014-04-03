@@ -47,9 +47,9 @@ void ContactsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "service_notifications_enabled", Column(&ContactsTable::ServiceNotificationsEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "in_host_notification_period", Column(&ContactsTable::InHostNotificationPeriodAccessor, objectAccessor));
 	table->AddColumn(prefix + "in_service_notification_period", Column(&ContactsTable::InServiceNotificationPeriodAccessor, objectAccessor));
-	table->AddColumn(prefix + "custom_variable_names", Column(&ContactsTable::CustomVariableNamesAccessor, objectAccessor));
-	table->AddColumn(prefix + "custom_variable_values", Column(&ContactsTable::CustomVariableValuesAccessor, objectAccessor));
-	table->AddColumn(prefix + "custom_variables", Column(&ContactsTable::CustomVariablesAccessor, objectAccessor));
+	table->AddColumn(prefix + "vars_variable_names", Column(&ContactsTable::CustomVariableNamesAccessor, objectAccessor));
+	table->AddColumn(prefix + "vars_variable_values", Column(&ContactsTable::CustomVariableValuesAccessor, objectAccessor));
+	table->AddColumn(prefix + "vars_variables", Column(&ContactsTable::CustomVariablesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&ContactsTable::ModifiedAttributesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&ContactsTable::ModifiedAttributesListAccessor, objectAccessor));
 }
@@ -93,12 +93,12 @@ Value ContactsTable::EmailAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr macros = user->GetMacros();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (!macros)
+	if (!vars)
 		return Empty;
 
-	return macros->Get("email");
+	return vars->Get("email");
 }
 
 Value ContactsTable::PagerAccessor(const Value& row)
@@ -108,12 +108,12 @@ Value ContactsTable::PagerAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr macros = user->GetMacros();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (!macros)
+	if (!vars)
 		return Empty;
 
-	return macros->Get("pager");
+	return vars->Get("pager");
 }
 
 Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
@@ -204,17 +204,17 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr custom = user->GetCustom();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
 	Array::Ptr cv = make_shared<Array>();
 
-	ObjectLock olock(custom);
+	ObjectLock olock(vars);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
+	BOOST_FOREACH(boost::tie(key, value), vars) {
 		if (key == "notes" ||
 		    key == "action_url" ||
 		    key == "notes_url" ||
@@ -237,17 +237,17 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr custom = user->GetCustom();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
 	Array::Ptr cv = make_shared<Array>();
 
-	ObjectLock olock(custom);
+	ObjectLock olock(vars);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
+	BOOST_FOREACH(boost::tie(key, value), vars) {
 		if (key == "notes" ||
 		    key == "action_url" ||
 		    key == "notes_url" ||
@@ -270,17 +270,17 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr custom = user->GetCustom();
+	Dictionary::Ptr vars = user->GetVars();
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
 	Array::Ptr cv = make_shared<Array>();
 
-	ObjectLock olock(custom);
+	ObjectLock olock(vars);
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), custom) {
+	BOOST_FOREACH(boost::tie(key, value), vars) {
 		if (key == "notes" ||
 		    key == "action_url" ||
 		    key == "notes_url" ||

@@ -25,10 +25,10 @@ REGISTER_TYPE(Command);
 
 bool Command::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
-	Dictionary::Ptr macros = GetMacros();
+	Dictionary::Ptr vars = GetVars();
 
-	if (macros && macros->Contains(macro)) {
-		*result = macros->Get(macro);
+	if (vars && vars->Contains(macro)) {
+		*result = vars->Get(macro);
 		return true;
 	}
 

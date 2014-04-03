@@ -277,18 +277,18 @@ void HostDbObject::OnConfigUpdate(void)
 	}
 
 	/* custom variables */
-	Dictionary::Ptr customvars;
+	Dictionary::Ptr vars;
 	{
 		ObjectLock olock(host);
-		customvars = CompatUtility::GetCustomVariableConfig(host);
+		vars = CompatUtility::GetCustomAttributeConfig(host);
 	}
 
-	if (customvars) {
-		Log(LogDebug, "ido", "Dumping host customvars for '" + host->GetName() + "'");
+	if (vars) {
+		Log(LogDebug, "ido", "Dumping host vars for '" + host->GetName() + "'");
 
-		ObjectLock olock (customvars);
+		ObjectLock olock (vars);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, customvars) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 			if (!kv.first.IsEmpty()) {
 				Log(LogDebug, "db_ido", "host customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 

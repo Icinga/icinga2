@@ -373,16 +373,16 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Stri
 		}
 	}
 
+	Dictionary::Ptr vars = GetVars();
+
 	if (macro.SubStr(0, 8) == "_SERVICE") {
-		Dictionary::Ptr custom = GetCustom();
-		*result = custom ? custom->Get(macro.SubStr(8)) : "";
+		*result = vars ? vars->Get(macro.SubStr(8)) : "";
 		return true;
 	}
 
-	Dictionary::Ptr macros = GetMacros();
 
-	if (macros && macros->Contains(macro)) {
-		*result = macros->Get(macro);
+	if (vars && vars->Contains(macro)) {
+		*result = vars->Get(macro);
 		return true;
 	}
 

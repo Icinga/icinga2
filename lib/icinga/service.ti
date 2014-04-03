@@ -29,7 +29,6 @@ class Service : DynamicObject
 				return m_DisplayName;
 		}}}
 	};
-	[config] Dictionary::Ptr macros;
 	[config] Array::Ptr groups;
 	[config, protected] String check_command (CheckCommandRaw);
 	[config] int max_check_attempts (MaxCheckAttemptsRaw) {

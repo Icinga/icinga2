@@ -264,19 +264,19 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* custom variables */
-	Dictionary::Ptr customvars;
+	Dictionary::Ptr vars;
 
 	{
 		ObjectLock olock(service);
-		customvars = CompatUtility::GetCustomVariableConfig(service);
+		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (customvars) {
-		Log(LogDebug, "db_ido", "Dumping service customvars for '" + service->GetName() + "'");
+	if (vars) {
+		Log(LogDebug, "db_ido", "Dumping service vars for '" + service->GetName() + "'");
 
-		ObjectLock olock(customvars);
+		ObjectLock olock(vars);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, customvars) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 			if (!kv.first.IsEmpty()) {
 				Log(LogDebug, "db_ido", "service customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 

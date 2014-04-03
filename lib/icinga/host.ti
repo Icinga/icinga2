@@ -14,7 +14,6 @@ class Host : DynamicObject
 		}}}
 	};
 	[config] Array::Ptr groups;
-	[config] Dictionary::Ptr macros;
 	[config] String check;
 	[config, protected] Dictionary::Ptr services (ServiceDescriptions);
 	[config] Dictionary::Ptr dependencies (DependencyDescriptions);

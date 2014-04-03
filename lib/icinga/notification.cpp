@@ -341,16 +341,16 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 bool Notification::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
+	Dictionary::Ptr vars = GetVars();
+
 	if (macro.SubStr(0, 13) == "_NOTIFICATION") {
-		Dictionary::Ptr custom = GetCustom();
-		*result = custom ? custom->Get(macro.SubStr(13)) : "";
+		*result = vars ? vars->Get(macro.SubStr(13)) : "";
 		return true;
 	}
 
-	Dictionary::Ptr macros = GetMacros();
 
-	if (macros && macros->Contains(macro)) {
-		*result = macros->Get(macro);
+	if (vars && vars->Contains(macro)) {
+		*result = vars->Get(macro);
 		return true;
 	}
 

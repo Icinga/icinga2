@@ -73,12 +73,12 @@ String CompatUtility::GetHostAddress(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
 
-	Dictionary::Ptr macros = host->GetMacros();
+	Dictionary::Ptr vars = host->GetVars();
 
 	String address;
 
-	if (macros)
-		address = macros->Get("address");
+	if (vars)
+		address = vars->Get("address");
 
 	if (address.IsEmpty())
 		address = host->GetName();
@@ -90,12 +90,12 @@ String CompatUtility::GetHostAddress6(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
 
-	Dictionary::Ptr macros = host->GetMacros();
+	Dictionary::Ptr vars = host->GetVars();
 
 	String address6;
 
-	if (macros)
-		address6 = macros->Get("address6");
+	if (vars)
+		address6 = vars->Get("address6");
 
 	if (address6.IsEmpty())
 		address6 = host->GetName();
@@ -107,11 +107,11 @@ Host2dCoords CompatUtility::GetHost2dCoords(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
 
-	Dictionary::Ptr custom = host->GetCustom();
+	Dictionary::Ptr vars = host->GetVars();
 	Host2dCoords bag;
 
-	if (custom) {
-		String coords = custom->Get("2d_coords");
+	if (vars) {
+		String coords = vars->Get("2d_coords");
 		bag.have_2d_coords = (!coords.IsEmpty() ? 1 : 0);
 
 		std::vector<String> tokens;
@@ -428,67 +428,71 @@ int CompatUtility::GetServiceInNotificationPeriod(const Service::Ptr& service)
 	return 1;
 }
 
-/* custom attr */
-Dictionary::Ptr CompatUtility::GetCustomVariableConfig(const DynamicObject::Ptr& object)
+/* vars attr */
+Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object)
 {
 	ASSERT(object->OwnsLock());
 
-	Dictionary::Ptr custom;
+	Dictionary::Ptr vars;
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
-		custom = static_pointer_cast<Host>(object)->GetCustom();
+		vars = static_pointer_cast<Host>(object)->GetVars();
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
-		custom = static_pointer_cast<Service>(object)->GetCustom();
+		vars = static_pointer_cast<Service>(object)->GetVars();
 	} else if (object->GetType() == DynamicType::GetByName("User")) {
-		custom = static_pointer_cast<User>(object)->GetCustom();
+		vars = static_pointer_cast<User>(object)->GetVars();
 	} else {
-		Log(LogDebug, "icinga", "unknown object type for custom vars");
+		Log(LogDebug, "icinga", "unknown object type for vars vars");
 		return Dictionary::Ptr();
 	}
 
-	Dictionary::Ptr customvars = make_shared<Dictionary>();
+	Dictionary::Ptr varsvars = make_shared<Dictionary>();
 
-	if (!custom)
+	if (!vars)
 		return Dictionary::Ptr();
 
-	ObjectLock olock(custom);
-	BOOST_FOREACH(const Dictionary::Pair& kv, custom) {
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		if (!kv.first.IsEmpty()) {
-			if (kv.first != "notes" &&
+			if (kv.first != "address" &&
+			    kv.first != "address6" &&
+			    kv.first != "email" &&
+			    kv.first != "pager" &&
+			    kv.first != "notes" &&
 			    kv.first != "action_url" &&
 			    kv.first != "notes_url" &&
 			    kv.first != "icon_image" &&
 			    kv.first != "icon_image_alt" &&
 			    kv.first != "statusmap_image" &&
 			    kv.first != "2d_coords")
-				customvars->Set(kv.first, kv.second);
+				varsvars->Set(kv.first, kv.second);
 		}
 	}
 
-	return customvars;
+	return varsvars;
 }
 
 String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name)
 {
 	ASSERT(object->OwnsLock());
 
-	Dictionary::Ptr custom;
+	Dictionary::Ptr vars;
 
 	if (object->GetType() == DynamicType::GetByName("Host")) {
-		custom = static_pointer_cast<Host>(object)->GetCustom();
+		vars = static_pointer_cast<Host>(object)->GetVars();
 	} else if (object->GetType() == DynamicType::GetByName("Service")) {
-		custom = static_pointer_cast<Service>(object)->GetCustom();
+		vars = static_pointer_cast<Service>(object)->GetVars();
 	} else if (object->GetType() == DynamicType::GetByName("User")) {
-		custom = static_pointer_cast<User>(object)->GetCustom();
+		vars = static_pointer_cast<User>(object)->GetVars();
 	} else {
-		Log(LogDebug, "icinga", "unknown object type for custom attributes");
+		Log(LogDebug, "icinga", "unknown object type for vars attributes");
 		return Empty;
 	}
 
-	if (!custom)
+	if (!vars)
 		return Empty;
 
-	return custom->Get(name);
+	return vars->Get(name);
 }
 
 /* notifications */

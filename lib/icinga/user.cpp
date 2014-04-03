@@ -75,12 +75,12 @@ bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		*result = GetDisplayName();
 		return true;
 	} else if (macro.SubStr(0, 5) == "_USER") {
-		Dictionary::Ptr custom = GetCustom();
-		*result = custom ? custom->Get(macro.SubStr(5)) : "";
+		Dictionary::Ptr vars = GetVars();
+		*result = vars ? vars->Get(macro.SubStr(5)) : "";
 		return true;
 	} else if (macro.SubStr(0, 8) == "_CONTACT") {
-		Dictionary::Ptr custom = GetCustom();
-		*result = custom ? custom->Get(macro.SubStr(8)) : "";
+		Dictionary::Ptr vars = GetVars();
+		*result = vars ? vars->Get(macro.SubStr(8)) : "";
 		return true;
 	} else {
 		String tmacro;
@@ -92,10 +92,10 @@ bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		else
 			tmacro = macro;
 
-		Dictionary::Ptr macros = GetMacros();
+		Dictionary::Ptr vars = GetVars();
 
-		if (macros && macros->Contains(tmacro)) {
-			*result = macros->Get(tmacro);
+		if (vars && vars->Contains(tmacro)) {
+			*result = vars->Get(tmacro);
 			return true;
 		}
 

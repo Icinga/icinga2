@@ -116,9 +116,9 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
-Dictionary::Ptr IcingaApplication::GetMacros(void) const
+Dictionary::Ptr IcingaApplication::GetVars(void) const
 {
-	ScriptVariable::Ptr sv = ScriptVariable::GetByName("IcingaMacros");
+	ScriptVariable::Ptr sv = ScriptVariable::GetByName("IcingaVars");
 
 	if (!sv)
 		return Dictionary::Ptr();
@@ -152,10 +152,10 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		return true;
 	}
 
-	Dictionary::Ptr macros = GetMacros();
+	Dictionary::Ptr vars = GetVars();
 
-	if (macros && macros->Contains(macro)) {
-		*result = macros->Get(macro);
+	if (vars && vars->Contains(macro)) {
+		*result = vars->Get(macro);
 		return true;
 	}
 

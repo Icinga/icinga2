@@ -1049,21 +1049,21 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr customvars;
+	Dictionary::Ptr vars;
 
 	{
 		ObjectLock olock(service);
-		customvars = CompatUtility::GetCustomVariableConfig(service);
+		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (!customvars)
+	if (!vars)
 		return Empty;
 
 	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), customvars) {
+	BOOST_FOREACH(boost::tie(key, value), vars) {
 		cv->Add(key);
 	}
 
@@ -1077,21 +1077,21 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr customvars;
+	Dictionary::Ptr vars;
 
 	{
 		ObjectLock olock(service);
-		customvars = CompatUtility::GetCustomVariableConfig(service);
+		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (!customvars)
+	if (!vars)
 		return Empty;
 
 	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), customvars) {
+	BOOST_FOREACH(boost::tie(key, value), vars) {
 		cv->Add(value);
 	}
 
@@ -1105,21 +1105,21 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr customvars;
+	Dictionary::Ptr vars;
 
 	{
 		ObjectLock olock(service);
-		customvars = CompatUtility::GetCustomVariableConfig(service);
+		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (!customvars)
+	if (!vars)
 		return Empty;
 
 	Array::Ptr cv = make_shared<Array>();
 
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), customvars) {
+	BOOST_FOREACH(boost::tie(key, value), vars) {
 		Array::Ptr key_val = make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
