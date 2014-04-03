@@ -48,7 +48,7 @@ configure script using the --with-icinga-user, --with-icinga-group,
 
 # groupadd icinga
 # groupadd icingacmd
-# useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga
+# useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
 
 Add the web server user to the icingacmd group in order to grant it write
 permissions to the external command pipe and livestatus socket:
