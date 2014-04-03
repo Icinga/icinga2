@@ -101,6 +101,9 @@ print version.
 #use warnings;
 #use strict;
 
+print "Disabled, requires additional config changes. For details please refer to https://dev.icinga.org/issues/5821\n";
+exit(1);
+
 use Data::Dumper;
 use File::Find;
 use Storable qw(dclone);
