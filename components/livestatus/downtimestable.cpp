@@ -115,9 +115,9 @@ Value DowntimesTable::TypeAccessor(const Value& row)
 Value DowntimesTable::IsServiceAccessor(const Value& row)
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
-	Service::Ptr svc = Service::GetOwnerByDowntimeID(downtime->GetId());
+	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
 
-	return (svc->IsHostCheck() ? 0 : 1);
+	return (dynamic_pointer_cast<Host>(checkable) ? 0 : 1);
 }
 
 Value DowntimesTable::StartTimeAccessor(const Value& row)

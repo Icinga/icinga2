@@ -24,9 +24,9 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&)> Service::OnEventCommandExecuted;
+boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnEventCommandExecuted;
 
-bool Service::GetEnableEventHandler(void) const
+bool Checkable::GetEnableEventHandler(void) const
 {
 	if (!GetOverrideEnableEventHandler().IsEmpty())
 		return GetOverrideEnableEventHandler();
@@ -34,12 +34,12 @@ bool Service::GetEnableEventHandler(void) const
 		return GetEnableEventHandlerRaw();
 }
 
-void Service::SetEnableEventHandler(bool enabled)
+void Checkable::SetEnableEventHandler(bool enabled)
 {
 	SetOverrideEnableEventHandler(enabled);
 }
 
-EventCommand::Ptr Service::GetEventCommand(void) const
+EventCommand::Ptr Checkable::GetEventCommand(void) const
 {
 	String command;
 
@@ -51,14 +51,14 @@ EventCommand::Ptr Service::GetEventCommand(void) const
 	return EventCommand::GetByName(command);
 }
 
-void Service::SetEventCommand(const EventCommand::Ptr& command)
+void Checkable::SetEventCommand(const EventCommand::Ptr& command)
 {
 	SetOverrideEventCommand(command->GetName());
 }
 
-void Service::ExecuteEventHandler(void)
+void Checkable::ExecuteEventHandler(void)
 {
-	CONTEXT("Executing event handler for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+	CONTEXT("Executing event handler for object '" + GetName() + "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
 		return;

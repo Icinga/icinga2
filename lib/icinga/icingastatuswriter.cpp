@@ -36,7 +36,6 @@
 #include "base/context.h"
 #include "base/statsfunction.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 

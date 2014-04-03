@@ -24,7 +24,6 @@
 #include "base/dynamictype.h"
 #include "base/statsfunction.h"
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 
@@ -148,21 +147,14 @@ HostStatistics CIB::CalculateHostStats(void)
 		if (host->GetState() == HostUnreachable)
 			hs.hosts_unreachable++;
 
-		Service::Ptr hc = host->GetCheckService();
-
-		if (!hc) {
-			hs.hosts_pending++;
-			continue; /* skip host service check counting */
-		}
-
-		if (!hc->GetLastCheckResult())
+		if (!host->GetLastCheckResult())
 			hs.hosts_pending++;
 
-		if (hc->IsFlapping())
+		if (host->IsFlapping())
 			hs.hosts_flapping++;
-		if (hc->IsInDowntime())
+		if (host->IsInDowntime())
 			hs.hosts_in_downtime++;
-		if (hc->IsAcknowledged())
+		if (host->IsAcknowledged())
 			hs.hosts_acknowledged++;
 	}
 
@@ -180,7 +172,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> CIB::GetFeatureStats(void)
 
 	String name;
 	Value ret;
-	BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), StatsFunctionRegistry::GetInstance()->GetItems()) {
+	BOOST_FOREACH(tie(name, boost::tuples::ignore), StatsFunctionRegistry::GetInstance()->GetItems()) {
 		StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem(name);
 
 		if (!func)

@@ -34,6 +34,7 @@
 #include <boost/smart_ptr/weak_ptr.hpp>
 #include <boost/smart_ptr/enable_shared_from_this.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
@@ -41,6 +42,7 @@ using boost::enable_shared_from_this;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
 using boost::make_shared;
+using boost::tie;
 
 namespace icinga
 {

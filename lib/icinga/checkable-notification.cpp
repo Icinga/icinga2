@@ -32,14 +32,14 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const std::set<User::Ptr>&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationSentToAllUsers;
-boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const std::set<User::Ptr>&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationSendStart;
-boost::signals2::signal<void (const Notification::Ptr&, const Service::Ptr&, const User::Ptr&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> Service::OnNotificationSentToUser;
+boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationSentToAllUsers;
+boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationSendStart;
+boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> Checkable::OnNotificationSentToUser;
 
-void Service::ResetNotificationNumbers(void)
+void Checkable::ResetNotificationNumbers(void)
 {
 	BOOST_FOREACH(const Notification::Ptr& notification, GetNotifications()) {
 		ObjectLock olock(notification);
@@ -47,9 +47,9 @@ void Service::ResetNotificationNumbers(void)
 	}
 }
 
-void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
+void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	CONTEXT("Sending notifications for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+	CONTEXT("Sending notifications for object '" + GetName() + "'");
 
 	bool force = GetForceNextNotification();
 
@@ -62,14 +62,14 @@ void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& c
 		SetForceNextNotification(false);
 	}
 
-	Log(LogInformation, "icinga", "Sending notifications for service '" + GetName() + "'");
+	Log(LogInformation, "icinga", "Sending notifications for object '" + GetName() + "'");
 
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
 	if (notifications.empty())
-		Log(LogInformation, "icinga", "Service '" + GetName() + "' does not have any notifications.");
+		Log(LogInformation, "icinga", "Checkable '" + GetName() + "' does not have any notifications.");
 
-	Log(LogDebug, "icinga", "Service '" + GetName() + "' has " + Convert::ToString(notifications.size()) + " notification(s).");
+	Log(LogDebug, "icinga", "Checkable '" + GetName() + "' has " + Convert::ToString(notifications.size()) + " notification(s).");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
@@ -85,22 +85,22 @@ void Service::SendNotifications(NotificationType type, const CheckResult::Ptr& c
 	}
 }
 
-std::set<Notification::Ptr> Service::GetNotifications(void) const
+std::set<Notification::Ptr> Checkable::GetNotifications(void) const
 {
 	return m_Notifications;
 }
 
-void Service::AddNotification(const Notification::Ptr& notification)
+void Checkable::AddNotification(const Notification::Ptr& notification)
 {
 	m_Notifications.insert(notification);
 }
 
-void Service::RemoveNotification(const Notification::Ptr& notification)
+void Checkable::RemoveNotification(const Notification::Ptr& notification)
 {
 	m_Notifications.erase(notification);
 }
 
-bool Service::GetEnableNotifications(void) const
+bool Checkable::GetEnableNotifications(void) const
 {
 	if (!GetOverrideEnableNotifications().IsEmpty())
 		return GetOverrideEnableNotifications();
@@ -108,19 +108,19 @@ bool Service::GetEnableNotifications(void) const
 		return GetEnableNotificationsRaw();
 }
 
-void Service::SetEnableNotifications(bool enabled, const String& authority)
+void Checkable::SetEnableNotifications(bool enabled, const String& authority)
 {
 	SetOverrideEnableNotifications(enabled);
 
 	OnEnableNotificationsChanged(GetSelf(), enabled, authority);
 }
 
-bool Service::GetForceNextNotification(void) const
+bool Checkable::GetForceNextNotification(void) const
 {
 	return GetForceNextNotificationRaw();
 }
 
-void Service::SetForceNextNotification(bool forced, const String& authority)
+void Checkable::SetForceNextNotification(bool forced, const String& authority)
 {
 	SetForceNextNotificationRaw(forced);
 

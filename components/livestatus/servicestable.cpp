@@ -280,7 +280,7 @@ Value ServicesTable::NotificationPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationNotificationPeriod(service);
+	return CompatUtility::GetCheckableNotificationNotificationPeriod(service);
 }
 
 Value ServicesTable::CheckPeriodAccessor(const Value& row)
@@ -290,7 +290,7 @@ Value ServicesTable::CheckPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceCheckPeriod(service);
+	return CompatUtility::GetCheckableCheckPeriod(service);
 }
 
 Value ServicesTable::NotesAccessor(const Value& row)
@@ -438,7 +438,7 @@ Value ServicesTable::StateAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceCurrentState(service);
+	return service->GetState();
 }
 
 Value ServicesTable::HasBeenCheckedAccessor(const Value& row)
@@ -448,7 +448,7 @@ Value ServicesTable::HasBeenCheckedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceHasBeenChecked(service);
+	return CompatUtility::GetCheckableHasBeenChecked(service);
 }
 
 Value ServicesTable::LastStateAccessor(const Value& row)
@@ -488,7 +488,7 @@ Value ServicesTable::CheckTypeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceCheckType(service);
+	return CompatUtility::GetCheckableCheckType(service);
 }
 
 Value ServicesTable::AcknowledgedAccessor(const Value& row)
@@ -499,7 +499,7 @@ Value ServicesTable::AcknowledgedAccessor(const Value& row)
 		return Empty;
 
 
-	return CompatUtility::GetServiceIsAcknowledged(service);
+	return CompatUtility::GetCheckableIsAcknowledged(service);
 }
 
 Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
@@ -522,7 +522,7 @@ Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-        return CompatUtility::GetServiceNoMoreNotifications(service);
+        return CompatUtility::GetCheckableNoMoreNotifications(service);
 }
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)
@@ -592,7 +592,7 @@ Value ServicesTable::LastNotificationAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationLastNotification(service);
+	return CompatUtility::GetCheckableNotificationLastNotification(service);
 }
 
 Value ServicesTable::NextNotificationAccessor(const Value& row)
@@ -602,7 +602,7 @@ Value ServicesTable::NextNotificationAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationNextNotification(service);
+	return CompatUtility::GetCheckableNotificationNextNotification(service);
 }
 
 Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
@@ -612,7 +612,7 @@ Value ServicesTable::CurrentNotificationNumberAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationNotificationNumber(service);
+	return CompatUtility::GetCheckableNotificationNotificationNumber(service);
 }
 
 Value ServicesTable::LastStateChangeAccessor(const Value& row)
@@ -662,7 +662,7 @@ Value ServicesTable::ChecksEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceActiveChecksEnabled(service);
+	return CompatUtility::GetCheckableActiveChecksEnabled(service);
 }
 
 Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -672,7 +672,7 @@ Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServicePassiveChecksEnabled(service);
+	return CompatUtility::GetCheckablePassiveChecksEnabled(service);
 }
 
 Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
@@ -682,7 +682,7 @@ Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceEventHandlerEnabled(service);
+	return CompatUtility::GetCheckableEventHandlerEnabled(service);
 }
 
 Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
@@ -692,7 +692,7 @@ Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationsEnabled(service);
+	return CompatUtility::GetCheckableNotificationsEnabled(service);
 }
 
 Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
@@ -702,7 +702,7 @@ Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return 	CompatUtility::GetServiceProcessPerformanceData(service);
+	return 	CompatUtility::GetCheckableProcessPerformanceData(service);
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
@@ -712,7 +712,7 @@ Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceActiveChecksEnabled(service);
+	return CompatUtility::GetCheckableActiveChecksEnabled(service);
 }
 
 Value ServicesTable::CheckOptionsAccessor(const Value& row)
@@ -728,7 +728,7 @@ Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceFlapDetectionEnabled(service);
+	return CompatUtility::GetCheckableFlapDetectionEnabled(service);
 }
 
 Value ServicesTable::CheckFreshnessAccessor(const Value& row)
@@ -738,7 +738,7 @@ Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceFreshnessChecksEnabled(service);
+	return CompatUtility::GetCheckableFreshnessChecksEnabled(service);
 }
 
 Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
@@ -764,7 +764,7 @@ Value ServicesTable::StalenessAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceStaleness(service);
+	return CompatUtility::GetCheckableStaleness(service);
 }
 
 Value ServicesTable::CheckIntervalAccessor(const Value& row)
@@ -774,7 +774,7 @@ Value ServicesTable::CheckIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceCheckInterval(service);
+	return CompatUtility::GetCheckableCheckInterval(service);
 }
 
 Value ServicesTable::RetryIntervalAccessor(const Value& row)
@@ -784,7 +784,7 @@ Value ServicesTable::RetryIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceRetryInterval(service);
+	return CompatUtility::GetCheckableRetryInterval(service);
 }
 
 Value ServicesTable::NotificationIntervalAccessor(const Value& row)
@@ -794,7 +794,7 @@ Value ServicesTable::NotificationIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceNotificationNotificationInterval(service);
+	return CompatUtility::GetCheckableNotificationNotificationInterval(service);
 }
 
 Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
@@ -804,7 +804,7 @@ Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceLowFlapThreshold(service);
+	return CompatUtility::GetCheckableLowFlapThreshold(service);
 }
 
 Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
@@ -814,7 +814,7 @@ Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceHighFlapThreshold(service);
+	return CompatUtility::GetCheckableHighFlapThreshold(service);
 }
 
 Value ServicesTable::LatencyAccessor(const Value& row)
@@ -844,7 +844,7 @@ Value ServicesTable::PercentStateChangeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServicePercentStateChange(service);
+	return CompatUtility::GetCheckablePercentStateChange(service);
 }
 
 Value ServicesTable::InCheckPeriodAccessor(const Value& row)
@@ -854,7 +854,7 @@ Value ServicesTable::InCheckPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceInCheckPeriod(service);
+	return CompatUtility::GetCheckableInCheckPeriod(service);
 }
 
 Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
@@ -864,7 +864,7 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetServiceInNotificationPeriod(service);
+	return CompatUtility::GetCheckableInNotificationPeriod(service);
 }
 
 Value ServicesTable::ContactsAccessor(const Value& row)
@@ -876,7 +876,7 @@ Value ServicesTable::ContactsAccessor(const Value& row)
 
 	Array::Ptr contact_names = make_shared<Array>();
 
-	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetServiceNotificationUsers(service)) {
+	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
 		contact_names->Add(user->GetName());
 	}
 
@@ -898,7 +898,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 
 	String id;
 	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+	BOOST_FOREACH(tie(id, downtime), downtimes) {
 
 		if (!downtime)
 			continue;
@@ -927,7 +927,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 
 	String id;
 	Downtime::Ptr downtime;
-	BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+	BOOST_FOREACH(tie(id, downtime), downtimes) {
 
 		if (!downtime)
 			continue;
@@ -960,7 +960,7 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 
 	String id;
 	Comment::Ptr comment;
-	BOOST_FOREACH(boost::tie(id, comment), comments) {
+	BOOST_FOREACH(tie(id, comment), comments) {
 
 		if (!comment)
 			continue;
@@ -989,7 +989,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 
 	String id;
 	Comment::Ptr comment;
-	BOOST_FOREACH(boost::tie(id, comment), comments) {
+	BOOST_FOREACH(tie(id, comment), comments) {
 
 		if (!comment)
 			continue;
@@ -1022,7 +1022,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	String id;
 	Comment::Ptr comment;
-	BOOST_FOREACH(boost::tie(id, comment), comments) {
+	BOOST_FOREACH(tie(id, comment), comments) {
 
 		if (!comment)
 			continue;
@@ -1063,7 +1063,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), vars) {
+	BOOST_FOREACH(tie(key, value), vars) {
 		cv->Add(key);
 	}
 
@@ -1091,7 +1091,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), vars) {
+	BOOST_FOREACH(tie(key, value), vars) {
 		cv->Add(value);
 	}
 
@@ -1119,7 +1119,7 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 
 	String key;
 	Value value;
-	BOOST_FOREACH(boost::tie(key, value), vars) {
+	BOOST_FOREACH(tie(key, value), vars) {
 		Array::Ptr key_val = make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
@@ -1153,7 +1153,7 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 
 	Array::Ptr contactgroup_names = make_shared<Array>();
 
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetServiceNotificationUserGroups(service)) {
+	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		contactgroup_names->Add(usergroup->GetName());
 	}
 

@@ -48,7 +48,7 @@ static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
 
 Query::Query(const std::vector<String>& lines, const String& compat_log_path)
-	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1),
+	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true),
 	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
 	if (lines.size() == 0) {

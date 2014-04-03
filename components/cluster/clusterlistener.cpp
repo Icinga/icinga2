@@ -99,21 +99,21 @@ void ClusterListener::Start(void)
 
 	m_MessageQueue.SetExceptionCallback(&ClusterListener::MessageExceptionHandler);
 
-	Service::OnNewCheckResult.connect(boost::bind(&ClusterListener::CheckResultHandler, this, _1, _2, _3));
-	Service::OnNextCheckChanged.connect(boost::bind(&ClusterListener::NextCheckChangedHandler, this, _1, _2, _3));
+	Checkable::OnNewCheckResult.connect(boost::bind(&ClusterListener::CheckResultHandler, this, _1, _2, _3));
+	Checkable::OnNextCheckChanged.connect(boost::bind(&ClusterListener::NextCheckChangedHandler, this, _1, _2, _3));
 	Notification::OnNextNotificationChanged.connect(boost::bind(&ClusterListener::NextNotificationChangedHandler, this, _1, _2, _3));
-	Service::OnForceNextCheckChanged.connect(boost::bind(&ClusterListener::ForceNextCheckChangedHandler, this, _1, _2, _3));
-	Service::OnForceNextNotificationChanged.connect(boost::bind(&ClusterListener::ForceNextNotificationChangedHandler, this, _1, _2, _3));
-	Service::OnEnableActiveChecksChanged.connect(boost::bind(&ClusterListener::EnableActiveChecksChangedHandler, this, _1, _2, _3));
-	Service::OnEnablePassiveChecksChanged.connect(boost::bind(&ClusterListener::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
-	Service::OnEnableNotificationsChanged.connect(boost::bind(&ClusterListener::EnableNotificationsChangedHandler, this, _1, _2, _3));
-	Service::OnEnableFlappingChanged.connect(boost::bind(&ClusterListener::EnableFlappingChangedHandler, this, _1, _2, _3));
-	Service::OnCommentAdded.connect(boost::bind(&ClusterListener::CommentAddedHandler, this, _1, _2, _3));
-	Service::OnCommentRemoved.connect(boost::bind(&ClusterListener::CommentRemovedHandler, this, _1, _2, _3));
-	Service::OnDowntimeAdded.connect(boost::bind(&ClusterListener::DowntimeAddedHandler, this, _1, _2, _3));
-	Service::OnDowntimeRemoved.connect(boost::bind(&ClusterListener::DowntimeRemovedHandler, this, _1, _2, _3));
-	Service::OnAcknowledgementSet.connect(boost::bind(&ClusterListener::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
-	Service::OnAcknowledgementCleared.connect(boost::bind(&ClusterListener::AcknowledgementClearedHandler, this, _1, _2));
+	Checkable::OnForceNextCheckChanged.connect(boost::bind(&ClusterListener::ForceNextCheckChangedHandler, this, _1, _2, _3));
+	Checkable::OnForceNextNotificationChanged.connect(boost::bind(&ClusterListener::ForceNextNotificationChangedHandler, this, _1, _2, _3));
+	Checkable::OnEnableActiveChecksChanged.connect(boost::bind(&ClusterListener::EnableActiveChecksChangedHandler, this, _1, _2, _3));
+	Checkable::OnEnablePassiveChecksChanged.connect(boost::bind(&ClusterListener::EnablePassiveChecksChangedHandler, this, _1, _2, _3));
+	Checkable::OnEnableNotificationsChanged.connect(boost::bind(&ClusterListener::EnableNotificationsChangedHandler, this, _1, _2, _3));
+	Checkable::OnEnableFlappingChanged.connect(boost::bind(&ClusterListener::EnableFlappingChangedHandler, this, _1, _2, _3));
+	Checkable::OnCommentAdded.connect(boost::bind(&ClusterListener::CommentAddedHandler, this, _1, _2, _3));
+	Checkable::OnCommentRemoved.connect(boost::bind(&ClusterListener::CommentRemovedHandler, this, _1, _2, _3));
+	Checkable::OnDowntimeAdded.connect(boost::bind(&ClusterListener::DowntimeAddedHandler, this, _1, _2, _3));
+	Checkable::OnDowntimeRemoved.connect(boost::bind(&ClusterListener::DowntimeRemovedHandler, this, _1, _2, _3));
+	Checkable::OnAcknowledgementSet.connect(boost::bind(&ClusterListener::AcknowledgementSetHandler, this, _1, _2, _3, _4, _5, _6));
+	Checkable::OnAcknowledgementCleared.connect(boost::bind(&ClusterListener::AcknowledgementClearedHandler, this, _1, _2));
 
 	Endpoint::OnMessageReceived.connect(boost::bind(&ClusterListener::AsyncMessageHandler, this, _1, _2));
 
@@ -712,7 +712,7 @@ void ClusterListener::SetSecurityInfo(const Dictionary::Ptr& message, const Dyna
 	message->Set("security", security);
 }
 
-void ClusterListener::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const String& authority)
+void ClusterListener::CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -731,7 +731,7 @@ void ClusterListener::CheckResultHandler(const Service::Ptr& service, const Chec
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority)
+void ClusterListener::NextCheckChangedHandler(const Checkable::Ptr& service, double nextCheck, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -764,12 +764,12 @@ void ClusterListener::NextNotificationChangedHandler(const Notification::Ptr& no
 	message->Set("method", "cluster::SetNextNotification");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, notification->GetService(), DomainPrivRead);
+	SetSecurityInfo(message, notification->GetCheckable(), DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
+void ClusterListener::ForceNextCheckChangedHandler(const Checkable::Ptr& service, bool forced, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -788,7 +788,7 @@ void ClusterListener::ForceNextCheckChangedHandler(const Service::Ptr& service, 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::ForceNextNotificationChangedHandler(const Service::Ptr& service, bool forced, const String& authority)
+void ClusterListener::ForceNextNotificationChangedHandler(const Checkable::Ptr& service, bool forced, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -807,7 +807,7 @@ void ClusterListener::ForceNextNotificationChangedHandler(const Service::Ptr& se
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnableActiveChecksChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -826,7 +826,7 @@ void ClusterListener::EnableActiveChecksChangedHandler(const Service::Ptr& servi
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnablePassiveChecksChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -845,7 +845,7 @@ void ClusterListener::EnablePassiveChecksChangedHandler(const Service::Ptr& serv
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnableNotificationsChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnableNotificationsChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -864,7 +864,7 @@ void ClusterListener::EnableNotificationsChangedHandler(const Service::Ptr& serv
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnableFlappingChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -883,7 +883,7 @@ void ClusterListener::EnableFlappingChangedHandler(const Service::Ptr& service, 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
+void ClusterListener::CommentAddedHandler(const Checkable::Ptr& service, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -902,7 +902,7 @@ void ClusterListener::CommentAddedHandler(const Service::Ptr& service, const Com
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority)
+void ClusterListener::CommentRemovedHandler(const Checkable::Ptr& service, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -921,7 +921,7 @@ void ClusterListener::CommentRemovedHandler(const Service::Ptr& service, const C
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeAddedHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -940,7 +940,7 @@ void ClusterListener::DowntimeAddedHandler(const Service::Ptr& service, const Do
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeRemovedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeRemovedHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -959,7 +959,7 @@ void ClusterListener::DowntimeRemovedHandler(const Service::Ptr& service, const 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
+void ClusterListener::AcknowledgementSetHandler(const Checkable::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -981,7 +981,7 @@ void ClusterListener::AcknowledgementSetHandler(const Service::Ptr& service, con
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority)
+void ClusterListener::AcknowledgementClearedHandler(const Checkable::Ptr& service, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
@@ -1061,7 +1061,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1085,7 +1085,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1106,7 +1106,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1127,7 +1127,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1148,7 +1148,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1169,7 +1169,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1190,7 +1190,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1211,7 +1211,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1237,7 +1237,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!notification)
 			return;
 
-		Service::Ptr service = notification->GetService();
+		Checkable::Ptr service = notification->GetCheckable();
 
 		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
 			Log(LogDebug, "cluster", "Not accepting cluster::SetNextNotification message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
@@ -1255,7 +1255,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1277,7 +1277,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1298,7 +1298,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1323,7 +1323,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1344,7 +1344,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;
@@ -1368,7 +1368,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 
 		String svc = params->Get("service");
 
-		Service::Ptr service = Service::GetByName(svc);
+		Checkable::Ptr service = Checkable::GetByName(svc);
 
 		if (!service)
 			return;

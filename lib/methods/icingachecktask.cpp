@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(IcingaCheck, &IcingaCheckTask::ScriptFunc);
 
-void IcingaCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
+void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
 {
 	double interval = Utility::GetTime() - Application::GetStartTime();
 

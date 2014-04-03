@@ -155,12 +155,7 @@ int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
 
-	Service::Ptr service = host->GetCheckService();
-
-	if (!service)
-		return 0;
-
-	unsigned long notification_state_filter = GetServiceNotificationStateFilter(service);
+	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
 
 	if (notification_state_filter & (1<<StateCritical) ||
 	    notification_state_filter & (1<<StateWarning))
@@ -173,12 +168,7 @@ int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
 
-	Service::Ptr service = host->GetCheckService();
-
-	if (!service)
-		return 0;
-
-	unsigned long notification_state_filter = GetServiceNotificationStateFilter(service);
+	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
 
 	if (notification_state_filter & (1<<StateUnknown))
 		return 1;
@@ -187,134 +177,122 @@ int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
 }
 
 /* service */
-int CompatUtility::GetServiceCurrentState(const Service::Ptr& service)
+int CompatUtility::GetCheckableShouldBeScheduled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	int state = service->GetState();
-
-	if (state > StateUnknown)
-		return StateUnknown;
-
-	return state;
+	return (checkable->GetEnableActiveChecks() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceShouldBeScheduled(const Service::Ptr& service)
+int CompatUtility::GetCheckableCheckType(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnableActiveChecks() ? 1 : 0);
+	return (checkable->GetEnableActiveChecks() ? 0 : 1);
 }
 
-int CompatUtility::GetServiceCheckType(const Service::Ptr& service)
+double CompatUtility::GetCheckableCheckInterval(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnableActiveChecks() ? 0 : 1);
+	return checkable->GetCheckInterval() / 60.0;
 }
 
-double CompatUtility::GetServiceCheckInterval(const Service::Ptr& service)
+double CompatUtility::GetCheckableRetryInterval(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return service->GetCheckInterval() / 60.0;
+	return checkable->GetRetryInterval() / 60.0;
 }
 
-double CompatUtility::GetServiceRetryInterval(const Service::Ptr& service)
+String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return service->GetRetryInterval() / 60.0;
-}
-
-String CompatUtility::GetServiceCheckPeriod(const Service::Ptr& service)
-{
-	ASSERT(service->OwnsLock());
-
-	TimePeriod::Ptr check_period = service->GetCheckPeriod();
+	TimePeriod::Ptr check_period = checkable->GetCheckPeriod();
 	if (check_period)
 		return check_period->GetName();
 	else
 		return "24x7";
 }
 
-int CompatUtility::GetServiceHasBeenChecked(const Service::Ptr& service)
+int CompatUtility::GetCheckableHasBeenChecked(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetLastCheckResult() ? 1 : 0);
+	return (checkable->GetLastCheckResult() ? 1 : 0);
 }
 
 
-int CompatUtility::GetServiceProblemHasBeenAcknowledged(const Service::Ptr& service)
+int CompatUtility::GetCheckableProblemHasBeenAcknowledged(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetAcknowledgement() != AcknowledgementNone ? 1 : 0);
+	return (checkable->GetAcknowledgement() != AcknowledgementNone ? 1 : 0);
 }
 
-int CompatUtility::GetServiceAcknowledgementType(const Service::Ptr& service)
+int CompatUtility::GetCheckableAcknowledgementType(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return static_cast<int>(service->GetAcknowledgement());
+	return static_cast<int>(checkable->GetAcknowledgement());
 }
 
-int CompatUtility::GetServicePassiveChecksEnabled(const Service::Ptr& service)
+int CompatUtility::GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnablePassiveChecks() ? 1 : 0);
+	return (checkable->GetEnablePassiveChecks() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceActiveChecksEnabled(const Service::Ptr& service)
+int CompatUtility::GetCheckableActiveChecksEnabled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnableActiveChecks() ? 1 : 0);
+	return (checkable->GetEnableActiveChecks() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceEventHandlerEnabled(const Service::Ptr& service)
+int CompatUtility::GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEventCommand() ? 1 : 0);
+	return (checkable->GetEventCommand() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceFlapDetectionEnabled(const Service::Ptr& service)
+int CompatUtility::GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnableFlapping() ? 1 : 0);
+	return (checkable->GetEnableFlapping() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceIsFlapping(const Service::Ptr& service)
+int CompatUtility::GetCheckableIsFlapping(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->IsFlapping() ? 1 : 0);
+	return (checkable->IsFlapping() ? 1 : 0);
 }
 
-String CompatUtility::GetServicePercentStateChange(const Service::Ptr& service)
+String CompatUtility::GetCheckablePercentStateChange(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return Convert::ToString(service->GetFlappingCurrent());
+	return Convert::ToString(checkable->GetFlappingCurrent());
 }
 
-int CompatUtility::GetServiceProcessPerformanceData(const Service::Ptr& service)
+int CompatUtility::GetCheckableProcessPerformanceData(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnablePerfdata() ? 1 : 0);
+	return (checkable->GetEnablePerfdata() ? 1 : 0);
 }
 
-String CompatUtility::GetServiceEventHandler(const Service::Ptr& service)
+String CompatUtility::GetCheckableEventHandler(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	String event_command_str;
-	EventCommand::Ptr eventcommand = service->GetEventCommand();
+	EventCommand::Ptr eventcommand = checkable->GetEventCommand();
 
 	if (eventcommand)
 		event_command_str = eventcommand->GetName();
@@ -322,12 +300,12 @@ String CompatUtility::GetServiceEventHandler(const Service::Ptr& service)
 	return event_command_str;
 }
 
-String CompatUtility::GetServiceCheckCommand(const Service::Ptr& service)
+String CompatUtility::GetCheckableCheckCommand(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	String check_command_str;
-	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
+	CheckCommand::Ptr checkcommand = checkable->GetCheckCommand();
 
 	if (checkcommand)
 		check_command_str = checkcommand->GetName();
@@ -335,73 +313,73 @@ String CompatUtility::GetServiceCheckCommand(const Service::Ptr& service)
 	return check_command_str;
 }
 
-int CompatUtility::GetServiceIsVolatile(const Service::Ptr& service)
+int CompatUtility::GetCheckableIsVolatile(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetVolatile() ? 1 : 0);
+	return (checkable->GetVolatile() ? 1 : 0);
 }
 
-double CompatUtility::GetServiceLowFlapThreshold(const Service::Ptr& service)
+double CompatUtility::GetCheckableLowFlapThreshold(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return service->GetFlappingThreshold();
+	return checkable->GetFlappingThreshold();
 }
 
-double CompatUtility::GetServiceHighFlapThreshold(const Service::Ptr& service)
+double CompatUtility::GetCheckableHighFlapThreshold(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return service->GetFlappingThreshold();
+	return checkable->GetFlappingThreshold();
 }
 
-int CompatUtility::GetServiceFreshnessChecksEnabled(const Service::Ptr& service)
+int CompatUtility::GetCheckableFreshnessChecksEnabled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetCheckInterval() > 0 ? 1 : 0);
+	return (checkable->GetCheckInterval() > 0 ? 1 : 0);
 }
 
-int CompatUtility::GetServiceFreshnessThreshold(const Service::Ptr& service)
+int CompatUtility::GetCheckableFreshnessThreshold(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return static_cast<int>(service->GetCheckInterval());
+	return static_cast<int>(checkable->GetCheckInterval());
 }
 
-double CompatUtility::GetServiceStaleness(const Service::Ptr& service)
+double CompatUtility::GetCheckableStaleness(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	if (service->HasBeenChecked() && service->GetLastCheck() > 0)
-		return (Utility::GetTime() - service->GetLastCheck()) / (service->GetCheckInterval() * 3600);
+	if (checkable->HasBeenChecked() && checkable->GetLastCheck() > 0)
+		return (Utility::GetTime() - checkable->GetLastCheck()) / (checkable->GetCheckInterval() * 3600);
 
 	return 0.0;
 }
 
-int CompatUtility::GetServiceIsAcknowledged(const Service::Ptr& service)
+int CompatUtility::GetCheckableIsAcknowledged(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->IsAcknowledged() ? 1 : 0);
+	return (checkable->IsAcknowledged() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceNoMoreNotifications(const Service::Ptr& service)
+int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-        if (CompatUtility::GetServiceNotificationNotificationInterval(service) == 0 && !service->GetVolatile())
+        if (CompatUtility::GetCheckableNotificationNotificationInterval(checkable) == 0 && !checkable->GetVolatile())
                 return 1;
 
 	return 0;
 }
 
-int CompatUtility::GetServiceInCheckPeriod(const Service::Ptr& service)
+int CompatUtility::GetCheckableInCheckPeriod(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	TimePeriod::Ptr timeperiod = service->GetCheckPeriod();
+	TimePeriod::Ptr timeperiod = checkable->GetCheckPeriod();
 
 	/* none set means always checked */
 	if (!timeperiod)
@@ -410,11 +388,11 @@ int CompatUtility::GetServiceInCheckPeriod(const Service::Ptr& service)
 	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
 }
 
-int CompatUtility::GetServiceInNotificationPeriod(const Service::Ptr& service)
+int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
@@ -433,18 +411,7 @@ Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr
 {
 	ASSERT(object->OwnsLock());
 
-	Dictionary::Ptr vars;
-
-	if (object->GetType() == DynamicType::GetByName("Host")) {
-		vars = static_pointer_cast<Host>(object)->GetVars();
-	} else if (object->GetType() == DynamicType::GetByName("Service")) {
-		vars = static_pointer_cast<Service>(object)->GetVars();
-	} else if (object->GetType() == DynamicType::GetByName("User")) {
-		vars = static_pointer_cast<User>(object)->GetVars();
-	} else {
-		Log(LogDebug, "icinga", "unknown object type for vars vars");
-		return Dictionary::Ptr();
-	}
+	Dictionary::Ptr vars = object->GetVars();
 
 	Dictionary::Ptr varsvars = make_shared<Dictionary>();
 
@@ -476,18 +443,7 @@ String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object,
 {
 	ASSERT(object->OwnsLock());
 
-	Dictionary::Ptr vars;
-
-	if (object->GetType() == DynamicType::GetByName("Host")) {
-		vars = static_pointer_cast<Host>(object)->GetVars();
-	} else if (object->GetType() == DynamicType::GetByName("Service")) {
-		vars = static_pointer_cast<Service>(object)->GetVars();
-	} else if (object->GetType() == DynamicType::GetByName("User")) {
-		vars = static_pointer_cast<User>(object)->GetVars();
-	} else {
-		Log(LogDebug, "icinga", "unknown object type for vars attributes");
-		return Empty;
-	}
+	Dictionary::Ptr vars = object->GetVars();
 
 	if (!vars)
 		return Empty;
@@ -496,19 +452,19 @@ String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object,
 }
 
 /* notifications */
-int CompatUtility::GetServiceNotificationsEnabled(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	return (service->GetEnableNotifications() ? 1 : 0);
+	return (checkable->GetEnableNotifications() ? 1 : 0);
 }
 
-int CompatUtility::GetServiceNotificationLastNotification(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	double last_notification = 0.0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		if (notification->GetLastNotification() > last_notification)
 			last_notification = notification->GetLastNotification();
 	}
@@ -516,25 +472,25 @@ int CompatUtility::GetServiceNotificationLastNotification(const Service::Ptr& se
 	return static_cast<int>(last_notification);
 }
 
-int CompatUtility::GetServiceNotificationNextNotification(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotificationNextNotification(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	double next_notification = 0.0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
-		if (notification->GetNextNotification() < next_notification)
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
+		if (next_notification == 0 || notification->GetNextNotification() < next_notification)
 			next_notification = notification->GetNextNotification();
 	}
 
 	return static_cast<int>(next_notification);
 }
 
-int CompatUtility::GetServiceNotificationNotificationNumber(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotificationNotificationNumber(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	int notification_number = 0;
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		if (notification->GetNotificationNumber() > notification_number)
 			notification_number = notification->GetNotificationNumber();
 	}
@@ -542,13 +498,13 @@ int CompatUtility::GetServiceNotificationNotificationNumber(const Service::Ptr& 
 	return notification_number;
 }
 
-double CompatUtility::GetServiceNotificationNotificationInterval(const Service::Ptr& service)
+double CompatUtility::GetCheckableNotificationNotificationInterval(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	double notification_interval = -1;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
 			notification_interval = notification->GetNotificationInterval();
 	}
@@ -559,13 +515,13 @@ double CompatUtility::GetServiceNotificationNotificationInterval(const Service::
 	return notification_interval / 60.0;
 }
 
-String CompatUtility::GetServiceNotificationNotificationPeriod(const Service::Ptr& service)
+String CompatUtility::GetCheckableNotificationNotificationPeriod(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	TimePeriod::Ptr notification_period;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 
 		if (notification->GetNotificationPeriod())
 			notification_period = notification->GetNotificationPeriod();
@@ -577,14 +533,14 @@ String CompatUtility::GetServiceNotificationNotificationPeriod(const Service::Pt
 	return notification_period->GetName();
 }
 
-String CompatUtility::GetServiceNotificationNotificationOptions(const Service::Ptr& service)
+String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	unsigned long notification_type_filter = 0;
 	unsigned long notification_state_filter = 0;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		if (notification->GetNotificationTypeFilter())
 			notification_type_filter = notification->GetNotificationTypeFilter();
 
@@ -622,13 +578,13 @@ String CompatUtility::GetServiceNotificationNotificationOptions(const Service::P
 	return boost::algorithm::join(notification_options, ",");
 }
 
-int CompatUtility::GetServiceNotificationTypeFilter(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	unsigned long notification_type_filter = 0;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		if (notification->GetNotificationTypeFilter())
@@ -638,13 +594,13 @@ int CompatUtility::GetServiceNotificationTypeFilter(const Service::Ptr& service)
 	return notification_type_filter;
 }
 
-int CompatUtility::GetServiceNotificationStateFilter(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotificationStateFilter(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	unsigned long notification_state_filter = 0;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		if (notification->GetNotificationStateFilter())
@@ -654,51 +610,51 @@ int CompatUtility::GetServiceNotificationStateFilter(const Service::Ptr& service
 	return notification_state_filter;
 }
 
-int CompatUtility::GetServiceNotifyOnWarning(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	if (GetServiceNotificationStateFilter(service) & (1<<StateWarning))
+	if (GetCheckableNotificationStateFilter(checkable) & (1<<StateWarning))
 		return 1;
 
 	return 0;
 }
 
-int CompatUtility::GetServiceNotifyOnCritical(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	if (GetServiceNotificationStateFilter(service) & (1<<StateCritical))
+	if (GetCheckableNotificationStateFilter(checkable) & (1<<StateCritical))
 		return 1;
 
 	return 0;
 }
 
-int CompatUtility::GetServiceNotifyOnUnknown(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	if (GetServiceNotificationStateFilter(service) & (1<<StateUnknown))
+	if (GetCheckableNotificationStateFilter(checkable) & (1<<StateUnknown))
 		return 1;
 
 	return 0;
 }
 
-int CompatUtility::GetServiceNotifyOnRecovery(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotifyOnRecovery(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	if (GetServiceNotificationTypeFilter(service) & (1<<NotificationRecovery))
+	if (GetCheckableNotificationTypeFilter(checkable) & (1<<NotificationRecovery))
 		return 1;
 
 	return 0;
 }
 
-int CompatUtility::GetServiceNotifyOnFlapping(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotifyOnFlapping(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	unsigned long notification_type_filter = GetServiceNotificationTypeFilter(service);
+	unsigned long notification_type_filter = GetCheckableNotificationTypeFilter(checkable);
 
 	if (notification_type_filter & (1<<NotificationFlappingStart) ||
 	    notification_type_filter & (1<<NotificationFlappingEnd))
@@ -707,11 +663,11 @@ int CompatUtility::GetServiceNotifyOnFlapping(const Service::Ptr& service)
 	return 0;
 }
 
-int CompatUtility::GetServiceNotifyOnDowntime(const Service::Ptr& service)
+int CompatUtility::GetCheckableNotifyOnDowntime(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
-	unsigned long notification_type_filter = GetServiceNotificationTypeFilter(service);
+	unsigned long notification_type_filter = GetCheckableNotificationTypeFilter(checkable);
 
 	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
 	    notification_type_filter & (1<<NotificationDowntimeEnd) ||
@@ -721,15 +677,15 @@ int CompatUtility::GetServiceNotifyOnDowntime(const Service::Ptr& service)
 	return 0;
 }
 
-std::set<User::Ptr> CompatUtility::GetServiceNotificationUsers(const Service::Ptr& service)
+std::set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	/* Service -> Notifications -> (Users + UserGroups -> Users) */
 	std::set<User::Ptr> allUsers;
 	std::set<User::Ptr> users;
 
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		users = notification->GetUsers();
@@ -745,13 +701,13 @@ std::set<User::Ptr> CompatUtility::GetServiceNotificationUsers(const Service::Pt
 	return allUsers;
 }
 
-std::set<UserGroup::Ptr> CompatUtility::GetServiceNotificationUserGroups(const Service::Ptr& service)
+std::set<UserGroup::Ptr> CompatUtility::GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable)
 {
-	ASSERT(service->OwnsLock());
+	ASSERT(checkable->OwnsLock());
 
 	std::set<UserGroup::Ptr> usergroups;
 	/* Service -> Notifications -> UserGroups */
-	BOOST_FOREACH(const Notification::Ptr& notification, service->GetNotifications()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
 		BOOST_FOREACH(const UserGroup::Ptr& ug, notification->GetUserGroups()) {

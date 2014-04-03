@@ -37,7 +37,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(CheckCommand);
 	DECLARE_TYPENAME(CheckCommand);
 
-	virtual void Execute(const Service::Ptr& service, const CheckResult::Ptr& cr);
+	virtual void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 };
 
 }

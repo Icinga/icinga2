@@ -37,24 +37,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
-boost::signals2::signal<void (const Service::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> Service::OnAcknowledgementSet;
-boost::signals2::signal<void (const Service::Ptr&, const String&)> Service::OnAcknowledgementCleared;
-
 INITIALIZE_ONCE(&Service::StartDowntimesExpiredTimer);
-
-Service::Service(void)
-	: m_CheckRunning(false)
-{ }
-
-void Service::Start(void)
-{
-	double now = Utility::GetTime();
-
-	if (GetNextCheck() < now + 300)
-		UpdateNextCheck();
-
-	DynamicObject::Start();
-}
 
 void Service::OnConfigLoaded(void)
 {
@@ -77,31 +60,8 @@ void Service::OnConfigLoaded(void)
 		m_Host->AddService(GetSelf());
 
 	SetSchedulingOffset(Utility::Random());
-}
 
-void Service::OnStateLoaded(void)
-{
-	AddDowntimesToCache();
-	AddCommentsToCache();
-
-	std::vector<String> ids;
-	Dictionary::Ptr downtimes = GetDowntimes();
-
-	{
-		ObjectLock dlock(downtimes);
-		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
-			Downtime::Ptr downtime = kv.second;
-
-			if (downtime->GetScheduledBy().IsEmpty())
-				continue;
-
-			ids.push_back(kv.first);
-		}
-	}
-
-	BOOST_FOREACH(const String& id, ids) {
-		RemoveDowntime(id, true);
-	}
+	Checkable::OnConfigLoaded();
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)
@@ -123,161 +83,47 @@ Host::Ptr Service::GetHost(void) const
 	return m_Host;
 }
 
-bool Service::IsHostCheck(void) const
+ServiceState Service::StateFromString(const String& state)
 {
-	ASSERT(!OwnsLock());
-
-	Service::Ptr hc = GetHost()->GetCheckService();
-
-	if (!hc)
-		return false;
-
-	return (hc->GetName() == GetName());
-
-}
-
-AcknowledgementType Service::GetAcknowledgement(void)
-{
-	ASSERT(OwnsLock());
-
-	AcknowledgementType avalue = static_cast<AcknowledgementType>(GetAcknowledgementRaw());
-
-	if (avalue != AcknowledgementNone) {
-		double expiry = GetAcknowledgementExpiry();
-
-		if (expiry != 0 && expiry < Utility::GetTime()) {
-			avalue = AcknowledgementNone;
-			ClearAcknowledgement();
-		}
-	}
-
-	return avalue;
-}
-
-bool Service::IsAcknowledged(void)
-{
-	return GetAcknowledgement() != AcknowledgementNone;
-}
-
-void Service::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
-{
-	{
-		ObjectLock olock(this);
-
-		SetAcknowledgementRaw(type);
-		SetAcknowledgementExpiry(expiry);
-	}
-
-	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
-
-	OnAcknowledgementSet(GetSelf(), author, comment, type, expiry, authority);
-}
-
-void Service::ClearAcknowledgement(const String& authority)
-{
-	ASSERT(OwnsLock());
-
-	SetAcknowledgementRaw(AcknowledgementNone);
-	SetAcknowledgementExpiry(0);
-
-	OnAcknowledgementCleared(GetSelf(), authority);
-}
-
-bool Service::GetEnablePerfdata(void) const
-{
-	if (!GetOverrideEnablePerfdata().IsEmpty())
-		return GetOverrideEnablePerfdata();
+	if (state == "OK")
+		return StateOK;
+	else if (state == "WARNING")
+		return StateWarning;
+	else if (state == "CRITICAL")
+		return StateCritical;
 	else
-		return GetEnablePerfdataRaw();
+		return StateUnknown;
 }
 
-void Service::SetEnablePerfdata(bool enabled, const String& authority)
+String Service::StateToString(ServiceState state)
 {
-	SetOverrideEnablePerfdata(enabled);
+	switch (state) {
+		case StateOK:
+			return "OK";
+		case StateWarning:
+			return "WARNING";
+		case StateCritical:
+			return "CRITICAL";
+		case StateUnknown:
+		default:
+			return "UNKNOWN";
+	}
 }
 
-int Service::GetModifiedAttributes(void) const
+StateType Service::StateTypeFromString(const String& type)
 {
-	int attrs = 0;
-
-	if (!GetOverrideEnableNotifications().IsEmpty())
-		attrs |= ModAttrNotificationsEnabled;
-
-	if (!GetOverrideEnableActiveChecks().IsEmpty())
-		attrs |= ModAttrActiveChecksEnabled;
-
-	if (!GetOverrideEnablePassiveChecks().IsEmpty())
-		attrs |= ModAttrPassiveChecksEnabled;
-
-	if (!GetOverrideEnableFlapping().IsEmpty())
-		attrs |= ModAttrFlapDetectionEnabled;
-
-	if (!GetOverrideEnableEventHandler().IsEmpty())
-		attrs |= ModAttrEventHandlerEnabled;
-
-	if (!GetOverrideEnablePerfdata().IsEmpty())
-		attrs |= ModAttrPerformanceDataEnabled;
-
-	if (!GetOverrideCheckInterval().IsEmpty())
-		attrs |= ModAttrNormalCheckInterval;
-
-	if (!GetOverrideRetryInterval().IsEmpty())
-		attrs |= ModAttrRetryCheckInterval;
-
-	if (!GetOverrideEventCommand().IsEmpty())
-		attrs |= ModAttrEventHandlerCommand;
-
-	if (!GetOverrideCheckCommand().IsEmpty())
-		attrs |= ModAttrCheckCommand;
-
-	if (!GetOverrideMaxCheckAttempts().IsEmpty())
-		attrs |= ModAttrMaxCheckAttempts;
-
-	if (!GetOverrideCheckPeriod().IsEmpty())
-		attrs |= ModAttrCheckTimeperiod;
-
-	// TODO: finish
-
-	return attrs;
+	if (type == "SOFT")
+		return StateTypeSoft;
+	else
+		return StateTypeHard;
 }
 
-void Service::SetModifiedAttributes(int flags)
+String Service::StateTypeToString(StateType type)
 {
-	if ((flags & ModAttrNotificationsEnabled) == 0)
-		SetOverrideEnableNotifications(Empty);
-
-	if ((flags & ModAttrActiveChecksEnabled) == 0)
-		SetOverrideEnableActiveChecks(Empty);
-
-	if ((flags & ModAttrPassiveChecksEnabled) == 0)
-		SetOverrideEnablePassiveChecks(Empty);
-
-	if ((flags & ModAttrFlapDetectionEnabled) == 0)
-		SetOverrideEnableFlapping(Empty);
-
-	if ((flags & ModAttrEventHandlerEnabled) == 0)
-		SetOverrideEnableEventHandler(Empty);
-
-	if ((flags & ModAttrPerformanceDataEnabled) == 0)
-		SetOverrideEnablePerfdata(Empty);
-
-	if ((flags & ModAttrNormalCheckInterval) == 0)
-		SetOverrideCheckInterval(Empty);
-
-	if ((flags & ModAttrRetryCheckInterval) == 0)
-		SetOverrideRetryInterval(Empty);
-
-	if ((flags & ModAttrEventHandlerCommand) == 0)
-		SetOverrideEventCommand(Empty);
-
-	if ((flags & ModAttrCheckCommand) == 0)
-		SetOverrideCheckCommand(Empty);
-
-	if ((flags & ModAttrMaxCheckAttempts) == 0)
-		SetOverrideMaxCheckAttempts(Empty);
-
-	if ((flags & ModAttrCheckTimeperiod) == 0)
-		SetOverrideCheckPeriod(Empty);
+	if (type == StateTypeSoft)
+		return "SOFT";
+	else
+		return "HARD";
 }
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const
@@ -388,3 +234,14 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Stri
 
 	return false;
 }
+
+boost::tuple<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& checkable)
+{
+	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
+
+	if (service)
+		return boost::make_tuple(service->GetHost(), service);
+	else
+		return boost::make_tuple(static_pointer_cast<Host>(checkable), Service::Ptr());
+}
+

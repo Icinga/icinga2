@@ -31,7 +31,7 @@ using namespace icinga;
 
 #define FLAPPING_INTERVAL (30 * 60)
 
-double Service::GetFlappingCurrent(void) const
+double Checkable::GetFlappingCurrent(void) const
 {
 	if (GetFlappingPositive() + GetFlappingNegative() <= 0)
 		return 0;
@@ -39,7 +39,7 @@ double Service::GetFlappingCurrent(void) const
 	return 100 * GetFlappingPositive() / (GetFlappingPositive() + GetFlappingNegative());
 }
 
-bool Service::GetEnableFlapping(void) const
+bool Checkable::GetEnableFlapping(void) const
 {
 	if (!GetOverrideEnableFlapping().IsEmpty())
 		return GetOverrideEnableFlapping();
@@ -47,7 +47,7 @@ bool Service::GetEnableFlapping(void) const
 		return GetEnableFlappingRaw();
 }
 
-void Service::SetEnableFlapping(bool enabled, const String& authority)
+void Checkable::SetEnableFlapping(bool enabled, const String& authority)
 {
 	SetOverrideEnableFlapping(enabled);
 
@@ -55,7 +55,7 @@ void Service::SetEnableFlapping(bool enabled, const String& authority)
 	OnEnableFlappingChanged(GetSelf(), enabled, authority);
 }
 
-void Service::UpdateFlappingStatus(bool stateChange)
+void Checkable::UpdateFlappingStatus(bool stateChange)
 {
 	double ts, now;
 	long positive, negative;
@@ -92,7 +92,7 @@ void Service::UpdateFlappingStatus(bool stateChange)
 	SetFlappingNegative(negative);
 }
 
-bool Service::IsFlapping(void) const
+bool Checkable::IsFlapping(void) const
 {
 	if (!GetEnableFlapping() || !IcingaApplication::GetInstance()->GetEnableFlapping())
 		return false;

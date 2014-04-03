@@ -30,43 +30,43 @@
 
 using namespace icinga;
 
-void Service::AddDependency(const Dependency::Ptr& dep)
+void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	m_Dependencies.insert(dep);
 }
 
-void Service::RemoveDependency(const Dependency::Ptr& dep)
+void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	m_Dependencies.erase(dep);
 }
 
-std::set<Dependency::Ptr> Service::GetDependencies(void) const
+std::set<Dependency::Ptr> Checkable::GetDependencies(void) const
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	return m_Dependencies;
 }
 
-void Service::AddReverseDependency(const Dependency::Ptr& dep)
+void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	m_ReverseDependencies.insert(dep);
 }
 
-void Service::RemoveReverseDependency(const Dependency::Ptr& dep)
+void Checkable::RemoveReverseDependency(const Dependency::Ptr& dep)
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	m_ReverseDependencies.erase(dep);
 }
 
-std::set<Dependency::Ptr> Service::GetReverseDependencies(void) const
+std::set<Dependency::Ptr> Checkable::GetReverseDependencies(void) const
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
 	return m_ReverseDependencies;
 }
 
-bool Service::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
+bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
 {
 	if (rstack > 20) {
 		Log(LogWarning, "icinga", "Too many nested dependencies for service '" + GetName() + "': Dependency failed.");
@@ -74,16 +74,17 @@ bool Service::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, 
 		return false;
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, GetParentServices()) {
+	BOOST_FOREACH(const Checkable::Ptr& service, GetParents()) {
 		if (!service->IsReachable(dt, failedDependency, rstack + 1))
 			return false;
 	}
 
-	/* implicit dependency on host's check service */
-	if (dt == DependencyState || dt == DependencyNotification) {
-		Service::Ptr hc = GetHost()->GetCheckService();
+	/* implicit dependency on host if this is a service */
+	const Service *service = dynamic_cast<const Service *>(this);
+	if (service && (dt == DependencyState || dt == DependencyNotification)) {
+		Host::Ptr host = service->GetHost();
 
-		if (hc && hc->GetState() == StateCritical && hc->GetStateType() == StateTypeHard) {
+		if (host && host->GetState() != HostUp && host->GetStateType() == StateTypeHard) {
 			if (failedDependency)
 				*failedDependency = Dependency::Ptr();
 
@@ -106,46 +107,26 @@ bool Service::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, 
 	return true;
 }
 
-std::set<Host::Ptr> Service::GetParentHosts(void) const
+std::set<Checkable::Ptr> Checkable::GetParents(void) const
 {
-	std::set<Host::Ptr> result;
-
-	BOOST_FOREACH(const Service::Ptr& svc, GetParentServices())
-		result.insert(svc->GetHost());
-
-	return result;
-}
-
-std::set<Host::Ptr> Service::GetChildHosts(void) const
-{
-	std::set<Host::Ptr> result;
-
-	BOOST_FOREACH(const Service::Ptr& svc, GetChildServices())
-		result.insert(svc->GetHost());
-
-	return result;
-}
-
-std::set<Service::Ptr> Service::GetParentServices(void) const
-{
-	std::set<Service::Ptr> parents;
+	std::set<Checkable::Ptr> parents;
 
 	BOOST_FOREACH(const Dependency::Ptr& dep, GetDependencies()) {
-		Service::Ptr service = dep->GetParentService();
+		Checkable::Ptr parent = dep->GetParent();
 
-		if (service)
-			parents.insert(service);
+		if (parent)
+			parents.insert(parent);
 	}
 
 	return parents;
 }
 
-std::set<Service::Ptr> Service::GetChildServices(void) const
+std::set<Checkable::Ptr> Checkable::GetChildren(void) const
 {
-	std::set<Service::Ptr> parents;
+	std::set<Checkable::Ptr> parents;
 
 	BOOST_FOREACH(const Dependency::Ptr& dep, GetReverseDependencies()) {
-		Service::Ptr service = dep->GetChildService();
+		Checkable::Ptr service = dep->GetChild();
 
 		if (service)
 			parents.insert(service);
@@ -153,4 +134,3 @@ std::set<Service::Ptr> Service::GetChildServices(void) const
 
 	return parents;
 }
-

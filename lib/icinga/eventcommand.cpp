@@ -24,9 +24,9 @@ using namespace icinga;
 
 REGISTER_TYPE(EventCommand);
 
-void EventCommand::Execute(const Service::Ptr& service)
+void EventCommand::Execute(const Checkable::Ptr& checkable)
 {
 	std::vector<Value> arguments;
-	arguments.push_back(service);
+	arguments.push_back(checkable);
 	InvokeMethod("execute", arguments);
 }

@@ -35,7 +35,7 @@ namespace icinga
 class I2_METHODS_API NullCheckTask
 {
 public:
-	static void ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr);
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
 
 private:
 	NullCheckTask(void);

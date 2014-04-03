@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/dependency.h"
+#include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -33,56 +34,64 @@ void Dependency::OnStateLoaded(void)
 
 	ASSERT(!OwnsLock());
 
-	if (!GetChildService())
+	if (!GetChild())
 		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid child service and will be ignored.");
 	else
-		GetChildService()->AddDependency(GetSelf());
+		GetChild()->AddDependency(GetSelf());
 
-	if (!GetParentService())
+	if (!GetParent())
 		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid parent service and will always fail.");
 	else
-		GetParentService()->AddReverseDependency(GetSelf());
+		GetParent()->AddReverseDependency(GetSelf());
 }
 
 void Dependency::Stop(void)
 {
 	DynamicObject::Stop();
 
-	if (GetChildService())
-		GetChildService()->RemoveDependency(GetSelf());
+	if (GetChild())
+		GetChild()->RemoveDependency(GetSelf());
 
-	if (GetParentService())
-		GetParentService()->RemoveReverseDependency(GetSelf());
+	if (GetParent())
+		GetParent()->RemoveReverseDependency(GetSelf());
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
 {
-	Service::Ptr service = GetParentService();
+	Checkable::Ptr parent = GetParent();
 
-	if (!service)
+	if (!parent)
 		return false;
 
 	/* ignore if it's the same service */
-	if (service == GetChildService()) {
+	if (parent == GetChild()) {
 		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Parent and child service are identical.");
 		return true;
 	}
 
 	/* ignore pending services */
-	if (!service->GetLastCheckResult()) {
+	if (!parent->GetLastCheckResult()) {
 		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Service hasn't been checked yet.");
 		return true;
 	}
 
 	/* ignore soft states */
-	if (service->GetStateType() == StateTypeSoft) {
+	if (parent->GetStateType() == StateTypeSoft) {
 		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Service is in a soft state.");
 		return true;
 	}
 
+	bool is_service = parent->GetType() == DynamicType::GetByName("Service");
+	int state;
+
+	if (is_service)
+		state = static_cast<int>(static_pointer_cast<Service>(parent)->GetState());
+	else
+		state = static_cast<int>(static_pointer_cast<Host>(parent)->GetState());
+
 	/* check state */
-	if ((1 << static_cast<int>(service->GetState())) & GetStateFilter()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Service matches state filter.");
+	if ((1 << state) & GetStateFilter()) {
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Object matches state filter.");
 		return true;
 	}
 
@@ -105,7 +114,7 @@ bool Dependency::IsAvailable(DependencyType dt) const
 	return false;
 }
 
-Service::Ptr Dependency::GetChildService(void) const
+Checkable::Ptr Dependency::GetChild(void) const
 {
 	Host::Ptr host = Host::GetByName(GetChildHostRaw());
 
@@ -113,12 +122,12 @@ Service::Ptr Dependency::GetChildService(void) const
 		return Service::Ptr();
 
 	if (GetChildServiceRaw().IsEmpty())
-		return host->GetCheckService();
-
-	return host->GetServiceByShortName(GetChildServiceRaw());
+		return host;
+	else
+		return host->GetServiceByShortName(GetChildServiceRaw());
 }
 
-Service::Ptr Dependency::GetParentService(void) const
+Checkable::Ptr Dependency::GetParent(void) const
 {
 	Host::Ptr host = Host::GetByName(GetParentHostRaw());
 
@@ -126,9 +135,9 @@ Service::Ptr Dependency::GetParentService(void) const
 		return Service::Ptr();
 
 	if (GetParentServiceRaw().IsEmpty())
-		return host->GetCheckService();
-
-	return host->GetServiceByShortName(GetParentServiceRaw());
+		return host;
+	else
+		return host->GetServiceByShortName(GetParentServiceRaw());
 }
 
 TimePeriod::Ptr Dependency::GetPeriod(void) const

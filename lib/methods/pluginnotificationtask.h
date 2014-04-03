@@ -43,7 +43,7 @@ public:
 private:
 	PluginNotificationTask(void);
 
-	static void ProcessFinishedHandler(const Service::Ptr& service, const Value& command, const ProcessResult& pr);
+	static void ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& command, const ProcessResult& pr);
 };
 
 }

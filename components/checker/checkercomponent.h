@@ -38,14 +38,14 @@ namespace icinga
 /**
  * @ingroup checker
  */
-struct ServiceNextCheckExtractor
+struct CheckableNextCheckExtractor
 {
 	typedef double result_type;
 
 	/**
 	 * @threadsafety Always.
 	 */
-	double operator()(const Service::Ptr& service)
+	double operator()(const Checkable::Ptr& service)
 	{
 		return service->GetNextCheck();
 	}
@@ -61,20 +61,20 @@ public:
 	DECLARE_TYPENAME(CheckerComponent);
 
 	typedef boost::multi_index_container<
-		Service::Ptr,
+		Checkable::Ptr,
 		boost::multi_index::indexed_by<
-			boost::multi_index::ordered_unique<boost::multi_index::identity<Service::Ptr> >,
-			boost::multi_index::ordered_non_unique<ServiceNextCheckExtractor>
+			boost::multi_index::ordered_unique<boost::multi_index::identity<Checkable::Ptr> >,
+			boost::multi_index::ordered_non_unique<CheckableNextCheckExtractor>
 		>
-	> ServiceSet;
+	> CheckableSet;
 
 	virtual void OnConfigLoaded(void);
 	virtual void Start(void);
 	virtual void Stop(void);
 
 	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
-	unsigned long GetIdleServices(void);
-	unsigned long GetPendingServices(void);
+	unsigned long GetIdleCheckables(void);
+	unsigned long GetPendingCheckables(void);
 
 private:
 	boost::mutex m_Mutex;
@@ -82,20 +82,20 @@ private:
 	bool m_Stopped;
 	boost::thread m_Thread;
 
-	ServiceSet m_IdleServices;
-	ServiceSet m_PendingServices;
+	CheckableSet m_IdleCheckables;
+	CheckableSet m_PendingCheckables;
 
 	Timer::Ptr m_ResultTimer;
 
 	void CheckThreadProc(void);
 	void ResultTimerHandler(void);
 
-	void ExecuteCheckHelper(const Service::Ptr& service);
+	void ExecuteCheckHelper(const Checkable::Ptr& service);
 
 	void AdjustCheckTimer(void);
 
 	void ObjectHandler(const DynamicObject::Ptr& object);
-	void NextCheckChangedHandler(const Service::Ptr& service);
+	void NextCheckChangedHandler(const Checkable::Ptr& service);
 
 	void RescheduleCheckTimer(void);
 

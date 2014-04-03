@@ -35,7 +35,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
 
-void ClusterCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
+void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
 {
 	/* fetch specific cluster status */
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;

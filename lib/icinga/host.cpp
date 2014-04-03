@@ -79,17 +79,6 @@ void Host::Stop(void)
 	// TODO: unregister slave services/notifications?
 }
 
-bool Host::IsReachable(DependencyType dt, shared_ptr<Dependency> *failedDependency) const
-{
-	ASSERT(!OwnsLock());
-
-	Service::Ptr hc = GetCheckService();
-	if (!hc)
-		return true;
-
-	return hc->IsReachable(dt, failedDependency);
-}
-
 std::set<Service::Ptr> Host::GetServices(void) const
 {
 	boost::mutex::scoped_lock lock(m_ServicesMutex);
@@ -122,16 +111,9 @@ int Host::GetTotalServices(void) const
 	return GetServices().size();
 }
 
-Service::Ptr Host::GetServiceByShortName(const Value& name) const
+Service::Ptr Host::GetServiceByShortName(const Value& name)
 {
-	if (name.IsEmpty()) {
-		Service::Ptr hc = GetCheckService();
-
-		if (!hc)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Host does not have a host check service: " + GetName()));
-
-		return hc;
-	} else if (name.IsScalar()) {
+	if (name.IsScalar()) {
 		{
 			boost::mutex::scoped_lock lock(m_ServicesMutex);
 
@@ -150,60 +132,6 @@ Service::Ptr Host::GetServiceByShortName(const Value& name) const
 	} else {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid: " + JsonSerialize(name)));
 	}
-}
-
-Service::Ptr Host::GetCheckService(void) const
-{
-	String host_check = GetCheck();
-
-	if (host_check.IsEmpty())
-		return Service::Ptr();
-
-	return GetServiceByShortName(host_check);
-}
-
-std::set<Host::Ptr> Host::GetParentHosts(void) const
-{
-	std::set<Host::Ptr> result;
-	Service::Ptr hc = GetCheckService();
-
-	if (hc)
-		result = hc->GetParentHosts();
-
-	return result;
-}
-
-std::set<Host::Ptr> Host::GetChildHosts(void) const
-{
-	std::set<Host::Ptr> result;
-	Service::Ptr hc = GetCheckService();
-
-	if (hc)
-		result = hc->GetChildHosts();
-
-	return result;
-}
-
-std::set<Service::Ptr> Host::GetParentServices(void) const
-{
-	std::set<Service::Ptr> result;
-	Service::Ptr hc = GetCheckService();
-
-	if (hc)
-		result = hc->GetParentServices();
-
-	return result;
-}
-
-std::set<Service::Ptr> Host::GetChildServices(void) const
-{
-	std::set<Service::Ptr> result;
-	Service::Ptr hc = GetCheckService();
-
-	if (hc)
-		result = hc->GetChildServices();
-
-	return result;
 }
 
 HostState Host::CalculateState(ServiceState state, bool reachable)
@@ -227,12 +155,7 @@ HostState Host::GetState(void) const
 	if (!IsReachable())
 		return HostUnreachable;
 
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return HostUp;
-
-	switch (hc->GetState()) {
+	switch (GetStateRaw()) {
 		case StateOK:
 		case StateWarning:
 			return HostUp;
@@ -249,12 +172,7 @@ HostState Host::GetLastState(void) const
 	if (!IsReachable())
 		return HostUnreachable;
 
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return HostUp;
-
-	switch (hc->GetLastState()) {
+	switch (GetLastStateRaw()) {
 		case StateOK:
 		case StateWarning:
 			return HostUp;
@@ -270,12 +188,7 @@ HostState Host::GetLastHardState(void) const
 	if (!IsReachable())
 		return HostUnreachable;
 
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return HostUp;
-
-	switch (hc->GetLastHardState()) {
+	switch (GetLastHardStateRaw()) {
 		case StateOK:
 		case StateWarning:
 			return HostUp;
@@ -288,80 +201,17 @@ double Host::GetLastStateUp(void) const
 {
 	ASSERT(!OwnsLock());
 
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return 0;
-
-	if (hc->GetLastStateOK() > hc->GetLastStateWarning())
-		return hc->GetLastStateOK();
+	if (GetLastStateOK() > GetLastStateWarning())
+		return GetLastStateOK();
 	else
-		return hc->GetLastStateWarning();
+		return GetLastStateWarning();
 }
 
 double Host::GetLastStateDown(void) const
 {
 	ASSERT(!OwnsLock());
 
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return 0;
-
-	return hc->GetLastStateCritical();
-}
-
-double Host::GetLastStateUnreachable(void) const
-{
-	ASSERT(!OwnsLock());
-
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return 0;
-
-	return hc->GetLastStateUnreachable();
-}
-
-double Host::GetLastStateChange(void) const
-{
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return Application::GetStartTime();
-
-	return hc->GetLastStateChange();
-}
-
-
-double Host::GetLastHardStateChange(void) const
-{
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return Application::GetStartTime();
-
-	return hc->GetLastHardStateChange();
-}
-
-StateType Host::GetLastStateType(void) const
-{
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return StateTypeHard;
-
-	return hc->GetLastStateType();
-}
-
-StateType Host::GetStateType(void) const
-{
-	Service::Ptr hc = GetCheckService();
-
-	if (!hc)
-		return StateTypeHard;
-
-	return hc->GetStateType();
+	return GetLastStateCritical();
 }
 
 HostState Host::StateFromString(const String& state)
@@ -417,87 +267,78 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		return true;
 	}
 
-	Service::Ptr hc = GetCheckService();
-	CheckResult::Ptr hccr;
+	CheckResult::Ptr cr = GetLastCheckResult();
 
-	if (hc) {
-		ServiceState state = hc->GetState();
-		bool reachable = IsReachable();
-
-		if (macro == "HOSTSTATE") {
-			HostState hstate = CalculateState(state, reachable);
-
-			switch (hstate) {
-				case HostUnreachable:
-					*result = "UNREACHABLE";
-					break;
-				case HostUp:
-					*result = "UP";
-					break;
-				case HostDown:
-					*result = "DOWN";
-					break;
-				default:
-					ASSERT(0);
-			}
-
-			return true;
-		} else if (macro == "HOSTSTATEID") {
-			*result = Convert::ToString(state);
-			return true;
-		} else if (macro == "HOSTSTATETYPE") {
-			*result = Service::StateTypeToString(hc->GetStateType());
-			return true;
-		} else if (macro == "HOSTATTEMPT") {
-			*result = Convert::ToString(hc->GetCheckAttempt());
-			return true;
-		} else if (macro == "MAXHOSTATTEMPT") {
-			*result = Convert::ToString(hc->GetMaxCheckAttempts());
-			return true;
-		} else if (macro == "LASTHOSTSTATE") {
-			*result = StateToString(GetLastState());
-			return true;
-		} else if (macro == "LASTHOSTSTATEID") {
-			*result = Convert::ToString(GetLastState());
-			return true;
-		} else if (macro == "LASTHOSTSTATETYPE") {
-			*result = Service::StateTypeToString(GetLastStateType());
-			return true;
-		} else if (macro == "LASTHOSTSTATECHANGE") {
-			*result = Convert::ToString((long)hc->GetLastStateChange());
-			return true;
-		} else if (macro == "HOSTDURATIONSEC") {
-			*result = Convert::ToString((long)(Utility::GetTime() - hc->GetLastStateChange()));
-			return true;
+	if (macro == "HOSTSTATE") {
+		switch (GetState()) {
+			case HostUnreachable:
+				*result = "UNREACHABLE";
+				break;
+			case HostUp:
+				*result = "UP";
+				break;
+			case HostDown:
+				*result = "DOWN";
+				break;
+			default:
+				ASSERT(0);
 		}
 
-		hccr = hc->GetLastCheckResult();
+		return true;
+	} else if (macro == "HOSTSTATEID") {
+		*result = Convert::ToString(GetState());
+		return true;
+	} else if (macro == "HOSTSTATETYPE") {
+		*result = StateTypeToString(GetStateType());
+		return true;
+	} else if (macro == "HOSTATTEMPT") {
+		*result = Convert::ToString(GetCheckAttempt());
+		return true;
+	} else if (macro == "MAXHOSTATTEMPT") {
+		*result = Convert::ToString(GetMaxCheckAttempts());
+		return true;
+	} else if (macro == "LASTHOSTSTATE") {
+		*result = StateToString(GetLastState());
+		return true;
+	} else if (macro == "LASTHOSTSTATEID") {
+		*result = Convert::ToString(GetLastState());
+		return true;
+	} else if (macro == "LASTHOSTSTATETYPE") {
+		*result = StateTypeToString(GetLastStateType());
+		return true;
+	} else if (macro == "LASTHOSTSTATECHANGE") {
+		*result = Convert::ToString((long)GetLastStateChange());
+		return true;
+	} else if (macro == "HOSTDURATIONSEC") {
+		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
+		return true;
+	} else if (macro == "HOSTCHECKCOMMAND") {
+		CheckCommand::Ptr commandObj = GetCheckCommand();
+
+		if (commandObj)
+			*result = commandObj->GetName();
+		else
+			*result = "";
+
+		return true;
 	}
 
-	if (hccr) {
+
+	if (cr) {
 		if (macro == "HOSTLATENCY") {
-			*result = Convert::ToString(Service::CalculateLatency(hccr));
+			*result = Convert::ToString(Service::CalculateLatency(cr));
 			return true;
 		} else if (macro == "HOSTEXECUTIONTIME") {
-			*result = Convert::ToString(Service::CalculateExecutionTime(hccr));
+			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
 			return true;
 		} else if (macro == "HOSTOUTPUT") {
-			*result = hccr->GetOutput();
+			*result = cr->GetOutput();
 			return true;
 		} else if (macro == "HOSTPERFDATA") {
-			*result = PluginUtility::FormatPerfdata(hccr->GetPerformanceData());
-			return true;
-		} else if (macro == "HOSTCHECKCOMMAND") {
-			CheckCommand::Ptr commandObj = hc->GetCheckCommand();
-
-			if (commandObj)
-				*result = commandObj->GetName();
-			else
-				*result = "";
-
+			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 			return true;
 		} else if (macro == "LASTHOSTCHECK") {
-			*result = Convert::ToString((long)hccr->GetScheduleStart());
+			*result = Convert::ToString((long)cr->GetScheduleStart());
 			return true;
 		}
 	}
@@ -508,7 +349,6 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		*result = vars ? vars->Get(macro.SubStr(5)) : "";
 		return true;
 	}
-
 
 	String name = macro;
 

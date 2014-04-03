@@ -81,7 +81,7 @@ protected:
 
 private:
         std::map<time_t, String> m_LogFileIndex;
-        std::map<Service::Ptr, Array::Ptr> m_ServicesCache;
+        std::map<Checkable::Ptr, Array::Ptr> m_CheckablesCache;
         time_t m_TimeFrom;
         time_t m_TimeUntil;
         String m_CompatLogPath;

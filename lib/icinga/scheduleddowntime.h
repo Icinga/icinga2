@@ -42,7 +42,7 @@ public:
 
 	static void StaticInitialize(void);
 
-	Service::Ptr GetService(void) const;
+	Checkable::Ptr GetCheckable(void) const;
 
 	static void RegisterApplyRuleHandler(void);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);

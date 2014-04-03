@@ -1,9 +1,10 @@
+#include "icinga/checkable.h"
 #include "base/dynamicobject.h"
 
 namespace icinga
 {
 
-class Host : DynamicObject
+class Host : Checkable
 {
 	[config] String display_name {
 		get {{{
@@ -14,9 +15,6 @@ class Host : DynamicObject
 		}}}
 	};
 	[config] Array::Ptr groups;
-	[config] String check;
-	[config, protected] Dictionary::Ptr services (ServiceDescriptions);
-	[config] Dictionary::Ptr dependencies (DependencyDescriptions);
 };
 
 }

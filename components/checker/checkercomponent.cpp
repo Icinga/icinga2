@@ -40,8 +40,8 @@ Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perf
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
 	BOOST_FOREACH(const CheckerComponent::Ptr& checker, DynamicType::GetObjects<CheckerComponent>()) {
-		unsigned long idle = checker->GetIdleServices();
-		unsigned long pending = checker->GetPendingServices();
+		unsigned long idle = checker->GetIdleCheckables();
+		unsigned long pending = checker->GetPendingCheckables();
 
 		Dictionary::Ptr stats = make_shared<Dictionary>();
 		stats->Set("idle", idle);
@@ -65,7 +65,7 @@ void CheckerComponent::OnConfigLoaded(void)
 	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 	DynamicObject::OnAuthorityChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
-	Service::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
+	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
 
 void CheckerComponent::Start(void)
@@ -103,8 +103,8 @@ void CheckerComponent::CheckThreadProc(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for (;;) {
-		typedef boost::multi_index::nth_index<ServiceSet, 1>::type CheckTimeView;
-		CheckTimeView& idx = boost::get<1>(m_IdleServices);
+		typedef boost::multi_index::nth_index<CheckableSet, 1>::type CheckTimeView;
+		CheckTimeView& idx = boost::get<1>(m_IdleCheckables);
 
 		while (idx.begin() == idx.end() && !m_Stopped)
 			m_CV.wait(lock);
@@ -113,10 +113,10 @@ void CheckerComponent::CheckThreadProc(void)
 			break;
 
 		CheckTimeView::iterator it = idx.begin();
-		Service::Ptr service = *it;
+		Checkable::Ptr service = *it;
 
 		if (!service->HasAuthority("checker")) {
-			m_IdleServices.erase(service);
+			m_IdleCheckables.erase(service);
 
 			continue;
 		}
@@ -130,7 +130,7 @@ void CheckerComponent::CheckThreadProc(void)
 			continue;
 		}
 
-		m_IdleServices.erase(service);
+		m_IdleCheckables.erase(service);
 
 		bool forced = service->GetForceNextCheck();
 		bool check = true;
@@ -156,7 +156,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		/* reschedule the service if checks are disabled */
 		if (!check) {
-			m_IdleServices.insert(service);
+			m_IdleCheckables.insert(service);
 			lock.unlock();
 
 			service->UpdateNextCheck();
@@ -166,7 +166,7 @@ void CheckerComponent::CheckThreadProc(void)
 			continue;
 		}
 
-		m_PendingServices.insert(service);
+		m_PendingCheckables.insert(service);
 
 		lock.unlock();
 
@@ -184,7 +184,7 @@ void CheckerComponent::CheckThreadProc(void)
 	}
 }
 
-void CheckerComponent::ExecuteCheckHelper(const Service::Ptr& service)
+void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& service)
 {
 	try {
 		service->ExecuteCheck();
@@ -198,19 +198,19 @@ void CheckerComponent::ExecuteCheckHelper(const Service::Ptr& service)
 		/* remove the service from the list of pending services; if it's not in the
 		 * list this was a manual (i.e. forced) check and we must not re-add the
 		 * service to the services list because it's already there. */
-		CheckerComponent::ServiceSet::iterator it;
-		it = m_PendingServices.find(service);
-		if (it != m_PendingServices.end()) {
-			m_PendingServices.erase(it);
+		CheckerComponent::CheckableSet::iterator it;
+		it = m_PendingCheckables.find(service);
+		if (it != m_PendingCheckables.end()) {
+			m_PendingCheckables.erase(it);
 
 			if (service->IsActive() && service->HasAuthority("checker"))
-				m_IdleServices.insert(service);
+				m_IdleCheckables.insert(service);
 
 			m_CV.notify_all();
 		}
 	}
 
-	Log(LogDebug, "checker", "Check finished for service '" + service->GetName() + "'");
+	Log(LogDebug, "checker", "Check finished for object '" + service->GetName() + "'");
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -222,7 +222,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		msgbuf << "Pending services: " << m_PendingServices.size() << "; Idle services: " << m_IdleServices.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
+		msgbuf << "Pending services: " << m_PendingCheckables.size() << "; Idle services: " << m_IdleCheckables.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
 	}
 
 	Log(LogInformation, "checker", msgbuf.str());
@@ -230,37 +230,37 @@ void CheckerComponent::ResultTimerHandler(void)
 
 void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 {
-	if (object->GetType() != DynamicType::GetByName("Service"))
+	if (!Type::GetByName("Checkable")->IsAssignableFrom(object->GetReflectionType()))
 		return;
 
-	Service::Ptr service = static_pointer_cast<Service>(object);
+	Checkable::Ptr service = static_pointer_cast<Checkable>(object);
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		if (object->IsActive() && object->HasAuthority("checker")) {
-			if (m_PendingServices.find(service) != m_PendingServices.end())
+			if (m_PendingCheckables.find(service) != m_PendingCheckables.end())
 				return;
 
-			m_IdleServices.insert(service);
+			m_IdleCheckables.insert(service);
 		} else {
-			m_IdleServices.erase(service);
-			m_PendingServices.erase(service);
+			m_IdleCheckables.erase(service);
+			m_PendingCheckables.erase(service);
 		}
 
 		m_CV.notify_all();
 	}
 }
 
-void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
+void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& service)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	/* remove and re-insert the service from the set in order to force an index update */
-	typedef boost::multi_index::nth_index<ServiceSet, 0>::type ServiceView;
-	ServiceView& idx = boost::get<0>(m_IdleServices);
+	typedef boost::multi_index::nth_index<CheckableSet, 0>::type CheckableView;
+	CheckableView& idx = boost::get<0>(m_IdleCheckables);
 
-	ServiceView::iterator it = idx.find(service);
+	CheckableView::iterator it = idx.find(service);
 	if (it == idx.end())
 		return;
 
@@ -269,16 +269,16 @@ void CheckerComponent::NextCheckChangedHandler(const Service::Ptr& service)
 	m_CV.notify_all();
 }
 
-unsigned long CheckerComponent::GetIdleServices(void)
+unsigned long CheckerComponent::GetIdleCheckables(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	return m_IdleServices.size();
+	return m_IdleCheckables.size();
 }
 
-unsigned long CheckerComponent::GetPendingServices(void)
+unsigned long CheckerComponent::GetPendingCheckables(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	return m_PendingServices.size();
+	return m_PendingCheckables.size();
 }

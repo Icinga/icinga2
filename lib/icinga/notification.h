@@ -49,8 +49,8 @@ enum NotificationType
 	NotificationFlappingEnd = 8,
 };
 
-class Service;
 class NotificationCommand;
+class Checkable;
 
 /**
  * An Icinga notification specification.
@@ -65,7 +65,7 @@ public:
 
 	static void StaticInitialize(void);
 
-	shared_ptr<Service> GetService(void) const;
+	shared_ptr<Checkable> GetCheckable(void) const;
 	shared_ptr<NotificationCommand> GetNotificationCommand(void) const;
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
 	std::set<User::Ptr> GetUsers(void) const;

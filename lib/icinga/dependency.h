@@ -22,7 +22,6 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/dependency.th"
-#include "icinga/service.h"
 #include "config/applyrule.h"
 #include "base/array.h"
 #include "base/dictionary.h"
@@ -41,8 +40,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(Dependency);
 	DECLARE_TYPENAME(Dependency);
 
-	Service::Ptr GetParentService(void) const;
-	Service::Ptr GetChildService(void) const;
+	shared_ptr<Checkable> GetParent(void) const;
+	shared_ptr<Checkable> GetChild(void) const;
 
 	TimePeriod::Ptr GetPeriod(void) const;
 

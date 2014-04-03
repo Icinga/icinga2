@@ -33,17 +33,11 @@ namespace icinga
 /**
  * @ingroup icinga
  */
-enum CompatObjectType
-{
-	CompatTypeService,
-	CompatTypeHost
-};
-
-typedef struct {
+struct Host2dCoords {
 	int have_2d_coords;
 	String x_2d;
 	String y_2d;
-} Host2dCoords;
+};
 
 /**
  * Compatibility utility functions.
@@ -65,56 +59,55 @@ public:
 	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 
 	/* service */
-	static int GetServiceCurrentState(const Service::Ptr& service);
-	static int GetServiceShouldBeScheduled(const Service::Ptr& service);
-	static int GetServiceCheckType(const Service::Ptr& service);
-	static double GetServiceCheckInterval(const Service::Ptr& service);
-	static double GetServiceRetryInterval(const Service::Ptr& service);
-	static String GetServiceCheckPeriod(const Service::Ptr& service);
-	static int GetServiceHasBeenChecked(const Service::Ptr& service);
-	static int GetServiceProblemHasBeenAcknowledged(const Service::Ptr& service);
-	static int GetServiceAcknowledgementType(const Service::Ptr& service);
-	static int GetServicePassiveChecksEnabled(const Service::Ptr& service);
-	static int GetServiceActiveChecksEnabled(const Service::Ptr& service);
-	static int GetServiceEventHandlerEnabled(const Service::Ptr& service);
-	static int GetServiceFlapDetectionEnabled(const Service::Ptr& service);
-	static int GetServiceIsFlapping(const Service::Ptr& service);
-	static String GetServicePercentStateChange(const Service::Ptr& service);
-	static int GetServiceProcessPerformanceData(const Service::Ptr& service);
+	static int GetCheckableShouldBeScheduled(const Checkable::Ptr& checkable);
+	static int GetCheckableCheckType(const Checkable::Ptr& checkable);
+	static double GetCheckableCheckInterval(const Checkable::Ptr& checkable);
+	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);
+	static String GetCheckableCheckPeriod(const Checkable::Ptr& checkable);
+	static int GetCheckableHasBeenChecked(const Checkable::Ptr& checkable);
+	static int GetCheckableProblemHasBeenAcknowledged(const Checkable::Ptr& checkable);
+	static int GetCheckableAcknowledgementType(const Checkable::Ptr& checkable);
+	static int GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable);
+	static int GetCheckableActiveChecksEnabled(const Checkable::Ptr& checkable);
+	static int GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable);
+	static int GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable);
+	static int GetCheckableIsFlapping(const Checkable::Ptr& checkable);
+	static String GetCheckablePercentStateChange(const Checkable::Ptr& checkable);
+	static int GetCheckableProcessPerformanceData(const Checkable::Ptr& checkable);
 
-	static String GetServiceEventHandler(const Service::Ptr& service);
-	static String GetServiceCheckCommand(const Service::Ptr& service);
+	static String GetCheckableEventHandler(const Checkable::Ptr& checkable);
+	static String GetCheckableCheckCommand(const Checkable::Ptr& checkable);
 
-	static int GetServiceIsVolatile(const Service::Ptr& service);
-	static double GetServiceLowFlapThreshold(const Service::Ptr& service);
-	static double GetServiceHighFlapThreshold(const Service::Ptr& service);
-	static int GetServiceFreshnessChecksEnabled(const Service::Ptr& service);
-	static int GetServiceFreshnessThreshold(const Service::Ptr& service);
-	static double GetServiceStaleness(const Service::Ptr& service);
-	static int GetServiceIsAcknowledged(const Service::Ptr& service);
-	static int GetServiceNoMoreNotifications(const Service::Ptr& service);
-	static int GetServiceInCheckPeriod(const Service::Ptr& service);
-	static int GetServiceInNotificationPeriod(const Service::Ptr& service);
+	static int GetCheckableIsVolatile(const Checkable::Ptr& checkable);
+	static double GetCheckableLowFlapThreshold(const Checkable::Ptr& checkable);
+	static double GetCheckableHighFlapThreshold(const Checkable::Ptr& checkable);
+	static int GetCheckableFreshnessChecksEnabled(const Checkable::Ptr& checkable);
+	static int GetCheckableFreshnessThreshold(const Checkable::Ptr& checkable);
+	static double GetCheckableStaleness(const Checkable::Ptr& checkable);
+	static int GetCheckableIsAcknowledged(const Checkable::Ptr& checkable);
+	static int GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable);
+	static int GetCheckableInCheckPeriod(const Checkable::Ptr& checkable);
+	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
 
 	/* notification */
-	static int GetServiceNotificationsEnabled(const Service::Ptr& service);
-	static int GetServiceNotificationLastNotification(const Service::Ptr& service);
-	static int GetServiceNotificationNextNotification(const Service::Ptr& service);
-	static int GetServiceNotificationNotificationNumber(const Service::Ptr& service);
-	static double GetServiceNotificationNotificationInterval(const Service::Ptr& service);
-	static String GetServiceNotificationNotificationPeriod(const Service::Ptr& service);
-	static String GetServiceNotificationNotificationOptions(const Service::Ptr& service);
-	static int GetServiceNotificationTypeFilter(const Service::Ptr& service);
-	static int GetServiceNotificationStateFilter(const Service::Ptr& service);
-	static int GetServiceNotifyOnWarning(const Service::Ptr& service);
-	static int GetServiceNotifyOnCritical(const Service::Ptr& service);
-	static int GetServiceNotifyOnUnknown(const Service::Ptr& service);
-	static int GetServiceNotifyOnRecovery(const Service::Ptr& service);
-	static int GetServiceNotifyOnFlapping(const Service::Ptr& service);
-	static int GetServiceNotifyOnDowntime(const Service::Ptr& service);
+	static int GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable);
+	static int GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable);
+	static int GetCheckableNotificationNextNotification(const Checkable::Ptr& checkable);
+	static int GetCheckableNotificationNotificationNumber(const Checkable::Ptr& checkable);
+	static double GetCheckableNotificationNotificationInterval(const Checkable::Ptr& checkable);
+	static String GetCheckableNotificationNotificationPeriod(const Checkable::Ptr& checkable);
+	static String GetCheckableNotificationNotificationOptions(const Checkable::Ptr& checkable);
+	static int GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable);
+	static int GetCheckableNotificationStateFilter(const Checkable::Ptr& checkable);
+	static int GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable);
+	static int GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable);
+	static int GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable);
+	static int GetCheckableNotifyOnRecovery(const Checkable::Ptr& checkable);
+	static int GetCheckableNotifyOnFlapping(const Checkable::Ptr& checkable);
+	static int GetCheckableNotifyOnDowntime(const Checkable::Ptr& checkable);
 
-	static std::set<User::Ptr> GetServiceNotificationUsers(const Service::Ptr& service);
-	static std::set<UserGroup::Ptr> GetServiceNotificationUserGroups(const Service::Ptr& service);
+	static std::set<User::Ptr> GetCheckableNotificationUsers(const Checkable::Ptr& checkable);
+	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
 
 	/* command */
 	static String GetCommandLine(const Command::Ptr& command);

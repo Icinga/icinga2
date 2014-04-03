@@ -30,20 +30,20 @@ using namespace icinga;
 static int l_NextCommentID = 1;
 static boost::mutex l_CommentMutex;
 static std::map<int, String> l_LegacyCommentsCache;
-static std::map<String, Service::WeakPtr> l_CommentsCache;
+static std::map<String, Checkable::WeakPtr> l_CommentsCache;
 static Timer::Ptr l_CommentsExpireTimer;
 
-boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> Service::OnCommentAdded;
-boost::signals2::signal<void (const Service::Ptr&, const Comment::Ptr&, const String&)> Service::OnCommentRemoved;
+boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const String&)> Checkable::OnCommentAdded;
+boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const String&)> Checkable::OnCommentRemoved;
 
-int Service::GetNextCommentID(void)
+int Checkable::GetNextCommentID(void)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
 	return l_NextCommentID;
 }
 
-String Service::AddComment(CommentType entryType, const String& author,
+String Checkable::AddComment(CommentType entryType, const String& author,
     const String& text, double expireTime, const String& id, const String& authority)
 {
 	String uid;
@@ -83,7 +83,7 @@ String Service::AddComment(CommentType entryType, const String& author,
 	return uid;
 }
 
-void Service::RemoveAllComments(void)
+void Checkable::RemoveAllComments(void)
 {
 	std::vector<String> ids;
 	Dictionary::Ptr comments = GetComments();
@@ -100,9 +100,9 @@ void Service::RemoveAllComments(void)
 	}
 }
 
-void Service::RemoveComment(const String& id, const String& authority)
+void Checkable::RemoveComment(const String& id, const String& authority)
 {
-	Service::Ptr owner = GetOwnerByCommentID(id);
+	Checkable::Ptr owner = GetOwnerByCommentID(id);
 
 	if (!owner)
 		return;
@@ -129,7 +129,7 @@ void Service::RemoveComment(const String& id, const String& authority)
 	OnCommentRemoved(owner, comment, authority);
 }
 
-String Service::GetCommentIDFromLegacyID(int id)
+String Checkable::GetCommentIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
@@ -141,16 +141,16 @@ String Service::GetCommentIDFromLegacyID(int id)
 	return it->second;
 }
 
-Service::Ptr Service::GetOwnerByCommentID(const String& id)
+Checkable::Ptr Checkable::GetOwnerByCommentID(const String& id)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
 	return l_CommentsCache[id].lock();
 }
 
-Comment::Ptr Service::GetCommentByID(const String& id)
+Comment::Ptr Checkable::GetCommentByID(const String& id)
 {
-	Service::Ptr owner = GetOwnerByCommentID(id);
+	Checkable::Ptr owner = GetOwnerByCommentID(id);
 
 	if (!owner)
 		return Comment::Ptr();
@@ -163,10 +163,10 @@ Comment::Ptr Service::GetCommentByID(const String& id)
 	return Comment::Ptr();
 }
 
-void Service::AddCommentsToCache(void)
+void Checkable::AddCommentsToCache(void)
 {
 #ifdef _DEBUG
-	Log(LogDebug, "icinga", "Updating Service comments cache.");
+	Log(LogDebug, "icinga", "Updating Checkable comments cache.");
 #endif /* _DEBUG */
 
 	Dictionary::Ptr comments = GetComments();
@@ -188,7 +188,7 @@ void Service::AddCommentsToCache(void)
 	}
 }
 
-void Service::RemoveCommentsByType(int type)
+void Checkable::RemoveCommentsByType(int type)
 {
 	Dictionary::Ptr comments = GetComments();
 
@@ -210,7 +210,7 @@ void Service::RemoveCommentsByType(int type)
 	}
 }
 
-void Service::RemoveExpiredComments(void)
+void Checkable::RemoveExpiredComments(void)
 {
 	Dictionary::Ptr comments = GetComments();
 
@@ -232,8 +232,12 @@ void Service::RemoveExpiredComments(void)
 	}
 }
 
-void Service::CommentsExpireTimerHandler(void)
+void Checkable::CommentsExpireTimerHandler(void)
 {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		host->RemoveExpiredComments();
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		service->RemoveExpiredComments();
 	}

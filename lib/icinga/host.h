@@ -46,13 +46,6 @@ enum HostState
 	HostUnreachable = 2
 };
 
-enum DependencyType
-{
-	DependencyState,
-	DependencyCheckExecution,
-	DependencyNotification
-};
-
 /**
  * An Icinga host.
  *
@@ -64,16 +57,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(Host);
 	DECLARE_TYPENAME(Host);
 
-	shared_ptr<Service> GetCheckService(void) const;
-
-	std::set<Host::Ptr> GetParentHosts(void) const;
-	std::set<Host::Ptr> GetChildHosts(void) const;
-	std::set<shared_ptr<Service> > GetParentServices(void) const;
-	std::set<shared_ptr<Service> > GetChildServices(void) const;
-
-	bool IsReachable(DependencyType dt = DependencyState, shared_ptr<Dependency> *failedDependency = NULL) const;
-
-	shared_ptr<Service> GetServiceByShortName(const Value& name) const;
+	shared_ptr<Service> GetServiceByShortName(const Value& name);
 
 	std::set<shared_ptr<Service> > GetServices(void) const;
 	void AddService(const shared_ptr<Service>& service);
@@ -84,15 +68,10 @@ public:
 	static HostState CalculateState(ServiceState state, bool reachable);
 
 	HostState GetState(void) const;
-	StateType GetStateType(void) const;
 	HostState GetLastState(void) const;
 	HostState GetLastHardState(void) const;
-	StateType GetLastStateType(void) const;
-	double GetLastStateChange(void) const;
-	double GetLastHardStateChange(void) const;
 	double GetLastStateUp(void) const;
 	double GetLastStateDown(void) const;
-	double GetLastStateUnreachable(void) const;
 
 	static HostState StateFromString(const String& state);
 	static String StateToString(HostState state);

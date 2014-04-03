@@ -46,7 +46,7 @@ protected:
 	virtual void Start(void);
 
 private:
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
+	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);

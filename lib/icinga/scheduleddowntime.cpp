@@ -59,12 +59,12 @@ void ScheduledDowntime::TimerProc(void)
 	}
 }
 
-Service::Ptr ScheduledDowntime::GetService(void) const
+Checkable::Ptr ScheduledDowntime::GetCheckable(void) const
 {
 	Host::Ptr host = Host::GetByName(GetHostRaw());
 
 	if (GetServiceRaw().IsEmpty())
-		return host->GetCheckService();
+		return host;
 	else
 		return host->GetServiceByShortName(GetServiceRaw());
 }
@@ -110,7 +110,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 void ScheduledDowntime::CreateNextDowntime(void)
 {
-	Dictionary::Ptr downtimes = GetService()->GetDowntimes();
+	Dictionary::Ptr downtimes = GetCheckable()->GetDowntimes();
 
 	{
 		ObjectLock dlock(downtimes);
@@ -138,7 +138,7 @@ void ScheduledDowntime::CreateNextDowntime(void)
 		return;
 	}
 
-	GetService()->AddDowntime(GetAuthor(), GetComment(),
+	GetCheckable()->AddDowntime(GetAuthor(), GetComment(),
 	    segment.first, segment.second,
 	    GetFixed(), String(), GetDuration(), GetName());
 }

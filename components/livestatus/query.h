@@ -68,7 +68,6 @@ private:
 
 	String m_OutputFormat;
 	bool m_ColumnHeaders;
-	int m_Limit;
 
 	String m_ResponseHeader;
 

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/dependency.h"
+#include "icinga/service.h"
 #include "config/configitembuilder.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"

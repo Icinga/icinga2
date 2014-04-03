@@ -35,7 +35,7 @@ namespace icinga
 class I2_METHODS_API NullEventTask
 {
 public:
-	static void ScriptFunc(const Service::Ptr& service);
+	static void ScriptFunc(const Checkable::Ptr& service);
 
 private:
 	NullEventTask(void);

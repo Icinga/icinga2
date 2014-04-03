@@ -25,5 +25,5 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullEvent, &NullEventTask::ScriptFunc);
 
-void NullEventTask::ScriptFunc(const Service::Ptr&)
+void NullEventTask::ScriptFunc(const Checkable::Ptr&)
 { }

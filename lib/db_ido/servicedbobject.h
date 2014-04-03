@@ -27,30 +27,6 @@
 namespace icinga
 {
 
-enum LogEntryType
-{
-    LogEntryTypeRuntimeError = 1,
-    LogEntryTypeRuntimeWarning = 2,
-    LogEntryTypeVerificationError = 4,
-    LogEntryTypeVerificationWarning = 8,
-    LogEntryTypeConfigError = 16,
-    LogEntryTypeConfigWarning = 32,
-    LogEntryTypeProcessInfo = 64,
-    LogEntryTypeEventHandler = 128,
-    LogEntryTypeExternalCommand = 512,
-    LogEntryTypeHostUp = 1024,
-    LogEntryTypeHostDown = 2048,
-    LogEntryTypeHostUnreachable = 4096,
-    LogEntryTypeServiceOk = 8192,
-    LogEntryTypeServiceUnknown = 16384,
-    LogEntryTypeServiceWarning = 32768,
-    LogEntryTypeServiceCritical = 65536,
-    LogEntryTypePassiveCheck = 1231072,
-    LogEntryTypeInfoMessage = 262144,
-    LogEntryTypeHostNotification = 524288,
-    LogEntryTypeServiceNotification = 1048576
-};
-
 /**
  * A Service database object.
  *
@@ -73,56 +49,6 @@ protected:
 
 	virtual void OnConfigUpdate(void);
 	virtual void OnStatusUpdate(void);
-
-private:
-	static void AddCommentInternal(const Service::Ptr& service, const Comment::Ptr& comment, bool historical);
-	static void AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical);
-        static void AddComments(const Service::Ptr& service);
-        static void RemoveComments(const Service::Ptr& service);
-
-        static void AddDowntimeInternal(const Service::Ptr& service, const Downtime::Ptr& downtime, bool historical);
-        static void AddDowntimeByType(const DynamicObject::Ptr& object, const Downtime::Ptr& downtime, bool historical);
-        static void AddDowntimes(const Service::Ptr& service);
-        static void RemoveDowntimes(const Service::Ptr& service);
-
-        static void AddLogHistory(const Service::Ptr& service, String buffer, LogEntryType type);
-
-        /* Status */
-	static void AddComment(const Service::Ptr& service, const Comment::Ptr& comment);
-	static void RemoveComment(const Service::Ptr& service, const Comment::Ptr& comment);
-
-	static void AddDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime);
-	static void RemoveDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime);
-	static void TriggerDowntime(const Service::Ptr& service, const Downtime::Ptr& downtime);
-
-        /* comment, downtime, acknowledgement history */
-        static void AddCommentHistory(const Service::Ptr& service, const Comment::Ptr& comment);
-	static void AddDowntimeHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
-        static void AddAcknowledgementHistory(const Service::Ptr& service, const String& author, const String& comment,
-            AcknowledgementType type, double expiry);
-
-        /* notification & contactnotification history */
-	static void AddNotificationHistory(const Notification::Ptr& notification, const Service::Ptr& service,
-            const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
-            const String& text);
-
-        /* statehistory */
-	static void AddStateChangeHistory(const Service::Ptr& service, const CheckResult::Ptr& cr, StateType type);
-
-        /* logentries */
-	static void AddCheckResultLogHistory(const Service::Ptr& service, const CheckResult::Ptr &cr);
-        static void AddTriggerDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
-        static void AddRemoveDowntimeLogHistory(const Service::Ptr& service, const Downtime::Ptr& downtime);
-	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Service::Ptr& service,
-            const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
-            const String& comment_text);
-        static void AddFlappingLogHistory(const Service::Ptr& service, FlappingState flapping_state);
-
-        /* other history */
-        static void AddFlappingHistory(const Service::Ptr& service, FlappingState flapping_state);
-	static void AddServiceCheckHistory(const Service::Ptr& service, const CheckResult::Ptr &cr);
-        static void AddEventHandlerHistory(const Service::Ptr& service);
-        static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
 };
 
 }

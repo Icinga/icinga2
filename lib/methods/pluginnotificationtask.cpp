@@ -40,7 +40,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	NotificationType type = static_cast<NotificationType>(itype);
 
-	Service::Ptr service = notification->GetService();
+	Checkable::Ptr checkable = notification->GetCheckable();
 
 	Value raw_command = commandObj->GetCommandLine();
 
@@ -50,12 +50,17 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	notificationMacroResolver->Add("NOTIFICATIONAUTHORNAME", author);
 	notificationMacroResolver->Add("NOTIFICATIONCOMMENT", comment);
 
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
 	std::vector<MacroResolver::Ptr> resolvers;
 	resolvers.push_back(user);
 	resolvers.push_back(notificationMacroResolver);
 	resolvers.push_back(notification);
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
+	if (service)
+		resolvers.push_back(service);
+	resolvers.push_back(host);;
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
@@ -82,15 +87,15 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	process->SetTimeout(commandObj->GetTimeout());
 
-	process->Run(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, service, command, _1));
+	process->Run(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, command, _1));
 }
 
-void PluginNotificationTask::ProcessFinishedHandler(const Service::Ptr& service, const Value& command, const ProcessResult& pr)
+void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& command, const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0) {
 		std::ostringstream msgbuf;
-		msgbuf << "Notification command '" << command << "' for service '"
-		       << service->GetName() << "' failed; exit status: "
+		msgbuf << "Notification command '" << command << "' for object '"
+		       << checkable->GetName() << "' failed; exit status: "
 		       << pr.ExitStatus << ", output: " << pr.Output;
 		Log(LogWarning, "icinga", msgbuf.str());
 	}

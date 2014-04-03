@@ -53,12 +53,12 @@ private:
 
 	void DumpCommand(std::ostream& fp, const Command::Ptr& command);
 	void DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& tp);
-	void DumpDowntimes(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
-	void DumpComments(std::ostream& fp, const Service::Ptr& owner, CompatObjectType type);
+	void DumpDowntimes(std::ostream& fp, const Checkable::Ptr& owner);
+	void DumpComments(std::ostream& fp, const Checkable::Ptr& owner);
 	void DumpHostStatus(std::ostream& fp, const Host::Ptr& host);
 	void DumpHostObject(std::ostream& fp, const Host::Ptr& host);
 
-	void DumpServiceStatusAttrs(std::ostream& fp, const Service::Ptr& service, CompatObjectType type);
+	void DumpCheckableStatusAttrs(std::ostream& fp, const Checkable::Ptr& checkable);
 
 	template<typename T>
 	void DumpNameList(std::ostream& fp, const T& list)

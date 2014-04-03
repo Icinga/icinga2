@@ -87,21 +87,21 @@ private:
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const String& authority);
-	void NextCheckChangedHandler(const Service::Ptr& service, double nextCheck, const String& authority);
+	void CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr, const String& authority);
+	void NextCheckChangedHandler(const Checkable::Ptr& service, double nextCheck, const String& authority);
 	void NextNotificationChangedHandler(const Notification::Ptr& notification, double nextCheck, const String& authority);
-	void ForceNextCheckChangedHandler(const Service::Ptr& service, bool forced, const String& authority);
-	void ForceNextNotificationChangedHandler(const Service::Ptr& service, bool forced, const String& authority);
-	void EnableActiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
-	void EnablePassiveChecksChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
-	void EnableNotificationsChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
-	void EnableFlappingChangedHandler(const Service::Ptr& service, bool enabled, const String& authority);
-	void CommentAddedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority);
-	void CommentRemovedHandler(const Service::Ptr& service, const Comment::Ptr& comment, const String& authority);
-	void DowntimeAddedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
-	void DowntimeRemovedHandler(const Service::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
-	void AcknowledgementSetHandler(const Service::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
-	void AcknowledgementClearedHandler(const Service::Ptr& service, const String& authority);
+	void ForceNextCheckChangedHandler(const Checkable::Ptr& service, bool forced, const String& authority);
+	void ForceNextNotificationChangedHandler(const Checkable::Ptr& service, bool forced, const String& authority);
+	void EnableActiveChecksChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority);
+	void EnablePassiveChecksChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority);
+	void EnableNotificationsChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority);
+	void EnableFlappingChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority);
+	void CommentAddedHandler(const Checkable::Ptr& service, const Comment::Ptr& comment, const String& authority);
+	void CommentRemovedHandler(const Checkable::Ptr& service, const Comment::Ptr& comment, const String& authority);
+	void DowntimeAddedHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
+	void DowntimeRemovedHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime, const String& authority);
+	void AcknowledgementSetHandler(const Checkable::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority);
+	void AcknowledgementClearedHandler(const Checkable::Ptr& service, const String& authority);
 
 	void AsyncMessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);
 	void MessageHandler(const Endpoint::Ptr& sender, const Dictionary::Ptr& message);

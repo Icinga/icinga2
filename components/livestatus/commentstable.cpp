@@ -57,6 +57,18 @@ String CommentsTable::GetName(void) const
 
 void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		Dictionary::Ptr comments = host->GetComments();
+
+		ObjectLock olock(comments);
+
+		String id;
+		Comment::Ptr comment;
+		BOOST_FOREACH(tie(id, comment), comments) {
+			addRowFn(comment);
+		}
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		Dictionary::Ptr comments = service->GetComments();
 
@@ -64,9 +76,8 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 
 		String id;
 		Comment::Ptr comment;
-		BOOST_FOREACH(boost::tie(id, comment), comments) {
-			if (Service::GetOwnerByCommentID(id) == service)
-				addRowFn(comment);
+		BOOST_FOREACH(tie(id, comment), comments) {
+			addRowFn(comment);
 		}
 	}
 }
@@ -74,7 +85,7 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
-	return Service::GetOwnerByCommentID(comment->GetId());
+	return Checkable::GetOwnerByCommentID(comment->GetId()); // XXX: this might return a Host object
 }
 
 Value CommentsTable::AuthorAccessor(const Value& row)
@@ -120,23 +131,26 @@ Value CommentsTable::EntryTimeAccessor(const Value& row)
 Value CommentsTable::TypeAccessor(const Value& row)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
-	Service::Ptr svc = Service::GetOwnerByCommentID(comment->GetId());
+	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
 
-	if (!svc)
+	if (!checkable)
 		return Empty;
 
-	return (svc->IsHostCheck() ? 1 : 2);
+	if (dynamic_pointer_cast<Host>(checkable))
+		return 1;
+	else
+		return 2;
 }
 
 Value CommentsTable::IsServiceAccessor(const Value& row)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
-	Service::Ptr svc = Service::GetOwnerByCommentID(comment->GetId());
+	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
 
-	if (!svc)
+	if (!checkable)
 		return Empty;
 
-	return (svc->IsHostCheck() ? 0 : 1);
+	return (dynamic_pointer_cast<Host>(checkable) ? 0 : 1);
 }
 
 Value CommentsTable::EntryTypeAccessor(const Value& row)

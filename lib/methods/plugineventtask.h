@@ -34,7 +34,7 @@ namespace icinga
 class I2_METHODS_API PluginEventTask
 {
 public:
-	static void ScriptFunc(const Service::Ptr& service);
+	static void ScriptFunc(const Checkable::Ptr& service);
 
 private:
 	PluginEventTask(void);

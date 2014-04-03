@@ -33,19 +33,19 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, const String&)> Service::OnNewCheckResult;
-boost::signals2::signal<void (const Service::Ptr&, const CheckResult::Ptr&, StateType, const String&)> Service::OnStateChange;
-boost::signals2::signal<void (const Service::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Service::OnNotificationsRequested;
-boost::signals2::signal<void (const Service::Ptr&, double, const String&)> Service::OnNextCheckChanged;
-boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextCheckChanged;
-boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnForceNextNotificationChanged;
-boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableActiveChecksChanged;
-boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnablePassiveChecksChanged;
-boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableNotificationsChanged;
-boost::signals2::signal<void (const Service::Ptr&, bool, const String&)> Service::OnEnableFlappingChanged;
-boost::signals2::signal<void (const Service::Ptr&, FlappingState)> Service::OnFlappingChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const String&)> Checkable::OnNewCheckResult;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const String&)> Checkable::OnStateChange;
+boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationsRequested;
+boost::signals2::signal<void (const Checkable::Ptr&, double, const String&)> Checkable::OnNextCheckChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnForceNextCheckChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnForceNextNotificationChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnableActiveChecksChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnablePassiveChecksChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnableNotificationsChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnableFlappingChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> Checkable::OnFlappingChanged;
 
-CheckCommand::Ptr Service::GetCheckCommand(void) const
+CheckCommand::Ptr Checkable::GetCheckCommand(void) const
 {
 	String command;
 
@@ -57,12 +57,12 @@ CheckCommand::Ptr Service::GetCheckCommand(void) const
 	return CheckCommand::GetByName(command);
 }
 
-void Service::SetCheckCommand(const CheckCommand::Ptr& command)
+void Checkable::SetCheckCommand(const CheckCommand::Ptr& command)
 {
 	SetOverrideCheckCommand(command->GetName());
 }
 
-TimePeriod::Ptr Service::GetCheckPeriod(void) const
+TimePeriod::Ptr Checkable::GetCheckPeriod(void) const
 {
 	String tp;
 
@@ -74,12 +74,12 @@ TimePeriod::Ptr Service::GetCheckPeriod(void) const
 	return TimePeriod::GetByName(tp);
 }
 
-void Service::SetCheckPeriod(const TimePeriod::Ptr& tp)
+void Checkable::SetCheckPeriod(const TimePeriod::Ptr& tp)
 {
 	SetOverrideCheckPeriod(tp->GetName());
 }
 
-double Service::GetCheckInterval(void) const
+double Checkable::GetCheckInterval(void) const
 {
 	if (!GetOverrideCheckInterval().IsEmpty())
 		return GetOverrideCheckInterval();
@@ -87,12 +87,12 @@ double Service::GetCheckInterval(void) const
 		return GetCheckIntervalRaw();
 }
 
-void Service::SetCheckInterval(double interval)
+void Checkable::SetCheckInterval(double interval)
 {
 	SetOverrideCheckInterval(interval);
 }
 
-double Service::GetRetryInterval(void) const
+double Checkable::GetRetryInterval(void) const
 {
 	if (!GetOverrideRetryInterval().IsEmpty())
 		return GetOverrideRetryInterval();
@@ -100,34 +100,34 @@ double Service::GetRetryInterval(void) const
 		return GetRetryIntervalRaw();
 }
 
-void Service::SetRetryInterval(double interval)
+void Checkable::SetRetryInterval(double interval)
 {
 	SetOverrideRetryInterval(interval);
 }
 
-void Service::SetSchedulingOffset(long offset)
+void Checkable::SetSchedulingOffset(long offset)
 {
 	m_SchedulingOffset = offset;
 }
 
-long Service::GetSchedulingOffset(void)
+long Checkable::GetSchedulingOffset(void)
 {
 	return m_SchedulingOffset;
 }
 
-void Service::SetNextCheck(double nextCheck, const String& authority)
+void Checkable::SetNextCheck(double nextCheck, const String& authority)
 {
 	SetNextCheckRaw(nextCheck);
 
 	OnNextCheckChanged(GetSelf(), nextCheck, authority);
 }
 
-double Service::GetNextCheck(void)
+double Checkable::GetNextCheck(void)
 {
 	return GetNextCheckRaw();
 }
 
-void Service::UpdateNextCheck(void)
+void Checkable::UpdateNextCheck(void)
 {
 	ObjectLock olock(this);
 
@@ -147,12 +147,12 @@ void Service::UpdateNextCheck(void)
 	SetNextCheck(now - adj + interval);
 }
 
-bool Service::HasBeenChecked(void) const
+bool Checkable::HasBeenChecked(void) const
 {
 	return GetLastCheckResult() != NULL;
 }
 
-double Service::GetLastCheck(void) const
+double Checkable::GetLastCheck(void) const
 {
 	CheckResult::Ptr cr = GetLastCheckResult();
 	double schedule_end = -1;
@@ -163,7 +163,7 @@ double Service::GetLastCheck(void) const
 	return schedule_end;
 }
 
-bool Service::GetEnableActiveChecks(void) const
+bool Checkable::GetEnableActiveChecks(void) const
 {
 	if (!GetOverrideEnableActiveChecks().IsEmpty())
 		return GetOverrideEnableActiveChecks();
@@ -171,14 +171,14 @@ bool Service::GetEnableActiveChecks(void) const
 		return GetEnableActiveChecksRaw();
 }
 
-void Service::SetEnableActiveChecks(bool enabled, const String& authority)
+void Checkable::SetEnableActiveChecks(bool enabled, const String& authority)
 {
 	SetOverrideEnableActiveChecks(enabled);
 
 	OnEnableActiveChecksChanged(GetSelf(), enabled, authority);
 }
 
-bool Service::GetEnablePassiveChecks(void) const
+bool Checkable::GetEnablePassiveChecks(void) const
 {
 	if (!GetOverrideEnablePassiveChecks().IsEmpty())
 		return GetOverrideEnablePassiveChecks();
@@ -186,26 +186,26 @@ bool Service::GetEnablePassiveChecks(void) const
 		return GetEnablePassiveChecksRaw();
 }
 
-void Service::SetEnablePassiveChecks(bool enabled, const String& authority)
+void Checkable::SetEnablePassiveChecks(bool enabled, const String& authority)
 {
 	SetOverrideEnablePassiveChecks(enabled);
 
 	OnEnablePassiveChecksChanged(GetSelf(), enabled, authority);
 }
 
-bool Service::GetForceNextCheck(void) const
+bool Checkable::GetForceNextCheck(void) const
 {
 	return GetForceNextCheckRaw();
 }
 
-void Service::SetForceNextCheck(bool forced, const String& authority)
+void Checkable::SetForceNextCheck(bool forced, const String& authority)
 {
 	SetForceNextCheckRaw(forced);
 
 	OnForceNextCheckChanged(GetSelf(), forced, authority);
 }
 
-int Service::GetMaxCheckAttempts(void) const
+int Checkable::GetMaxCheckAttempts(void) const
 {
 	if (!GetOverrideMaxCheckAttempts().IsEmpty())
 		return GetOverrideMaxCheckAttempts();
@@ -213,12 +213,12 @@ int Service::GetMaxCheckAttempts(void) const
 		return GetMaxCheckAttemptsRaw();
 }
 
-void Service::SetMaxCheckAttempts(int attempts)
+void Checkable::SetMaxCheckAttempts(int attempts)
 {
 	SetOverrideMaxCheckAttempts(attempts);
 }
 
-void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
+void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
 {
 	{
 		ObjectLock olock(this);
@@ -245,13 +245,11 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
 
-	bool host_reachable = GetHost()->IsReachable();
-
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	CheckResult::Ptr old_cr = GetLastCheckResult();
-	ServiceState old_state = GetState();
+	ServiceState old_state = GetStateRaw();
 	StateType old_stateType = GetStateType();
 	long old_attempt = GetCheckAttempt();
 	bool recovery;
@@ -261,7 +259,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	/* The ExecuteCheck function already sets the old state, but we need to do it again
 	 * in case this was a passive check result. */
-	SetLastState(old_state);
+	SetLastStateRaw(old_state);
 	SetLastStateType(old_stateType);
 	SetLastReachable(reachable);
 
@@ -279,7 +277,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-		} else if (GetStateType() == StateTypeSoft || GetState() == StateOK) {
+		} else if (old_stateType == StateTypeSoft || old_state == StateOK) {
 			SetStateType(StateTypeSoft);
 			attempt = old_attempt + 1;
 		} else {
@@ -309,32 +307,26 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	SetCheckAttempt(attempt);
 
-	SetState(cr->GetState());
+	ServiceState new_state = cr->GetState();
+	SetStateRaw(new_state);
 
-	bool stateChange = (old_state != GetState());
+	bool stateChange = (old_state != new_state);
 	if (stateChange) {
 		SetLastStateChange(now);
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
-		    (GetAcknowledgement() == AcknowledgementSticky && GetState() == StateOK)) {
+		    (GetAcknowledgement() == AcknowledgementSticky && new_state == StateOK)) {
 			ClearAcknowledgement();
 		}
 
-		/* reschedule service dependencies */
-		BOOST_FOREACH(const Service::Ptr& parent, GetParentServices()) {
+		/* reschedule direct parents */
+		BOOST_FOREACH(const Checkable::Ptr& parent, GetParents()) {
+			if (parent.get() == this)
+				continue;
+
 			ObjectLock olock(parent);
 			parent->SetNextCheck(Utility::GetTime());
-		}
-
-		/* reschedule host dependencies */
-		BOOST_FOREACH(const Host::Ptr& parent, GetParentHosts()) {
-			Service::Ptr service = parent->GetCheckService();
-
-			if (service && service->GetName() != GetName()) {
-				ObjectLock olock(service);
-				service->SetNextCheck(Utility::GetTime());
-			}
 		}
 	}
 
@@ -345,21 +337,21 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
 
-	if (old_state != GetState() && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
+	if (stateChange && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
 		hardChange = true;
 
 	if (GetVolatile())
 		hardChange = true;
 
 	if (hardChange) {
-		SetLastHardState(GetState());
+		SetLastHardStateRaw(new_state);
 		SetLastHardStateChange(now);
 	}
 
-	if (GetState() != StateOK)
+	if (new_state != StateOK)
 		TriggerDowntimes();
 
-	Service::UpdateStatistics(cr);
+	Checkable::UpdateStatistics(cr);
 
 	bool in_downtime = IsInDowntime();
 	bool send_notification = hardChange && notification_reachable && !in_downtime && !IsAcknowledged();
@@ -379,11 +371,10 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 		RemoveCommentsByType(CommentAcknowledgement);
 
 	Dictionary::Ptr vars_after = make_shared<Dictionary>();
-	vars_after->Set("state", GetState());
+	vars_after->Set("state", new_state);
 	vars_after->Set("state_type", GetStateType());
 	vars_after->Set("attempt", GetCheckAttempt());
 	vars_after->Set("reachable", reachable);
-	vars_after->Set("host_reachable", host_reachable);
 
 	if (old_cr)
 		cr->SetVarsBefore(old_cr->GetVarsAfter());
@@ -402,7 +393,7 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 
 	olock.Unlock();
 
-//	Log(LogDebug, "icinga", "Flapping: Service " + GetName() +
+//	Log(LogDebug, "icinga", "Flapping: Checkable " + GetName() +
 //			" was: " + Convert::ToString(was_flapping) +
 //			" is: " + Convert::ToString(is_flapping) +
 //			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
@@ -427,63 +418,20 @@ void Service::ProcessCheckResult(const CheckResult::Ptr& cr, const String& autho
 	if (!was_flapping && is_flapping) {
 		OnNotificationsRequested(GetSelf(), NotificationFlappingStart, cr, "", "");
 
-		Log(LogDebug, "icinga", "Flapping: Service " + GetName() + " started flapping (" + Convert::ToString(GetFlappingThreshold()) + "% < " + Convert::ToString(GetFlappingCurrent()) + "%).");
+		Log(LogDebug, "icinga", "Flapping: Checkable " + GetName() + " started flapping (" + Convert::ToString(GetFlappingThreshold()) + "% < " + Convert::ToString(GetFlappingCurrent()) + "%).");
 		OnFlappingChanged(GetSelf(), FlappingStarted);
 	} else if (was_flapping && !is_flapping) {
 		OnNotificationsRequested(GetSelf(), NotificationFlappingEnd, cr, "", "");
 
-		Log(LogDebug, "icinga", "Flapping: Service " + GetName() + " stopped flapping (" + Convert::ToString(GetFlappingThreshold()) + "% >= " + Convert::ToString(GetFlappingCurrent()) + "%).");
+		Log(LogDebug, "icinga", "Flapping: Checkable " + GetName() + " stopped flapping (" + Convert::ToString(GetFlappingThreshold()) + "% >= " + Convert::ToString(GetFlappingCurrent()) + "%).");
 		OnFlappingChanged(GetSelf(), FlappingStopped);
 	} else if (send_notification)
 		OnNotificationsRequested(GetSelf(), recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
 }
 
-ServiceState Service::StateFromString(const String& state)
+void Checkable::ExecuteCheck(void)
 {
-	if (state == "OK")
-		return StateOK;
-	else if (state == "WARNING")
-		return StateWarning;
-	else if (state == "CRITICAL")
-		return StateCritical;
-	else
-		return StateUnknown;
-}
-
-String Service::StateToString(ServiceState state)
-{
-	switch (state) {
-		case StateOK:
-			return "OK";
-		case StateWarning:
-			return "WARNING";
-		case StateCritical:
-			return "CRITICAL";
-		case StateUnknown:
-		default:
-			return "UNKNOWN";
-	}
-}
-
-StateType Service::StateTypeFromString(const String& type)
-{
-	if (type == "SOFT")
-		return StateTypeSoft;
-	else
-		return StateTypeHard;
-}
-
-String Service::StateTypeToString(StateType type)
-{
-	if (type == StateTypeSoft)
-		return "SOFT";
-	else
-		return "HARD";
-}
-
-void Service::ExecuteCheck(void)
-{
-	CONTEXT("Executing service check for service '" + GetShortName() + "' on host '" + GetHost()->GetName() + "'");
+	CONTEXT("Executing check for object '" + GetName() + "'");
 
 	ASSERT(!OwnsLock());
 
@@ -500,7 +448,7 @@ void Service::ExecuteCheck(void)
 
 		m_CheckRunning = true;
 
-		SetLastState(GetState());
+		SetLastStateRaw(GetStateRaw());
 		SetLastStateType(GetLastStateType());
 		SetLastReachable(reachable);
 	}
@@ -509,7 +457,7 @@ void Service::ExecuteCheck(void)
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
-	Service::Ptr self = GetSelf();
+	Checkable::Ptr self = GetSelf();
 
 	CheckResult::Ptr result = make_shared<CheckResult>();
 
@@ -519,7 +467,7 @@ void Service::ExecuteCheck(void)
 	GetCheckCommand()->Execute(GetSelf(), result);
 }
 
-void Service::UpdateStatistics(const CheckResult::Ptr& cr)
+void Checkable::UpdateStatistics(const CheckResult::Ptr& cr)
 {
 	time_t ts = cr->GetScheduleEnd();
 
@@ -529,7 +477,7 @@ void Service::UpdateStatistics(const CheckResult::Ptr& cr)
 		CIB::UpdatePassiveChecksStatistics(ts, 1);
 }
 
-double Service::CalculateExecutionTime(const CheckResult::Ptr& cr)
+double Checkable::CalculateExecutionTime(const CheckResult::Ptr& cr)
 {
 	if (!cr)
 		return 0;
@@ -537,7 +485,7 @@ double Service::CalculateExecutionTime(const CheckResult::Ptr& cr)
 	return cr->GetExecutionEnd() - cr->GetExecutionStart();
 }
 
-double Service::CalculateLatency(const CheckResult::Ptr& cr)
+double Checkable::CalculateLatency(const CheckResult::Ptr& cr)
 {
 	if (!cr)
 		return 0;

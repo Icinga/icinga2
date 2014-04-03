@@ -94,44 +94,42 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	m_Stream = make_shared<BufferedStream>(net_stream);
 }
 
-void GraphiteWriter::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr)
+void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
+	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
 
-	Host::Ptr host = service->GetHost();
+	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
+	Host::Ptr host;
+
+	if (service)
+		host = service->GetHost();
+	else
+		host = static_pointer_cast<Host>(checkable);
 
 	String hostName = host->GetName();
-	String serviceName = service->GetShortName();
-
 	SanitizeMetric(hostName);
-	SanitizeMetric(serviceName);
 
-	String prefix = "icinga." + hostName + "." + serviceName;
+	String prefix;
 
-	/* service metrics */
-	SendMetric(prefix, "current_attempt", service->GetCheckAttempt());
-	SendMetric(prefix, "max_check_attempts", service->GetMaxCheckAttempts());
-	SendMetric(prefix, "state_type", service->GetStateType());
-	SendMetric(prefix, "state", service->GetState());
-	SendMetric(prefix, "latency", Service::CalculateLatency(cr));
-	SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
+	if (service) {
+		String serviceName = service->GetShortName();
+		SanitizeMetric(serviceName);
+		prefix = "icinga." + hostName + "." + serviceName;
 
-	SendPerfdata(prefix, cr);
-
-	if (service == host->GetCheckService()) {
+		SendMetric(prefix, "state", service->GetState());
+	} else {
 		prefix = "icinga." + hostName;
 
-		/* host metrics */
-		SendMetric(prefix, "current_attempt", service->GetCheckAttempt());
-		SendMetric(prefix, "max_check_attempts", service->GetMaxCheckAttempts());
-		SendMetric(prefix, "state_type", host->GetStateType());
 		SendMetric(prefix, "state", host->GetState());
-		SendMetric(prefix, "latency", Service::CalculateLatency(cr));
-		SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
-
-		SendPerfdata(prefix, cr);
 	}
+
+	SendMetric(prefix, "current_attempt", checkable->GetCheckAttempt());
+	SendMetric(prefix, "max_check_attempts", checkable->GetMaxCheckAttempts());
+	SendMetric(prefix, "state_type", checkable->GetStateType());
+	SendMetric(prefix, "latency", Service::CalculateLatency(cr));
+	SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
+	SendPerfdata(prefix, cr);
 }
 
 void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& cr)

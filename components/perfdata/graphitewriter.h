@@ -51,7 +51,7 @@ private:
         
 	Timer::Ptr m_ReconnectTimer;
 
-	void CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr);
+	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
         void SendMetric(const String& prefix, const String& name, double value);
         void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr);
         static void SanitizeMetric(String& str);

@@ -68,23 +68,15 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 	String state_type = log_entry_attrs->Get("state_type"); //SOFT, HARD, STARTED, STOPPED, ...
 	String log_line = log_entry_attrs->Get("message"); /* use message from log table */
 
-	Service::Ptr state_hist_service;
+	Checkable::Ptr checkable;
 
-	/* host alert == get service check */
-	if (service_description.IsEmpty()) {
-		Host::Ptr state_host = Host::GetByName(host_name);
-
-		if (!state_host)
-			return;
-
-		state_hist_service = state_host->GetCheckService();
-	} else {
-		/* assign service ptr as key */
-		state_hist_service = Service::GetByNamePair(host_name, service_description);
-	}
+	if (service_description.IsEmpty())
+		checkable = Host::GetByName(host_name);
+	else
+		checkable = Service::GetByNamePair(host_name, service_description);
 
 	/* invalid log line for state history */
-	if (!state_hist_service)
+	if (!checkable)
 		return;
 
 	Array::Ptr state_hist_service_states;
@@ -92,14 +84,25 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 	unsigned long query_part = m_TimeUntil - m_TimeFrom;
 
 	/* insert new service states array with values if not existing */
-	if (m_ServicesCache.find(state_hist_service) == m_ServicesCache.end()) {
+	if (m_CheckablesCache.find(checkable) == m_CheckablesCache.end()) {
 
 		/* create new values */
 		state_hist_service_states = make_shared<Array>();
 		state_hist_bag = make_shared<Dictionary>();
 
-		state_hist_bag->Set("host_name", state_hist_service->GetHost()->GetName());
-		state_hist_bag->Set("service_description", state_hist_service->GetShortName());
+		Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
+		Host::Ptr host;
+
+		if (service)
+			host = service->GetHost();
+		else
+			host = static_pointer_cast<Host>(checkable);
+
+		state_hist_bag->Set("host_name", host->GetName());
+
+		if (service)
+			state_hist_bag->Set("service_description", service->GetShortName());
+
 		state_hist_bag->Set("state", state);
 		state_hist_bag->Set("in_downtime", 0);
 		state_hist_bag->Set("in_host_downtime", 0);
@@ -114,9 +117,9 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 
 		state_hist_service_states->Add(state_hist_bag);
 
-		Log(LogDebug, "livestatus", "statehist: Adding new service '" + state_hist_service->GetName() + "' to services cache.");
+		Log(LogDebug, "livestatus", "statehist: Adding new object '" + checkable->GetName() + "' to services cache.");
 	} else {
-		state_hist_service_states = m_ServicesCache[state_hist_service];
+		state_hist_service_states = m_CheckablesCache[checkable];
 		state_hist_bag = state_hist_service_states->Get(state_hist_service_states->GetLength()-1); /* fetch latest state from history */
 
 		/* state duration */
@@ -124,7 +127,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 		/* determine service notifications notification_period and compare against current timestamp */
 		bool in_notification_period = true;
 		String notification_period_name;
-		BOOST_FOREACH(const Notification::Ptr& notification, state_hist_service->GetNotifications()) {
+		BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 			TimePeriod::Ptr notification_period = notification->GetNotificationPeriod();
 
 			if (notification_period) {
@@ -170,8 +173,8 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 
 					state_hist_service_states->Add(state_hist_bag_new);
 
-					Log(LogDebug, "livestatus", "statehist: State change detected for service '" +
-					    state_hist_service->GetName() + "' in '" + log_line + "'.");
+					Log(LogDebug, "livestatus", "statehist: State change detected for object '" +
+					    checkable->GetName() + "' in '" + log_line + "'.");
 				}
 				break;
 			case LogEntryTypeHostFlapping:
@@ -202,7 +205,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 
 	}
 
-	m_ServicesCache[state_hist_service] = state_hist_service_states;
+	m_CheckablesCache[checkable] = state_hist_service_states;
 
 	/* TODO find a way to directly call addRowFn() - right now m_ServicesCache depends on historical lines ("already seen service") */
 }
@@ -257,10 +260,10 @@ void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 	/* generate log cache */
 	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
 
-	Service::Ptr state_hist_service;
+	Checkable::Ptr checkable;
 
-	BOOST_FOREACH(boost::tie(state_hist_service, boost::tuples::ignore), m_ServicesCache) {
-		BOOST_FOREACH(const Dictionary::Ptr& state_hist_bag, m_ServicesCache[state_hist_service]) {
+	BOOST_FOREACH(boost::tie(checkable, boost::tuples::ignore), m_CheckablesCache) {
+		BOOST_FOREACH(const Dictionary::Ptr& state_hist_bag, m_CheckablesCache[checkable]) {
 			/* pass a dictionary from state history array */
 			addRowFn(state_hist_bag);
 		}

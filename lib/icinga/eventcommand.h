@@ -37,7 +37,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(EventCommand);
 	DECLARE_TYPENAME(EventCommand);
 
-	virtual void Execute(const Service::Ptr& context);
+	virtual void Execute(const Checkable::Ptr& checkable);
 };
 
 }

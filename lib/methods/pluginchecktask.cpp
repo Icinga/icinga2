@@ -35,18 +35,29 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 
-void PluginCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
+void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	CheckCommand::Ptr commandObj = service->GetCheckCommand();
+	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
 
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = service->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
+
 	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
+	if (is_service)
+		resolvers.push_back(service);
+	resolvers.push_back(host);
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, service->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
@@ -56,7 +67,7 @@ void PluginCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult:
 		BOOST_FOREACH(const String& macro, export_macros) {
 			String value;
 
-			if (!MacroProcessor::ResolveMacro(macro, resolvers, service->GetLastCheckResult(), &value)) {
+			if (!MacroProcessor::ResolveMacro(macro, resolvers, checkable->GetLastCheckResult(), &value)) {
 				Log(LogWarning, "icinga", "export_macros for service '" + service->GetName() + "' refers to unknown macro '" + macro + "'");
 				continue;
 			}
@@ -71,11 +82,11 @@ void PluginCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult:
 
 	process->SetTimeout(commandObj->GetTimeout());
 
-	process->Run(boost::bind(&PluginCheckTask::ProcessFinishedHandler, service, cr, _1));
+	process->Run(boost::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1));
 
 }
 
-void PluginCheckTask::ProcessFinishedHandler(const Service::Ptr& service, const CheckResult::Ptr& cr, const ProcessResult& pr)
+void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const ProcessResult& pr)
 {
 	String output = pr.Output;
 	output.Trim();
@@ -87,5 +98,5 @@ void PluginCheckTask::ProcessFinishedHandler(const Service::Ptr& service, const 
 	cr->SetExecutionStart(pr.ExecutionStart);
 	cr->SetExecutionEnd(pr.ExecutionEnd);
 
-	service->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr);
 }

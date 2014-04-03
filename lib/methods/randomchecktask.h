@@ -34,7 +34,7 @@ namespace icinga
 class RandomCheckTask
 {
 public:
-	static void ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr);
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
 
 private:
 	RandomCheckTask(void);

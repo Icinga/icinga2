@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
-void NullCheckTask::ScriptFunc(const Service::Ptr& service, const CheckResult::Ptr& cr)
+void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
 {
 	String output = "Hello from ";
 	output += Utility::GetHostName();

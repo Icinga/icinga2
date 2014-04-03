@@ -65,12 +65,12 @@ void CompatLogger::Start(void)
 {
 	DynamicObject::Start();
 
-	Service::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Service::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Service::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
-	Service::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
-	Service::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
-	Service::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
+	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
+	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
+	Checkable::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
+	Checkable::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
+	Checkable::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
+	Checkable::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = make_shared<Timer>();
@@ -84,9 +84,17 @@ void CompatLogger::Start(void)
 /**
  * @threadsafety Always.
  */
-void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr &cr)
+void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr)
 {
-	Host::Ptr host = service->GetHost();
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = static_pointer_cast<Service>(checkable)->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
 
 	Dictionary::Ptr vars_after = cr->GetVarsAfter();
 
@@ -114,39 +122,30 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckRe
 		output = CompatUtility::GetCheckResultOutput(cr);
 
 	std::ostringstream msgbuf;
-	msgbuf << "SERVICE ALERT: "
-	       << host->GetName() << ";"
-	       << service->GetShortName() << ";"
-	       << Service::StateToString(static_cast<ServiceState>(state_after)) << ";"
-	       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
-	       << attempt_after << ";"
-	       << output << ""
-	       << "";
 
-	{
-		ObjectLock olock(this);
-		WriteLine(msgbuf.str());
-	}
-
-	if (service == host->GetCheckService()) {
-		std::ostringstream msgbuf;
-		msgbuf << "HOST ALERT: "
+	if (is_service) {
+		msgbuf << "SERVICE ALERT: "
 		       << host->GetName() << ";"
-		       << Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after), host_reachable_after)) << ";"
+		       << service->GetShortName() << ";"
+		       << Service::StateToString(static_cast<ServiceState>(state_after)) << ";"
 		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
 		       << attempt_after << ";"
 		       << output << ""
 		       << "";
-
-		{
-			ObjectLock olock(this);
-			WriteLine(msgbuf.str());
-		}
+	} else {
+		msgbuf << "HOST ALERT: "
+		       << host->GetName() << ";"
+		       << Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after), host_reachable_after)) << ";"
+		       << Host::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+		       << attempt_after << ";"
+		       << output << ""
+		       << "";
 
 	}
 
 	{
 		ObjectLock olock(this);
+		WriteLine(msgbuf.str());
 		Flush();
 	}
 }
@@ -154,42 +153,41 @@ void CompatLogger::CheckResultHandler(const Service::Ptr& service, const CheckRe
 /**
  * @threadsafety Always.
  */
-void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
+void CompatLogger::TriggerDowntimeHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
 {
-	Host::Ptr host = service->GetHost();
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = static_pointer_cast<Service>(checkable)->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
 
 	if (!downtime)
 		return;
 
 	std::ostringstream msgbuf;
-	msgbuf << "SERVICE DOWNTIME ALERT: "
-		<< host->GetName() << ";"
-		<< service->GetShortName() << ";"
-		<< "STARTED" << "; "
-		<< "Service has entered a period of scheduled downtime."
-		<< "";
+
+	if (is_service) {
+		msgbuf << "SERVICE DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< "STARTED" << "; "
+			<< "Checkable has entered a period of scheduled downtime."
+			<< "";
+	} else {
+		msgbuf << "HOST DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< "STARTED" << "; "
+			<< "Checkable has entered a period of scheduled downtime."
+			<< "";
+	}
 
 	{
 		ObjectLock oLock(this);
 		WriteLine(msgbuf.str());
-	}
-
-	if (service == host->GetCheckService()) {
-		std::ostringstream msgbuf;
-		msgbuf << "HOST DOWNTIME ALERT: "
-			<< host->GetName() << ";"
-			<< "STARTED" << "; "
-			<< "Service has entered a period of scheduled downtime."
-			<< "";
-
-		{
-			ObjectLock oLock(this);
-			WriteLine(msgbuf.str());
-		}
-	}
-
-	{
-		ObjectLock oLock(this);
 		Flush();
 	}
 }
@@ -197,9 +195,17 @@ void CompatLogger::TriggerDowntimeHandler(const Service::Ptr& service, const Dow
 /**
  * @threadsafety Always.
  */
-void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Downtime::Ptr& downtime)
+void CompatLogger::RemoveDowntimeHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
 {
-	Host::Ptr host = service->GetHost();
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = static_pointer_cast<Service>(checkable)->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
 
 	if (!downtime)
 		return;
@@ -211,39 +217,30 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Down
 		downtime_output = "Scheduled downtime for service has been cancelled.";
 		downtime_state_str = "CANCELLED";
 	} else {
-		downtime_output = "Service has exited from a period of scheduled downtime.";
+		downtime_output = "Checkable has exited from a period of scheduled downtime.";
 		downtime_state_str = "STOPPED";
 	}
 
 	std::ostringstream msgbuf;
-	msgbuf << "SERVICE DOWNTIME ALERT: "
-		<< host->GetName() << ";"
-		<< service->GetShortName() << ";"
-		<< downtime_state_str << "; "
-		<< downtime_output
-		<< "";
 
-	{
-		ObjectLock oLock(this);
-		WriteLine(msgbuf.str());
-	}
-
-	if (service == host->GetCheckService()) {
-		std::ostringstream msgbuf;
+	if (is_service) {
+		msgbuf << "SERVICE DOWNTIME ALERT: "
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< downtime_state_str << "; "
+			<< downtime_output
+			<< "";
+	} else {
 		msgbuf << "HOST DOWNTIME ALERT: "
 			<< host->GetName() << ";"
 			<< downtime_state_str << "; "
 			<< downtime_output
 			<< "";
-
-		{
-			ObjectLock oLock(this);
-			WriteLine(msgbuf.str());
-		}
 	}
 
 	{
 		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
 		Flush();
 	}
 }
@@ -251,17 +248,29 @@ void CompatLogger::RemoveDowntimeHandler(const Service::Ptr& service, const Down
 /**
  * @threadsafety Always.
  */
-void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Service::Ptr& service,
+void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
     const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
     const String& author, const String& comment_text, const String& command_name)
 {
-        Host::Ptr host = service->GetHost();
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = static_pointer_cast<Service>(checkable)->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
 
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
 	/* override problem notifications with their current state string */
-	if (notification_type == NotificationProblem)
-		notification_type_str = Service::StateToString(service->GetState());
+	if (notification_type == NotificationProblem) {
+		if (is_service)
+			notification_type_str = Service::StateToString(service->GetState());
+		else
+			notification_type_str = Host::StateToString(host->GetState());
+	}
 
 	String author_comment = "";
 	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
@@ -276,41 +285,32 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 		output = CompatUtility::GetCheckResultOutput(cr);
 
         std::ostringstream msgbuf;
-        msgbuf << "SERVICE NOTIFICATION: "
-		<< user->GetName() << ";"
-                << host->GetName() << ";"
-                << service->GetShortName() << ";"
-                << notification_type_str << ";"
-		<< command_name << ";"
-		<< output << ";"
-		<< author_comment
-                << "";
 
-        {
-                ObjectLock oLock(this);
-                WriteLine(msgbuf.str());
-        }
-
-        if (service == host->GetCheckService()) {
-                std::ostringstream msgbuf;
+	if (is_service) {
+		msgbuf << "SERVICE NOTIFICATION: "
+			<< user->GetName() << ";"
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< notification_type_str << ";"
+			<< command_name << ";"
+			<< output << ";"
+			<< author_comment
+			<< "";
+	} else {
                 msgbuf << "HOST NOTIFICATION: "
 			<< user->GetName() << ";"
                         << host->GetName() << ";"
                 	<< notification_type_str << " "
-			<< "(" << Service::StateToString(service->GetState()) << ");"
+			<< "(" << Host::StateToString(host->GetState()) << ");"
 			<< command_name << ";"
 			<< output << ";"
 			<< author_comment
                         << "";
+	}
 
-                {
-                        ObjectLock oLock(this);
-                        WriteLine(msgbuf.str());
-                }
-        }
-
-        {
-                ObjectLock oLock(this);
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
                 Flush();
         }
 }
@@ -318,20 +318,28 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 /**
  * @threadsafety Always.
  */
-void CompatLogger::FlappingHandler(const Service::Ptr& service, FlappingState flapping_state)
+void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingState flapping_state)
 {
-	Host::Ptr host = service->GetHost();
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = static_pointer_cast<Service>(checkable)->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
 
 	String flapping_state_str;
 	String flapping_output;
 
 	switch (flapping_state) {
 		case FlappingStarted:
-			flapping_output = "Service appears to have started flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change >= " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
+			flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change >= " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
 			flapping_state_str = "STARTED";
 			break;
 		case FlappingStopped:
-			flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change < " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
+			flapping_output = "Checkable appears to have stopped flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change < " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
 			flapping_state_str = "STOPPED";
 			break;
 		case FlappingDisabled:
@@ -344,34 +352,25 @@ void CompatLogger::FlappingHandler(const Service::Ptr& service, FlappingState fl
 	}
 
         std::ostringstream msgbuf;
-        msgbuf << "SERVICE FLAPPING ALERT: "
-                << host->GetName() << ";"
-                << service->GetShortName() << ";"
-                << flapping_state_str << "; "
-                << flapping_output
-                << "";
 
-        {
-                ObjectLock oLock(this);
-                WriteLine(msgbuf.str());
-        }
-
-        if (service == host->GetCheckService()) {
-                std::ostringstream msgbuf;
+	if (is_service) {
+		msgbuf << "SERVICE FLAPPING ALERT: "
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
+	} else {
                 msgbuf << "HOST FLAPPING ALERT: "
                         << host->GetName() << ";"
                         << flapping_state_str << "; "
                         << flapping_output
                         << "";
+	}
 
-                {
-                        ObjectLock oLock(this);
-                        WriteLine(msgbuf.str());
-                }
-        }
-
-        {
-                ObjectLock oLock(this);
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
                 Flush();
         }
 }
@@ -390,48 +389,44 @@ void CompatLogger::ExternalCommandHandler(const String& command, const std::vect
         }
 }
 
-void CompatLogger::EventCommandHandler(const Service::Ptr& service)
+void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 {
-	Host::Ptr host = service->GetHost();
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = static_pointer_cast<Service>(checkable)->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
 
 	EventCommand::Ptr event_command = service->GetEventCommand();
 	String event_command_name = event_command->GetName();
-	String state = Service::StateToString(service->GetState());
-	String state_type = Service::StateTypeToString(service->GetStateType());
 	long current_attempt = service->GetCheckAttempt();
 
         std::ostringstream msgbuf;
 
-        msgbuf << "SERVICE EVENT HANDLER: "
-                << host->GetName() << ";"
-                << service->GetShortName() << ";"
-		<< state << ";"
-		<< state_type << ";"
-		<< current_attempt << ";"
-                << event_command_name;
-
-        {
-                ObjectLock oLock(this);
-                WriteLine(msgbuf.str());
-        }
-
-        if (service == host->GetCheckService()) {
-                std::ostringstream msgbuf;
-                msgbuf << "HOST EVENT HANDLER: "
-                        << host->GetName() << ";"
-			<< state << ";"
-			<< state_type << ";"
+	if (is_service) {
+		msgbuf << "SERVICE EVENT HANDLER: "
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< Service::StateToString(service->GetState()) << ";"
+			<< Service::StateTypeToString(service->GetStateType()) << ";"
 			<< current_attempt << ";"
 			<< event_command_name;
+	} else {
+		msgbuf << "HOST EVENT HANDLER: "
+                        << host->GetName() << ";"
+			<< Host::StateToString(host->GetState()) << ";"
+			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< current_attempt << ";"
+			<< event_command_name;
+	}
 
-                {
-                        ObjectLock oLock(this);
-                        WriteLine(msgbuf.str());
-                }
-        }
-
-        {
-                ObjectLock oLock(this);
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
                 Flush();
         }
 }
@@ -488,17 +483,8 @@ void CompatLogger::ReopenFile(bool rotate)
 	WriteLine("LOG VERSION: 2.0");
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		Service::Ptr hc = host->GetCheckService();
-
-		if (!hc)
-			continue;
-
-		bool reachable = host->IsReachable();
-
-		ObjectLock olock(hc);
-
 		String output;
-		CheckResult::Ptr cr = hc->GetLastCheckResult();
+		CheckResult::Ptr cr = host->GetLastCheckResult();
 
 		if (cr)
 			output = CompatUtility::GetCheckResultOutput(cr);
@@ -506,9 +492,9 @@ void CompatLogger::ReopenFile(bool rotate)
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT HOST STATE: "
 		       << host->GetName() << ";"
-		       << Host::StateToString(Host::CalculateState(hc->GetState(), reachable)) << ";"
-		       << Service::StateTypeToString(hc->GetStateType()) << ";"
-		       << hc->GetCheckAttempt() << ";"
+		       << Host::StateToString(host->GetState()) << ";"
+		       << Host::StateTypeToString(host->GetStateType()) << ";"
+		       << host->GetCheckAttempt() << ";"
 		       << output << "";
 
 		WriteLine(msgbuf.str());

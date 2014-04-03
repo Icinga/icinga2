@@ -53,7 +53,7 @@ void PerfdataWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	Service::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
+	Checkable::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
 	m_RotationTimer = make_shared<Timer>();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));
@@ -64,35 +64,39 @@ void PerfdataWriter::Start(void)
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
-void PerfdataWriter::CheckResultHandler(const Service::Ptr& service, const CheckResult::Ptr& cr)
+void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	CONTEXT("Writing performance data for service '" + service->GetShortName() + "' on host '" + service->GetHost()->GetName() + "'");
+	CONTEXT("Writing performance data for object '" + checkable->GetName() + "'");
 
-	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !service->GetEnablePerfdata())
+	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
 
-	Host::Ptr host = service->GetHost();
+	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
+	Host::Ptr host;
+
+	if (service)
+		host = service->GetHost();
+	else
+		host = static_pointer_cast<Host>(checkable);
 
 	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
+	if (service)
+		resolvers.push_back(service);
 	resolvers.push_back(host);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr);
+	if (service) {
+		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr);
 
-	{
-		ObjectLock olock(this);
-		if (!m_ServiceOutputFile.good())
-			return;
+		{
+			ObjectLock olock(this);
+			if (!m_ServiceOutputFile.good())
+				return;
 
-		m_ServiceOutputFile << line << "\n";
-	}
-
-	if (service == host->GetCheckService()) {
-		resolvers.clear();
-		resolvers.push_back(host);
-		resolvers.push_back(IcingaApplication::GetInstance());
-		line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr);
+			m_ServiceOutputFile << line << "\n";
+		}
+	} else {
+		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr);
 
 		{
 			ObjectLock olock(this);

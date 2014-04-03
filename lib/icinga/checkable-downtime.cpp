@@ -32,21 +32,21 @@ using namespace icinga;
 static int l_NextDowntimeID = 1;
 static boost::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
-static std::map<String, Service::WeakPtr> l_DowntimesCache;
+static std::map<String, Checkable::WeakPtr> l_DowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 
-boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> Service::OnDowntimeAdded;
-boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&, const String&)> Service::OnDowntimeRemoved;
-boost::signals2::signal<void (const Service::Ptr&, const Downtime::Ptr&)> Service::OnDowntimeTriggered;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const String&)> Checkable::OnDowntimeAdded;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const String&)> Checkable::OnDowntimeRemoved;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> Checkable::OnDowntimeTriggered;
 
-int Service::GetNextDowntimeID(void)
+int Checkable::GetNextDowntimeID(void)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
 	return l_NextDowntimeID;
 }
 
-String Service::AddDowntime(const String& author, const String& comment,
+String Checkable::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration, const String& scheduledBy,
     const String& id, const String& authority)
@@ -87,7 +87,7 @@ String Service::AddDowntime(const String& author, const String& comment,
 	downtime->SetLegacyId(legacy_id);
 
 	if (!triggeredBy.IsEmpty()) {
-		Service::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
+		Checkable::Ptr otherOwner = GetOwnerByDowntimeID(triggeredBy);
 		Dictionary::Ptr otherDowntimes = otherOwner->GetDowntimes();
 		Downtime::Ptr otherDowntime = otherDowntimes->Get(triggeredBy);
 		Dictionary::Ptr triggers = otherDowntime->GetTriggers();
@@ -111,9 +111,9 @@ String Service::AddDowntime(const String& author, const String& comment,
 	return uid;
 }
 
-void Service::RemoveDowntime(const String& id, bool cancelled, const String& authority)
+void Checkable::RemoveDowntime(const String& id, bool cancelled, const String& authority)
 {
-	Service::Ptr owner = GetOwnerByDowntimeID(id);
+	Checkable::Ptr owner = GetOwnerByDowntimeID(id);
 
 	if (!owner)
 		return;
@@ -142,7 +142,7 @@ void Service::RemoveDowntime(const String& id, bool cancelled, const String& aut
 	OnDowntimeRemoved(owner, downtime, authority);
 }
 
-void Service::TriggerDowntimes(void)
+void Checkable::TriggerDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
 
@@ -161,9 +161,9 @@ void Service::TriggerDowntimes(void)
 	}
 }
 
-void Service::TriggerDowntime(const String& id)
+void Checkable::TriggerDowntime(const String& id)
 {
-	Service::Ptr owner = GetOwnerByDowntimeID(id);
+	Checkable::Ptr owner = GetOwnerByDowntimeID(id);
 	Downtime::Ptr downtime = GetDowntimeByID(id);
 
 	if (!downtime)
@@ -193,7 +193,7 @@ void Service::TriggerDowntime(const String& id)
 	OnDowntimeTriggered(owner, downtime);
 }
 
-String Service::GetDowntimeIDFromLegacyID(int id)
+String Checkable::GetDowntimeIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
@@ -205,15 +205,15 @@ String Service::GetDowntimeIDFromLegacyID(int id)
 	return it->second;
 }
 
-Service::Ptr Service::GetOwnerByDowntimeID(const String& id)
+Checkable::Ptr Checkable::GetOwnerByDowntimeID(const String& id)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 	return l_DowntimesCache[id].lock();
 }
 
-Downtime::Ptr Service::GetDowntimeByID(const String& id)
+Downtime::Ptr Checkable::GetDowntimeByID(const String& id)
 {
-	Service::Ptr owner = GetOwnerByDowntimeID(id);
+	Checkable::Ptr owner = GetOwnerByDowntimeID(id);
 
 	if (!owner)
 		return Downtime::Ptr();
@@ -226,18 +226,18 @@ Downtime::Ptr Service::GetDowntimeByID(const String& id)
 	return Downtime::Ptr();
 }
 
-void Service::StartDowntimesExpiredTimer(void)
+void Checkable::StartDowntimesExpiredTimer(void)
 {
 	l_DowntimesExpireTimer = make_shared<Timer>();
 	l_DowntimesExpireTimer->SetInterval(60);
-	l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Service::DowntimesExpireTimerHandler));
+	l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Checkable::DowntimesExpireTimerHandler));
 	l_DowntimesExpireTimer->Start();
 }
 
-void Service::AddDowntimesToCache(void)
+void Checkable::AddDowntimesToCache(void)
 {
 #ifdef _DEBUG
-	Log(LogDebug, "icinga", "Updating Service downtimes cache.");
+	Log(LogDebug, "icinga", "Updating Checkable downtimes cache.");
 #endif /* _DEBUG */
 
 	Dictionary::Ptr downtimes = GetDowntimes();
@@ -259,7 +259,7 @@ void Service::AddDowntimesToCache(void)
 	}
 }
 
-void Service::RemoveExpiredDowntimes(void)
+void Checkable::RemoveExpiredDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
 
@@ -281,14 +281,18 @@ void Service::RemoveExpiredDowntimes(void)
 	}
 }
 
-void Service::DowntimesExpireTimerHandler(void)
+void Checkable::DowntimesExpireTimerHandler(void)
 {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		host->RemoveExpiredDowntimes();
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		service->RemoveExpiredDowntimes();
 	}
 }
 
-bool Service::IsInDowntime(void) const
+bool Checkable::IsInDowntime(void) const
 {
 	Dictionary::Ptr downtimes = GetDowntimes();
 
@@ -304,7 +308,7 @@ bool Service::IsInDowntime(void) const
 	return false;
 }
 
-int Service::GetDowntimeDepth(void) const
+int Checkable::GetDowntimeDepth(void) const
 {
 	int downtime_depth = 0;
 	Dictionary::Ptr downtimes = GetDowntimes();

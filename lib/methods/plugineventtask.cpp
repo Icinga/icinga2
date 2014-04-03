@@ -32,18 +32,29 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginEvent, &PluginEventTask::ScriptFunc);
 
-void PluginEventTask::ScriptFunc(const Service::Ptr& service)
+void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 {
-	EventCommand::Ptr commandObj = service->GetEventCommand();
+	EventCommand::Ptr commandObj = checkable->GetEventCommand();
 	Value raw_command = commandObj->GetCommandLine();
 
+	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+
+	if (is_service) {
+		service = static_pointer_cast<Service>(checkable);
+		host = service->GetHost();
+	} else
+		host = static_pointer_cast<Host>(checkable);
+
 	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
+	if (is_service)
+		resolvers.push_back(service);
+	resolvers.push_back(host);
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, service->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
@@ -53,7 +64,7 @@ void PluginEventTask::ScriptFunc(const Service::Ptr& service)
 		BOOST_FOREACH(const String& macro, export_macros) {
 			String value;
 
-			if (!MacroProcessor::ResolveMacro(macro, resolvers, service->GetLastCheckResult(), &value)) {
+			if (!MacroProcessor::ResolveMacro(macro, resolvers, checkable->GetLastCheckResult(), &value)) {
 				Log(LogWarning, "icinga", "export_macros for command '" + commandObj->GetName() + "' refers to unknown macro '" + macro + "'");
 				continue;
 			}
