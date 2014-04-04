@@ -371,15 +371,13 @@ bool Notification::ResolveMacro(const String& macro, const CheckResult::Ptr&, St
 {
 	Dictionary::Ptr vars = GetVars();
 
-	if (macro.SubStr(0, 13) == "_NOTIFICATION") {
-		*result = vars ? vars->Get(macro.SubStr(13)) : "";
-		return true;
-	}
+	if (macro.SubStr(0, 13) == "notification.") {
+		String key = vars->Get(macro.SubStr(13));
 
-
-	if (vars && vars->Contains(macro)) {
-		*result = vars->Get(macro);
-		return true;
+		if (vars && vars->Contains(key)) {
+			*result = vars->Get(key);
+			return true;
+		}
 	}
 
 	return false;

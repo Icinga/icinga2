@@ -61,18 +61,15 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
-	Array::Ptr export_macros = commandObj->GetExportMacros();
+	Dictionary::Ptr env = commandObj->GetEnv();
 
-	if (export_macros) {
-		BOOST_FOREACH(const String& macro, export_macros) {
-			String value;
+	if (env) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
+			String name = kv.second;
 
-			if (!MacroProcessor::ResolveMacro(macro, resolvers, checkable->GetLastCheckResult(), &value)) {
-				Log(LogWarning, "icinga", "export_macros for service '" + service->GetName() + "' refers to unknown macro '" + macro + "'");
-				continue;
-			}
+			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
-			envMacros->Set(macro, value);
+			envMacros->Set(kv.first, value);
 		}
 	}
 

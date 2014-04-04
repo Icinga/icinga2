@@ -45,10 +45,9 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	Value raw_command = commandObj->GetCommandLine();
 
 	StaticMacroResolver::Ptr notificationMacroResolver = make_shared<StaticMacroResolver>();
-	notificationMacroResolver->Add("NOTIFICATIONTYPE", Notification::NotificationTypeToString(type));
-	notificationMacroResolver->Add("NOTIFICATIONAUTHOR", author);
-	notificationMacroResolver->Add("NOTIFICATIONAUTHORNAME", author);
-	notificationMacroResolver->Add("NOTIFICATIONCOMMENT", comment);
+	notificationMacroResolver->Add("notification.type", Notification::NotificationTypeToString(type));
+	notificationMacroResolver->Add("notification.author", author);
+	notificationMacroResolver->Add("notification.comment", comment);
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -68,18 +67,15 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
-	Array::Ptr export_macros = commandObj->GetExportMacros();
+	Dictionary::Ptr env = commandObj->GetEnv();
 
-	if (export_macros) {
-		BOOST_FOREACH(const String& macro, export_macros) {
-			String value;
+	if (env) {
+		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
+			String name = kv.second;
 
-			if (!MacroProcessor::ResolveMacro(macro, resolvers, cr, &value)) {
-				Log(LogWarning, "icinga", "export_macros for notification '" + notification->GetName() + "' refers to unknown macro '" + macro + "'");
-				continue;
-			}
+			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
 
-			envMacros->Set(macro, value);
+			envMacros->Set(kv.first, value);
 		}
 	}
 
