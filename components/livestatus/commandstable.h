@@ -47,6 +47,9 @@ protected:
 
 	static Value NameAccessor(const Value& row);
 	static Value LineAccessor(const Value& row);
+	static Value CustomVariableNamesAccessor(const Value& row);
+	static Value CustomVariableValuesAccessor(const Value& row);
+	static Value CustomVariablesAccessor(const Value& row);
 };
 
 }

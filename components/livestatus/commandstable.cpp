@@ -22,6 +22,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/notificationcommand.h"
+#include "icinga/compatutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
@@ -40,6 +41,9 @@ void CommandsTable::AddColumns(Table *table, const String& prefix,
 {
 	table->AddColumn(prefix + "name", Column(&CommandsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "line", Column(&CommandsTable::LineAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variable_names", Column(&CommandsTable::CustomVariableNamesAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variable_values", Column(&CommandsTable::CustomVariableValuesAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variables", Column(&CommandsTable::CustomVariablesAccessor, objectAccessor));
 }
 
 String CommandsTable::GetName(void) const
@@ -110,4 +114,91 @@ Value CommandsTable::LineAccessor(const Value& row)
 	}
 
 	return buf;
+}
+
+Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
+{
+	Command::Ptr command = static_cast<Command::Ptr>(row);
+
+	if (!command)
+		return Empty;
+
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(command);
+		vars = CompatUtility::GetCustomAttributeConfig(command);
+	}
+
+	if (!vars)
+		return Empty;
+
+	Array::Ptr cv = make_shared<Array>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), vars) {
+		cv->Add(key);
+	}
+
+	return cv;
+}
+
+Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
+{
+	Command::Ptr command = static_cast<Command::Ptr>(row);
+
+	if (!command)
+		return Empty;
+
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(command);
+		vars = CompatUtility::GetCustomAttributeConfig(command);
+	}
+
+	if (!vars)
+		return Empty;
+
+	Array::Ptr cv = make_shared<Array>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), vars) {
+		cv->Add(value);
+	}
+
+	return cv;
+}
+
+Value CommandsTable::CustomVariablesAccessor(const Value& row)
+{
+	Command::Ptr command = static_cast<Command::Ptr>(row);
+
+	if (!command)
+		return Empty;
+
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(command);
+		vars = CompatUtility::GetCustomAttributeConfig(command);
+	}
+
+	if (!vars)
+		return Empty;
+
+	Array::Ptr cv = make_shared<Array>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), vars) {
+		Array::Ptr key_val = make_shared<Array>();
+		key_val->Add(key);
+		key_val->Add(value);
+		cv->Add(key_val);
+	}
+
+	return cv;
 }
