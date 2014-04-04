@@ -170,6 +170,8 @@ account by Icinga 1.x Classic UI and Web.
 
 ## <a id="differences-1x-2-custom-attributes"></a> Custom Attributes
 
+Icinga 2 allows you to define custom attributes in the `vars` dictionary.
+
 ### <a id="differences-1x-2-action-url-notes-url-notes"></a> Action Url, Notes Url, Notes
 
 Icinga 1.x objects support configuration attributes not required as runtime
@@ -178,10 +180,10 @@ The `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`
 attributes for host and service objects, additionally `statusmap_image` and
 `2d_coords` for the host's representation in status maps.
 
-These attributes can be set using the `custom` dictionary in Icinga 2 `Host`
+These attributes can be set using the `vars` dictionary in Icinga 2 `Host`
 or `Service` objects:
 
-    custom = {
+    vars = {
         notes = "Icinga 2 is the best!"
         notes_url = "http://docs.icinga.org"
         action_url = "http://dev.icinga.org"
@@ -196,12 +198,14 @@ External interfaces will recognize and display these attributes accordingly.
 ### <a id="differences-1x-2-custom-variables"></a> Custom Variables
 
 Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`).
-In Icinga 2 these attributes must be added to the `custom`dictionary.
+In Icinga 2 these attributes must be added to the `vars` dictionary as custom attributes.
 
-    custom = {
+    vars = {
         DN = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
         CV = "my custom cmdb description"
     }
+
+TODO
 
 > **Note**
 >
@@ -222,7 +226,7 @@ using the `apply` keyword.
 ## <a id="differences-1x-2-users"></a> Users
 
 Contacts have been renamed to Users (same for groups). A user does not
-only provide attributes and macros used for notifications, but is also
+only provide attributes and custom attributes used for notifications, but is also
 used for authorization checks.
 
 In Icinga 2 notification commands are not directly associated with users.
@@ -235,32 +239,19 @@ and their users.
 
 ## <a id="differences-1x-2-macros"></a> Macros
 
+TODO
+
 Various object attributes and runtime variables can be accessed as macros in
-commands in Icinga 1.x - Icinga 2 supports all required [macros](#macros).
+commands in Icinga 1.x - Icinga 2 supports all required [custom attributes](#custom-attributes).
 
-> **Note**
->
-> Due to the `contact`objects renamed to `user` objects the associated macros
-> have changed.
-> Furthermore an `alias` is now reflected as `display_name`. The Icinga 1.x
-> notation is still supported for compatibility reasons.
-
-  Icinga 1.x Name        | Icinga 2 Name
-  -----------------------|--------------
-  CONTACTNAME            | USERNAME
-  CONTACTALIAS           | USERDISPLAYNAME
-  CONTACTEMAIL           | USEREMAIL
-  CONTACTPAGER           | USERPAGER
-
-
-### <a id="differences-1x-2-command-macros"></a> Command Macros
+### <a id="differences-1x-2-command-arguments"></a> Command Arguments
 
 If you have previously used Icinga 1.x you may already be familiar with
-user and argument macros (e.g., `USER1` or `ARG1`). Unlike in Icinga 1.x macros
-may have arbitrary names and arguments are no longer specified in the
-`check_command` setting.
+user and argument definitions (e.g., `USER1` or `ARG1`). Unlike in Icinga 1.x
+the Icinga 2 custom attributes may have arbitrary names and arguments are no
+longer specified in the `check_command` setting.
 
-In Icinga 1.x argument macros are specified in the `check_command` attribute and
+In Icinga 1.x arguments are specified in the `check_command` attribute and
 are separated from the command name using an exclamation mark (`!`).
 
     define command {
@@ -275,7 +266,7 @@ are separated from the command name using an exclamation mark (`!`).
         check_command           ping4!100.0,20%!500.0,60%
     }
 
-With the freely definable macros in Icinga 2 it looks like this:
+With the freely definable custom attributes in Icinga 2 it looks like this:
 
     object CheckCommand "ping4" {
         command = PluginDir + "/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$"
@@ -283,21 +274,21 @@ With the freely definable macros in Icinga 2 it looks like this:
 
     object Service "PING" {
         check_command = "ping4"
-        macros = {
-            wrta = 100
-            wpl = 20
-            crta = 500
-            cpl = 60
-        }
+        vars.wrta = 100
+        vars.wpl = 20
+        vars.crta = 500
+        vars.cpl = 60
     }
 
 > **Note**
 >
 > Tip: The above example uses the global `PluginDir` constant instead of the Icinga 1.x
 > $USER1$ macro. It also replaces the Icinga 1.x notation with $ARGn$ with freely
-> definable macros.
+> definable custom attributes.
 
 ### <a id="differences-1x-2-environment-macros"></a> Environment Macros
+
+TODO
 
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
@@ -306,12 +297,6 @@ Macros exported into the environment must be set using the `export_macros`
 attribute in command objects.
 
 ## <a id="differences-1x-2-checks"></a> Checks
-
-### <a id="differences-1x-2-host-check"></a> Host Check
-
-Unlike in Icinga 1.x hosts are not checkable objects in Icinga 2. Instead hosts
-inherit their state from the service that is specified using the `check`
-attribute.
 
 ### <a id="differences-1x-2-check-output"></a> Check Output
 
@@ -337,7 +322,7 @@ Unlike in Icinga 1.x there are 3 different command types in Icinga 2:
 
 For example in Icinga 1.x it is possible to accidently use a notification
 command as an event handler which might cause problems depending on which
-macros are used in the notification command.
+runtime macros are used in the notification command.
 
 In Icinga 2 these command types are separated and will generate an error on
 configuration validation if used in the wrong context.
@@ -346,7 +331,7 @@ While Icinga 2 still supports the complete command line in command objects, it's
 also possible to encapsulate all arguments into double quotes and passing them
 as array to the `command_line` attribute i.e. for better readability.
 
-It's also possible to define default macros for the command itself which can be
+It's also possible to define default custom attributes for the command itself which can be
 overridden by a service macro.
 
 ## <a id="differences-1x-2-groups"></a> Groups
@@ -451,6 +436,8 @@ That's not necessary with Icinga 2 only requiring an additional notification
 object for the escalation itself.
 
 ### <a id="differences-1x-2-notification-options"></a> Notification Options
+
+TODO
 
 Unlike Icinga 1.x with the 'notification_options' attribute with comma-separated
 state and type filters, Icinga 2 uses two configuration attributes for that.

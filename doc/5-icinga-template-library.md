@@ -249,4 +249,4 @@ community       | **Optional.** The SNMP community. Defaults to "public".
 Check command for the built-in `icinga` check. This check returns performance
 data for the current Icinga instance.
 
-The `icinga` check command does not support any macros.
+The `icinga` check command does not support any vars.
