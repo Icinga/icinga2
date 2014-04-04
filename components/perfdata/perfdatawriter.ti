@@ -22,25 +22,25 @@ class PerfdataWriter : DynamicObject
 		default {{{
 			return "DATATYPE::HOSTPERFDATA\t"
 			    "TIMET::$icinga.timet$\t"
-			    "HOSTNAME::$HOSTNAME$\t"
-			    "HOSTPERFDATA::$HOSTPERFDATA$\t"
-			    "HOSTCHECKCOMMAND::$HOSTCHECKCOMMAND$\t"
-			    "HOSTSTATE::$HOSTSTATE$\t"
-			    "HOSTSTATETYPE::$HOSTSTATETYPE$";
+			    "HOSTNAME::$host.name$\t"
+			    "HOSTPERFDATA::$host.perfdata$\t"
+			    "HOSTCHECKCOMMAND::$host.checkcommand$\t"
+			    "HOSTSTATE::$host.state$\t"
+			    "HOSTSTATETYPE::$host.statetype$";
 		}}}
 	};
 	[config] String service_format_template {
 		default {{{
 			return "DATATYPE::SERVICEPERFDATA\t"
 			    "TIMET::$icinga.timet$\t"
-			    "HOSTNAME::$HOSTNAME$\t"
-			    "SERVICEDESC::$SERVICEDESC$\t"
-			    "SERVICEPERFDATA::$SERVICEPERFDATA$\t"
-			    "SERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\t"
-			    "HOSTSTATE::$HOSTSTATE$\t"
-			    "HOSTSTATETYPE::$HOSTSTATETYPE$\t"
-			    "SERVICESTATE::$SERVICESTATE$\t"
-			    "SERVICESTATETYPE::$SERVICESTATETYPE$";
+			    "HOSTNAME::$host.name$\t"
+			    "SERVICEDESC::$service.description$\t"
+			    "SERVICEPERFDATA::$service.perfdata$\t"
+			    "SERVICECHECKCOMMAND::$service.checkcommand$\t"
+			    "HOSTSTATE::$host.state$\t"
+			    "HOSTSTATETYPE::$host.statetype$\t"
+			    "SERVICESTATE::$service.state$\t"
+			    "SERVICESTATETYPE::$service.statetype$";
 		}}}
 	};
 

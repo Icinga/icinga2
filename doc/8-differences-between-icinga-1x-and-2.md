@@ -256,7 +256,7 @@ are separated from the command name using an exclamation mark (`!`).
 
     define command {
         command_name  ping4
-        command_line  $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
+        command_line  $USER1$/check_ping -H $address$ -w $ARG1$ -c $ARG2$ -p 5
     }
 
     define service {
@@ -269,7 +269,7 @@ are separated from the command name using an exclamation mark (`!`).
 With the freely definable custom attributes in Icinga 2 it looks like this:
 
     object CheckCommand "ping4" {
-        command = PluginDir + "/check_ping -H $HOSTADDRESS$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$"
+        command = PluginDir + "/check_ping -H $address$ -w $wrta$,$wpl%$ -c $crta$,$cpl%$"
     }
 
     object Service "PING" {
