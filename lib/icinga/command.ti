@@ -9,7 +9,6 @@ abstract class Command : DynamicObject
 	[config] Value timeout {
 		default {{{ return 300; }}}
 	};
-	[config] Dictionary::Ptr vars;
 	[config] Dictionary::Ptr env;
 	[config] Array::Ptr escape_macros;
 };
