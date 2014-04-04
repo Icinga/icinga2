@@ -68,37 +68,25 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 
 bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
-	if (macro == "USERNAME" || macro == "CONTACTNAME") {
-		*result = GetName();
-		return true;
-	} else if (macro == "USERDISPLAYNAME" || macro == "CONTACTALIAS") {
-		*result = GetDisplayName();
-		return true;
-	} else if (macro.SubStr(0, 5) == "_USER") {
-		Dictionary::Ptr vars = GetVars();
-		*result = vars ? vars->Get(macro.SubStr(5)) : "";
-		return true;
-	} else if (macro.SubStr(0, 8) == "_CONTACT") {
-		Dictionary::Ptr vars = GetVars();
-		*result = vars ? vars->Get(macro.SubStr(8)) : "";
-		return true;
-	} else {
-		String tmacro;
+	/* require prefix for object macros */
+	if (macro.SubStr(0, 5) == "user.") {
+		String key = macro.SubStr(5);
 
-		if (macro == "USEREMAIL" || macro == "CONTACTEMAIL")
-			tmacro = "email";
-		else if (macro == "USERPAGER" || macro == "CONTACTPAGER")
-			tmacro = "pager";
-		else
-			tmacro = macro;
-
-		Dictionary::Ptr vars = GetVars();
-
-		if (vars && vars->Contains(tmacro)) {
-			*result = vars->Get(tmacro);
+		if (key == "name") {
+			*result = GetName();
+			return true;
+		} else if (key == "displayname") {
+			*result = GetDisplayName();
 			return true;
 		}
 
-		return false;
+		Dictionary::Ptr vars = GetVars();
+
+		if (vars && vars->Contains(key)) {
+			*result = vars->Get(key);
+			return true;
+		}
 	}
+
+	return false;
 }

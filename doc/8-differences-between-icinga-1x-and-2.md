@@ -305,6 +305,11 @@ Changes to host runtime macros
 
    Icinga 1.x             | Icinga 2
    -----------------------|----------------------
+   USERNAME               | user.name
+   USERDISPLAYNAME        | user.displayname
+   USEREMAIL              | email if set as `email` custom attribute.
+   USERPAGER              | pager if set as `pager` custom attribute.
+
 
 Changes to service runtime macros
 
