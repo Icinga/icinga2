@@ -24,6 +24,7 @@
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/convert.h"
+#include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/initialize.h"
 #include "base/logger_fwd.h"
@@ -114,6 +115,35 @@ void DbConnection::ProgramStatusHandler(void)
 	InsertRuntimeVariable("total_scheduled_services", static_cast<long>(DynamicType::GetObjects<Service>().size()));
 	InsertRuntimeVariable("total_hosts", static_cast<long>(DynamicType::GetObjects<Host>().size()));
 	InsertRuntimeVariable("total_scheduled_hosts", static_cast<long>(DynamicType::GetObjects<Host>().size()));
+
+	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
+
+	if (!vars)
+		return;
+
+	Log(LogDebug, "db_ido", "Dumping global vars for icinga application");
+
+	ObjectLock olock(vars);
+
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		if (!kv.first.IsEmpty()) {
+			Log(LogDebug, "db_ido", "icinga application customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
+
+			Dictionary::Ptr fields4 = make_shared<Dictionary>();
+			fields4->Set("varname", Convert::ToString(kv.first));
+			fields4->Set("varvalue", Convert::ToString(kv.second));
+			fields4->Set("config_type", 1);
+			fields4->Set("has_been_modified", 0);
+			fields4->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+			DbQuery query4;
+			query4.Table = "customvariables";
+			query4.Type = DbQueryInsert;
+			query4.Category = DbCatConfig;
+			query4.Fields = fields4;
+			DbObject::OnQuery(query4);
+		}
+	}
 }
 
 void DbConnection::CleanUpHandler(void)

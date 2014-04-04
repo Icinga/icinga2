@@ -40,6 +40,9 @@ public:
 
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;
+
+protected:
+        virtual void OnConfigUpdate(void);
 };
 
 }
