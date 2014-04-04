@@ -258,113 +258,124 @@ String Host::StateTypeToString(StateType type)
 
 bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
-	if (macro == "HOSTNAME") {
-		*result = GetName();
-		return true;
-	}
-	else if (macro == "HOSTDISPLAYNAME" || macro == "HOSTALIAS") {
-		*result = GetDisplayName();
-		return true;
-	}
+	/* require prefix for object macros */
+	if (macro.SubStr(0, 5) == "host.") {
+		String key = macro.SubStr(5);
 
-	CheckResult::Ptr cr = GetLastCheckResult();
-
-	if (macro == "HOSTSTATE") {
-		switch (GetState()) {
-			case HostUnreachable:
-				*result = "UNREACHABLE";
-				break;
-			case HostUp:
-				*result = "UP";
-				break;
-			case HostDown:
-				*result = "DOWN";
-				break;
-			default:
-				ASSERT(0);
-		}
-
-		return true;
-	} else if (macro == "HOSTSTATEID") {
-		*result = Convert::ToString(GetState());
-		return true;
-	} else if (macro == "HOSTSTATETYPE") {
-		*result = StateTypeToString(GetStateType());
-		return true;
-	} else if (macro == "HOSTATTEMPT") {
-		*result = Convert::ToString(GetCheckAttempt());
-		return true;
-	} else if (macro == "MAXHOSTATTEMPT") {
-		*result = Convert::ToString(GetMaxCheckAttempts());
-		return true;
-	} else if (macro == "LASTHOSTSTATE") {
-		*result = StateToString(GetLastState());
-		return true;
-	} else if (macro == "LASTHOSTSTATEID") {
-		*result = Convert::ToString(GetLastState());
-		return true;
-	} else if (macro == "LASTHOSTSTATETYPE") {
-		*result = StateTypeToString(GetLastStateType());
-		return true;
-	} else if (macro == "LASTHOSTSTATECHANGE") {
-		*result = Convert::ToString((long)GetLastStateChange());
-		return true;
-	} else if (macro == "HOSTDURATIONSEC") {
-		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
-		return true;
-	} else if (macro == "HOSTCHECKCOMMAND") {
-		CheckCommand::Ptr commandObj = GetCheckCommand();
-
-		if (commandObj)
-			*result = commandObj->GetName();
-		else
-			*result = "";
-
-		return true;
-	}
-
-
-	if (cr) {
-		if (macro == "HOSTLATENCY") {
-			*result = Convert::ToString(Service::CalculateLatency(cr));
-			return true;
-		} else if (macro == "HOSTEXECUTIONTIME") {
-			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
-			return true;
-		} else if (macro == "HOSTOUTPUT") {
-			*result = cr->GetOutput();
-			return true;
-		} else if (macro == "HOSTPERFDATA") {
-			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
-			return true;
-		} else if (macro == "LASTHOSTCHECK") {
-			*result = Convert::ToString((long)cr->GetScheduleStart());
+		if (key == "name") {
+			*result = GetName();
 			return true;
 		}
-	}
+		else if (key == "displaymane") {
+			*result = GetDisplayName();
+			return true;
+		}
 
-	Dictionary::Ptr vars = GetVars();
+		CheckResult::Ptr cr = GetLastCheckResult();
 
-	if (macro.SubStr(0, 5) == "_HOST") {
-		*result = vars ? vars->Get(macro.SubStr(5)) : "";
-		return true;
-	}
+		if (key == "state") {
+			switch (GetState()) {
+				case HostUnreachable:
+					*result = "UNREACHABLE";
+					break;
+				case HostUp:
+					*result = "UP";
+					break;
+				case HostDown:
+					*result = "DOWN";
+					break;
+				default:
+					ASSERT(0);
+			}
 
-	String name = macro;
+			return true;
+		} else if (key == "stateid") {
+			*result = Convert::ToString(GetState());
+			return true;
+		} else if (key == "statetype") {
+			*result = StateTypeToString(GetStateType());
+			return true;
+		} else if (key == "attempt") {
+			*result = Convert::ToString(GetCheckAttempt());
+			return true;
+		} else if (key == "maxattempt") {
+			*result = Convert::ToString(GetMaxCheckAttempts());
+			return true;
+		} else if (key == "laststate") {
+			*result = StateToString(GetLastState());
+			return true;
+		} else if (key == "laststateid") {
+			*result = Convert::ToString(GetLastState());
+			return true;
+		} else if (key == "laststatetype") {
+			*result = StateTypeToString(GetLastStateType());
+			return true;
+		} else if (key == "laststatechange") {
+			*result = Convert::ToString((long)GetLastStateChange());
+			return true;
+		} else if (key == "durationsec") {
+			*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
+			return true;
+		} else if (key == "checkcommand") {
+			CheckCommand::Ptr commandObj = GetCheckCommand();
 
-	if (name == "HOSTADDRESS")
-		name = "address";
-	else if (macro == "HOSTADDRESS6")
-		name = "address6";
+			if (commandObj)
+				*result = commandObj->GetName();
+			else
+				*result = "";
 
-	if (vars && vars->Contains(name)) {
-		*result = vars->Get(name);
-		return true;
-	}
+			return true;
+		} else if (key == "totalservices" || key == "totalservicesok" || key == "totalserviceswarning"
+			    || key == "totalservicesunknown" || key == "totalservicescritical") {
+				int filter = -1;
+				int count = 0;
 
-	if (macro == "HOSTADDRESS" || macro == "HOSTADDRESS6") {
-		*result = GetName();
-		return true;
+				if (key == "totalservicesok")
+					filter = StateOK;
+				else if (key == "totalserviceswarning")
+					filter = StateWarning;
+				else if (key == "totalservicesunknown")
+					filter = StateUnknown;
+				else if (key == "totalservicescritical")
+					filter = StateCritical;
+
+				BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
+					if (filter != -1 && service->GetState() != filter)
+						continue;
+
+					count++;
+				}
+
+				*result = Convert::ToString(count);
+				return true;
+			}
+
+
+		if (cr) {
+			if (key == "latency") {
+				*result = Convert::ToString(Service::CalculateLatency(cr));
+				return true;
+			} else if (key == "executiontime") {
+				*result = Convert::ToString(Service::CalculateExecutionTime(cr));
+				return true;
+			} else if (key == "output") {
+				*result = cr->GetOutput();
+				return true;
+			} else if (key == "perfdata") {
+				*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
+				return true;
+			} else if (key == "lastcheck") {
+				*result = Convert::ToString((long)cr->GetScheduleStart());
+				return true;
+			}
+		}
+
+		Dictionary::Ptr vars = GetVars();
+
+		if (vars && vars->Contains(key)) {
+			*result = vars->Get(key);
+			return true;
+		}
 	}
 
 	return false;

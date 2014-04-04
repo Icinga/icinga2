@@ -301,6 +301,60 @@ attribute in command objects.
 Icinga 2 requires an object specific namespace when accessing configuration
 and stateful runtime macros. Custom attributes can be access directly.
 
+Changes to host runtime macros
+
+   Icinga 1.x             | Icinga 2
+   -----------------------|----------------------
+
+Changes to service runtime macros
+
+   Icinga 1.x             | Icinga 2
+   -----------------------|----------------------
+   SERVICEDESC            | service.description
+   SERVICEDISPLAYNAME     | service.displayname
+   SERVICECHECKCOMMAND    | service.checkcommand
+   SERVICESTATE           | service.state
+   SERVICESTATEID         | service.stateid
+   SERVICESTATETYPE       | service.statetype
+   SERVICEATTEMPT         | service.attempt
+   MAXSERVICEATTEMPT      | service.maxattempt
+   LASTSERVICESTATE       | service.laststate
+   LASTSERVICESTATEID     | service.laststateid
+   LASTSERVICESTATETYPE   | service.laststatetype
+   LASTSERVICESTATECHANGE | service.laststatechange
+   SERVICEDURATIONSEC     | service.durationsec
+   SERVICELATENCY         | service.latency
+   SERVICEEXECUTIONTIME   | service.executiontime
+   SERVICEOUTPUT          | service.output
+   SERVICEPERFDATA        | service.perfdata
+   LASTSERVICECHECK       | service.lastcheck
+
+
+Changes to user (contact) runtime macros
+
+   Icinga 1.x             | Icinga 2
+   -----------------------|----------------------
+   HOSTNAME               | host.name
+   HOSTDISPLAYNAME        | host.displayname
+   HOSTALIAS              | ..
+   HOSTSTATE              | host.state
+   HOSTSTATEID            | host.stateid
+   HOSTSTATETYPE          | host.statetype
+   HOSTATTEMPT            | host.attempt
+   MAXHOSTATTEMPT         | host.maxattempt
+   LASTHOSTSTATE          | host.laststate
+   LASTHOSTSTATEID        | host.laststateid
+   LASTHOSTSTATETYPE      | host.laststatetype
+   LASTHOSTSTATECHANGE    | host.laststatechange
+   HOSTDURATIONSEC        | host.durationsec
+   HOSTLATENCY            | host.latency
+   HOSTEXECUTIONTIME      | host.executiontime
+   HOSTOUTPUT             | host.output
+   HOSTPERFDATA           | host.perfdata
+   LASTHOSTCHECK          | host.lastcheck
+   HOSTADDRESS            | --
+   HOSTADDRESS6           | --
+
 Changes to global runtime macros:
 
    Icinga 1.x             | Icinga 2
