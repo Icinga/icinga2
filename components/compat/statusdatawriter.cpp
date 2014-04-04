@@ -154,6 +154,10 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 
 	fp << "\t" "command_line" "\t" << CompatUtility::GetCommandLine(command);
 
+	fp << "\n";
+
+	DumpCustomAttributes(fp, command);
+
 	fp << "\n" "\t" "}" "\n"
 	      "\n";
 }
@@ -514,8 +518,7 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObjec
 		if (!kv.first.IsEmpty()) {
 			fp << "\t";
 
-			if (kv.first != "notes" && kv.first != "action_url" && kv.first != "notes_url" &&
-			    kv.first != "icon_image" && kv.first != "icon_image_alt" && kv.first != "statusmap_image" && kv.first != "2d_coords")
+			if (!CompatUtility::IsLegacyAttribute(kv.first))
 				fp << "_";
 
 			fp << kv.first << "\t" << kv.second << "\n";
@@ -738,8 +741,11 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    "\t" "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
 		    "\t" "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
 		    "\t" "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
-		    "\t" "next_comment_id=" << Service::GetNextCommentID() << "\n"
-		    "\t" "}" "\n"
+		    "\t" "next_comment_id=" << Service::GetNextCommentID() << "\n";
+
+	DumpCustomAttributes(statusfp, IcingaApplication::GetInstance());
+
+	statusfp << "\t" "}" "\n"
 		    "\n";
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
