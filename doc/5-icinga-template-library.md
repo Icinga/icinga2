@@ -47,7 +47,7 @@ cpl             | **Optional.** The packet loss critical threshold in %. Default
 packets         | **Optional.** The number of packets to send. Defaults to 5.
 timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
-### <a id="itl-hostcheck"></a> hostcheck
+### <a id="itl-hostalive"></a> hostalive
 
 Check command object for the `check_ping` plugin with host check default values.
 
