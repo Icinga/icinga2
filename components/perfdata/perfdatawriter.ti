@@ -21,7 +21,7 @@ class PerfdataWriter : DynamicObject
 	[config] String host_format_template {
 		default {{{
 			return "DATATYPE::HOSTPERFDATA\t"
-			    "TIMET::$TIMET$\t"
+			    "TIMET::$icinga.timet$\t"
 			    "HOSTNAME::$HOSTNAME$\t"
 			    "HOSTPERFDATA::$HOSTPERFDATA$\t"
 			    "HOSTCHECKCOMMAND::$HOSTCHECKCOMMAND$\t"
@@ -32,7 +32,7 @@ class PerfdataWriter : DynamicObject
 	[config] String service_format_template {
 		default {{{
 			return "DATATYPE::SERVICEPERFDATA\t"
-			    "TIMET::$TIMET$\t"
+			    "TIMET::$icinga.timet$\t"
 			    "HOSTNAME::$HOSTNAME$\t"
 			    "SERVICEDESC::$SERVICEDESC$\t"
 			    "SERVICEPERFDATA::$SERVICEPERFDATA$\t"

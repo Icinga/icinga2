@@ -296,6 +296,22 @@ Icinga 2.
 Macros exported into the environment must be set using the `export_macros`
 attribute in command objects.
 
+### <a id="differences-1x-2-runtime-macros"></a> Runtime Macros
+
+Icinga 2 requires an object specific namespace when accessing configuration
+and stateful runtime macros. Custom attributes can be access directly.
+
+Changes to global runtime macros:
+
+   Icinga 1.x             | Icinga 2
+   -----------------------|----------------------
+   TIMET                  | icinga.timet
+   LONGDATETIME           | icinga.longdatetime
+   SHORTDATETIME          | icinga.shortdatetime
+   DATE                   | icinga.date
+   TIME                   | icinga.time
+
+
 ## <a id="differences-1x-2-checks"></a> Checks
 
 ### <a id="differences-1x-2-check-output"></a> Check Output

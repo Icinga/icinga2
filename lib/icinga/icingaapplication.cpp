@@ -133,29 +133,35 @@ String IcingaApplication::GetNodeName(void) const
 
 bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
+	/* require icinga prefix for application macros */
+	if (macro.SubStr(0, 7) != "icinga.")
+		return false;
+
+	String key = macro.SubStr(7);
+
 	double now = Utility::GetTime();
 
-	if (macro == "TIMET") {
+	if (key == "timet") {
 		*result = Convert::ToString((long)now);
 		return true;
-	} else if (macro == "LONGDATETIME") {
+	} else if (key == "longdatetime") {
 		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now);
 		return true;
-	} else if (macro == "SHORTDATETIME") {
+	} else if (key == "shortdatetime") {
 		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", now);
 		return true;
-	} else if (macro == "DATE") {
+	} else if (key == "date") {
 		*result = Utility::FormatDateTime("%Y-%m-%d", now);
 		return true;
-	} else if (macro == "TIME") {
+	} else if (key == "time") {
 		*result = Utility::FormatDateTime("%H:%M:%S %z", now);
 		return true;
 	}
 
 	Dictionary::Ptr vars = GetVars();
 
-	if (vars && vars->Contains(macro)) {
-		*result = vars->Get(macro);
+	if (vars && vars->Contains(key)) {
+		*result = vars->Get(key);
 		return true;
 	}
 
