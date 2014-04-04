@@ -63,6 +63,9 @@ protected:
 	static Value ProgramVersionAccessor(const Value& row);
 	static Value LivestatusVersionAccessor(const Value& row);
 	static Value LivestatusActiveConnectionsAccessor(const Value& row);
+	static Value CustomVariableNamesAccessor(const Value& row);
+	static Value CustomVariableValuesAccessor(const Value& row);
+	static Value CustomVariablesAccessor(const Value& row);
 };
 
 }

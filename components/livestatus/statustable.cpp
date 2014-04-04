@@ -96,6 +96,10 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "livestatus_active_connections", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "livestatus_queued_connections", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "livestatus_threads", Column(&Table::ZeroAccessor, objectAccessor));
+
+	table->AddColumn(prefix + "custom_variable_names", Column(&StatusTable::CustomVariableNamesAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variable_values", Column(&StatusTable::CustomVariableValuesAccessor, objectAccessor));
+	table->AddColumn(prefix + "custom_variables", Column(&StatusTable::CustomVariablesAccessor, objectAccessor));
 }
 
 String StatusTable::GetName(void) const
@@ -201,4 +205,61 @@ Value StatusTable::LivestatusVersionAccessor(const Value&)
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value&)
 {
 	return LivestatusListener::GetClientsConnected();
+}
+
+Value StatusTable::CustomVariableNamesAccessor(const Value& row)
+{
+	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
+
+	if (!vars)
+		return Empty;
+
+	Array::Ptr cv = make_shared<Array>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), vars) {
+		cv->Add(key);
+	}
+
+	return cv;
+}
+
+Value StatusTable::CustomVariableValuesAccessor(const Value& row)
+{
+	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
+
+	if (!vars)
+		return Empty;
+
+	Array::Ptr cv = make_shared<Array>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), vars) {
+		cv->Add(value);
+	}
+
+	return cv;
+}
+
+Value StatusTable::CustomVariablesAccessor(const Value&)
+{
+	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
+
+	if (!vars)
+		return Empty;
+
+	Array::Ptr cv = make_shared<Array>();
+
+	String key;
+	Value value;
+	BOOST_FOREACH(tie(key, value), vars) {
+		Array::Ptr key_val = make_shared<Array>();
+		key_val->Add(key);
+		key_val->Add(value);
+		cv->Add(key_val);
+	}
+
+	return cv;
 }
