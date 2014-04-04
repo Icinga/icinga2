@@ -19,7 +19,7 @@ the path of the plugins from the Monitoring Plugins project.
 
 Check command object for the `check_ping` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -35,7 +35,7 @@ timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 Check command object for the `check_ping` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -47,11 +47,27 @@ cpl             | **Optional.** The packet loss critical threshold in %. Default
 packets         | **Optional.** The number of packets to send. Defaults to 5.
 timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
+### <a id="itl-hostcheck"></a> hostcheck
+
+Check command object for the `check_ping` plugin with host check default values.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+address         | **Required.** The host's IPv4 address.
+wrta            | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.0.
+wpl             | **Optional.** The packet loss warning threshold in %. Defaults to 80.
+crta            | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.0.
+cpl             | **Optional.** The packet loss critical threshold in %. Defaults to 100.
+packets         | **Optional.** The number of packets to send. Defaults to 5.
+timeout         | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
 ### <a id="itl-dummy"></a> dummy
 
 Check command object for the `check_dummy` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -62,7 +78,7 @@ text            | **Optional.** Plugin output. Defaults to "Check was successful
 
 Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -73,7 +89,7 @@ text            | **Optional.** Plugin output. Defaults to "No Passive Check Res
 
 Check command object for the `check_tcp` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -84,7 +100,7 @@ port            | **Required.** The port that should be checked.
 
 Check command object for the `check_udp` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -95,7 +111,7 @@ port            | **Required.** The port that should be checked.
 
 Check command object for the `check_http` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -105,7 +121,7 @@ vhost           | **Required.** The name of the virtual host that should be chec
 
 Check command object for the `check_http` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -115,7 +131,7 @@ address         | **Required.** The host's address.
 
 Check command object for the `check_http` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -125,7 +141,7 @@ vhost           | **Required.** The name of the virtual host that should be chec
 
 Check command object for the `check_http` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -135,7 +151,7 @@ address         | **Required.** The host's address.
 
 Check command object for the `check_smtp` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -145,7 +161,7 @@ address         | **Required.** The host's address.
 
 Check command object for the `check_ssmtp` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -156,7 +172,7 @@ port            | **Optional.** The port that should be checked. Defaults to 465
 
 Check command object for the `check_ntp_time` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -166,7 +182,7 @@ address         | **Required.** The host's address.
 
 Check command object for the `check_ssh` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -176,7 +192,7 @@ address         | **Required.** The host's address.
 
 Check command object for the `check_disk` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -187,7 +203,7 @@ cfree           | **Optional.** The free space critical threshold in %. Defaults
 
 Check command object for the `check_disk` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -198,7 +214,7 @@ cgreater        | **Optional.** The user count critical threshold. Defaults to 5
 
 Check command object for the `check_processes` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -209,7 +225,7 @@ cgreater        | **Optional.** The process count critical threshold. Defaults t
 
 Check command object for the `check_load` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -224,7 +240,7 @@ cload15         | **Optional.** The 15-minute critical threshold. Defaults to 4.
 
 Check command object for the `check_snmp` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
@@ -236,7 +252,7 @@ community       | **Optional.** The SNMP community. Defaults to "public".
 
 Check command object for the `check_snmp` plugin.
 
-Macros:
+Custom Attributes:
 
 Name            | Description
 ----------------|--------------
