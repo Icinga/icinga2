@@ -61,12 +61,12 @@ void ScheduledDowntime::TimerProc(void)
 
 Checkable::Ptr ScheduledDowntime::GetCheckable(void) const
 {
-	Host::Ptr host = Host::GetByName(GetHostRaw());
+	Host::Ptr host = Host::GetByName(GetHostName());
 
-	if (GetServiceRaw().IsEmpty())
+	if (GetServiceName().IsEmpty())
 		return host;
 	else
-		return host->GetServiceByShortName(GetServiceRaw());
+		return host->GetServiceByShortName(GetServiceName());
 }
 
 std::pair<double, double> ScheduledDowntime::FindNextSegment(void)

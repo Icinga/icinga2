@@ -77,12 +77,12 @@ void Notification::Stop(void)
 
 Checkable::Ptr Notification::GetCheckable(void) const
 {
-	Host::Ptr host = Host::GetByName(GetHostRaw());
+	Host::Ptr host = Host::GetByName(GetHostName());
 
-	if (GetServiceRaw().IsEmpty())
+	if (GetServiceName().IsEmpty())
 		return host;
 	else
-		return host->GetServiceByShortName(GetServiceRaw());
+		return host->GetServiceByShortName(GetServiceName());
 }
 
 NotificationCommand::Ptr Notification::GetNotificationCommand(void) const

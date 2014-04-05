@@ -54,7 +54,7 @@ void Service::OnConfigLoaded(void)
 		}
 	}
 
-	m_Host = Host::GetByName(GetHostRaw());
+	m_Host = Host::GetByName(GetHostName());
 
 	if (m_Host)
 		m_Host->AddService(GetSelf());

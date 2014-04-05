@@ -3,7 +3,15 @@ namespace icinga
 
 abstract class DynamicObject
 {
-	[config] String name (Name);
+	[config] String __name (Name);
+	[config] String name (ShortName) {
+		get {{{
+			if (m_ShortName.IsEmpty())
+				return GetName();
+			else
+				return m_ShortName;
+		}}}
+	};
 	[config, get_protected] String type (TypeName);
 	[config, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;

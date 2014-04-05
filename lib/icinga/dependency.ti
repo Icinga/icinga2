@@ -6,11 +6,11 @@ namespace icinga
 
 class Dependency : DynamicObject
 {
-	[config] String child_host (ChildHostRaw);
-	[config] String child_service (ChildServiceRaw);
+	[config] String child_host_name;
+	[config] String child_service_name;
 
-	[config] String parent_host  (ParentHostRaw);
-	[config] String parent_service (ParentServiceRaw);
+	[config] String parent_host_name;
+	[config] String parent_service_name;
 
 	[config] String period (PeriodRaw);
 

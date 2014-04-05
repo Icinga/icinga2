@@ -5,8 +5,8 @@ namespace icinga
 
 class ScheduledDowntime : DynamicObject
 {
-	[config, protected] String host (HostRaw);
-	[config, protected] String service (ServiceRaw);
+	[config, protected] String host_name;
+	[config, protected] String service_name;
 
 	[config] String author;
 	[config] String comment;

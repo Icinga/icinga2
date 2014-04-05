@@ -67,12 +67,12 @@ void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			builder->SetScope(rule.GetScope());
 
 			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-			    make_shared<AExpression>(&AExpression::OpLiteral, "host", di), 
+			    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di), 
 			    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
 			    di));
 
 			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-			    make_shared<AExpression>(&AExpression::OpLiteral, "short_name", di),
+			    make_shared<AExpression>(&AExpression::OpLiteral, "name", di),
 			    make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di),
 			    di));
 

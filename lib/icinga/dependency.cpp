@@ -116,28 +116,28 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 Checkable::Ptr Dependency::GetChild(void) const
 {
-	Host::Ptr host = Host::GetByName(GetChildHostRaw());
+	Host::Ptr host = Host::GetByName(GetChildHostName());
 
 	if (!host)
 		return Service::Ptr();
 
-	if (GetChildServiceRaw().IsEmpty())
+	if (GetChildServiceName().IsEmpty())
 		return host;
 	else
-		return host->GetServiceByShortName(GetChildServiceRaw());
+		return host->GetServiceByShortName(GetChildServiceName());
 }
 
 Checkable::Ptr Dependency::GetParent(void) const
 {
-	Host::Ptr host = Host::GetByName(GetParentHostRaw());
+	Host::Ptr host = Host::GetByName(GetParentHostName());
 
 	if (!host)
 		return Service::Ptr();
 
-	if (GetParentServiceRaw().IsEmpty())
+	if (GetParentServiceName().IsEmpty())
 		return host;
 	else
-		return host->GetServiceByShortName(GetParentServiceRaw());
+		return host->GetServiceByShortName(GetParentServiceName());
 }
 
 TimePeriod::Ptr Dependency::GetPeriod(void) const

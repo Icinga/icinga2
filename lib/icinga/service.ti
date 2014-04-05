@@ -16,15 +16,7 @@ class Service : Checkable
 				return m_DisplayName;
 		}}}
 	};
-	[config] String short_name {
-		get {{{
-			if (m_ShortName.IsEmpty())
-				return GetName();
-			else
-				return m_ShortName;
-		}}}
-	};
-	[config] String host (HostRaw);
+	[config] String host_name;
 	[enum] ServiceState "state" {
 		get {{{
 			return GetStateRaw();

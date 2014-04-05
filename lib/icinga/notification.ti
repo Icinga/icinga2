@@ -20,8 +20,8 @@ class Notification : DynamicObject
 	[config] int notification_state_filter {
 		default {{{ return ~(int)0; }}}
 	};
-	[config, protected] String host (HostRaw);
-	[config, protected] String service (ServiceRaw);
+	[config, protected] String host_name;
+	[config, protected] String service_name;
 
 	[state] double last_notification;
 	[state, set_protected] double next_notification (NextNotificationRaw);
