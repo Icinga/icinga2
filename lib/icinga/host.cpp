@@ -261,6 +261,39 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 	String key;
 	Dictionary::Ptr vars;
 
+	/* special treatment for address macros providing name fallback */
+	if (macro == "address" || macro == "address6") {
+		vars = GetVars();
+
+		String value;
+		if (vars && vars->Contains(macro))
+			value = vars->Get(key);
+
+		if (value.IsEmpty()) {
+			*result = GetName();
+			return true;
+		} else {
+			*result = value;
+			return true;
+		}
+	}
+	else if (macro == "host.vars.address" || macro == "host.vars.address6") {
+		key = macro.SubStr(10);
+		vars = GetVars();
+
+		String value;
+		if (vars && vars->Contains(macro))
+			value = vars->Get(key);
+
+		if (value.IsEmpty()) {
+			*result = GetName();
+			return true;
+		} else {
+			*result = value;
+			return true;
+		}
+	}
+
 	/* require prefix for object macros */
 	if (macro.SubStr(0, 5) == "host.") {
 		key = macro.SubStr(5);
