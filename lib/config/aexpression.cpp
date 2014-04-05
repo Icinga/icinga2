@@ -532,7 +532,7 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	}
 
 	if (!checkName.IsEmpty()) {
-		ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, name);
+		ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, checkName);
 
 		if (oldItem) {
 			std::ostringstream msgbuf;

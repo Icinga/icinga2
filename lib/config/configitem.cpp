@@ -129,7 +129,7 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 			const DynamicObjectNameHelper *nh = dynamic_cast<const DynamicObjectNameHelper *>(Type::GetByName(m_Type));
 
 			if (nh) {
-				String name = nh->MakeObjectName(m_Name, m_Properties);
+				name = nh->MakeObjectName(m_Name, m_Properties);
 
 				if (name.IsEmpty())
 					BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine name for object"));
