@@ -25,10 +25,15 @@ using namespace icinga;
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::CallbackMap ApplyRule::m_Callbacks;
 
-ApplyRule::ApplyRule(const String& name, const AExpression::Ptr& expression,
+ApplyRule::ApplyRule(const String& targetType, const String& name, const AExpression::Ptr& expression,
     const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope)
-	: m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
+	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
 { }
+
+String ApplyRule::GetTargetType(void) const
+{
+	return m_TargetType;
+}
 
 String ApplyRule::GetName(void) const
 {
@@ -55,11 +60,11 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 	return m_Scope;
 }
 
-void ApplyRule::AddRule(const String& sourceType, const String& name,
+void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
     const AExpression::Ptr& expression, const AExpression::Ptr& filter,
     const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ApplyRule(name, expression, filter, di, scope));
+	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, di, scope));
 }
 
 bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const
@@ -75,7 +80,7 @@ void ApplyRule::EvaluateRules(void)
 	std::set<String> completedTypes;
 
 	while (completedTypes.size() < m_Callbacks.size()) {
-		std::pair<String, std::pair<Callback, String> > kv;
+		std::pair<String, std::pair<Callback, std::vector<String> > > kv;
 		BOOST_FOREACH(kv, m_Callbacks) {
 			const String& sourceType = kv.first;
 
@@ -83,10 +88,16 @@ void ApplyRule::EvaluateRules(void)
 				continue;
 
 			const Callback& callback = kv.second.first;
-			const String& targetType = kv.second.second;
+			const std::vector<String>& targetTypes = kv.second.second;
 
-			if (IsValidType(targetType) && completedTypes.find(targetType) == completedTypes.end())
-				continue;
+			bool cont = false;
+
+			BOOST_FOREACH(const String& targetType, targetTypes) {
+				if (IsValidSourceType(targetType) && completedTypes.find(targetType) == completedTypes.end()) {
+					cont = true;
+					break;
+				}
+			}
 
 			completedTypes.insert(sourceType);
 
@@ -102,12 +113,41 @@ void ApplyRule::EvaluateRules(void)
 	m_Rules.clear();
 }
 
-void ApplyRule::RegisterType(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback)
+void ApplyRule::RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback)
 {
-	m_Callbacks[sourceType] = make_pair(callback, targetType);
+	m_Callbacks[sourceType] = make_pair(callback, targetTypes);
 }
 
-bool ApplyRule::IsValidType(const String& sourceType)
+bool ApplyRule::IsValidSourceType(const String& sourceType)
 {
 	return m_Callbacks.find(sourceType) != m_Callbacks.end();
 }
+
+bool ApplyRule::IsValidTargetType(const String& sourceType, const String& targetType)
+{
+	CallbackMap::const_iterator it = m_Callbacks.find(sourceType);
+
+	if (it == m_Callbacks.end())
+		return false;
+
+	if (it->second.second.size() == 1 && targetType == "")
+		return true;
+
+	BOOST_FOREACH(const String& type, it->second.second) {
+		if (type == targetType)
+			return true;
+	}
+
+	return false;
+}
+
+std::vector<String> ApplyRule::GetTargetTypes(const String& sourceType)
+{
+	CallbackMap::const_iterator it = m_Callbacks.find(sourceType);
+
+	if (it == m_Callbacks.end())
+		return std::vector<String>();
+
+	return it->second.second;
+}
+

@@ -32,57 +32,86 @@ INITIALIZE_ONCE(&Notification::RegisterApplyRuleHandler);
 
 void Notification::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("Notification", "Service", &Notification::EvaluateApplyRules);
+	std::vector<String> targets;
+	targets.push_back("Host");
+	targets.push_back("Service");
+	ApplyRule::RegisterType("Notification", targets, &Notification::EvaluateApplyRules);
+}
+
+void Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+{
+	DebugInfo di = rule.GetDebugInfo();
+
+	std::ostringstream msgbuf;
+	msgbuf << "Evaluating 'apply' rule (" << di << ")";
+	CONTEXT(msgbuf.str());
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("host", host);
+	if (service)
+		locals->Set("service", service);
+
+	if (!rule.EvaluateFilter(locals))
+		return;
+
+	std::ostringstream msgbuf2;
+	msgbuf2 << "Applying notification '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
+	Log(LogDebug, "icinga", msgbuf2.str());
+
+	std::ostringstream namebuf;
+	namebuf << checkable->GetName() << "!" << rule.GetName();
+	String name = namebuf.str();
+
+	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+	builder->SetType("Notification");
+	builder->SetName(name);
+	builder->SetScope(rule.GetScope());
+
+	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+	    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di),
+	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+	    di));
+
+	if (service) {
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+		    make_shared<AExpression>(&AExpression::OpLiteral, "service_name", di),
+		    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
+		    di));
+	}
+
+	builder->AddExpression(rule.GetExpression());
+
+	ConfigItem::Ptr notificationItem = builder->Compile();
+	notificationItem->Register();
+	DynamicObject::Ptr dobj = notificationItem->Commit();
+	dobj->OnConfigLoaded();
 }
 
 void Notification::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");
+
+		BOOST_FOREACH(const ApplyRule& rule, rules) {
+			if (rule.GetTargetType() != "Host")
+				continue;
+
+			EvaluateApplyRule(host, rule);
+		}
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
 
-		Dictionary::Ptr locals = make_shared<Dictionary>();
-		locals->Set("host", service->GetHost());
-		locals->Set("service", service);
-
 		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			DebugInfo di = rule.GetDebugInfo();
-
-			std::ostringstream msgbuf;
-			msgbuf << "Evaluating 'apply' rule (" << di << ")";
-			CONTEXT(msgbuf.str());
-
-			if (!rule.EvaluateFilter(locals))
+			if (rule.GetTargetType() != "Service")
 				continue;
 
-			std::ostringstream msgbuf2;
-			msgbuf2 << "Applying notification '" << rule.GetName() << "' to service '" << service->GetName() << "' for rule " << di;
-			Log(LogDebug, "icinga", msgbuf2.str());
-
-			std::ostringstream namebuf;
-			namebuf << service->GetName() << "!" << rule.GetName();
-			String name = namebuf.str();
-
-			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
-			builder->SetType("Notification");
-			builder->SetName(name);
-			builder->SetScope(rule.GetScope());
-
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-			    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di),
-			    make_shared<AExpression>(&AExpression::OpLiteral, service->GetHost()->GetName(), di),
-			    di));
-
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-			    make_shared<AExpression>(&AExpression::OpLiteral, "service_name", di),
-			    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
-			    di));
-
-			builder->AddExpression(rule.GetExpression());
-
-			ConfigItem::Ptr serviceItem = builder->Compile();
-			serviceItem->Register();
-			DynamicObject::Ptr dobj = serviceItem->Commit();
-			dobj->OnConfigLoaded();
+			EvaluateApplyRule(service, rule);
 		}
 	}
 }

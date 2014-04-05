@@ -151,6 +151,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_PARTIAL "partial (T_PARTIAL)"
 %token T_APPLY "apply (T_APPLY)"
+%token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
 %token T_IMPORT "import (T_IMPORT)"
 %token T_ASSIGN "assign (T_ASSIGN)"
@@ -174,6 +175,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %type <variant> lterm
 %type <variant> object
 %type <variant> apply
+%type <text> target_type_specifier
 
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
@@ -792,26 +794,59 @@ rterm: T_STRING
 	}
 	;
 
+target_type_specifier: /* empty */
+	{
+		$$ = strdup("");
+	}
+	| T_TO identifier
+	{
+		$$ = $2;
+	}
+	;
+
 apply:
 	{
 		m_Apply = true;
 		m_Assign = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 		m_Ignore = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 	}
-	T_APPLY identifier rterm rterm
+	T_APPLY identifier rterm target_type_specifier rterm
 	{
 		m_Apply = false;
 
-		AExpression::Ptr aname = static_cast<AExpression::Ptr>(*$4);
-		delete $4;
 		String type = $3;
 		free($3);
+		AExpression::Ptr aname = static_cast<AExpression::Ptr>(*$4);
+		delete $4;
+		String target = $5;
+		free($5);
 
-		if (!ApplyRule::IsValidType(type))
+		if (!ApplyRule::IsValidSourceType(type))
 			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
 
-		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$5);
-		delete $5;
+		if (!ApplyRule::IsValidTargetType(type, target)) {
+			if (target == "") {
+				std::vector<String> types = ApplyRule::GetTargetTypes(type);
+				String typeNames;
+
+				for (int i = 0; i < types.size(); i++) {
+					if (typeNames != "") {
+						if (i == types.size() - 1)
+							typeNames += " or ";
+						else
+							typeNames += ", ";
+					}
+
+					typeNames += "'" + types[i] + "'";
+				}
+
+				BOOST_THROW_EXCEPTION(ConfigError("'apply' target type is ambiguous (can be one of " + typeNames + "): use 'to' to specify a type") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+			} else
+				BOOST_THROW_EXCEPTION(ConfigError("'apply' target type '" + target + "' is invalid") << errinfo_debuginfo(DebugInfoRange(@2, @5)));
+		}
+
+		AExpression::Ptr exprl = static_cast<AExpression::Ptr>(*$6);
+		delete $6;
 
 		exprl->MakeInline();
 
@@ -821,6 +856,7 @@ apply:
 
 		Array::Ptr args = make_shared<Array>();
 		args->Add(type);
+		args->Add(target);
 		args->Add(aname);
 		args->Add(filter);
 

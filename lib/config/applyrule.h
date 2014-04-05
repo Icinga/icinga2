@@ -35,9 +35,10 @@ class I2_CONFIG_API ApplyRule
 {
 public:
 	typedef boost::function<void (const std::vector<ApplyRule>& rules)> Callback;
-	typedef std::map<String, std::pair<Callback, String> > CallbackMap;
+	typedef std::map<String, std::pair<Callback, std::vector<String> > > CallbackMap;
 	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
 
+	String GetTargetType(void) const;
 	String GetName(void) const;
 	AExpression::Ptr GetExpression(void) const;
 	AExpression::Ptr GetFilter(void) const;
@@ -46,14 +47,17 @@ public:
 
 	bool EvaluateFilter(const Dictionary::Ptr& scope) const;
 
-	static void AddRule(const String& sourceType, const String& name, const AExpression::Ptr& expression,
+	static void AddRule(const String& sourceType, const String& targetType, const String& name, const AExpression::Ptr& expression,
 	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static void EvaluateRules(void);
 
-	static void RegisterType(const String& sourceType, const String& targetType, const ApplyRule::Callback& callback);
-	static bool IsValidType(const String& sourceType);
+	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
+	static bool IsValidSourceType(const String& sourceType);
+	static bool IsValidTargetType(const String& sourceType, const String& targetType);
+	static std::vector<String> GetTargetTypes(const String& sourceType);
 
 private:
+	String m_TargetType;
 	String m_Name;
 	AExpression::Ptr m_Expression;
 	AExpression::Ptr m_Filter;
@@ -63,7 +67,7 @@ private:
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ApplyRule(const String& tmpl, const AExpression::Ptr& expression,
+	ApplyRule(const String& targetType, const String& name, const AExpression::Ptr& expression,
 	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 

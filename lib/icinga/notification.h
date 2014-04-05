@@ -88,14 +88,16 @@ public:
 	static boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> OnNextNotificationChanged;
 
 	static void RegisterApplyRuleHandler(void);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
-	
+
 protected:
 	virtual void Start(void);
 	virtual void Stop(void);
 
 private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
+
+	static void EvaluateApplyRule(const shared_ptr<Checkable>& checkable, const ApplyRule& rule);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 
 }

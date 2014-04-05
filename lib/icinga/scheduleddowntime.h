@@ -45,8 +45,7 @@ public:
 	Checkable::Ptr GetCheckable(void) const;
 
 	static void RegisterApplyRuleHandler(void);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
-	
+
 protected:
 	virtual void Start(void);
 
@@ -55,6 +54,9 @@ private:
 
 	std::pair<double, double> FindNextSegment(void);
 	void CreateNextDowntime(void);
+
+	static void EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 
 }

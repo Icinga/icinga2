@@ -222,6 +222,7 @@ true				{ yylval->num = 1; return T_NUMBER; }
 false				{ yylval->num = 0; return T_NUMBER; }
 const				return T_CONST;
 apply				return T_APPLY;
+to				return T_TO;
 where				return T_WHERE;
 import				return T_IMPORT;
 assign				return T_ASSIGN;

@@ -60,13 +60,15 @@ public:
 	static String StateTypeToString(StateType state);
 
 	static void RegisterApplyRuleHandler(void);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 
 protected:
 	virtual void OnConfigLoaded(void);
 
 private:
 	Host::Ptr m_Host;
+
+	static void EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 
 I2_ICINGA_API boost::tuple<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);

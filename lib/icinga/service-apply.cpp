@@ -32,7 +32,54 @@ INITIALIZE_ONCE(&Service::RegisterApplyRuleHandler);
 
 void Service::RegisterApplyRuleHandler(void)
 {
-	ApplyRule::RegisterType("Service", "Host", &Service::EvaluateApplyRules);
+	std::vector<String> targets;
+	targets.push_back("Host");
+	ApplyRule::RegisterType("Service", targets, &Service::EvaluateApplyRules);
+}
+
+void Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
+{
+	DebugInfo di = rule.GetDebugInfo();
+
+	std::ostringstream msgbuf;
+	msgbuf << "Evaluating 'apply' rule (" << di << ")";
+	CONTEXT(msgbuf.str());
+
+	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("host", host);
+
+	if (!rule.EvaluateFilter(locals))
+		return;
+
+	std::ostringstream msgbuf2;
+	msgbuf2 << "Applying service '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
+	Log(LogDebug, "icinga", msgbuf2.str());
+
+	std::ostringstream namebuf;
+	namebuf << host->GetName() << "!" << rule.GetName();
+	String name = namebuf.str();
+
+	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+	builder->SetType("Service");
+	builder->SetName(name);
+	builder->SetScope(rule.GetScope());
+
+	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+	    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di), 
+	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+	    di));
+
+	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+	    make_shared<AExpression>(&AExpression::OpLiteral, "name", di),
+	    make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di),
+	    di));
+
+	builder->AddExpression(rule.GetExpression());
+
+	ConfigItem::Ptr serviceItem = builder->Compile();
+	serviceItem->Register();
+	DynamicObject::Ptr dobj = serviceItem->Commit();
+	dobj->OnConfigLoaded();
 }
 
 void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
@@ -40,48 +87,7 @@ void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");
 
-		Dictionary::Ptr locals = make_shared<Dictionary>();
-		locals->Set("host", host);
-
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			DebugInfo di = rule.GetDebugInfo();
-
-			std::ostringstream msgbuf;
-			msgbuf << "Evaluating 'apply' rule (" << di << ")";
-			CONTEXT(msgbuf.str());
-
-			if (!rule.EvaluateFilter(locals))
-				continue;
-
-			std::ostringstream msgbuf2;
-			msgbuf2 << "Applying service '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
-			Log(LogDebug, "icinga", msgbuf2.str());
-
-			std::ostringstream namebuf;
-			namebuf << host->GetName() << "!" << rule.GetName();
-			String name = namebuf.str();
-
-			ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
-			builder->SetType("Service");
-			builder->SetName(name);
-			builder->SetScope(rule.GetScope());
-
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-			    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di), 
-			    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
-			    di));
-
-			builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-			    make_shared<AExpression>(&AExpression::OpLiteral, "name", di),
-			    make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di),
-			    di));
-
-			builder->AddExpression(rule.GetExpression());
-
-			ConfigItem::Ptr serviceItem = builder->Compile();
-			serviceItem->Register();
-			DynamicObject::Ptr dobj = serviceItem->Commit();
-			dobj->OnConfigLoaded();
-		}
+		BOOST_FOREACH(const ApplyRule& rule, rules)
+			EvaluateApplyRule(host, rule);
 	}
 }

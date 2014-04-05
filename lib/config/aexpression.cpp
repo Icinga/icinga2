@@ -499,12 +499,13 @@ Value AExpression::OpApply(const AExpression* expr, const Dictionary::Ptr& local
 	Array::Ptr left = expr->m_Operand1;
 	AExpression::Ptr exprl = expr->m_Operand2;
 	String type = left->Get(0);
-	AExpression::Ptr aname = left->Get(1);
-	AExpression::Ptr filter = left->Get(2);
+	String target = left->Get(1);
+	AExpression::Ptr aname = left->Get(2);
+	AExpression::Ptr filter = left->Get(3);
 
 	String name = aname->Evaluate(locals);
 
-	ApplyRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, locals);
+	ApplyRule::AddRule(type, target, name, exprl, filter, expr->m_DebugInfo, locals);
 
 	return Empty;
 }

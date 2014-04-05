@@ -48,11 +48,14 @@ public:
 	bool IsAvailable(DependencyType dt) const;
 
 	static void RegisterApplyRuleHandler(void);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 
 protected:
 	virtual void OnStateLoaded(void);
 	virtual void Stop(void);
+
+private:
+	static void EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
+	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 
 }
