@@ -53,10 +53,10 @@ for plugin in plugins:
     print("  import \"snmp-extend-service\",")
     print()
     print("  check_command = \"snmp-extend\",")
-    print("  macros.community = \"%s\"," % (community))
-    print("  macros.plugin = \"%s\"," % (plugin))
+    print("  vars.community = \"%s\"," % (community))
+    print("  vars.plugin = \"%s\"," % (plugin))
     print()
-    print("  assign where host.macros.address == \"%s\"" % (ipaddr))
+    print("  assign where host.vars.address == \"%s\"" % (ipaddr))
     print("}")
     print()
 

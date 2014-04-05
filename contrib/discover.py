@@ -109,7 +109,7 @@ def print_host(host):
     print "object Host \"%s\" {" % (host["name"])
     print "\timport \"discovered-host\","
     print ""
-    print "\tmacros.address = \"%s\"," % (host["address"])
+    print "\tvars.address = \"%s\"," % (host["address"])
     print "}"
     print ""
 
@@ -119,7 +119,7 @@ def print_host(host):
         print ""
         print "\tcheck_command = \"%s\"," % (service["command"])
         print ""
-        print "\tmacros.port = %s" % (service["port"])
+        print "\tvars.port = %s" % (service["port"])
         print "}"
         print ""
 
