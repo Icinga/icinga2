@@ -79,13 +79,13 @@ bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 			*result = GetDisplayName();
 			return true;
 		}
+	}
 
-		Dictionary::Ptr vars = GetVars();
+	Dictionary::Ptr vars = GetVars();
 
-		if (vars && vars->Contains(key)) {
-			*result = vars->Get(key);
-			return true;
-		}
+	if (vars && vars->Contains(macro)) {
+		*result = vars->Get(macro);
+		return true;
 	}
 
 	return false;
