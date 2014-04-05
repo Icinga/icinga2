@@ -114,7 +114,9 @@ services) like in Icinga 1.x but directly after their type definition.
         service_description  ping4
     }
 
-    object Service "localhost-ping4" { }
+    object Service "ping4" {
+      host_name = "localhost"
+    }
 
 ## <a id="differences-1x-2-templates"></a> Templates
 
@@ -153,7 +155,7 @@ requires an equal sign (=) between them.
 > **Note**
 >
 > Please note that the default time value is seconds, if no duration literal
-> is given. check_interval = 5 behaves the same as check_interval = 5s.
+> is given. `check_interval = 5` behaves the same as `check_interval = 5s`.
 
 All strings require double quotes in Icinga 2. Therefore a double-quote
 must be escaped with a backslash (e.g. in command line).
@@ -211,7 +213,6 @@ TODO
 >
 > If you are planning to access custom variables as runtime macros you may access
 > them with `_HOST`name as known from Icinga 1.x
-
 
 ## <a id="differences-1x-2-host-service-relation"></a> Host Service Relation
 
