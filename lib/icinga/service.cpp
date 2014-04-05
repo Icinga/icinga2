@@ -128,11 +128,22 @@ String Service::StateTypeToString(StateType type)
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const
 {
+	String key;
+	Dictionary::Ptr vars;
+
 	/* require prefix for object macros */
 	if (macro.SubStr(0, 8) == "service.") {
-		String key = macro.SubStr(8);
+		key = macro.SubStr(8);
 
-		if (key == "description") {
+		if (key.SubStr(0, 5) == "vars.") {
+			vars = GetVars();
+			String vars_key = key.SubStr(5);
+
+			if (vars && vars->Contains(vars_key)) {
+				*result = vars->Get(vars_key);
+				return true;
+			}
+		} else if (key == "description") {
 			*result = GetShortName();
 			return true;
 		} else if (key == "displayname") {
@@ -199,13 +210,13 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Stri
 				return true;
 			}
 		}
-	}
+	} else {
+		vars = GetVars();
 
-	Dictionary::Ptr vars = GetVars();
-
-	if (vars && vars->Contains(macro)) {
-		*result = vars->Get(macro);
-		return true;
+		if (vars && vars->Contains(macro)) {
+			*result = vars->Get(macro);
+			return true;
+		}
 	}
 
 	return false;

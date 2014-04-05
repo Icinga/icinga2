@@ -68,24 +68,35 @@ TimePeriod::Ptr User::GetNotificationPeriod(void) const
 
 bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
+	String key;
+	Dictionary::Ptr vars;
+
 	/* require prefix for object macros */
 	if (macro.SubStr(0, 5) == "user.") {
-		String key = macro.SubStr(5);
+		key = macro.SubStr(5);
 
-		if (key == "name") {
+		if (key.SubStr(0, 5) == "vars.") {
+			vars = GetVars();
+			String vars_key = key.SubStr(5);
+
+			if (vars && vars->Contains(vars_key)) {
+				*result = vars->Get(vars_key);
+				return true;
+			}
+		} else if (key == "name") {
 			*result = GetName();
 			return true;
 		} else if (key == "displayname") {
 			*result = GetDisplayName();
 			return true;
 		}
-	}
+	} else {
+		vars = GetVars();
 
-	Dictionary::Ptr vars = GetVars();
-
-	if (vars && vars->Contains(macro)) {
-		*result = vars->Get(macro);
-		return true;
+		if (vars && vars->Contains(macro)) {
+			*result = vars->Get(macro);
+			return true;
+		}
 	}
 
 	return false;
