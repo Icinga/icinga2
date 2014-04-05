@@ -45,9 +45,9 @@ struct CheckableNextCheckExtractor
 	/**
 	 * @threadsafety Always.
 	 */
-	double operator()(const Checkable::Ptr& service)
+	double operator()(const Checkable::Ptr& checkable)
 	{
-		return service->GetNextCheck();
+		return checkable->GetNextCheck();
 	}
 };
 
@@ -90,12 +90,12 @@ private:
 	void CheckThreadProc(void);
 	void ResultTimerHandler(void);
 
-	void ExecuteCheckHelper(const Checkable::Ptr& service);
+	void ExecuteCheckHelper(const Checkable::Ptr& checkable);
 
 	void AdjustCheckTimer(void);
 
 	void ObjectHandler(const DynamicObject::Ptr& object);
-	void NextCheckChangedHandler(const Checkable::Ptr& service);
+	void NextCheckChangedHandler(const Checkable::Ptr& checkable);
 
 	void RescheduleCheckTimer(void);
 

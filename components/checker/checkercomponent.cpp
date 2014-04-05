@@ -113,15 +113,15 @@ void CheckerComponent::CheckThreadProc(void)
 			break;
 
 		CheckTimeView::iterator it = idx.begin();
-		Checkable::Ptr service = *it;
+		Checkable::Ptr checkable = *it;
 
-		if (!service->HasAuthority("checker")) {
-			m_IdleCheckables.erase(service);
+		if (!checkable->HasAuthority("checker")) {
+			m_IdleCheckables.erase(checkable);
 
 			continue;
 		}
 
-		double wait = service->GetNextCheck() - Utility::GetTime();
+		double wait = checkable->GetNextCheck() - Utility::GetTime();
 
 		if (wait > 0) {
 			/* Wait for the next check. */
@@ -130,87 +130,87 @@ void CheckerComponent::CheckThreadProc(void)
 			continue;
 		}
 
-		m_IdleCheckables.erase(service);
+		m_IdleCheckables.erase(checkable);
 
-		bool forced = service->GetForceNextCheck();
+		bool forced = checkable->GetForceNextCheck();
 		bool check = true;
 
 		if (!forced) {
-			if (!service->IsReachable(DependencyCheckExecution)) {
-				Log(LogDebug, "icinga", "Skipping check for service '" + service->GetName() + "': Dependency failed.");
+			if (!checkable->IsReachable(DependencyCheckExecution)) {
+				Log(LogDebug, "icinga", "Skipping check for object '" + checkable->GetName() + "': Dependency failed.");
 				check = false;
 			}
 
-			if (!service->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableChecks()) {
-				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active checks are disabled");
+			if (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableChecks()) {
+				Log(LogDebug, "checker", "Skipping check for object '" + checkable->GetName() + "': active checks are disabled");
 				check = false;
 			}
 
-			TimePeriod::Ptr tp = service->GetCheckPeriod();
+			TimePeriod::Ptr tp = checkable->GetCheckPeriod();
 
 			if (tp && !tp->IsInside(Utility::GetTime())) {
-				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': not in check_period");
+				Log(LogDebug, "checker", "Skipping check for object '" + checkable->GetName() + "': not in check_period");
 				check = false;
 			}
 		}
 
-		/* reschedule the service if checks are disabled */
+		/* reschedule the checkable if checks are disabled */
 		if (!check) {
-			m_IdleCheckables.insert(service);
+			m_IdleCheckables.insert(checkable);
 			lock.unlock();
 
-			service->UpdateNextCheck();
+			checkable->UpdateNextCheck();
 
 			lock.lock();
 
 			continue;
 		}
 
-		m_PendingCheckables.insert(service);
+		m_PendingCheckables.insert(checkable);
 
 		lock.unlock();
 
 		if (forced) {
-			ObjectLock olock(service);
-			service->SetForceNextCheck(false);
+			ObjectLock olock(checkable);
+			checkable->SetForceNextCheck(false);
 		}
 
-		Log(LogDebug, "checker", "Executing service check for '" + service->GetName() + "'");
+		Log(LogDebug, "checker", "Executing check for '" + checkable->GetName() + "'");
 
 		CheckerComponent::Ptr self = GetSelf();
-		m_Pool.Post(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, service));
+		m_Pool.Post(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, checkable));
 
 		lock.lock();
 	}
 }
 
-void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& service)
+void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 {
 	try {
-		service->ExecuteCheck();
+		checkable->ExecuteCheck();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "checker", "Exception occured while checking service '" + service->GetName() + "': " + DiagnosticInformation(ex));
+		Log(LogCritical, "checker", "Exception occured while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex));
 	}
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		/* remove the service from the list of pending services; if it's not in the
+		/* remove the object from the list of pending objects; if it's not in the
 		 * list this was a manual (i.e. forced) check and we must not re-add the
-		 * service to the services list because it's already there. */
+		 * object to the list because it's already there. */
 		CheckerComponent::CheckableSet::iterator it;
-		it = m_PendingCheckables.find(service);
+		it = m_PendingCheckables.find(checkable);
 		if (it != m_PendingCheckables.end()) {
 			m_PendingCheckables.erase(it);
 
-			if (service->IsActive() && service->HasAuthority("checker"))
-				m_IdleCheckables.insert(service);
+			if (checkable->IsActive() && checkable->HasAuthority("checker"))
+				m_IdleCheckables.insert(checkable);
 
 			m_CV.notify_all();
 		}
 	}
 
-	Log(LogDebug, "checker", "Check finished for object '" + service->GetName() + "'");
+	Log(LogDebug, "checker", "Check finished for object '" + checkable->GetName() + "'");
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -222,7 +222,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		msgbuf << "Pending services: " << m_PendingCheckables.size() << "; Idle services: " << m_IdleCheckables.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
+		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
 	}
 
 	Log(LogInformation, "checker", msgbuf.str());
@@ -233,39 +233,39 @@ void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 	if (!Type::GetByName("Checkable")->IsAssignableFrom(object->GetReflectionType()))
 		return;
 
-	Checkable::Ptr service = static_pointer_cast<Checkable>(object);
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		if (object->IsActive() && object->HasAuthority("checker")) {
-			if (m_PendingCheckables.find(service) != m_PendingCheckables.end())
+			if (m_PendingCheckables.find(checkable) != m_PendingCheckables.end())
 				return;
 
-			m_IdleCheckables.insert(service);
+			m_IdleCheckables.insert(checkable);
 		} else {
-			m_IdleCheckables.erase(service);
-			m_PendingCheckables.erase(service);
+			m_IdleCheckables.erase(checkable);
+			m_PendingCheckables.erase(checkable);
 		}
 
 		m_CV.notify_all();
 	}
 }
 
-void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& service)
+void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	/* remove and re-insert the service from the set in order to force an index update */
+	/* remove and re-insert the object from the set in order to force an index update */
 	typedef boost::multi_index::nth_index<CheckableSet, 0>::type CheckableView;
 	CheckableView& idx = boost::get<0>(m_IdleCheckables);
 
-	CheckableView::iterator it = idx.find(service);
+	CheckableView::iterator it = idx.find(checkable);
 	if (it == idx.end())
 		return;
 
-	idx.erase(service);
-	idx.insert(service);
+	idx.erase(checkable);
+	idx.insert(checkable);
 	m_CV.notify_all();
 }
 
