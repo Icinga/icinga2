@@ -267,7 +267,7 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 
 		String value;
 		if (vars && vars->Contains(macro))
-			value = vars->Get(key);
+			value = vars->Get(macro);
 
 		if (value.IsEmpty()) {
 			*result = GetName();
