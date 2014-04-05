@@ -446,6 +446,9 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 	}
 
 	do {
+		if (strcmp(wfd.cFileName, ".") == 0 || strcmp(wfd.cFileName, "..") == 0)
+			continue;
+
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobDirectory))
 			continue;
 
@@ -543,6 +546,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 	}
 
 	do {
+		if (strcmp(wfd.cFileName, ".") == 0 || strcmp(wfd.cFileName, "..") == 0)
+			continue;
+
 		String cpath = path + "/" + wfd.cFileName;
 
 		if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
