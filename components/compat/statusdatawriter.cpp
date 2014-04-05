@@ -518,7 +518,7 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObjec
 		if (!kv.first.IsEmpty()) {
 			fp << "\t";
 
-			if (!CompatUtility::IsLegacyAttribute(kv.first))
+			if (!CompatUtility::IsLegacyAttribute(object, kv.first))
 				fp << "_";
 
 			fp << kv.first << "\t" << kv.second << "\n";

@@ -113,7 +113,7 @@ public:
 	static String GetCommandLine(const Command::Ptr& command);
 
 	/* custom attribute */
-	static bool IsLegacyAttribute(const String& name);
+	static bool IsLegacyAttribute(const DynamicObject::Ptr& object, const String& name);
 	static String GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name);
 	static Dictionary::Ptr GetCustomAttributeConfig(const DynamicObject::Ptr& object);
 
