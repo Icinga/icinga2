@@ -117,12 +117,28 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
 		m_Properties->Set("type", m_Type);
-		m_Properties->Set("__name", m_Name);
+		m_Properties->Set("name", m_Name);
 		m_Properties->Set("__parent", m_Scope);
 		GetExpressionList()->Evaluate(m_Properties);
+		m_Properties->Remove("name");
 		m_Properties->Remove("__parent");
 
-		VERIFY(m_Properties->Get("type") == GetType() && m_Properties->Get("__name") == GetName());
+		String name = m_Name;
+
+		if (!m_Abstract) {
+			const DynamicObjectNameHelper *nh = dynamic_cast<const DynamicObjectNameHelper *>(Type::GetByName(m_Type));
+
+			if (nh) {
+				String name = nh->MakeObjectName(m_Name, m_Properties);
+
+				if (name.IsEmpty())
+					BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine name for object"));
+			}
+		}
+
+		m_Properties->Set("__name", name);
+
+		VERIFY(m_Properties->Get("type") == GetType());
 	}
 
 	return m_Properties;
@@ -175,7 +191,24 @@ DynamicObject::Ptr ConfigItem::Commit(void)
  */
 void ConfigItem::Register(void)
 {
-	std::pair<String, String> key = std::make_pair(m_Type, m_Name);
+	String name = m_Name;
+
+	/* If this is a non-abstract object we need to figure out
+	 * its real name now - or assign it a temporary name. */
+	if (!m_Abstract) {
+		const DynamicObjectNameHelper *nh = dynamic_cast<const DynamicObjectNameHelper *>(Type::GetByName(m_Type));
+
+		if (nh) {
+			name = nh->MakeObjectName(m_Name, Dictionary::Ptr());
+
+			ASSERT(name.IsEmpty() || name == m_Name);
+
+			if (name.IsEmpty())
+				name = Utility::NewUniqueID();
+		}
+	}
+
+	std::pair<String, String> key = std::make_pair(m_Type, name);
 	ConfigItem::Ptr self = GetSelf();
 
 	boost::mutex::scoped_lock lock(m_Mutex);

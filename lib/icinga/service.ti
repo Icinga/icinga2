@@ -6,7 +6,15 @@
 namespace icinga
 {
 
-class Service : Checkable
+code {{{
+class I2_ICINGA_API ServiceNameHelper : public DynamicObjectNameHelper
+{
+public:
+	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const;
+};
+}}}
+
+class Service : Checkable < ServiceNameHelper
 {
 	[config] String display_name {
 		get {{{

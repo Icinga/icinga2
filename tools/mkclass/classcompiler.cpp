@@ -111,8 +111,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
 	/* TypeImpl */
 	std::cout << "template<>" << std::endl
 		<< "class TypeImpl<" << klass.Name << ">"
-		<< " : public Type" << std::endl
-		<< "{" << std::endl
+		<< " : public Type";
+	
+	if (!klass.TypeBase.empty())
+		std::cout << ", public " + klass.TypeBase;
+
+	std::cout << std::endl
+		<< " {" << std::endl
 		<< "public:" << std::endl;
 
 	/* GetName */

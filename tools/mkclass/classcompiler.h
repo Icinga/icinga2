@@ -113,6 +113,7 @@ struct Klass
 {
 	std::string Name;
 	std::string Parent;
+	std::string TypeBase;
 	int Attributes;
 	std::vector<Field> Fields;
 };

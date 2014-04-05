@@ -28,6 +28,21 @@ using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
+String DependencyNameHelper::MakeObjectName(const String& shortName, const Dictionary::Ptr props) const
+{
+	if (!props)
+		return "";
+
+	String name = props->Get("child_host_name");
+
+	if (props->Contains("child_service_name"))
+		name += "!" + props->Get("child_service_name");
+
+	name += "!" + shortName;
+
+	return name;
+}
+
 void Dependency::OnStateLoaded(void)
 {
 	DynamicObject::Start();

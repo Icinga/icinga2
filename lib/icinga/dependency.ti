@@ -4,7 +4,15 @@
 namespace icinga
 {
 
-class Dependency : DynamicObject
+code {{{
+class I2_ICINGA_API DependencyNameHelper : public DynamicObjectNameHelper
+{
+public:
+	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const;
+};
+}}}
+
+class Dependency : DynamicObject < DependencyNameHelper
 {
 	[config] String child_host_name;
 	[config] String child_service_name;

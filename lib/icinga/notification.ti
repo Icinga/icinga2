@@ -3,7 +3,15 @@
 namespace icinga
 {
 
-class Notification : DynamicObject
+code {{{
+class I2_ICINGA_API NotificationNameHelper : public DynamicObjectNameHelper
+{
+public:
+	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const;
+};
+}}}
+
+class Notification : DynamicObject < NotificationNameHelper
 {
 	[config, protected] String notification_command (NotificationCommandRaw);
 	[config] double notification_interval {

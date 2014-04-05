@@ -37,6 +37,21 @@ INITIALIZE_ONCE(&ScheduledDowntime::StaticInitialize);
 
 static Timer::Ptr l_Timer;
 
+String ScheduledDowntimeNameHelper::MakeObjectName(const String& shortName, const Dictionary::Ptr props) const
+{
+	if (!props)
+		return "";
+
+	String name = props->Get("host_name");
+
+	if (props->Contains("service_name"))
+		name += "!" + props->Get("service_name");
+
+	name += "!" + shortName;
+
+	return name;
+}
+
 void ScheduledDowntime::StaticInitialize(void)
 {
 	l_Timer = make_shared<Timer>();

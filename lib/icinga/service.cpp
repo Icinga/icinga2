@@ -39,6 +39,13 @@ REGISTER_TYPE(Service);
 
 INITIALIZE_ONCE(&Service::StartDowntimesExpiredTimer);
 
+String ServiceNameHelper::MakeObjectName(const String& shortName, const Dictionary::Ptr props) const {
+	if (!props)
+		return "";
+
+	return props->Get("host_name") + "!" + shortName;
+}
+
 void Service::OnConfigLoaded(void)
 {
 	Array::Ptr groups = GetGroups();

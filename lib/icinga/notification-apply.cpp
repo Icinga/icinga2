@@ -62,13 +62,9 @@ void Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	msgbuf2 << "Applying notification '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
 	Log(LogDebug, "icinga", msgbuf2.str());
 
-	std::ostringstream namebuf;
-	namebuf << checkable->GetName() << "!" << rule.GetName();
-	String name = namebuf.str();
-
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("Notification");
-	builder->SetName(name);
+	builder->SetName(rule.GetName());
 	builder->SetScope(rule.GetScope());
 
 	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,

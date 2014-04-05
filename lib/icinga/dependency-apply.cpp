@@ -63,13 +63,9 @@ void Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 	msgbuf2 << "Applying dependency '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
 	Log(LogDebug, "icinga", msgbuf2.str());
 
-	std::ostringstream namebuf;
-	namebuf << checkable->GetName() << "!" << rule.GetName();
-	String name = namebuf.str();
-
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("Dependency");
-	builder->SetName(name);
+	builder->SetName(rule.GetName());
 	builder->SetScope(rule.GetScope());
 
 	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,

@@ -66,6 +66,7 @@ using namespace icinga;
 %type <text> identifier
 %type <text> alternative_name_specifier
 %type <text> inherits_specifier
+%type <text> type_base_specifier
 %type <text> include
 %type <text> angle_include
 %type <text> code
@@ -166,7 +167,7 @@ code: T_CODE T_STRING
 	}
 	;
 
-class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier '{' class_fields '}' ';'
+class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_specifier '{' class_fields '}' ';'
 	{
 		$$ = new Klass();
 
@@ -178,10 +179,15 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier '{' class_fi
 			free($4);
 		}
 
+		if ($5) {
+			$$->TypeBase = $5;
+			free($5);
+		}
+
 		$$->Attributes = $1;
 
-		$$->Fields = *$6;
-		delete $6;
+		$$->Fields = *$7;
+		delete $7;
 	}
 	;
 
@@ -203,6 +209,16 @@ inherits_specifier: /* empty */
 		$$ = NULL;
 	}
 	| ':' identifier
+	{
+		$$ = $2;
+	}
+	;
+
+type_base_specifier: /* empty */
+	{
+		$$ = NULL;
+	}
+	| '<' identifier
 	{
 		$$ = $2;
 	}

@@ -3,7 +3,15 @@
 namespace icinga
 {
 
-class ScheduledDowntime : DynamicObject
+code {{{
+class I2_ICINGA_API ScheduledDowntimeNameHelper : public DynamicObjectNameHelper
+{
+public:
+	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const;
+};
+}}}
+
+class ScheduledDowntime : DynamicObject < ScheduledDowntimeNameHelper
 {
 	[config, protected] String host_name;
 	[config, protected] String service_name;

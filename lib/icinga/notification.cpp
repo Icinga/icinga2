@@ -38,6 +38,21 @@ INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> Notification::OnNextNotificationChanged;
 
+String NotificationNameHelper::MakeObjectName(const String& shortName, const Dictionary::Ptr props) const
+{
+	if (!props)
+		return "";
+
+	String name = props->Get("host_name");
+
+	if (props->Contains("service_name"))
+		name += "!" + props->Get("service_name");
+
+	name += "!" + shortName;
+
+	return name;
+}
+
 void Notification::StaticInitialize(void)
 {
 	ScriptVariable::Set("NotificationDowntimeStart", NotificationDowntimeStart, true, true);

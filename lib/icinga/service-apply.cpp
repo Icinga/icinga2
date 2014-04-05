@@ -55,13 +55,9 @@ void Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	msgbuf2 << "Applying service '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
 	Log(LogDebug, "icinga", msgbuf2.str());
 
-	std::ostringstream namebuf;
-	namebuf << host->GetName() << "!" << rule.GetName();
-	String name = namebuf.str();
-
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("Service");
-	builder->SetName(name);
+	builder->SetName(rule.GetName());
 	builder->SetScope(rule.GetScope());
 
 	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
