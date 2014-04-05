@@ -12,7 +12,7 @@ multiple locations.
 
 Icinga 2 and the Icinga 2 documentation are licensed under the terms of the GNU
 General Public License Version 2, you will find a copy of this license in the
-LICENSE file included in the package.
+LICENSE file included in the source package.
 
 ## <a id="support"></a> Support
 
@@ -22,7 +22,7 @@ the support overview page at [https://support.icinga.org].
 ## <a id="contribute"></a> Contribute
 
 There are many ways to contribute to Icinga - be it by sending patches, testing and
-reporting bugs, reviewing and updating the documentation, ... every contribution
+reporting bugs, reviewing and updating the documentation. Every contribution
 is appreciated!
 
 Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
@@ -63,11 +63,4 @@ Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
 ### Archive
 
 Please check the `ChangeLog` file.
-
-
-
-
-
-
-
 
