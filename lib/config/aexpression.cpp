@@ -522,12 +522,23 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 
 	ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(expr->m_DebugInfo);
 
-	ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, name);
+	String checkName = name;
 
-	if (oldItem) {
-		std::ostringstream msgbuf;
-		msgbuf << "Object '" << name << "' of type '" << type << "' re-defined: " << expr->m_DebugInfo << "; previous definition: " << oldItem->GetDebugInfo();
-		BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(expr->m_DebugInfo));
+	if (!abstract) {
+		const DynamicObjectNameHelper *nh = dynamic_cast<const DynamicObjectNameHelper *>(Type::GetByName(type));
+
+		if (nh)
+			checkName = nh->MakeObjectName(name, Dictionary::Ptr());
+	}
+
+	if (!checkName.IsEmpty()) {
+		ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, name);
+
+		if (oldItem) {
+			std::ostringstream msgbuf;
+			msgbuf << "Object '" << name << "' of type '" << type << "' re-defined: " << expr->m_DebugInfo << "; previous definition: " << oldItem->GetDebugInfo();
+			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(expr->m_DebugInfo));
+		}
 	}
 
 	item->SetType(type);
