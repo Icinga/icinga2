@@ -63,4 +63,3 @@ Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
 ### Archive
 
 Please check the `ChangeLog` file.
-
