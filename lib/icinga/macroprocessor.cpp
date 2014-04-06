@@ -29,7 +29,7 @@
 using namespace icinga;
 
 Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
-	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
+	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
 {
 	Value result;
 
@@ -37,7 +37,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 		return Empty;
 
 	if (str.IsScalar()) {
-		result = InternalResolveMacros(str, resolvers, cr, escapeFn, escapeMacros);
+		result = InternalResolveMacros(str, resolvers, cr, escapeFn);
 	} else if (str.IsObjectType<Array>()) {
 		Array::Ptr resultArr = make_shared<Array>();
 		Array::Ptr arr = str;
@@ -46,7 +46,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 
 		BOOST_FOREACH(const Value& arg, arr) {
 			/* Note: don't escape macros here. */
-			resultArr->Add(InternalResolveMacros(arg, resolvers, cr, EscapeCallback(), Array::Ptr()));
+			resultArr->Add(InternalResolveMacros(arg, resolvers, cr, EscapeCallback()));
 		}
 
 		result = resultArr;
@@ -72,7 +72,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroRe
 
 
 String MacroProcessor::InternalResolveMacros(const String& str, const std::vector<MacroResolver::Ptr>& resolvers,
-	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Array::Ptr& escapeMacros)
+	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
 {
 	CONTEXT("Resolving macros for string '" + str + "'");
 
@@ -100,20 +100,8 @@ String MacroProcessor::InternalResolveMacros(const String& str, const std::vecto
 		if (!found)
 			Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
 
-		if (escapeFn && escapeMacros) {
-			bool escape = false;
-
-			ObjectLock olock(escapeMacros);
-			BOOST_FOREACH(const String& escapeMacro, escapeMacros) {
-				if (escapeMacro == name) {
-					escape = true;
-					break;
-				}
-			}
-
-			if (escape)
-				resolved_macro = escapeFn(resolved_macro);
-		}
+		if (escapeFn)
+			resolved_macro = escapeFn(resolved_macro);
 
 		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro);
 		offset = pos_first + resolved_macro.GetLength() + 1;

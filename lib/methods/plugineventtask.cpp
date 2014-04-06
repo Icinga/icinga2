@@ -54,7 +54,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd);
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
@@ -64,7 +64,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 
-			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult());
 
 			envMacros->Set(kv.first, value);
 		}

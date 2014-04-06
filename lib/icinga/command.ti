@@ -10,7 +10,6 @@ abstract class Command : DynamicObject
 		default {{{ return 300; }}}
 	};
 	[config] Dictionary::Ptr env;
-	[config] Array::Ptr escape_macros;
 };
 
 }

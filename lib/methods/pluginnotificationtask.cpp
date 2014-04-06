@@ -63,7 +63,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	resolvers.push_back(commandObj);
 	resolvers.push_back(IcingaApplication::GetInstance());
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd);
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 
@@ -73,7 +73,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 
-			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd, commandObj->GetEscapeMacros());
+			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult());
 
 			envMacros->Set(kv.first, value);
 		}
