@@ -412,6 +412,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 				Dictionary::Ptr bestSegment;
 				double bestBegin;
 
+				ObjectLock olock(segments);
 				BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
 					double begin = segment->Get("begin");
 

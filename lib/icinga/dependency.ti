@@ -5,14 +5,14 @@ namespace icinga
 {
 
 code {{{
-class I2_ICINGA_API DependencyNameHelper : public DynamicObjectNameHelper
+class I2_ICINGA_API DependencyNameComposer : public NameComposer
 {
 public:
-	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const;
+	virtual String MakeName(const String& shortName, const Dictionary::Ptr props) const;
 };
 }}}
 
-class Dependency : DynamicObject < DependencyNameHelper
+class Dependency : DynamicObject < DependencyNameComposer
 {
 	[config] String child_host_name;
 	[config] String child_service_name;

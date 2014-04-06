@@ -2,9 +2,9 @@ namespace icinga
 {
 
 code {{{
-class DynamicObjectNameHelper {
+class NameComposer {
 public:
-	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const = 0;
+	virtual String MakeName(const String& shortName, const Dictionary::Ptr props) const = 0;
 };
 }}}
 

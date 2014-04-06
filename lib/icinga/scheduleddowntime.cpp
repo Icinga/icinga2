@@ -37,7 +37,7 @@ INITIALIZE_ONCE(&ScheduledDowntime::StaticInitialize);
 
 static Timer::Ptr l_Timer;
 
-String ScheduledDowntimeNameHelper::MakeObjectName(const String& shortName, const Dictionary::Ptr props) const
+String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const
 {
 	if (!props)
 		return "";

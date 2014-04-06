@@ -525,10 +525,10 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	String checkName = name;
 
 	if (!abstract) {
-		const DynamicObjectNameHelper *nh = dynamic_cast<const DynamicObjectNameHelper *>(Type::GetByName(type));
+		const NameComposer *nc = dynamic_cast<const NameComposer *>(Type::GetByName(type));
 
-		if (nh)
-			checkName = nh->MakeObjectName(name, Dictionary::Ptr());
+		if (nc)
+			checkName = nc->MakeName(name, Dictionary::Ptr());
 	}
 
 	if (!checkName.IsEmpty()) {

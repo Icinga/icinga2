@@ -7,14 +7,14 @@ namespace icinga
 {
 
 code {{{
-class I2_ICINGA_API ServiceNameHelper : public DynamicObjectNameHelper
+class I2_ICINGA_API ServiceNameComposer : public NameComposer
 {
 public:
-	virtual String MakeObjectName(const String& shortName, const Dictionary::Ptr props) const;
+	virtual String MakeName(const String& shortName, const Dictionary::Ptr props) const;
 };
 }}}
 
-class Service : Checkable < ServiceNameHelper
+class Service : Checkable < ServiceNameComposer
 {
 	[config] String display_name {
 		get {{{

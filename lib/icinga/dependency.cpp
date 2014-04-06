@@ -28,7 +28,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
-String DependencyNameHelper::MakeObjectName(const String& shortName, const Dictionary::Ptr props) const
+String DependencyNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const
 {
 	if (!props)
 		return "";
