@@ -34,10 +34,8 @@ There are still generic templates available for your convenience which may or ma
 not be re-used in your configuration. For instance, `generic-service` includes
 all required attributes except `check_command` for an inline service.
 
-> **Note**
->
-> Sample configuration files are located in the `conf.d/` directory which is
-> included in `icinga2.conf` by default.
+Sample configuration files are located in the `conf.d/` directory which is
+included in `icinga2.conf` by default.
 
 ### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories
 
@@ -66,9 +64,7 @@ as it matches the (wildcard) include expression.
 
     include <itl/itl.conf>
 
-> **Best Practice**
->
-> By convention the `.conf` suffix is used for Icinga 2 configuration files.
+By convention the `.conf` suffix is used for Icinga 2 configuration files.
 
 ## <a id="differences-1x-2-resource-file-global-macros"></a> Resource File and Global Macros
 
@@ -87,10 +83,8 @@ set in the `constants.conf` configuration file:
 
     const PluginDir = "/usr/lib/nagios/plugins"
 
-> **Note**
->
-> [Global macros](#global-constants) can only be defined once.
-
+[Global macros](#global-constants) can only be defined once. Trying to modify a
+global constant will result in an error.
 
 ## <a id="differences-1x-2-comments"></a> Comments
 
@@ -152,10 +146,8 @@ requires an equal sign (=) between them.
         check_interval = 5m
     }
 
-> **Note**
->
-> Please note that the default time value is seconds, if no duration literal
-> is given. `check_interval = 5` behaves the same as `check_interval = 5s`.
+Please note that the default time value is seconds, if no duration literal
+is given. `check_interval = 5` behaves the same as `check_interval = 5s`.
 
 All strings require double quotes in Icinga 2. Therefore a double-quote
 must be escaped with a backslash (e.g. in command line).
@@ -208,11 +200,6 @@ In Icinga 2 these attributes must be added to the `vars` dictionary as custom at
     }
 
 TODO
-
-> **Note**
->
-> If you are planning to access custom variables as runtime macros you may access
-> them with `_HOST`name as known from Icinga 1.x
 
 ## <a id="differences-1x-2-host-service-relation"></a> Host Service Relation
 
@@ -280,12 +267,6 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
         vars.crta = 500
         vars.cpl = 60
     }
-
-> **Note**
->
-> Tip: The above example uses the global `PluginDir` constant instead of the Icinga 1.x
-> $USER1$ macro. It also replaces the Icinga 1.x notation with $ARGn$ with freely
-> definable custom attributes.
 
 ### <a id="differences-1x-2-environment-macros"></a> Environment Macros
 
@@ -473,11 +454,6 @@ Icinga 2 attempts to solve that problem in this way
 * Create notification C-Mail, set notification_command for mail, add user Y,
   assign notification C-Mail to service C
 
-> **Note**
->
-> Notification objects are not required to be service-agnostic. They may use
-> global notification templates and can be added to a service wherever needed.
-
 Previously in Icinga 1.x it looked like this:
 
     service -> (contact, contactgroup) -> notification command
@@ -524,18 +500,8 @@ All state and type filter use long names or'd with a pipe together
     notification_state_filter = StateFilterWarning | StateFilterUnknown | StateFilterCritical,
     notification_type_filter = NotificationProblem | NotificationRecovery | NotificationFlappingStart | NotificationFlappingEnd | NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved
 
-> **Note**
->
-> Please note that `NotificationProblem` as type is required for all problem
-> notifications.
-
 Icinga 2 adds more fine-grained type filters for acknowledgements, downtime
 and flapping type (start, end, ...).
-
-> **Note**
->
-> Notification state and type filters are only valid configuration attributes for
-> `Notification` and `User` objects.
 
 ## <a id="differences-1x-2-dependencies-parents"></a> Dependencies and Parents
 
@@ -629,3 +595,4 @@ and configuration distribution problems Icinga 1.x distributed monitoring curren
 Icinga 2 implements a new built-in distributed monitoring architecture, including config and check
 distribution, IPv4/IPv6 support, SSL certificates and domain support for DMZ. High Availability
 and load balancing are also part of the Icinga 2 [Cluster](#cluster) setup.
+

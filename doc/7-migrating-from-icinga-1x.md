@@ -21,11 +21,6 @@ not preserved.
 The migration script uses templates from the Icinga Template Library where
 possible.
 
-> **Note**
->
-> Please check the provided README file for additional notes and possible
-> caveats.
-
     # mkdir /etc/icinga2/conf.d/migrate
     # /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o /etc/icinga2/conf.d/migrate
 
