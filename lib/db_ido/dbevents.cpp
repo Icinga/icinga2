@@ -745,7 +745,7 @@ void DbEvents::AddRemoveDowntimeLogHistory(const Checkable::Ptr& checkable, cons
 			<< "";
 	}
 
-	AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
 }
 
 void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
@@ -800,7 +800,7 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 		       << "";
 	}
 
-	AddLogHistory(service, msgbuf.str(), LogEntryTypeHostNotification);
+	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeHostNotification);
 }
 
 void DbEvents::AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingState flapping_state)
@@ -847,7 +847,7 @@ void DbEvents::AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingSt
                         << "";
 	}
 
-	AddLogHistory(service, msgbuf.str(), LogEntryTypeInfoMessage);
+	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
 }
 
 void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type)
