@@ -40,18 +40,12 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
 
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
-
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = service->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	std::vector<MacroResolver::Ptr> resolvers;
-	if (is_service)
+	if (service)
 		resolvers.push_back(service);
 	resolvers.push_back(host);
 	resolvers.push_back(commandObj);

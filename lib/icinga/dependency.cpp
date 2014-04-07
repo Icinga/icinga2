@@ -111,13 +111,16 @@ bool Dependency::IsAvailable(DependencyType dt) const
 		return true;
 	}
 
-	bool is_service = parent->GetType() == DynamicType::GetByName("Service");
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(parent);
+
 	int state;
 
-	if (is_service)
-		state = ServiceStateToFilter(static_pointer_cast<Service>(parent)->GetState());
+	if (service)
+		state = ServiceStateToFilter(service->GetState());
 	else
-		state = HostStateToFilter(static_pointer_cast<Host>(parent)->GetState());
+		state = HostStateToFilter(host->GetState());
 
 	/* check state */
 	if (state & GetStateFilter()) {
