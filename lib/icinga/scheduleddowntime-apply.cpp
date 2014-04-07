@@ -93,14 +93,25 @@ void ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 
 void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+
+		BOOST_FOREACH(const ApplyRule& rule, rules) {
+			if (rule.GetTargetType() != "Host")
+				continue;
+
+			EvaluateApplyRule(host, rule);
+		}
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
 		CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
 
-		Dictionary::Ptr locals = make_shared<Dictionary>();
-		locals->Set("host", service->GetHost());
-		locals->Set("service", service);
-
 		BOOST_FOREACH(const ApplyRule& rule, rules) {
+			if (rule.GetTargetType() != "Service")
+				continue;
+
+			EvaluateApplyRule(service, rule);
 		}
 	}
 }
