@@ -212,6 +212,7 @@ static ConfigType::Ptr m_Type;
 static Dictionary::Ptr m_ModuleScope;
 
 static bool m_Apply;
+static bool m_SeenAssign;
 static AExpression::Ptr m_Assign;
 static AExpression::Ptr m_Ignore;
 
@@ -575,6 +576,8 @@ lterm: identifier lbinary_op rterm
 		if (!m_Apply)
 			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
 
+		m_SeenAssign = true;
+
 		m_Assign = make_shared<AExpression>(&AExpression::OpLogicalOr, m_Assign, static_cast<AExpression::Ptr>(*$3), DebugInfoRange(@1, @3));
 		delete $3;
 
@@ -807,6 +810,7 @@ target_type_specifier: /* empty */
 apply:
 	{
 		m_Apply = true;
+		m_SeenAssign = false;
 		m_Assign = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 		m_Ignore = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 	}
@@ -851,6 +855,9 @@ apply:
 		exprl->MakeInline();
 
 		// assign && !ignore
+		if (!m_SeenAssign)
+			BOOST_THROW_EXCEPTION(ConfigError("'apply' is missing 'assign'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+
 		AExpression::Ptr rex = make_shared<AExpression>(&AExpression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
 		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
 
