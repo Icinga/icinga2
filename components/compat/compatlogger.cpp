@@ -86,15 +86,9 @@ void CompatLogger::Start(void)
  */
 void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr)
 {
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
-
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = static_pointer_cast<Service>(checkable)->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr vars_after = cr->GetVarsAfter();
 
@@ -123,7 +117,7 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 
 	std::ostringstream msgbuf;
 
-	if (is_service) {
+	if (service) {
 		msgbuf << "SERVICE ALERT: "
 		       << host->GetName() << ";"
 		       << service->GetShortName() << ";"
@@ -155,22 +149,16 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
  */
 void CompatLogger::TriggerDowntimeHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
 {
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
-
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = static_pointer_cast<Service>(checkable)->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	if (!downtime)
 		return;
 
 	std::ostringstream msgbuf;
 
-	if (is_service) {
+	if (service) {
 		msgbuf << "SERVICE DOWNTIME ALERT: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
@@ -197,15 +185,9 @@ void CompatLogger::TriggerDowntimeHandler(const Checkable::Ptr& checkable, const
  */
 void CompatLogger::RemoveDowntimeHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
 {
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
-
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = static_pointer_cast<Service>(checkable)->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	if (!downtime)
 		return;
@@ -223,7 +205,7 @@ void CompatLogger::RemoveDowntimeHandler(const Checkable::Ptr& checkable, const 
 
 	std::ostringstream msgbuf;
 
-	if (is_service) {
+	if (service) {
 		msgbuf << "SERVICE DOWNTIME ALERT: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
@@ -252,21 +234,15 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
     const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
     const String& author, const String& comment_text, const String& command_name)
 {
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
-
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = static_pointer_cast<Service>(checkable)->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
 	/* override problem notifications with their current state string */
 	if (notification_type == NotificationProblem) {
-		if (is_service)
+		if (service)
 			notification_type_str = Service::StateToString(service->GetState());
 		else
 			notification_type_str = Host::StateToString(host->GetState());
@@ -286,7 +262,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 
         std::ostringstream msgbuf;
 
-	if (is_service) {
+	if (service) {
 		msgbuf << "SERVICE NOTIFICATION: "
 			<< user->GetName() << ";"
 			<< host->GetName() << ";"
@@ -320,26 +296,20 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
  */
 void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingState flapping_state)
 {
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
-
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = static_pointer_cast<Service>(checkable)->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	String flapping_state_str;
 	String flapping_output;
 
 	switch (flapping_state) {
 		case FlappingStarted:
-			flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change >= " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
+			flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
 			flapping_state_str = "STARTED";
 			break;
 		case FlappingStopped:
-			flapping_output = "Checkable appears to have stopped flapping (" + Convert::ToString(service->GetFlappingCurrent()) + "% change < " + Convert::ToString(service->GetFlappingThreshold()) + "% threshold)";
+			flapping_output = "Checkable appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
 			flapping_state_str = "STOPPED";
 			break;
 		case FlappingDisabled:
@@ -353,7 +323,7 @@ void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingStat
 
         std::ostringstream msgbuf;
 
-	if (is_service) {
+	if (service) {
 		msgbuf << "SERVICE FLAPPING ALERT: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
@@ -391,23 +361,17 @@ void CompatLogger::ExternalCommandHandler(const String& command, const std::vect
 
 void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 {
-	bool is_service = checkable->GetType() == DynamicType::GetByName("Service");
 	Host::Ptr host;
 	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
-	if (is_service) {
-		service = static_pointer_cast<Service>(checkable);
-		host = static_pointer_cast<Service>(checkable)->GetHost();
-	} else
-		host = static_pointer_cast<Host>(checkable);
-
-	EventCommand::Ptr event_command = service->GetEventCommand();
+	EventCommand::Ptr event_command = checkable->GetEventCommand();
 	String event_command_name = event_command->GetName();
-	long current_attempt = service->GetCheckAttempt();
+	long current_attempt = checkable->GetCheckAttempt();
 
         std::ostringstream msgbuf;
 
-	if (is_service) {
+	if (service) {
 		msgbuf << "SERVICE EVENT HANDLER: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
