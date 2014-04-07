@@ -22,9 +22,8 @@ class Dependency : DynamicObject < DependencyNameComposer
 
 	[config] String period (PeriodRaw);
 
-	[config] int state_filter {
-		default {{{ return (1 << StateOK) | (1 << StateWarning); }}}
-	};
+	[config] Array::Ptr state_filter (StateFilterRaw);
+	int state_filter_real (StateFilter);
 
 	[config] bool disable_checks;
 	[config] bool disable_notifications;

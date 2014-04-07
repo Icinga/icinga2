@@ -22,12 +22,10 @@ class Notification : DynamicObject < NotificationNameComposer
 	[config, protected] Array::Ptr users (UsersRaw);
 	[config, protected] Array::Ptr user_groups (UserGroupsRaw);
 	[config] Dictionary::Ptr times;
-	[config] int notification_type_filter {
-		default {{{ return ~(int)0; }}}
-	};
-	[config] int notification_state_filter {
-		default {{{ return ~(int)0; }}}
-	};
+	[config] Array::Ptr notification_type_filter (NotificationTypeFilterRaw);
+	int notification_type_filter_real (NotificationTypeFilter);
+	[config] Array::Ptr notification_state_filter (NotificationStateFilterRaw);
+	int notification_state_filter_real (NotificationStateFilter);
 	[config, protected] String host_name;
 	[config, protected] String service_name;
 

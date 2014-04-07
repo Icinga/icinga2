@@ -32,6 +32,20 @@ namespace icinga
 {
 
 /**
+ * @ingroup icinga
+ */
+enum NotificationFilter
+{
+	StateFilterOK = 1,
+	StateFilterWarning = 2,
+	StateFilterCritical = 4,
+	StateFilterUnknown = 8,
+
+	StateFilterUp = 16,
+	StateFilterDown = 32
+};
+
+/**
  * The notification type.
  *
  * @ingroup icinga
@@ -89,7 +103,10 @@ public:
 
 	static void RegisterApplyRuleHandler(void);
 
+	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
+
 protected:
+	virtual void OnConfigLoaded(void);
 	virtual void Start(void);
 	virtual void Stop(void);
 
@@ -99,6 +116,10 @@ private:
 	static void EvaluateApplyRule(const shared_ptr<Checkable>& checkable, const ApplyRule& rule);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
+
+I2_ICINGA_API int ServiceStateToFilter(ServiceState state);
+I2_ICINGA_API int HostStateToFilter(HostState state);
+I2_ICINGA_API int FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue);
 
 }
 

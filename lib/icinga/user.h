@@ -45,6 +45,8 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
+	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
+
 protected:
 	virtual void Stop(void);
 

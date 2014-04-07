@@ -497,8 +497,8 @@ All state and type filter use long names or'd with a pipe together
 
     notification_options w,u,c,r,f,s
 
-    notification_state_filter = StateFilterWarning | StateFilterUnknown | StateFilterCritical,
-    notification_type_filter = NotificationProblem | NotificationRecovery | NotificationFlappingStart | NotificationFlappingEnd | NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved
+    notification_state_filter = [ Warning, Unknown, Critical ]
+    notification_type_filter = [ Problem, Recovery, FlappingStart, FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
 Icinga 2 adds more fine-grained type filters for acknowledgements, downtime
 and flapping type (start, end, ...).

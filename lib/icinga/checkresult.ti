@@ -3,6 +3,18 @@ namespace icinga
 
 code {{{
 /**
+ * The state of a host.
+ *
+ * @ingroup icinga
+ */
+enum HostState
+{
+	HostUp = 0,
+	HostDown = 1,
+	HostUnreachable = 2
+};
+
+/**
  * The state of a service.
  *
  * @ingroup icinga

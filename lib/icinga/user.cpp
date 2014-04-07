@@ -18,17 +18,24 @@
  ******************************************************************************/
 
 #include "icinga/user.h"
+#include "icinga/notification.h"
 #include "icinga/usergroup.h"
+#include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
+#include "base/scriptfunction.h"
 #include "base/utility.h"
 #include "base/objectlock.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(User);
+REGISTER_SCRIPTFUNCTION(ValidateUserFilters, &User::ValidateFilters);
 
 void User::OnConfigLoaded(void)
 {
+	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), 0));
+	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), 0));
+
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
@@ -64,6 +71,25 @@ void User::Stop(void)
 TimePeriod::Ptr User::GetNotificationPeriod(void) const
 {
 	return TimePeriod::GetByName(GetNotificationPeriodRaw());
+}
+
+void User::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
+{
+	int sfilter = FilterArrayToInt(attrs->Get("notification_state_filter"), 0);
+
+	if ((sfilter & ~(StateFilterUp | StateFilterDown | StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": State filter is invalid.");
+	}
+
+	int tfilter = FilterArrayToInt(attrs->Get("notification_type_filter"), 0);
+
+	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
+	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
+	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": Type filter is invalid.");
+	}
 }
 
 bool User::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const

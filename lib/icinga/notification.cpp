@@ -21,6 +21,7 @@
 #include "icinga/notificationcommand.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/service.h"
+#include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -29,11 +30,13 @@
 #include "base/exception.h"
 #include "base/initialize.h"
 #include "base/scriptvariable.h"
+#include "base/scriptfunction.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Notification);
+REGISTER_SCRIPTFUNCTION(ValidateNotificationFilters, &Notification::ValidateFilters);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> Notification::OnNextNotificationChanged;
@@ -55,25 +58,30 @@ String NotificationNameComposer::MakeName(const String& shortName, const Diction
 
 void Notification::StaticInitialize(void)
 {
-	ScriptVariable::Set("NotificationDowntimeStart", NotificationDowntimeStart, true, true);
-	ScriptVariable::Set("NotificationDowntimeEnd", NotificationDowntimeEnd, true, true);
-	ScriptVariable::Set("NotificationDowntimeRemoved", NotificationDowntimeRemoved, true, true);
-	ScriptVariable::Set("NotificationCustom", NotificationCustom, true, true);
-	ScriptVariable::Set("NotificationAcknowledgement", NotificationAcknowledgement, true, true);
-	ScriptVariable::Set("NotificationProblem", NotificationProblem, true, true);
-	ScriptVariable::Set("NotificationRecovery", NotificationRecovery, true, true);
-	ScriptVariable::Set("NotificationFlappingStart", NotificationFlappingStart, true, true);
-	ScriptVariable::Set("NotificationFlappingEnd", NotificationFlappingEnd, true, true);
+	ScriptVariable::Set("OK", StateFilterOK, true, true);
+	ScriptVariable::Set("Warning", StateFilterWarning, true, true);
+	ScriptVariable::Set("Critical", StateCritical, true, true);
+	ScriptVariable::Set("Unknown", StateUnknown, true, true);
+	ScriptVariable::Set("Up", StateFilterUp, true, true);
+	ScriptVariable::Set("Down", StateFilterDown, true, true);
 
-	ScriptVariable::Set("NotificationFilterDowntimeStart", 1 << NotificationDowntimeStart, true, true);
-	ScriptVariable::Set("NotificationFilterDowntimeEnd", 1 << NotificationDowntimeEnd, true, true);
-	ScriptVariable::Set("NotificationFilterDowntimeRemoved", 1 << NotificationDowntimeRemoved, true, true);
-	ScriptVariable::Set("NotificationFilterCustom", 1 << NotificationCustom, true, true);
-	ScriptVariable::Set("NotificationFilterAcknowledgement", 1 << NotificationAcknowledgement, true, true);
-	ScriptVariable::Set("NotificationFilterProblem", 1 << NotificationProblem, true, true);
-	ScriptVariable::Set("NotificationFilterRecovery", 1 << NotificationRecovery, true, true);
-	ScriptVariable::Set("NotificationFilterFlappingStart", 1 << NotificationFlappingStart, true, true);
-	ScriptVariable::Set("NotificationFilterFlappingEnd", 1 << NotificationFlappingEnd, true, true);
+	ScriptVariable::Set("DowntimeStart", 1 << NotificationDowntimeStart, true, true);
+	ScriptVariable::Set("DowntimeEnd", 1 << NotificationDowntimeEnd, true, true);
+	ScriptVariable::Set("DowntimeRemoved", 1 << NotificationDowntimeRemoved, true, true);
+	ScriptVariable::Set("Custom", 1 << NotificationCustom, true, true);
+	ScriptVariable::Set("Acknowledgement", 1 << NotificationAcknowledgement, true, true);
+	ScriptVariable::Set("Problem", 1 << NotificationProblem, true, true);
+	ScriptVariable::Set("Recovery", 1 << NotificationRecovery, true, true);
+	ScriptVariable::Set("FlappingStart", 1 << NotificationFlappingStart, true, true);
+	ScriptVariable::Set("FlappingEnd", 1 << NotificationFlappingEnd, true, true);
+}
+
+void Notification::OnConfigLoaded(void)
+{
+	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), 0));
+	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), 0));
+
+	GetCheckable()->AddNotification(GetSelf());
 }
 
 void Notification::Start(void)
@@ -255,9 +263,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		unsigned long fstate;
 
 		if (service)
-			fstate = 1 << service->GetState();
+			fstate = ServiceStateToFilter(service->GetState());
 		else
-			fstate = 1 << host->GetState();
+			fstate = HostStateToFilter(host->GetState());
 
 		if (!(fstate & GetNotificationStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
@@ -336,9 +344,9 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		unsigned long fstate;
 
 		if (service)
-				fstate = 1 << service->GetState();
+				fstate = ServiceStateToFilter(service->GetState());
 		else
-				fstate = 1 << host->GetState();
+				fstate = HostStateToFilter(host->GetState());
 
 		if (!(fstate & user->GetNotificationStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
@@ -379,6 +387,76 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		msgbuf << "Exception occured during notification for object '"
 		       << GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
 		Log(LogWarning, "icinga", msgbuf.str());
+	}
+}
+
+int icinga::ServiceStateToFilter(ServiceState state)
+{
+	switch (state) {
+		case StateOK:
+			return StateFilterOK;
+		case StateWarning:
+			return StateFilterWarning;
+		case StateCritical:
+			return StateFilterCritical;
+		case StateUnknown:
+			return StateFilterUnknown;
+		default:
+			VERIFY(!"Invalid state type.");
+	}
+}
+
+int icinga::HostStateToFilter(HostState state)
+{
+	switch (state) {
+		case HostUp:
+			return StateFilterUp;
+		case HostDown: /* fall through */
+		case HostUnreachable:
+			return StateFilterDown;
+		default:
+			VERIFY(!"Invalid state type.");
+	}
+}
+
+int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
+{
+	Value resultTypeFilter;
+
+	if (!typeFilters || typeFilters->GetLength() == 0)
+		return defaultValue;
+
+	resultTypeFilter = 0;
+
+	ObjectLock olock(typeFilters);
+	BOOST_FOREACH(const Value& typeFilter, typeFilters) {
+		resultTypeFilter = resultTypeFilter | typeFilter;
+	}
+
+	return resultTypeFilter;
+}
+
+void Notification::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
+{
+	int sfilter = FilterArrayToInt(attrs->Get("notification_state_filter"), 0);
+
+	if (!attrs->Contains("service_name") && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": State filter is invalid.");
+	}
+
+	if (attrs->Contains("service_name") && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": State filter is invalid.");
+	}
+
+	int tfilter = FilterArrayToInt(attrs->Get("notification_type_filter"), 0);
+
+	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
+	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
+	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": Type filter is invalid.");
 	}
 }
 

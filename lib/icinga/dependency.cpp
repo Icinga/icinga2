@@ -19,14 +19,17 @@
 
 #include "icinga/dependency.h"
 #include "icinga/service.h"
+#include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/scriptfunction.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Dependency);
+REGISTER_SCRIPTFUNCTION(ValidateDependencyFilters, &Dependency::ValidateFilters);
 
 String DependencyNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const
 {
@@ -41,6 +44,18 @@ String DependencyNameComposer::MakeName(const String& shortName, const Dictionar
 	name += "!" + shortName;
 
 	return name;
+}
+
+void Dependency::OnConfigLoaded(void)
+{
+	Value defaultFilter;
+
+	if (GetParentServiceName().IsEmpty())
+		defaultFilter = StateFilterUp;
+	else
+		defaultFilter = StateFilterOK | StateFilterWarning;
+
+	SetStateFilter(FilterArrayToInt(GetStateFilterRaw(), defaultFilter));
 }
 
 void Dependency::OnStateLoaded(void)
@@ -100,12 +115,12 @@ bool Dependency::IsAvailable(DependencyType dt) const
 	int state;
 
 	if (is_service)
-		state = static_cast<int>(static_pointer_cast<Service>(parent)->GetState());
+		state = ServiceStateToFilter(static_pointer_cast<Service>(parent)->GetState());
 	else
-		state = static_cast<int>(static_pointer_cast<Host>(parent)->GetState());
+		state = HostStateToFilter(static_pointer_cast<Host>(parent)->GetState());
 
 	/* check state */
-	if ((1 << state) & GetStateFilter()) {
+	if (state & GetStateFilter()) {
 		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Object matches state filter.");
 		return true;
 	}
@@ -158,4 +173,19 @@ Checkable::Ptr Dependency::GetParent(void) const
 TimePeriod::Ptr Dependency::GetPeriod(void) const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
+}
+
+void Dependency::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
+{
+	int sfilter = FilterArrayToInt(attrs->Get("state_filter"), 0);
+
+	if (!attrs->Contains("parent_service_name") && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": State filter is invalid.");
+	}
+
+	if (attrs->Contains("parent_service_name") && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": State filter is invalid.");
+	}
 }

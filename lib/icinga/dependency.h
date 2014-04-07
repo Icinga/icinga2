@@ -49,7 +49,10 @@ public:
 
 	static void RegisterApplyRuleHandler(void);
 
+	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
+
 protected:
+	virtual void OnConfigLoaded(void);
 	virtual void OnStateLoaded(void);
 	virtual void Stop(void);
 

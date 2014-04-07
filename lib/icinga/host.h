@@ -35,18 +35,6 @@ class Service;
 class Dependency;
 
 /**
- * The state of a host.
- *
- * @ingroup icinga
- */
-enum HostState
-{
-	HostUp = 0,
-	HostDown = 1,
-	HostUnreachable = 2
-};
-
-/**
  * An Icinga host.
  *
  * @ingroup icinga
