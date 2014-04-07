@@ -39,7 +39,7 @@ Please check doc/1-about.md.
 ### What's New in Version 0.0.8
 
 * Add [Dependency](#objecttype-dependency) object for advanced host/service dependency definition
-* Add optional [IcingaNodeName](#global-constants) for cluster feature
+* Add optional [NodeName](#global-constants) for cluster feature
 * Populate check_source attribute with the checker's node name
 * [Cluster](#objecttype-endpoint) supports recursive config includes
 * Add [Cluster health check](#cluster-health-check)

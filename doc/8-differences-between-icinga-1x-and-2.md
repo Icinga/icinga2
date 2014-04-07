@@ -16,7 +16,7 @@ the Icinga daemon at startup.
 Icinga 2 supports objects and (global) variables, but does not make a difference
 if it's the main configuration file, or any included file.
 
-    const IcingaEnableNotifications = true
+    const EnableNotifications = true
 
     object Service "test" {
         enable_notifications = 0

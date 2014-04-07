@@ -38,12 +38,12 @@ INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
 
 void IcingaApplication::StaticInitialize(void)
 {
-	ScriptVariable::Set("IcingaEnableNotifications", true);
-	ScriptVariable::Set("IcingaEnableEventHandlers", true);
-	ScriptVariable::Set("IcingaEnableFlapping", true);
-	ScriptVariable::Set("IcingaEnableChecks", true);
-	ScriptVariable::Set("IcingaEnablePerfdata", true);
-	ScriptVariable::Set("IcingaNodeName", Utility::GetHostName());
+	ScriptVariable::Set("EnableNotifications", true);
+	ScriptVariable::Set("EnableEventHandlers", true);
+	ScriptVariable::Set("EnableFlapping", true);
+	ScriptVariable::Set("EnableChecks", true);
+	ScriptVariable::Set("EnablePerfdata", true);
+	ScriptVariable::Set("NodeName", Utility::GetHostName());
 }
 
 REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
@@ -118,7 +118,7 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 
 Dictionary::Ptr IcingaApplication::GetVars(void) const
 {
-	ScriptVariable::Ptr sv = ScriptVariable::GetByName("IcingaVars");
+	ScriptVariable::Ptr sv = ScriptVariable::GetByName("Vars");
 
 	if (!sv)
 		return Dictionary::Ptr();
@@ -128,7 +128,7 @@ Dictionary::Ptr IcingaApplication::GetVars(void) const
 
 String IcingaApplication::GetNodeName(void) const
 {
-	return ScriptVariable::Get("IcingaNodeName");
+	return ScriptVariable::Get("NodeName");
 }
 
 bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
@@ -173,7 +173,7 @@ bool IcingaApplication::GetEnableNotifications(void) const
 	if (!GetOverrideEnableNotifications().IsEmpty())
 		return GetOverrideEnableNotifications();
 	else
-		return ScriptVariable::Get("IcingaEnableNotifications");
+		return ScriptVariable::Get("EnableNotifications");
 }
 
 void IcingaApplication::SetEnableNotifications(bool enabled)
@@ -191,7 +191,7 @@ bool IcingaApplication::GetEnableEventHandlers(void) const
 	if (!GetOverrideEnableEventHandlers().IsEmpty())
 		return GetOverrideEnableEventHandlers();
 	else
-		return ScriptVariable::Get("IcingaEnableEventHandlers");
+		return ScriptVariable::Get("EnableEventHandlers");
 }
 
 void IcingaApplication::SetEnableEventHandlers(bool enabled)
@@ -209,7 +209,7 @@ bool IcingaApplication::GetEnableFlapping(void) const
 	if (!GetOverrideEnableFlapping().IsEmpty())
 		return GetOverrideEnableFlapping();
 	else
-		return ScriptVariable::Get("IcingaEnableFlapping");
+		return ScriptVariable::Get("EnableFlapping");
 }
 
 void IcingaApplication::SetEnableFlapping(bool enabled)
@@ -227,7 +227,7 @@ bool IcingaApplication::GetEnableChecks(void) const
 	if (!GetOverrideEnableChecks().IsEmpty())
 		return GetOverrideEnableChecks();
 	else
-		return ScriptVariable::Get("IcingaEnableChecks");
+		return ScriptVariable::Get("EnableChecks");
 }
 
 void IcingaApplication::SetEnableChecks(bool enabled)
@@ -245,7 +245,7 @@ bool IcingaApplication::GetEnablePerfdata(void) const
 	if (!GetOverrideEnablePerfdata().IsEmpty())
 		return GetOverrideEnablePerfdata();
 	else
-		return ScriptVariable::Get("IcingaEnablePerfdata");
+		return ScriptVariable::Get("EnablePerfdata");
 }
 
 void IcingaApplication::SetEnablePerfdata(bool enabled)

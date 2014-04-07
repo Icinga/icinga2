@@ -219,7 +219,7 @@ void Process::Run(const boost::function<void (const ProcessResult&)>& callback)
 	m_ExtraEnvironment.reset();
 
 #ifdef HAVE_VFORK
-	Value use_vfork = ScriptVariable::Get("IcingaUseVfork");
+	Value use_vfork = ScriptVariable::Get("UseVfork");
 
 	if (use_vfork.IsEmpty() || static_cast<bool>(use_vfork))
 		m_Pid = vfork();
