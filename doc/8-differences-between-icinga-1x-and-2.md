@@ -275,7 +275,7 @@ TODO
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
 
-Macros exported into the environment must be set using the `export_macros`
+Macros exported into the environment must be set using the `env`
 attribute in command objects.
 
 ### <a id="differences-1x-2-runtime-macros"></a> Runtime Macros
