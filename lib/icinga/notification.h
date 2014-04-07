@@ -113,7 +113,7 @@ protected:
 private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
-	static void EvaluateApplyRule(const shared_ptr<Checkable>& checkable, const ApplyRule& rule);
+	static bool EvaluateApplyRule(const shared_ptr<Checkable>& checkable, const ApplyRule& rule);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 

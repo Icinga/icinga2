@@ -99,6 +99,9 @@ void ApplyRule::EvaluateRules(void)
 				}
 			}
 
+			if (cont)
+				continue;
+
 			completedTypes.insert(sourceType);
 
 			RuleMap::const_iterator it = m_Rules.find(kv.first);

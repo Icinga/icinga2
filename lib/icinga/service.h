@@ -67,7 +67,7 @@ protected:
 private:
 	Host::Ptr m_Host;
 
-	static void EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
+	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 

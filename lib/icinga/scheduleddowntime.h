@@ -55,7 +55,7 @@ private:
 	std::pair<double, double> FindNextSegment(void);
 	void CreateNextDowntime(void);
 
-	static void EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
+	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 

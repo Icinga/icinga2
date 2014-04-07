@@ -38,7 +38,7 @@ void ScheduledDowntime::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("ScheduledDowntime", targets, &ScheduledDowntime::EvaluateApplyRules);
 }
 
-void ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -56,19 +56,15 @@ void ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 		locals->Set("service", service);
 
 	if (!rule.EvaluateFilter(locals))
-		return;
+		return false;
 
 	std::ostringstream msgbuf2;
 	msgbuf2 << "Applying scheduled downtime '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
 	Log(LogDebug, "icinga", msgbuf2.str());
 
-	std::ostringstream namebuf;
-	namebuf << checkable->GetName() << "!" << rule.GetName();
-	String name = namebuf.str();
-
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("ScheduledDowntime");
-	builder->SetName(name);
+	builder->SetName(rule.GetName());
 	builder->SetScope(rule.GetScope());
 
 	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
@@ -89,29 +85,43 @@ void ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 	downtimeItem->Register();
 	DynamicObject::Ptr dobj = downtimeItem->Commit();
 	dobj->OnConfigLoaded();
+
+	return true;
 }
 
 void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	int apply_count = 0;
 
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			if (rule.GetTargetType() != "Host")
-				continue;
+	BOOST_FOREACH(const ApplyRule& rule, rules) {
+		if (rule.GetTargetType() == "Host") {
+			apply_count = 0;
 
-			EvaluateApplyRule(host, rule);
-		}
-	}
+			BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+				CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
+				if (EvaluateApplyRule(host, rule))
+					apply_count++;
+			}
 
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			if (rule.GetTargetType() != "Service")
-				continue;
+			if (apply_count == 0)
+				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
 
-			EvaluateApplyRule(service, rule);
+		} else if (rule.GetTargetType() == "Service") {
+			apply_count = 0;
+
+			BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+				CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
+
+				if(EvaluateApplyRule(service, rule))
+					apply_count++;
+			}
+
+			if (apply_count == 0)
+				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for service does not match anywhere!");
+
+		} else {
+			Log(LogWarning, "icinga", "Wrong target type for apply rule '" + rule.GetName() + "'!");
 		}
 	}
 }

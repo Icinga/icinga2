@@ -37,7 +37,7 @@ void Service::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Service", targets, &Service::EvaluateApplyRules);
 }
 
-void Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
+bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -49,7 +49,7 @@ void Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	locals->Set("host", host);
 
 	if (!rule.EvaluateFilter(locals))
-		return;
+		return false;
 
 	std::ostringstream msgbuf2;
 	msgbuf2 << "Applying service '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
@@ -76,14 +76,25 @@ void Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	serviceItem->Register();
 	DynamicObject::Ptr dobj = serviceItem->Commit();
 	dobj->OnConfigLoaded();
+
+	return true;
 }
 
 void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");
+	int apply_count = 0;
 
-		BOOST_FOREACH(const ApplyRule& rule, rules)
-			EvaluateApplyRule(host, rule);
+	BOOST_FOREACH(const ApplyRule& rule, rules) {
+		apply_count = 0;
+
+		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+			CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+
+			if (EvaluateApplyRule(host, rule))
+				apply_count++;
+		}
+
+		if (apply_count == 0)
+			Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
 	}
 }

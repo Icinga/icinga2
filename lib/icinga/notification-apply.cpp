@@ -38,7 +38,7 @@ void Notification::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Notification", targets, &Notification::EvaluateApplyRules);
 }
 
-void Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -56,7 +56,7 @@ void Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 		locals->Set("service", service);
 
 	if (!rule.EvaluateFilter(locals))
-		return;
+		return false;
 
 	std::ostringstream msgbuf2;
 	msgbuf2 << "Applying notification '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
@@ -85,29 +85,43 @@ void Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	notificationItem->Register();
 	DynamicObject::Ptr dobj = notificationItem->Commit();
 	dobj->OnConfigLoaded();
+
+	return true;
 }
 
 void Notification::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		CONTEXT("Evaluating 'apply' rules for Host '" + host->GetName() + "'");
+	int apply_count = 0;
 
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			if (rule.GetTargetType() != "Host")
-				continue;
+	BOOST_FOREACH(const ApplyRule& rule, rules) {
+		if (rule.GetTargetType() == "Host") {
+			apply_count = 0;
 
-			EvaluateApplyRule(host, rule);
-		}
-	}
+			BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+				CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
+				if (EvaluateApplyRule(host, rule))
+					apply_count++;
+			}
 
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			if (rule.GetTargetType() != "Service")
-				continue;
+			if (apply_count == 0)
+				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
 
-			EvaluateApplyRule(service, rule);
+		} else if (rule.GetTargetType() == "Service") {
+			apply_count = 0;
+
+			BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+				CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
+
+				if(EvaluateApplyRule(service, rule))
+					apply_count++;
+			}
+
+			if (apply_count == 0)
+				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for service does not match anywhere!");
+
+		} else {
+			Log(LogWarning, "icinga", "Wrong target type for apply rule '" + rule.GetName() + "'!");
 		}
 	}
 }

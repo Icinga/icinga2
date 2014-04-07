@@ -39,7 +39,7 @@ void Dependency::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Dependency", targets, &Dependency::EvaluateApplyRules);
 }
 
-void Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -57,7 +57,7 @@ void Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 		locals->Set("service", service);
 
 	if (!rule.EvaluateFilter(locals))
-		return;
+		return false;
 
 	std::ostringstream msgbuf2;
 	msgbuf2 << "Applying dependency '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
@@ -70,13 +70,14 @@ void Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 
 	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
 	    make_shared<AExpression>(&AExpression::OpLiteral, "child_host_name", di),
-	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(),
-	    di), di));
+	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+	    di));
 
 	if (service) {
 		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
 		    make_shared<AExpression>(&AExpression::OpLiteral, "child_service_name", di),
-		    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di), di));
+		    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
+		    di));
 	}
 
 	builder->AddExpression(rule.GetExpression());
@@ -85,29 +86,43 @@ void Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 	dependencyItem->Register();
 	DynamicObject::Ptr dobj = dependencyItem->Commit();
 	dobj->OnConfigLoaded();
+
+	return true;
 }
 
 void Dependency::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
+	int apply_count = 0;
 
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			if (rule.GetTargetType() != "Host")
-				continue;
+	BOOST_FOREACH(const ApplyRule& rule, rules) {
+		if (rule.GetTargetType() == "Host") {
+			apply_count = 0;
 
-			EvaluateApplyRule(host, rule);
-		}
-	}
+			BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+				CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-		CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
+				if (EvaluateApplyRule(host, rule))
+					apply_count++;
+			}
 
-		BOOST_FOREACH(const ApplyRule& rule, rules) {
-			if (rule.GetTargetType() != "Service")
-				continue;
+			if (apply_count == 0)
+				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
 
-			EvaluateApplyRule(service, rule);
+		} else if (rule.GetTargetType() == "Service") {
+			apply_count = 0;
+
+			BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+				CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
+
+				if(EvaluateApplyRule(service, rule))
+					apply_count++;
+			}
+
+			if (apply_count == 0)
+				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for service does not match anywhere!");
+
+		} else {
+			Log(LogWarning, "icinga", "Wrong target type for apply rule '" + rule.GetName() + "'!");
 		}
 	}
 }
