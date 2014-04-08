@@ -20,7 +20,9 @@ Build-Depends: cmake (>= 2.8.7),
                libpq-dev,
                libssl-dev,
                po-debconf,
-               python-dev
+               python-dev,
+               pandoc,
+               python-sphinx
 Standards-Version: 3.9.4
 Homepage: http://www.icinga.org
 

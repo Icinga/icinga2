@@ -16,6 +16,18 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 if(UNIX OR CYGWIN)
+  file(GLOB DOCSRCS "*.md")
+
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/htdocs/index.html
+    COMMAND ./mkdoc.sh
+    ARGS ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${DOCSRCS}
+  )
+
+  add_custom_target(index-html ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/htdocs/index.html)
+
   install(
     FILES icinga2.8
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man8
