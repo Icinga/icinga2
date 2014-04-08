@@ -109,6 +109,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 				continue;
 		}
 
+		notification->SetLastProblemNotification(now);
+
 		try {
 			Log(LogInformation, "notification", "Sending reminder notification for object '" + checkable->GetName() + "'");
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false);
