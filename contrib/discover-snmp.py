@@ -56,7 +56,7 @@ for plugin in plugins:
     print("  vars.community = \"%s\"," % (community))
     print("  vars.plugin = \"%s\"," % (plugin))
     print()
-    print("  assign where host.vars.address == \"%s\"" % (ipaddr))
+    print("  assign where host.address == \"%s\"" % (ipaddr))
     print("}")
     print()
 

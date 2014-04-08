@@ -109,7 +109,7 @@ def print_host(host):
     print "object Host \"%s\" {" % (host["name"])
     print "\timport \"discovered-host\","
     print ""
-    print "\tvars.address = \"%s\"," % (host["address"])
+    print "\taddress = \"%s\"," % (host["address"])
     print "}"
     print ""
 
