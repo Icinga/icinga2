@@ -127,7 +127,10 @@ void Process::IOThreadProc(int tid)
 			}
 		}
 
-		int rc = poll(pfds, count, timeout * 1000);
+		if (timeout != -1)
+			timeout *= 1000;
+
+		int rc = poll(pfds, count, timeout);
 
 		if (rc < 0)
 			continue;
