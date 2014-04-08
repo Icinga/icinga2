@@ -6,13 +6,17 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+BUILDDIR="$1"
+
+mkdir -p $BUILDDIR/htdocs
+
 if ! which pandoc; then
-  echo "Please install pandoc to build the documentation files."
+  echo "Please install pandoc to build the documentation files." > $BUILDDIR/htdocs/index.html
   exit 0
 fi
 
-if ! which pandoc; then
-  echo "Please install sphinx-build to build the documentation files."
+if ! which sphinx-build; then
+  echo "Please install sphinx-build to build the documentation files." > $BUILDDIR/htdocs/index.html
   exit 0
 fi
 
