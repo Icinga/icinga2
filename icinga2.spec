@@ -74,6 +74,8 @@ Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
 BuildRequires: doxygen
+BuildRequires: pandoc
+BuildRequires: python-sphinx
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
