@@ -39,13 +39,13 @@ ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 {
 	switch (exitStatus) {
 		case 0:
-			return StateOK;
+			return ServiceOK;
 		case 1:
-			return StateWarning;
+			return ServiceWarning;
 		case 2:
-			return StateCritical;
+			return ServiceCritical;
 		default:
-			return StateUnknown;
+			return ServiceUnknown;
 	}
 }
 

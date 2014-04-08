@@ -267,8 +267,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 
 	if (!old_cr) {
 		SetStateType(StateTypeHard);
-	} else if (cr->GetState() == StateOK) {
-		if (old_state == StateOK && old_stateType == StateTypeSoft)
+	} else if (cr->GetState() == ServiceOK) {
+		if (old_state == ServiceOK && old_stateType == StateTypeSoft)
 			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
 
 		recovery = true;
@@ -277,7 +277,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-		} else if (old_stateType == StateTypeSoft || old_state == StateOK) {
+		} else if (old_stateType == StateTypeSoft || old_state == ServiceOK) {
 			SetStateType(StateTypeSoft);
 			attempt = old_attempt + 1;
 		} else {
@@ -287,16 +287,16 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 		recovery = false;
 
 		switch (cr->GetState()) {
-			case StateOK:
+			case ServiceOK:
 				/* Nothing to do here. */
 				break;
-			case StateWarning:
+			case ServiceWarning:
 				SetLastStateWarning(Utility::GetTime());
 				break;
-			case StateCritical:
+			case ServiceCritical:
 				SetLastStateCritical(Utility::GetTime());
 				break;
-			case StateUnknown:
+			case ServiceUnknown:
 				SetLastStateUnknown(Utility::GetTime());
 				break;
 		}
@@ -316,7 +316,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
-		    (GetAcknowledgement() == AcknowledgementSticky && new_state == StateOK)) {
+		    (GetAcknowledgement() == AcknowledgementSticky && new_state == ServiceOK)) {
 			ClearAcknowledgement();
 		}
 
@@ -348,7 +348,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 		SetLastHardStateChange(now);
 	}
 
-	if (new_state != StateOK)
+	if (new_state != ServiceOK)
 		TriggerDowntimes();
 
 	Checkable::UpdateStatistics(cr);
@@ -359,7 +359,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 	if (!old_cr)
 		send_notification = false; /* Don't send notifications for the initial state change */
 
-	if (old_state == StateOK && old_stateType == StateTypeSoft)
+	if (old_state == ServiceOK && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 
 	bool send_downtime_notification = (GetLastInDowntime() != in_downtime);

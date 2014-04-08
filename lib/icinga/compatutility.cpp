@@ -157,8 +157,8 @@ int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
 
 	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
 
-	if (notification_state_filter & (1<<StateCritical) ||
-	    notification_state_filter & (1<<StateWarning))
+	if (notification_state_filter & (1<<ServiceCritical) ||
+	    notification_state_filter & (1<<ServiceWarning))
 		return 1;
 
 	return 0;
@@ -170,7 +170,7 @@ int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
 
 	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
 
-	if (notification_state_filter & (1<<StateUnknown))
+	if (notification_state_filter & (1<<ServiceUnknown))
 		return 1;
 
 	return 0;
@@ -574,13 +574,13 @@ String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkabl
 	std::vector<String> notification_options;
 
 	/* notification state filters */
-	if (notification_state_filter & (1<<StateWarning)) {
+	if (notification_state_filter & (1<<ServiceWarning)) {
 		notification_options.push_back("w");
 	}
-	if (notification_state_filter & (1<<StateUnknown)) {
+	if (notification_state_filter & (1<<ServiceUnknown)) {
 		notification_options.push_back("u");
 	}
-	if (notification_state_filter & (1<<StateCritical)) {
+	if (notification_state_filter & (1<<ServiceCritical)) {
 		notification_options.push_back("c");
 	}
 
@@ -637,7 +637,7 @@ int CompatUtility::GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable)
 {
 	ASSERT(checkable->OwnsLock());
 
-	if (GetCheckableNotificationStateFilter(checkable) & (1<<StateWarning))
+	if (GetCheckableNotificationStateFilter(checkable) & (1<<ServiceWarning))
 		return 1;
 
 	return 0;
@@ -647,7 +647,7 @@ int CompatUtility::GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable)
 {
 	ASSERT(checkable->OwnsLock());
 
-	if (GetCheckableNotificationStateFilter(checkable) & (1<<StateCritical))
+	if (GetCheckableNotificationStateFilter(checkable) & (1<<ServiceCritical))
 		return 1;
 
 	return 0;
@@ -657,7 +657,7 @@ int CompatUtility::GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable)
 {
 	ASSERT(checkable->OwnsLock());
 
-	if (GetCheckableNotificationStateFilter(checkable) & (1<<StateUnknown))
+	if (GetCheckableNotificationStateFilter(checkable) & (1<<ServiceUnknown))
 		return 1;
 
 	return 0;

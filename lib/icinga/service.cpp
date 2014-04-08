@@ -93,25 +93,25 @@ Host::Ptr Service::GetHost(void) const
 ServiceState Service::StateFromString(const String& state)
 {
 	if (state == "OK")
-		return StateOK;
+		return ServiceOK;
 	else if (state == "WARNING")
-		return StateWarning;
+		return ServiceWarning;
 	else if (state == "CRITICAL")
-		return StateCritical;
+		return ServiceCritical;
 	else
-		return StateUnknown;
+		return ServiceUnknown;
 }
 
 String Service::StateToString(ServiceState state)
 {
 	switch (state) {
-		case StateOK:
+		case ServiceOK:
 			return "OK";
-		case StateWarning:
+		case ServiceWarning:
 			return "WARNING";
-		case StateCritical:
+		case ServiceCritical:
 			return "CRITICAL";
-		case StateUnknown:
+		case ServiceUnknown:
 		default:
 			return "UNKNOWN";
 	}

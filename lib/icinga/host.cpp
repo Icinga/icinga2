@@ -137,8 +137,8 @@ Service::Ptr Host::GetServiceByShortName(const Value& name)
 HostState Host::CalculateState(ServiceState state)
 {
 	switch (state) {
-		case StateOK:
-		case StateWarning:
+		case ServiceOK:
+		case ServiceWarning:
 			return HostUp;
 		default:
 			return HostDown;
@@ -326,13 +326,13 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 				int count = 0;
 
 				if (key == "totalservicesok")
-					filter = StateOK;
+					filter = ServiceOK;
 				else if (key == "totalserviceswarning")
-					filter = StateWarning;
+					filter = ServiceWarning;
 				else if (key == "totalservicesunknown")
-					filter = StateUnknown;
+					filter = ServiceUnknown;
 				else if (key == "totalservicescritical")
-					filter = StateCritical;
+					filter = ServiceCritical;
 
 				BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
 					if (filter != -1 && service->GetState() != filter)

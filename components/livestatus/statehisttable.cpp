@@ -379,7 +379,7 @@ Value StateHistTable::DurationOkAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateOK)
+	if (state_hist_bag->Get("state") == ServiceOK)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from"));
 
 	return 0;
@@ -389,7 +389,7 @@ Value StateHistTable::DurationPartOkAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateOK)
+	if (state_hist_bag->Get("state") == ServiceOK)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from")) / state_hist_bag->Get("query_part");
 
 	return 0;
@@ -399,7 +399,7 @@ Value StateHistTable::DurationWarningAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateWarning)
+	if (state_hist_bag->Get("state") == ServiceWarning)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from"));
 
 	return 0;
@@ -409,7 +409,7 @@ Value StateHistTable::DurationPartWarningAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateWarning)
+	if (state_hist_bag->Get("state") == ServiceWarning)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from")) / state_hist_bag->Get("query_part");
 
 	return 0;
@@ -419,7 +419,7 @@ Value StateHistTable::DurationCriticalAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateCritical)
+	if (state_hist_bag->Get("state") == ServiceCritical)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from"));
 
 	return 0;
@@ -429,7 +429,7 @@ Value StateHistTable::DurationPartCriticalAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateCritical)
+	if (state_hist_bag->Get("state") == ServiceCritical)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from")) / state_hist_bag->Get("query_part");
 
 	return 0;
@@ -439,7 +439,7 @@ Value StateHistTable::DurationUnknownAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateUnknown)
+	if (state_hist_bag->Get("state") == ServiceUnknown)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from"));
 
 	return 0;
@@ -449,7 +449,7 @@ Value StateHistTable::DurationPartUnknownAccessor(const Value& row)
 {
 	Dictionary::Ptr state_hist_bag = static_cast<Dictionary::Ptr>(row);
 
-	if (state_hist_bag->Get("state") == StateUnknown)
+	if (state_hist_bag->Get("state") == ServiceUnknown)
 		return (state_hist_bag->Get("until") - state_hist_bag->Get("from")) / state_hist_bag->Get("query_part");
 
 	return 0;

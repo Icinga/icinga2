@@ -60,8 +60,8 @@ void Notification::StaticInitialize(void)
 {
 	ScriptVariable::Set("OK", StateFilterOK, true, true);
 	ScriptVariable::Set("Warning", StateFilterWarning, true, true);
-	ScriptVariable::Set("Critical", StateCritical, true, true);
-	ScriptVariable::Set("Unknown", StateUnknown, true, true);
+	ScriptVariable::Set("Critical", ServiceCritical, true, true);
+	ScriptVariable::Set("Unknown", ServiceUnknown, true, true);
 	ScriptVariable::Set("Up", StateFilterUp, true, true);
 	ScriptVariable::Set("Down", StateFilterDown, true, true);
 
@@ -393,13 +393,13 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 int icinga::ServiceStateToFilter(ServiceState state)
 {
 	switch (state) {
-		case StateOK:
+		case ServiceOK:
 			return StateFilterOK;
-		case StateWarning:
+		case ServiceWarning:
 			return StateFilterWarning;
-		case StateCritical:
+		case ServiceCritical:
 			return StateFilterCritical;
-		case StateUnknown:
+		case ServiceUnknown:
 			return StateFilterUnknown;
 		default:
 			VERIFY(!"Invalid state type.");

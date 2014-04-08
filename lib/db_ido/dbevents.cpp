@@ -633,16 +633,16 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 		       << "";
 
 		switch (service->GetState()) {
-			case StateOK:
+			case ServiceOK:
 				type = LogEntryTypeServiceOk;
 				break;
-			case StateUnknown:
+			case ServiceUnknown:
 				type = LogEntryTypeServiceUnknown;
 				break;
-			case StateWarning:
+			case ServiceWarning:
 				type = LogEntryTypeServiceWarning;
 				break;
-			case StateCritical:
+			case ServiceCritical:
 				type = LogEntryTypeServiceCritical;
 				break;
 			default:

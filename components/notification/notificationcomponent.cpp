@@ -96,7 +96,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 			Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 
 			if (service) {
-				 if (service->GetState() == StateOK)
+				 if (service->GetState() == ServiceOK)
 					continue;
 			} else {
 				Host::Ptr host = static_pointer_cast<Host>(checkable);

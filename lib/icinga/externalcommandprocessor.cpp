@@ -237,9 +237,9 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	ServiceState state;
 
 	if (exitStatus == 0)
-		state = StateOK;
+		state = ServiceOK;
 	else if (exitStatus == 1)
-		state = StateCritical;
+		state = ServiceCritical;
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status code: " + arguments[1]));
 
@@ -596,7 +596,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge service problem for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	if (service->GetState() == StateOK)
+	if (service->GetState() == ServiceOK)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Log(LogInformation, "icinga", "Setting acknowledgement for service '" + service->GetName() + "'");
@@ -618,7 +618,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge service problem with expire time for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	if (service->GetState() == StateOK)
+	if (service->GetState() == ServiceOK)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Log(LogInformation, "icinga", "Setting timed acknowledgement for service '" + service->GetName() + "'");

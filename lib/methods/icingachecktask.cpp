@@ -81,7 +81,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 
 	cr->SetOutput("Icinga 2 is running.");
 	cr->SetPerformanceData(perfdata);
-	cr->SetState(StateOK);
+	cr->SetState(ServiceOK);
 
 	service->ProcessCheckResult(cr);
 }

@@ -136,7 +136,7 @@ Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 
 Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)
 {
-	Value worst_service = StateOK;
+	Value worst_service = ServiceOK;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
 		if (service->GetState() > worst_service)
@@ -156,7 +156,7 @@ Value ServiceGroupsTable::NumServicesOkAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetState() == StateOK)
+		if (service->GetState() == ServiceOK)
 			num_services++;
 	}
 
@@ -168,7 +168,7 @@ Value ServiceGroupsTable::NumServicesWarnAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetState() == StateWarning)
+		if (service->GetState() == ServiceWarning)
 			num_services++;
 	}
 
@@ -180,7 +180,7 @@ Value ServiceGroupsTable::NumServicesCritAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetState() == StateCritical)
+		if (service->GetState() == ServiceCritical)
 			num_services++;
 	}
 
@@ -192,7 +192,7 @@ Value ServiceGroupsTable::NumServicesUnknownAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetState() == StateUnknown)
+		if (service->GetState() == ServiceUnknown)
 			num_services++;
 	}
 
@@ -216,7 +216,7 @@ Value ServiceGroupsTable::NumServicesHardOkAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetStateType() == StateTypeHard && service->GetState() == StateOK)
+		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceOK)
 			num_services++;
 	}
 
@@ -228,7 +228,7 @@ Value ServiceGroupsTable::NumServicesHardWarnAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetStateType() == StateTypeHard && service->GetState() == StateWarning)
+		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceWarning)
 			num_services++;
 	}
 
@@ -240,7 +240,7 @@ Value ServiceGroupsTable::NumServicesHardCritAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetStateType() == StateTypeHard && service->GetState() == StateCritical)
+		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceCritical)
 			num_services++;
 	}
 
@@ -252,7 +252,7 @@ Value ServiceGroupsTable::NumServicesHardUnknownAccessor(const Value& row)
 	int num_services = 0;
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		if (service->GetStateType() == StateTypeHard && service->GetState() == StateUnknown)
+		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceUnknown)
 			num_services++;
 	}
 

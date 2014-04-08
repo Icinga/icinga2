@@ -40,7 +40,7 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);
-	cr->SetState(StateOK);
+	cr->SetState(ServiceOK);
 
 	service->ProcessCheckResult(cr);
 }

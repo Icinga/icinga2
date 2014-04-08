@@ -53,12 +53,12 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResu
 	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
 	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
 
-	ServiceState state = StateOK;
+	ServiceState state = ServiceOK;
 	String output = "Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) + " (" +
 	    connected_endpoints + ").";
 
 	if (status->Get("num_not_conn_endpoints") > 0) {
-		state = StateCritical;
+		state = ServiceCritical;
 		output = "Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
 		    " Endpoints (" + not_connected_endpoints + ") not connected.";
 	}

@@ -108,13 +108,13 @@ ServiceStatistics CIB::CalculateServiceStats(void)
 
 		CheckResult::Ptr cr = service->GetLastCheckResult();
 
-		if (service->GetState() == StateOK)
+		if (service->GetState() == ServiceOK)
 			ss.services_ok++;
-		if (service->GetState() == StateWarning)
+		if (service->GetState() == ServiceWarning)
 			ss.services_warning++;
-		if (service->GetState() == StateCritical)
+		if (service->GetState() == ServiceCritical)
 			ss.services_critical++;
-		if (service->GetState() == StateUnknown)
+		if (service->GetState() == ServiceUnknown)
 			ss.services_unknown++;
 
 		if (!cr)
