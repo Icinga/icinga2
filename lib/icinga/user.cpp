@@ -33,8 +33,8 @@ REGISTER_SCRIPTFUNCTION(ValidateUserFilters, &User::ValidateFilters);
 
 void User::OnConfigLoaded(void)
 {
-	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), 0));
-	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), 0));
+	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), ~0));
+	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), ~0));
 
 	Array::Ptr groups = GetGroups();
 

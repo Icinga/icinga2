@@ -78,8 +78,8 @@ void Notification::StaticInitialize(void)
 
 void Notification::OnConfigLoaded(void)
 {
-	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), 0));
-	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), 0));
+	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), ~0));
+	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), ~0));
 
 	GetCheckable()->AddNotification(GetSelf());
 }
@@ -252,13 +252,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			return;
 		}
 
-		Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 		Host::Ptr host;
-
-		if (service)
-			host = service->GetHost();
-		else
-			host = static_pointer_cast<Host>(checkable);
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
 
 		unsigned long fstate;
 
@@ -333,13 +329,9 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		}
 
 		Checkable::Ptr checkable = GetCheckable();
-		Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 		Host::Ptr host;
-
-		if (service)
-				host = service->GetHost();
-		else
-				host = static_pointer_cast<Host>(checkable);
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
 
 		unsigned long fstate;
 
@@ -422,7 +414,7 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
 {
 	Value resultTypeFilter;
 
-	if (!typeFilters || typeFilters->GetLength() == 0)
+	if (!typeFilters)
 		return defaultValue;
 
 	resultTypeFilter = 0;
