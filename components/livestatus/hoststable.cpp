@@ -199,7 +199,7 @@ Value HostsTable::AddressAccessor(const Value& row)
 		return Empty;
 
 
-	return CompatUtility::GetHostAddress(host);
+	return host->GetAddress();
 }
 
 Value HostsTable::Address6Accessor(const Value& row)
@@ -209,7 +209,7 @@ Value HostsTable::Address6Accessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetHostAddress6(host);
+	return host->GetAddress6();
 }
 
 Value HostsTable::CheckCommandAccessor(const Value& row)

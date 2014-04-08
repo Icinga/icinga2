@@ -45,8 +45,8 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 
 	fields->Set("alias", CompatUtility::GetHostAlias(host));
 	fields->Set("display_name", host->GetDisplayName());
-	fields->Set("address", CompatUtility::GetHostAddress(host));
-	fields->Set("address6", CompatUtility::GetHostAddress6(host));
+	fields->Set("address", host->GetAddress());
+	fields->Set("address6", host->GetAddress6());
 
 	fields->Set("check_command_object_id", host->GetCheckCommand());
 	fields->Set("check_command_args", Empty);
@@ -134,7 +134,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 
 	fields->Set("current_state", host->IsReachable() ? host->GetState() : 2);
 	fields->Set("has_been_checked", CompatUtility::GetCheckableHasBeenChecked(host));
-	fields->Set("should_be_scheduled", CompatUtility::GetCheckableShouldBeScheduled(host));
+	fields->Set("should_be_scheduled", host->GetEnableActiveChecks());
 	fields->Set("current_check_attempt", host->GetCheckAttempt());
 	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
 

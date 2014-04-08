@@ -117,7 +117,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 
 	fields->Set("current_state", service->GetState());
 	fields->Set("has_been_checked", CompatUtility::GetCheckableHasBeenChecked(service));
-	fields->Set("should_be_scheduled", CompatUtility::GetCheckableShouldBeScheduled(service));
+	fields->Set("should_be_scheduled", service->GetEnableActiveChecks());
 	fields->Set("current_check_attempt", service->GetCheckAttempt());
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
 

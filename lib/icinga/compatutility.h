@@ -50,8 +50,6 @@ public:
 
 	/* host */
 	static String GetHostAlias(const Host::Ptr& host);
-	static String GetHostAddress(const Host::Ptr& host);
-	static String GetHostAddress6(const Host::Ptr& host);
 	static Host2dCoords GetHost2dCoords(const Host::Ptr& host);
 	static String GetHost2dCoordX(const Host::Ptr& host);
 	static String GetHost2dCoordY(const Host::Ptr& host);
@@ -59,7 +57,6 @@ public:
 	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 
 	/* service */
-	static int GetCheckableShouldBeScheduled(const Checkable::Ptr& checkable);
 	static int GetCheckableCheckType(const Checkable::Ptr& checkable);
 	static double GetCheckableCheckInterval(const Checkable::Ptr& checkable);
 	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);

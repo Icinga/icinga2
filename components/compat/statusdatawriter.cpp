@@ -241,8 +241,8 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	      "\t" "host_name" "\t" << host->GetName() << "\n"
 	      "\t" "display_name" "\t" << host->GetDisplayName() << "\n"
 	      "\t" "alias" "\t" << host->GetDisplayName() << "\n"
-	      "\t" "address" "\t" << CompatUtility::GetHostAddress(host) << "\n"
-	      "\t" "address6" "\t" << CompatUtility::GetHostAddress6(host) << "\n";
+	      "\t" "address" "\t" << host->GetAddress() << "\n"
+	      "\t" "address6" "\t" << host->GetAddress6() << "\n";
 	if (!notes.IsEmpty())
 	      fp << "\t" "notes" "\t" << notes << "\n";
 	if (!notes_url.IsEmpty())
@@ -340,7 +340,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	      "\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
 	      "\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
 	      "\t" "has_been_checked=" << CompatUtility::GetCheckableHasBeenChecked(checkable) << "\n"
-	      "\t" "should_be_scheduled=" << CompatUtility::GetCheckableShouldBeScheduled(checkable) << "\n";
+	      "\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n";
 
 	if (cr) {
 	   fp << "\t" << "check_execution_time=" << Convert::ToString(Service::CalculateExecutionTime(cr)) << "\n"

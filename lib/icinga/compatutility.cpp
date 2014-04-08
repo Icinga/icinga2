@@ -69,40 +69,6 @@ String CompatUtility::GetHostAlias(const Host::Ptr& host)
 		return host->GetDisplayName();
 }
 
-String CompatUtility::GetHostAddress(const Host::Ptr& host)
-{
-	ASSERT(host->OwnsLock());
-
-	Dictionary::Ptr vars = host->GetVars();
-
-	String address;
-
-	if (vars)
-		address = vars->Get("address");
-
-	if (address.IsEmpty())
-		address = host->GetName();
-
-	return address;
-}
-
-String CompatUtility::GetHostAddress6(const Host::Ptr& host)
-{
-	ASSERT(host->OwnsLock());
-
-	Dictionary::Ptr vars = host->GetVars();
-
-	String address6;
-
-	if (vars)
-		address6 = vars->Get("address6");
-
-	if (address6.IsEmpty())
-		address6 = host->GetName();
-
-	return address6;
-}
-
 Host2dCoords CompatUtility::GetHost2dCoords(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
@@ -177,13 +143,6 @@ int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
 }
 
 /* service */
-int CompatUtility::GetCheckableShouldBeScheduled(const Checkable::Ptr& checkable)
-{
-	ASSERT(checkable->OwnsLock());
-
-	return (checkable->GetEnableActiveChecks() ? 1 : 0);
-}
-
 int CompatUtility::GetCheckableCheckType(const Checkable::Ptr& checkable)
 {
 	ASSERT(checkable->OwnsLock());
