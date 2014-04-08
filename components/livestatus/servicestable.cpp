@@ -310,10 +310,10 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", service->GetHost()));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(service, "notes");
 
@@ -337,10 +337,10 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", service->GetHost()));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(service, "notes_url");
 
@@ -364,10 +364,10 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", service->GetHost()));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(service, "action_url");
 
@@ -391,10 +391,10 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(service);
-	resolvers.push_back(service->GetHost());
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", service->GetHost()));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(service, "icon_image");
 

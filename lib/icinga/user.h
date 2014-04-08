@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API User : public ObjectImpl<User>, public MacroResolver
+class I2_ICINGA_API User : public ObjectImpl<User>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(User);
@@ -42,8 +42,6 @@ public:
 
 	/* Notifications */
 	TimePeriod::Ptr GetNotificationPeriod(void) const;
-
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
 

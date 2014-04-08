@@ -41,21 +41,6 @@ public:
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const = 0;
 };
 
-class I2_ICINGA_API StaticMacroResolver : public Object, public MacroResolver
-{
-public:
-	DECLARE_PTR_TYPEDEFS(StaticMacroResolver);
-
-	StaticMacroResolver(void);
-
-	void Add(const String& macro, const String& value);
-
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
-
-private:
-	Dictionary::Ptr m_Macros;
-};
-
 }
 
 #endif /* MACRORESOLVER_H */

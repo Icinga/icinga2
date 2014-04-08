@@ -79,11 +79,11 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	else
 		host = static_pointer_cast<Host>(checkable);
 
-	std::vector<MacroResolver::Ptr> resolvers;
+	MacroProcessor::ResolverList resolvers;
 	if (service)
-		resolvers.push_back(service);
-	resolvers.push_back(host);
-	resolvers.push_back(IcingaApplication::GetInstance());
+		resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	if (service) {
 		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr);

@@ -19,6 +19,10 @@ class User : DynamicObject
 	[config] Array::Ptr notification_type_filter (NotificationTypeFilterRaw);
 	int notification_type_filter_real (NotificationTypeFilter);
 	[config] Array::Ptr notification_state_filter (NotificationStateFilterRaw);
+
+	[config] String email;
+	[config] String pager;
+
 	int notification_state_filter_real (NotificationStateFilter);
 	[state] bool enable_notifications;
 	[state] double last_notification;

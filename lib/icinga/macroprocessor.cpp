@@ -24,11 +24,15 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/context.h"
+#include "base/dynamicobject.h"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
-Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
+Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolvers,
 	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
 {
 	Value result;
@@ -57,24 +61,92 @@ Value MacroProcessor::ResolveMacros(const Value& str, const std::vector<MacroRes
 	return result;
 }
 
-bool MacroProcessor::ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
+bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resolvers,
     const CheckResult::Ptr& cr, String *result)
 {
 	CONTEXT("Resolving macro '" + macro + "'");
 
-	BOOST_FOREACH(const MacroResolver::Ptr& resolver, resolvers) {
-		if (resolver->ResolveMacro(macro, cr, result))
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, macro, boost::is_any_of("."));
+
+	String objName;
+	if (tokens.size() > 1) {
+		objName = tokens[0];
+		tokens.erase(tokens.begin());
+	}
+
+	BOOST_FOREACH(const ResolverSpec& resolver, resolvers) {
+		if (!objName.IsEmpty() && objName != resolver.first)
+			continue;
+
+		if (objName.IsEmpty()) {
+			DynamicObject::Ptr dobj = dynamic_pointer_cast<DynamicObject>(resolver.second);
+
+			if (dobj) {
+				Dictionary::Ptr vars = dobj->GetVars();
+
+				if (vars && vars->Contains(macro)) {
+					*result = vars->Get(macro);
+					return true;
+				}
+			}
+		}
+
+		MacroResolver::Ptr mresolver = dynamic_pointer_cast<MacroResolver>(resolver.second);
+
+		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
 			return true;
+
+		Value ref = resolver.second;
+		bool valid = true;
+
+		BOOST_FOREACH(const String& token, tokens) {
+			if (ref.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr dict = ref;
+				if (dict->Contains(token)) {
+					ref = dict->Get(token);
+					continue;
+				} else {
+					valid = false;
+					break;
+				}
+			} else if (ref.IsObject()) {
+				Object::Ptr object = ref;
+
+				const Type *type = object->GetReflectionType();
+
+				if (!type) {
+					valid = false;
+					break;
+				}
+
+				int field = type->GetFieldId(token);
+
+				if (field == -1) {
+					valid = false;
+					break;
+				}
+
+				ref = object->GetField(field);
+			}
+		}
+
+		if (valid) {
+			*result = ref;
+			return true;
+		}
 	}
 
 	return false;
 }
 
-
-String MacroProcessor::InternalResolveMacros(const String& str, const std::vector<MacroResolver::Ptr>& resolvers,
-	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
+String MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
+	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, int recursionLevel)
 {
 	CONTEXT("Resolving macros for string '" + str + "'");
+
+	if (recursionLevel > 15)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Infinite recursion detected while resolving macros"));
 
 	size_t offset, pos_first, pos_second;
 	offset = 0;
@@ -99,6 +171,9 @@ String MacroProcessor::InternalResolveMacros(const String& str, const std::vecto
 
 		if (!found)
 			Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
+
+		/* recursively resolve macros in the macro */
+		resolved_macro = InternalResolveMacros(resolved_macro, resolvers, cr, EscapeCallback(), recursionLevel + 1);
 
 		if (escapeFn)
 			resolved_macro = escapeFn(resolved_macro);

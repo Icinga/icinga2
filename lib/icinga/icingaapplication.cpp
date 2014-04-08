@@ -133,29 +133,23 @@ String IcingaApplication::GetNodeName(void) const
 
 bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
-	/* require icinga prefix for application macros */
-	if (macro.SubStr(0, 7) == "icinga.") {
-		String key = macro.SubStr(7);
+	double now = Utility::GetTime();
 
-		double now = Utility::GetTime();
-
-		if (key == "timet") {
-			*result = Convert::ToString((long)now);
-			return true;
-		} else if (key == "longdatetime") {
-			*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now);
-			return true;
-		} else if (key == "shortdatetime") {
-			*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", now);
-			return true;
-		} else if (key == "date") {
-			*result = Utility::FormatDateTime("%Y-%m-%d", now);
-			return true;
-		} else if (key == "time") {
-			*result = Utility::FormatDateTime("%H:%M:%S %z", now);
-			return true;
-		}
-
+	if (macro == "timet") {
+		*result = Convert::ToString((long)now);
+		return true;
+	} else if (macro == "long_date_time") {
+		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now);
+		return true;
+	} else if (macro == "short_date_time") {
+		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", now);
+		return true;
+	} else if (macro == "date") {
+		*result = Utility::FormatDateTime("%Y-%m-%d", now);
+		return true;
+	} else if (macro == "time") {
+		*result = Utility::FormatDateTime("%H:%M:%S %z", now);
+		return true;
 	}
 
 	Dictionary::Ptr vars = GetVars();

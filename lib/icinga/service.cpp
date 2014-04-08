@@ -135,93 +135,47 @@ String Service::StateTypeToString(StateType type)
 
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const
 {
-	String key;
-	Dictionary::Ptr vars;
+	if (macro == "state") {
+		*result = StateToString(GetState());
+		return true;
+	} else if (macro == "state_id") {
+		*result = Convert::ToString(GetState());
+		return true;
+	} else if (macro == "state_type") {
+		*result = StateTypeToString(GetStateType());
+		return true;
+	} else if (macro == "last_state") {
+		*result = StateToString(GetLastState());
+		return true;
+	} else if (macro == "last_state_id") {
+		*result = Convert::ToString(GetLastState());
+		return true;
+	} else if (macro == "last_state_type") {
+		*result = StateTypeToString(GetLastStateType());
+		return true;
+	} else if (macro == "last_state_change") {
+		*result = Convert::ToString((long)GetLastStateChange());
+		return true;
+	} else if (macro == "duration_sec") {
+		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
+		return true;
+	}
 
-	/* require prefix for object macros */
-	if (macro.SubStr(0, 8) == "service.") {
-		key = macro.SubStr(8);
-
-		if (key.SubStr(0, 5) == "vars.") {
-			vars = GetVars();
-			String vars_key = key.SubStr(5);
-
-			if (vars && vars->Contains(vars_key)) {
-				*result = vars->Get(vars_key);
-				return true;
-			}
-		} else if (key == "description") {
-			*result = GetShortName();
+	if (cr) {
+		if (macro == "latency") {
+			*result = Convert::ToString(Service::CalculateLatency(cr));
 			return true;
-		} else if (key == "displayname") {
-			*result = GetDisplayName();
+		} else if (macro == "execution_time") {
+			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
 			return true;
-		} else if (key == "checkcommand") {
-			CheckCommand::Ptr commandObj = GetCheckCommand();
-
-			if (commandObj)
-				*result = commandObj->GetName();
-			else
-				*result = "";
-
+		} else if (macro == "output") {
+			*result = cr->GetOutput();
 			return true;
-		}
-
-		if (key == "state") {
-			*result = StateToString(GetState());
+		} else if (macro == "perfdata") {
+			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 			return true;
-		} else if (key == "stateid") {
-			*result = Convert::ToString(GetState());
-			return true;
-		} else if (key == "statetype") {
-			*result = StateTypeToString(GetStateType());
-			return true;
-		} else if (key == "attempt") {
-			*result = Convert::ToString(GetCheckAttempt());
-			return true;
-		} else if (key == "maxattempt") {
-			*result = Convert::ToString(GetMaxCheckAttempts());
-			return true;
-		} else if (key == "laststate") {
-			*result = StateToString(GetLastState());
-			return true;
-		} else if (key == "laststateid") {
-			*result = Convert::ToString(GetLastState());
-			return true;
-		} else if (key == "laststatetype") {
-			*result = StateTypeToString(GetLastStateType());
-			return true;
-		} else if (key == "laststatechange") {
-			*result = Convert::ToString((long)GetLastStateChange());
-			return true;
-		} else if (key == "durationsec") {
-			*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
-			return true;
-		}
-
-		if (cr) {
-			if (key == "latency") {
-				*result = Convert::ToString(Service::CalculateLatency(cr));
-				return true;
-			} else if (key == "executiontime") {
-				*result = Convert::ToString(Service::CalculateExecutionTime(cr));
-				return true;
-			} else if (key == "output") {
-				*result = cr->GetOutput();
-				return true;
-			} else if (key == "perfdata") {
-				*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
-				return true;
-			} else if (key == "lastcheck") {
-				*result = Convert::ToString((long)cr->GetExecutionEnd());
-				return true;
-			}
-		}
-	} else {
-		vars = GetVars();
-
-		if (vars && vars->Contains(macro)) {
-			*result = vars->Get(macro);
+		} else if (macro == "last_check") {
+			*result = Convert::ToString((long)cr->GetExecutionEnd());
 			return true;
 		}
 	}

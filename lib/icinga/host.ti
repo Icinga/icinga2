@@ -15,6 +15,9 @@ class Host : Checkable
 		}}}
 	};
 	[config] Array::Ptr groups;
+
+	[config] String address;
+	[config] String address6;
 };
 
 }

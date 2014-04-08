@@ -25,7 +25,7 @@
 #include "base/dictionary.h"
 #include "base/array.h"
 #include <boost/function.hpp>
-#include <vector>
+#include <map>
 
 namespace icinga
 {
@@ -39,18 +39,20 @@ class I2_ICINGA_API MacroProcessor
 {
 public:
 	typedef boost::function<String (const String&)> EscapeCallback;
+	typedef std::pair<String, Object::Ptr> ResolverSpec;
+	typedef std::vector<ResolverSpec> ResolverList;
 
-	static Value ResolveMacros(const Value& str, const std::vector<MacroResolver::Ptr>& resolvers,
+	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,
 		const CheckResult::Ptr& cr, const EscapeCallback& escapeFn = EscapeCallback());
-	static bool ResolveMacro(const String& macro, const std::vector<MacroResolver::Ptr>& resolvers,
+	static bool ResolveMacro(const String& macro, const ResolverList& resolvers,
 		const CheckResult::Ptr& cr, String *result);
 
 private:
 	MacroProcessor(void);
 
 	static String InternalResolveMacros(const String& str,
-		const std::vector<MacroResolver::Ptr>& resolvers, const CheckResult::Ptr& cr,
-	    const EscapeCallback& escapeFn);
+	    const ResolverList& resolvers, const CheckResult::Ptr& cr,
+	    const EscapeCallback& escapeFn, int recursionLevel = 0);
 };
 
 }

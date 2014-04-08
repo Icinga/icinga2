@@ -44,24 +44,24 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Value raw_command = commandObj->GetCommandLine();
 
-	StaticMacroResolver::Ptr notificationMacroResolver = make_shared<StaticMacroResolver>();
-	notificationMacroResolver->Add("notification.type", Notification::NotificationTypeToString(type));
-	notificationMacroResolver->Add("notification.author", author);
-	notificationMacroResolver->Add("notification.comment", comment);
+	Dictionary::Ptr notificationExtra = make_shared<Dictionary>();
+	notificationExtra->Set("type", Notification::NotificationTypeToString(type));
+	notificationExtra->Set("author", author);
+	notificationExtra->Set("comment", comment);
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	std::vector<MacroResolver::Ptr> resolvers;
-	resolvers.push_back(user);
-	resolvers.push_back(notificationMacroResolver);
-	resolvers.push_back(notification);
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("user", user));
+	resolvers.push_back(std::make_pair("notification", notificationExtra));
+	resolvers.push_back(std::make_pair("notification", notification));
 	if (service)
-		resolvers.push_back(service);
-	resolvers.push_back(host);;
-	resolvers.push_back(commandObj);
-	resolvers.push_back(IcingaApplication::GetInstance());
+		resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("command", commandObj));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd);
 

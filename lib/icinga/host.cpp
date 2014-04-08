@@ -221,154 +221,72 @@ String Host::StateTypeToString(StateType type)
 
 bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
 {
-	String key;
-	Dictionary::Ptr vars;
+	if (macro == "state") {
+		*result = StateToString(GetState());
+		return true;
+	} else if (macro == "state_id") {
+		*result = Convert::ToString(GetState());
+		return true;
+	} else if (macro == "state_type") {
+		*result = StateTypeToString(GetStateType());
+		return true;
+	} else if (macro == "last_state") {
+		*result = StateToString(GetLastState());
+		return true;
+	} else if (macro == "last_state_id") {
+		*result = Convert::ToString(GetLastState());
+		return true;
+	} else if (macro == "last_state_type") {
+		*result = StateTypeToString(GetLastStateType());
+		return true;
+	} else if (macro == "last_state_change") {
+		*result = Convert::ToString((long)GetLastStateChange());
+		return true;
+	} else if (macro == "duration_sec") {
+		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
+		return true;
+	} else if (macro == "total_services" || macro == "total_services_ok" || macro == "total_services_warning"
+		    || macro == "total_services_unknown" || macro == "total_services_critical") {
+			int filter = -1;
+			int count = 0;
 
-	/* special treatment for address macros providing name fallback */
-	if (macro == "address" || macro == "address6") {
-		vars = GetVars();
+			if (macro == "total_services_ok")
+				filter = ServiceOK;
+			else if (macro == "total_services_warning")
+				filter = ServiceWarning;
+			else if (macro == "total_services_unknown")
+				filter = ServiceUnknown;
+			else if (macro == "total_services_critical")
+				filter = ServiceCritical;
 
-		String value;
-		if (vars && vars->Contains(macro))
-			value = vars->Get(macro);
+			BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
+				if (filter != -1 && service->GetState() != filter)
+					continue;
 
-		if (value.IsEmpty()) {
-			*result = GetName();
+				count++;
+			}
+
+			*result = Convert::ToString(count);
 			return true;
-		} else {
-			*result = value;
-			return true;
-		}
 	}
-	else if (macro == "host.vars.address" || macro == "host.vars.address6") {
-		key = macro.SubStr(10);
-		vars = GetVars();
 
-		String value;
-		if (vars && vars->Contains(key))
-			value = vars->Get(key);
+	CheckResult::Ptr cr = GetLastCheckResult();
 
-		if (value.IsEmpty()) {
-			*result = GetName();
+	if (cr) {
+		if (macro == "latency") {
+			*result = Convert::ToString(Service::CalculateLatency(cr));
 			return true;
-		} else {
-			*result = value;
+		} else if (macro == "execution_time") {
+			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
 			return true;
-		}
-	}
-
-	/* require prefix for object macros */
-	if (macro.SubStr(0, 5) == "host.") {
-		key = macro.SubStr(5);
-
-		if (key.SubStr(0, 5) == "vars.") {
-			vars = GetVars();
-			String vars_key = key.SubStr(5);
-
-			if (vars && vars->Contains(vars_key)) {
-				*result = vars->Get(vars_key);
-				return true;
-			}
-		}
-		else if (key == "name") {
-			*result = GetName();
+		} else if (macro == "output") {
+			*result = cr->GetOutput();
 			return true;
-		}
-		else if (key == "displaymane") {
-			*result = GetDisplayName();
+		} else if (macro == "perfdata") {
+			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 			return true;
-		}
-
-		CheckResult::Ptr cr = GetLastCheckResult();
-
-		if (key == "state") {
-			*result = StateToString(GetState());
-			return true;
-		} else if (key == "stateid") {
-			*result = Convert::ToString(GetState());
-			return true;
-		} else if (key == "statetype") {
-			*result = StateTypeToString(GetStateType());
-			return true;
-		} else if (key == "attempt") {
-			*result = Convert::ToString(GetCheckAttempt());
-			return true;
-		} else if (key == "maxattempt") {
-			*result = Convert::ToString(GetMaxCheckAttempts());
-			return true;
-		} else if (key == "laststate") {
-			*result = StateToString(GetLastState());
-			return true;
-		} else if (key == "laststateid") {
-			*result = Convert::ToString(GetLastState());
-			return true;
-		} else if (key == "laststatetype") {
-			*result = StateTypeToString(GetLastStateType());
-			return true;
-		} else if (key == "laststatechange") {
-			*result = Convert::ToString((long)GetLastStateChange());
-			return true;
-		} else if (key == "durationsec") {
-			*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
-			return true;
-		} else if (key == "checkcommand") {
-			CheckCommand::Ptr commandObj = GetCheckCommand();
-
-			if (commandObj)
-				*result = commandObj->GetName();
-			else
-				*result = "";
-
-			return true;
-		} else if (key == "totalservices" || key == "totalservicesok" || key == "totalserviceswarning"
-			    || key == "totalservicesunknown" || key == "totalservicescritical") {
-				int filter = -1;
-				int count = 0;
-
-				if (key == "totalservicesok")
-					filter = ServiceOK;
-				else if (key == "totalserviceswarning")
-					filter = ServiceWarning;
-				else if (key == "totalservicesunknown")
-					filter = ServiceUnknown;
-				else if (key == "totalservicescritical")
-					filter = ServiceCritical;
-
-				BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
-					if (filter != -1 && service->GetState() != filter)
-						continue;
-
-					count++;
-				}
-
-				*result = Convert::ToString(count);
-				return true;
-			}
-
-
-		if (cr) {
-			if (key == "latency") {
-				*result = Convert::ToString(Service::CalculateLatency(cr));
-				return true;
-			} else if (key == "executiontime") {
-				*result = Convert::ToString(Service::CalculateExecutionTime(cr));
-				return true;
-			} else if (key == "output") {
-				*result = cr->GetOutput();
-				return true;
-			} else if (key == "perfdata") {
-				*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
-				return true;
-			} else if (key == "lastcheck") {
-				*result = Convert::ToString((long)cr->GetScheduleStart());
-				return true;
-			}
-		}
-	} else {
-		vars = GetVars();
-
-		if (vars && vars->Contains(macro)) {
-			*result = vars->Get(macro);
+		} else if (macro == "last_check") {
+			*result = Convert::ToString((long)cr->GetScheduleStart());
 			return true;
 		}
 	}

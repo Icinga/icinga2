@@ -24,9 +24,9 @@ class PerfdataWriter : DynamicObject
 			    "TIMET::$icinga.timet$\t"
 			    "HOSTNAME::$host.name$\t"
 			    "HOSTPERFDATA::$host.perfdata$\t"
-			    "HOSTCHECKCOMMAND::$host.checkcommand$\t"
+			    "HOSTCHECKCOMMAND::$host.check_command$\t"
 			    "HOSTSTATE::$host.state$\t"
-			    "HOSTSTATETYPE::$host.statetype$";
+			    "HOSTSTATETYPE::$host.state_type$";
 		}}}
 	};
 	[config] String service_format_template {
@@ -34,13 +34,13 @@ class PerfdataWriter : DynamicObject
 			return "DATATYPE::SERVICEPERFDATA\t"
 			    "TIMET::$icinga.timet$\t"
 			    "HOSTNAME::$host.name$\t"
-			    "SERVICEDESC::$service.description$\t"
+			    "SERVICEDESC::$service.name$\t"
 			    "SERVICEPERFDATA::$service.perfdata$\t"
-			    "SERVICECHECKCOMMAND::$service.checkcommand$\t"
+			    "SERVICECHECKCOMMAND::$service.check_command$\t"
 			    "HOSTSTATE::$host.state$\t"
-			    "HOSTSTATETYPE::$host.statetype$\t"
+			    "HOSTSTATETYPE::$host.state_type$\t"
 			    "SERVICESTATE::$service.state$\t"
-			    "SERVICESTATETYPE::$service.statetype$";
+			    "SERVICESTATETYPE::$service.state_type$";
 		}}}
 	};
 

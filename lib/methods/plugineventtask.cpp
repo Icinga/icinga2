@@ -41,12 +41,12 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	std::vector<MacroResolver::Ptr> resolvers;
+	MacroProcessor::ResolverList resolvers;
 	if (service)
-		resolvers.push_back(service);
-	resolvers.push_back(host);
-	resolvers.push_back(commandObj);
-	resolvers.push_back(IcingaApplication::GetInstance());
+		resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("command", commandObj));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellCmd);
 

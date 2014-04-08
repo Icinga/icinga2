@@ -295,10 +295,9 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-
-	resolvers.push_back(host);
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(host, "notes");
 
@@ -322,10 +321,9 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-
-	resolvers.push_back(host);
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(host, "notes_url");
 
@@ -349,10 +347,9 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-
-	resolvers.push_back(host);
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(host, "action_url");
 
@@ -399,10 +396,9 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	std::vector<MacroResolver::Ptr> resolvers;
-
-	resolvers.push_back(host);
-	resolvers.push_back(IcingaApplication::GetInstance());
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	Value value = CompatUtility::GetCustomAttributeConfig(host, "icon_image");
 

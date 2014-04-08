@@ -56,6 +56,12 @@ abstract class Checkable : DynamicObject
 		default {{{ return true; }}}
 	};
 
+	[config] String notes;
+	[config] String notes_url;
+	[config] String action_url;
+	[config] String icon_image;
+	[config] String icon_image_alt;
+
 	[state] double next_check (NextCheckRaw);
 	[state] int check_attempt {
 		default {{{ return 1; }}}
