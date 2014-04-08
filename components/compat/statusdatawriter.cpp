@@ -354,7 +354,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	if (service)
 		fp << "\t" << "current_state=" << service->GetState() << "\n";
 	else
-		fp << "\t" << "current_state=" << host->GetState() << "\n";
+		fp << "\t" << "current_state=" << (host->IsReachable() ? host->GetState() : 2) << "\n";
 
 	fp << "\t" "state_type=" << checkable->GetStateType() << "\n"
 	      "\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"

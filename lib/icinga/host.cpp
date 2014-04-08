@@ -134,11 +134,8 @@ Service::Ptr Host::GetServiceByShortName(const Value& name)
 	}
 }
 
-HostState Host::CalculateState(ServiceState state, bool reachable)
+HostState Host::CalculateState(ServiceState state)
 {
-	if (!reachable)
-		return HostUnreachable;
-
 	switch (state) {
 		case StateOK:
 		case StateWarning:
@@ -152,49 +149,21 @@ HostState Host::GetState(void) const
 {
 	ASSERT(!OwnsLock());
 
-	if (!IsReachable())
-		return HostUnreachable;
-
-	switch (GetStateRaw()) {
-		case StateOK:
-		case StateWarning:
-			return HostUp;
-		default:
-			return HostDown;
-	}
-
+	return CalculateState(GetStateRaw());
 }
 
 HostState Host::GetLastState(void) const
 {
 	ASSERT(!OwnsLock());
 
-	if (!IsReachable())
-		return HostUnreachable;
-
-	switch (GetLastStateRaw()) {
-		case StateOK:
-		case StateWarning:
-			return HostUp;
-		default:
-			return HostDown;
-	}
+	return CalculateState(GetLastStateRaw());
 }
 
 HostState Host::GetLastHardState(void) const
 {
 	ASSERT(!OwnsLock());
 
-	if (!IsReachable())
-		return HostUnreachable;
-
-	switch (GetLastHardStateRaw()) {
-		case StateOK:
-		case StateWarning:
-			return HostUp;
-		default:
-			return HostDown;
-	}
+	return CalculateState(GetLastHardStateRaw());
 }
 
 double Host::GetLastStateUp(void) const
@@ -218,12 +187,8 @@ HostState Host::StateFromString(const String& state)
 {
 	if (state == "UP")
 		return HostUp;
-	else if (state == "DOWN")
-		return HostDown;
-	else if (state == "UNREACHABLE")
-		return HostUnreachable;
 	else
-		return HostUnreachable;
+		return HostDown;
 }
 
 String Host::StateToString(HostState state)
@@ -233,8 +198,6 @@ String Host::StateToString(HostState state)
 			return "UP";
 		case HostDown:
 			return "DOWN";
-		case HostUnreachable:
-			return "UNREACHABLE";
 		default:
 			return "INVALID";
 	}
@@ -319,20 +282,7 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 		CheckResult::Ptr cr = GetLastCheckResult();
 
 		if (key == "state") {
-			switch (GetState()) {
-				case HostUnreachable:
-					*result = "UNREACHABLE";
-					break;
-				case HostUp:
-					*result = "UP";
-					break;
-				case HostDown:
-					*result = "DOWN";
-					break;
-				default:
-					ASSERT(0);
-			}
-
+			*result = StateToString(GetState());
 			return true;
 		} else if (key == "stateid") {
 			*result = Convert::ToString(GetState());

@@ -53,7 +53,7 @@ public:
 
 	int GetTotalServices(void) const;
 
-	static HostState CalculateState(ServiceState state, bool reachable);
+	static HostState CalculateState(ServiceState state);
 
 	HostState GetState(void) const;
 	HostState GetLastState(void) const;

@@ -10,8 +10,7 @@ code {{{
 enum HostState
 {
 	HostUp = 0,
-	HostDown = 1,
-	HostUnreachable = 2
+	HostDown = 1
 };
 
 /**

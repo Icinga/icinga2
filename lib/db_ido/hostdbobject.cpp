@@ -132,7 +132,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 		fields->Set("check_source", cr->GetCheckSource());
 	}
 
-	fields->Set("current_state", host->GetState());
+	fields->Set("current_state", host->IsReachable() ? host->GetState() : 2);
 	fields->Set("has_been_checked", CompatUtility::GetCheckableHasBeenChecked(host));
 	fields->Set("should_be_scheduled", CompatUtility::GetCheckableShouldBeScheduled(host));
 	fields->Set("current_check_attempt", host->GetCheckAttempt());

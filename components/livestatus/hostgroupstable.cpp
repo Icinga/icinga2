@@ -197,7 +197,7 @@ Value HostGroupsTable::NumHostsUnreachAccessor(const Value& row)
 	int num_hosts = 0;
 
 	BOOST_FOREACH(const Host::Ptr& host, static_cast<HostGroup::Ptr>(row)->GetMembers()) {
-		if (host->GetState() == HostUnreachable)
+		if (!host->IsReachable())
 			num_hosts++;
 	}
 

@@ -140,11 +140,12 @@ HostStatistics CIB::CalculateHostStats(void)
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
 		ObjectLock olock(host);
 
-		if (host->GetState() == HostUp)
-			hs.hosts_up++;
-		if (host->GetState() == HostDown)
-			hs.hosts_down++;
-		if (host->GetState() == HostUnreachable)
+		if (host->IsReachable()) {
+			if (host->GetState() == HostUp)
+				hs.hosts_up++;
+			if (host->GetState() == HostDown)
+				hs.hosts_down++;
+		} else
 			hs.hosts_unreachable++;
 
 		if (!host->GetLastCheckResult())

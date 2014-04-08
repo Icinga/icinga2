@@ -127,6 +127,7 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	SendMetric(prefix, "current_attempt", checkable->GetCheckAttempt());
 	SendMetric(prefix, "max_check_attempts", checkable->GetMaxCheckAttempts());
 	SendMetric(prefix, "state_type", checkable->GetStateType());
+	SendMetric(prefix, "reachable", checkable->IsReachable());
 	SendMetric(prefix, "latency", Service::CalculateLatency(cr));
 	SendMetric(prefix, "execution_time", Service::CalculateExecutionTime(cr));
 	SendPerfdata(prefix, cr);

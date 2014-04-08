@@ -660,7 +660,7 @@ Value HostsTable::StateAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return host->GetState();
+	return host->IsReachable() ? host->GetState() : 2;
 }
 
 Value HostsTable::StateTypeAccessor(const Value& row)

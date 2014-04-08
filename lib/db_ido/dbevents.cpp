@@ -596,7 +596,6 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 	long stateType_after = vars_after->Get("state_type");
 	long attempt_after = vars_after->Get("attempt");
 	bool reachable_after = vars_after->Get("reachable");
-	bool host_reachable_after = vars_after->Get("host_reachable");
 
 	Dictionary::Ptr vars_before = cr->GetVarsBefore();
 
@@ -651,9 +650,14 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				return;
 		}
 	} else {
+		String state = Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after)));
+
+		if (!reachable_after)
+			state = "UNREACHABLE";
+
 		msgbuf << "HOST ALERT: "
 		       << host->GetName() << ";"
-		       << Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after), host_reachable_after)) << ";"
+		       << state << ";"
 		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
 		       << attempt_after << ";"
 		       << output << ""
@@ -666,14 +670,13 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 			case HostDown:
 				type = LogEntryTypeHostDown;
 				break;
-			case HostUnreachable:
-				type = LogEntryTypeHostUnreachable;
-				break;
 			default:
 				Log(LogCritical, "db_ido", "Unknown host state: " + Convert::ToString(state_after));
 				return;
 		}
 
+		if (!reachable_after)
+			type = LogEntryTypeHostUnreachable;
 	}
 
 	AddLogHistory(checkable, msgbuf.str(), type);

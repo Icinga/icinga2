@@ -411,8 +411,7 @@ int icinga::HostStateToFilter(HostState state)
 	switch (state) {
 		case HostUp:
 			return StateFilterUp;
-		case HostDown: /* fall through */
-		case HostUnreachable:
+		case HostDown:
 			return StateFilterDown;
 		default:
 			VERIFY(!"Invalid state type.");
