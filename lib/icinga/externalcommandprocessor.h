@@ -39,17 +39,9 @@ public:
         static boost::signals2::signal<void (double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
 private:
-	typedef boost::function<void (double time, const std::vector<String>& arguments)> Callback;
-
-	static boost::once_flag m_InitializeOnce;
-	static boost::mutex m_Mutex;
-	static std::map<String, Callback> m_Commands;
-
 	ExternalCommandProcessor(void);
 
 	static void Initialize(void);
-
-	static void RegisterCommand(const String& command, const Callback& callback);
 
 	static void ProcessHostCheckResult(double time, const std::vector<String>& arguments);
 	static void ProcessServiceCheckResult(double time, const std::vector<String>& arguments);

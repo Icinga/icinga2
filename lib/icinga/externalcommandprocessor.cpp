@@ -39,11 +39,31 @@
 
 using namespace icinga;
 
-boost::once_flag ExternalCommandProcessor::m_InitializeOnce = BOOST_ONCE_INIT;
-boost::mutex ExternalCommandProcessor::m_Mutex;
-std::map<String, ExternalCommandProcessor::Callback> ExternalCommandProcessor::m_Commands;
+static boost::once_flag l_InitializeOnce = BOOST_ONCE_INIT;
+static boost::mutex l_Mutex;
+
+typedef boost::function<void (double time, const std::vector<String>& arguments)> ExternalCommandCallback;
+
+struct ExternalCommandInfo
+{
+	ExternalCommandCallback Callback;
+	size_t MinArgs;
+	size_t MaxArgs;
+};
+
+static std::map<String, ExternalCommandInfo> l_Commands;
 
 boost::signals2::signal<void (double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
+
+static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = -1)
+{
+	boost::mutex::scoped_lock lock(l_Mutex);
+	ExternalCommandInfo eci;
+	eci.Callback = callback;
+	eci.MinArgs = minArgs;
+	eci.MaxArgs = (maxArgs == -1) ? minArgs : maxArgs;
+	l_Commands[command] = eci;
+}
 
 void ExternalCommandProcessor::Execute(const String& line)
 {
@@ -78,99 +98,120 @@ void ExternalCommandProcessor::Execute(const String& line)
 
 void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
 {
-	boost::call_once(m_InitializeOnce, &ExternalCommandProcessor::Initialize);
+	boost::call_once(l_InitializeOnce, &ExternalCommandProcessor::Initialize);
 
-	Callback callback;
+	ExternalCommandInfo eci;
 
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+		boost::mutex::scoped_lock lock(l_Mutex);
 
-		std::map<String, ExternalCommandProcessor::Callback>::iterator it;
-		it = m_Commands.find(command);
+		std::map<String, ExternalCommandInfo>::iterator it;
+		it = l_Commands.find(command);
 
-		if (it == m_Commands.end())
+		if (it == l_Commands.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The external command '" + command + "' does not exist."));
 
-		callback = it->second;
+		eci = it->second;
 	}
 
-	OnNewExternalCommand(time, command, arguments);
+	if (arguments.size() < eci.MinArgs)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected " + Convert::ToString(eci.MinArgs) + " arguments"));
 
-	callback(time, arguments);
+	size_t argnum = std::min(arguments.size(), eci.MaxArgs);
+
+	std::vector<String> realArguments;
+	realArguments.resize(argnum);
+
+	if (arguments.size() > 0)
+		std::copy(arguments.begin(), arguments.begin() + argnum - 1, realArguments.begin());
+	
+	String last_argument;
+	for (int i = argnum - 1; i < arguments.size(); i++) {
+		if (!last_argument.IsEmpty())
+			last_argument += ";";
+
+		last_argument += arguments[i];
+	}
+
+	realArguments[argnum - 1] = last_argument;
+
+	OnNewExternalCommand(time, command, realArguments);
+
+	eci.Callback(time, realArguments);
 }
 
 void ExternalCommandProcessor::Initialize(void)
 {
-	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult);
-	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult);
-	RegisterCommand("SCHEDULE_HOST_CHECK", &ExternalCommandProcessor::ScheduleHostCheck);
-	RegisterCommand("SCHEDULE_FORCED_HOST_CHECK", &ExternalCommandProcessor::ScheduleForcedHostCheck);
-	RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommandProcessor::ScheduleSvcCheck);
-	RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommandProcessor::ScheduleForcedSvcCheck);
-	RegisterCommand("ENABLE_HOST_CHECK", &ExternalCommandProcessor::EnableHostCheck);
-	RegisterCommand("DISABLE_HOST_CHECK", &ExternalCommandProcessor::DisableHostCheck);
-	RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommandProcessor::EnableSvcCheck);
-	RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommandProcessor::DisableSvcCheck);
+	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult, 3);
+	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult, 4);
+	RegisterCommand("SCHEDULE_HOST_CHECK", &ExternalCommandProcessor::ScheduleHostCheck, 2);
+	RegisterCommand("SCHEDULE_FORCED_HOST_CHECK", &ExternalCommandProcessor::ScheduleForcedHostCheck, 2);
+	RegisterCommand("SCHEDULE_SVC_CHECK", &ExternalCommandProcessor::ScheduleSvcCheck, 3);
+	RegisterCommand("SCHEDULE_FORCED_SVC_CHECK", &ExternalCommandProcessor::ScheduleForcedSvcCheck, 3);
+	RegisterCommand("ENABLE_HOST_CHECK", &ExternalCommandProcessor::EnableHostCheck, 1);
+	RegisterCommand("DISABLE_HOST_CHECK", &ExternalCommandProcessor::DisableHostCheck, 1);
+	RegisterCommand("ENABLE_SVC_CHECK", &ExternalCommandProcessor::EnableSvcCheck, 2);
+	RegisterCommand("DISABLE_SVC_CHECK", &ExternalCommandProcessor::DisableSvcCheck, 2);
 	RegisterCommand("SHUTDOWN_PROCESS", &ExternalCommandProcessor::ShutdownProcess);
 	RegisterCommand("RESTART_PROCESS", &ExternalCommandProcessor::RestartProcess);
-	RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleForcedHostSvcChecks);
-	RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleHostSvcChecks);
-	RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::EnableHostSvcChecks);
-	RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::DisableHostSvcChecks);
-	RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommandProcessor::AcknowledgeSvcProblem);
-	RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeSvcProblemExpire);
-	RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveSvcAcknowledgement);
-	RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM", &ExternalCommandProcessor::AcknowledgeHostProblem);
-	RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeHostProblemExpire);
-	RegisterCommand("REMOVE_HOST_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveHostAcknowledgement);
-	RegisterCommand("DISABLE_HOST_FLAP_DETECTION", &ExternalCommandProcessor::DisableHostFlapping);
-	RegisterCommand("ENABLE_HOST_FLAP_DETECTION", &ExternalCommandProcessor::EnableHostFlapping);
-	RegisterCommand("DISABLE_SVC_FLAP_DETECTION", &ExternalCommandProcessor::DisableSvcFlapping);
-	RegisterCommand("ENABLE_SVC_FLAP_DETECTION", &ExternalCommandProcessor::EnableSvcFlapping);
-	RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupSvcChecks);
-	RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupSvcChecks);
-	RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupSvcChecks);
-	RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupSvcChecks);
-	RegisterCommand("ENABLE_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnablePassiveHostChecks);
-	RegisterCommand("DISABLE_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisablePassiveHostChecks);
-	RegisterCommand("ENABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnablePassiveSvcChecks);
-	RegisterCommand("DISABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisablePassiveSvcChecks);
-	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks);
-	RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks);
-	RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks);
-	RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks);
-	RegisterCommand("PROCESS_FILE", &ExternalCommandProcessor::ProcessFile);
-	RegisterCommand("SCHEDULE_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleSvcDowntime);
-	RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommandProcessor::DelSvcDowntime);
-	RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostDowntime);
-	RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommandProcessor::DelHostDowntime);
-	RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostSvcDowntime);
-	RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupHostDowntime);
-	RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupSvcDowntime);
-	RegisterCommand("SCHEDULE_SERVICEGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupHostDowntime);
-	RegisterCommand("SCHEDULE_SERVICEGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupSvcDowntime);
-	RegisterCommand("ADD_HOST_COMMENT", &ExternalCommandProcessor::AddHostComment);
-	RegisterCommand("DEL_HOST_COMMENT", &ExternalCommandProcessor::DelHostComment);
-	RegisterCommand("ADD_SVC_COMMENT", &ExternalCommandProcessor::AddSvcComment);
-	RegisterCommand("DEL_SVC_COMMENT", &ExternalCommandProcessor::DelSvcComment);
-	RegisterCommand("DEL_ALL_HOST_COMMENTS", &ExternalCommandProcessor::DelAllHostComments);
-	RegisterCommand("DEL_ALL_SVC_COMMENTS", &ExternalCommandProcessor::DelAllSvcComments);
-	RegisterCommand("SEND_CUSTOM_HOST_NOTIFICATION", &ExternalCommandProcessor::SendCustomHostNotification);
-	RegisterCommand("SEND_CUSTOM_SVC_NOTIFICATION", &ExternalCommandProcessor::SendCustomSvcNotification);
-	RegisterCommand("DELAY_HOST_NOTIFICATION", &ExternalCommandProcessor::DelayHostNotification);
-	RegisterCommand("DELAY_SVC_NOTIFICATION", &ExternalCommandProcessor::DelaySvcNotification);
-	RegisterCommand("ENABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostNotifications);
-	RegisterCommand("DISABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostNotifications);
-	RegisterCommand("ENABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableSvcNotifications);
-	RegisterCommand("DISABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableSvcNotifications);
-	RegisterCommand("DISABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupHostChecks);
-	RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveHostChecks);
-	RegisterCommand("DISABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupHostChecks);
-	RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupPassiveHostChecks);
-	RegisterCommand("ENABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupHostChecks);
-	RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveHostChecks);
-	RegisterCommand("ENABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupHostChecks);
-	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveHostChecks);
+	RegisterCommand("SCHEDULE_FORCED_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleForcedHostSvcChecks, 2);
+	RegisterCommand("SCHEDULE_HOST_SVC_CHECKS", &ExternalCommandProcessor::ScheduleHostSvcChecks, 2);
+	RegisterCommand("ENABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::EnableHostSvcChecks, 1);
+	RegisterCommand("DISABLE_HOST_SVC_CHECKS", &ExternalCommandProcessor::DisableHostSvcChecks, 1);
+	RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM", &ExternalCommandProcessor::AcknowledgeSvcProblem, 7);
+	RegisterCommand("ACKNOWLEDGE_SVC_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeSvcProblemExpire, 8);
+	RegisterCommand("REMOVE_SVC_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveSvcAcknowledgement, 2);
+	RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM", &ExternalCommandProcessor::AcknowledgeHostProblem, 6);
+	RegisterCommand("ACKNOWLEDGE_HOST_PROBLEM_EXPIRE", &ExternalCommandProcessor::AcknowledgeHostProblemExpire, 7);
+	RegisterCommand("REMOVE_HOST_ACKNOWLEDGEMENT", &ExternalCommandProcessor::RemoveHostAcknowledgement, 1);
+	RegisterCommand("DISABLE_HOST_FLAP_DETECTION", &ExternalCommandProcessor::DisableHostFlapping, 1);
+	RegisterCommand("ENABLE_HOST_FLAP_DETECTION", &ExternalCommandProcessor::EnableHostFlapping, 1);
+	RegisterCommand("DISABLE_SVC_FLAP_DETECTION", &ExternalCommandProcessor::DisableSvcFlapping, 2);
+	RegisterCommand("ENABLE_SVC_FLAP_DETECTION", &ExternalCommandProcessor::EnableSvcFlapping, 2);
+	RegisterCommand("ENABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupSvcChecks, 1);
+	RegisterCommand("DISABLE_HOSTGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupSvcChecks, 1);
+	RegisterCommand("ENABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupSvcChecks, 1);
+	RegisterCommand("DISABLE_SERVICEGROUP_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupSvcChecks, 1);
+	RegisterCommand("ENABLE_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnablePassiveHostChecks, 1);
+	RegisterCommand("DISABLE_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisablePassiveHostChecks, 1);
+	RegisterCommand("ENABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnablePassiveSvcChecks, 2);
+	RegisterCommand("DISABLE_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisablePassiveSvcChecks, 2);
+	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks, 1);
+	RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks, 1);
+	RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks, 1);
+	RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks, 1);
+	RegisterCommand("PROCESS_FILE", &ExternalCommandProcessor::ProcessFile, 2);
+	RegisterCommand("SCHEDULE_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleSvcDowntime, 9);
+	RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommandProcessor::DelSvcDowntime, 1);
+	RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostDowntime, 8);
+	RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommandProcessor::DelHostDowntime, 1);
+	RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostSvcDowntime, 8);
+	RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupHostDowntime, 8);
+	RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupSvcDowntime, 8);
+	RegisterCommand("SCHEDULE_SERVICEGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupHostDowntime, 8);
+	RegisterCommand("SCHEDULE_SERVICEGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleServicegroupSvcDowntime, 8);
+	RegisterCommand("ADD_HOST_COMMENT", &ExternalCommandProcessor::AddHostComment, 4);
+	RegisterCommand("DEL_HOST_COMMENT", &ExternalCommandProcessor::DelHostComment, 1);
+	RegisterCommand("ADD_SVC_COMMENT", &ExternalCommandProcessor::AddSvcComment, 5);
+	RegisterCommand("DEL_SVC_COMMENT", &ExternalCommandProcessor::DelSvcComment, 1);
+	RegisterCommand("DEL_ALL_HOST_COMMENTS", &ExternalCommandProcessor::DelAllHostComments, 1);
+	RegisterCommand("DEL_ALL_SVC_COMMENTS", &ExternalCommandProcessor::DelAllSvcComments, 2);
+	RegisterCommand("SEND_CUSTOM_HOST_NOTIFICATION", &ExternalCommandProcessor::SendCustomHostNotification, 4);
+	RegisterCommand("SEND_CUSTOM_SVC_NOTIFICATION", &ExternalCommandProcessor::SendCustomSvcNotification, 5);
+	RegisterCommand("DELAY_HOST_NOTIFICATION", &ExternalCommandProcessor::DelayHostNotification, 2);
+	RegisterCommand("DELAY_SVC_NOTIFICATION", &ExternalCommandProcessor::DelaySvcNotification, 3);
+	RegisterCommand("ENABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostNotifications, 1);
+	RegisterCommand("DISABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostNotifications, 1);
+	RegisterCommand("ENABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableSvcNotifications, 2);
+	RegisterCommand("DISABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableSvcNotifications, 2);
+	RegisterCommand("DISABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupHostChecks, 1);
+	RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveHostChecks, 1);
+	RegisterCommand("DISABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupHostChecks, 1);
+	RegisterCommand("DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupPassiveHostChecks, 1);
+	RegisterCommand("ENABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupHostChecks, 1);
+	RegisterCommand("ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableHostgroupPassiveHostChecks, 1);
+	RegisterCommand("ENABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupHostChecks, 1);
+	RegisterCommand("ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::EnableServicegroupPassiveHostChecks, 1);
 	RegisterCommand("ENABLE_NOTIFICATIONS", &ExternalCommandProcessor::EnableNotifications);
 	RegisterCommand("DISABLE_NOTIFICATIONS", &ExternalCommandProcessor::DisableNotifications);
 	RegisterCommand("ENABLE_FLAP_DETECTION", &ExternalCommandProcessor::EnableFlapDetection);
@@ -181,45 +222,36 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_PERFORMANCE_DATA", &ExternalCommandProcessor::DisablePerformanceData);
 	RegisterCommand("START_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StartExecutingSvcChecks);
 	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
-	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModattr);
-	RegisterCommand("CHANGE_HOST_MODATTR", &ExternalCommandProcessor::ChangeHostModattr);
-	RegisterCommand("CHANGE_NORMAL_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalSvcCheckInterval);
-	RegisterCommand("CHANGE_NORMAL_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalHostCheckInterval);
-	RegisterCommand("CHANGE_RETRY_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetrySvcCheckInterval);
-	RegisterCommand("CHANGE_RETRY_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetryHostCheckInterval);
-	RegisterCommand("ENABLE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::EnableHostEventHandler);
-	RegisterCommand("DISABLE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::DisableHostEventHandler);
-	RegisterCommand("ENABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::EnableSvcEventHandler);
-	RegisterCommand("DISABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::DisableSvcEventHandler);
-	RegisterCommand("CHANGE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::ChangeHostEventHandler);
-	RegisterCommand("CHANGE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::ChangeSvcEventHandler);
-	RegisterCommand("CHANGE_HOST_CHECK_COMMAND", &ExternalCommandProcessor::ChangeHostCheckCommand);
-	RegisterCommand("CHANGE_SVC_CHECK_COMMAND", &ExternalCommandProcessor::ChangeSvcCheckCommand);
-	RegisterCommand("CHANGE_MAX_HOST_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxHostCheckAttempts);
-	RegisterCommand("CHANGE_MAX_SVC_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxSvcCheckAttempts);
-	RegisterCommand("CHANGE_HOST_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeHostCheckTimeperiod);
-	RegisterCommand("CHANGE_SVC_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeSvcCheckTimeperiod);
-	RegisterCommand("ENABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupHostNotifications);
-	RegisterCommand("ENABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupSvcNotifications);
-	RegisterCommand("DISABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupHostNotifications);
-	RegisterCommand("DISABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupSvcNotifications);
-	RegisterCommand("ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableServicegroupHostNotifications);
-	RegisterCommand("DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupHostNotifications);
-	RegisterCommand("ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableServicegroupSvcNotifications);
-	RegisterCommand("DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupSvcNotifications);
-}
-
-void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandProcessor::Callback& callback)
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Commands[command] = callback;
+	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModattr, 3);
+	RegisterCommand("CHANGE_HOST_MODATTR", &ExternalCommandProcessor::ChangeHostModattr, 2);
+	RegisterCommand("CHANGE_NORMAL_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalSvcCheckInterval, 3);
+	RegisterCommand("CHANGE_NORMAL_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalHostCheckInterval, 2);
+	RegisterCommand("CHANGE_RETRY_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetrySvcCheckInterval, 3);
+	RegisterCommand("CHANGE_RETRY_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetryHostCheckInterval, 2);
+	RegisterCommand("ENABLE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::EnableHostEventHandler, 1);
+	RegisterCommand("DISABLE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::DisableHostEventHandler, 1);
+	RegisterCommand("ENABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::EnableSvcEventHandler, 2);
+	RegisterCommand("DISABLE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::DisableSvcEventHandler, 2);
+	RegisterCommand("CHANGE_HOST_EVENT_HANDLER", &ExternalCommandProcessor::ChangeHostEventHandler, 2);
+	RegisterCommand("CHANGE_SVC_EVENT_HANDLER", &ExternalCommandProcessor::ChangeSvcEventHandler, 3);
+	RegisterCommand("CHANGE_HOST_CHECK_COMMAND", &ExternalCommandProcessor::ChangeHostCheckCommand, 2);
+	RegisterCommand("CHANGE_SVC_CHECK_COMMAND", &ExternalCommandProcessor::ChangeSvcCheckCommand, 3);
+	RegisterCommand("CHANGE_MAX_HOST_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxHostCheckAttempts, 2);
+	RegisterCommand("CHANGE_MAX_SVC_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxSvcCheckAttempts, 3);
+	RegisterCommand("CHANGE_HOST_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeHostCheckTimeperiod, 2);
+	RegisterCommand("CHANGE_SVC_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeSvcCheckTimeperiod, 3);
+	RegisterCommand("ENABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupHostNotifications, 1);
+	RegisterCommand("ENABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupSvcNotifications, 1);
+	RegisterCommand("DISABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupHostNotifications, 1);
+	RegisterCommand("DISABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupSvcNotifications, 1);
+	RegisterCommand("ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableServicegroupHostNotifications, 1);
+	RegisterCommand("DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupHostNotifications, 1);
+	RegisterCommand("ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableServicegroupSvcNotifications, 1);
+	RegisterCommand("DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupSvcNotifications, 1);
 }
 
 void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -266,9 +298,6 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 
 void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -305,9 +334,6 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 
 void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -335,9 +361,6 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 
 void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -355,9 +378,6 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 
 void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -385,9 +405,6 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String
 
 void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -405,9 +422,6 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<
 
 void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -424,9 +438,6 @@ void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>
 
 void ExternalCommandProcessor::DisableHostCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -443,9 +454,6 @@ void ExternalCommandProcessor::DisableHostCheck(double, const std::vector<String
 
 void ExternalCommandProcessor::EnableSvcCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -462,9 +470,6 @@ void ExternalCommandProcessor::EnableSvcCheck(double, const std::vector<String>&
 
 void ExternalCommandProcessor::DisableSvcCheck(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -493,9 +498,6 @@ void ExternalCommandProcessor::RestartProcess(double, const std::vector<String>&
 
 void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -517,9 +519,6 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::ve
 
 void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -549,9 +548,6 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<S
 
 void ExternalCommandProcessor::EnableHostSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -565,9 +561,6 @@ void ExternalCommandProcessor::EnableHostSvcChecks(double, const std::vector<Str
 
 void ExternalCommandProcessor::DisableHostSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -586,9 +579,6 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const std::vector<St
 
 void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 7)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 7 arguments."));
-
 	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -607,9 +597,6 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
-
 	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[5]);
 
@@ -629,9 +616,6 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -649,9 +633,6 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 6)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 6 arguments."));
-
 	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -670,9 +651,6 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 
 void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 7)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 7 arguments."));
-
 	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[4]);
 
@@ -692,9 +670,6 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 
 void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -711,9 +686,6 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vect
 
 void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -734,9 +706,6 @@ void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const std::vecto
 
 void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -757,9 +726,6 @@ void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const std::vect
 
 void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -778,9 +744,6 @@ void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const std::ve
 
 void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -799,9 +762,6 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const std::v
 
 void ExternalCommandProcessor::EnablePassiveHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -818,9 +778,6 @@ void ExternalCommandProcessor::EnablePassiveHostChecks(double, const std::vector
 
 void ExternalCommandProcessor::DisablePassiveHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -837,9 +794,6 @@ void ExternalCommandProcessor::DisablePassiveHostChecks(double, const std::vecto
 
 void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -856,9 +810,6 @@ void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const std::vector<
 
 void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -875,9 +826,6 @@ void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const std::vector
 
 void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -896,9 +844,6 @@ void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const 
 
 void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -917,9 +862,6 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const
 
 void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -940,9 +882,6 @@ void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const std
 
 void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -963,9 +902,6 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const st
 
 void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	String file = arguments[0];
 	bool del = Convert::ToBool(arguments[1]);
 
@@ -997,9 +933,6 @@ void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& ar
 
 void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 9)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 9 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1018,9 +951,6 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<Str
 
 void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	int id = Convert::ToLong(arguments[0]);
 	Log(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
@@ -1029,9 +959,6 @@ void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>&
 
 void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1051,9 +978,6 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 
 void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	int id = Convert::ToLong(arguments[0]);
 	Log(LogInformation, "icinga", "Removing downtime ID " + arguments[0]);
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
@@ -1062,9 +986,6 @@ void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>
 
 void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1085,9 +1006,6 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 
 void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -1109,9 +1027,6 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 
 void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -1144,9 +1059,6 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 
 void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -1178,9 +1090,6 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 
 void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 8 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -1201,9 +1110,6 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 
 void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1215,9 +1121,6 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 
 void ExternalCommandProcessor::DelHostComment(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	int id = Convert::ToLong(arguments[0]);
 	Log(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
 	String rid = Service::GetCommentIDFromLegacyID(id);
@@ -1226,9 +1129,6 @@ void ExternalCommandProcessor::DelHostComment(double, const std::vector<String>&
 
 void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 5)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 5 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1240,9 +1140,6 @@ void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& 
 
 void ExternalCommandProcessor::DelSvcComment(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	int id = Convert::ToLong(arguments[0]);
 	Log(LogInformation, "icinga", "Removing comment ID " + arguments[0]);
 
@@ -1252,9 +1149,6 @@ void ExternalCommandProcessor::DelSvcComment(double, const std::vector<String>& 
 
 void ExternalCommandProcessor::DelAllHostComments(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1266,9 +1160,6 @@ void ExternalCommandProcessor::DelAllHostComments(double, const std::vector<Stri
 
 void ExternalCommandProcessor::DelAllSvcComments(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1280,9 +1171,6 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const std::vector<Strin
 
 void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 4 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1301,9 +1189,6 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 
 void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 5)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 5 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1323,9 +1208,6 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 
 void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1342,9 +1224,6 @@ void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<S
 
 void ExternalCommandProcessor::DelaySvcNotification(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1361,9 +1240,6 @@ void ExternalCommandProcessor::DelaySvcNotification(double, const std::vector<St
 
 void ExternalCommandProcessor::EnableHostNotifications(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1380,9 +1256,6 @@ void ExternalCommandProcessor::EnableHostNotifications(double, const std::vector
 
 void ExternalCommandProcessor::DisableHostNotifications(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1399,9 +1272,6 @@ void ExternalCommandProcessor::DisableHostNotifications(double, const std::vecto
 
 void ExternalCommandProcessor::EnableSvcNotifications(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1418,9 +1288,6 @@ void ExternalCommandProcessor::EnableSvcNotifications(double, const std::vector<
 
 void ExternalCommandProcessor::DisableSvcNotifications(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1437,9 +1304,6 @@ void ExternalCommandProcessor::DisableSvcNotifications(double, const std::vector
 
 void ExternalCommandProcessor::DisableHostgroupHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -1458,9 +1322,6 @@ void ExternalCommandProcessor::DisableHostgroupHostChecks(double, const std::vec
 
 void ExternalCommandProcessor::DisableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -1479,9 +1340,6 @@ void ExternalCommandProcessor::DisableHostgroupPassiveHostChecks(double, const s
 
 void ExternalCommandProcessor::DisableServicegroupHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -1502,9 +1360,6 @@ void ExternalCommandProcessor::DisableServicegroupHostChecks(double, const std::
 
 void ExternalCommandProcessor::DisableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -1525,9 +1380,6 @@ void ExternalCommandProcessor::DisableServicegroupPassiveHostChecks(double, cons
 
 void ExternalCommandProcessor::EnableHostgroupHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -1546,9 +1398,6 @@ void ExternalCommandProcessor::EnableHostgroupHostChecks(double, const std::vect
 
 void ExternalCommandProcessor::EnableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -1567,9 +1416,6 @@ void ExternalCommandProcessor::EnableHostgroupPassiveHostChecks(double, const st
 
 void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -1590,9 +1436,6 @@ void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::v
 
 void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -1613,9 +1456,6 @@ void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const
 
 void ExternalCommandProcessor::EnableHostFlapping(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1632,9 +1472,6 @@ void ExternalCommandProcessor::EnableHostFlapping(double, const std::vector<Stri
 
 void ExternalCommandProcessor::DisableHostFlapping(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1651,9 +1488,6 @@ void ExternalCommandProcessor::DisableHostFlapping(double, const std::vector<Str
 
 void ExternalCommandProcessor::EnableSvcFlapping(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1670,9 +1504,6 @@ void ExternalCommandProcessor::EnableSvcFlapping(double, const std::vector<Strin
 
 void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1759,9 +1590,6 @@ void ExternalCommandProcessor::StopExecutingSvcChecks(double time, const std::ve
 
 void ExternalCommandProcessor::ChangeSvcModattr(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1780,9 +1608,6 @@ void ExternalCommandProcessor::ChangeSvcModattr(double time, const std::vector<S
 
 void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1801,9 +1626,6 @@ void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<
 
 void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1822,9 +1644,6 @@ void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const s
 
 void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1843,9 +1662,6 @@ void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const 
 
 void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1864,9 +1680,6 @@ void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const st
 
 void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1885,9 +1698,6 @@ void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const s
 
 void ExternalCommandProcessor::EnableHostEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1904,9 +1714,6 @@ void ExternalCommandProcessor::EnableHostEventHandler(double time, const std::ve
 
 void ExternalCommandProcessor::DisableHostEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1923,9 +1730,6 @@ void ExternalCommandProcessor::DisableHostEventHandler(double time, const std::v
 
 void ExternalCommandProcessor::EnableSvcEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1942,9 +1746,6 @@ void ExternalCommandProcessor::EnableSvcEventHandler(double time, const std::vec
 
 void ExternalCommandProcessor::DisableSvcEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -1961,9 +1762,6 @@ void ExternalCommandProcessor::DisableSvcEventHandler(double time, const std::ve
 
 void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -1990,9 +1788,6 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::ve
 
 void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -2019,9 +1814,6 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vec
 
 void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -2043,9 +1835,6 @@ void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::ve
 
 void ExternalCommandProcessor::ChangeSvcCheckCommand(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -2067,9 +1856,6 @@ void ExternalCommandProcessor::ChangeSvcCheckCommand(double time, const std::vec
 
 void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -2088,9 +1874,6 @@ void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double time, const std
 
 void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -2109,9 +1892,6 @@ void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double time, const std:
 
 void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 2 arguments."));
-
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
 	if (!host)
@@ -2133,9 +1913,6 @@ void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std:
 
 void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 3 arguments."));
-
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
 	if (!service)
@@ -2157,9 +1934,6 @@ void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::
 
 void ExternalCommandProcessor::EnableHostgroupHostNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -2178,9 +1952,6 @@ void ExternalCommandProcessor::EnableHostgroupHostNotifications(double time, con
 
 void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -2201,9 +1972,6 @@ void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double time, cons
 
 void ExternalCommandProcessor::DisableHostgroupHostNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -2222,9 +1990,6 @@ void ExternalCommandProcessor::DisableHostgroupHostNotifications(double time, co
 
 void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
 	if (!hg)
@@ -2245,9 +2010,6 @@ void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double time, con
 
 void ExternalCommandProcessor::EnableServicegroupHostNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -2268,9 +2030,6 @@ void ExternalCommandProcessor::EnableServicegroupHostNotifications(double time, 
 
 void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -2289,9 +2048,6 @@ void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double time, c
 
 void ExternalCommandProcessor::DisableServicegroupHostNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 arguments."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)
@@ -2312,9 +2068,6 @@ void ExternalCommandProcessor::DisableServicegroupHostNotifications(double time,
 
 void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double time, const std::vector<String>& arguments)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected 1 argument."));
-
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
 	if (!sg)

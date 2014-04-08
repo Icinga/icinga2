@@ -141,12 +141,18 @@ String PluginUtility::FormatPerfdata(const Value& perfdata)
 
 	bool first = true;
 	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+		String key;
+		if (kv.first.FindFirstOf(" ") != String::NPos)
+			key = "'" + kv.first + "'";
+		else
+			key = kv.first;
+
 		if (!first)
 			result << " ";
 		else
 			first = false;
 
-		result << kv.first << "=" << PerfdataValue::Format(kv.second);
+		result << key << "=" << PerfdataValue::Format(kv.second);
 	}
 
 	return result.str();
