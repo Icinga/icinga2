@@ -60,8 +60,8 @@ void Notification::StaticInitialize(void)
 {
 	ScriptVariable::Set("OK", StateFilterOK, true, true);
 	ScriptVariable::Set("Warning", StateFilterWarning, true, true);
-	ScriptVariable::Set("Critical", ServiceCritical, true, true);
-	ScriptVariable::Set("Unknown", ServiceUnknown, true, true);
+	ScriptVariable::Set("Critical", StateFilterCritical, true, true);
+	ScriptVariable::Set("Unknown", StateFilterUnknown, true, true);
 	ScriptVariable::Set("Up", StateFilterUp, true, true);
 	ScriptVariable::Set("Down", StateFilterDown, true, true);
 
