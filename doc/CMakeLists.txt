@@ -26,6 +26,11 @@ if(UNIX OR CYGWIN)
     DEPENDS ${DOCSRCS}
   )
 
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/htdocs
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+  )
+
   add_custom_target(index-html ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/htdocs/index.html)
 
   install(
