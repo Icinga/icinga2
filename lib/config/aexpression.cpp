@@ -296,7 +296,11 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 	if (arr) {
 		ObjectLock olock(arr);
 		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
-			aexpr->Evaluate(in_place ? locals : result);
+			Dictionary::Ptr alocals = in_place ? locals : result;
+			aexpr->Evaluate(alocals);
+
+			if (alocals->Contains("__result"))
+				break;
 		}
 	}
 
