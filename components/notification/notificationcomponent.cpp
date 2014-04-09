@@ -74,13 +74,13 @@ void NotificationComponent::NotificationTimerHandler(void)
 	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
 		Checkable::Ptr checkable = notification->GetCheckable();
 
-		if (notification->GetInterval() <= 0 && notification->GetLastProblemNotification() < checkable->GetLastHardStateChange())
+		if (notification->GetInterval() <= 0 && notification->GetLastProblemNotification() > checkable->GetLastHardStateChange())
 			continue;
 
 		if (notification->GetNextNotification() > now)
 			continue;
 
-		bool reachable = checkable->IsReachable();
+		bool reachable = checkable->IsReachable(DependencyNotification);
 
 		{
 			ObjectLock olock(notification);
@@ -88,28 +88,21 @@ void NotificationComponent::NotificationTimerHandler(void)
 		}
 
 		{
+			Host::Ptr host;
+			Service::Ptr service;
+			tie(host, service) = GetHostService(checkable);
+
 			ObjectLock olock(checkable);
 
 			if (checkable->GetStateType() == StateTypeSoft)
 				continue;
 
-			Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
-
-			if (service) {
-				 if (service->GetState() == ServiceOK)
-					continue;
-			} else {
-				Host::Ptr host = static_pointer_cast<Host>(checkable);
-
-				if (host->GetState() == HostUp)
-					continue;
-			}
+			if ((service && service->GetState() == ServiceOK) || (!service && host->GetState() == HostUp))
+				continue;
 
 			if (!reachable || checkable->IsInDowntime() || checkable->IsAcknowledged())
 				continue;
 		}
-
-		notification->SetLastProblemNotification(now);
 
 		try {
 			Log(LogInformation, "notification", "Sending reminder notification for object '" + checkable->GetName() + "'");
