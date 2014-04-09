@@ -15,7 +15,7 @@ class Notification : DynamicObject < NotificationNameComposer
 {
 	[config, protected] String notification_command (NotificationCommandRaw);
 	[config] double notification_interval {
-		default {{{ return 300; }}}
+		default {{{ return 1800; }}}
 	};
 	[config] String notification_period (NotificationPeriodRaw);
 	[config] Dictionary::Ptr macros;
