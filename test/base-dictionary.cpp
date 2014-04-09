@@ -116,6 +116,11 @@ BOOST_AUTO_TEST_CASE(remove)
 
 	dictionary->Set("test1", Empty);
 
+	BOOST_CHECK(dictionary->Contains("test1"));
+	BOOST_CHECK(dictionary->GetLength() == 2);
+
+	dictionary->Remove("test1");
+
 	BOOST_CHECK(!dictionary->Contains("test1"));
 	BOOST_CHECK(dictionary->GetLength() == 1);
 
