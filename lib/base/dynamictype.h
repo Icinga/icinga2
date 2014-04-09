@@ -24,12 +24,17 @@
 #include "base/registry.h"
 #include "base/dynamicobject.h"
 #include "base/debug.h"
+#include "base/objectlock.h"
 #include <map>
 #include <set>
 #include <boost/function.hpp>
+# include <boost/iterator/iterator_facade.hpp>
 
 namespace icinga
 {
+
+template<typename T>
+class I2_BASE_API DynamicTypeIterator;
 
 class I2_BASE_API DynamicType : public Object
 {
@@ -48,25 +53,21 @@ public:
 	void RegisterObject(const DynamicObject::Ptr& object);
 
 	static std::vector<DynamicType::Ptr> GetTypes(void);
-	std::vector<DynamicObject::Ptr> GetObjects(void) const;
+	std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > GetObjects(void);
 
 	template<typename T>
-	static std::vector<shared_ptr<T> > GetObjects(void)
+	static std::pair<DynamicTypeIterator<T>, DynamicTypeIterator<T> > GetObjects(void)
 	{
-		std::vector<shared_ptr<T> > objects;
-
-		BOOST_FOREACH(const DynamicObject::Ptr& object, GetObjects(T::GetTypeName())) {
-			shared_ptr<T> tobject = static_pointer_cast<T>(object);
-
-			ASSERT(tobject);
-
-			objects.push_back(tobject);
-		}
-
-		return objects;
+		DynamicType::Ptr type = GetByName(T::GetTypeName());
+		return std::make_pair(
+		    DynamicTypeIterator<T>(type, 0),
+		    DynamicTypeIterator<T>(type, -1)
+		);
 	}
 
 private:
+	template<typename T> friend class DynamicTypeIterator;
+
 	String m_Name;
 
 	typedef std::map<String, DynamicObject::Ptr> ObjectMap;
@@ -81,8 +82,48 @@ private:
 	static TypeMap& InternalGetTypeMap(void);
 	static TypeVector& InternalGetTypeVector(void);
 	static boost::mutex& GetStaticMutex(void);
+};
 
-	static std::vector<DynamicObject::Ptr> GetObjects(const String& type);
+template<typename T>
+class I2_BASE_API DynamicTypeIterator : public boost::iterator_facade<DynamicTypeIterator<T>, const shared_ptr<T>, boost::forward_traversal_tag>
+{
+public:
+	DynamicTypeIterator(const DynamicType::Ptr& type, int index)
+		: m_Type(type), m_Index(index)
+	{ }
+
+private:
+	friend class boost::iterator_core_access;
+
+	DynamicType::Ptr m_Type;
+	int m_Index;
+	mutable shared_ptr<T> m_Current;
+
+	void increment(void) {
+		m_Index++;
+	}
+
+	bool equal(const DynamicTypeIterator<T>& other) const
+	{
+		ASSERT(other.m_Type == m_Type);
+
+		{
+			ObjectLock olock(m_Type);
+
+			if ((other.m_Index == -1 || other.m_Index >= other.m_Type->m_ObjectVector.size()) &&
+			    (m_Index == -1 || m_Index >= m_Type->m_ObjectVector.size()))
+				return true;
+		}
+
+		return (other.m_Index == m_Index);
+	}
+
+	const shared_ptr<T>& dereference(void) const
+	{
+		ObjectLock olock(m_Type);
+		m_Current = static_pointer_cast<T>(*(m_Type->m_ObjectVector.begin() + m_Index));
+		return m_Current;
+	}
 };
 
 }

@@ -73,17 +73,12 @@ DynamicType::TypeVector DynamicType::GetTypes(void)
 	return InternalGetTypeVector(); /* Making a copy of the vector here. */
 }
 
-std::vector<DynamicObject::Ptr> DynamicType::GetObjects(const String& type)
+std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > DynamicType::GetObjects(void)
 {
-	DynamicType::Ptr dt = GetByName(type);
-	return dt->GetObjects();
-}
-
-std::vector<DynamicObject::Ptr> DynamicType::GetObjects(void) const
-{
-	ObjectLock olock(this);
-
-	return m_ObjectVector; /* Making a copy of the vector here. */
+	return std::make_pair(
+	    DynamicTypeIterator<DynamicObject>(GetSelf(), 0),
+	    DynamicTypeIterator<DynamicObject>(GetSelf(), -1)
+	);
 }
 
 String DynamicType::GetName(void) const

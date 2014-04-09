@@ -111,10 +111,10 @@ void DbConnection::ProgramStatusHandler(void)
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);
 
-	InsertRuntimeVariable("total_services", static_cast<long>(DynamicType::GetObjects<Service>().size()));
-	InsertRuntimeVariable("total_scheduled_services", static_cast<long>(DynamicType::GetObjects<Service>().size()));
-	InsertRuntimeVariable("total_hosts", static_cast<long>(DynamicType::GetObjects<Host>().size()));
-	InsertRuntimeVariable("total_scheduled_hosts", static_cast<long>(DynamicType::GetObjects<Host>().size()));
+	InsertRuntimeVariable("total_services", std::distance(DynamicType::GetObjects<Service>().first, DynamicType::GetObjects<Service>().second));
+	InsertRuntimeVariable("total_scheduled_services", std::distance(DynamicType::GetObjects<Service>().first, DynamicType::GetObjects<Service>().second));
+	InsertRuntimeVariable("total_hosts", std::distance(DynamicType::GetObjects<Host>().first, DynamicType::GetObjects<Host>().second));
+	InsertRuntimeVariable("total_scheduled_hosts", std::distance(DynamicType::GetObjects<Host>().first, DynamicType::GetObjects<Host>().second));
 
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 

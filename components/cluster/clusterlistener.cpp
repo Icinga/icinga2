@@ -1570,7 +1570,7 @@ bool ClusterListener::SupportsChecks(void)
 	if (!type)
 		return false;
 
-	return !type->GetObjects().empty() && IcingaApplication::GetInstance()->GetEnableChecks();
+	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0 && IcingaApplication::GetInstance()->GetEnableChecks();
 }
 
 bool ClusterListener::SupportsNotifications(void)
@@ -1580,7 +1580,7 @@ bool ClusterListener::SupportsNotifications(void)
 	if (!type)
 		return false;
 
-	return !type->GetObjects().empty() && IcingaApplication::GetInstance()->GetEnableNotifications();
+	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0 && IcingaApplication::GetInstance()->GetEnableNotifications();
 }
 
 bool ClusterListener::SupportsFeature(const String& name)
@@ -1590,7 +1590,7 @@ bool ClusterListener::SupportsFeature(const String& name)
 	if (!type)
 		return false;
 
-	return !type->GetObjects().empty();
+	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0;
 }
 
 std::pair<Dictionary::Ptr, Dictionary::Ptr> ClusterListener::GetClusterStatus(void)

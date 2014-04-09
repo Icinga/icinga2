@@ -341,8 +341,9 @@ bool ConfigItem::ActivateItems(ValidationType validate)
 	if (validate != ValidateNone) {
 		/* log stats for external parsers */
 		BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-			if (type->GetObjects().size() > 0)
-				Log(LogInformation, "config", "Checked " + Convert::ToString(type->GetObjects().size()) + " " + type->GetName() + "(s).");
+			int count = std::distance(type->GetObjects().first, type->GetObjects().second);
+			if (count > 0)
+				Log(LogInformation, "config", "Checked " + Convert::ToString(count) + " " + type->GetName() + "(s).");
 		}
 	}
 
