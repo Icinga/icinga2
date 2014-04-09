@@ -99,8 +99,19 @@ private:
 	int m_Index;
 	mutable shared_ptr<T> m_Current;
 
-	void increment(void) {
+	void increment(void)
+	{
 		m_Index++;
+	}
+
+	void decrement(void)
+	{
+		m_Index--;
+	}
+
+	void advance(int n)
+	{
+		m_Index += n;
 	}
 
 	bool equal(const DynamicTypeIterator<T>& other) const
