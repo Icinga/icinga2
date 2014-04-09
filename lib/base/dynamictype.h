@@ -34,7 +34,7 @@ namespace icinga
 {
 
 template<typename T>
-class I2_BASE_API DynamicTypeIterator;
+class DynamicTypeIterator;
 
 class I2_BASE_API DynamicType : public Object
 {
@@ -85,7 +85,7 @@ private:
 };
 
 template<typename T>
-class I2_BASE_API DynamicTypeIterator : public boost::iterator_facade<DynamicTypeIterator<T>, const shared_ptr<T>, boost::forward_traversal_tag>
+class DynamicTypeIterator : public boost::iterator_facade<DynamicTypeIterator<T>, const shared_ptr<T>, boost::forward_traversal_tag>
 {
 public:
 	DynamicTypeIterator(const DynamicType::Ptr& type, int index)
