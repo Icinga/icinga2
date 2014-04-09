@@ -124,7 +124,7 @@ Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)
 		return Empty;
 
 	/* same as service */
-	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
+	TimePeriod::Ptr timeperiod = user->GetPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -139,7 +139,7 @@ Value ContactsTable::ServiceNotificationPeriodAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
+	TimePeriod::Ptr timeperiod = user->GetPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -174,7 +174,7 @@ Value ContactsTable::InHostNotificationPeriodAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
+	TimePeriod::Ptr timeperiod = user->GetPeriod();
 
 	if (!timeperiod)
 		return Empty;
@@ -189,7 +189,7 @@ Value ContactsTable::InServiceNotificationPeriodAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	TimePeriod::Ptr timeperiod = user->GetNotificationPeriod();
+	TimePeriod::Ptr timeperiod = user->GetPeriod();
 
 	if (!timeperiod)
 		return Empty;

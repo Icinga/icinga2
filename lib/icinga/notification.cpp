@@ -78,8 +78,8 @@ void Notification::StaticInitialize(void)
 
 void Notification::OnConfigLoaded(void)
 {
-	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), ~0));
-	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), ~0));
+	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
+	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
 
 	GetCheckable()->AddNotification(GetSelf());
 }
@@ -108,9 +108,9 @@ Checkable::Ptr Notification::GetCheckable(void) const
 		return host->GetServiceByShortName(GetServiceName());
 }
 
-NotificationCommand::Ptr Notification::GetNotificationCommand(void) const
+NotificationCommand::Ptr Notification::GetCommand(void) const
 {
-	return NotificationCommand::GetByName(GetNotificationCommandRaw());
+	return NotificationCommand::GetByName(GetCommandRaw());
 }
 
 std::set<User::Ptr> Notification::GetUsers(void) const
@@ -157,9 +157,9 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 	return result;
 }
 
-TimePeriod::Ptr Notification::GetNotificationPeriod(void) const
+TimePeriod::Ptr Notification::GetPeriod(void) const
 {
-	return TimePeriod::GetByName(GetNotificationPeriodRaw());
+	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
 double Notification::GetNextNotification(void) const
@@ -221,7 +221,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	Checkable::Ptr checkable = GetCheckable();
 
 	if (!force) {
-		TimePeriod::Ptr tp = GetNotificationPeriod();
+		TimePeriod::Ptr tp = GetPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': not in timeperiod");
@@ -245,9 +245,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		unsigned long ftype = 1 << type;
 
-		Log(LogDebug, "icinga", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetNotificationTypeFilter()));
+		Log(LogDebug, "icinga", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetTypeFilter()));
 
-		if (!(ftype & GetNotificationTypeFilter())) {
+		if (!(ftype & GetTypeFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': type filter does not match");
 			return;
 		}
@@ -263,7 +263,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		else
 			fstate = HostStateToFilter(host->GetState());
 
-		if (!(fstate & GetNotificationStateFilter())) {
+		if (!(fstate & GetStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
 			return;
 		}
@@ -312,7 +312,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 	ASSERT(!OwnsLock());
 
 	if (!force) {
-		TimePeriod::Ptr tp = user->GetNotificationPeriod();
+		TimePeriod::Ptr tp = user->GetPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
@@ -322,7 +322,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 
 		unsigned long ftype = 1 << type;
 
-		if (!(ftype & user->GetNotificationTypeFilter())) {
+		if (!(ftype & user->GetTypeFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': type filter does not match");
 			return false;
@@ -340,7 +340,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		else
 				fstate = HostStateToFilter(host->GetState());
 
-		if (!(fstate & user->GetNotificationStateFilter())) {
+		if (!(fstate & user->GetStateFilter())) {
 			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': state filter does not match");
 			return false;
@@ -355,7 +355,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	ASSERT(!OwnsLock());
 
 	try {
-		NotificationCommand::Ptr command = GetNotificationCommand();
+		NotificationCommand::Ptr command = GetCommand();
 
 		if (!command) {
 			Log(LogDebug, "icinga", "No notification_command found for notification '" + GetName() + "'. Skipping execution.");
@@ -451,18 +451,3 @@ void Notification::ValidateFilters(const String& location, const Dictionary::Ptr
 	}
 }
 
-bool Notification::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
-{
-	Dictionary::Ptr vars = GetVars();
-
-	if (macro.SubStr(0, 13) == "notification.") {
-		String key = vars->Get(macro.SubStr(13));
-
-		if (vars && vars->Contains(key)) {
-			*result = vars->Get(key);
-			return true;
-		}
-	}
-
-	return false;
-}

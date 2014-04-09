@@ -33,8 +33,8 @@ REGISTER_SCRIPTFUNCTION(ValidateUserFilters, &User::ValidateFilters);
 
 void User::OnConfigLoaded(void)
 {
-	SetNotificationTypeFilter(FilterArrayToInt(GetNotificationTypeFilterRaw(), ~0));
-	SetNotificationStateFilter(FilterArrayToInt(GetNotificationStateFilterRaw(), ~0));
+	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
+	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
 
 	Array::Ptr groups = GetGroups();
 
@@ -68,9 +68,9 @@ void User::Stop(void)
 	}
 }
 
-TimePeriod::Ptr User::GetNotificationPeriod(void) const
+TimePeriod::Ptr User::GetPeriod(void) const
 {
-	return TimePeriod::GetByName(GetNotificationPeriodRaw());
+	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
 void User::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)

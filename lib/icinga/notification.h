@@ -71,7 +71,7 @@ class Checkable;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Notification : public ObjectImpl<Notification>, public MacroResolver
+class I2_ICINGA_API Notification : public ObjectImpl<Notification>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Notification);
@@ -80,8 +80,8 @@ public:
 	static void StaticInitialize(void);
 
 	shared_ptr<Checkable> GetCheckable(void) const;
-	shared_ptr<NotificationCommand> GetNotificationCommand(void) const;
-	TimePeriod::Ptr GetNotificationPeriod(void) const;
+	shared_ptr<NotificationCommand> GetCommand(void) const;
+	TimePeriod::Ptr GetPeriod(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetUserGroups(void) const;
 
@@ -96,8 +96,6 @@ public:
 	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force);
 
 	static String NotificationTypeToString(NotificationType type);
-
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	static boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> OnNextNotificationChanged;
 

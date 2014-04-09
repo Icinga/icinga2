@@ -22,7 +22,7 @@ class Dependency : DynamicObject < DependencyNameComposer
 
 	[config] String period (PeriodRaw);
 
-	[config] Array::Ptr state_filter (StateFilterRaw);
+	[config] Array::Ptr states;
 	int state_filter_real (StateFilter);
 
 	[config] bool disable_checks;

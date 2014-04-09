@@ -13,19 +13,19 @@ public:
 
 class Notification : DynamicObject < NotificationNameComposer
 {
-	[config, protected] String notification_command (NotificationCommandRaw);
-	[config] double notification_interval {
+	[config, protected] String command (CommandRaw);
+	[config] double interval {
 		default {{{ return 1800; }}}
 	};
-	[config] String notification_period (NotificationPeriodRaw);
+	[config] String period (PeriodRaw);
 	[config] Dictionary::Ptr macros;
 	[config, protected] Array::Ptr users (UsersRaw);
 	[config, protected] Array::Ptr user_groups (UserGroupsRaw);
 	[config] Dictionary::Ptr times;
-	[config] Array::Ptr notification_type_filter (NotificationTypeFilterRaw);
-	int notification_type_filter_real (NotificationTypeFilter);
-	[config] Array::Ptr notification_state_filter (NotificationStateFilterRaw);
-	int notification_state_filter_real (NotificationStateFilter);
+	[config] Array::Ptr types;
+	int type_filter_real (TypeFilter);
+	[config] Array::Ptr states;
+	int state_filter_real (StateFilter);
 	[config, protected] String host_name;
 	[config, protected] String service_name;
 

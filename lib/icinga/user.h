@@ -41,7 +41,7 @@ public:
 	DECLARE_TYPENAME(User);
 
 	/* Notifications */
-	TimePeriod::Ptr GetNotificationPeriod(void) const;
+	TimePeriod::Ptr GetPeriod(void) const;
 
 	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
 

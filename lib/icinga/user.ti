@@ -13,17 +13,16 @@ class User : DynamicObject
 				return m_DisplayName;
 		}}}
 	};
-	[config] Dictionary::Ptr macros;
 	[config] Array::Ptr groups;
-	[config] String notification_period (NotificationPeriodRaw);
-	[config] Array::Ptr notification_type_filter (NotificationTypeFilterRaw);
-	int notification_type_filter_real (NotificationTypeFilter);
-	[config] Array::Ptr notification_state_filter (NotificationStateFilterRaw);
+	[config] String period (PeriodRaw);
+	[config] Array::Ptr types;
+	int type_filter_real (TypeFilter);
+	[config] Array::Ptr states;
+	int state_filter_real (StateFilter);
 
 	[config] String email;
 	[config] String pager;
 
-	int notification_state_filter_real (NotificationStateFilter);
 	[state] bool enable_notifications;
 	[state] double last_notification;
 };

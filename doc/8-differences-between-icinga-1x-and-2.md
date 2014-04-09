@@ -445,13 +445,13 @@ Icinga 2 attempts to solve that problem in this way
 
 * Create user X, set SMS and Mail attributes, used for authorization
 * Create user Y, set SMS and Mail attributes, used for authorization
-* Create notification A-SMS, set notification_command for sms, add user X,
+* Create notification A-SMS, set command for sms, add user X,
   assign notification A-SMS to service A
-* Create notification B-Mail, set notification_command for mail, add user X,
+* Create notification B-Mail, set command for mail, add user X,
   assign notification Mail to service B
-* Create notification C-SMS, set notification_command for sms, add user Y,
+* Create notification C-SMS, set command for sms, add user Y,
   assign notification C-SMS to service C
-* Create notification C-Mail, set notification_command for mail, add user Y,
+* Create notification C-Mail, set command for mail, add user Y,
   assign notification C-Mail to service C
 
 Previously in Icinga 1.x it looked like this:
@@ -497,8 +497,8 @@ All state and type filter use long names or'd with a pipe together
 
     notification_options w,u,c,r,f,s
 
-    notification_state_filter = [ Warning, Unknown, Critical ]
-    notification_type_filter = [ Problem, Recovery, FlappingStart, FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+    states = [ Warning, Unknown, Critical ]
+    filters = [ Problem, Recovery, FlappingStart, FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
 Icinga 2 adds more fine-grained type filters for acknowledgements, downtime
 and flapping type (start, end, ...).

@@ -36,7 +36,7 @@ REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc)
 void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
     const String& author, const String& comment)
 {
-	NotificationCommand::Ptr commandObj = notification->GetNotificationCommand();
+	NotificationCommand::Ptr commandObj = notification->GetCommand();
 
 	NotificationType type = static_cast<NotificationType>(itype);
 

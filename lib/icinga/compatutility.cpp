@@ -354,7 +354,7 @@ int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checka
 	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
-		TimePeriod::Ptr timeperiod = notification->GetNotificationPeriod();
+		TimePeriod::Ptr timeperiod = notification->GetPeriod();
 
 		/* first notification wins */
 		if (timeperiod)
@@ -487,8 +487,8 @@ double CompatUtility::GetCheckableNotificationNotificationInterval(const Checkab
 	double notification_interval = -1;
 
 	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
-		if (notification_interval == -1 || notification->GetNotificationInterval() < notification_interval)
-			notification_interval = notification->GetNotificationInterval();
+		if (notification_interval == -1 || notification->GetInterval() < notification_interval)
+			notification_interval = notification->GetInterval();
 	}
 
 	if (notification_interval == -1)
@@ -505,8 +505,8 @@ String CompatUtility::GetCheckableNotificationNotificationPeriod(const Checkable
 
 	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 
-		if (notification->GetNotificationPeriod())
-			notification_period = notification->GetNotificationPeriod();
+		if (notification->GetPeriod())
+			notification_period = notification->GetPeriod();
 	}
 
 	if (!notification_period)
@@ -523,11 +523,8 @@ String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkabl
 	unsigned long notification_state_filter = 0;
 
 	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
-		if (notification->GetNotificationTypeFilter())
-			notification_type_filter = notification->GetNotificationTypeFilter();
-
-		if (notification->GetNotificationStateFilter())
-			notification_state_filter = notification->GetNotificationStateFilter();
+		notification_type_filter = notification->GetTypeFilter();
+		notification_state_filter = notification->GetStateFilter();
 	}
 
 	std::vector<String> notification_options;
@@ -569,8 +566,7 @@ int CompatUtility::GetCheckableNotificationTypeFilter(const Checkable::Ptr& chec
 	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
-		if (notification->GetNotificationTypeFilter())
-			notification_type_filter = notification->GetNotificationTypeFilter();
+		notification_type_filter = notification->GetTypeFilter();
 	}
 
 	return notification_type_filter;
@@ -585,8 +581,7 @@ int CompatUtility::GetCheckableNotificationStateFilter(const Checkable::Ptr& che
 	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
 		ObjectLock olock(notification);
 
-		if (notification->GetNotificationStateFilter())
-			notification_state_filter = notification->GetNotificationStateFilter();
+		notification_state_filter = notification->GetStateFilter();
 	}
 
 	return notification_state_filter;

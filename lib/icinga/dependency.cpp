@@ -55,7 +55,7 @@ void Dependency::OnConfigLoaded(void)
 	else
 		defaultFilter = StateFilterOK | StateFilterWarning;
 
-	SetStateFilter(FilterArrayToInt(GetStateFilterRaw(), defaultFilter));
+	SetStateFilter(FilterArrayToInt(GetStates(), defaultFilter));
 }
 
 void Dependency::OnStateLoaded(void)

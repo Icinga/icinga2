@@ -74,7 +74,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
 		Checkable::Ptr checkable = notification->GetCheckable();
 
-		if (notification->GetNotificationInterval() <= 0 && notification->GetLastProblemNotification() < checkable->GetLastHardStateChange())
+		if (notification->GetInterval() <= 0 && notification->GetLastProblemNotification() < checkable->GetLastHardStateChange())
 			continue;
 
 		if (notification->GetNextNotification() > now)
@@ -84,7 +84,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 
 		{
 			ObjectLock olock(notification);
-			notification->SetNextNotification(Utility::GetTime() + notification->GetNotificationInterval());
+			notification->SetNextNotification(Utility::GetTime() + notification->GetInterval());
 		}
 
 		{

@@ -128,7 +128,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 		bool in_notification_period = true;
 		String notification_period_name;
 		BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
-			TimePeriod::Ptr notification_period = notification->GetNotificationPeriod();
+			TimePeriod::Ptr notification_period = notification->GetPeriod();
 
 			if (notification_period) {
 				if (notification_period->IsInside(static_cast<double>(time)))

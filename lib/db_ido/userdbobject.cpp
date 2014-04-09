@@ -49,22 +49,22 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 		fields->Set("pager_address", vars->Get("pager"));
 	}
 
-	fields->Set("host_timeperiod_object_id", user->GetNotificationPeriod());
-	fields->Set("service_timeperiod_object_id", user->GetNotificationPeriod());
+	fields->Set("host_timeperiod_object_id", user->GetPeriod());
+	fields->Set("service_timeperiod_object_id", user->GetPeriod());
 	fields->Set("host_notifications_enabled", user->GetEnableNotifications());
 	fields->Set("service_notifications_enabled", user->GetEnableNotifications());
 	fields->Set("can_submit_commands", 1);
-	fields->Set("notify_service_recovery", user->GetNotificationStateFilter() & NotificationRecovery);
-	fields->Set("notify_service_warning", user->GetNotificationStateFilter() & NotificationProblem);
-	fields->Set("notify_service_unknown", user->GetNotificationStateFilter() & NotificationProblem);
-	fields->Set("notify_service_critical", user->GetNotificationStateFilter() & NotificationProblem);
-	fields->Set("notify_service_flapping", user->GetNotificationStateFilter() & (NotificationFlappingStart | NotificationFlappingEnd));
-	fields->Set("notify_service_downtime", user->GetNotificationStateFilter() & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved));
-	fields->Set("notify_host_recovery", user->GetNotificationStateFilter() & NotificationRecovery);
-	fields->Set("notify_host_down", user->GetNotificationStateFilter() & NotificationProblem);
-	fields->Set("notify_host_unreachable", user->GetNotificationStateFilter() & NotificationProblem);
-	fields->Set("notify_host_flapping", user->GetNotificationStateFilter() & (NotificationFlappingStart | NotificationFlappingEnd));
-	fields->Set("notify_host_downtime", user->GetNotificationStateFilter() & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved));
+	fields->Set("notify_service_recovery", (user->GetStateFilter() & NotificationRecovery) != 0);
+	fields->Set("notify_service_warning", (user->GetStateFilter() & NotificationProblem) != 0);
+	fields->Set("notify_service_unknown", (user->GetStateFilter() & NotificationProblem) != 0);
+	fields->Set("notify_service_critical", (user->GetStateFilter() & NotificationProblem) != 0);
+	fields->Set("notify_service_flapping", (user->GetStateFilter() & (NotificationFlappingStart | NotificationFlappingEnd)) != 0);
+	fields->Set("notify_service_downtime", (user->GetStateFilter() & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) != 0);
+	fields->Set("notify_host_recovery", (user->GetStateFilter() & NotificationRecovery) != 0);
+	fields->Set("notify_host_down", (user->GetStateFilter() & NotificationProblem) != 0);
+	fields->Set("notify_host_unreachable", (user->GetStateFilter() & NotificationProblem) != 0);
+	fields->Set("notify_host_flapping", (user->GetStateFilter() & (NotificationFlappingStart | NotificationFlappingEnd)) != 0);
+	fields->Set("notify_host_downtime", (user->GetStateFilter() & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) != 0);
 
 	return fields;
 }
