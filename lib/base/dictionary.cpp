@@ -98,11 +98,6 @@ Value Dictionary::Get(const String& key) const
  */
 void Dictionary::Set(const String& key, const Value& value)
 {
-	if (value.IsEmpty()) {
-		Remove(key);
-		return;
-	}
-
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
