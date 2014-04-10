@@ -712,13 +712,14 @@ void ClusterListener::SetSecurityInfo(const Dictionary::Ptr& message, const Dyna
 	message->Set("security", security);
 }
 
-void ClusterListener::CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr, const String& authority)
+void ClusterListener::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("check_result", Serialize(cr));
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -726,18 +727,19 @@ void ClusterListener::CheckResultHandler(const Checkable::Ptr& service, const Ch
 	message->Set("method", "cluster::CheckResult");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::NextCheckChangedHandler(const Checkable::Ptr& service, double nextCheck, const String& authority)
+void ClusterListener::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("next_check", nextCheck);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -745,7 +747,7 @@ void ClusterListener::NextCheckChangedHandler(const Checkable::Ptr& service, dou
 	message->Set("method", "cluster::SetNextCheck");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -769,13 +771,14 @@ void ClusterListener::NextNotificationChangedHandler(const Notification::Ptr& no
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::ForceNextCheckChangedHandler(const Checkable::Ptr& service, bool forced, const String& authority)
+void ClusterListener::ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, bool forced, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("forced", forced);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -783,18 +786,19 @@ void ClusterListener::ForceNextCheckChangedHandler(const Checkable::Ptr& service
 	message->Set("method", "cluster::SetForceNextCheck");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::ForceNextNotificationChangedHandler(const Checkable::Ptr& service, bool forced, const String& authority)
+void ClusterListener::ForceNextNotificationChangedHandler(const Checkable::Ptr& checkable, bool forced, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("forced", forced);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -802,18 +806,19 @@ void ClusterListener::ForceNextNotificationChangedHandler(const Checkable::Ptr& 
 	message->Set("method", "cluster::SetForceNextNotification");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnableActiveChecksChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("enabled", enabled);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -821,18 +826,19 @@ void ClusterListener::EnableActiveChecksChangedHandler(const Checkable::Ptr& ser
 	message->Set("method", "cluster::SetEnableActiveChecks");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnablePassiveChecksChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("enabled", enabled);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -840,18 +846,19 @@ void ClusterListener::EnablePassiveChecksChangedHandler(const Checkable::Ptr& se
 	message->Set("method", "cluster::SetEnablePassiveChecks");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnableNotificationsChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnableNotificationsChangedHandler(const Checkable::Ptr& checkable, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("enabled", enabled);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -859,18 +866,19 @@ void ClusterListener::EnableNotificationsChangedHandler(const Checkable::Ptr& se
 	message->Set("method", "cluster::SetEnableNotifications");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::EnableFlappingChangedHandler(const Checkable::Ptr& service, bool enabled, const String& authority)
+void ClusterListener::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bool enabled, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("enabled", enabled);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -878,18 +886,19 @@ void ClusterListener::EnableFlappingChangedHandler(const Checkable::Ptr& service
 	message->Set("method", "cluster::SetEnableFlapping");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentAddedHandler(const Checkable::Ptr& service, const Comment::Ptr& comment, const String& authority)
+void ClusterListener::CommentAddedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("comment", Serialize(comment));
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -897,18 +906,19 @@ void ClusterListener::CommentAddedHandler(const Checkable::Ptr& service, const C
 	message->Set("method", "cluster::AddComment");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::CommentRemovedHandler(const Checkable::Ptr& service, const Comment::Ptr& comment, const String& authority)
+void ClusterListener::CommentRemovedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("id", comment->GetId());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -916,18 +926,19 @@ void ClusterListener::CommentRemovedHandler(const Checkable::Ptr& service, const
 	message->Set("method", "cluster::RemoveComment");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeAddedHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("downtime", Serialize(downtime));
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -935,18 +946,19 @@ void ClusterListener::DowntimeAddedHandler(const Checkable::Ptr& service, const 
 	message->Set("method", "cluster::AddDowntime");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::DowntimeRemovedHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime, const String& authority)
+void ClusterListener::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("id", downtime->GetId());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -954,21 +966,22 @@ void ClusterListener::DowntimeRemovedHandler(const Checkable::Ptr& service, cons
 	message->Set("method", "cluster::RemoveDowntime");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::AcknowledgementSetHandler(const Checkable::Ptr& service, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
+void ClusterListener::AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 	params->Set("author", author);
 	params->Set("comment", comment);
-	params->Set("type", type);
+	params->Set("acktype", type);
 	params->Set("expiry", expiry);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -976,25 +989,26 @@ void ClusterListener::AcknowledgementSetHandler(const Checkable::Ptr& service, c
 	message->Set("method", "cluster::SetAcknowledgement");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
 
-void ClusterListener::AcknowledgementClearedHandler(const Checkable::Ptr& service, const String& authority)
+void ClusterListener::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& authority)
 {
 	if (!authority.IsEmpty() && authority != GetIdentity())
 		return;
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("service", service->GetName());
+	params->Set("type", checkable->GetReflectionType()->GetName());
+	params->Set("checkable", checkable->GetName());
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "cluster::ClearAcknowledgement");
 	message->Set("params", params);
 
-	SetSecurityInfo(message, service, DomainPrivRead);
+	SetSecurityInfo(message, checkable, DomainPrivRead);
 
 	AsyncRelayMessage(Endpoint::Ptr(), message, true);
 }
@@ -1059,15 +1073,23 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCheckResult)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::CheckResult message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCheckResult)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::CheckResult message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
@@ -1076,154 +1098,210 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!cr)
 			return;
 
-		service->ProcessCheckResult(cr, sender->GetName());
+		checkable->ProcessCheckResult(cr, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetNextCheck") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetNextCheck message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetNextCheck message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		double nextCheck = params->Get("next_check");
 
-		service->SetNextCheck(nextCheck, sender->GetName());
+		checkable->SetNextCheck(nextCheck, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetForceNextCheck") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetForceNextCheck message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetForceNextCheck message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		bool forced = params->Get("forced");
 
-		service->SetForceNextCheck(forced, sender->GetName());
+		checkable->SetForceNextCheck(forced, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetForceNextNotification") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetForceNextNotification message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetForceNextNotification message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		bool forced = params->Get("forced");
 
-		service->SetForceNextNotification(forced, sender->GetName());
+		checkable->SetForceNextNotification(forced, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableActiveChecks") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableActiveChecks message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableActiveChecks message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		bool enabled = params->Get("enabled");
 
-		service->SetEnableActiveChecks(enabled, sender->GetName());
+		checkable->SetEnableActiveChecks(enabled, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnablePassiveChecks") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetEnablePassiveChecks message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnablePassiveChecks message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		bool enabled = params->Get("enabled");
 
-		service->SetEnablePassiveChecks(enabled, sender->GetName());
+		checkable->SetEnablePassiveChecks(enabled, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableNotifications") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableNotifications message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableNotifications message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		bool enabled = params->Get("enabled");
 
-		service->SetEnableNotifications(enabled, sender->GetName());
+		checkable->SetEnableNotifications(enabled, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetEnableFlapping") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableFlapping message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetEnableFlapping message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		bool enabled = params->Get("enabled");
 
-		service->SetEnableFlapping(enabled, sender->GetName());
+		checkable->SetEnableFlapping(enabled, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetNextNotification") {
@@ -1253,21 +1331,29 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::AddComment message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::AddComment message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		Comment::Ptr comment = Deserialize(params->Get("comment"), true);
 
-		service->AddComment(comment->GetEntryType(), comment->GetAuthor(),
+		checkable->AddComment(comment->GetEntryType(), comment->GetAuthor(),
 		    comment->GetText(), comment->GetExpireTime(), comment->GetId(), sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
@@ -1275,42 +1361,58 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::RemoveComment message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::RemoveComment message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		String id = params->Get("id");
 
-		service->RemoveComment(id, sender->GetName());
+		checkable->RemoveComment(id, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::AddDowntime") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::AddDowntime message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::AddDowntime message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		Downtime::Ptr downtime = Deserialize(params->Get("downtime"), true);
 
-		service->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
+		checkable->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
 		    downtime->GetStartTime(), downtime->GetEndTime(),
 		    downtime->GetFixed(), downtime->GetTriggeredBy(),
 		    downtime->GetDuration(), downtime->GetScheduledBy(),
@@ -1321,66 +1423,90 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::RemoveDowntime message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::RemoveDowntime message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		String id = params->Get("id");
 
-		service->RemoveDowntime(id, false, sender->GetName());
+		checkable->RemoveDowntime(id, false, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::SetAcknowledgement") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::SetAcknowledgement message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::SetAcknowledgement message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		String author = params->Get("author");
 		String comment = params->Get("comment");
-		int type = params->Get("type");
+		int acktype = params->Get("acktype");
 		double expiry = params->Get("expiry");
 
-		service->AcknowledgeProblem(author, comment, static_cast<AcknowledgementType>(type), expiry, sender->GetName());
+		checkable->AcknowledgeProblem(author, comment, static_cast<AcknowledgementType>(acktype), expiry, sender->GetName());
 
 		AsyncRelayMessage(sender, message, true);
 	} else if (message->Get("method") == "cluster::ClearAcknowledgement") {
 		if (!params)
 			return;
 
-		String svc = params->Get("service");
+		String type = params->Get("type");
+		String chk = params->Get("checkable");
 
-		Checkable::Ptr service = Checkable::GetByName(svc);
+		Checkable::Ptr checkable;
 
-		if (!service)
+		if (type == "Host")
+			checkable = DynamicObject::GetObject<Host>(chk);
+		else if (type == "Service")
+			checkable = DynamicObject::GetObject<Service>(chk);
+		else
 			return;
 
-		if (!service->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
-			Log(LogDebug, "cluster", "Not accepting cluster::ClearAcknowledgement message from endpoint '" + sender->GetName() + "' for service '" + service->GetName() + "': Insufficient privileges.");
+		if (!checkable)
+			return;
+
+		if (!checkable->HasPrivileges(sender->GetName(), DomainPrivCommand)) {
+			Log(LogDebug, "cluster", "Not accepting cluster::ClearAcknowledgement message from endpoint '" + sender->GetName() + "' for checkable '" + checkable->GetName() + "': Insufficient privileges.");
 			return;
 		}
 
 		{
-			ObjectLock olock(service);
-			service->ClearAcknowledgement(sender->GetName());
+			ObjectLock olock(checkable);
+			checkable->ClearAcknowledgement(sender->GetName());
 		}
 
 		AsyncRelayMessage(sender, message, true);
