@@ -196,6 +196,7 @@ static char *lb_steal(lex_buf *lb)
 
 
 \/\/[^\n]*			/* ignore C++-style comments */
+#[^\n]*				/* ignore shell-style comments */
 [ \t]				/* ignore whitespace */
 
 <INITIAL>{
