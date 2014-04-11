@@ -7,7 +7,7 @@ cd docker
 cat > Dockerfile <<DOCKER
 FROM debian:jessie
 RUN apt-get update
-RUN apt-get install -y clang cmake make ccache flex bison libboost-all-dev libssl-dev git-core cgdb subversion
+RUN apt-get install -y clang cmake make ccache flex bison libboost-all-dev libssl-dev git-core cgdb subversion vim
 RUN groupadd -g `id -g` icinga
 RUN useradd -m -u `id -u` -g icinga icinga
 WORKDIR /home/icinga
@@ -16,12 +16,13 @@ RUN mkdir gdb_printers && cd gdb_printers && svn co svn://gcc.gnu.org/svn/gcc/tr
 RUN git clone https://github.com/ruediger/Boost-Pretty-Printer
 RUN mkdir build
 ENV HOME /home/icinga
+RUN ln -s icinga2/dev/docker/build debug
 DOCKER
 
 docker.io build -t icinga2 --rm .
 
 if [ "$1" != "-i" ]; then
-	command="/home/icinga/icinga2/dev/docker/build"
+	command="/home/icinga/debug"
 else
 	command="/bin/bash"
 fi
