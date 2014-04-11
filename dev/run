@@ -4,4 +4,11 @@ DIR=`pwd`
 
 cd docker
 docker.io build -t icinga2 --rm .
-docker.io run -v $DIR/..:/root/icinga2 -v $DIR/.build:/root/icinga2-build -v $HOME/.ccache:/root/.ccache -v $DIR/config:/root/icinga2-config -t -i icinga2 /root/build
+
+if [ "$1" != "-i" ]; then
+	command="/root/build"
+else
+	command="/bin/bash"
+fi
+
+docker.io run -v $DIR/..:/root/icinga2 -v $DIR/.build:/root/icinga2-build -v $HOME/.ccache:/root/.ccache -v $DIR/config:/root/icinga2-config -t -i --rm icinga2 $command

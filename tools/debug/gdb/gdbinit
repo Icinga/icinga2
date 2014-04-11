@@ -11,5 +11,12 @@ python
 import sys
 sys.path.insert(0, '/home/gbeutner/gdb_printers/python')
 from libstdcxx.v6.printers import register_libstdcxx_printers
-register_libstdcxx_printers (None)
+register_libstdcxx_printers(None)
+end
+
+python
+import sys
+sys.path.insert(0, '/home/gbeutner/Boost-Pretty-Printer')
+from boost.printers import register_printer_gen
+register_printer_gen(None)
 end
