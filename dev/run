@@ -1,0 +1,7 @@
+#!/bin/sh
+cd `dirname -- $0`
+DIR=`pwd`
+
+cd docker
+docker.io build -t icinga2 --rm .
+docker.io run -v $DIR/..:/root/icinga2 -v $DIR/.build:/root/icinga2-build -v $HOME/.ccache:/root/.ccache -v $DIR/config:/root/icinga2-config -t -i icinga2 /root/build

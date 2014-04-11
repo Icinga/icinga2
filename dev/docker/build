@@ -1,0 +1,11 @@
+#!/bin/sh
+cd $(dirname -- $0)/icinga2-build || exit 1
+
+CCACHE_SLOPPINESS="include_file_mtime"
+export CCACHE_SLOPPINESS
+
+if [ ! -e CMakeCache.txt ]; then
+	CC="ccache clang" CXX="ccache clang++" cmake ../icinga2 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/opt/icinga2 -DCMAKE_INSTALL_SYSCONFDIR=/root/icinga2-config
+fi
+
+make -j 4 && make install && cgdb -ex r --args /opt/icinga2/sbin/icinga2 -c /root/icinga2-config/icinga2/icinga2.conf -DUseVfork=0
