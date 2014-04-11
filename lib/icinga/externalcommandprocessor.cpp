@@ -122,18 +122,19 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	std::vector<String> realArguments;
 	realArguments.resize(argnum);
 
-	if (arguments.size() > 0)
+	if (argnum > 0) {
 		std::copy(arguments.begin(), arguments.begin() + argnum - 1, realArguments.begin());
 	
-	String last_argument;
-	for (int i = argnum - 1; i < arguments.size(); i++) {
-		if (!last_argument.IsEmpty())
-			last_argument += ";";
+		String last_argument;
+		for (int i = argnum - 1; i < arguments.size(); i++) {
+			if (!last_argument.IsEmpty())
+				last_argument += ";";
 
-		last_argument += arguments[i];
+			last_argument += arguments[i];
+		}
+
+		realArguments[argnum - 1] = last_argument;
 	}
-
-	realArguments[argnum - 1] = last_argument;
 
 	OnNewExternalCommand(time, command, realArguments);
 
