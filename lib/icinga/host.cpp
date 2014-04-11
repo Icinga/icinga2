@@ -41,7 +41,7 @@ REGISTER_TYPE(Host);
 
 void Host::OnConfigLoaded(void)
 {
-	DynamicObject::OnConfigLoaded();
+	Checkable::OnConfigLoaded();
 
 	ASSERT(!OwnsLock());
 
@@ -61,7 +61,7 @@ void Host::OnConfigLoaded(void)
 
 void Host::Stop(void)
 {
-	DynamicObject::Stop();
+	Checkable::Stop();
 
 	Array::Ptr groups = GetGroups();
 
