@@ -172,6 +172,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %type <type> type
 %type <num> partial_specifier
 %type <variant> rterm
+%type <variant> rterm_array
 %type <variant> rterm_scope
 %type <variant> lterm
 %type <variant> object
@@ -494,7 +495,11 @@ lbinary_op: T_SET
 	}
 	;
 
-lterm_items: lterm_items_inner
+lterm_items: /* empty */
+	{
+		$$ = new Array();
+	}
+	| lterm_items_inner
 	{
 		$$ = $1;
 	}
@@ -503,11 +508,7 @@ lterm_items: lterm_items_inner
 		$$ = $1;
 	}
 
-lterm_items_inner: /* empty */
-	{
-		$$ = new Array();
-	}
-	| lterm
+lterm_items_inner: lterm
 	{
 		$$ = new Array();
 		$$->Add(*$1);
@@ -614,37 +615,49 @@ lterm: identifier lbinary_op rterm
 	}
 	;
 	
-rterm_items: rterm_items_inner
+rterm_items: /* empty */
+	{
+		$$ = new Array();
+	}
+	| rterm_items_inner
 	{
 		$$ = $1;
 	}
-	| rterm_items_inner ','
+	| rterm_items_inner arraysep
 	{
 		$$ = $1;
 	}
 	;
 
-rterm_items_inner: /* empty */
-	{
-		$$ = new Array();
-	}
-	| rterm
+rterm_items_inner: rterm
 	{
 		$$ = new Array();
 		$$->Add(*$1);
 		delete $1;
 	}
-	| rterm_items_inner ',' rterm
+	| rterm_items_inner arraysep rterm
 	{
 		$$ = $1;
 		$$->Add(*$3);
 		delete $3;
 	}
-	| rterm_items_inner ',' newlines rterm
+	;
+
+rterm_array: '[' newlines rterm_items newlines ']'
 	{
-		$$ = $1;
-		$$->Add(*$4);
-		delete $4;
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @5)));
+	}
+	| '[' newlines rterm_items ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @4)));
+	}
+	| '[' rterm_items newlines ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @4)));
+	}
+	| '[' rterm_items ']'
+	{
+		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @3)));
 	}
 	;
 
@@ -712,21 +725,9 @@ rterm: T_STRING
 		delete $1;
 		delete $3;
 	}
-	| '[' newlines rterm_items newlines ']'
+	| rterm_array
 	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @5)));
-	}
-	| '[' rterm_items newlines ']'
-	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @4)));
-	}
-	| '[' newlines rterm_items ']'
-	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @4)));
-	}
-	| '[' rterm_items ']'
-	{
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @3)));
+		$$ = $1;
 	}
 	| rterm_scope
 	{
@@ -890,6 +891,10 @@ sep: ',' newlines
 	| ';' newlines
 	| ';'
 	| newlines
+	;
+
+arraysep: ',' newlines
+	| ','
 	;
 
 %%
