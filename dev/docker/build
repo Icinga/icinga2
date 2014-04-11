@@ -1,16 +1,21 @@
 #!/bin/sh
-cd $(dirname -- $0) || exit 1
+if [ ! -e /.dockerenv ]; then
+	echo "This script should only be run in the Docker VM environment."
+	exit 1
+fi
 
-cp icinga2/tools/debug/gdb/gdbinit /root/.gdbinit
-sed -i 's/home\/gbeutner/root/' /root/.gdbinit
+cd
+
+cp icinga2/tools/debug/gdb/gdbinit ~/.gdbinit
+sed -i 's/home\/gbeutner/home\/icinga/' ~/.gdbinit
 
 cd icinga2-build || exit 1
 
 CCACHE_SLOPPINESS="include_file_mtime"
 export CCACHE_SLOPPINESS
 
-if [ ! -e CMakeCache.txt ]; then
-	CC="ccache clang" CXX="ccache clang++" cmake ../icinga2 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/opt/icinga2 -DCMAKE_INSTALL_SYSCONFDIR=/root/icinga2-config
+if [ ! -e Makefile ]; then
+	CC="ccache clang" CXX="ccache clang++" cmake ../icinga2 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=~/icinga2-install -DCMAKE_INSTALL_SYSCONFDIR=~/icinga2-config
 fi
 
-make -j 4 && make install && cgdb -ex set scheduler-locking step -ex r --args /opt/icinga2/sbin/icinga2 -c /root/icinga2-config/icinga2/icinga2.conf -DUseVfork=0
+make -j 4 && make install && cgdb -ex set scheduler-locking step -ex r --args ~/icinga2-install/sbin/icinga2 -c ~/icinga2-config/icinga2/icinga2.conf -DUseVfork=0
