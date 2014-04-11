@@ -1,0 +1,3 @@
+#!/bin/sh
+cd `dirname -- $0` || exit 1
+rm -Rf .build
