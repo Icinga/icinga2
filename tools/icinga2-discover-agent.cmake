@@ -144,12 +144,15 @@ ssl_sock.connect((host, port))
 
 cn = None
 
-for rdn in ssl_sock.getpeercert()["subject"][0]:
+subject = ssl_sock.getpeercert()["subject"]
+
+for prdn in subject:
+    rdn = prdn[0]
     if rdn[0] == "commonName":
         cn = rdn[1]
 
 if cn == None:
-    warning("Agent certificate does not have a commonName.")
+    warning("Agent certificate does not have a commonName:", repr(subject))
     sys.exit(1)
 
 ssl_sock.write('20:{"method":"get_crs"},')
