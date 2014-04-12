@@ -109,20 +109,27 @@ class NetstringParser(object):
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import socket, ssl, pprint, sys, json
+import socket, ssl, pprint, sys, json, os
 
 def warning(*objs):
     print(*objs, file=sys.stderr)
 
-if len(sys.argv) < 6:
-    warning("Syntax: %s <host> <port> <certfile> <keyfile> <cafile>" % (sys.argv[0]))
+if len(sys.argv) < 3:
+    warning("Syntax: %s <host> <port>" % (sys.argv[0]))
     sys.exit(1)
 
 host = sys.argv[1]
 port = int(sys.argv[2])
-certfile = sys.argv[3]
-keyfile = sys.argv[4]
-cafile = sys.argv[5]
+
+agentpki = "@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/pki/agent"
+keyfile = agentpki + "/agent.key"
+certfile = agentpki + "/agent.crt"
+cafile = agentpki + "/ca.crt"
+
+if not os.path.isfile(certfile):
+    warning("Certificate file (" + certfile + ") not found.")
+    warning("Make sure the agent certificates are set up properly.")
+    sys.exit(1)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
