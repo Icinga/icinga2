@@ -137,7 +137,13 @@ void AgentListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 
 	NetworkStream::Ptr netStream = make_shared<NetworkStream>(client);
 
-	TlsStream::Ptr tlsStream = make_shared<TlsStream>(netStream, role, m_SSLContext);
+	TlsStream::Ptr tlsStream;
+
+	{
+		ObjectLock olock(this);
+		tlsStream = make_shared<TlsStream>(netStream, role, m_SSLContext);
+	}
+
 	tlsStream->Handshake();
 
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
