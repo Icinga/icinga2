@@ -59,7 +59,6 @@ public:
 	virtual bool IsEof(void) const;
 
 private:
-	shared_ptr<SSL_CTX> m_SSLContext;
 	shared_ptr<SSL> m_SSL;
 	BIO *m_BIO;
 

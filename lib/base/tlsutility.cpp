@@ -23,6 +23,15 @@ namespace icinga
 {
 
 static bool l_SSLInitialized = false;
+static boost::mutex *l_Mutexes;
+
+static void OpenSSLLockingCallback(int mode, int type, const char *file, int line)
+{
+	if (mode & CRYPTO_LOCK)
+		l_Mutexes[type].lock();
+	else
+		l_Mutexes[type].unlock();
+}
 
 /**
  * Initializes the OpenSSL library.
@@ -36,6 +45,9 @@ static void InitializeOpenSSL(void)
 	SSL_load_error_strings();
 
 	SSL_COMP_get_compression_methods();
+
+	l_Mutexes = new boost::mutex[CRYPTO_num_locks()];
+	CRYPTO_set_locking_callback(&OpenSSLLockingCallback);
 
 	l_SSLInitialized = true;
 }

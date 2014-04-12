@@ -38,11 +38,9 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext)
-	: m_InnerStream(innerStream), m_SSLContext(sslContext), m_Role(role)
+	: m_InnerStream(innerStream), m_Role(role)
 {
-	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
-
-	m_SSLContext.reset();
+	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
 
 	if (!m_SSL) {
 		BOOST_THROW_EXCEPTION(openssl_error()
