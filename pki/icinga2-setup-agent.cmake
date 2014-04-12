@@ -14,6 +14,17 @@ if [ -n "$1" ]; then
 		exit 1
 	fi
 
+	while true; do
+		echo -n "Upstream Icinga instance name: "
+		if ! read UPSTREAM; then
+			exit 1
+		fi
+
+		if [ -n "$UPSTREAM" ]; then
+			break
+		fi
+	done
+
 	echo "Installing the certificate bundle..."
 	tar -C $ICINGA2CONFIG/pki/agent/ -xf "$1"
 
@@ -29,6 +40,8 @@ object AgentListener "agent" {
   cert_path = SysconfDir + "/icinga2/pki/agent/agent.crt"
   key_path = SysconfDir + "/icinga2/pki/agent/agent.key"
   ca_path = SysconfDir + "/icinga2/pki/agent/ca.crt"
+
+  upstream_name = "$UPSTREAM"
 
   bind_port = 7000
 }
