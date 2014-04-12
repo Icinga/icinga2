@@ -27,6 +27,7 @@ if [ -n "$1" ]; then
 
 	echo "Installing the certificate bundle..."
 	tar -C $ICINGA2CONFIG/pki/agent/ -xf "$1"
+	chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/agent/* || exit 1
 
 	echo "Setting up agent configuration..."
 	cat >$ICINGA2CONFIG/features-available/agent.conf <<AGENT

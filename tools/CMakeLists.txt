@@ -30,7 +30,7 @@ if(UNIX OR CYGWIN)
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ./icinga2-enable-feature \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SBINDIR}/icinga2-disable-feature\")")
 
   install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/migration/icinga2-migrate-config
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/migration/icinga2-migrate-config ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-discover-agent
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
