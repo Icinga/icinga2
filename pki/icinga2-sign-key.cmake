@@ -26,15 +26,13 @@ fi
 
 [ -f $ICINGA_CA/vars ] && source $ICINGA_CA/vars
 
-openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$csrfile -outform PEM -out $ICINGA_CA/$csrfile.tmp -CAserial $ICINGA_CA/serial && \
-	openssl x509 -in $ICINGA_CA/$csrfile.tmp -text > $ICINGA_CA/$pubkfile.crt && \
-	rm -f $ICINGA_CA/$csrfile.tmp
+openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$csrfile -outform PEM -out $ICINGA_CA/$pubkfile.crt -CAserial $ICINGA_CA/serial
 
 # Make an agent bundle file
 mkdir -p $ICINGA_CA/agent
 cp $ICINGA_CA/$pubkfile.crt $ICINGA_CA/agent/agent.crt
 cp $ICINGA_CA/ca.crt $ICINGA_CA/agent/ca.crt
-tar cf $ICINGA_CA/$pubkfile.bundle -C $ICINGA_CA/agent/ ca.crt agent.crt
+tar cz -C $ICINGA_CA/agent/ ca.crt agent.crt | base64 > $ICINGA_CA/$pubkfile.bundle
 rm -rf $ICINGA_CA/agent
 
 echo "Done. $pubkfile.crt and $pubkfile.bundle files were written."
