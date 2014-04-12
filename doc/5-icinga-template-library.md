@@ -278,7 +278,3 @@ data for the current Icinga instance.
 
 The `icinga` check command does not support any vars.
 
-### <a id="itl-kernel"></a> kernel
-
-Checks whether the version of the currently running kernel matches the
-on-disk kernel image.
