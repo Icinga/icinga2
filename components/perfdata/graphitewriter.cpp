@@ -32,7 +32,6 @@
 #include "base/application.h"
 #include "base/stream.h"
 #include "base/networkstream.h"
-#include "base/bufferedstream.h"
 #include "base/exception.h"
 #include "base/statsfunction.h"
 #include <boost/algorithm/string.hpp>
@@ -90,8 +89,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	Log(LogDebug, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 	socket->Connect(GetHost(), GetPort());
 
-	NetworkStream::Ptr net_stream = make_shared<NetworkStream>(socket);
-	m_Stream = make_shared<BufferedStream>(net_stream);
+	m_Stream = make_shared<NetworkStream>(socket);
 }
 
 void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)

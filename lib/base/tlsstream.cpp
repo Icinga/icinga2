@@ -38,15 +38,8 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext)
-	: m_SSLContext(sslContext), m_Role(role)
+	: m_InnerStream(innerStream), m_SSLContext(sslContext), m_Role(role)
 {
-	m_InnerStream = dynamic_pointer_cast<BufferedStream>(innerStream);
-	
-	if (!m_InnerStream)
-		m_InnerStream = make_shared<BufferedStream>(innerStream);
-
-	m_InnerStream->MakeNonBlocking();
-	
 	m_SSL = shared_ptr<SSL>(SSL_new(m_SSLContext.get()), SSL_free);
 
 	m_SSLContext.reset();
@@ -106,14 +99,8 @@ void TlsStream::Handshake(void)
 	while ((rc = SSL_do_handshake(m_SSL.get())) <= 0) {
 		switch (SSL_get_error(m_SSL.get(), rc)) {
 			case SSL_ERROR_WANT_READ:
-				olock.Unlock();
-				m_InnerStream->WaitReadable(1);
-				olock.Lock();
 				continue;
 			case SSL_ERROR_WANT_WRITE:
-				olock.Unlock();
-				m_InnerStream->WaitWritable(1);
-				olock.Lock();
 				continue;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
@@ -144,14 +131,8 @@ size_t TlsStream::Read(void *buffer, size_t count)
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
 				case SSL_ERROR_WANT_READ:
-					olock.Unlock();
-					m_InnerStream->WaitReadable(1);
-					olock.Lock();
 					continue;
 				case SSL_ERROR_WANT_WRITE:
-					olock.Unlock();
-					m_InnerStream->WaitWritable(1);
-					olock.Lock();
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
@@ -184,14 +165,8 @@ void TlsStream::Write(const void *buffer, size_t count)
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
 				case SSL_ERROR_WANT_READ:
-					olock.Unlock();
-					m_InnerStream->WaitReadable(1);
-					olock.Lock();
 					continue;
 				case SSL_ERROR_WANT_WRITE:
-					olock.Unlock();
-					m_InnerStream->WaitWritable(1);
-					olock.Lock();
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();

@@ -21,7 +21,6 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.h"
-#include "base/bufferedstream.h"
 #include "base/stream.h"
 #include "base/fifo.h"
 #include "base/tlsutility.h"
@@ -64,7 +63,7 @@ private:
 	shared_ptr<SSL> m_SSL;
 	BIO *m_BIO;
 
-	BufferedStream::Ptr m_InnerStream;
+	Stream::Ptr m_InnerStream;
 	TlsRole m_Role;
 
 	static int m_SSLIndex;
