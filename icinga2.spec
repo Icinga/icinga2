@@ -419,13 +419,13 @@ exit 0
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-migrate-config
-%{_bindir}/%{name}-discover-agent
 %{_bindir}/%{name}-build-ca
 %{_bindir}/%{name}-build-key
 %{_bindir}/%{name}-sign-key
 %{_sbindir}/%{name}-enable-feature
 %{_sbindir}/%{name}-disable-feature
 %{_sbindir}/%{name}-setup-agent
+%{_sbindir}/%{name}-discover-agent
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_libdir}/%{name}
