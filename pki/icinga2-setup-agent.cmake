@@ -37,6 +37,9 @@ AGENT
 	echo "Enabling agent feature..."
 	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature agent
 
+	echo "Disabling notification feature..."
+	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-disable-feature notification
+
 	echo ""
 	echo "The key bundle was installed successfully and the agent component"
 	echo "was enabled. Please make sure to restart Icinga 2 for these changes"
