@@ -14,9 +14,11 @@ if [ -n "$1" ]; then
 		exit 1
 	fi
 
-	tar -C /etc/icinga2/pki/agent/agent.crt xf "$1"
+	echo "Installing the certificate bundle..."
+	tar -C $ICINGA2CONFIG/pki/agent/ -xf "$1"
 
-	cat >$ICINGACONFIG/features-available/agent.conf <<AGENT
+	echo "Setting up agent configuration..."
+	cat >$ICINGA2CONFIG/features-available/agent.conf <<AGENT
 /**
  * The agent listener accepts checks from agents.
  */
@@ -24,16 +26,18 @@ if [ -n "$1" ]; then
 library "agent"
 
 object AgentListener "agent" {
-  cert_path = SysconfDir + "/icinga2/pki/agent.crt"
-  key_path = SysconfDir + "/icinga2/pki/agent.key"
-  ca_path = SysconfDir + "/icinga2/pki/ca.crt"
+  cert_path = SysconfDir + "/icinga2/pki/agent/agent.crt"
+  key_path = SysconfDir + "/icinga2/pki/agent/agent.key"
+  ca_path = SysconfDir + "/icinga2/pki/agent/ca.crt"
 
   bind_port = 7000
 }
 AGENT
 
-	$CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature agent
+	echo "Enabling agent feature..."
+	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature agent
 
+	echo ""
 	echo "The key bundle was installed successfully and the agent component"
 	echo "was enabled. Please make sure to restart Icinga 2 for these changes"
 	echo "to take effect."

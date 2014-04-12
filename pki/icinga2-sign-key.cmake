@@ -8,16 +8,16 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+check_pki_dir
+
 csrfile=$1
 
-if [ ! -e "$csrfile" ]; then
+if [ ! -e "$ICINGA_CA/$csrfile" ]; then
 	echo "The specified CSR file does not exist."
 	exit 1
 fi
 
-pubkfile=$(basename -- ${csrfile%.*})
-
-check_pki_dir
+pubkfile=${csrfile%.*}
 
 if [ ! -f $ICINGA_CA/ca.crt -o ! -f $ICINGA_CA/ca.key ]; then
 	echo "Please build a CA certificate first." >&2
@@ -36,3 +36,6 @@ cp $ICINGA_CA/$pubkfile.crt $ICINGA_CA/agent/agent.crt
 cp $ICINGA_CA/ca.crt $ICINGA_CA/agent/ca.crt
 tar cf $ICINGA_CA/$pubkfile.bundle -C $ICINGA_CA/agent/ ca.crt agent.crt
 rm -rf $ICINGA_CA/agent
+
+echo "Done. $pubkfile.crt and $pubkfile.bundle files were written."
+exit 0
