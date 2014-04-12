@@ -1,5 +1,7 @@
 debian/tmp/etc/icinga2
 usr/bin/icinga2-build*
+usr/bin/icinga2-sign-key
 usr/bin/icinga2-migrate-config
 usr/sbin/icinga2-*-feature
+usr/sbin/icinga2-setup-agent
 usr/share/icinga2
