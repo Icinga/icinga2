@@ -17,28 +17,54 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#ifndef AGENTLISTENER_H
+#define AGENTLISTENER_H
 
-template CheckCommand "icinga-check-command" {
-	methods.execute = "IcingaCheck"
+#include "agent/agentlistener.th"
+#include "base/dynamicobject.h"
+#include "base/timer.h"
+#include "base/array.h"
+#include "base/tcpsocket.h"
+#include "base/tlsstream.h"
+#include "base/utility.h"
+#include "base/tlsutility.h"
+#include "icinga/service.h"
+
+namespace icinga
+{
+
+/**
+ * @ingroup agent
+ */
+class AgentListener : public ObjectImpl<AgentListener>
+{
+public:
+	DECLARE_PTR_TYPEDEFS(AgentListener);
+	DECLARE_TYPENAME(AgentListener);
+
+	virtual void Start(void);
+
+	shared_ptr<SSL_CTX> GetSSLContext(void) const;
+
+private:
+	shared_ptr<SSL_CTX> m_SSLContext;
+	std::set<TcpSocket::Ptr> m_Servers;
+	Timer::Ptr m_Timer;
+
+	Timer::Ptr m_AgentTimer;
+	void AgentTimerHandler(void);
+
+	void AddListener(const String& service);
+	void AddConnection(const String& node, const String& service);
+
+	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
+	void ListenerThreadProc(const Socket::Ptr& server);
+
+	void MessageHandler(const TlsStream::Ptr& sender, const String& identity, const Dictionary::Ptr& message);
+	
+	friend class AgentCheckTask;
+};
+
 }
 
-template CheckCommand "cluster-check-command" {
-	methods.execute = "ClusterCheck"
-}
-
-template CheckCommand "plugin-check-command" {
-	methods.execute = "PluginCheck"
-}
-
-template CheckCommand "agent-check-command" {
-	methods.execute = "AgentCheck"
-}
-
-template NotificationCommand "plugin-notification-command" {
-	methods.execute = "PluginNotification"
-}
-
-template EventCommand "plugin-event-command" {
-	methods.execute = "PluginEvent"
-}
+#endif /* AGENTLISTENER_H */

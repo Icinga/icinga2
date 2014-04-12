@@ -157,6 +157,8 @@ public:
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags);
 
+	bool IsCheckPending(void) const;
+
 	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
 	static double CalculateLatency(const CheckResult::Ptr& cr);
 

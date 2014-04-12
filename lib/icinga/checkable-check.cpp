@@ -429,6 +429,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 		OnNotificationsRequested(GetSelf(), recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
 }
 
+bool Checkable::IsCheckPending(void) const
+{
+	ObjectLock olock(this);
+	return m_CheckRunning;
+}
+
 void Checkable::ExecuteCheck(void)
 {
 	CONTEXT("Executing check for object '" + GetName() + "'");

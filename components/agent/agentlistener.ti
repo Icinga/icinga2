@@ -1,0 +1,24 @@
+#include "base/dynamicobject.h"
+#include "base/application.h"
+
+namespace icinga
+{
+
+class AgentListener : DynamicObject
+{
+	[config] String cert_path;
+	[config] String key_path;
+	[config] String ca_path;
+	[config] String crl_path;
+	[config] String bind_host;
+	[config] String bind_port;
+	[config] String upstream_host;
+	[config] String upstream_port;
+	[config] String upstream_name;
+	[config] int upstream_interval {
+		default {{{ return 60; }}}
+	};
+	String identity;
+};
+
+}

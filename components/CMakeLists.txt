@@ -1,3 +1,4 @@
+add_subdirectory(agent)
 add_subdirectory(checker)
 add_subdirectory(cluster)
 add_subdirectory(compat)

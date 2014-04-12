@@ -17,28 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#ifndef AGENTCHECKTASK_H
+#define AGENTCHECKTASK_H
 
-template CheckCommand "icinga-check-command" {
-	methods.execute = "IcingaCheck"
+#include "icinga/service.h"
+#include "base/timer.h"
+
+namespace icinga
+{
+
+/**
+ * Agent check type.
+ *
+ * @ingroup methods
+ */
+class AgentCheckTask
+{
+public:
+	static void StaticInitialize(void);
+	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+
+private:
+	AgentCheckTask(void);
+	
+	static void AgentTimerHandler(void);
+};
+
 }
 
-template CheckCommand "cluster-check-command" {
-	methods.execute = "ClusterCheck"
-}
-
-template CheckCommand "plugin-check-command" {
-	methods.execute = "PluginCheck"
-}
-
-template CheckCommand "agent-check-command" {
-	methods.execute = "AgentCheck"
-}
-
-template NotificationCommand "plugin-notification-command" {
-	methods.execute = "PluginNotification"
-}
-
-template EventCommand "plugin-event-command" {
-	methods.execute = "PluginEvent"
-}
+#endif /* AGENTCHECKTASK_H */
