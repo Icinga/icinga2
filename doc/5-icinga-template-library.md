@@ -212,7 +212,7 @@ cgreater        | **Optional.** The user count critical threshold. Defaults to 5
 
 ### <a id="itl-processes"></a> processes
 
-Check command object for the `check_processes` plugin.
+Check command object for the `check_procs` plugin.
 
 Custom Attributes:
 
@@ -220,6 +220,17 @@ Name            | Description
 ----------------|--------------
 wgreater        | **Optional.** The process count warning threshold. Defaults to 250.
 cgreater        | **Optional.** The process count critical threshold. Defaults to 400.
+
+### <a id="itl-swap"></a> swap
+
+Check command object for the `check_swap` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+wfree           | **Optional.** The free swap space warning threshold in %. Defaults to 50.
+cfree           | **Optional.** The free swap space critical threshold in %. Defaults to 25.
 
 ### <a id="itl-load"></a> load
 
@@ -266,3 +277,8 @@ Check command for the built-in `icinga` check. This check returns performance
 data for the current Icinga instance.
 
 The `icinga` check command does not support any vars.
+
+### <a id="itl-kernel"></a> kernel
+
+Checks whether the version of the currently running kernel matches the
+on-disk kernel image.

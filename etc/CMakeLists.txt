@@ -30,6 +30,7 @@ install_if_not_exists(icinga2/conf.d/localhost.conf ${CMAKE_INSTALL_SYSCONFDIR}/
 install_if_not_exists(icinga2/conf.d/notifications.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/timeperiods.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/users.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
+install_if_not_exists(icinga2/features-available/agent.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/checker.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/command.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/compatlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)

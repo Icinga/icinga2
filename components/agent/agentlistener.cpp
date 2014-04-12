@@ -151,18 +151,13 @@ void AgentListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 		JsonRpc::SendMessage(tlsStream, request);
 	}
 
-	Dictionary::Ptr message;
-
 	try {
-		message = JsonRpc::ReadMessage(tlsStream);
+		Dictionary::Ptr message = JsonRpc::ReadMessage(tlsStream);
+		MessageHandler(tlsStream, identity, message);
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "agent", "Error while reading JSON-RPC message for agent '" + identity + "': " + DiagnosticInformation(ex));
-
-		return;
 	}
 
-	MessageHandler(tlsStream, identity, message);
-	
 	tlsStream->Close();
 }
 
