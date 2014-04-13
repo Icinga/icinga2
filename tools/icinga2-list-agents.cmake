@@ -28,9 +28,24 @@ inventory = {}
 
 for root, dirs, files in os.walk(inventory_dir):
     for file in files:
+        if len(file) != 64:
+            continue
+
         fp = open(root + file, "r")
         inventory_info = json.load(fp)
-        inventory[inventory_info["identity"]] = inventory_info["crs"]["services"].keys()
+        fp.close()
+
+        inventory[inventory_info["identity"]] = {}
+        inventory[inventory_info["identity"]]["services"] = inventory_info["crs"]["services"].keys()
+
+        try:
+            fp = open(root + file + ".peer", "r")
+            peer_info = json.load(fp)
+            fp.close()
+
+            inventory[inventory_info["identity"]]["peer"] = peer_info
+        except:
+            pass
 
 json.dump(inventory, sys.stdout)
 sys.exit(0)

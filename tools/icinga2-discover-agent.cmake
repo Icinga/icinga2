@@ -188,5 +188,11 @@ inventory_info = { "identity": cn, "crs": params }
 json.dump(inventory_info, fp)
 fp.close()
 
+peer_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/" + hashlib.sha256(cn).hexdigest() + ".peer"
+fp = open(peer_file, "w")
+peer_info = { "agent_host": host, "agent_port": port }
+json.dump(peer_info, fp)
+fp.close()
+
 print("Inventory information has been updated for agent '%s'." % (cn))
 sys.exit(0)
