@@ -128,7 +128,7 @@ if [ -n "$1" ]; then
 	fi
 
 	echo "Installing the certificate bundle..."
-	tar -C $ICINGA2CONFIG/pki/agent/ -zxf "$1" || exit 1
+	base64 -d < $1 | tar -C $ICINGA2CONFIG/pki/agent/ -zx || exit 1
 	chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/agent/* || exit 1
 
 	echo "Setting up agent configuration..."
