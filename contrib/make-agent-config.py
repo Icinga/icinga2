@@ -39,7 +39,7 @@ for host, hostinfo in inventory.items():
 
     if "peer" in hostinfo:
         print "  vars.agent_host = \"%s\"" % (hostinfo["peer"]["agent_host"])
-        print "  vars.agent_host = \"%s\"" % (hostinfo["peer"]["agent_port"])
+        print "  vars.agent_port = \"%s\"" % (hostinfo["peer"]["agent_port"])
 
     print "}"
     print ""
