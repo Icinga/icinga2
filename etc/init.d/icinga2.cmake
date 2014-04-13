@@ -62,7 +62,7 @@ start() {
 	chmod 2755 $ICINGA2_STATE_DIR/run/icinga2/cmd
 
         echo "Starting Icinga 2: "
-        $DAEMON -c $ICINGA2_CONFIG_FILE -Z -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
+        $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
 
         echo "Done"
         echo

@@ -27,13 +27,6 @@
 namespace icinga
 {
 
-enum ValidationType
-{
-	ValidateNone,
-	ValidateOnly,
-	ValidateStart
-};
-
 /**
  * A configuration item. Non-abstract configuration items can be used to
  * create configuration objects at runtime.
@@ -70,7 +63,8 @@ public:
 
 	void ValidateItem(void);
 
-	static bool ActivateItems(ValidationType validate);
+	static bool ValidateItems(void);
+	static bool ActivateItems(void);
 	static void DiscardItems(void);
 
 private:

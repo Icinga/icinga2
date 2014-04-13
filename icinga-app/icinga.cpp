@@ -67,7 +67,7 @@ static String LoadAppType(const String& typeSpec)
 	return typeSpec.SubStr(index + 1);
 }
 
-static bool LoadConfigFiles(const String& appType, ValidationType validate)
+static bool LoadConfigFiles(const String& appType)
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
@@ -88,7 +88,7 @@ static bool LoadConfigFiles(const String& appType, ValidationType validate)
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	bool result = ConfigItem::ActivateItems(validate);
+	bool result = ConfigItem::ValidateItems();
 
 	int warnings = 0, errors = 0;
 
@@ -250,7 +250,6 @@ int Main(void)
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
-		("no-validate,Z", "skip validating the configuration")
 		("debug,x", "enable debugging")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
@@ -406,6 +405,14 @@ int Main(void)
 		return EXIT_FAILURE;
 	}
 
+	if (!LoadConfigFiles(appType))
+		return EXIT_FAILURE;
+
+	if (g_AppParams.count("validate")) {
+		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
+		return EXIT_SUCCESS;
+	}
+
 	if (g_AppParams.count("daemonize")) {
 		String errorLog;
 
@@ -416,22 +423,12 @@ int Main(void)
 		Logger::DisableConsoleLog();
 	}
 
-	ValidationType validate = ValidateStart;
-
-	if (g_AppParams.count("validate"))
-		validate = ValidateOnly;
-
-	if (g_AppParams.count("no-validate"))
-		validate = ValidateNone;
-
-	if (!LoadConfigFiles(appType, validate))
+	// activate config only after daemonization: it starts threads and that is not compatible with fork()
+	if (!ConfigItem::ActivateItems()) {
+		Log(LogCritical, "icinga-app", "Error activating configuration.");
 		return EXIT_FAILURE;
-
-	if (validate == ValidateOnly) {
-		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
-		return EXIT_SUCCESS;
 	}
-
+	
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
