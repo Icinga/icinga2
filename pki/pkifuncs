@@ -1,4 +1,4 @@
-function check_pki_dir {
+check_pki_dir() {
 	if [ -z "$ICINGA_CA" ]; then
 		echo "Please set the ICINGA_CA environment variable to the path for your Icinga CA." >&2
 		echo "e.g.: export ICINGA_CA=\"$HOME/icinga-ca\"" >&2

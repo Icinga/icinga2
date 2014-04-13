@@ -1,7 +1,7 @@
 #!/bin/sh
 ICINGA2PKIDIR=@CMAKE_INSTALL_FULL_DATADIR@/icinga2/pki
 
-source $ICINGA2PKIDIR/pkifuncs
+. $ICINGA2PKIDIR/pkifuncs
 
 if [ -z "$1" ]; then
 	echo "Syntax: $0 <csr-file>" >&2
@@ -24,7 +24,7 @@ if [ ! -f $ICINGA_CA/ca.crt -o ! -f $ICINGA_CA/ca.key ]; then
 	exit 1
 fi
 
-[ -f $ICINGA_CA/vars ] && source $ICINGA_CA/vars
+[ -f $ICINGA_CA/vars ] && . $ICINGA_CA/vars
 
 openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$csrfile -outform PEM -out $ICINGA_CA/$pubkfile.crt -CAserial $ICINGA_CA/serial
 

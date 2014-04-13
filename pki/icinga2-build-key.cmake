@@ -1,7 +1,7 @@
 #!/bin/sh
 ICINGA2PKIDIR=@CMAKE_INSTALL_FULL_DATADIR@/icinga2/pki
 
-source $ICINGA2PKIDIR/pkifuncs
+. $ICINGA2PKIDIR/pkifuncs
 
 if [ -z "$1" ]; then
 	echo "Syntax: $0 <name>" >&2
@@ -17,7 +17,7 @@ if [ ! -f $ICINGA_CA/ca.crt -o ! -f $ICINGA_CA/ca.key ]; then
 	exit 1
 fi
 
-[ -f $ICINGA_CA/vars ] && source $ICINGA_CA/vars
+[ -f $ICINGA_CA/vars ] && . $ICINGA_CA/vars
 
 [ -z "$REQ_COUNTRY_NAME" ] && export REQ_COUNTRY_NAME="AU"
 [ -z "$REQ_STATE" ] && export REQ_STATE="Some-State"
