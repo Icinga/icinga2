@@ -1,5 +1,6 @@
 var/cache/icinga2
 var/lib/icinga2
+var/lib/icinga2/agent/inventory
 var/lib/icinga2/cluster/config
 var/lib/icinga2/cluster/log
 var/log/icinga2

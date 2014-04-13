@@ -51,6 +51,8 @@ case "$1" in
         setperm nagios adm 2755 /var/log/icinga2/compat/archives
 
         setperm nagios nagios 0750 /var/lib/icinga2
+        setperm nagios nagios 0750 /var/lib/icinga2/agent
+        setperm nagios nagios 0750 /var/lib/icinga2/agent/inventory
         setperm nagios nagios 0750 /var/lib/icinga2/cluster
         setperm nagios nagios 0750 /var/lib/icinga2/cluster/config
         setperm nagios nagios 0750 /var/lib/icinga2/cluster/log
