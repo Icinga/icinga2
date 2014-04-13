@@ -87,49 +87,53 @@ if [ -n "$1" ]; then
 		fi
 	fi
 
-	while true; do
-		echo -n "Do you want this agent instance to connect to the upstream instance? [y] "
-		if ! read upstream_connect; then
-			exit 1
-		fi
+	upstream_connect=n
 
-		if [ "$upstream_connect" = "y" -o "$upstream_connect" = "n" -o -z "$upstream_connect" ]; then
-			break
-		fi
-
-		echo "Please enter 'y' or 'n'."
-	done
-
-	if [ -z "$upstream_connect" ]; then
-		upstream_connect=y
-	fi
-
-	if [ "$upstream_connect" = "y" ]; then
+	if [ "$master" = "n" ]; then
 		while true; do
-			echo -n "Upstream IP address/hostname: "
-			if ! read upstream_host; then
+			echo -n "Do you want this agent instance to connect to the upstream instance? [y] "
+			if ! read upstream_connect; then
 				exit 1
 			fi
 
-			if [ -n "$upstream_host" ]; then
+			if [ "$upstream_connect" = "y" -o "$upstream_connect" = "n" -o -z "$upstream_connect" ]; then
 				break
 			fi
 
-			echo "Please enter the upstream instance's hostname."
+			echo "Please enter 'y' or 'n'."
 		done
 
-		while true; do
-			echo -n "Upstream port: "
-			if ! read upstream_port; then
-				exit 1
-			fi
+		if [ -z "$upstream_connect" ]; then
+			upstream_connect=y
+		fi
 
-			if [ -n "$upstream_port" ]; then
-				break
-			fi
+		if [ "$upstream_connect" = "y" ]; then
+			while true; do
+				echo -n "Upstream IP address/hostname: "
+				if ! read upstream_host; then
+					exit 1
+				fi
 
-			echo "Please enter the upstream instance's port."
-		done
+				if [ -n "$upstream_host" ]; then
+					break
+				fi
+
+				echo "Please enter the upstream instance's hostname."
+			done
+
+			while true; do
+				echo -n "Upstream port: "
+				if ! read upstream_port; then
+					exit 1
+				fi
+
+				if [ -n "$upstream_port" ]; then
+					break
+				fi
+
+				echo "Please enter the upstream instance's port."
+			done
+		fi
 	fi
 
 	echo "Installing the certificate bundle..."
