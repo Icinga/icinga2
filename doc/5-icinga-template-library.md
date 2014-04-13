@@ -271,6 +271,12 @@ address         | **Required.** The host's address.
 oid             | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 community       | **Optional.** The SNMP community. Defaults to "public".
 
+### <a id="itl-apt"></a> apt
+
+Check command for the `check_apt` plugin.
+
+The `apt` check command does not support any vars.
+
 ### <a id="itl-icinga"></a> icinga
 
 Check command for the built-in `icinga` check. This check returns performance
