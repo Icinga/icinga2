@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 #ifndef _WIN32
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
-#endif
+#endif /* _WIN32 */
 	;
 
 	try {
@@ -242,6 +242,24 @@ int main(int argc, char **argv)
 	}
 
 	po::notify(g_AppParams);
+
+	if (g_AppParams.count("define")) {
+		BOOST_FOREACH(const String& define, g_AppParams["define"].as<std::vector<std::string> >()) {
+			String key, value;
+			size_t pos = define.FindFirstOf('=');
+			if (pos != String::NPos) {
+				key = define.SubStr(0, pos);
+				value = define.SubStr(pos + 1);
+			} else {
+				key = define;
+				value = "1";
+			}
+			ScriptVariable::Set(key, value);
+		}
+	}
+
+	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
+	Application::DeclarePidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
 
 #ifndef _WIN32
 	if (g_AppParams.count("group")) {
@@ -324,25 +342,6 @@ int main(int argc, char **argv)
 			  << "Icinga home page: <http://www.icinga.org/>" << std::endl;
 		return EXIT_SUCCESS;
 	}
-
-	if (g_AppParams.count("define")) {
-		BOOST_FOREACH(const String& define, g_AppParams["define"].as<std::vector<std::string> >()) {
-			String key, value;
-			size_t pos = define.FindFirstOf('=');
-			if (pos != String::NPos) {
-				key = define.SubStr(0, pos);
-				value = define.SubStr(pos + 1);
-			}
-			else {
-				key = define;
-				value = "1";
-			}
-			ScriptVariable::Set(key, value);
-		}
-	}
-
-	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
-	Application::DeclarePidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
 
 	ScriptVariable::Set("UseVfork", true, false, true);
 
