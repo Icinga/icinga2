@@ -14,6 +14,11 @@ if [ -n "$1" ]; then
 		exit 1
 	fi
 
+	if ! base64 -d $1 2>/dev/null; then
+		echo "The bundle file is invalid or corrupted."
+		exit 1
+	fi
+
 	while true; do
 		echo -n "Are you setting up a new master instance? [n] "
 		if ! read master; then
