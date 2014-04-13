@@ -206,17 +206,39 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 	}
 
 	if (method == "push_crs") {
+		Dictionary::Ptr params = message->Get("params");
+
+		if (!params)
+			return;
+
+		Dictionary::Ptr inventoryDescr = make_shared<Dictionary>();
+		inventoryDescr->Set("identity", identity);
+		inventoryDescr->Set("crs", params);
+
+		String inventoryFile = GetInventoryDir() + SHA256(identity);
+		String inventoryTempFile = inventoryFile + ".tmp";
+
+		std::ofstream fp(inventoryTempFile.CStr(), std::ofstream::out | std::ostream::trunc);
+		fp << JsonSerialize(inventoryDescr);
+		fp.close();
+
+#ifdef _WIN32
+		_unlink(inventoryFile.CStr());
+#endif /* _WIN32 */
+
+		if (rename(inventoryTempFile.CStr(), inventoryFile.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("rename")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(inventoryTempFile));
+		}
+
 		Host::Ptr host = Host::GetByName(identity);
 
 		if (!host) {
 			Log(LogWarning, "agent", "Ignoring check results for host '" + identity + "'.");
 			return;
 		}
-
-		Dictionary::Ptr params = message->Get("params");
-
-		if (!params)
-			return;
 
 		Value hostcr = Deserialize(params->Get("host"), true);
 
@@ -251,28 +273,6 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 
 			CheckResult::Ptr cr = servicecr;
 			service->ProcessCheckResult(cr);
-		}
-
-		Dictionary::Ptr inventoryDescr = make_shared<Dictionary>();
-		inventoryDescr->Set("identity", identity);
-		inventoryDescr->Set("crs", params);
-
-		String inventoryFile = GetInventoryDir() + SHA256(identity);
-		String inventoryTempFile = inventoryFile + ".tmp";
-
-		std::ofstream fp(inventoryTempFile.CStr(), std::ofstream::out | std::ostream::trunc);
-		fp << JsonSerialize(inventoryDescr);
-		fp.close();
-
-#ifdef _WIN32
-		_unlink(inventoryFile.CStr());
-#endif /* _WIN32 */
-
-		if (rename(inventoryTempFile.CStr(), inventoryFile.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("rename")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(inventoryTempFile));
 		}
 	}
 }
