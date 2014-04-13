@@ -36,5 +36,10 @@ if not os.path.isfile(inventory_file):
 
 os.unlink(inventory_file)
 
+peer_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/" + hashlib.sha256(cn).hexdigest() + ".peer"
+
+if os.path.isfile(peer_file):
+    os.unlink(peer_file)
+
 print("Inventory information has been removed for agent '%s'." % (cn))
 sys.exit(0)
