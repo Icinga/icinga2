@@ -14,7 +14,7 @@ if [ -n "$1" ]; then
 		exit 1
 	fi
 
-	if ! base64 -d $1 2>/dev/null; then
+	if ! base64 -d $1 >/dev/null 2>&1; then
 		echo "The bundle file is invalid or corrupted."
 		exit 1
 	fi
