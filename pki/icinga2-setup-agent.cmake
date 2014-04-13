@@ -40,7 +40,7 @@ if [ -n "$1" ]; then
 
 	if [ "$master" = "n" ]; then
 		while true; do
-			echo -n "Upstream Icinga instance name: "
+			echo -n "Master Icinga instance name: "
 			if ! read upstream_name; then
 				exit 1
 			fi
@@ -91,7 +91,7 @@ if [ -n "$1" ]; then
 
 	if [ "$master" = "n" ]; then
 		while true; do
-			echo -n "Do you want this agent instance to connect to the upstream instance? [y] "
+			echo -n "Do you want this agent instance to connect to the master instance? [y] "
 			if ! read upstream_connect; then
 				exit 1
 			fi
@@ -109,7 +109,7 @@ if [ -n "$1" ]; then
 
 		if [ "$upstream_connect" = "y" ]; then
 			while true; do
-				echo -n "Upstream IP address/hostname: "
+				echo -n "Master instance IP address/hostname: "
 				if ! read upstream_host; then
 					exit 1
 				fi
@@ -118,11 +118,11 @@ if [ -n "$1" ]; then
 					break
 				fi
 
-				echo "Please enter the upstream instance's hostname."
+				echo "Please enter the master instance's hostname."
 			done
 
 			while true; do
-				echo -n "Upstream port: "
+				echo -n "Master instace port: "
 				if ! read upstream_port; then
 					exit 1
 				fi
@@ -131,7 +131,7 @@ if [ -n "$1" ]; then
 					break
 				fi
 
-				echo "Please enter the upstream instance's port."
+				echo "Please enter the master instance's port."
 			done
 		fi
 	fi
@@ -157,14 +157,12 @@ AGENT
 	if [ "$master" = "n" ]; then
 		cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
   upstream_name = "$upstream_name"
-
 AGENT
 	fi
 
 	if [ "$listener" = "y" ]; then
 		cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
   bind_port = "$listener_port"
-
 AGENT
 	fi
 
@@ -172,7 +170,6 @@ AGENT
 		cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
   upstream_host = "$upstream_host"
   upstream_port = "$upstream_port"
-
 AGENT
 	fi
 
@@ -182,6 +179,10 @@ AGENT
 
 	echo "Enabling agent feature..."
 	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature agent
+
+	if [ ! -e "@CMAKE_INSTALL_FULL_SYSCONFDIR@/monitoring" ]; then
+		ln -s $ICINGA2CONFIG/conf.d/hosts/localhost @CMAKE_INSTALL_FULL_SYSCONFDIR@/monitoring
+	fi
 
 	if [ "$master" = "n" ]; then
 		echo "Disabling notification feature..."
