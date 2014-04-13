@@ -109,17 +109,20 @@ class NetstringParser(object):
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import socket, ssl, pprint, sys, json, os
+import socket, ssl, sys, json, os, hashlib
 
 def warning(*objs):
     print(*objs, file=sys.stderr)
 
-if len(sys.argv) < 3:
-    warning("Syntax: %s <host> <port>" % (sys.argv[0]))
+if len(sys.argv) < 2:
+    warning("Syntax: %s <host> [<port>]" % (sys.argv[0]))
     sys.exit(1)
 
 host = sys.argv[1]
-port = int(sys.argv[2])
+if len(sys.argv) > 2:
+    port = int(sys.argv[2])
+else:
+    port = 8483
 
 agentpki = "@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/pki/agent"
 keyfile = agentpki + "/agent.key"
@@ -164,6 +167,8 @@ while True:
         break
     nsp.feed(data)
 
+ssl_sock.close()
+
 if len(nsp.results) != 1:
     warning("Agent returned invalid response: ", repr(nsp.results))
     sys.exit(1)
@@ -177,14 +182,11 @@ if method != "push_crs":
 
 params = response['params']
 
-for service in params['services']:
-    print(\
-"""apply Service "%s" {
-  import "agent-service"
+inventory_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/" + hashlib.sha256(cn).hexdigest()
+fp = open(inventory_file, "w")
+inventory_info = { "identity": cn, "crs": params }
+json.dump(inventory_info, fp)
+fp.close()
 
-  assign where host.name == "%s"
-}
-""" % (service, cn))
-
-# note that closing the SSLSocket will also close the underlying socket
-ssl_sock.close()
+print("Inventory information has been updated for agent '%s'." % (cn))
+sys.exit(0)

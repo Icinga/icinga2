@@ -426,6 +426,8 @@ exit 0
 %{_sbindir}/%{name}-disable-feature
 %{_sbindir}/%{name}-setup-agent
 %{_sbindir}/%{name}-discover-agent
+%{_sbindir}/%{name}-forget-agent
+%{_sbindir}/%{name}-list-agents
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_libdir}/%{name}

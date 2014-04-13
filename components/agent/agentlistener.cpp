@@ -27,6 +27,7 @@
 #include "base/networkstream.h"
 #include "base/application.h"
 #include "base/context.h"
+#include <fstream>
 
 using namespace icinga;
 
@@ -52,7 +53,7 @@ void AgentListener::Start(void)
 	/* create the primary JSON-RPC listener */
 	if (!GetBindPort().IsEmpty())
 		AddListener(GetBindPort());
-		
+
 	m_AgentTimer = make_shared<Timer>();
 	m_AgentTimer->OnTimerExpired.connect(boost::bind(&AgentListener::AgentTimerHandler, this));
 	m_AgentTimer->SetInterval(GetUpstreamInterval());
@@ -62,6 +63,11 @@ void AgentListener::Start(void)
 shared_ptr<SSL_CTX> AgentListener::GetSSLContext(void) const
 {
 	return m_SSLContext;
+}
+
+String AgentListener::GetInventoryDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/agent/inventory/";
 }
 
 /**
@@ -170,15 +176,15 @@ void AgentListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& identity, const Dictionary::Ptr& message)
 {
 	CONTEXT("Processing agent message of type '" + message->Get("method") + "'");
-	
+
 	String method = message->Get("method");
-	
+
 	if (identity == GetUpstreamName()) {
 		if (method == "get_crs") {
 			Dictionary::Ptr services = make_shared<Dictionary>();
 
 			Host::Ptr host = Host::GetByName("localhost");
-			
+
 			if (!host)
 				Log(LogWarning, "agent", "Agent doesn't have any services for 'localhost'.");
 			else {
@@ -186,34 +192,34 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 					services->Set(service->GetShortName(), Serialize(service->GetLastCheckResult()));
 				}
 			}
-			
+
 			Dictionary::Ptr params = make_shared<Dictionary>();
 			params->Set("services", services);
 			params->Set("host", Serialize(host->GetLastCheckResult()));
-			
+
 			Dictionary::Ptr request = make_shared<Dictionary>();
 			request->Set("method", "push_crs");
 			request->Set("params", params);
-			
+
 			JsonRpc::SendMessage(sender, request);
 		}
 	}
-	
+
 	if (method == "push_crs") {
 		Host::Ptr host = Host::GetByName(identity);
-		
+
 		if (!host) {
 			Log(LogWarning, "agent", "Ignoring check results for host '" + identity + "'.");
 			return;
 		}
-		
+
 		Dictionary::Ptr params = message->Get("params");
-		
+
 		if (!params)
 			return;
 
 		Value hostcr = Deserialize(params->Get("host"), true);
-		
+
 		if (!hostcr.IsObjectType<CheckResult>()) {
 			Log(LogWarning, "agent", "Ignoring invalid check result for host '" + identity + "'.");
 		} else {
@@ -222,29 +228,51 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 		}
 
 		Dictionary::Ptr services = params->Get("services");
-		
+
 		if (!services)
 			return;
-		
+
 		Dictionary::Pair kv;
-		
+
 		BOOST_FOREACH(kv, services) {
 			Service::Ptr service = host->GetServiceByShortName(kv.first);
-			
+
 			if (!service) {
 				Log(LogWarning, "agent", "Ignoring check result for service '" + kv.first + "' on host '" + identity + "'.");
 				continue;
 			}
-			
+
 			Value servicecr = Deserialize(kv.second, true);
-			
+
 			if (!servicecr.IsObjectType<CheckResult>()) {
 				Log(LogWarning, "agent", "Ignoring invalid check result for service '" + kv.first + "' on host '" + identity + "'.");
 				continue;
 			}
-			
+
 			CheckResult::Ptr cr = servicecr;
 			service->ProcessCheckResult(cr);
+		}
+
+		Dictionary::Ptr inventoryDescr = make_shared<Dictionary>();
+		inventoryDescr->Set("identity", identity);
+		inventoryDescr->Set("crs", params);
+
+		String inventoryFile = GetInventoryDir() + SHA256(identity);
+		String inventoryTempFile = inventoryFile + ".tmp";
+
+		std::ofstream fp(inventoryTempFile.CStr(), std::ofstream::out | std::ostream::trunc);
+		fp << JsonSerialize(inventoryDescr);
+		fp.close();
+
+#ifdef _WIN32
+		_unlink(inventoryFile.CStr());
+#endif /* _WIN32 */
+
+		if (rename(inventoryTempFile.CStr(), inventoryFile.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("rename")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(inventoryTempFile));
 		}
 	}
 }
@@ -256,6 +284,6 @@ void AgentListener::AgentTimerHandler(void)
 
 	if (host.IsEmpty() || port.IsEmpty())
 		return;
-	
+
 	AddConnection(host, port);
 }

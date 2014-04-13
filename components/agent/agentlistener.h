@@ -61,7 +61,9 @@ private:
 	void ListenerThreadProc(const Socket::Ptr& server);
 
 	void MessageHandler(const TlsStream::Ptr& sender, const String& identity, const Dictionary::Ptr& message);
-	
+
+	static String GetInventoryDir(void);
+
 	friend class AgentCheckTask;
 };
 
