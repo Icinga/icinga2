@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ICINGA2PKIDIR=@CMAKE_INSTALL_FULL_DATADIR@/icinga2/pki
 
 source $ICINGA2PKIDIR/pkifuncs

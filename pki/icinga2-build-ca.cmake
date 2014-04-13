@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 ICINGA2PKIDIR=@CMAKE_INSTALL_FULL_DATADIR@/icinga2/pki
 
 source $ICINGA2PKIDIR/pkifuncs
 
 check_pki_dir
 
-if [ $(ls -1 -- $ICINGA_CA | wc -l) != 0 ]; then
+if [ `ls -1 -- $ICINGA_CA | wc -l` != 0 ]; then
 	echo "The Icinga CA directory must be empty." >&2
 	exit 1
 fi
