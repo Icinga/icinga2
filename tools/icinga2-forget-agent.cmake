@@ -31,7 +31,7 @@ cn = sys.argv[1]
 inventory_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/" + hashlib.sha256(cn).hexdigest()
 
 if not os.path.isfile(inventory_file):
-    warning("There's no inventory file for agent '%s'.")
+    warning("There's no inventory file for agent '%s'." % (cn))
     sys.exit(0)
 
 os.unlink(inventory_file)

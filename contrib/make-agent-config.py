@@ -30,7 +30,7 @@
 
 import subprocess, json
 
-inventory_json = subprocess.check_output(["icinga2-list-agents"])
+inventory_json = subprocess.check_output(["icinga2-list-agents", "--batch"])
 inventory = json.loads(inventory_json)
 
 for host, hostinfo in inventory.items():

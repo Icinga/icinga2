@@ -16,11 +16,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from __future__ import print_function
 import sys, os, json
-
-def warning(*objs):
-    print(*objs, file=sys.stderr)
 
 inventory_dir = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/"
 
@@ -47,5 +43,19 @@ for root, dirs, files in os.walk(inventory_dir):
         except:
             pass
 
-json.dump(inventory, sys.stdout)
+if len(sys.argv) > 1 and sys.argv[1] == "--batch":
+    json.dump(inventory, sys.stdout)
+else:
+    for host, host_info in inventory.items():
+        if "peer" in host_info:
+            peer_info = host_info["peer"]
+            peer_addr = " (%s:%s)" % (peer_info["agent_host"], peer_info["agent_port"])
+        else:
+            peer_addr = ""
+
+        print "* %s%s" % (host, peer_addr)
+
+        for service in host_info["services"]:
+            print "    * %s" % (service)
+
 sys.exit(0)
