@@ -560,6 +560,9 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		BOOST_FOREACH(const Dictionary::Pair& kv, query.Fields) {
 			Value value;
 
+			if (kv.second.IsEmpty())
+				continue;
+
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return;
 
