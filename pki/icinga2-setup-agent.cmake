@@ -183,8 +183,10 @@ AGENT
 	echo "Enabling agent feature..."
 	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature agent
 
-	echo "Disabling notification feature..."
-	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-disable-feature notification
+	if [ "$master" = "n" ]; then
+		echo "Disabling notification feature..."
+		@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-disable-feature notification
+	fi
 
 	echo ""
 	echo "The key bundle was installed successfully and the agent component"
