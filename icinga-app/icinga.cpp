@@ -187,6 +187,34 @@ static bool Daemonize(const String& stderrFile)
 	return true;
 }
 
+/**
+ * Terminate another process and wait till it has ended
+ *
+ * @params target PID of the process to end
+ */
+static void TerminateAndWaitForEnd(pid_t target)
+{
+#ifndef _WIN32
+	// allow 15 seconds timeout
+	double timeout = Utility::GetTime() + 15;
+
+	int ret = kill(target, SIGTERM);
+
+	while(Utility::GetTime() < timeout && (ret==0 || errno!=ESRCH))
+	{
+		Utility::Sleep(0.1);
+		ret = kill(target, 0);
+	}
+
+	// timeout and the process still seems to live: kill it
+	if (ret == 0 || errno != ESRCH)
+		kill(target, SIGKILL);
+
+#else
+	// TODO: implement this for Win32
+#endif /* _WIN32 */
+}
+
 int Main(void)
 {
 	int argc = Application::GetArgC();
@@ -252,6 +280,7 @@ int Main(void)
 		("validate,C", "exit after validating the configuration")
 		("debug,x", "enable debugging")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
+		("reload,r", "reload a running icinga instance")
 #ifndef _WIN32
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
@@ -405,12 +434,29 @@ int Main(void)
 		return EXIT_FAILURE;
 	}
 
+	pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
+	if (g_AppParams.count("reload")) {
+		if (runningpid < 0) {
+			Log(LogCritical, "icinga-app", "No instance of Icinga currently running: can't reload.");
+			return EXIT_FAILURE;
+		}
+	} else if (!g_AppParams.count("validate") && runningpid >= 0) {
+		Log(LogCritical, "icinga-app", "Another instance of Icinga already running at PID " + Convert::ToString(runningpid));
+		return EXIT_FAILURE;
+	}
+
 	if (!LoadConfigFiles(appType))
 		return EXIT_FAILURE;
 
 	if (g_AppParams.count("validate")) {
 		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
+	}
+
+	if (g_AppParams.count("reload")) {
+		Log(LogInformation, "icinga-app", "Terminating previous instance of icinga (PID " + Convert::ToString(runningpid) + ")");
+		TerminateAndWaitForEnd(runningpid);
+		Log(LogInformation, "icinga-app", "Previous instance has ended, taking over now.");
 	}
 
 	if (g_AppParams.count("daemonize")) {

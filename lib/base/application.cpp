@@ -638,7 +638,7 @@ void Application::UpdatePidFile(const String& filename)
 	}
 #endif /* _WIN32 */
 
-	fprintf(m_PidFile, "%d", Utility::GetPid());
+	fprintf(m_PidFile, "%d\n", Utility::GetPid());
 	fflush(m_PidFile);
 }
 
@@ -655,6 +655,60 @@ void Application::ClosePidFile(void)
 
 	m_PidFile = NULL;
 }
+
+/**
+ * Checks if another process currently owns the pidfile and read it
+ *
+ * @param filename The name of the PID file.
+ * @returns -1: no process owning the pidfile, pid of the process otherwise
+ */
+pid_t Application::ReadPidFile(const String& filename)
+{
+	FILE *pidfile = fopen(filename.CStr(), "r");
+
+	if (pidfile == NULL)
+		return -1;
+
+#ifndef _WIN32
+	int fd = fileno(pidfile);
+
+	struct flock lock;
+
+	lock.l_start = 0;
+	lock.l_len = 0;
+	lock.l_type = F_WRLCK;
+	lock.l_whence = SEEK_SET;
+
+	if (fcntl(fd, F_GETLK, &lock) < 0) {
+		int error = errno;
+		fclose(pidfile);
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("fcntl")
+		    << boost::errinfo_errno(error));
+	}
+
+	if (lock.l_type == F_UNLCK) {
+		// nobody has locked the file: no icinga running
+		fclose(pidfile);
+		return -1;
+	}
+#endif /* _WIN32 */
+
+	pid_t runningpid;
+	int res = fscanf(pidfile, "%d", &runningpid);
+	fclose(pidfile);
+
+	// bogus result?
+	if (res != 1)
+		return -1;
+
+#ifdef _WIN32
+	// TODO: add check if the read pid is still running or not
+#endif /* _WIN32 */
+
+	return runningpid;
+}
+
 
 /**
  * Retrieves the path of the installation prefix.

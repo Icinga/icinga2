@@ -69,6 +69,7 @@ public:
 
 	void UpdatePidFile(const String& filename);
 	void ClosePidFile(void);
+	static pid_t ReadPidFile(const String& filename);
 
 	static String GetExePath(const String& argv0);
 
