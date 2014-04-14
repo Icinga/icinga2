@@ -452,7 +452,7 @@ void Application::ExceptionHandler(void)
 	DisplayVersionMessage();
 
 	try {
-		throw;
+		RethrowUncaughtException();
 	} catch (const std::exception& ex) {
 		std::cerr << std::endl
 			  << DiagnosticInformation(ex)

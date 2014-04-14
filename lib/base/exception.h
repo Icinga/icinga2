@@ -47,6 +47,8 @@ I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);
 I2_BASE_API ContextTrace *GetLastExceptionContext(void);
 I2_BASE_API void SetLastExceptionContext(const ContextTrace& context);
 
+I2_BASE_API void RethrowUncaughtException(void);
+
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 typedef boost::error_info<ContextTrace, ContextTrace> ContextTraceErrorInfo;
 

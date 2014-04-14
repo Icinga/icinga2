@@ -25,11 +25,37 @@ static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
 static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
 #ifndef _WIN32
+#ifndef __GLIBCXX__
+static boost::thread_specific_ptr<void *> l_LastExceptionObj;
+static boost::thread_specific_ptr<void *> l_LastExceptionPvtInfo;
+
+typedef void (*DestCallback)(void *);
+static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
+
+extern "C" void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *));
+extern "C" void __cxa_rethrow_primary_exception(void* thrown_object);
+#endif /* __GLIBCXX__ */
+
+void icinga::RethrowUncaughtException(void)
+{
+#ifdef __GLIBCXX__
+	throw;
+#else /* __GLIBCXX__ */
+	__cxa_throw(*l_LastExceptionObj.get(), *l_LastExceptionPvtInfo.get(), *l_LastExceptionDest.get());
+#endif /* __GLIBCXX__ */
+}
+
 extern "C"
 void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 {
 	typedef void (*cxa_throw_fn)(void *, void *, void (*) (void *)) __attribute__((noreturn));
 	static cxa_throw_fn real_cxa_throw;
+
+#ifndef __GLIBCXX__
+	l_LastExceptionObj.reset(new void *(obj));
+	l_LastExceptionPvtInfo.reset(new void *(pvtinfo));
+	l_LastExceptionDest.reset(new DestCallback(dest));
+#endif /* __GLIBCXX__ */
 
 	if (real_cxa_throw == 0)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");

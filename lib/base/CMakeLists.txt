@@ -38,6 +38,10 @@ add_library(base SHARED
 
 target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)
 
+if(HAVE_LIBEXECINFO)
+  target_link_libraries(base execinfo)
+endif()
+
 include_directories(${icinga2_SOURCE_DIR}/third-party/cJSON)
 link_directories(${icinga2_BINARY_DIR}/third-party/cJSON)
 

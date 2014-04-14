@@ -106,6 +106,11 @@ check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)
 check_library_exists(crypto BIO_f_zlib "" HAVE_BIOZLIB)
+check_library_exists(execinfo backtrace_symbols "" HAVE_LIBEXECINFO)
+
+if(HAVE_LIBEXECINFO)
+  set(HAVE_BACKTRACE_SYMBOLS TRUE)
+endif()
 
 include(GNUInstallDirs)
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
