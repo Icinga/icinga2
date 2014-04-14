@@ -47,3 +47,33 @@ void ServiceGroup::RemoveMember(const Service::Ptr& service)
 	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	m_Members.erase(service);
 }
+
+bool ServiceGroup::ResolveGroupMembership(Service::Ptr const& service, bool add, int rstack) {
+
+	if (add && rstack > 20) {
+		Log(LogWarning, "icinga", "Too many nested groups for group '" + GetName() + "': Service '" +
+		    service->GetName() + "' membership assignment failed.");
+
+		return false;
+	}
+
+	Array::Ptr groups = GetGroups();
+
+	if (groups && groups->GetLength() > 0) {
+		ObjectLock olock(groups);
+
+		BOOST_FOREACH(const String& name, groups) {
+			ServiceGroup::Ptr group = ServiceGroup::GetByName(name);
+
+			if (group && !group->ResolveGroupMembership(service, add, rstack + 1))
+				return false;
+		}
+	}
+
+	if (add)
+		AddMember(service);
+	else
+		RemoveMember(service);
+
+	return true;
+}

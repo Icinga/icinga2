@@ -42,6 +42,8 @@ public:
 	void AddMember(const Service::Ptr& service);
 	void RemoveMember(const Service::Ptr& service);
 
+        bool ResolveGroupMembership(Service::Ptr const& service, bool add = true, int rstack = 0);
+
 private:
 	mutable boost::mutex m_ServiceGroupMutex;
 	std::set<Service::Ptr> m_Members;

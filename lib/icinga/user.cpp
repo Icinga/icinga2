@@ -45,10 +45,11 @@ void User::OnConfigLoaded(void)
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
-				ug->AddMember(GetSelf());
+				ug->ResolveGroupMembership(GetSelf(), true);
 		}
 	}
 }
+
 
 void User::Stop(void)
 {
@@ -63,7 +64,7 @@ void User::Stop(void)
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
-				ug->RemoveMember(GetSelf());
+				ug->ResolveGroupMembership(GetSelf(), false);
 		}
 	}
 }

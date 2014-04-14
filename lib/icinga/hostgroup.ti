@@ -13,6 +13,8 @@ class HostGroup : DynamicObject
 				return m_DisplayName;
 		}}}
 	};
+
+	[config] Array::Ptr groups;
 };
 
 }

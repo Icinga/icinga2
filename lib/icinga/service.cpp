@@ -57,7 +57,7 @@ void Service::OnConfigLoaded(void)
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			if (sg)
-				sg->AddMember(GetSelf());
+				sg->ResolveGroupMembership(GetSelf(), true);
 		}
 	}
 

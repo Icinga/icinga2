@@ -46,3 +46,34 @@ void UserGroup::RemoveMember(const User::Ptr& user)
 	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	m_Members.erase(user);
 }
+
+bool UserGroup::ResolveGroupMembership(User::Ptr const& user, bool add, int rstack) {
+
+	if (add && rstack > 20) {
+		Log(LogWarning, "icinga", "Too many nested groups for group '" + GetName() + "': User '" +
+		    user->GetName() + "' membership assignment failed.");
+
+		return false;
+	}
+
+	Array::Ptr groups = GetGroups();
+
+	if (groups && groups->GetLength() > 0) {
+		ObjectLock olock(groups);
+
+		BOOST_FOREACH(const String& name, groups) {
+			UserGroup::Ptr group = UserGroup::GetByName(name);
+
+			if (group && !group->ResolveGroupMembership(user, add, rstack + 1))
+				return false;
+		}
+	}
+
+	if (add)
+		AddMember(user);
+	else
+		RemoveMember(user);
+
+	return true;
+}
+

@@ -42,6 +42,8 @@ public:
 	void AddMember(const Host::Ptr& host);
 	void RemoveMember(const Host::Ptr& host);
 
+        bool ResolveGroupMembership(Host::Ptr const& host, bool add = true, int rstack = 0);
+
 private:
 	mutable boost::mutex m_HostGroupMutex;
 	std::set<Host::Ptr> m_Members;
