@@ -236,13 +236,20 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	String icon_image = CompatUtility::GetCustomAttributeConfig(host, "icon_image");
 	String icon_image_alt = CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt");
 	String statusmap_image = CompatUtility::GetCustomAttributeConfig(host, "statusmap_image");
+	String display_name = host->GetDisplayName();
+	String address = host->GetAddress();
+	String address6 = host->GetAddress6();
 
 	fp << "define host {" "\n"
-	      "\t" "host_name" "\t" << host->GetName() << "\n"
-	      "\t" "display_name" "\t" << host->GetDisplayName() << "\n"
-	      "\t" "alias" "\t" << host->GetDisplayName() << "\n"
-	      "\t" "address" "\t" << host->GetAddress() << "\n"
-	      "\t" "address6" "\t" << host->GetAddress6() << "\n";
+	      "\t" "host_name" "\t" << host->GetName() << "\n";
+	if (!display_name.IsEmpty()) {
+	      fp << "\t" "display_name" "\t" << host->GetDisplayName() << "\n"
+	            "\t" "alias" "\t" << host->GetDisplayName() << "\n";
+	}
+	if (!address.IsEmpty())
+	      fp << "\t" "address" "\t" << address << "\n";
+	if (!address6.IsEmpty())
+	      fp << "\t" "address6" "\t" << address6 << "\n";
 	if (!notes.IsEmpty())
 	      fp << "\t" "notes" "\t" << notes << "\n";
 	if (!notes_url.IsEmpty())
