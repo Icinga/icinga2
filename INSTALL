@@ -37,7 +37,6 @@ example from the repoforge buildtools repository.
 
 http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/{i386,x86_64}/buildtools/
 
-
 User Requirements
 -----------------
 
@@ -58,6 +57,32 @@ permissions to the external command pipe and livestatus socket:
 
 Make sure to replace "www-data" with the name of the user your web server
 is running as.
+
+Building Release Tarballs
+-------------------------
+
+In order to build a release tarball you should first check out the Git repository
+in a new directory. If you're using an existing check-out you should make sure
+that there are no local modifications:
+
+$ git status
+
+The CPack tool will package _all_ files in the source directory.
+
+Next you'll have to create a separate build directory that is not inside
+the source directory. If you fail to do this CPack will try to include the
+build directory in the tarball.
+
+$ cd ..
+$ mkdir icinga2-release && cd icinga2-release
+$ cmake ../icinga2 -DCPACK_SOURCE_GENERATE=TGZ -DCPACK_SOURCE_PACKAGE_FILE_NAME=icinga2-0.0.10
+$ make package_source
+
+Update the package name to reflect the version of the tarball you're creating.
+
+Finally you should verify that the tarball only contains the files it should contain:
+
+$ tar ztf icinga2-0.0.10.tar.gz | less
 
 Building Icinga 2
 -----------------
