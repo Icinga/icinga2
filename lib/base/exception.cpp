@@ -24,8 +24,7 @@ using namespace icinga;
 static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
 static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
-#ifndef _WIN32
-#ifndef __GLIBCXX__
+#if !defined(__GLIBCXX__) && !defined(_WIN32)
 static boost::thread_specific_ptr<void *> l_LastExceptionObj;
 static boost::thread_specific_ptr<void *> l_LastExceptionPvtInfo;
 
@@ -34,17 +33,18 @@ static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
 
 extern "C" void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *));
 extern "C" void __cxa_rethrow_primary_exception(void* thrown_object);
-#endif /* __GLIBCXX__ */
+#endif /* !__GLIBCXX__ && !_WIN32 */
 
 void icinga::RethrowUncaughtException(void)
 {
-#ifdef __GLIBCXX__
+#if defined(__GLIBCXX__) || defined(_WIN32)
 	throw;
-#else /* __GLIBCXX__ */
+#else /* __GLIBCXX__ || _WIN32 */
 	__cxa_throw(*l_LastExceptionObj.get(), *l_LastExceptionPvtInfo.get(), *l_LastExceptionDest.get());
-#endif /* __GLIBCXX__ */
+#endif /* __GLIBCXX__ || _WIN32 */
 }
 
+#ifndef _WIN32
 extern "C"
 void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 {
