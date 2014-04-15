@@ -40,6 +40,8 @@ void AgentListener::Start(void)
 {
 	DynamicObject::Start();
 
+	m_Results = make_shared<Dictionary>();
+
 	/* set up SSL context */
 	shared_ptr<X509> cert = GetX509Certificate(GetCertPath());
 	SetIdentity(GetCertificateCN(cert));
@@ -58,6 +60,7 @@ void AgentListener::Start(void)
 	m_AgentTimer->OnTimerExpired.connect(boost::bind(&AgentListener::AgentTimerHandler, this));
 	m_AgentTimer->SetInterval(GetUpstreamInterval());
 	m_AgentTimer->Start();
+	m_AgentTimer->Reschedule(0);
 }
 
 shared_ptr<SSL_CTX> AgentListener::GetSSLContext(void) const
@@ -181,21 +184,28 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 
 	if (identity == GetUpstreamName()) {
 		if (method == "get_crs") {
-			Dictionary::Ptr services = make_shared<Dictionary>();
+			Dictionary::Ptr hosts = make_shared<Dictionary>();
 
-			Host::Ptr host = Host::GetByName("localhost");
+			BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+				Dictionary::Ptr hostInfo = make_shared<Dictionary>();
 
-			if (!host)
-				Log(LogWarning, "agent", "Agent doesn't have any services for 'localhost'.");
-			else {
+				hostInfo->Set("cr", Serialize(host->GetLastCheckResult()));
+
+				Dictionary::Ptr services = make_shared<Dictionary>();
+
 				BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-					services->Set(service->GetShortName(), Serialize(service->GetLastCheckResult()));
+					Dictionary::Ptr serviceInfo = make_shared<Dictionary>();
+					serviceInfo->Set("cr", Serialize(service->GetLastCheckResult()));
+					services->Set(service->GetShortName(), serviceInfo);
 				}
+
+				hostInfo->Set("services", services);
+
+				hosts->Set(host->GetName(), hostInfo);
 			}
 
 			Dictionary::Ptr params = make_shared<Dictionary>();
-			params->Set("services", services);
-			params->Set("host", Serialize(host->GetLastCheckResult()));
+			params->Set("hosts", hosts);
 
 			Dictionary::Ptr request = make_shared<Dictionary>();
 			request->Set("method", "push_crs");
@@ -206,14 +216,18 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 	}
 
 	if (method == "push_crs") {
-		Dictionary::Ptr params = message->Get("params");
+		Value paramsv = message->Get("params");
 
-		if (!params)
+		if (paramsv.IsEmpty() || !paramsv.IsObjectType<Dictionary>())
 			return;
+
+		Dictionary::Ptr params = paramsv;
+
+		params->Set("seen", Utility::GetTime());
 
 		Dictionary::Ptr inventoryDescr = make_shared<Dictionary>();
 		inventoryDescr->Set("identity", identity);
-		inventoryDescr->Set("crs", params);
+		inventoryDescr->Set("params", params);
 
 		String inventoryFile = GetInventoryDir() + SHA256(identity);
 		String inventoryTempFile = inventoryFile + ".tmp";
@@ -233,47 +247,69 @@ void AgentListener::MessageHandler(const TlsStream::Ptr& sender, const String& i
 			    << boost::errinfo_file_name(inventoryTempFile));
 		}
 
-		Host::Ptr host = Host::GetByName(identity);
+		m_Results->Set(identity, params);
+	}
+}
 
-		if (!host) {
-			Log(LogWarning, "agent", "Ignoring check results for host '" + identity + "'.");
-			return;
-		}
+double  AgentListener::GetAgentSeen(const String& agentIdentity)
+{
+	Dictionary::Ptr agentparams = m_Results->Get(agentIdentity);
 
-		Value hostcr = Deserialize(params->Get("host"), true);
+	if (!agentparams)
+		return 0;
 
-		if (!hostcr.IsObjectType<CheckResult>()) {
-			Log(LogWarning, "agent", "Ignoring invalid check result for host '" + identity + "'.");
-		} else {
-			CheckResult::Ptr cr = hostcr;
-			host->ProcessCheckResult(cr);
-		}
+	return agentparams->Get("seen");
+}
 
-		Dictionary::Ptr services = params->Get("services");
+CheckResult::Ptr AgentListener::GetCheckResult(const String& agentIdentity, const String& hostName, const String& serviceName)
+{
+	Dictionary::Ptr agentparams = m_Results->Get(agentIdentity);
 
-		if (!services)
-			return;
+	if (!agentparams)
+		return CheckResult::Ptr();
 
-		Dictionary::Pair kv;
+	Value hostsv = agentparams->Get("hosts");
 
-		BOOST_FOREACH(kv, services) {
-			Service::Ptr service = host->GetServiceByShortName(kv.first);
+	if (hostsv.IsEmpty() || !hostsv.IsObjectType<Dictionary>())
+		return CheckResult::Ptr();
 
-			if (!service) {
-				Log(LogWarning, "agent", "Ignoring check result for service '" + kv.first + "' on host '" + identity + "'.");
-				continue;
-			}
+	Dictionary::Ptr hosts = hostsv;
 
-			Value servicecr = Deserialize(kv.second, true);
+	Value hostv = hosts->Get(hostName);
 
-			if (!servicecr.IsObjectType<CheckResult>()) {
-				Log(LogWarning, "agent", "Ignoring invalid check result for service '" + kv.first + "' on host '" + identity + "'.");
-				continue;
-			}
+	if (hostv.IsEmpty() || !hostv.IsObjectType<Dictionary>())
+		return CheckResult::Ptr();
 
-			CheckResult::Ptr cr = servicecr;
-			service->ProcessCheckResult(cr);
-		}
+	Dictionary::Ptr host = hostv;
+
+	if (serviceName.IsEmpty()) {
+		Value hostcrv = Deserialize(host->Get("cr"));
+
+		if (hostcrv.IsEmpty() || !hostcrv.IsObjectType<CheckResult>())
+			return CheckResult::Ptr();
+
+		return hostcrv;
+	} else {
+		Value servicesv = host->Get("services");
+
+		if (servicesv.IsEmpty() || !servicesv.IsObjectType<Dictionary>())
+			return CheckResult::Ptr();
+
+		Dictionary::Ptr services = servicesv;
+
+		Value servicev = services->Get(serviceName);
+
+		if (servicev.IsEmpty() || !servicev.IsObjectType<Dictionary>())
+			return CheckResult::Ptr();
+
+		Dictionary::Ptr service = servicev;
+
+		Value servicecrv = Deserialize(service->Get("cr"));
+
+		if (servicecrv.IsEmpty() || !servicecrv.IsObjectType<CheckResult>())
+			return CheckResult::Ptr();
+
+		return servicecrv;
 	}
 }
 

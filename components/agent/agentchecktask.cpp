@@ -84,24 +84,41 @@ void AgentCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	resolvers.push_back(std::make_pair("command", checkable->GetCheckCommand()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
+	String agent_identity = MacroProcessor::ResolveMacros("$agent_identity$", resolvers, checkable->GetLastCheckResult());
 	String agent_host = MacroProcessor::ResolveMacros("$agent_host$", resolvers, checkable->GetLastCheckResult());
-	String agent_port = MacroProcessor::ResolveMacros("$agent_port$", resolvers, checkable->GetLastCheckResult());
+	String agent_service = MacroProcessor::ResolveMacros("$agent_service$", resolvers, checkable->GetLastCheckResult());
 
-	if (agent_host.IsEmpty() || agent_port.IsEmpty()) {
-		Log(LogWarning, "agent", "'agent_host' and 'agent_port' must be set for agent checks.");
+	if (agent_identity.IsEmpty() || agent_host.IsEmpty()) {
+		Log(LogWarning, "agent", "'agent_name' and 'agent_host' must be set for agent checks.");
 		return;
 	}
-	
-	std::pair<String, String> key = std::make_pair(agent_host, agent_port);
+
+	String agent_peer_host = MacroProcessor::ResolveMacros("$agent_peer_host$", resolvers, checkable->GetLastCheckResult());
+	String agent_peer_port = MacroProcessor::ResolveMacros("$agent_peer_port$", resolvers, checkable->GetLastCheckResult());
 	
 	double now = Utility::GetTime();
+	
+	BOOST_FOREACH(const AgentListener::Ptr& al, DynamicType::GetObjects<AgentListener>()) {
+		double seen = al->GetAgentSeen(agent_identity);
+
+		if (seen < now - 300)
+			continue;
+
+		CheckResult::Ptr cr = al->GetCheckResult(agent_identity, agent_host, agent_service);
+
+		if (cr) {
+			checkable->ProcessCheckResult(cr);
+			return;
+		}
+	}
 	
 	{
 		boost::mutex::scoped_lock lock(l_Mutex);
 		l_PendingChecks[checkable] = now;
 	}
-	
+
 	BOOST_FOREACH(const AgentListener::Ptr& al, DynamicType::GetObjects<AgentListener>()) {
-		al->AddConnection(agent_host, agent_port);
+		if (!agent_peer_host.IsEmpty() && !agent_peer_port.IsEmpty())
+			al->AddConnection(agent_peer_host, agent_peer_port);
 	}
 }

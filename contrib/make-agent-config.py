@@ -20,12 +20,15 @@
 #
 # template Host "agent-host" {
 #   check_command = "agent"
-#   vars.agent_host = "$address$"
-#   vars.agent_port = 7000
+#   vars.agent_host = "$host.name$"
+#   vars.agent_service = ""
+#   vars.agent_peer_host = "$address$"
+#   vars.agent_peer_port = 7000
 # }
 #
 # template Service "agent-service" {
 #   check_command = "agent"
+#   vars.agent_service = "$service.name$"
 #}
 
 import subprocess, json
@@ -33,20 +36,30 @@ import subprocess, json
 inventory_json = subprocess.check_output(["icinga2-list-agents", "--batch"])
 inventory = json.loads(inventory_json)
 
-for host, hostinfo in inventory.items():
-    print "object Host \"%s\" {" % (host)
-    print "  import \"agent-host\""
+for agent, agent_info in inventory.items():
+    for host, host_info in agent_info["hosts"].items():
+        if host == "localhost":
+            host_name = agent
+        else:
+            host_name = host
 
-    if "peer" in hostinfo:
-        print "  vars.agent_host = \"%s\"" % (hostinfo["peer"]["agent_host"])
-        print "  vars.agent_port = \"%s\"" % (hostinfo["peer"]["agent_port"])
+        print "object Host \"%s\" {" % (host_name)
+        print "  import \"agent-host\""
+        print "  vars.agent_identity = \"%s\"" % (agent)
 
-    print "}"
-    print ""
+        if host != host_name:
+            print "  vars.agent_host = \"%s\"" % (host)
 
-    for service in hostinfo["services"]:
-        print "object Service \"%s\" {" % (service)
-        print "  import \"agent-service\""
-        print "  host_name = \"%s\"" % (host)
+        if "peer" in agent_info:
+            print "  vars.agent_peer_host = \"%s\"" % (agent_info["peer"]["agent_host"])
+            print "  vars.agent_peer_port = \"%s\"" % (agent_info["peer"]["agent_port"])
+
         print "}"
         print ""
+
+        for service in host_info["services"]:
+            print "object Service \"%s\" {" % (service)
+            print "  import \"agent-service\""
+            print "  host_name = \"%s\"" % (host)
+            print "}"
+            print ""

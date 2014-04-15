@@ -46,10 +46,15 @@ public:
 
 	shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
+	double GetAgentSeen(const String& agentIdentity);
+	CheckResult::Ptr GetCheckResult(const String& agentIdentity, const String& hostName, const String& serviceName);
+
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;
 	Timer::Ptr m_Timer;
+
+	Dictionary::Ptr m_Results;
 
 	Timer::Ptr m_AgentTimer;
 	void AgentTimerHandler(void);

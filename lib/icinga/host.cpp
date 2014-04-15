@@ -147,29 +147,21 @@ HostState Host::CalculateState(ServiceState state)
 
 HostState Host::GetState(void) const
 {
-	ASSERT(!OwnsLock());
-
 	return CalculateState(GetStateRaw());
 }
 
 HostState Host::GetLastState(void) const
 {
-	ASSERT(!OwnsLock());
-
 	return CalculateState(GetLastStateRaw());
 }
 
 HostState Host::GetLastHardState(void) const
 {
-	ASSERT(!OwnsLock());
-
 	return CalculateState(GetLastHardStateRaw());
 }
 
 double Host::GetLastStateUp(void) const
 {
-	ASSERT(!OwnsLock());
-
 	if (GetLastStateOK() > GetLastStateWarning())
 		return GetLastStateOK();
 	else
@@ -178,8 +170,6 @@ double Host::GetLastStateUp(void) const
 
 double Host::GetLastStateDown(void) const
 {
-	ASSERT(!OwnsLock());
-
 	return GetLastStateCritical();
 }
 

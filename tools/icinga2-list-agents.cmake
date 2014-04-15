@@ -17,6 +17,7 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys, os, json
+from datetime import datetime
 
 inventory_dir = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/"
 
@@ -32,7 +33,11 @@ for root, dirs, files in os.walk(inventory_dir):
         fp.close()
 
         inventory[inventory_info["identity"]] = {}
-        inventory[inventory_info["identity"]]["services"] = inventory_info["crs"]["services"].keys()
+        inventory[inventory_info["identity"]]["seen"] = inventory_info["params"]["seen"]
+        inventory[inventory_info["identity"]]["hosts"] = {}
+
+        for host, host_info in inventory_info["params"]["hosts"].items():
+            inventory[inventory_info["identity"]]["hosts"][host] = { "services": host_info["services"].keys() }
 
         try:
             fp = open(root + file + ".peer", "r")
@@ -46,16 +51,19 @@ for root, dirs, files in os.walk(inventory_dir):
 if len(sys.argv) > 1 and sys.argv[1] == "--batch":
     json.dump(inventory, sys.stdout)
 else:
-    for host, host_info in inventory.items():
-        if "peer" in host_info:
-            peer_info = host_info["peer"]
-            peer_addr = " (%s:%s)" % (peer_info["agent_host"], peer_info["agent_port"])
+    for agent, agent_info in inventory.items():
+        if "peer" in agent_info:
+            peer_info = agent_info["peer"]
+            peer_addr = "peer address: %s:%s, " % (peer_info["agent_host"], peer_info["agent_port"])
         else:
-            peer_addr = ""
+            peer_addr = "no peer address"
 
-        print "* %s%s" % (host, peer_addr)
+        print "* %s (%slast seen: %s)" % (agent, peer_addr, datetime.fromtimestamp(agent_info["seen"]))
 
-        for service in host_info["services"]:
-            print "    * %s" % (service)
+        for host, host_info in agent_info["hosts"].items():
+            print "    * %s" % (host)
+
+            for service in host_info["services"]:
+                print "        * %s" % (service)
 
 sys.exit(0)

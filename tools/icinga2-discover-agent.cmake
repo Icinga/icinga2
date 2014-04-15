@@ -109,7 +109,7 @@ class NetstringParser(object):
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import socket, ssl, sys, json, os, hashlib
+import socket, ssl, sys, json, os, hashlib, time
 
 def warning(*objs):
     print(*objs, file=sys.stderr)
@@ -180,11 +180,12 @@ if method != "push_crs":
     warning("Agent did not return any check results. Make sure you're using the master certificate.")
     sys.exit(1)
 
-params = response['params']
+params = response["params"]
+params["seen"] = time.time()
 
 inventory_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/" + hashlib.sha256(cn).hexdigest()
 fp = open(inventory_file, "w")
-inventory_info = { "identity": cn, "crs": params }
+inventory_info = { "identity": cn, "params": params }
 json.dump(inventory_info, fp)
 fp.close()
 
