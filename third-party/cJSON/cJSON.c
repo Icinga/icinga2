@@ -130,7 +130,8 @@ static char *print_number(cJSON *item)
 		str=(char*)cJSON_malloc(64);	/* This is a nice tradeoff. */
 		if (str)
 		{
-			if (fabs(floor(d)-d)<=DBL_EPSILON)			sprintf(str,"%.0f",d);
+			if (d != d)						strcpy(str, "0");
+			else if (fabs(floor(d)-d)<=DBL_EPSILON)			sprintf(str,"%.0f",d);
 			else 							sprintf(str,"%.*e",(int)log10(d) + 6,d);
 		}
 	}
