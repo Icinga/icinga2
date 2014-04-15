@@ -41,6 +41,8 @@ private:
 	AgentCheckTask(void);
 	
 	static void AgentTimerHandler(void);
+
+	static bool SendResult(const Checkable::Ptr& checkable, bool enqueue);
 };
 
 }

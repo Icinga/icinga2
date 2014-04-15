@@ -58,7 +58,7 @@ void AgentCheckTask::AgentTimerHandler(void)
 	double now = Utility::GetTime();
 
 	BOOST_FOREACH(kv, l_PendingChecks) {
-		if (kv.second < now - 60 && kv.first->IsCheckPending()) {
+		if (kv.second < now - 60 && kv.first->IsCheckPending() && !SendResult(kv.first, false)) {
 			CheckResult::Ptr cr = make_shared<CheckResult>();
 			cr->SetOutput("Agent isn't responding.");
 			cr->SetState(ServiceCritical);
@@ -71,7 +71,7 @@ void AgentCheckTask::AgentTimerHandler(void)
 	l_PendingChecks.swap(newmap);
 }
 
-void AgentCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+bool AgentCheckTask::SendResult(const Checkable::Ptr& checkable, bool enqueue)
 {
 	Host::Ptr host;
 	Service::Ptr service;
@@ -90,14 +90,14 @@ void AgentCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 
 	if (agent_identity.IsEmpty() || agent_host.IsEmpty()) {
 		Log(LogWarning, "agent", "'agent_name' and 'agent_host' must be set for agent checks.");
-		return;
+		return false;
 	}
 
 	String agent_peer_host = MacroProcessor::ResolveMacros("$agent_peer_host$", resolvers, checkable->GetLastCheckResult());
 	String agent_peer_port = MacroProcessor::ResolveMacros("$agent_peer_port$", resolvers, checkable->GetLastCheckResult());
-	
+
 	double now = Utility::GetTime();
-	
+
 	BOOST_FOREACH(const AgentListener::Ptr& al, DynamicType::GetObjects<AgentListener>()) {
 		double seen = al->GetAgentSeen(agent_identity);
 
@@ -108,17 +108,26 @@ void AgentCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 
 		if (cr) {
 			checkable->ProcessCheckResult(cr);
-			return;
+			return true;
 		}
 	}
-	
-	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-		l_PendingChecks[checkable] = now;
+
+	if (enqueue) {
+		{
+			boost::mutex::scoped_lock lock(l_Mutex);
+			l_PendingChecks[checkable] = now;
+		}
+
+		BOOST_FOREACH(const AgentListener::Ptr& al, DynamicType::GetObjects<AgentListener>()) {
+			if (!agent_peer_host.IsEmpty() && !agent_peer_port.IsEmpty())
+				al->AddConnection(agent_peer_host, agent_peer_port);
+		}
 	}
 
-	BOOST_FOREACH(const AgentListener::Ptr& al, DynamicType::GetObjects<AgentListener>()) {
-		if (!agent_peer_host.IsEmpty() && !agent_peer_port.IsEmpty())
-			al->AddConnection(agent_peer_host, agent_peer_port);
-	}
+	return false;
+}
+
+void AgentCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
+	SendResult(checkable, true);
 }
