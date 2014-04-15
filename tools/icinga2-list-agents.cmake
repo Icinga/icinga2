@@ -32,9 +32,15 @@ for root, dirs, files in os.walk(inventory_dir):
         inventory_info = json.load(fp)
         fp.close()
 
+	if not "params" in inventory_info:
+	    continue
+
         inventory[inventory_info["identity"]] = {}
         inventory[inventory_info["identity"]]["seen"] = inventory_info["params"]["seen"]
         inventory[inventory_info["identity"]]["hosts"] = {}
+
+	if not "hosts" in host_info in inventory_info["params"]:
+	    continue
 
         for host, host_info in inventory_info["params"]["hosts"].items():
             inventory[inventory_info["identity"]]["hosts"][host] = { "services": host_info["services"].keys() }
@@ -54,11 +60,11 @@ else:
     for agent, agent_info in inventory.items():
         if "peer" in agent_info:
             peer_info = agent_info["peer"]
-            peer_addr = "peer address: %s:%s, " % (peer_info["agent_host"], peer_info["agent_port"])
+            peer_addr = "peer address: %s:%s" % (peer_info["agent_host"], peer_info["agent_port"])
         else:
             peer_addr = "no peer address"
 
-        print "* %s (%slast seen: %s)" % (agent, peer_addr, datetime.fromtimestamp(agent_info["seen"]))
+        print "* %s (%s, last seen: %s)" % (agent, peer_addr, datetime.fromtimestamp(agent_info["seen"]))
 
         for host, host_info in agent_info["hosts"].items():
             print "    * %s" % (host)

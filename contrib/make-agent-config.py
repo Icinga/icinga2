@@ -60,6 +60,6 @@ for agent, agent_info in inventory.items():
         for service in host_info["services"]:
             print "object Service \"%s\" {" % (service)
             print "  import \"agent-service\""
-            print "  host_name = \"%s\"" % (host)
+            print "  host_name = \"%s\"" % (host_name)
             print "}"
             print ""
