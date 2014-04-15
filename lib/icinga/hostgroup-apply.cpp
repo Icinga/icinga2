@@ -17,7 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/scheduleddowntime.h"
+#include "icinga/hostgroup.h"
+#include "icinga/service.h"
 #include "config/configitembuilder.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
@@ -28,17 +29,16 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&ScheduledDowntime::RegisterApplyRuleHandler);
+INITIALIZE_ONCE(&HostGroup::RegisterApplyRuleHandler);
 
-void ScheduledDowntime::RegisterApplyRuleHandler(void)
+void HostGroup::RegisterApplyRuleHandler(void)
 {
 	std::vector<String> targets;
 	targets.push_back("Host");
-	targets.push_back("Service");
-	ApplyRule::RegisterType("ScheduledDowntime", targets, &ScheduledDowntime::EvaluateApplyRules);
+	ApplyRule::RegisterType("HostGroup", targets, &HostGroup::EvaluateApplyRules);
 }
 
-bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool HostGroup::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -59,37 +59,45 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 		return false;
 
 	std::ostringstream msgbuf2;
-	msgbuf2 << "Applying scheduled downtime '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
+	msgbuf2 << "Applying hostgroup '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
 	Log(LogDebug, "icinga", msgbuf2.str());
 
+
+	String group_name = rule.GetName();
+
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
-	builder->SetType("ScheduledDowntime");
-	builder->SetName(rule.GetName());
+	builder->SetType("HostGroup");
+	builder->SetName(group_name);
 	builder->SetScope(rule.GetScope());
-
-	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-	    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di),
-	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
-	    di));
-
-	if (service) {
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-		    make_shared<AExpression>(&AExpression::OpLiteral, "service_name", di),
-		    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
-		    di));
-	}
 
 	builder->AddExpression(rule.GetExpression());
 
-	ConfigItem::Ptr downtimeItem = builder->Compile();
-	downtimeItem->Register();
-	DynamicObject::Ptr dobj = downtimeItem->Commit();
-	dobj->OnConfigLoaded();
+	HostGroup::Ptr group = HostGroup::GetByName(group_name);
+
+	/* if group does not exist, create it only once */
+	if (!group) {
+		ConfigItem::Ptr hostgroupItem = builder->Compile();
+		hostgroupItem->Register();
+		DynamicObject::Ptr dobj = hostgroupItem->Commit();
+
+		group = dynamic_pointer_cast<HostGroup>(dobj);
+
+		if (!group) {
+			Log(LogCritical, "icinga", "Unable to create group '" + group_name + "' for apply rule.");
+			return false;
+		}
+
+		Log(LogDebug, "icinga", "Group '" + group_name + "' created for apply rule.");
+	} else
+		Log(LogDebug, "icinga", "Group '" + group_name + "' already exists. Skipping apply rule creation.");
+
+	/* assign host group membership */
+	group->AddMember(host);
 
 	return true;
 }
 
-void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
+void HostGroup::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 {
 	int apply_count = 0;
 
@@ -106,19 +114,6 @@ void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 
 			if (apply_count == 0)
 				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
-
-		} else if (rule.GetTargetType() == "Service") {
-			apply_count = 0;
-
-			BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-				CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
-
-				if(EvaluateApplyRule(service, rule))
-					apply_count++;
-			}
-
-			if (apply_count == 0)
-				Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for service does not match anywhere!");
 
 		} else {
 			Log(LogWarning, "icinga", "Wrong target type for apply rule '" + rule.GetName() + "'!");
