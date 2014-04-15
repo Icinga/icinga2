@@ -39,7 +39,7 @@ for root, dirs, files in os.walk(inventory_dir):
         inventory[inventory_info["identity"]]["seen"] = inventory_info["params"]["seen"]
         inventory[inventory_info["identity"]]["hosts"] = {}
 
-	if not "hosts" in host_info in inventory_info["params"]:
+	if not "hosts" in inventory_info["params"]:
 	    continue
 
         for host, host_info in inventory_info["params"]["hosts"].items():
