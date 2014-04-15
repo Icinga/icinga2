@@ -80,6 +80,8 @@ public:
 
 	void SendConfigUpdate(void);
 	void SendStatusUpdate(void);
+	void SendVarsConfigUpdate(void);
+	void SendVarsStatusUpdate(void);
 
 	double GetLastConfigUpdate(void) const;
 	double GetLastStatusUpdate(void) const;
@@ -101,6 +103,7 @@ private:
 	double m_LastStatusUpdate;
 
 	static void StateChangedHandler(const DynamicObject::Ptr& object);
+	static void VarsChangedHandler(const DynamicObject::Ptr& object);
 
 	friend class DbType;
 };

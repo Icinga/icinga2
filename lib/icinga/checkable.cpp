@@ -188,6 +188,9 @@ int Checkable::GetModifiedAttributes(void) const
 	if (!GetOverrideCheckPeriod().IsEmpty())
 		attrs |= ModAttrCheckTimeperiod;
 
+	if (!GetOverrideVars().IsEmpty())
+		attrs |= ModAttrCustomVariable;
+
 	// TODO: finish
 
 	return attrs;
@@ -230,4 +233,9 @@ void Checkable::SetModifiedAttributes(int flags)
 
 	if ((flags & ModAttrCheckTimeperiod) == 0)
 		SetOverrideCheckPeriod(Empty);
+
+	if ((flags & ModAttrCustomVariable) == 0) {
+		SetOverrideVars(Empty);
+		OnVarsChanged(GetSelf());
+	}
 }

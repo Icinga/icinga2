@@ -21,8 +21,11 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "icinga/service.h"
+#include "icinga/compatutility.h"
 #include "remote/endpoint.h"
+#include "base/dynamicobject.h"
 #include "base/dynamictype.h"
+#include "base/convert.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/initialize.h"
@@ -43,6 +46,7 @@ void DbObject::StaticInitialize(void)
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
+	DynamicObject::OnVarsChanged.connect(boost::bind(&DbObject::VarsChangedHandler, _1));
 }
 
 void DbObject::SetObject(const DynamicObject::Ptr& object)
@@ -72,6 +76,10 @@ DbType::Ptr DbObject::GetType(void) const
 
 void DbObject::SendConfigUpdate(void)
 {
+	/* update custom var config for all objects */
+	SendVarsConfigUpdate();
+
+	/* config objects */
 	Dictionary::Ptr fields = GetConfigFields();
 
 	if (!fields)
@@ -98,6 +106,10 @@ void DbObject::SendConfigUpdate(void)
 
 void DbObject::SendStatusUpdate(void)
 {
+	/* update custom var status for all objects */
+	SendVarsStatusUpdate();
+
+	/* status objects */
 	Dictionary::Ptr fields = GetStatusFields();
 
 	if (!fields)
@@ -133,6 +145,89 @@ void DbObject::SendStatusUpdate(void)
 	m_LastStatusUpdate = Utility::GetTime();
 
 	OnStatusUpdate();
+}
+
+void DbObject::SendVarsConfigUpdate(void)
+{
+	DynamicObject::Ptr obj = GetObject();
+
+	Dictionary::Ptr vars;
+
+	vars = CompatUtility::GetCustomAttributeConfig(obj);
+
+	if (vars) {
+		Log(LogDebug, "db_ido", "Updating object vars for '" + obj->GetName() + "'");
+
+		ObjectLock olock (vars);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+			if (!kv.first.IsEmpty()) {
+				Log(LogDebug, "db_ido", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
+				    "' overridden: " + Convert::ToString(obj->IsVarOverridden(kv.first) ? 1 : 0));
+
+				Dictionary::Ptr fields = make_shared<Dictionary>();
+				fields->Set("varname", Convert::ToString(kv.first));
+				fields->Set("varvalue", Convert::ToString(kv.second));
+				fields->Set("config_type", 1);
+				fields->Set("has_been_modified", obj->IsVarOverridden(kv.first) ? 1 : 0);
+				fields->Set("object_id", obj);
+				fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+				DbQuery query;
+				query.Table = "customvariables";
+				query.Type = DbQueryInsert;
+				query.Category = DbCatConfig;
+				query.Fields = fields;
+				OnQuery(query);
+			}
+		}
+	}
+}
+
+void DbObject::SendVarsStatusUpdate(void)
+{
+	DynamicObject::Ptr obj = GetObject();
+
+	Dictionary::Ptr vars, vars_raw;
+
+	vars = CompatUtility::GetCustomAttributeConfig(obj);
+
+	if (vars) {
+		Log(LogDebug, "db_ido", "Updating object vars for '" + obj->GetName() + "'");
+
+		ObjectLock olock (vars);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+			if (!kv.first.IsEmpty()) {
+				int overridden = obj->IsVarOverridden(kv.first) ? 1 : 0;
+
+				Log(LogDebug, "db_ido", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
+				    "' overridden: " + Convert::ToString(overridden));
+
+				Dictionary::Ptr fields = make_shared<Dictionary>();
+				fields->Set("varname", Convert::ToString(kv.first));
+				fields->Set("varvalue", Convert::ToString(kv.second));
+				fields->Set("has_been_modified", overridden);
+				fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
+				fields->Set("object_id", obj);
+				fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+				DbQuery query;
+				query.Table = "customvariablestatus";
+				query.Type = DbQueryInsert | DbQueryUpdate;
+				query.Category = DbCatState;
+				query.Fields = fields;
+
+				query.WhereCriteria = make_shared<Dictionary>();
+				query.WhereCriteria->Set("object_id", obj);
+				query.WhereCriteria->Set("varname", Convert::ToString(kv.first));
+				query.Object = GetSelf();
+
+				OnQuery(query);
+			}
+		}
+
+	}
 }
 
 double DbObject::GetLastConfigUpdate(void) const
@@ -205,4 +300,18 @@ void DbObject::StateChangedHandler(const DynamicObject::Ptr& object)
 		return;
 
 	dbobj->SendStatusUpdate();
+}
+
+void DbObject::VarsChangedHandler(const DynamicObject::Ptr& object)
+{
+	DbObject::Ptr dbobj = GetOrCreateByObject(object);
+
+	Log(LogDebug, "db_ido", "Vars changed for object '" + object->GetName() + "'");
+
+	if (!dbobj)
+		return;
+
+	Log(LogDebug, "db_ido", "Vars changed for db object '" + dbobj->GetName1() + ":" + dbobj->GetName2() + "'");
+
+	dbobj->SendVarsStatusUpdate();
 }
