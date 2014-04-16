@@ -151,9 +151,7 @@ void DbObject::SendVarsConfigUpdate(void)
 {
 	DynamicObject::Ptr obj = GetObject();
 
-	Dictionary::Ptr vars;
-
-	vars = CompatUtility::GetCustomAttributeConfig(obj);
+	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(obj);
 
 	if (vars) {
 		Log(LogDebug, "db_ido", "Updating object vars for '" + obj->GetName() + "'");
@@ -162,14 +160,16 @@ void DbObject::SendVarsConfigUpdate(void)
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 			if (!kv.first.IsEmpty()) {
+				int overridden = obj->IsVarOverridden(kv.first) ? 1 : 0;
+
 				Log(LogDebug, "db_ido", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
-				    "' overridden: " + Convert::ToString(obj->IsVarOverridden(kv.first) ? 1 : 0));
+				    "' overridden: " + Convert::ToString(overridden));
 
 				Dictionary::Ptr fields = make_shared<Dictionary>();
 				fields->Set("varname", Convert::ToString(kv.first));
 				fields->Set("varvalue", Convert::ToString(kv.second));
 				fields->Set("config_type", 1);
-				fields->Set("has_been_modified", obj->IsVarOverridden(kv.first) ? 1 : 0);
+				fields->Set("has_been_modified", overridden);
 				fields->Set("object_id", obj);
 				fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -188,9 +188,7 @@ void DbObject::SendVarsStatusUpdate(void)
 {
 	DynamicObject::Ptr obj = GetObject();
 
-	Dictionary::Ptr vars, vars_raw;
-
-	vars = CompatUtility::GetCustomAttributeConfig(obj);
+	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(obj);
 
 	if (vars) {
 		Log(LogDebug, "db_ido", "Updating object vars for '" + obj->GetName() + "'");
@@ -310,8 +308,6 @@ void DbObject::VarsChangedHandler(const DynamicObject::Ptr& object)
 
 	if (!dbobj)
 		return;
-
-	Log(LogDebug, "db_ido", "Vars changed for db object '" + dbobj->GetName1() + ":" + dbobj->GetName2() + "'");
 
 	dbobj->SendVarsStatusUpdate();
 }

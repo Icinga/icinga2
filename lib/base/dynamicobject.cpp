@@ -374,8 +374,7 @@ Dictionary::Ptr DynamicObject::GetVars(void) const
 
 void DynamicObject::SetVars(const Dictionary::Ptr& vars, const String& authority)
 {
-	Dictionary::Ptr override_vars = vars->ShallowClone();
-	SetOverrideVars(override_vars);
+	SetOverrideVars(vars);
 
 	Log(LogDebug, "base", "Setting vars for object '" + GetName() + "'");
 
@@ -384,14 +383,10 @@ void DynamicObject::SetVars(const Dictionary::Ptr& vars, const String& authority
 
 bool DynamicObject::IsVarOverridden(const String& name)
 {
-	Dictionary::Ptr vars_raw = GetVarsRaw();
 	Dictionary::Ptr vars_override = GetOverrideVars();
 
-	if (!vars_raw || !vars_override)
+	if (!vars_override)
 		return false;
 
-	if (vars_raw->Get(name) != vars_override->Get(name))
-		return true;
-
-	return false;
+	return vars_override->Contains(name);
 }
