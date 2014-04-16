@@ -87,7 +87,11 @@ endif()
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+  if(${CMAKE_SYSTEM_NAME} MATCHES AIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+  endif()
 endif()
 
 if(MSVC)
