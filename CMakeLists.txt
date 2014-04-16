@@ -40,13 +40,6 @@ file(READ "${CMAKE_CURRENT_SOURCE_DIR}/COPYING.Exceptions" ICINGA2_LICENSE_ADDIT
 set(ICINGA2_LICENSE "${ICINGA2_LICENSE_GPL}\n\n---\n\n${ICINGA2_LICENSE_ADDITIONS}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt" ${ICINGA2_LICENSE})
 
-set(CPACK_PACKAGE_CONTACT "Icinga Development Team")
-set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-set(CPACK_WIX_UPGRADE_GUID "68C75073-7CEF-4FC9-8DA5-581758729696")
-set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/" )
-include(CPack)
-
 include(GetGitRevisionDescription)
 git_describe(GIT_VERSION --tags)
 if(GIT_VERSION MATCHES "-NOTFOUND$")
@@ -55,6 +48,13 @@ else()
   configure_file(icinga-version.h.cmake icinga-version.h)
   configure_file(${CMAKE_CURRENT_BINARY_DIR}/icinga-version.h ${CMAKE_CURRENT_SOURCE_DIR}/icinga-version.h.fallback COPYONLY)
 endif()
+
+set(CPACK_PACKAGE_CONTACT "Icinga Development Team")
+set(CPACK_PACKAGE_VERSION ${GIT_VERSION})
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+set(CPACK_WIX_UPGRADE_GUID "68C75073-7CEF-4FC9-8DA5-581758729696")
+set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/" )
+include(CPack)
 
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
