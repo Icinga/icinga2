@@ -15,7 +15,13 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_executable(icinga-app icinga.cpp)
+if(MSVC)
+  set(WindowsSources icinga.rc)
+else()
+  set(WindowsSources "")
+endif()
+
+add_executable(icinga-app icinga.cpp ${WindowsSources})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(icinga-app ${Boost_LIBRARIES} base config)
