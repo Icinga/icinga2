@@ -235,41 +235,6 @@ void ServiceDbObject::OnConfigUpdate(void)
 		OnQuery(query_contact);
 	}
 
-	/* custom variables */
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(service);
-		vars = CompatUtility::GetCustomAttributeConfig(service);
-	}
-
-	if (vars) {
-		Log(LogDebug, "db_ido", "Dumping service vars for '" + service->GetName() + "'");
-
-		ObjectLock olock(vars);
-
-		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-			if (!kv.first.IsEmpty()) {
-				Log(LogDebug, "db_ido", "service customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
-
-				Dictionary::Ptr fields2 = make_shared<Dictionary>();
-				fields2->Set("varname", Convert::ToString(kv.first));
-				fields2->Set("varvalue", Convert::ToString(kv.second));
-				fields2->Set("config_type", 1);
-				fields2->Set("has_been_modified", 0);
-				fields2->Set("object_id", service);
-				fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-				DbQuery query2;
-				query2.Table = "customvariables";
-				query2.Type = DbQueryInsert;
-				query2.Category = DbCatConfig;
-				query2.Fields = fields2;
-				OnQuery(query2);
-			}
-		}
-	}
-
 	/* update comments and downtimes on config change */
 	DbEvents::AddComments(service);
 	DbEvents::AddDowntimes(service);

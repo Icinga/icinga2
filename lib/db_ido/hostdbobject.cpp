@@ -20,6 +20,7 @@
 #include "db_ido/hostdbobject.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
+#include "db_ido/dbevents.h"
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/notification.h"
@@ -258,39 +259,9 @@ void HostDbObject::OnConfigUpdate(void)
 		OnQuery(query_contact);
 	}
 
-	/* custom variables */
-	Dictionary::Ptr vars;
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
-	}
-
-	if (vars) {
-		Log(LogDebug, "ido", "Dumping host vars for '" + host->GetName() + "'");
-
-		ObjectLock olock (vars);
-
-		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-			if (!kv.first.IsEmpty()) {
-				Log(LogDebug, "db_ido", "host customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
-
-				Dictionary::Ptr fields3 = make_shared<Dictionary>();
-				fields3->Set("varname", Convert::ToString(kv.first));
-				fields3->Set("varvalue", Convert::ToString(kv.second));
-				fields3->Set("config_type", 1);
-				fields3->Set("has_been_modified", 0);
-				fields3->Set("object_id", host);
-				fields3->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-				DbQuery query3;
-				query3.Table = "customvariables";
-				query3.Type = DbQueryInsert;
-				query3.Category = DbCatConfig;
-				query3.Fields = fields3;
-				OnQuery(query3);
-			}
-		}
-	}
+	/* update comments and downtimes on config change */
+	DbEvents::AddComments(host);
+	DbEvents::AddDowntimes(host);
 }
 
 void HostDbObject::OnStatusUpdate(void)

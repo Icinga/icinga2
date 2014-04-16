@@ -58,6 +58,7 @@ public:
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&)> OnStateChanged;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> OnAuthorityChanged;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnVarsChanged;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
@@ -74,6 +75,11 @@ public:
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);
 	void ClearExtension(const String& key);
+
+	Dictionary::Ptr GetVars(void) const;
+	void SetVars(const Dictionary::Ptr& vars, const String& authority = String());
+
+	bool IsVarOverridden(const String& name);
 
 	void Register(void);
 

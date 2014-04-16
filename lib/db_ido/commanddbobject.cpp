@@ -53,35 +53,5 @@ Dictionary::Ptr CommandDbObject::GetStatusFields(void) const
 
 void CommandDbObject::OnConfigUpdate(void)
 {
-	Command::Ptr command = static_pointer_cast<Command>(GetObject());
-
-	Dictionary::Ptr vars = command->GetVars();
-
-	if (!vars)
-		return;
-
-	Log(LogDebug, "db_ido", "Dumping command vars for '" + command->GetName() + "'");
-
-	ObjectLock olock(vars);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		if (!kv.first.IsEmpty()) {
-			Log(LogDebug, "db_ido", "command customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
-
-			Dictionary::Ptr fields1 = make_shared<Dictionary>();
-			fields1->Set("varname", Convert::ToString(kv.first));
-			fields1->Set("varvalue", Convert::ToString(kv.second));
-			fields1->Set("config_type", 1);
-			fields1->Set("has_been_modified", 0);
-			fields1->Set("object_id", command);
-			fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-			DbQuery query1;
-			query1.Table = "customvariables";
-			query1.Type = DbQueryInsert;
-			query1.Category = DbCatConfig;
-			query1.Fields = fields1;
-			OnQuery(query1);
-		}
-	}
+	return;
 }

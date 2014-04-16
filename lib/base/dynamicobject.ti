@@ -22,7 +22,7 @@ abstract class DynamicObject
 	[config, get_protected] String type (TypeName);
 	[config, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
-	[config] Dictionary::Ptr vars;
+	[config] Dictionary::Ptr vars (VarsRaw);
 	[config] Array::Ptr domains;
 	[config] Array::Ptr authorities;
 	[get_protected] bool active;
@@ -30,6 +30,8 @@ abstract class DynamicObject
 	[get_protected] bool stop_called;
 	Dictionary::Ptr authority_info;
 	[protected] Dictionary::Ptr extensions;
+
+	[state] Value override_vars;
 };
 
 }

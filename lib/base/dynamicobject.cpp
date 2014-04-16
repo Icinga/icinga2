@@ -46,6 +46,7 @@ boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStart
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
 boost::signals2::signal<void (const DynamicObject::Ptr&, const String&)> DynamicObject::OnStateChanged;
 boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
+boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnVarsChanged;
 
 void DynamicObject::StaticInitialize(void)
 {
@@ -360,4 +361,32 @@ DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& na
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);
 	return dtype->GetObject(name);
+}
+
+
+Dictionary::Ptr DynamicObject::GetVars(void) const
+{
+	if (!GetOverrideVars().IsEmpty())
+		return GetOverrideVars();
+	else
+		return GetVarsRaw();
+}
+
+void DynamicObject::SetVars(const Dictionary::Ptr& vars, const String& authority)
+{
+	SetOverrideVars(vars);
+
+	Log(LogDebug, "base", "Setting vars for object '" + GetName() + "'");
+
+	OnVarsChanged(GetSelf());
+}
+
+bool DynamicObject::IsVarOverridden(const String& name)
+{
+	Dictionary::Ptr vars_override = GetOverrideVars();
+
+	if (!vars_override)
+		return false;
+
+	return vars_override->Contains(name);
 }

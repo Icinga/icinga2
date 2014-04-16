@@ -137,3 +137,4 @@ boost::mutex& DynamicType::GetStaticMutex(void)
 	static boost::mutex mutex;
 	return mutex;
 }
+

@@ -25,7 +25,9 @@
 #include "icinga/servicegroup.h"
 #include "icinga/pluginutility.h"
 #include "icinga/icingaapplication.h"
+#include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
+#include "icinga/notificationcommand.h"
 #include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
@@ -241,6 +243,13 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("CHANGE_MAX_SVC_CHECK_ATTEMPTS", &ExternalCommandProcessor::ChangeMaxSvcCheckAttempts, 3);
 	RegisterCommand("CHANGE_HOST_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeHostCheckTimeperiod, 2);
 	RegisterCommand("CHANGE_SVC_CHECK_TIMEPERIOD", &ExternalCommandProcessor::ChangeSvcCheckTimeperiod, 3);
+	RegisterCommand("CHANGE_CUSTOM_HOST_VAR", &ExternalCommandProcessor::ChangeCustomHostVar, 3);
+	RegisterCommand("CHANGE_CUSTOM_SVC_VAR", &ExternalCommandProcessor::ChangeCustomSvcVar, 4);
+	RegisterCommand("CHANGE_CUSTOM_USER_VAR", &ExternalCommandProcessor::ChangeCustomUserVar, 3);
+	RegisterCommand("CHANGE_CUSTOM_CHECKCOMMAND_VAR", &ExternalCommandProcessor::ChangeCustomCheckcommandVar, 3);
+	RegisterCommand("CHANGE_CUSTOM_EVENTCOMMAND_VAR", &ExternalCommandProcessor::ChangeCustomEventcommandVar, 3);
+	RegisterCommand("CHANGE_CUSTOM_NOTIFICATIONCOMMAND_VAR", &ExternalCommandProcessor::ChangeCustomNotificationcommandVar, 3);
+
 	RegisterCommand("ENABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupHostNotifications, 1);
 	RegisterCommand("ENABLE_HOSTGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostgroupSvcNotifications, 1);
 	RegisterCommand("DISABLE_HOSTGROUP_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostgroupHostNotifications, 1);
@@ -1930,6 +1939,152 @@ void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::
 		ObjectLock olock(service);
 
 		service->SetCheckPeriod(tp);
+	}
+}
+
+void ExternalCommandProcessor::ChangeCustomHostVar(double time, const std::vector<String>& arguments)
+{
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent host '" + arguments[0] + "'"));
+
+	Dictionary::Ptr vars = host->GetVars();
+	Dictionary::Ptr override_vars = vars->ShallowClone();
+
+	if (!vars->Contains(arguments[1]))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Custom var '" + arguments[1] + "' for host '" + arguments[0] + "' does not exist."));
+
+	override_vars->Set(arguments[1], arguments[2]);
+
+	Log(LogInformation, "icinga", "Changing custom var '" + arguments[1] + "' for host '" + arguments[0] + "' to value '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(host);
+
+		host->SetVars(override_vars);
+	}
+}
+
+void ExternalCommandProcessor::ChangeCustomSvcVar(double time, const std::vector<String>& arguments)
+{
+	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
+
+	if (!service)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	Dictionary::Ptr vars = service->GetVars();
+	Dictionary::Ptr override_vars = vars->ShallowClone();
+
+	if (!vars->Contains(arguments[2]))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Custom var '" + arguments[2] + "' for service '" + arguments[1] +
+		    "' on host '" + arguments[0] + "' does not exist."));
+
+	override_vars->Set(arguments[2], arguments[3]);
+
+	Log(LogInformation, "icinga", "Changing custom var '" + arguments[2] + "' for service '" + arguments[1] + "' on host '" +
+	    arguments[0] + "' to value '" + arguments[3] + "'");
+
+	{
+		ObjectLock olock(service);
+
+		service->SetVars(override_vars);
+	}
+}
+
+void ExternalCommandProcessor::ChangeCustomUserVar(double time, const std::vector<String>& arguments)
+{
+	User::Ptr user = User::GetByName(arguments[0]);
+
+	if (!user)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent user '" + arguments[0] + "'"));
+
+	Dictionary::Ptr vars = user->GetVars();
+	Dictionary::Ptr override_vars = vars->ShallowClone();
+
+	if (!vars->Contains(arguments[1]))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Custom var '" + arguments[1] + "' for user '" + arguments[0] + "' does not exist."));
+
+	override_vars->Set(arguments[1], arguments[2]);
+
+	Log(LogInformation, "icinga", "Changing custom var '" + arguments[1] + "' for user '" + arguments[0] + "' to value '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(user);
+
+		user->SetVars(override_vars);
+	}
+}
+
+void ExternalCommandProcessor::ChangeCustomCheckcommandVar(double time, const std::vector<String>& arguments)
+{
+	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[0]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent command '" + arguments[0] + "'"));
+
+	Dictionary::Ptr vars = command->GetVars();
+	Dictionary::Ptr override_vars = vars->ShallowClone();
+
+	if (!vars->Contains(arguments[1]))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Custom var '" + arguments[1] + "' for command '" + arguments[0] + "' does not exist."));
+
+	override_vars->Set(arguments[1], arguments[2]);
+
+	Log(LogInformation, "icinga", "Changing custom var '" + arguments[1] + "' for command '" + arguments[0] + "' to value '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(command);
+
+		command->SetVars(override_vars);
+	}
+}
+
+void ExternalCommandProcessor::ChangeCustomEventcommandVar(double time, const std::vector<String>& arguments)
+{
+	EventCommand::Ptr command = EventCommand::GetByName(arguments[0]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent command '" + arguments[0] + "'"));
+
+	Dictionary::Ptr vars = command->GetVars();
+	Dictionary::Ptr override_vars = vars->ShallowClone();
+
+	if (!vars->Contains(arguments[1]))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Custom var '" + arguments[1] + "' for command '" + arguments[0] + "' does not exist."));
+
+	override_vars->Set(arguments[1], arguments[2]);
+
+	Log(LogInformation, "icinga", "Changing custom var '" + arguments[1] + "' for command '" + arguments[0] + "' to value '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(command);
+
+		command->SetVars(override_vars);
+	}
+}
+
+void ExternalCommandProcessor::ChangeCustomNotificationcommandVar(double time, const std::vector<String>& arguments)
+{
+	NotificationCommand::Ptr command = NotificationCommand::GetByName(arguments[0]);
+
+	if (!command)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent command '" + arguments[0] + "'"));
+
+	Dictionary::Ptr vars = command->GetVars();
+	Dictionary::Ptr override_vars = vars->ShallowClone();
+
+	if (!vars->Contains(arguments[1]))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Custom var '" + arguments[1] + "' for command '" + arguments[0] + "' does not exist."));
+
+	override_vars->Set(arguments[1], arguments[2]);
+
+	Log(LogInformation, "icinga", "Changing custom var '" + arguments[1] + "' for command '" + arguments[0] + "' to value '" + arguments[2] + "'");
+
+	{
+		ObjectLock olock(command);
+
+		command->SetVars(override_vars);
 	}
 }
 
