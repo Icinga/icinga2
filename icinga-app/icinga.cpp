@@ -44,6 +44,11 @@ namespace po = boost::program_options;
 
 static po::variables_map g_AppParams;
 
+#ifdef _WIN32
+SERVICE_STATUS l_SvcStatus;
+SERVICE_STATUS_HANDLE l_SvcStatusHandle;
+#endif /* _WIN32 */
+
 static String LoadAppType(const String& typeSpec)
 {
 	int index;
@@ -409,6 +414,7 @@ int Main(void)
 	return rc;
 }
 
+#ifdef _WIN32
 static int SetupService(bool install, int argc, char **argv)
 {
 	SC_HANDLE schSCManager;
@@ -420,12 +426,10 @@ static int SetupService(bool install, int argc, char **argv)
 		return 1;
 	}
 
-	// Get a handle to the SCM database. 
-
 	schSCManager = OpenSCManager(
-		NULL,                    // local computer
-		NULL,                    // ServicesActive database 
-		SC_MANAGER_ALL_ACCESS);  // full access rights 
+		NULL,
+		NULL,
+		SC_MANAGER_ALL_ACCESS);
 
 	if (NULL == schSCManager) {
 		printf("OpenSCManager failed (%d)\n", GetLastError());
@@ -458,19 +462,19 @@ static int SetupService(bool install, int argc, char **argv)
 
 	if (install) {
 		schService = CreateService(
-			schSCManager,              // SCM database 
-			"icinga2",                 // name of service 
-			"Icinga 2",                // service name to display 
-			SERVICE_ALL_ACCESS,        // desired access 
-			SERVICE_WIN32_OWN_PROCESS, // service type 
-			SERVICE_DEMAND_START,      // start type 
-			SERVICE_ERROR_NORMAL,      // error control type 
-			szPath,                    // path to service's binary 
-			NULL,                      // no load ordering group 
-			NULL,                      // no tag identifier 
-			NULL,                      // no dependencies 
-			NULL,                      // LocalSystem account 
-			NULL);                     // no password 
+			schSCManager,
+			"icinga2",
+			"Icinga 2",
+			SERVICE_ALL_ACCESS,
+			SERVICE_WIN32_OWN_PROCESS,
+			SERVICE_DEMAND_START,
+			SERVICE_ERROR_NORMAL,
+			szPath,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			NULL);
 
 		if (schService == NULL) {
 			printf("CreateService failed (%d)\n", GetLastError());
@@ -489,10 +493,6 @@ static int SetupService(bool install, int argc, char **argv)
 
 	return 0;
 }
-
-#ifdef _WIN32
-SERVICE_STATUS l_SvcStatus; 
-SERVICE_STATUS_HANDLE l_SvcStatusHandle;
 
 VOID ReportSvcStatus(DWORD dwCurrentState,
 	DWORD dwWin32ExitCode,
