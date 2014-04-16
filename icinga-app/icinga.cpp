@@ -182,25 +182,17 @@ static bool Daemonize(const String& stderrFile)
 	return true;
 }
 
-/**
- * Entry point for the Icinga application.
- *
- * @params argc Number of command line arguments.
- * @params argv Command line arguments.
- * @returns The application's exit status.
- */
-int main(int argc, char **argv)
+int Main(void)
 {
+	int argc = Application::GetArgC();
+	char **argv = Application::GetArgV();
+
 	Application::SetStartTime(Utility::GetTime());
 
 	Application::SetResourceLimits();
 
 	/* Set thread title. */
 	Utility::SetThreadName("Main Thread", false);
-
-	/* Set command-line arguments. */
-	Application::SetArgC(argc);
-	Application::SetArgV(argv);
 
 	/* Install exception handlers to make debugging easier. */
 	Application::InstallExceptionHandlers();
@@ -224,11 +216,15 @@ int main(int argc, char **argv)
 		("validate,C", "exit after validating the configuration")
 		("no-validate,Z", "skip validating the configuration")
 		("debug,x", "enable debugging")
-		("daemonize,d", "detach from the controlling terminal")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
+		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
+#else /* _WIN32 */
+		("scm", "run as a Windows service (must be the first argument if specified)")
+		("scm-install", "installs Icinga 2 as a Windows service (must be the first argument if specified")
+		("scm-uninstall", "uninstalls the Icinga 2 Windows service (must be the first argument if specified")
 #endif /* _WIN32 */
 	;
 
@@ -321,12 +317,12 @@ int main(int argc, char **argv)
 		std::cout << appName << " " << "- The Icinga 2 network monitoring daemon.";
 
 		if (g_AppParams.count("version")) {
-			std::cout  << " (Version: " << Application::GetVersion() << ")";
+			std::cout << " (Version: " << Application::GetVersion() << ")";
 			std::cout << std::endl
-				  << "Copyright (c) 2012-2014 Icinga Development Team (http://www.icinga.org)" << std::endl
-				  << "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
-				  << "This is free software: you are free to change and redistribute it." << std::endl
-				  << "There is NO WARRANTY, to the extent permitted by law.";
+				<< "Copyright (c) 2012-2014 Icinga Development Team (http://www.icinga.org)" << std::endl
+				<< "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
+				<< "This is free software: you are free to change and redistribute it." << std::endl
+				<< "There is NO WARRANTY, to the extent permitted by law.";
 		}
 
 		std::cout << std::endl;
@@ -337,9 +333,9 @@ int main(int argc, char **argv)
 
 	if (g_AppParams.count("help")) {
 		std::cout << std::endl
-			  << desc << std::endl
-			  << "Report bugs at <https://dev.icinga.org/>" << std::endl
-			  << "Icinga home page: <http://www.icinga.org/>" << std::endl;
+			<< desc << std::endl
+			<< "Report bugs at <https://dev.icinga.org/>" << std::endl
+			<< "Icinga home page: <http://www.icinga.org/>" << std::endl;
 		return EXIT_SUCCESS;
 	}
 
@@ -353,7 +349,7 @@ int main(int argc, char **argv)
 
 	if (g_AppParams.count("library")) {
 		BOOST_FOREACH(const String& libraryName, g_AppParams["library"].as<std::vector<std::string> >()) {
-			(void) Utility::LoadExtensionLibrary(libraryName);
+			(void)Utility::LoadExtensionLibrary(libraryName);
 		}
 	}
 
@@ -383,10 +379,10 @@ int main(int argc, char **argv)
 
 	ValidationType validate = ValidateStart;
 
-	if(g_AppParams.count("validate"))
+	if (g_AppParams.count("validate"))
 		validate = ValidateOnly;
 
-	if(g_AppParams.count("no-validate"))
+	if (g_AppParams.count("no-validate"))
 		validate = ValidateNone;
 
 	if (!LoadConfigFiles(appType, validate))
@@ -406,9 +402,180 @@ int main(int argc, char **argv)
 
 	int rc = Application::GetInstance()->Run();
 
-#ifdef _DEBUG
-	exit(rc);
-#else /* _DEBUG */
+#ifndef _DEBUG
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
 #endif /* _DEBUG */
+
+	return rc;
+}
+
+static int SetupService(bool install, int argc, char **argv)
+{
+	SC_HANDLE schSCManager;
+	SC_HANDLE schService;
+	TCHAR szPath[MAX_PATH * 5];
+
+	if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
+		printf("Cannot install service (%d)\n", GetLastError());
+		return 1;
+	}
+
+	// Get a handle to the SCM database. 
+
+	schSCManager = OpenSCManager(
+		NULL,                    // local computer
+		NULL,                    // ServicesActive database 
+		SC_MANAGER_ALL_ACCESS);  // full access rights 
+
+	if (NULL == schSCManager) {
+		printf("OpenSCManager failed (%d)\n", GetLastError());
+		return 1;
+	}
+
+	strcat(szPath, " --scm");
+
+	for (int i = 0; i < argc; i++) {
+		strcat(szPath, " \"");
+		strcat(szPath, argv[i]);
+		strcat(szPath, "\"");
+	}
+
+	schService = OpenService(schSCManager, "icinga2", DELETE);
+
+	if (schService != NULL) {
+		if (!DeleteService(schService)) {
+			printf("DeleteService failed (%d)\n", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 1;
+		}
+
+		if (!install)
+			printf("Service uninstalled successfully\n");
+
+		CloseServiceHandle(schService);
+	}
+
+	if (install) {
+		schService = CreateService(
+			schSCManager,              // SCM database 
+			"icinga2",                 // name of service 
+			"Icinga 2",                // service name to display 
+			SERVICE_ALL_ACCESS,        // desired access 
+			SERVICE_WIN32_OWN_PROCESS, // service type 
+			SERVICE_DEMAND_START,      // start type 
+			SERVICE_ERROR_NORMAL,      // error control type 
+			szPath,                    // path to service's binary 
+			NULL,                      // no load ordering group 
+			NULL,                      // no tag identifier 
+			NULL,                      // no dependencies 
+			NULL,                      // LocalSystem account 
+			NULL);                     // no password 
+
+		if (schService == NULL) {
+			printf("CreateService failed (%d)\n", GetLastError());
+			CloseServiceHandle(schSCManager);
+			return 1;
+		} else
+			printf("Service installed successfully\n");
+
+		SERVICE_DESCRIPTION sdDescription = { "The Icinga 2 monitoring application" };
+		ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription);
+
+		CloseServiceHandle(schService);
+	}
+
+	CloseServiceHandle(schSCManager);
+
+	return 0;
+}
+
+#ifdef _WIN32
+SERVICE_STATUS l_SvcStatus; 
+SERVICE_STATUS_HANDLE l_SvcStatusHandle;
+
+VOID ReportSvcStatus(DWORD dwCurrentState,
+	DWORD dwWin32ExitCode,
+	DWORD dwWaitHint)
+{
+	static DWORD dwCheckPoint = 1;
+
+	l_SvcStatus.dwCurrentState = dwCurrentState;
+	l_SvcStatus.dwWin32ExitCode = dwWin32ExitCode;
+	l_SvcStatus.dwWaitHint = dwWaitHint;
+
+	if (dwCurrentState == SERVICE_START_PENDING)
+		l_SvcStatus.dwControlsAccepted = 0;
+	else
+		l_SvcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+
+	if ((dwCurrentState == SERVICE_RUNNING) ||
+	    (dwCurrentState == SERVICE_STOPPED))
+		l_SvcStatus.dwCheckPoint = 0;
+	else
+		l_SvcStatus.dwCheckPoint = dwCheckPoint++;
+
+	SetServiceStatus(l_SvcStatusHandle, &l_SvcStatus);
+}
+
+VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
+{
+	if (dwCtrl == SERVICE_CONTROL_STOP) {
+		ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
+		Application::RequestShutdown();
+	}
+}
+
+VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
+{
+	l_SvcStatusHandle = RegisterServiceCtrlHandler(
+		"icinga2",
+		ServiceControlHandler);
+
+	l_SvcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+	l_SvcStatus.dwServiceSpecificExitCode = 0;
+
+	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
+
+	int rc = Main();
+
+	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, rc);
+}
+#endif /* _WIN32 */
+
+/**
+* Entry point for the Icinga application.
+*
+* @params argc Number of command line arguments.
+* @params argv Command line arguments.
+* @returns The application's exit status.
+*/
+int main(int argc, char **argv)
+{
+	/* Set command-line arguments. */
+	Application::SetArgC(argc);
+	Application::SetArgV(argv);
+
+#ifdef _WIN32
+	if (argc > 1 && strcmp(argv[1], "--scm-install") == 0) {
+		return SetupService(true, argc - 2, &argv[2]);
+	}
+
+	if (argc > 1 && strcmp(argv[1], "--scm-uninstall") == 0) {
+		return SetupService(false, argc - 2, &argv[2]);
+	}
+
+	if (argc > 1 && strcmp(argv[1], "--scm") == 0) {
+		SERVICE_TABLE_ENTRY dispatchTable[] = {
+			{ "icinga2", ServiceMain },
+			{ NULL, NULL }
+		};
+
+		StartServiceCtrlDispatcher(dispatchTable);
+		_exit(1);
+	}
+#endif /* _WIN32 */
+
+	int rc = Main();
+	exit(rc);
 }
