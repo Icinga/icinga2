@@ -94,6 +94,8 @@ void CheckerComponent::Stop(void)
 
 	m_ResultTimer->Stop();
 	m_Thread.join();
+
+	DynamicObject::Stop();
 }
 
 void CheckerComponent::CheckThreadProc(void)

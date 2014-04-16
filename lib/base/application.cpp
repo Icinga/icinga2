@@ -92,6 +92,8 @@ void Application::Stop(void)
 #endif /* _WIN32 */
 
 	ClosePidFile();
+
+	DynamicObject::Stop();
 }
 
 Application::~Application(void)
