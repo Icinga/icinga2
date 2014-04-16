@@ -165,24 +165,15 @@ account by Icinga 1.x Classic UI and Web.
 ## <a id="differences-1x-2-custom-attributes"></a> Custom Attributes
 
 Icinga 2 allows you to define custom attributes in the `vars` dictionary.
-
-### <a id="differences-1x-2-action-url-notes-url-notes"></a> Action Url, Notes Url, Notes
-
-Icinga 1.x objects support configuration attributes not required as runtime
-values but for external resources such as Icinga 1.x Classic UI or Web.
 The `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`
-attributes for host and service objects, additionally `statusmap_image` and
-`2d_coords` for the host's representation in status maps.
+attributes for host and service objects are still available in Icinga 2.
+
+### <a id="differences-1x-2-action-url-notes-url-notes"></a> Statusmap Image, 2D Coords
 
 These attributes can be set using the `vars` dictionary in Icinga 2 `Host`
 or `Service` objects:
 
     vars = {
-        notes = "Icinga 2 is the best!"
-        notes_url = "http://docs.icinga.org"
-        action_url = "http://dev.icinga.org"
-        icon_image = "../../images/logos/Stats2.png"
-        icon_image_alt = "icinga2 alt icon text"
         "2d_coords" = "1,2"
         statusmap_image = "../../images/logos/icinga.gif"
     }
@@ -227,8 +218,6 @@ and their users.
 
 ## <a id="differences-1x-2-macros"></a> Macros
 
-TODO
-
 Various object attributes and runtime variables can be accessed as macros in
 commands in Icinga 1.x - Icinga 2 supports all required [custom attributes](#custom-attributes).
 
@@ -269,8 +258,6 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
     }
 
 ### <a id="differences-1x-2-environment-macros"></a> Environment Macros
-
-TODO
 
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
@@ -352,6 +339,57 @@ Changes to global runtime macros:
    DATE                   | icinga.date
    TIME                   | icinga.time
 
+
+## <a id="differences-1x-2-external-commands"></a> External Commands
+
+`CHANGE_CUSTOM_CONTACT_VAR` was renamed to `CHANGE_CUSTOM_USER_VAR`.
+
+The following external commands are not supported:
+
+    CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD
+    CHANGE_HOST_NOTIFICATION_TIMEPERIOD
+    CHANGE_SVC_NOTIFICATION_TIMEPERIOD
+    DEL_DOWNTIME_BY_HOSTGROUP_NAME
+    DEL_DOWNTIME_BY_START_TIME_COMMENT
+    DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST
+    DISABLE_CONTACT_HOST_NOTIFICATIONS
+    DISABLE_CONTACT_SVC_NOTIFICATIONS
+    DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS
+    DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS
+    DISABLE_FAILURE_PREDICTION
+    DISABLE_HOST_AND_CHILD_NOTIFICATIONS
+    DISABLE_HOST_FRESHNESS_CHECKS
+    DISABLE_HOST_SVC_NOTIFICATIONS
+    DISABLE_NOTIFICATIONS_EXPIRE_TIME
+    DISABLE_SERVICE_FRESHNESS_CHECKS
+    ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST
+    ENABLE_CONTACT_HOST_NOTIFICATIONS
+    ENABLE_CONTACT_SVC_NOTIFICATIONS
+    ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS
+    ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS
+    ENABLE_FAILURE_PREDICTION
+    ENABLE_HOST_AND_CHILD_NOTIFICATIONS
+    ENABLE_HOST_FRESHNESS_CHECKS
+    ENABLE_HOST_SVC_NOTIFICATIONS
+    ENABLE_SERVICE_FRESHNESS_CHECKS
+    READ_STATE_INFORMATION
+    SAVE_STATE_INFORMATION
+    SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME
+    SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME
+    SET_HOST_NOTIFICATION_NUMBER
+    SET_SVC_NOTIFICATION_NUMBER
+    START_ACCEPTING_PASSIVE_HOST_CHECKS
+    START_ACCEPTING_PASSIVE_SVC_CHECKS
+    START_OBSESSING_OVER_HOST
+    START_OBSESSING_OVER_HOST_CHECKS
+    START_OBSESSING_OVER_SVC
+    START_OBSESSING_OVER_SVC_CHECKS
+    STOP_ACCEPTING_PASSIVE_HOST_CHECKS
+    STOP_ACCEPTING_PASSIVE_SVC_CHECKS
+    STOP_OBSESSING_OVER_HOST
+    STOP_OBSESSING_OVER_HOST_CHECKS
+    STOP_OBSESSING_OVER_SVC
+    STOP_OBSESSING_OVER_SVC_CHECKS
 
 ## <a id="differences-1x-2-checks"></a> Checks
 
