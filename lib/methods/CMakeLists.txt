@@ -15,10 +15,16 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
+if(MSVC)
+  set(WindowsSources clrchecktask.cpp)
+else()
+  set(WindowsSources "")
+endif()
+
 add_library(methods SHARED
   castfuncs.cpp icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
-  randomchecktask.cpp timeperiodtask.cpp
+  randomchecktask.cpp timeperiodtask.cpp ${WindowsSources}
 )
 
 target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)

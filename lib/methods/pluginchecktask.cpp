@@ -58,6 +58,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Dictionary::Ptr env = commandObj->GetEnv();
 
 	if (env) {
+		ObjectLock olock(env);
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 

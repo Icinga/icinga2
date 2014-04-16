@@ -70,6 +70,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	Dictionary::Ptr env = commandObj->GetEnv();
 
 	if (env) {
+		ObjectLock olock(env);
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 

@@ -17,32 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+#ifndef CLRCHECKTASK_H
+#define CLRCHECKTASK_H
 
-template CheckCommand "icinga-check-command" {
-	methods.execute = "IcingaCheck"
+#include "methods/i2-methods.h"
+#include "base/process.h"
+#include "icinga/service.h"
+
+namespace icinga
+{
+
+/**
+ * Implements service checks based CLR libraries.
+ *
+ * @ingroup methods
+ */
+class I2_METHODS_API ClrCheckTask
+{
+public:
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
+
+private:
+	ClrCheckTask(void);
+
+	static void ProcessFinishedHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr, const ProcessResult& pr);
+
+};
+
 }
 
-template CheckCommand "cluster-check-command" {
-	methods.execute = "ClusterCheck"
-}
-
-template CheckCommand "plugin-check-command" {
-	methods.execute = "PluginCheck"
-}
-
-template CheckCommand "agent-check-command" {
-	methods.execute = "AgentCheck"
-}
-
-template CheckCommand "clr-check-command" {
-	methods.execute = "ClrCheck"
-}
-
-template NotificationCommand "plugin-notification-command" {
-	methods.execute = "PluginNotification"
-}
-
-template EventCommand "plugin-event-command" {
-	methods.execute = "PluginEvent"
-}
+#endif /* CLRCHECKTASK_H */

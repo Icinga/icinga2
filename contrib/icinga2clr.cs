@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  * Icinga 2                                                                   *
  * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
  *                                                                            *
@@ -17,32 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-library "methods"
+using System;
+using System.Collections;
 
-template CheckCommand "icinga-check-command" {
-	methods.execute = "IcingaCheck"
-}
+namespace Icinga
+{
+	public enum ServiceState
+	{
+		ServiceOK,
+		ServiceWarning,
+		ServiceCritical,
+		ServiceUnknown
+	}
 
-template CheckCommand "cluster-check-command" {
-	methods.execute = "ClusterCheck"
-}
+	public class CheckResult
+	{
+		public ServiceState State;
+		public String Output;
+		public String PerformanceData;
+	}
 
-template CheckCommand "plugin-check-command" {
-	methods.execute = "PluginCheck"
-}
-
-template CheckCommand "agent-check-command" {
-	methods.execute = "AgentCheck"
-}
-
-template CheckCommand "clr-check-command" {
-	methods.execute = "ClrCheck"
-}
-
-template NotificationCommand "plugin-notification-command" {
-	methods.execute = "PluginNotification"
-}
-
-template EventCommand "plugin-event-command" {
-	methods.execute = "PluginEvent"
+	public interface ICheckPlugin
+	{
+		CheckResult Check(Hashtable args);
+	}
 }
