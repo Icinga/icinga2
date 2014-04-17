@@ -86,7 +86,7 @@ set in the `constants.conf` configuration file:
 [Global macros](#global-constants) can only be defined once. Trying to modify a
 global constant will result in an error.
 
-## <a id="differences-1x-2-comments"></a> Comments
+## <a id="differences-1x-2-configuration-comments"></a> Configuration Comments
 
 In Icinga 1.x comments are made using a leading hash (`#`) or a semi-colon (`;`)
 for inline comments.
@@ -396,6 +396,10 @@ Icinga 1.x uses the `max_service_check_spread` setting to specify a timerange
 where the initial state checks must have happened. Icinga 2 will use the
 `retry_interval` setting instead and `check_interval` divided by 5 if
 `retry_interval` is not defined.
+
+## <a id="differences-1x-2-comments"></a> Comments
+
+Icinga 2 doesn't support non-persistent comments.
 
 ## <a id="differences-1x-2-commands"></a> Commands
 

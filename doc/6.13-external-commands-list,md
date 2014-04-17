@@ -20,11 +20,11 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   SCHEDULE_HOST_SVC_CHECKS                  | ;<host_name>;<check_time> (2)  |
   ENABLE_HOST_SVC_CHECKS                    | ;<host_name> (1) |
   DISABLE_HOST_SVC_CHECKS                   | ;<host_name> (1) |
-  ACKNOWLEDGE_SVC_PROBLEM                   | ;<host_name>;<service_name>;<sticky>;<notify>;<persistent>;<author>;<comment> (7) |
-  ACKNOWLEDGE_SVC_PROBLEM_EXPIRE            | ;<host_name>;<service_name>;<sticky>;<notify>;<persistent>;<timestamp>;<author>;<comment> (8)  |
+  ACKNOWLEDGE_SVC_PROBLEM                   | ;<host_name>;<service_name>;<sticky>;<notify>;<persistent>;<author>;<comment> (7) | Note: Icinga 2 treats all comments as persistent.
+  ACKNOWLEDGE_SVC_PROBLEM_EXPIRE            | ;<host_name>;<service_name>;<sticky>;<notify>;<persistent>;<timestamp>;<author>;<comment> (8)  | Note: Icinga 2 treats all comments as persistent.
   REMOVE_SVC_ACKNOWLEDGEMENT                | ;<host_name>;<service_name> (2)  |
-  ACKNOWLEDGE_HOST_PROBLEM                  | ;<host_name>;<sticky>;<notify>;<persistent>;<author>;<comment> (6) |
-  ACKNOWLEDGE_HOST_PROBLEM_EXPIRE           | ;<host_name>;<sticky>;<notify>;<persistent>;<timestamp>;<author>;<comment> (7) |
+  ACKNOWLEDGE_HOST_PROBLEM                  | ;<host_name>;<sticky>;<notify>;<persistent>;<author>;<comment> (6) | Note: Icinga 2 treats all comments as persistent.
+  ACKNOWLEDGE_HOST_PROBLEM_EXPIRE           | ;<host_name>;<sticky>;<notify>;<persistent>;<timestamp>;<author>;<comment> (7) | Note: Icinga 2 treats all comments as persistent.
   REMOVE_HOST_ACKNOWLEDGEMENT               | ;<host_name> (1)  |
   DISABLE_HOST_FLAP_DETECTION               | ;<host_name> (1)  |
   ENABLE_HOST_FLAP_DETECTION                | ;<host_name> (1)  |
@@ -52,9 +52,9 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   SCHEDULE_HOSTGROUP_SVC_DOWNTIME           | ;<hostgroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  |
   SCHEDULE_SERVICEGROUP_HOST_DOWNTIME       | ;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  |
   SCHEDULE_SERVICEGROUP_SVC_DOWNTIME        | ;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  |
-  ADD_HOST_COMMENT                          | ;<host_name>;<persistent>;<author>;<comment> (4)  |
+  ADD_HOST_COMMENT                          | ;<host_name>;<persistent>;<author>;<comment> (4)  | Note: Icinga 2 treats all comments as persistent.
   DEL_HOST_COMMENT                          | ;<comment_id> (1)  |
-  ADD_SVC_COMMENT                           | ;<host_name>;<service_name>;<persistent>;<author>;<comment> (5)  |
+  ADD_SVC_COMMENT                           | ;<host_name>;<service_name>;<persistent>;<author>;<comment> (5)  | Note: Icinga 2 treats all comments as persistent.
   DEL_SVC_COMMENT                           | ;<comment_id> (1)  |
   DEL_ALL_HOST_COMMENTS                     | ;<host_name> (1)  |
   DEL_ALL_SVC_COMMENTS                      | ;<host_name>;<service_name> (2)  |
