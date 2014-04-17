@@ -473,7 +473,7 @@ static int SetupService(bool install, int argc, char **argv)
 			NULL,
 			NULL,
 			NULL,
-			NULL,
+			"NT AUTHORITY\\NetworkService",
 			NULL);
 
 		if (schService == NULL) {
