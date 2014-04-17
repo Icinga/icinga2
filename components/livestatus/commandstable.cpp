@@ -223,6 +223,5 @@ Value CommandsTable::ModifiedAttributesListAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	/* not supported */
-	return Empty;
+	return CompatUtility::GetModifiedAttributesList(command);
 }

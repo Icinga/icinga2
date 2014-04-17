@@ -1,0 +1,4 @@
+GET commands
+Columns: name modified_attributes modified_attributes_list
+ResponseHeader: fixed16
+

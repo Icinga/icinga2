@@ -381,6 +381,17 @@ void DynamicObject::SetVars(const Dictionary::Ptr& vars, const String& authority
 	OnVarsChanged(GetSelf());
 }
 
+int DynamicObject::GetModifiedAttributes(void) const
+{
+	/* does nothing by default */
+	return 0;
+}
+
+void DynamicObject::SetModifiedAttributes(int flags)
+{
+	/* does nothing by default */
+}
+
 bool DynamicObject::IsVarOverridden(const String& name)
 {
 	Dictionary::Ptr vars_override = GetOverrideVars();

@@ -24,6 +24,7 @@
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "base/dictionary.h"
+#include "base/array.h"
 #include "base/dynamicobject.h"
 #include <vector>
 
@@ -85,6 +86,8 @@ public:
 	static int GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable);
 	static int GetCheckableInCheckPeriod(const Checkable::Ptr& checkable);
 	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
+
+	static Array::Ptr GetModifiedAttributesList(const DynamicObject::Ptr& object);
 
 	/* notification */
 	static int GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable);

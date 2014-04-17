@@ -20,6 +20,7 @@
 #include "livestatus/contactstable.h"
 #include "icinga/user.h"
 #include "icinga/timeperiod.h"
+#include "icinga/compatutility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
@@ -280,6 +281,5 @@ Value ContactsTable::ModifiedAttributesListAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	/* not supported */
-	return Empty;
+	return CompatUtility::GetModifiedAttributesList(user);
 }

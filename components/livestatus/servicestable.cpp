@@ -744,8 +744,12 @@ Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
 
 Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
 {
-	/* not supported */
-	return Empty;
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (!service)
+		return Empty;
+
+	return CompatUtility::GetModifiedAttributesList(service);
 }
 
 Value ServicesTable::StalenessAccessor(const Value& row)

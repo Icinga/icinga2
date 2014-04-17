@@ -756,8 +756,12 @@ Value HostsTable::ModifiedAttributesAccessor(const Value& row)
 
 Value HostsTable::ModifiedAttributesListAccessor(const Value& row)
 {
-	/* not supported */
-	return Empty;
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	return CompatUtility::GetModifiedAttributesList(host);
 }
 
 Value HostsTable::CheckIntervalAccessor(const Value& row)

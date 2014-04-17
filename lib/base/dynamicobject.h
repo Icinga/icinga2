@@ -100,6 +100,9 @@ public:
 	Dictionary::Ptr GetVars(void) const;
 	void SetVars(const Dictionary::Ptr& vars, const String& authority = String());
 
+	virtual int GetModifiedAttributes(void) const;
+	virtual void SetModifiedAttributes(int flags);
+
 	bool IsVarOverridden(const String& name);
 
 	void Register(void);
