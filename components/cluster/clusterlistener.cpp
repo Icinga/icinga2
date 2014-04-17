@@ -1696,7 +1696,7 @@ bool ClusterListener::SupportsChecks(void)
 	if (!type)
 		return false;
 
-	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0 && IcingaApplication::GetInstance()->GetEnableChecks();
+	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0 && (IcingaApplication::GetInstance()->GetEnableHostChecks() || IcingaApplication::GetInstance()->GetEnableServiceChecks());
 }
 
 bool ClusterListener::SupportsNotifications(void)

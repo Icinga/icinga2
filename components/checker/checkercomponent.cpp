@@ -143,8 +143,16 @@ void CheckerComponent::CheckThreadProc(void)
 				check = false;
 			}
 
-			if (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableChecks()) {
-				Log(LogDebug, "checker", "Skipping check for object '" + checkable->GetName() + "': active checks are disabled");
+			Host::Ptr host;
+			Service::Ptr service;
+			tie(host, service) = GetHostService(checkable);
+
+			if (!checkable->GetEnableActiveChecks() || (host && !service && !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
+				Log(LogDebug, "checker", "Skipping check for host '" + host->GetName() + "': active host checks are disabled");
+				check = false;
+			}
+			if (!checkable->GetEnableActiveChecks() || (host && service && !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
+				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active service checks are disabled");
 				check = false;
 			}
 

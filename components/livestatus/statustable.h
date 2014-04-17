@@ -54,6 +54,7 @@ protected:
 	static Value NagiosPidAccessor(const Value& row);
 	static Value EnableNotificationsAccessor(const Value& row);
 	static Value ExecuteServiceChecksAccessor(const Value& row);
+	static Value ExecuteHostChecksAccessor(const Value& row);
 	static Value EnableEventHandlersAccessor(const Value& row);
 	static Value EnableFlapDetectionAccessor(const Value& row);
         static Value ProcessPerformanceDataAccessor(const Value& row);

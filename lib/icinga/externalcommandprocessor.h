@@ -123,6 +123,8 @@ private:
 	static void DisablePerformanceData(double time, const std::vector<String>& arguments);
 	static void StartExecutingSvcChecks(double time, const std::vector<String>& arguments);
 	static void StopExecutingSvcChecks(double time, const std::vector<String>& arguments);
+	static void StartExecutingHostChecks(double time, const std::vector<String>& arguments);
+	static void StopExecutingHostChecks(double time, const std::vector<String>& arguments);
 	static void ChangeSvcModattr(double time, const std::vector<String>& arguments);
 	static void ChangeHostModattr(double time, const std::vector<String>& arguments);
 	static void ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments);

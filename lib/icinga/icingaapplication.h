@@ -64,9 +64,12 @@ public:
 	void SetEnableFlapping(bool enabled);
 	void ClearEnableFlapping(void);
 
-	bool GetEnableChecks(void) const;
-	void SetEnableChecks(bool enabled);
-	void ClearEnableChecks(void);
+	bool GetEnableHostChecks(void) const;
+	void SetEnableHostChecks(bool enabled);
+	void ClearEnableHostChecks(void);
+	bool GetEnableServiceChecks(void) const;
+	void SetEnableServiceChecks(bool enabled);
+	void ClearEnableServiceChecks(void);
 
 	bool GetEnablePerfdata(void) const;
 	void SetEnablePerfdata(bool enabled);

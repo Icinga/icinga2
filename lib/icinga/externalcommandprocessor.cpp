@@ -225,6 +225,8 @@ void ExternalCommandProcessor::Initialize(void)
 	RegisterCommand("DISABLE_PERFORMANCE_DATA", &ExternalCommandProcessor::DisablePerformanceData);
 	RegisterCommand("START_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StartExecutingSvcChecks);
 	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
+	RegisterCommand("START_EXECUTING_HOST_CHECKS", &ExternalCommandProcessor::StartExecutingHostChecks);
+	RegisterCommand("STOP_EXECUTING_HOST_CHECKS", &ExternalCommandProcessor::StopExecutingHostChecks);
 	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModattr, 3);
 	RegisterCommand("CHANGE_HOST_MODATTR", &ExternalCommandProcessor::ChangeHostModattr, 2);
 	RegisterCommand("CHANGE_NORMAL_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalSvcCheckInterval, 3);
@@ -1586,16 +1588,30 @@ void ExternalCommandProcessor::DisablePerformanceData(double time, const std::ve
 
 void ExternalCommandProcessor::StartExecutingSvcChecks(double time, const std::vector<String>& arguments)
 {
-	Log(LogInformation, "icinga", "Globally enabling checks.");
+	Log(LogInformation, "icinga", "Globally enabling service checks.");
 
-	IcingaApplication::GetInstance()->SetEnableChecks(true);
+	IcingaApplication::GetInstance()->SetEnableServiceChecks(true);
 }
 
 void ExternalCommandProcessor::StopExecutingSvcChecks(double time, const std::vector<String>& arguments)
 {
-	Log(LogInformation, "icinga", "Globally disabling checks.");
+	Log(LogInformation, "icinga", "Globally disabling service checks.");
 
-	IcingaApplication::GetInstance()->SetEnableChecks(false);
+	IcingaApplication::GetInstance()->SetEnableServiceChecks(false);
+}
+
+void ExternalCommandProcessor::StartExecutingHostChecks(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally enabling host checks.");
+
+	IcingaApplication::GetInstance()->SetEnableHostChecks(true);
+}
+
+void ExternalCommandProcessor::StopExecutingHostChecks(double time, const std::vector<String>& arguments)
+{
+	Log(LogInformation, "icinga", "Globally disabling host checks.");
+
+	IcingaApplication::GetInstance()->SetEnableHostChecks(false);
 }
 
 void ExternalCommandProcessor::ChangeSvcModattr(double time, const std::vector<String>& arguments)

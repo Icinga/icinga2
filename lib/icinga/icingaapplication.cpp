@@ -41,7 +41,8 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptVariable::Set("EnableNotifications", true);
 	ScriptVariable::Set("EnableEventHandlers", true);
 	ScriptVariable::Set("EnableFlapping", true);
-	ScriptVariable::Set("EnableChecks", true);
+	ScriptVariable::Set("EnableHostChecks", true);
+	ScriptVariable::Set("EnableServiceChecks", true);
 	ScriptVariable::Set("EnablePerfdata", true);
 	ScriptVariable::Set("NodeName", Utility::GetHostName());
 }
@@ -58,7 +59,8 @@ Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& per
 		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());
 		stats->Set("enable_event_handlers", icingaapplication->GetEnableEventHandlers());
 		stats->Set("enable_flapping", icingaapplication->GetEnableFlapping());
-		stats->Set("enable_checks", icingaapplication->GetEnableChecks());
+		stats->Set("enable_host_checks", icingaapplication->GetEnableHostChecks());
+		stats->Set("enable_service_checks", icingaapplication->GetEnableServiceChecks());
 		stats->Set("enable_perfdata", icingaapplication->GetEnablePerfdata());
 		stats->Set("pid", Utility::GetPid());
 		stats->Set("program_start", Application::GetStartTime());
@@ -216,22 +218,40 @@ void IcingaApplication::ClearEnableFlapping(void)
 	SetOverrideEnableFlapping(Empty);
 }
 
-bool IcingaApplication::GetEnableChecks(void) const
+bool IcingaApplication::GetEnableHostChecks(void) const
 {
-	if (!GetOverrideEnableChecks().IsEmpty())
-		return GetOverrideEnableChecks();
+	if (!GetOverrideEnableHostChecks().IsEmpty())
+		return GetOverrideEnableHostChecks();
 	else
-		return ScriptVariable::Get("EnableChecks");
+		return ScriptVariable::Get("EnableHostChecks");
 }
 
-void IcingaApplication::SetEnableChecks(bool enabled)
+void IcingaApplication::SetEnableHostChecks(bool enabled)
 {
-	SetOverrideEnableChecks(enabled);
+	SetOverrideEnableHostChecks(enabled);
 }
 
-void IcingaApplication::ClearEnableChecks(void)
+void IcingaApplication::ClearEnableHostChecks(void)
 {
-	SetOverrideEnableChecks(Empty);
+	SetOverrideEnableHostChecks(Empty);
+}
+
+bool IcingaApplication::GetEnableServiceChecks(void) const
+{
+	if (!GetOverrideEnableServiceChecks().IsEmpty())
+		return GetOverrideEnableServiceChecks();
+	else
+		return ScriptVariable::Get("EnableServiceChecks");
+}
+
+void IcingaApplication::SetEnableServiceChecks(bool enabled)
+{
+	SetOverrideEnableServiceChecks(enabled);
+}
+
+void IcingaApplication::ClearEnableServiceChecks(void)
+{
+	SetOverrideEnableServiceChecks(Empty);
 }
 
 bool IcingaApplication::GetEnablePerfdata(void) const

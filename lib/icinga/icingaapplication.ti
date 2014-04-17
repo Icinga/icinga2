@@ -8,7 +8,8 @@ class IcingaApplication : Application
 	[state, protected] Value override_enable_notifications;
 	[state, protected] Value override_enable_event_handlers;
 	[state, protected] Value override_enable_flapping;
-	[state, protected] Value override_enable_checks;
+	[state, protected] Value override_enable_host_checks;
+	[state, protected] Value override_enable_service_checks;
 	[state, protected] Value override_enable_perfdata;
 };
 

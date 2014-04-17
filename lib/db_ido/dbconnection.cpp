@@ -96,7 +96,9 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Fields->Set("daemon_mode", 1);
 	query2.Fields->Set("last_command_check", DbValue::FromTimestamp(Utility::GetTime()));
 	query2.Fields->Set("notifications_enabled", (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0));
-	query2.Fields->Set("active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0));
+	query2.Fields->Set("active_host_checks_enabled", (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0));
+	query2.Fields->Set("passive_host_checks_enabled", 1);
+	query2.Fields->Set("active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0));
 	query2.Fields->Set("passive_service_checks_enabled", 1);
 	query2.Fields->Set("event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0));
 	query2.Fields->Set("flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0));

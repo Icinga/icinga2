@@ -71,7 +71,7 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "enable_notifications", Column(&StatusTable::EnableNotificationsAccessor, objectAccessor));
 	table->AddColumn(prefix + "execute_service_checks", Column(&StatusTable::ExecuteServiceChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_service_checks", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "execute_host_checks", Column(&Table::OneAccessor, objectAccessor));
+	table->AddColumn(prefix + "execute_host_checks", Column(&StatusTable::ExecuteHostChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_host_checks", Column(&Table::OneAccessor, objectAccessor));
 	table->AddColumn(prefix + "enable_event_handlers", Column(&StatusTable::EnableEventHandlersAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_services", Column(&Table::ZeroAccessor, objectAccessor));
@@ -159,7 +159,12 @@ Value StatusTable::EnableNotificationsAccessor(const Value&)
 
 Value StatusTable::ExecuteServiceChecksAccessor(const Value&)
 {
-	return (IcingaApplication::GetInstance()->GetEnableChecks() ? 1 : 0);
+	return (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0);
+}
+
+Value StatusTable::ExecuteHostChecksAccessor(const Value&)
+{
+	return (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0);
 }
 
 Value StatusTable::EnableEventHandlersAccessor(const Value&)

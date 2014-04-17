@@ -84,6 +84,17 @@ enum DependencyType
 	DependencyNotification
 };
 
+/**
+ * Checkable Types
+ *
+ * @ingroup icinga
+ */
+enum CheckableType
+{
+	CheckableHost,
+	CheckableService
+};
+
 class CheckCommand;
 class EventCommand;
 class Dependency;
