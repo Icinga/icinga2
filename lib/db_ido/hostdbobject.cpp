@@ -97,11 +97,11 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	fields->Set("obsess_over_host", 0);
 	fields->Set("failure_prediction_enabled", 0);
 
-	fields->Set("notes", CompatUtility::GetCustomAttributeConfig(host, "notes"));
-	fields->Set("notes_url", CompatUtility::GetCustomAttributeConfig(host, "notes_url"));
-	fields->Set("action_url", CompatUtility::GetCustomAttributeConfig(host, "action_url"));
-	fields->Set("icon_image", CompatUtility::GetCustomAttributeConfig(host, "icon_image"));
-	fields->Set("icon_image_alt", CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt"));
+	fields->Set("notes", host->GetNotes());
+	fields->Set("notes_url", host->GetNotesUrl());
+	fields->Set("action_url", host->GetActionUrl());
+	fields->Set("icon_image", host->GetIconImage());
+	fields->Set("icon_image_alt", host->GetIconImageAlt());
 	fields->Set("statusmap_image", CompatUtility::GetCustomAttributeConfig(host, "statusmap_image"));
 
 	Host2dCoords coords = CompatUtility::GetHost2dCoords(host);

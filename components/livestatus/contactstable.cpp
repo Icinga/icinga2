@@ -93,12 +93,7 @@ Value ContactsTable::EmailAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars = user->GetVars();
-
-	if (!vars)
-		return Empty;
-
-	return vars->Get("email");
+	return user->GetEmail();
 }
 
 Value ContactsTable::PagerAccessor(const Value& row)
@@ -108,12 +103,7 @@ Value ContactsTable::PagerAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars = user->GetVars();
-
-	if (!vars)
-		return Empty;
-
-	return vars->Get("pager");
+	return user->GetPager();
 }
 
 Value ContactsTable::HostNotificationPeriodAccessor(const Value& row)

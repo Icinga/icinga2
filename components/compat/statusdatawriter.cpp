@@ -230,11 +230,11 @@ void StatusDataWriter::DumpHostStatus(std::ostream& fp, const Host::Ptr& host)
 
 void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 {
-	String notes = CompatUtility::GetCustomAttributeConfig(host, "notes");
-	String notes_url = CompatUtility::GetCustomAttributeConfig(host, "notes_url");
-	String action_url = CompatUtility::GetCustomAttributeConfig(host, "action_url");
-	String icon_image = CompatUtility::GetCustomAttributeConfig(host, "icon_image");
-	String icon_image_alt = CompatUtility::GetCustomAttributeConfig(host, "icon_image_alt");
+	String notes = host->GetNotes();
+	String notes_url = host->GetNotesUrl();
+	String action_url = host->GetActionUrl();
+	String icon_image = host->GetIconImage();
+	String icon_image_alt = host->GetIconImageAlt();
 	String statusmap_image = CompatUtility::GetCustomAttributeConfig(host, "statusmap_image");
 	String display_name = host->GetDisplayName();
 	String address = host->GetAddress();
@@ -460,11 +460,11 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
                 DumpNameList(fp, CompatUtility::GetCheckableNotificationUserGroups(service));
                 fp << "\n";
 
-		String notes = CompatUtility::GetCustomAttributeConfig(service, "notes");
-		String notes_url = CompatUtility::GetCustomAttributeConfig(service, "notes_url");
-		String action_url = CompatUtility::GetCustomAttributeConfig(service, "action_url");
-		String icon_image = CompatUtility::GetCustomAttributeConfig(service, "icon_image");
-		String icon_image_alt = CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt");
+		String notes = service->GetNotes();
+		String notes_url = service->GetNotesUrl();
+		String action_url = service->GetActionUrl();
+		String icon_image = service->GetIconImage();
+		String icon_image_alt = service->GetIconImageAlt();
 
                 fp << "\t" "initial_state" "\t" "o" "\n"
                       "\t" "low_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
@@ -611,10 +611,21 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
+		String email = user->GetEmail();
+		String pager = user->GetPager();
+		String alias = user->GetDisplayName();
+
 		tempobjectfp << "define contact {" "\n"
-				"\t" "contact_name" "\t" << user->GetName() << "\n"
-				"\t" "alias" "\t" << user->GetDisplayName() << "\n"
-				"\t" "service_notification_options" "\t" "w,u,c,r,f,s" "\n"
+				"\t" "contact_name" "\t" << user->GetName() << "\n";
+
+		if (!alias.IsEmpty())
+			tempobjectfp << "\t" "alias" "\t" << alias << "\n";
+		if (!email.IsEmpty())
+			tempobjectfp << "\t" "email" "\t" << email << "\n";
+		if (!pager.IsEmpty())
+			tempobjectfp << "\t" "pager" "\t" << pager << "\n";
+
+		tempobjectfp << "\t" "service_notification_options" "\t" "w,u,c,r,f,s" "\n"
 			 	"\t" "host_notification_options""\t" "d,u,r,f,s" "\n"
 				"\t" "host_notifications_enabled" "\t" "1" "\n"
 				"\t" "service_notifications_enabled" "\t" "1" "\n"

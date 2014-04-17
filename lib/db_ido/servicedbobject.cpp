@@ -93,11 +93,11 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(service));
 	fields->Set("obsess_over_service", Empty);
 	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("notes", CompatUtility::GetCustomAttributeConfig(service, "notes"));
-	fields->Set("notes_url", CompatUtility::GetCustomAttributeConfig(service, "notes_url"));
-	fields->Set("action_url", CompatUtility::GetCustomAttributeConfig(service, "action_url"));
-	fields->Set("icon_image", CompatUtility::GetCustomAttributeConfig(service, "icon_image"));
-	fields->Set("icon_image_alt", CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt"));
+	fields->Set("notes", service->GetNotes());
+	fields->Set("notes_url", service->GetNotesUrl());
+	fields->Set("action_url", service->GetActionUrl());
+	fields->Set("icon_image", service->GetIconImage());
+	fields->Set("icon_image_alt", service->GetIconImageAlt());
 
 	return fields;
 }

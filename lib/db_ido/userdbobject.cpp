@@ -41,14 +41,8 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	fields->Set("alias", user->GetDisplayName());
-
-	Dictionary::Ptr vars = user->GetVars();
-
-	if (vars) { /* Yuck. */
-		fields->Set("email_address", vars->Get("email"));
-		fields->Set("pager_address", vars->Get("pager"));
-	}
-
+	fields->Set("email_address", user->GetEmail());
+	fields->Set("pager_address", user->GetPager());
 	fields->Set("host_timeperiod_object_id", user->GetPeriod());
 	fields->Set("service_timeperiod_object_id", user->GetPeriod());
 	fields->Set("host_notifications_enabled", user->GetEnableNotifications());

@@ -300,7 +300,7 @@ Value ServicesTable::NotesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCustomAttributeConfig(service, "notes");
+	return service->GetNotes();
 }
 
 Value ServicesTable::NotesExpandedAccessor(const Value& row)
@@ -315,9 +315,7 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value value = CompatUtility::GetCustomAttributeConfig(service, "notes");
-
-	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetNotes(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::NotesUrlAccessor(const Value& row)
@@ -327,7 +325,7 @@ Value ServicesTable::NotesUrlAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCustomAttributeConfig(service, "notes_url");
+	return service->GetNotesUrl();
 }
 
 Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
@@ -342,9 +340,7 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value value = CompatUtility::GetCustomAttributeConfig(service, "notes_url");
-
-	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetNotesUrl(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::ActionUrlAccessor(const Value& row)
@@ -354,7 +350,7 @@ Value ServicesTable::ActionUrlAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCustomAttributeConfig(service, "action_url");
+	return service->GetActionUrl();
 }
 
 Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
@@ -369,9 +365,7 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value value = CompatUtility::GetCustomAttributeConfig(service, "action_url");
-
-	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetActionUrl(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::IconImageAccessor(const Value& row)
@@ -381,7 +375,7 @@ Value ServicesTable::IconImageAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCustomAttributeConfig(service, "icon_image");
+	return service->GetIconImage();
 }
 
 Value ServicesTable::IconImageExpandedAccessor(const Value& row)
@@ -396,9 +390,7 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value value = CompatUtility::GetCustomAttributeConfig(service, "icon_image");
-
-	return MacroProcessor::ResolveMacros(value, resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetIconImage(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
 }
 
 Value ServicesTable::IconImageAltAccessor(const Value& row)
@@ -408,7 +400,7 @@ Value ServicesTable::IconImageAltAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCustomAttributeConfig(service, "icon_image_alt");
+	return service->GetIconImageAlt();
 }
 
 Value ServicesTable::MaxCheckAttemptsAccessor(const Value& row)
@@ -497,7 +489,6 @@ Value ServicesTable::AcknowledgedAccessor(const Value& row)
 
 	if (!service)
 		return Empty;
-
 
 	return CompatUtility::GetCheckableIsAcknowledged(service);
 }
@@ -702,7 +693,7 @@ Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return 	CompatUtility::GetCheckableProcessPerformanceData(service);
+	return CompatUtility::GetCheckableProcessPerformanceData(service);
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
