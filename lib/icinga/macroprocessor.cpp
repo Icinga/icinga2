@@ -62,11 +62,11 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 }
 
 bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, String *result, bool *user_macro)
+    const CheckResult::Ptr& cr, String *result, bool *recursive_macro)
 {
 	CONTEXT("Resolving macro '" + macro + "'");
 
-	*user_macro = false;
+	*recursive_macro = false;
 
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, macro, boost::is_any_of("."));
@@ -89,7 +89,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 
 				if (vars && vars->Contains(macro)) {
 					*result = vars->Get(macro);
-					*user_macro = true;
+					*recursive_macro = true;
 					return true;
 				}
 			}
@@ -135,8 +135,11 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 		}
 
 		if (valid) {
-			if (tokens[0] == "vars")
-				*user_macro = true;
+			if (tokens[0] == "vars" ||
+			    tokens[0] == "action_url" ||
+			    tokens[0] == "notes_url" ||
+			    tokens[0] == "notes")
+				*recursive_macro = true;
 
 			*result = ref;
 			return true;
@@ -167,8 +170,8 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
 
 		String resolved_macro;
-		bool user_macro;
-		bool found = ResolveMacro(name, resolvers, cr, &resolved_macro, &user_macro);
+		bool recursive_macro;
+		bool found = ResolveMacro(name, resolvers, cr, &resolved_macro, &recursive_macro);
 
 		/* $$ is an escape sequence for $. */
 		if (name.IsEmpty()) {
@@ -180,7 +183,7 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 			Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
 
 		/* recursively resolve macros in the macro if it was a user macro */
-		if (user_macro)
+		if (recursive_macro)
 			resolved_macro = InternalResolveMacros(resolved_macro, resolvers, cr, EscapeCallback(), recursionLevel + 1);
 
 		if (escapeFn)

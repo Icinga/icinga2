@@ -49,7 +49,7 @@ private:
 	MacroProcessor(void);
 
 	static bool ResolveMacro(const String& macro, const ResolverList& resolvers,
-		const CheckResult::Ptr& cr, String *result, bool *user_macro);
+		const CheckResult::Ptr& cr, String *result, bool *recursive_macro);
 	static String InternalResolveMacros(const String& str,
 	    const ResolverList& resolvers, const CheckResult::Ptr& cr,
 	    const EscapeCallback& escapeFn, int recursionLevel = 0);
