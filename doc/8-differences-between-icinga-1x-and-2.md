@@ -343,6 +343,7 @@ Changes to global runtime macros:
 ## <a id="differences-1x-2-external-commands"></a> External Commands
 
 `CHANGE_CUSTOM_CONTACT_VAR` was renamed to `CHANGE_CUSTOM_USER_VAR`.
+`CHANGE_CONTACT_MODATTR` was renamed to `CHANGE_USER_MODATTR`.
 
 The following external commands are not supported:
 

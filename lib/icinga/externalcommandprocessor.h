@@ -21,6 +21,7 @@
 #define EXTERNALCOMMANDPROCESSOR_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/command.h"
 #include "base/qstring.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/once.hpp>
@@ -127,6 +128,12 @@ private:
 	static void StopExecutingHostChecks(double time, const std::vector<String>& arguments);
 	static void ChangeSvcModattr(double time, const std::vector<String>& arguments);
 	static void ChangeHostModattr(double time, const std::vector<String>& arguments);
+
+        static void ChangeUserModattr(double time, const std::vector<String>& arguments);
+        static void ChangeCheckcommandModattr(double time, const std::vector<String>& arguments);
+        static void ChangeEventcommandModattr(double time, const std::vector<String>& arguments);
+        static void ChangeNotificationcommandModattr(double time, const std::vector<String>& arguments);
+
 	static void ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments);
 	static void ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments);
 	static void ChangeRetrySvcCheckInterval(double time, const std::vector<String>& arguments);
@@ -158,6 +165,10 @@ private:
 	static void EnableServicegroupSvcNotifications(double time, const std::vector<String>& arguments);
 	static void DisableServicegroupHostNotifications(double time, const std::vector<String>& arguments);
 	static void DisableServicegroupSvcNotifications(double time, const std::vector<String>& arguments);
+
+private:
+        static void ChangeCommandModattrInternal(const Command::Ptr& command, int mod_attr);
+        static void ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value);
 };
 
 }

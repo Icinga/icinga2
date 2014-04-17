@@ -205,15 +205,6 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), vars) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
-			continue;
-
 		cv->Add(key);
 	}
 
@@ -238,15 +229,6 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), vars) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
-			continue;
-
 		cv->Add(value);
 	}
 
@@ -271,15 +253,6 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	String key;
 	Value value;
 	BOOST_FOREACH(boost::tie(key, value), vars) {
-		if (key == "notes" ||
-		    key == "action_url" ||
-		    key == "notes_url" ||
-		    key == "icon_image" ||
-		    key == "icon_image_alt" ||
-		    key == "statusmap_image" ||
-		    key == "2d_coords")
-			continue;
-
 		Array::Ptr key_val = make_shared<Array>();
 		key_val->Add(key);
 		key_val->Add(value);
@@ -297,7 +270,7 @@ Value ContactsTable::ModifiedAttributesAccessor(const Value& row)
 		return Empty;
 
 	/* not supported */
-	return Empty;
+	return user->GetModifiedAttributes();
 }
 
 Value ContactsTable::ModifiedAttributesListAccessor(const Value& row)

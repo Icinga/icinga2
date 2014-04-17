@@ -43,6 +43,9 @@ public:
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
+
+	int GetModifiedAttributes(void) const;
+	void SetModifiedAttributes(int flags);
 };
 
 }

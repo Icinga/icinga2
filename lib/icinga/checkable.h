@@ -49,32 +49,6 @@ enum FlappingState
 };
 
 /**
- * Modified attributes.
- *
- * @ingroup icinga
- */
-enum ModifiedAttributeType
-{
-	ModAttrNotificationsEnabled = 1,
-	ModAttrActiveChecksEnabled = 2,
-	ModAttrPassiveChecksEnabled = 4,
-	ModAttrEventHandlerEnabled = 8,
-	ModAttrFlapDetectionEnabled = 16,
-	ModAttrFailurePredictionEnabled = 32,
-	ModAttrPerformanceDataEnabled = 64,
-	ModAttrObsessiveHandlerEnabled = 128,
-	ModAttrEventHandlerCommand = 256,
-	ModAttrCheckCommand = 512,
-	ModAttrNormalCheckInterval = 1024,
-	ModAttrRetryCheckInterval = 2048,
-	ModAttrMaxCheckAttempts = 4096,
-	ModAttrFreshnessChecksEnabled = 8192,
-	ModAttrCheckTimeperiod = 16384,
-	ModAttrCustomVariable = 32768,
-	ModAttrNotificationTimeperiod = 65536
-};
-
-/**
  * @ingroup icinga
  */
 enum DependencyType

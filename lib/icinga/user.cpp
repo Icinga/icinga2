@@ -92,3 +92,21 @@ void User::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
 		    location + ": Type filter is invalid.");
 	}
 }
+
+int User::GetModifiedAttributes(void) const
+{
+	int attrs = 0;
+
+	if (!GetOverrideVars().IsEmpty())
+		attrs |= ModAttrCustomVariable;
+
+	return attrs;
+}
+
+void User::SetModifiedAttributes(int flags)
+{
+	if ((flags & ModAttrCustomVariable) == 0) {
+		SetOverrideVars(Empty);
+		OnVarsChanged(GetSelf());
+	}
+}

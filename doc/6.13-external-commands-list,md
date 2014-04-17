@@ -88,6 +88,10 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   STOP_EXECUTING_SVC_CHECKS                 | (0)  |
   CHANGE_SVC_MODATTR                        | ;<host_name>;<service_name>;<value> (3)  |
   CHANGE_HOST_MODATTR                       | ;<host_name>;<value> (2)  |
+  CHANGE_USER_MODATTR                       | ;<user_name>;<value> (2)  |
+  CHANGE_CHECKCOMMAND_MODATTR               | ;<checkcommand_name>;<value> (2)  |
+  CHANGE_EVENTCOMMAND_MODATTR               | ;<eventcommand_name>;<value> (2)  |
+  CHANGE_NOTIFICATIONCOMMAND_MODATTR        | ;<notificationcommand_name>;<value> (2)  |
   CHANGE_NORMAL_SVC_CHECK_INTERVAL          | ;<host_name>;<service_name>;<check_interval> (3)  |
   CHANGE_NORMAL_HOST_CHECK_INTERVAL         | ;<host_name>;<check_interval> (2)  |
   CHANGE_RETRY_SVC_CHECK_INTERVAL           | ;<host_name>;<service_name>;<check_interval> (3)  |

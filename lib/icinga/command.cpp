@@ -34,3 +34,21 @@ bool Command::ResolveMacro(const String& macro, const CheckResult::Ptr&, String 
 
 	return false;
 }
+
+int Command::GetModifiedAttributes(void) const
+{
+	int attrs = 0;
+
+	if (!GetOverrideVars().IsEmpty())
+		attrs |= ModAttrCustomVariable;
+
+	return attrs;
+}
+
+void Command::SetModifiedAttributes(int flags)
+{
+	if ((flags & ModAttrCustomVariable) == 0) {
+		SetOverrideVars(Empty);
+		OnVarsChanged(GetSelf());
+	}
+}

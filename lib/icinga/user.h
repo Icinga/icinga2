@@ -45,6 +45,9 @@ public:
 
 	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
 
+	int GetModifiedAttributes(void) const;
+	void SetModifiedAttributes(int flags);
+
 protected:
 	virtual void Stop(void);
 
