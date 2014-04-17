@@ -102,16 +102,15 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	fields->Set("action_url", host->GetActionUrl());
 	fields->Set("icon_image", host->GetIconImage());
 	fields->Set("icon_image_alt", host->GetIconImageAlt());
-	fields->Set("statusmap_image", CompatUtility::GetCustomAttributeConfig(host, "statusmap_image"));
+	fields->Set("statusmap_image", host->GetStatusmapImage());
 
-	Host2dCoords coords = CompatUtility::GetHost2dCoords(host);
-
-	fields->Set("have_2d_coords", coords.have_2d_coords);
-
-	if (coords.have_2d_coords) {
-		fields->Set("x_2d", coords.x_2d);
-		fields->Set("y_2d", coords.y_2d);
-	}
+	double x_2d, y_2d;
+	if (CompatUtility::GetHost2dCoordX(host, &x_2d) && CompatUtility::GetHost2dCoordY(host, &y_2d)) {
+		fields->Set("have_2d_coords", 1);
+		fields->Set("x_2d", x_2d);
+		fields->Set("y_2d", y_2d);
+	} else
+		fields->Set("have_2d_coords", 0);
 
 	/* deprecated in 1.x */
 	fields->Set("have_3d_coords", 0);

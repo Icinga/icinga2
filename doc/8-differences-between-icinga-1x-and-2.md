@@ -168,18 +168,6 @@ Icinga 2 allows you to define custom attributes in the `vars` dictionary.
 The `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`
 attributes for host and service objects are still available in Icinga 2.
 
-### <a id="differences-1x-2-action-url-notes-url-notes"></a> Statusmap Image, 2D Coords
-
-These attributes can be set using the `vars` dictionary in Icinga 2 `Host`
-or `Service` objects:
-
-    vars = {
-        "2d_coords" = "1,2"
-        statusmap_image = "../../images/logos/icinga.gif"
-    }
-
-External interfaces will recognize and display these attributes accordingly.
-
 ### <a id="differences-1x-2-custom-variables"></a> Custom Variables
 
 Icinga 1.x custom variable attributes must be prefixed using an underscore (`_`).
@@ -189,8 +177,6 @@ In Icinga 2 these attributes must be added to the `vars` dictionary as custom at
         DN = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
         CV = "my custom cmdb description"
     }
-
-TODO
 
 ## <a id="differences-1x-2-host-service-relation"></a> Host Service Relation
 
@@ -527,8 +513,6 @@ That's not necessary with Icinga 2 only requiring an additional notification
 object for the escalation itself.
 
 ### <a id="differences-1x-2-notification-options"></a> Notification Options
-
-TODO
 
 Unlike Icinga 1.x with the 'notification_options' attribute with comma-separated
 state and type filters, Icinga 2 uses two configuration attributes for that.

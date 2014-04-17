@@ -1,4 +1,4 @@
 GET hosts
-Columns: name notes notes_url action_url icon_image icon_image_alt
+Columns: name notes notes_url action_url icon_image icon_image_alt statusmap_image x_2d y_2d
 ResponseHeader: fixed16
 

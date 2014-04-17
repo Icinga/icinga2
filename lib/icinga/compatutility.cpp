@@ -70,52 +70,28 @@ String CompatUtility::GetHostAlias(const Host::Ptr& host)
 		return host->GetDisplayName();
 }
 
-Host2dCoords CompatUtility::GetHost2dCoords(const Host::Ptr& host)
+bool CompatUtility::GetHost2dCoordX(const Host::Ptr& host, double *coord)
 {
-	ASSERT(host->OwnsLock());
+	Dictionary::Ptr coords = host->GetCoords();
 
-	Dictionary::Ptr vars = host->GetVars();
-	Host2dCoords bag;
+	if (!coords)
+		return false;
 
-	if (vars) {
-		String coords = vars->Get("2d_coords");
-		bag.have_2d_coords = (!coords.IsEmpty() ? 1 : 0);
+	*coord = coords->Get("x_2d");
 
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, coords, boost::is_any_of(","));
-
-		if (tokens.size() != 2)
-			bag.have_2d_coords = 0;
-
-		if (bag.have_2d_coords == 1) {
-			bag.x_2d = tokens[0];
-			bag.y_2d = tokens[1];
-		}
-	} else {
-		bag.have_2d_coords = 0;
-	}
-
-	return bag;
+	return true;
 }
 
-String CompatUtility::GetHost2dCoordX(const Host::Ptr& host)
+bool CompatUtility::GetHost2dCoordY(const Host::Ptr& host, double *coord)
 {
-	Host2dCoords bag = GetHost2dCoords(host);
+	Dictionary::Ptr coords = host->GetCoords();
 
-	if (bag.have_2d_coords == 0)
-		return Empty;
+	if (!coords)
+		return false;
 
-	return bag.x_2d;
-}
+	*coord = coords->Get("y_2d");
 
-String CompatUtility::GetHost2dCoordY(const Host::Ptr& host)
-{
-	Host2dCoords bag = GetHost2dCoords(host);
-
-	if (bag.have_2d_coords == 0)
-		return Empty;
-
-	return bag.y_2d;
+	return true;
 }
 
 int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)

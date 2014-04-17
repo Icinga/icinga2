@@ -18,6 +18,8 @@ class Host : Checkable
 
 	[config] String address;
 	[config] String address6;
+	[config] String statusmap_image;
+	[config] Dictionary::Ptr coords;
 };
 
 }
