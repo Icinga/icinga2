@@ -39,3 +39,12 @@ if(UNIX OR CYGWIN)
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
 endif()
+
+if(MSVC)
+  include_external_msproject(icinga2setupagent ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/Icinga2SetupAgent.csproj)
+
+  install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/bin/${CMAKE_BUILD_TYPE}/Icinga2SetupAgent.exe
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  )
+endif()

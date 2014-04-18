@@ -788,7 +788,7 @@ String Utility::EscapeShellArg(const String& s)
 			result += ' ';
 		}
 #else /* _WIN32 */
-		if (ch == '\') {
+		if (ch == '\'')
 			result += "'\\'";
 #endif
 		result += ch;
