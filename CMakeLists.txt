@@ -60,6 +60,13 @@ set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico
 set(CPACK_NSIS_INSTALLED_ICON_NAME "sbin\\\\icinga2.exe")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
 set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/" )
+
+if(MSVC)
+  set(CPACK_NSIS_EXECUTABLES_DIRECTORY "sbin")
+  set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
+  set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Icinga2SetupAgent")
+endif()
+
 include(CPack)
 
 if(WIN32)
