@@ -202,10 +202,42 @@ int Main(void)
 	/* Install exception handlers to make debugging easier. */
 	Application::InstallExceptionHandlers();
 
-	Application::DeclarePrefixDir(ICINGA_PREFIX);
-	Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
-	Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
-	Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
+#ifdef _WIN32
+	bool builtinPaths = true;
+
+	HKEY hKey;
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Icinga Development Team\\ICINGA2", 0,
+	    KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
+		BYTE pvData[MAX_PATH];
+		DWORD cbData = sizeof(pvData)-1;
+		DWORD lType;
+		if (RegQueryValueEx(hKey, NULL, NULL, &lType, pvData, &cbData) == ERROR_SUCCESS && lType == REG_SZ) {
+			pvData[cbData] = '\0';
+
+			String prefix = (char *)pvData;
+			Application::DeclarePrefixDir(prefix);
+			Application::DeclareSysconfDir(prefix + "\\etc");
+			Application::DeclareLocalStateDir(prefix + "\\var");
+			Application::DeclarePkgDataDir(prefix + "\\share");
+
+			builtinPaths = false;
+		}
+
+		RegCloseKey(hKey);
+	}
+
+	if (builtinPaths) {
+		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
+
+#else /* _WIN32 */
+		Application::DeclarePrefixDir(ICINGA_PREFIX);
+		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
+		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
+		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
+#endif /* _WIN32 */
+#ifdef _WIN32
+	}
+#endif /* _WIN32 */
 
 	Application::DeclareApplicationType("icinga/IcingaApplication");
 
