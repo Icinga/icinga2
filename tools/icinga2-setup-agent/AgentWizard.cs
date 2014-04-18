@@ -297,7 +297,11 @@ namespace Icinga
 				MemoryStream ms = new MemoryStream(bytes);
 				GZipStream gz = new GZipStream(ms, CompressionMode.Decompress);
 				MemoryStream ms2 = new MemoryStream();
-				gz.CopyTo(ms2);
+
+				byte[] buffer = new byte[512];
+				int rc;
+				while ((rc = gz.Read(buffer, 0, buffer.Length)) > 0)
+					ms2.Write(buffer, 0, rc);
 				ms2.Position = 0;
 				TarReader tr = new TarReader(ms2);
 				tr.ReadToEnd(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent");
