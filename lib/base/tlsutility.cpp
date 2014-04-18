@@ -201,6 +201,44 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return shared_ptr<X509>(cert, X509_free);
 }
 
+int MakeX509CSR(const char *cn, const char *keyfile, const char *csrfile)
+{
+	InitializeOpenSSL(); 
+	
+	RSA *rsa = RSA_generate_key(4096, RSA_F4, NULL, NULL);
+
+	BIO *bio = BIO_new(BIO_s_file());
+	BIO_write_filename(bio, const_cast<char *>(keyfile));
+	PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL);
+	BIO_free(bio);
+
+	X509_REQ *req = X509_REQ_new();
+
+	if (!req)
+		return 0;
+
+	EVP_PKEY *key = EVP_PKEY_new();
+	EVP_PKEY_assign_RSA(key, rsa);
+	X509_REQ_set_version(req, 0);
+	X509_REQ_set_pubkey(req, key);
+
+	X509_NAME *name = X509_REQ_get_subject_name(req);
+	X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn, -1, -1, 0);
+
+	X509_REQ_sign(req, key, EVP_sha1());
+
+	EVP_PKEY_free(key);
+
+	bio = BIO_new(BIO_s_file());
+	BIO_write_filename(bio, const_cast<char *>(csrfile));
+	PEM_write_bio_X509_REQ(bio, req);
+	BIO_free(bio);
+
+	X509_REQ_free(req);
+
+	return 1;
+}
+
 String SHA256(const String& s)
 {
 	SHA256_CTX context;

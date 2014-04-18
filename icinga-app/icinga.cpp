@@ -417,16 +417,7 @@ int Main(void)
 #ifdef _WIN32
 static int SetupService(bool install, int argc, char **argv)
 {
-	SC_HANDLE schSCManager;
-	SC_HANDLE schService;
-	TCHAR szPath[MAX_PATH * 5];
-
-	if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
-		printf("Cannot install service (%d)\n", GetLastError());
-		return 1;
-	}
-
-	schSCManager = OpenSCManager(
+	SC_HANDLE schSCManager = OpenSCManager(
 		NULL,
 		NULL,
 		SC_MANAGER_ALL_ACCESS);
@@ -436,15 +427,20 @@ static int SetupService(bool install, int argc, char **argv)
 		return 1;
 	}
 
-	strcat(szPath, " --scm");
+	TCHAR szPath[MAX_PATH];
 
-	for (int i = 0; i < argc; i++) {
-		strcat(szPath, " \"");
-		strcat(szPath, argv[i]);
-		strcat(szPath, "\"");
+	if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
+		printf("Cannot install service (%d)\n", GetLastError());
+		return 1;
 	}
 
-	schService = OpenService(schSCManager, "icinga2", DELETE);
+	String szArgs;
+	szArgs = Utility::EscapeShellArg(szPath) + " --scm";
+
+	for (int i = 0; i < argc; i++)
+		szArgs += " " + Utility::EscapeShellArg(argv[i]);
+
+	SC_HANDLE schService = OpenService(schSCManager, "icinga2", DELETE);
 
 	if (schService != NULL) {
 		if (!DeleteService(schService)) {
@@ -469,7 +465,7 @@ static int SetupService(bool install, int argc, char **argv)
 			SERVICE_WIN32_OWN_PROCESS,
 			SERVICE_DEMAND_START,
 			SERVICE_ERROR_NORMAL,
-			szPath,
+			szArgs.CStr(),
 			NULL,
 			NULL,
 			NULL,

@@ -63,7 +63,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellCmd);
+	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellArg);
 
 	Dictionary::Ptr envMacros = make_shared<Dictionary>();
 

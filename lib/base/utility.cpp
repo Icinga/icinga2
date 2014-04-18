@@ -772,6 +772,37 @@ String Utility::EscapeShellCmd(const String& s)
 	return result;
 }
 
+String Utility::EscapeShellArg(const String& s)
+{
+	String result;
+
+#ifdef _WIN32
+	result = "\"";
+#else /* _WIN32 */
+	result = "'";
+#endif /* _WIN32 */
+
+	BOOST_FOREACH(char ch, s) {
+#ifdef _WIN32
+		if (ch == '"' || ch == '%') {
+			result += ' ';
+		}
+#else /* _WIN32 */
+		if (ch == '\') {
+			result += "'\\'";
+#endif
+		result += ch;
+	}
+
+#ifdef _WIN32
+	result += '"';
+#else /* _WIN32 */
+	result += '\'';
+#endif /* _WIN32 */
+
+	return result;
+}
+
 #ifdef _WIN32
 static void WindowsSetThreadName(const char *name)
 {
