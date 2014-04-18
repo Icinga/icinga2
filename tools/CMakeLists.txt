@@ -41,7 +41,11 @@ if(UNIX OR CYGWIN)
 endif()
 
 if(MSVC)
-  include_external_msproject(icinga2setupagent ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/Icinga2SetupAgent.csproj)
+  include_external_msproject(
+    icinga2setupagent
+    ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/Icinga2SetupAgent.csproj
+    TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC
+  )
 
   install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/bin/${CMAKE_BUILD_TYPE}/Icinga2SetupAgent.exe
