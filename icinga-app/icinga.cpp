@@ -218,7 +218,7 @@ int Main(void)
 			Application::DeclarePrefixDir(prefix);
 			Application::DeclareSysconfDir(prefix + "\\etc");
 			Application::DeclareLocalStateDir(prefix + "\\var");
-			Application::DeclarePkgDataDir(prefix + "\\share");
+			Application::DeclarePkgDataDir(prefix + "\\share\\icinga2");
 
 			builtinPaths = false;
 		}
