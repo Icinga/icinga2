@@ -127,7 +127,7 @@ static char *print_number(cJSON *item)
 	}
 	else
 	{
-		str=(char*)cJSON_malloc(64 + (int)log10(d));	/* This is a nice tradeoff. */
+		str=(char*)cJSON_malloc(64 + (int)log10(fabs(d)));	/* This is a nice tradeoff. */
 		if (str)
 		{
 			if (d != d)						strcpy(str, "0");
