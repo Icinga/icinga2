@@ -157,7 +157,7 @@ namespace Icinga
 			EnableFeature("agent");
 			EnableFeature("checker");
 
-			SetConfigureStatus(10, "Setting ACLs for the Icinga 2 directory...");
+			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
 			DirectoryInfo di = new DirectoryInfo(Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
 			FileSystemAccessRule rule = new FileSystemAccessRule("NT AUTHORITY\\NetworkService",
@@ -166,16 +166,7 @@ namespace Icinga
 			ds.AddAccessRule(rule);
 			di.SetAccessControl(ds);
 
-			// TODO: Update config
-			SetConfigureStatus(25, "Stopping the Icinga 2 service...");
-			try {
-				using (ServiceController sc = new ServiceController("icinga2")) {
-					sc.Stop();
-					sc.WaitForStatus(ServiceControllerStatus.Stopped);
-				}
-			} catch (Exception) { }
-
-			SetConfigureStatus(50, "Installing the Icinga 2 service...");
+			SetConfigureStatus(75, "Installing the Icinga 2 service...");
 			ProcessStartInfo psi = new ProcessStartInfo();
 			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
 			psi.Arguments = "--scm-install -c \"" + Icinga2InstallDir + "\\etc\\icinga2\\icinga2.conf\"";
@@ -187,16 +178,6 @@ namespace Icinga
 
 				if (proc.ExitCode != 0)
 					FatalError("The Windows service could not be installed.");
-			}
-
-			SetConfigureStatus(75, "Starting the Icinga 2 service...");
-			try {
-				using (ServiceController sc = new ServiceController("icinga2")) {
-					sc.Start();
-					sc.WaitForStatus(ServiceControllerStatus.Running);
-				}
-			} catch (Exception ex) {
-				FatalError("Could not start the Icinga 2 service: " + ex.Message);
 			}
 
 			SetConfigureStatus(100, "Finished.");

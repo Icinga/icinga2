@@ -471,9 +471,12 @@ static int SetupService(bool install, int argc, char **argv)
 	for (int i = 0; i < argc; i++)
 		szArgs += " " + Utility::EscapeShellArg(argv[i]);
 
-	SC_HANDLE schService = OpenService(schSCManager, "icinga2", DELETE);
+	SC_HANDLE schService = OpenService(schSCManager, "icinga2", DELETE | SERVICE_STOP);
 
 	if (schService != NULL) {
+		SERVICE_STATUS status;
+		ControlService(schService, SERVICE_CONTROL_STOP, &status);
+
 		if (!DeleteService(schService)) {
 			printf("DeleteService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
@@ -512,6 +515,13 @@ static int SetupService(bool install, int argc, char **argv)
 
 		SERVICE_DESCRIPTION sdDescription = { "The Icinga 2 monitoring application" };
 		ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription);
+
+		if (!StartService(schService, 0, NULL)) {
+			printf("StartService failed (%d)\n", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 1;
+		}
 
 		CloseServiceHandle(schService);
 	}
