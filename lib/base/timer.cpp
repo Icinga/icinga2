@@ -23,6 +23,7 @@
 #include "base/utility.h"
 #include "base/logger_fwd.h"
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -240,9 +241,10 @@ void Timer::AdjustTimers(double adjustment)
 	typedef boost::multi_index::nth_index<TimerSet, 1>::type TimerView;
 	TimerView& idx = boost::get<1>(l_Timers);
 
-	TimerView::iterator it;
-	for (it = idx.begin(); it != idx.end(); it++) {
-		Timer::Ptr timer = it->lock();
+	std::vector<Timer::Ptr> timers;
+
+	BOOST_FOREACH(const Timer::WeakPtr& wtimer, idx) {
+		Timer::Ptr timer = wtimer.lock();
 
 		if (!timer)
 			continue;
@@ -250,11 +252,14 @@ void Timer::AdjustTimers(double adjustment)
 		if (abs(now - (timer->m_Next + adjustment)) <
 		    abs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
-			l_Timers.erase(timer);
-			l_Timers.insert(timer);
+			timers.push_back(timer);
 		}
 	}
 
+	BOOST_FOREACH(const Timer::Ptr& timer, timers) {
+		l_Timers.erase(timer);
+		l_Timers.insert(timer);
+	}
 	/* Notify the worker that we've rescheduled some timers. */
 	l_CV.notify_all();
 }
