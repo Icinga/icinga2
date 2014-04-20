@@ -229,12 +229,11 @@ int Main(void)
 	if (builtinPaths) {
 		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
 
-#else /* _WIN32 */
+#endif /* _WIN32 */
 		Application::DeclarePrefixDir(ICINGA_PREFIX);
 		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
 		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
 		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
-#endif /* _WIN32 */
 #ifdef _WIN32
 	}
 #endif /* _WIN32 */
