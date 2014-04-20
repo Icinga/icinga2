@@ -127,12 +127,20 @@ static char *print_number(cJSON *item)
 	}
 	else
 	{
-		str=(char*)cJSON_malloc(64 + (int)log10(fabs(d)));	/* This is a nice tradeoff. */
-		if (str)
+		if (d != d)
 		{
-			if (d != d)						strcpy(str, "0");
-			else if (fabs(floor(d)-d)<=DBL_EPSILON)			sprintf(str,"%.0f",d);
-			else 							sprintf(str,"%.*e",(int)log10(d) + 6,d);
+			str=(char*)cJSON_malloc(2);
+			if (str)
+				strcpy(str, "0");
+		}
+		else
+		{
+			str = (char*)cJSON_malloc(64 + (int)log10(fabs(d)));	/* This is a nice tradeoff. */
+			if (str)
+			{
+				if (fabs(floor(d) - d) <= DBL_EPSILON)			sprintf(str, "%.0f", d);
+				else 							sprintf(str, "%.*e", (int)log10(d) + 6, d);
+			}
 		}
 	}
 	return str;
