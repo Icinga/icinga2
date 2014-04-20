@@ -158,6 +158,4 @@ if(WIN32)
   )
 endif()
 
-message("${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
-
 include(CPack)
