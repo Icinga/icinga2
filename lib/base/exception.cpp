@@ -19,6 +19,10 @@
 
 #include "base/exception.h"
 
+#ifndef _MSC_VER
+#	include <cxxabi.h>
+#endif /* _MSC_VER */
+
 using namespace icinga;
 
 static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
@@ -44,11 +48,19 @@ void icinga::RethrowUncaughtException(void)
 #endif /* __GLIBCXX__ || _WIN32 */
 }
 
-#ifndef _WIN32
+#ifndef _MSC_VER
+#	if __clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ > 3)
+#		define TYPEINFO_TYPE std::type_info
+#	else
+#		define TYPEINFO_TYPE void
+#	endif
+
 extern "C"
-void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
+void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 {
-	typedef void (*cxa_throw_fn)(void *, void *, void (*) (void *)) __attribute__((noreturn));
+	std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
+
+	typedef void (*cxa_throw_fn)(void *, std::type_info *, void (*)(void *)) __attribute__((noreturn));
 	static cxa_throw_fn real_cxa_throw;
 
 #ifndef __GLIBCXX__
@@ -62,7 +74,6 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 
 #ifdef __GLIBCXX__
 	void *thrown_ptr = obj;
-	const std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
 	const std::type_info *boost_exc = &typeid(boost::exception);
 	const std::type_info *user_exc = &typeid(user_error);
 
@@ -92,9 +103,9 @@ void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *))
 	}
 #endif /* __GLIBCXX__ */
 
-	real_cxa_throw(obj, pvtinfo, dest);
+	real_cxa_throw(obj, tinfo, dest);
 }
-#endif /* _WIN32 */
+#endif /* _MSC_VER */
 
 StackTrace *icinga::GetLastExceptionStack(void)
 {
