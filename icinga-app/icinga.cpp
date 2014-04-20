@@ -471,11 +471,28 @@ static int SetupService(bool install, int argc, char **argv)
 	for (int i = 0; i < argc; i++)
 		szArgs += " " + Utility::EscapeShellArg(argv[i]);
 
-	SC_HANDLE schService = OpenService(schSCManager, "icinga2", DELETE | SERVICE_STOP);
+	SC_HANDLE schService = OpenService(schSCManager, "icinga2", DELETE | SERVICE_STOP | SERVICE_QUERY_STATUS);
 
 	if (schService != NULL) {
 		SERVICE_STATUS status;
 		ControlService(schService, SERVICE_CONTROL_STOP, &status);
+
+		double start = Utility::GetTime();
+		while (status.dwCurrentState != SERVICE_STOPPED) {
+			double end = Utility::GetTime();
+
+			if (end - start > 30) {
+				printf("Could not stop the service.\n");
+				break;
+			}
+
+			Utility::Sleep(5);
+
+			if (!QueryServiceStatus(schService, &status)) {
+				printf("QueryServiceStatus failed (%d)\n", GetLastError());
+				return 1;
+			}
+		}
 
 		if (!DeleteService(schService)) {
 			printf("DeleteService failed (%d)\n", GetLastError());
