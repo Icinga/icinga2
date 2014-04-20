@@ -260,6 +260,7 @@ void Timer::AdjustTimers(double adjustment)
 		l_Timers.erase(timer);
 		l_Timers.insert(timer);
 	}
+
 	/* Notify the worker that we've rescheduled some timers. */
 	l_CV.notify_all();
 }

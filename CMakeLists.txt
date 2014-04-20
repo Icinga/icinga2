@@ -49,35 +49,6 @@ else()
   configure_file(${CMAKE_CURRENT_BINARY_DIR}/icinga-version.h ${CMAKE_CURRENT_SOURCE_DIR}/icinga-version.h.fallback COPYONLY)
 endif()
 
-set(CPACK_PACKAGE_NAME "Icinga2")
-set(CPACK_PACKAGE_VENDOR "Icinga Development Team")
-set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
-set(CPACK_NSIS_DISPLAY_NAME "Icinga 2")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
-set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
-set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
-set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
-set(CPACK_NSIS_INSTALLED_ICON_NAME "sbin\\\\icinga2.exe")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/" )
-
-if(MSVC)
-  set(CPACK_NSIS_EXECUTABLES_DIRECTORY "sbin")
-  set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
-  set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Icinga2SetupAgent")
-
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-  include(InstallRequiredSystemLibraries)
-
-  install(
-    PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-      C:\\\\openssl\\\\bin\\\\libeay32.dll C:\\\\openssl\\\\bin\\\\ssleay32.dll
-    DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  )
-endif()
-
-include(CPack)
-
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
   add_definitions(-DBOOST_ALL_NO_LIB)
@@ -159,3 +130,34 @@ add_subdirectory(itl)
 add_subdirectory(doc)
 add_subdirectory(test)
 add_subdirectory(pki)
+
+set(CPACK_PACKAGE_NAME "Icinga2")
+set(CPACK_PACKAGE_VENDOR "Icinga Development Team")
+set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
+set(CPACK_NSIS_DISPLAY_NAME "Icinga 2")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
+set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
+set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
+set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
+set(CPACK_NSIS_INSTALLED_ICON_NAME "sbin\\\\icinga2.exe")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+set(CPACK_SOURCE_IGNORE_FILES "/.git/" "/debian/" "/.vagrant/" "/release/" "/debug/" "/build/" )
+
+set(CPACK_NSIS_EXECUTABLES_DIRECTORY "sbin")
+set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
+set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Icinga2SetupAgent")
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+include(InstallRequiredSystemLibraries)
+
+if(WIN32)
+  install(
+    PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+      C:\\\\openssl\\\\bin\\\\libeay32.dll C:\\\\openssl\\\\bin\\\\ssleay32.dll
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  )
+endif()
+
+message("${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
+
+include(CPack)
