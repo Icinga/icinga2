@@ -306,16 +306,70 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	strncpy(args, m_Arguments.CStr(), m_Arguments.GetLength() + 1);
 	args[m_Arguments.GetLength()] = '\0';
 
-	if (!CreateProcess(NULL, args, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+	LPCH pEnvironment = GetEnvironmentStrings();
+	size_t ioffset = 0, offset = 0;
+
+	char *envp = NULL;
+
+	for (;;) {
+		size_t len = strlen(pEnvironment + ioffset);
+
+		if (len == 0)
+			break;
+
+		char *eqp = strchr(pEnvironment + ioffset, '=');
+		if (eqp && m_ExtraEnvironment && m_ExtraEnvironment->Contains(String(pEnvironment + ioffset, eqp))) {
+			ioffset += len + 1;
+			continue;
+		}
+
+		envp = static_cast<char *>(realloc(envp, offset + len + 1));
+
+		if (envp == NULL)
+			BOOST_THROW_EXCEPTION(std::bad_alloc());
+
+		strcpy(envp + offset, pEnvironment + ioffset);
+		offset += len + 1;
+		ioffset += len + 1;
+	}
+
+	FreeEnvironmentStrings(pEnvironment);
+
+	if (m_ExtraEnvironment) {
+		ObjectLock olock(m_ExtraEnvironment);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, m_ExtraEnvironment) {
+			String skv = kv.first + "=" + Convert::ToString(kv.second);
+
+			envp = static_cast<char *>(realloc(envp, offset + skv.GetLength() + 1));
+
+			if (envp == NULL)
+				BOOST_THROW_EXCEPTION(std::bad_alloc());
+
+			strcpy(envp + offset, skv.CStr());
+			offset += skv.GetLength() + 1;
+		}
+	}
+
+	envp = static_cast<char *>(realloc(envp, offset + 1));
+
+	if (envp == NULL)
+		BOOST_THROW_EXCEPTION(std::bad_alloc());
+
+	envp[offset] = '\0';
+
+	if (!CreateProcess(NULL, args, NULL, NULL, TRUE, 0, envp, NULL, &si, &pi)) {
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);
 		delete args;
+		free(envp);
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("CreateProcess")
 			<< errinfo_win32_error(GetLastError()));
 	}
 
 	delete args;
+	free(envp);
 
 	CloseHandle(outWritePipe);
 	CloseHandle(outWritePipeDup);
