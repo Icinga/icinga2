@@ -70,7 +70,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	cr->SetCommand(command);
 
-	Process::Ptr process = make_shared<Process>(Process::SplitCommand(command), envMacros);
+	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
 
 	process->SetTimeout(commandObj->GetTimeout());
 

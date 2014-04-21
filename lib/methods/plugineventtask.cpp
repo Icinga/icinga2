@@ -65,7 +65,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 		}
 	}
 
-	Process::Ptr process = make_shared<Process>(Process::SplitCommand(command), envMacros);
+	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
 
 	process->SetTimeout(commandObj->GetTimeout());
 

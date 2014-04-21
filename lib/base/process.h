@@ -56,31 +56,39 @@ class I2_BASE_API Process : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Process);
 
+#ifdef _WIN32
+	typedef String Arguments;
+	typedef HANDLE ProcessHandle;
+	typedef HANDLE ConsoleHandle;
+#else /* _WIN32 */
+	typedef std::vector<String> Arguments;
+	typedef pid_t ProcessHandle;
+	typedef int ConsoleHandle;
+#endif /* _WIN32 */
+
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
-	Process(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
+	Process(const Arguments& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
 
 	void SetTimeout(double timeout);
 	double GetTimeout(void) const;
 
 	void Run(const boost::function<void (const ProcessResult&)>& callback = boost::function<void (const ProcessResult&)>());
 
-	static std::vector<String> SplitCommand(const Value& command);
+	static Arguments PrepareCommand(const Value& command);
 
-#ifndef _WIN32
 	static void StaticInitialize(void);
 	static void ThreadInitialize(void);
-#endif /* _WIN32 */
 
 private:
-	std::vector<String> m_Arguments;
+	Arguments m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
 
 	double m_Timeout;
 
-#ifndef _WIN32
-	pid_t m_Pid;
-	int m_FD;
+	ProcessHandle m_Process;
+	ConsoleHandle m_FD;
+
 	std::ostringstream m_OutputStream;
 	boost::function<void (const ProcessResult&)> m_Callback;
 	ProcessResult m_Result;
@@ -88,7 +96,6 @@ private:
 	static void IOThreadProc(int tid);
 	bool DoEvents(void);
 	int GetTID(void) const;
-#endif /* _WIN32 */
 };
 
 }
