@@ -121,7 +121,6 @@ private:
 	Queue m_Queues[4];
 
 	void ManagerThreadProc(void);
-	void StatsThreadProc(void);
 };
 
 }

@@ -188,7 +188,7 @@ void CheckerComponent::CheckThreadProc(void)
 		Log(LogDebug, "checker", "Executing check for '" + checkable->GetName() + "'");
 
 		CheckerComponent::Ptr self = GetSelf();
-		m_Pool.Post(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, checkable));
+		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, checkable));
 
 		lock.lock();
 	}

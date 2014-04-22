@@ -98,8 +98,6 @@ private:
 	void NextCheckChangedHandler(const Checkable::Ptr& checkable);
 
 	void RescheduleCheckTimer(void);
-
-	ThreadPool m_Pool;
 };
 
 }

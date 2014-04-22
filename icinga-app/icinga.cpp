@@ -257,6 +257,9 @@ int Main(void)
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
+#	ifdef RLIMIT_STACK
+		("no-stack-rlimit", "don't attempt to set RLIMIT_STACK")
+#	endif /* RLIMIT_STACK */
 #else /* _WIN32 */
 		("scm", "run as a Windows service (must be the first argument if specified)")
 		("scm-install", "installs Icinga 2 as a Windows service (must be the first argument if specified")

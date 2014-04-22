@@ -54,7 +54,6 @@ void ThreadPool::Start(void)
 		m_Queues[i].SpawnWorker(m_ThreadGroup);
 
 	m_ThreadGroup.create_thread(boost::bind(&ThreadPool::ManagerThreadProc, this));
-	m_ThreadGroup.create_thread(boost::bind(&ThreadPool::StatsThreadProc, this));
 }
 
 void ThreadPool::Stop(void)
@@ -226,6 +225,8 @@ void ThreadPool::ManagerThreadProc(void)
 	idbuf << "TP #" << m_ID << " Manager";
 	Utility::SetThreadName(idbuf.str());
 
+	double lastStats = 0;
+
 	for (;;) {
 		size_t total_pending = 0, total_alive = 0;
 		double total_avg_latency = 0;
@@ -250,6 +251,9 @@ void ThreadPool::ManagerThreadProc(void)
 
 			boost::mutex::scoped_lock lock(queue.Mutex);
 
+			for (size_t i = 0; i < sizeof(queue.Threads) / sizeof(queue.Threads[0]); i++)
+				queue.Threads[i].UpdateUtilization();
+
 			pending = queue.Items.size();
 
 			for (size_t i = 0; i < sizeof(queue.Threads) / sizeof(queue.Threads[0]); i++) {
@@ -271,9 +275,9 @@ void ThreadPool::ManagerThreadProc(void)
 
 				int tthreads = wthreads - alive;
 
-				/* Don't ever kill the last threads. */
-				if (alive + tthreads < 2)
-					tthreads = 2 - alive;
+				/* Don't ever kill the last thread. */
+				if (alive + tthreads < 1)
+					tthreads = 1 - alive;
 
 				/* Don't kill more than 8 threads at once. */
 				if (tthreads < -8)
@@ -309,12 +313,18 @@ void ThreadPool::ManagerThreadProc(void)
 			total_utilization += utilization;
 		}
 
-		std::ostringstream msgbuf;
-		msgbuf << "Pool #" << m_ID << ": Pending tasks: " << total_pending << "; Average latency: "
-		    << (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
-		    << "; Threads: " << total_alive
-		    << "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0])))  << "%";
-		Log(LogInformation, "base", msgbuf.str());
+		double now = Utility::GetTime();
+
+		if (lastStats < now - 15) {
+			lastStats = now;
+
+			std::ostringstream msgbuf;
+			msgbuf << "Pool #" << m_ID << ": Pending tasks: " << total_pending << "; Average latency: "
+				<< (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
+				<< "; Threads: " << total_alive
+				<< "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
+			Log(LogInformation, "base", msgbuf.str());
+		}
 	}
 }
 
@@ -352,34 +362,6 @@ void ThreadPool::Queue::KillWorker(boost::thread_group& group)
 			CV.notify_all();
 
 			break;
-		}
-	}
-}
-
-void ThreadPool::StatsThreadProc(void)
-{
-	std::ostringstream idbuf;
-	idbuf << "TP #" << m_ID << " Stats";
-	Utility::SetThreadName(idbuf.str());
-
-	for (;;) {
-		{
-			boost::mutex::scoped_lock lock(m_MgmtMutex);
-
-			if (!m_Stopped)
-				m_MgmtCV.timed_wait(lock, boost::posix_time::milliseconds(250));
-
-			if (m_Stopped)
-				break;
-		}
-
-		for (int i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
-			Queue& queue = m_Queues[i];
-
-			boost::mutex::scoped_lock lock(queue.Mutex);
-
-			for (size_t i = 0; i < sizeof(queue.Threads) / sizeof(queue.Threads[0]); i++)
-				queue.Threads[i].UpdateUtilization();
 		}
 	}
 }

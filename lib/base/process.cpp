@@ -48,7 +48,7 @@ extern char **environ;
 
 using namespace icinga;
 
-#define IOTHREADS 8
+#define IOTHREADS 2
 
 static boost::mutex l_ProcessMutex[IOTHREADS];
 static std::map<Process::ProcessHandle, Process::Ptr> l_Processes[IOTHREADS];

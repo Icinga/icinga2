@@ -117,8 +117,9 @@ Application::Ptr Application::GetInstance(void)
 void Application::SetResourceLimits(void)
 {
 #ifndef _WIN32
-#	ifdef RLIMIT_NOFILE
 	rlimit rl;
+
+#	ifdef RLIMIT_NOFILE
 	rl.rlim_cur = 16 * 1024;
 	rl.rlim_max = rl.rlim_cur;
 
@@ -137,6 +138,54 @@ void Application::SetResourceLimits(void)
 #	else /* RLIMIT_NPROC */
 	Log(LogDebug, "base", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
+
+#	ifdef RLIMIT_STACK
+	int argc = Application::GetArgC();
+	char **argv = Application::GetArgV();
+	bool set_stack_rlimit = true;
+
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "--no-stack-rlimit") == 0) {
+			set_stack_rlimit = false;
+			break;
+		}
+	}
+
+	if (set_stack_rlimit) {
+		rl.rlim_cur = 256 * 1024;
+		rl.rlim_max = rl.rlim_cur;
+
+		if (setrlimit(RLIMIT_STACK, &rl) < 0)
+			Log(LogDebug, "base", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
+		else {
+			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
+
+			if (!new_argv) {
+				perror("malloc");
+				exit(1);
+			}
+
+			for (int i = 0; i < argc; i++)
+				new_argv[i] = argv[i];
+
+			new_argv[argc] = strdup("--no-stack-rlimit");
+
+			if (!new_argv[argc]) {
+				perror("strdup");
+				exit(1);
+			}
+
+			new_argv[argc + 1] = NULL;
+
+			if (execvp(new_argv[0], new_argv) < 0)
+				perror("execvp");
+
+			exit(1);
+		}
+	}
+#	else /* RLIMIT_STACK */
+	Log(LogDebug, "base", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
+#	endif /* RLIMIT_STACK */
 #endif /* _WIN32 */
 }
 
@@ -166,14 +215,30 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop(void) const
 {
-	/* Start the system time watch thread. */
-	boost::thread t(&Application::TimeWatchThreadProc);
-	t.detach();
-
 	Timer::Initialize();
 
-	while (!m_ShuttingDown && !m_Restarting)
-		Utility::Sleep(0.5);
+	double lastLoop = Utility::GetTime();
+
+	while (!m_ShuttingDown && !m_Restarting) {
+		/* Watches for changes to the system time. Adjusts timers if necessary. */
+		Utility::Sleep(2.5);
+
+		double now = Utility::GetTime();
+		double timeDiff = lastLoop - now;
+
+		if (abs(timeDiff) > 15) {
+			/* We made a significant jump in time. */
+			std::ostringstream msgbuf;
+			msgbuf << "We jumped "
+				<< (timeDiff < 0 ? "forward" : "backward")
+				<< " in time: " << abs(timeDiff) << " seconds";
+			Log(LogInformation, "base", msgbuf.str());
+
+			Timer::AdjustTimers(-timeDiff);
+		}
+
+		lastLoop = now;
+	}
 
 	Log(LogInformation, "base", "Shutting down Icinga...");
 	DynamicObject::StopObjects();
@@ -192,36 +257,6 @@ void Application::RunEventLoop(void) const
 void Application::OnShutdown(void)
 {
 	/* Nothing to do here. */
-}
-
-/**
- * Watches for changes to the system time. Adjusts timers if necessary.
- */
-void Application::TimeWatchThreadProc(void)
-{
-	Utility::SetThreadName("Time Watch");
-
-	double lastLoop = Utility::GetTime();
-
-	for (;;) {
-		Utility::Sleep(5);
-
-		double now = Utility::GetTime();
-		double timeDiff = lastLoop - now;
-
-		if (abs(timeDiff) > 15) {
-			/* We made a significant jump in time. */
-			std::ostringstream msgbuf;
-			msgbuf << "We jumped "
-			       << (timeDiff < 0 ? "forward" : "backward")
-			       << " in time: " << abs(timeDiff) << " seconds";
-			Log(LogInformation, "base", msgbuf.str());
-
-			Timer::AdjustTimers(-timeDiff);
-		}
-
-		lastLoop = now;
-	}
 }
 
 /**

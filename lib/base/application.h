@@ -134,9 +134,6 @@ private:
 
 	static void SigAbrtHandler(int signum);
 	static void ExceptionHandler(void);
-
-	static void TimeWatchThreadProc(void);
-	static void NewTxTimerHandler(void);
 };
 
 }
