@@ -28,14 +28,22 @@ using namespace icinga;
 static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
 static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
+#ifndef _MSC_VER
+#	if __clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ > 3)
+#		define TYPEINFO_TYPE std::type_info
+#	else
+#		define TYPEINFO_TYPE void
+#	endif
+#endif /* _MSC_VER */
+
 #if !defined(__GLIBCXX__) && !defined(_WIN32)
 static boost::thread_specific_ptr<void *> l_LastExceptionObj;
-static boost::thread_specific_ptr<void *> l_LastExceptionPvtInfo;
+static boost::thread_specific_ptr<TYPEINFO_TYPE *> l_LastExceptionPvtInfo;
 
 typedef void (*DestCallback)(void *);
 static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
 
-extern "C" void __cxa_throw(void *obj, void *pvtinfo, void (*dest)(void *));
+extern "C" void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
 extern "C" void __cxa_rethrow_primary_exception(void* thrown_object);
 #endif /* !__GLIBCXX__ && !_WIN32 */
 
@@ -49,12 +57,6 @@ void icinga::RethrowUncaughtException(void)
 }
 
 #ifndef _MSC_VER
-#	if __clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ > 3)
-#		define TYPEINFO_TYPE std::type_info
-#	else
-#		define TYPEINFO_TYPE void
-#	endif
-
 extern "C"
 void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 {
@@ -65,7 +67,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 
 #ifndef __GLIBCXX__
 	l_LastExceptionObj.reset(new void *(obj));
-	l_LastExceptionPvtInfo.reset(new void *(pvtinfo));
+	l_LastExceptionPvtInfo.reset(new TYPEINFO_TYPE *(pvtinfo));
 	l_LastExceptionDest.reset(new DestCallback(dest));
 #endif /* __GLIBCXX__ */
 
