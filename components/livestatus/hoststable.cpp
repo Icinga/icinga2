@@ -821,11 +821,7 @@ Value HostsTable::X2dAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	double coord;
-	if (!CompatUtility::GetHost2dCoordX(host, &coord))
-		return Empty;
-
-	return coord;
+	return CompatUtility::GetHost2dCoordX(host);
 }
 
 Value HostsTable::Y2dAccessor(const Value& row)
@@ -835,11 +831,7 @@ Value HostsTable::Y2dAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	double coord;
-	if (!CompatUtility::GetHost2dCoordY(host, &coord))
-		return Empty;
-
-	return coord;
+	return CompatUtility::GetHost2dCoordY(host);
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)

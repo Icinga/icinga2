@@ -32,6 +32,15 @@ namespace icinga
 {
 
 /**
+ * @ingroup icinga
+ */
+struct Host2dCoords {
+	int have_2d_coords;
+	String x_2d;
+	String y_2d;
+};
+
+/**
  * Compatibility utility functions.
  *
  * @ingroup icinga
@@ -42,8 +51,9 @@ public:
 
 	/* host */
 	static String GetHostAlias(const Host::Ptr& host);
-	static bool GetHost2dCoordX(const Host::Ptr& host, double *coord);
-	static bool GetHost2dCoordY(const Host::Ptr& host, double *coord);
+	static Host2dCoords GetHost2dCoords(const Host::Ptr& host);
+	static String GetHost2dCoordX(const Host::Ptr& host);
+	static String GetHost2dCoordY(const Host::Ptr& host);
 	static int GetHostNotifyOnDown(const Host::Ptr& host);
 	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 

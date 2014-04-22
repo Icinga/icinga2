@@ -235,16 +235,10 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	String action_url = host->GetActionUrl();
 	String icon_image = host->GetIconImage();
 	String icon_image_alt = host->GetIconImageAlt();
-	String statusmap_image = host->GetStatusmapImage();
+	String statusmap_image = CompatUtility::GetCustomAttributeConfig(host, "statusmap_image");
 	String display_name = host->GetDisplayName();
 	String address = host->GetAddress();
 	String address6 = host->GetAddress6();
-
-	double x_2d, y_2d;
-	CompatUtility::GetHost2dCoordX(host, &x_2d);
-	CompatUtility::GetHost2dCoordY(host, &y_2d);
-
-	String coords = Convert::ToString(x_2d) + "," + Convert::ToString(y_2d);
 
 	fp << "define host {" "\n"
 	      "\t" "host_name" "\t" << host->GetName() << "\n";
@@ -268,8 +262,6 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	      fp << "\t" "icon_image_alt" "\t" << icon_image_alt << "\n";
 	if (!statusmap_image.IsEmpty())
 	      fp << "\t" "statusmap_image" "\t" << statusmap_image << "\n";
-	if (!coords.IsEmpty())
-	      fp << "\t" "2d_coords" "\t" << coords << "\n";
 
 	std::set<Checkable::Ptr> parents = host->GetParents();
 
