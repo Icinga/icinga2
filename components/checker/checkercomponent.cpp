@@ -199,7 +199,21 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 	try {
 		checkable->ExecuteCheck();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "checker", "Exception occured while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex));
+		CheckResult::Ptr cr = make_shared<CheckResult>();
+		cr->SetState(ServiceUnknown);
+
+		String output = "Exception occured while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
+		cr->SetOutput(output);
+
+		double now = Utility::GetTime();
+		cr->SetScheduleStart(now);
+		cr->SetScheduleEnd(now);
+		cr->SetExecutionStart(now);
+		cr->SetExecutionEnd(now);
+
+		checkable->ProcessCheckResult(cr);
+
+		Log(LogCritical, "checker", output);
 	}
 
 	{
