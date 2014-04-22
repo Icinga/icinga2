@@ -286,9 +286,11 @@ void ThreadPool::ManagerThreadProc(void)
 				if (m_MaxThreads != -1 && (alive + tthreads) * (sizeof(m_Queues) / sizeof(m_Queues[0])) > m_MaxThreads)
 					tthreads = m_MaxThreads / (sizeof(m_Queues) / sizeof(m_Queues[0])) - alive;
 
-				std::ostringstream msgbuf;
-				msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
-				Log(LogDebug, "base", msgbuf.str());
+				if (tthreads != 0) {
+					std::ostringstream msgbuf;
+					msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
+					Log(LogDebug, "base", msgbuf.str());
+				}
 
 				for (int i = 0; i < -tthreads; i++)
 					queue.KillWorker(m_ThreadGroup);
