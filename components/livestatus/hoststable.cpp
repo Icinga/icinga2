@@ -67,7 +67,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "icon_image", Column(&HostsTable::IconImageAccessor, objectAccessor));
 	table->AddColumn(prefix + "icon_image_expanded", Column(&HostsTable::IconImageExpandedAccessor, objectAccessor));
 	table->AddColumn(prefix + "icon_image_alt", Column(&HostsTable::IconImageAltAccessor, objectAccessor));
-	table->AddColumn(prefix + "statusmap_image", Column(&HostsTable::StatusmapImageAccessor, objectAccessor));
+	table->AddColumn(prefix + "statusmap_image", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "long_plugin_output", Column(&HostsTable::LongPluginOutputAccessor, objectAccessor));
 	table->AddColumn(prefix + "initial_state", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "max_check_attempts", Column(&HostsTable::MaxCheckAttemptsAccessor, objectAccessor));
@@ -118,8 +118,8 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "x_3d", Column(&EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "y_3d", Column(&EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "z_3d", Column(&EmptyStringAccessor, objectAccessor));
-	table->AddColumn(prefix + "x_2d", Column(&HostsTable::X2dAccessor, objectAccessor));
-	table->AddColumn(prefix + "y_2d", Column(&HostsTable::Y2dAccessor, objectAccessor));
+	table->AddColumn(prefix + "x_2d", Column(&Table::EmptyStringAccessor, objectAccessor));
+	table->AddColumn(prefix + "y_2d", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "latency", Column(&HostsTable::LatencyAccessor, objectAccessor));
 	table->AddColumn(prefix + "execution_time", Column(&HostsTable::ExecutionTimeAccessor, objectAccessor));
 	table->AddColumn(prefix + "percent_state_change", Column(&HostsTable::PercentStateChangeAccessor, objectAccessor));
@@ -410,16 +410,6 @@ Value HostsTable::IconImageAltAccessor(const Value& row)
 		return Empty;
 
 	return host->GetIconImageAlt();
-}
-
-Value HostsTable::StatusmapImageAccessor(const Value& row)
-{
-	Host::Ptr host = static_cast<Host::Ptr>(row);
-
-	if (!host)
-		return Empty;
-
-	return CompatUtility::GetCustomAttributeConfig(host, "statusmap_image");
 }
 
 Value HostsTable::LongPluginOutputAccessor(const Value& row)
@@ -812,26 +802,6 @@ Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 		return Empty;
 
 	return CompatUtility::GetCheckableHighFlapThreshold(host);
-}
-
-Value HostsTable::X2dAccessor(const Value& row)
-{
-	Host::Ptr host = static_cast<Host::Ptr>(row);
-
-	if (!host)
-		return Empty;
-
-	return CompatUtility::GetHost2dCoordX(host);
-}
-
-Value HostsTable::Y2dAccessor(const Value& row)
-{
-	Host::Ptr host = static_cast<Host::Ptr>(row);
-
-	if (!host)
-		return Empty;
-
-	return CompatUtility::GetHost2dCoordY(host);
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)

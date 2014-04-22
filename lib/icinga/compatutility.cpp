@@ -70,54 +70,6 @@ String CompatUtility::GetHostAlias(const Host::Ptr& host)
 		return host->GetDisplayName();
 }
 
-Host2dCoords CompatUtility::GetHost2dCoords(const Host::Ptr& host)
-{
-	ASSERT(host->OwnsLock());
-
-	Dictionary::Ptr vars = host->GetVars();
-	Host2dCoords bag;
-
-	if (vars) {
-		String coords = vars->Get("2d_coords");
-		bag.have_2d_coords = (!coords.IsEmpty() ? 1 : 0);
-
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, coords, boost::is_any_of(","));
-
-		if (tokens.size() != 2)
-			bag.have_2d_coords = 0;
-
-		if (bag.have_2d_coords == 1) {
-			bag.x_2d = tokens[0];
-			bag.y_2d = tokens[1];
-		}
-	} else {
-		bag.have_2d_coords = 0;
-	}
-
-	return bag;
-}
-
-String CompatUtility::GetHost2dCoordX(const Host::Ptr& host)
-{
-	Host2dCoords bag = GetHost2dCoords(host);
-
-	if (bag.have_2d_coords == 0)
-		return Empty;
-
-	return bag.x_2d;
-}
-
-String CompatUtility::GetHost2dCoordY(const Host::Ptr& host)
-{
-	Host2dCoords bag = GetHost2dCoords(host);
-
-	if (bag.have_2d_coords == 0)
-		return Empty;
-
-	return bag.y_2d;
-}
-
 int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
 {
 	ASSERT(host->OwnsLock());
@@ -371,9 +323,7 @@ int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checka
 bool CompatUtility::IsLegacyAttribute(DynamicObject::Ptr const& object, const String& name)
 {
 	if ((name == "address" ||
-	    name == "address6" ||
-	    name == "statusmap_image" ||
-	    name == "2d_coords") &&
+	    name == "address6") &&
 	    object->GetType() == DynamicType::GetByName("Host"))
 		return true;
 
@@ -392,7 +342,7 @@ bool CompatUtility::IsLegacyAttribute(DynamicObject::Ptr const& object, const St
 	    name == "action_url" ||
 	    name == "notes_url" ||
 	    name == "icon_image" ||
-	    name == "icon_image_alt") && 
+	    name == "icon_image_alt") &&
 	    (object->GetType() == DynamicType::GetByName("Host") ||
 	    object->GetType() == DynamicType::GetByName("Service")))
 		return true;

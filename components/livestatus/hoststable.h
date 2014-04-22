@@ -65,7 +65,6 @@ protected:
 	static Value IconImageAccessor(const Value& row);
 	static Value IconImageExpandedAccessor(const Value& row);
 	static Value IconImageAltAccessor(const Value& row);
-	static Value StatusmapImageAccessor(const Value& row);
 	static Value LongPluginOutputAccessor(const Value& row);
 	static Value MaxCheckAttemptsAccessor(const Value& row);
 	static Value FlapDetectionEnabledAccessor(const Value& row);
@@ -106,8 +105,6 @@ protected:
 	static Value NotificationIntervalAccessor(const Value& row);
 	static Value LowFlapThresholdAccessor(const Value& row);
 	static Value HighFlapThresholdAccessor(const Value& row);
-	static Value X2dAccessor(const Value& row);
-	static Value Y2dAccessor(const Value& row);
 	static Value LatencyAccessor(const Value& row);
 	static Value ExecutionTimeAccessor(const Value& row);
 	static Value PercentStateChangeAccessor(const Value& row);
