@@ -23,11 +23,62 @@
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/timer.h"
+#include "base/context.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(HostGroup);
+
+INITIALIZE_ONCE(&HostGroup::RegisterObjectRuleHandler);
+
+void HostGroup::RegisterObjectRuleHandler(void)
+{
+        ObjectRule::RegisterType("HostGroup", &HostGroup::EvaluateObjectRules);
+}
+
+bool HostGroup::EvaluateObjectRule(const Host::Ptr host, const ObjectRule& rule)
+{
+	DebugInfo di = rule.GetDebugInfo();
+
+	std::ostringstream msgbuf;
+	msgbuf << "Evaluating 'object' rule (" << di << ")";
+	CONTEXT(msgbuf.str());
+
+	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("host", host);
+
+	if (!rule.EvaluateFilter(locals))
+		return false;
+
+	std::ostringstream msgbuf2;
+	msgbuf2 << "Assigning membership for group '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
+	Log(LogDebug, "icinga", msgbuf2.str());
+
+	String group_name = rule.GetName();
+	HostGroup::Ptr group = HostGroup::GetByName(group_name);
+
+	if (!group) {
+		Log(LogCritical, "icinga", "Invalid membership assignment. Group '" + group_name + "' does not exist.");
+		return false;
+	}
+
+	/* assign host group membership */
+	group->ResolveGroupMembership(host, true);
+
+	return true;
+}
+
+void HostGroup::EvaluateObjectRules(const std::vector<ObjectRule>& rules)
+{
+	BOOST_FOREACH(const ObjectRule& rule, rules) {
+		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+			CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for host '" + host->GetName() + "'");
+
+			EvaluateObjectRule(host, rule);
+		}
+	}
+}
 
 std::set<Host::Ptr> HostGroup::GetMembers(void) const
 {

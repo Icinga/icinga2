@@ -29,6 +29,7 @@
 #include "config/typerulelist.h"
 #include "config/aexpression.h"
 #include "config/applyrule.h"
+#include "config/objectrule.h"
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"
@@ -214,6 +215,7 @@ static ConfigType::Ptr m_Type;
 static Dictionary::Ptr m_ModuleScope;
 
 static bool m_Apply;
+static bool m_ObjectAssign;
 static bool m_SeenAssign;
 static AExpression::Ptr m_Assign;
 static AExpression::Ptr m_Ignore;
@@ -426,14 +428,21 @@ type: T_TYPE_DICTIONARY
 object:
 	{
 		m_Abstract = false;
+		m_ObjectAssign = true;
+		m_SeenAssign = false;
+		m_Assign = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
+		m_Ignore = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 	}
 	object_declaration identifier rterm rterm_scope sep
 	{
+		m_ObjectAssign = false;
+
 		Array::Ptr args = make_shared<Array>();
 		
 		args->Add(m_Abstract);
 
-		args->Add($3);
+		String type = $3;
+		args->Add(type);
 		free($3);
 
 		args->Add(*$4);
@@ -443,7 +452,18 @@ object:
 		delete $5;
 		exprl->MakeInline();
 
+		if (m_SeenAssign && !ObjectRule::IsValidSourceType(type))
+			BOOST_THROW_EXCEPTION(ConfigError("object rule 'assign' cannot be used for type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+
+		AExpression::Ptr rex = make_shared<AExpression>(&AExpression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
+		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
+
+		args->Add(filter);
+
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
+
+		m_Assign.reset();
+		m_Ignore.reset();
 	}
 	;
 
@@ -573,7 +593,7 @@ lterm: identifier lbinary_op rterm
 	}
 	| T_ASSIGN T_WHERE rterm
 	{
-		if (!m_Apply)
+		if (!(m_Apply || m_ObjectAssign))
 			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
 
 		m_SeenAssign = true;
@@ -585,7 +605,7 @@ lterm: identifier lbinary_op rterm
 	}
 	| T_IGNORE T_WHERE rterm
 	{
-		if (!m_Apply)
+		if (!(m_Apply || m_ObjectAssign))
 			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
 
 		m_Ignore = make_shared<AExpression>(&AExpression::OpLogicalOr, m_Ignore, *$3, DebugInfoRange(@1, @3));

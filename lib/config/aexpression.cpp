@@ -22,6 +22,7 @@
 #include "config/configitem.h"
 #include "config/configitembuilder.h"
 #include "config/applyrule.h"
+#include "config/objectrule.h"
 #include "base/array.h"
 #include "base/serializer.h"
 #include "base/context.h"
@@ -521,6 +522,7 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	bool abstract = left->Get(0);
 	String type = left->Get(1);
 	AExpression::Ptr aname = left->Get(2);
+	AExpression::Ptr filter = left->Get(3);
 
 	String name = aname->Evaluate(locals);
 
@@ -559,6 +561,8 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	item->SetAbstract(abstract);
 	item->SetScope(locals);
 	item->Compile()->Register();
+
+	ObjectRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, locals);
 
 	return Empty;
 }

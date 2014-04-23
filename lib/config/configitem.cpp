@@ -20,6 +20,7 @@
 #include "config/configitem.h"
 #include "config/configcompilercontext.h"
 #include "config/applyrule.h"
+#include "config/objectrule.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
@@ -323,6 +324,9 @@ bool ConfigItem::ActivateItems(ValidationType validate)
 
 	Log(LogInformation, "config", "Evaluating 'apply' rules...");
 	ApplyRule::EvaluateRules();
+
+	Log(LogInformation, "config", "Evaluating 'object' rules...");
+	ObjectRule::EvaluateRules();
 
 	if (validate != ValidateNone) {
 		Log(LogInformation, "config", "Validating config items (step 2)...");

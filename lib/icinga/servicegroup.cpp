@@ -24,11 +24,65 @@
 #include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
+#include "base/context.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(ServiceGroup);
+
+INITIALIZE_ONCE(&ServiceGroup::RegisterObjectRuleHandler);
+
+void ServiceGroup::RegisterObjectRuleHandler(void)
+{
+        ObjectRule::RegisterType("ServiceGroup", &ServiceGroup::EvaluateObjectRules);
+}
+
+bool ServiceGroup::EvaluateObjectRule(const Service::Ptr service, const ObjectRule& rule)
+{
+	DebugInfo di = rule.GetDebugInfo();
+
+	std::ostringstream msgbuf;
+	msgbuf << "Evaluating 'object' rule (" << di << ")";
+	CONTEXT(msgbuf.str());
+
+	Host::Ptr host = service->GetHost();
+
+	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("host", host);
+	locals->Set("service", service);
+
+	if (!rule.EvaluateFilter(locals))
+		return false;
+
+	std::ostringstream msgbuf2;
+	msgbuf2 << "Assigning membership for group '" << rule.GetName() << "' to service '" << service->GetName() << "' for rule " << di;
+	Log(LogDebug, "icinga", msgbuf2.str());
+
+	String group_name = rule.GetName();
+	ServiceGroup::Ptr group = ServiceGroup::GetByName(group_name);
+
+	if (!group) {
+		Log(LogCritical, "icinga", "Invalid membership assignment. Group '" + group_name + "' does not exist.");
+		return false;
+	}
+
+	/* assign service group membership */
+	group->ResolveGroupMembership(service, true);
+
+	return true;
+}
+
+void ServiceGroup::EvaluateObjectRules(const std::vector<ObjectRule>& rules)
+{
+	BOOST_FOREACH(const ObjectRule& rule, rules) {
+		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+			CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for service '" + service->GetName() + "'");
+
+			EvaluateObjectRule(service, rule);
+		}
+	}
+}
 
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 {

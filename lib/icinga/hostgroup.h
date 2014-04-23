@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/hostgroup.th"
 #include "icinga/host.h"
+#include "config/objectrule.h"
 
 namespace icinga
 {
@@ -44,9 +45,14 @@ public:
 
         bool ResolveGroupMembership(Host::Ptr const& host, bool add = true, int rstack = 0);
 
+        static void RegisterObjectRuleHandler(void);
+
 private:
 	mutable boost::mutex m_HostGroupMutex;
 	std::set<Host::Ptr> m_Members;
+
+        static bool EvaluateObjectRule(const Host::Ptr host, const ObjectRule& rule);
+        static void EvaluateObjectRules(const std::vector<ObjectRule>& rules);
 };
 
 }
