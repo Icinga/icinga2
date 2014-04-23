@@ -603,8 +603,8 @@ void ClusterListener::ClusterTimerHandler(void)
 
 	/* Eww. */
 	Dictionary::Ptr features = make_shared<Dictionary>();
-	features->Set("checker", SupportsChecks() ? 1 : 0);
-	features->Set("notification", SupportsNotifications() ? 1 : 0);
+	features->Set("checker", SupportsChecks());
+	features->Set("notification", SupportsNotifications());
 	params->Set("features", features);
 
 	Dictionary::Ptr message = make_shared<Dictionary>();
@@ -1691,22 +1691,12 @@ void ClusterListener::UpdateAuthority(void)
 
 bool ClusterListener::SupportsChecks(void)
 {
-	DynamicType::Ptr type = DynamicType::GetByName("CheckerComponent");
-
-	if (!type)
-		return false;
-
-	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0 && (IcingaApplication::GetInstance()->GetEnableHostChecks() || IcingaApplication::GetInstance()->GetEnableServiceChecks());
+	return SupportsFeature("CheckerComponent") && (IcingaApplication::GetInstance()->GetEnableHostChecks() || IcingaApplication::GetInstance()->GetEnableServiceChecks());
 }
 
 bool ClusterListener::SupportsNotifications(void)
 {
-	DynamicType::Ptr type = DynamicType::GetByName("NotificationComponent");
-
-	if (!type)
-		return false;
-
-	return std::distance(type->GetObjects().first, type->GetObjects().second) > 0 && IcingaApplication::GetInstance()->GetEnableNotifications();
+	return SupportsFeature("NotificationComponent") && IcingaApplication::GetInstance()->GetEnableNotifications();
 }
 
 bool ClusterListener::SupportsFeature(const String& name)
@@ -1753,4 +1743,3 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ClusterListener::GetClusterStatus(vo
 
 	return std::make_pair(status, perfdata);
 }
-
