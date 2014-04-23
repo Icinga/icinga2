@@ -21,7 +21,7 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.h"
-#include "base/stream.h"
+#include "base/socket.h"
 #include "base/fifo.h"
 #include "base/tlsutility.h"
 
@@ -44,7 +44,7 @@ class I2_BASE_API TlsStream : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
-	TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext);
+	TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX> sslContext);
 
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
@@ -62,7 +62,7 @@ private:
 	shared_ptr<SSL> m_SSL;
 	BIO *m_BIO;
 
-	Stream::Ptr m_InnerStream;
+	Socket::Ptr m_Socket;
 	TlsRole m_Role;
 
 	static int m_SSLIndex;

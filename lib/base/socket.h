@@ -43,6 +43,8 @@ public:
 	Socket(SOCKET fd);
 	~Socket(void);
 
+	SOCKET GetFD(void) const;
+
 	void Close(void);
 
 	String GetClientAddress(void);
@@ -54,9 +56,12 @@ public:
 	void Listen(void);
 	Socket::Ptr Accept(void);
 
+	void Poll(bool read, bool write);
+
+	void MakeNonBlocking(void);
+
 protected:
 	void SetFD(SOCKET fd);
-	SOCKET GetFD(void) const;
 
 	int GetError(void) const;
 

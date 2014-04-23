@@ -144,13 +144,11 @@ void AgentListener::NewClientHandler(const Socket::Ptr& client, TlsRole role)
 {
 	CONTEXT("Handling new agent client connection");
 
-	NetworkStream::Ptr netStream = make_shared<NetworkStream>(client);
-
 	TlsStream::Ptr tlsStream;
 
 	{
 		ObjectLock olock(this);
-		tlsStream = make_shared<TlsStream>(netStream, role, m_SSLContext);
+		tlsStream = make_shared<TlsStream>(client, role, m_SSLContext);
 	}
 
 	tlsStream->Handshake();

@@ -28,6 +28,10 @@
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
 
+#ifndef _WIN32
+#	include <poll.h>
+#endif /* _WIN32 */
+
 using namespace icinga;
 
 /**
@@ -283,4 +287,46 @@ Socket::Ptr Socket::Accept(void)
 	}
 
 	return make_shared<Socket>(fd);
+}
+
+void Socket::Poll(bool read, bool write)
+{
+#ifdef _WIN32
+	fd_set readfds, writefds, exceptfds;
+
+	FD_ZERO(&readfds);
+	if (read)
+		FD_SET(GetFD(), &readfds);
+
+	FD_ZERO(&writefds);
+	if (write)
+		FD_SET(GetFD(), &writefds);
+
+	FD_ZERO(&exceptfds);
+	FD_SET(GetFD(), &exceptfds);
+
+	if (select(GetFD() + 1, &readfds, &writefds, &exceptfds, NULL) < 0)
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function("select")
+		    << errinfo_win32_error(WSAGetLastError()));
+#else /* _WIN32 */
+	pollfd pfd;
+	pfd.fd = GetFD();
+	pfd.events = (read ? POLLIN : 0) | (write ? POLLOUT : 0);
+	pfd.revents = 0;
+
+	if (poll(&pfd, 1, -1) < 0)
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function("poll")
+		    << boost::errinfo_errno(errno));
+#endif /* _WIN32 */
+}
+
+void Socket::MakeNonBlocking(void)
+{
+#ifdef _WIN32
+	Utility::SetNonBlockingSocket(GetFD());
+#else /* _WIN32 */
+	Utility::SetNonBlocking(GetFD());
+#endif /* _WIN32 */
 }

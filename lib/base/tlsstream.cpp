@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/tlsstream.h"
-#include "base/stream_bio.h"
 #include "base/objectlock.h"
 #include "base/debug.h"
 #include "base/utility.h"
@@ -37,8 +36,8 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SSL_CTX> sslContext)
-	: m_InnerStream(innerStream), m_Role(role)
+TlsStream::TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX> sslContext)
+	: m_Socket(socket), m_Role(role)
 {
 	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
 
@@ -57,7 +56,10 @@ TlsStream::TlsStream(const Stream::Ptr& innerStream, TlsRole role, shared_ptr<SS
 
 	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
-	m_BIO = BIO_new_I2Stream(m_InnerStream);
+	socket->MakeNonBlocking();
+
+	m_BIO = BIO_new_socket(socket->GetFD(), 0);
+	BIO_set_nbio(m_BIO, 1);
 	SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
 
 	if (m_Role == TlsRoleServer)
@@ -92,19 +94,28 @@ void TlsStream::Handshake(void)
 
 	int rc;
 
-	ObjectLock olock(this);
+	for (;;) {
+		int rc;
 
-	while ((rc = SSL_do_handshake(m_SSL.get())) <= 0) {
+		{
+			ObjectLock olock(this);
+			rc = SSL_do_handshake(m_SSL.get());
+		}
+
+		if (rc > 0)
+			break;
+
 		switch (SSL_get_error(m_SSL.get(), rc)) {
 			case SSL_ERROR_WANT_READ:
+				m_Socket->Poll(true, false);
 				continue;
 			case SSL_ERROR_WANT_WRITE:
+				m_Socket->Poll(false, true);
 				continue;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
 				return;
 			default:
-				I2Stream_check_exception(m_BIO);
 				BOOST_THROW_EXCEPTION(openssl_error()
 				    << boost::errinfo_api_function("SSL_do_handshake")
 				    << errinfo_openssl_error(ERR_get_error()));
@@ -121,22 +132,26 @@ size_t TlsStream::Read(void *buffer, size_t count)
 
 	size_t left = count;
 
-	ObjectLock olock(this);
-
 	while (left > 0) {
-		int rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
+		int rc;
+
+		{
+			ObjectLock olock(this);
+			rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
+		}
 
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
 				case SSL_ERROR_WANT_READ:
+					m_Socket->Poll(true, false);
 					continue;
 				case SSL_ERROR_WANT_WRITE:
+					m_Socket->Poll(false, true);
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
 					return count - left;
 				default:
-					I2Stream_check_exception(m_BIO);
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_read")
 					    << errinfo_openssl_error(ERR_get_error()));
@@ -155,22 +170,26 @@ void TlsStream::Write(const void *buffer, size_t count)
 
 	size_t left = count;
 
-	ObjectLock olock(this);
-
 	while (left > 0) {
-		int rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
+		int rc;
+
+		{
+			ObjectLock olock(this);
+			rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
+		}
 
 		if (rc <= 0) {
 			switch (SSL_get_error(m_SSL.get(), rc)) {
 				case SSL_ERROR_WANT_READ:
+					m_Socket->Poll(true, false);
 					continue;
 				case SSL_ERROR_WANT_WRITE:
+					m_Socket->Poll(false, true);
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
 					return;
 				default:
-					I2Stream_check_exception(m_BIO);
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_write")
 					    << errinfo_openssl_error(ERR_get_error()));
@@ -186,10 +205,10 @@ void TlsStream::Write(const void *buffer, size_t count)
  */
 void TlsStream::Close(void)
 {
-	m_InnerStream->Close();
+	m_Socket->Close();
 }
 
 bool TlsStream::IsEof(void) const
 {
-	return m_InnerStream->IsEof();
+	return BIO_eof(m_BIO);
 }
