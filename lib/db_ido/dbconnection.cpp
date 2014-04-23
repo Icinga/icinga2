@@ -370,14 +370,14 @@ void DbConnection::PrepareDatabase(void)
 	//ClearConfigTable("hoststatus");
 	ClearConfigTable("programstatus");
 	ClearConfigTable("scheduleddowntime");
-	//ClearConfigTable("service_contactgroups");
-	//ClearConfigTable("service_contacts");
+	ClearConfigTable("service_contactgroups");
+	ClearConfigTable("service_contacts");
 	ClearConfigTable("servicedependencies");
-	//ClearConfigTable("servicegroup_members");
+	ClearConfigTable("servicegroup_members");
 	//ClearConfigTable("servicegroups");
 	//ClearConfigTable("services");
 	//ClearConfigTable("servicestatus");
-	//ClearConfigTable("timeperiod_timeranges");
+	ClearConfigTable("timeperiod_timeranges");
 	//ClearConfigTable("timeperiods");
 
 	BOOST_FOREACH(const DbType::Ptr& type, DbType::GetAllTypes()) {
