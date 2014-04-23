@@ -24,6 +24,7 @@
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/notification.h"
+#include "icinga/dependency.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/compatutility.h"
@@ -174,7 +175,7 @@ void HostDbObject::OnConfigUpdate(void)
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
-	/* parents, host dependencies */
+	/* parents */
 	BOOST_FOREACH(const Checkable::Ptr& checkable, host->GetParents()) {
 		Host::Ptr parent = dynamic_pointer_cast<Host>(checkable);
 
@@ -195,11 +196,28 @@ void HostDbObject::OnConfigUpdate(void)
 		query1.Category = DbCatConfig;
 		query1.Fields = fields1;
 		OnQuery(query1);
+	}
 
-		/* host dependencies */
+	/* host dependencies */
+	Log(LogDebug, "db_ido", "host dependencies for '" + host->GetName() + "'");
+
+	BOOST_FOREACH(const Dependency::Ptr& dep, host->GetDependencies()) {
+		Checkable::Ptr parent = dep->GetParent();
+
+		if (!parent)
+			continue;
+
+		int state_filter = dep->GetStateFilter();
+
+		Log(LogDebug, "db_ido", "parent host: " + parent->GetName());
+
 		Dictionary::Ptr fields2 = make_shared<Dictionary>();
 		fields2->Set("host_object_id", parent);
 		fields2->Set("dependent_host_object_id", host);
+		fields2->Set("inherits_parent", 1);
+		fields2->Set("timeperiod_object_id", dep->GetPeriod());
+		fields2->Set("fail_on_up", (state_filter & StateFilterUp) ? 1 : 0);
+		fields2->Set("fail_on_down", (state_filter & StateFilterDown) ? 1 : 0);
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbQuery query2;

@@ -28,6 +28,7 @@
 #include "base/utility.h"
 #include "remote/endpoint.h"
 #include "icinga/notification.h"
+#include "icinga/dependency.h"
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/externalcommandprocessor.h"
@@ -176,26 +177,34 @@ void ServiceDbObject::OnConfigUpdate(void)
 	/* service dependencies */
 	Log(LogDebug, "db_ido", "service dependencies for '" + service->GetName() + "'");
 
-	BOOST_FOREACH(const Checkable::Ptr& checkable, service->GetParents()) {
-		Service::Ptr parent = dynamic_pointer_cast<Service>(checkable);
+	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
+		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent)
 			continue;
 
 		Log(LogDebug, "db_ido", "service parents: " + parent->GetName());
 
-                /* service dependencies */
-                Dictionary::Ptr fields1 = make_shared<Dictionary>();
-                fields1->Set("service_object_id", parent);
-                fields1->Set("dependent_service_object_id", service);
-                fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+		int state_filter = dep->GetStateFilter();
 
-                DbQuery query1;
-                query1.Table = GetType()->GetTable() + "dependencies";
-                query1.Type = DbQueryInsert;
+		/* service dependencies */
+		Dictionary::Ptr fields1 = make_shared<Dictionary>();
+		fields1->Set("service_object_id", parent);
+		fields1->Set("dependent_service_object_id", service);
+		fields1->Set("inherits_parent", 1);
+		fields1->Set("timeperiod_object_id", dep->GetPeriod());
+		fields1->Set("fail_on_ok", (state_filter & StateFilterOK) ? 1 : 0);
+		fields1->Set("fail_on_warning", (state_filter & StateFilterWarning) ? 1 : 0);
+		fields1->Set("fail_on_critical", (state_filter & StateFilterCritical) ? 1 : 0);
+		fields1->Set("fail_on_unknown", (state_filter & StateFilterUnknown) ? 1 : 0);
+		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		DbQuery query1;
+		query1.Table = GetType()->GetTable() + "dependencies";
+		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
-                query1.Fields = fields1;
-                OnQuery(query1);
+		query1.Fields = fields1;
+		OnQuery(query1);
 	}
 
 	/* service contacts, contactgroups */
