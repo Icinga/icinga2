@@ -1320,7 +1320,7 @@ void ClusterListener::MessageHandler(const Endpoint::Ptr& sender, const Dictiona
 			return;
 		}
 
-		bool nextNotification = params->Get("next_notification");
+		double nextNotification = params->Get("next_notification");
 
 		notification->SetNextNotification(nextNotification, sender->GetName());
 
