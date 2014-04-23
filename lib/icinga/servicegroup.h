@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/servicegroup.th"
 #include "icinga/service.h"
-#include "config/applyrule.h"
 
 namespace icinga
 {
@@ -45,14 +44,9 @@ public:
 
         bool ResolveGroupMembership(Service::Ptr const& service, bool add = true, int rstack = 0);
 
-        static void RegisterApplyRuleHandler(void);
-
 private:
 	mutable boost::mutex m_ServiceGroupMutex;
 	std::set<Service::Ptr> m_Members;
-
-	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 
 }
