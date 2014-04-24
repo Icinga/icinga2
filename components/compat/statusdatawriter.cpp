@@ -564,8 +564,22 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
+		String display_name = hg->GetDisplayName();
+		String notes = hg->GetNotes();
+		String notes_url = hg->GetNotesUrl();
+		String action_url = hg->GetActionUrl();
+
 		tempobjectfp << "define hostgroup {" "\n"
 				"\t" "hostgroup_name" "\t" << hg->GetName() << "\n";
+
+		if (!display_name.IsEmpty())
+			tempobjectfp << "\t" "alias" "\t" << display_name << "\n";
+		if (!notes.IsEmpty())
+			tempobjectfp << "\t" "notes" "\t" << notes << "\n";
+		if (!notes_url.IsEmpty())
+	      		tempobjectfp << "\t" "notes_url" "\t" << notes_url << "\n";
+		if (!action_url.IsEmpty())
+	      		tempobjectfp << "\t" "action_url" "\t" << action_url << "\n";
 
 		DumpCustomAttributes(tempobjectfp, hg);
 
@@ -581,8 +595,22 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
+		String display_name = sg->GetDisplayName();
+		String notes = sg->GetNotes();
+		String notes_url = sg->GetNotesUrl();
+		String action_url = sg->GetActionUrl();
+
 		tempobjectfp << "define servicegroup {" "\n"
 			 	"\t" "servicegroup_name" "\t" << sg->GetName() << "\n";
+
+		if (!display_name.IsEmpty())
+			tempobjectfp << "\t" "alias" "\t" << display_name << "\n";
+		if (!notes.IsEmpty())
+			tempobjectfp << "\t" "notes" "\t" << notes << "\n";
+		if (!notes_url.IsEmpty())
+	      		tempobjectfp << "\t" "notes_url" "\t" << notes_url << "\n";
+		if (!action_url.IsEmpty())
+	      		tempobjectfp << "\t" "action_url" "\t" << action_url << "\n";
 
 		DumpCustomAttributes(tempobjectfp, sg);
 

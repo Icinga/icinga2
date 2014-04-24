@@ -600,6 +600,9 @@ CREATE TABLE IF NOT EXISTS icinga_hostgroups (
   config_type smallint default 0,
   hostgroup_object_id bigint unsigned default 0,
   alias TEXT character set latin1  default '',
+  notes TEXT character set latin1  default NULL,
+  notes_url TEXT character set latin1  default NULL,
+  action_url TEXT character set latin1  default NULL,
   PRIMARY KEY  (hostgroup_id),
   UNIQUE KEY instance_id (instance_id,hostgroup_object_id)
 ) ENGINE=InnoDB  COMMENT='Hostgroup definitions';
@@ -1086,6 +1089,9 @@ CREATE TABLE IF NOT EXISTS icinga_servicegroups (
   config_type smallint default 0,
   servicegroup_object_id bigint unsigned default 0,
   alias TEXT character set latin1  default '',
+  notes TEXT character set latin1  default NULL,
+  notes_url TEXT character set latin1  default NULL,
+  action_url TEXT character set latin1  default NULL,
   PRIMARY KEY  (servicegroup_id),
   UNIQUE KEY instance_id (instance_id,config_type,servicegroup_object_id)
 ) ENGINE=InnoDB  COMMENT='Servicegroup definitions';

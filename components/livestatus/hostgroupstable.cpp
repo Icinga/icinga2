@@ -85,32 +85,17 @@ Value HostGroupsTable::AliasAccessor(const Value& row)
 
 Value HostGroupsTable::NotesAccessor(const Value& row)
 {
-	Dictionary::Ptr vars = static_cast<HostGroup::Ptr>(row)->GetVars();
-
-	if (!vars)
-		return Empty;
-
-	return vars->Get("notes");
+	return static_cast<HostGroup::Ptr>(row)->GetNotes();
 }
 
 Value HostGroupsTable::NotesUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr vars = static_cast<HostGroup::Ptr>(row)->GetVars();
-
-	if (!vars)
-		return Empty;
-
-	return vars->Get("notes_url");
+	return static_cast<HostGroup::Ptr>(row)->GetNotesUrl();
 }
 
 Value HostGroupsTable::ActionUrlAccessor(const Value& row)
 {
-	Dictionary::Ptr vars = static_cast<HostGroup::Ptr>(row)->GetVars();
-
-	if (!vars)
-		return Empty;
-
-	return vars->Get("action_url");
+	return static_cast<HostGroup::Ptr>(row)->GetActionUrl();
 }
 
 Value HostGroupsTable::MembersAccessor(const Value& row)

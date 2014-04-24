@@ -39,6 +39,9 @@ Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
 	HostGroup::Ptr group = static_pointer_cast<HostGroup>(GetObject());
 
 	fields->Set("alias", group->GetDisplayName());
+	fields->Set("notes", group->GetNotes());
+	fields->Set("notes_url", group->GetNotesUrl());
+	fields->Set("action_url", group->GetActionUrl());
 
 	return fields;
 }

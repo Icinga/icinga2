@@ -15,6 +15,9 @@ class HostGroup : DynamicObject
 	};
 
 	[config] Array::Ptr groups;
+	[config] String notes;
+	[config] String notes_url;
+	[config] String action_url;
 };
 
 }

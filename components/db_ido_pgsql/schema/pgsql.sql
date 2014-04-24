@@ -627,6 +627,9 @@ CREATE TABLE  icinga_hostgroups (
   config_type INTEGER  default 0,
   hostgroup_object_id bigint default 0,
   alias TEXT  default '',
+  notes TEXT  default NULL,
+  notes_url TEXT  default NULL,
+  action_url TEXT  default NULL,
   CONSTRAINT PK_hostgroup_id PRIMARY KEY (hostgroup_id) ,
   CONSTRAINT UQ_hostgroups UNIQUE (instance_id,hostgroup_object_id)
 ) ;
@@ -1113,6 +1116,9 @@ CREATE TABLE  icinga_servicegroups (
   config_type INTEGER  default 0,
   servicegroup_object_id bigint default 0,
   alias TEXT  default '',
+  notes TEXT  default NULL,
+  notes_url TEXT  default NULL,
+  action_url TEXT  default NULL,
   CONSTRAINT PK_servicegroup_id PRIMARY KEY (servicegroup_id) ,
   CONSTRAINT UQ_servicegroups UNIQUE (instance_id,config_type,servicegroup_object_id)
 ) ;
