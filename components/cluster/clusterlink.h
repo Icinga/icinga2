@@ -17,40 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/jsonrpc.h"
-#include "base/netstring.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/serializer.h"
-#include <iostream>
+#ifndef CLUSTERLINK_H
+#define CLUSTERLINK_H
 
-using namespace icinga;
+#include "remote/endpoint.h"
+
+namespace icinga
+{
 
 /**
- * Sends a message to the connected peer.
- *
- * @param message The message.
+ * @ingroup cluster
  */
-void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
+struct ClusterLink
 {
-	String json = JsonSerialize(message);
-	//std::cerr << ">> " << json << std::endl;
-	NetString::WriteStringToStream(stream, json);
+	String From;
+	String To;
+
+	ClusterLink(const String& from, const String& to);
+
+	int GetMetric(void) const;
+	bool operator<(const ClusterLink& other) const;
+};
+
+struct ClusterLinkMetricLessComparer
+{
+	bool operator()(const ClusterLink& a, const ClusterLink& b) const;
+};
+
 }
 
-Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
-{
-	String jsonString;
-	if (!NetString::ReadStringFromStream(stream, &jsonString))
-		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
-
-	//std::cerr << "<< " << jsonString << std::endl;
-	Value value = JsonDeserialize(jsonString);
-
-	if (!value.IsObjectType<Dictionary>()) {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
-		    " message must be a dictionary."));
-	}
-
-	return value;
-}
+#endif /* CLUSTERLINK_H */

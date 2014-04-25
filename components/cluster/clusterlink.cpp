@@ -17,40 +17,53 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/jsonrpc.h"
-#include "base/netstring.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/serializer.h"
-#include <iostream>
+#include "cluster/clusterlink.h"
 
 using namespace icinga;
 
-/**
- * Sends a message to the connected peer.
- *
- * @param message The message.
- */
-void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
+ClusterLink::ClusterLink(const String& from, const String& to)
 {
-	String json = JsonSerialize(message);
-	//std::cerr << ">> " << json << std::endl;
-	NetString::WriteStringToStream(stream, json);
+	if (from < to) {
+		From = from;
+		To = to;
+	} else {
+		From = to;
+		To = from;
+	}
 }
 
-Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
+int ClusterLink::GetMetric(void) const
 {
-	String jsonString;
-	if (!NetString::ReadStringFromStream(stream, &jsonString))
-		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
+	int metric = 0;
 
-	//std::cerr << "<< " << jsonString << std::endl;
-	Value value = JsonDeserialize(jsonString);
+	Endpoint::Ptr fromEp = Endpoint::GetByName(From);
+	if (fromEp)
+		metric += fromEp->GetMetric();
 
-	if (!value.IsObjectType<Dictionary>()) {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
-		    " message must be a dictionary."));
-	}
+	Endpoint::Ptr toEp = Endpoint::GetByName(To);
+	if (toEp)
+		metric += toEp->GetMetric();
 
-	return value;
+	return metric;
+}
+
+bool ClusterLink::operator<(const ClusterLink& other) const
+{
+	if (From < other.From)
+		return true;
+	else
+		return To < other.To;
+}
+
+bool ClusterLinkMetricLessComparer::operator()(const ClusterLink& a, const ClusterLink& b) const
+{
+	int metricA = a.GetMetric();
+	int metricB = b.GetMetric();
+
+	if (metricA < metricB)
+		return true;
+	else if (metricB > metricA)
+		return false;
+	else
+		return a < b;
 }

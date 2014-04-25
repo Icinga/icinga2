@@ -45,6 +45,11 @@ bool Endpoint::IsConnected(void) const
 	return GetClient() != NULL;
 }
 
+bool Endpoint::IsAvailable(void) const
+{
+	return GetSeen() > Utility::GetTime() - 30;
+}
+
 Stream::Ptr Endpoint::GetClient(void) const
 {
 	return m_Client;
@@ -52,6 +57,8 @@ Stream::Ptr Endpoint::GetClient(void) const
 
 void Endpoint::SetClient(const Stream::Ptr& client)
 {
+	SetBlockedUntil(Utility::GetTime() + 15);
+
 	if (m_Client)
 		m_Client->Close();
 
@@ -62,10 +69,10 @@ void Endpoint::SetClient(const Stream::Ptr& client)
 		thread.detach();
 
 		OnConnected(GetSelf());
-		Log(LogWarning, "remote", "Endpoint connected: " + GetName());
+		Log(LogInformation, "remote", "Endpoint connected: " + GetName());
 	} else {
 		OnDisconnected(GetSelf());
-		Log(LogWarning, "remote", "Endpoint disconnected: " + GetName());
+		Log(LogInformation, "remote", "Endpoint disconnected: " + GetName());
 	}
 }
 

@@ -105,7 +105,8 @@ void TlsStream::Handshake(void)
 		if (rc > 0)
 			break;
 
-		switch (SSL_get_error(m_SSL.get(), rc)) {
+		int err = SSL_get_error(m_SSL.get(), rc);
+		switch (err) {
 			case SSL_ERROR_WANT_READ:
 				m_Socket->Poll(true, false);
 				continue;
@@ -141,7 +142,8 @@ size_t TlsStream::Read(void *buffer, size_t count)
 		}
 
 		if (rc <= 0) {
-			switch (SSL_get_error(m_SSL.get(), rc)) {
+			int err = SSL_get_error(m_SSL.get(), rc);
+			switch (err) {
 				case SSL_ERROR_WANT_READ:
 					m_Socket->Poll(true, false);
 					continue;
@@ -179,7 +181,8 @@ void TlsStream::Write(const void *buffer, size_t count)
 		}
 
 		if (rc <= 0) {
-			switch (SSL_get_error(m_SSL.get(), rc)) {
+			int err = SSL_get_error(m_SSL.get(), rc);
+			switch (err) {
 				case SSL_ERROR_WANT_READ:
 					m_Socket->Poll(true, false);
 					continue;

@@ -20,7 +20,7 @@ mkclass_target(clusterlistener.ti clusterlistener.th)
 mkembedconfig_target(cluster-type.conf cluster-type.cpp)
 
 add_library(cluster SHARED
-  clusterchecktask.cpp clusterlistener.cpp clusterlistener.th
+  clusterchecktask.cpp clusterlink.cpp clusterlistener.cpp clusterlistener.th
   cluster-type.cpp
 )
 
