@@ -50,6 +50,7 @@ public:
 	void SetClient(const Stream::Ptr& client);
 
 	bool IsConnected(void) const;
+	bool IsAvailable(void) const;
 
 	void SendMessage(const Dictionary::Ptr& request);
 
@@ -58,6 +59,7 @@ public:
 private:
 	Stream::Ptr m_Client;
 	boost::thread m_Thread;
+	Array::Ptr m_ConnectedEndpoints;
 
 	void MessageThreadProc(const Stream::Ptr& stream);
 };

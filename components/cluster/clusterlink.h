@@ -17,60 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TLSSTREAM_H
-#define TLSSTREAM_H
+#ifndef CLUSTERLINK_H
+#define CLUSTERLINK_H
 
-#include "base/i2-base.h"
-#include "base/socket.h"
-#include "base/fifo.h"
-#include "base/tlsutility.h"
+#include "remote/endpoint.h"
 
 namespace icinga
 {
 
-enum TlsRole
+/**
+ * @ingroup cluster
+ */
+struct ClusterLink
 {
-	TlsRoleClient,
-	TlsRoleServer
+	String From;
+	String To;
+
+	ClusterLink(const String& from, const String& to);
+
+	int GetMetric(void) const;
+	bool operator<(const ClusterLink& other) const;
 };
 
-/**
- * A TLS stream.
- *
- * @ingroup base
- */
-class I2_BASE_API TlsStream : public Stream
+struct ClusterLinkMetricLessComparer
 {
-public:
-	DECLARE_PTR_TYPEDEFS(TlsStream);
-
-	TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX> sslContext);
-
-	shared_ptr<X509> GetClientCertificate(void) const;
-	shared_ptr<X509> GetPeerCertificate(void) const;
-
-	void Handshake(void);
-
-	virtual void Close(void);
-
-	virtual size_t Read(void *buffer, size_t count);
-	virtual void Write(const void *buffer, size_t count);
-
-	virtual bool IsEof(void) const;
-
-private:
-	shared_ptr<SSL> m_SSL;
-	BIO *m_BIO;
-
-	Socket::Ptr m_Socket;
-	TlsRole m_Role;
-
-	static int m_SSLIndex;
-	static bool m_SSLIndexInitialized;
-
-	static void NullCertificateDeleter(X509 *certificate);
+	bool operator()(const ClusterLink& a, const ClusterLink& b) const;
 };
 
 }
 
-#endif /* TLSSTREAM_H */
+#endif /* CLUSTERLINK_H */

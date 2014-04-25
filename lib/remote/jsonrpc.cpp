@@ -34,7 +34,7 @@ using namespace icinga;
 void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
 {
 	String json = JsonSerialize(message);
-//	std::cerr << ">> " << json << std::endl;
+	//std::cerr << ">> " << json << std::endl;
 	NetString::WriteStringToStream(stream, json);
 }
 
@@ -44,7 +44,7 @@ Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
 	if (!NetString::ReadStringFromStream(stream, &jsonString))
 		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
 
-//	std::cerr << "<< " << jsonString << std::endl;
+	//std::cerr << "<< " << jsonString << std::endl;
 	Value value = JsonDeserialize(jsonString);
 
 	if (!value.IsObjectType<Dictionary>()) {

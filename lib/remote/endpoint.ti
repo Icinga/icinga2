@@ -10,15 +10,15 @@ class Endpoint : DynamicObject
 	[config] Array::Ptr config_files;
 	[config] Array::Ptr config_files_recursive;
 	[config] Array::Ptr accept_config;
+	[config] int metric;
 
 	[state] double seen;
 	[state] double local_log_position;
 	[state] double remote_log_position;
 	[state] Dictionary::Ptr features;
 
-	bool syncing {
-		default {{{ return false; }}}
-	};
+	bool syncing;
+	double blocked_until;
 };
 
 }

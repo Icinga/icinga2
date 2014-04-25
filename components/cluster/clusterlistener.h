@@ -21,6 +21,7 @@
 #define CLUSTERLISTENER_H
 
 #include "cluster/clusterlistener.th"
+#include "cluster/clusterlink.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
 #include "base/array.h"
@@ -35,6 +36,15 @@
 
 namespace icinga
 {
+
+/**
+ * @ingroup cluster
+ */
+struct EndpointPeerInfo
+{
+	double Seen;
+	Array::Ptr Peers;
+};
 
 /**
  * @ingroup cluster
@@ -75,8 +85,12 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
-	void AsyncRelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
-	void RelayMessage(const Endpoint::Ptr& source, const Dictionary::Ptr& message, bool persistent);
+	std::map<String, EndpointPeerInfo> m_VisibleEndpoints;
+
+	void UpdateLinks(void);
+
+	void AsyncRelayMessage(const Endpoint::Ptr& source, const Endpoint::Ptr& destination, const Dictionary::Ptr& message, bool persistent);
+	void RelayMessage(const Endpoint::Ptr& source, const Endpoint::Ptr& destination, const Dictionary::Ptr& message, bool persistent);
 
 	void OpenLogFile(void);
 	void RotateLogFile(void);

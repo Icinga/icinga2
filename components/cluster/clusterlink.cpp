@@ -17,60 +17,53 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TLSSTREAM_H
-#define TLSSTREAM_H
+#include "cluster/clusterlink.h"
 
-#include "base/i2-base.h"
-#include "base/socket.h"
-#include "base/fifo.h"
-#include "base/tlsutility.h"
+using namespace icinga;
 
-namespace icinga
+ClusterLink::ClusterLink(const String& from, const String& to)
 {
-
-enum TlsRole
-{
-	TlsRoleClient,
-	TlsRoleServer
-};
-
-/**
- * A TLS stream.
- *
- * @ingroup base
- */
-class I2_BASE_API TlsStream : public Stream
-{
-public:
-	DECLARE_PTR_TYPEDEFS(TlsStream);
-
-	TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX> sslContext);
-
-	shared_ptr<X509> GetClientCertificate(void) const;
-	shared_ptr<X509> GetPeerCertificate(void) const;
-
-	void Handshake(void);
-
-	virtual void Close(void);
-
-	virtual size_t Read(void *buffer, size_t count);
-	virtual void Write(const void *buffer, size_t count);
-
-	virtual bool IsEof(void) const;
-
-private:
-	shared_ptr<SSL> m_SSL;
-	BIO *m_BIO;
-
-	Socket::Ptr m_Socket;
-	TlsRole m_Role;
-
-	static int m_SSLIndex;
-	static bool m_SSLIndexInitialized;
-
-	static void NullCertificateDeleter(X509 *certificate);
-};
-
+	if (from < to) {
+		From = from;
+		To = to;
+	} else {
+		From = to;
+		To = from;
+	}
 }
 
-#endif /* TLSSTREAM_H */
+int ClusterLink::GetMetric(void) const
+{
+	int metric = 0;
+
+	Endpoint::Ptr fromEp = Endpoint::GetByName(From);
+	if (fromEp)
+		metric += fromEp->GetMetric();
+
+	Endpoint::Ptr toEp = Endpoint::GetByName(To);
+	if (toEp)
+		metric += toEp->GetMetric();
+
+	return metric;
+}
+
+bool ClusterLink::operator<(const ClusterLink& other) const
+{
+	if (From < other.From)
+		return true;
+	else
+		return To < other.To;
+}
+
+bool ClusterLinkMetricLessComparer::operator()(const ClusterLink& a, const ClusterLink& b) const
+{
+	int metricA = a.GetMetric();
+	int metricB = b.GetMetric();
+
+	if (metricA < metricB)
+		return true;
+	else if (metricB > metricA)
+		return false;
+	else
+		return a < b;
+}
