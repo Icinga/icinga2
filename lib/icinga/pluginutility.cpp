@@ -59,13 +59,15 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			const Value& arginfo = kv.second;
 
 			bool optional = false;
+			bool skip_key = false;
 			String argval;
 
 			if (arginfo.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr argdict = arginfo;
 				argval = argdict->Get("value");
 				optional = argdict->Get("optional");
-				
+				skip_key = argdict->Get("skip_key");
+
 				String set_if = argdict->Get("set_if");
 
 				if (!set_if.IsEmpty()) {
@@ -106,7 +108,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			}
 
 			Array::Ptr command_arr = command;
-			command_arr->Add(argname);
+			if (!skip_key)
+				command_arr->Add(argname);
 			if (!argval.IsEmpty())
 				command_arr->Add(argresolved);
 		}

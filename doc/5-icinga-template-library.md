@@ -163,6 +163,7 @@ Custom Attributes:
 Name            | Description
 ----------------|--------------
 ssh_address     | **Optional.** The host's address. Defaults to "$address$".
+ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
 
 ### <a id="itl-disk"></a> disk
 
