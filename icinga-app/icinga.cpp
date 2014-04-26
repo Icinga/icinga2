@@ -533,6 +533,9 @@ static int SetupService(bool install, int argc, char **argv)
 		} else
 			printf("Service installed successfully\n");
 
+		ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
+		    SERVICE_ERROR_NORMAL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
 		SERVICE_DESCRIPTION sdDescription = { "The Icinga 2 monitoring application" };
 		ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription);
 
