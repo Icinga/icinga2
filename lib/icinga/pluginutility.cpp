@@ -26,6 +26,7 @@
 #include "base/logger_fwd.h"
 #include "base/scriptfunction.h"
 #include "base/utility.h"
+#include "base/convert.h"
 #include "base/process.h"
 #include "base/objectlock.h"
 #include <boost/algorithm/string/classification.hpp>
@@ -34,6 +35,102 @@
 #include <boost/foreach.hpp>
 
 using namespace icinga;
+
+void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
+    const MacroProcessor::ResolverList& macroResolvers,
+    const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback)
+{
+	Value raw_command = commandObj->GetCommandLine();
+	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
+
+	Value command;
+	if (!raw_arguments || raw_command.IsObjectType<Array>())
+		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, checkable->GetLastCheckResult(), NULL, Utility::EscapeShellArg);
+	else {
+		Array::Ptr arr = make_shared<Array>();
+		arr->Add(raw_command);
+		command = arr;
+	}
+
+	if (raw_arguments) {
+		ObjectLock olock(raw_arguments);
+		BOOST_FOREACH(const Dictionary::Pair& kv, raw_arguments) {
+			const String& argname = kv.first;
+			const Value& arginfo = kv.second;
+
+			bool optional = false;
+			String argval;
+
+			if (arginfo.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr argdict = arginfo;
+				argval = argdict->Get("value");
+				optional = argdict->Get("optional");
+				
+				String set_if = argdict->Get("set_if");
+
+				if (!set_if.IsEmpty()) {
+					String missingMacro;
+					String set_if_resolved = MacroProcessor::ResolveMacros(set_if, macroResolvers,
+						checkable->GetLastCheckResult(), &missingMacro);
+
+					if (!missingMacro.IsEmpty() || !Convert::ToLong(set_if_resolved))
+						continue;
+				}
+			}
+			else
+				argval = arginfo;
+
+			String missingMacro;
+			String argresolved = MacroProcessor::ResolveMacros(argval, macroResolvers,
+			    checkable->GetLastCheckResult(), &missingMacro);
+
+			if (!missingMacro.IsEmpty()) {
+				if (!optional) {
+					String message = "Non-optional macro '" + missingMacro + "' used in argument '" +
+					    argname + "' is missing while executing command '" + commandObj->GetName() +
+					    "' for object '" + checkable->GetName() + "'";
+					Log(LogWarning, "methods", message);
+
+					if (callback) {
+						ProcessResult pr;
+						pr.ExecutionStart = Utility::GetTime();
+						pr.ExecutionStart = pr.ExecutionStart;
+						pr.Output = message;
+						callback(Empty, pr);
+					}
+
+					return;
+				}
+
+				continue;
+			}
+
+			Array::Ptr command_arr = command;
+			command_arr->Add(argname);
+			if (!argval.IsEmpty())
+				command_arr->Add(argresolved);
+		}
+	}
+
+	Dictionary::Ptr envMacros = make_shared<Dictionary>();
+
+	Dictionary::Ptr env = commandObj->GetEnv();
+
+	if (env) {
+		ObjectLock olock(env);
+		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
+			String name = kv.second;
+
+			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, checkable->GetLastCheckResult());
+
+			envMacros->Set(kv.first, value);
+		}
+	}
+
+	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
+	process->SetTimeout(commandObj->GetTimeout());
+	process->Run(boost::bind(callback, command, _1));
+}
 
 ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 {

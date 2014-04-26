@@ -38,7 +38,6 @@ REGISTER_SCRIPTFUNCTION(PluginCheck,  &PluginCheckTask::ScriptFunc);
 void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-	Value raw_command = commandObj->GetCommandLine();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -51,38 +50,15 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellArg);
-
-	Dictionary::Ptr envMacros = make_shared<Dictionary>();
-
-	Dictionary::Ptr env = commandObj->GetEnv();
-
-	if (env) {
-		ObjectLock olock(env);
-		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
-			String name = kv.second;
-
-			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult());
-
-			envMacros->Set(kv.first, value);
-		}
-	}
-
-	cr->SetCommand(command);
-
-	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
-
-	process->SetTimeout(commandObj->GetTimeout());
-
-	process->Run(boost::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1));
-
+	PluginUtility::ExecuteCommand(commandObj, checkable, resolvers, boost::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
 }
 
-void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const ProcessResult& pr)
+void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
 {
 	String output = pr.Output;
 	output.Trim();
 	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(output);
+	cr->SetCommand(commandLine);
 	cr->SetOutput(co.first);
 	cr->SetPerformanceData(co.second);
 	cr->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));

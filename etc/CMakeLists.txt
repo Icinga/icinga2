@@ -33,7 +33,7 @@ install_if_not_exists(icinga2/conf.d/hosts/localhost/http.conf ${CMAKE_INSTALL_S
 install_if_not_exists(icinga2/conf.d/hosts/localhost/icinga.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
 install_if_not_exists(icinga2/conf.d/hosts/localhost/kernel.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
 install_if_not_exists(icinga2/conf.d/hosts/localhost/load.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
-install_if_not_exists(icinga2/conf.d/hosts/localhost/processes.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
+install_if_not_exists(icinga2/conf.d/hosts/localhost/procs.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
 install_if_not_exists(icinga2/conf.d/hosts/localhost/ssh.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
 install_if_not_exists(icinga2/conf.d/hosts/localhost/swap.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)
 install_if_not_exists(icinga2/conf.d/hosts/localhost/users.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d/hosts/localhost)

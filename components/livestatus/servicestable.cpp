@@ -315,7 +315,7 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	return MacroProcessor::ResolveMacros(service->GetNotes(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetNotes(), resolvers);
 }
 
 Value ServicesTable::NotesUrlAccessor(const Value& row)
@@ -340,7 +340,7 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	return MacroProcessor::ResolveMacros(service->GetNotesUrl(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetNotesUrl(), resolvers);
 }
 
 Value ServicesTable::ActionUrlAccessor(const Value& row)
@@ -365,7 +365,7 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	return MacroProcessor::ResolveMacros(service->GetActionUrl(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetActionUrl(), resolvers);
 }
 
 Value ServicesTable::IconImageAccessor(const Value& row)
@@ -390,7 +390,7 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 	resolvers.push_back(std::make_pair("host", service->GetHost()));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	return MacroProcessor::ResolveMacros(service->GetIconImage(), resolvers, CheckResult::Ptr(), Utility::EscapeShellCmd);
+	return MacroProcessor::ResolveMacros(service->GetIconImage(), resolvers);
 }
 
 Value ServicesTable::IconImageAltAccessor(const Value& row)

@@ -20,6 +20,7 @@
 #include "methods/plugineventtask.h"
 #include "icinga/eventcommand.h"
 #include "icinga/macroprocessor.h"
+#include "icinga/pluginutility.h"
 #include "icinga/icingaapplication.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
@@ -35,7 +36,6 @@ REGISTER_SCRIPTFUNCTION(PluginEvent, &PluginEventTask::ScriptFunc);
 void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 {
 	EventCommand::Ptr commandObj = checkable->GetEventCommand();
-	Value raw_command = commandObj->GetCommandLine();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -48,26 +48,5 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, checkable->GetLastCheckResult(), Utility::EscapeShellArg);
-
-	Dictionary::Ptr envMacros = make_shared<Dictionary>();
-
-	Dictionary::Ptr env = commandObj->GetEnv();
-
-	if (env) {
-		ObjectLock olock(env);
-		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
-			String name = kv.second;
-
-			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult());
-
-			envMacros->Set(kv.first, value);
-		}
-	}
-
-	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
-
-	process->SetTimeout(commandObj->GetTimeout());
-
-	process->Run();
+	PluginUtility::ExecuteCommand(commandObj, checkable, resolvers);
 }

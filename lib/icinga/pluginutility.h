@@ -23,6 +23,8 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/service.h"
 #include "icinga/checkcommand.h"
+#include "icinga/macroprocessor.h"
+#include "base/process.h"
 #include "base/dictionary.h"
 #include "base/dynamicobject.h"
 #include <vector>
@@ -38,6 +40,10 @@ namespace icinga
 class I2_ICINGA_API PluginUtility
 {
 public:
+	static void ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
+	    const MacroProcessor::ResolverList& macroResolvers,
+	    const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback = boost::function<void(const Value& commandLine, const ProcessResult&)>());
+
 	static ServiceState ExitStatusToState(int exitStatus);
 	static std::pair<String, Value> ParseCheckOutput(const String& output);
 

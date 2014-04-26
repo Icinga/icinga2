@@ -43,7 +43,8 @@ public:
 	typedef std::vector<ResolverSpec> ResolverList;
 
 	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,
-		const CheckResult::Ptr& cr, const EscapeCallback& escapeFn = EscapeCallback());
+	    const CheckResult::Ptr& cr = CheckResult::Ptr(), String *missingMacro = NULL,
+	    const EscapeCallback& escapeFn = EscapeCallback());
 
 private:
 	MacroProcessor(void);
@@ -52,7 +53,8 @@ private:
 		const CheckResult::Ptr& cr, String *result, bool *recursive_macro);
 	static String InternalResolveMacros(const String& str,
 	    const ResolverList& resolvers, const CheckResult::Ptr& cr,
-	    const EscapeCallback& escapeFn, int recursionLevel = 0);
+	    String *missingMacro, const EscapeCallback& escapeFn,
+	    int recursionLevel = 0);
 };
 
 }

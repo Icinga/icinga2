@@ -33,7 +33,8 @@
 using namespace icinga;
 
 Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolvers,
-	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn)
+    const CheckResult::Ptr& cr, String *missingMacro,
+    const MacroProcessor::EscapeCallback& escapeFn)
 {
 	Value result;
 
@@ -41,7 +42,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 		return Empty;
 
 	if (str.IsScalar()) {
-		result = InternalResolveMacros(str, resolvers, cr, escapeFn);
+		result = InternalResolveMacros(str, resolvers, cr, missingMacro, escapeFn);
 	} else if (str.IsObjectType<Array>()) {
 		Array::Ptr resultArr = make_shared<Array>();
 		Array::Ptr arr = str;
@@ -50,7 +51,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 		BOOST_FOREACH(const Value& arg, arr) {
 			/* Note: don't escape macros here. */
-			resultArr->Add(InternalResolveMacros(arg, resolvers, cr, EscapeCallback()));
+			resultArr->Add(InternalResolveMacros(arg, resolvers, cr, missingMacro, EscapeCallback()));
 		}
 
 		result = resultArr;
@@ -150,7 +151,8 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 }
 
 String MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
-	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, int recursionLevel)
+    const CheckResult::Ptr& cr, String *missingMacro,
+    const MacroProcessor::EscapeCallback& escapeFn, int recursionLevel)
 {
 	CONTEXT("Resolving macros for string '" + str + "'");
 
@@ -179,12 +181,17 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 			found = true;
 		}
 
-		if (!found)
-			Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
+		if (!found) {
+			if (!missingMacro)
+				Log(LogWarning, "icinga", "Macro '" + name + "' is not defined.");
+			else
+				*missingMacro = name;
+		}
 
 		/* recursively resolve macros in the macro if it was a user macro */
 		if (recursive_macro)
-			resolved_macro = InternalResolveMacros(resolved_macro, resolvers, cr, EscapeCallback(), recursionLevel + 1);
+			resolved_macro = InternalResolveMacros(resolved_macro,
+			    resolvers, cr, missingMacro, EscapeCallback(), recursionLevel + 1);
 
 		if (escapeFn)
 			resolved_macro = escapeFn(resolved_macro);

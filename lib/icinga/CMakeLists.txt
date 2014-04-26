@@ -45,15 +45,13 @@ add_library(icinga SHARED
   checkable-flapping.cpp checkcommand.cpp checkcommand.th checkresult.cpp checkresult.th
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp dependency.cpp dependency.th
   dependency-apply.cpp domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
-  externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th
-  icingaapplication.cpp icingaapplication.th icingastatuswriter.cpp
-  icingastatuswriter.th legacytimeperiod.cpp
-  macroprocessor.cpp macroresolver.cpp notificationcommand.cpp notificationcommand.th
-  notification.cpp notification.th notification-apply.cpp perfdatavalue.cpp perfdatavalue.th
-  pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th scheduleddowntime-apply.cpp
-  service-apply.cpp checkable-check.cpp checkable-comment.cpp service.cpp service.th
-  servicegroup.cpp servicegroup.th checkable-notification.cpp timeperiod.cpp timeperiod.th user.cpp user.th
-  usergroup.cpp usergroup.th icinga-type.cpp
+  externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th icingaapplication.cpp
+  icingaapplication.th icingastatuswriter.cpp icingastatuswriter.th legacytimeperiod.cpp macroprocessor.cpp
+  notificationcommand.cpp notificationcommand.th notification.cpp notification.th notification-apply.cpp
+  perfdatavalue.cpp perfdatavalue.th pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th
+  scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp service.cpp
+  service.th servicegroup.cpp servicegroup.th checkable-notification.cpp timeperiod.cpp timeperiod.th
+  user.cpp user.th usergroup.cpp usergroup.th icinga-type.cpp
 )
 
 target_link_libraries(icinga ${Boost_LIBRARIES} base config)

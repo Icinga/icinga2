@@ -20,6 +20,7 @@
 #include "methods/pluginnotificationtask.h"
 #include "icinga/notification.h"
 #include "icinga/notificationcommand.h"
+#include "icinga/pluginutility.h"
 #include "icinga/service.h"
 #include "icinga/macroprocessor.h"
 #include "icinga/icingaapplication.h"
@@ -42,8 +43,6 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Checkable::Ptr checkable = notification->GetCheckable();
 
-	Value raw_command = commandObj->GetCommandLine();
-
 	Dictionary::Ptr notificationExtra = make_shared<Dictionary>();
 	notificationExtra->Set("type", Notification::NotificationTypeToString(type));
 	notificationExtra->Set("author", author);
@@ -63,28 +62,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Value command = MacroProcessor::ResolveMacros(raw_command, resolvers, cr, Utility::EscapeShellArg);
-
-	Dictionary::Ptr envMacros = make_shared<Dictionary>();
-
-	Dictionary::Ptr env = commandObj->GetEnv();
-
-	if (env) {
-		ObjectLock olock(env);
-		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
-			String name = kv.second;
-
-			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult());
-
-			envMacros->Set(kv.first, value);
-		}
-	}
-
-	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
-
-	process->SetTimeout(commandObj->GetTimeout());
-
-	process->Run(boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, command, _1));
+	PluginUtility::ExecuteCommand(commandObj, checkable, resolvers, boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& command, const ProcessResult& pr)

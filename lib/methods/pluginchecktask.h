@@ -40,7 +40,7 @@ public:
 private:
 	PluginCheckTask(void);
 
-	static void ProcessFinishedHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr, const ProcessResult& pr);
+	static void ProcessFinishedHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr);
 
 };
 
