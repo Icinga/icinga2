@@ -42,6 +42,15 @@ void StreamLogger::Start(void)
 	m_Tty = false;
 }
 
+void StreamLogger::Stop(void)
+{
+	Logger::Stop();
+
+	// make sure we flush the log data on shutdown, even if we don't call the destructor
+	if (m_Stream)
+		m_Stream->flush();
+}
+
 /**
  * Destructor for the StreamLogger class.
  */

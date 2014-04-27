@@ -39,6 +39,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(StreamLogger);
 
 	virtual void Start(void);
+	virtual void Stop(void);
 	~StreamLogger(void);
 
 	void BindStream(std::ostream *stream, bool ownsStream);

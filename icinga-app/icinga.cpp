@@ -200,10 +200,9 @@ static void TerminateAndWaitForEnd(pid_t target)
 
 	int ret = kill(target, SIGTERM);
 
-	while(Utility::GetTime() < timeout && (ret==0 || errno!=ESRCH))
-	{
+	while (Utility::GetTime() < timeout && (ret == 0 || errno != ESRCH)) {
 		Utility::Sleep(0.1);
-		ret = kill(target, SIGTERM);
+		ret = kill(target, 0);
 	}
 
 	// timeout and the process still seems to live: kill it
