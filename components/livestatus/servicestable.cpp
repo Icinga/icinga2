@@ -490,6 +490,7 @@ Value ServicesTable::AcknowledgedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
+	ObjectLock olock(service);
 	return CompatUtility::GetCheckableIsAcknowledged(service);
 }
 
@@ -500,10 +501,8 @@ Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	/* important: lock acknowledgements */
 	ObjectLock olock(service);
-
-	return static_cast<int>(service->GetAcknowledgement());
+	return CompatUtility::GetCheckableAcknowledgementType(service);
 }
 
 Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
@@ -1056,10 +1055,9 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 
 	Array::Ptr cv = make_shared<Array>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(key);
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair kv, vars) {
+		cv->Add(kv.second);
 	}
 
 	return cv;
@@ -1084,10 +1082,9 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 
 	Array::Ptr cv = make_shared<Array>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(value);
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		cv->Add(kv.second);
 	}
 
 	return cv;

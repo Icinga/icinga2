@@ -475,6 +475,7 @@ Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
+	ObjectLock olock(host);
 	return CompatUtility::GetCheckableAcknowledgementType(host);
 }
 
@@ -615,6 +616,7 @@ Value HostsTable::AcknowledgedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
+	ObjectLock olock(host);
 	return CompatUtility::GetCheckableIsAcknowledged(host);
 }
 

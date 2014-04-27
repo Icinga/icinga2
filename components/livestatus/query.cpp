@@ -194,7 +194,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 			aggregators.push_back(aggregator);
 
 			stats.push_back(filter);
-		} else if (header == "Or" || header == "And") {
+		} else if (header == "Or" || header == "And" || header == "StatsOr" || header == "StatsAnd") {
 			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
 			unsigned int num = Convert::ToLong(params);
@@ -219,9 +219,16 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 				filter->AddSubFilter(deq.back());
 				Log(LogDebug, "livestatus", "Add " +  Convert::ToString(num) + " filter.");
 				deq.pop_back();
+				if (&deq == &stats)
+					aggregators.pop_back();
 			}
 
 			deq.push_back(filter);
+			if (&deq == &stats) {
+				Aggregator::Ptr aggregator = make_shared<CountAggregator>();
+				aggregator->SetFilter(filter);
+				aggregators.push_back(aggregator);
+			}
 		} else if (header == "Negate" || header == "StatsNegate") {
 			std::deque<Filter::Ptr>& deq = (header == "Negate") ? filters : stats;
 
