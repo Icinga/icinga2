@@ -145,6 +145,8 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 
 			filters.push_back(filter);
 		} else if (header == "Stats") {
+			m_ColumnHeaders = false; // Might be explicitly re-enabled later on
+
 			std::vector<String> tokens;
 			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
 
@@ -448,7 +450,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 				header->Add(columnName);
 			}
 
-			for (size_t i = 1; i < m_Aggregators.size(); i++) {
+			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
 				header->Add("stats_" + Convert::ToString(i));
 			}
 
