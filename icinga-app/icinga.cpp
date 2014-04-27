@@ -203,7 +203,7 @@ static void TerminateAndWaitForEnd(pid_t target)
 	while(Utility::GetTime() < timeout && (ret==0 || errno!=ESRCH))
 	{
 		Utility::Sleep(0.1);
-		ret = kill(target, 0);
+		ret = kill(target, SIGTERM);
 	}
 
 	// timeout and the process still seems to live: kill it
@@ -280,7 +280,7 @@ int Main(void)
 		("validate,C", "exit after validating the configuration")
 		("debug,x", "enable debugging")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
-		("reload,r", "reload a running icinga instance")
+		("reload-internal", "used internally to implement config reload: do not call manually, send SIGHUP instead")
 #ifndef _WIN32
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
@@ -434,15 +434,12 @@ int Main(void)
 		return EXIT_FAILURE;
 	}
 
-	pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
-	if (g_AppParams.count("reload")) {
-		if (runningpid < 0) {
-			Log(LogCritical, "icinga-app", "No instance of Icinga currently running: can't reload.");
+	if (!g_AppParams.count("validate") && !g_AppParams.count("reload-internal")) {
+		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
+		if (runningpid >= 0) {
+			Log(LogCritical, "icinga-app", "Another instance of Icinga already running with PID " + Convert::ToString(runningpid));
 			return EXIT_FAILURE;
 		}
-	} else if (!g_AppParams.count("validate") && runningpid >= 0) {
-		Log(LogCritical, "icinga-app", "Another instance of Icinga already running at PID " + Convert::ToString(runningpid));
-		return EXIT_FAILURE;
 	}
 
 	if (!LoadConfigFiles(appType))
@@ -453,9 +450,9 @@ int Main(void)
 		return EXIT_SUCCESS;
 	}
 
-	if (g_AppParams.count("reload")) {
-		Log(LogInformation, "icinga-app", "Terminating previous instance of icinga (PID " + Convert::ToString(runningpid) + ")");
-		TerminateAndWaitForEnd(runningpid);
+	if(g_AppParams.count("reload-internal")) {
+		Log(LogInformation, "icinga-app", "Terminating previous instance of Icinga (PID " + Convert::ToString(Utility::GetParentPid()) + ")");
+		TerminateAndWaitForEnd(Utility::GetParentPid());
 		Log(LogInformation, "icinga-app", "Previous instance has ended, taking over now.");
 	}
 

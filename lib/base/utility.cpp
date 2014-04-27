@@ -332,6 +332,21 @@ pid_t Utility::GetPid(void)
 }
 
 /**
+ * Returns the ID of the parent process.
+ *
+ * @returns The PID.
+ */
+pid_t Utility::GetParentPid(void)
+{
+#ifndef _WIN32
+	return getppid();
+#else /* _WIN32 */
+	// TODO
+	return 0;
+#endif /* _WIN32 */
+}
+
+/**
  * Sleeps for the specified amount of time.
  *
  * @param timeout The timeout in seconds.

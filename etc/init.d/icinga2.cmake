@@ -106,11 +106,13 @@ stop() {
 # Reload Icinga 2
 reload() {
 	printf "Reloading Icinga 2: "
-	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -d --reload -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP; then
-		echo "Error reloading Icinga."
-		exit 1
-	else
+
+	pid=`cat $ICINGA2_PID_FILE`
+	if kill -HUP $pid >/dev/null 2>&1; then
 		echo "Done"
+	else
+		echo "Error: Icinga not running"
+		exit 3
 	fi
 }
 

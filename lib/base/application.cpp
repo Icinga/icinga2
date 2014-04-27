@@ -46,6 +46,7 @@ REGISTER_TYPE(Application);
 
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
+bool Application::m_RequestRestart = false;
 bool Application::m_Restarting = false;
 bool Application::m_Debugging = false;
 int Application::m_ArgC;
@@ -219,7 +220,8 @@ void Application::RunEventLoop(void) const
 
 	double lastLoop = Utility::GetTime();
 
-	while (!m_ShuttingDown && !m_Restarting) {
+mainloop:
+	while (!m_ShuttingDown && !m_RequestRestart) {
 		/* Watches for changes to the system time. Adjusts timers if necessary. */
 		Utility::Sleep(2.5);
 
@@ -238,8 +240,21 @@ void Application::RunEventLoop(void) const
 		}
 
 		lastLoop = now;
-	}
 
+		if (m_RequestRestart) {
+			m_RequestRestart = false;         // we are now handling the request, once is enough
+		
+			// are we already restarting? ignore request if we already are
+			if (m_Restarting)
+				goto mainloop;
+
+			m_Restarting = true;
+			StartReloadProcess();
+
+			goto mainloop;
+		}
+	}
+	
 	Log(LogInformation, "base", "Shutting down Icinga...");
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
@@ -259,6 +274,33 @@ void Application::OnShutdown(void)
 	/* Nothing to do here. */
 }
 
+void Application::StartReloadProcess(void) const
+{
+	Log(LogInformation, "base", "Got reload command: Starting new instance.");
+
+	// prepare arguments
+	std::vector<String> args;
+	args.push_back(GetExePath(m_ArgV[0]));
+
+	for (int i=1; i < Application::GetArgC(); i++)
+		if (std::string(Application::GetArgV()[i]) != "--reload-internal")
+			args.push_back(Application::GetArgV()[i]);
+	args.push_back("--reload-internal");
+
+	Process::Ptr process = make_shared<Process>(args);
+
+	process->SetTimeout(15);
+
+	process->Run(boost::bind(&Application::ReloadProcessCallback, _1));
+}
+
+void Application::ReloadProcessCallback(const ProcessResult& pr)
+{
+	if (pr.ExitStatus != 0)
+		Log(LogCritical, "base", "Found error in config: reloading aborted");
+	m_Restarting=false;
+}
+
 /**
  * Signals the application to shut down during the next
  * execution of the event loop.
@@ -274,7 +316,7 @@ void Application::RequestShutdown(void)
  */
 void Application::RequestRestart(void)
 {
-	m_Restarting = true;
+	m_RequestRestart = true;
 }
 
 /**
@@ -562,29 +604,6 @@ int Application::Run(void)
 	UpdatePidFile(GetPidPath());
 
 	result = Main();
-
-	if (m_Restarting) {
-		Log(LogInformation, "base", "Restarting application.");
-
-#ifndef _WIN32
-		String exePath = GetExePath(m_ArgV[0]);
-
-		int fdcount = getdtablesize();
-
-		for (int i = 3; i < fdcount; i++)
-			(void) close(i);
-
-		(void) execv(exePath.CStr(), m_ArgV);
-#else /* _WIN32 */
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-		memset(&si, 0, sizeof(si));
-		si.cb = sizeof(si);
-		CreateProcess(NULL, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-#endif /* _WIN32 */
-
-		_exit(0);
-	}
 
 	return result;
 }
