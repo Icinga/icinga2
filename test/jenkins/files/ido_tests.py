@@ -76,7 +76,7 @@ TABLES = [
     ]
 EXAMPLE_CONFIG = {
     'localhost': ['disk', 'http', 'icinga', 'load', 'ping4',
-                  'ping6', 'processes', 'ssh', 'users'],
+                  'ping6', 'procs', 'ssh', 'users'],
     'nsca-ng': ['PassiveService1', 'PassiveService2']
 }
 
