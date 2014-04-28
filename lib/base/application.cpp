@@ -240,19 +240,19 @@ mainloop:
 		}
 
 		lastLoop = now;
-
-		if (m_RequestRestart) {
-			m_RequestRestart = false;         // we are now handling the request, once is enough
+	}
 		
-			// are we already restarting? ignore request if we already are
-			if (m_Restarting)
-				goto mainloop;
+	if (m_RequestRestart) {
+		m_RequestRestart = false;         // we are now handling the request, once is enough
 
-			m_Restarting = true;
-			StartReloadProcess();
-
+		// are we already restarting? ignore request if we already are
+		if (m_Restarting)
 			goto mainloop;
-		}
+
+		m_Restarting = true;
+		StartReloadProcess();
+
+		goto mainloop;
 	}
 	
 	Log(LogInformation, "base", "Shutting down Icinga...");
@@ -289,7 +289,7 @@ void Application::StartReloadProcess(void) const
 
 	Process::Ptr process = make_shared<Process>(args);
 
-	process->SetTimeout(15);
+	process->SetTimeout(300);
 
 	process->Run(boost::bind(&Application::ReloadProcessCallback, _1));
 }
