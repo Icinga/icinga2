@@ -74,7 +74,6 @@ public:
 	static double GetTime(void);
 
 	static pid_t GetPid(void);
-	static pid_t GetParentPid(void);
 
 	static void Sleep(double timeout);
 

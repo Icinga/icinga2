@@ -195,8 +195,8 @@ static bool Daemonize(const String& stderrFile)
 static void TerminateAndWaitForEnd(pid_t target)
 {
 #ifndef _WIN32
-	// allow 15 seconds timeout
-	double timeout = Utility::GetTime() + 15;
+	// allow 30 seconds timeout
+	double timeout = Utility::GetTime() + 30;
 
 	int ret = kill(target, SIGTERM);
 
@@ -279,8 +279,8 @@ int Main(void)
 		("validate,C", "exit after validating the configuration")
 		("debug,x", "enable debugging")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
-		("reload-internal", "used internally to implement config reload: do not call manually, send SIGHUP instead")
 #ifndef _WIN32
+		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead")
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
@@ -450,8 +450,9 @@ int Main(void)
 	}
 
 	if(g_AppParams.count("reload-internal")) {
-		Log(LogInformation, "icinga-app", "Terminating previous instance of Icinga (PID " + Convert::ToString(Utility::GetParentPid()) + ")");
-		TerminateAndWaitForEnd(Utility::GetParentPid());
+		int parentpid = g_AppParams["reload-internal"].as<int>();
+		Log(LogInformation, "icinga-app", "Terminating previous instance of Icinga (PID " + Convert::ToString(parentpid) + ")");
+		TerminateAndWaitForEnd(parentpid);
 		Log(LogInformation, "icinga-app", "Previous instance has ended, taking over now.");
 	}
 
