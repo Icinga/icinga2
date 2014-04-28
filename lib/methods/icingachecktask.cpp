@@ -70,6 +70,9 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Set("num_services_in_downtime", ss.services_in_downtime);
 	perfdata->Set("num_services_acknowledged", ss.services_acknowledged);
 
+	double uptime = Utility::GetTime() - Application::GetStartTime();
+	perfdata->Set("uptime", uptime);
+
 	HostStatistics hs = CIB::CalculateHostStats();
 
 	perfdata->Set("num_hosts_up", hs.hosts_up);
@@ -79,7 +82,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
 	perfdata->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
 
-	cr->SetOutput("Icinga 2 is running. Version: " + Application::GetVersion());
+	cr->SetOutput("Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
+	    ". Version: " + Application::GetVersion());
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(ServiceOK);
 

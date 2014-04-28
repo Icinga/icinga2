@@ -697,6 +697,55 @@ void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback)
 	Application::GetTP().Post(callback);
 }
 
+String Utility::NaturalJoin(const std::vector<String>& tokens)
+{
+	String result;
+
+	for (int i = 0; i < tokens.size(); i++) {
+		result += tokens[i];
+
+		if (tokens.size() > i + 1) {
+			if (i < tokens.size() - 2)
+				result += ", ";
+			else if (i == tokens.size() - 2)
+				result += " and ";
+		}
+	}
+
+	return result;
+}
+
+String Utility::FormatDuration(int duration)
+{
+	std::vector<String> tokens;
+	String result;
+
+	if (duration >= 86400) {
+		int days = duration / 86400;
+		tokens.push_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
+		duration %= 86400;
+	}
+
+	if (duration >= 3600) {
+		int hours = duration / 3600;
+		tokens.push_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
+		duration %= 3600;
+	}
+
+	if (duration >= 60) {
+		int minutes = duration / 60;
+		tokens.push_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
+		duration %= 60;
+	}
+
+	if (duration >= 1) {
+		int seconds = duration;
+		tokens.push_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
+	}
+
+	return NaturalJoin(tokens);
+}
+
 String Utility::FormatDateTime(const char *format, double ts)
 {
 	char timestamp[128];

@@ -25,6 +25,7 @@
 #include <typeinfo>
 #include <boost/function.hpp>
 #include <boost/thread/tss.hpp>
+#include <vector>
 
 namespace icinga
 {
@@ -83,6 +84,9 @@ public:
 
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
 
+	static String NaturalJoin(const std::vector<String>& tokens);
+
+	static String FormatDuration(int duration);
 	static String FormatDateTime(const char *format, double ts);
 
 	static
