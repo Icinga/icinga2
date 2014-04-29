@@ -89,13 +89,14 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			CommandArgument arg;
 			arg.Key = kv.first;
 
-			bool optional = false;
+			bool required = false;
 			String argval;
 
 			if (arginfo.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr argdict = arginfo;
 				argval = argdict->Get("value");
-				optional = argdict->Get("optional");
+				if (argdict->Contains("required"))
+					required = argdict->Get("required");
 				arg.SkipKey = argdict->Get("skip_key");
 				arg.Order = argdict->Get("order");
 
@@ -121,7 +122,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			    checkable->GetLastCheckResult(), &missingMacro);
 
 			if (!missingMacro.IsEmpty()) {
-				if (!optional) {
+				if (required) {
 					String message = "Non-optional macro '" + missingMacro + "' used in argument '" +
 					    arg.Key + "' is missing while executing command '" + commandObj->GetName() +
 					    "' for object '" + checkable->GetName() + "'";
