@@ -274,29 +274,23 @@ void ConfigItem::ValidateItem(void)
 	m_Validated = true;
 }
 
-bool ConfigItem::ActivateItems(ValidationType validate)
+bool ConfigItem::ValidateItems(void)
 {
-	if (ConfigCompilerContext::GetInstance()->HasErrors())
-		return false;
-
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
 	ParallelWorkQueue upq;
 
-	if (validate != ValidateNone) {
-		Log(LogInformation, "config", "Validating config items (step 1)...");
+	Log(LogInformation, "config", "Validating config items (step 1)...");
 
-		BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-			upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
-		}
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
+	}
 
-		upq.Join();
+	upq.Join();
 
-		if (ConfigCompilerContext::GetInstance()->HasErrors())
-			return false;
-	} else
-		Log(LogInformation, "config", "Skipping validating config items (step 1)...");
+	if (ConfigCompilerContext::GetInstance()->HasErrors())
+		return false;
 
 	Log(LogInformation, "config", "Committing config items");
 
@@ -328,34 +322,31 @@ bool ConfigItem::ActivateItems(ValidationType validate)
 	Log(LogInformation, "config", "Evaluating 'object' rules...");
 	ObjectRule::EvaluateRules();
 
-	if (validate != ValidateNone) {
-		Log(LogInformation, "config", "Validating config items (step 2)...");
+	Log(LogInformation, "config", "Validating config items (step 2)...");
 
-		BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-			upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
-		}
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
+	}
 
-		upq.Join();
-	} else
-		Log(LogInformation, "config", "Skipping validating config items (step 2)...");
+	upq.Join();
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();
 
-	if (validate != ValidateNone) {
-		/* log stats for external parsers */
-		BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-			int count = std::distance(type->GetObjects().first, type->GetObjects().second);
-			if (count > 0)
-				Log(LogInformation, "config", "Checked " + Convert::ToString(count) + " " + type->GetName() + "(s).");
-		}
+	/* log stats for external parsers */
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		int count = std::distance(type->GetObjects().first, type->GetObjects().second);
+		if (count > 0)
+			Log(LogInformation, "config", "Checked " + Convert::ToString(count) + " " + type->GetName() + "(s).");
 	}
 
+	return !ConfigCompilerContext::GetInstance()->HasErrors();
+}
+
+bool ConfigItem::ActivateItems(void)
+{
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
-
-	if (validate == ValidateOnly)
-		return true;
 
 	/* restore the previous program state */
 	try {
@@ -365,6 +356,8 @@ bool ConfigItem::ActivateItems(ValidationType validate)
 	}
 
 	Log(LogInformation, "config", "Triggering Start signal for config items");
+
+	ParallelWorkQueue upq;
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {

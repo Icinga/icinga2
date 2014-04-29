@@ -61,11 +61,13 @@ start() {
 	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_STATE_DIR/run/icinga2/cmd
 	chmod 2755 $ICINGA2_STATE_DIR/run/icinga2/cmd
 
-        echo "Starting Icinga 2: "
-        $DAEMON -c $ICINGA2_CONFIG_FILE -Z -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP
-
-        echo "Done"
-        echo
+	echo "Starting Icinga 2: "
+	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP; then
+		echo "Error starting Icinga."
+		exit 1
+	else
+		echo "Done"
+	fi
 }
 
 # Restart Icinga 2
@@ -104,17 +106,13 @@ stop() {
 # Reload Icinga 2
 reload() {
 	printf "Reloading Icinga 2: "
-	if [ ! -e $ICINGA2_PID_FILE ]; then
-		echo "The PID file '$ICINGA2_PID_FILE' does not exist."
-		exit 1
-	fi
 
 	pid=`cat $ICINGA2_PID_FILE`
-
-	if ! kill -HUP $pid >/dev/null 2>&1; then
-		echo "Failed - Icinga 2 is not running."
-	else
+	if kill -HUP $pid >/dev/null 2>&1; then
 		echo "Done"
+	else
+		echo "Error: Icinga not running"
+		exit 3
 	fi
 }
 
@@ -162,7 +160,6 @@ case "$1" in
         start
         ;;
   reload)
-	checkconfig reload fail
 	reload
 	;;
   checkconfig)

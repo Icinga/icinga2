@@ -67,7 +67,7 @@ static String LoadAppType(const String& typeSpec)
 	return typeSpec.SubStr(index + 1);
 }
 
-static bool LoadConfigFiles(const String& appType, ValidationType validate)
+static bool LoadConfigFiles(const String& appType)
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
@@ -88,7 +88,7 @@ static bool LoadConfigFiles(const String& appType, ValidationType validate)
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	bool result = ConfigItem::ActivateItems(validate);
+	bool result = ConfigItem::ValidateItems();
 
 	int warnings = 0, errors = 0;
 
@@ -187,6 +187,33 @@ static bool Daemonize(const String& stderrFile)
 	return true;
 }
 
+/**
+ * Terminate another process and wait till it has ended
+ *
+ * @params target PID of the process to end
+ */
+static void TerminateAndWaitForEnd(pid_t target)
+{
+#ifndef _WIN32
+	// allow 30 seconds timeout
+	double timeout = Utility::GetTime() + 30;
+
+	int ret = kill(target, SIGTERM);
+
+	while (Utility::GetTime() < timeout && (ret == 0 || errno != ESRCH)) {
+		Utility::Sleep(0.1);
+		ret = kill(target, 0);
+	}
+
+	// timeout and the process still seems to live: kill it
+	if (ret == 0 || errno != ESRCH)
+		kill(target, SIGKILL);
+
+#else
+	// TODO: implement this for Win32
+#endif /* _WIN32 */
+}
+
 int Main(void)
 {
 	int argc = Application::GetArgC();
@@ -250,10 +277,10 @@ int Main(void)
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
-		("no-validate,Z", "skip validating the configuration")
 		("debug,x", "enable debugging")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
+		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead")
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
@@ -406,6 +433,29 @@ int Main(void)
 		return EXIT_FAILURE;
 	}
 
+	if (!g_AppParams.count("validate") && !g_AppParams.count("reload-internal")) {
+		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
+		if (runningpid >= 0) {
+			Log(LogCritical, "icinga-app", "Another instance of Icinga already running with PID " + Convert::ToString(runningpid));
+			return EXIT_FAILURE;
+		}
+	}
+
+	if (!LoadConfigFiles(appType))
+		return EXIT_FAILURE;
+
+	if (g_AppParams.count("validate")) {
+		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
+		return EXIT_SUCCESS;
+	}
+
+	if(g_AppParams.count("reload-internal")) {
+		int parentpid = g_AppParams["reload-internal"].as<int>();
+		Log(LogInformation, "icinga-app", "Terminating previous instance of Icinga (PID " + Convert::ToString(parentpid) + ")");
+		TerminateAndWaitForEnd(parentpid);
+		Log(LogInformation, "icinga-app", "Previous instance has ended, taking over now.");
+	}
+
 	if (g_AppParams.count("daemonize")) {
 		String errorLog;
 
@@ -416,22 +466,12 @@ int Main(void)
 		Logger::DisableConsoleLog();
 	}
 
-	ValidationType validate = ValidateStart;
-
-	if (g_AppParams.count("validate"))
-		validate = ValidateOnly;
-
-	if (g_AppParams.count("no-validate"))
-		validate = ValidateNone;
-
-	if (!LoadConfigFiles(appType, validate))
+	// activate config only after daemonization: it starts threads and that is not compatible with fork()
+	if (!ConfigItem::ActivateItems()) {
+		Log(LogCritical, "icinga-app", "Error activating configuration.");
 		return EXIT_FAILURE;
-
-	if (validate == ValidateOnly) {
-		Log(LogInformation, "icinga-app", "Finished validating the configuration file(s).");
-		return EXIT_SUCCESS;
 	}
-
+	
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));

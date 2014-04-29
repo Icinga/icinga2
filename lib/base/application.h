@@ -24,6 +24,7 @@
 #include "base/application.th"
 #include "base/threadpool.h"
 #include "base/dynamicobject.h"
+#include "base/process.h"
 
 namespace icinga {
 
@@ -69,6 +70,7 @@ public:
 
 	void UpdatePidFile(const String& filename);
 	void ClosePidFile(void);
+	static pid_t ReadPidFile(const String& filename);
 
 	static String GetExePath(const String& argv0);
 
@@ -108,6 +110,8 @@ protected:
 
 	void RunEventLoop(void) const;
 
+	void StartReloadProcess(void) const;
+
 	virtual void OnShutdown(void);
 
 private:
@@ -115,6 +119,7 @@ private:
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
+	static bool m_RequestRestart;
 	static bool m_Restarting;
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
@@ -134,6 +139,8 @@ private:
 
 	static void SigAbrtHandler(int signum);
 	static void ExceptionHandler(void);
+
+	static void ReloadProcessCallback(const ProcessResult& pr);
 };
 
 }
