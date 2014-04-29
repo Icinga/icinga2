@@ -33,8 +33,6 @@ WorkQueue::WorkQueue(size_t maxItems)
 	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Stopped(false),
 	  m_Processing(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
 {
-	m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
-
 	m_StatusTimer = make_shared<Timer>();
 	m_StatusTimer->SetInterval(10);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&WorkQueue::StatusTimerHandler, this));
@@ -68,6 +66,9 @@ void WorkQueue::Enqueue(const WorkCallback& callback, bool allowInterleaved)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
+	if (m_Thread.get_id() == boost::thread::id())
+		m_Thread = boost::thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
+
 	if (!wq_thread) {
 		while (m_Items.size() >= m_MaxItems)
 			m_CVFull.wait(lock);
@@ -91,7 +92,8 @@ void WorkQueue::Join(bool stop)
 		m_CVEmpty.notify_all();
 		lock.unlock();
 
-		m_Thread.join();
+		if (m_Thread.joinable())
+			m_Thread.join();
 	}
 }
 
