@@ -4,6 +4,34 @@ Please check doc/1-about.md.
 
 ## What's New
 
+### What's New in Version 0.0.10
+
+* Make Host and Service checkable. #5919
+* Support new lines in addition to commas to seperate object attributes. #5901
+* Add group membership assign rules. #5910
+* Support nested groups. #5858
+* Add apply target type. #5924
+* Add relative object names. #5925
+* Merge macros and custom into 'vars' dictionary. Changed runtime macros and environment variable export. #5855
+* Add support for modified attributes for custom attributes. #5956
+* Allow to assign var values to existin vars evaluted on runtime. #5959
+* Rename/shorten attribute names and filter variables. #5857 
+* Remove the 'Icinga' prefix for global constants. #5960
+* Global option to enable/disable host/service checks. #5975
+* Add legacy attributes to host, service and group objects: `address{,6}'`, `notes`, `notes_url`, `action_url`, `icon_image`, `icon_image_alt`. #5856
+* Support "#" hash comments. #5994
+* Cluster: Spanning Tree like communication. #5467
+* Properly implement the Process class for Windows. #3684
+
+#### Changes
+
+> **Note**
+>
+> Configuration updates required!
+
+* Configuration Changes. For a detailed list of changes check out [#5909](https://dev.icinga.org/issues/5909)
+* DB IDO schema upgrade required.
+
 ### What's New in Version 0.0.9
 
 * new [apply](#apply) rules for assigning objects based on attribute conditions
