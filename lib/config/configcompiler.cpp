@@ -22,6 +22,7 @@
 #include "base/logger_fwd.h"
 #include "base/utility.h"
 #include "base/context.h"
+#include "base/exception.h"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
@@ -190,7 +191,10 @@ void ConfigCompiler::CompileFile(const String& path)
 	stream.open(path.CStr(), std::ifstream::in);
 
 	if (!stream)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Could not open config file: " + path));
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("std::ifstream::open")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	Log(LogInformation, "config", "Compiling config file: " + path);
 
