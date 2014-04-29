@@ -149,14 +149,14 @@ static bool Daemonize(const String& stderrFile)
 		exit(0);
 
 	int fdnull = open("/dev/null", O_RDWR);
-	if (fdnull > 0) {
+	if (fdnull >= 0) {
 		if (fdnull != 0)
 			dup2(fdnull, 0);
 
 		if (fdnull != 1)
 			dup2(fdnull, 1);
 
-		if (fdnull > 2)
+		if (fdnull > 1)
 			close(fdnull);
 	}
 
