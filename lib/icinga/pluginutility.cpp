@@ -36,6 +36,33 @@
 
 using namespace icinga;
 
+struct CommandArgument
+{
+	int Order;
+	bool SkipKey;
+	bool SkipValue;
+	String Key;
+	String Value;
+
+	CommandArgument(void)
+		: Order(0), SkipKey(false), SkipValue(false)
+	{ }
+
+	bool operator<(const CommandArgument& rhs) const
+	{
+		return GetNormalizedOrder() < rhs.GetNormalizedOrder();
+	}
+
+private:
+	int GetNormalizedOrder(void) const
+	{
+		if (Order == 0)
+			return 0;
+		else
+			return -(1 / Order);
+	}
+};
+
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
     const MacroProcessor::ResolverList& macroResolvers,
     const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback)
@@ -53,20 +80,24 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	}
 
 	if (raw_arguments) {
+		std::vector<CommandArgument> args;
+
 		ObjectLock olock(raw_arguments);
 		BOOST_FOREACH(const Dictionary::Pair& kv, raw_arguments) {
-			const String& argname = kv.first;
 			const Value& arginfo = kv.second;
 
+			CommandArgument arg;
+			arg.Key = kv.first;
+
 			bool optional = false;
-			bool skip_key = false;
 			String argval;
 
 			if (arginfo.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr argdict = arginfo;
 				argval = argdict->Get("value");
 				optional = argdict->Get("optional");
-				skip_key = argdict->Get("skip_key");
+				arg.SkipKey = argdict->Get("skip_key");
+				arg.Order = argdict->Get("order");
 
 				String set_if = argdict->Get("set_if");
 
@@ -82,14 +113,17 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			else
 				argval = arginfo;
 
+			if (argval.IsEmpty())
+				arg.SkipValue = true;
+
 			String missingMacro;
-			String argresolved = MacroProcessor::ResolveMacros(argval, macroResolvers,
+			arg.Value = MacroProcessor::ResolveMacros(argval, macroResolvers,
 			    checkable->GetLastCheckResult(), &missingMacro);
 
 			if (!missingMacro.IsEmpty()) {
 				if (!optional) {
 					String message = "Non-optional macro '" + missingMacro + "' used in argument '" +
-					    argname + "' is missing while executing command '" + commandObj->GetName() +
+					    arg.Key + "' is missing while executing command '" + commandObj->GetName() +
 					    "' for object '" + checkable->GetName() + "'";
 					Log(LogWarning, "methods", message);
 
@@ -107,11 +141,18 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 				continue;
 			}
 
-			Array::Ptr command_arr = command;
-			if (!skip_key)
-				command_arr->Add(argname);
-			if (!argval.IsEmpty())
-				command_arr->Add(argresolved);
+			args.push_back(arg);
+		}
+
+		std::sort(args.begin(), args.end());
+
+		Array::Ptr command_arr = command;
+		BOOST_FOREACH(const CommandArgument& arg, args) {
+			if (!arg.SkipKey)
+				command_arr->Add(arg.Key);
+
+			if (!arg.SkipValue)
+				command_arr->Add(arg.Value);
 		}
 	}
 
