@@ -7,6 +7,8 @@
 # Provides:          icinga2
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
+# Should-Start:      mysql postgresql
+# Should-Stop:       mysql postgresql
 # Default-Start:     2 3 5
 # Default-Stop:      0 1 6
 # Short-Description: icinga2 host/service/network monitoring and management system
