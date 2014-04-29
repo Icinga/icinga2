@@ -743,6 +743,14 @@ String Utility::FormatDuration(int duration)
 		tokens.push_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
 	}
 
+	if (tokens.size() == 0) {
+		int milliseconds = floor(duration * 1000);
+		if (milliseconds >= 1)
+			tokens.push_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
+		else
+			tokens.push_back("less than 1 millisecond");
+	}
+
 	return NaturalJoin(tokens);
 }
 

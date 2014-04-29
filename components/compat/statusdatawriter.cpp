@@ -747,7 +747,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
  */
 void StatusDataWriter::StatusTimerHandler(void)
 {
-	Log(LogInformation, "compat", "Writing status.dat file");
+	double start = Utility::GetTime();
 
 	String statuspath = GetStatusPath();
 	String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
@@ -818,6 +818,5 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    << boost::errinfo_file_name(statuspathtmp));
 	}
 
-	Log(LogInformation, "compat", "Finished writing status.dat file");
+	Log(LogInformation, "compat", "Writing status.dat file took " + Utility::FormatDuration(Utility::GetTime() - start));
 }
-

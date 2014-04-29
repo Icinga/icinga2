@@ -239,8 +239,6 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 
 void CheckerComponent::ResultTimerHandler(void)
 {
-	Log(LogDebug, "checker", "ResultTimerHandler entered.");
-
 	std::ostringstream msgbuf;
 
 	{
@@ -249,7 +247,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
 	}
 
-	Log(LogInformation, "checker", msgbuf.str());
+	Log(LogDebug, "checker", msgbuf.str());
 }
 
 void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)

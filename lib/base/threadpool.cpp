@@ -323,7 +323,7 @@ void ThreadPool::ManagerThreadProc(void)
 				<< (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
 				<< "; Threads: " << total_alive
 				<< "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
-			Log(LogInformation, "base", msgbuf.str());
+			Log(LogDebug, "base", msgbuf.str());
 		}
 	}
 }
