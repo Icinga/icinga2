@@ -101,6 +101,11 @@ Requires: boost-thread >= 1.41
 Requires: boost-regex >= 1.41
 %endif
 %endif
+
+%if 0%{?fedora}%{?el7}
+BuildRequires: systemd
+Requires: systemd
+%endif
 #redhat
 
 # suse
