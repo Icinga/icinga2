@@ -1,0 +1,14 @@
+
+apply Service "5912-ping4" {
+  import "test-generic-service"
+  check_command = "ping4"
+  host_name = "foo"
+  service_name = "bar"
+  assign where match("5912-*", host.name)
+}
+
+object Host "5912-server" {
+  import "test-generic-host"
+  address = "192.168.1.5",
+}
+
