@@ -147,11 +147,11 @@ void CheckerComponent::CheckThreadProc(void)
 			Service::Ptr service;
 			tie(host, service) = GetHostService(checkable);
 
-			if (!checkable->GetEnableActiveChecks() || (host && !service && !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
+			if (host && !service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
 				Log(LogDebug, "checker", "Skipping check for host '" + host->GetName() + "': active host checks are disabled");
 				check = false;
 			}
-			if (!checkable->GetEnableActiveChecks() || (host && service && !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
+			if (host && service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
 				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active service checks are disabled");
 				check = false;
 			}
