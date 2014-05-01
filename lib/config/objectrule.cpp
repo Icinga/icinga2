@@ -70,7 +70,7 @@ bool ObjectRule::EvaluateFilter(const Dictionary::Ptr& scope) const
 	return result;
 }
 
-void ObjectRule::EvaluateRules(void)
+void ObjectRule::EvaluateRules(bool clear)
 {
 	std::pair<String, Callback> kv;
 	BOOST_FOREACH(kv, m_Callbacks) {
@@ -84,7 +84,8 @@ void ObjectRule::EvaluateRules(void)
 		callback(it->second);
 	}
 
-	m_Rules.clear();
+	if (clear)
+		m_Rules.clear();
 }
 
 void ObjectRule::RegisterType(const String& sourceType, const ObjectRule::Callback& callback)
