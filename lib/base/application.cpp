@@ -682,14 +682,14 @@ void Application::ClosePidFile(void)
  * Checks if another process currently owns the pidfile and read it
  *
  * @param filename The name of the PID file.
- * @returns -1: no process owning the pidfile, pid of the process otherwise
+ * @returns 0: no process owning the pidfile, pid of the process otherwise
  */
 pid_t Application::ReadPidFile(const String& filename)
 {
 	FILE *pidfile = fopen(filename.CStr(), "r");
 
 	if (pidfile == NULL)
-		return -1;
+		return 0;
 
 #ifndef _WIN32
 	int fd = fileno(pidfile);
@@ -722,10 +722,15 @@ pid_t Application::ReadPidFile(const String& filename)
 
 	// bogus result?
 	if (res != 1)
-		return -1;
+		return 0;
 
 #ifdef _WIN32
-	// TODO: add check if the read pid is still running or not
+	HANDLE hProcess = OpenProcess(0, FALSE, runningpid);
+
+	if (!hProcess)
+		return 0;
+
+	CloseHandle(hProcess);
 #endif /* _WIN32 */
 
 	return runningpid;

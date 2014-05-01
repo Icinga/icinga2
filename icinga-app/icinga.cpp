@@ -435,7 +435,7 @@ int Main(void)
 
 	if (!g_AppParams.count("validate") && !g_AppParams.count("reload-internal")) {
 		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
-		if (runningpid >= 0) {
+		if (runningpid > 0) {
 			Log(LogCritical, "icinga-app", "Another instance of Icinga already running with PID " + Convert::ToString(runningpid));
 			return EXIT_FAILURE;
 		}
