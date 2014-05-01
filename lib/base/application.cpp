@@ -280,22 +280,20 @@ void Application::StartReloadProcess(void) const
 	Log(LogInformation, "base", "Got reload command: Starting new instance.");
 
 	// prepare arguments
-	std::vector<String> args;
-	args.push_back(GetExePath(m_ArgV[0]));
+	Array::Ptr args = make_shared<Array>();
+	args->Add(GetExePath(m_ArgV[0]));
 
 	for (int i=1; i < Application::GetArgC(); i++) {
 		if (std::string(Application::GetArgV()[i]) != "--reload-internal")
-			args.push_back(Application::GetArgV()[i]);
+			args->Add(Application::GetArgV()[i]);
 		else
 			i++;     // the next parameter after --reload-internal is the pid, remove that too
 	}
-	args.push_back("--reload-internal");
-	args.push_back(Convert::ToString(Utility::GetPid()));
+	args->Add("--reload-internal");
+	args->Add(Convert::ToString(Utility::GetPid()));
 
-	Process::Ptr process = make_shared<Process>(args);
-
+	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-
 	process->Run(boost::bind(&Application::ReloadProcessCallback, _1));
 }
 
