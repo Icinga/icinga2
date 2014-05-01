@@ -316,10 +316,13 @@ bool ConfigItem::ValidateItems(void)
 
 	upq.Join();
 
+	Log(LogInformation, "config", "Evaluating 'object' rules (step 1)...");
+	ObjectRule::EvaluateRules();
+
 	Log(LogInformation, "config", "Evaluating 'apply' rules...");
 	ApplyRule::EvaluateRules();
 
-	Log(LogInformation, "config", "Evaluating 'object' rules...");
+	Log(LogInformation, "config", "Evaluating 'object' rules (step 2)...");
 	ObjectRule::EvaluateRules();
 
 	Log(LogInformation, "config", "Validating config items (step 2)...");
