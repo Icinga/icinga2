@@ -15,9 +15,9 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-if(UNIX OR CYGWIN)
-  file(GLOB DOCSRCS "*.md")
+file(GLOB DOCSRCS "*.md")
 
+if(UNIX OR CYGWIN)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/htdocs/index.html
     COMMAND ./mkdoc.sh
@@ -36,5 +36,19 @@ if(UNIX OR CYGWIN)
   install(
     FILES icinga2.8
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man8
+  )
+endif()
+
+# pandoc is not available or working everywhere, so install the unprocessed markdown files too
+install(
+  FILES ${DOCSRCS}
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}/markdown
+)
+
+if(UNIX OR CYGWIN)
+  # maybe someone wants to process his own doc files after installing current pandoc/sphinx
+  install(
+    FILES conf.py mkdoc.sh
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}/markdown
   )
 endif()
