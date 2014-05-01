@@ -458,7 +458,6 @@ exit 0
 
 %files doc
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %{_datadir}/doc/%{name}
 %docdir %{_datadir}/doc/%{name}
 
