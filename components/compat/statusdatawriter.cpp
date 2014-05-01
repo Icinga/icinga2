@@ -38,6 +38,7 @@
 #include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 
@@ -702,9 +703,6 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		Service::Ptr parent_service;
 		tie(parent_host, parent_service) = GetHostService(parent);
 
-		if (!parent_service)
-			continue;
-
 		Checkable::Ptr child = dep->GetChild();
 
 		if (!child)
@@ -714,18 +712,41 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		Service::Ptr child_service;
 		tie(child_host, child_service) = GetHostService(child);
 
-		if (!child_service)
-			continue;
+                int state_filter = dep->GetStateFilter();
+		std::vector<String> failure_criteria;
+		if (state_filter & StateFilterOK || state_filter & StateFilterUp)
+			failure_criteria.push_back("o");
+		if (state_filter & StateFilterWarning)
+			failure_criteria.push_back("w");
+		if (state_filter & StateFilterCritical)
+			failure_criteria.push_back("c");
+		if (state_filter & StateFilterUnknown)
+			failure_criteria.push_back("u");
+		if (state_filter & StateFilterDown)
+			failure_criteria.push_back("d");
 
-		objectfp << "define servicedependency {" "\n"
-			    "\t" "dependent_host_name" "\t" << child_service->GetHost()->GetName() << "\n"
-			    "\t" "dependent_service_description" "\t" << child_service->GetShortName() << "\n"
-			    "\t" "host_name" "\t" << parent_service->GetHost()->GetName() << "\n"
-			    "\t" "service_description" "\t" << parent_service->GetShortName() << "\n"
-			    "\t" "execution_failure_criteria" "\t" "n" "\n"
-			    "\t" "notification_failure_criteria" "\t" "w,u,c" "\n"
-			    "\t" "}" "\n"
-			    "\n";
+		String criteria = boost::algorithm::join(failure_criteria, ",");
+
+		if (!child_service && !parent_service) {
+			objectfp << "define hostdependency {" "\n"
+				    "\t" "dependent_host_name" "\t" << child_host->GetName() << "\n"
+				    "\t" "host_name" "\t" << parent_host->GetName() << "\n"
+				    "\t" "execution_failure_criteria" "\t" << criteria << "\n"
+				    "\t" "notification_failure_criteria" "\t" << criteria << "\n"
+				    "\t" "}" "\n"
+				    "\n";
+		} else {
+
+			objectfp << "define servicedependency {" "\n"
+				    "\t" "dependent_host_name" "\t" << child_service->GetHost()->GetName() << "\n"
+				    "\t" "dependent_service_description" "\t" << child_service->GetShortName() << "\n"
+				    "\t" "host_name" "\t" << parent_service->GetHost()->GetName() << "\n"
+				    "\t" "service_description" "\t" << parent_service->GetShortName() << "\n"
+				    "\t" "execution_failure_criteria" "\t" << criteria << "\n"
+				    "\t" "notification_failure_criteria" "\t" << criteria << "\n"
+				    "\t" "}" "\n"
+				    "\n";
+		}
 	}
 
 	objectfp.close();
