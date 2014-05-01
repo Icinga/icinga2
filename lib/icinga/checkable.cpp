@@ -88,6 +88,18 @@ void Checkable::OnStateLoaded(void)
 	}
 }
 
+void Checkable::AddGroup(const String& name)
+{
+	boost::mutex::scoped_lock lock(m_CheckableMutex);
+
+	Array::Ptr groups = GetGroups();
+
+	if (!groups)
+		groups = make_shared<Array>();
+
+	groups->Add(name);
+}
+
 AcknowledgementType Checkable::GetAcknowledgement(void)
 {
 	ASSERT(OwnsLock());

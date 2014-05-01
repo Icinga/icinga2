@@ -1,5 +1,6 @@
 #include "icinga/icingaapplication.h"
 #include "base/dynamicobject.h"
+#include "base/array.h"
 
 namespace icinga
 {
@@ -20,7 +21,9 @@ enum AcknowledgementType
 
 abstract class Checkable : DynamicObject
 {
-	[config] Array::Ptr groups;
+	[config] Array::Ptr groups {
+		default {{{ return make_shared<Array>(); }}}
+	};
 	[config, protected] String check_command (CheckCommandRaw);
 	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
 		default {{{ return 3; }}}

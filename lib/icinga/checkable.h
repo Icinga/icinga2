@@ -89,6 +89,8 @@ public:
 	std::set<Checkable::Ptr> GetParents(void) const;
 	std::set<Checkable::Ptr> GetChildren(void) const;
 
+	void AddGroup(const String& name);
+
 	//bool IsHostCheck(void) const;
 
 	bool IsReachable(DependencyType dt = DependencyState, shared_ptr<Dependency> *failedDependency = NULL, int rstack = 0) const;
@@ -270,6 +272,7 @@ protected:
 	virtual void OnStateLoaded(void);
 
 private:
+	mutable boost::mutex m_CheckableMutex;
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
 
