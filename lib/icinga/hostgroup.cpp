@@ -66,6 +66,9 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr host, const ObjectRule& rule)
 	/* assign host group membership */
 	group->ResolveGroupMembership(host, true);
 
+	/* update groups attribute for apply */
+	host->AddGroup(group_name);
+
 	return true;
 }
 

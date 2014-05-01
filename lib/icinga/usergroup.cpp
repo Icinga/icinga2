@@ -66,6 +66,9 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr user, const ObjectRule& rule)
 	/* assign user group membership */
 	group->ResolveGroupMembership(user, true);
 
+	/* update groups attribute for apply */
+	user->AddGroup(group_name);
+
 	return true;
 }
 
