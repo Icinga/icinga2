@@ -75,6 +75,9 @@ void User::AddGroup(const String& name)
 
 	Array::Ptr groups = GetGroups();
 
+	if (groups && groups->Contains(name))
+		return;
+
 	if (!groups)
 		groups = make_shared<Array>();
 

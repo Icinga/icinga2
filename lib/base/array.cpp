@@ -109,6 +109,20 @@ size_t Array::GetLength(void) const
 }
 
 /**
+ * Checks whether the array contains the specified value.
+ *
+ * @param value The value.
+ * @returns true if the array contains the value, false otherwise.
+ */
+bool Array::Contains(const String& value) const
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	return (std::find(m_Data.begin(), m_Data.end(), value) != m_Data.end());
+}
+
+/**
  * Insert the given value at the specified index
  *
  * @param index The index

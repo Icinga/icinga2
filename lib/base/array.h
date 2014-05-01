@@ -50,6 +50,7 @@ public:
 	Iterator End(void);
 
 	size_t GetLength(void) const;
+	bool Contains(const String& value) const;
 
 	void Insert(unsigned int index, const Value& value);
 	void Remove(unsigned int index);
