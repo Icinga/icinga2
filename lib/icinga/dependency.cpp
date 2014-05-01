@@ -65,12 +65,12 @@ void Dependency::OnStateLoaded(void)
 	ASSERT(!OwnsLock());
 
 	if (!GetChild())
-		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid child service and will be ignored.");
+		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid child object and will be ignored.");
 	else
 		GetChild()->AddDependency(GetSelf());
 
 	if (!GetParent())
-		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid parent service and will always fail.");
+		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid parent object and will always fail.");
 	else
 		GetParent()->AddReverseDependency(GetSelf());
 }
@@ -93,27 +93,27 @@ bool Dependency::IsAvailable(DependencyType dt) const
 	if (!parent)
 		return false;
 
-	/* ignore if it's the same service */
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(parent);
+
+	/* ignore if it's the same checkable object */
 	if (parent == GetChild()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Parent and child service are identical.");
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Parent and child " + (service ? "service" : "host") + " are identical.");
 		return true;
 	}
 
-	/* ignore pending services */
+	/* ignore pending  */
 	if (!parent->GetLastCheckResult()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Service hasn't been checked yet.");
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' hasn't been checked yet.");
 		return true;
 	}
 
 	/* ignore soft states */
 	if (parent->GetStateType() == StateTypeSoft) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Service is in a soft state.");
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' is in a soft state.");
 		return true;
 	}
-
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(parent);
 
 	int state;
 
@@ -124,7 +124,7 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* check state */
 	if (state & GetStateFilter()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Object matches state filter.");
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' matches state filter.");
 		return true;
 	}
 
