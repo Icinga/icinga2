@@ -40,6 +40,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(User);
 	DECLARE_TYPENAME(User);
 
+	void AddGroup(const String& name);
+
 	/* Notifications */
 	TimePeriod::Ptr GetPeriod(void) const;
 
@@ -52,6 +54,8 @@ protected:
 	virtual void Stop(void);
 
 	virtual void OnConfigLoaded(void);
+private:
+	mutable boost::mutex m_UserMutex;
 };
 
 }

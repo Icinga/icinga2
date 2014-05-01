@@ -70,6 +70,9 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr service, const ObjectRu
 	/* assign service group membership */
 	group->ResolveGroupMembership(service, true);
 
+	/* update groups attribute for apply */
+	service->AddGroup(group_name);
+
 	return true;
 }
 

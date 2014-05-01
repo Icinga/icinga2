@@ -49,7 +49,7 @@ public:
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const AExpression::Ptr& expression,
 	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
-	static void EvaluateRules(void);
+	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
 	static bool IsValidSourceType(const String& sourceType);

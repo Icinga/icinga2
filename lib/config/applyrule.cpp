@@ -75,7 +75,7 @@ bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const
 	return result;
 }
 
-void ApplyRule::EvaluateRules(void)
+void ApplyRule::EvaluateRules(bool clear)
 {
 	std::set<String> completedTypes;
 
@@ -113,7 +113,8 @@ void ApplyRule::EvaluateRules(void)
 		}
 	}
 
-	m_Rules.clear();
+	if (clear)
+		m_Rules.clear();
 }
 
 void ApplyRule::RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback)

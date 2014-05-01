@@ -69,6 +69,21 @@ void User::Stop(void)
 	}
 }
 
+void User::AddGroup(const String& name)
+{
+	boost::mutex::scoped_lock lock(m_UserMutex);
+
+	Array::Ptr groups = GetGroups();
+
+	if (groups && groups->Contains(name))
+		return;
+
+	if (!groups)
+		groups = make_shared<Array>();
+
+	groups->Add(name);
+}
+
 TimePeriod::Ptr User::GetPeriod(void) const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());

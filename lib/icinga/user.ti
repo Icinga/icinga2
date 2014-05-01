@@ -1,4 +1,5 @@
 #include "base/dynamicobject.h"
+#include "base/array.h"
 
 namespace icinga
 {
@@ -13,7 +14,9 @@ class User : DynamicObject
 				return m_DisplayName;
 		}}}
 	};
-	[config] Array::Ptr groups;
+	[config] Array::Ptr groups {
+		default {{{ return make_shared<Array>(); }}}
+	};
 	[config] String period (PeriodRaw);
 	[config] Array::Ptr types;
 	int type_filter_real (TypeFilter);

@@ -14,7 +14,6 @@ class Host : Checkable
 				return m_DisplayName;
 		}}}
 	};
-	[config] Array::Ptr groups;
 
 	[config] String address;
 	[config] String address6;
