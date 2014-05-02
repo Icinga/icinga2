@@ -72,12 +72,20 @@ public:
         static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
 
         /* Status */
+	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority);
+	static void FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state);
+	static void LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable);
+
 	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 
 	static void AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 	static void RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 	static void TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+
+	static void AddAcknowledgement(const Checkable::Ptr& checkable, AcknowledgementType type);
+	static void RemoveAcknowledgement(const Checkable::Ptr& checkable);
+	static void AddAcknowledgementInternal(const Checkable::Ptr& checkable, AcknowledgementType type, bool add);
 
         /* comment, downtime, acknowledgement history */
         static void AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
