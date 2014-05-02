@@ -73,6 +73,7 @@ public:
 
         /* Status */
 	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority);
+	static void FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state);
 
 	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);

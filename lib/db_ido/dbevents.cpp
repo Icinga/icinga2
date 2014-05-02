@@ -51,6 +51,7 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
 	Checkable::OnNextCheckChanged.connect(bind(&DbEvents::NextCheckChangedHandler, _1, _2, _3));
+	Checkable::OnFlappingChanged.connect(bind(&DbEvents::FlappingChangedHandler, _1, _2));
 
 	/* History */
 	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
@@ -92,6 +93,37 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double n
 
 	Dictionary::Ptr fields1 = make_shared<Dictionary>();
 	fields1->Set("next_check", DbValue::FromTimestamp(nextCheck));
+
+	query1.Fields = fields1;
+
+	query1.WhereCriteria = make_shared<Dictionary>();
+	if (service)
+		query1.WhereCriteria->Set("service_object_id", service);
+	else
+		query1.WhereCriteria->Set("host_object_id", host);
+
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	DbObject::OnQuery(query1);
+}
+
+void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	DbQuery query1;
+	if (service)
+		query1.Table = "servicestatus";
+	else
+		query1.Table = "hoststatus";
+
+	query1.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	fields1->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(checkable));
+	fields1->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(checkable));
 
 	query1.Fields = fields1;
 
