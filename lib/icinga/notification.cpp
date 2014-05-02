@@ -81,21 +81,30 @@ void Notification::OnConfigLoaded(void)
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
 	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
 
-	GetCheckable()->AddNotification(GetSelf());
+	Checkable::Ptr obj = GetCheckable();
+
+	if (obj)
+		obj->AddNotification(GetSelf());
 }
 
 void Notification::Start(void)
 {
 	DynamicObject::Start();
 
-	GetCheckable()->AddNotification(GetSelf());
+	Checkable::Ptr obj = GetCheckable();
+
+	if (obj)
+		obj->AddNotification(GetSelf());
 }
 
 void Notification::Stop(void)
 {
 	DynamicObject::Stop();
 
-	GetCheckable()->RemoveNotification(GetSelf());
+	Checkable::Ptr obj = GetCheckable();
+
+	if (obj)
+		obj->RemoveNotification(GetSelf());
 }
 
 Checkable::Ptr Notification::GetCheckable(void) const
