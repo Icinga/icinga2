@@ -23,6 +23,7 @@
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
+#include "base/convert.h"
 #include "base/scriptfunction.h"
 #include <boost/foreach.hpp>
 
@@ -184,11 +185,11 @@ void Dependency::ValidateFilters(const String& location, const Dictionary::Ptr& 
 
 	if (!attrs->Contains("parent_service_name") && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": State filter is invalid.");
+		    location + ": State filter is invalid for host dependency.");
 	}
 
 	if (attrs->Contains("parent_service_name") && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": State filter is invalid.");
+		    location + ": State filter is invalid for service dependency.");
 	}
 }
