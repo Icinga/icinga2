@@ -72,6 +72,8 @@ public:
         static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
 
         /* Status */
+	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority);
+
 	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 

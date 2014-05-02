@@ -42,35 +42,68 @@ INITIALIZE_ONCE(&DbEvents::StaticInitialize);
 void DbEvents::StaticInitialize(void)
 {
 	/* Status */
-	Service::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1, _2));
-	Service::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1, _2));
-	Service::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, _2));
-	Service::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1, _2));
-	Service::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1, _2));
-	Service::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
-	Service::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
+	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1, _2));
+	Checkable::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1, _2));
+	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, _2));
+	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1, _2));
+	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1, _2));
+	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
+	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
+
+	Checkable::OnNextCheckChanged.connect(bind(&DbEvents::NextCheckChangedHandler, _1, _2, _3));
 
 	/* History */
-	Service::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
-	Service::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1, _2));
-	Service::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
+	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
+	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1, _2));
+	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
 
-	Service::OnNotificationSentToAllUsers.connect(bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNotificationSentToAllUsers.connect(bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 
-	Service::OnStateChange.connect(boost::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
+	Checkable::OnStateChange.connect(boost::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
 
-	Service::OnNewCheckResult.connect(bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
-	Service::OnNotificationSentToUser.connect(bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
-	Service::OnFlappingChanged.connect(bind(&DbEvents::AddFlappingLogHistory, _1, _2));
-	Service::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1, _2));
-	Service::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1, _2));
+	Checkable::OnNewCheckResult.connect(bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
+	Checkable::OnNotificationSentToUser.connect(bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnFlappingChanged.connect(bind(&DbEvents::AddFlappingLogHistory, _1, _2));
+	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1, _2));
+	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1, _2));
 
-	Service::OnFlappingChanged.connect(bind(&DbEvents::AddFlappingHistory, _1, _2));
-	Service::OnNewCheckResult.connect(bind(&DbEvents::AddServiceCheckHistory, _1, _2));
+	Checkable::OnFlappingChanged.connect(bind(&DbEvents::AddFlappingHistory, _1, _2));
+	Checkable::OnNewCheckResult.connect(bind(&DbEvents::AddServiceCheckHistory, _1, _2));
 
-	Service::OnEventCommandExecuted.connect(bind(&DbEvents::AddEventHandlerHistory, _1));
+	Checkable::OnEventCommandExecuted.connect(bind(&DbEvents::AddEventHandlerHistory, _1));
 
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&DbEvents::AddExternalCommandHistory, _1, _2, _3));
+}
+
+/* check events */
+void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	DbQuery query1;
+	if (service)
+		query1.Table = "servicestatus";
+	else
+		query1.Table = "hoststatus";
+
+	query1.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	fields1->Set("next_check", DbValue::FromTimestamp(nextCheck));
+
+	query1.Fields = fields1;
+
+	query1.WhereCriteria = make_shared<Dictionary>();
+	if (service)
+		query1.WhereCriteria->Set("service_object_id", service);
+	else
+		query1.WhereCriteria->Set("host_object_id", host);
+
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	DbObject::OnQuery(query1);
 }
 
 /* comments */
