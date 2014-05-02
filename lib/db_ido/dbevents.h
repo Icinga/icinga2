@@ -79,6 +79,10 @@ public:
 	static void RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 	static void TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 
+	static void AddAcknowledgement(const Checkable::Ptr& checkable, AcknowledgementType type);
+	static void RemoveAcknowledgement(const Checkable::Ptr& checkable);
+	static void AddAcknowledgementInternal(const Checkable::Ptr& checkable, AcknowledgementType type, bool add);
+
         /* comment, downtime, acknowledgement history */
         static void AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void AddDowntimeHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);

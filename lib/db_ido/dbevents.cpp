@@ -47,6 +47,8 @@ void DbEvents::StaticInitialize(void)
 	Service::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, _2));
 	Service::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1, _2));
 	Service::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1, _2));
+	Service::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
+	Service::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
 	/* History */
 	Service::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
@@ -458,6 +460,51 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 		fields1->Set("endpoint_object_id", endpoint);
 
 	query1.Fields = fields1;
+	DbObject::OnQuery(query1);
+}
+
+void DbEvents::AddAcknowledgement(const Checkable::Ptr& checkable, AcknowledgementType type)
+{
+	Log(LogDebug, "db_ido", "add acknowledgement for '" + checkable->GetName() + "'");
+
+	AddAcknowledgementInternal(checkable, type, true);
+}
+
+void DbEvents::RemoveAcknowledgement(const Checkable::Ptr& checkable)
+{
+	Log(LogDebug, "db_ido", "remove acknowledgement for '" + checkable->GetName() + "'");
+
+	AddAcknowledgementInternal(checkable, AcknowledgementNone, false);
+}
+
+void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, AcknowledgementType type, bool add)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	DbQuery query1;
+	if (service)
+		query1.Table = "servicestatus";
+	else
+		query1.Table = "hoststatus";
+
+	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatAcknowledgement;
+
+	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	fields1->Set("acknowledgement_type", type);
+	fields1->Set("problem_has_been_acknowledged", add ? 1 : 0);
+	query1.Fields = fields1;
+
+	query1.WhereCriteria = make_shared<Dictionary>();
+	if (service)
+		query1.WhereCriteria->Set("service_object_id", service);
+	else
+		query1.WhereCriteria->Set("host_object_id", host);
+
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
 	DbObject::OnQuery(query1);
 }
 
