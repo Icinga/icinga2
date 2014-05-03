@@ -39,7 +39,7 @@ public:
 
 	ConfigItem(const String& type, const String& name, bool abstract,
 	    const AExpression::Ptr& exprl, const DebugInfo& debuginfo,
-	    const Dictionary::Ptr& scope);
+	    const Dictionary::Ptr& scope, const String& package);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -56,6 +56,8 @@ public:
 	DebugInfo GetDebugInfo(void) const;
 
 	Dictionary::Ptr GetScope(void) const;
+
+	String GetPackage(void) const;
 
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
@@ -79,6 +81,7 @@ private:
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
+	String m_Package; /**< The package. */
 
 	DynamicObject::Ptr m_Object;
 

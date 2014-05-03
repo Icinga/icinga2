@@ -46,6 +46,7 @@ public:
 	void SetName(const String& name);
 	void SetAbstract(bool abstract);
 	void SetScope(const Dictionary::Ptr& scope);
+	void SetPackage(const String& name);
 
 	void AddExpression(const AExpression::Ptr& expr);
 
@@ -58,6 +59,7 @@ private:
 	Array::Ptr m_Expressions; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
+	String m_Package; /**< The package. */
 };
 
 }

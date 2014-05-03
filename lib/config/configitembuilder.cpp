@@ -60,6 +60,11 @@ void ConfigItemBuilder::SetScope(const Dictionary::Ptr& scope)
 	m_Scope = scope;
 }
 
+void ConfigItemBuilder::SetPackage(const String& package)
+{
+	m_Package = package;
+}
+
 void ConfigItemBuilder::AddExpression(const AExpression::Ptr& expr)
 {
 	m_Expressions->Add(expr);
@@ -99,5 +104,5 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	AExpression::Ptr exprl = make_shared<AExpression>(&AExpression::OpDict, exprs, true, m_DebugInfo);
 
 	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
-	    m_DebugInfo, m_Scope);
+	    m_DebugInfo, m_Scope, m_Package);
 }

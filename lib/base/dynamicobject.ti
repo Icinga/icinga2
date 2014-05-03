@@ -20,6 +20,7 @@ abstract class DynamicObject
 		}}}
 	};
 	[config, get_protected] String type (TypeName);
+	[config] String package;
 	[config, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
 	[config] Dictionary::Ptr vars (VarsRaw);

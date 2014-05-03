@@ -231,6 +231,7 @@ ignore				return T_IGNORE;
 function			return T_FUNCTION;
 lambda				return T_LAMBDA;
 return				return T_RETURN;
+package				return T_PACKAGE;
 \<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }

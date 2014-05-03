@@ -160,6 +160,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_LAMBDA "lambda (T_LAMBDA)"
 %token T_RETURN "return (T_RETURN)"
+%token T_PACKAGE "package (T_PACKAGE)"
 
 %type <text> identifier
 %type <array> rterm_items
@@ -213,6 +214,8 @@ static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
+static String m_Package;
+static int m_StatementNum;
 
 static bool m_Apply;
 static bool m_ObjectAssign;
@@ -223,6 +226,10 @@ static AExpression::Ptr m_Ignore;
 void ConfigCompiler::Compile(void)
 {
 	m_ModuleScope = make_shared<Dictionary>();
+	
+	String parentPackage = m_Package;
+	int parentStatementNum = m_StatementNum;
+	m_StatementNum = 0;
 
 	try {
 		yyparse(this);
@@ -232,6 +239,9 @@ void ConfigCompiler::Compile(void)
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
+
+	m_Package = parentPackage;
+	m_StatementNum = parentStatementNum;
 }
 
 #define scanner (context->GetScanner())
@@ -243,13 +253,54 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: type | include | include_recursive | library | constant | newlines
+statement: type | package | include | include_recursive | library | constant
+	{
+		m_StatementNum++;
+	}
+	| newlines
 	{ }
 	| lterm
 	{
 		AExpression::Ptr aexpr = *$1;
 		aexpr->Evaluate(m_ModuleScope);
 		delete $1;
+
+		m_StatementNum++;
+	}
+	;
+
+package: T_PACKAGE rterm sep
+	{
+		AExpression::Ptr aexpr = *$2;
+		delete $2;
+
+		if (!m_Package.IsEmpty())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Package name cannot be changed once it's been set."));
+
+		if (m_StatementNum != 0)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("'package' directive must be the first statement in a file."));
+
+		m_Package = aexpr->Evaluate(m_ModuleScope);
+	}
+	| T_PACKAGE rterm rterm_scope sep
+	{
+		AExpression::Ptr aexpr = *$2;
+		delete $2;
+
+		AExpression::Ptr ascope = *$3;
+		delete $3;
+
+		if (!m_Package.IsEmpty())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Package name cannot be changed once it's been set."));
+
+		m_Package = aexpr->Evaluate(m_ModuleScope);
+
+		try {
+			ascope->Evaluate(m_ModuleScope);
+			m_Package = String();
+		} catch (...) {
+			m_Package = String();
+		}
 	}
 	;
 
@@ -433,7 +484,7 @@ object:
 		m_Assign = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 		m_Ignore = make_shared<AExpression>(&AExpression::OpLiteral, false, DebugInfo());
 	}
-	object_declaration identifier rterm rterm_scope sep
+	object_declaration identifier rterm rterm_scope
 	{
 		m_ObjectAssign = false;
 
@@ -459,6 +510,8 @@ object:
 		AExpression::Ptr filter = make_shared<AExpression>(&AExpression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
 
 		args->Add(filter);
+
+		args->Add(m_Package);
 
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
 

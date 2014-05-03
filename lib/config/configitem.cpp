@@ -49,10 +49,11 @@ ConfigItem::ItemMap ConfigItem::m_Items;
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const AExpression::Ptr& exprl,
-    const DebugInfo& debuginfo, const Dictionary::Ptr& scope)
+    const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
+    const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
 	  m_ExpressionList(exprl), m_DebugInfo(debuginfo),
-	  m_Scope(scope)
+	  m_Scope(scope), m_Package(package)
 {
 }
 
