@@ -168,10 +168,13 @@ Checkable::Ptr Dependency::GetParent(void) const
 	if (!host)
 		return Service::Ptr();
 
-	if (GetParentServiceName().IsEmpty())
+	if (GetParentServiceName().IsEmpty()) {
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + ".");
 		return host;
-	else
+	} else {
+		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + "' service '" + GetParentServiceName() + "' .");
 		return host->GetServiceByShortName(GetParentServiceName());
+	}
 }
 
 TimePeriod::Ptr Dependency::GetPeriod(void) const

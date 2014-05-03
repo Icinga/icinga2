@@ -180,8 +180,10 @@ void ServiceDbObject::OnConfigUpdate(void)
 	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
-		if (!parent)
+		if (!parent) {
+			Log(LogDebug, "db_ido", "Missing parent for dependency '" + dep->GetName() + "'.");
 			continue;
+		}
 
 		Log(LogDebug, "db_ido", "service parents: " + parent->GetName());
 

@@ -204,8 +204,10 @@ void HostDbObject::OnConfigUpdate(void)
 	BOOST_FOREACH(const Dependency::Ptr& dep, host->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
-		if (!parent)
+		if (!parent) {
+			Log(LogDebug, "db_ido", "Missing parent for dependency '" + dep->GetName() + "'.");
 			continue;
+		}
 
 		int state_filter = dep->GetStateFilter();
 

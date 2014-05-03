@@ -696,8 +696,10 @@ void StatusDataWriter::UpdateObjectsCache(void)
 	BOOST_FOREACH(const Dependency::Ptr& dep, DynamicType::GetObjects<Dependency>()) {
 		Checkable::Ptr parent = dep->GetParent();
 
-		if (!parent)
+		if (!parent) {
+			Log(LogDebug, "compat", "Missing parent for dependency '" + dep->GetName() + "'.");
 			continue;
+		}
 
 		Host::Ptr parent_host;
 		Service::Ptr parent_service;
@@ -705,8 +707,10 @@ void StatusDataWriter::UpdateObjectsCache(void)
 
 		Checkable::Ptr child = dep->GetChild();
 
-		if (!child)
+		if (!child) {
 			continue;
+			Log(LogDebug, "compat", "Missing child for dependency '" + dep->GetName() + "'.");
+		}
 
 		Host::Ptr child_host;
 		Service::Ptr child_service;
