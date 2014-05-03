@@ -275,8 +275,12 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	m_Result.ExecutionStart = Utility::GetTime();
 
 #ifdef _WIN32
+	SECURITY_ATTRIBUTES sa = {};
+	sa.nLength = sizeof(sa);
+	sa.bInheritHandle = TRUE;
+
 	HANDLE outReadPipe, outWritePipe;
-	if (!CreatePipe(&outReadPipe, &outWritePipe, NULL, 0))
+	if (!CreatePipe(&outReadPipe, &outWritePipe, &sa, 0))
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("CreatePipe")
 			<< errinfo_win32_error(GetLastError()));
@@ -293,12 +297,39 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 			<< boost::errinfo_api_function("DuplicateHandle")
 			<< errinfo_win32_error(GetLastError()));
 
-	STARTUPINFO si = {};
-	si.cb = sizeof(si);
-	si.hStdError = outWritePipe;
-	si.hStdOutput = outWritePipeDup;
-	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-	si.dwFlags = STARTF_USESTDHANDLES;
+	LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList;
+	SIZE_T cbSize;
+
+	if (!InitializeProcThreadAttributeList(NULL, 1, 0, &cbSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+		BOOST_THROW_EXCEPTION(win32_error()
+		<< boost::errinfo_api_function("InitializeProcThreadAttributeList")
+		<< errinfo_win32_error(GetLastError()));
+
+	lpAttributeList = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(new char[cbSize]);
+
+	if (!InitializeProcThreadAttributeList(lpAttributeList, 1, 0, &cbSize))
+		BOOST_THROW_EXCEPTION(win32_error()
+		<< boost::errinfo_api_function("InitializeProcThreadAttributeList")
+		<< errinfo_win32_error(GetLastError()));
+
+	HANDLE rgHandles[3];
+	rgHandles[0] = outWritePipe;
+	rgHandles[1] = outWritePipeDup;
+	rgHandles[2] = GetStdHandle(STD_INPUT_HANDLE);
+
+	if (!UpdateProcThreadAttribute(lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+	    rgHandles, sizeof(rgHandles), NULL, NULL))
+		BOOST_THROW_EXCEPTION(win32_error()
+			<< boost::errinfo_api_function("UpdateProcThreadAttribute")
+			<< errinfo_win32_error(GetLastError()));
+
+	STARTUPINFOEX si = {};
+	si.StartupInfo.cb = sizeof(si);
+	si.StartupInfo.hStdError = outWritePipe;
+	si.StartupInfo.hStdOutput = outWritePipeDup;
+	si.StartupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+	si.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+	si.lpAttributeList = lpAttributeList;
 
 	PROCESS_INFORMATION pi;
 
@@ -358,11 +389,14 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	envp[offset] = '\0';
 
-	if (!CreateProcess(NULL, args, NULL, NULL, TRUE, 0, envp, NULL, &si, &pi)) {
+	if (!CreateProcess(NULL, args, NULL, NULL, TRUE,
+	    EXTENDED_STARTUPINFO_PRESENT, envp, NULL, &si.StartupInfo, &pi)) {
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);
 		delete args;
 		free(envp);
+		DeleteProcThreadAttributeList(lpAttributeList);
+		delete [] reinterpret_cast<char *>(lpAttributeList);
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("CreateProcess")
 			<< errinfo_win32_error(GetLastError()));
@@ -370,6 +404,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	delete args;
 	free(envp);
+	DeleteProcThreadAttributeList(lpAttributeList);
+	delete[] reinterpret_cast<char *>(lpAttributeList);
 
 	CloseHandle(outWritePipe);
 	CloseHandle(outWritePipeDup);
