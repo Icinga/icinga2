@@ -235,7 +235,7 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 
 	CheckCommand::Ptr checkcommand = host->GetCheckCommand();
 	if (checkcommand)
-		return checkcommand->GetName(); /* this is the name without '!' args */
+		return checkcommand->GetName() + "!" + CompatUtility::GetCheckableCommandArgs(host);
 
 	return Empty;
 }

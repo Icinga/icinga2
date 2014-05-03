@@ -205,7 +205,7 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
 	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 
 	if (checkcommand)
-		return checkcommand->GetName(); /* this is the name without '!' args */
+		return checkcommand->GetName() + "!" + CompatUtility::GetCheckableCommandArgs(service);
 
 	return Empty;
 }

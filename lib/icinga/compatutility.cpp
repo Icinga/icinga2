@@ -90,6 +90,67 @@ int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
 }
 
 /* service */
+String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
+{
+	CheckCommand::Ptr command = checkable->GetCheckCommand();
+
+	Dictionary::Ptr args = make_shared<Dictionary>();
+
+	if (command) {
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(checkable);
+		String command_line = GetCommandLine(command);
+
+		Dictionary::Ptr command_vars = command->GetVars();
+
+		if (command_vars) {
+			BOOST_FOREACH(Dictionary::Pair kv, command_vars) {
+				String macro = "$" + kv.first + "$"; // this is too simple
+				if (command_line.Contains(macro))
+					args->Set(kv.first, kv.second);
+
+			}
+		}
+
+		Dictionary::Ptr host_vars = host->GetVars();
+
+		if (host_vars) {
+			BOOST_FOREACH(Dictionary::Pair kv, host_vars) {
+				String macro = "$" + kv.first + "$"; // this is too simple
+				if (command_line.Contains(macro))
+					args->Set(kv.first, kv.second);
+				macro = "$host.vars." + kv.first + "$";
+				if (command_line.Contains(macro))
+					args->Set(kv.first, kv.second);
+			}
+		}
+
+		if (service) {
+			Dictionary::Ptr service_vars = service->GetVars();
+
+			if (service_vars) {
+				BOOST_FOREACH(Dictionary::Pair kv, service_vars) {
+					String macro = "$" + kv.first + "$"; // this is too simple
+					if (command_line.Contains(macro))
+						args->Set(kv.first, kv.second);
+					macro = "$service.vars." + kv.first + "$";
+					if (command_line.Contains(macro))
+						args->Set(kv.first, kv.second);
+				}
+			}
+		}
+
+		String arg_string;
+		BOOST_FOREACH(Dictionary::Pair kv, args) {
+			arg_string += kv.first + "=" + kv.second + "!";
+		}
+		return arg_string;
+	}
+
+	return Empty;
+}
+
 int CompatUtility::GetCheckableCheckType(const Checkable::Ptr& checkable)
 {
 	return (checkable->GetEnableActiveChecks() ? 0 : 1);

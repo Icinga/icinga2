@@ -283,7 +283,7 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 
 	CheckCommand::Ptr checkcommand = host->GetCheckCommand();
 	if (checkcommand)
-		fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "\n";
+		fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "!" << CompatUtility::GetCheckableCommandArgs(host) << "\n";
 
 	EventCommand::Ptr eventcommand = host->GetEventCommand();
 	if (eventcommand)
@@ -339,7 +339,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 {
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
-	fp << "\t" << "check_command=check_" << CompatUtility::GetCheckableCheckCommand(checkable) << "\n"
+	fp << "\t" << "check_command=check_" << CompatUtility::GetCheckableCheckCommand(checkable) << "!" << CompatUtility::GetCheckableCommandArgs(checkable)<< "\n"
 	      "\t" "event_handler=event_" << CompatUtility::GetCheckableEventHandler(checkable) << "\n"
 	      "\t" "check_period=" << CompatUtility::GetCheckableCheckPeriod(checkable) << "\n"
 	      "\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
@@ -444,7 +444,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 
 		CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 		if (checkcommand)
-			fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "\n";
+			fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "!" << CompatUtility::GetCheckableCommandArgs(service)<< "\n";
 
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
 		if (eventcommand)
