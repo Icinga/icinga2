@@ -92,20 +92,19 @@ void TlsStream::Handshake(void)
 {
 	ASSERT(!OwnsLock());
 
-	int rc;
-
 	for (;;) {
-		int rc;
+		int rc, err;
 
 		{
 			ObjectLock olock(this);
 			rc = SSL_do_handshake(m_SSL.get());
+
+			if (rc > 0)
+				break;
+
+			err = SSL_get_error(m_SSL.get(), rc);
 		}
 
-		if (rc > 0)
-			break;
-
-		int err = SSL_get_error(m_SSL.get(), rc);
 		switch (err) {
 			case SSL_ERROR_WANT_READ:
 				m_Socket->Poll(true, false);
@@ -134,15 +133,17 @@ size_t TlsStream::Read(void *buffer, size_t count)
 	size_t left = count;
 
 	while (left > 0) {
-		int rc;
+		int rc, err;
 
 		{
 			ObjectLock olock(this);
 			rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
+
+			if (rc <= 0)
+				err = SSL_get_error(m_SSL.get(), rc);
 		}
 
 		if (rc <= 0) {
-			int err = SSL_get_error(m_SSL.get(), rc);
 			switch (err) {
 				case SSL_ERROR_WANT_READ:
 					m_Socket->Poll(true, false);
@@ -173,15 +174,17 @@ void TlsStream::Write(const void *buffer, size_t count)
 	size_t left = count;
 
 	while (left > 0) {
-		int rc;
+		int rc, err;
 
 		{
 			ObjectLock olock(this);
 			rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
+
+			if (rc <= 0)
+				err = SSL_get_error(m_SSL.get(), rc);
 		}
 
 		if (rc <= 0) {
-			int err = SSL_get_error(m_SSL.get(), rc);
 			switch (err) {
 				case SSL_ERROR_WANT_READ:
 					m_Socket->Poll(true, false);
@@ -208,6 +211,37 @@ void TlsStream::Write(const void *buffer, size_t count)
  */
 void TlsStream::Close(void)
 {
+	ASSERT(!OwnsLock());
+
+	for (;;) {
+		int rc, err;
+
+		{
+			ObjectLock olock(this);
+
+			do {
+				rc = SSL_shutdown(m_SSL.get());
+			} while (rc == 0);
+
+			if (rc > 0)
+				break;
+
+			err = SSL_get_error(m_SSL.get(), rc);
+		}
+
+		switch (err) {
+			case SSL_ERROR_WANT_READ:
+				m_Socket->Poll(true, false);
+				continue;
+			case SSL_ERROR_WANT_WRITE:
+				m_Socket->Poll(false, true);
+				continue;
+			default:
+				goto close_socket;
+		}
+	}
+
+close_socket:
 	m_Socket->Close();
 }
 

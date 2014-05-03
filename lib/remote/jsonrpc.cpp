@@ -42,7 +42,7 @@ Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
 {
 	String jsonString;
 	if (!NetString::ReadStringFromStream(stream, &jsonString))
-		BOOST_THROW_EXCEPTION(std::runtime_error("ReadStringFromStream signalled EOF."));
+		return Dictionary::Ptr();
 
 	//std::cerr << "<< " << jsonString << std::endl;
 	Value value = JsonDeserialize(jsonString);
