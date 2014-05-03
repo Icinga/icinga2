@@ -91,14 +91,14 @@ TimePeriod::Ptr User::GetPeriod(void) const
 
 void User::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
 {
-	int sfilter = FilterArrayToInt(attrs->Get("notification_state_filter"), 0);
+	int sfilter = FilterArrayToInt(attrs->Get("states"), 0);
 
 	if ((sfilter & ~(StateFilterUp | StateFilterDown | StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid.");
 	}
 
-	int tfilter = FilterArrayToInt(attrs->Get("notification_type_filter"), 0);
+	int tfilter = FilterArrayToInt(attrs->Get("types"), 0);
 
 	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
 	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |

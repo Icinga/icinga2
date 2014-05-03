@@ -438,7 +438,7 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
 
 void Notification::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
 {
-	int sfilter = FilterArrayToInt(attrs->Get("notification_state_filter"), 0);
+	int sfilter = FilterArrayToInt(attrs->Get("states"), 0);
 
 	if (!attrs->Contains("service_name") && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
@@ -450,7 +450,7 @@ void Notification::ValidateFilters(const String& location, const Dictionary::Ptr
 		    location + ": State filter is invalid.");
 	}
 
-	int tfilter = FilterArrayToInt(attrs->Get("notification_type_filter"), 0);
+	int tfilter = FilterArrayToInt(attrs->Get("types"), 0);
 
 	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
 	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
