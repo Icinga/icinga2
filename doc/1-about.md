@@ -32,14 +32,14 @@ Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
 ### What's New in Version 0.0.10
 
 * Make Host and Service checkable. #5919
-* Support new lines in addition to commas to seperate object attributes. #5901
+* Support new lines in addition to commas to separate object attributes. #5901
 * Add group membership assign rules. #5910
 * Support nested groups. #5858
 * Add apply target type. #5924
 * Add relative object names. #5925
 * Merge macros and custom into 'vars' dictionary. Changed runtime macros and environment variable export. #5855
 * Add support for modified attributes for custom attributes. #5956
-* Allow to assign var values to existin vars evaluted on runtime. #5959
+* Allow to assign var values to existing vars evaluted on runtime. #5959
 * Rename/shorten attribute names and filter variables. #5857 
 * Remove the 'Icinga' prefix for global constants. #5960
 * Global option to enable/disable host/service checks. #5975
