@@ -42,6 +42,8 @@ using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
 boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
+boost::thread_specific_ptr<bool> Utility::m_LoadingLibrary;
+boost::thread_specific_ptr<std::vector<boost::function<void(void)> > > Utility::m_DeferredInitializers;
 
 /**
  * Demangles a symbol name.
@@ -368,8 +370,20 @@ Utility::LoadExtensionLibrary(const String& library)
 
 	Log(LogInformation, "base", "Loading library '" + path + "'");
 
+	m_DeferredInitializers.reset(new std::vector<boost::function<void(void)> >());
+
 #ifdef _WIN32
-	HMODULE hModule = LoadLibrary(path.CStr());
+	HMODULE hModule;
+	
+	try {
+		SetLoadingLibrary(true);
+		hModule = LoadLibrary(path.CStr());
+	} catch (...) {
+		SetLoadingLibrary(false);
+		throw;
+	}
+
+	SetLoadingLibrary(false);
 
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(win32_error()
@@ -378,14 +392,45 @@ Utility::LoadExtensionLibrary(const String& library)
 		    << boost::errinfo_file_name(path));
 	}
 #else /* _WIN32 */
-	void *hModule = dlopen(path.CStr(), RTLD_NOW);
+	void *hModule;
+	
+	try {
+		hModule = dlopen(path.CStr(), RTLD_NOW);
+	} catch (...) {
+		SetLoadingLibrary(false);
+		throw;
+	}
+
+	SetLoadingLibrary(false);
 
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " + dlerror()));
 	}
 #endif /* _WIN32 */
 
+	BOOST_FOREACH(const boost::function<void(void)>& callback, *m_DeferredInitializers.get())
+		callback();
+
+	m_DeferredInitializers.reset();
+
 	return hModule;
+}
+
+bool Utility::GetLoadingLibrary(void)
+{
+	bool *loading = m_LoadingLibrary.get();
+	return loading && *loading;
+}
+
+void Utility::SetLoadingLibrary(bool loading)
+{
+	bool *ploading = new bool(loading);
+	m_LoadingLibrary.reset(ploading);
+}
+
+void Utility::AddDeferredInitializer(const boost::function<void(void)>& callback)
+{
+	m_DeferredInitializers.get()->push_back(callback);
 }
 
 /**

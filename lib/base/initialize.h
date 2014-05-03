@@ -21,6 +21,7 @@
 #define INITIALIZE_H
 
 #include "base/i2-base.h"
+#include "base/utility.h"
 
 namespace icinga
 {
@@ -29,7 +30,10 @@ typedef void (*InitializeFunc)(void);
 
 inline bool InitializeOnceHelper(InitializeFunc func)
 {
-	func();
+	if (Utility::GetLoadingLibrary())
+		Utility::AddDeferredInitializer(func);
+	else
+		func();
 
 	return true;
 }

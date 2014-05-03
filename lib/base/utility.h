@@ -97,6 +97,10 @@ public:
 #endif /* _WIN32 */
 	LoadExtensionLibrary(const String& library);
 
+	static bool GetLoadingLibrary(void);
+	static void SetLoadingLibrary(bool loading);
+	static void AddDeferredInitializer(const boost::function<void(void)>& callback);
+
 #ifndef _WIN32
 	static void SetNonBlocking(int fd);
 	static void SetCloExec(int fd);
@@ -125,6 +129,8 @@ private:
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
+	static boost::thread_specific_ptr<bool> m_LoadingLibrary;
+	static boost::thread_specific_ptr<std::vector<boost::function<void(void)> > > m_DeferredInitializers;
 };
 
 }
