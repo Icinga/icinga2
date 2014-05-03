@@ -97,9 +97,8 @@ public:
 #endif /* _WIN32 */
 	LoadExtensionLibrary(const String& library);
 
-	static bool GetLoadingLibrary(void);
-	static void SetLoadingLibrary(bool loading);
 	static void AddDeferredInitializer(const boost::function<void(void)>& callback);
+	static void ExecuteDeferredInitializers(void);
 
 #ifndef _WIN32
 	static void SetNonBlocking(int fd);

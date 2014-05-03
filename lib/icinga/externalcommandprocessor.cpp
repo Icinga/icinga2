@@ -28,6 +28,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/notificationcommand.h"
+#include "remote/apifunction.h"
 #include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/objectlock.h"
@@ -41,8 +42,7 @@
 
 using namespace icinga;
 
-static boost::once_flag l_InitializeOnce = BOOST_ONCE_INIT;
-static boost::mutex l_Mutex;
+INITIALIZE_ONCE(&ExternalCommandProcessor::StaticInitialize);
 
 typedef boost::function<void (double time, const std::vector<String>& arguments)> ExternalCommandCallback;
 
@@ -53,18 +53,46 @@ struct ExternalCommandInfo
 	size_t MaxArgs;
 };
 
-static std::map<String, ExternalCommandInfo> l_Commands;
+static boost::mutex& GetMutex(void)
+{
+	static boost::mutex mtx;
+	return mtx;
+}
+static std::map<String, ExternalCommandInfo>& GetCommands(void)
+{
+	static std::map<String, ExternalCommandInfo> commands;
+	return commands;
+}
 
 boost::signals2::signal<void (double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
 
+static Value ExternalCommandAPIWrapper(const String& command, const Dictionary::Ptr& params)
+{
+	std::vector<String> arguments;
+
+	if (params) {
+		int i = 0;
+		while (params->Contains("arg" + Convert::ToString(i))) {
+			arguments.push_back(params->Get("arg" + Convert::ToString(i)));
+			i++;
+		}
+	}
+
+	ExternalCommandProcessor::Execute(Utility::GetTime(), command, arguments);
+	return true;
+}
+
 static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = -1)
 {
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(GetMutex());
 	ExternalCommandInfo eci;
 	eci.Callback = callback;
 	eci.MinArgs = minArgs;
 	eci.MaxArgs = (maxArgs == -1) ? minArgs : maxArgs;
-	l_Commands[command] = eci;
+	GetCommands()[command] = eci;
+
+	ApiFunction::Ptr afunc = make_shared<ApiFunction>(boost::bind(&ExternalCommandAPIWrapper, command, _2));
+	ApiFunction::Register("extcmd::" + command, afunc);
 }
 
 void ExternalCommandProcessor::Execute(const String& line)
@@ -100,17 +128,15 @@ void ExternalCommandProcessor::Execute(const String& line)
 
 void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
 {
-	boost::call_once(l_InitializeOnce, &ExternalCommandProcessor::Initialize);
-
 	ExternalCommandInfo eci;
 
 	{
-		boost::mutex::scoped_lock lock(l_Mutex);
+		boost::mutex::scoped_lock lock(GetMutex());
 
 		std::map<String, ExternalCommandInfo>::iterator it;
-		it = l_Commands.find(command);
+		it = GetCommands().find(command);
 
-		if (it == l_Commands.end())
+		if (it == GetCommands().end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The external command '" + command + "' does not exist."));
 
 		eci = it->second;
@@ -143,7 +169,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	eci.Callback(time, realArguments);
 }
 
-void ExternalCommandProcessor::Initialize(void)
+void ExternalCommandProcessor::StaticInitialize(void)
 {
 	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult, 3);
 	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult, 4);

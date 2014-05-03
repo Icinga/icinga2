@@ -28,12 +28,6 @@
 namespace icinga
 {
 
-enum TlsRole
-{
-	TlsRoleClient,
-	TlsRoleServer
-};
-
 /**
  * A TLS stream.
  *
@@ -44,7 +38,7 @@ class I2_BASE_API TlsStream : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
-	TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX> sslContext);
+	TlsStream(const Socket::Ptr& socket, ConnectionRole role, shared_ptr<SSL_CTX> sslContext);
 
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
@@ -59,11 +53,12 @@ public:
 	virtual bool IsEof(void) const;
 
 private:
+	boost::mutex m_SSLLock;
 	shared_ptr<SSL> m_SSL;
 	BIO *m_BIO;
 
 	Socket::Ptr m_Socket;
-	TlsRole m_Role;
+	ConnectionRole m_Role;
 
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;

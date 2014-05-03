@@ -17,53 +17,27 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cluster/clusterlink.h"
+#ifndef MESSAGEORIGIN_H
+#define MESSAGEORIGIN_H
 
-using namespace icinga;
+#include "remote/zone.h"
+#include "remote/apiclient.h"
 
-ClusterLink::ClusterLink(const String& from, const String& to)
+namespace icinga
 {
-	if (from < to) {
-		From = from;
-		To = to;
-	} else {
-		From = to;
-		To = from;
-	}
+
+/**
+ * @ingroup remote
+ */
+struct I2_REMOTE_API MessageOrigin
+{
+	Zone::Ptr FromZone;
+	ApiClient::Ptr FromClient;
+
+	bool IsLocal(void) const;
+	bool IsSameZone(void) const;
+};
+
 }
 
-int ClusterLink::GetMetric(void) const
-{
-	int metric = 0;
-
-	Endpoint::Ptr fromEp = Endpoint::GetByName(From);
-	if (fromEp)
-		metric += fromEp->GetMetric();
-
-	Endpoint::Ptr toEp = Endpoint::GetByName(To);
-	if (toEp)
-		metric += toEp->GetMetric();
-
-	return metric;
-}
-
-bool ClusterLink::operator<(const ClusterLink& other) const
-{
-	if (From < other.From)
-		return true;
-	else
-		return To < other.To;
-}
-
-bool ClusterLinkMetricLessComparer::operator()(const ClusterLink& a, const ClusterLink& b) const
-{
-	int metricA = a.GetMetric();
-	int metricB = b.GetMetric();
-
-	if (metricA < metricB)
-		return true;
-	else if (metricB > metricA)
-		return false;
-	else
-		return a < b;
-}
+#endif /* MESSAGEORIGIN_H */

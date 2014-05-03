@@ -18,116 +18,100 @@
  ******************************************************************************/
 
 #include "remote/endpoint.h"
+#include "remote/apilistener.h"
+#include "remote/apiclient.h"
 #include "remote/jsonrpc.h"
+#include "remote/zone.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
-#include "config/configitembuilder.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(Endpoint);
 
-boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnConnected;
-boost::signals2::signal<void (const Endpoint::Ptr&)> Endpoint::OnDisconnected;
-boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> Endpoint::OnMessageReceived;
+boost::signals2::signal<void(const Endpoint::Ptr&, const ApiClient::Ptr&)> Endpoint::OnConnected;
+boost::signals2::signal<void(const Endpoint::Ptr&, const ApiClient::Ptr&)> Endpoint::OnDisconnected;
 
-/**
- * Checks whether this endpoint is connected.
- *
- * @returns true if the endpoint is connected, false otherwise.
- */
+void Endpoint::OnConfigLoaded(void)
+{
+	DynamicObject::OnConfigLoaded();
+
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+		const std::set<Endpoint::Ptr> members = zone->GetEndpoints();
+
+		if (members.find(GetSelf()) != members.end()) {
+			if (m_Zone)
+				BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint '" + GetName() + "' is in more than one zone."));
+
+			m_Zone = zone;
+		}
+	}
+
+	if (!m_Zone)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint '" + GetName() + "' does not belong to a zone."));
+}
+
+void Endpoint::AddClient(const ApiClient::Ptr& client)
+{
+	bool was_master = ApiListener::GetInstance()->IsMaster();
+
+	{
+		boost::mutex::scoped_lock lock(m_ClientsLock);
+		m_Clients.insert(client);
+	}
+
+	bool is_master = ApiListener::GetInstance()->IsMaster();
+
+	if (was_master != is_master)
+		ApiListener::OnMasterChanged(is_master);
+
+	OnConnected(GetSelf(), client);
+}
+
+void Endpoint::RemoveClient(const ApiClient::Ptr& client)
+{
+	bool was_master = ApiListener::GetInstance()->IsMaster();
+
+	{
+		boost::mutex::scoped_lock lock(m_ClientsLock);
+		m_Clients.erase(client);
+	}
+
+	bool is_master = ApiListener::GetInstance()->IsMaster();
+
+	if (was_master != is_master)
+		ApiListener::OnMasterChanged(is_master);
+
+	OnDisconnected(GetSelf(), client);
+}
+
+std::set<ApiClient::Ptr> Endpoint::GetClients(void) const
+{
+	boost::mutex::scoped_lock lock(m_ClientsLock);
+	return m_Clients;
+}
+
+Zone::Ptr Endpoint::GetZone(void) const
+{
+	return m_Zone;
+}
+
 bool Endpoint::IsConnected(void) const
 {
-	return GetClient() != NULL;
+	boost::mutex::scoped_lock lock(m_ClientsLock);
+	return !m_Clients.empty();
 }
 
-bool Endpoint::IsAvailable(void) const
+Endpoint::Ptr Endpoint::GetLocalEndpoint(void)
 {
-	return GetSeen() > Utility::GetTime() - 30;
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return Endpoint::Ptr();
+
+	return Endpoint::GetByName(listener->GetIdentity());
 }
-
-Stream::Ptr Endpoint::GetClient(void) const
-{
-	return m_Client;
-}
-
-void Endpoint::SetClient(const Stream::Ptr& client)
-{
-	SetBlockedUntil(Utility::GetTime() + 15);
-
-	if (m_Client)
-		m_Client->Close();
-
-	m_Client = client;
-
-	if (client) {
-		boost::thread thread(boost::bind(&Endpoint::MessageThreadProc, this, client));
-		thread.detach();
-
-		OnConnected(GetSelf());
-		Log(LogInformation, "remote", "Endpoint connected: " + GetName());
-	} else {
-		OnDisconnected(GetSelf());
-		Log(LogInformation, "remote", "Endpoint disconnected: " + GetName());
-	}
-}
-
-void Endpoint::SendMessage(const Dictionary::Ptr& message)
-{
-	Stream::Ptr client = GetClient();
-
-	if (!client)
-		return;
-
-	try {
-		JsonRpc::SendMessage(client, message);
-	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Error while sending JSON-RPC message for endpoint '" << GetName() << "': " << DiagnosticInformation(ex);
-		Log(LogWarning, "remote", msgbuf.str());
-
-		m_Client.reset();
-
-		OnDisconnected(GetSelf());
-		Log(LogWarning, "remote", "Endpoint disconnected: " + GetName());
-	}
-}
-
-void Endpoint::MessageThreadProc(const Stream::Ptr& stream)
-{
-	Utility::SetThreadName("EndpointMsg");
-
-	for (;;) {
-		Dictionary::Ptr message;
-
-		try {
-			message = JsonRpc::ReadMessage(stream);
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "remote", "Error while reading JSON-RPC message for endpoint '" + GetName() + "': " + DiagnosticInformation(ex));
-
-			m_Client.reset();
-
-			OnDisconnected(GetSelf());
-			Log(LogWarning, "remote", "Endpoint disconnected: " + GetName());
-
-			return;
-		}
-
-		OnMessageReceived(GetSelf(), message);
-	}
-}
-
-bool Endpoint::HasFeature(const String& type) const
-{
-	Dictionary::Ptr features = GetFeatures();
-
-	if (!features)
-		return false;
-
-	return features->Get(type);
-}
-

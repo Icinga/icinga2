@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cluster/clusterchecktask.h"
-#include "cluster/clusterlistener.h"
+#include "methods/clusterchecktask.h"
+#include "remote/apilistener.h"
 #include "remote/endpoint.h"
 #include "icinga/cib.h"
 #include "icinga/service.h"
@@ -35,38 +35,39 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
 
-void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
+void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	/* fetch specific cluster status */
-	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
-	BOOST_FOREACH(const ClusterListener::Ptr& cluster_listener, DynamicType::GetObjects<ClusterListener>()) {
-		/* XXX there's only one cluster listener */
-		stats = cluster_listener->GetClusterStatus();
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		cr->SetOutput("No API listener is configured for this instance.");
+		cr->SetState(ServiceUnknown);
+		checkable->ProcessCheckResult(cr);
+		return;
 	}
+
+	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats = listener->GetStatus();
 
 	Dictionary::Ptr status = stats.first;
 
 	/* use feature stats perfdata */
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> feature_stats = CIB::GetFeatureStats();
-	Dictionary::Ptr perfdata = feature_stats.second;
+	cr->SetPerformanceData(feature_stats.second);
 
 	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
 	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
 
-	ServiceState state = ServiceOK;
-	String output = "Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) + " (" +
-	    connected_endpoints + ").";
-
 	if (status->Get("num_not_conn_endpoints") > 0) {
-		state = ServiceCritical;
-		output = "Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
-		    " Endpoints (" + not_connected_endpoints + ") not connected.";
+		cr->SetState(ServiceCritical);
+		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) + " (" +
+	    connected_endpoints + ").");
+	} else {
+		cr->SetState(ServiceOK);
+		cr->SetOutput("Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
+		    " Endpoints (" + not_connected_endpoints + ") not connected.");
 	}
 
-	cr->SetOutput(output);
-	cr->SetPerformanceData(perfdata);
-	cr->SetState(state);
-	service->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr);
 }
 
 String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
@@ -88,4 +89,3 @@ String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
 
 	return str;
 }
-

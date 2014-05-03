@@ -25,6 +25,7 @@
 #include "icinga/user.h"
 #include "icinga/usergroup.h"
 #include "icinga/timeperiod.h"
+#include "remote/messageorigin.h"
 #include "config/applyrule.h"
 #include "base/array.h"
 
@@ -86,7 +87,7 @@ public:
 	std::set<UserGroup::Ptr> GetUserGroups(void) const;
 
 	double GetNextNotification(void) const;
-	void SetNextNotification(double time, const String& authority = String());
+	void SetNextNotification(double time, const MessageOrigin& origin = MessageOrigin());
 
 	void UpdateNotificationNumber(void);
 	void ResetNotificationNumber(void);
@@ -97,7 +98,7 @@ public:
 
 	static String NotificationTypeToString(NotificationType type);
 
-	static boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> OnNextNotificationChanged;
+	static boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> OnNextNotificationChanged;
 
 	static void RegisterApplyRuleHandler(void);
 

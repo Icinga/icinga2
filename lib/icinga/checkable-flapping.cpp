@@ -47,12 +47,12 @@ bool Checkable::GetEnableFlapping(void) const
 		return GetEnableFlappingRaw();
 }
 
-void Checkable::SetEnableFlapping(bool enabled, const String& authority)
+void Checkable::SetEnableFlapping(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableFlapping(enabled);
 
 	OnFlappingChanged(GetSelf(), enabled ? FlappingEnabled : FlappingDisabled);
-	OnEnableFlappingChanged(GetSelf(), enabled, authority);
+	OnEnableFlappingChanged(GetSelf(), enabled, origin);
 }
 
 void Checkable::UpdateFlappingStatus(bool stateChange)

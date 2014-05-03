@@ -15,12 +15,15 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
+mkclass_target(apilistener.ti apilistener.th)
 mkclass_target(endpoint.ti endpoint.th)
+mkclass_target(zone.ti zone.th)
 
 mkembedconfig_target(remote-type.conf remote-type.cpp)
 
 add_library(remote SHARED
-  endpoint.cpp endpoint.th jsonrpc.cpp remote-type.cpp
+  apiclient.cpp apifunction.cpp apilistener.cpp apilistener.th endpoint.cpp
+  endpoint.th jsonrpc.cpp messageorigin.cpp remote-type.cpp zone.cpp zone.th
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
@@ -39,4 +42,7 @@ install(
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
 
+#install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/log\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/repository\")")
 

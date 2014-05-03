@@ -1,19 +1,22 @@
 #include "base/dynamicobject.h"
-#include "base/application.h"
 
 namespace icinga
 {
 
-class ClusterListener : DynamicObject
+class ApiListener : DynamicObject
 {
 	[config] String cert_path;
 	[config] String key_path;
 	[config] String ca_path;
 	[config] String crl_path;
+
 	[config] String bind_host;
-	[config] String bind_port;
-	[config] Array::Ptr peers;
+	[config] String bind_port {
+		default {{{ return "5665"; }}}
+	};
+
 	[state] double log_message_timestamp;
+
 	String identity;
 };
 

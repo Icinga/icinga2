@@ -29,12 +29,13 @@
 namespace icinga
 {
 
-class EndpointManager;
+class ApiClient;
+class Zone;
 
 /**
  * An endpoint that can be used to send and receive messages.
  *
- * @ingroup cluster
+ * @ingroup remote
  */
 class I2_REMOTE_API Endpoint : public ObjectImpl<Endpoint>
 {
@@ -42,26 +43,26 @@ public:
 	DECLARE_PTR_TYPEDEFS(Endpoint);
 	DECLARE_TYPENAME(Endpoint);
 
-	static boost::signals2::signal<void (const Endpoint::Ptr&)> OnConnected;
-        static boost::signals2::signal<void (const Endpoint::Ptr&)> OnDisconnected;
-	static boost::signals2::signal<void (const Endpoint::Ptr&, const Dictionary::Ptr&)> OnMessageReceived;
+	static boost::signals2::signal<void(const Endpoint::Ptr&, const shared_ptr<ApiClient>&)> OnConnected;
+	static boost::signals2::signal<void(const Endpoint::Ptr&, const shared_ptr<ApiClient>&)> OnDisconnected;
 
-	Stream::Ptr GetClient(void) const;
-	void SetClient(const Stream::Ptr& client);
+	void AddClient(const shared_ptr<ApiClient>& client);
+	void RemoveClient(const shared_ptr<ApiClient>& client);
+	std::set<shared_ptr<ApiClient> > GetClients(void) const;
+
+	shared_ptr<Zone> GetZone(void) const;
 
 	bool IsConnected(void) const;
-	bool IsAvailable(void) const;
 
-	void SendMessage(const Dictionary::Ptr& request);
+	static Endpoint::Ptr GetLocalEndpoint(void);
 
-	bool HasFeature(const String& type) const;
+protected:
+	virtual void OnConfigLoaded(void);
 
 private:
-	Stream::Ptr m_Client;
-	boost::thread m_Thread;
-	Array::Ptr m_ConnectedEndpoints;
-
-	void MessageThreadProc(const Stream::Ptr& stream);
+	mutable boost::mutex m_ClientsLock;
+	std::set<shared_ptr<ApiClient> > m_Clients;
+	shared_ptr<Zone> m_Zone;
 };
 
 }

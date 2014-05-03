@@ -77,8 +77,7 @@ public:
 
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&)> OnStateChanged;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> OnAuthorityChanged;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnVarsChanged;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
@@ -86,12 +85,6 @@ public:
 	shared_ptr<DynamicType> GetType(void) const;
 
 	bool IsActive(void) const;
-
-	void SetAuthority(const String& type, bool value);
-	bool HasAuthority(const String& type) const;
-
-	void SetPrivileges(const String& instance, int privs);
-	bool HasPrivileges(const String& instance, int privs) const;
 
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);

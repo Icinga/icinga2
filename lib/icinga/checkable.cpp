@@ -39,8 +39,8 @@ REGISTER_TYPE(Checkable);
 
 INITIALIZE_ONCE(&Checkable::StartDowntimesExpiredTimer);
 
-boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, double, const String&)> Checkable::OnAcknowledgementSet;
-boost::signals2::signal<void (const Checkable::Ptr&, const String&)> Checkable::OnAcknowledgementCleared;
+boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, double, const MessageOrigin&)> Checkable::OnAcknowledgementSet;
+boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> Checkable::OnAcknowledgementCleared;
 
 Checkable::Checkable(void)
 	: m_CheckRunning(false)
@@ -129,7 +129,7 @@ bool Checkable::IsAcknowledged(void)
 	return GetAcknowledgement() != AcknowledgementNone;
 }
 
-void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry, const String& authority)
+void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry, const MessageOrigin& origin)
 {
 	{
 		ObjectLock olock(this);
@@ -140,17 +140,17 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 
 	OnNotificationsRequested(GetSelf(), NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 
-	OnAcknowledgementSet(GetSelf(), author, comment, type, expiry, authority);
+	OnAcknowledgementSet(GetSelf(), author, comment, type, expiry, origin);
 }
 
-void Checkable::ClearAcknowledgement(const String& authority)
+void Checkable::ClearAcknowledgement(const MessageOrigin& origin)
 {
 	ASSERT(OwnsLock());
 
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 
-	OnAcknowledgementCleared(GetSelf(), authority);
+	OnAcknowledgementCleared(GetSelf(), origin);
 }
 
 bool Checkable::GetEnablePerfdata(void) const
@@ -161,7 +161,7 @@ bool Checkable::GetEnablePerfdata(void) const
 		return GetEnablePerfdataRaw();
 }
 
-void Checkable::SetEnablePerfdata(bool enabled, const String& authority)
+void Checkable::SetEnablePerfdata(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnablePerfdata(enabled);
 }

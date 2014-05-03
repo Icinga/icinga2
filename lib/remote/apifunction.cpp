@@ -17,34 +17,43 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTCHECKTASK_H
-#define AGENTCHECKTASK_H
+#include "remote/apifunction.h"
+#include "base/registry.h"
+#include "base/singleton.h"
 
-#include "icinga/service.h"
-#include "base/timer.h"
+using namespace icinga;
 
-namespace icinga
+ApiFunction::ApiFunction(const Callback& function)
+: m_Callback(function)
+{ }
+
+Value ApiFunction::Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments)
 {
-
-/**
- * Agent check type.
- *
- * @ingroup methods
- */
-class AgentCheckTask
-{
-public:
-	static void StaticInitialize(void);
-	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-
-private:
-	AgentCheckTask(void);
-	
-	static void AgentTimerHandler(void);
-
-	static bool SendResult(const Checkable::Ptr& checkable, bool enqueue);
-};
-
+	return m_Callback(origin, arguments);
 }
 
-#endif /* AGENTCHECKTASK_H */
+RegisterApiFunctionHelper::RegisterApiFunctionHelper(const String& name, const ApiFunction::Callback& function)
+{
+	ApiFunction::Ptr func = make_shared<ApiFunction>(function);
+	ApiFunctionRegistry::GetInstance()->Register(name, func);
+}
+
+ApiFunction::Ptr ApiFunction::GetByName(const String& name)
+{
+	return ApiFunctionRegistry::GetInstance()->GetItem(name);
+}
+
+void ApiFunction::Register(const String& name, const ApiFunction::Ptr& function)
+{
+	ApiFunctionRegistry::GetInstance()->Register(name, function);
+}
+
+void ApiFunction::Unregister(const String& name)
+{
+	ApiFunctionRegistry::GetInstance()->Unregister(name);
+}
+
+ApiFunctionRegistry *ApiFunctionRegistry::GetInstance(void)
+{
+	return Singleton<ApiFunctionRegistry>::GetInstance();
+}

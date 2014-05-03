@@ -72,7 +72,7 @@ public:
         static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
 
         /* Status */
-	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority);
+	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck);
 	static void FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state);
 	static void LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable);
 

@@ -108,11 +108,11 @@ bool Checkable::GetEnableNotifications(void) const
 		return GetEnableNotificationsRaw();
 }
 
-void Checkable::SetEnableNotifications(bool enabled, const String& authority)
+void Checkable::SetEnableNotifications(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableNotifications(enabled);
 
-	OnEnableNotificationsChanged(GetSelf(), enabled, authority);
+	OnEnableNotificationsChanged(GetSelf(), enabled, origin);
 }
 
 bool Checkable::GetForceNextNotification(void) const
@@ -120,9 +120,9 @@ bool Checkable::GetForceNextNotification(void) const
 	return GetForceNextNotificationRaw();
 }
 
-void Checkable::SetForceNextNotification(bool forced, const String& authority)
+void Checkable::SetForceNextNotification(bool forced, const MessageOrigin& origin)
 {
 	SetForceNextNotificationRaw(forced);
 
-	OnForceNextNotificationChanged(GetSelf(), forced, authority);
+	OnForceNextNotificationChanged(GetSelf(), forced, origin);
 }

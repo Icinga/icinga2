@@ -30,11 +30,7 @@ typedef void (*InitializeFunc)(void);
 
 inline bool InitializeOnceHelper(InitializeFunc func)
 {
-	if (Utility::GetLoadingLibrary())
-		Utility::AddDeferredInitializer(func);
-	else
-		func();
-
+	Utility::AddDeferredInitializer(func);
 	return true;
 }
 

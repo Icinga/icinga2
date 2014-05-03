@@ -370,21 +370,9 @@ Utility::LoadExtensionLibrary(const String& library)
 
 	Log(LogInformation, "base", "Loading library '" + path + "'");
 
-	m_DeferredInitializers.reset(new std::vector<boost::function<void(void)> >());
-
 #ifdef _WIN32
-	HMODULE hModule;
+	HMODULE hModule = LoadLibrary(path.CStr());
 	
-	try {
-		SetLoadingLibrary(true);
-		hModule = LoadLibrary(path.CStr());
-	} catch (...) {
-		SetLoadingLibrary(false);
-		throw;
-	}
-
-	SetLoadingLibrary(false);
-
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("LoadLibrary")
@@ -392,44 +380,35 @@ Utility::LoadExtensionLibrary(const String& library)
 		    << boost::errinfo_file_name(path));
 	}
 #else /* _WIN32 */
-	void *hModule;
+	void *hModule = dlopen(path.CStr(), RTLD_NOW);
 	
-	try {
-		hModule = dlopen(path.CStr(), RTLD_NOW);
-	} catch (...) {
-		SetLoadingLibrary(false);
-		throw;
-	}
-
-	SetLoadingLibrary(false);
-
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " + dlerror()));
 	}
 #endif /* _WIN32 */
 
-	BOOST_FOREACH(const boost::function<void(void)>& callback, *m_DeferredInitializers.get())
-		callback();
+	ExecuteDeferredInitializers();
 
-	m_DeferredInitializers.reset();
 
 	return hModule;
 }
 
-bool Utility::GetLoadingLibrary(void)
+void Utility::ExecuteDeferredInitializers(void)
 {
-	bool *loading = m_LoadingLibrary.get();
-	return loading && *loading;
-}
+	if (!m_DeferredInitializers.get())
+		return;
 
-void Utility::SetLoadingLibrary(bool loading)
-{
-	bool *ploading = new bool(loading);
-	m_LoadingLibrary.reset(ploading);
+	BOOST_FOREACH(const boost::function<void(void)>& callback, *m_DeferredInitializers.get())
+		callback();
+
+	m_DeferredInitializers.reset();
 }
 
 void Utility::AddDeferredInitializer(const boost::function<void(void)>& callback)
 {
+	if (!m_DeferredInitializers.get())
+		m_DeferredInitializers.reset(new std::vector<boost::function<void(void)> >());
+
 	m_DeferredInitializers.get()->push_back(callback);
 }
 
@@ -536,9 +515,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 		struct stat statbuf;
 
 		if (stat(*gp, &statbuf) < 0)
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("stat")
-			    << boost::errinfo_errno(errno));
+			continue;
 
 		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
 			continue;

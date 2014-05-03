@@ -36,7 +36,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TlsStream::TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX> sslContext)
+TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, shared_ptr<SSL_CTX> sslContext)
 	: m_Socket(socket), m_Role(role)
 {
 	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
@@ -62,7 +62,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, TlsRole role, shared_ptr<SSL_CTX
 	BIO_set_nbio(m_BIO, 1);
 	SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
 
-	if (m_Role == TlsRoleServer)
+	if (m_Role == RoleServer)
 		SSL_set_accept_state(m_SSL.get());
 	else
 		SSL_set_connect_state(m_SSL.get());
@@ -90,13 +90,11 @@ shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 
 void TlsStream::Handshake(void)
 {
-	ASSERT(!OwnsLock());
-
 	for (;;) {
 		int rc, err;
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_SSLLock);
 			rc = SSL_do_handshake(m_SSL.get());
 
 			if (rc > 0)
@@ -128,15 +126,13 @@ void TlsStream::Handshake(void)
  */
 size_t TlsStream::Read(void *buffer, size_t count)
 {
-	ASSERT(!OwnsLock());
-
 	size_t left = count;
 
 	while (left > 0) {
 		int rc, err;
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_SSLLock);
 			rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
 
 			if (rc <= 0)
@@ -169,15 +165,13 @@ size_t TlsStream::Read(void *buffer, size_t count)
 
 void TlsStream::Write(const void *buffer, size_t count)
 {
-	ASSERT(!OwnsLock());
-
 	size_t left = count;
 
 	while (left > 0) {
 		int rc, err;
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_SSLLock);
 			rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
 
 			if (rc <= 0)
@@ -211,13 +205,11 @@ void TlsStream::Write(const void *buffer, size_t count)
  */
 void TlsStream::Close(void)
 {
-	ASSERT(!OwnsLock());
-
 	for (;;) {
 		int rc, err;
 
 		{
-			ObjectLock olock(this);
+			boost::mutex::scoped_lock lock(m_SSLLock);
 
 			do {
 				rc = SSL_shutdown(m_SSL.get());

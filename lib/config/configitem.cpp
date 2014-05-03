@@ -50,10 +50,10 @@ ConfigItem::ItemMap ConfigItem::m_Items;
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const AExpression::Ptr& exprl,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
-    const String& package)
+    const String& zone)
 	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
 	  m_ExpressionList(exprl), m_DebugInfo(debuginfo),
-	  m_Scope(scope), m_Package(package)
+	  m_Scope(scope), m_Zone(zone)
 {
 }
 
@@ -119,6 +119,8 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	if (!m_Properties) {
 		m_Properties = make_shared<Dictionary>();
 		m_Properties->Set("type", m_Type);
+		if (!m_Zone.IsEmpty())
+			m_Properties->Set("zone", m_Zone);
 		m_Properties->Set("__parent", m_Scope);
 		GetExpressionList()->Evaluate(m_Properties);
 		m_Properties->Remove("__parent");

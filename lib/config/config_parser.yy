@@ -160,7 +160,7 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_LAMBDA "lambda (T_LAMBDA)"
 %token T_RETURN "return (T_RETURN)"
-%token T_PACKAGE "package (T_PACKAGE)"
+%token T_ZONE "zone (T_ZONE)"
 
 %type <text> identifier
 %type <array> rterm_items
@@ -214,7 +214,7 @@ static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
-static String m_Package;
+static String m_Zone;
 static int m_StatementNum;
 
 static bool m_Apply;
@@ -227,7 +227,7 @@ void ConfigCompiler::Compile(void)
 {
 	m_ModuleScope = make_shared<Dictionary>();
 	
-	String parentPackage = m_Package;
+	String parentZone = m_Zone;
 	int parentStatementNum = m_StatementNum;
 	m_StatementNum = 0;
 
@@ -240,7 +240,7 @@ void ConfigCompiler::Compile(void)
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
 
-	m_Package = parentPackage;
+	m_Zone = parentZone;
 	m_StatementNum = parentStatementNum;
 }
 
@@ -253,7 +253,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: type | package | include | include_recursive | library | constant
+statement: type | zone | include | include_recursive | library | constant
 	{
 		m_StatementNum++;
 	}
@@ -269,37 +269,39 @@ statement: type | package | include | include_recursive | library | constant
 	}
 	;
 
-package: T_PACKAGE rterm sep
+zone: T_ZONE rterm sep
 	{
 		AExpression::Ptr aexpr = *$2;
 		delete $2;
 
-		if (!m_Package.IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Package name cannot be changed once it's been set."));
+		if (!m_Zone.IsEmpty())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Zone name cannot be changed once it's been set."));
 
 		if (m_StatementNum != 0)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("'package' directive must be the first statement in a file."));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("'zone' directive must be the first statement in a file."));
 
-		m_Package = aexpr->Evaluate(m_ModuleScope);
+		m_Zone = aexpr->Evaluate(m_ModuleScope);
 	}
-	| T_PACKAGE rterm rterm_scope sep
+	| T_ZONE rterm
 	{
 		AExpression::Ptr aexpr = *$2;
 		delete $2;
 
-		AExpression::Ptr ascope = *$3;
-		delete $3;
+		if (!m_Zone.IsEmpty())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Zone name cannot be changed once it's been set."));
 
-		if (!m_Package.IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Package name cannot be changed once it's been set."));
-
-		m_Package = aexpr->Evaluate(m_ModuleScope);
+		m_Zone = aexpr->Evaluate(m_ModuleScope);
+	}
+	rterm_scope sep
+	{
+		AExpression::Ptr ascope = *$4;
+		delete $4;
 
 		try {
 			ascope->Evaluate(m_ModuleScope);
-			m_Package = String();
+			m_Zone = String();
 		} catch (...) {
-			m_Package = String();
+			m_Zone = String();
 		}
 	}
 	;
@@ -511,7 +513,7 @@ object:
 
 		args->Add(filter);
 
-		args->Add(m_Package);
+		args->Add(m_Zone);
 
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
 

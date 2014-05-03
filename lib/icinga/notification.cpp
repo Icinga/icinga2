@@ -39,7 +39,7 @@ REGISTER_TYPE(Notification);
 REGISTER_SCRIPTFUNCTION(ValidateNotificationFilters, &Notification::ValidateFilters);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
-boost::signals2::signal<void (const Notification::Ptr&, double, const String&)> Notification::OnNextNotificationChanged;
+boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> Notification::OnNextNotificationChanged;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const
 {
@@ -180,11 +180,11 @@ double Notification::GetNextNotification(void) const
  * Sets the timestamp when the next periodical notification should be sent.
  * This does not affect notifications that are sent for state changes.
  */
-void Notification::SetNextNotification(double time, const String& authority)
+void Notification::SetNextNotification(double time, const MessageOrigin& origin)
 {
 	SetNextNotificationRaw(time);
 
-	OnNextNotificationChanged(GetSelf(), time, authority);
+	OnNextNotificationChanged(GetSelf(), time, origin);
 }
 
 void Notification::UpdateNotificationNumber(void)

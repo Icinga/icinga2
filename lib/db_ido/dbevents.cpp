@@ -50,7 +50,7 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
 	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
-	Checkable::OnNextCheckChanged.connect(bind(&DbEvents::NextCheckChangedHandler, _1, _2, _3));
+	Checkable::OnNextCheckChanged.connect(bind(&DbEvents::NextCheckChangedHandler, _1, _2));
 	Checkable::OnFlappingChanged.connect(bind(&DbEvents::FlappingChangedHandler, _1, _2));
 	Checkable::OnNotificationSentToAllUsers.connect(bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
 
@@ -78,7 +78,7 @@ void DbEvents::StaticInitialize(void)
 }
 
 /* check events */
-void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck, const String& authority)
+void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck)
 {
 	Host::Ptr host;
 	Service::Ptr service;

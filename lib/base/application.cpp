@@ -103,6 +103,11 @@ Application::~Application(void)
 	m_Instance = NULL;
 }
 
+void Application::InitializeBase(void)
+{
+	Utility::ExecuteDeferredInitializers();
+}
+
 /**
  * Retrieves a pointer to the application singleton object.
  *

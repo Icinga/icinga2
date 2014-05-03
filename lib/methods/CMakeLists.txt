@@ -22,7 +22,7 @@ else()
 endif()
 
 add_library(methods SHARED
-  castfuncs.cpp icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
+  castfuncs.cpp clusterchecktask.cpp icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
   randomchecktask.cpp timeperiodtask.cpp ${WindowsSources}
 )

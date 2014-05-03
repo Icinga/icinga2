@@ -39,7 +39,7 @@ INITIALIZE_ONCE(&EndpointDbObject::StaticInitialize);
 void EndpointDbObject::StaticInitialize(void)
 {
 	Endpoint::OnConnected.connect(boost::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
-	Endpoint::OnDisconnected.connect(boost::bind(&EndpointDbObject::UpdateDisconnectedStatus, _1));
+	Endpoint::OnDisconnected.connect(boost::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
 }
 
 EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
@@ -73,16 +73,8 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 
 void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 {
-	UpdateConnectedStatusInternal(endpoint, true);
-}
+	bool connected = EndpointIsConnected(endpoint);
 
-void EndpointDbObject::UpdateDisconnectedStatus(const Endpoint::Ptr& endpoint)
-{
-	UpdateConnectedStatusInternal(endpoint, false);
-}
-
-void EndpointDbObject::UpdateConnectedStatusInternal(const Endpoint::Ptr& endpoint, bool connected)
-{
 	Log(LogDebug, "db_ido", "update is_connected=" + Convert::ToString(connected ? 1 : 0) + " for endpoint '" + endpoint->GetName() + "'");
 
 	DbQuery query1;

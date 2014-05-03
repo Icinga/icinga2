@@ -21,6 +21,7 @@
 #define API_H
 
 #include "icinga/i2-icinga.h"
+#include "remote/apiclient.h"
 #include "base/value.h"
 #include <vector>
 
@@ -28,14 +29,12 @@ namespace icinga
 {
 
 /**
- * A state change message for a service.
- *
  * @ingroup icinga
  */
 class I2_ICINGA_API API
 {
 public:
-	static int GetAnswerToEverything(const String& text);
+	static Value GetAnswerToEverything(const Dictionary::Ptr& params);
 
 private:
 	API(void);

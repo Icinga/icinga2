@@ -18,12 +18,16 @@
  ******************************************************************************/
 
 #include "demo/demo.h"
+#include "remote/apilistener.h"
+#include "remote/apifunction.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 
 using namespace icinga;
 
 REGISTER_TYPE(Demo);
+
+REGISTER_APIFUNCTION(HelloWorld, demo, &Demo::DemoMessageHandler);
 
 /**
  * Starts the component.
@@ -39,19 +43,23 @@ void Demo::Start(void)
 }
 
 /**
- * Stops the component.
- */
-void Demo::Stop(void)
-{
-	/* Nothing to do here. */
-}
-
-/**
- * Periodically sends a demo::HelloWorld message.
- *
- * @param - Event arguments for the timer.
+ * Periodically broadcasts an API message.
  */
 void Demo::DemoTimerHandler(void)
 {
-	Log(LogInformation, "demo", "Hello World!");
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("method", "demo::HelloWorld");
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	if (listener) {
+		listener->RelayMessage(MessageOrigin(), DynamicObject::Ptr(), message, true);
+		Log(LogInformation, "demo", "Sent demo::HelloWorld message");
+	}
+}
+
+Value Demo::DemoMessageHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	Log(LogInformation, "demo", "Got demo message from '" + origin.FromClient->GetEndpoint()->GetName() + "'");
+
+	return Empty;
 }

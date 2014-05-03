@@ -21,6 +21,7 @@
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
+#include "remote/apilistener.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -33,16 +34,16 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const String&)> Checkable::OnNewCheckResult;
-boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const String&)> Checkable::OnStateChange;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> Checkable::OnNewCheckResult;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> Checkable::OnStateChange;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationsRequested;
-boost::signals2::signal<void (const Checkable::Ptr&, double, const String&)> Checkable::OnNextCheckChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnForceNextCheckChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnForceNextNotificationChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnableActiveChecksChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnablePassiveChecksChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnableNotificationsChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> Checkable::OnEnableFlappingChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnNextCheckChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnForceNextCheckChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnForceNextNotificationChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableActiveChecksChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnablePassiveChecksChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableNotificationsChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableFlappingChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> Checkable::OnFlappingChanged;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
@@ -115,11 +116,11 @@ long Checkable::GetSchedulingOffset(void)
 	return m_SchedulingOffset;
 }
 
-void Checkable::SetNextCheck(double nextCheck, const String& authority)
+void Checkable::SetNextCheck(double nextCheck, const MessageOrigin& origin)
 {
 	SetNextCheckRaw(nextCheck);
 
-	OnNextCheckChanged(GetSelf(), nextCheck, authority);
+	OnNextCheckChanged(GetSelf(), nextCheck, origin);
 }
 
 double Checkable::GetNextCheck(void)
@@ -171,11 +172,11 @@ bool Checkable::GetEnableActiveChecks(void) const
 		return GetEnableActiveChecksRaw();
 }
 
-void Checkable::SetEnableActiveChecks(bool enabled, const String& authority)
+void Checkable::SetEnableActiveChecks(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableActiveChecks(enabled);
 
-	OnEnableActiveChecksChanged(GetSelf(), enabled, authority);
+	OnEnableActiveChecksChanged(GetSelf(), enabled, origin);
 }
 
 bool Checkable::GetEnablePassiveChecks(void) const
@@ -186,11 +187,11 @@ bool Checkable::GetEnablePassiveChecks(void) const
 		return GetEnablePassiveChecksRaw();
 }
 
-void Checkable::SetEnablePassiveChecks(bool enabled, const String& authority)
+void Checkable::SetEnablePassiveChecks(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnablePassiveChecks(enabled);
 
-	OnEnablePassiveChecksChanged(GetSelf(), enabled, authority);
+	OnEnablePassiveChecksChanged(GetSelf(), enabled, origin);
 }
 
 bool Checkable::GetForceNextCheck(void) const
@@ -198,11 +199,11 @@ bool Checkable::GetForceNextCheck(void) const
 	return GetForceNextCheckRaw();
 }
 
-void Checkable::SetForceNextCheck(bool forced, const String& authority)
+void Checkable::SetForceNextCheck(bool forced, const MessageOrigin& origin)
 {
 	SetForceNextCheckRaw(forced);
 
-	OnForceNextCheckChanged(GetSelf(), forced, authority);
+	OnForceNextCheckChanged(GetSelf(), forced, origin);
 }
 
 int Checkable::GetMaxCheckAttempts(void) const
@@ -218,7 +219,7 @@ void Checkable::SetMaxCheckAttempts(int attempts)
 	SetOverrideMaxCheckAttempts(attempts);
 }
 
-void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority)
+void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin)
 {
 	{
 		ObjectLock olock(this);
@@ -239,7 +240,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (authority.IsEmpty())
+	if (origin.IsLocal())
 		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	bool reachable = IsReachable();
@@ -399,15 +400,15 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const String& aut
 //			" threshold: " + Convert::ToString(GetFlappingThreshold()) +
 //			"% current: " +	Convert::ToString(GetFlappingCurrent()) + "%.");
 
-	OnNewCheckResult(GetSelf(), cr, authority);
+	OnNewCheckResult(GetSelf(), cr, origin);
 
 	/* signal status updates to for example db_ido */
-	OnStateChanged(GetSelf(), authority);
+	OnStateChanged(GetSelf());
 
 	if (hardChange)
-		OnStateChange(GetSelf(), cr, StateTypeHard, authority);
+		OnStateChange(GetSelf(), cr, StateTypeHard, origin);
 	else if (stateChange)
-		OnStateChange(GetSelf(), cr, StateTypeSoft, authority);
+		OnStateChange(GetSelf(), cr, StateTypeSoft, origin);
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery)
 		ExecuteEventHandler();

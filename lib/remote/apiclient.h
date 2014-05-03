@@ -17,33 +17,63 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CLUSTERLINK_H
-#define CLUSTERLINK_H
+#ifndef APICLIENT_H
+#define APICLIENT_H
 
 #include "remote/endpoint.h"
+#include "base/stream.h"
+#include "base/timer.h"
+#include "base/array.h"
+#include "remote/i2-remote.h"
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
 
-/**
- * @ingroup cluster
- */
-struct ClusterLink
+enum ClientRole
 {
-	String From;
-	String To;
-
-	ClusterLink(const String& from, const String& to);
-
-	int GetMetric(void) const;
-	bool operator<(const ClusterLink& other) const;
+	ClientInbound,
+	ClientOutbound
 };
 
-struct ClusterLinkMetricLessComparer
+/**
+ * An API client connection.
+ *
+ * @ingroup remote
+ */
+class I2_REMOTE_API ApiClient : public Object
 {
-	bool operator()(const ClusterLink& a, const ClusterLink& b) const;
+public:
+	DECLARE_PTR_TYPEDEFS(ApiClient);
+
+	ApiClient(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream, ConnectionRole role);
+
+	static void StaticInitialize(void);
+
+	void Start(void);
+
+	Endpoint::Ptr GetEndpoint(void) const;
+	Stream::Ptr GetStream(void) const;
+	ConnectionRole GetRole(void) const;
+
+	void Disconnect(void);
+
+	void SendMessage(const Dictionary::Ptr& request);
+
+private:
+	Endpoint::Ptr m_Endpoint;
+	Stream::Ptr m_Stream;
+	ConnectionRole m_Role;
+	double m_Seen;
+	bool m_Syncing;
+
+	bool ProcessMessage(void);
+	void MessageThreadProc(void);
+
+	static Timer::Ptr m_KeepAliveTimer;
+	static void KeepAliveTimerHandler(void);
 };
 
 }
 
-#endif /* CLUSTERLINK_H */
+#endif /* APICLIENT_H */

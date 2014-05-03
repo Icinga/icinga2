@@ -1,0 +1,12 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+class Zone : DynamicObject
+{
+	[config] String parent (ParentRaw);
+	[config] Array::Ptr endpoints (EndpointsRaw);
+};
+
+}

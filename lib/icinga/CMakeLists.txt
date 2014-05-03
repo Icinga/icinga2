@@ -21,7 +21,6 @@ mkclass_target(checkresult.ti checkresult.th)
 mkclass_target(command.ti command.th)
 mkclass_target(comment.ti comment.th)
 mkclass_target(dependency.ti dependency.th)
-mkclass_target(domain.ti domain.th)
 mkclass_target(downtime.ti downtime.th)
 mkclass_target(eventcommand.ti eventcommand.th)
 mkclass_target(hostgroup.ti hostgroup.th)
@@ -41,10 +40,10 @@ mkclass_target(user.ti user.th)
 mkembedconfig_target(icinga-type.conf icinga-type.cpp)
 
 add_library(icinga SHARED
-  api.cpp checkable.cpp checkable.th checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
+  api.cpp apievents.cpp checkable.cpp checkable.th checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
   checkable-flapping.cpp checkcommand.cpp checkcommand.th checkresult.cpp checkresult.th
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp dependency.cpp dependency.th
-  dependency-apply.cpp domain.cpp domain.th downtime.cpp downtime.th eventcommand.cpp eventcommand.th
+  dependency-apply.cpp downtime.cpp downtime.th eventcommand.cpp eventcommand.th
   externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th icingaapplication.cpp
   icingaapplication.th icingastatuswriter.cpp icingastatuswriter.th legacytimeperiod.cpp macroprocessor.cpp
   notificationcommand.cpp notificationcommand.th notification.cpp notification.th notification-apply.cpp
@@ -54,7 +53,7 @@ add_library(icinga SHARED
   user.cpp user.th usergroup.cpp usergroup.th icinga-type.cpp
 )
 
-target_link_libraries(icinga ${Boost_LIBRARIES} base config)
+target_link_libraries(icinga ${Boost_LIBRARIES} base config remote)
 
 set_target_properties (
   icinga PROPERTIES

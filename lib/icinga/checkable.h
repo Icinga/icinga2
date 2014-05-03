@@ -27,6 +27,7 @@
 #include "icinga/notification.h"
 #include "icinga/comment.h"
 #include "icinga/downtime.h"
+#include "remote/messageorigin.h"
 #include "base/i2-base.h"
 #include "base/array.h"
 #include <boost/signals2.hpp>
@@ -97,8 +98,8 @@ public:
 
 	AcknowledgementType GetAcknowledgement(void);
 
-	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0, const String& authority = String());
-	void ClearAcknowledgement(const String& authority = String());
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0, const MessageOrigin& origin = MessageOrigin());
+	void ClearAcknowledgement(const MessageOrigin& origin = MessageOrigin());
 
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
@@ -119,7 +120,7 @@ public:
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
 
-	void SetNextCheck(double nextCheck, const String& authority = String());
+	void SetNextCheck(double nextCheck, const MessageOrigin& origin = MessageOrigin());
 	double GetNextCheck(void);
 	void UpdateNextCheck(void);
 
@@ -128,18 +129,18 @@ public:
 	double GetLastCheck(void) const;
 
 	bool GetEnableActiveChecks(void) const;
-	void SetEnableActiveChecks(bool enabled, const String& authority = String());
+	void SetEnableActiveChecks(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	bool GetEnablePassiveChecks(void) const;
-	void SetEnablePassiveChecks(bool enabled, const String& authority = String());
+	void SetEnablePassiveChecks(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	bool GetForceNextCheck(void) const;
-	void SetForceNextCheck(bool forced, const String& authority = String());
+	void SetForceNextCheck(bool forced, const MessageOrigin& origin = MessageOrigin());
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr);
 
 	void ExecuteCheck(void);
-	void ProcessCheckResult(const CheckResult::Ptr& cr, const String& authority = String());
+	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin = MessageOrigin());
 
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags);
@@ -149,15 +150,15 @@ public:
 	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
 	static double CalculateLatency(const CheckResult::Ptr& cr);
 
-	static boost::signals2::signal<void (const Checkable::Ptr&, double, const String&)> OnNextCheckChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> OnForceNextCheckChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> OnForceNextNotificationChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> OnEnableActiveChecksChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> OnEnablePassiveChecksChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> OnEnableNotificationsChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const String&)> OnEnableFlappingChanged;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const String&)> OnNewCheckResult;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const String&)> OnStateChange;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnNextCheckChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnForceNextCheckChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnForceNextNotificationChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableActiveChecksChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnablePassiveChecksChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableNotificationsChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableFlappingChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
 	    const String&, const String&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
@@ -169,15 +170,15 @@ public:
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
 	    const NotificationType&, const CheckResult::Ptr&, const String&,
 	    const String&)> OnNotificationSentToAllUsers;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const String&)> OnCommentAdded;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const String&)> OnCommentRemoved;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeAdded;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const String&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin&)> OnCommentAdded;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin&)> OnCommentRemoved;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> OnDowntimeAdded;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> OnDowntimeRemoved;
 	static boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> OnDowntimeTriggered;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
-					     double, const String&)> OnAcknowledgementSet;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const String&)> OnAcknowledgementCleared;
+					     double, const MessageOrigin&)> OnAcknowledgementSet;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	/* Downtimes */
@@ -189,9 +190,9 @@ public:
 	    double startTime, double endTime, bool fixed,
 	    const String& triggeredBy, double duration,
 	    const String& scheduledBy = String(), const String& id = String(),
-	    const String& authority = String());
+	    const MessageOrigin& origin = MessageOrigin());
 
-	static void RemoveDowntime(const String& id, bool cancelled, const String& = String());
+	static void RemoveDowntime(const String& id, bool cancelled, const MessageOrigin& origin = MessageOrigin());
 
         void TriggerDowntimes(void);
 	static void TriggerDowntime(const String& id);
@@ -209,11 +210,11 @@ public:
 	static int GetNextCommentID(void);
 
 	String AddComment(CommentType entryType, const String& author,
-	    const String& text, double expireTime, const String& id = String(), const String& authority = String());
+	    const String& text, double expireTime, const String& id = String(), const MessageOrigin& origin = MessageOrigin());
 
 	void RemoveAllComments(void);
 	void RemoveCommentsByType(int type);
-	static void RemoveComment(const String& id, const String& authority = String());
+	static void RemoveComment(const String& id, const MessageOrigin& origin = MessageOrigin());
 
 	static String GetCommentIDFromLegacyID(int id);
 	static Checkable::Ptr GetOwnerByCommentID(const String& id);
@@ -221,7 +222,7 @@ public:
 
 	/* Notifications */
 	bool GetEnableNotifications(void) const;
-	void SetEnableNotifications(bool enabled, const String& authority = String());
+	void SetEnableNotifications(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	void SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author = "", const String& text = "");
 
@@ -229,7 +230,7 @@ public:
 	void AddNotification(const Notification::Ptr& notification);
 	void RemoveNotification(const Notification::Ptr& notification);
 
-	void SetForceNextNotification(bool force, const String& authority = String());
+	void SetForceNextNotification(bool force, const MessageOrigin& origin = MessageOrigin());
 	bool GetForceNextNotification(void) const;
 
 	void ResetNotificationNumbers(void);
@@ -247,14 +248,14 @@ public:
 	double GetFlappingCurrent(void) const;
 
 	bool GetEnableFlapping(void) const;
-	void SetEnableFlapping(bool enabled, const String& authority = String());
+	void SetEnableFlapping(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	bool IsFlapping(void) const;
 	void UpdateFlappingStatus(bool stateChange);
 
 	/* Performance data */
 	bool GetEnablePerfdata(void) const;
-	void SetEnablePerfdata(bool enabled, const String& authority = String());
+	void SetEnablePerfdata(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	/* Dependencies */
 	void AddDependency(const shared_ptr<Dependency>& dep);

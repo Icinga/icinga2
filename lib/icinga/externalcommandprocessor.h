@@ -37,12 +37,12 @@ public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const std::vector<String>& arguments);
 
-        static boost::signals2::signal<void (double, const String&, const std::vector<String>&)> OnNewExternalCommand;
+	static void StaticInitialize(void);
+	
+	static boost::signals2::signal<void(double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
 private:
 	ExternalCommandProcessor(void);
-
-	static void Initialize(void);
 
 	static void ProcessHostCheckResult(double time, const std::vector<String>& arguments);
 	static void ProcessServiceCheckResult(double time, const std::vector<String>& arguments);

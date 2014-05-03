@@ -21,7 +21,7 @@ mkembedconfig_target(demo-type.conf demo-type.cpp)
 
 add_library(demo SHARED demo.cpp demo.th demo-type.cpp)
 
-target_link_libraries(demo ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(demo ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   demo PROPERTIES

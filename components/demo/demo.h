@@ -21,6 +21,7 @@
 #define DEMO_H
 
 #include "demo/demo.th"
+#include "remote/messageorigin.h"
 #include "base/timer.h"
 
 namespace icinga
@@ -36,7 +37,9 @@ public:
 	DECLARE_TYPENAME(Demo);
 
 	virtual void Start(void);
-	virtual void Stop(void);
+
+	static Value DemoMessageHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
 
 private:
 	Timer::Ptr m_DemoTimer;

@@ -60,6 +60,8 @@ static void Callback(int *counter)
 
 BOOST_AUTO_TEST_CASE(invoke)
 {
+	Utility::Sleep(5);
+
 	int counter;
 	Timer::Ptr timer = make_shared<Timer>();
 	timer->OnTimerExpired.connect(boost::bind(&Callback, &counter));

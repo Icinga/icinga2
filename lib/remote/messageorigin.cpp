@@ -17,23 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-%type AgentListener {
-	%attribute %string "cert_path",
-	%require "cert_path",
+#include "remote/messageorigin.h"
 
-	%attribute %string "key_path",
-	%require "key_path",
+using namespace icinga;
 
-	%attribute %string "ca_path",
-	%require "ca_path",
+bool MessageOrigin::IsLocal(void) const
+{
+	return !FromClient;
+}
 
-	%attribute %string "crl_path",
-
-	%attribute %string "bind_host",
-	%attribute %string "bind_port",
-	
-	%attribute %string "upstream_name",
-	%attribute %string "upstream_host",
-	%attribute %string "upstream_port",
-	%attribute %number "upstream_interval"
+bool MessageOrigin::IsSameZone(void) const
+{
+	return !FromZone;
 }

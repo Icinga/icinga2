@@ -35,8 +35,8 @@ static std::map<int, String> l_LegacyDowntimesCache;
 static std::map<String, Checkable::WeakPtr> l_DowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 
-boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const String&)> Checkable::OnDowntimeAdded;
-boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const String&)> Checkable::OnDowntimeRemoved;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> Checkable::OnDowntimeAdded;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> Checkable::OnDowntimeRemoved;
 boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> Checkable::OnDowntimeTriggered;
 
 int Checkable::GetNextDowntimeID(void)
@@ -49,7 +49,7 @@ int Checkable::GetNextDowntimeID(void)
 String Checkable::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration, const String& scheduledBy,
-    const String& id, const String& authority)
+    const String& id, const MessageOrigin& origin)
 {
 	String uid;
 
@@ -106,12 +106,12 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 	Log(LogDebug, "icinga", "Added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) +
 	    "' between '" + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime) + "' and '" + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) + "'.");
 
-	OnDowntimeAdded(GetSelf(), downtime, authority);
+	OnDowntimeAdded(GetSelf(), downtime, origin);
 
 	return uid;
 }
 
-void Checkable::RemoveDowntime(const String& id, bool cancelled, const String& authority)
+void Checkable::RemoveDowntime(const String& id, bool cancelled, const MessageOrigin& origin)
 {
 	Checkable::Ptr owner = GetOwnerByDowntimeID(id);
 
@@ -146,7 +146,7 @@ void Checkable::RemoveDowntime(const String& id, bool cancelled, const String& a
 
 	Log(LogDebug, "icinga", "Removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
 
-	OnDowntimeRemoved(owner, downtime, authority);
+	OnDowntimeRemoved(owner, downtime, origin);
 }
 
 void Checkable::TriggerDowntimes(void)

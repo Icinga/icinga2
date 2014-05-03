@@ -652,6 +652,9 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 */
 int main(int argc, char **argv)
 {
+	/* must be called before using any other libbase functions */
+	Application::InitializeBase();
+
 	/* Set command-line arguments. */
 	Application::SetArgC(argc);
 	Application::SetArgV(argv);

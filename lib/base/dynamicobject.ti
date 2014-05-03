@@ -20,12 +20,10 @@ abstract class DynamicObject
 		}}}
 	};
 	[config, get_protected] String type (TypeName);
-	[config] String package;
+	[config] String zone;
 	[config, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
 	[config] Dictionary::Ptr vars (VarsRaw);
-	[config] Array::Ptr domains;
-	[config] Array::Ptr authorities;
 	[get_protected] bool active;
 	[get_protected] bool start_called;
 	[get_protected] bool stop_called;

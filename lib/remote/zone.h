@@ -17,22 +17,35 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-%type ClusterListener {
-	%attribute %string "cert_path",
-	%require "cert_path",
+#ifndef ZONE_H
+#define ZONE_H
 
-	%attribute %string "key_path",
-	%require "key_path",
+#include "remote/zone.th"
+#include "remote/endpoint.h"
+#include "base/array.h"
+#include "remote/i2-remote.h"
+#include <boost/signals2.hpp>
 
-	%attribute %string "ca_path",
-	%require "ca_path",
+namespace icinga
+{
 
-	%attribute %string "crl_path",
+/**
+ * @ingroup remote
+ */
+class I2_REMOTE_API Zone : public ObjectImpl<Zone>
+{
+public:
+	DECLARE_PTR_TYPEDEFS(Zone);
+	DECLARE_TYPENAME(Zone);
 
-	%attribute %string "bind_host",
-	%attribute %string "bind_port",
+	Zone::Ptr GetParent(void) const;
+	std::set<Endpoint::Ptr> GetEndpoints(void) const;
 
-	%attribute %array "peers" {
-		%attribute %name(Endpoint) "*"
-	}
+	bool CanAccessObject(const DynamicObject::Ptr& object) const;
+
+	static Zone::Ptr GetLocalZone(void);
+};
+
 }
+
+#endif /* ZONE_H */

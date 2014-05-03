@@ -21,7 +21,6 @@
 #include "base/application.h"
 #include "base/debug.h"
 #include "base/utility.h"
-#include "base/logger_fwd.h"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
@@ -48,7 +47,7 @@ struct icinga::TimerNextExtractor
 	 * @param wtimer Weak pointer to the timer.
 	 * @returns The next timestamp
 	 */
-	double operator()(const weak_ptr<Timer>& wtimer)
+	double operator()(const weak_ptr<Timer>& wtimer) const
 	{
 		Timer::Ptr timer = wtimer.lock();
 
@@ -87,7 +86,7 @@ void Timer::Initialize(void)
 {
 	boost::mutex::scoped_lock lock(l_Mutex);
 	l_StopThread = false;
-	l_Thread = boost::thread(boost::bind(&Timer::TimerThreadProc));
+	l_Thread = boost::thread(&Timer::TimerThreadProc);
 }
 
 /**
@@ -296,7 +295,7 @@ void Timer::TimerThreadProc(void)
 
 		double wait = timer->m_Next - Utility::GetTime();
 
-		if (wait > 0) {
+		if (wait > 0.01) {
 			/* Make sure the timer we just examined can be destroyed while we're waiting. */
 			timer.reset();
 

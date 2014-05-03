@@ -21,7 +21,7 @@ mkembedconfig_target(checker-type.conf checker-type.cpp)
 
 add_library(checker SHARED checkercomponent.cpp checkercomponent.th checker-type.cpp)
 
-target_link_libraries(checker ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(checker ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   checker PROPERTIES

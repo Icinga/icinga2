@@ -26,9 +26,8 @@
 #include "base/dynamicobject.h"
 #include "base/process.h"
 
-namespace icinga {
-
-class Component;
+namespace icinga
+{
 
 /**
  * Abstract base class for applications.
@@ -40,6 +39,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(Application);
 
 	~Application(void);
+
+	static void InitializeBase(void);
 
 	static Application::Ptr GetInstance(void);
 

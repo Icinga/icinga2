@@ -17,61 +17,71 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTLISTENER_H
-#define AGENTLISTENER_H
+#ifndef APIFUNCTION_H
+#define APIFUNCTION_H
 
-#include "agent/agentlistener.th"
-#include "base/dynamicobject.h"
-#include "base/timer.h"
-#include "base/array.h"
-#include "base/tcpsocket.h"
-#include "base/tlsstream.h"
-#include "base/utility.h"
-#include "base/tlsutility.h"
-#include "icinga/service.h"
+#include "remote/i2-remote.h"
+#include "remote/apiclient.h"
+#include "remote/messageorigin.h"
+#include "base/registry.h"
+#include "base/singleton.h"
+#include "base/value.h"
+#include "base/dictionary.h"
+#include <vector>
+#include <boost/function.hpp>
 
 namespace icinga
 {
 
 /**
- * @ingroup agent
+ * An API function.
+ *
+ * @ingroup base
  */
-class AgentListener : public ObjectImpl<AgentListener>
+class I2_REMOTE_API ApiFunction : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(AgentListener);
-	DECLARE_TYPENAME(AgentListener);
+	DECLARE_PTR_TYPEDEFS(ApiFunction);
 
-	virtual void Start(void);
+	typedef boost::function<Value(const MessageOrigin& origin, const Dictionary::Ptr&)> Callback;
 
-	shared_ptr<SSL_CTX> GetSSLContext(void) const;
+	ApiFunction(const Callback& function);
 
-	double GetAgentSeen(const String& agentIdentity);
-	CheckResult::Ptr GetCheckResult(const String& agentIdentity, const String& hostName, const String& serviceName);
+	Value Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments);
+
+	static ApiFunction::Ptr GetByName(const String& name);
+	static void Register(const String& name, const ApiFunction::Ptr& function);
+	static void Unregister(const String& name);
 
 private:
-	shared_ptr<SSL_CTX> m_SSLContext;
-	std::set<TcpSocket::Ptr> m_Servers;
-	Timer::Ptr m_Timer;
-
-	Dictionary::Ptr m_Results;
-
-	Timer::Ptr m_AgentTimer;
-	void AgentTimerHandler(void);
-
-	void AddListener(const String& service);
-	void AddConnection(const String& node, const String& service);
-
-	void NewClientHandler(const Socket::Ptr& client, TlsRole role);
-	void ListenerThreadProc(const Socket::Ptr& server);
-
-	void MessageHandler(const TlsStream::Ptr& sender, const String& identity, const Dictionary::Ptr& message);
-
-	static String GetInventoryDir(void);
-
-	friend class AgentCheckTask;
+	Callback m_Callback;
 };
+
+/**
+ * A registry for API functions.
+ *
+ * @ingroup base
+ */
+class I2_REMOTE_API ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
+{
+public:
+	static ApiFunctionRegistry *GetInstance(void);
+};
+
+/**
+ * Helper class for registering ApiFunction implementation classes.
+ *
+ * @ingroup base
+ */
+class I2_REMOTE_API RegisterApiFunctionHelper
+{
+public:
+	RegisterApiFunctionHelper(const String& name, const ApiFunction::Callback& function);
+};
+
+#define REGISTER_APIFUNCTION(name, ns, callback) \
+	I2_EXPORT icinga::RegisterApiFunctionHelper g_RegisterAF_ ## name(#ns "::" #name, callback)
 
 }
 
-#endif /* AGENTLISTENER_H */
+#endif /* APIFUNCTION_H */

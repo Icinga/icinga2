@@ -20,6 +20,7 @@
 #include "checker/checkercomponent.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
+#include "remote/apilistener.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/utility.h"
@@ -63,7 +64,6 @@ void CheckerComponent::OnConfigLoaded(void)
 {
 	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
-	DynamicObject::OnAuthorityChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
 	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
@@ -116,12 +116,6 @@ void CheckerComponent::CheckThreadProc(void)
 
 		CheckTimeView::iterator it = idx.begin();
 		Checkable::Ptr checkable = *it;
-
-		if (!checkable->HasAuthority("checker")) {
-			m_IdleCheckables.erase(checkable);
-
-			continue;
-		}
 
 		double wait = checkable->GetNextCheck() - Utility::GetTime();
 
@@ -227,7 +221,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		if (it != m_PendingCheckables.end()) {
 			m_PendingCheckables.erase(it);
 
-			if (checkable->IsActive() && checkable->HasAuthority("checker"))
+			if (checkable->IsActive())
 				m_IdleCheckables.insert(checkable);
 
 			m_CV.notify_all();
@@ -257,10 +251,13 @@ void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
+	Zone::Ptr zone = Zone::GetByName(checkable->GetZone());
+	bool same_zone = (!zone || Zone::GetLocalZone() == zone);
+
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (object->IsActive() && object->HasAuthority("checker")) {
+		if (object->IsActive() && same_zone) {
 			if (m_PendingCheckables.find(checkable) != m_PendingCheckables.end())
 				return;
 

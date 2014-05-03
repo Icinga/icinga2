@@ -27,7 +27,8 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/signals2.hpp>
 
-namespace icinga {
+namespace icinga
+{
 
 /**
  * Base class for connection-oriented sockets.

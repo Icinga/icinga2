@@ -29,6 +29,12 @@
 namespace icinga
 {
 
+enum ConnectionRole
+{
+	RoleClient,
+	RoleServer
+};
+
 struct ReadLineContext
 {
 	ReadLineContext(void) : Buffer(NULL), Size(0), Eof(false), MustRead(true)

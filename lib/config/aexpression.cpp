@@ -523,7 +523,7 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	String type = left->Get(1);
 	AExpression::Ptr aname = left->Get(2);
 	AExpression::Ptr filter = left->Get(3);
-	String package = left->Get(4);
+	String zone = left->Get(4);
 
 	String name = aname->Evaluate(locals);
 
@@ -561,7 +561,7 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	item->AddExpression(exprl);
 	item->SetAbstract(abstract);
 	item->SetScope(locals);
-	item->SetPackage(package);
+	item->SetZone(zone);
 	item->Compile()->Register();
 
 	ObjectRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, locals);

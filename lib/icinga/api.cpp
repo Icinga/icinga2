@@ -18,15 +18,20 @@
  ******************************************************************************/
 
 #include "icinga/api.h"
-#include "base/scriptfunction.h"
+#include "remote/apifunction.h"
 #include "base/logger_fwd.h"
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(GetAnswerToEverything, &API::GetAnswerToEverything);
+REGISTER_APIFUNCTION(GetAnswerToEverything, uapi, boost::bind(&API::GetAnswerToEverything, _2));
 
-int API::GetAnswerToEverything(const String& text)
+Value API::GetAnswerToEverything(const Dictionary::Ptr& params)
 {
+	String text;
+
+	if (params)
+		text = params->Get("text");
+
 	Log(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
 
 	return 42;

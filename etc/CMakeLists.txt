@@ -40,7 +40,7 @@ install_if_not_exists(icinga2/conf.d/hosts/localhost/users.conf ${CMAKE_INSTALL_
 install_if_not_exists(icinga2/conf.d/notifications.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/timeperiods.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/users.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
-install_if_not_exists(icinga2/features-available/agent.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
+install_if_not_exists(icinga2/features-available/api.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/checker.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/command.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/compatlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
@@ -58,6 +58,8 @@ install_if_not_exists(icinga2/scripts/check_kernel ${CMAKE_INSTALL_SYSCONFDIR}/i
 install_if_not_exists(icinga2/scripts/mail-host-notification.sh ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/scripts)
 install_if_not_exists(icinga2/scripts/mail-service-notification.sh ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/scripts)
 install_if_not_exists(logrotate.d/icinga2 ${CMAKE_INSTALL_SYSCONFDIR}/logrotate.d)
+
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/pki\")")
 
 if(NOT WIN32)
   install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled\")")

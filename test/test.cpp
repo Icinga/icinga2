@@ -20,5 +20,17 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE icinga2_test
 
+#include "base/application.h"
 #include <BoostTestTargetConfig.h>
 
+using namespace icinga;
+
+struct InitLibBase
+{
+	InitLibBase(void)
+	{
+		Application::InitializeBase();
+	}
+};
+
+BOOST_GLOBAL_FIXTURE(InitLibBase);

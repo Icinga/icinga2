@@ -17,30 +17,56 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DOMAIN_H
-#define DOMAIN_H
+#include "remote/zone.h"
+#include "base/application.h"
+#include "base/dynamictype.h"
+#include "base/objectlock.h"
+#include "base/utility.h"
+#include "base/logger_fwd.h"
+#include "base/exception.h"
 
-#include "icinga/i2-icinga.h"
-#include "icinga/domain.th"
-#include "base/dictionary.h"
+using namespace icinga;
 
-namespace icinga
+REGISTER_TYPE(Zone);
+
+Zone::Ptr Zone::GetParent(void) const
 {
-
-/**
- * A domain.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API Domain : public ObjectImpl<Domain>
-{
-public:
-	DECLARE_PTR_TYPEDEFS(Domain);
-	DECLARE_TYPENAME(Domain);
-
-	int GetPrivileges(const String& instance) const;
-};
-
+	return Zone::GetByName(GetParentRaw());
 }
 
-#endif /* DOMAIN_H */
+std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
+{
+	std::set<Endpoint::Ptr> result;
+
+	BOOST_FOREACH(const String& endpoint, GetEndpointsRaw())
+		result.insert(Endpoint::GetByName(endpoint));
+
+	return result;
+}
+
+bool Zone::CanAccessObject(const DynamicObject::Ptr& object) const
+{
+	Zone::Ptr object_zone;
+
+	if (dynamic_pointer_cast<Zone>(object))
+		object_zone = static_pointer_cast<Zone>(object);
+	else
+		Zone::GetByName(object->GetZone());
+
+	if (!object_zone)
+		return false;
+
+	while (object_zone) {
+		if (object_zone.get() == this)
+			return true;
+
+		object_zone = object_zone->GetParent();
+	}
+
+	return false;
+}
+
+Zone::Ptr Zone::GetLocalZone(void)
+{
+	return Endpoint::GetLocalEndpoint()->GetZone();
+}

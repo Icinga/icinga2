@@ -44,8 +44,7 @@ INITIALIZE_ONCE(&DynamicObject::StaticInitialize);
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
-boost::signals2::signal<void (const DynamicObject::Ptr&, const String&)> DynamicObject::OnStateChanged;
-boost::signals2::signal<void (const DynamicObject::Ptr&, const String&, bool)> DynamicObject::OnAuthorityChanged;
+boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnVarsChanged;
 
 void DynamicObject::StaticInitialize(void)
@@ -69,56 +68,6 @@ DynamicType::Ptr DynamicObject::GetType(void) const
 bool DynamicObject::IsActive(void) const
 {
 	return GetActive();
-}
-
-void DynamicObject::SetAuthority(const String& type, bool value)
-{
-	ASSERT(!OwnsLock());
-
-	{
-		ObjectLock olock(this);
-
-		bool old_value = HasAuthority(type);
-
-		if (old_value == value)
-			return;
-
-		if (GetAuthorityInfo() == NULL)
-			SetAuthorityInfo(make_shared<Dictionary>());
-
-		GetAuthorityInfo()->Set(type, value);
-	}
-
-	OnAuthorityChanged(GetSelf(), type, value);
-}
-
-bool DynamicObject::HasAuthority(const String& type) const
-{
-	Dictionary::Ptr authorityInfo = GetAuthorityInfo();
-
-	if (!authorityInfo || !authorityInfo->Contains(type))
-		return true;
-
-	return authorityInfo->Get(type);
-}
-
-void DynamicObject::SetPrivileges(const String& instance, int privs)
-{
-	m_Privileges[instance] = privs;
-}
-
-bool DynamicObject::HasPrivileges(const String& instance, int privs) const
-{
-	if (privs == 0)
-		return true;
-
-	std::map<String, int>::const_iterator it;
-	it = m_Privileges.find(instance);
-
-	if (it == m_Privileges.end())
-		return false;
-
-	return (it->second & privs) == privs;
 }
 
 void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
