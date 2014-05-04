@@ -1,4 +1,4 @@
-# <a id="monitoring-remote-instances"></a> Monitoring Remote Instances
+# <a id="monitoring-remote-systems"></a> Monitoring Remote Systems
 
 ## <a id="agent-less-checks"></a> Agent-less Checks
 
