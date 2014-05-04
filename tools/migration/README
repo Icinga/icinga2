@@ -1,99 +1,12 @@
-ICINGA 2 CONVERSION SCRIPT FOR ICINGA 1.x CONFIGURATION
-=======================================================
+Icinga 2 Migration Script
+=========================
 
-This config conversion script provides support for basic Icinga 1.x
-configuration format conversion to native Icinga 2.x configuration syntax.
+In order to migrate existing configuration in Icinga 1.x format
+the Icinga CLI as part of the Icinga Web 2 project will provide
+a conversion module.
 
-It won't just compile all objects and drop them at once, but keep your
-existing 1.x template structure, only adding a new host->service link relation.
+For work-in-progress details please check
 
-The script will also detect the "attach service to hostgroup and put
-hosts as members" trick from 1.x and convert that into Icinga2's template
-system.
+https://dev.icinga.org/issues/5821
+https://dev.icinga.org/issues/5929
 
-Furthermore the old "service with contacts and notification commands" logic
-will be converted into Icinga2's logic with new notification objects,
-allowing to define notifications directly on the service definition then.
-
-Commands will be split by type (Check, Event, Notification) and relinked where
-possible. The host's check_command is dropped, and a possible host check service
-looked up, if possible. Otherwise a new service object will be added and linked.
-
-Notifications will be built based on the service->contact relations, and
-escalations will also be merged into notifications, having times begin/end as
-additional attributes. Notification options will be converted into the new Icinga2
-logic.
-
-Dependencies and Parents are resolved into host and service dependencies with
-many objects tricks as well.
-
-Timeperiods will be converted as is, because Icinga2's ITL provides the legacy-timeperiod
-template which supports that format for compatibility reasons.
-
-Custom attributes like custom variables, *_urls, etc will be collected into the
-custom dictionary, while possible macros are automagically converted into the macro
-dictionary (freely definable macros in Icinga 2.x).
-
-All required templates will be inherited from Icinga2's Template Library (ITL).
-
-Regular expressions are not supported, also for the reason that this is optional in Icinga 1.x
-
-RUN
-# mkdir /etc/icinga2/migration
-# /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o /etc/icinga2/migration/
-
-HELP
-# /usr/bin/icinga2-migrate-config -h
-
-VERBOSE
-# mkdir /etc/icinga2/migration
-# /usr/bin/icinga2-migrate-config -v -c /etc/icinga/icinga.cfg -o /etc/icinga2/migration/
-
-TEST
-Include /etc/icinga2/migration in /etc/icinga2/icinga2.conf and restart Icinga 2
-
-# vim /etc/icinga2/icinga2.conf
-
-include "migration/*.conf"
-
-# service icinga2 restart
-
-
-REQUIREMENTS
-- Perl:
-	Data::Dumper
-	File::Find
-	Storable qw(dclone)
-	Getopt::Long qw(:config no_ignore_case bundling)
-	Pod::Usage
-
-- Icinga2 ITL
-
-
-DEBUG
-Compile Icinga2 with --enable-debug=yes and start it with -x. Alternatively, define the
-ConsoleLogger Object and set severity to "debug".
-
-object ConsoleLogger "my-debug-log" {
-    severity = "debug"
-}
-
-
-NOTES
-- Excludes (will be ignored in member lists)
-- Wildcards (* means all)
-- additive + to += logic (only for the current object, does not work with users)
-- Dependencies (host deps and parents are merged)
-- Commands will be split into Check|Event|Notification Commands
-- null (disable inheritance) only works non-converted values (not on contacts, commands, etc) being 0
-- notification_options string w,u,f is converted to
-  notification_{state,type}_filter = (StateFilterWarning | StateFilterUnknown | NotificationFilterFlapping)
-- service escalations are converted into notifications with times = begin/end
-  begin = first_notification * notification_interval (now a time, not a counter)
-- custom variables, *_url, *image*, notes, 2d_coords will be collected and stashed into the "custom" dictionary
-  similar to the macros dictionary. note: attributes starting with a number must be quoted.
-
-TODO
-- Dependency attributes: failure_criteria, inherits_parents, timeperiods
-- Flapping Thresholds: old vs new logic
-- some special object tricks, regex

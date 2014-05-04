@@ -8,13 +8,12 @@ Icinga 2 ships its own config migration script.
 
 ### <a id="configuration-migration-script"></a> Configuration Migration Script
 
-TODO
+In order to migrate existing configuration in Icinga 1.x format
+the Icinga CLI as part of the Icinga Web 2 project will provide
+a conversion module.
 
 Due to the complexity of the Icinga 1.x configuration format the migration
 script might not currently work for all use cases.
-
-The config migration script provides support for basic Icinga 1.x
-configuration format migration to native Icinga 2 configuration syntax.
 
 The migration script tries to preserve your existing template structure and
 adds new templates where appropriate. However, the original file structure is
@@ -22,9 +21,6 @@ not preserved.
 
 The migration script uses templates from the Icinga Template Library where
 possible.
-
-    # mkdir /etc/icinga2/conf.d/migrate
-    # /usr/bin/icinga2-migrate-config -c /etc/icinga/icinga.cfg -o /etc/icinga2/conf.d/migrate
 
 ### <a id="manual-config-migration"></a> Manual Config Migration
 

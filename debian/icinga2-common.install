@@ -2,7 +2,6 @@ debian/tmp/etc/icinga2
 debian/config/apt.conf        etc/icinga2/conf.d/hosts/localhost
 usr/bin/icinga2-build*
 usr/bin/icinga2-sign-key
-usr/bin/icinga2-migrate-config
 usr/sbin/icinga2-*-feature
 usr/sbin/icinga2-setup-agent
 usr/sbin/icinga2-discover-agent
