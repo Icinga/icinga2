@@ -799,7 +799,7 @@ The Vagrant VM is based on CentOS 6.x and uses the official Icinga 2 RPM
 packages from `packages.icinga.org`. The check plugins are installed from
 EPEL providing RPMs with sources from the Monitoring Plugins project.
 
-## <a id="vagrant-demo-guis"></a> Demo GUIs
+### <a id="vagrant-demo-guis"></a> Demo GUIs
 
 In addition to installing Icinga 2 the Vagrant puppet modules also install the
 Icinga 1.x Classic UI and Icinga Web.
@@ -810,7 +810,7 @@ Icinga 1.x Classic UI and Icinga Web.
   Icinga Web      | [http://localhost:8080/icinga-web](http://localhost:8080/icinga-web) | root / password
 
 
-## <a id="vagrant-ssh"></a> SSH Access
+### <a id="vagrant-ssh"></a> SSH Access
 
 You can access the Vagrant VM using SSH:
 
