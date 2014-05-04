@@ -167,7 +167,7 @@ Name            | Description
 ssh_address     | **Optional.** The host's address. Defaults to "$address$".
 ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
 
-### <a id="itl-disk"></a> disk
+#### <a id="itl-disk"></a> disk
 
 Check command object for the `check_disk` plugin.
 
@@ -226,7 +226,7 @@ load_cload1     | **Optional.** The 1-minute critical threshold. Defaults to 10.
 load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
 load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
 
-### <a id="itl-snmp"></a> snmp
+#### <a id="itl-snmp"></a> snmp
 
 Check command object for the `check_snmp` plugin.
 
