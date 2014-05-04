@@ -127,6 +127,13 @@ void Checkable::RemoveDowntime(const String& id, bool cancelled, const String& a
 
 	int legacy_id = downtime->GetLegacyId();
 
+	String config_owner = downtime->GetConfigOwner();
+
+	if (!config_owner.IsEmpty()) {
+		Log(LogWarning, "icinga", "Cannot remove downtime with ID '" + Convert::ToString(legacy_id) + "'. It is owned by scheduled downtime object '" + config_owner + "'");
+		return;
+	}
+
 	downtimes->Remove(id);
 
 	{

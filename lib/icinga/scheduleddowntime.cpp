@@ -19,6 +19,7 @@
 
 #include "icinga/scheduleddowntime.h"
 #include "icinga/legacytimeperiod.h"
+#include "icinga/downtime.h"
 #include "base/timer.h"
 #include "base/dynamictype.h"
 #include "base/initialize.h"
@@ -153,7 +154,10 @@ void ScheduledDowntime::CreateNextDowntime(void)
 		return;
 	}
 
-	GetCheckable()->AddDowntime(GetAuthor(), GetComment(),
+	String uid = GetCheckable()->AddDowntime(GetAuthor(), GetComment(),
 	    segment.first, segment.second,
 	    GetFixed(), String(), GetDuration(), GetName());
+
+	Downtime::Ptr downtime = Checkable::GetDowntimeByID(uid);
+	downtime->SetConfigOwner(GetName());
 }

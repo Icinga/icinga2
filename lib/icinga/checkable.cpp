@@ -84,6 +84,9 @@ void Checkable::OnStateLoaded(void)
 	}
 
 	BOOST_FOREACH(const String& id, ids) {
+		/* override config owner to clear downtimes once */
+		Downtime::Ptr downtime = GetDowntimeByID(id);
+		downtime->SetConfigOwner(Empty);
 		RemoveDowntime(id, true);
 	}
 }

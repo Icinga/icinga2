@@ -20,6 +20,7 @@ safe class Downtime
 	};
 	[state] int legacy_id;
 	[state] bool was_cancelled;
+	[state] String config_owner;
 };
 
 }
