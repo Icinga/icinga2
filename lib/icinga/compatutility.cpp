@@ -143,7 +143,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 
 		String arg_string;
 		BOOST_FOREACH(Dictionary::Pair kv, args) {
-			arg_string += kv.first + "=" + kv.second + "!";
+			arg_string += Convert::ToString(kv.first) + "=" + Convert::ToString(kv.second) + "!";
 		}
 		return arg_string;
 	}
