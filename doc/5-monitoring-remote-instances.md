@@ -1,4 +1,185 @@
-## <a id="cluster"></a> Cluster
+# <a id="monitoring-remote-instances"></a> Monitoring Remote Instances
+
+## <a id="agent-less-checks"></a> Agent-less Checks
+
+If the remote service is available using a network protocol and port,
+and a [check plugin](#setting-up-check-plugins) is available, you don't
+necessarily need a local client installed. Rather choose a plugin and
+configure all parameters and thresholds. The [Icinga 2 Template Library](#itl)
+already ships various examples.
+
+## <a id="agent-based-checks"></a> Agent-based Checks
+
+If the remote services are not directly accessible through the network, a
+local agent installation exposing the results to check queries can
+become handy.
+
+### <a id="agent-based-checks-snmp"></a> SNMP
+
+The SNMP daemon runs on the remote system and answers SNMP queries by plugin
+binaries. The [Monitoring Plugins package](#setting-up-check-plugins) ships
+the `check_snmp` plugin binary, but there are plenty of [existing plugins](#integrate-additional-plugins)
+for specific use cases already around, for example monitoring Cisco routers.
+
+The following example uses the [SNMP ITL](#itl-snmp) `CheckCommand` and just
+overrides the `oid` custom attribute. A service is created for all hosts which
+have the `community` custom attribute.
+
+    apply Service "uptime" {
+      import "generic-service"
+
+      check_command = "snmp"
+      vars.oid = "1.3.6.1.2.1.1.3.0"
+  
+      assign where host.vars.community
+    }
+
+### <a id="agent-based-checks-ssh"></a> SSH
+
+Calling a plugin using the SSH protocol to execute a plugin on the remote server fetching
+its return code and output. `check_by_ssh` is available in the [Monitoring Plugins package](#setting-up-check-plugins).
+
+    object CheckCommand "check_by_ssh_swap" {
+      import "plugin-check-command"
+
+      command = [ PluginDir + "/check_by_ssh",
+                  "-l", "remoteuser",
+                  "-H", "$address$",
+                  "-C", "\"/usr/local/icinga/libexec/check_swap -w $warn$ -c $crit$\""
+                ]
+    }
+
+    object Service "swap" {
+      import "generic-service"
+
+      host_name = "remote-ssh-host"
+
+      check_command = "check_by_ssh_swap"
+      vars = {
+            "warn" = "50%"
+            "crit" = "75%"
+      }
+    }
+
+### <a id="agent-based-checks-nrpe"></a> NRPE
+
+[NRPE](http://docs.icinga.org/latest/en/nrpe.html) runs as daemon on the remote client including
+the required plugins and command definitions.
+Icinga 2 calls the `check_nrpe` plugin binary in order to query the configured command on the
+remote client.
+
+The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
+can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
+
+Example:
+
+    object CheckCommand "check_nrpe" {
+      import "plugin-check-command"
+
+      command = [
+        PluginDir + "/check_nrpe",
+        "-H", "$address$",
+        "-c", "$remote_nrpe_command$",
+      ]
+    }
+
+    object Service "users" {
+      import "generic-service"
+  
+      host_name = "remote-nrpe-host"
+
+      check_command = "check_nrpe"
+      vars.remote_nrpe_command = "check_users"
+    }
+
+nrpe.cfg:
+
+    command[check_users]=/usr/local/icinga/libexec/check_users -w 5 -c 10
+
+### <a id="agent-based-checks-nsclient"></a> NSClient++
+
+[NSClient++](http://nsclient.org) works on both Windows and Linux platforms and is well
+known for its magnificent Windows support. There are alternatives like the WMI interface,
+but using `NSClient++` will allow you to run local scripts similar to check plugins fetching
+the required output and performance counters.
+
+The NSClient++ agent uses its own configuration format while `check_nt`
+can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
+
+Example:
+
+    object CheckCommand "check_nscp" {
+      import "plugin-check-command"
+
+      command = [
+        PluginDir + "/check_nt",
+        "-H", "$address$",
+        "-p", "$port$",
+        "-v", "$remote_nscp_command$",
+        "-l", "$partition$",
+        "-w", "$warn$",
+        "-c", "$crit$",
+        "-s", "$pass$"
+      ]
+
+      vars = {
+        "port" = "12489"
+        "pass" = "supersecret"
+      }
+    }
+
+    object Service "users" {
+      import "generic-service"
+  
+      host_name = "remote-windows-host"
+
+      check_command = "check_nscp"
+
+      vars += {
+        remote_nscp_command = "USEDDISKSPACE"
+        partition = "c"
+        warn = "70"
+        crit = "80"
+      }
+    }
+
+For details on the `NSClient++` configuration please refer to the [official documentation](http://www.nsclient.org/nscp/wiki/doc/configuration/0.4.x).
+
+> **Note**
+> 
+> The format of the `NSClient++` configuration file has changed from 0.3.x to 0.4!
+
+### <a id="agent-based-checks-icinga2-agent"></a> Icinga 2 Agent
+
+A dedicated Icinga 2 agent supporting all platforms and using the native
+Icinga 2 communication protocol supported with SSL certificates, IPv4/IPv6
+support, etc. is on the [development roadmap](https://dev.icinga.org/projects/i2?jump=issues).
+Meanwhile remote checkers in a [Cluster](#cluster) setup could act as
+immediate replacement, but without any local configuration - or pushing
+their standalone configuration back to the master node including their check
+result messages.
+
+### <a id="agent-based-checks-snmp-traps"></a> Passive Check Results and SNMP Traps
+
+SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourceforge.net/) and specific trap handlers
+passing the check results to Icinga 2.
+
+> **Note**
+>
+> The host and service object configuration must be available on the Icinga 2
+> server in order to process passive check results.
+
+### <a id="agent-based-checks-nsca-ng"></a> NSCA-NG
+
+[NSCA-ng](http://www.nsca-ng.org) provides a client-server pair that allows the
+remote sender to push check results into the Icinga 2 `ExternalCommandListener`
+feature.
+
+The [Icinga 2 Vagrant Demo VM](#vagrant) ships a demo integration and further samples.
+
+
+
+## <a id="distributed-monitoring"></a> Distributed Monitoring
 
 An Icinga 2 cluster consists of two or more nodes and can reside on multiple
 architectures. The base concept of Icinga 2 is the possibility to add additional
@@ -480,3 +661,43 @@ department instances. Furthermore the central NOC is able to see what's going on
 
 The instances in the departments will serve a local interface, and allow the administrators
 to reschedule checks or acknowledge problems for their services.
+
+
+
+### <a id="domains"></a> Domains
+
+A [Service](#objecttype-service) object can be restricted using the `domains` attribute
+array specifying endpoint privileges.
+A Domain object specifices the ACLs applied for each [Endpoint](#objecttype-endpoint).
+
+The following example assigns the domain `dmz-db` to the service `dmz-oracledb`. Endpoint
+`icinga-node-dmz-1` does not allow any object modification (no commands, check results) and only
+relays local messages to the remote node(s). The endpoint `icinga-node-dmz-2` processes all
+messages read and write (accept check results, commands and also relay messages to remote
+nodes).
+
+That way the service `dmz-oracledb` on endpoint `icinga-node-dmz-1` will not be modified
+by any cluster event message, and could be checked by the local authority too presenting
+a different state history. `icinga-node-dmz-2` still receives all cluster message updates
+from the `icinga-node-dmz-1` endpoint.
+
+    object Host "dmz-host1" {
+      import "generic-host"
+    }
+
+    object Service "dmz-oracledb" {
+      import "generic-service"
+
+      host_name = "dmz-host1"
+
+      domains = [ "dmz-db" ]
+      authorities = [ "icinga-node-dmz-1", "icinga-node-dmz-2"]
+    }
+
+    object Domain "dmz-db" {
+      acl = {
+        "icinga-node-dmz-1" = DomainPrivReadOnly
+        "icinga-node-dmz-2" = DomainPrivReadWrite
+      }
+    }
+

@@ -1,3 +1,537 @@
+# <a id="configuring-icinga2"></a> Configuring Icinga 2
+
+
+## <a id="configuration-syntax"></a> Configuration Syntax
+
+### <a id="object-definition"></a> Object Definition
+
+Icinga 2 features an object-based configuration format. You can define new
+objects using the `object` keyword:
+
+    object Host "host1.example.org" {
+      display_name = "host1"
+
+      address = "192.168.0.1"
+      address6 = "::1"
+    }
+
+In general you need to write each statement on a new line. Expressions started
+with `{`, `(` and `[` extend until the matching closing character and can be broken
+up into multiple lines.
+
+Alternatively you can write multiple statements in a single line by separating
+them with a semicolon:
+
+    object Host "host1.example.org" {
+      display_name = "host1"
+
+      address = "192.168.0.1"; address6 = "::1"
+    }
+
+Each object is uniquely identified by its type (`Host`) and name
+(`host1.example.org`). Some types have composite names, e.g. the
+`Service` type which uses the `host_name` attribute and the name
+you specified to generate its object name.
+
+Exclamation marks (!) are not permitted in object names.
+
+Objects can contain a comma-separated list of property
+declarations. Instead of commas semicolons may also be used.
+The following data types are available for property values:
+
+### Expressions
+
+The following expressions can be used in the right-hand side of dictionary
+values.
+
+#### <a id="numeric-literals"></a> Numeric Literals
+
+A floating-point number.
+
+Example:
+
+    -27.3
+
+#### <a id="duration-literals"></a> Duration Literals
+
+Similar to floating-point numbers except for the fact that they support
+suffixes to help with specifying time durations.
+
+Example:
+
+    2.5m
+
+Supported suffixes include ms (milliseconds), s (seconds), m (minutes),
+h (hours) and d (days).
+
+Duration literals are converted to seconds by the config parser and
+are treated like numeric literals.
+
+#### <a id="string-literals"></a> String Literals
+
+A string.
+
+Example:
+
+    "Hello World!"
+
+Certain characters need to be escaped. The following escape sequences
+are supported:
+
+Character                 | Escape sequence
+--------------------------|------------------------------------
+"                         | \\"
+\\                        | \\\\
+&lt;TAB&gt;               | \\t
+&lt;CARRIAGE-RETURN&gt;   | \\r
+&lt;LINE-FEED&gt;         | \\n
+&lt;BEL&gt;               | \\b
+&lt;FORM-FEED&gt;         | \\f
+
+In addition to these pre-defined escape sequences you can specify
+arbitrary ASCII characters using the backslash character (\\) followed
+by an ASCII character in octal encoding.
+
+#### <a id="multiline-string-literals"></a> Multi-line String Literals
+
+Strings spanning multiple lines can be specified by enclosing them in
+{{{ and }}}.
+
+Example.
+
+    {{{This
+    is
+    a multi-line
+    string.}}}
+
+Unlike in ordinary strings special characters do not have to be escaped
+in multi-line string literals.
+
+#### <a id="boolean-literals"></a> Boolean Literals
+
+The keywords `true` and `false` are equivalent to 1 and 0 respectively.
+
+#### <a id="null-value"></a> Null Value
+
+The `null` keyword can be used to specify an empty value.
+
+#### <a id="dictionary"></a> Dictionary
+
+An unordered list of key-value pairs. Keys must be unique and are
+compared in a case-insensitive manner.
+
+Individual key-value pairs must be separated from each other with a
+comma. The comma after the last key-value pair is optional.
+
+Example:
+
+    {
+      address = "192.168.0.1"
+      port = 443
+    }
+
+Identifiers may not contain certain characters (e.g. space) or start
+with certain characters (e.g. digits). If you want to use a dictionary
+key that is not a valid identifier you can put the key in double
+quotes.
+
+Setting a dictionary key to null causes the key and its value to be
+removed from the dictionary.
+
+#### <a id="array"></a> Array
+
+An ordered list of values.
+
+Individual array elements must be separated from each other with a
+comma. The comma after the last element is optional.
+
+Example:
+
+    [ "hello", 42 ]
+
+An array may simultaneously contain values of different types, such as
+strings and numbers.
+
+#### <a id="expression-operators"></a> Operators
+
+The following operators are supported in expressions:
+
+Operator | Examples (Result)                             | Description
+---------|-----------------------------------------------|--------------------------------
+!        | !"Hello" (false), !false (true)               | Log<!-- ignore BLACKLIST -->ical negation of the operand
+~        | ~true (false)                                 | Bitwise negation of the operand
++        | 1 + 3 (4), "hello " + "world" ("hello world") | Adds two numbers; concatenates strings
+-        | 3 - 1 (2)                                     | Subtracts two numbers
+*        | 5m * 10 (3000)                                | Multiplies two numbers
+/        | 5m / 5 (60)                                   | Divides two numbers
+&        | 7 & 3 (3)                                     | Binary AND
+&#124;   | 2 &#124; 3 (3)                                | Binary OR
+<        | 3 < 5 (true)                                  | Less than
+>        | 3 > 5 (false)                                 | Greater than
+<=       | 3 <= 3 (true)                                 | Less than or equal
+>=       | 3 >= 3 (true)                                 | Greater than or equal
+<<       | 4 << 8 (1024)                                 | Left shift
+>>       | 1024 >> 4 (64)                                | Right shift
+==       | "hello" == "hello" (true), 3 == 5 (false)     | Equal to
+!=       | "hello" != "world" (true), 3 != 3 (false)     | Not equal to
+in       | "foo" in [ "foo", "bar" ] (true)              | Element contained in array
+!in      | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array
+()       | (3 + 3) * 5                                   | Groups sub-expressions
+
+Constants may be used in expressions:
+
+    const MyCheckInterval = 10m
+
+    ...
+
+    {
+      check_interval = MyCheckInterval / 2.5
+    }
+
+#### Function Calls
+
+Functions can be called using the `()` operator:
+
+    const MyGroups = [ "test1", "test" ]
+
+    {
+      check_interval = len(MyGroups) * 1m
+    }
+
+Function                        | Description
+--------------------------------|-----------------------
+regex(pattern, text)            | Returns true if the regex pattern matches the text, false otherwise.
+match(pattern, text)            | Returns true if the wildcard pattern matches the text, false otherwise.
+len(value)                      | Returns the length of the value, i.e. the number of elements for an array or dictionary, or the length of the string in bytes.
+union(array, array, ...)        | Returns an array containing all unique elements from the specified arrays.
+intersection(array, array, ...) | Returns an array containing all unique elements which are common to all specified arrays.
+string(value)                   | Converts the value to a string.
+number(value)                   | Converts the value to a number.
+bool(value)                     | Converts to value to a bool.
+log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
+log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogInformation`, `LogWarning` and `LogCritical`. Non-string values are converted to a JSON string.
+exit(integer)                   | Terminates the application.
+
+### <a id="operators"></a> Dictionary Operators
+
+In addition to the `=` operator shown above a number of other operators
+to manipulate dictionary elements are supported. Here's a list of all
+available operators:
+
+#### <a id="operator-assignment"></a> Operator =
+
+Sets a dictionary element to the specified value.
+
+Example:
+
+    {
+      a = 5,
+      a = 7
+    }
+
+In this example a has the value 7 after both instructions are executed.
+
+#### <a id="operator-additive-assignment"></a> Operator +=
+
+The += operator is a shortcut. The following expression:
+
+    {
+      a = [ "hello" ]
+      a += [ "world" ]
+    }
+
+is equivalent to:
+
+    {
+      a = [ "hello" ]
+      a = a + [ "world" ]
+    }
+
+#### <a id="operator-substractive-assignment"></a> Operator -=
+
+The -= operator is a shortcut. The following expression:
+
+    {
+      a = 10
+      a -= 5
+    }
+
+is equivalent to:
+
+    {
+      a = 10
+      a = a - 5
+    }
+
+#### <a id="operator-multiply-assignment"></a> Operator \*=
+
+The *= operator is a shortcut. The following expression:
+
+    {
+      a = 60
+      a *= 5
+    }
+
+is equivalent to:
+
+    {
+      a = 60
+      a = a * 5
+    }
+
+#### <a id="operator-dividing-assignment"></a> Operator /=
+
+The /= operator is a shortcut. The following expression:
+
+    {
+      a = 300
+      a /= 5
+    }
+
+is equivalent to:
+
+    {
+      a = 300
+      a = a / 5
+    }
+
+### <a id="indexer"></a> Indexer
+
+The indexer syntax provides a convenient way to set dictionary elements.
+
+Example:
+
+    {
+      hello.key = "world"
+    }
+
+Example (alternative syntax):
+
+    {
+      hello["key"] = "world"
+    }
+
+This is equivalent to writing:
+
+    {
+      hello += {
+        key = "world"
+      }
+    }
+
+### <a id="template-imports"></a> Template Imports
+
+Objects can import attributes from other objects.
+
+Example:
+
+    template Host "default-host" {
+      vars.color = "red"
+    }
+
+    template Host "test-host" {
+      import "default-host"
+
+      vars.color = "blue"
+    }
+
+    object Host "localhost" {
+      import "test-host"
+
+      address = "127.0.0.1"
+      address6 = "::1"
+    }
+
+The `default-host` and `test-host` objects are marked as templates
+using the `template` keyword. Unlike ordinary objects templates are not
+instantiated at run-time. Parent objects do not necessarily have to be
+templates, however in general they are.
+
+The `vars` dictionary for the `localhost` object contains all three
+custom attributes and the custom attribute `color` has the value `"blue"`.
+
+Parent objects are resolved in the order they're specified using the
+`import` keyword.
+
+### <a id="constants"></a> Constants
+
+Global constants can be set using the `const` keyword:
+
+    const VarName = "some value"
+
+Once defined a constant can be access from any file. Constants cannot be changed
+once they are set.
+
+### <a id="apply"></a> Apply
+
+The `apply` keyword can be used to create new objects which are associated with
+another group of objects.
+
+    apply Service "ping" to Host {
+      import "generic-service"
+ 
+      check_command = "ping4"
+  
+      assign where host.name == "localhost"
+    }
+
+In this example the `assign where` condition is a boolean expression which is
+evaluated for all objects of type `Host` and a new service with name "ping"
+is created for each matching host.
+
+The `to` keyword and the target type may be omitted if there is only target
+type, e.g. for the `Service` type.
+
+Depending on the object type used in the `apply` expression additional local
+variables may be available for use in the `where` condition:
+
+Source Type       | Target Type | Variables
+------------------|-------------|--------------
+Service           | Host        | host
+Dependency        | Host        | host
+Dependency        | Service     | host, service
+Notification      | Host        | host
+Notification      | Service     | host, service
+ScheduledDowntime | Host        | host
+ScheduledDowntime | Service     | host, service
+
+Any valid config attribute can be accessed using the `host` and `service`
+variables. For example, `host.address` would return the value of the host's
+"address" attribute - or null if that attribute isn't set.
+
+### <a id="group-assign"></a> Group Assign
+
+Group objects can be assigned to specific member objects using the `assign where`
+and `ignore where` conditions.
+
+    object HostGroup "linux-servers" {
+      display_name = "Linux Servers"
+
+      assign where host.vars.os == "Linux"
+    }
+
+In this example the `assign where` condition is a boolean expression which is evaluated
+for all objects of the type `Host`. Each matching host is added as member to the host group
+with the name "linux-servers". Membership exclusion can be controlled using the `ignore where`
+condition.
+
+Source Type       | Variables
+------------------|--------------
+HostGroup         | host
+ServiceGroup      | host, service
+UserGroup         | user
+
+
+### <a id="boolean-values"></a> Boolean Values
+
+The `assign where` and `ignore where` statements, the `!`, `&&` and `||`
+operators as well as the `bool()` function convert their arguments to a
+boolean value based on the following rules:
+
+Description          | Example Value     | Boolean Value
+---------------------|-------------------|--------------
+Empty value          | null              | false
+Zero                 | 0                 | false
+Non-zero integer     | -23945            | true
+Empty string         | ""                | false
+Non-empty string     | "Hello"           | true
+Empty array          | []                | false
+Non-empty array      | [ "Hello" ]       | true
+Empty dictionary     | {}                | false
+Non-empty dictionary | { key = "value" } | true
+
+### <a id="comments"></a> Comments
+
+The Icinga 2 configuration format supports C/C++-style and shell-style comments.
+
+Example:
+
+    /*
+     This is a comment.
+     */
+    object Host "localhost" {
+      check_interval = 30 // this is also a comment.
+      retry_interval = 15 # yet another comment
+    }
+
+### <a id="includes"></a> Includes
+
+Other configuration files can be included using the `include` directive.
+Paths must be relative to the configuration file that contains the
+`include` directive.
+
+Example:
+
+    include "some/other/file.conf"
+    include "conf.d/*.conf"
+
+Wildcard includes are not recursive.
+
+Icinga also supports include search paths similar to how they work in a
+C/C++ compiler:
+
+    include <itl/itl.conf>
+
+Note the use of angle brackets instead of double quotes. This causes the
+config compiler to search the include search paths for the specified
+file. By default $PREFIX/share/icinga2 is included in the list of search
+paths. Additional include search paths can be added using
+[command-line options](#cmdline).
+
+Wildcards are not permitted when using angle brackets.
+
+### <a id="recursive-includes"></a> Recursive Includes
+
+The `include_recursive` directive can be used to recursively include all
+files in a directory which match a certain pattern.
+
+Example:
+
+    include_recursive "conf.d", "*.conf"
+    include_recursive "templates"
+
+The first parameter specifies the directory from which files should be
+recursively included.
+
+The file names need to match the pattern given in the second parameter.
+When no pattern is specified the default pattern "*.conf" is used.
+
+### <a id="library"></a> Library directive
+
+The `library` directive can be used to manually load additional
+libraries. Libraries can be used to provide additional object types and
+functions.
+
+Example:
+
+    library "snmphelper"
+
+
+
+## <a id="global-constants"></a> Global Constants
+
+Icinga 2 provides a number of special global constants. Some of them can be overriden using the `--define` command line parameter:
+
+Variable            |Description
+--------------------|-------------------
+PrefixDir           |**Read-only.** Contains the installation prefix that was specified with cmake -DCMAKE_INSTALL_PREFIX. Defaults to "/usr/local".
+SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to PrefixDir + "/etc".
+LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to PrefixDir + "/var".
+PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to PrefixDir + "/share/icinga2".
+StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to LocalStateDir + "/lib/icinga2/icinga2.state".
+PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to LocalStateDir + "/run/icinga2/icinga2.pid".
+Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
+NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
+ApplicationType     |**Read-write.** Contains the name of the Application type. Defaults to "icinga/IcingaApplication".
+EnableNotifications |**Read-write.** Whether notifications are globally enabled. Defaults to true.
+EnableEventHandlers |**Read-write.** Whether event handlers are globally enabled. Defaults to true.
+EnableFlapping      |**Read-write.** Whether flap detection is globally enabled. Defaults to true.
+EnableHostChecks    |**Read-write.** Whether active host checks are globally enabled. Defaults to true.
+EnableServiceChecks |**Read-write.** Whether active service checks are globally enabled. Defaults to true.
+EnablePerfdata      |**Read-write.** Whether performance data processing is globally enabled. Defaults to true.
+UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
+
+
 ## <a id="object-types"></a> Object Types
 
 ### <a id="objecttype-host"></a> Host
@@ -105,9 +639,29 @@ Attributes:
   host_name       |**Required.** The host this service belongs to. There must be a `Host` object with that name.
   name            |**Required.** The service name. Must be unique on a per-host basis (Similar to the service_description attribute in Icinga 1.x).
   groups          |**Optional.** The service groups this service belongs to.
+  vars            |**Optional.** A dictionary containing custom attributes that are specific to this service.
+  check\_command  |**Required.** The name of the check command.
+  max\_check\_attempts|**Optional.** The number of times a service is re-checked before changing into a hard state. Defaults to 3.
+  check\_period   |**Optional.** The name of a time period which determines when this service should be checked. Not set by default.
+  check\_interval |**Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to 5 minutes.
+  retry\_interval |**Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to 1 minute.
+  enable\_notifications|**Optional.** Whether notifications are enabled. Defaults to true.
+  enable\_active\_checks|**Optional.** Whether active checks are enabled. Defaults to true.
+  enable\_passive\_checks|**Optional.** Whether passive checks are enabled. Defaults to true.
+  enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
+  enable\_flap\_detection|**Optional.** Whether flap detection is enabled. Defaults to true.
+  enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
+  event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes.
+  flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.
+  volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
+  authorities     |**Optional.** A list of Endpoints on which this service check will be executed in a cluster scenario.
+  domains         |**Optional.** A list of Domains for this service object in a cluster scenario.
+  notes           |**Optional.** Notes for the service.
+  notes_url       |**Optional.** Url for notes for the service (for example, in notification commands).
+  action_url      |**Optional.** Url for actions for the service (for example, an external graphing tool).
+  icon_image      |**Optional.** Icon image for the service. Required for external interfaces only.
+  icon_image_alt  |**Optional.** Icon image description for the service. Required for external interface only.
 
-In addition to these attributes you can also use any of the attributes except the `address` and `address6` which are also valid
-for `Host` objects.
 
 Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
 you can define more than one object with the same (short) name as long as the `host_name` attribute has a different value. 
@@ -524,7 +1078,7 @@ Attributes:
 ### <a id="objecttype-perfdatawriter"></a> PerfdataWriter
 
 Writes check result performance data to a defined path using macro
-pattern.
+pattern consisting of custom attributes and runtime macros.
 
 Example:
 
@@ -912,12 +1466,12 @@ Example:
 
     object ClusterListener "cluster" {
       ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/icinga-node-1.crt"
-      key_path = "/etc/icinga2/ca/icinga-node-1.key"
+      cert_path = "/etc/icinga2/ca/icinga2a.crt"
+      key_path = "/etc/icinga2/ca/icinga2a.key"
 
       bind_port = 8888
 
-      peers = [ "icinga-node-2" ]
+      peers = [ "icinga2b" ]
     }
 
 Attributes:
@@ -941,7 +1495,7 @@ Example:
 
     library "cluster"
 
-    object Endpoint "icinga-c2" {
+    object Endpoint "icinga2b" {
       host = "192.168.5.46"
       port = 7777
 

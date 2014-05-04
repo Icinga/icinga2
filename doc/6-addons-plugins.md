@@ -1,3 +1,5 @@
+# <a id="addons-plugins"></a> Icinga Addons and Plugins
+
 ## <a id="plugin-api"></a> Plugin API
 
 Currently Icinga 2 supports the native plugin API specification from the `Monitoring Plugins`

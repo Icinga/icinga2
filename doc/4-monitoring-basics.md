@@ -1,0 +1,1326 @@
+# <a id="monitoring-basics"></a> Monitoring Basics
+
+This part of the Icinga 2 documentation provides an overview of all the basic
+monitoring concepts you need to know to run Icinga 2.
+
+## <a id="hosts-services"></a> Hosts and Services
+
+Icinga 2 can be used to monitor the availability of hosts and services. Hosts
+and services can be virtually anything which can be checked in some way:
+
+* Network services (HTTP, SMTP, SNMP, SSH, etc.)
+* Printers
+* Switches / Routers
+* Temperature Sensors
+* Other local or network-accessible services
+
+Host objects provide a mechanism to group services that are running
+on the same physical device.
+
+Here is an example of a host object which defines two child services:
+
+    object Host "my-server1" {
+      address = "10.0.0.1"
+      check_command = "hostalive"
+    }
+
+    object Service "ping4" {
+      host_name = "localhost"
+      check_command = "ping4"
+    }
+
+    object Service "http" {
+      host_name = "localhost"
+      check_command = "http_ip"
+    }
+
+The example creates two services `ping4` and `http` which belong to the
+host `my-server1`.
+
+It also specifies that the host should perform its own check using the `hostalive`
+check command.
+
+The `address` custom attribute is used by check commands to determine which network
+address is associated with the host object.
+
+### <a id="host-states"></a> Host States
+
+Hosts can be in any of the following states:
+
+  Name        | Description
+  ------------|--------------
+  UP          | The host is available.
+  DOWN        | The host is unavailable.
+
+### <a id="service-states"></a> Service States
+
+Services can be in any of the following states:
+
+  Name        | Description
+  ------------|--------------
+  OK          | The service is working properly.
+  WARNING     | The service is experiencing some problems but is still considered to be in working condition.
+  CRITICAL    | The service is in a critical state.
+  UNKNOWN     | The check could not determine the service's state.
+
+### <a id="hard-soft-states"></a> Hard and Soft States
+
+When detecting a problem with a host/service Icinga re-checks the object a number of
+times (based on the `max_check_attempts` and `retry_interval` settings) before sending
+notifications. This ensures that no unnecessary notifications are sent for
+transient failures. During this time the object is in a `SOFT` state.
+
+After all re-checks have been executed and the object is still in a non-OK
+state the host/service switches to a `HARD` state and notifications are sent.
+
+  Name        | Description
+  ------------|--------------
+  HARD        | The host/service's state hasn't recently changed.
+  SOFT        | The host/service has recently changed state and is being re-checked.
+
+
+## <a id="using-templates"></a> Using Templates
+
+Templates may be used to apply a set of identical attributes to more than one
+object:
+
+    template Service "generic-service" {
+      max_check_attempts = 3
+      check_interval = 5m
+      retry_interval = 1m
+      enable_perfdata = true
+    }
+
+    object Service "ping4" {
+      import "generic-service"
+
+      host_name = "localhost"
+      check_command = "ping4"
+    }
+
+    object Service "ping6" {
+      import "generic-service"
+
+      host_name = "localhost"
+      check_command = "ping6"
+    }
+
+In this example the `ping4` and `ping6` services inherit properties from the
+template `generic-service`.
+
+Objects as well as templates themselves can import an arbitrary number of
+templates. Attributes inherited from a template can be overridden in the
+object if necessary.
+
+## <a id="using-apply"></a> Apply objects based on rules
+
+Instead of assigning each object (`Service`, `Notification`, `Dependency`, `ScheduledDowntime`)
+based on attribute identifiers for example `host_name` objects can be [applied](#apply).
+
+    apply Service "ping4" {
+      import "generic-service"
+
+      check_command = "ping4"
+
+      assign where "generic-host" in host.templates
+      ignore where !host.address
+    }
+
+In this example the `ping4` service will be created as object for all hosts importing
+the `generic-host` template. If the `address` attribute is not set, the host will be
+ignored.
+
+## <a id="groups"></a> Groups
+
+Groups are used for combining hosts, services, and users into
+accessible configuration attributes and views in external (web)
+interfaces.
+
+Group membership is defined at the respective object itself. If
+you have a hostgroup name `windows` for example, and want to assign
+specific hosts to this group for later viewing the group on your
+alert dashboard, first create the hostgroup:
+
+    object HostGroup "windows" {
+      display_name = "Windows Servers"
+    }
+
+Then add your hosts to this hostgroup
+
+    template Host "windows-server" {
+      groups += [ "windows" ]
+    }
+
+    object Host "mssql-srv1" {
+      import "windows-server"
+
+      vars.mssql_port = 1433
+    }
+
+    object Host "mssql-srv2" {
+      import "windows-server"
+
+      vars.mssql_port = 1433
+    }
+
+This can be done for service and user groups the same way. Additionally
+the user groups are associated as attributes in `Notification` objects.
+
+    object UserGroup "windows-mssql-admins" {
+      display_name = "Windows MSSQL Admins"
+    }
+
+    template User "generic-windows-mssql-users" {
+      groups += [ "windows-mssql-admins" ]
+    }
+
+    object User "win-mssql-noc" {
+      import "generic-windows-mssql-users"
+
+      email = "noc@example.com"
+    }
+
+    object User "win-mssql-ops" {
+      import "generic-windows-mssql-users"
+
+      email = "ops@example.com"
+    }
+
+### <a id="groups"></a> Group Membership Assign
+
+If there is a certain number of hosts, services or users matching a pattern
+it's reasonable to assign the group object to these members.
+Details on the `assign where` syntax can be found [here]
+
+    object HostGroup "mssql" {
+      display_name = "MSSQL Servers"
+      assign where host.vars.mssql_port == 1433
+    }
+
+In this inherited example from above all hosts with the `var` `mssql_port`
+set to `1433` will be added as members to the host group `mssql`.
+
+
+## <a id="timeperiods"></a> Time Periods
+
+Time Periods define time ranges in Icinga where event actions are
+triggered, for example whether a service check is executed or not within
+the `check_period` attribute. Or a notification should be sent to
+users or not, filtered by the `period` and `notification_period`
+configuration attributes for `Notification` and `User` objects.
+
+> **Note**
+>
+> If you are familar with Icinga 1.x - these time period definitions
+> are called `legacy timeperiods` in Icinga 2.
+>
+> An Icinga 2 legacy timeperiod requires the `ITL` provided template
+>`legacy-timeperiod`.
+
+The `TimePeriod` attribute `ranges` may contain multiple directives,
+including weekdays, days of the month, and calendar dates.
+These types may overlap/override other types in your ranges dictionary.
+
+The descending order of precedence is as follows:
+
+* Calendar date (2008-01-01)
+* Specific month date (January 1st)
+* Generic month date (Day 15)
+* Offset weekday of specific month (2nd Tuesday in December)
+* Offset weekday (3rd Monday)
+* Normal weekday (Tuesday)
+
+If you don't set any `check_period` or `notification_period` attribute
+on your configuration objects Icinga 2 assumes `24x7` as time period
+as shown below.
+
+    object TimePeriod "24x7" {
+      import "legacy-timeperiod"
+
+      display_name = "Icinga 2 24x7 TimePeriod"
+      ranges = {
+        "monday"    = "00:00-24:00"
+        "tuesday"   = "00:00-24:00"
+        "wednesday" = "00:00-24:00"
+        "thursday"  = "00:00-24:00"
+        "friday"    = "00:00-24:00"
+        "saturday"  = "00:00-24:00"
+        "sunday"    = "00:00-24:00"
+      }
+    }
+
+If your operation staff should only be notified during workhours
+create a new timeperiod named `workhours` defining a work day from
+09:00 to 17:00.
+
+    object TimePeriod "workhours" {
+      import "legacy-timeperiod"
+
+      display_name = "Icinga 2 8x5 TimePeriod"
+      ranges = {
+        "monday"    = "09:00-17:00"
+        "tuesday"   = "09:00-17:00"
+        "wednesday" = "09:00-17:00"
+        "thursday"  = "09:00-17:00"
+        "friday"    = "09:00-17:00"
+      }
+    }
+
+Use the `period` attribute to assign time periods to
+`Notification` and `Dependency` objects:
+
+    object Notification "mail" {
+      import "generic-notification"
+
+      host_name = "localhost"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+      period = "workhours"
+    }
+
+
+
+## <a id="commands"></a> Commands
+
+Icinga 2 uses three different command object types to specify how
+checks should be performed, notifications should be sent and
+events should be handled.
+
+### <a id="command-environment-variables"></a> Environment Variables for Commands
+
+Please check [Runtime Custom Attributes as Environment Variables](#runtime-custom-attribute-env-vars).
+
+### <a id="check-commands"></a> Check Commands
+
+`CheckCommand` objects define the command line how a check is called.
+
+`CheckCommand` objects require the [ITL template](#itl-plugin-check-command)
+`plugin-check-command` to support native plugin based check methods.
+
+Unless you have done so already, download your check plugin and put it
+into the `PluginDir` directory. The following example uses the
+`check_disk` plugin shipped with the Monitoring Plugins package.
+
+The plugin path and all command arguments are made a list of
+double-quoted string arguments for proper shell escaping.
+
+Call the `check_disk` plugin with the `--help` parameter to see
+all available options. Our example defines warning (`-w`) and
+critical (`-c`) thresholds for the disk usage. Without any
+partition defined (`-p`) it will check all local partitions.
+
+Define the default check command custom attribute `wfree` and `cfree` freely
+definable naming schema) and their default threshold values. You can
+then use these custom attributes as runtime macros on the command line.
+
+The default custom attributes can be overridden by the custom attributes
+defined in the service using the check command `disk`. The custom attributes
+can also be inherited from a parent template using additive inheritance (`+=`).
+
+    object CheckCommand "disk" {
+      import "plugin-check-command"
+
+      command = [
+        PluginDir + "/check_disk",
+        "-w", "$disk_wfree$%",
+        "-c", "$disk_cfree$%"
+      ],
+
+      vars.disk_wfree = 20
+      vars.disk_cfree = 10
+    }
+
+The host `localhost` with the service `disk` checks all disks with modified
+custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
+free disk space).
+
+    object Host "localhost" {
+      import "generic-host"
+
+      address = "127.0.0.1"
+      address6 = "::1"
+    }
+
+    object Service "disk" {
+      import "generic-service"
+
+      host_name = "localhost"
+      check_command = "disk"
+
+      vars.disk_wfree = 10
+      vars.disk_cfree = 5
+    }
+
+
+### <a id="notification-commands"></a> Notification Commands
+
+`NotificationCommand` objects define how notifications are delivered to external
+interfaces (E-Mail, XMPP, IRC, Twitter, etc).
+
+`NotificationCommand` objects require the [ITL template](#itl-plugin-notification-command)
+`plugin-notification-command` to support native plugin-based notifications.
+
+Below is an example using runtime macros from Icinga 2 (such as `$service.output$` for
+the current check output) sending an email to the user(s) associated with the
+notification itself (`$user.email$`).
+
+If you want to specify default values for some of the custom attribute definitions,
+you can add a `vars` dictionary as shown for the `CheckCommand` object.
+
+    object NotificationCommand "mail-service-notification" {
+      import "plugin-notification-command"
+
+      command = [ SysconfDir + "/icinga2/scripts/mail-notification.sh" ]
+
+      env = {
+        "NOTIFICATIONTYPE" = "$notification.type$"
+        "SERVICEDESC" = "$service.name$"
+        "HOSTALIAS" = "$host.display_name$",
+        "HOSTADDRESS" = "$address$",
+        "SERVICESTATE" = "$service.state$",
+        "LONGDATETIME" = "$icinga.long_date_time$",
+        "SERVICEOUTPUT" = "$service.output$",
+        "NOTIFICATIONAUTHORNAME" = "$notification.author$",
+        "NOTIFICATIONCOMMENT" = "$notification.comment$",
+    	"HOSTDISPLAYNAME" = "$host.display_name$",
+        "SERVICEDISPLAYNAME" = "$service.display_name$",
+        "USEREMAIL" = "$user.email$"
+      }
+    }
+
+The command attribute in the `mail-service-notification` command refers to the following
+shell script. The macros specified in the `env` array are exported
+as environment variables and can be used in the notification script:
+
+    #!/usr/bin/env bash
+    template=$(cat <<TEMPLATE
+    ***** Icinga  *****
+
+    Notification Type: $NOTIFICATIONTYPE
+
+    Service: $SERVICEDESC
+    Host: $HOSTALIAS
+    Address: $HOSTADDRESS
+    State: $SERVICESTATE
+
+    Date/Time: $LONGDATETIME
+
+    Additional Info: $SERVICEOUTPUT
+
+    Comment: [$NOTIFICATIONAUTHORNAME] $NOTIFICATIONCOMMENT
+    TEMPLATE
+    )
+
+    /usr/bin/printf "%b" $template | mail -s "$NOTIFICATIONTYPE - $HOSTDISPLAYNAME - $SERVICEDISPLAYNAME is $SERVICESTATE" $USEREMAIL
+
+While it's possible to specify the entire notification command right
+in the NotificationCommand object it is generally advisable to create a
+shell script in the `/etc/icinga2/scripts` directory and have the
+NotificationCommand object refer to that.
+
+### <a id="event-commands"></a> Event Commands
+
+Unlike notifications event commands are called on every service state change
+if defined. Therefore the `EventCommand` object should define a command line
+evaluating the current service state and other service runtime attributes
+available through runtime vars. Runtime macros such as `$SERVICESTATETYPE$`
+and `$SERVICESTATE$` will be processed by Icinga 2 helping on fine-granular
+events being triggered.
+
+Common use case scenarios are a failing HTTP check requiring an immediate
+restart via event command, or if an application is locked and requires
+a restart upon detection.
+
+`EventCommand` objects require the ITL template `plugin-event-command`
+to support native plugin based checks.
+
+When the event command is triggered on a service state change, it will
+send a check result using the `process_check_result` script forcibly
+changing the service state back to `OK` (`-r 0`) providing some debug
+information in the check output (`-o`).
+
+    object EventCommand "plugin-event-process-check-result" {
+      import "plugin-event-command"
+
+      command = [
+        PluginDir + "/process_check_result",
+        "-H", "$host.name$",
+        "-S", "$service.name$",
+        "-c", LocalStateDir + "/run/icinga2/cmd/icinga2.cmd",
+        "-r", "0",
+        "-o", "Event Handler triggered in state '$service.state$' with output '$service.output$'."
+      ]
+    }
+
+
+## <a id="notifications"></a> Notifications
+
+Notifications for service and host problems are an integral part of your
+monitoring setup.
+
+There are many ways of sending notifications, e.g. by e-mail, XMPP,
+IRC, Twitter, etc. On its own Icinga 2 does not know how to send notifications.
+Instead it relies on external mechanisms such as shell scripts to notify users.
+
+A notification specification requires one or more users (and/or user groups)
+who will be notified in case of problems. These users must have all custom
+attributes defined which will be used in the `NotificationCommand` on execution.
+
+The user `icingaadmin` in the example below will get notified only on `WARNING` and
+`CRITICAL` states and `problem` and `recovery` notification types.
+
+    object User "icingaadmin" {
+      display_name = "Icinga 2 Admin"
+      enable_notifications = true
+      states = [ OK, Warning, Critical ]
+      types = [ Problem, Recovery ]
+      email = "icinga@localhost"
+    }
+
+If you don't set the `states` and `types`
+configuration attributes for the `User` object, notifications for all states and types
+will be sent.
+
+You should choose which information you (and your notified users) are interested in
+case of emergency, and also which information does not provide any value to you and
+your environment.
+
+An example notification command is explained [here](#notification-commands).
+
+You can add all shared attributes to a `Notification` template which is inherited
+to the defined notifications. That way you'll save duplicated attributes in each
+`Notification` object. Attributes can be overridden locally.
+
+
+    template Notification "generic-notification" {
+      interval = 15m
+
+      command = "mail-service-notification"
+
+      states = [ Warning, Critical, Unknown ]
+      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
+                FlappingEnd, DowntimeStart,DowntimeEnd, DowntimeRemoved ]
+
+      period = "24x7"
+    }
+
+The time period `24x7` is shipped as example configuration with Icinga 2.
+
+Use the `apply` keyword to create `Notification` objects for your services:
+
+    apply Notification "mail" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      assign where service.name == "mysql"
+    }
+
+Instead of assigning users to notifications, you can also add the `user_groups`
+attribute with a list of user groups to the `Notification` object. Icinga 2 will
+send notifications to all group members.
+
+### <a id="notification-escalations"></a> Notification Escalations
+
+When a problem notification is sent and a problem still exists after re-notification
+you may want to escalate the problem to the next support level. A different approach
+is to configure the default notification by email, and escalate the problem via sms
+if not already solved.
+
+You can define notification start and end times as additional configuration
+attributes making the `Notification` object a so-called `notification escalation`.
+Using templates you can share the basic notification attributes such as users or the
+`interval` (and override them for the escalation then).
+
+Using the example from above, you can define additional users being escalated for sms
+notifications between start and end time.
+
+    object User "icinga-oncall-2nd-level" {
+      display_name = "Icinga 2nd Level"
+
+      vars.mobile = "+1 555 424642"
+    }
+
+    object User "icinga-oncall-1st-level" {
+      display_name = "Icinga 1st Level"
+
+      vars.mobile = "+1 555 424642"
+    }
+
+Define an additional `NotificationCommand` for SMS notifications.
+
+> **Note**
+>
+> The example is not complete as there are many different SMS providers.
+> Please note that sending SMS notifications will require an SMS provider
+> or local hardware with a SIM card active.
+
+    object NotificationCommand "sms-notification" {
+       command = [
+         PluginDir + "/send_sms_notification",
+         "$mobile$",
+         "..."
+    }
+
+The two new notification escalations are added onto the host `localhost`
+and its service `ping4` using the `generic-notification` template.
+The user `icinga-oncall-2nd-level` will get notified by SMS (`sms-notification`
+command) after `30m` until `1h`.
+
+> **Note**
+>
+> The `interval` was set to 15m in the `generic-notification`
+> template example. Lower that value in your escalations by using a secondary
+> template or overriding the attribute directly in the `notifications` array
+> position for `escalation-sms-2nd-level`.
+
+If the problem does not get resolved or acknowledged preventing further notifications
+the `escalation-sms-1st-level` user will be escalated `1h` after the initial problem was
+notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
+
+    apply Notification "mail" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      assign where service.name == "ping4"
+    }
+
+    apply Notification "escalation-sms-2nd-level" to Service {
+      import "generic-notification"
+
+      command = "sms-notification"
+      users = [ "icinga-oncall-2nd-level" ]
+
+      times = {
+        begin = 30m
+        end = 1h
+      }
+
+      assign where service.name == "ping4"
+    }
+
+    apply Notification "escalation-sms-1st-level" to Service {
+      import "generic-notification"
+
+      command = "sms-notification"
+      users = [ "icinga-oncall-1st-level" ]
+
+      times = {
+        begin = 1h
+        end = 2h
+      }
+
+      assign where service.name == "ping4"
+    }
+
+### <a id="first-notification-delay"></a> First Notification Delay
+
+Sometimes the problem in question should not be notified when the first notification
+happens, but a defined time duration afterwards. In Icinga 2 you can use the `times`
+dictionary and set `begin = 15m` as key and value if you want to suppress notifications
+in the first 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
+end time for this notification.
+
+    apply Notification "mail" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      times.begin = 15m // delay first notification
+
+      assign where service.name == "ping4"
+    }
+
+### <a id="notification-filters-state-type"></a> Notification Filters by State and Type
+
+If there are no notification state and type filter attributes defined at the `Notification`
+or `User` object Icinga 2 assumes that all states and types are being notified.
+
+Available state and type filters for notifications are:
+
+    template Notification "generic-notification" {
+
+      states = [ Warning, Critical, Unknown ]
+      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
+                FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+    }
+
+If you are familiar with Icinga 1.x `notification_options` please note that they have been split
+into type and state, and allow more fine granular filtering for example on downtimes and flapping.
+You can filter for acknowledgements and custom notifications too.
+
+
+## <a id="downtimes"></a> Downtimes
+
+Downtimes can be scheduled for planned server maintenance or
+any other targetted service outage you are aware of in advance.
+
+Downtimes will suppress any notifications, and may trigger other
+downtimes too. If the downtime was set by accident, or the duration
+exceeds the maintenance, you can manually cancel the downtime.
+Planned downtimes will also be taken into account for SLA reporting
+tools calculating the SLAs based on the state and downtime history.
+
+Downtimes may overlap with their start and end times. If there
+are multiple downtimes triggered for one object, the overall downtime depth
+will be more than `1`. This is useful when you want to extend
+your maintenance window taking longer than expected.
+
+### <a id="fixed-flexible-downtimes"></a> Fixed and Flexible Downtimes
+
+A `fixed` downtime will be activated at the defined start time, and
+removed at the end time. During this time window the service state
+will change to `NOT-OK` and then actually trigger the downtime.
+Notifications are suppressed and the downtime depth is incremented.
+
+Common scenarios are a planned distribution upgrade on your linux
+servers, or database updates in your warehouse. The customer knows
+about a fixed downtime window between 23:00 and 24:00. After 24:00
+all problems should be alerted again. Solution is simple -
+schedule a `fixed` downtime starting at 23:00 and ending at 24:00.
+
+Unlike a `fixed` downtime, a `flexible` downtime end does not necessarily
+happen at the provided end time. Instead the downtime will be triggered
+by the state change in the time span defined by start and end time, but
+then last a defined duration in minutes.
+
+Imagine the following scenario: Your service is frequently polled
+by users trying to grab free deleted domains for immediate registration.
+Between 07:30 and 08:00 the impact will hit for 15 minutes and generate
+a network outage visible to the monitoring. The service is still alive,
+but answering too slow to Icinga 2 service checks.
+For that reason, you may want to schedule a downtime between 07:30 and
+08:00 with a duration of 15 minutes. The downtime will then last from
+its trigger time until the duration is over. After that, the downtime
+is removed (may happen before or after the actual end time!).
+
+### <a id="scheduling-downtime"></a> Scheduling a downtime
+
+This can either happen through a web interface or by sending an [external command](#external-commands)
+to the external command pipe provided by the `ExternalCommandListener` configuration.
+
+Fixed downtimes require a start and end time (a duration will be ignored).
+Flexible downtimes need a start and end time for the time span, and a duration
+independent from that time span.
+
+### <a id="triggered-downtimes"></a> Triggered Downtimes
+
+This is optional when scheduling a downtime. If there is already a downtime
+scheduled for a future maintenance, the current downtime can be triggered by
+that downtime. This renders useful if you have scheduled a host downtime and
+are now scheduling a child host's downtime getting triggered by the parent
+downtime on NOT-OK state change.
+
+### <a id="recurring-downtimes"></a> Recurring Downtimes
+
+[ScheduledDowntime objects](#objecttype-scheduleddowntime) can be used to set up
+recurring downtimes for services.
+
+Example:
+
+    apply ScheduledDowntime "backup-downtime" to Service {
+      author = "icingaadmin"
+      comment = "Scheduled downtime for backup"
+
+      ranges = {
+        monday = "02:00-03:00"
+        tuesday = "02:00-03:00"
+        wednesday = "02:00-03:00"
+        thursday = "02:00-03:00"
+        friday = "02:00-03:00"
+        saturday = "02:00-03:00"
+        sunday = "02:00-03:00"
+      }
+
+      assign where "backup" in service.groups
+    }
+
+
+## <a id="comments"></a> Comments
+
+Comments can be added at runtime and are persistent over restarts. You can
+add useful information for others on repeating incidents (for example
+"last time syslog at 100% cpu on 17.10.2013 due to stale nfs mount") which
+is primarly accessible using web interfaces.
+
+Adding and deleting comment actions are possible through the external command pipe
+provided with the `ExternalCommandListener` configuration. The caller must
+pass the comment id in case of manipulating an existing comment.
+
+
+## <a id="acknowledgements"></a> Acknowledgements
+
+If a problem is alerted and notified you may signal the other notification
+receipients that you are aware of the problem and will handle it.
+
+By sending an acknowledgement to Icinga 2 (using the external command pipe
+provided with `ExternalCommandListener` configuration) all future notifications
+are suppressed, a new comment is added with the provided description and
+a notification with the type `NotificationFilterAcknowledgement` is sent
+to all notified users.
+
+### <a id="expiring-acknowledgements"></a> Expiring Acknowledgements
+
+Once a problem is acknowledged it may disappear from your `handled problems`
+dashboard and no-one ever looks at it again since it will suppress
+notifications too.
+
+This `fire-and-forget` action is quite common. If you're sure that a
+current problem should be resolved in the future at a defined time,
+you can define an expiration time when acknowledging the problem.
+
+Icinga 2 will clear the acknowledgement when expired and start to
+re-notify if the problem persists.
+
+
+## <a id="dependencies"></a> Dependencies
+
+Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects.
+The `parent_host_name` and `parent_service_name` attributes are mandatory for
+service dependencies, `parent_host_name` is required for host dependencies.
+
+A service can depend on a host, and vice versa. A service has an implicit
+dependency (parent) to its host. A host to host dependency acts implicit
+as host parent relation.
+When dependencies are calculated, not only the immediate parent is taken into
+account but all parents are inherited.
+
+A common scenario is the Icinga 2 server behind a router. Checking internet
+access by pinging the Google DNS server `google-dns` is a common method, but
+will fail in case the `dsl-router` host is down. Therefore the example below
+defines a host dependency which acts implicit as parent relation too.
+
+Furthermore the host may be reachable but ping probes are dropped by the
+router's firewall. In case the `dsl-router``ping4` service check fails, all
+further checks for the `ping4` service on host `google-dns` service should
+be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
+
+    object Host "dsl-router" {
+      address = "192.168.1.1"
+    }
+
+    object Host "google-dns" {
+      address = "8.8.8.8"
+    }
+
+    apply Service "ping4" {
+      import "generic-service"
+
+      check_command = "ping4"
+
+      assign where host.address
+    }
+
+    apply Dependency "internet" to Service {
+      parent_host_name = "dsl-router"
+      disable_checks = true
+
+      assign where host.name != "dsl-router"
+    }
+
+
+## <a id="custom-attributes"></a> Custom Attributes
+
+### <a id="runtime-custom-attributes"></a> Using Custom Attributes at Runtime
+
+Custom attributes may be used in command definitions to dynamically change how the command
+is executed.
+
+Additionally there are Icinga 2 features such as the `PerfDataWriter` type
+which use custom attributes to format their output.
+
+> **Tip**
+>
+> Custom attributes are identified by the 'vars' dictionary attribute as short name.
+> Accessing the different attribute keys is possible using the '.' accessor.
+
+Custom attributes in command definitions or performance data templates are evaluated at
+runtime when executing a command. These custom attributes cannot be used elsewhere
+(e.g. in other configuration attributes).
+
+Here is an example of a command definition which uses user-defined custom attributes:
+
+    object CheckCommand "my-ping" {
+      import "plugin-check-command"
+
+      command = [
+        PluginDir + "/check_ping",
+        "-4",
+        "-H", "$address$",
+        "-w", "$ping_wrta$,$ping_wpl$%",
+        "-c", "$ping_crta$,$ping_cpl$%",
+        "-p", "$ping_packets$",
+        "-t", "$ping_timeout$"
+      ]
+
+      vars.ping_wrta = 100
+      vars.ping_wpl = 5
+      vars.ping_crta = 200
+      vars.ping_cpl = 15
+      vars.ping_packets = 5
+      vars.ping_timeout = 0
+    }
+
+Custom attribute names used at runtime must be enclosed in two `$` signs, e.g.
+`$address$`. When using the `$` sign as single character, you need to escape
+it with an additional dollar sign (`$$`).
+
+### <a id="runtime-custom-attributes-evaluation-order"></a> Runtime Custom Attributes Evaluation Order
+
+When executing commands Icinga 2 checks the following objects in this order to look
+up custom attributes and their respective values:
+
+1. User object (only for notifications)
+2. Service object
+3. Host object
+4. Command object
+5. Global custom attributes in the Vars constant
+
+This execution order allows you to define default values for custom attributes
+in your command objects. The `my-ping` command shown above uses this to set
+default values for some of the latency thresholds and timeouts.
+
+When using the `my-ping` command you can override all or some of the custom
+attributes in the service definition like this:
+
+    object Service "ping" {
+      host_name = "localhost"
+      check_command = "my-ping"
+
+      vars.ping_packets = 10 // Overrides the default value of 5 given in the command
+    }
+
+If a custom attribute isn't defined anywhere an empty value is used and a warning is
+emitted to the Icinga 2 log.
+
+> **Best Practice**
+>
+> By convention every host should have an `address` attribute. Hosts
+> which have an IPv6 address should also have an `address6` attribute.
+
+### <a id="runtime-custom-attribute-env-vars"></a> Runtime Custom Attributes as Environment Variables
+
+The `env` command object attribute specifies a list of environment variables with values calculated
+from either runtime macros or custom attributes which should be exported as environment variables
+prior to executing the command.
+
+This is useful for example for hiding sensitive information on the command line output
+when passing credentials to database checks:
+
+    object CheckCommand "mysql-health" {
+      import "plugin-check-command",
+
+      command = PluginDir + "/check_mysql -H $address$ -d $db$",
+
+      vars.mysql_user = "icinga_check",
+      vars.mysql_pass = "password"
+
+      env.MYSQLUSER = "$mysql_user$",
+      env.MYSQLPASS = "$mysql_pass$"
+    }
+
+### <a id="modified-attributes"></a> Modified Attributes
+
+Icinga 2 allows you to modify defined object attributes at runtime different to
+the local configuration object attributes. These modified attributes are
+stored as bit-shifted-value and made available in backends. Icinga 2 stores
+modified attributes in its state file and restores them on restart.
+
+Modified Attributes can be reset using external commands.
+
+
+## <a id="runtime-macros"></a> Runtime Macros
+
+Next to custom attributes there are additional runtime macros made available by Icinga 2.
+These runtime macros reflect the current object state and may change over time while
+custom attributes are configured statically (but can be modified at runtime using
+external commands).
+
+### <a id="host-runtime-macros"></a> Host Runtime Macros
+
+The following host custom attributes are available in all commands that are executed for
+hosts or services:
+
+  Name                         | Description
+  -----------------------------|--------------
+  host.name                    | The name of the host object.
+  host.display_name            | The value of the `display_name` attribute.
+  host.state                   | The host's current state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
+  host.state_id                | The host's current state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
+  host.state_type              | The host's current state type. Can be one of `SOFT` and `HARD`.
+  host.check_attempt           | The current check attempt number.
+  host.max_check_attempts      | The maximum number of checks which are executed before changing to a hard state.
+  host.last_state              | The host's previous state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
+  host.last_state_id           | The host's previous state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
+  host.last_state_type         | The host's previous state type. Can be one of `SOFT` and `HARD`.
+  host.last_state_change       | The last state change's timestamp.
+  host.duration_sec            | The time since the last state change.
+  host.latency                 | The host's check latency.
+  host.execution_time          | The host's check execution time.
+  host.output                  | The last check's output.
+  host.perfdata                | The last check's performance data.
+  host.last_check              | The timestamp when the last check was executed.
+  host.total_services          | Number of services associated with the host.
+  host.total_services_ok       | Number of services associated with the host which are in an `OK` state.
+  host.total_services_warning  | Number of services associated with the host which are in a `WARNING` state.
+  host.total_services_unknown  | Number of services associated with the host which are in an `UNKNOWN` state.
+  host.total_services_critical | Number of services associated with the host which are in a `CRITICAL` state.
+
+### <a id="service-runtime-macros"></a> Service Runtime Macros
+
+The following service macros are available in all commands that are executed for
+services:
+
+  Name                       | Description
+  ---------------------------|--------------
+  service.name               | The short name of the service object.
+  service.display_name       | The value of the `display_name` attribute.
+  service.check_command      | The short name of the command along with any arguments to be used for the check.
+  service.state              | The service's current state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
+  service.state_id           | The service's current state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
+  service.state_type         | The service's current state type. Can be one of `SOFT` and `HARD`.
+  service.check_attempt      | The current check attempt number.
+  service.max_check_attempts | The maximum number of checks which are executed before changing to a hard state.
+  service.last_state         | The service's previous state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
+  service.last_state_id      | The service's previous state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
+  service.last_state_type    | The service's previous state type. Can be one of `SOFT` and `HARD`.
+  service.last_state_change  | The last state change's timestamp.
+  service.duration_sec       | The time since the last state change.
+  service.latency            | The service's check latency.
+  service.execution_time     | The service's check execution time.
+  service.output             | The last check's output.
+  service.perfdata           | The last check's performance data.
+  service.last_check         | The timestamp when the last check was executed.
+
+### <a id="command-runtime-macros"></a> Command Runtime Macros
+
+The following custom attributes are available in all commands:
+
+  Name                   | Description
+  -----------------------|--------------
+  command.name           | The name of the command object.
+
+### <a id="user-runtime-macros"></a> User Runtime Macros
+
+The following custom attributes are available in all commands that are executed for
+users:
+
+  Name                   | Description
+  -----------------------|--------------
+  user.name              | The name of the user object.
+  user.display_name      | The value of the display_name attribute.
+
+### <a id="notification-runtime-macros"></a> Notification Runtime Macros
+
+  Name                   | Description
+  -----------------------|--------------
+  notification.type      | The type of the notification.
+  notification.author    | The author of the notification comment, if existing.
+  notification.comment   | The comment of the notification, if existing.
+
+### <a id="global-runtime-macros"></a> Global Runtime Macros
+
+The following macros are available in all executed commands:
+
+  Name                   | Description
+  -----------------------|--------------
+  icinga.timet           | Current UNIX timestamp.
+  icinga.long_date_time  | Current date and time including timezone information. Example: `2014-01-03 11:23:08 +0000`
+  icinga.short_date_time | Current date and time. Example: `2014-01-03 11:23:08`
+  icinga.date            | Current date. Example: `2014-01-03`
+  icinga.time            | Current time including timezone information. Example: `11:23:08 +0000`
+  icinga.uptime          | Current uptime of the Icinga 2 process.
+
+The following macros provide global statistics:
+
+  Name                              | Description
+  ----------------------------------|--------------
+  icinga.num_services_ok            | Current number of services in state 'OK'.
+  icinga.num_services_warning       | Current number of services in state 'Warning'.
+  icinga.num_services_critical      | Current number of services in state 'Critical'.
+  icinga.num_services_unknown       | Current number of services in state 'Unknown'.
+  icinga.num_services_pending       | Current number of pending services.
+  icinga.num_services_unreachable   | Current number of unreachable services.
+  icinga.num_services_flapping      | Current number of flapping services.
+  icinga.num_services_in_downtime   | Current number of services in downtime.
+  icinga.num_services_acknowledged  | Current number of acknowledged service problems.
+  icinga.num_hosts_up               | Current number of hosts in state 'Up'.
+  icinga.num_hosts_down             | Current number of hosts in state 'Down'.
+  icinga.num_hosts_unreachable      | Current number of unreachable hosts.
+  icinga.num_hosts_flapping         | Current number of flapping hosts.
+  icinga.num_hosts_in_downtime      | Current number of hosts in downtime.
+  icinga.num_hosts_acknowledged     | Current number of acknowledged host problems.
+
+
+## <a id="check-result-freshness"></a> Check Result Freshness
+
+In Icinga 2 active check freshness is enabled by default. It is determined by the
+`check_interval` attribute and no incoming check results in that period of time.
+
+    threshold = last check execution time + check interval
+
+Passive check freshness is calculated from the `check_interval` attribute if set.
+
+    threshold = last check result time + check interval
+
+If the freshness checks are invalid, a new check is executed defined by the
+`check_command` attribute.
+
+
+## <a id="check-flapping"></a> Check Flapping
+
+The flapping algorithm used in Icinga 2 does not store the past states but
+calculcates the flapping threshold from a single value based on counters and
+half-life values. Icinga 2 compares the value with a single flapping threshold
+configuration attribute named `flapping_threshold`.
+
+Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
+
+
+## <a id="volatile-services"></a> Volatile Services
+
+By default all services remain in a non-volatile state. When a problem
+occurs, the `SOFT` state applies and once `max_check_attempts` attribute
+is reached with the check counter, a `HARD` state transition happens.
+Notifications are only triggered by `HARD` state changes and are then
+re-sent defined by the `interval` attribute.
+
+It may be reasonable to have a volatile service which stays in a `HARD`
+state type if the service stays in a `NOT-OK` state. That way each
+service recheck will automatically trigger a notification unless the
+service is acknowledged or in a scheduled downtime.
+
+
+## <a id="external-commands"></a> External Commands
+
+Icinga 2 provides an external command pipe for processing commands
+triggering specific actions (for example rescheduling a service check
+through the web interface).
+
+In order to enable the `ExternalCommandListener` configuration use the
+following command and restart Icinga 2 afterwards:
+
+    # icinga2-enable-feature command
+
+Icinga 2 creates the command pipe file as `/var/run/icinga2/cmd/icinga2.cmd`
+using the default configuration.
+
+Web interfaces and other Icinga addons are able to send commands to
+Icinga 2 through the external command pipe, for example for rescheduling
+a forced service check:
+
+    # /bin/echo "[`date +%s`] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;`date +%s`" >> /var/run/icinga2/cmd/icinga2.cmd
+
+    # tail -f /var/log/messages
+
+    Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
+    Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
+
+By default the command pipe file is owned by the group `icingacmd` with read/write
+permissions. Add your webserver's user to the group `icingacmd` to
+enable sending commands to Icinga 2 through your web interface:
+
+    # usermod -G -a icingacmd www-data
+
+Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
+`nagios`.
+
+### <a id="external-command-list"></a> External Command List
+
+A list of currently supported external commands can be found [here](#external-commands-list-detail)
+
+Detailed information on the commands and their required parameters can be found
+on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
+
+
+## <a id="event-handlers"></a> Event Handlers
+
+Event handlers are defined as `EventCommand` objects in Icinga 2.
+
+Unlike notifications event commands are called on every host/service execution
+if defined. Therefore the `EventCommand` object should define a command line
+evaluating the current service state and other service runtime attributes
+available through runtime macros. Runtime macros such as `$service.state_type$`
+and `$service.state$` will be processed by Icinga 2 helping on fine-granular
+events being triggered.
+
+Common use case scenarios are a failing HTTP check requiring an immediate
+restart via event command, or if an application is locked and requires
+a restart upon detection.
+
+
+## <a id="logging"></a> Logging
+
+Icinga 2 supports three different types of logging:
+
+* File logging
+* Syslog (on *NIX-based operating systems)
+* Console logging (`STDOUT` on tty)
+
+You can enable additional loggers using the `icinga2-enable-feature`
+and `icinga2-disable-feature` commands to configure loggers:
+
+Feature  | Description
+---------|------------
+debuglog | Debug log (path: `/var/log/icinga2/debug.log`, severity: `debug` or higher)
+mainlog  | Main log (path: `/var/log/icinga2/icinga2.log`, severity: `information` or higher)
+syslog   | Syslog (severity: `warning` or higher)
+
+By default file the `mainlog` feature is enabled. When running Icinga 2
+on a terminal log messages with severity `information` or higher are
+written to the console.
+
+
+## <a id="performance-data"></a> Performance Data
+
+When a host or service check is executed plugins should provide so-called
+`performance data`. Next to that additional check performance data
+can be fetched using Icinga 2 runtime macros such as the check latency
+or the current service state (or additional custom attributes).
+
+The performance data can be passed to external applications which aggregate and
+store them in their backends. These tools usually generate graphs for historical
+reporting and trending.
+
+Well-known addons processing Icinga performance data are PNP4Nagios,
+inGraph and Graphite.
+
+### <a id="writing-performance-data-files"></a> Writing Performance Data Files
+
+PNP4Nagios, inGraph and Graphios use performance data collector daemons to fetch
+the current performance files for their backend updates.
+
+Therefore the Icinga 2 `PerfdataWriter` object allows you to define
+the output template format for host and services backed with Icinga 2
+runtime vars.
+
+    host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$"
+    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.description$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.statetype$"
+
+The default templates are already provided with the Icinga 2 feature configuration
+which can be enabled using
+
+    # icinga2-enable-feature perfdata
+
+By default all performance data files are rotated in a 15 seconds interval into
+the `/var/spool/icinga2/perfdata/` directory as `host-perfdata.<timestamp>` and
+`service-perfdata.<timestamp>`.
+External collectors need to parse the rotated performance data files and then
+remove the processed files.
+
+### <a id="graphite-carbon-cache-writer"></a> Graphite Carbon Cache Writer
+
+While there are some Graphite collector scripts and daemons like Graphios available for
+Icinga 1.x it's more reasonable to directly process the check and plugin performance
+in memory in Icinga 2. Once there are new metrics available, Icinga 2 will directly
+write them to the defined Graphite Carbon daemon tcp socket.
+
+You can enable the feature using
+
+    # icinga2-enable-feature graphite
+
+By default the `GraphiteWriter` object expects the Graphite Carbon Cache to listen at
+`127.0.0.1` on port `2003`.
+
+The current naming schema is
+
+    icinga.<hostname>.<metricname>
+    icinga.<hostname>.<servicename>.<metricname>
+
+
+
+## <a id="status-data"></a> Status Data
+
+Icinga 1.x writes object configuration data and status data in a cyclic
+interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
+the `StatusDataWriter` object which dumps all configuration objects and
+status updates in a regular interval.
+
+    # icinga2-enable-feature statusdata
+
+Icinga 1.x Classic UI requires this data set as part of its backend.
+
+> **Note**
+>
+> If you are not using any web interface or addon which uses these files
+> you can safely disable this feature.
+
+
+
+## <a id="compat-logging"></a> Compat Logging
+
+The Icinga 1.x log format is considered being the `Compat Log`
+in Icinga 2 provided with the `CompatLogger` object.
+
+These logs are not only used for informational representation in
+external web interfaces parsing the logs, but also to generate
+SLA reports and trends in Icinga 1.x Classic UI. Futhermore the
+`Livestatus` feature uses these logs for answering queries to
+historical tables.
+
+The `CompatLogger` object can be enabled with
+
+    # icinga2-enable-feature compatlog
+
+By default, the Icinga 1.x log file called `icinga.log` is located
+in `/var/log/icinga2/compat`. Rotated log files are moved into
+`var/log/icinga2/compat/archives`.
+
+The format cannot be changed without breaking compatibility to
+existing log parsers.
+
+    # tail -f /var/log/icinga2/compat/icinga.log
+
+    [1382115688] LOG ROTATION: HOURLY
+    [1382115688] LOG VERSION: 2.0
+    [1382115688] HOST STATE: CURRENT;localhost;UP;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;disk;WARNING;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;http;OK;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;load;OK;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;ping4;OK;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;ping6;OK;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;processes;WARNING;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;ssh;OK;HARD;1;
+    [1382115688] SERVICE STATE: CURRENT;localhost;users;OK;HARD;1;
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;disk;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;http;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;load;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;ping6;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;processes;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;ssh;1382115705
+    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;users;1382115705
+    [1382115731] EXTERNAL COMMAND: PROCESS_SERVICE_CHECK_RESULT;localhost;ping6;2;critical test|
+    [1382115731] SERVICE ALERT: localhost;ping6;CRITICAL;SOFT;2;critical test
+
+
+
+## <a id="check-result-files"></a> Check Result Files
+
+Icinga 1.x writes its check result files into a temporary spool directory
+where it reads these check result files in a regular interval from.
+While this is extremly inefficient in performance regards it has been
+rendered useful for passing passive check results directly into Icinga 1.x
+skipping the external command pipe.
+
+Several clustered/distributed environments and check-aggregation addons
+use that method. In order to support step-by-step migration of these
+environments, Icinga 2 ships the `CheckResultReader` object.
+
+There is no feature configuration available, but it must be defined
+on-demand in your Icinga 2 objects configuration.
+
+    object CheckResultReader "reader" {
+      spool_dir = "/data/check-results"
+    }
+
+
+
+
+
+
