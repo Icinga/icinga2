@@ -89,14 +89,14 @@ if(NOT WIN32)
       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     )
   else()
-    configure_file(systemd/icinga2.service.cmake ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2.service)
+    configure_file(systemd/icinga2.service.cmake ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2.service @ONLY)
     install(
       FILES ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2.service
       DESTINATION ${DESTDIR}/usr/lib/systemd/system
       PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ
     )
 
-    configure_file(systemd/icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2)
+    configure_file(systemd/icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2 @ONLY)
     install(
       FILES ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2
       DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/sysconfig
