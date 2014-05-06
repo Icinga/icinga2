@@ -731,6 +731,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 
 		String criteria = boost::algorithm::join(failure_criteria, ",");
 
+		/* Icinga 1.x only allows host->host, service->service dependencies */
 		if (!child_service && !parent_service) {
 			objectfp << "define hostdependency {" "\n"
 				    "\t" "dependent_host_name" "\t" << child_host->GetName() << "\n"
@@ -739,7 +740,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 				    "\t" "notification_failure_criteria" "\t" << criteria << "\n"
 				    "\t" "}" "\n"
 				    "\n";
-		} else {
+		} else if (child_service && parent_service){
 
 			objectfp << "define servicedependency {" "\n"
 				    "\t" "dependent_host_name" "\t" << child_service->GetHost()->GetName() << "\n"
