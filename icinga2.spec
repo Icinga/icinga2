@@ -420,7 +420,6 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %{_sbindir}/%{name}
-%{_bindir}/%{name}-migrate-config
 %{_bindir}/%{name}-build-ca
 %{_bindir}/%{name}-build-key
 %{_bindir}/%{name}-sign-key
