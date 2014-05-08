@@ -929,11 +929,6 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	if (!params)
 		return Empty;
 
-	Zone::Ptr zone = Zone::GetByName(params->Get("zone"));
-
-	if (!zone || (origin.FromZone && !origin.FromZone->CanAccessObject(zone)))
-	    return Empty;
-
 	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint"));
 	String repositoryTempFile = repositoryFile + ".tmp";
 
