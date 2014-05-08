@@ -25,8 +25,3 @@ bool MessageOrigin::IsLocal(void) const
 {
 	return !FromClient;
 }
-
-bool MessageOrigin::IsSameZone(void) const
-{
-	return !FromZone;
-}

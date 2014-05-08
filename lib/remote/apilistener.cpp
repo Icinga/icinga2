@@ -201,31 +201,28 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity = GetCertificateCN(cert);
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
-
-	if (!endpoint) {
-		Log(LogInformation, "remote", "New client for unknown endpoint '" + identity + "'");
-		return;
-	}
-
 	Log(LogInformation, "remote", "New client connection for identity '" + identity + "'");
 
-	bool need_sync = !endpoint->IsConnected();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
-	ApiClient::Ptr aclient = make_shared<ApiClient>(endpoint, tlsStream, role);
-	aclient->Start();
+	if (endpoint) {
+		bool need_sync = !endpoint->IsConnected();
 
-	if (need_sync) {
-		{
-			ObjectLock olock(endpoint);
+		ApiClient::Ptr aclient = make_shared<ApiClient>(identity, tlsStream, role);
+		aclient->Start();
 
-			endpoint->SetSyncing(true);
+		if (need_sync) {
+			{
+				ObjectLock olock(endpoint);
+
+				endpoint->SetSyncing(true);
+			}
+
+			ReplayLog(aclient);
 		}
 
-		ReplayLog(aclient);
+		endpoint->AddClient(aclient);
 	}
-
-	endpoint->AddClient(aclient);
 }
 
 void ApiListener::ApiTimerHandler(void)
@@ -262,19 +259,35 @@ void ApiListener::ApiTimerHandler(void)
 	if (IsMaster()) {
 		Zone::Ptr my_zone = Zone::GetLocalZone();
 
-		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-			if (endpoint->IsConnected() || endpoint->GetName() == GetIdentity())
+		BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+			/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
+			if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent())
 				continue;
 
-			if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty())
+			bool connected = false;
+
+			BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+				if (endpoint->IsConnected()) {
+					connected = true;
+					break;
+				}
+			}
+
+			/* don't connect to an endpoint if we already have a connection to the zone */
+			if (connected)
 				continue;
 
-			Zone::Ptr their_zone = endpoint->GetZone();
+			BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+				/* don't connect to ourselves */
+				if (endpoint->GetName() == GetIdentity())
+					continue;
 
-			if (my_zone != their_zone && my_zone != their_zone->GetParent() && their_zone != my_zone->GetParent())
-				continue;
+				/* don't try to connect to endpoints which don't have a host and port */
+				if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty())
+					continue;
 
-			AddConnection(endpoint->GetHost(), endpoint->GetPort());
+				AddConnection(endpoint->GetHost(), endpoint->GetPort());
+			}
 		}
 	}
 

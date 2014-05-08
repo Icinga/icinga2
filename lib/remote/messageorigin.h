@@ -35,7 +35,6 @@ struct I2_REMOTE_API MessageOrigin
 	ApiClient::Ptr FromClient;
 
 	bool IsLocal(void) const;
-	bool IsSameZone(void) const;
 };
 
 }

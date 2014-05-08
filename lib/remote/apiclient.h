@@ -46,12 +46,13 @@ class I2_REMOTE_API ApiClient : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiClient);
 
-	ApiClient(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream, ConnectionRole role);
+	ApiClient(const String& identity, const Stream::Ptr& stream, ConnectionRole role);
 
 	static void StaticInitialize(void);
 
 	void Start(void);
 
+	String GetIdentity(void) const;
 	Endpoint::Ptr GetEndpoint(void) const;
 	Stream::Ptr GetStream(void) const;
 	ConnectionRole GetRole(void) const;
@@ -61,6 +62,7 @@ public:
 	void SendMessage(const Dictionary::Ptr& request);
 
 private:
+	String m_Identity;
 	Endpoint::Ptr m_Endpoint;
 	Stream::Ptr m_Stream;
 	ConnectionRole m_Role;

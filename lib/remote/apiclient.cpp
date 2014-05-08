@@ -39,9 +39,11 @@ INITIALIZE_ONCE(&ApiClient::StaticInitialize);
 static Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 
-ApiClient::ApiClient(const Endpoint::Ptr& endpoint, const Stream::Ptr& stream, ConnectionRole role)
-	: m_Endpoint(endpoint), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
-{ }
+ApiClient::ApiClient(const String& identity, const Stream::Ptr& stream, ConnectionRole role)
+	: m_Identity(identity), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
+{
+	m_Endpoint = Endpoint::GetByName(identity);
+}
 
 void ApiClient::StaticInitialize(void)
 {
@@ -55,6 +57,11 @@ void ApiClient::Start(void)
 {
 	boost::thread thread(boost::bind(&ApiClient::MessageThreadProc, static_cast<ApiClient::Ptr>(GetSelf())));
 	thread.detach();
+}
+
+String ApiClient::GetIdentity(void) const
+{
+	return m_Identity;
 }
 
 Endpoint::Ptr ApiClient::GetEndpoint(void) const
@@ -81,7 +88,7 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 			m_Seen = Utility::GetTime();
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
-		msgbuf << "Error while sending JSON-RPC message for endpoint '" << m_Endpoint->GetName() << "': " << DiagnosticInformation(ex);
+		msgbuf << "Error while sending JSON-RPC message for identity '" << m_Identity << "': " << DiagnosticInformation(ex);
 		Log(LogWarning, "remote", msgbuf.str());
 
 		Disconnect();
@@ -90,9 +97,11 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
-	Log(LogWarning, "remote", "API client disconnected for endpoint '" + m_Endpoint->GetName() + "'");
+	Log(LogWarning, "remote", "API client disconnected for identity '" + m_Identity + "'");
 	m_Stream->Close();
-	m_Endpoint->RemoveClient(GetSelf());
+
+	if (m_Endpoint)
+		m_Endpoint->RemoveClient(GetSelf());
 }
 
 bool ApiClient::ProcessMessage(void)
@@ -105,7 +114,7 @@ bool ApiClient::ProcessMessage(void)
 	if (message->Get("method") != "log::SetLogPosition")
 		m_Seen = Utility::GetTime();
 
-	if (message->Contains("ts")) {
+	if (m_Endpoint && message->Contains("ts")) {
 		double ts = message->Get("ts");
 
 		/* ignore old messages */
@@ -118,14 +127,16 @@ bool ApiClient::ProcessMessage(void)
 	MessageOrigin origin;
 	origin.FromClient = GetSelf();
 
-	if (m_Endpoint->GetZone() != Zone::GetLocalZone())
-		origin.FromZone = m_Endpoint->GetZone();
-	else
-		origin.FromZone = Zone::GetByName(message->Get("originZone"));
+	if (m_Endpoint) {
+		if (m_Endpoint->GetZone() != Zone::GetLocalZone())
+			origin.FromZone = m_Endpoint->GetZone();
+		else
+			origin.FromZone = Zone::GetByName(message->Get("originZone"));
+	}
 
 	String method = message->Get("method");
 
-	Log(LogDebug, "remote", "Received '" + method + "' message from '" + m_Endpoint->GetName() + "'");
+	Log(LogDebug, "remote", "Received '" + method + "' message from '" + m_Identity + "'");
 
 	Dictionary::Ptr resultMessage = make_shared<Dictionary>();
 
@@ -159,7 +170,7 @@ void ApiClient::MessageThreadProc(void)
 
 		Disconnect();
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "remote", "Error while reading JSON-RPC message for endpoint '" + m_Endpoint->GetName() + "': " + DiagnosticInformation(ex));
+		Log(LogWarning, "remote", "Error while reading JSON-RPC message for identity '" + m_Identity + "': " + DiagnosticInformation(ex));
 	}
 }
 
@@ -192,6 +203,9 @@ Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& 
 
 	double log_position = params->Get("log_position");
 	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint)
+		return Empty;
 
 	if (log_position > endpoint->GetLocalLogPosition())
 		endpoint->SetLocalLogPosition(log_position);
