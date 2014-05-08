@@ -205,12 +205,15 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 
 	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
+	bool need_sync;
+
+	if (endpoint)
+		need_sync = !endpoint->IsConnected();
+
+	ApiClient::Ptr aclient = make_shared<ApiClient>(identity, tlsStream, role);
+	aclient->Start();
+
 	if (endpoint) {
-		bool need_sync = !endpoint->IsConnected();
-
-		ApiClient::Ptr aclient = make_shared<ApiClient>(identity, tlsStream, role);
-		aclient->Start();
-
 		if (need_sync) {
 			{
 				ObjectLock olock(endpoint);
@@ -222,7 +225,8 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 		}
 
 		endpoint->AddClient(aclient);
-	}
+	} else
+		AddAnonymousClient(aclient);
 }
 
 void ApiListener::ApiTimerHandler(void)
@@ -644,4 +648,22 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(not_connected_endpoints->GetLength()));
 
 	return std::make_pair(status, perfdata);
+}
+
+void ApiListener::AddAnonymousClient(const ApiClient::Ptr& aclient)
+{
+	ObjectLock olock(this);
+	m_AnonymousClients.insert(aclient);
+}
+
+void ApiListener::RemoveAnonymousClient(const ApiClient::Ptr& aclient)
+{
+	ObjectLock olock(this);
+	m_AnonymousClients.erase(aclient);
+}
+
+std::set<ApiClient::Ptr> ApiListener::GetAnonymousClients(void) const
+{
+	ObjectLock olock(this);
+	return m_AnonymousClients;
 }

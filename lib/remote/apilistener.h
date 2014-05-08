@@ -64,6 +64,10 @@ public:
 	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus(void);
 
+	void AddAnonymousClient(const ApiClient::Ptr& aclient);
+	void RemoveAnonymousClient(const ApiClient::Ptr& aclient);
+	std::set<ApiClient::Ptr> GetAnonymousClients(void) const;
+
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void Start(void);
@@ -71,6 +75,7 @@ protected:
 private:
 	shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;
+	std::set<ApiClient::Ptr> m_AnonymousClients;
 	Timer::Ptr m_Timer;
 
 	void ApiTimerHandler(void);

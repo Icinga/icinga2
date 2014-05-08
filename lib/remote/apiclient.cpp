@@ -102,6 +102,10 @@ void ApiClient::Disconnect(void)
 
 	if (m_Endpoint)
 		m_Endpoint->RemoveClient(GetSelf());
+	else {
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+		listener->RemoveAnonymousClient(GetSelf());
+	}
 }
 
 bool ApiClient::ProcessMessage(void)
@@ -194,6 +198,21 @@ void ApiClient::KeepAliveTimerHandler(void)
 			}
 		}
 	}
+
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (listener) {
+		double timeout = now - 60;
+
+		BOOST_FOREACH(const ApiClient::Ptr& client, listener->GetAnonymousClients()) {
+			if (client->m_Seen < timeout) {
+				Log(LogInformation, "remote", "Closing connection with inactive anonymous endpoint '" + client->GetIdentity() + "'");
+				client->Disconnect();
+			}
+		}
+	}
+
 }
 
 Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
