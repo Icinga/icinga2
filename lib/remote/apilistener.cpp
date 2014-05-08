@@ -28,6 +28,7 @@
 #include "base/objectlock.h"
 #include "base/stdiostream.h"
 #include "base/networkstream.h"
+#include "base/zlibstream.h"
 #include "base/application.h"
 #include "base/context.h"
 #include "base/statsfunction.h"
