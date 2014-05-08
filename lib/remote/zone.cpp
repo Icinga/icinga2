@@ -51,7 +51,7 @@ bool Zone::CanAccessObject(const DynamicObject::Ptr& object) const
 	if (dynamic_pointer_cast<Zone>(object))
 		object_zone = static_pointer_cast<Zone>(object);
 	else
-		Zone::GetByName(object->GetZone());
+		object_zone = Zone::GetByName(object->GetZone());
 
 	if (!object_zone)
 		object_zone = Zone::GetLocalZone();
