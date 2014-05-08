@@ -19,57 +19,53 @@
 import sys, os, json
 from datetime import datetime
 
-inventory_dir = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/inventory/"
+repository_dir = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/api/repository/"
 
-inventory = {}
+repository = {}
 
-for root, dirs, files in os.walk(inventory_dir):
+for root, dirs, files in os.walk(repository_dir):
     for file in files:
         if len(file) != 64:
             continue
 
         fp = open(root + file, "r")
-        inventory_info = json.load(fp)
+        repository_info = json.load(fp)
         fp.close()
 
-	if not "params" in inventory_info:
+	if not "endpoint" in repository_info:
 	    continue
 
-        inventory[inventory_info["identity"]] = {}
-        inventory[inventory_info["identity"]]["seen"] = inventory_info["params"]["seen"]
-        inventory[inventory_info["identity"]]["hosts"] = {}
+        if not "seen" in repository_info:
+            repository_info["seen"] = 0
 
-	if not "hosts" in inventory_info["params"]:
-	    continue
-
-        for host, host_info in inventory_info["params"]["hosts"].items():
-            inventory[inventory_info["identity"]]["hosts"][host] = { "services": host_info["services"].keys() }
+        repository[repository_info["endpoint"]] = repository_info
 
         try:
             fp = open(root + file + ".peer", "r")
             peer_info = json.load(fp)
             fp.close()
 
-            inventory[inventory_info["identity"]]["peer"] = peer_info
+            repository[repository_info["endpoint"]]["peer"] = peer_info
         except:
             pass
 
 if len(sys.argv) > 1 and sys.argv[1] == "--batch":
-    json.dump(inventory, sys.stdout)
+    json.dump(repository, sys.stdout)
 else:
-    for agent, agent_info in inventory.items():
+    for agent, agent_info in repository.items():
         if "peer" in agent_info:
             peer_info = agent_info["peer"]
             peer_addr = "peer address: %s:%s" % (peer_info["agent_host"], peer_info["agent_port"])
         else:
             peer_addr = "no peer address"
 
-        print "* %s (%s, last seen: %s)" % (agent, peer_addr, datetime.fromtimestamp(agent_info["seen"]))
+        print "* %s (zone: %s, parent zone: %s, %s, last seen: %s)" % (agent, agent_info["zone"], agent_info["parent_zone"], peer_addr, datetime.fromtimestamp(agent_info["seen"]))
 
-        for host, host_info in agent_info["hosts"].items():
+        for host, services in agent_info["repository"].items():
             print "    * %s" % (host)
 
-            for service in host_info["services"]:
+            for service in services:
                 print "        * %s" % (service)
 
 sys.exit(0)
+

@@ -16,50 +16,35 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-# This script assumes that you have the following templates:
-#
-# template Host "agent-host" {
-#   check_command = "agent"
-#   vars.agent_host = "$host.name$"
-#   vars.agent_service = ""
-#   vars.agent_peer_host = "$address$"
-#   vars.agent_peer_port = 7000
-# }
-#
-# template Service "agent-service" {
-#   check_command = "agent"
-#   vars.agent_service = "$service.name$"
-#}
-
 import subprocess, json
 
 inventory_json = subprocess.check_output(["icinga2-list-agents", "--batch"])
 inventory = json.loads(inventory_json)
 
 for agent, agent_info in inventory.items():
-    for host, host_info in agent_info["hosts"].items():
-        if host == "localhost":
-            host_name = agent
-        else:
-            host_name = host
+    print "object Endpoint \"%s\" {" % (agent)
+    print "  host = \"%s\"" % (agent)
+    print "}"
+    print ""
+    print "object Zone \"%s\" {" % (agent_info["zone"])
+    print "  parent = \"%s\"" % (agent_info["parent_zone"])
+    print "  endpoints = [ \"%s\" ]" % (agent)
+    print "}"
+    print ""
+    print "zone \"%s\" {" % (agent_info["zone"])
 
-        print "object Host \"%s\" {" % (host_name)
-        print "  import \"agent-host\""
-        print "  vars.agent_identity = \"%s\"" % (agent)
-
-        if host != host_name:
-            print "  vars.agent_host = \"%s\"" % (host)
-
-        if "peer" in agent_info:
-            print "  vars.agent_peer_host = \"%s\"" % (agent_info["peer"]["agent_host"])
-            print "  vars.agent_peer_port = \"%s\"" % (agent_info["peer"]["agent_port"])
-
+    for host, services in agent_info["repository"].items():
+        print "object Host \"%s\" {" % (host)
+        print "  check_command = \"dummy\""
         print "}"
         print ""
 
-        for service in host_info["services"]:
+        for service in services:
             print "object Service \"%s\" {" % (service)
-            print "  import \"agent-service\""
-            print "  host_name = \"%s\"" % (host_name)
+            print "  check_command = \"dummy\""
+            print "  host_name = \"%s\"" % (host)
             print "}"
             print ""
+
+    print "}"
+

@@ -891,7 +891,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 		Array::Ptr services = make_shared<Array>();
 
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-			services->Add(service->GetName());
+			services->Add(service->GetShortName());
 		}
 
 		repository->Set(host->GetName(), services);
@@ -901,6 +901,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 	Zone::Ptr my_zone = my_endpoint->GetZone();
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("seen", Utility::GetTime());
 	params->Set("endpoint", my_endpoint->GetName());
 
 	Zone::Ptr parent_zone = my_zone->GetParent();
