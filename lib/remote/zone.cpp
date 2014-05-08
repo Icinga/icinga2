@@ -54,7 +54,7 @@ bool Zone::CanAccessObject(const DynamicObject::Ptr& object) const
 		Zone::GetByName(object->GetZone());
 
 	if (!object_zone)
-		return false;
+		object_zone = Zone::GetLocalZone();
 
 	while (object_zone) {
 		if (object_zone.get() == this)
