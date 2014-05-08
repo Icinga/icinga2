@@ -73,7 +73,7 @@ void ApiEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementCleared.connect(&ApiEvents::AcknowledgementClearedHandler);
 
 	l_RepositoryTimer = make_shared<Timer>();
-	l_RepositoryTimer->SetInterval(60);
+	l_RepositoryTimer->SetInterval(30);
 	l_RepositoryTimer->OnTimerExpired.connect(boost::bind(&ApiEvents::RepositoryTimerHandler));
 	l_RepositoryTimer->Start();
 	l_RepositoryTimer->Reschedule(0);
@@ -916,7 +916,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 	message->Set("method", "event::UpdateRepository");
 	message->Set("params", params);
 
-	listener->RelayMessage(MessageOrigin(), my_zone, message, true);
+	listener->RelayMessage(MessageOrigin(), my_zone, message, false);
 }
 
 String ApiEvents::GetRepositoryDir(void)
