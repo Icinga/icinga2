@@ -77,6 +77,8 @@ BOOST_AUTO_TEST_CASE(invoke)
 
 BOOST_AUTO_TEST_CASE(scope)
 {
+	Utility::Sleep(5);
+
 	int counter;
 	Timer::Ptr timer = make_shared<Timer>();
 	timer->OnTimerExpired.connect(boost::bind(&Callback, &counter));
