@@ -21,6 +21,7 @@
 #define APIEVENTS_H
 
 #include "icinga/checkable.h"
+#include "icinga/host.h"
 #include "remote/apiclient.h"
 #include "base/stream.h"
 #include "base/timer.h"
@@ -86,6 +87,9 @@ public:
 	static String GetRepositoryDir(void);
 	static void RepositoryTimerHandler(void);
 	static Value UpdateRepositoryAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+	static String GetVirtualHostName(const Host::Ptr& host);
+	static Host::Ptr FindHostByVirtualName(const String& hostName);
 };
 
 }

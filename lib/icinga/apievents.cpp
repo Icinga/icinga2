@@ -95,7 +95,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("cr", Serialize(cr));
@@ -114,7 +114,7 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 
 	CheckResult::Ptr cr = Deserialize(crv, true);
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -149,7 +149,7 @@ void ApiEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double 
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("next_check", nextCheck);
@@ -167,7 +167,7 @@ Value ApiEvents::NextCheckChangedAPIHandler(const MessageOrigin& origin, const D
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -239,7 +239,7 @@ void ApiEvents::ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, bo
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("forced", forced);
@@ -257,7 +257,7 @@ Value ApiEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin& origin, co
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -292,7 +292,7 @@ void ApiEvents::ForceNextNotificationChangedHandler(const Checkable::Ptr& checka
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("forced", forced);
@@ -310,7 +310,7 @@ Value ApiEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin& ori
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -345,7 +345,7 @@ void ApiEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
@@ -363,7 +363,7 @@ Value ApiEvents::EnableActiveChecksChangedAPIHandler(const MessageOrigin& origin
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -398,7 +398,7 @@ void ApiEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkabl
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
@@ -416,7 +416,7 @@ Value ApiEvents::EnablePassiveChecksChangedAPIHandler(const MessageOrigin& origi
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -451,7 +451,7 @@ void ApiEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkabl
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
@@ -469,7 +469,7 @@ Value ApiEvents::EnableNotificationsChangedAPIHandler(const MessageOrigin& origi
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -504,7 +504,7 @@ void ApiEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bo
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
@@ -522,7 +522,7 @@ Value ApiEvents::EnableFlappingChangedAPIHandler(const MessageOrigin& origin, co
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -557,7 +557,7 @@ void ApiEvents::CommentAddedHandler(const Checkable::Ptr& checkable, const Comme
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("comment", Serialize(comment));
@@ -575,7 +575,7 @@ Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dicti
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -613,7 +613,7 @@ void ApiEvents::CommentRemovedHandler(const Checkable::Ptr& checkable, const Com
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("id", comment->GetId());
@@ -631,7 +631,7 @@ Value ApiEvents::CommentRemovedAPIHandler(const MessageOrigin& origin, const Dic
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -666,7 +666,7 @@ void ApiEvents::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Down
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("downtime", Serialize(downtime));
@@ -684,7 +684,7 @@ Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dict
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -725,7 +725,7 @@ void ApiEvents::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Do
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("id", downtime->GetId());
@@ -743,7 +743,7 @@ Value ApiEvents::DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Di
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -780,7 +780,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("author", author);
@@ -801,7 +801,7 @@ Value ApiEvents::AcknowledgementSetAPIHandler(const MessageOrigin& origin, const
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -838,7 +838,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("host", host->GetName());
+	params->Set("host", GetVirtualHostName(host));
 	if (service)
 		params->Set("service", service->GetShortName());
 
@@ -855,7 +855,7 @@ Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, c
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = Host::GetByName(params->Get("host"));
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -894,7 +894,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 			services->Add(service->GetShortName());
 		}
 
-		repository->Set(host->GetName(), services);
+		repository->Set(GetVirtualHostName(host), services);
 	}
 
 	Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
@@ -965,4 +965,20 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	listener->RelayMessage(origin, Zone::GetLocalZone(), message, true);
 
 	return Empty;
+}
+
+String ApiEvents::GetVirtualHostName(const Host::Ptr& host)
+{
+	String host_name = GetVirtualHostName(host);
+	if (host_name == "localhost")
+		host_name = Endpoint::GetLocalEndpoint()->GetName();
+	return host_name;
+}
+
+Host::Ptr ApiEvents::FindHostByVirtualName(const String& hostName)
+{
+	if (hostName == Endpoint::GetLocalEndpoint()->GetName())
+		return Host::GetByName("localhost");
+	else
+		return Host::GetByName(hostName);
 }
