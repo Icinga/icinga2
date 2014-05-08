@@ -258,7 +258,7 @@
 			this.txtPeerPort.Name = "txtPeerPort";
 			this.txtPeerPort.Size = new System.Drawing.Size(84, 20);
 			this.txtPeerPort.TabIndex = 2;
-			this.txtPeerPort.Text = "8483";
+			this.txtPeerPort.Text = "5665";
 			// 
 			// lblPeerPort
 			// 
@@ -330,7 +330,7 @@
 			this.txtListenerPort.Name = "txtListenerPort";
 			this.txtListenerPort.Size = new System.Drawing.Size(84, 20);
 			this.txtListenerPort.TabIndex = 1;
-			this.txtListenerPort.Text = "8483";
+			this.txtListenerPort.Text = "5665";
 			// 
 			// lblListenerPort
 			// 

@@ -74,7 +74,7 @@ if [ -n "$1" ]; then
 
 	if [ "$listener" = "y" ]; then
 		while true; do
-			echo -n "Which TCP port should the agent listen on? [8483] "
+			echo -n "Which TCP port should the agent listen on? [5665] "
 			if ! read listener_port; then
 				exit 1
 			fi
@@ -83,7 +83,7 @@ if [ -n "$1" ]; then
 		done
 
 		if [ -z "$listener_port" ]; then
-			listener_port=8483
+			listener_port=5665
 		fi
 	fi
 

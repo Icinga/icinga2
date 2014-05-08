@@ -27,7 +27,8 @@ for agent, agent_info in inventory.items():
     print "}"
     print ""
     print "object Zone \"%s\" {" % (agent_info["zone"])
-    print "  parent = \"%s\"" % (agent_info["parent_zone"])
+    if "parent_zone" in agent_info:
+        print "  parent = \"%s\"" % (agent_info["parent_zone"])
     print "  endpoints = [ \"%s\" ]" % (agent)
     print "}"
     print ""

@@ -59,7 +59,7 @@ else:
         else:
             peer_addr = "no peer address"
 
-        print "* %s (zone: %s, parent zone: %s, %s, last seen: %s)" % (agent, agent_info["zone"], agent_info["parent_zone"], peer_addr, datetime.fromtimestamp(agent_info["seen"]))
+        print "* %s (%s, last seen: %s)" % (agent, peer_addr, datetime.fromtimestamp(agent_info["seen"]))
 
         for host, services in agent_info["repository"].items():
             print "    * %s" % (host)
