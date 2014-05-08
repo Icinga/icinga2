@@ -1,8 +1,7 @@
 var/cache/icinga2
 var/lib/icinga2
-var/lib/icinga2/agent/inventory
-var/lib/icinga2/cluster/config
-var/lib/icinga2/cluster/log
+var/lib/icinga2/api/log
+var/lib/icinga2/api/repository
 var/log/icinga2
 var/log/icinga2/compat/archives
 var/spool/icinga2
