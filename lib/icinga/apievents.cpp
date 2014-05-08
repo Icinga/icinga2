@@ -969,7 +969,7 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 
 String ApiEvents::GetVirtualHostName(const Host::Ptr& host)
 {
-	String host_name = GetVirtualHostName(host);
+	String host_name = host->GetName();
 	if (host_name == "localhost")
 		host_name = Endpoint::GetLocalEndpoint()->GetName();
 	return host_name;
