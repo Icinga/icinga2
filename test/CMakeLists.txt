@@ -68,8 +68,8 @@ add_boost_test(base
         base_string/find
         base_timer/construct
         base_timer/interval
-#        base_timer/invoke
-#        base_timer/scope
+        base_timer/invoke
+        base_timer/scope
         base_value/scalar
         base_value/convert
         base_value/format

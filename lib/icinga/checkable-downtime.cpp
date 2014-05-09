@@ -39,6 +39,8 @@ boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const
 boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> Checkable::OnDowntimeRemoved;
 boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> Checkable::OnDowntimeTriggered;
 
+INITIALIZE_ONCE(&Checkable::StartDowntimesExpiredTimer);
+
 int Checkable::GetNextDowntimeID(void)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);

@@ -37,8 +37,6 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
-INITIALIZE_ONCE(&Service::StartDowntimesExpiredTimer);
-
 String ServiceNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const {
 	if (!props)
 		return "";

@@ -26,8 +26,6 @@
 
 namespace icinga {
 
-struct TimerNextExtractor;
-
 /**
  * A timer that periodically triggers an event.
  *

@@ -32,37 +32,17 @@
 
 using namespace icinga;
 
-/**
- * @ingroup base
- */
-struct icinga::TimerNextExtractor
+struct TimerHolder
 {
-	typedef double result_type;
-
-	/**
-	 * Extracts the next timestamp from a Timer.
-	 *
-	 * Note: Caller must hold l_Mutex.
-	 *
-	 * @param wtimer Weak pointer to the timer.
-	 * @returns The next timestamp
-	 */
-	double operator()(const weak_ptr<Timer>& wtimer) const
-	{
-		Timer::Ptr timer = wtimer.lock();
-
-		if (!timer)
-			return 0;
-
-		return timer->m_Next;
-	}
+	Timer::WeakPtr Object;
+	double Next;
 };
 
 typedef boost::multi_index_container<
-	Timer::WeakPtr,
+	TimerHolder,
 	boost::multi_index::indexed_by<
-		boost::multi_index::ordered_unique<boost::multi_index::identity<Timer::WeakPtr> >,
-		boost::multi_index::ordered_non_unique<TimerNextExtractor>
+		boost::multi_index::ordered_unique<boost::multi_index::member<TimerHolder, Timer::WeakPtr, &TimerHolder::Object> >,
+		boost::multi_index::ordered_non_unique<boost::multi_index::member<TimerHolder, double, &TimerHolder::Next> >
 	>
 > TimerSet;
 
@@ -205,7 +185,11 @@ void Timer::Reschedule(double next)
 	if (m_Started) {
 		/* Remove and re-add the timer to update the index. */
 		l_Timers.erase(GetSelf());
-		l_Timers.insert(GetSelf());
+
+		TimerHolder th;
+		th.Object = GetSelf();
+		th.Next = m_Next;
+		l_Timers.insert(th);
 
 		/* Notify the worker that we've rescheduled a timer. */
 		l_CV.notify_all();
@@ -242,8 +226,8 @@ void Timer::AdjustTimers(double adjustment)
 
 	std::vector<Timer::Ptr> timers;
 
-	BOOST_FOREACH(const Timer::WeakPtr& wtimer, idx) {
-		Timer::Ptr timer = wtimer.lock();
+	BOOST_FOREACH(const TimerHolder& th, idx) {
+		Timer::Ptr timer = th.Object.lock();
 
 		if (!timer)
 			continue;
@@ -257,7 +241,11 @@ void Timer::AdjustTimers(double adjustment)
 
 	BOOST_FOREACH(const Timer::Ptr& timer, timers) {
 		l_Timers.erase(timer);
-		l_Timers.insert(timer);
+
+		TimerHolder th;
+		th.Object = timer;
+		th.Next = timer->m_Next;
+		l_Timers.insert(th);
 	}
 
 	/* Notify the worker that we've rescheduled some timers. */
@@ -285,7 +273,7 @@ void Timer::TimerThreadProc(void)
 			break;
 
 		NextTimerView::iterator it = idx.begin();
-		Timer::Ptr timer = it->lock();
+		Timer::Ptr timer = it->Object.lock();
 
 		if (!timer) {
 			/* Remove the timer from the list if it's not alive anymore. */

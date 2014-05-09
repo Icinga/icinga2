@@ -58,7 +58,7 @@ static void Callback(int *counter)
 	(*counter)++;
 }
 
-/*BOOST_AUTO_TEST_CASE(invoke)
+BOOST_AUTO_TEST_CASE(invoke)
 {
 	int counter;
 	Timer::Ptr timer = make_shared<Timer>();
@@ -87,6 +87,6 @@ BOOST_AUTO_TEST_CASE(scope)
 	Utility::Sleep(5.5);
 
 	BOOST_CHECK(counter >= 4 && counter <= 6);
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()

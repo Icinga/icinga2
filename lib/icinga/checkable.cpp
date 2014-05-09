@@ -37,8 +37,6 @@ using namespace icinga;
 
 REGISTER_TYPE(Checkable);
 
-INITIALIZE_ONCE(&Checkable::StartDowntimesExpiredTimer);
-
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, double, const MessageOrigin&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> Checkable::OnAcknowledgementCleared;
 
