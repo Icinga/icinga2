@@ -29,10 +29,10 @@ add_library(base SHARED
   netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp
   qstring.cpp ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp
   scriptutils.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
-  statsfunction.cpp stdiostream.cpp stream_bio.cpp stream.cpp streamlogger.cpp streamlogger.th
+  statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.th
   sysloglogger.cpp sysloglogger.th tcpsocket.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
-  value-operators.cpp workqueue.cpp zlibstream.cpp
+  value-operators.cpp workqueue.cpp
 )
 
 target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)

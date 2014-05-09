@@ -28,7 +28,6 @@
 #include "base/objectlock.h"
 #include "base/stdiostream.h"
 #include "base/networkstream.h"
-#include "base/zlibstream.h"
 #include "base/application.h"
 #include "base/context.h"
 #include "base/statsfunction.h"
@@ -456,12 +455,7 @@ void ApiListener::OpenLogFile(void)
 		return;
 	}
 
-	StdioStream::Ptr logStream = make_shared<StdioStream>(fp, true);
-#ifdef HAVE_BIOZLIB
-	m_LogFile = make_shared<ZlibStream>(logStream);
-#else /* HAVE_BIOZLIB */
-	m_LogFile = logStream;
-#endif /* HAVE_BIOZLIB */
+	m_LogFile = make_shared<StdioStream>(fp, true);
 	m_LogMessageCount = 0;
 	SetLogMessageTimestamp(Utility::GetTime());
 }
@@ -544,18 +538,13 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
 			StdioStream::Ptr logStream = make_shared<StdioStream>(fp, true);
-#ifdef HAVE_BIOZLIB
-			ZlibStream::Ptr lstream = make_shared<ZlibStream>(logStream);
-#else /* HAVE_BIOZLIB */
-			Stream::Ptr lstream = logStream;
-#endif /* HAVE_BIOZLIB */
 
 			String message;
 			while (true) {
 				Dictionary::Ptr pmessage;
 
 				try {
-					if (!NetString::ReadStringFromStream(lstream, &message))
+					if (!NetString::ReadStringFromStream(logStream, &message))
 						break;
 
 					pmessage = JsonDeserialize(message);
@@ -575,7 +564,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 				peer_ts = pmessage->Get("timestamp");
 			}
 
-			lstream->Close();
+			logStream->Close();
 		}
 
 		Log(LogInformation, "cluster", "Replayed " + Convert::ToString(count) + " messages.");
