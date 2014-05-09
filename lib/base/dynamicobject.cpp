@@ -140,6 +140,8 @@ void DynamicObject::Activate(void)
 	}
 
 	OnStarted(GetSelf());
+
+	SetAuthority(true);
 }
 
 void DynamicObject::Stop(void)
@@ -153,6 +155,8 @@ void DynamicObject::Stop(void)
 void DynamicObject::Deactivate(void)
 {
 	ASSERT(!OwnsLock());
+
+	SetAuthority(false);
 
 	{
 		ObjectLock olock(this);
@@ -200,7 +204,7 @@ void DynamicObject::SetAuthority(bool authority)
 		OnResumed(GetSelf());
 	} else if (!authority && !GetPaused()) {
 		SetPauseCalled(false);
-		Resume();
+		Pause();
 		ASSERT(GetPauseCalled());
 		SetPaused(true);
 		OnPaused(GetSelf());

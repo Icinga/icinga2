@@ -62,16 +62,16 @@ Value IdoPgsqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 	return 0;
 }
 
-void IdoPgsqlConnection::Start(void)
+void IdoPgsqlConnection::Resume(void)
 {
-	DbConnection::Start();
+	DbConnection::Resume();
 
 	m_Connection = NULL;
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
 
 	m_TxTimer = make_shared<Timer>();
-	m_TxTimer->SetInterval(5);
+	m_TxTimer->SetInterval(1);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoPgsqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
@@ -84,8 +84,12 @@ void IdoPgsqlConnection::Start(void)
 	ASSERT(PQisthreadsafe());
 }
 
-void IdoPgsqlConnection::Stop(void)
+void IdoPgsqlConnection::Pause(void)
 {
+	DbConnection::Pause();
+
+	m_ReconnectTimer.reset();
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::Disconnect, this));
 	m_QueryQueue.Join();
 }

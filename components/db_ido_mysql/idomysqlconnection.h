@@ -45,8 +45,8 @@ public:
         static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
-	virtual void Start(void);
-	virtual void Stop(void);
+	virtual void Resume(void);
+	virtual void Pause(void);
 
 	virtual void ActivateObject(const DbObject::Ptr& dbobj);
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);

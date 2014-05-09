@@ -60,16 +60,16 @@ Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 	return 0;
 }
 
-void IdoMysqlConnection::Start(void)
+void IdoMysqlConnection::Resume(void)
 {
-	DbConnection::Start();
+	DbConnection::Resume();
 
 	m_Connected = false;
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
 
 	m_TxTimer = make_shared<Timer>();
-	m_TxTimer->SetInterval(5);
+	m_TxTimer->SetInterval(1);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
@@ -82,8 +82,12 @@ void IdoMysqlConnection::Start(void)
 	ASSERT(mysql_thread_safe());
 }
 
-void IdoMysqlConnection::Stop(void)
+void IdoMysqlConnection::Pause(void)
 {
+	DbConnection::Pause();
+
+	m_ReconnectTimer.reset();
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this));
 	m_QueryQueue.Join();
 }

@@ -43,11 +43,29 @@ void DbConnection::Start(void)
 	DynamicObject::Start();
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
+}
+
+void DbConnection::Resume(void)
+{
+	DynamicObject::Resume();
+
+	Log(LogInformation, "db_ido", "Resuming IDO connection: " + GetName());
 
 	m_CleanUpTimer = make_shared<Timer>();
 	m_CleanUpTimer->SetInterval(60);
 	m_CleanUpTimer->OnTimerExpired.connect(boost::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
+}
+
+void DbConnection::Pause(void)
+{
+	DynamicObject::Pause();
+
+	Log(LogInformation, "db_ido", "Pausing IDO connection: " + GetName());
+
+	m_CleanUpTimer.reset();
+
+	ClearIDCache();
 }
 
 void DbConnection::StaticInitialize(void)

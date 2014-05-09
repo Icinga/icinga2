@@ -61,10 +61,7 @@ static void AuthorityTimerHandler(void)
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			Endpoint::Ptr endpoint = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()];
 
-			if (endpoint == my_endpoint)
-				object->Resume();
-			else
-				object->Pause();
+			object->SetAuthority(endpoint == my_endpoint);
 		}
 	}
 }

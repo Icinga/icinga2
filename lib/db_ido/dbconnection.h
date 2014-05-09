@@ -65,6 +65,8 @@ public:
 
 protected:
 	virtual void Start(void);
+	virtual void Resume(void);
+	virtual void Pause(void);
 
 	virtual void ExecuteQuery(const DbQuery& query) = 0;
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
