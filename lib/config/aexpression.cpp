@@ -263,8 +263,9 @@ Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr
 
 	Array::Ptr arr = expr->EvaluateOperand2(locals);
 	std::vector<Value> arguments;
-	ObjectLock olock(arr);
-	BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+	int index = 0;
+	for (int index = 0; index < arr->GetLength(); index++) {
+		const AExpression::Ptr& aexpr = arr->Get(index);
 		arguments.push_back(aexpr->Evaluate(locals));
 	}
 
@@ -277,8 +278,9 @@ Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& local
 	Array::Ptr result = make_shared<Array>();
 
 	if (arr) {
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+		int index = 0;
+		for (int index = 0; index < arr->GetLength(); index++) {
+			const AExpression::Ptr& aexpr = arr->Get(index);
 			result->Add(aexpr->Evaluate(locals));
 		}
 	}
@@ -295,8 +297,9 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 	result->Set("__parent", locals);
 
 	if (arr) {
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const AExpression::Ptr& aexpr, arr) {
+		int index = 0;
+		for (int index = 0; index < arr->GetLength(); index++) {
+			const AExpression::Ptr& aexpr = arr->Get(index);
 			Dictionary::Ptr alocals = in_place ? locals : result;
 			aexpr->Evaluate(alocals);
 
