@@ -207,7 +207,7 @@ union(array, array, ...)        | Returns an array containing all unique element
 intersection(array, array, ...) | Returns an array containing all unique elements which are common to all specified arrays.
 string(value)                   | Converts the value to a string.
 number(value)                   | Converts the value to a number.
-bool(value)                     | Converts to value to a bool.
+bool(value)                     | Converts the value to a bool.
 log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogInformation`, `LogWarning` and `LogCritical`. Non-string values are converted to a JSON string.
 exit(integer)                   | Terminates the application.
