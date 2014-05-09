@@ -70,6 +70,15 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	    make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di),
 	    di));
 
+	String zone = host->GetZone();
+
+	if (!zone.IsEmpty()) {
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+		    make_shared<AExpression>(&AExpression::OpLiteral, "zone", di),
+		    make_shared<AExpression>(&AExpression::OpLiteral, zone, di),
+		    di));
+	}
+
 	builder->AddExpression(rule.GetExpression());
 
 	ConfigItem::Ptr serviceItem = builder->Compile();

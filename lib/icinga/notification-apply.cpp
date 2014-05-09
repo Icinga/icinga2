@@ -79,6 +79,15 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 		    di));
 	}
 
+	String zone = checkable->GetZone();
+
+	if (!zone.IsEmpty()) {
+		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+		    make_shared<AExpression>(&AExpression::OpLiteral, "zone", di),
+		    make_shared<AExpression>(&AExpression::OpLiteral, zone, di),
+		    di));
+	}
+
 	builder->AddExpression(rule.GetExpression());
 
 	ConfigItem::Ptr notificationItem = builder->Compile();
