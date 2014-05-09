@@ -25,8 +25,11 @@ abstract class DynamicObject
 	[config] Dictionary::Ptr methods;
 	[config] Dictionary::Ptr vars (VarsRaw);
 	[get_protected] bool active;
+	[get_protected] bool paused;
 	[get_protected] bool start_called;
 	[get_protected] bool stop_called;
+	[get_protected] bool pause_called;
+	[get_protected] bool resume_called;
 	Dictionary::Ptr authority_info;
 	[protected] Dictionary::Ptr extensions;
 

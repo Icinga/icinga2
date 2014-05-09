@@ -44,6 +44,8 @@ INITIALIZE_ONCE(&DynamicObject::StaticInitialize);
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
+boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnPaused;
+boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnResumed;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnVarsChanged;
 
@@ -68,6 +70,11 @@ DynamicType::Ptr DynamicObject::GetType(void) const
 bool DynamicObject::IsActive(void) const
 {
 	return GetActive();
+}
+
+bool DynamicObject::IsPaused(void) const
+{
+	return GetPaused();
 }
 
 void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
@@ -171,6 +178,33 @@ void DynamicObject::OnConfigLoaded(void)
 void DynamicObject::OnStateLoaded(void)
 {
 	/* Nothing to do here. */
+}
+
+void DynamicObject::Pause(void)
+{
+	SetPauseCalled(true);
+}
+
+void DynamicObject::Resume(void)
+{
+	SetResumeCalled(true);
+}
+
+void DynamicObject::SetAuthority(bool authority)
+{
+	if (authority && GetPaused()) {
+		SetResumeCalled(false);
+		Resume();
+		ASSERT(GetResumeCalled());
+		SetPaused(false);
+		OnResumed(GetSelf());
+	} else if (!authority && !GetPaused()) {
+		SetPauseCalled(false);
+		Resume();
+		ASSERT(GetPauseCalled());
+		SetPaused(true);
+		OnPaused(GetSelf());
+	}
 }
 
 Value DynamicObject::InvokeMethod(const String& method,

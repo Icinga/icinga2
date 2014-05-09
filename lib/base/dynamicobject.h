@@ -77,6 +77,8 @@ public:
 
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnPaused;
+	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnResumed;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnVarsChanged;
 
@@ -85,6 +87,7 @@ public:
 	shared_ptr<DynamicType> GetType(void) const;
 
 	bool IsActive(void) const;
+	bool IsPaused(void) const;
 
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);
@@ -102,9 +105,13 @@ public:
 
 	void Activate(void);
 	void Deactivate(void);
+	void SetAuthority(bool authority);
 
 	virtual void Start(void);
 	virtual void Stop(void);
+
+	virtual void Pause(void);
+	virtual void Resume(void);
 
 	virtual void OnConfigLoaded(void);
 	virtual void OnStateLoaded(void);

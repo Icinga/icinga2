@@ -64,6 +64,8 @@ void CheckerComponent::OnConfigLoaded(void)
 {
 	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	DynamicObject::OnPaused.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	DynamicObject::OnResumed.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
 	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
@@ -257,7 +259,7 @@ void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		if (object->IsActive() && same_zone) {
+		if (object->IsActive() && !object->IsPaused() && same_zone) {
 			if (m_PendingCheckables.find(checkable) != m_PendingCheckables.end())
 				return;
 
