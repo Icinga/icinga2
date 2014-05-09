@@ -61,7 +61,6 @@ public:
 
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
-	static bool HasObject(const String& type, const String& name);
 
 	void ValidateItem(void);
 

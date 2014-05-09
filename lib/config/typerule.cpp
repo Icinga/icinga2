@@ -45,6 +45,8 @@ bool TypeRule::MatchName(const String& name) const
 
 bool TypeRule::MatchValue(const Value& value, String *hint) const
 {
+	ConfigItem::Ptr item;
+
 	if (value.IsEmpty())
 		return true;
 
@@ -76,8 +78,15 @@ bool TypeRule::MatchValue(const Value& value, String *hint) const
 			if (!value.IsScalar())
 				return false;
 
-			if (!ConfigItem::HasObject(m_NameType, value)) {
+			item = ConfigItem::GetObject(m_NameType, value);
+
+			if (!item) {
 				*hint = "Object '" + value + "' of type '" + m_NameType + "' does not exist.";
+				return false;
+			}
+
+			if (item->IsAbstract()) {
+				*hint = "Object '" + value + "' of type '" + m_NameType + "' must not be a template.";
 				return false;
 			}
 
