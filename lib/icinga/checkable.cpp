@@ -37,6 +37,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Checkable);
 
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnablePerfdataChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, double, const MessageOrigin&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> Checkable::OnAcknowledgementCleared;
 
@@ -162,6 +163,8 @@ bool Checkable::GetEnablePerfdata(void) const
 void Checkable::SetEnablePerfdata(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnablePerfdata(enabled);
+
+	OnEnablePerfdataChanged(GetSelf(), enabled, origin);
 }
 
 int Checkable::GetModifiedAttributes(void) const
