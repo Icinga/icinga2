@@ -216,6 +216,11 @@ int CompatUtility::GetCheckableIsFlapping(const Checkable::Ptr& checkable)
 	return (checkable->IsFlapping() ? 1 : 0);
 }
 
+int CompatUtility::GetCheckableIsReachable(const Checkable::Ptr& checkable)
+{
+	return (checkable->IsReachable() ? 1 : 0);
+}
+
 String CompatUtility::GetCheckablePercentStateChange(const Checkable::Ptr& checkable)
 {
 	return Convert::ToString(checkable->GetFlappingCurrent());

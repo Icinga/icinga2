@@ -161,6 +161,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(service));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("modified_service_attributes", service->GetModifiedAttributes());
+	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(service));
 
 	return fields;
 }
