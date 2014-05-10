@@ -1,4 +1,4 @@
 GET services
-Columns: description host_name last_state_change last_hard_state_change last_time_ok last_time_warning last_time_critical last_time_unknown staleness
+Columns: description host_name last_state_change last_hard_state_change last_time_ok last_time_warning last_time_critical last_time_unknown staleness is_reachable
 ResponseHeader: fixed16
 

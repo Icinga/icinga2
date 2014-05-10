@@ -59,6 +59,7 @@ public:
 	static int GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableIsFlapping(const Checkable::Ptr& checkable);
+        static int GetCheckableIsReachable(const Checkable::Ptr& checkable);
 	static String GetCheckablePercentStateChange(const Checkable::Ptr& checkable);
 	static int GetCheckableProcessPerformanceData(const Checkable::Ptr& checkable);
 

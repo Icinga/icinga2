@@ -773,6 +773,7 @@ CREATE TABLE  icinga_hoststatus (
   normal_check_interval double precision  default 0,
   retry_check_interval double precision  default 0,
   check_timeperiod_object_id bigint default 0,
+  is_reachable INTEGER  default 0,
   CONSTRAINT PK_hoststatus_id PRIMARY KEY (hoststatus_id) ,
   CONSTRAINT UQ_hoststatus UNIQUE (host_object_id)
 ) ;
@@ -1256,6 +1257,7 @@ CREATE TABLE  icinga_servicestatus (
   normal_check_interval double precision  default 0,
   retry_check_interval double precision  default 0,
   check_timeperiod_object_id bigint default 0,
+  is_reachable INTEGER  default 0,
   CONSTRAINT PK_servicestatus_id PRIMARY KEY (servicestatus_id) ,
   CONSTRAINT UQ_servicestatus UNIQUE (service_object_id)
 ) ;
@@ -1432,7 +1434,6 @@ ALTER TABLE icinga_servicechecks ADD COLUMN endpoint_object_id bigint default NU
 ALTER TABLE icinga_statehistory ADD COLUMN endpoint_object_id bigint default NULL;
 ALTER TABLE icinga_systemcommands ADD COLUMN endpoint_object_id bigint default NULL;
 
-ALTER TABLE icinga_hosts ADD COLUMN check_service_object_id bigint default NULL;
 
 -- -----------------------------------------
 -- add index (delete)
@@ -1628,5 +1629,5 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.11.0');
+SELECT updatedbversion('1.11.3');
 

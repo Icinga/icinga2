@@ -167,6 +167,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(host));
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(host));
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
+	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(host));
 
 	return fields;
 }
