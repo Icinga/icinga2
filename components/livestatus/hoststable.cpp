@@ -157,6 +157,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "services", Column(&HostsTable::ServicesAccessor, objectAccessor));
 	table->AddColumn(prefix + "services_with_state", Column(&HostsTable::ServicesWithStateAccessor, objectAccessor));
 	table->AddColumn(prefix + "services_with_info", Column(&HostsTable::ServicesWithInfoAccessor, objectAccessor));
+	table->AddColumn(prefix + "is_reachable", Column(&HostsTable::IsReachableAccessor, objectAccessor));
 }
 
 String HostsTable::GetName(void) const
@@ -1480,4 +1481,14 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 	}
 
 	return services;
+}
+
+Value HostsTable::IsReachableAccessor(const Value& row)
+{
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	return host->IsReachable();
 }

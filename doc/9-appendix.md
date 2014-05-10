@@ -488,6 +488,8 @@ New columns:
 
   Table     | Column
   ----------|--------------
+  hosts     | is_reachable
+  services  | is_reachable
   services  | check_source
   downtimes | triggers
   downtimes | trigger_time

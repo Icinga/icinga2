@@ -127,6 +127,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "groups", Column(&ServicesTable::GroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "contact_groups", Column(&ServicesTable::ContactGroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_source", Column(&ServicesTable::CheckSourceAccessor, objectAccessor));
+	table->AddColumn(prefix + "is_reachable", Column(&ServicesTable::IsReachableAccessor, objectAccessor));
 
 	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
 }
@@ -1167,4 +1168,12 @@ Value ServicesTable::CheckSourceAccessor(const Value& row)
 	return Empty;
 }
 
+Value ServicesTable::IsReachableAccessor(const Value& row)
+{
+	Service::Ptr service = static_cast<Service::Ptr>(row);
 
+	if (!service)
+		return Empty;
+
+	return service->IsReachable();
+}
