@@ -313,6 +313,16 @@ The `apt` check command does not support any vars.
 
 ## <a id="schemas"></a> Schemas
 
+### <a id="schema-status-files"></a> Status Files
+
+Status files used by Icinga 1.x Classic UI: `status.dat`, `objects.cache`.
+
+Icinga 2 specific extensions:
+
+* host and service objects support 'check_source' (added in Classic UI 1.10.0)
+* command objects support custom variables (added in Classic UI 1.11.2)
+* host and service objects support 'is_reachable' (added in Classic UI 1.11.3)
+
 ### <a id="schema-db-ido"></a> DB IDO
 
 There is a detailed documentation for the Icinga IDOUtils 1.x
@@ -345,7 +355,12 @@ New columns:
   servicestatus       | check_source            | TEXT     | NULL    | node name where check was executed
   hoststatus          | check_source            | TEXT     | NULL    | node name where check was executed
   statehistory        | check_source            | TEXT     | NULL    | node name where check was executed
+  servicestatus       | is_reachable            | integer  | NULL    | object reachability
+  hoststatus          | is_reachable            | integer  | NULL    | object reachability
   logentries          | object_id               | bigint   | NULL    | FK: objects table (service associated with column)
+  {host,service}group | notes                   | TEXT     | NULL    | -
+  {host,service}group | notes_url               | TEXT     | NULL    | -
+  {host,service}group | action_url              | TEXT     | NULL    | -
 
 Additional command custom variables populated from 'vars' dictionary.
 Additional global custom variables populated from 'Vars' constant (object_id is NULL).
