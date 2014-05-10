@@ -140,6 +140,7 @@ protected:
 	static Value ServicesAccessor(const Value& row);
 	static Value ServicesWithStateAccessor(const Value& row);
 	static Value ServicesWithInfoAccessor(const Value& row);
+        static Value CheckSourceAccessor(const Value& row);
         static Value IsReachableAccessor(const Value& row);
 };
 

@@ -505,6 +505,7 @@ New columns:
   ----------|--------------
   hosts     | is_reachable
   services  | is_reachable
+  hosts     | check_source
   services  | check_source
   downtimes | triggers
   downtimes | trigger_time
