@@ -437,6 +437,9 @@ Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& loc
 	if (value.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = value;
 		return dict->Get(index);
+	} else if (value.IsObjectType<Array>()) {
+		Array::Ptr arr = value;
+		return arr->Get(index);
 	} else if (value.IsObjectType<Object>()) {
 		Object::Ptr object = value;
 		const Type *type = object->GetReflectionType();
