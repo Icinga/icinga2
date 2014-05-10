@@ -308,9 +308,9 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 		}
 	}
 
-	result->Remove("__parent");
-
-	return result;
+	Dictionary::Ptr xresult = result->ShallowClone();
+	xresult->Remove("__parent");
+	return xresult;
 }
 
 Value AExpression::OpSet(const AExpression *expr, const Dictionary::Ptr& locals)
