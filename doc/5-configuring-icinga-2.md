@@ -470,7 +470,7 @@ Wildcard includes are not recursive.
 Icinga also supports include search paths similar to how they work in a
 C/C++ compiler:
 
-    include <itl/itl.conf>
+    include <itl>
 
 Note the use of angle brackets instead of double quotes. This causes the
 config compiler to search the include search paths for the specified

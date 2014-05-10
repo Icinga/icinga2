@@ -91,10 +91,11 @@ a separate option and add the directory and an option pattern.
     include_recursive "conf.d" "*.conf"
 
 A global search path for includes is available for advanced features like
-the Icinga Template Library (ITL). The file suffix does not matter as long
-as it matches the (wildcard) include expression.
+the Icinga Template Library (ITL) or additional monitoring plugins check
+command configuration.
 
-    include <itl/itl.conf>
+    include <itl>
+    include <plugins>
 
 By convention the `.conf` suffix is used for Icinga 2 configuration files.
 

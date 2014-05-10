@@ -87,6 +87,9 @@ public:
 	static String GetPkgDataDir(void);
 	static void DeclarePkgDataDir(const String& path);
 
+	static String GetIncludeConfDir(void);
+	static void DeclareIncludeConfDir(const String& path);
+
 	static String GetStatePath(void);
 	static void DeclareStatePath(const String& path);
 

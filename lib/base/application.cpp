@@ -823,6 +823,26 @@ void Application::DeclarePkgDataDir(const String& path)
 }
 
 /**
+ * Retrieves the path for the include conf dir.
+ *
+ * @returns The path.
+ */
+String Application::GetIncludeConfDir(void)
+{
+	return ScriptVariable::Get("IncludeConfDir");
+}
+
+/**
+ * Sets the path for the package data dir.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareIncludeConfDir(const String& path)
+{
+	ScriptVariable::Set("IncludeConfDir", path, false);
+}
+
+/**
  * Retrieves the path for the state file.
  *
  * @returns The path.

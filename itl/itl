@@ -23,5 +23,5 @@
  */
 
 include "command.conf"
-include "command-common.conf"
+include "command-icinga.conf"
 include "timeperiod.conf"

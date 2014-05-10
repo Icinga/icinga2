@@ -433,7 +433,7 @@ exit 0
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_libdir}/%{name}
 %{_datadir}/%{name}
-%exclude %{_datadir}/%{name}/itl
+%exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz
 
 %attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
@@ -452,8 +452,8 @@ exit 0
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/itl
-%{_datadir}/%{name}/itl
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/include
+%{_datadir}/%{name}/include
 
 %files doc
 %defattr(-,root,root,-)

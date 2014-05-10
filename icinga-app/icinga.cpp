@@ -246,6 +246,7 @@ int Main(void)
 			Application::DeclareSysconfDir(prefix + "\\etc");
 			Application::DeclareLocalStateDir(prefix + "\\var");
 			Application::DeclarePkgDataDir(prefix + "\\share\\icinga2");
+			Application::DeclareIncludeConfDir(prefix + "\\share\\icinga2\\include");
 
 			builtinPaths = false;
 		}
@@ -261,6 +262,7 @@ int Main(void)
 		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
 		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
 		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
+		Application::DeclareIncludeConfDir(ICINGA_INCLUDECONFDIR);
 #ifdef _WIN32
 	}
 #endif /* _WIN32 */
@@ -419,7 +421,7 @@ int Main(void)
 		}
 	}
 
-	ConfigCompiler::AddIncludeSearchDir(Application::GetPkgDataDir());
+	ConfigCompiler::AddIncludeSearchDir(Application::GetIncludeConfDir());
 
 	if (g_AppParams.count("include")) {
 		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<std::vector<std::string> >()) {

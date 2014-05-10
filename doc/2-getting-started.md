@@ -56,7 +56,7 @@ By default Icinga 2 uses the following files and directories:
   /usr/bin/icinga2-*                  | Migration and certificate build scripts.
   /usr/sbin/icinga2*                  | The Icinga 2 binary and feature enable/disable scripts.
   /usr/share/doc/icinga2              | Documentation files that come with Icinga 2.
-  /usr/share/icinga2/itl              | The Icinga Template Library.
+  /usr/share/icinga2/include          | The Icinga Template Library and plugin command configuration.
   /var/run/icinga2                    | PID file.
   /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
   /var/cache/icinga2                  | status.dat/objects.cache.
@@ -91,8 +91,10 @@ The `include` directive can be used to include other files.
     /**
      * The Icinga Template Library (ITL) provides a number of useful templates
      * and command definitions.
+     * Common monitoring plugin command definitions are included seperately.
      */
-    include <itl/itl.conf>
+    include <itl>
+    include <plugins>
 
     /**
      * The features-available directory contains a number of configuration
@@ -208,9 +210,10 @@ Template Library require an `address` custom attribute.
       check_command = "disk"
     }
 
-The command objects `icinga`, `http_ip`, `ssh`, `load`, `processes`, `users`
-and `disk` are all provided by the Icinga Template Library (ITL) which
-we enabled earlier by including the `itl/itl.conf` configuration file.
+The command object `icinga` for the embedded health check is provided by the
+[Icinga Template Library (ITL)](#itl) while `http_ip`, `ssh`, `load`, `processes`,
+`users` and `disk` are all provided by the plugin check commands which we enabled
+earlier by including the `itl` and `plugins` configuration file.
 
 > **Best Practice**
 >
