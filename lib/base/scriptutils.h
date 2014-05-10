@@ -38,6 +38,7 @@ public:
 	static Array::Ptr Union(const std::vector<Value>& arguments);
 	static Array::Ptr Intersection(const std::vector<Value>& arguments);
 	static void Log(const std::vector<Value>& arguments);
+	static Array::Ptr Range(const std::vector<Value>& arguments);
 	static void Exit(int code);
 
 private:

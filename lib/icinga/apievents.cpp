@@ -937,7 +937,7 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	fp.close();
 
 #ifdef _WIN32
-	_unlink(inventoryFile.CStr());
+	_unlink(repositoryFile.CStr());
 #endif /* _WIN32 */
 
 	if (rename(repositoryTempFile.CStr(), repositoryFile.CStr()) < 0) {

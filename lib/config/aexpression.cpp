@@ -574,3 +574,23 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 
 	return Empty;
 }
+
+Value AExpression::OpFor(const AExpression* expr, const Dictionary::Ptr& locals)
+{
+	Array::Ptr left = expr->m_Operand1;
+	String varname = left->Get(0);
+	AExpression::Ptr aexpr = left->Get(1);
+	AExpression::Ptr ascope = expr->m_Operand2;
+
+	Array::Ptr arr = aexpr->Evaluate(locals);
+
+	ObjectLock olock(arr);
+	BOOST_FOREACH(const Value& value, arr) {
+		locals->Set(varname, value);
+		ascope->Evaluate(locals);
+	}
+
+	locals->Remove(varname);
+
+	return Empty;
+}

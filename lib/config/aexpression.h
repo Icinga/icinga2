@@ -82,6 +82,7 @@ public:
 	static Value OpFunction(const AExpression* expr, const Dictionary::Ptr& locals);
 	static Value OpApply(const AExpression* expr, const Dictionary::Ptr& locals);
 	static Value OpObject(const AExpression* expr, const Dictionary::Ptr& locals);
+	static Value OpFor(const AExpression* expr, const Dictionary::Ptr& locals);
 
 private:
 	OpCallback m_Operator;

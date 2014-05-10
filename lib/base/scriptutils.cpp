@@ -38,6 +38,7 @@ REGISTER_SCRIPTFUNCTION(len, &ScriptUtils::Len);
 REGISTER_SCRIPTFUNCTION(union, &ScriptUtils::Union);
 REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
 REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
+REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
 REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
@@ -128,6 +129,41 @@ void ScriptUtils::Log(const std::vector<Value>& arguments)
 		::Log(severity, facility, message);
 	else
 		::Log(severity, facility, JsonSerialize(message));
+}
+
+Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
+{
+	int start, end, increment;
+
+	switch (arguments.size()) {
+		case 1:
+			start = 0;
+			end = arguments[0];
+			increment = 1;
+			break;
+		case 2:
+			start = arguments[0];
+			end = arguments[1];
+			increment = 1;
+			break;
+		case 3:
+			start = arguments[0];
+			end = arguments[1];
+			increment = arguments[2];
+			break;
+	}
+
+	Array::Ptr result = make_shared<Array>();
+
+	if ((start < end && increment <= 0) ||
+	    (start > end && increment >= 0))
+		return result;
+
+	for (int i = start; i < end; i += increment) {
+		result->Add(i);
+	}
+
+	return result;
 }
 
 void ScriptUtils::Exit(int code)
