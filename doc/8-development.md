@@ -7,7 +7,7 @@ out these resources:
 * Git Repositories: [https://git.icinga.org/?p=icinga2.git;a=summary] (mirror at [https://github.com/Icinga/icinga2])
 * Git Checkins Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-checkins]
 * Development Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-devel]
-* #icinga-devel on irc.freenode.net [http://webchat.freenode.net/?channels=icinga-devel] including a Git Commit Bot
+* \#icinga-devel on irc.freenode.net [http://webchat.freenode.net/?channels=icinga-devel] including a Git Commit Bot
 
 For general support questions, please refer to [https://www.icinga.org/support/].
 
