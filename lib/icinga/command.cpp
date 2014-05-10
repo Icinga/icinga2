@@ -45,7 +45,7 @@ int Command::GetModifiedAttributes(void) const
 	return attrs;
 }
 
-void Command::SetModifiedAttributes(int flags)
+void Command::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 {
 	if ((flags & ModAttrCustomVariable) == 0) {
 		SetOverrideVars(Empty);

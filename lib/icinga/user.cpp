@@ -118,7 +118,7 @@ int User::GetModifiedAttributes(void) const
 	return attrs;
 }
 
-void User::SetModifiedAttributes(int flags)
+void User::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 {
 	if ((flags & ModAttrCustomVariable) == 0) {
 		SetOverrideVars(Empty);

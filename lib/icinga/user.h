@@ -25,6 +25,7 @@
 #include "icinga/macroresolver.h"
 #include "icinga/timeperiod.h"
 #include "base/array.h"
+#include "remote/messageorigin.h"
 
 namespace icinga
 {
@@ -48,7 +49,7 @@ public:
 	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
 
 	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags);
+	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 
 protected:
 	virtual void Stop(void);

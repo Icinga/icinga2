@@ -25,6 +25,7 @@
 #include "base/i2-base.h"
 #include "base/array.h"
 #include "base/logger_fwd.h"
+#include "remote/messageorigin.h"
 #include <set>
 
 namespace icinga
@@ -45,7 +46,7 @@ public:
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags);
+	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 };
 
 }

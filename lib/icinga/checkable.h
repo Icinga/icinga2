@@ -143,7 +143,7 @@ public:
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin = MessageOrigin());
 
 	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags);
+	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 
 	bool IsCheckPending(void) const;
 
@@ -157,6 +157,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnablePassiveChecksChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableNotificationsChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableFlappingChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnablePerfdataChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
