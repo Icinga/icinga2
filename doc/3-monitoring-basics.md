@@ -194,11 +194,11 @@ Details on the `assign where` syntax can be found [here]
 
     object HostGroup "mssql" {
       display_name = "MSSQL Servers"
-      assign where host.vars.mssql_port == 1433
+      assign where host.vars.mssql_port
     }
 
 In this inherited example from above all hosts with the `var` `mssql_port`
-set to `1433` will be added as members to the host group `mssql`.
+set will be added as members to the host group `mssql`.
 
 
 ## <a id="timeperiods"></a> Time Periods
