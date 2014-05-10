@@ -51,6 +51,15 @@ enum LogEntryType
     LogEntryTypeServiceNotification = 1048576
 };
 
+enum EnableType
+{
+    EnableActiveChecks = 1,
+    EnablePassiveChecks = 2,
+    EnableNotifications = 3,
+    EnablePerfdata = 4,
+    EnableFlapping = 5
+};
+
 /**
  * IDO events
  *
@@ -75,6 +84,12 @@ public:
 	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck);
 	static void FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state);
 	static void LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable);
+
+	static void EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled);
+	static void EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled);
+	static void EnableNotificationsChangedHandler(const Checkable::Ptr& checkable, bool enabled);
+	static void EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bool enabled);
+	static void EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bool enabled);
 
 	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
@@ -121,6 +136,7 @@ private:
 
 	static void AddCommentInternal(const Checkable::Ptr& checkable, const Comment::Ptr& comment, bool historical);
 	static void AddDowntimeInternal(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical);
+	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, bool enabled, EnableType type);
 };
 
 }

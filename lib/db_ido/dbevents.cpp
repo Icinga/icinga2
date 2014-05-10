@@ -50,29 +50,35 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
 	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
-	Checkable::OnNextCheckChanged.connect(bind(&DbEvents::NextCheckChangedHandler, _1, _2));
-	Checkable::OnFlappingChanged.connect(bind(&DbEvents::FlappingChangedHandler, _1, _2));
-	Checkable::OnNotificationSentToAllUsers.connect(bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
+	Checkable::OnNextCheckChanged.connect(boost::bind(&DbEvents::NextCheckChangedHandler, _1, _2));
+	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::FlappingChangedHandler, _1, _2));
+	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
+
+	Checkable::OnEnableActiveChecksChanged.connect(boost::bind(&DbEvents::EnableActiveChecksChangedHandler, _1, _2));
+	Checkable::OnEnablePassiveChecksChanged.connect(boost::bind(&DbEvents::EnablePassiveChecksChangedHandler, _1, _2));
+	Checkable::OnEnableNotificationsChanged.connect(boost::bind(&DbEvents::EnableNotificationsChangedHandler, _1, _2));
+	Checkable::OnEnablePerfdataChanged.connect(boost::bind(&DbEvents::EnablePerfdataChangedHandler, _1, _2));
+	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::EnableFlappingChangedHandler, _1, _2));
 
 	/* History */
 	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
 	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1, _2));
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
 
-	Checkable::OnNotificationSentToAllUsers.connect(bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 
 	Checkable::OnStateChange.connect(boost::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
 
-	Checkable::OnNewCheckResult.connect(bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
-	Checkable::OnFlappingChanged.connect(bind(&DbEvents::AddFlappingLogHistory, _1, _2));
+	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
+	Checkable::OnNotificationSentToUser.connect(boost::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingLogHistory, _1, _2));
 	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1, _2));
 	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1, _2));
 
-	Checkable::OnFlappingChanged.connect(bind(&DbEvents::AddFlappingHistory, _1, _2));
-	Checkable::OnNewCheckResult.connect(bind(&DbEvents::AddServiceCheckHistory, _1, _2));
+	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingHistory, _1, _2));
+	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddServiceCheckHistory, _1, _2));
 
-	Checkable::OnEventCommandExecuted.connect(bind(&DbEvents::AddEventHandlerHistory, _1));
+	Checkable::OnEventCommandExecuted.connect(boost::bind(&DbEvents::AddEventHandlerHistory, _1));
 
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&DbEvents::AddExternalCommandHistory, _1, _2, _3));
 }
@@ -161,6 +167,73 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	fields1->Set("last_notification", DbValue::FromTimestamp(now_bag.first));
 	fields1->Set("next_notification", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("current_notification_number", notification->GetNotificationNumber());
+
+	query1.Fields = fields1;
+
+	query1.WhereCriteria = make_shared<Dictionary>();
+	if (service)
+		query1.WhereCriteria->Set("service_object_id", service);
+	else
+		query1.WhereCriteria->Set("host_object_id", host);
+
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	DbObject::OnQuery(query1);
+}
+
+/* enable changed events */
+void DbEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+{
+	EnableChangedHandlerInternal(checkable, enabled, EnableActiveChecks);
+}
+
+void DbEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+{
+	EnableChangedHandlerInternal(checkable, enabled, EnablePassiveChecks);
+}
+
+void DbEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+{
+	EnableChangedHandlerInternal(checkable, enabled, EnableNotifications);
+}
+
+void DbEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+{
+	EnableChangedHandlerInternal(checkable, enabled, EnablePerfdata);
+}
+
+void DbEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+{
+	EnableChangedHandlerInternal(checkable, enabled, EnableFlapping);
+}
+
+void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, bool enabled, EnableType type)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	DbQuery query1;
+	if (service)
+		query1.Table = "servicestatus";
+	else
+		query1.Table = "hoststatus";
+
+	query1.Type = DbQueryUpdate;
+
+	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+
+	if (type == EnableActiveChecks) {
+		fields1->Set("active_checks_enabled", enabled ? 1 : 0);
+	} else if (type == EnablePassiveChecks) {
+		fields1->Set("passive_checks_enabled", enabled ? 1 : 0);
+	} else if (type == EnableNotifications) {
+		fields1->Set("notifications_enabled", enabled ? 1 : 0);
+	} else if (type == EnablePerfdata) {
+		fields1->Set("process_performance_data", enabled ? 1 : 0);
+	} else if (type == EnableFlapping) {
+		fields1->Set("flap_detection_enabled", enabled ? 1 : 0);
+	}
 
 	query1.Fields = fields1;
 
