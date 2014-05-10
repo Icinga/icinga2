@@ -586,11 +586,12 @@ Value AExpression::OpFor(const AExpression* expr, const Dictionary::Ptr& locals)
 
 	ObjectLock olock(arr);
 	BOOST_FOREACH(const Value& value, arr) {
-		locals->Set(varname, value);
-		ascope->Evaluate(locals);
-	}
+		Dictionary::Ptr xlocals = make_shared<Dictionary>();
+		xlocals->Set("__parent", locals);
+		xlocals->Set(varname, value);
 
-	locals->Remove(varname);
+		ascope->Evaluate(xlocals);
+	}
 
 	return Empty;
 }
