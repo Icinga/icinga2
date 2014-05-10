@@ -394,7 +394,8 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	      "\t" "last_notification=" << CompatUtility::GetCheckableNotificationLastNotification(checkable) << "\n"
 	      "\t" "next_notification=" << CompatUtility::GetCheckableNotificationNextNotification(checkable) << "\n"
 	      "\t" "current_notification_number=" << CompatUtility::GetCheckableNotificationNotificationNumber(checkable) << "\n"
-	      "\t" "modified_attributes=" << checkable->GetModifiedAttributes() << "\n";
+	      "\t" "modified_attributes=" << checkable->GetModifiedAttributes() << "\n"
+	      "\t" "is_reachable=" << CompatUtility::GetCheckableIsReachable(checkable) << "\n";
 }
 
 void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)
