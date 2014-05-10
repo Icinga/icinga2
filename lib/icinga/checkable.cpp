@@ -215,25 +215,35 @@ int Checkable::GetModifiedAttributes(void) const
 	return attrs;
 }
 
-void Checkable::SetModifiedAttributes(int flags)
+void Checkable::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 {
-	if ((flags & ModAttrNotificationsEnabled) == 0)
+	if ((flags & ModAttrNotificationsEnabled) == 0) {
 		SetOverrideEnableNotifications(Empty);
+		OnEnableNotificationsChanged(GetSelf(), GetEnableNotifications(), origin);
+	}
 
-	if ((flags & ModAttrActiveChecksEnabled) == 0)
+	if ((flags & ModAttrActiveChecksEnabled) == 0) {
 		SetOverrideEnableActiveChecks(Empty);
+		OnEnableActiveChecksChanged(GetSelf(), GetEnableActiveChecks(), origin);
+	}
 
-	if ((flags & ModAttrPassiveChecksEnabled) == 0)
+	if ((flags & ModAttrPassiveChecksEnabled) == 0) {
 		SetOverrideEnablePassiveChecks(Empty);
+		OnEnablePassiveChecksChanged(GetSelf(), GetEnablePassiveChecks(), origin);
+	}
 
-	if ((flags & ModAttrFlapDetectionEnabled) == 0)
+	if ((flags & ModAttrFlapDetectionEnabled) == 0) {
 		SetOverrideEnableFlapping(Empty);
+		OnEnableFlappingChanged(GetSelf(), GetEnableFlapping(), origin);
+	}
 
 	if ((flags & ModAttrEventHandlerEnabled) == 0)
 		SetOverrideEnableEventHandler(Empty);
 
-	if ((flags & ModAttrPerformanceDataEnabled) == 0)
+	if ((flags & ModAttrPerformanceDataEnabled) == 0) {
 		SetOverrideEnablePerfdata(Empty);
+		OnEnablePerfdataChanged(GetSelf(), GetEnablePerfdata(), origin);
+	}
 
 	if ((flags & ModAttrNormalCheckInterval) == 0)
 		SetOverrideCheckInterval(Empty);

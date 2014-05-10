@@ -143,7 +143,7 @@ public:
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin = MessageOrigin());
 
 	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags);
+	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 
 	bool IsCheckPending(void) const;
 
