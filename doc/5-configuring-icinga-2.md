@@ -586,6 +586,7 @@ Attributes:
 > The `address` and `address6` attributes are required for running commands using
 > the `$address$` and `$address6` runtime macros.
 
+
 ### <a id="objecttype-hostgroup"></a> HostGroup
 
 A group of hosts.
@@ -683,118 +684,6 @@ Attributes:
   display_name    |**Optional.** A short description of the service group.
   groups          |**Optional.** An array of nested group names.
 
-### <a id="objecttype-notification"></a> Notification
-
-Notification objects are used to specify how users should be notified in case
-of host and service state changes and other events.
-
-> **Best Practice**
->
-> Rather than creating a `Notification` object for a specific host or service it is
-> usually easier to just create a `Notification` template and use the `apply` keyword
-> to assign the notification to a number of hosts or services. Use the `to` keyword
-> to set the specific target type for `Host` or `Service`.
-
-Example:
-
-    object Notification "localhost-ping-notification" {
-      host_name = "localhost"
-      service_name = "ping4"
-
-      command = "mail-notification"
-
-      users = [ "user1", "user2" ]
-
-      types = [ Problem, Recovery ]
-    }
-
-Attributes:
-
-  Name                      | Description
-  --------------------------|----------------
-  host_name                 | **Required.** The name of the host this notification belongs to.
-  service_name              | **Optional.** The short name of the service this notification belongs to. If omitted this notification object is treated as host notification.
-  vars                      | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
-  users                     | **Optional.** A list of user names who should be notified.
-  user_groups               | **Optional.** A list of user group names who should be notified.
-  times                     | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
-  command                   | **Required.** The name of the notification command which should be executed when the notification is triggered.
-  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. 
-  period                    | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
-  types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
-  states                    | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
-
-Available notification state filters:
-
-    OK
-    Warning
-    Critical
-    Unknown
-    Up
-    Down
-
-Available notification type filters:
-    
-    DowntimeStart
-    DowntimeEnd
-    DowntimeRemoved
-    Custom
-    Acknowledgement
-    Problem
-    Recovery
-    FlappingStart
-    FlappingEnd
-
-### <a id="objecttype-dependency"></a> Dependency
-
-Dependency objects are used to specify dependencies between hosts and services.
-
-> **Best Practice**
->
-> Rather than creating a `Dependency` object for a specific host or service it is usually easier
-> to just create a `Dependency` template and use the `apply` keyword to assign the
-> dependency to a number of hosts or services. Use the `to` keyword to set the specific target
-> type for `Host` or `Service`.
-
-Example:
-
-    object Dependency "webserver-internet" {
-      child_host_name = "webserver"
-      child_service_name = "ping4"
-
-      parent_host_name = "internet"
-      parent_service_name = "ping4"
-
-      states = [ OK, Warning ]
-
-      disable_checks = true
-    }
-
-Attributes:
-
-  Name            |Description
-  ----------------|----------------
-  parent_host_name     |**Required.** The parent host.
-  parent_service_name  |**Optional.** The parent service. If omitted this dependency object is treated as host dependency.
-  child_host_name      |**Required.** The child host.
-  child_service_name   |**Optional.** The child service. If omitted this dependency object is treated as host dependency.
-  disable_checks  |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
-  disable_notifications|**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
-  period          |**Optional.** Time period during which this dependency is enabled.
-  states    	  |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
-
-Available state filters:
-
-    OK
-    Warning
-    Critical
-    Unknown
-    Up
-    Down
-
-Dependency objects have composite names, i.e. their names are based on the `child_host_name` and `child_service_name` attributes and the
-name you specified. This means you can define more than one object with the same (short) name as long as one of the `child_host_name` and
-`child_service_name` attributes has a different value.
 
 ### <a id="objecttype-user"></a> User
 
@@ -851,6 +740,7 @@ Attributes:
   types           |**Optional.** A set of type filters when this notification should be triggered. By default everything is matched.
   states          |**Optional.** A set of state filters when this notification should be triggered. By default everything is matched.
 
+
 ### <a id="objecttype-usergroup"></a> UserGroup
 
 A user group.
@@ -868,119 +758,7 @@ Attributes:
   display_name    |**Optional.** A short description of the user group.
   groups          |**Optional.** An array of nested group names.
 
-### <a id="objecttype-timeperiod"></a> TimePeriod
 
-Time periods can be used to specify when services should be checked or to limit
-when notifications should be sent out.
-
-Example:
-
-    object TimePeriod "24x7" {
-      import "legacy-timeperiod"
-
-      display_name = "Icinga 2 24x7 TimePeriod"
-
-      ranges = {
-        monday = "00:00-24:00"
-        tuesday = "00:00-24:00"
-        wednesday = "00:00-24:00"
-        thursday = "00:00-24:00"
-        friday = "00:00-24:00"
-        saturday = "00:00-24:00"
-        sunday = "00:00-24:00"
-      }
-    }
-
-Attributes:
-
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the time period.
-  methods         |**Required.** The "update" script method takes care of updating the internal representation of the time period. In virtually all cases you should import the "legacy-timeperiod" template to take care of this setting.
-  ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
-
-The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
-timeperiods including this one.
-
-### <a id="objecttype-scheduleddowntime"></a> ScheduledDowntime
-
-ScheduledDowntime objects can be used to set up recurring downtimes for services.
-
-> **Best Practice**
->
-> Rather than creating a `ScheduledDowntime` object for a specific host or service it is usually easier
-> to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
-> scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
-> type for `Host` or `Service`.
-
-Example:
-
-    object ScheduledDowntime "some-downtime" {
-      host_name = "localhost"
-      service_name = "ping4"
-
-      author = "icingaadmin"
-      comment = "Some comment"
-
-      fixed = false
-      duration = 30m
-
-      ranges = {
-        "sunday" = "02:00-03:00"
-      }
-    }
-
-Attributes:
-
-  Name            |Description
-  ----------------|----------------
-  host_name       |**Required.** The name of the host this scheduled downtime belongs to.
-  service_name    |**Optional.** The short name of the service this scheduled downtime belongs to. If omitted this downtime object is treated as host downtime.
-  author          |**Required.** The author of the downtime.
-  comment         |**Required.** A comment for the downtime.
-  fixed           |**Optional.** Whether this is a fixed downtime. Defaults to true.
-  duration        |**Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
-  ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
-
-ScheduledDowntime objects have composite names, i.e. their names are based
-on the `host_name` and `service_name` attributes and the
-name you specified. This means you can define more than one object
-with the same (short) name as long as one of the `host_name` and
-`service_name` attributes has a different value.
-
-### <a id="objecttype-filelogger"></a> FileLogger
-
-Specifies Icinga 2 logging to a file.
-
-Example:
-
-    object FileLogger "debug-file" {
-      severity = "debug"
-      path = "/var/log/icinga2/debug.log"
-    }
-
-Attributes:
-
-  Name            |Description
-  ----------------|----------------
-  path            |**Required.** The log path.
-  severity        |**Optional.** The minimum severity for this log. Can be "debug", "information", "warning" or "critical". Defaults to "information".
-
-### <a id="objecttype-sysloglogger"></a> SyslogLogger
-
-Specifies Icinga 2 logging to syslog.
-
-Example:
-
-    object SyslogLogger "crit-syslog" {
-      severity = "critical"
-    }
-
-Attributes:
-
-  Name            |Description
-  ----------------|----------------
-  severity        |**Optional.** The minimum severity for this log. Can be "debug", "information", "warning" or "critical". Defaults to "warning".
 
 ### <a id="objecttype-checkcommand"></a> CheckCommand
 
@@ -1098,6 +876,7 @@ Attributes:
 
 Command arguments can be used the same way as for `CheckCommand` objects.
 
+
 ### <a id="objecttype-eventcommand"></a> EventCommand
 
 An event command definition.
@@ -1123,6 +902,205 @@ Attributes:
   arguments       |**Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for `CheckCommand` objects.
+
+
+### <a id="objecttype-notification"></a> Notification
+
+Notification objects are used to specify how users should be notified in case
+of host and service state changes and other events.
+
+> **Best Practice**
+>
+> Rather than creating a `Notification` object for a specific host or service it is
+> usually easier to just create a `Notification` template and use the `apply` keyword
+> to assign the notification to a number of hosts or services. Use the `to` keyword
+> to set the specific target type for `Host` or `Service`.
+
+Example:
+
+    object Notification "localhost-ping-notification" {
+      host_name = "localhost"
+      service_name = "ping4"
+
+      command = "mail-notification"
+
+      users = [ "user1", "user2" ]
+
+      types = [ Problem, Recovery ]
+    }
+
+Attributes:
+
+  Name                      | Description
+  --------------------------|----------------
+  host_name                 | **Required.** The name of the host this notification belongs to.
+  service_name              | **Optional.** The short name of the service this notification belongs to. If omitted this notification object is treated as host notification.
+  vars                      | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
+  users                     | **Optional.** A list of user names who should be notified.
+  user_groups               | **Optional.** A list of user group names who should be notified.
+  times                     | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
+  command                   | **Required.** The name of the notification command which should be executed when the notification is triggered.
+  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes.
+  period                    | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
+  types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
+  states                    | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
+
+Available notification state filters:
+
+    OK
+    Warning
+    Critical
+    Unknown
+    Up
+    Down
+
+Available notification type filters:
+
+    DowntimeStart
+    DowntimeEnd
+    DowntimeRemoved
+    Custom
+    Acknowledgement
+    Problem
+    Recovery
+    FlappingStart
+    FlappingEnd
+
+
+
+### <a id="objecttype-timeperiod"></a> TimePeriod
+
+Time periods can be used to specify when services should be checked or to limit
+when notifications should be sent out.
+
+Example:
+
+    object TimePeriod "24x7" {
+      import "legacy-timeperiod"
+
+      display_name = "Icinga 2 24x7 TimePeriod"
+
+      ranges = {
+        monday = "00:00-24:00"
+        tuesday = "00:00-24:00"
+        wednesday = "00:00-24:00"
+        thursday = "00:00-24:00"
+        friday = "00:00-24:00"
+        saturday = "00:00-24:00"
+        sunday = "00:00-24:00"
+      }
+    }
+
+Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  display_name    |**Optional.** A short description of the time period.
+  methods         |**Required.** The "update" script method takes care of updating the internal representation of the time period. In virtually all cases you should import the "legacy-timeperiod" template to take care of this setting.
+  ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
+
+The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
+timeperiods including this one.
+
+
+### <a id="objecttype-scheduleddowntime"></a> ScheduledDowntime
+
+ScheduledDowntime objects can be used to set up recurring downtimes for services.
+
+> **Best Practice**
+>
+> Rather than creating a `ScheduledDowntime` object for a specific host or service it is usually easier
+> to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
+> scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
+> type for `Host` or `Service`.
+
+Example:
+
+    object ScheduledDowntime "some-downtime" {
+      host_name = "localhost"
+      service_name = "ping4"
+
+      author = "icingaadmin"
+      comment = "Some comment"
+
+      fixed = false
+      duration = 30m
+
+      ranges = {
+        "sunday" = "02:00-03:00"
+      }
+    }
+
+Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  host_name       |**Required.** The name of the host this scheduled downtime belongs to.
+  service_name    |**Optional.** The short name of the service this scheduled downtime belongs to. If omitted this downtime object is treated as host downtime.
+  author          |**Required.** The author of the downtime.
+  comment         |**Required.** A comment for the downtime.
+  fixed           |**Optional.** Whether this is a fixed downtime. Defaults to true.
+  duration        |**Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
+  ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
+
+ScheduledDowntime objects have composite names, i.e. their names are based
+on the `host_name` and `service_name` attributes and the
+name you specified. This means you can define more than one object
+with the same (short) name as long as one of the `host_name` and
+`service_name` attributes has a different value.
+
+
+### <a id="objecttype-dependency"></a> Dependency
+
+Dependency objects are used to specify dependencies between hosts and services.
+
+> **Best Practice**
+>
+> Rather than creating a `Dependency` object for a specific host or service it is usually easier
+> to just create a `Dependency` template and use the `apply` keyword to assign the
+> dependency to a number of hosts or services. Use the `to` keyword to set the specific target
+> type for `Host` or `Service`.
+
+Example:
+
+    object Dependency "webserver-internet" {
+      child_host_name = "webserver"
+      child_service_name = "ping4"
+
+      parent_host_name = "internet"
+      parent_service_name = "ping4"
+
+      states = [ OK, Warning ]
+
+      disable_checks = true
+    }
+
+Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  parent_host_name     |**Required.** The parent host.
+  parent_service_name  |**Optional.** The parent service. If omitted this dependency object is treated as host dependency.
+  child_host_name      |**Required.** The child host.
+  child_service_name   |**Optional.** The child service. If omitted this dependency object is treated as host dependency.
+  disable_checks  |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
+  disable_notifications|**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
+  period          |**Optional.** Time period during which this dependency is enabled.
+  states    	  |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
+
+Available state filters:
+
+    OK
+    Warning
+    Critical
+    Unknown
+    Up
+    Down
+
+Dependency objects have composite names, i.e. their names are based on the `child_host_name` and `child_service_name` attributes and the
+name you specified. This means you can define more than one object with the same (short) name as long as one of the `child_host_name` and
+`child_service_name` attributes has a different value.
+
 
 ### <a id="objecttype-perfdatawriter"></a> PerfdataWriter
 
@@ -1158,6 +1136,7 @@ Attributes:
 
 When rotating the performance data file the current UNIX timestamp is appended to the path specified
 in `host_perfdata\_path` and `service_perfdata\_path` to generate a unique filename.
+
 
 ### <a id="objecttype-graphitewriter"></a> GraphiteWriter
 
@@ -1405,6 +1384,7 @@ Attributes:
   objects\_path   |**Optional.** Path to the objects.cache file. Defaults to LocalStateDir + "/cache/icinga2/objects.cache".
   update\_interval|**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
 
+
 ### <a id="objecttype-externalcommandlistener"></a> ExternalCommandListener
 
 Implements the Icinga 1.x command pipe which can be used to send commands to Icinga.
@@ -1443,6 +1423,7 @@ Attributes:
   log\_dir        |**Optional.** Path to the compat log directory. Defaults to LocalStateDir + "/log/icinga2/compat".
   rotation\_method|**Optional.** Specifies when to rotate log files. Can be one of "HOURLY", "DAILY", "WEEKLY" or "MONTHLY". Defaults to "HOURLY".
 
+
 ### <a id="objecttype-checkresultreader"></a> CheckResultReader
 
 Reads Icinga 1.x check results from a directory. This functionality is provided
@@ -1463,6 +1444,7 @@ Attributes:
   ----------------|----------------
   spool\_dir      |**Optional.** The directory which contains the check result files. Defaults to LocalStateDir + "/lib/icinga2/spool/checkresults/".
 
+
 ### <a id="objecttype-checkcomponent"></a> CheckerComponent
 
 The checker component is responsible for scheduling active checks. There are no configurable options.
@@ -1473,6 +1455,11 @@ Example:
 
     object CheckerComponent "checker" { }
 
+Can be enabled/disabled using
+
+    # icinga2-enable-feature checker
+
+
 ### <a id="objecttype-notificationcomponent"></a> NotificationComponent
 
 The notification component is responsible for sending notifications. There are no configurable options.
@@ -1482,6 +1469,48 @@ Example:
     library "notification"
 
     object NotificationComponent "notification" { }
+
+Can be enabled/disabled using
+
+    # icinga2-enable-feature notification
+
+
+### <a id="objecttype-filelogger"></a> FileLogger
+
+Specifies Icinga 2 logging to a file.
+
+Example:
+
+    object FileLogger "debug-file" {
+      severity = "debug"
+      path = "/var/log/icinga2/debug.log"
+    }
+
+Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  path            |**Required.** The log path.
+  severity        |**Optional.** The minimum severity for this log. Can be "debug", "information", "warning" or "critical". Defaults to "information".
+
+
+### <a id="objecttype-sysloglogger"></a> SyslogLogger
+
+Specifies Icinga 2 logging to syslog.
+
+Example:
+
+    object SyslogLogger "crit-syslog" {
+      severity = "critical"
+    }
+
+Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  severity        |**Optional.** The minimum severity for this log. Can be "debug", "information", "warning" or "critical". Defaults to "warning".
+
+
 
 ### <a id="objecttype-icingastatuswriter"></a> IcingaStatusWriter
 
@@ -1502,6 +1531,7 @@ Attributes:
   --------------------------|--------------------------
   status\_path              |**Optional.** Path to cluster status file. Defaults to LocalStateDir + "/cache/icinga2/status.json"
   update\_interval          |**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
+
 
 ### <a id="objecttype-clusterlistener"></a> ClusterListener
 
