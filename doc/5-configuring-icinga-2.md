@@ -989,19 +989,27 @@ defined here.
 
 Example:
 
-    object CheckCommand "check_snmp" {
+    object CheckCommand "check_http" {
       import "plugin-check-command"
 
-      command = [
-        PluginDir + "/check_snmp",
-	"-H", "$address$",
-	"-C", "$community$",
-	"-o", "$oid$"
-      ]
+      command = PluginDir + "/check_http"
 
-      vars.address = "127.0.0.1"
-      vars.community = "public"
+      arguments = {
+        "-H" = "$http_vhost$"
+        "-I" = "$http_address$"
+        "-u" = "$http_uri$"
+        "-p" = "$http_port$"
+        "-S" = {
+          set_if = "$http_ssl$"
+        }
+        "-w" = "$http_warn_time$"
+        "-c" = "$http_critical_time$"
+      }
+
+      vars.http_address = "$address$"
+      vars.http_ssl = false
     }
+
 
 Attributes:
 
@@ -1012,6 +1020,41 @@ Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.
+  arguments       |**Optional.** A dictionary of command arguments.
+
+
+Command arguments can be defined as key-value-pairs in the `arguments`
+dictionary. If the argument requires additional configuration for example
+a `description` attribute or an optional condition, the value can be defined
+as dictionary specifying additional options.
+
+Service:
+
+    vars.x_val = "My command argument value."
+    vars.have_x = "true"
+
+CheckCommand:
+
+    arguments = {
+      "-X" = {
+        value = "$x_val$"
+        description = "My plugin requires this argument for doing X."
+        required = false    /* optional, no error if not set */
+        skip_key = false    /* always use "-X <value>" */
+        set_if = "$have_x$" /* only set if variable defined */
+        order = 0           /* first position */
+      }
+    }
+
+  Option      | Description
+  ------------|--------------
+  value       | Optional argument value.
+  description | Optional argument description.
+  required    | Required argument. Execution error if not set. Defaults to false (optional).
+  skip_key    | Use the value as argument and skip the key.
+  set_if      | Argument added if value is set (macro resolves to a defined value).
+  order       | Set if multiple arguments require a defined argument order.
+
 
 ### <a id="objecttype-notificationcommand"></a> NotificationCommand
 
@@ -1051,6 +1094,9 @@ Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.
+  arguments       |**Optional.** A dictionary of command arguments.
+
+Command arguments can be used the same way as for `CheckCommand` objects.
 
 ### <a id="objecttype-eventcommand"></a> EventCommand
 
@@ -1074,6 +1120,9 @@ Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.
+  arguments       |**Optional.** A dictionary of command arguments.
+
+Command arguments can be used the same way as for `CheckCommand` objects.
 
 ### <a id="objecttype-perfdatawriter"></a> PerfdataWriter
 

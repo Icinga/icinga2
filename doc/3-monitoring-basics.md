@@ -310,8 +310,8 @@ all available options. Our example defines warning (`-w`) and
 critical (`-c`) thresholds for the disk usage. Without any
 partition defined (`-p`) it will check all local partitions.
 
-Define the default check command custom attribute `wfree` and `cfree` freely
-definable naming schema) and their default threshold values. You can
+Define the default check command custom attribute `disk_wfree` and `disk_cfree`
+freely definable naming schema) and their default threshold values. You can
 then use these custom attributes as runtime macros on the command line.
 
 The default custom attributes can be overridden by the custom attributes
@@ -452,6 +452,49 @@ information in the check output (`-o`).
         "-o", "Event Handler triggered in state '$service.state$' with output '$service.output$'."
       ]
     }
+
+### <a id="commands-arguments"></a> Command Arguments
+
+By defining a check command line using the `command` attribute Icinga 2
+will resolve all macros in the static string or array. Sometimes it is
+required to extend the arguments list based on a met condition evaluated
+at command execution. Or making arguments optional - only set if the
+macro value can be resolved by Icinga 2.
+
+    object CheckCommand "check_http" {
+      import "plugin-check-command"
+
+      command = PluginDir + "/check_http"
+
+      arguments = {
+        "-H" = "$http_vhost$"
+        "-I" = "$http_address$"
+        "-u" = "$http_uri$"
+        "-p" = "$http_port$"
+        "-S" = {
+          set_if = "$http_ssl$"
+        }
+        "-w" = "$http_warn_time$"
+        "-c" = "$http_critical_time$"
+      }
+
+      vars.http_address = "$address$"
+      vars.http_ssl = false
+    }
+
+The example shows the `check_http` check command defining the most common
+arguments. Each of them is optional by default and will be omitted if
+the value is not set. For example if the service calling the check command
+does not have `vars.http_port` set, it won't get added to the command
+line.
+If the `vars.http_ssl` custom attribute is set in the service, host or command
+object definition, Icinga 2 will add the `-S` argument based on the `set_if`
+option to the command line.
+That way you can use the `check_http` command definition for both, with and
+without SSL enabled checks saving you duplicated command definitions.
+
+Details on all available options can be found in the
+[CheckCommand object definition](#objecttype-checkcommand).
 
 
 ## <a id="notifications"></a> Notifications
