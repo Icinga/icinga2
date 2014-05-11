@@ -235,18 +235,18 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *re
 	} else if (macro == "duration_sec") {
 		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
 		return true;
-	} else if (macro == "total_services" || macro == "total_services_ok" || macro == "total_services_warning"
-		    || macro == "total_services_unknown" || macro == "total_services_critical") {
+	} else if (macro == "num_services" || macro == "num_services_ok" || macro == "num_services_warning"
+		    || macro == "num_services_unknown" || macro == "num_services_critical") {
 			int filter = -1;
 			int count = 0;
 
-			if (macro == "total_services_ok")
+			if (macro == "num_services_ok")
 				filter = ServiceOK;
-			else if (macro == "total_services_warning")
+			else if (macro == "num_services_warning")
 				filter = ServiceWarning;
-			else if (macro == "total_services_unknown")
+			else if (macro == "num_services_unknown")
 				filter = ServiceUnknown;
-			else if (macro == "total_services_critical")
+			else if (macro == "num_services_critical")
 				filter = ServiceCritical;
 
 			BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
