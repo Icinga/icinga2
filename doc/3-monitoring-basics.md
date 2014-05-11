@@ -984,6 +984,66 @@ These runtime macros reflect the current object state and may change over time w
 custom attributes are configured statically (but can be modified at runtime using
 external commands).
 
+### <a id="runtime-macro-evaluation-order"></a> Runtime Macro Evaluation Order
+
+Custom attributes can be accessed at [runtime](#runtime-custom-attributes) using their
+identifier omitting the `vars.` prefix.
+There are special cases when those custom attributes are not set and Icinga 2 provides
+a fallback to existing object attributes for example `host.address`.
+
+In the following example the `$address$` macro will be resolved with the value of `vars.address`.
+
+    object Host "localhost" {
+      import "generic-host"
+      check_command = "my-host-macro-test"
+      address = "127.0.0.1"
+      vars.address = "127.2.2.2"
+    }
+
+    object CheckCommand "my-host-macro-test" {
+      command = "echo \"address: $address$ host.address: $host.address$ host.vars.address: $host.vars.address$\""
+    }
+
+The check command output will look like
+
+    "address: 127.2.2.2 host.address: 127.0.0.1 host.vars.address: 127.2.2.2"
+
+If you alter the host object and remove the `vars.address` line, Icinga 2 will fail to look up `$address$` in the
+custom attributes dictionary and then look for the host object's attribute.
+
+The check command output will change to
+
+    "address: 127.0.0.1 host.address: 127.0.0.1 host.vars.address: "
+
+
+The same example can be defined for services overriding the `address` field based on a specific host custom attribute.
+
+    object Host "localhost" {
+      import "generic-host"
+      address = "127.0.0.1"
+      vars.macro_address = "127.3.3.3"
+    }
+
+    apply Service "my-macro-test" to Host {
+      import "generic-service"
+      check_command = "my-service-macro-test"
+      vars.address = "$host.vars.macro_address$"
+
+      assign where host.address
+    }
+
+    object CheckCommand "my-service-macro-test" {
+      command = "echo \"address: $address$ host.address: $host.address$ host.vars.macro_address: $host.vars.macro_address$ service.vars.address: $service.vars.address$\""
+    }
+
+When the service check is executed the output looks like
+
+    "address: 127.3.3.3 host.address: 127.0.0.1 host.vars.macro_address: 127.3.3.3 service.vars.address: 127.3.3.3"
+
+That way you can easily override existing macros being accessed by their short name like `$address$` and refrain
+from defining multiple check commands (one for `$address$` and one for `$host.vars.macro_address$`).
+
+
 ### <a id="host-runtime-macros"></a> Host Runtime Macros
 
 The following host custom attributes are available in all commands that are executed for
