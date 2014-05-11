@@ -151,6 +151,8 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 			end = arguments[1];
 			increment = arguments[2];
 			break;
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid number of arguments for range()"));
 	}
 
 	Array::Ptr result = make_shared<Array>();

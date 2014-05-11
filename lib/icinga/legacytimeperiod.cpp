@@ -402,7 +402,6 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 		iter = begin;
 
 		tsend = mktime(&end);
-		tsiter = mktime(&iter);
 
 		do {
 			if (IsInTimeRange(&begin, &end, stride, &iter)) {

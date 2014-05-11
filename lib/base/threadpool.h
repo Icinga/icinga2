@@ -40,7 +40,7 @@ class I2_BASE_API ThreadPool
 public:
 	typedef boost::function<void ()> WorkFunction;
 
-	ThreadPool(int max_threads = -1);
+	ThreadPool(size_t max_threads = UINT_MAX);
 	~ThreadPool(void);
 
 	void Start(void);
@@ -110,7 +110,7 @@ private:
 	int m_ID;
 	static int m_NextID;
 
-	unsigned int m_MaxThreads;
+	size_t m_MaxThreads;
 
 	boost::thread_group m_ThreadGroup;
 

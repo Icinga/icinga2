@@ -33,10 +33,10 @@ using namespace icinga;
 
 int ThreadPool::m_NextID = 1;
 
-ThreadPool::ThreadPool(int max_threads)
+ThreadPool::ThreadPool(size_t max_threads)
 	: m_ID(m_NextID++), m_MaxThreads(max_threads), m_Stopped(false)
 {
-	if (m_MaxThreads != -1 && m_MaxThreads < sizeof(m_Queues) / sizeof(m_Queues[0]))
+	if (m_MaxThreads != UINT_MAX && m_MaxThreads < sizeof(m_Queues) / sizeof(m_Queues[0]))
 		m_MaxThreads = sizeof(m_Queues) / sizeof(m_Queues[0]);
 
 	Start();
@@ -242,7 +242,7 @@ void ThreadPool::ManagerThreadProc(void)
 				break;
 		}
 
-		for (int i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
+		for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
 			size_t pending, alive = 0;
 			double avg_latency;
 			double utilization = 0;
@@ -287,7 +287,7 @@ void ThreadPool::ManagerThreadProc(void)
 				if (tthreads > 0 && pending > 0)
 					tthreads = 8;
 
-				if (m_MaxThreads != -1 && (alive + tthreads) * (sizeof(m_Queues) / sizeof(m_Queues[0])) > m_MaxThreads)
+				if (m_MaxThreads != UINT_MAX && (alive + tthreads) * (sizeof(m_Queues) / sizeof(m_Queues[0])) > m_MaxThreads)
 					tthreads = m_MaxThreads / (sizeof(m_Queues) / sizeof(m_Queues[0])) - alive;
 
 				if (tthreads != 0) {
@@ -383,7 +383,7 @@ void ThreadPool::WorkerThread::UpdateUtilization(ThreadState state)
 			utilization = 1;
 			break;
 		default:
-			ASSERT(0);
+			VERIFY(0);
 	}
 
 	double now = Utility::GetTime();
