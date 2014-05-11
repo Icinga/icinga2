@@ -90,7 +90,7 @@ Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 
 	Array::Ptr arr1 = static_cast<Array::Ptr>(arguments[0])->ShallowClone();
 
-	for (int i = 1; i < arguments.size(); i++) {
+	for (std::vector<Value>::size_type i = 1; i < arguments.size(); i++) {
 		std::sort(arr1->Begin(), arr1->End());
 
 		Array::Ptr arr2 = static_cast<Array::Ptr>(arguments[i])->ShallowClone();
@@ -133,7 +133,7 @@ void ScriptUtils::Log(const std::vector<Value>& arguments)
 
 Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 {
-	int start, end, increment;
+	double start, end, increment;
 
 	switch (arguments.size()) {
 		case 1:
@@ -159,7 +159,7 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 	    (start > end && increment >= 0))
 		return result;
 
-	for (int i = start; i < end; i += increment) {
+	for (double i = start; i < end; i += increment) {
 		result->Add(i);
 	}
 

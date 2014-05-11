@@ -264,7 +264,7 @@ Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr
 	Array::Ptr arr = expr->EvaluateOperand2(locals);
 	std::vector<Value> arguments;
 	int index = 0;
-	for (int index = 0; index < arr->GetLength(); index++) {
+	for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 		const AExpression::Ptr& aexpr = arr->Get(index);
 		arguments.push_back(aexpr->Evaluate(locals));
 	}
@@ -279,7 +279,7 @@ Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& local
 
 	if (arr) {
 		int index = 0;
-		for (int index = 0; index < arr->GetLength(); index++) {
+		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const AExpression::Ptr& aexpr = arr->Get(index);
 			result->Add(aexpr->Evaluate(locals));
 		}
@@ -298,7 +298,7 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 
 	if (arr) {
 		int index = 0;
-		for (int index = 0; index < arr->GetLength(); index++) {
+		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const AExpression::Ptr& aexpr = arr->Get(index);
 			Dictionary::Ptr alocals = in_place ? locals : result;
 			aexpr->Evaluate(alocals);
@@ -483,7 +483,7 @@ Value AExpression::FunctionWrapper(const std::vector<Value>& arguments, const Ar
 	Dictionary::Ptr locals = make_shared<Dictionary>();
 	locals->Set("__parent", scope);
 
-	for (int i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
+	for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
 		locals->Set(funcargs->Get(i), arguments[i]);
 
 	expr->Evaluate(locals);

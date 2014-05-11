@@ -96,7 +96,6 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 	long stateType_after = vars_after->Get("state_type");
 	long attempt_after = vars_after->Get("attempt");
 	bool reachable_after = vars_after->Get("reachable");
-	bool host_reachable_after = vars_after->Get("host_reachable");
 
 	Dictionary::Ptr vars_before = cr->GetVarsBefore();
 

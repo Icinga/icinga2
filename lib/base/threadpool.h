@@ -110,7 +110,7 @@ private:
 	int m_ID;
 	static int m_NextID;
 
-	int m_MaxThreads;
+	unsigned int m_MaxThreads;
 
 	boost::thread_group m_ThreadGroup;
 

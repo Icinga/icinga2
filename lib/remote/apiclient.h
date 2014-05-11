@@ -67,7 +67,6 @@ private:
 	Stream::Ptr m_Stream;
 	ConnectionRole m_Role;
 	double m_Seen;
-	bool m_Syncing;
 
 	bool ProcessMessage(void);
 	void MessageThreadProc(void);

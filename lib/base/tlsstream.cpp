@@ -239,5 +239,5 @@ close_socket:
 
 bool TlsStream::IsEof(void) const
 {
-	return BIO_eof(m_BIO);
+	return (BIO_eof(m_BIO) == 1);
 }

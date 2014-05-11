@@ -96,7 +96,7 @@ private:
 	friend class boost::iterator_core_access;
 
 	DynamicType::Ptr m_Type;
-	int m_Index;
+	DynamicType::ObjectVector::size_type m_Index;
 	mutable shared_ptr<T> m_Current;
 
 	void increment(void)

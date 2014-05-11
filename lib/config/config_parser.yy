@@ -932,7 +932,7 @@ apply:
 				std::vector<String> types = ApplyRule::GetTargetTypes(type);
 				String typeNames;
 
-				for (int i = 0; i < types.size(); i++) {
+				for (std::vector<String>::size_type i = 0; i < types.size(); i++) {
 					if (typeNames != "") {
 						if (i == types.size() - 1)
 							typeNames += " or ";

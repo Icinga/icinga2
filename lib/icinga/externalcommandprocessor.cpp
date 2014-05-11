@@ -154,7 +154,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 		std::copy(arguments.begin(), arguments.begin() + argnum - 1, realArguments.begin());
 	
 		String last_argument;
-		for (int i = argnum - 1; i < arguments.size(); i++) {
+		for (std::vector<String>::size_type i = argnum - 1; i < arguments.size(); i++) {
 			if (!last_argument.IsEmpty())
 				last_argument += ";";
 

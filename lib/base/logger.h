@@ -80,7 +80,7 @@ private:
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
 
-	friend void Log(LogSeverity severity, const String& facility,
+	friend I2_BASE_API void Log(LogSeverity severity, const String& facility,
 	    const String& message);
 };
 

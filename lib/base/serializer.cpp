@@ -138,7 +138,7 @@ static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, bool 
 	ObjectLock olock(input);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
-		result->Set(kv.first, Deserialize(kv.second, attributeTypes));
+		result->Set(kv.first, Deserialize(kv.second, safe_mode, attributeTypes));
 	}
 
 	return result;

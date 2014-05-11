@@ -58,10 +58,10 @@ static void lb_init(lex_buf *lb)
 	lb->size = 0;
 }
 
-static void lb_cleanup(lex_buf *lb)
+/*static void lb_cleanup(lex_buf *lb)
 {
 	free(lb->buf);
-}
+}*/
 
 static void lb_append_char(lex_buf *lb, char new_char)
 {

@@ -54,12 +54,12 @@ Object::Ptr Type::Instantiate(void) const
 
 bool Type::IsAbstract(void) const
 {
-	return GetAttributes() & TAAbstract;
+	return ((GetAttributes() & TAAbstract) != 0);
 }
 
 bool Type::IsSafe(void) const
 {
-	return GetAttributes() & TASafe;
+	return ((GetAttributes() & TASafe) != 0);
 }
 
 bool Type::IsAssignableFrom(const Type *other) const

@@ -42,6 +42,8 @@ public:
 	 */
 	typedef std::vector<Value>::iterator Iterator;
 
+	typedef std::vector<Value>::size_type SizeType;
+
 	Value Get(unsigned int index) const;
 	void Set(unsigned int index, const Value& value);
 	void Add(const Value& value);

@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/application.h"
+#include "base/value.h"
 #include "base/array.h"
-#include "base/logger_fwd.h"
-#include "base/utility.h"
+#include "base/dictionary.h"
+#include "base/type.h"
 #include <cJSON.h>
 #include <boost/lexical_cast.hpp>
 

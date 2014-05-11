@@ -152,7 +152,7 @@ bool Value::operator==(const Value& rhs) const
 			if (arr1->GetLength() != arr2->GetLength())
 				return false;
 
-			for (int i = 0; i < arr1->GetLength(); i++) {
+			for (Array::SizeType i = 0; i < arr1->GetLength(); i++) {
 				if (arr1->Get(i) != arr2->Get(i))
 					return false;
 			}
@@ -471,7 +471,7 @@ Value icinga::operator>>(int lhs, const Value& rhs)
 	return Value(lhs) >> rhs;
 }
 
-Value icinga::operator<(const Value& lhs, const Value& rhs)
+bool icinga::operator<(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) < static_cast<String>(rhs);
@@ -483,27 +483,27 @@ Value icinga::operator<(const Value& lhs, const Value& rhs)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator < cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
-Value icinga::operator<(const Value& lhs, double rhs)
+bool icinga::operator<(const Value& lhs, double rhs)
 {
 	return lhs < Value(rhs);
 }
 
-Value icinga::operator<(double lhs, const Value& rhs)
+bool icinga::operator<(double lhs, const Value& rhs)
 {
 	return Value(lhs) < rhs;
 }
 
-Value icinga::operator<(const Value& lhs, int rhs)
+bool icinga::operator<(const Value& lhs, int rhs)
 {
 	return lhs < Value(rhs);
 }
 
-Value icinga::operator<(int lhs, const Value& rhs)
+bool icinga::operator<(int lhs, const Value& rhs)
 {
 	return Value(lhs) < rhs;
 }
 
-Value icinga::operator>(const Value& lhs, const Value& rhs)
+bool icinga::operator>(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) > static_cast<String>(rhs);
@@ -515,27 +515,27 @@ Value icinga::operator>(const Value& lhs, const Value& rhs)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator > cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
-Value icinga::operator>(const Value& lhs, double rhs)
+bool icinga::operator>(const Value& lhs, double rhs)
 {
 	return lhs > Value(rhs);
 }
 
-Value icinga::operator>(double lhs, const Value& rhs)
+bool icinga::operator>(double lhs, const Value& rhs)
 {
 	return Value(lhs) > rhs;
 }
 
-Value icinga::operator>(const Value& lhs, int rhs)
+bool icinga::operator>(const Value& lhs, int rhs)
 {
 	return lhs > Value(rhs);
 }
 
-Value icinga::operator>(int lhs, const Value& rhs)
+bool icinga::operator>(int lhs, const Value& rhs)
 {
 	return Value(lhs) > rhs;
 }
 
-Value icinga::operator<=(const Value& lhs, const Value& rhs)
+bool icinga::operator<=(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) <= static_cast<String>(rhs);
@@ -547,27 +547,27 @@ Value icinga::operator<=(const Value& lhs, const Value& rhs)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator <= cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
-Value icinga::operator<=(const Value& lhs, double rhs)
+bool icinga::operator<=(const Value& lhs, double rhs)
 {
 	return lhs <= Value(rhs);
 }
 
-Value icinga::operator<=(double lhs, const Value& rhs)
+bool icinga::operator<=(double lhs, const Value& rhs)
 {
 	return Value(lhs) <= rhs;
 }
 
-Value icinga::operator<=(const Value& lhs, int rhs)
+bool icinga::operator<=(const Value& lhs, int rhs)
 {
 	return lhs <= Value(rhs);
 }
 
-Value icinga::operator<=(int lhs, const Value& rhs)
+bool icinga::operator<=(int lhs, const Value& rhs)
 {
 	return Value(lhs) <= rhs;
 }
 
-Value icinga::operator>=(const Value& lhs, const Value& rhs)
+bool icinga::operator>=(const Value& lhs, const Value& rhs)
 {
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) >= static_cast<String>(rhs);
@@ -579,22 +579,22 @@ Value icinga::operator>=(const Value& lhs, const Value& rhs)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator >= cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
-Value icinga::operator>=(const Value& lhs, double rhs)
+bool icinga::operator>=(const Value& lhs, double rhs)
 {
 	return lhs >= Value(rhs);
 }
 
-Value icinga::operator>=(double lhs, const Value& rhs)
+bool icinga::operator>=(double lhs, const Value& rhs)
 {
 	return Value(lhs) >= rhs;
 }
 
-Value icinga::operator>=(const Value& lhs, int rhs)
+bool icinga::operator>=(const Value& lhs, int rhs)
 {
 	return lhs >= Value(rhs);
 }
 
-Value icinga::operator>=(int lhs, const Value& rhs)
+bool icinga::operator>=(int lhs, const Value& rhs)
 {
 	return Value(lhs) >= rhs;
 }
