@@ -23,18 +23,6 @@ using namespace icinga;
 
 REGISTER_TYPE(Command);
 
-bool Command::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
-{
-	Dictionary::Ptr vars = GetVars();
-
-	if (vars && vars->Contains(macro)) {
-		*result = vars->Get(macro);
-		return true;
-	}
-
-	return false;
-}
-
 int Command::GetModifiedAttributes(void) const
 {
 	int attrs = 0;

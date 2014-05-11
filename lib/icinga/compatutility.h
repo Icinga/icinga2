@@ -21,8 +21,8 @@
 #define COMPATUTILITY_H
 
 #include "icinga/i2-icinga.h"
-#include "icinga/service.h"
-#include "icinga/checkcommand.h"
+#include "icinga/host.h"
+#include "icinga/command.h"
 #include "base/dictionary.h"
 #include "base/array.h"
 #include "base/dynamicobject.h"

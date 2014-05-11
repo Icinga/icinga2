@@ -19,15 +19,11 @@
 
 #include "base/threadpool.h"
 #include "base/logger_fwd.h"
-#include "base/convert.h"
 #include "base/debug.h"
 #include "base/utility.h"
-#include "base/application.h"
 #include "base/exception.h"
-#include <sstream>
 #include <iostream>
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

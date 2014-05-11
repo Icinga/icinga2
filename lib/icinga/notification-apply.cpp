@@ -17,11 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "icinga/notification.h"
 #include "icinga/service.h"
 #include "config/configitembuilder.h"
+#include "config/applyrule.h"
 #include "base/initialize.h"
 #include "base/dynamictype.h"
-#include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/context.h"
 #include <boost/foreach.hpp>

@@ -23,8 +23,6 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/command.h"
 #include "base/qstring.h"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/once.hpp>
 #include <boost/function.hpp>
 #include <boost/signals2.hpp>
 #include <vector>

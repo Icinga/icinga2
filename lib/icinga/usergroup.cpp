@@ -18,11 +18,10 @@
  ******************************************************************************/
 
 #include "icinga/usergroup.h"
+#include "config/objectrule.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
-#include "base/timer.h"
-#include "base/utility.h"
 #include "base/context.h"
 #include <boost/foreach.hpp>
 

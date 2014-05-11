@@ -17,7 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "i2-base.h"
 #include "base/process.h"
 #include "base/exception.h"
 #include "base/convert.h"
@@ -29,10 +28,8 @@
 #include "base/utility.h"
 #include "base/scriptvariable.h"
 #include <boost/foreach.hpp>
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread/thread.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/thread/once.hpp>
 
 #ifndef _WIN32
 #	include <execvpe.h>

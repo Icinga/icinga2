@@ -21,7 +21,7 @@
 #define STDIOSTREAM_H
 
 #include "base/i2-base.h"
-#include "base/fifo.h"
+#include "base/stream.h"
 #include <iostream>
 
 namespace icinga {

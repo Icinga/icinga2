@@ -23,9 +23,7 @@
 #include "remote/endpoint.h"
 #include "base/stream.h"
 #include "base/timer.h"
-#include "base/array.h"
 #include "remote/i2-remote.h"
-#include <boost/signals2.hpp>
 
 namespace icinga
 {

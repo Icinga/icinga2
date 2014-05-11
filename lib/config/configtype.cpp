@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
+#include "base/singleton.h"
 #include "base/scriptfunction.h"
 #include <boost/foreach.hpp>
 

@@ -25,6 +25,7 @@
 #include "base/initialize.h"
 #include "base/dynamictype.h"
 #include "base/utility.h"
+#include "base/logger_fwd.h"
 #include "remote/endpoint.h"
 #include "icinga/notification.h"
 #include "icinga/checkcommand.h"

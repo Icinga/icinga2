@@ -21,7 +21,7 @@
 #define CHECKCOMMAND_H
 
 #include "icinga/checkcommand.th"
-#include "icinga/service.h"
+#include "icinga/checkable.h"
 
 namespace icinga
 {

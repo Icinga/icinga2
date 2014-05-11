@@ -26,6 +26,7 @@
 #include "base/dynamictype.h"
 #include "base/utility.h"
 #include "base/application.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 

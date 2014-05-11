@@ -21,7 +21,6 @@
 #include "base/dynamictype.h"
 #include "base/serializer.h"
 #include "base/netstring.h"
-#include "base/registry.h"
 #include "base/stdiostream.h"
 #include "base/debug.h"
 #include "base/objectlock.h"
@@ -31,7 +30,6 @@
 #include "base/initialize.h"
 #include "base/scriptvariable.h"
 #include <fstream>
-#include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -40,7 +38,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(DynamicObject);
-INITIALIZE_ONCE(&DynamicObject::StaticInitialize);
 
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
@@ -48,16 +45,6 @@ boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnPause
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnResumed;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnVarsChanged;
-
-void DynamicObject::StaticInitialize(void)
-{
-	ScriptVariable::Set("DomainPrivRead", DomainPrivRead, true, true);
-	ScriptVariable::Set("DomainPrivCheckResult", DomainPrivCheckResult, true, true);
-	ScriptVariable::Set("DomainPrivCommand", DomainPrivCommand, true, true);
-
-	ScriptVariable::Set("DomainPrivReadOnly", DomainPrivRead, true, true);
-	ScriptVariable::Set("DomainPrivReadWrite", DomainPrivRead | DomainPrivCheckResult | DomainPrivCommand, true, true);
-}
 
 DynamicObject::DynamicObject(void)
 { }

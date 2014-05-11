@@ -28,12 +28,10 @@
 #include "base/type.h"
 #include "base/convert.h"
 #include "base/scriptvariable.h"
+#include "base/process.h"
 #include "icinga-version.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -48,7 +46,7 @@ REGISTER_TYPE(Application);
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
-bool Application::m_Restarting = false;
+static bool l_Restarting = false;
 bool Application::m_Debugging = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
@@ -252,10 +250,10 @@ mainloop:
 		m_RequestRestart = false;         // we are now handling the request, once is enough
 
 		// are we already restarting? ignore request if we already are
-		if (m_Restarting)
+		if (l_Restarting)
 			goto mainloop;
 
-		m_Restarting = true;
+		l_Restarting = true;
 		StartReloadProcess();
 
 		goto mainloop;
@@ -280,6 +278,13 @@ void Application::OnShutdown(void)
 	/* Nothing to do here. */
 }
 
+static void ReloadProcessCallback(const ProcessResult& pr)
+{
+	if (pr.ExitStatus != 0)
+		Log(LogCritical, "base", "Found error in config: reloading aborted");
+	l_Restarting = false;
+}
+
 void Application::StartReloadProcess(void) const
 {
 	Log(LogInformation, "base", "Got reload command: Starting new instance.");
@@ -299,14 +304,7 @@ void Application::StartReloadProcess(void) const
 
 	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-	process->Run(boost::bind(&Application::ReloadProcessCallback, _1));
-}
-
-void Application::ReloadProcessCallback(const ProcessResult& pr)
-{
-	if (pr.ExitStatus != 0)
-		Log(LogCritical, "base", "Found error in config: reloading aborted");
-	m_Restarting=false;
+	process->Run(&ReloadProcessCallback);
 }
 
 /**

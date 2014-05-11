@@ -20,11 +20,9 @@
 #ifndef ENDPOINT_H
 #define ENDPOINT_H
 
-#include "remote/endpoint.th"
-#include "base/stream.h"
-#include "base/array.h"
 #include "remote/i2-remote.h"
-#include <boost/signals2.hpp>
+#include "remote/endpoint.th"
+#include <set>
 
 namespace icinga
 {

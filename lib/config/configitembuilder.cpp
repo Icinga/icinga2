@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "config/configitembuilder.h"
-#include "config/configcompilercontext.h"
 #include "base/dynamictype.h"
 #include <sstream>
 #include <boost/foreach.hpp>

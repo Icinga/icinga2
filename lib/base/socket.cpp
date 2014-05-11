@@ -22,11 +22,8 @@
 #include "base/utility.h"
 #include "base/exception.h"
 #include <sstream>
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
-#include <boost/exception/errinfo_file_name.hpp>
 
 #ifndef _WIN32
 #	include <poll.h>

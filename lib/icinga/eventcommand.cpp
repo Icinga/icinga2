@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/eventcommand.h"
-#include "base/dynamictype.h"
 
 using namespace icinga;
 

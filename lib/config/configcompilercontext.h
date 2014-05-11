@@ -21,8 +21,9 @@
 #define CONFIGCOMPILERCONTEXT_H
 
 #include "config/i2-config.h"
-#include "config/configitem.h"
-#include "config/configtype.h"
+#include "config/debuginfo.h"
+#include <boost/thread/mutex.hpp>
+#include <vector>
 
 namespace icinga
 {

@@ -18,22 +18,11 @@
  ******************************************************************************/
 
 #include "icinga/icingastatuswriter.h"
-#include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
-#include "icinga/hostgroup.h"
-#include "icinga/servicegroup.h"
-#include "icinga/checkcommand.h"
-#include "icinga/eventcommand.h"
-#include "icinga/timeperiod.h"
-#include "icinga/notificationcommand.h"
-#include "icinga/compatutility.h"
 #include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
 #include "base/logger_fwd.h"
 #include "base/exception.h"
 #include "base/application.h"
-#include "base/context.h"
 #include "base/statsfunction.h"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>

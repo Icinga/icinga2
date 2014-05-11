@@ -22,11 +22,6 @@
 
 #include "icinga/checkable.h"
 #include "icinga/host.h"
-#include "remote/apiclient.h"
-#include "base/stream.h"
-#include "base/timer.h"
-#include "base/array.h"
-#include <boost/signals2.hpp>
 
 namespace icinga
 {

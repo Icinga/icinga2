@@ -21,16 +21,15 @@
 #define PLUGINUTILITY_H
 
 #include "icinga/i2-icinga.h"
-#include "icinga/service.h"
+#include "icinga/checkable.h"
 #include "icinga/checkcommand.h"
 #include "icinga/macroprocessor.h"
-#include "base/process.h"
-#include "base/dictionary.h"
-#include "base/dynamicobject.h"
 #include <vector>
 
 namespace icinga
 {
+
+struct ProcessResult;
 
 /**
  * Utility functions for plugin-based checks.

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/netstring.h"
+#include "base/qstring.h"
 #include "base/debug.h"
 #include <sstream>
 

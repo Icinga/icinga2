@@ -24,15 +24,11 @@
 #include "icinga/host.th"
 #include "icinga/macroresolver.h"
 #include "icinga/checkresult.h"
-#include "config/applyrule.h"
-#include "base/array.h"
-#include "base/dictionary.h"
 
 namespace icinga
 {
 
 class Service;
-class Dependency;
 
 /**
  * An Icinga host.

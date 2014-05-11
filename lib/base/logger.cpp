@@ -24,9 +24,7 @@
 #include "base/utility.h"
 #include "base/objectlock.h"
 #include "base/context.h"
-#include "base/convert.h"
 #include "base/scriptvariable.h"
-#include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
 

@@ -21,9 +21,7 @@
 #define STACKTRACE_H
 
 #include "base/i2-base.h"
-#include "base/qstring.h"
 #include <ostream>
-#include <boost/thread/once.hpp>
 
 namespace icinga
 {

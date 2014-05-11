@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.h"
 #include "config/applyrule.h"
 #include "config/objectrule.h"
+#include "config/configtype.h"
 #include "base/application.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"

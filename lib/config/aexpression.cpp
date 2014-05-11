@@ -25,7 +25,6 @@
 #include "config/objectrule.h"
 #include "base/array.h"
 #include "base/serializer.h"
-#include "base/context.h"
 #include "base/scriptfunction.h"
 #include "base/scriptvariable.h"
 #include "base/utility.h"

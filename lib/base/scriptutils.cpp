@@ -25,7 +25,7 @@
 #include "base/dictionary.h"
 #include "base/serializer.h"
 #include "base/logger_fwd.h"
-#include "base/application.h"
+#include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>

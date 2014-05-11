@@ -19,8 +19,6 @@
 
 #include "base/scriptfunction.h"
 #include "base/scriptvariable.h"
-#include "base/registry.h"
-#include "base/singleton.h"
 
 using namespace icinga;
 

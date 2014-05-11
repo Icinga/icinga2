@@ -22,7 +22,6 @@
 #include "base/dictionary.h"
 #include "base/type.h"
 #include <cJSON.h>
-#include <boost/lexical_cast.hpp>
 
 using namespace icinga;
 

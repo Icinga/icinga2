@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/notificationcommand.h"
-#include "base/dynamictype.h"
 
 using namespace icinga;
 

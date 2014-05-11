@@ -22,12 +22,11 @@
 
 #include "base/i2-base.h"
 #include "base/object.h"
-#include "base/qstring.h"
-#include <boost/exception_ptr.hpp>
-#include <boost/signals2.hpp>
 
 namespace icinga
 {
+
+class String;
 
 enum ConnectionRole
 {

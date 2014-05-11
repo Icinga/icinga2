@@ -20,10 +20,7 @@
 #include "base/qstring.h"
 #include "base/value.h"
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/compare.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/classification.hpp>
+#include <ostream>
 
 using namespace icinga;
 

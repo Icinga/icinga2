@@ -23,16 +23,13 @@
 #include "remote/apilistener.th"
 #include "remote/apiclient.h"
 #include "remote/endpoint.h"
-#include "remote/zone.h"
 #include "remote/messageorigin.h"
 #include "base/dynamicobject.h"
 #include "base/timer.h"
-#include "base/array.h"
 #include "base/workqueue.h"
 #include "base/tcpsocket.h"
 #include "base/tlsstream.h"
-#include "base/utility.h"
-#include "base/tlsutility.h"
+#include <set>
 
 namespace icinga
 {

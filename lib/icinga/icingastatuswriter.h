@@ -21,15 +21,7 @@
 #define ICINGASTATUSWRITER_H
 
 #include "icinga/icingastatuswriter.th"
-#include "icinga/host.h"
-#include "icinga/service.h"
-#include "icinga/command.h"
-#include "icinga/compatutility.h"
-#include "base/objectlock.h"
 #include "base/timer.h"
-#include "base/utility.h"
-#include <boost/thread/thread.hpp>
-#include <iostream>
 
 namespace icinga
 {

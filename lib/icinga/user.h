@@ -22,9 +22,7 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/user.th"
-#include "icinga/macroresolver.h"
 #include "icinga/timeperiod.h"
-#include "base/array.h"
 #include "remote/messageorigin.h"
 
 namespace icinga

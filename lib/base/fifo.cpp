@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/fifo.h"
-#include "base/utility.h"
 
 using namespace icinga;
 

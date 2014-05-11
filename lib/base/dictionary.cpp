@@ -21,7 +21,6 @@
 #include "base/objectlock.h"
 #include "base/debug.h"
 #include <cJSON.h>
-#include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;

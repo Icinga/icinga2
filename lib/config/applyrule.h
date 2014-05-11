@@ -23,7 +23,7 @@
 #include "config/i2-config.h"
 #include "config/aexpression.h"
 #include "config/debuginfo.h"
-#include "base/dynamictype.h"
+#include <boost/function.hpp>
 
 namespace icinga
 {

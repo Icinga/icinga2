@@ -22,7 +22,6 @@
 
 #include "base/i2-base.h"
 #include "base/logger.th"
-#include "base/dynamicobject.h"
 #include "base/logger_fwd.h"
 #include <set>
 

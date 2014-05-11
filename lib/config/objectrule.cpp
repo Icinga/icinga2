@@ -18,7 +18,8 @@
  ******************************************************************************/
 
 #include "config/objectrule.h"
-#include "base/logger_fwd.h"
+#include <boost/foreach.hpp>
+#include <set>
 
 using namespace icinga;
 

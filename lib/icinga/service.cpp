@@ -19,17 +19,10 @@
 
 #include "icinga/service.h"
 #include "icinga/servicegroup.h"
-#include "icinga/checkcommand.h"
-#include "icinga/icingaapplication.h"
-#include "icinga/macroprocessor.h"
 #include "icinga/pluginutility.h"
-#include "icinga/dependency.h"
-#include "config/configitembuilder.h"
-#include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/convert.h"
 #include "base/utility.h"
-#include "base/initialize.h"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
 

@@ -21,9 +21,8 @@
 #define API_H
 
 #include "icinga/i2-icinga.h"
-#include "remote/apiclient.h"
 #include "base/value.h"
-#include <vector>
+#include "base/dictionary.h"
 
 namespace icinga
 {

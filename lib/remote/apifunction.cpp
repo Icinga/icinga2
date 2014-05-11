@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "remote/apifunction.h"
-#include "base/registry.h"
 #include "base/singleton.h"
 
 using namespace icinga;

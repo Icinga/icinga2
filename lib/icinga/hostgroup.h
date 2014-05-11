@@ -23,10 +23,11 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/hostgroup.th"
 #include "icinga/host.h"
-#include "config/objectrule.h"
 
 namespace icinga
 {
+
+class ObjectRule;
 
 /**
  * An Icinga host group.

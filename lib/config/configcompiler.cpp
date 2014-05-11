@@ -23,7 +23,6 @@
 #include "base/utility.h"
 #include "base/context.h"
 #include "base/exception.h"
-#include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
 

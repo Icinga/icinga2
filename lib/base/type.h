@@ -22,7 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/qstring.h"
-#include "base/serializer.h"
+#include "base/object.h"
 #include "base/initialize.h"
 #include <boost/function.hpp>
 

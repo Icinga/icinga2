@@ -24,7 +24,6 @@
 #include "base/exception.h"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
-#include <boost/function.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>

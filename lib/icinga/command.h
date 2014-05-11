@@ -20,13 +20,9 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+#include "icinga/i2-icinga.h"
 #include "icinga/command.th"
-#include "icinga/macroresolver.h"
-#include "base/i2-base.h"
-#include "base/array.h"
-#include "base/logger_fwd.h"
 #include "remote/messageorigin.h"
-#include <set>
 
 namespace icinga
 {
@@ -36,14 +32,12 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Command : public ObjectImpl<Command>, public MacroResolver
+class I2_ICINGA_API Command : public ObjectImpl<Command>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Command);
 
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
-
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());

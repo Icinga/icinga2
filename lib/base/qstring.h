@@ -21,10 +21,10 @@
 #define STRING_H
 
 #include "base/i2-base.h"
-#include <boost/range/iterator.hpp>
-#include <ostream>
+#include <string.h>
+#include <functional>
+#include <string>
 #include <istream>
-#include <utility>
 
 namespace icinga {
 
@@ -173,11 +173,15 @@ struct string_iless : std::binary_function<String, String, bool>
 namespace boost
 {
 
+template <typename C> struct range_mutable_iterator;
+
 template<>
 struct range_mutable_iterator<icinga::String>
 {
 	typedef icinga::String::Iterator type;
 };
+
+template <typename C> struct range_const_iterator;
 
 template<>
 struct range_const_iterator<icinga::String>

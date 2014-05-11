@@ -17,9 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/service.h"
+#include "icinga/checkable.h"
 #include "icinga/eventcommand.h"
 #include "icinga/icingaapplication.h"
+#include "base/logger_fwd.h"
 #include "base/context.h"
 
 using namespace icinga;

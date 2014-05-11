@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/exception.h"
+#include <boost/thread/tss.hpp>
 
 #ifndef _MSC_VER
 #	include <cxxabi.h>

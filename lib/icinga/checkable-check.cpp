@@ -17,20 +17,17 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/service.h"
+#include "icinga/checkable.h"
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
-#include "remote/apilistener.h"
-#include "base/dynamictype.h"
+#include "remote/messageorigin.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/convert.h"
 #include "base/utility.h"
-#include "base/exception.h"
 #include "base/context.h"
 #include <boost/foreach.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 

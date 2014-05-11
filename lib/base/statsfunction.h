@@ -22,10 +22,8 @@
 
 #include "base/i2-base.h"
 #include "base/registry.h"
-#include "base/singleton.h"
 #include "base/value.h"
 #include "base/dictionary.h"
-#include <vector>
 #include <boost/function.hpp>
 
 namespace icinga

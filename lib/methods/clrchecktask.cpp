@@ -30,6 +30,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
+#include <boost/thread/once.hpp>
 #include <objbase.h>
 #include <mscoree.h>
 

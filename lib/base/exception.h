@@ -25,7 +25,6 @@
 #include "base/stacktrace.h"
 #include "base/context.h"
 #include <sstream>
-#include <boost/thread/tss.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>

@@ -18,8 +18,6 @@
  ******************************************************************************/
 
 #include "base/networkstream.h"
-#include "base/objectlock.h"
-#include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;
 

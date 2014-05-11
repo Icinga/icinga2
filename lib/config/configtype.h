@@ -21,12 +21,11 @@
 #define CONFIGTYPE_H
 
 #include "config/i2-config.h"
-#include "config/typerule.h"
 #include "config/typerulelist.h"
+#include "config/typerule.h"
 #include "config/configitem.h"
 #include "base/array.h"
 #include "base/registry.h"
-#include "base/singleton.h"
 
 namespace icinga
 {

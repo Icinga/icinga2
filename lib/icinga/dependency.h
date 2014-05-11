@@ -22,12 +22,12 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/dependency.th"
-#include "config/applyrule.h"
-#include "base/array.h"
 #include "base/dictionary.h"
 
 namespace icinga
 {
+
+class ApplyRule;
 
 /**
  * A service dependency..

@@ -19,7 +19,6 @@
 
 #include "icinga/macroprocessor.h"
 #include "icinga/macroresolver.h"
-#include "base/utility.h"
 #include "base/array.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"

@@ -25,8 +25,8 @@
 #include "icinga/user.h"
 #include "icinga/usergroup.h"
 #include "icinga/timeperiod.h"
+#include "icinga/checkresult.h"
 #include "remote/messageorigin.h"
-#include "config/applyrule.h"
 #include "base/array.h"
 
 namespace icinga
@@ -66,6 +66,7 @@ enum NotificationType
 
 class NotificationCommand;
 class Checkable;
+class ApplyRule;
 
 /**
  * An Icinga notification specification.

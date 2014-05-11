@@ -22,6 +22,7 @@
 
 #include "i2-config.h"
 #include "config/configitembuilder.h"
+#include "config/configtype.h"
 #include "config/configcompiler.h"
 #include "config/configcompilercontext.h"
 #include "config/configerror.h"
@@ -30,6 +31,7 @@
 #include "config/aexpression.h"
 #include "config/applyrule.h"
 #include "config/objectrule.h"
+#include "config/aexpression.h"
 #include "base/value.h"
 #include "base/utility.h"
 #include "base/array.h"

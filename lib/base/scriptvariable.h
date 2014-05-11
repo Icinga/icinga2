@@ -22,7 +22,6 @@
 
 #include "base/i2-base.h"
 #include "base/registry.h"
-#include "base/singleton.h"
 #include "base/value.h"
 
 namespace icinga

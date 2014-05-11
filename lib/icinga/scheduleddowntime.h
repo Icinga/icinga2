@@ -22,12 +22,13 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/scheduleddowntime.th"
-#include "icinga/service.h"
-#include "config/applyrule.h"
+#include "icinga/checkable.h"
 #include <utility>
 
 namespace icinga
 {
+
+class ApplyRule;
 
 /**
  * An Icinga scheduled downtime specification.

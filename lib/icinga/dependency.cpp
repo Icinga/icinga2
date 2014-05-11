@@ -20,10 +20,7 @@
 #include "icinga/dependency.h"
 #include "icinga/service.h"
 #include "config/configcompilercontext.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
 #include "base/logger_fwd.h"
-#include "base/convert.h"
 #include "base/scriptfunction.h"
 #include <boost/foreach.hpp>
 

@@ -21,10 +21,8 @@
 #define APIFUNCTION_H
 
 #include "remote/i2-remote.h"
-#include "remote/apiclient.h"
 #include "remote/messageorigin.h"
 #include "base/registry.h"
-#include "base/singleton.h"
 #include "base/value.h"
 #include "base/dictionary.h"
 #include <vector>

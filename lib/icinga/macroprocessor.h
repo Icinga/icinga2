@@ -21,11 +21,10 @@
 #define MACROPROCESSOR_H
 
 #include "icinga/i2-icinga.h"
-#include "icinga/macroresolver.h"
-#include "base/dictionary.h"
-#include "base/array.h"
+#include "icinga/checkable.h"
+#include "base/value.h"
 #include <boost/function.hpp>
-#include <map>
+#include <vector>
 
 namespace icinga
 {

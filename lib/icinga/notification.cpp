@@ -19,10 +19,8 @@
 
 #include "icinga/notification.h"
 #include "icinga/notificationcommand.h"
-#include "icinga/macroprocessor.h"
 #include "icinga/service.h"
 #include "config/configcompilercontext.h"
-#include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/utility.h"

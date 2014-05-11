@@ -21,8 +21,6 @@
 #define SCRIPTFUNCTION_H
 
 #include "base/i2-base.h"
-#include "base/registry.h"
-#include "base/singleton.h"
 #include "base/value.h"
 #include "base/scriptfunctionwrapper.h"
 #include <vector>

@@ -24,14 +24,6 @@
 #include "icinga/service.th"
 #include "icinga/macroresolver.h"
 #include "icinga/host.h"
-#include "icinga/timeperiod.h"
-#include "icinga/notification.h"
-#include "icinga/comment.h"
-#include "icinga/downtime.h"
-#include "base/i2-base.h"
-#include "base/array.h"
-#include <boost/signals2.hpp>
-#include <boost/thread/once.hpp>
 
 namespace icinga
 {

@@ -22,7 +22,7 @@
 
 #include "base/i2-base.h"
 #include "base/socket.h"
-#include "base/fifo.h"
+#include "base/stream.h"
 #include "base/tlsutility.h"
 
 namespace icinga

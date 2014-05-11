@@ -19,10 +19,8 @@
 
 #include "remote/jsonrpc.h"
 #include "base/netstring.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
 #include "base/serializer.h"
-#include <iostream>
+//#include <iostream>
 
 using namespace icinga;
 

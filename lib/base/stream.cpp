@@ -18,8 +18,7 @@
  ******************************************************************************/
 
 #include "base/stream.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
+#include "base/qstring.h"
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/scriptvariable.h"
-#include "base/logger_fwd.h"
+#include "base/singleton.h"
 
 using namespace icinga;
 

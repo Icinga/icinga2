@@ -20,8 +20,6 @@
 #include "base/stacktrace.h"
 #include "base/qstring.h"
 #include "base/utility.h"
-#include "base/convert.h"
-#include "base/application.h"
 #include "base/initialize.h"
 
 #ifdef HAVE_BACKTRACE_SYMBOLS

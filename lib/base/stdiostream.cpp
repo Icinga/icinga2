@@ -19,7 +19,6 @@
 
 #include "base/stdiostream.h"
 #include "base/objectlock.h"
-#include <boost/make_shared.hpp>
 
 using namespace icinga;
 

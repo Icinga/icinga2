@@ -30,6 +30,7 @@
 #include "base/scriptfunction.h"
 #include "base/dynamictype.h"
 #include <boost/algorithm/string/join.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 

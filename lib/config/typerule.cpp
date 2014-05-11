@@ -19,7 +19,6 @@
 
 #include "config/typerule.h"
 #include "config/configitem.h"
-#include "config/configcompilercontext.h"
 #include "base/convert.h"
 #include "base/utility.h"
 #include "base/dictionary.h"

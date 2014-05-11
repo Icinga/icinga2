@@ -17,19 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/service.h"
-#include "icinga/servicegroup.h"
-#include "icinga/checkcommand.h"
-#include "icinga/icingaapplication.h"
-#include "icinga/macroprocessor.h"
-#include "icinga/pluginutility.h"
-#include "icinga/dependency.h"
-#include "config/configitembuilder.h"
-#include "base/dynamictype.h"
+#include "icinga/checkable.h"
 #include "base/objectlock.h"
-#include "base/convert.h"
 #include "base/utility.h"
-#include "base/initialize.h"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
 

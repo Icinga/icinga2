@@ -18,13 +18,9 @@
  ******************************************************************************/
 
 #include "icinga/pluginutility.h"
-#include "icinga/checkcommand.h"
 #include "icinga/macroprocessor.h"
-#include "icinga/icingaapplication.h"
 #include "icinga/perfdatavalue.h"
-#include "base/dynamictype.h"
 #include "base/logger_fwd.h"
-#include "base/scriptfunction.h"
 #include "base/utility.h"
 #include "base/convert.h"
 #include "base/process.h"

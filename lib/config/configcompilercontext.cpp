@@ -18,8 +18,6 @@
  ******************************************************************************/
 
 #include "config/configcompilercontext.h"
-#include "base/utility.h"
-#include "base/logger_fwd.h"
 #include "base/singleton.h"
 #include <boost/foreach.hpp>
 

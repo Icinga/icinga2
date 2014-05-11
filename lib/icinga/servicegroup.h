@@ -23,10 +23,11 @@
 #include "icinga/i2-icinga.h"
 #include "icinga/servicegroup.th"
 #include "icinga/service.h"
-#include "config/objectrule.h"
 
 namespace icinga
 {
+
+class ObjectRule;
 
 /**
  * An Icinga service group.

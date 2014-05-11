@@ -19,14 +19,11 @@
 
 #include "remote/zone.h"
 #include "remote/apilistener.h"
-#include "base/application.h"
 #include "base/dynamictype.h"
-#include "base/objectlock.h"
 #include "base/utility.h"
 #include "base/initialize.h"
 #include "base/timer.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 

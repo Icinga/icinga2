@@ -22,7 +22,6 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/timeperiod.th"
-#include "base/array.h"
 
 namespace icinga
 {

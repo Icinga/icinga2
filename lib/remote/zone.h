@@ -20,11 +20,9 @@
 #ifndef ZONE_H
 #define ZONE_H
 
+#include "remote/i2-remote.h"
 #include "remote/zone.th"
 #include "remote/endpoint.h"
-#include "base/array.h"
-#include "remote/i2-remote.h"
-#include <boost/signals2.hpp>
 
 namespace icinga
 {

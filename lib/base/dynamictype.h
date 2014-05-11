@@ -21,13 +21,10 @@
 #define DYNAMICTYPE_H
 
 #include "base/i2-base.h"
-#include "base/registry.h"
 #include "base/dynamicobject.h"
 #include "base/debug.h"
 #include "base/objectlock.h"
 #include <map>
-#include <set>
-#include <boost/function.hpp>
 # include <boost/iterator/iterator_facade.hpp>
 
 namespace icinga

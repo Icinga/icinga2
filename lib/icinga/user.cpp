@@ -21,10 +21,9 @@
 #include "icinga/notification.h"
 #include "icinga/usergroup.h"
 #include "config/configcompilercontext.h"
-#include "base/dynamictype.h"
 #include "base/scriptfunction.h"
-#include "base/utility.h"
 #include "base/objectlock.h"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 

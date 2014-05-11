@@ -21,13 +21,11 @@
 #define PROCESS_H
 
 #include "base/i2-base.h"
-#include "base/timer.h"
 #include "base/dictionary.h"
+#include <boost/function.hpp>
 #include <sstream>
 #include <deque>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/once.hpp>
+#include <vector>
 
 namespace icinga
 {

@@ -22,16 +22,11 @@
 
 #include "icinga/i2-icinga.h"
 #include "icinga/checkable.th"
-#include "icinga/macroresolver.h"
 #include "icinga/timeperiod.h"
 #include "icinga/notification.h"
 #include "icinga/comment.h"
 #include "icinga/downtime.h"
 #include "remote/messageorigin.h"
-#include "base/i2-base.h"
-#include "base/array.h"
-#include <boost/signals2.hpp>
-#include <boost/thread/once.hpp>
 
 namespace icinga
 {

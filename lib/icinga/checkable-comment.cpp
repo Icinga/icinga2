@@ -20,9 +20,9 @@
 #include "icinga/service.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
-#include "base/logger_fwd.h"
 #include "base/timer.h"
 #include "base/utility.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

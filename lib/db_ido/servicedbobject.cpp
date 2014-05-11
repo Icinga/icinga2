@@ -21,12 +21,6 @@
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
 #include "db_ido/dbevents.h"
-#include "base/convert.h"
-#include "base/objectlock.h"
-#include "base/initialize.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "remote/endpoint.h"
 #include "icinga/notification.h"
 #include "icinga/dependency.h"
 #include "icinga/checkcommand.h"
@@ -34,6 +28,13 @@
 #include "icinga/externalcommandprocessor.h"
 #include "icinga/compatutility.h"
 #include "icinga/icingaapplication.h"
+#include "remote/endpoint.h"
+#include "base/convert.h"
+#include "base/objectlock.h"
+#include "base/initialize.h"
+#include "base/dynamictype.h"
+#include "base/utility.h"
+#include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 

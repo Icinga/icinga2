@@ -19,7 +19,6 @@
 
 #include "icinga/downtime.h"
 #include "base/utility.h"
-#include "base/dynamictype.h"
 
 using namespace icinga;
 

@@ -20,6 +20,7 @@
 #include "icinga/scheduleddowntime.h"
 #include "icinga/legacytimeperiod.h"
 #include "icinga/downtime.h"
+#include "icinga/service.h"
 #include "base/timer.h"
 #include "base/dynamictype.h"
 #include "base/initialize.h"

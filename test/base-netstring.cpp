@@ -19,6 +19,7 @@
 
 #include "base/netstring.h"
 #include "base/fifo.h"
+#include "base/qstring.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace icinga;

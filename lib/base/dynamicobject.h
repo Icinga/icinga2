@@ -23,23 +23,15 @@
 #include "base/i2-base.h"
 #include "base/dynamicobject.th"
 #include "base/object.h"
+#include "base/serializer.h"
 #include "base/dictionary.h"
-#include "base/array.h"
 #include <boost/signals2.hpp>
 #include <map>
-#include <set>
 
 namespace icinga
 {
 
 class DynamicType;
-
-enum DomainPriv
-{
-	DomainPrivRead = (1<<0),
-	DomainPrivCheckResult = (1<<1),
-	DomainPrivCommand = (1<<2)
-};
 
 enum ModifiedAttributeType
 {
@@ -72,8 +64,6 @@ class I2_BASE_API DynamicObject : public ObjectImpl<DynamicObject>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DynamicObject);
-
-	static void StaticInitialize(void);
 
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;

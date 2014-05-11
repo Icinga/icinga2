@@ -21,6 +21,7 @@
 #include "config/configcompiler.h"
 #include "config/typerule.h"
 #include "config/configcompilercontext.h"
+#include "config/aexpression.h"
 
 using namespace icinga;
 

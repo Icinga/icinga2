@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/service.h"
-#include "config/configitembuilder.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"

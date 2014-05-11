@@ -21,16 +21,13 @@
 #include "icinga/checkcommand.h"
 #include "icinga/eventcommand.h"
 #include "icinga/pluginutility.h"
+#include "icinga/service.h"
 #include "base/utility.h"
 #include "base/dynamictype.h"
 #include "base/objectlock.h"
-#include "base/debug.h"
 #include "base/convert.h"
-#include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;

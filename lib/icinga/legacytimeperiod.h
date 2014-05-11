@@ -21,7 +21,7 @@
 #define LEGACYTIMEPERIOD_H
 
 #include "icinga/i2-icinga.h"
-#include "icinga/service.h"
+#include "icinga/timeperiod.h"
 #include "base/dictionary.h"
 
 namespace icinga

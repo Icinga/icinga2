@@ -20,8 +20,6 @@
 #include "base/streamlogger.h"
 #include "base/utility.h"
 #include "base/objectlock.h"
-#include <boost/thread/thread.hpp>
-#include <fstream>
 #include <iostream>
 
 using namespace icinga;

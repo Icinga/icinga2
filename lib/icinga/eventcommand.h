@@ -21,7 +21,7 @@
 #define EVENTCOMMAND_H
 
 #include "icinga/eventcommand.th"
-#include "icinga/service.h"
+#include "icinga/checkable.h"
 
 namespace icinga
 {

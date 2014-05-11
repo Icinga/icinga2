@@ -18,12 +18,9 @@
  ******************************************************************************/
 
 #include "base/tlsstream.h"
-#include "base/objectlock.h"
-#include "base/debug.h"
 #include "base/utility.h"
 #include "base/exception.h"
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
 using namespace icinga;
 

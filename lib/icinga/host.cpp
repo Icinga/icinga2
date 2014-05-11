@@ -20,19 +20,12 @@
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/hostgroup.h"
-#include "icinga/icingaapplication.h"
 #include "icinga/pluginutility.h"
-#include "base/dynamictype.h"
 #include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/timer.h"
 #include "base/convert.h"
 #include "base/utility.h"
-#include "base/scriptfunction.h"
 #include "base/debug.h"
 #include "base/serializer.h"
-#include "config/configitembuilder.h"
-#include "config/configcompilercontext.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

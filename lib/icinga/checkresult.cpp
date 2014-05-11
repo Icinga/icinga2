@@ -18,9 +18,6 @@
  ******************************************************************************/
 
 #include "icinga/checkresult.h"
-#include "base/dynamictype.h"
-#include "base/initialize.h"
-#include "base/scriptvariable.h"
 
 using namespace icinga;
 
