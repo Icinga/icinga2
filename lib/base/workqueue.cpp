@@ -116,7 +116,7 @@ size_t WorkQueue::GetLength(void)
 	return m_Items.size();
 }
 
-void WorkQueue::DefaultExceptionCallback(boost::exception_ptr exp)
+void WorkQueue::DefaultExceptionCallback(boost::exception_ptr)
 {
 	throw;
 }

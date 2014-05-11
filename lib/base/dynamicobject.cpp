@@ -359,7 +359,7 @@ Dictionary::Ptr DynamicObject::GetVars(void) const
 		return GetVarsRaw();
 }
 
-void DynamicObject::SetVars(const Dictionary::Ptr& vars, const String& authority)
+void DynamicObject::SetVars(const Dictionary::Ptr& vars)
 {
 	SetOverrideVars(vars);
 
@@ -374,7 +374,7 @@ int DynamicObject::GetModifiedAttributes(void) const
 	return 0;
 }
 
-void DynamicObject::SetModifiedAttributes(int flags)
+void DynamicObject::SetModifiedAttributes(int)
 {
 	/* does nothing by default */
 }

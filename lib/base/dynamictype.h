@@ -61,7 +61,7 @@ public:
 		DynamicType::Ptr type = GetByName(T::GetTypeName());
 		return std::make_pair(
 		    DynamicTypeIterator<T>(type, 0),
-		    DynamicTypeIterator<T>(type, -1)
+		    DynamicTypeIterator<T>(type, UINT_MAX)
 		);
 	}
 
@@ -121,8 +121,8 @@ private:
 		{
 			ObjectLock olock(m_Type);
 
-			if ((other.m_Index == -1 || other.m_Index >= other.m_Type->m_ObjectVector.size()) &&
-			    (m_Index == -1 || m_Index >= m_Type->m_ObjectVector.size()))
+			if ((other.m_Index == UINT_MAX || other.m_Index >= other.m_Type->m_ObjectVector.size()) &&
+			    (m_Index == UINT_MAX || m_Index >= m_Type->m_ObjectVector.size()))
 				return true;
 		}
 

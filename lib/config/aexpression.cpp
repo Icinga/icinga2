@@ -109,7 +109,7 @@ Value AExpression::EvaluateOperand2(const Dictionary::Ptr& locals) const
 	return static_cast<AExpression::Ptr>(m_Operand2)->Evaluate(locals);
 }
 
-Value AExpression::OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpLiteral(const AExpression *expr, const Dictionary::Ptr&)
 {
 	return expr->m_Operand1;
 }
@@ -263,7 +263,6 @@ Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr
 
 	Array::Ptr arr = expr->EvaluateOperand2(locals);
 	std::vector<Value> arguments;
-	int index = 0;
 	for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 		const AExpression::Ptr& aexpr = arr->Get(index);
 		arguments.push_back(aexpr->Evaluate(locals));
@@ -278,7 +277,6 @@ Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& local
 	Array::Ptr result = make_shared<Array>();
 
 	if (arr) {
-		int index = 0;
 		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const AExpression::Ptr& aexpr = arr->Get(index);
 			result->Add(aexpr->Evaluate(locals));
@@ -297,7 +295,6 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 	result->Set("__parent", locals);
 
 	if (arr) {
-		int index = 0;
 		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const AExpression::Ptr& aexpr = arr->Get(index);
 			Dictionary::Ptr alocals = in_place ? locals : result;

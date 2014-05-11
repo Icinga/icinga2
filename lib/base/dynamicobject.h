@@ -94,7 +94,7 @@ public:
 	void ClearExtension(const String& key);
 
 	Dictionary::Ptr GetVars(void) const;
-	void SetVars(const Dictionary::Ptr& vars, const String& authority = String());
+	void SetVars(const Dictionary::Ptr& vars);
 
 	virtual int GetModifiedAttributes(void) const;
 	virtual void SetModifiedAttributes(int flags);

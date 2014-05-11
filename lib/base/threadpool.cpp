@@ -50,7 +50,7 @@ ThreadPool::~ThreadPool(void)
 
 void ThreadPool::Start(void)
 {
-	for (int i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
+	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
 		m_Queues[i].SpawnWorker(m_ThreadGroup);
 
 	m_ThreadGroup.create_thread(boost::bind(&ThreadPool::ManagerThreadProc, this));
@@ -58,7 +58,7 @@ void ThreadPool::Start(void)
 
 void ThreadPool::Stop(void)
 {
-	for (int i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
+	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
 		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
 		m_Queues[i].Stopped = true;
 		m_Queues[i].CV.notify_all();
@@ -79,7 +79,7 @@ void ThreadPool::Join(bool wait_for_stop)
 		return;
 	}
 
-	for (int i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
+	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
 		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
 
 		while (!m_Queues[i].Items.empty())

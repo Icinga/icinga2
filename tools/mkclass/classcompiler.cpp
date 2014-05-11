@@ -53,28 +53,28 @@ size_t ClassCompiler::ReadInput(char *buffer, size_t max_size)
 	return static_cast<size_t>(m_Input->gcount());
 }
 
-void ClassCompiler::HandleInclude(const std::string& path, const ClassDebugInfo& locp)
+void ClassCompiler::HandleInclude(const std::string& path, const ClassDebugInfo&)
 {
 	std::cout << "#include \"" << path << "\"" << std::endl << std::endl;
 }
 
-void ClassCompiler::HandleAngleInclude(const std::string& path, const ClassDebugInfo& locp)
+void ClassCompiler::HandleAngleInclude(const std::string& path, const ClassDebugInfo&)
 {
 	std::cout << "#include <" << path << ">" << std::endl << std::endl;
 }
 
-void ClassCompiler::HandleNamespaceBegin(const std::string& name, const ClassDebugInfo& locp)
+void ClassCompiler::HandleNamespaceBegin(const std::string& name, const ClassDebugInfo&)
 {
 	std::cout << "namespace " << name << std::endl
 			  << "{" << std::endl << std::endl;
 }
 
-void ClassCompiler::HandleNamespaceEnd(const ClassDebugInfo& locp)
+void ClassCompiler::HandleNamespaceEnd(const ClassDebugInfo&)
 {
 	std::cout << "}" << std::endl;
 }
 
-void ClassCompiler::HandleCode(const std::string& code, const ClassDebugInfo& locp)
+void ClassCompiler::HandleCode(const std::string& code, const ClassDebugInfo&)
 {
 	std::cout << code << std::endl;
 }
@@ -100,7 +100,7 @@ unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::stri
         return hash;
 }
 
-void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
+void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 {
 	std::vector<Field>::const_iterator it;
 

@@ -44,7 +44,7 @@ using namespace icinga;
 
 INITIALIZE_ONCE(&ExternalCommandProcessor::StaticInitialize);
 
-typedef boost::function<void (double time, const std::vector<String>& arguments)> ExternalCommandCallback;
+typedef boost::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
 
 struct ExternalCommandInfo
 {
@@ -1560,91 +1560,91 @@ void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<Stri
 	}
 }
 
-void ExternalCommandProcessor::EnableNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableNotifications(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally enabling notifications.");
 
 	IcingaApplication::GetInstance()->SetEnableNotifications(true);
 }
 
-void ExternalCommandProcessor::DisableNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableNotifications(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally disabling notifications.");
 
 	IcingaApplication::GetInstance()->SetEnableNotifications(false);
 }
 
-void ExternalCommandProcessor::EnableFlapDetection(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableFlapDetection(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally enabling flap detection.");
 
 	IcingaApplication::GetInstance()->SetEnableFlapping(true);
 }
 
-void ExternalCommandProcessor::DisableFlapDetection(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableFlapDetection(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally disabling flap detection.");
 
 	IcingaApplication::GetInstance()->SetEnableFlapping(false);
 }
 
-void ExternalCommandProcessor::EnableEventHandlers(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableEventHandlers(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally enabling event handlers.");
 
 	IcingaApplication::GetInstance()->SetEnableEventHandlers(true);
 }
 
-void ExternalCommandProcessor::DisableEventHandlers(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableEventHandlers(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally disabling event handlers.");
 
 	IcingaApplication::GetInstance()->SetEnableEventHandlers(false);
 }
 
-void ExternalCommandProcessor::EnablePerformanceData(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnablePerformanceData(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally enabling performance data processing.");
 
 	IcingaApplication::GetInstance()->SetEnablePerfdata(true);
 }
 
-void ExternalCommandProcessor::DisablePerformanceData(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisablePerformanceData(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally disabling performance data processing.");
 
 	IcingaApplication::GetInstance()->SetEnablePerfdata(false);
 }
 
-void ExternalCommandProcessor::StartExecutingSvcChecks(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::StartExecutingSvcChecks(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally enabling service checks.");
 
 	IcingaApplication::GetInstance()->SetEnableServiceChecks(true);
 }
 
-void ExternalCommandProcessor::StopExecutingSvcChecks(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::StopExecutingSvcChecks(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally disabling service checks.");
 
 	IcingaApplication::GetInstance()->SetEnableServiceChecks(false);
 }
 
-void ExternalCommandProcessor::StartExecutingHostChecks(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::StartExecutingHostChecks(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally enabling host checks.");
 
 	IcingaApplication::GetInstance()->SetEnableHostChecks(true);
 }
 
-void ExternalCommandProcessor::StopExecutingHostChecks(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::StopExecutingHostChecks(double, const std::vector<String>&)
 {
 	Log(LogInformation, "icinga", "Globally disabling host checks.");
 
 	IcingaApplication::GetInstance()->SetEnableHostChecks(false);
 }
 
-void ExternalCommandProcessor::ChangeSvcModattr(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeSvcModattr(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1662,7 +1662,7 @@ void ExternalCommandProcessor::ChangeSvcModattr(double time, const std::vector<S
 	}
 }
 
-void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeHostModattr(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1680,7 +1680,7 @@ void ExternalCommandProcessor::ChangeHostModattr(double time, const std::vector<
 	}
 }
 
-void ExternalCommandProcessor::ChangeUserModattr(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeUserModattr(double, const std::vector<String>& arguments)
 {
 	User::Ptr user = User::GetByName(arguments[0]);
 
@@ -1698,7 +1698,7 @@ void ExternalCommandProcessor::ChangeUserModattr(double time, const std::vector<
 	}
 }
 
-void ExternalCommandProcessor::ChangeCheckcommandModattr(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCheckcommandModattr(double, const std::vector<String>& arguments)
 {
 	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[0]);
 
@@ -1708,7 +1708,7 @@ void ExternalCommandProcessor::ChangeCheckcommandModattr(double time, const std:
 	ChangeCommandModattrInternal(command, Convert::ToLong(arguments[1]));
 }
 
-void ExternalCommandProcessor::ChangeEventcommandModattr(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeEventcommandModattr(double, const std::vector<String>& arguments)
 {
 	EventCommand::Ptr command = EventCommand::GetByName(arguments[0]);
 
@@ -1718,7 +1718,7 @@ void ExternalCommandProcessor::ChangeEventcommandModattr(double time, const std:
 	ChangeCommandModattrInternal(command, Convert::ToLong(arguments[1]));
 }
 
-void ExternalCommandProcessor::ChangeNotificationcommandModattr(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeNotificationcommandModattr(double, const std::vector<String>& arguments)
 {
 	NotificationCommand::Ptr command = NotificationCommand::GetByName(arguments[0]);
 
@@ -1739,7 +1739,7 @@ void ExternalCommandProcessor::ChangeCommandModattrInternal(const Command::Ptr& 
 	}
 }
 
-void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1757,7 +1757,7 @@ void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double time, const s
 	}
 }
 
-void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1775,7 +1775,7 @@ void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double time, const 
 	}
 }
 
-void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1793,7 +1793,7 @@ void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double time, const st
 	}
 }
 
-void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1811,7 +1811,7 @@ void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double time, const s
 	}
 }
 
-void ExternalCommandProcessor::EnableHostEventHandler(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostEventHandler(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1827,7 +1827,7 @@ void ExternalCommandProcessor::EnableHostEventHandler(double time, const std::ve
 	}
 }
 
-void ExternalCommandProcessor::DisableHostEventHandler(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostEventHandler(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1843,7 +1843,7 @@ void ExternalCommandProcessor::DisableHostEventHandler(double time, const std::v
 	}
 }
 
-void ExternalCommandProcessor::EnableSvcEventHandler(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableSvcEventHandler(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1859,7 +1859,7 @@ void ExternalCommandProcessor::EnableSvcEventHandler(double time, const std::vec
 	}
 }
 
-void ExternalCommandProcessor::DisableSvcEventHandler(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableSvcEventHandler(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1875,7 +1875,7 @@ void ExternalCommandProcessor::DisableSvcEventHandler(double time, const std::ve
 	}
 }
 
-void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeHostEventHandler(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1901,7 +1901,7 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double time, const std::ve
 	}
 }
 
-void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeSvcEventHandler(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1927,7 +1927,7 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double time, const std::vec
 	}
 }
 
-void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeHostCheckCommand(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1948,7 +1948,7 @@ void ExternalCommandProcessor::ChangeHostCheckCommand(double time, const std::ve
 	}
 }
 
-void ExternalCommandProcessor::ChangeSvcCheckCommand(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeSvcCheckCommand(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -1969,7 +1969,7 @@ void ExternalCommandProcessor::ChangeSvcCheckCommand(double time, const std::vec
 	}
 }
 
-void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -1987,7 +1987,7 @@ void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double time, const std
 	}
 }
 
-void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -2005,7 +2005,7 @@ void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double time, const std:
 	}
 }
 
-void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -2026,7 +2026,7 @@ void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double time, const std:
 	}
 }
 
-void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -2047,7 +2047,7 @@ void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double time, const std::
 	}
 }
 
-void ExternalCommandProcessor::ChangeCustomHostVar(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCustomHostVar(double, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -2072,7 +2072,7 @@ void ExternalCommandProcessor::ChangeCustomHostVar(double time, const std::vecto
 	}
 }
 
-void ExternalCommandProcessor::ChangeCustomSvcVar(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCustomSvcVar(double, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -2099,7 +2099,7 @@ void ExternalCommandProcessor::ChangeCustomSvcVar(double time, const std::vector
 	}
 }
 
-void ExternalCommandProcessor::ChangeCustomUserVar(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCustomUserVar(double, const std::vector<String>& arguments)
 {
 	User::Ptr user = User::GetByName(arguments[0]);
 
@@ -2124,7 +2124,7 @@ void ExternalCommandProcessor::ChangeCustomUserVar(double time, const std::vecto
 	}
 }
 
-void ExternalCommandProcessor::ChangeCustomCheckcommandVar(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCustomCheckcommandVar(double, const std::vector<String>& arguments)
 {
 	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[0]);
 
@@ -2134,7 +2134,7 @@ void ExternalCommandProcessor::ChangeCustomCheckcommandVar(double time, const st
 	ChangeCustomCommandVarInternal(command, arguments[1], arguments[2]);
 }
 
-void ExternalCommandProcessor::ChangeCustomEventcommandVar(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCustomEventcommandVar(double, const std::vector<String>& arguments)
 {
 	EventCommand::Ptr command = EventCommand::GetByName(arguments[0]);
 
@@ -2144,7 +2144,7 @@ void ExternalCommandProcessor::ChangeCustomEventcommandVar(double time, const st
 	ChangeCustomCommandVarInternal(command, arguments[1], arguments[2]);
 }
 
-void ExternalCommandProcessor::ChangeCustomNotificationcommandVar(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ChangeCustomNotificationcommandVar(double, const std::vector<String>& arguments)
 {
 	NotificationCommand::Ptr command = NotificationCommand::GetByName(arguments[0]);
 
@@ -2174,7 +2174,7 @@ void ExternalCommandProcessor::ChangeCustomCommandVarInternal(const Command::Ptr
 	}
 }
 
-void ExternalCommandProcessor::EnableHostgroupHostNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupHostNotifications(double, const std::vector<String>& arguments)
 {
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -2192,7 +2192,7 @@ void ExternalCommandProcessor::EnableHostgroupHostNotifications(double time, con
 	}
 }
 
-void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double, const std::vector<String>& arguments)
 {
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -2212,7 +2212,7 @@ void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double time, cons
 	}
 }
 
-void ExternalCommandProcessor::DisableHostgroupHostNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupHostNotifications(double, const std::vector<String>& arguments)
 {
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -2230,7 +2230,7 @@ void ExternalCommandProcessor::DisableHostgroupHostNotifications(double time, co
 	}
 }
 
-void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double, const std::vector<String>& arguments)
 {
 	HostGroup::Ptr hg = HostGroup::GetByName(arguments[0]);
 
@@ -2250,7 +2250,7 @@ void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double time, con
 	}
 }
 
-void ExternalCommandProcessor::EnableServicegroupHostNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupHostNotifications(double, const std::vector<String>& arguments)
 {
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
@@ -2270,7 +2270,7 @@ void ExternalCommandProcessor::EnableServicegroupHostNotifications(double time, 
 	}
 }
 
-void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double, const std::vector<String>& arguments)
 {
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
@@ -2288,7 +2288,7 @@ void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double time, c
 	}
 }
 
-void ExternalCommandProcessor::DisableServicegroupHostNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupHostNotifications(double, const std::vector<String>& arguments)
 {
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 
@@ -2308,7 +2308,7 @@ void ExternalCommandProcessor::DisableServicegroupHostNotifications(double time,
 	}
 }
 
-void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double, const std::vector<String>& arguments)
 {
 	ServiceGroup::Ptr sg = ServiceGroup::GetByName(arguments[0]);
 

@@ -45,10 +45,12 @@ public:
 	typedef std::string::iterator iterator;
 	typedef std::string::const_iterator const_iterator;
 
+	typedef std::string::size_type SizeType;
+
 	String(void);
 	String(const char *data);
 	String(const std::string& data);
-	String(size_t n, char c);
+	String(SizeType n, char c);
 
 	template<typename InputIterator>
 	String(InputIterator begin, InputIterator end)
@@ -61,8 +63,8 @@ public:
 	String& operator=(const std::string& rhs);
 	String& operator=(const char *rhs);
 
-	const char& operator[](size_t pos) const;
-	char& operator[](size_t pos);
+	const char& operator[](SizeType pos) const;
+	char& operator[](SizeType pos);
 
 	String& operator+=(const String& rhs);
 	String& operator+=(const char *rhs);
@@ -77,19 +79,19 @@ public:
 
 	const char *CStr(void) const;
 	void Clear(void);
-	size_t GetLength(void) const;
+	SizeType GetLength(void) const;
 
 	std::string& GetData(void);
 	const std::string& GetData(void) const;
 
-	size_t Find(const String& str, size_t pos = 0) const;
-	size_t RFind(const String& str, size_t pos = NPos) const;
-	size_t FindFirstOf(const char *s, size_t pos = 0) const;
-	size_t FindFirstOf(char ch, size_t pos = 0) const;
-	size_t FindFirstNotOf(const char *s, size_t pos = 0) const;
-	size_t FindFirstNotOf(char ch, size_t pos = 0) const;
-	String SubStr(size_t first, size_t len = NPos) const;
-	void Replace(size_t first, size_t second, const String& str);
+	SizeType Find(const String& str, SizeType pos = 0) const;
+	SizeType RFind(const String& str, SizeType pos = NPos) const;
+	SizeType FindFirstOf(const char *s, SizeType pos = 0) const;
+	SizeType FindFirstOf(char ch, SizeType pos = 0) const;
+	SizeType FindFirstNotOf(const char *s, SizeType pos = 0) const;
+	SizeType FindFirstNotOf(char ch, SizeType pos = 0) const;
+	String SubStr(SizeType first, SizeType len = NPos) const;
+	void Replace(SizeType first, SizeType second, const String& str);
 
 	void Trim(void);
 	bool Contains(const String& str) const;
@@ -108,7 +110,7 @@ public:
 	Iterator End(void);
 	ConstIterator End(void) const;
 
-	static const size_t NPos;
+	static const SizeType NPos;
 
 private:
 	std::string m_Data;

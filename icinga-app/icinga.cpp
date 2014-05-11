@@ -51,11 +51,9 @@ SERVICE_STATUS_HANDLE l_SvcStatusHandle;
 
 static String LoadAppType(const String& typeSpec)
 {
-	int index;
-
 	Log(LogInformation, "icinga-app", "Loading application type: " + typeSpec);
 
-	index = typeSpec.FindFirstOf('/');
+	String::SizeType index = typeSpec.FindFirstOf('/');
 
 	if (index == String::NPos)
 		return typeSpec;

@@ -75,12 +75,13 @@ const Type *Object::GetReflectionType(void) const
 	return NULL;
 }
 
-void Object::SetField(int id, const Value& value)
+void Object::SetField(int, const Value&)
 {
-	throw std::runtime_error("Invalid field ID.");
+	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-Value Object::GetField(int id) const
+Value Object::GetField(int) const
 {
-	throw std::runtime_error("Invalid field ID.");
+	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
+

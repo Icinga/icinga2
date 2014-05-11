@@ -138,7 +138,7 @@ void ConfigCompiler::HandleInclude(const String& include, bool search, const Deb
  * @param pattern The file pattern.
  * @param debuginfo Debug information.
  */
-void ConfigCompiler::HandleIncludeRecursive(const String& include, const String& pattern, const DebugInfo& debuginfo)
+void ConfigCompiler::HandleIncludeRecursive(const String& include, const String& pattern, const DebugInfo&)
 {
 	String path;
 

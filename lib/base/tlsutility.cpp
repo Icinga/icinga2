@@ -25,7 +25,7 @@ namespace icinga
 static bool l_SSLInitialized = false;
 static boost::mutex *l_Mutexes;
 
-static void OpenSSLLockingCallback(int mode, int type, const char *file, int line)
+static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 {
 	if (mode & CRYPTO_LOCK)
 		l_Mutexes[type].lock();
