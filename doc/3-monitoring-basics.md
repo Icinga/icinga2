@@ -1008,11 +1008,11 @@ hosts or services:
   host.output                  | The last check's output.
   host.perfdata                | The last check's performance data.
   host.last_check              | The timestamp when the last check was executed.
-  host.total_services          | Number of services associated with the host.
-  host.total_services_ok       | Number of services associated with the host which are in an `OK` state.
-  host.total_services_warning  | Number of services associated with the host which are in a `WARNING` state.
-  host.total_services_unknown  | Number of services associated with the host which are in an `UNKNOWN` state.
-  host.total_services_critical | Number of services associated with the host which are in a `CRITICAL` state.
+  host.num_services            | Number of services associated with the host.
+  host.num_services_ok         | Number of services associated with the host which are in an `OK` state.
+  host.num_services_warning    | Number of services associated with the host which are in a `WARNING` state.
+  host.num_services_unknown    | Number of services associated with the host which are in an `UNKNOWN` state.
+  host.num_services_critical   | Number of services associated with the host which are in a `CRITICAL` state.
 
 ### <a id="service-runtime-macros"></a> Service Runtime Macros
 

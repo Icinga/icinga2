@@ -288,74 +288,127 @@ attribute in command objects.
 Icinga 2 requires an object specific namespace when accessing configuration
 and stateful runtime macros. Custom attributes can be access directly.
 
-Changes to host runtime macros
+Changes to user (contact) runtime macros
 
-   Icinga 1.x             | Icinga 2
-   -----------------------|----------------------
-   USERNAME               | user.name
-   USERDISPLAYNAME        | user.displayname
-   USEREMAIL              | email if set as `email` custom attribute.
-   USERPAGER              | pager if set as `pager` custom attribute.
+  Icinga 1.x             | Icinga 2
+  -----------------------|----------------------
+  USERNAME               | user.name
+  USERDISPLAYNAME        | user.display_name
+  USEREMAIL              | email if set as `email` custom attribute.
+  USERPAGER              | pager if set as `pager` custom attribute.
 
 
 Changes to service runtime macros
 
-   Icinga 1.x             | Icinga 2
-   -----------------------|----------------------
-   SERVICEDESC            | service.description
-   SERVICEDISPLAYNAME     | service.displayname
-   SERVICECHECKCOMMAND    | service.checkcommand
-   SERVICESTATE           | service.state
-   SERVICESTATEID         | service.stateid
-   SERVICESTATETYPE       | service.statetype
-   SERVICEATTEMPT         | service.attempt
-   MAXSERVICEATTEMPT      | service.maxattempt
-   LASTSERVICESTATE       | service.laststate
-   LASTSERVICESTATEID     | service.laststateid
-   LASTSERVICESTATETYPE   | service.laststatetype
-   LASTSERVICESTATECHANGE | service.laststatechange
-   SERVICEDURATIONSEC     | service.durationsec
-   SERVICELATENCY         | service.latency
-   SERVICEEXECUTIONTIME   | service.executiontime
-   SERVICEOUTPUT          | service.output
-   SERVICEPERFDATA        | service.perfdata
-   LASTSERVICECHECK       | service.lastcheck
+  Icinga 1.x             | Icinga 2
+  -----------------------|----------------------
+  SERVICEDESC            | service.description
+  SERVICEDISPLAYNAME     | service.display_name
+  SERVICECHECKCOMMAND    | service.check_command
+  SERVICESTATE           | service.state
+  SERVICESTATEID         | service.state_id
+  SERVICESTATETYPE       | service.state_type
+  SERVICEATTEMPT         | service.check_attempt
+  MAXSERVICEATTEMPT      | service.max_check_attempts
+  LASTSERVICESTATE       | service.last_state
+  LASTSERVICESTATEID     | service.last_state_id
+  LASTSERVICESTATETYPE   | service.last_state_type
+  LASTSERVICESTATECHANGE | service.last_state_change
+  SERVICEDURATIONSEC     | service.durations_ec
+  SERVICELATENCY         | service.latency
+  SERVICEEXECUTIONTIME   | service.execution_time
+  SERVICEOUTPUT          | service.output
+  SERVICEPERFDATA        | service.perfdata
+  LASTSERVICECHECK       | service.last_check
+  SERVICENOTES           | service.notes
+  SERVICENOTESURL        | service.notes_url
+  SERVICEACTIONURL       | service.action_url
 
 
-Changes to user (contact) runtime macros
+Changes to host runtime macros
 
-   Icinga 1.x             | Icinga 2
-   -----------------------|----------------------
-   HOSTNAME               | host.name
-   HOSTDISPLAYNAME        | host.displayname
-   HOSTALIAS              | ..
-   HOSTSTATE              | host.state
-   HOSTSTATEID            | host.stateid
-   HOSTSTATETYPE          | host.statetype
-   HOSTATTEMPT            | host.attempt
-   MAXHOSTATTEMPT         | host.maxattempt
-   LASTHOSTSTATE          | host.laststate
-   LASTHOSTSTATEID        | host.laststateid
-   LASTHOSTSTATETYPE      | host.laststatetype
-   LASTHOSTSTATECHANGE    | host.laststatechange
-   HOSTDURATIONSEC        | host.durationsec
-   HOSTLATENCY            | host.latency
-   HOSTEXECUTIONTIME      | host.executiontime
-   HOSTOUTPUT             | host.output
-   HOSTPERFDATA           | host.perfdata
-   LASTHOSTCHECK          | host.lastcheck
-   HOSTADDRESS            | --
-   HOSTADDRESS6           | --
+  Icinga 1.x             | Icinga 2
+  -----------------------|----------------------
+  HOSTNAME               | host.name
+  HOSTDISPLAYNAME        | host.display_name
+  HOSTCHECKCOMMAND       | host.check_command
+  HOSTALIAS              | ..
+  HOSTSTATE              | host.state
+  HOSTSTATEID            | host.state_id
+  HOSTSTATETYPE          | host.state_type
+  HOSTATTEMPT            | host.check_attempt
+  MAXHOSTATTEMPT         | host.max_check_attempts
+  LASTHOSTSTATE          | host.last_state
+  LASTHOSTSTATEID        | host.last_state_id
+  LASTHOSTSTATETYPE      | host.last_state_type
+  LASTHOSTSTATECHANGE    | host.last_state_change
+  HOSTDURATIONSEC        | host.duration_sec
+  HOSTLATENCY            | host.latency
+  HOSTEXECUTIONTIME      | host.execution_time
+  HOSTOUTPUT             | host.output
+  HOSTPERFDATA           | host.perfdata
+  LASTHOSTCHECK          | host.last_check
+  HOSTNOTES              | host.notes
+  HOSTNOTESURL           | host.notes_url
+  HOSTACTIONURL          | host.action_url
+  HOSTADDRESS            | host.address
+  HOSTADDRESS6           | host.address6
+  TOTALSERVICES          | host.num_services
+  TOTALSERVICESOK        | host.num_services_ok
+  TOTALSERVICESWARNING   | host.num_services_warning
+  TOTALSERVICESUNKNOWN   | host.num_services_unknown
+  TOTALSERVICESCRITICAL  | host.num_services_critical
+
+Changes to command runtime macros
+
+  Icinga 1.x             | Icinga 2
+  -----------------------|----------------------
+  COMMANDNAME            | command.name
+
+Changes to notification runtime macros
+
+  Icinga 1.x             | Icinga 2
+  -----------------------|----------------------
+  NOTIFICATIONTYPE       | notification.type
+  NOTIFICATIONAUTHOR     | notification.author
+  NOTIFICATIONCOMMENT    | notification.comment
+  NOTIFICATIONAUTHORNAME | --
+  NOTIFICATIONAUTHORALIAS   | --
+
 
 Changes to global runtime macros:
 
-   Icinga 1.x             | Icinga 2
-   -----------------------|----------------------
-   TIMET                  | icinga.timet
-   LONGDATETIME           | icinga.longdatetime
-   SHORTDATETIME          | icinga.shortdatetime
-   DATE                   | icinga.date
-   TIME                   | icinga.time
+  Icinga 1.x             | Icinga 2
+  -----------------------|----------------------
+  TIMET                  | icinga.timet
+  LONGDATETIME           | icinga.long_date_time
+  SHORTDATETIME          | icinga.short_date_time
+  DATE                   | icinga.date
+  TIME                   | icinga.time
+  PROCESSSTARTTIME       | icinga.uptime
+
+Changes to global statistic macros:
+
+  Icinga 1.x                        | Icinga 2
+  ----------------------------------|----------------------
+  TOTALHOSTSUP                      | icinga.num_hosts_up
+  TOTALHOSTSDOWN                    | icinga.num_hosts_down
+  TOTALHOSTSUNREACHABLE             | icinga.num_hosts_unreachable
+  TOTALHOSTSDOWNUNHANDLED           | --
+  TOTALHOSTSUNREACHABLEUNHANDLED    | --
+  TOTALHOSTPROBLEMS                 | down
+  TOTALHOSTPROBLEMSUNHANDLED        | down-(downtime+acknowledged)
+  TOTALSERVICESOK                   | icinga.num_services_ok
+  TOTALSERVICESWARNING              | icinga.num_services_warning
+  TOTALSERVICESCRITICAL             | icinga.num_services_critical
+  TOTALSERVICESUNKNOWN              | icinga.num_services_unknown
+  TOTALSERVICESWARNINGUNHANDLED     | --
+  TOTALSERVICESCRITICALUNHANDLED    | --
+  TOTALSERVICESUNKNOWNUNHANDLED     | --
+  TOTALSERVICEPROBLEMS              | ok+warning+critical+unknown
+  TOTALSERVICEPROBLEMSUNHANDLED     | warning+critical+unknown-(downtime+acknowledged)
+
+
 
 
 ### <a id="differences-1x-2-external-commands"></a> External Commands
