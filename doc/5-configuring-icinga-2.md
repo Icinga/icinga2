@@ -573,8 +573,6 @@ Attributes:
   event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
-  authorities     |**Optional.** A list of Endpoints on which this host check will be executed in a cluster scenario.
-  domains         |**Optional.** A list of Domains for this host object in a cluster scenario.
   notes           |**Optional.** Notes for the host.
   notes_url       |**Optional.** Url for notes for the host (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the host (for example, an external graphing tool).
@@ -655,8 +653,6 @@ Attributes:
   event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
-  authorities     |**Optional.** A list of Endpoints on which this service check will be executed in a cluster scenario.
-  domains         |**Optional.** A list of Domains for this service object in a cluster scenario.
   notes           |**Optional.** Notes for the service.
   notes_url       |**Optional.** Url for notes for the service (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the service (for example, an external graphing tool).
@@ -1533,25 +1529,21 @@ Attributes:
   update\_interval          |**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
 
 
-### <a id="objecttype-clusterlistener"></a> ClusterListener
+### <a id="objecttype-apilistener"></a> ApiListener
 
-ClusterListener objects are used to specify remote cluster
-node peers and the certificate files used for ssl
-authorization.
+ApiListener objects are used for distributed monitoring setups
+specifying the certificate files used for ssl authorization.
+
+The `NodeName` constant must be defined in [constants.conf](#constants-conf).
 
 Example:
 
-    library "cluster"
-
-    object ClusterListener "cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/icinga2a.crt"
-      key_path = "/etc/icinga2/ca/icinga2a.key"
-
-      bind_port = 8888
-
-      peers = [ "icinga2b" ]
+    object ApiListener "api" {
+      cert_path = SysconfDir + "/icinga2/pki/" + NodeName + ".crt"
+      key_path = SysconfDir + "/icinga2/pki/" + NodeName + ".key"
+      ca_path = SysconfDir + "/icinga2/pki/ca.crt"
     }
+
 
 Attributes:
 
@@ -1561,9 +1553,9 @@ Attributes:
   key\_path                 |**Required.** Path to the private key.
   ca\_path                  |**Required.** Path to the CA certificate file.
   crl\_path                 |**Optional.** Path to the CRL file.
-  bind\_host                |**Optional.** The IP address the cluster listener should be bound to.
-  bind\_port                |**Optional.** The port the cluster listener should be bound to.
-  peers                     |**Optional.** A list of
+  bind\_host                |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
+  bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
+
 
 ### <a id="objecttype-endpoint"></a> Endpoint
 
@@ -1572,20 +1564,9 @@ Icinga 2 instances.
 
 Example:
 
-    library "cluster"
-
     object Endpoint "icinga2b" {
       host = "192.168.5.46"
-      port = 7777
-
-      metric = 0
-
-      config_files = [ "/etc/icinga2/cluster.d/*" ]
-
-      config_files_recursive = [
-        "/etc/icinga2/cluster2",
-        { path = "/etc/icinga2/cluster3"; pattern = "*.myconf" }
-      ]
+      port = 5665
     }
 
 Attributes:
@@ -1593,40 +1574,32 @@ Attributes:
   Name            |Description
   ----------------|----------------
   host            |**Required.** The hostname/IP address of the remote Icinga 2 instance.
-  port            |**Required.** The service name/port of the remote Icinga 2 instance.
-  metric          |**Optional.** The link metric for this endpoint. Defaults to 0.
-  config\_files   |**Optional.** A list of configuration files sent to remote peers (wildcards possible).
-  config_files_recursive |**Optional.** A list of configuration files sent to remote peers. Array elements can either be a string (in which case all files in that directory matching the pattern *.conf are included) or a dictionary with elements "path" and "pattern".
-  accept\_config  |**Optional.** A list of endpoint names from which this endpoint accepts configuration files.
+  port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
+  keep_alive      |**Optional.** Keep-alive duration for connections. Defaults to `5m`.
+  log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d`.
 
-### <a id="objecttype-domain"></a> Domain
 
-A [Service](#objecttype-service) object can be restricted using the `domains` attribute
-array specifying endpoint privileges.
+### <a id="objecttype-zone"></a> Zone
 
-A Domain object specifices the ACLs applied for each [Endpoint](#objecttype-endpoint).
+Zone objects are used to specify which Icinga 2 instances are located in a zone.
+All zone endpoints elect one active master instance among them (required for High-Availability setups).
 
 Example:
 
-    object Domain "dmz-1" {
-      acl = {
-        node1 = DomainPrivCheckResult
-        node2 = DomainPrivReadWrite
-      }
+    object Zone "config-ha-master" {
+      endpoints = [ "icinga2a", "icinga2b" ]
+
+    }
+
+    object Zone "check-satellite" {
+      endpoints = [ "icinga2c" ]
+      parent = "config-ha-master"
     }
 
 Attributes:
 
   Name            |Description
   ----------------|----------------
-  acl             |**Required.** Dictionary with items for Domain ACLs.
+  endpoints       |**Optional.** Dictionary with endpoints located in this zone.
+  parent          |**Optional.** Parent zone.
 
-Domain ACLs:
-
-  Name                  |Description
-  ----------------------|----------------
-  DomainPrivRead        | Endpoint reads local messages and relays them to remote nodes.
-  DomainPrivCheckResult | Endpoint accepts check result messages from remote nodes.
-  DomainPrivCommand     | Endpoint accepts command messages from remote nodes.
-  DomainPrevReadOnly    | Equivalent to DomainPrivRead.
-  DomainPrivReadWrite   | Equivalent to DomainPrivRead &#124; DomainPrivCheckResult &#124; DomainPrivCommand.

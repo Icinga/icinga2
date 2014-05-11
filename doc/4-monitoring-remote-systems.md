@@ -154,7 +154,7 @@ For details on the `NSClient++` configuration please refer to the [official docu
 A dedicated Icinga 2 agent supporting all platforms and using the native
 Icinga 2 communication protocol supported with SSL certificates, IPv4/IPv6
 support, etc. is on the [development roadmap](https://dev.icinga.org/projects/i2?jump=issues).
-Meanwhile remote checkers in a [Cluster](#cluster) setup could act as
+Meanwhile remote checkers in a [Cluster](#distributed-monitoring-high-availability) setup could act as
 immediate replacement, but without any local configuration - or pushing
 their standalone configuration back to the master node including their check
 result messages.
@@ -179,13 +179,21 @@ The [Icinga 2 Vagrant Demo VM](#vagrant) ships a demo integration and further sa
 
 
 
-## <a id="distributed-monitoring"></a> Distributed Monitoring
+## <a id="distributed-monitoring-high-availability"></a> Distributed Monitoring and High Availability
 
 An Icinga 2 cluster consists of two or more nodes and can reside on multiple
 architectures. The base concept of Icinga 2 is the possibility to add additional
-features using components. In case of a cluster setup you have to add the
-cluster feature to all nodes. Before you start configuring the diffent nodes
-it's necessary to setup the underlying communication layer based on SSL.
+features using components. In case of a cluster setup you have to add the api feature
+to all nodes.
+
+An Icinga 2 cluster can be used for the following scenarios:
+
+* [High Availability](#cluster-scenarios-high-availability). All instances in the `Zone` elect one active master and run as Active/Active cluster.
+* [Distributed Zones](#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
+* [Load Distribution](#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
+
+Before you start configuring the diffent nodes it's necessary to setup the underlying
+communication layer based on SSL.
 
 ### <a id="certificate-authority-certificates"></a> Certificate Authority and Certificates
 
@@ -207,21 +215,14 @@ using the following command:
     icinga2-build-key icinga2a
 
 Please create a certificate and a key file for every node in the Icinga 2
-Cluster and save the CA key in case you want to set up certificates for
+cluster and save the CA key in case you want to set up certificates for
 additional nodes at a later date.
-
-### <a id="enable-cluster-configuration"></a> Enable the Cluster Configuration
-
-Until the cluster-component is moved into an independent feature you have to
-enable the required libraries in the icinga2.conf configuration file:
-
-    library "cluster"
 
 ### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
 that value using the [NodeName](#global-constants) constant.
-This setting must be unique on each cluster node, and must also match
+This setting must be unique on each node, and must also match
 the name of the local [Endpoint](#objecttype-endpoint) object and the
 SSL certificate common name.
 
@@ -232,9 +233,9 @@ Read further about additional [naming conventions](#cluster-naming-convention).
 Not specifying the node name will default to FQDN. Make sure that all
 configured endpoint names and set common names are in sync.
 
-### <a id="configure-clusterlistener-object"></a> Configure the ClusterListener Object
+### <a id="configure-clusterlistener-object"></a> Configure the ApiListener Object
 
-The ClusterListener needs to be configured on every node in the cluster with the
+The ApiListener object needs to be configured on every node in the cluster with the
 following settings:
 
   Configuration Setting    |Value
@@ -242,39 +243,26 @@ following settings:
   ca_path                  | path to ca.crt file
   cert_path                | path to server certificate
   key_path                 | path to server key
-  bind_port                | port for incoming and outgoing conns
-  peers                    | array of all reachable nodes
-  ------------------------- ------------------------------------
+  bind_port                | port for incoming and outgoing connections. Defaults to `5665`.
+
 
 A sample config part can look like this:
 
-    /**
-     * Load cluster library and configure ClusterListener using certificate files
-     */
-    library "cluster"
-
-    object ClusterListener "cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/icinga2a.crt"
-      key_path = "/etc/icinga2/ca/icinga2a.key"
-
-      bind_port = 8888
-
-      peers = [ "icinga2b" ]
+    object ApiListener "api" {
+      cert_path = SysconfDir + "/icinga2/pki/" + NodeName + ".crt"
+      key_path = SysconfDir + "/icinga2/pki/" + NodeName + ".key"
+      ca_path = SysconfDir + "/icinga2/pki/ca.crt"
     }
 
+You can simply enable the `api` feature using
+
+    # icinga2-enable-feature api
+
+And edit `/etc/icinga2/features-enabled/api.conf` if you require any changes.
+
 The certificate files must be readable by the user Icinga 2 is running as. Also,
-the private key file should not be world-readable.
+the private key file must not be world-readable.
 
-Peers configures the direction used to connect multiple nodes together. If have
-a three node cluster consisting of
-
-* node-1
-* node-2
-* node-3
-
-and `node-3` is only reachable from `node-2`, you have to consider this in your
-peer configuration.
 
 ### <a id="configure-cluster-endpoints"></a> Configure Cluster Endpoints
 
@@ -286,10 +274,8 @@ to send configuration files.
   -------------------------|------------------------------------
   host                     | hostname
   port                     | port
-  accept_config            | all nodes allowed to send configuration
-  config_files             | all files sent to that node - MUST BE AN ABSOLUTE PATH
-  config_files_recursive   | all files in a directory recursively sent to that node
-  ------------------------- ------------------------------------
+
+
 
 A sample config part can look like this:
 
@@ -299,36 +285,41 @@ A sample config part can look like this:
 
     object Endpoint "icinga2a" {
       host = "icinga2a.localdomain"
-      port = 8888
-      config_files_recursive = ["/etc/icinga2/conf.d"]
+      port = 5665
     }
 
-If you update the configuration files on the configured file sender, it will
-force a restart on all receiving nodes after validating the new config.
 
-A sample config part for a config receiver endpoint can look like this:
+### <a id="configure-cluster-zones"></a> Configure Cluster Zones
 
-    /**
-     * Configure config receiver endpoint
-     */
+Each Icinga 2 `Endpoint` must be put into its respective `Zone`. In this example, you will
+define the zone `config-ha-master` where the `icinga2a` and `icinga2b` endpoints
+are located. The `check-satellite` zone consists of `icinga2c` only, but more nodes could
+be added.
 
-    object Endpoint "icinga2b" {
-      host = "icinga2b.localdomain"
-      port = 8888
-      accept_config = [ "icinga2a" ]
+The `config-ha-master` zone acts as High-Availability setup - the Icinga 2 instances elect
+one active master where all features are running on (for example `icinga2a`). In case of
+failure of the `icinga2a` instance, `icinga2b` will take over automatically.
+
+    object Zone "config-ha-master" {
+      endpoints = [ "icinga2a", "icinga2b" ]
     }
 
-By default these configuration files are saved in /var/lib/icinga2/cluster/config.
+The `check-satellite` zone is a seperated location and only sends back their checkresults to
+the defined parent zone `config-ha-master`.
 
-In order to load configuration files which were received from a remote Icinga 2
-instance you will have to add the following include directive to your
-`icinga2.conf` configuration file:
+    object Zone "check-satellite" {
+      endpoints = [ "icinga2c" ]
+      parent = "config-ha-master"
+    }
 
-    include_recursive LocalStateDir + "/lib/icinga2/cluster/config"
+TODO - FIXME
+
+Additional permissions for configuration/status sync and remote commands.
+
 
 ### <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
-The SSL certificate common name (CN) will be used by the [ClusterListener](pbjecttype-clusterlistener)
+The SSL certificate common name (CN) will be used by the [ApiListener](pbjecttype-apilistener)
 object to determine the local authority. This name must match the local [Endpoint](#objecttype-endpoint)
 object name.
 
@@ -342,25 +333,19 @@ Example:
 
     object Endpoint "icinga2a" {
       host = "icinga2a.localdomain"
-      port = 8888
+      port = 5665
     }
 
-The [Endpoint](#objecttype-endpoint) name is further referenced as `peers` attribute on the
-[ClusterListener](pbjecttype-clusterlistener) object.
+The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
+[Zone](objecttype-zone) object.
 
     object Endpoint "icinga2b" {
       host = "icinga2b.localdomain"
-      port = 8888
+      port = 5665
     }
 
-    object ClusterListener "cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/icinga2a.crt"
-      key_path = "/etc/icinga2/ca/icinga2a.key"
-
-      bind_port = 8888
-
-      peers = [ "icinga2b" ]
+    object Zone "config-ha-master" {
+      endpoints = [ "icinga2a", "icinga2b" ]
     }
 
 Specifying the local node name using the [NodeName](#global-constants) variable requires
@@ -380,26 +365,17 @@ the state file you should make sure that all your cluster nodes are properly shu
 down.
 
 
-### <a id="assign-services-to-cluster-nodes"></a> Assign Services to Cluster Nodes
+### <a id="object-configuration-for-zones"></a> Object Configuration for Zones
 
-By default all services are distributed among the cluster nodes with the `Checker`
-feature enabled.
-If you require specific services to be only executed by one or more checker nodes
-within the cluster, you must define `authorities` as additional service object
-attribute. Required Endpoints must be defined as array.
+TODO - FIXME
 
-    apply Service "dmz-oracledb" {
-      import "generic-service"
+By default all objects for specific zones should be organized in
 
-      authorities = [ "icinga2a" ]
+    /etc/icinga2/zones.d/<zonename>
 
-      assign where "oracle" in host.groups
-    }
+These zone packages are then distributed to all nodes in the same zone, and
+to their respective target zone instances.
 
-The most common use case is building a master-slave cluster. The master node
-does not have the `checker` feature enabled, and the slave nodes are checking
-services based on their location, inheriting from a global service template
-defining the authorities.
 
 ### <a id="cluster-health-check"></a> Cluster Health Check
 
@@ -414,15 +390,13 @@ Example:
 
         check_interval = 1m
         check_command = "cluster"
-        authorities = [ "icinga2a" ]
 
         assign where host.name = "icinga2a"
     }
 
 Each cluster node should execute its own local cluster health check to
 get an idea about network related connection problems from different
-point of views. Use the `authorities` attribute to assign the service
-check to the configured node.
+point of views.
 
 ### <a id="host-multiple-cluster-nodes"></a> Host With Multiple Cluster Nodes
 
@@ -438,9 +412,9 @@ the Icinga 2 daemon.
 
 ### <a id="cluster-scenarios"></a> Cluster Scenarios
 
-#### <a id="cluster-scenarios-features"></a> Features in Cluster
+#### <a id="cluster-scenarios-features"></a> Features in Cluster Zones
 
-Each cluster instance may use available features. If you have multiple locations
+Each cluster zone may use available features. If you have multiple locations
 or departments, they may write to their local database, or populate graphite.
 Even further all commands are distributed (unless prohibited using [Domains](#domains)).
 
@@ -449,7 +423,7 @@ Icinga Web 2 on the left, checker and notifications on the right side - works to
 Everything on the left and on the right side - make sure to deal with duplicated notifications
 and automated check distribution.
 
-#### <a id="cluster-scenarios-location-based"></a> Location Based Cluster
+#### <a id="cluster-scenarios-distributed-zones"></a> Distributed Zones
 
 That scenario fits if your instances are spread over the globe and they all report
 to a central instance. Their network connection only works towards the central master
@@ -457,7 +431,8 @@ to a central instance. Their network connection only works towards the central m
 remote instances won't see each/connect to each other.
 
 All events are synced to the central node, but the remote nodes can still run
-local features such as a web interface, reporting, graphing, etc.
+local features such as a web interface, reporting, graphing, etc. in their own specified
+zone.
 
 Imagine the following example with a central node in Nuremberg, and two remote DMZ
 based instances in Berlin and Vienna. The configuration tree on the central instance
@@ -465,95 +440,54 @@ could look like this:
 
     conf.d/
       templates/
-      germany/
-        nuremberg/
-          hosts.conf
-        berlin/
-          hosts.conf
-      austria/
-        vienna/
-          hosts.conf
+    zones.d
+      nuremberg/
+        hosts.conf
+      berlin/
+        hosts.conf
+      vienna/
+        hosts.conf
 
 The configuration deployment should look like:
 
-* The node `nuremberg` sends `conf.d/germany/berlin` to the `berlin` node.
-* The node `nuremberg` sends `conf.d/austria/vienna` to the `vienna` node.
+* The master node sends `zones.d/berlin` to the `berlin` child zone.
+* The master node sends `zones.d/vienna` to the `vienna` child zone.
 
-`conf.d/templates` is shared on all nodes.
+The endpoint configuration would look like:
 
-The endpoint configuration on the `nuremberg` node would look like:
-
-    object Endpoint "nuremberg" {
+    object Endpoint "nuremberg-master" {
       host = "nuremberg.icinga.org"
-      port = 8888
+      port = 5665
     }
 
-    object Endpoint "berlin" {
+    object Endpoint "berlin-satellite" {
       host = "berlin.icinga.org"
-      port = 8888
-      config_files_recursive = [ "/etc/icinga2/conf.d/templates",
-                                 "/etc/icinga2/conf.d/germany/berlin" ]
+      port = 5665
     }
 
-    object Endpoint "vienna" {
+    object Endpoint "vienna-satellite" {
       host = "vienna.icinga.org"
-      port = 8888
-      config_files_recursive = [ "/etc/icinga2/conf.d/templates",
-                                 "/etc/icinga2/conf.d/austria/vienna" ]
+      port = 5665
     }
 
-Each remote node will only peer with the central `nuremberg` node. Therefore
-only two endpoints are required for cluster connection. Furthermore the remote
-node must include the received configuration by the cluster functionality.
+The zones would look like:
 
-Example for the configuration on the `berlin` node:
-
-    object Endpoint "nuremberg" {
-      host = "nuremberg.icinga.org"
-      port = 8888
+    object Zone "nuremberg" {
+      endpoints = [ "nuremberg-master" ]
     }
 
-    object Endpoint "berlin" {
-      host = "berlin.icinga.org"
-      port = 8888
-      accept_config = [ "nuremberg" ]
+    object Zone "berlin" {
+      endpoints = [ "berlin-satellite" ]
+      parent = "nuremberg-master"
     }
 
-    include_recursive LocalStateDir + "/lib/icinga2/cluster/config"
-
-Depenending on the network connectivity the connections can be either
-established by the remote node or the central node.
-
-Example for `berlin` node connecting to central `nuremberg` node:
-
-    library "cluster"
-
-    object ClusterListener "berlin-cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/berlin.crt"
-      key_path = "/etc/icinga2/ca/berlin.key"
-      bind_port = 8888
-      peers = [ "nuremberg" ]
+    object Zone "vienna" {
+      endpoints = [ "vienna-satellite" ]
+      parent = "nuremberg-master"
     }
 
-Example for central `nuremberg` node connecting to remote nodes:
-
-    library "cluster"
-
-    object ClusterListener "nuremberg-cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/nuremberg.crt"
-      key_path = "/etc/icinga2/ca/nuremberg.key"
-      bind_port = 8888
-      peers = [ "berlin", "vienna" ]
-    }
-
-The central node should not do any checks by itself. There's two possibilities to achieve
-that:
-
-* Disable the `checker` feature
-* Pin the service object configuration to the remote endpoints using the [authorities](#assign-services-to-cluster-nodes)
-attribute.
+The `nuremberg-master` zone will only execute local checks, and receive
+check results from the satellite nodes in the zones `berlin` and `vienna`.
 
 
 #### <a id="cluster-scenarios-load-distribution"></a> Load Distribution
@@ -570,79 +504,69 @@ but you may also disable the `Checker` feature.
 
     conf.d/
       templates/
+    zones.d/
       many/
 
 If you are planning to have some checks executed by a specific set of checker nodes
-just pin them using the [authorities](#assign-services-to-cluster-nodes) attribute.
+you have to define additional zones and define these check objects there.
 
-Example on the `central` node:
+Endpoints:
 
     object Endpoint "central" {
       host = "central.icinga.org"
-      port = 8888
+      port = 5665
     }
 
     object Endpoint "checker1" {
       host = "checker1.icinga.org"
-      port = 8888
-      config_files_recursive = [ "/etc/icinga2/conf.d" ]
+      port = 5665
     }
 
     object Endpoint "checker2" {
       host = "checker2.icinga.org"
-      port = 8888
-      config_files_recursive = [ "/etc/icinga2/conf.d" ]
+      port = 5665
     }
 
-    object ClusterListener "central-cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/central.crt"
-      key_path = "/etc/icinga2/ca/central.key"
-      bind_port = 8888
-      peers = [ "checker1", "checker2" ]
+
+Zones:
+
+    object Zone "master" {
+      endpoints = [ "central" ]
     }
 
-Example on `checker1` node:
-
-    object Endpoint "central" {
-      host = "central.icinga.org"
-      port = 8888
-    }
-
-    object Endpoint "checker1" {
-      host = "checker1.icinga.org"
-      port = 8888
-      accept_config = [ "central" ]
-    }
-
-    object Endpoint "checker2" {
-      host = "checker2.icinga.org"
-      port = 8888
-      accept_config = [ "central" ]
-    }
-
-    object ClusterListener "checker1-cluster" {
-      ca_path = "/etc/icinga2/ca/ca.crt"
-      cert_path = "/etc/icinga2/ca/checker1.crt"
-      key_path = "/etc/icinga2/ca/checker1.key"
-      bind_port = 8888
+    object Zone "many" {
+      endpoints = [ "checker1", "checker2" ]
+      parent = "master"
     }
 
 
 #### <a id="cluster-scenarios-high-availability"></a> High Availability
 
-Two nodes in a high availability setup require an [initial cluster sync](#initial-cluster-sync).
-Furthermore the active master node should deploy the configuration to the
-second node, if that does not already happen by your provisioning tool. It primarly
-depends which features are enabled/used. It is still required that some failover
-mechanism detects for example which instance will be the notification "master".
+High availability with Icinga 2 is possible by putting multiple nodes into
+a dedicated `Zone`. All nodes will elect their active master, and retry an
+election once the current active master failed.
+
+Features such as DB IDO will only be active on the current active master.
+All other passive nodes will pause the features without reload/restart.
+
+Connections from other zones will be accepted by all active and passive nodes
+but all are forwarded to the current active master dealing with the check results,
+commands, etc.
+
+    object Zone "ha-master" {
+      endpoints = [ "icinga2a", "icinga2b", "icinga2c" ]
+    }
+
+TODO - FIXME
+
+Two or more nodes in a high availability setup require an [initial cluster sync](#initial-cluster-sync).
 
 
 #### <a id="cluster-scenarios-multiple-hierachies"></a> Multiple Hierachies
 
-Your central instance collects all check results for reporting and graphing and also
+Your central zone collects all check results for reporting and graphing and also
 does some sort of additional notifications.
-The customers got their own instances in their local DMZs. They are limited to read/write
+The customers got their own instances in their local DMZ zones. They are limited to read/write
 only their services, but replicate all events back to the central instance.
 Within each DMZ there are additional check instances also serving interfaces for local
 departments. The customers instances will collect all results, but also send them back to
@@ -651,10 +575,10 @@ Additionally the customers instance on the second level in the middle prohibits 
 sending commands to the down below department nodes. You're only allowed to receive the
 results, and a subset of each customers configuration too.
 
-Your central instance will generate global reports, aggregate alert notifications and check
+Your central zone will generate global reports, aggregate alert notifications and check
 additional dependencies (for example, the customers internet uplink and bandwidth usage).
 
-The customers instance will only check a subset of local services and delegate the rest
+The customers zone instances will only check a subset of local services and delegate the rest
 to each department. Even though it acts as configuration master with a central dashboard
 for all departments managing their configuration tree which is then deployed to all
 department instances. Furthermore the central NOC is able to see what's going on.
@@ -664,40 +588,21 @@ to reschedule checks or acknowledge problems for their services.
 
 
 
-### <a id="domains"></a> Domains
+### <a id="zones"></a> Zones
 
-A [Service](#objecttype-service) object can be restricted using the `domains` attribute
-array specifying endpoint privileges.
-A Domain object specifices the ACLs applied for each [Endpoint](#objecttype-endpoint).
+`Zone` objects specify the endpoints located in a zone, and additional restrictions. That
+way your distributed setup can be seen as zones connected together instead of multiple
+instances in that specific zone.
 
-The following example assigns the domain `dmz-db` to the service `dmz-oracledb`. Endpoint
-`icinga-node-dmz-1` does not allow any object modification (no commands, check results) and only
-relays local messages to the remote node(s). The endpoint `icinga-node-dmz-2` processes all
-messages read and write (accept check results, commands and also relay messages to remote
-nodes).
+Zones can be used for [high availability](#cluster-scenarios-high-availability),
+[distributed setups](#cluster-scenarios-distributed-zones) and
+[load distribution](#cluster-scenarios-load-distribution).
 
-That way the service `dmz-oracledb` on endpoint `icinga-node-dmz-1` will not be modified
-by any cluster event message, and could be checked by the local authority too presenting
-a different state history. `icinga-node-dmz-2` still receives all cluster message updates
-from the `icinga-node-dmz-1` endpoint.
+### <a id="zone-synchronisation"></a> Zone Synchronisation
 
-    object Host "dmz-host1" {
-      import "generic-host"
-    }
+TODO - FIXME
 
-    object Service "dmz-oracledb" {
-      import "generic-service"
+### <a id="zone-permissions"></a> Zone Permissions
 
-      host_name = "dmz-host1"
-
-      domains = [ "dmz-db" ]
-      authorities = [ "icinga-node-dmz-1", "icinga-node-dmz-2"]
-    }
-
-    object Domain "dmz-db" {
-      acl = {
-        "icinga-node-dmz-1" = DomainPrivReadOnly
-        "icinga-node-dmz-2" = DomainPrivReadWrite
-      }
-    }
+TODO - FIXME
 
