@@ -1218,26 +1218,29 @@ Cleanup Items:
 
 Data Categories:
 
-  Name                 | Description
-  ---------------------|----------------
-  DbCatConfig          | Configuration data
-  DbCatState           | Current state data
-  DbCatAcknowledgement | Acknowledgements
-  DbCatComment         | Comments
-  DbCatDowntime        | Downtimes
-  DbCatEventHandler    | Event handler data
-  DbCatExternalCommand | External commands
-  DbCatFlapping        | Flap detection data
-  DbCatCheck           | Check results
-  DbCatLog             | Log messages
-  DbCatNotification    | Notifications
-  DbCatProgramStatus   | Program status data
-  DbCatRetention       | Retention data
-  DbCatStateHistory    | Historical state data
+  Name                 | Description            | Required by
+  ---------------------|------------------------|--------------------
+  DbCatConfig          | Configuration data     | Icinga Web/Reporting
+  DbCatState           | Current state data     | Icinga Web/Reporting
+  DbCatAcknowledgement | Acknowledgements       | Icinga Web/Reporting
+  DbCatComment         | Comments               | Icinga Web/Reporting
+  DbCatDowntime        | Downtimes              | Icinga Web/Reporting
+  DbCatEventHandler    | Event handler data     | Icinga Web/Reporting
+  DbCatExternalCommand | External commands      | Icinga Web/Reporting
+  DbCatFlapping        | Flap detection data    | Icinga Web/Reporting
+  DbCatCheck           | Check results          | --
+  DbCatLog             | Log messages           | Icinga Web/Reporting
+  DbCatNotification    | Notifications          | Icinga Web/Reporting
+  DbCatProgramStatus   | Program status data    | Icinga Web/Reporting
+  DbCatRetention       | Retention data         | Icinga Web/Reporting
+  DbCatStateHistory    | Historical state data  | Icinga Web/Reporting
 
 Multiple categories can be combined using the `|` operator. In addition to
 the category flags listed above the `DbCatEverything` flag may be used as
 a shortcut for listing all flags.
+
+External interfaces like Icinga Web require everything except `DbCatCheck`
+which is the default value if `categories` is not set.
 
 ### <a id="objecttype-idomysqlconnection"></a> IdoPgSqlConnection
 
@@ -1302,26 +1305,29 @@ Cleanup Items:
 
 Data Categories:
 
-  Name                 | Description
-  ---------------------|----------------
-  DbCatConfig          | Configuration data
-  DbCatState           | Current state data
-  DbCatAcknowledgement | Acknowledgements
-  DbCatComment         | Comments
-  DbCatDowntime        | Downtimes
-  DbCatEventHandler    | Event handler data
-  DbCatExternalCommand | External commands
-  DbCatFlapping        | Flap detection data
-  DbCatCheck           | Check results
-  DbCatLog             | Log messages
-  DbCatNotification    | Notifications
-  DbCatProgramStatus   | Program status data
-  DbCatRetention       | Retention data
-  DbCatStateHistory    | Historical state data
+  Name                 | Description            | Required by
+  ---------------------|------------------------|--------------------
+  DbCatConfig          | Configuration data     | Icinga Web/Reporting
+  DbCatState           | Current state data     | Icinga Web/Reporting
+  DbCatAcknowledgement | Acknowledgements       | Icinga Web/Reporting
+  DbCatComment         | Comments               | Icinga Web/Reporting
+  DbCatDowntime        | Downtimes              | Icinga Web/Reporting
+  DbCatEventHandler    | Event handler data     | Icinga Web/Reporting
+  DbCatExternalCommand | External commands      | Icinga Web/Reporting
+  DbCatFlapping        | Flap detection data    | Icinga Web/Reporting
+  DbCatCheck           | Check results          | --
+  DbCatLog             | Log messages           | Icinga Web/Reporting
+  DbCatNotification    | Notifications          | Icinga Web/Reporting
+  DbCatProgramStatus   | Program status data    | Icinga Web/Reporting
+  DbCatRetention       | Retention data         | Icinga Web/Reporting
+  DbCatStateHistory    | Historical state data  | Icinga Web/Reporting
 
 Multiple categories can be combined using the `|` operator. In addition to
 the category flags listed above the `DbCatEverything` flag may be used as
 a shortcut for listing all flags.
+
+External interfaces like Icinga Web require everything except `DbCatCheck`
+which is the default value if `categories` is not set.
 
 ### <a id="objecttype-livestatuslistener"></a> LiveStatusListener
 
