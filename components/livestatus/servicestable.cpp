@@ -191,7 +191,7 @@ Value ServicesTable::CheckCommandAccessor(const Value& row)
 	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 
 	if (checkcommand)
-		return checkcommand->GetName(); /* this is the name without '!' args */
+		return CompatUtility::GetCommandName(checkcommand) + "!" + CompatUtility::GetCheckableCommandArgs(service);
 
 	return Empty;
 }
@@ -206,7 +206,7 @@ Value ServicesTable::CheckCommandExpandedAccessor(const Value& row)
 	CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 
 	if (checkcommand)
-		return checkcommand->GetName() + "!" + CompatUtility::GetCheckableCommandArgs(service);
+		return CompatUtility::GetCommandName(checkcommand) + "!" + CompatUtility::GetCheckableCommandArgs(service);
 
 	return Empty;
 }
@@ -221,7 +221,7 @@ Value ServicesTable::EventHandlerAccessor(const Value& row)
 	EventCommand::Ptr eventcommand = service->GetEventCommand();
 
 	if (eventcommand)
-		return eventcommand->GetName();
+		return CompatUtility::GetCommandName(eventcommand);
 
 	return Empty;
 }

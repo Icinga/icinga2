@@ -68,54 +68,19 @@ void CommandsTable::FetchRows(const AddRowFunction& addRowFn)
 
 Value CommandsTable::NameAccessor(const Value& row)
 {
-	String buf;
 	Command::Ptr command = static_cast<Command::Ptr>(row);
 	
-	if (!command)
-		return Empty;
-
-	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
-		buf += "check_";
-	if (command->GetType() == DynamicType::GetByName("NotificationCommand"))
-		buf += "notification_";
-	if (command->GetType() == DynamicType::GetByName("EventCommand"))
-		buf += "event_";
-
-	buf += command->GetName();
-
-	return buf;
+	return CompatUtility::GetCommandName(command);
 }
 
 Value CommandsTable::LineAccessor(const Value& row)
 {
-	String buf;
 	Command::Ptr command = static_cast<Command::Ptr>(row);
 	
 	if (!command)
 		return Empty;
 
-	Value commandLine = command->GetCommandLine();
-
-	if (commandLine.IsObjectType<Array>()) {
-		Array::Ptr args = commandLine;
-
-		ObjectLock olock(args);
-		String arg;
-		BOOST_FOREACH(arg, args) {
-			// This is obviously incorrect for non-trivial cases.
-			String argitem = " \"" + arg + "\"";
-			boost::algorithm::replace_all(argitem, "\n", "\\n");
-			buf += argitem;
-		}
-	} else if (!commandLine.IsEmpty()) {
-		String args = Convert::ToString(commandLine);
-		boost::algorithm::replace_all(args, "\n", "\\n");
-		buf += args;
-	} else {
-		buf += "<internal>";
-	}
-
-	return buf;
+	return CompatUtility::GetCommandLine(command);
 }
 
 Value CommandsTable::CustomVariableNamesAccessor(const Value& row)

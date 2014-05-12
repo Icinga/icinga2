@@ -39,6 +39,9 @@ namespace icinga
 class I2_ICINGA_API CompatUtility
 {
 public:
+	/* command */
+	static String GetCommandLine(const Command::Ptr& command);
+	static String GetCommandName(const Command::Ptr command);
 
 	/* host */
 	static String GetHostAlias(const Host::Ptr& host);
@@ -99,9 +102,6 @@ public:
 	static std::set<User::Ptr> GetCheckableNotificationUsers(const Checkable::Ptr& checkable);
 	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
 
-	/* command */
-	static String GetCommandLine(const Command::Ptr& command);
-
 	/* custom attribute */
 	static bool IsLegacyAttribute(const DynamicObject::Ptr& object, const String& name);
 	static String GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name);
@@ -122,6 +122,8 @@ public:
 
 private:
 	CompatUtility(void);
+
+	static String GetCommandNamePrefix(const Command::Ptr command);
 };
 
 }

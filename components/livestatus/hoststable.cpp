@@ -223,7 +223,7 @@ Value HostsTable::CheckCommandAccessor(const Value& row)
 
 	CheckCommand::Ptr checkcommand = host->GetCheckCommand();
 	if (checkcommand)
-		return checkcommand->GetName(); /* this is the name without '!' args */
+		return CompatUtility::GetCommandName(checkcommand) + "!" + CompatUtility::GetCheckableCommandArgs(host);
 
 	return Empty;
 }
@@ -237,7 +237,7 @@ Value HostsTable::CheckCommandExpandedAccessor(const Value& row)
 
 	CheckCommand::Ptr checkcommand = host->GetCheckCommand();
 	if (checkcommand)
-		return checkcommand->GetName() + "!" + CompatUtility::GetCheckableCommandArgs(host);
+		return CompatUtility::GetCommandName(checkcommand) + "!" + CompatUtility::GetCheckableCommandArgs(host);
 
 	return Empty;
 }
@@ -251,7 +251,7 @@ Value HostsTable::EventHandlerAccessor(const Value& row)
 
 	EventCommand::Ptr eventcommand = host->GetEventCommand();
 	if (eventcommand)
-		return eventcommand->GetName();
+		return CompatUtility::GetCommandName(eventcommand);
 
 	return Empty;
 }

@@ -56,6 +56,30 @@ String CompatUtility::GetCommandLine(const Command::Ptr& command)
 	return result;
 }
 
+String CompatUtility::GetCommandNamePrefix(const Command::Ptr command)
+{
+	if (!command)
+		return Empty;
+
+	String prefix;
+	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
+		prefix = "check_";
+	else if (command->GetType() == DynamicType::GetByName("NotificationCommand"))
+		prefix = "notification_";
+	else if (command->GetType() == DynamicType::GetByName("EventCommand"))
+		prefix = "event_";
+
+	return prefix;
+}
+
+String CompatUtility::GetCommandName(const Command::Ptr command)
+{
+	if (!command)
+		return Empty;
+
+	return GetCommandNamePrefix(command) + command->GetName();
+}
+
 /* host */
 String CompatUtility::GetHostAlias(const Host::Ptr& host)
 {

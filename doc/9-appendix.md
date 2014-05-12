@@ -330,6 +330,16 @@ The `apt` check command does not support any vars.
 
 ## <a id="schemas"></a> Schemas
 
+By convention `CheckCommand`, `EventCommand` and `NotificationCommand` objects
+are exported using a prefix. This is mandatory for unique objects in the
+command tables.
+
+Object                  | Prefix
+------------------------|------------------------
+CheckCommand            | check_
+EventCommand            | event_
+NotificationCommand     | notification_
+
 ### <a id="schema-status-files"></a> Status Files
 
 Status files used by Icinga 1.x Classic UI: `status.dat`, `objects.cache`.

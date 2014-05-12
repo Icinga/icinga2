@@ -143,15 +143,7 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 	fp << "define command {" "\n"
 	      "\t" "command_name\t";
 
-
-	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
-		fp << "check_";
-	else if (command->GetType() == DynamicType::GetByName("NotificationCommand"))
-		fp << "notification_";
-	else if (command->GetType() == DynamicType::GetByName("EventCommand"))
-		fp << "event_";
-
-	fp << command->GetName() << "\n";
+	fp << CompatUtility::GetCommandName(command) << "\n";
 
 	fp << "\t" "command_line" "\t" << CompatUtility::GetCommandLine(command);
 
@@ -283,11 +275,11 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 
 	CheckCommand::Ptr checkcommand = host->GetCheckCommand();
 	if (checkcommand)
-		fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "!" << CompatUtility::GetCheckableCommandArgs(host) << "\n";
+		fp << "\t" "check_command" "\t" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(host) << "\n";
 
 	EventCommand::Ptr eventcommand = host->GetEventCommand();
 	if (eventcommand)
-		fp << "\t" "event_handler" "\t" "event_" << eventcommand->GetName() << "\n";
+		fp << "\t" "event_handler" "\t" << CompatUtility::GetCommandName(eventcommand) << "\n";
 
 	fp << "\t" "check_period" "\t" << CompatUtility::GetCheckableCheckPeriod(host) << "\n";
 
@@ -339,8 +331,11 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 {
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
-	fp << "\t" << "check_command=check_" << CompatUtility::GetCheckableCheckCommand(checkable) << "!" << CompatUtility::GetCheckableCommandArgs(checkable)<< "\n"
-	      "\t" "event_handler=event_" << CompatUtility::GetCheckableEventHandler(checkable) << "\n"
+	EventCommand::Ptr eventcommand = checkable->GetEventCommand();
+	CheckCommand::Ptr checkcommand = checkable->GetCheckCommand();
+
+	fp << "\t" << "check_command=" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(checkable) << "\n"
+	      "\t" "event_handler=" << CompatUtility::GetCommandName(eventcommand) << "\n"
 	      "\t" "check_period=" << CompatUtility::GetCheckableCheckPeriod(checkable) << "\n"
 	      "\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
 	      "\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
@@ -445,11 +440,11 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 
 		CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 		if (checkcommand)
-			fp << "\t" "check_command" "\t" "check_" << checkcommand->GetName() << "!" << CompatUtility::GetCheckableCommandArgs(service)<< "\n";
+			fp << "\t" "check_command" "\t" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(service)<< "\n";
 
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
 		if (eventcommand)
-			fp << "\t" "event_handler" "\t" "event_" << eventcommand->GetName() << "\n";
+			fp << "\t" "event_handler" "\t" << CompatUtility::GetCommandName(eventcommand) << "\n";
 
                 fp << "\t" "contacts" "\t";
                 DumpNameList(fp, CompatUtility::GetCheckableNotificationUsers(service));

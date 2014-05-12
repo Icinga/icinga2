@@ -276,7 +276,14 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 		name1 = service->GetHost()->GetName();
 		name2 = service->GetShortName();
 	} else {
-		name1 = object->GetName();
+		if (object->GetType() == DynamicType::GetByName("CheckCommand") ||
+		    object->GetType() == DynamicType::GetByName("EventCommand") ||
+		    object->GetType() == DynamicType::GetByName("NotificationCommand")) {
+			Command::Ptr command = dynamic_pointer_cast<Command>(object);
+			name1 = CompatUtility::GetCommandName(command);
+		}
+		else
+			name1 = object->GetName();
 	}
 
 	dbobj = dbtype->GetOrCreateObjectByName(name1, name2);
