@@ -20,6 +20,7 @@
 #include "db_ido/dbobject.h"
 #include "db_ido/dbtype.h"
 #include "db_ido/dbvalue.h"
+#include "icinga/customvarobject.h"
 #include "icinga/service.h"
 #include "icinga/compatutility.h"
 #include "remote/endpoint.h"
@@ -46,7 +47,7 @@ void DbObject::StaticInitialize(void)
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
-	DynamicObject::OnVarsChanged.connect(boost::bind(&DbObject::VarsChangedHandler, _1));
+	CustomVarObject::OnVarsChanged.connect(boost::bind(&DbObject::VarsChangedHandler, _1));
 }
 
 void DbObject::SetObject(const DynamicObject::Ptr& object)
@@ -151,16 +152,21 @@ void DbObject::SendVarsConfigUpdate(void)
 {
 	DynamicObject::Ptr obj = GetObject();
 
-	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(obj);
+	CustomVarObject::Ptr custom_var_object = dynamic_pointer_cast<CustomVarObject>(obj);
+
+	if (!custom_var_object)
+		return;
+
+	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		Log(LogDebug, "db_ido", "Updating object vars for '" + obj->GetName() + "'");
+		Log(LogDebug, "db_ido", "Updating object vars for '" + custom_var_object->GetName() + "'");
 
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 			if (!kv.first.IsEmpty()) {
-				int overridden = obj->IsVarOverridden(kv.first) ? 1 : 0;
+				int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
 
 				Log(LogDebug, "db_ido", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
 				    "' overridden: " + Convert::ToString(overridden));
@@ -188,16 +194,21 @@ void DbObject::SendVarsStatusUpdate(void)
 {
 	DynamicObject::Ptr obj = GetObject();
 
-	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(obj);
+	CustomVarObject::Ptr custom_var_object = dynamic_pointer_cast<CustomVarObject>(obj);
+
+	if (!custom_var_object)
+		return;
+
+	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		Log(LogDebug, "db_ido", "Updating object vars for '" + obj->GetName() + "'");
+		Log(LogDebug, "db_ido", "Updating object vars for '" + custom_var_object->GetName() + "'");
 
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 			if (!kv.first.IsEmpty()) {
-				int overridden = obj->IsVarOverridden(kv.first) ? 1 : 0;
+				int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
 
 				Log(LogDebug, "db_ido", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
 				    "' overridden: " + Convert::ToString(overridden));
@@ -307,7 +318,7 @@ void DbObject::StateChangedHandler(const DynamicObject::Ptr& object)
 	dbobj->SendStatusUpdate();
 }
 
-void DbObject::VarsChangedHandler(const DynamicObject::Ptr& object)
+void DbObject::VarsChangedHandler(const CustomVarObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 

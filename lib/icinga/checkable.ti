@@ -1,5 +1,5 @@
 #include "icinga/icingaapplication.h"
-#include "base/dynamicobject.h"
+#include "icinga/customvarobject.h"
 #include "base/array.h"
 
 namespace icinga
@@ -19,7 +19,7 @@ enum AcknowledgementType
 };
 }}}
 
-abstract class Checkable : DynamicObject
+abstract class Checkable : CustomVarObject
 {
 	[config] Array::Ptr groups {
 		default {{{ return make_shared<Array>(); }}}

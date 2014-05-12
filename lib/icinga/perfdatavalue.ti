@@ -1,4 +1,4 @@
-#include "base/dynamicobject.h"
+#include "icinga/customvarobject.h"
 
 namespace icinga
 {

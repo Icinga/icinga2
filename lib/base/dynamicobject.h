@@ -33,27 +33,6 @@ namespace icinga
 
 class DynamicType;
 
-enum ModifiedAttributeType
-{
-	ModAttrNotificationsEnabled = 1,
-	ModAttrActiveChecksEnabled = 2,
-	ModAttrPassiveChecksEnabled = 4,
-	ModAttrEventHandlerEnabled = 8,
-	ModAttrFlapDetectionEnabled = 16,
-	ModAttrFailurePredictionEnabled = 32,
-	ModAttrPerformanceDataEnabled = 64,
-	ModAttrObsessiveHandlerEnabled = 128,
-	ModAttrEventHandlerCommand = 256,
-	ModAttrCheckCommand = 512,
-	ModAttrNormalCheckInterval = 1024,
-	ModAttrRetryCheckInterval = 2048,
-	ModAttrMaxCheckAttempts = 4096,
-	ModAttrFreshnessChecksEnabled = 8192,
-	ModAttrCheckTimeperiod = 16384,
-	ModAttrCustomVariable = 32768,
-	ModAttrNotificationTimeperiod = 65536
-};
-
 /**
  * A dynamic object that can be instantiated from the configuration file
  * and that supports attribute replication to remote application instances.
@@ -70,7 +49,6 @@ public:
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnPaused;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnResumed;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnVarsChanged;
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
@@ -82,14 +60,6 @@ public:
 	void SetExtension(const String& key, const Object::Ptr& object);
 	Object::Ptr GetExtension(const String& key);
 	void ClearExtension(const String& key);
-
-	Dictionary::Ptr GetVars(void) const;
-	void SetVars(const Dictionary::Ptr& vars);
-
-	virtual int GetModifiedAttributes(void) const;
-	virtual void SetModifiedAttributes(int flags);
-
-	bool IsVarOverridden(const String& name);
 
 	void Register(void);
 

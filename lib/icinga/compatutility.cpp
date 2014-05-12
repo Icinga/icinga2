@@ -349,7 +349,7 @@ int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checka
 
 /* vars attr */
 
-bool CompatUtility::IsLegacyAttribute(DynamicObject::Ptr const& object, const String& name)
+bool CompatUtility::IsLegacyAttribute(CustomVarObject::Ptr const& object, const String& name)
 {
 	if ((name == "address" ||
 	    name == "address6") &&
@@ -379,7 +379,7 @@ bool CompatUtility::IsLegacyAttribute(DynamicObject::Ptr const& object, const St
 	return false;
 }
 
-Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object)
+Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();
 
@@ -399,7 +399,7 @@ Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr
 	return varsvars;
 }
 
-String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name)
+String CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& object, const String& name)
 {
 	Dictionary::Ptr vars = object->GetVars();
 
@@ -409,7 +409,7 @@ String CompatUtility::GetCustomAttributeConfig(const DynamicObject::Ptr& object,
 	return vars->Get(name);
 }
 
-Array::Ptr CompatUtility::GetModifiedAttributesList(const DynamicObject::Ptr& object)
+Array::Ptr CompatUtility::GetModifiedAttributesList(const CustomVarObject::Ptr& object)
 {
 	Array::Ptr mod_attr_list = make_shared<Array>();
 

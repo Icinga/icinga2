@@ -21,6 +21,7 @@
 #define STATUSDATAWRITER_H
 
 #include "compat/statusdatawriter.th"
+#include "icinga/customvarobject.h"
 #include "icinga/host.h"
 #include "icinga/service.h"
 #include "icinga/command.h"
@@ -94,7 +95,7 @@ private:
 	void DumpServiceStatus(std::ostream& fp, const Service::Ptr& service);
 	void DumpServiceObject(std::ostream& fp, const Service::Ptr& service);
 
-	void DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object);
+	void DumpCustomAttributes(std::ostream& fp, const CustomVarObject::Ptr& object);
 
 	void UpdateObjectsCache(void);
 	void StatusTimerHandler(void);

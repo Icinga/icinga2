@@ -17,67 +17,59 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DBQUERY_H
-#define DBQUERY_H
+#ifndef CUSTOMVAROBJECT_H
+#define CUSTOMVAROBJECT_H
 
-#include "db_ido/i2-db_ido.h"
-#include "icinga/customvarobject.h"
-#include "base/dictionary.h"
+#include "icinga/customvarobject.th"
 #include "base/dynamicobject.h"
+#include "remote/messageorigin.h"
 
 namespace icinga
 {
 
-enum DbQueryType
+enum ModifiedAttributeType
 {
-	DbQueryInsert = 1,
-	DbQueryUpdate = 2,
-	DbQueryDelete = 4
+	ModAttrNotificationsEnabled = 1,
+	ModAttrActiveChecksEnabled = 2,
+	ModAttrPassiveChecksEnabled = 4,
+	ModAttrEventHandlerEnabled = 8,
+	ModAttrFlapDetectionEnabled = 16,
+	ModAttrFailurePredictionEnabled = 32,
+	ModAttrPerformanceDataEnabled = 64,
+	ModAttrObsessiveHandlerEnabled = 128,
+	ModAttrEventHandlerCommand = 256,
+	ModAttrCheckCommand = 512,
+	ModAttrNormalCheckInterval = 1024,
+	ModAttrRetryCheckInterval = 2048,
+	ModAttrMaxCheckAttempts = 4096,
+	ModAttrFreshnessChecksEnabled = 8192,
+	ModAttrCheckTimeperiod = 16384,
+	ModAttrCustomVariable = 32768,
+	ModAttrNotificationTimeperiod = 65536
 };
 
-enum DbQueryCategory
+/**
+ * A dynamic object that can be instantiated from the configuration file
+ * and that supports attribute replication to remote application instances.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API CustomVarObject : public ObjectImpl<CustomVarObject>
 {
-	DbCatInvalid = -1,
+public:
+	DECLARE_PTR_TYPEDEFS(CustomVarObject);
 
-	DbCatConfig = (1 << 0),
-	DbCatState = (1 << 1),
+	static boost::signals2::signal<void (const CustomVarObject::Ptr&)> OnVarsChanged;
 
-	DbCatAcknowledgement = (1 << 2),
-	DbCatComment = (1 << 3),
-	DbCatDowntime = (1 << 4),
-	DbCatEventHandler = (1 << 5),
-	DbCatExternalCommand = (1 << 6),
-	DbCatFlapping = (1 << 7),
-	DbCatCheck = (1 << 8),
-	DbCatLog = (1 << 9),
-	DbCatNotification = (1 << 10),
-	DbCatProgramStatus = (1 << 11),
-	DbCatRetention = (1 << 12),
-	DbCatStateHistory = (1 << 13)
-};
+	Dictionary::Ptr GetVars(void) const;
+	void SetVars(const Dictionary::Ptr& vars);
 
-class DbObject;
+	virtual int GetModifiedAttributes(void) const;
+	virtual void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 
-struct I2_DB_IDO_API DbQuery
-{
-	int Type;
-	DbQueryCategory Category;
-	String Table;
-	String IdColumn;
-	Dictionary::Ptr Fields;
-	Dictionary::Ptr WhereCriteria;
-	shared_ptr<DbObject> Object;
-	shared_ptr<CustomVarObject> NotificationObject;
-	bool ConfigUpdate;
-	bool StatusUpdate;
-
-	static void StaticInitialize(void);
-
-	DbQuery(void)
-		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false)
-	{ }
+	bool IsVarOverridden(const String& name);
 };
 
 }
 
-#endif /* DBQUERY_H */
+#endif /* CUSTOMVAROBJECT_H */

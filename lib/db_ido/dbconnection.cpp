@@ -266,7 +266,7 @@ DbReference DbConnection::GetInsertID(const DbType::Ptr& type, const DbReference
 	return it->second;
 }
 
-void DbConnection::SetNotificationInsertID(const DynamicObject::Ptr& obj, const DbReference& dbref)
+void DbConnection::SetNotificationInsertID(const CustomVarObject::Ptr& obj, const DbReference& dbref)
 {
 	if (dbref.IsValid())
 		m_NotificationInsertIDs[obj] = dbref;
@@ -274,9 +274,9 @@ void DbConnection::SetNotificationInsertID(const DynamicObject::Ptr& obj, const 
 		m_NotificationInsertIDs.erase(obj);
 }
 
-DbReference DbConnection::GetNotificationInsertID(const DynamicObject::Ptr& obj) const
+DbReference DbConnection::GetNotificationInsertID(const CustomVarObject::Ptr& obj) const
 {
-	std::map<DynamicObject::Ptr, DbReference>::const_iterator it;
+	std::map<CustomVarObject::Ptr, DbReference>::const_iterator it;
 
 	it = m_NotificationInsertIDs.find(obj);
 

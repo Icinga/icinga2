@@ -45,7 +45,6 @@ boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopp
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnPaused;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnResumed;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnVarsChanged;
 
 DynamicObject::DynamicObject(void)
 { }
@@ -346,43 +345,4 @@ DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& na
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);
 	return dtype->GetObject(name);
-}
-
-
-Dictionary::Ptr DynamicObject::GetVars(void) const
-{
-	if (!GetOverrideVars().IsEmpty())
-		return GetOverrideVars();
-	else
-		return GetVarsRaw();
-}
-
-void DynamicObject::SetVars(const Dictionary::Ptr& vars)
-{
-	SetOverrideVars(vars);
-
-	Log(LogDebug, "base", "Setting vars for object '" + GetName() + "'");
-
-	OnVarsChanged(GetSelf());
-}
-
-int DynamicObject::GetModifiedAttributes(void) const
-{
-	/* does nothing by default */
-	return 0;
-}
-
-void DynamicObject::SetModifiedAttributes(int)
-{
-	/* does nothing by default */
-}
-
-bool DynamicObject::IsVarOverridden(const String& name)
-{
-	Dictionary::Ptr vars_override = GetOverrideVars();
-
-	if (!vars_override)
-		return false;
-
-	return vars_override->Contains(name);
 }

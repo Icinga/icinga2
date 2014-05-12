@@ -1,0 +1,13 @@
+#include "base/dynamicobject.h"
+
+namespace icinga
+{
+
+abstract class CustomVarObject : DynamicObject
+{
+	[config] Dictionary::Ptr vars (VarsRaw);
+
+	[state] Value override_vars;
+};
+
+}

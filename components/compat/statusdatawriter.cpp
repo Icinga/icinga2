@@ -507,7 +507,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 	      "\n";
 }
 
-void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const DynamicObject::Ptr& object)
+void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();
 
@@ -807,8 +807,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    "\t" "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
 		    "\t" "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
 		    "\t" "next_comment_id=" << Service::GetNextCommentID() << "\n";
-
-	DumpCustomAttributes(statusfp, IcingaApplication::GetInstance());
 
 	statusfp << "\t" "}" "\n"
 		    "\n";

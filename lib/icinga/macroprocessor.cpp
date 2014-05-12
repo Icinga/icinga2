@@ -19,6 +19,7 @@
 
 #include "icinga/macroprocessor.h"
 #include "icinga/macroresolver.h"
+#include "icinga/customvarobject.h"
 #include "base/array.h"
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
@@ -82,7 +83,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			continue;
 
 		if (objName.IsEmpty()) {
-			DynamicObject::Ptr dobj = dynamic_pointer_cast<DynamicObject>(resolver.second);
+			CustomVarObject::Ptr dobj = dynamic_pointer_cast<CustomVarObject>(resolver.second);
 
 			if (dobj) {
 				Dictionary::Ptr vars = dobj->GetVars();

@@ -24,6 +24,7 @@
 #include "db_ido/dbreference.h"
 #include "db_ido/dbquery.h"
 #include "db_ido/dbtype.h"
+#include "icinga/customvarobject.h"
 #include "base/dynamicobject.h"
 
 namespace icinga
@@ -103,7 +104,7 @@ private:
 	double m_LastStatusUpdate;
 
 	static void StateChangedHandler(const DynamicObject::Ptr& object);
-	static void VarsChangedHandler(const DynamicObject::Ptr& object);
+	static void VarsChangedHandler(const CustomVarObject::Ptr& object);
 
 	friend class DbType;
 };

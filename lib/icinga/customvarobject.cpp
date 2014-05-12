@@ -17,67 +17,49 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DBQUERY_H
-#define DBQUERY_H
-
-#include "db_ido/i2-db_ido.h"
 #include "icinga/customvarobject.h"
-#include "base/dictionary.h"
-#include "base/dynamicobject.h"
+#include "base/logger_fwd.h"
 
-namespace icinga
+using namespace icinga;
+
+REGISTER_TYPE(CustomVarObject);
+
+boost::signals2::signal<void (const CustomVarObject::Ptr&)> CustomVarObject::OnVarsChanged;
+
+Dictionary::Ptr CustomVarObject::GetVars(void) const
 {
-
-enum DbQueryType
-{
-	DbQueryInsert = 1,
-	DbQueryUpdate = 2,
-	DbQueryDelete = 4
-};
-
-enum DbQueryCategory
-{
-	DbCatInvalid = -1,
-
-	DbCatConfig = (1 << 0),
-	DbCatState = (1 << 1),
-
-	DbCatAcknowledgement = (1 << 2),
-	DbCatComment = (1 << 3),
-	DbCatDowntime = (1 << 4),
-	DbCatEventHandler = (1 << 5),
-	DbCatExternalCommand = (1 << 6),
-	DbCatFlapping = (1 << 7),
-	DbCatCheck = (1 << 8),
-	DbCatLog = (1 << 9),
-	DbCatNotification = (1 << 10),
-	DbCatProgramStatus = (1 << 11),
-	DbCatRetention = (1 << 12),
-	DbCatStateHistory = (1 << 13)
-};
-
-class DbObject;
-
-struct I2_DB_IDO_API DbQuery
-{
-	int Type;
-	DbQueryCategory Category;
-	String Table;
-	String IdColumn;
-	Dictionary::Ptr Fields;
-	Dictionary::Ptr WhereCriteria;
-	shared_ptr<DbObject> Object;
-	shared_ptr<CustomVarObject> NotificationObject;
-	bool ConfigUpdate;
-	bool StatusUpdate;
-
-	static void StaticInitialize(void);
-
-	DbQuery(void)
-		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false)
-	{ }
-};
-
+	if (!GetOverrideVars().IsEmpty())
+		return GetOverrideVars();
+	else
+		return GetVarsRaw();
 }
 
-#endif /* DBQUERY_H */
+void CustomVarObject::SetVars(const Dictionary::Ptr& vars)
+{
+	SetOverrideVars(vars);
+
+	Log(LogDebug, "icinga", "Setting vars for object '" + GetName() + "'");
+
+	OnVarsChanged(GetSelf());
+}
+
+int CustomVarObject::GetModifiedAttributes(void) const
+{
+	/* does nothing by default */
+	return 0;
+}
+
+void CustomVarObject::SetModifiedAttributes(int, const MessageOrigin&)
+{
+	/* does nothing by default */
+}
+
+bool CustomVarObject::IsVarOverridden(const String& name)
+{
+	Dictionary::Ptr vars_override = GetOverrideVars();
+
+	if (!vars_override)
+		return false;
+
+	return vars_override->Contains(name);
+}

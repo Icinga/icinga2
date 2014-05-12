@@ -21,11 +21,11 @@
 #define COMPATUTILITY_H
 
 #include "icinga/i2-icinga.h"
+#include "icinga/customvarobject.h"
 #include "icinga/host.h"
 #include "icinga/command.h"
 #include "base/dictionary.h"
 #include "base/array.h"
-#include "base/dynamicobject.h"
 #include <vector>
 
 namespace icinga
@@ -80,7 +80,7 @@ public:
 	static int GetCheckableInCheckPeriod(const Checkable::Ptr& checkable);
 	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
 
-	static Array::Ptr GetModifiedAttributesList(const DynamicObject::Ptr& object);
+	static Array::Ptr GetModifiedAttributesList(const CustomVarObject::Ptr& object);
 
 	/* notification */
 	static int GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable);
@@ -103,9 +103,9 @@ public:
 	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
 
 	/* custom attribute */
-	static bool IsLegacyAttribute(const DynamicObject::Ptr& object, const String& name);
-	static String GetCustomAttributeConfig(const DynamicObject::Ptr& object, const String& name);
-	static Dictionary::Ptr GetCustomAttributeConfig(const DynamicObject::Ptr& object);
+	static bool IsLegacyAttribute(const CustomVarObject::Ptr& object, const String& name);
+	static String GetCustomAttributeConfig(const CustomVarObject::Ptr& object, const String& name);
+	static Dictionary::Ptr GetCustomAttributeConfig(const CustomVarObject::Ptr& object);
 
 	/* check result */
 	static String GetCheckResultOutput(const CheckResult::Ptr& cr);

@@ -1,9 +1,9 @@
-#include "base/dynamicobject.h"
+#include "icinga/customvarobject.h"
 
 namespace icinga
 {
 
-abstract class Command : DynamicObject
+abstract class Command : CustomVarObject
 {
 	[config] Value command (CommandLine);
 	[config] Value arguments;

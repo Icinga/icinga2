@@ -1,4 +1,4 @@
-#include "base/dynamicobject.h"
+#include "icinga/customvarobject.h"
 
 namespace icinga
 {
@@ -11,7 +11,7 @@ public:
 };
 }}}
 
-class ScheduledDowntime : DynamicObject < ScheduledDowntimeNameComposer
+class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 {
 	[config, protected] String host_name;
 	[config, protected] String service_name;

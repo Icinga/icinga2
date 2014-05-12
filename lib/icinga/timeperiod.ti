@@ -1,9 +1,9 @@
-#include "base/dynamicobject.h"
+#include "icinga/customvarobject.h"
 
 namespace icinga
 {
 
-class TimePeriod : DynamicObject
+class TimePeriod : CustomVarObject
 {
 	[config] String display_name {
 		get {{{

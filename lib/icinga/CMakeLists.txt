@@ -26,6 +26,7 @@ mkclass_target(eventcommand.ti eventcommand.th)
 mkclass_target(hostgroup.ti hostgroup.th)
 mkclass_target(host.ti host.th)
 mkclass_target(icingaapplication.ti icingaapplication.th)
+mkclass_target(customvarobject.ti customvarobject.th)
 mkclass_target(icingastatuswriter.ti icingastatuswriter.th)
 mkclass_target(notificationcommand.ti notificationcommand.th)
 mkclass_target(notification.ti notification.th)
@@ -45,11 +46,11 @@ add_library(icinga SHARED
   cib.cpp command.cpp command.th comment.cpp comment.th compatutility.cpp dependency.cpp dependency.th
   dependency-apply.cpp downtime.cpp downtime.th eventcommand.cpp eventcommand.th
   externalcommandprocessor.cpp host.cpp host.th hostgroup.cpp hostgroup.th icingaapplication.cpp
-  icingaapplication.th icingastatuswriter.cpp icingastatuswriter.th legacytimeperiod.cpp macroprocessor.cpp
-  notificationcommand.cpp notificationcommand.th notification.cpp notification.th notification-apply.cpp
-  perfdatavalue.cpp perfdatavalue.th pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.th
-  scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp service.cpp
-  service.th servicegroup.cpp servicegroup.th checkable-notification.cpp timeperiod.cpp timeperiod.th
+  icingaapplication.th customvarobject.cpp customvarobject.th icingastatuswriter.cpp icingastatuswriter.th
+  legacytimeperiod.cpp macroprocessor.cpp notificationcommand.cpp notificationcommand.th notification.cpp
+  notification.th notification-apply.cpp perfdatavalue.cpp perfdatavalue.th pluginutility.cpp scheduleddowntime.cpp
+  scheduleddowntime.th scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp
+  service.cpp service.th servicegroup.cpp servicegroup.th checkable-notification.cpp timeperiod.cpp timeperiod.th
   user.cpp user.th usergroup.cpp usergroup.th icinga-type.cpp
 )
 

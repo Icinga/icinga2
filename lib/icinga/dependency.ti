@@ -1,4 +1,4 @@
-#include "base/dynamicobject.h"
+#include "icinga/customvarobject.h"
 #include "icinga/checkable.h"
 
 namespace icinga
@@ -12,7 +12,7 @@ public:
 };
 }}}
 
-class Dependency : DynamicObject < DependencyNameComposer
+class Dependency : CustomVarObject < DependencyNameComposer
 {
 	[config] String child_host_name;
 	[config] String child_service_name;
