@@ -545,121 +545,121 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
 
   Command name                              | Parameters                        | Description
   ------------------------------------------|-----------------------------------|--------------------------
-  PROCESS_HOST_CHECK_RESULT                 | ;<host_name>;<status_code>;<plugin_output> (3) | -
-  PROCESS_SERVICE_CHECK_RESULT              | ;<host_name>;<service_name>;<return_code>;<plugin_output> (4) | -
-  SCHEDULE_HOST_CHECK                       | ;<host_name>;<check_time> (2)  | -
-  SCHEDULE_FORCED_HOST_CHECK                | ;<host_name>;<check_time> (2)  | -
-  SCHEDULE_SVC_CHECK                        | ;<host_name>;<service_name>;<check_time> (3)  | -
-  SCHEDULE_FORCED_SVC_CHECK                 | ;<host_name>;<service_name>;<check_time> (3)  | -
-  ENABLE_HOST_CHECK                         | ;<host_name> (1)  | -
-  DISABLE_HOST_CHECK                        | ;<host_name> (1) | -
-  ENABLE_SVC_CHECK                          | ;<host_name>;<service_name> (2)  | -
-  DISABLE_SVC_CHECK                         | ;<host_name>;<service_name> (2)  | -
-  SHUTDOWN_PROCESS                          | (0) | -
-  RESTART_PROCESS                           | (0) | -
-  SCHEDULE_FORCED_HOST_SVC_CHECKS           | ;<host_name>;<check_time> (2)  | -
-  SCHEDULE_HOST_SVC_CHECKS                  | ;<host_name>;<check_time> (2)  | -
-  ENABLE_HOST_SVC_CHECKS                    | ;<host_name> (1) | -
-  DISABLE_HOST_SVC_CHECKS                   | ;<host_name> (1) | -
-  ACKNOWLEDGE_SVC_PROBLEM                   | ;<host_name>;<service_name>;<sticky>;<notify>;<persistent>;<author>;<comment> (7) | Note: Icinga 2 treats all comments as persistent.
-  ACKNOWLEDGE_SVC_PROBLEM_EXPIRE            | ;<host_name>;<service_name>;<sticky>;<notify>;<persistent>;<timestamp>;<author>;<comment> (8)  | Note: Icinga 2 treats all comments as persistent.
-  REMOVE_SVC_ACKNOWLEDGEMENT                | ;<host_name>;<service_name> (2)  | -
-  ACKNOWLEDGE_HOST_PROBLEM                  | ;<host_name>;<sticky>;<notify>;<persistent>;<author>;<comment> (6) | Note: Icinga 2 treats all comments as persistent.
-  ACKNOWLEDGE_HOST_PROBLEM_EXPIRE           | ;<host_name>;<sticky>;<notify>;<persistent>;<timestamp>;<author>;<comment> (7) | Note: Icinga 2 treats all comments as persistent.
-  REMOVE_HOST_ACKNOWLEDGEMENT               | ;<host_name> (1)  | -
-  DISABLE_HOST_FLAP_DETECTION               | ;<host_name> (1)  | -
-  ENABLE_HOST_FLAP_DETECTION                | ;<host_name> (1)  | -
-  DISABLE_SVC_FLAP_DETECTION                | ;<host_name>;<service_name> (2)  | -
-  ENABLE_SVC_FLAP_DETECTION                 | ;<host_name>;<service_name> (2)  | -
-  ENABLE_HOSTGROUP_SVC_CHECKS               | ;<hostgroup_name> (1)  | -
-  DISABLE_HOSTGROUP_SVC_CHECKS              | ;<hostgroup_name> (1)  | -
-  ENABLE_SERVICEGROUP_SVC_CHECKS            | ;<servicegroup_name> (1)  | -
-  DISABLE_SERVICEGROUP_SVC_CHECKS           | ;<servicegroup_name> (1)  | -
-  ENABLE_PASSIVE_HOST_CHECKS                | ;<host_name> (1)  | -
-  DISABLE_PASSIVE_HOST_CHECKS               | ;<host_name> (1)  | -
-  ENABLE_PASSIVE_SVC_CHECKS                 | ;<host_name>;<service_name> (2)  | -
-  DISABLE_PASSIVE_SVC_CHECKS                | ;<host_name>;<service_name> (2)  | -
-  ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS    | ;<servicegroup_name> (1)  | -
-  DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS   | ;<servicegroup_name> (1)  | -
-  ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS       | ;<hostgroup_name> (1)  | -
-  DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS      | ;<hostgroup_name> (1)  | -
-  PROCESS_FILE                              | ;<file_name>;<delete> (2)  | -
-  SCHEDULE_SVC_DOWNTIME                     | ;<host_name>;<service_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (9)  | -
-  DEL_SVC_DOWNTIME                          | ;<downtime_id> (1)   | -
-  SCHEDULE_HOST_DOWNTIME                    | ;<host_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  | -
-  DEL_HOST_DOWNTIME                         | ;<downtime_id> (1)  | -
-  SCHEDULE_HOST_SVC_DOWNTIME                | ;<host_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  | -
-  SCHEDULE_HOSTGROUP_HOST_DOWNTIME          | ;<hostgroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  | -
-  SCHEDULE_HOSTGROUP_SVC_DOWNTIME           | ;<hostgroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  | -
-  SCHEDULE_SERVICEGROUP_HOST_DOWNTIME       | ;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  | -
-  SCHEDULE_SERVICEGROUP_SVC_DOWNTIME        | ;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment> (8)  | -
-  ADD_HOST_COMMENT                          | ;<host_name>;<persistent>;<author>;<comment> (4)  | Note: Icinga 2 treats all comments as persistent.
-  DEL_HOST_COMMENT                          | ;<comment_id> (1)  | -
-  ADD_SVC_COMMENT                           | ;<host_name>;<service_name>;<persistent>;<author>;<comment> (5)  | Note: Icinga 2 treats all comments as persistent.
-  DEL_SVC_COMMENT                           | ;<comment_id> (1)  | -
-  DEL_ALL_HOST_COMMENTS                     | ;<host_name> (1)  | -
-  DEL_ALL_SVC_COMMENTS                      | ;<host_name>;<service_name> (2)  | -
-  SEND_CUSTOM_HOST_NOTIFICATION             | ;<host_name>;<options>;<author>;<comment> (4)  | -
-  SEND_CUSTOM_SVC_NOTIFICATION              | ;<host_name>;<service_name>;<options>;<author>;<comment> (5)  | -
-  DELAY_HOST_NOTIFICATION                   | ;<host_name>;<notification_time> (2)  | -
-  DELAY_SVC_NOTIFICATION                    | ;<host_name>;<service_name>;<notification_time> (3)  | -
-  ENABLE_HOST_NOTIFICATIONS                 | ;<host_name> (1)  | -
-  DISABLE_HOST_NOTIFICATIONS                | ;<host_name> (1)  | -
-  ENABLE_SVC_NOTIFICATIONS                  | ;<host_name>;<service_name> (2)  | -
-  DISABLE_SVC_NOTIFICATIONS                 | ;<host_name>;<service_name> (2) | -
-  DISABLE_HOSTGROUP_HOST_CHECKS             | ;<hostgroup_name> (1)  | -
-  DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS     | ;<hostgroup_name> (1)  | -
-  DISABLE_SERVICEGROUP_HOST_CHECKS          | ;<servicegroup_name> (1)  | -
-  DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS  | ;<servicegroup_name> (1)  | -
-  ENABLE_HOSTGROUP_HOST_CHECKS              | ;<hostgroup_name> (1)  | -
-  ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS      | ;<hostgroup_name> (1) | -
-  ENABLE_SERVICEGROUP_HOST_CHECKS           | ;<servicegroup_name> (1)  | -
-  ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS   | ;<servicegroup_name> (1)  | -
-  ENABLE_NOTIFICATIONS                      | (0)  | -
-  DISABLE_NOTIFICATIONS                     | (0)   | -
-  ENABLE_FLAP_DETECTION                     | (0)  | -
-  DISABLE_FLAP_DETECTION                    | (0)  | -
-  ENABLE_EVENT_HANDLERS                     | (0)  | -
-  DISABLE_EVENT_HANDLERS                    | (0)  | -
-  ENABLE_PERFORMANCE_DATA                   | (0)  | -
-  DISABLE_PERFORMANCE_DATA                  | (0)  | -
-  START_EXECUTING_HOST_CHECKS               | (0)  | -
-  STOP_EXECUTING_HOST_CHECKS                | (0)  | -
-  START_EXECUTING_SVC_CHECKS                | (0)  | -
-  STOP_EXECUTING_SVC_CHECKS                 | (0)  | -
-  CHANGE_SVC_MODATTR                        | ;<host_name>;<service_name>;<value> (3)  | -
-  CHANGE_HOST_MODATTR                       | ;<host_name>;<value> (2)  | -
-  CHANGE_USER_MODATTR                       | ;<user_name>;<value> (2)  | -
-  CHANGE_CHECKCOMMAND_MODATTR               | ;<checkcommand_name>;<value> (2)  | -
-  CHANGE_EVENTCOMMAND_MODATTR               | ;<eventcommand_name>;<value> (2)  | -
-  CHANGE_NOTIFICATIONCOMMAND_MODATTR        | ;<notificationcommand_name>;<value> (2)  | -
-  CHANGE_NORMAL_SVC_CHECK_INTERVAL          | ;<host_name>;<service_name>;<check_interval> (3)  | -
-  CHANGE_NORMAL_HOST_CHECK_INTERVAL         | ;<host_name>;<check_interval> (2)  | -
-  CHANGE_RETRY_SVC_CHECK_INTERVAL           | ;<host_name>;<service_name>;<check_interval> (3)  | -
-  CHANGE_RETRY_HOST_CHECK_INTERVAL          | ;<host_name>;<check_interval> (2) | -
-  ENABLE_HOST_EVENT_HANDLER                 | ;<host_name> (1)  | -
-  DISABLE_HOST_EVENT_HANDLER                | ;<host_name> (1)  | -
-  ENABLE_SVC_EVENT_HANDLER                  | ;<host_name>;<service_name> (2)  | -
-  DISABLE_SVC_EVENT_HANDLER                 | ;<host_name>;<service_name> (2) | -
-  CHANGE_HOST_EVENT_HANDLER                 | ;<host_name>;<event_command_name> (2)  | -
-  CHANGE_SVC_EVENT_HANDLER                  | ;<host_name>;<service_name>;<event_command_name> (3)  | -
-  CHANGE_HOST_CHECK_COMMAND                 | ;<host_name>;<check_command_name> (2)  | -
-  CHANGE_SVC_CHECK_COMMAND                  | ;<host_name>;<service_name>;<check_command_name> (3)  | -
-  CHANGE_MAX_HOST_CHECK_ATTEMPTS            | ;<host_name>;<check_attempts> (2)  | -
-  CHANGE_MAX_SVC_CHECK_ATTEMPTS             | ;<host_name>;<service_name>;<check_attempts> (3)  | -
-  CHANGE_HOST_CHECK_TIMEPERIOD              | ;<host_name>;<timeperiod_name> (2)   | -
-  CHANGE_SVC_CHECK_TIMEPERIOD               | ;<host_name>;<service_name>;<timeperiod_name>  | -
-  CHANGE_CUSTOM_HOST_VAR                    | ;<host_name>;<var_name>;<var_value> (3)  | -
-  CHANGE_CUSTOM_SVC_VAR                     | ;<host_name>;<service_name>;<var_name>;<var_value> (4)  | -
-  CHANGE_CUSTOM_USER_VAR                    | ;<user_name>;<var_name>;<var_value> (3)  | -
-  CHANGE_CUSTOM_CHECKCOMMAND_VAR            | ;<check_command_name>;<var_name>;<var_value> (3)  | -
-  CHANGE_CUSTOM_EVENTCOMMAND_VAR            | ;<event_command_name>;<var_name>;<var_value> (3)  | -
-  CHANGE_CUSTOM_NOTIFICATIONCOMMAND_VAR     | ;<notification_command_name>;<var_name>;<var_value> (3)  | -
-  ENABLE_HOSTGROUP_HOST_NOTIFICATIONS       | ;<hostgroup_name> (1) | -
-  ENABLE_HOSTGROUP_SVC_NOTIFICATIONS        | ;<hostgroup_name> (1)  | -
-  DISABLE_HOSTGROUP_HOST_NOTIFICATIONS      | ;<hostgroup_name> (1)  | -
-  DISABLE_HOSTGROUP_SVC_NOTIFICATIONS       | ;<hostgroup_name> (1)  | -
-  ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS    | ;<servicegroup_name> (1)  | -
-  DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS   | ;<servicegroup_name> (1)  | -
-  ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS     | ;<servicegroup_name> (1)  | -
-  DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS    | ;<servicegroup_name> (1)  | -
+  PROCESS_HOST_CHECK_RESULT                 | ;&lt;host_name&gt;;&lt;status_code&gt;;&lt;plugin_output&gt; (3) | -
+  PROCESS_SERVICE_CHECK_RESULT              | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;return_code&gt;;&lt;plugin_output&gt; (4) | -
+  SCHEDULE_HOST_CHECK                       | ;&lt;host_name&gt;;&lt;check_time&gt; (2)  | -
+  SCHEDULE_FORCED_HOST_CHECK                | ;&lt;host_name&gt;;&lt;check_time&gt; (2)  | -
+  SCHEDULE_SVC_CHECK                        | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_time&gt; (3)  | -
+  SCHEDULE_FORCED_SVC_CHECK                 | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_time&gt; (3)  | -
+  ENABLE_HOST_CHECK                         | ;&lt;host_name&gt; (1)  | -
+  DISABLE_HOST_CHECK                        | ;&lt;host_name&gt; (1) | -
+  ENABLE_SVC_CHECK                          | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  DISABLE_SVC_CHECK                         | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  SHUTDOWN_PROCESS                          | - | -
+  RESTART_PROCESS                           | - | -
+  SCHEDULE_FORCED_HOST_SVC_CHECKS           | ;&lt;host_name&gt;;&lt;check_time&gt; (2)  | -
+  SCHEDULE_HOST_SVC_CHECKS                  | ;&lt;host_name&gt;;&lt;check_time&gt; (2)  | -
+  ENABLE_HOST_SVC_CHECKS                    | ;&lt;host_name&gt; (1) | -
+  DISABLE_HOST_SVC_CHECKS                   | ;&lt;host_name&gt; (1) | -
+  ACKNOWLEDGE_SVC_PROBLEM                   | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;sticky&gt;;&lt;notify&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt; (7) | Note: Icinga 2 treats all comments as persistent.
+  ACKNOWLEDGE_SVC_PROBLEM_EXPIRE            | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;sticky&gt;;&lt;notify&gt;;&lt;persistent&gt;;&lt;timestamp&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | Note: Icinga 2 treats all comments as persistent.
+  REMOVE_SVC_ACKNOWLEDGEMENT                | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  ACKNOWLEDGE_HOST_PROBLEM                  | ;&lt;host_name&gt;;&lt;sticky&gt;;&lt;notify&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt; (6) | Note: Icinga 2 treats all comments as persistent.
+  ACKNOWLEDGE_HOST_PROBLEM_EXPIRE           | ;&lt;host_name&gt;;&lt;sticky&gt;;&lt;notify&gt;;&lt;persistent&gt;;&lt;timestamp&gt;;&lt;author&gt;;&lt;comment&gt; (7) | Note: Icinga 2 treats all comments as persistent.
+  REMOVE_HOST_ACKNOWLEDGEMENT               | ;&lt;host_name&gt; (1)  | -
+  DISABLE_HOST_FLAP_DETECTION               | ;&lt;host_name&gt; (1)  | -
+  ENABLE_HOST_FLAP_DETECTION                | ;&lt;host_name&gt; (1)  | -
+  DISABLE_SVC_FLAP_DETECTION                | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  ENABLE_SVC_FLAP_DETECTION                 | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  ENABLE_HOSTGROUP_SVC_CHECKS               | ;&lt;hostgroup_name&gt; (1)  | -
+  DISABLE_HOSTGROUP_SVC_CHECKS              | ;&lt;hostgroup_name&gt; (1)  | -
+  ENABLE_SERVICEGROUP_SVC_CHECKS            | ;&lt;servicegroup_name&gt; (1)  | -
+  DISABLE_SERVICEGROUP_SVC_CHECKS           | ;&lt;servicegroup_name&gt; (1)  | -
+  ENABLE_PASSIVE_HOST_CHECKS                | ;&lt;host_name&gt; (1)  | -
+  DISABLE_PASSIVE_HOST_CHECKS               | ;&lt;host_name&gt; (1)  | -
+  ENABLE_PASSIVE_SVC_CHECKS                 | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  DISABLE_PASSIVE_SVC_CHECKS                | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS    | ;&lt;servicegroup_name&gt; (1)  | -
+  DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS   | ;&lt;servicegroup_name&gt; (1)  | -
+  ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS       | ;&lt;hostgroup_name&gt; (1)  | -
+  DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS      | ;&lt;hostgroup_name&gt; (1)  | -
+  PROCESS_FILE                              | ;&lt;file_name&gt;;&lt;delete&gt; (2)  | -
+  SCHEDULE_SVC_DOWNTIME                     | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (9)  | -
+  DEL_SVC_DOWNTIME                          | ;&lt;downtime_id&gt; (1)   | -
+  SCHEDULE_HOST_DOWNTIME                    | ;&lt;host_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  DEL_HOST_DOWNTIME                         | ;&lt;downtime_id&gt; (1)  | -
+  SCHEDULE_HOST_SVC_DOWNTIME                | ;&lt;host_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  SCHEDULE_HOSTGROUP_HOST_DOWNTIME          | ;&lt;hostgroup_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  SCHEDULE_HOSTGROUP_SVC_DOWNTIME           | ;&lt;hostgroup_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  SCHEDULE_SERVICEGROUP_HOST_DOWNTIME       | ;&lt;servicegroup_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  SCHEDULE_SERVICEGROUP_SVC_DOWNTIME        | ;&lt;servicegroup_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  ADD_HOST_COMMENT                          | ;&lt;host_name&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt; (4)  | Note: Icinga 2 treats all comments as persistent.
+  DEL_HOST_COMMENT                          | ;&lt;comment_id&gt; (1)  | -
+  ADD_SVC_COMMENT                           | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;persistent&gt;;&lt;author&gt;;&lt;comment&gt; (5)  | Note: Icinga 2 treats all comments as persistent.
+  DEL_SVC_COMMENT                           | ;&lt;comment_id&gt; (1)  | -
+  DEL_ALL_HOST_COMMENTS                     | ;&lt;host_name&gt; (1)  | -
+  DEL_ALL_SVC_COMMENTS                      | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  SEND_CUSTOM_HOST_NOTIFICATION             | ;&lt;host_name&gt;;&lt;options&gt;;&lt;author&gt;;&lt;comment&gt; (4)  | -
+  SEND_CUSTOM_SVC_NOTIFICATION              | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;options&gt;;&lt;author&gt;;&lt;comment&gt; (5)  | -
+  DELAY_HOST_NOTIFICATION                   | ;&lt;host_name&gt;;&lt;notification_time&gt; (2)  | -
+  DELAY_SVC_NOTIFICATION                    | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;notification_time&gt; (3)  | -
+  ENABLE_HOST_NOTIFICATIONS                 | ;&lt;host_name&gt; (1)  | -
+  DISABLE_HOST_NOTIFICATIONS                | ;&lt;host_name&gt; (1)  | -
+  ENABLE_SVC_NOTIFICATIONS                  | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  DISABLE_SVC_NOTIFICATIONS                 | ;&lt;host_name&gt;;&lt;service_name&gt; (2) | -
+  DISABLE_HOSTGROUP_HOST_CHECKS             | ;&lt;hostgroup_name&gt; (1)  | -
+  DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS     | ;&lt;hostgroup_name&gt; (1)  | -
+  DISABLE_SERVICEGROUP_HOST_CHECKS          | ;&lt;servicegroup_name&gt; (1)  | -
+  DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS  | ;&lt;servicegroup_name&gt; (1)  | -
+  ENABLE_HOSTGROUP_HOST_CHECKS              | ;&lt;hostgroup_name&gt; (1)  | -
+  ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS      | ;&lt;hostgroup_name&gt; (1) | -
+  ENABLE_SERVICEGROUP_HOST_CHECKS           | ;&lt;servicegroup_name&gt; (1)  | -
+  ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS   | ;&lt;servicegroup_name&gt; (1)  | -
+  ENABLE_NOTIFICATIONS                      | -  | -
+  DISABLE_NOTIFICATIONS                     | -   | -
+  ENABLE_FLAP_DETECTION                     | -  | -
+  DISABLE_FLAP_DETECTION                    | -  | -
+  ENABLE_EVENT_HANDLERS                     | -  | -
+  DISABLE_EVENT_HANDLERS                    | -  | -
+  ENABLE_PERFORMANCE_DATA                   | -  | -
+  DISABLE_PERFORMANCE_DATA                  | -  | -
+  START_EXECUTING_HOST_CHECKS               | -  | -
+  STOP_EXECUTING_HOST_CHECKS                | -  | -
+  START_EXECUTING_SVC_CHECKS                | -  | -
+  STOP_EXECUTING_SVC_CHECKS                 | -  | -
+  CHANGE_SVC_MODATTR                        | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;value&gt; (3)  | -
+  CHANGE_HOST_MODATTR                       | ;&lt;host_name&gt;;&lt;value&gt; (2)  | -
+  CHANGE_USER_MODATTR                       | ;&lt;user_name&gt;;&lt;value&gt; (2)  | -
+  CHANGE_CHECKCOMMAND_MODATTR               | ;&lt;checkcommand_name&gt;;&lt;value&gt; (2)  | -
+  CHANGE_EVENTCOMMAND_MODATTR               | ;&lt;eventcommand_name&gt;;&lt;value&gt; (2)  | -
+  CHANGE_NOTIFICATIONCOMMAND_MODATTR        | ;&lt;notificationcommand_name&gt;;&lt;value&gt; (2)  | -
+  CHANGE_NORMAL_SVC_CHECK_INTERVAL          | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_interval&gt; (3)  | -
+  CHANGE_NORMAL_HOST_CHECK_INTERVAL         | ;&lt;host_name&gt;;&lt;check_interval&gt; (2)  | -
+  CHANGE_RETRY_SVC_CHECK_INTERVAL           | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_interval&gt; (3)  | -
+  CHANGE_RETRY_HOST_CHECK_INTERVAL          | ;&lt;host_name&gt;;&lt;check_interval&gt; (2) | -
+  ENABLE_HOST_EVENT_HANDLER                 | ;&lt;host_name&gt; (1)  | -
+  DISABLE_HOST_EVENT_HANDLER                | ;&lt;host_name&gt; (1)  | -
+  ENABLE_SVC_EVENT_HANDLER                  | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
+  DISABLE_SVC_EVENT_HANDLER                 | ;&lt;host_name&gt;;&lt;service_name&gt; (2) | -
+  CHANGE_HOST_EVENT_HANDLER                 | ;&lt;host_name&gt;;&lt;event_command_name&gt; (2)  | -
+  CHANGE_SVC_EVENT_HANDLER                  | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;event_command_name&gt; (3)  | -
+  CHANGE_HOST_CHECK_COMMAND                 | ;&lt;host_name&gt;;&lt;check_command_name&gt; (2)  | -
+  CHANGE_SVC_CHECK_COMMAND                  | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_command_name&gt; (3)  | -
+  CHANGE_MAX_HOST_CHECK_ATTEMPTS            | ;&lt;host_name&gt;;&lt;check_attempts&gt; (2)  | -
+  CHANGE_MAX_SVC_CHECK_ATTEMPTS             | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_attempts&gt; (3)  | -
+  CHANGE_HOST_CHECK_TIMEPERIOD              | ;&lt;host_name&gt;;&lt;timeperiod_name&gt; (2)   | -
+  CHANGE_SVC_CHECK_TIMEPERIOD               | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;timeperiod_name&gt;  | -
+  CHANGE_CUSTOM_HOST_VAR                    | ;&lt;host_name&gt;;&lt;var_name&gt;;&lt;var_value&gt; (3)  | -
+  CHANGE_CUSTOM_SVC_VAR                     | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;var_name&gt;;&lt;var_value&gt; (4)  | -
+  CHANGE_CUSTOM_USER_VAR                    | ;&lt;user_name&gt;;&lt;var_name&gt;;&lt;var_value&gt; (3)  | -
+  CHANGE_CUSTOM_CHECKCOMMAND_VAR            | ;&lt;check_command_name&gt;;&lt;var_name&gt;;&lt;var_value&gt; (3)  | -
+  CHANGE_CUSTOM_EVENTCOMMAND_VAR            | ;&lt;event_command_name&gt;;&lt;var_name&gt;;&lt;var_value&gt; (3)  | -
+  CHANGE_CUSTOM_NOTIFICATIONCOMMAND_VAR     | ;&lt;notification_command_name&gt;;&lt;var_name&gt;;&lt;var_value&gt; (3)  | -
+  ENABLE_HOSTGROUP_HOST_NOTIFICATIONS       | ;&lt;hostgroup_name&gt; (1) | -
+  ENABLE_HOSTGROUP_SVC_NOTIFICATIONS        | ;&lt;hostgroup_name&gt; (1)  | -
+  DISABLE_HOSTGROUP_HOST_NOTIFICATIONS      | ;&lt;hostgroup_name&gt; (1)  | -
+  DISABLE_HOSTGROUP_SVC_NOTIFICATIONS       | ;&lt;hostgroup_name&gt; (1)  | -
+  ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS    | ;&lt;servicegroup_name&gt; (1)  | -
+  DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS   | ;&lt;servicegroup_name&gt; (1)  | -
+  ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS     | ;&lt;servicegroup_name&gt; (1)  | -
+  DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS    | ;&lt;servicegroup_name&gt; (1)  | -
