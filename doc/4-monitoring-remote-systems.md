@@ -365,7 +365,7 @@ Example:
         check_interval = 1m
         check_command = "cluster"
 
-        assign where host.name = "icinga2a"
+        assign where host.name == "icinga2a"
     }
 
 Each cluster node should execute its own local cluster health check to
