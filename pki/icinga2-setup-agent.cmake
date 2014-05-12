@@ -2,8 +2,12 @@
 ICINGA2PKIDIR=@CMAKE_INSTALL_FULL_DATADIR@/icinga2/pki
 ICINGA2CONFIG=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2
 
+name=`hostname --fqdn`
+
+echo "Agent name: $name"
+
 if [ -n "$1" ]; then
-	if [ ! -e $ICINGA2CONFIG/pki/agent/agent.key ]; then
+	if [ ! -e $ICINGA2CONFIG/pki/$name.key ]; then
 		echo "You haven't generated a private key for this Icinga 2 instance"
 		echo "yet. Please run this script without any parameters to generate a key."
 		exit 1
@@ -53,38 +57,19 @@ if [ -n "$1" ]; then
 		done
 	fi
 
+	listener_port=""
+
 	while true; do
-		echo -n "Do you want this agent instance to listen on a TCP port? [y] "
-		if ! read listener; then
+		echo -n "Which TCP port should the agent listen on? [5665] "
+		if ! read listener_port; then
 			exit 1
 		fi
 
-		if [ "$listener" = "y" -o "$listener" = "n" -o -z "$listener" ]; then
-			break
-		fi
-
-		echo "Please enter 'y' or 'n'."
+		break
 	done
 
-	if [ -z "$listener" ]; then
-		listener=y
-	fi
-
-	listener_port=""
-
-	if [ "$listener" = "y" ]; then
-		while true; do
-			echo -n "Which TCP port should the agent listen on? [5665] "
-			if ! read listener_port; then
-				exit 1
-			fi
-
-			break
-		done
-
-		if [ -z "$listener_port" ]; then
-			listener_port=5665
-		fi
+	if [ -z "$listener_port" ]; then
+		listener_port=5665
 	fi
 
 	upstream_connect=n
@@ -108,77 +93,88 @@ if [ -n "$1" ]; then
 		fi
 
 		if [ "$upstream_connect" = "y" ]; then
-			while true; do
-				echo -n "Master instance IP address/hostname: "
-				if ! read upstream_host; then
-					exit 1
-				fi
+			echo -n "Master instance IP address/hostname [$upstream_name]: "
+			if ! read upstream_host; then
+				exit 1
+			fi
 
-				if [ -n "$upstream_host" ]; then
-					break
-				fi
+			if [ -z "$upstream_host" ]; then
+				upstream_host=$upstream_name
+			fi
 
-				echo "Please enter the master instance's hostname."
-			done
+			echo -n "Master instance port [5665]: "
+			if ! read upstream_port; then
+				exit 1
+			fi
 
-			while true; do
-				echo -n "Master instace port: "
-				if ! read upstream_port; then
-					exit 1
-				fi
-
-				if [ -n "$upstream_port" ]; then
-					break
-				fi
-
-				echo "Please enter the master instance's port."
-			done
+			if [ -z "$upstream_port" ]; then
+				upstream_port=5665
+			fi
 		fi
 	fi
 
 	echo "Installing the certificate bundle..."
-	base64 -d < $1 | tar -C $ICINGA2CONFIG/pki/agent/ -zx || exit 1
-	chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/agent/* || exit 1
+	base64 -d < $1 | tar -C $ICINGA2CONFIG/pki/ -zx || exit 1
+	chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/* || exit 1
 
-	echo "Setting up agent configuration..."
-	cat >$ICINGA2CONFIG/features-available/agent.conf <<AGENT
+	echo "Setting up api.configuration..."
+	cat >$ICINGA2CONFIG/features-available/api.conf <<AGENT
 /**
- * The agent listener accepts checks from agents.
+ * The API listener is used for distributed monitoring setups.
  */
 
-library "agent"
+object ApiListener "api" {
+  cert_path = SysconfDir + "/icinga2/pki/" + NodeName + ".crt"
+  key_path = SysconfDir + "/icinga2/pki/" + NodeName + ".key"
+  ca_path = SysconfDir + "/icinga2/pki/ca.crt"
 
-object AgentListener "agent" {
-  cert_path = SysconfDir + "/icinga2/pki/agent/agent.crt"
-  key_path = SysconfDir + "/icinga2/pki/agent/agent.key"
-  ca_path = SysconfDir + "/icinga2/pki/agent/ca.crt"
+  bind_port = "$listener_port"
+}
+
+object Endpoint NodeName {
+  host = NodeName
+
 AGENT
 
 	if [ "$master" = "n" ]; then
-		cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
+		cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
   upstream_name = "$upstream_name"
 AGENT
 	fi
 
-	if [ "$listener" = "y" ]; then
-		cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
-  bind_port = "$listener_port"
+	cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+}
+
+object Zone ZoneName {
 AGENT
-	fi
 
 	if [ "$upstream_connect" = "y" ]; then
-		cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
-  upstream_host = "$upstream_host"
-  upstream_port = "$upstream_port"
+		cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+  parent = "$upstream_name"
 AGENT
 	fi
 
-	cat >>$ICINGA2CONFIG/features-available/agent.conf <<AGENT
+	cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+  endpoints = [ NodeName ]
 }
+
 AGENT
 
-	echo "Enabling agent feature..."
-	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature agent
+	if [ "$upstream_connect" = "y" ]; then
+		cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+object Endpoint "$upstream_name" {
+  host = "$upstream_host"
+  port = "$upstream_port"
+}
+
+object Zone "$upstream_name" {
+  endpoints = [ "$upstream_name" ]
+}
+AGENT
+	fi
+
+	echo "Enabling API feature..."
+	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature api
 
 	if [ ! -e "@CMAKE_INSTALL_FULL_SYSCONFDIR@/monitoring" ]; then
 		ln -s $ICINGA2CONFIG/conf.d/hosts/localhost @CMAKE_INSTALL_FULL_SYSCONFDIR@/monitoring
@@ -196,28 +192,22 @@ AGENT
 	exit 0
 fi
 
-name=$(hostname --fqdn)
-
-echo "Host name: $name"
-
-mkdir -p $ICINGA2CONFIG/pki/agent
+mkdir -p $ICINGA2CONFIG/pki
 chmod 700 $ICINGA2CONFIG/pki
 chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki || exit 1
-chmod 700 $ICINGA2CONFIG/pki/agent
-chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/agent || exit 1
 
-if [ -e $ICINGA2CONFIG/pki/agent/agent.key ]; then
-	echo "You already have agent certificates in $ICINGA2CONFIG/pki/agent/"
+if [ -e $ICINGA2CONFIG/pki/$name.crt ]; then
+	echo "You already have agent certificates in $ICINGA2CONFIG/pki/"
 	exit 1
 fi
 
-REQ_COMMON_NAME="$name" KEY_DIR="$ICINGA2CONFIG/pki/agent" openssl req -config $ICINGA2PKIDIR/openssl-quiet.cnf -new -newkey rsa:4096 -keyform PEM -keyout $ICINGA2CONFIG/pki/agent/agent.key -outform PEM -out $ICINGA2CONFIG/pki/agent/agent.csr -nodes && \
-	chmod 600 $ICINGA2CONFIG/pki/agent/agent.key
+REQ_COMMON_NAME="$name" KEY_DIR="$ICINGA2CONFIG/pki/" openssl req -config $ICINGA2PKIDIR/openssl-quiet.cnf -new -newkey rsa:4096 -keyform PEM -keyout $ICINGA2CONFIG/pki/$name.key -outform PEM -out $ICINGA2CONFIG/pki/$name.csr -nodes && \
+	chmod 600 $ICINGA2CONFIG/pki/$name.key
 
 echo "Please sign the following CSR using the Agent CA:"
 echo ""
 
-cat $ICINGA2CONFIG/pki/agent/agent.csr
+cat $ICINGA2CONFIG/pki/$name.csr
 
 echo ""
 

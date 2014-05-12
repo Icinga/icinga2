@@ -28,12 +28,21 @@ fi
 
 openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$csrfile -outform PEM -out $ICINGA_CA/$pubkfile.crt -CAserial $ICINGA_CA/serial
 
+cn=`openssl x509 -in $pubkfile.crt -subject | grep -Eo '/CN=[^ ]+' | cut -f2- -d=`
+
+case "$cn" in
+  */*)
+    echo "commonName contains invalid character (/)."
+    exit 1
+  ;;
+esac
+
+
+mv $pubkfile.crt $cn.crt
+pubkfile=$cn
+
 # Make an agent bundle file
-mkdir -p $ICINGA_CA/agent
-cp $ICINGA_CA/$pubkfile.crt $ICINGA_CA/agent/agent.crt
-cp $ICINGA_CA/ca.crt $ICINGA_CA/agent/ca.crt
-tar cz -C $ICINGA_CA/agent/ ca.crt agent.crt | base64 > $ICINGA_CA/$pubkfile.bundle
-rm -rf $ICINGA_CA/agent
+tar cz -C $ICINGA_CA $pubkfile.crt ca.crt | base64 > $ICINGA_CA/$pubkfile.bundle
 
 echo "Done. $pubkfile.crt and $pubkfile.bundle files were written."
 exit 0
