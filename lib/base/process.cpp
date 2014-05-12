@@ -500,7 +500,12 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		(void)nice(5);
 
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
-			perror("execvpe() failed.");
+			char errmsg[512];
+			strcpy(errmsg, "execvpe(");
+			strncat(errmsg, argv[0], sizeof(errmsg) - 1);
+			strncat(errmsg, ") failed.", sizeof(errmsg) - 1);
+			errmsg[sizeof(errmsg) - 1] = '\0';
+			perror(errmsg);
 			_exit(128);
 		}
 
