@@ -1,15 +1,17 @@
 Installing Icinga 2
 ===================
 
-Please note that the current version of Icinga 2 isn't much more than a tech
-demo. Expect some rough edges when installing and running Icinga 2.
-
-For the "finished" version we're planning to release packages for the most
-common Linux distributions as well as for Windows - or at least co-operate
-with the package maintainers.
+The recommended way of installing Icinga 2 is to use packages. The Icinga
+project provides both release and development packages for a number
+of operating systems.
 
 Please check the documentation in the doc/ directory for a current list
-of available packages.
+of available packages and detailed installation instructions.
+
+There are a number of known caveats when installing from source such as
+incorrect directory and file permissions. So even if you're planning to
+not use the official packages it is advisable to build your own Debian
+or RPM packages.
 
 Build Requirements
 ------------------
