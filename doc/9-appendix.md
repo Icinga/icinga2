@@ -304,6 +304,23 @@ snmp_address    | **Optional.** The host's address. Defaults to "$address$".
 snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
+#### <a id="plugin-check-command-nscp"></a> nscp
+
+Check command object for the `check_nt` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+nscp_address    | **Optional.** The host's address. Defaults to "$address$".
+nscp_port       | **Optional.** The NSClient++ port. Defaults to 12489.
+nscp_password   | **Optional.** The NSClient++ password.
+nscp_variable   | **Required.** The variable that should be checked.
+nscp_params     | **Optional.** Parameters for the query.
+nscp_warn       | **Optional.** The warning threshold.
+nscp_crit       | **Optional.** The critical threshold.
+nscp_timeout    | **Optional.** The query timeout in seconds.
+
 #### <a id="plugin-check-command-apt"></a> apt
 
 Check command for the `check_apt` plugin.

@@ -103,51 +103,25 @@ known for its magnificent Windows support. There are alternatives like the WMI i
 but using `NSClient++` will allow you to run local scripts similar to check plugins fetching
 the required output and performance counters.
 
-The NSClient++ agent uses its own configuration format while `check_nt`
-can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
+You can use the `check_nt` plugin from the Monitoring Plugins project to query NSClient++.
+Icinga 2 provides the [nscp check command](#plugin-check-command-nscp) for this:
 
 Example:
 
-    object CheckCommand "check_nscp" {
-      import "plugin-check-command"
-
-      command = [
-        PluginDir + "/check_nt",
-        "-H", "$address$",
-        "-p", "$port$",
-        "-v", "$remote_nscp_command$",
-        "-l", "$partition$",
-        "-w", "$warn$",
-        "-c", "$crit$",
-        "-s", "$pass$"
-      ]
-
-      vars = {
-        "port" = "12489"
-        "pass" = "supersecret"
-      }
-    }
-
-    object Service "users" {
+    object Service "disk" {
       import "generic-service"
   
       host_name = "remote-windows-host"
 
-      check_command = "check_nscp"
+      check_command = "nscp"
 
-      vars += {
-        remote_nscp_command = "USEDDISKSPACE"
-        partition = "c"
-        warn = "70"
-        crit = "80"
-      }
+      vars.nscp_variable = "USEDDISKSPACE"
+      vars.nscp_params = "c"
+      vars.nscp_warn = 70
+      vars.nscp_crit = 80
     }
 
 For details on the `NSClient++` configuration please refer to the [official documentation](http://www.nsclient.org/nscp/wiki/doc/configuration/0.4.x).
-
-> **Note**
-> 
-> The format of the `NSClient++` configuration file has changed from 0.3.x to 0.4!
 
 ### <a id="agent-based-checks-icinga2-agent"></a> Icinga 2 Agent
 
