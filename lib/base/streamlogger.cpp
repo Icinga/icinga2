@@ -90,6 +90,8 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
+	stream << "[" << timestamp << "] <" << Utility::GetThreadName() << "> ";
+
 	if (tty) {
 		switch (entry.Severity) {
 			case LogWarning:
@@ -103,14 +105,12 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 		}
 	}
 
-	stream << "[" << timestamp << "] <" << Utility::GetThreadName() << "> "
-		 << Logger::SeverityToString(entry.Severity) << "/" << entry.Facility << ": "
-		 << entry.Message;
+	stream << Logger::SeverityToString(entry.Severity);
 
 	if (tty)
 		stream << "\x1b[0m"; // clear colors
 
-	stream << "\n";
+	stream << "/" << entry.Facility << ": " << entry.Message << "\n";
 }
 
 /**
