@@ -502,6 +502,11 @@ Details on all available options can be found in the
 Notifications for service and host problems are an integral part of your
 monitoring setup.
 
+When a host or service is in a downtime, a problem has been acknowledged or
+the dependency logic determined that the host/service is unreachable, no
+notirications are sent. You can configure additional type and state filters
+refining the notifications being actually sent.
+
 There are many ways of sending notifications, e.g. by e-mail, XMPP,
 IRC, Twitter, etc. On its own Icinga 2 does not know how to send notifications.
 Instead it relies on external mechanisms such as shell scripts to notify users.
@@ -823,7 +828,8 @@ re-notify if the problem persists.
 
 ## <a id="dependencies"></a> Dependencies
 
-Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects.
+Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects
+for determing their network reachability.
 The `parent_host_name` and `parent_service_name` attributes are mandatory for
 service dependencies, `parent_host_name` is required for host dependencies.
 
@@ -832,6 +838,8 @@ dependency (parent) to its host. A host to host dependency acts implicit
 as host parent relation.
 When dependencies are calculated, not only the immediate parent is taken into
 account but all parents are inherited.
+
+Notifications are suppressed if a host or service becomes unreachable.
 
 A common scenario is the Icinga 2 server behind a router. Checking internet
 access by pinging the Google DNS server `google-dns` is a common method, but
