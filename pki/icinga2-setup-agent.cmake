@@ -133,16 +133,6 @@ object ApiListener "api" {
 
 object Endpoint NodeName {
   host = NodeName
-
-AGENT
-
-	if [ "$master" = "n" ]; then
-		cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
-  upstream_name = "$upstream_name"
-AGENT
-	fi
-
-	cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
 }
 
 object Zone ZoneName {
@@ -172,6 +162,8 @@ object Zone "$upstream_name" {
 }
 AGENT
 	fi
+
+	sed -i "s/NodeName = \"localhost\"/NodeName = \"$name\"/" /etc/icinga2/constants.conf
 
 	echo "Enabling API feature..."
 	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature api
