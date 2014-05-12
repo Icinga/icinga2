@@ -172,7 +172,7 @@ communication layer based on SSL.
 ### <a id="certificate-authority-certificates"></a> Certificate Authority and Certificates
 
 Icinga 2 comes with two scripts helping you to create CA and node certificates
-for you Icinga 2 Cluster.
+for your Icinga 2 Cluster.
 
 The first step is the creation of CA using the following command:
 
