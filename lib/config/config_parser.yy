@@ -160,7 +160,6 @@ static void MakeRBinaryOp(Value** result, AExpression::OpCallback& op, Value *le
 %token T_ASSIGN "assign (T_ASSIGN)"
 %token T_IGNORE "ignore (T_IGNORE)"
 %token T_FUNCTION "function (T_FUNCTION)"
-%token T_LAMBDA "lambda (T_LAMBDA)"
 %token T_RETURN "return (T_RETURN)"
 %token T_ZONE "zone (T_ZONE)"
 %token T_FOR "for (T_FOR)"
@@ -864,21 +863,6 @@ rterm: T_STRING
 		arr->Add(aexpr);
 
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunction, arr, Array::Ptr($3), DebugInfoRange(@1, @5)));
-	}
-	| T_LAMBDA identifier_items ':' rterm
-	{
-		Array::Ptr arr = make_shared<Array>();
-
-		arr->Add(Empty);
-
-		Array::Ptr arrex = make_shared<Array>();
-		arrex->Add(make_shared<AExpression>(&AExpression::OpSet, make_shared<AExpression>(&AExpression::OpLiteral, "__result", @4), *$4, @4));
-		delete $4;
-		AExpression::Ptr aexpr = make_shared<AExpression>(&AExpression::OpDict, arrex, true, @4);
-
-		arr->Add(aexpr);
-
-		$$ = new Value(make_shared<AExpression>(&AExpression::OpFunction, arr, Array::Ptr($2), DebugInfoRange(@1, @4)));
 	}
 	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
 	{

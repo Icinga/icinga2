@@ -229,11 +229,10 @@ where				return T_WHERE;
 import				return T_IMPORT;
 assign				return T_ASSIGN;
 ignore				return T_IGNORE;
-function			return T_FUNCTION;
-lambda				return T_LAMBDA;
-return				return T_RETURN;
+__function			return T_FUNCTION;
+__return			return T_RETURN;
 zone				return T_ZONE;
-for				return T_FOR;
+__for				return T_FOR;
 \<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
