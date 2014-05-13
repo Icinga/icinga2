@@ -93,7 +93,8 @@ static bool LoadConfigFiles(const String& appType)
 
 	String zonesDir = Application::GetZonesDir();
 
-	Utility::Glob(Application::GetZonesDir() + "/*", &IncludeZoneDirRecursive, GlobDirectory);
+	if (!zonesDir.IsEmpty())
+		Utility::Glob(Application::GetZonesDir() + "/*", &IncludeZoneDirRecursive, GlobDirectory);
 	Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/api/zones/*", &IncludeNonLocalZone, GlobDirectory);
 
 	/* Load cluster config files - this should probably be in libremote but

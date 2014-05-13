@@ -223,6 +223,8 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 			ReplayLog(aclient);
 		}
 
+		SendConfigUpdate(aclient);
+
 		endpoint->AddClient(aclient);
 	} else
 		AddAnonymousClient(aclient);

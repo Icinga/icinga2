@@ -39,7 +39,7 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 	return result;
 }
 
-bool Zone::CanAccessObject(const DynamicObject::Ptr& object) const
+bool Zone::CanAccessObject(const DynamicObject::Ptr& object)
 {
 	Zone::Ptr object_zone;
 
@@ -51,11 +51,18 @@ bool Zone::CanAccessObject(const DynamicObject::Ptr& object) const
 	if (!object_zone)
 		object_zone = Zone::GetLocalZone();
 
-	while (object_zone) {
-		if (object_zone.get() == this)
+	return object_zone->IsChildOf(GetSelf());
+}
+
+bool Zone::IsChildOf(const Zone::Ptr& zone)
+{
+	Zone::Ptr azone = GetSelf();
+
+	while (azone) {
+		if (azone == zone)
 			return true;
 
-		object_zone = object_zone->GetParent();
+		azone = azone->GetParent();
 	}
 
 	return false;

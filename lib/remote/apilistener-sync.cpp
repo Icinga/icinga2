@@ -18,12 +18,15 @@
  ******************************************************************************/
 
 #include "remote/apilistener.h"
+#include "remote/apifunction.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include <boost/foreach.hpp>
 #include <fstream>
 
 using namespace icinga;
+
+REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
 bool ApiListener::IsConfigMaster(const Zone::Ptr& zone) const
 {
@@ -43,33 +46,23 @@ void ApiListener::ConfigGlobHandler(const Dictionary::Ptr& config, const String&
 	config->Set(file.SubStr(path.GetLength()), content);
 }
 
-void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
+Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
 {
-	Log(LogInformation, "remote", "Syncing zone: " + zone->GetName());
+	Dictionary::Ptr config = make_shared<Dictionary>();
+	Utility::GlobRecursive(dir, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, config, dir, _1), GlobFile);
+	return config;
+}
 
-	String dirNew = Application::GetZonesDir() + "/" + zone->GetName();
-	String dirOld = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
+bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir)
+{
+	bool configChange = false;
 
-#ifndef _WIN32
-	if (mkdir(dirOld.CStr(), 0700) < 0 && errno != EEXIST) {
-#else /*_ WIN32 */
-	if (mkdir(dirOld.CStr()) < 0 && errno != EEXIST) {
-#endif /* _WIN32 */
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("mkdir")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(dirOld));
-	}
 
-	Dictionary::Ptr configNew = make_shared<Dictionary>();
-	Utility::GlobRecursive(dirNew, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, configNew, dirNew, _1), GlobFile);
+	BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
+		if (oldConfig->Get(kv.first) != kv.second) {
+			configChange = true;
 
-	Dictionary::Ptr configOld = make_shared<Dictionary>();
-	Utility::GlobRecursive(dirOld, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, configOld, dirOld, _1), GlobFile);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, configNew) {
-		if (configOld->Get(kv.first) != kv.second) {
-			String path = dirOld + "/" + kv.first;
+			String path = configDir + "/" + kv.first;
 			Log(LogInformation, "remote", "Updating configuration file: " + path);
 
 			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
@@ -78,12 +71,40 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 		}
 	}
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, configOld) {
-		if (!configNew->Contains(kv.first)) {
-			String path = dirOld + "/" + kv.first;
+	BOOST_FOREACH(const Dictionary::Pair& kv, oldConfig) {
+		if (!newConfig->Contains(kv.first)) {
+			configChange = true;
+
+			String path = configDir + "/" + kv.first;
 			(void) unlink(path.CStr());
 		}
 	}
+
+	return configChange;
+}
+
+void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
+{
+	Log(LogInformation, "remote", "Syncing zone: " + zone->GetName());
+
+	String newDir = Application::GetZonesDir() + "/" + zone->GetName();
+	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
+
+#ifndef _WIN32
+	if (mkdir(oldDir.CStr(), 0700) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+	if (mkdir(oldDir.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("mkdir")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(oldDir));
+	}
+
+	Dictionary::Ptr newConfig = LoadConfigDir(newDir);
+	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
+
+	UpdateConfigDir(oldConfig, newConfig, oldDir);
 }
 
 void ApiListener::SyncZoneDirs(void) const
@@ -94,13 +115,85 @@ void ApiListener::SyncZoneDirs(void) const
 
 		SyncZoneDir(zone);
 	}
+}
+
+void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
+{
+	Endpoint::Ptr endpoint = aclient->GetEndpoint();
+	ASSERT(endpoint);
+
+	Zone::Ptr azone = endpoint->GetZone();
+	Zone::Ptr lzone = Zone::GetLocalZone();
+
+	/* don't try to send config updates to our master */
+	if (lzone->IsChildOf(azone))
+		return;
+
+	Dictionary::Ptr configUpdate = make_shared<Dictionary>();
+
+	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
+
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+		String zoneDir = zonesDir + "/" + zone->GetName();
+
+		if (!zone->IsChildOf(azone) || !Utility::PathExists(zoneDir))
+			continue;
+
+		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
+	}
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("update", configUpdate);
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "config::Update");
+	message->Set("params", params);
+
+	aclient->SendMessage(message);
+}
+
+Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!origin.FromZone || !Zone::GetLocalZone()->IsChildOf(origin.FromZone))
+		return Empty;
+
+	Dictionary::Ptr update = params->Get("update");
 
 	bool configChange = false;
 
-	// TODO: remove configuration files for zones which don't exist anymore (i.e. don't have a Zone object)
+	BOOST_FOREACH(const Dictionary::Pair& kv, update) {
+		Zone::Ptr zone = Zone::GetByName(kv.first);
+
+		if (!zone) {
+			Log(LogWarning, "remote", "Ignoring config update for unknown zone: " + kv.first);
+			continue;
+		}
+
+		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
+
+#ifndef _WIN32
+		if (mkdir(oldDir.CStr(), 0700) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+		if (mkdir(oldDir.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("mkdir")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(oldDir));
+		}
+
+		Dictionary::Ptr newConfig = kv.second;
+		Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
+
+		if (UpdateConfigDir(oldConfig, newConfig, oldDir))
+			configChange = true;
+	}
 
 	if (configChange) {
 		Log(LogInformation, "remote", "Restarting after configuration change.");
 		Application::RequestRestart();
 	}
+
+	return Empty;
 }

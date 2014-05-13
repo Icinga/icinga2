@@ -39,7 +39,8 @@ public:
 	Zone::Ptr GetParent(void) const;
 	std::set<Endpoint::Ptr> GetEndpoints(void) const;
 
-	bool CanAccessObject(const DynamicObject::Ptr& object) const;
+	bool CanAccessObject(const DynamicObject::Ptr& object);
+	bool IsChildOf(const Zone::Ptr& zone);
 
 	static Zone::Ptr GetLocalZone(void);
 };
