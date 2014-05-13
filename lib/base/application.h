@@ -79,6 +79,9 @@ public:
 	static String GetSysconfDir(void);
 	static void DeclareSysconfDir(const String& path);
 
+	static String GetZonesDir(void);
+	static void DeclareZonesDir(const String& path);
+
 	static String GetLocalStateDir(void);
 	static void DeclareLocalStateDir(const String& path);
 

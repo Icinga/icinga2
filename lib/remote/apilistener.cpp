@@ -53,6 +53,8 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!Endpoint::GetByName(GetIdentity()))
 		BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint object for '" + GetIdentity() + "' is missing."));
+
+	SyncZoneDirs();
 }
 
 /**

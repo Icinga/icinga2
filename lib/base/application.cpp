@@ -791,6 +791,26 @@ String Application::GetLocalStateDir(void)
 }
 
 /**
+ * Sets the path of the zones dir.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareZonesDir(const String& path)
+{
+	ScriptVariable::Set("ZonesDir", path, false);
+}
+
+/**
+ * Retrieves the path for the local state dir.
+ *
+ * @returns The path.
+ */
+String Application::GetZonesDir(void)
+{
+	return ScriptVariable::Get("ZonesDir");
+}
+
+/**
  * Sets the path for the local state dir.
  *
  * @param path The new path.

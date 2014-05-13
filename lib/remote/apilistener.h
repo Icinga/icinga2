@@ -100,6 +100,12 @@ private:
 	void CloseLogFile(void);
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
 	void ReplayLog(const ApiClient::Ptr& client);
+
+	void SyncZoneDirs(void) const;
+	void SyncZoneDir(const Zone::Ptr& zone) const;
+	bool IsConfigMaster(const Zone::Ptr& zone) const;
+	static void ConfigGlobHandler(const Dictionary::Ptr& config, const String& path, const String& file);
+
 };
 
 }

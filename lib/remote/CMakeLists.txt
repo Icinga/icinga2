@@ -22,9 +22,9 @@ mkclass_target(zone.ti zone.th)
 mkembedconfig_target(remote-type.conf remote-type.cpp)
 
 add_library(remote SHARED
-  apiclient.cpp apifunction.cpp apilistener.cpp apilistener.th authority.cpp
-  endpoint.cpp endpoint.th jsonrpc.cpp messageorigin.cpp remote-type.cpp
-  zone.cpp zone.th
+  apiclient.cpp apifunction.cpp apilistener.cpp apilistener-sync.cpp
+  apilistener.th authority.cpp endpoint.cpp endpoint.th jsonrpc.cpp
+  messageorigin.cpp remote-type.cpp zone.cpp zone.th
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
@@ -46,4 +46,6 @@ install(
 #install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/log\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/repository\")")
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/zones\")")
+
 
