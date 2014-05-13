@@ -419,6 +419,7 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/hosts/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/hosts/localhost/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
+%config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-build-ca
