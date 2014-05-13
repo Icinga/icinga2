@@ -128,7 +128,7 @@ For details on the `NSClient++` configuration please refer to the [official docu
 A dedicated Icinga 2 agent supporting all platforms and using the native
 Icinga 2 communication protocol supported with SSL certificates, IPv4/IPv6
 support, etc. is on the [development roadmap](https://dev.icinga.org/projects/i2?jump=issues).
-Meanwhile remote checkers in a [Cluster](#distributed-monitoring-high-availability) setup could act as
+Meanwhile remote checkers in a [cluster](#distributed-monitoring-high-availability) setup could act as
 immediate replacement, but without any local configuration - or pushing
 their standalone configuration back to the master node including their check
 result messages.
@@ -172,7 +172,7 @@ communication layer based on SSL.
 ### <a id="certificate-authority-certificates"></a> Certificate Authority and Certificates
 
 Icinga 2 comes with two scripts helping you to create CA and node certificates
-for your Icinga 2 Cluster.
+for your Icinga 2 cluster.
 
 The first step is the creation of CA using the following command:
 
