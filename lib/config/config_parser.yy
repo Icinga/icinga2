@@ -216,7 +216,6 @@ static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
-static String m_Zone;
 static int m_StatementNum;
 
 static bool m_Apply;
@@ -229,7 +228,6 @@ void ConfigCompiler::Compile(void)
 {
 	m_ModuleScope = make_shared<Dictionary>();
 	
-	String parentZone = m_Zone;
 	int parentStatementNum = m_StatementNum;
 	m_StatementNum = 0;
 
@@ -242,7 +240,6 @@ void ConfigCompiler::Compile(void)
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
 
-	m_Zone = parentZone;
 	m_StatementNum = parentStatementNum;
 }
 
@@ -276,23 +273,23 @@ zone: T_ZONE rterm sep
 		AExpression::Ptr aexpr = *$2;
 		delete $2;
 
-		if (!m_Zone.IsEmpty())
+		if (!context->GetZone().IsEmpty())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Zone name cannot be changed once it's been set."));
 
 		if (m_StatementNum != 0)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("'zone' directive must be the first statement in a file."));
 
-		m_Zone = aexpr->Evaluate(m_ModuleScope);
+		context->SetZone(aexpr->Evaluate(m_ModuleScope));
 	}
 	| T_ZONE rterm
 	{
 		AExpression::Ptr aexpr = *$2;
 		delete $2;
 
-		if (!m_Zone.IsEmpty())
+		if (!context->GetZone().IsEmpty())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Zone name cannot be changed once it's been set."));
 
-		m_Zone = aexpr->Evaluate(m_ModuleScope);
+		context->SetZone(aexpr->Evaluate(m_ModuleScope));
 	}
 	rterm_scope sep
 	{
@@ -301,9 +298,9 @@ zone: T_ZONE rterm sep
 
 		try {
 			ascope->Evaluate(m_ModuleScope);
-			m_Zone = String();
+			context->SetZone(String());
 		} catch (...) {
-			m_Zone = String();
+			context->SetZone(String());
 		}
 	}
 	;
@@ -515,7 +512,7 @@ object:
 
 		args->Add(filter);
 
-		args->Add(m_Zone);
+		args->Add(context->GetZone());
 
 		$$ = new Value(make_shared<AExpression>(&AExpression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
 

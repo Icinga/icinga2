@@ -65,25 +65,20 @@ static String LoadAppType(const String& typeSpec)
 	return typeSpec.SubStr(index + 1);
 }
 
-static void IncludeDirRecursive(const String& path)
+static void IncludeZoneDirRecursive(const String& path)
 {
-	Utility::GlobRecursive(path, "*.conf", &ConfigCompiler::CompileFile, GlobFile);
+	String zoneName = Utility::BaseName(path);
+	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CompileFile, _1, zoneName), GlobFile);
 }
 
 static void IncludeNonLocalZone(const String& zonePath)
 {
 	String etcPath = Application::GetZonesDir() + "/" + Utility::BaseName(zonePath);
 
-#ifndef _WIN32
-	struct stat statbuf;
-	if (lstat(etcPath.CStr(), &statbuf) >= 0)
-#else /* _WIN32 */
-	struct _stat statbuf;
-	if (_stat(etcPath.CStr(), &statbuf) >= 0)
-#endif /* _WIN32 */
+	if (Utility::PathExists(etcPath))
 		return;
 
-	IncludeDirRecursive(zonePath);
+	IncludeZoneDirRecursive(zonePath);
 }
 
 static bool LoadConfigFiles(const String& appType)
@@ -96,7 +91,9 @@ static bool LoadConfigFiles(const String& appType)
 		}
 	}
 
-	IncludeDirRecursive(Application::GetZonesDir());
+	String zonesDir = Application::GetZonesDir();
+
+	Utility::Glob(Application::GetZonesDir() + "/*", &IncludeZoneDirRecursive, GlobDirectory);
 	Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/api/zones/*", &IncludeNonLocalZone, GlobDirectory);
 
 	/* Load cluster config files - this should probably be in libremote but

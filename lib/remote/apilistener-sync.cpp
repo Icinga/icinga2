@@ -28,14 +28,7 @@ using namespace icinga;
 bool ApiListener::IsConfigMaster(const Zone::Ptr& zone) const
 {
 	String path = Application::GetZonesDir() + "/" + zone->GetName();
-
-#ifndef _WIN32
-	struct stat statbuf;
-	return (lstat(path.CStr(), &statbuf) >= 0);
-#else /* _WIN32 */
-	struct _stat statbuf;
-	return (_stat(path.CStr(), &statbuf) >= 0);
-#endif /* _WIN32 */
+	return Utility::PathExists(path);
 }
 
 void ApiListener::ConfigGlobHandler(const Dictionary::Ptr& config, const String& path, const String& file)

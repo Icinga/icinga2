@@ -1025,3 +1025,14 @@ tm Utility::LocalTime(time_t ts)
 	return result;
 #endif /* _MSC_VER */
 }
+
+bool Utility::PathExists(const String& path)
+{
+#ifndef _WIN32
+	struct stat statbuf;
+	return (lstat(path.CStr(), &statbuf) >= 0);
+#else /* _WIN32 */
+	struct _stat statbuf;
+	return (_stat(path.CStr(), &statbuf) >= 0)
+#endif /* _WIN32 */
+}

@@ -40,18 +40,21 @@ namespace icinga
 class I2_CONFIG_API ConfigCompiler
 {
 public:
-	explicit ConfigCompiler(const String& path, std::istream *input);
+	explicit ConfigCompiler(const String& path, std::istream *input, const String& zone = String());
 	virtual ~ConfigCompiler(void);
 
 	void Compile(void);
 
-	static void CompileStream(const String& path, std::istream *stream);
-	static void CompileFile(const String& path);
-	static void CompileText(const String& path, const String& text);
+	static void CompileStream(const String& path, std::istream *stream, const String& zone = String());
+	static void CompileFile(const String& path, const String& zone = String());
+	static void CompileText(const String& path, const String& text, const String& zone = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
 	String GetPath(void) const;
+
+	void SetZone(const String& zone);
+	String GetZone(void) const;
 
 	/* internally used methods */
 	void HandleInclude(const String& include, bool search, const DebugInfo& debuginfo);
@@ -64,6 +67,7 @@ public:
 private:
 	String m_Path;
 	std::istream *m_Input;
+	String m_Zone;
 
 	void *m_Scanner;
 

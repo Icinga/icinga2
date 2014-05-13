@@ -123,6 +123,8 @@ public:
 
 	static tm LocalTime(time_t ts);
 
+	static bool PathExists(const String& path);
+
 private:
 	Utility(void);
 
