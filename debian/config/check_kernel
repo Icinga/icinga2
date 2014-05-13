@@ -1,0 +1,1 @@
+nagios ALL=(ALL:ALL) NOPASSWD: /etc/icinga2/scripts/check_kernel
