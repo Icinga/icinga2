@@ -54,6 +54,7 @@ case "$1" in
         setperm nagios nagios 0750 /var/lib/icinga2/api
         setperm nagios nagios 0750 /var/lib/icinga2/api/log
         setperm nagios nagios 0750 /var/lib/icinga2/api/repository
+        setperm nagios nagios 0750 /var/lib/icinga2/api/zones
 
         setperm nagios www-data 0750 /var/cache/icinga2
 
