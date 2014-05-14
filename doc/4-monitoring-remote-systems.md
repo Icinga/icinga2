@@ -576,6 +576,31 @@ Zones can be used for [high availability](#cluster-scenarios-high-availability),
 
 TODO - FIXME
 
+Zones are organized below `/etc/icinga2/zones.d`. Each configured zone must exist with the
+same directory name. The parent zone syncs the configuration to the child zones, if allowed.
+
+    object Zone "master" {
+      endpoints = [ "icinga2a" ]
+    }
+
+    object Zone "checker" {
+      endpoints = [ "icinga2b" ]
+      parent = "master"
+    }
+
+    /etc/icinga2/zones.d
+      master
+        health.conf
+      checker
+        health.conf
+        demo.conf
+
+> **Note**
+>
+> `zones.d` must not be included in [icinga2.conf](#icinga2-conf). Icinga 2 automatically
+> determines the required include directory. This can be overridden using the
+> [global constant](#global-constants) `ZonesDir`.
+
 ### <a id="zone-permissions"></a> Zone Permissions
 
 TODO - FIXME
