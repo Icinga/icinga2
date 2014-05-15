@@ -16,6 +16,8 @@ class ApiListener : DynamicObject
 		default {{{ return "5665"; }}}
 	};
 
+	[config] bool accept_config;
+
 	[state] double log_message_timestamp;
 
 	String identity;

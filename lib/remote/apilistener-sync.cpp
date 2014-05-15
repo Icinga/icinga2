@@ -158,6 +158,11 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 	if (!origin.FromZone || !Zone::GetLocalZone()->IsChildOf(origin.FromZone))
 		return Empty;
 
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener || !listener->GetAcceptConfig())
+		return Empty;
+
 	Dictionary::Ptr update = params->Get("update");
 
 	bool configChange = false;
