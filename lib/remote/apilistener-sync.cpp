@@ -21,6 +21,7 @@
 #include "remote/apifunction.h"
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
+#include "base/convert.h"
 #include <boost/foreach.hpp>
 #include <fstream>
 
@@ -57,6 +58,14 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 {
 	bool configChange = false;
 
+	if (oldConfig->Contains(".timestamp") && newConfig->Contains(".timestamp")) {
+		double oldTS = Convert::ToDouble(oldConfig->Get(".timestamp"));
+		double newTS = Convert::ToDouble(newConfig->Get(".timestamp"));
+
+		/* skip update if our config is newer */
+		if (oldTS <= newTS)
+			return false;
+	}
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
 		if (oldConfig->Get(kv.first) != kv.second) {
@@ -78,6 +87,13 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 			String path = configDir + "/" + kv.first;
 			(void) unlink(path.CStr());
 		}
+	}
+
+	String tsPath = configDir + "/.timestamp";
+	if (!Utility::PathExists(tsPath)) {
+		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+		fp << Utility::GetTime();
+		fp.close();
 	}
 
 	return configChange;
