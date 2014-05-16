@@ -4,6 +4,15 @@ Please check doc/1-about.md.
 
 ## What's New
 
+### What's New in Version 0.0.11
+
+* Redesigned cluster stack. #6192
+* Support for conditional command arguments. #5933
+* IDO: is_reachable attribute for hosts and services. #6094
+* IDO: Add missing events for service/host state changes. #6151
+* Lots of documentation updates. #6010, #6115, #6149, #6163, #6184, #6198, #6114, #6128, #5485
+* Plenty of bug fixes. #6179, #6148, #6111, #6131, and many more
+
 ### What's New in Version 0.0.10
 
 * Make Host and Service checkable. #5919
