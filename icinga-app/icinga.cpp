@@ -91,14 +91,15 @@ static bool LoadConfigFiles(const String& appType)
 		}
 	}
 
-	String zonesDir = Application::GetZonesDir();
-
-	if (!zonesDir.IsEmpty())
-		Utility::Glob(Application::GetZonesDir() + "/*", &IncludeZoneDirRecursive, GlobDirectory);
-	Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/api/zones/*", &IncludeNonLocalZone, GlobDirectory);
-
 	/* Load cluster config files - this should probably be in libremote but
-	 * unfortunately moving it there is somewhat non-trivial. */
+	* unfortunately moving it there is somewhat non-trivial. */
+	String zonesEtcDir = Application::GetZonesDir();
+	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
+		Utility::Glob(zonesEtcDir + "/*", &IncludeZoneDirRecursive, GlobDirectory);
+
+	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
+	if (Utility::PathExists(zonesVarDir))
+		Utility::Glob(zonesVarDir + "/*", &IncludeNonLocalZone, GlobDirectory);
 
 	String name, fragment;
 	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
