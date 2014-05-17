@@ -304,6 +304,21 @@ snmp_address    | **Optional.** The host's address. Defaults to "$address$".
 snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
+#### <a id="plugin-check-command-dhcp"></a> dhcp
+
+Check command object for the `check_dhcp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+dhcp_serverip   | **Optional.** The IP address of the DHCP server which we should get a response from.
+dhcp_requestedip| **Optional.** The IP address which we should be offered by a DHCP server.
+dhcp_timeout    | **Optional.** The timeout in seconds.
+dhcp_interface  | **Optional.** The interface to use.
+dhcp_mac        | **Optional.** The MAC address to use in the DHCP request.
+dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to false.
+
 #### <a id="plugin-check-command-nscp"></a> nscp
 
 Check command object for the `check_nt` plugin.
