@@ -18,21 +18,21 @@ These templates are imported by the provided example configuration.
 
 #### <a id="itl-plugin-check-command"></a> plugin-check-command
 
-Check command template for plugins executed by Icinga 2.
+Command template for check plugins executed by Icinga 2.
 
-The `plugin-check-command` check command does not support any vars.
+The `plugin-check-command` command does not support any vars.
 
-#### <a id="itl-plugin-notification-command"></a> plugin-check-command
+#### <a id="itl-plugin-notification-command"></a> plugin-notification-command
 
-Check command template for notification scripts executed by Icinga 2.
+Command template for notification scripts executed by Icinga 2.
 
-The `plugin-notification-command` check command does not support any vars.
+The `plugin-notification-command` command does not support any vars.
 
-#### <a id="itl-plugin-event-command"></a> plugin-check-command
+#### <a id="itl-plugin-event-command"></a> plugin-event-command
 
-Check command template for event handler scripts executed by Icinga 2.
+Command template for event handler scripts executed by Icinga 2.
 
-The `plugin-event-command` check command does not support any vars.
+The `plugin-event-command` command does not support any vars.
 
 ### <a id="itl-check-commands"></a> Check Commands
 
