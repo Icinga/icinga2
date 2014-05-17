@@ -23,6 +23,7 @@
 #include "base/objectlock.h"
 #include "base/logger_fwd.h"
 #include "base/context.h"
+#include "base/workqueue.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -36,7 +37,7 @@ void ServiceGroup::RegisterObjectRuleHandler(void)
         ObjectRule::RegisterType("ServiceGroup", &ServiceGroup::EvaluateObjectRules);
 }
 
-bool ServiceGroup::EvaluateObjectRule(const Service::Ptr service, const ObjectRule& rule)
+bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr service, const ObjectRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -74,15 +75,24 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr service, const ObjectRu
 	return true;
 }
 
+void ServiceGroup::EvaluateObjectRule(const ObjectRule& rule)
+{
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for service '" + service->GetName() + "'");
+
+		EvaluateObjectRuleOne(service, rule);
+	}
+}
+
 void ServiceGroup::EvaluateObjectRules(const std::vector<ObjectRule>& rules)
 {
-	BOOST_FOREACH(const ObjectRule& rule, rules) {
-		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
-			CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for service '" + service->GetName() + "'");
+	ParallelWorkQueue upq;
 
-			EvaluateObjectRule(service, rule);
-		}
+	BOOST_FOREACH(const ObjectRule& rule, rules) {
+		upq.Enqueue(boost::bind(ServiceGroup::EvaluateObjectRule, boost::cref(rule)));
 	}
+
+	upq.Join();
 }
 
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const

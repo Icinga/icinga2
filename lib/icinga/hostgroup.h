@@ -52,7 +52,8 @@ private:
 	mutable boost::mutex m_HostGroupMutex;
 	std::set<Host::Ptr> m_Members;
 
-        static bool EvaluateObjectRule(const Host::Ptr host, const ObjectRule& rule);
+        static bool EvaluateObjectRuleOne(const Host::Ptr host, const ObjectRule& rule);
+	static void EvaluateObjectRule(const ObjectRule& rule);
         static void EvaluateObjectRules(const std::vector<ObjectRule>& rules);
 };
 

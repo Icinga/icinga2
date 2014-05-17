@@ -52,7 +52,8 @@ private:
 	mutable boost::mutex m_UserGroupMutex;
 	std::set<User::Ptr> m_Members;
 
-        static bool EvaluateObjectRule(const User::Ptr user, const ObjectRule& rule);
+        static bool EvaluateObjectRuleOne(const User::Ptr user, const ObjectRule& rule);
+	static void EvaluateObjectRule(const ObjectRule& rule);
         static void EvaluateObjectRules(const std::vector<ObjectRule>& rules);
 };
 

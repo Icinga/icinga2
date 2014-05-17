@@ -24,6 +24,7 @@
 #include "base/dynamictype.h"
 #include "base/logger_fwd.h"
 #include "base/context.h"
+#include "base/workqueue.h"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -37,7 +38,7 @@ void Service::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Service", targets, &Service::EvaluateApplyRules);
 }
 
-bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
+bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -89,21 +90,28 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	return true;
 }
 
-void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
+void Service::EvaluateApplyRule(const ApplyRule& rule)
 {
 	int apply_count = 0;
 
-	BOOST_FOREACH(const ApplyRule& rule, rules) {
-		apply_count = 0;
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
-			CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
-
-			if (EvaluateApplyRule(host, rule))
-				apply_count++;
-		}
-
-		if (apply_count == 0)
-			Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
+		if (EvaluateApplyRuleOne(host, rule))
+			apply_count++;
 	}
+
+	if (apply_count == 0)
+		Log(LogWarning, "icinga", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
+}
+
+void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
+{
+	ParallelWorkQueue upq;
+
+	BOOST_FOREACH(const ApplyRule& rule, rules) {
+		upq.Enqueue(boost::bind(&Service::EvaluateApplyRule, boost::cref(rule)));
+	}
+
+	upq.Join();
 }

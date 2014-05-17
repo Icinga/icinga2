@@ -52,7 +52,8 @@ private:
 	mutable boost::mutex m_ServiceGroupMutex;
 	std::set<Service::Ptr> m_Members;
 
-        static bool EvaluateObjectRule(const Service::Ptr service, const ObjectRule& rule);
+        static bool EvaluateObjectRuleOne(const Service::Ptr service, const ObjectRule& rule);
+	static void EvaluateObjectRule(const ObjectRule& rule);
         static void EvaluateObjectRules(const std::vector<ObjectRule>& rules);
 };
 

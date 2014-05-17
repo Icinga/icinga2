@@ -57,7 +57,8 @@ protected:
 	virtual void Stop(void);
 
 private:
-	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
+	static bool EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const ApplyRule& rule);
+	static void EvaluateApplyRule(const ApplyRule& rule);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };
 
