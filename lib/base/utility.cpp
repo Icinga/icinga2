@@ -1033,6 +1033,6 @@ bool Utility::PathExists(const String& path)
 	return (lstat(path.CStr(), &statbuf) >= 0);
 #else /* _WIN32 */
 	struct _stat statbuf;
-	return (_stat(path.CStr(), &statbuf) >= 0)
+	return (_stat(path.CStr(), &statbuf) >= 0);
 #endif /* _WIN32 */
 }
