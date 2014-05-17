@@ -73,6 +73,8 @@ public:
 
 	void Run(const boost::function<void (const ProcessResult&)>& callback = boost::function<void (const ProcessResult&)>());
 
+	ProcessHandle GetHandle(void) const;
+
 	static Arguments PrepareCommand(const Value& command);
 
 	static void StaticInitialize(void);

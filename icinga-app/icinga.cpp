@@ -169,8 +169,11 @@ static bool Daemonize(const String& stderrFile)
 		return false;
 	}
 
-	if (pid)
+	if (pid) {
+		// TODO: do a real wait till the pidfile is written by the daemon
+		Utility::Sleep(5);
 		exit(0);
+	}
 
 	int fdnull = open("/dev/null", O_RDWR);
 	if (fdnull >= 0) {
@@ -483,7 +486,7 @@ int Main(void)
 		Log(LogInformation, "icinga-app", "Previous instance has ended, taking over now.");
 	}
 
-	if (g_AppParams.count("daemonize")) {
+	if (g_AppParams.count("daemonize") && !g_AppParams.count("reload-internal")) {
 		String errorLog;
 
 		if (g_AppParams.count("errorlog"))

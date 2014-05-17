@@ -636,6 +636,12 @@ bool Process::DoEvents(void)
 	return false;
 }
 
+Process::ProcessHandle Process::GetHandle(void) const
+{
+	return m_Process;
+}
+
+
 int Process::GetTID(void) const
 {
 	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
