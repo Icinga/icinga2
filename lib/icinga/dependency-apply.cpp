@@ -69,6 +69,11 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 	builder->SetScope(rule.GetScope());
 
 	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
+		make_shared<AExpression>(&AExpression::OpLiteral, "parent_host_name", di),
+		make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+		di));
+
+	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
 	    make_shared<AExpression>(&AExpression::OpLiteral, "child_host_name", di),
 	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
 	    di));
