@@ -410,9 +410,10 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	m_Process = pi.hProcess;
 	m_FD = outReadPipe;
+	m_PID = pi.dwProcessId;
 
 	Log(LogInformation, "base", "Running command '" + m_Arguments +
-		"': PID " + Convert::ToString(pi.dwProcessId));
+		"': PID " + Convert::ToString(m_PID));
 
 #else /* _WIN32 */
 	int fds[2];
@@ -514,8 +515,10 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	// parent process
 
+	m_PID = m_Process;
+
 	Log(LogInformation, "base", "Running command '" + boost::algorithm::join(m_Arguments, " ") +
-		"': PID " + Convert::ToString(m_Process));
+		"': PID " + Convert::ToString(m_PID));
 
 	m_Arguments.clear();
 
@@ -636,9 +639,9 @@ bool Process::DoEvents(void)
 	return false;
 }
 
-Process::ProcessHandle Process::GetHandle(void) const
+pid_t Process::GetPID(void) const
 {
-	return m_Process;
+	return m_PID;
 }
 
 

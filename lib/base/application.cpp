@@ -314,8 +314,8 @@ pid_t Application::StartReloadProcess(void)
 	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
 	process->SetTimeout(300);
 	process->Run(&ReloadProcessCallback);
-    
-	return process->GetHandle();
+ 
+	return process->GetPID();
 }
 
 /**

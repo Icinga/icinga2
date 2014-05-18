@@ -73,7 +73,7 @@ public:
 
 	void Run(const boost::function<void (const ProcessResult&)>& callback = boost::function<void (const ProcessResult&)>());
 
-	ProcessHandle GetHandle(void) const;
+	pid_t GetPID(void) const;
 
 	static Arguments PrepareCommand(const Value& command);
 
@@ -87,6 +87,7 @@ private:
 	double m_Timeout;
 
 	ProcessHandle m_Process;
+	pid_t m_PID;
 	ConsoleHandle m_FD;
 
 	std::ostringstream m_OutputStream;
