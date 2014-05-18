@@ -125,6 +125,7 @@ private:
 	std::map<String, int> m_Privileges;
 
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
+	static void RestoreObject(const String& message, int attributeTypes);
 };
 
 #define DECLARE_TYPENAME(klass)						\

@@ -29,6 +29,7 @@
 #include "base/scriptfunction.h"
 #include "base/initialize.h"
 #include "base/scriptvariable.h"
+#include "base/workqueue.h"
 #include <fstream>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -277,6 +278,33 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 	}
 }
 
+void DynamicObject::RestoreObject(const String& message, int attributeTypes)
+{
+	Dictionary::Ptr persistentObject = JsonDeserialize(message);
+
+	String type = persistentObject->Get("type");
+
+	DynamicType::Ptr dt = DynamicType::GetByName(type);
+
+	if (!dt)
+		return;
+
+	String name = persistentObject->Get("name");
+
+	DynamicObject::Ptr object = dt->GetObject(name);
+
+	if (!object)
+		return;
+
+	ASSERT(!object->IsActive());
+#ifdef _DEBUG
+	Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type + "'.");
+#endif /* _DEBUG */
+	Dictionary::Ptr update = persistentObject->Get("update");
+	Deserialize(object, update, false, attributeTypes);
+	object->OnStateLoaded();
+}
+
 void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 {
 	Log(LogInformation, "base", "Restoring program state from file '" + filename + "'");
@@ -288,34 +316,17 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long restored = 0;
 
+	ParallelWorkQueue upq;
+
 	String message;
 	while (NetString::ReadStringFromStream(sfp, &message)) {
-		Dictionary::Ptr persistentObject = JsonDeserialize(message);
-
-		String type = persistentObject->Get("type");
-		String name = persistentObject->Get("name");
-		Dictionary::Ptr update = persistentObject->Get("update");
-
-		DynamicType::Ptr dt = DynamicType::GetByName(type);
-
-		if (!dt)
-			continue;
-
-		DynamicObject::Ptr object = dt->GetObject(name);
-
-		if (object) {
-			ASSERT(!object->IsActive());
-#ifdef _DEBUG
-			Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type + "'.");
-#endif /* _DEBUG */
-			Deserialize(object, update, false, attributeTypes);
-			object->OnStateLoaded();
-		}
-
+		upq.Enqueue(boost::bind(&DynamicObject::RestoreObject, message, attributeTypes));
 		restored++;
 	}
 
 	sfp->Close();
+
+	upq.Join();
 
 	std::ostringstream msgbuf;
 	msgbuf << "Restored " << restored << " objects";
