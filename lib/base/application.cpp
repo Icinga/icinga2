@@ -96,10 +96,11 @@ void Application::Stop(void)
 	// means that the restart succeeded and the new process wants to take
 	// over. Write the PID of the new process to the pidfile before this
 	// process exits to keep systemd happy.
-	if (l_Restarting)
-		UpdatePidFile(GetPidPath(),m_ReloadProcess);
-
-	ClosePidFile();
+	if (l_Restarting) {
+		UpdatePidFile(GetPidPath(), m_ReloadProcess);
+		ClosePidFile(false);
+	} else
+		ClosePidFile(true);
 
 	DynamicObject::Stop();
 }
@@ -681,13 +682,20 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 /**
  * Closes the PID file. Does nothing if the PID file is not currently open.
  */
-void Application::ClosePidFile(void)
+void Application::ClosePidFile(bool unlink)
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)
+	{
+		if (unlink) {
+			String pidpath = GetPidPath();
+			::unlink(pidpath.CStr());
+		}
+
 		fclose(m_PidFile);
+	}
 
 	m_PidFile = NULL;
 }

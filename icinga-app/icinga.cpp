@@ -161,7 +161,7 @@ static void SigHupHandler(int)
 }
 #endif /* _WIN32 */
 
-static bool Daemonize(const String& stderrFile)
+static bool Daemonize(void)
 {
 #ifndef _WIN32
 	pid_t pid = fork();
@@ -170,11 +170,38 @@ static bool Daemonize(const String& stderrFile)
 	}
 
 	if (pid) {
-		// TODO: do a real wait till the pidfile is written by the daemon
-		Utility::Sleep(5);
+		// systemd requires that the pidfile of the daemon is written before the forking
+		// process terminates. So wait till either the forked daemon has written a pidfile or died.
+
+		int status;
+		int ret;
+		pid_t readpid;
+		do {
+			Utility::Sleep(0.1);
+
+			readpid = Application::ReadPidFile(Application::GetPidPath());
+			ret = waitpid(pid, &status, WNOHANG);
+		} while (readpid != pid && ret == 0);
+
+		if (ret == pid) {
+			Log(LogCritical, "icinga-app", "The daemon could not be started. See logfile for details.");
+			exit(EXIT_FAILURE);
+		} else if (ret == -1) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("waitpid")
+				<< boost::errinfo_errno(errno));
+		}
+
 		exit(0);
 	}
+#endif /* _WIN32 */
 
+	return true;
+}
+
+static bool SetDaemonIO(const String& stderrFile)
+{
+#ifndef _WIN32
 	int fdnull = open("/dev/null", O_RDWR);
 	if (fdnull >= 0) {
 		if (fdnull != 0)
@@ -486,13 +513,17 @@ int Main(void)
 		Log(LogInformation, "icinga-app", "Previous instance has ended, taking over now.");
 	}
 
-	if (g_AppParams.count("daemonize") && !g_AppParams.count("reload-internal")) {
-		String errorLog;
+	if (g_AppParams.count("daemonize")) {
+		if (!g_AppParams.count("reload-internal")) {
+			// no additional fork neccessary on reload
+			Daemonize();
+		}
 
+		String errorLog;
 		if (g_AppParams.count("errorlog"))
 			errorLog = g_AppParams["errorlog"].as<std::string>();
 
-		Daemonize(errorLog);
+		SetDaemonIO(errorLog);
 		Logger::DisableConsoleLog();
 	}
 

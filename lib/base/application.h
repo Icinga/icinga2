@@ -69,7 +69,7 @@ public:
 	static bool IsDebugging(void);
 
 	void UpdatePidFile(const String& filename, pid_t pid = Utility::GetPid());
-	void ClosePidFile(void);
+	void ClosePidFile(bool unlink);
 	static pid_t ReadPidFile(const String& filename);
 
 	static String GetExePath(const String& argv0);
