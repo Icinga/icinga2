@@ -46,6 +46,7 @@ REGISTER_TYPE(Application);
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
+pid_t Application::m_ReloadProcess = 0;
 static bool l_Restarting = false;
 bool Application::m_Debugging = false;
 int Application::m_ArgC;
@@ -91,7 +92,15 @@ void Application::Stop(void)
 	WSACleanup();
 #endif /* _WIN32 */
 
-	ClosePidFile();
+	// Getting a shutdown-signal when a restart is in progress usually
+	// means that the restart succeeded and the new process wants to take
+	// over. Write the PID of the new process to the pidfile before this
+	// process exits to keep systemd happy.
+	if (l_Restarting) {
+		UpdatePidFile(GetPidPath(), m_ReloadProcess);
+		ClosePidFile(false);
+	} else
+		ClosePidFile(true);
 
 	DynamicObject::Stop();
 }
@@ -218,7 +227,7 @@ void Application::SetArgV(char **argv)
  * Processes events for registered sockets and timers and calls whatever
  * handlers have been set up for these events.
  */
-void Application::RunEventLoop(void) const
+void Application::RunEventLoop(void)
 {
 	Timer::Initialize();
 
@@ -254,7 +263,7 @@ mainloop:
 			goto mainloop;
 
 		l_Restarting = true;
-		StartReloadProcess();
+		m_ReloadProcess = StartReloadProcess();
 
 		goto mainloop;
 	}
@@ -285,7 +294,7 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 	l_Restarting = false;
 }
 
-void Application::StartReloadProcess(void) const
+pid_t Application::StartReloadProcess(void)
 {
 	Log(LogInformation, "base", "Got reload command: Starting new instance.");
 
@@ -305,6 +314,8 @@ void Application::StartReloadProcess(void) const
 	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
 	process->SetTimeout(300);
 	process->Run(&ReloadProcessCallback);
+ 
+	return process->GetPID();
 }
 
 /**
@@ -619,8 +630,9 @@ int Application::Run(void)
  * if the PID file is already locked by another instance of the application.
  *
  * @param filename The name of the PID file.
+ * @param pid The PID to write; default is the current PID
  */
-void Application::UpdatePidFile(const String& filename)
+void Application::UpdatePidFile(const String& filename, pid_t pid)
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
@@ -663,20 +675,27 @@ void Application::UpdatePidFile(const String& filename)
 	}
 #endif /* _WIN32 */
 
-	fprintf(m_PidFile, "%d\n", Utility::GetPid());
+	fprintf(m_PidFile, "%d\n", pid);
 	fflush(m_PidFile);
 }
 
 /**
  * Closes the PID file. Does nothing if the PID file is not currently open.
  */
-void Application::ClosePidFile(void)
+void Application::ClosePidFile(bool unlink)
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)
+	{
+		if (unlink) {
+			String pidpath = GetPidPath();
+			::unlink(pidpath.CStr());
+		}
+
 		fclose(m_PidFile);
+	}
 
 	m_PidFile = NULL;
 }

@@ -23,6 +23,7 @@
 #include "base/i2-base.h"
 #include "base/application.th"
 #include "base/threadpool.h"
+#include "base/utility.h"
 
 namespace icinga
 {
@@ -67,8 +68,8 @@ public:
 	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);
 
-	void UpdatePidFile(const String& filename);
-	void ClosePidFile(void);
+	void UpdatePidFile(const String& filename, pid_t pid = Utility::GetPid());
+	void ClosePidFile(bool unlink);
 	static pid_t ReadPidFile(const String& filename);
 
 	static String GetExePath(const String& argv0);
@@ -113,9 +114,9 @@ protected:
 	virtual void OnConfigLoaded(void);
 	virtual void Stop(void);
 
-	void RunEventLoop(void) const;
+	void RunEventLoop(void);
 
-	void StartReloadProcess(void) const;
+	pid_t StartReloadProcess(void);
 
 	virtual void OnShutdown(void);
 
@@ -124,7 +125,10 @@ private:
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */
-	static bool m_RequestRestart;
+	static bool m_RequestRestart; /**< A restart was requested through SIGHUP */
+	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, 
+									only valid when l_Restarting==true */
+
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
