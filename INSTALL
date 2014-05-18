@@ -69,22 +69,26 @@ that there are no local modifications:
 
 $ git status
 
-The CPack tool will package _all_ files in the source directory.
+Here's a short check-list for releases:
 
-Next you'll have to create a separate build directory that is not inside
-the source directory. If you fail to do this CPack will try to include the
-build directory in the tarball.
+* Bump the version in icinga2.spec.
+* Update the ChangeLog and doc/1-about.md files.
+* Commit these changes to the "next" branch and create a signed tag (tags/v<VERSION>).
+* Merge the "next" branch into the "master" branch (using --ff-only).
+* Bump the version to "v<NEXT-VERSION>-dev" and commit this change to the "next" branch.
 
-$ cd ..
-$ mkdir icinga2-release && cd icinga2-release
-$ cmake ../icinga2 -DCPACK_SOURCE_GENERATE=TGZ -DCPACK_SOURCE_PACKAGE_FILE_NAME=icinga2-0.0.10
-$ make package_source
+Note: CMake determines the Icinga 2 version number using "git describe" if the
+source directory is contained in a Git repository. Otherwise the version number
+is extracted from the icinga2.spec file. This behavior can be overridden by
+creating a file called "icinga-version.h.force" in the source directory.
 
-Update the package name to reflect the version of the tarball you're creating.
+Use "git archive" to build the release tarball:
+
+$ git archive --format=tgz --prefix=icinga2-<VERSION>/ tags/v<VERSION>
 
 Finally you should verify that the tarball only contains the files it should contain:
 
-$ tar ztf icinga2-0.0.10.tar.gz | less
+$ tar ztf icinga2-<VERSION>.tar.gz | less
 
 Building Icinga 2
 -----------------
