@@ -76,15 +76,18 @@ else()
 endif()
 
 if(NOT WIN32)
-    configure_file(icinga2/sysdefines.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf @ONLY)
-    install(
-      FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf
-      DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2
-      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    )
-endif()
+  configure_file(icinga2/sysdefines.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf @ONLY)
+  install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
 
-if(NOT WIN32)
+  install(
+    FILES initsystem/icinga2-prepare-dirs
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+  )
 
   option (USE_SYSTEMD
      "Configure icinga as native systemd service instead of a SysV initscript" OFF) 

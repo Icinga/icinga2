@@ -16,10 +16,11 @@
 ### END INIT INFO
 
 # load system specific defines
-if [ -f @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf ]; then
-	. @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf
+SYSDEFFILE=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf
+if [ -f $SYSDEFFILE ]; then
+	. $SYSDEFFILE
 else
-	echo "Can't load system specific defines from @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf."
+	echo "Can't load system specific defines from $SYSDEFFILE."
 	exit 1
 fi
 
@@ -45,31 +46,10 @@ if [ -f /etc/default/icinga ]; then
         . /etc/default/icinga
 fi
 
-check_run() {
-	mkdir -p $(dirname -- $ICINGA2_PID_FILE)
-	chown $ICINGA2_USER:$ICINGA2_GROUP $(dirname -- $ICINGA2_PID_FILE)
-	if [ -f $ICINGA2_PID_FILE ]; then
-		chown $ICINGA2_USER:$ICINGA2_GROUP $ICINGA2_PID_FILE
-	fi
-
-	mkdir -p $(dirname -- $ICINGA2_ERROR_LOG)
-	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $(dirname -- $ICINGA2_ERROR_LOG)
-	chmod 750 $(dirname -- $ICINGA2_ERROR_LOG)
-	if [ -f $ICINGA2_ERROR_LOG ]; then
-		chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_ERROR_LOG
-	fi
-	if [ -f $ICINGA2_LOG ]; then
-		chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_LOG
-	fi
-
-	mkdir -p $ICINGA2_STATE_DIR/run/icinga2/cmd
-	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_STATE_DIR/run/icinga2/cmd
-	chmod 2755 $ICINGA2_STATE_DIR/run/icinga2/cmd
-}
-
 # Start Icinga 2
 start() {
 	printf "Starting Icinga 2: "
+	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-prepare-dirs $SYSDEFFILE
 
 	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP > $ICINGA2_STARTUP_LOG 2>&1; then
 		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."
