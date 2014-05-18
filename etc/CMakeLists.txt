@@ -76,31 +76,33 @@ else()
 endif()
 
 if(NOT WIN32)
+    configure_file(icinga2/sysdefines.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf @ONLY)
+    install(
+      FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf
+      DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2
+      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    )
+endif()
+
+if(NOT WIN32)
 
   option (USE_SYSTEMD
      "Configure icinga as native systemd service instead of a SysV initscript" OFF) 
 
   if (NOT USE_SYSTEMD)
   
-    configure_file(init.d/icinga2.cmake ${CMAKE_CURRENT_BINARY_DIR}/init.d/icinga2)
+    configure_file(initsystem/icinga2.init.d.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2)
     install(
-      FILES ${CMAKE_CURRENT_BINARY_DIR}/init.d/icinga2
+      FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2
       DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/init.d
       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     )
   else()
-    configure_file(systemd/icinga2.service.cmake ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2.service @ONLY)
+    configure_file(initsystem/icinga2.service.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.service @ONLY)
     install(
-      FILES ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2.service
+      FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.service
       DESTINATION ${DESTDIR}/usr/lib/systemd/system
-      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ
-    )
-
-    configure_file(systemd/icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2 @ONLY)
-    install(
-      FILES ${CMAKE_CURRENT_BINARY_DIR}/systemd/icinga2
-      DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/sysconfig
-      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ
+      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
     )
   endif()
 endif()

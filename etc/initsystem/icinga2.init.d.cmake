@@ -15,17 +15,13 @@
 # Description:       Icinga 2 is a monitoring and management system for hosts, services and networks.
 ### END INIT INFO
 
-DAEMON=@CMAKE_INSTALL_FULL_SBINDIR@/icinga2
-ICINGA2_CONFIG_FILE=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/icinga2.conf
-ICINGA2_STATE_DIR=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@
-ICINGA2_PID_FILE=$ICINGA2_STATE_DIR/run/icinga2/icinga2.pid
-ICINGA2_ERROR_LOG=$ICINGA2_STATE_DIR/log/icinga2/error.log
-ICINGA2_STARTUP_LOG=$ICINGA2_STATE_DIR/log/icinga2/startup.log
-ICINGA2_LOG=$ICINGA2_STATE_DIR/log/icinga2/icinga2.log
-ICINGA2_USER=@ICINGA2_USER@
-ICINGA2_GROUP=@ICINGA2_GROUP@
-ICINGA2_COMMAND_USER=@ICINGA2_COMMAND_USER@
-ICINGA2_COMMAND_GROUP=@ICINGA2_COMMAND_GROUP@
+# load system specific defines
+if [ -f @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf ]; then
+	. @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf
+else
+	echo "Can't load system specific defines from @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf."
+	exit 1
+fi
 
 test -x $DAEMON || exit 0
 
