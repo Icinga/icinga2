@@ -123,7 +123,7 @@ based on attribute identifiers for example `host_name` objects can be [applied](
       check_command = "ping4"
 
       assign where "generic-host" in host.templates
-      ignore where !host.address
+      ignore where host.address == ""
     }
 
 In this example the `ping4` service will be created as object for all hosts importing
