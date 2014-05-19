@@ -166,31 +166,30 @@ An Icinga 2 cluster can be used for the following scenarios:
 * [Distributed Zones](#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
 * [Load Distribution](#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
 
-Before you start configuring the diffent nodes it's necessary to setup the underlying
+Before you start configuring the diffent nodes it is necessary to setup the underlying
 communication layer based on SSL.
 
 ### <a id="certificate-authority-certificates"></a> Certificate Authority and Certificates
 
-Icinga 2 comes with two scripts helping you to create CA and node certificates
+Icinga 2 ships two scripts assisting with CA and node certificate creation
 for your Icinga 2 cluster.
 
-The first step is the creation of CA using the following command:
+The first step is the creation of CA running the following command:
 
-    icinga2-build-ca
+    # icinga2-build-ca
 
-Please make sure to export a variable containing an empty folder for the created
-CA files:
+Please make sure to export the environment variable `ICINGA_CA` pointing to
+an empty folder for the newly created CA files:
 
-    export ICINGA_CA="/root/icinga-ca"
+    # export ICINGA_CA="/root/icinga-ca"
 
-In the next step you have to create a certificate and a key file for every node
-using the following command:
+Now create a certificate and key file for each node running the following command
+(replace `icinga2a` with the required hostname):
 
-    icinga2-build-key icinga2a
+    # icinga2-build-key icinga2a
 
-Please create a certificate and a key file for every node in the Icinga 2
-cluster and save the CA key in case you want to set up certificates for
-additional nodes at a later date.
+Repeat the step for all nodes in your cluster scenario. Save the CA key in case
+you want to set up certificates for additional nodes at a later time.
 
 ### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
@@ -204,35 +203,29 @@ SSL certificate common name.
 
 Read further about additional [naming conventions](#cluster-naming-convention).
 
-Not specifying the node name will default to FQDN. Make sure that all
-configured endpoint names and set common names are in sync.
+Not specifying the node name will make Icinga 2 using the FQDN. Make sure that all
+configured endpoint names and common names are the same.
 
 ### <a id="configure-clusterlistener-object"></a> Configure the ApiListener Object
 
-The ApiListener object needs to be configured on every node in the cluster with the
-following settings:
+The [ApiListener](#objecttype-apilistener) object needs to be configured on
+every node in the cluster with the following settings:
 
-  Configuration Setting    |Value
-  -------------------------|------------------------------------
-  ca_path                  | path to ca.crt file
-  cert_path                | path to server certificate
-  key_path                 | path to server key
-  bind_port                | port for incoming and outgoing connections. Defaults to `5665`.
-
-
-A sample config part can look like this:
+A sample config looks like:
 
     object ApiListener "api" {
       cert_path = SysconfDir + "/icinga2/pki/" + NodeName + ".crt"
       key_path = SysconfDir + "/icinga2/pki/" + NodeName + ".key"
       ca_path = SysconfDir + "/icinga2/pki/ca.crt"
+      accept_config = true
     }
 
 You can simply enable the `api` feature using
 
     # icinga2-enable-feature api
 
-And edit `/etc/icinga2/features-enabled/api.conf` if you require any changes.
+Edit `/etc/icinga2/features-enabled/api.conf` if you require the configuration
+synchronisation enabled.
 
 The certificate files must be readable by the user Icinga 2 is running as. Also,
 the private key file must not be world-readable.
@@ -240,18 +233,11 @@ the private key file must not be world-readable.
 
 ### <a id="configure-cluster-endpoints"></a> Configure Cluster Endpoints
 
-In addition to the configured port and hostname every endpoint can have specific
-abilities to send configuration files to other nodes and limit the hosts allowed
-to send configuration files.
+`Endpoint` objects specify the `host` and `port` settings for the cluster nodes.
+This configuration can be the same on all nodes in the cluster only containing
+connection information.
 
-  Configuration Setting    |Value
-  -------------------------|------------------------------------
-  host                     | hostname
-  port                     | port
-
-
-
-A sample config part can look like this:
+A sample configuration looks like:
 
     /**
      * Configure config master endpoint
@@ -262,8 +248,18 @@ A sample config part can look like this:
       port = 5665
     }
 
+If this endpoint object is reachable on a different port, you must configure the
+`ApiListener` on the local `Endpoint` object accordingly too.
+
 
 ### <a id="configure-cluster-zones"></a> Configure Cluster Zones
+
+`Zone` objects specify the endpoints located in a zone. That way your distributed setup can be
+seen as zones connected together instead of multiple instances in that specific zone.
+
+Zones can be used for [high availability](#cluster-scenarios-high-availability),
+[distributed setups](#cluster-scenarios-distributed-zones) and
+[load distribution](#cluster-scenarios-load-distribution).
 
 Each Icinga 2 `Endpoint` must be put into its respective `Zone`. In this example, you will
 define the zone `config-ha-master` where the `icinga2a` and `icinga2b` endpoints
@@ -286,14 +282,60 @@ the defined parent zone `config-ha-master`.
       parent = "config-ha-master"
     }
 
-TODO - FIXME
 
-Additional permissions for configuration/status sync and remote commands.
+#### <a id="cluster-zone-config-sync"></a> Zone Configuration Synchronisation
+
+By default all objects for specific zones should be organized in
+
+    /etc/icinga2/zones.d/<zonename>
+
+These zone packages are then distributed to all nodes in the same zone, and
+to their respective target zone instances.
+
+Each configured zone must exist with the same directory name. The parent zone
+syncs the configuration to the child zones, if allowed.
+
+    object Zone "master" {
+      endpoints = [ "icinga2a" ]
+    }
+
+    object Zone "checker" {
+      endpoints = [ "icinga2b" ]
+      parent = "master"
+    }
+
+    /etc/icinga2/zones.d
+      master
+        health.conf
+      checker
+        health.conf
+        demo.conf
+
+> **Note**
+>
+> `zones.d` must not be included in [icinga2.conf](#icinga2-conf). Icinga 2 automatically
+> determines the required include directory. This can be overridden using the
+> [global constant](#global-constants) `ZonesDir`.
+
+If the local configuration is newer than the received update Icinga 2 will skip the synchronisation
+process.
+
+#### <a id="zone-synchronisation-permissions"></a> Zone Configuration Permissions
+
+Each [ApiListener](#objecttype-apilistener) object must have the `accept_config` attribute
+set to `true` to receive configuration from the parent `Zone` members. Default value is `false`.
+
+    object ApiListener "api" {
+      cert_path = SysconfDir + "/icinga2/pki/" + NodeName + ".crt"
+      key_path = SysconfDir + "/icinga2/pki/" + NodeName + ".key"
+      ca_path = SysconfDir + "/icinga2/pki/ca.crt"
+      accept_config = true
+    }
 
 
 ### <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
-The SSL certificate common name (CN) will be used by the [ApiListener](pbjecttype-apilistener)
+The SSL certificate common name (CN) will be used by the [ApiListener](#objecttype-apilistener)
 object to determine the local authority. This name must match the local [Endpoint](#objecttype-endpoint)
 object name.
 
@@ -307,7 +349,6 @@ Example:
 
     object Endpoint "icinga2a" {
       host = "icinga2a.localdomain"
-      port = 5665
     }
 
 The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
@@ -315,7 +356,6 @@ The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` a
 
     object Endpoint "icinga2b" {
       host = "icinga2b.localdomain"
-      port = 5665
     }
 
     object Zone "config-ha-master" {
@@ -339,18 +379,6 @@ the state file you should make sure that all your cluster nodes are properly shu
 down.
 
 
-### <a id="object-configuration-for-zones"></a> Object Configuration for Zones
-
-TODO - FIXME
-
-By default all objects for specific zones should be organized in
-
-    /etc/icinga2/zones.d/<zonename>
-
-These zone packages are then distributed to all nodes in the same zone, and
-to their respective target zone instances.
-
-
 ### <a id="cluster-health-check"></a> Cluster Health Check
 
 The Icinga 2 [ITL](#itl) ships an internal check command checking all configured
@@ -360,10 +388,9 @@ one or more configured nodes are not connected.
 Example:
 
     apply Service "cluster" {
-        import "generic-service"
-
-        check_interval = 1m
         check_command = "cluster"
+        check_interval = 5s
+        retry_interval = 1s
 
         assign where host.name == "icinga2a"
     }
@@ -390,7 +417,7 @@ the Icinga 2 daemon.
 
 Each cluster zone may use available features. If you have multiple locations
 or departments, they may write to their local database, or populate graphite.
-Even further all commands are distributed (unless prohibited using [Domains](#domains)).
+Even further all commands are distributed.
 
 DB IDO on the left, graphite on the right side - works.
 Icinga Web 2 on the left, checker and notifications on the right side - works too.
@@ -431,17 +458,14 @@ The endpoint configuration would look like:
 
     object Endpoint "nuremberg-master" {
       host = "nuremberg.icinga.org"
-      port = 5665
     }
 
     object Endpoint "berlin-satellite" {
       host = "berlin.icinga.org"
-      port = 5665
     }
 
     object Endpoint "vienna-satellite" {
       host = "vienna.icinga.org"
-      port = 5665
     }
 
 The zones would look like:
@@ -488,17 +512,14 @@ Endpoints:
 
     object Endpoint "central" {
       host = "central.icinga.org"
-      port = 5665
     }
 
     object Endpoint "checker1" {
       host = "checker1.icinga.org"
-      port = 5665
     }
 
     object Endpoint "checker2" {
       host = "checker2.icinga.org"
-      port = 5665
     }
 
 
@@ -520,7 +541,7 @@ High availability with Icinga 2 is possible by putting multiple nodes into
 a dedicated `Zone`. All nodes will elect their active master, and retry an
 election once the current active master failed.
 
-Features such as DB IDO will only be active on the current active master.
+Selected features (such as DB IDO) will only be active on the current active master.
 All other passive nodes will pause the features without reload/restart.
 
 Connections from other zones will be accepted by all active and passive nodes
@@ -530,8 +551,6 @@ commands, etc.
     object Zone "ha-master" {
       endpoints = [ "icinga2a", "icinga2b", "icinga2c" ]
     }
-
-TODO - FIXME
 
 Two or more nodes in a high availability setup require an [initial cluster sync](#initial-cluster-sync).
 
@@ -562,46 +581,6 @@ to reschedule checks or acknowledge problems for their services.
 
 
 
-### <a id="zones"></a> Zones
 
-`Zone` objects specify the endpoints located in a zone, and additional restrictions. That
-way your distributed setup can be seen as zones connected together instead of multiple
-instances in that specific zone.
 
-Zones can be used for [high availability](#cluster-scenarios-high-availability),
-[distributed setups](#cluster-scenarios-distributed-zones) and
-[load distribution](#cluster-scenarios-load-distribution).
-
-### <a id="zone-synchronisation"></a> Zone Synchronisation
-
-TODO - FIXME
-
-Zones are organized below `/etc/icinga2/zones.d`. Each configured zone must exist with the
-same directory name. The parent zone syncs the configuration to the child zones, if allowed.
-
-    object Zone "master" {
-      endpoints = [ "icinga2a" ]
-    }
-
-    object Zone "checker" {
-      endpoints = [ "icinga2b" ]
-      parent = "master"
-    }
-
-    /etc/icinga2/zones.d
-      master
-        health.conf
-      checker
-        health.conf
-        demo.conf
-
-> **Note**
->
-> `zones.d` must not be included in [icinga2.conf](#icinga2-conf). Icinga 2 automatically
-> determines the required include directory. This can be overridden using the
-> [global constant](#global-constants) `ZonesDir`.
-
-### <a id="zone-permissions"></a> Zone Permissions
-
-TODO - FIXME
 

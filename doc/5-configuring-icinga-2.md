@@ -1562,6 +1562,7 @@ Attributes:
   crl\_path                 |**Optional.** Path to the CRL file.
   bind\_host                |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
   bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
+  accept\_config            |**Optional.** Accept zone configuration. Defaults to `false`.
 
 
 ### <a id="objecttype-endpoint"></a> Endpoint
