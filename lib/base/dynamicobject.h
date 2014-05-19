@@ -34,8 +34,7 @@ namespace icinga
 class DynamicType;
 
 /**
- * A dynamic object that can be instantiated from the configuration file
- * and that supports attribute replication to remote application instances.
+ * A dynamic object that can be instantiated from the configuration file.
  *
  * @ingroup base
  */

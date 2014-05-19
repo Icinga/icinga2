@@ -49,25 +49,24 @@ enum ModifiedAttributeType
 };
 
 /**
- * A dynamic object that can be instantiated from the configuration file
- * and that supports attribute replication to remote application instances.
+ * An object with custom variable attribute.
  *
- * @ingroup base
+ * @ingroup icinga
  */
 class I2_BASE_API CustomVarObject : public ObjectImpl<CustomVarObject>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CustomVarObject);
 
-	static boost::signals2::signal<void (const CustomVarObject::Ptr&)> OnVarsChanged;
+	static boost::signals2::signal<void (const CustomVarObject::Ptr&, const MessageOrigin&)> OnVarsChanged;
 
 	Dictionary::Ptr GetVars(void) const;
-	void SetVars(const Dictionary::Ptr& vars);
+	void SetVars(const Dictionary::Ptr& vars, const MessageOrigin& origin = MessageOrigin());
 
 	virtual int GetModifiedAttributes(void) const;
 	virtual void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 
-	bool IsVarOverridden(const String& name);
+	bool IsVarOverridden(const String& name) const;
 };
 
 }
