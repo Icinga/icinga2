@@ -127,8 +127,6 @@ double Checkable::GetNextCheck(void)
 
 void Checkable::UpdateNextCheck(void)
 {
-	ObjectLock olock(this);
-
 	double interval;
 
 	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != NULL)
