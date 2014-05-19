@@ -297,6 +297,14 @@ by trying to run it on the console using whichever user Icinga 2 is running as:
 Additional libraries may be required for some plugins. Please consult the plugin
 documentation and/or README for installation instructions.
 
+Each plugin requires a [CheckCommand](#objecttype-checkcommand) object in your
+configuration which can be used in the [Service](#objecttype-service) or
+[Host](#objecttype-host) object definition. Examples for `CheckCommand`
+objects can be found in the [Plugin Check Commands](#plugin-check-commands) shipped
+with Icinga 2.
+For further information on your monitoring configuration read the
+[monitoring basics](#monitoring-basics).
+
 
 ## <a id="configuring-ido"></a> Configuring IDO
 
