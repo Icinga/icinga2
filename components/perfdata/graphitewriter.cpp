@@ -77,7 +77,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	try {
 		if (m_Stream) {
 			m_Stream->Write("\n", 1);
-			Log(LogWarning, "perfdata", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+			Log(LogDebug, "perfdata", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 			return;
 		}
 	} catch (const std::exception& ex) {
