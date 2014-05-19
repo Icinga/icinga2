@@ -30,7 +30,6 @@ parentheses):
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD
-* optional: Doxygen (doxygen)
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
 * optional: Python (python-devel on RHEL, python-dev on Debian)
 

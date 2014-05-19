@@ -73,7 +73,6 @@ Meta package for Icinga 2 Core, DB IDO and Web.
 Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
-BuildRequires: doxygen
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
