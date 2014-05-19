@@ -275,6 +275,8 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
         vars.cpl = 60
     }
 
+The Classic UI feature named `Command Expander` does not work with Icinga 2.
+
 #### <a id="differences-1x-2-environment-macros"></a> Environment Macros
 
 The global configuration setting `enable_environment_macros` does not exist in
@@ -489,7 +491,7 @@ Icinga 2 doesn't support non-persistent comments.
 ### <a id="differences-1x-2-commands"></a> Commands
 
 Unlike in Icinga 1.x there are 3 different command types in Icinga 2:
-`CheckCommand`, `NotificationCommand` and EventCommand`.
+`CheckCommand`, `NotificationCommand` and `EventCommand`.
 
 For example in Icinga 1.x it is possible to accidently use a notification
 command as an event handler which might cause problems depending on which
