@@ -155,11 +155,12 @@ void Process::IOThreadProc(int tid)
 	pollfd *pfds = NULL;
 #endif /* _WIN32 */
 	int count = 0;
+	double now;
 
 	Utility::SetThreadName("ProcessIO");
 
 	for (;;) {
-		double now, timeout = -1;
+		double timeout = -1;
 
 		now = Utility::GetTime();
 
@@ -202,8 +203,10 @@ void Process::IOThreadProc(int tid)
 			}
 		}
 
-		if (timeout != -1)
-			timeout *= 1000;
+		if (timeout < 0.01)
+			timeout = 0.5;
+
+		timeout *= 1000;
 
 #ifdef _WIN32
 		DWORD rc = WaitForMultipleObjects(count, handles, FALSE, timeout == -1 ? INFINITE : static_cast<DWORD>(timeout));
@@ -213,6 +216,8 @@ void Process::IOThreadProc(int tid)
 		if (rc < 0)
 			continue;
 #endif /* _WIN32 */
+
+		now = Utility::GetTime();
 
 		{
 			boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
@@ -228,27 +233,36 @@ void Process::IOThreadProc(int tid)
 #endif /* _WIN32 */
 
 			for (int i = 1; i < count; i++) {
-#ifdef _WIN32
-				if (rc == WAIT_OBJECT_0 + i) {
-#else /* _WIN32 */
-				if (pfds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
-					std::map<ConsoleHandle, ProcessHandle>::iterator it2;
-					it2 = l_FDs[tid].find(pfds[i].fd);
+				std::map<ConsoleHandle, ProcessHandle>::iterator it2;
+				it2 = l_FDs[tid].find(pfds[i].fd);
 
-					if (it2 == l_FDs[tid].end())
-						continue; /* This should never happen. */
+				if (it2 == l_FDs[tid].end())
+					continue; /* This should never happen. */
 
-#endif /* _WIN32 */
-					std::map<ProcessHandle, Process::Ptr>::iterator it;
+				std::map<ProcessHandle, Process::Ptr>::iterator it;
 #ifdef _WIN32
-					it = l_Processes[tid].find(handles[i]);
+				it = l_Processes[tid].find(handles[i]);
 #else /* _WIN32 */
-					it = l_Processes[tid].find(it2->second);
+				it = l_Processes[tid].find(it2->second);
 #endif /* _WIN32 */
 
-					if (it == l_Processes[tid].end())
-						continue; /* This should never happen. */
+				if (it == l_Processes[tid].end())
+					continue; /* This should never happen. */
 
+				bool is_timeout = false;
+
+				if (it->second->m_Timeout != 0) {
+					double timeout = it->second->m_Result.ExecutionStart + it->second->m_Timeout;
+
+					if (timeout < now)
+						is_timeout = true;
+				}
+
+#ifdef _WIN32
+				if (rc == WAIT_OBJECT_0 + i || is_timeout) {
+#else /* _WIN32 */
+				if (pfds[i].revents & (POLLIN | POLLHUP | POLLERR) || is_timeout) {
+#endif /* _WIN32 */
 					if (!it->second->DoEvents()) {
 #ifdef _WIN32
 						CloseHandle(it->first);
@@ -562,42 +576,48 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 bool Process::DoEvents(void)
 {
-	if (m_Timeout != 0) {
-		double timeout = m_Timeout - (Utility::GetTime() - m_Result.ExecutionStart);
+	bool is_timeout = false;
 
-		if (timeout < 0) {
+	if (m_Timeout != 0) {
+		double timeout = m_Result.ExecutionStart + m_Timeout;
+
+		if (timeout < Utility::GetTime()) {
 			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
 			TerminateProcess(m_Process, 1);
 #else /* _WIN32 */
 			kill(m_Process, SIGKILL);
 #endif /* _WIN32 */
+
+			is_timeout = true;
 		}
 	}
 
-	char buffer[512];
-	for (;;) {
+	if (!is_timeout) {
+		char buffer[512];
+		for (;;) {
 #ifdef _WIN32
-		DWORD rc;
-		if (!ReadFile(m_FD, buffer, sizeof(buffer), &rc, NULL) || rc == 0)
+			DWORD rc;
+			if (!ReadFile(m_FD, buffer, sizeof(buffer), &rc, NULL) || rc == 0)
+				break;
+#else /* _WIN32 */
+			int rc = read(m_FD, buffer, sizeof(buffer));
+
+			if (rc < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+				return true;
+
+			if (rc > 0) {
+#endif /* _WIN32 */
+				m_OutputStream.write(buffer, rc);
+#ifdef _WIN32
+				return true;
+#else /* _WIN32 */
+				continue;
+			}
+#endif /* _WIN32 */
+
 			break;
-#else /* _WIN32 */
-		int rc = read(m_FD, buffer, sizeof(buffer));
-
-		if (rc < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
-			return true;
-
-		if (rc > 0) {
-#endif /* _WIN32 */
-			m_OutputStream.write(buffer, rc);
-#ifdef _WIN32
-			return true;
-#else /* _WIN32 */
-			continue;
 		}
-#endif /* _WIN32 */
-
-		break;
 	}
 
 	String output = m_OutputStream.str();

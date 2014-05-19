@@ -8,7 +8,7 @@ abstract class Command : DynamicObject
 	[config] Value command (CommandLine);
 	[config] Value arguments;
 	[config] Value timeout {
-		default {{{ return 300; }}}
+		default {{{ return 60; }}}
 	};
 	[config] Dictionary::Ptr env;
 };
