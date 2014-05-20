@@ -737,6 +737,10 @@ are multiple downtimes triggered for one object, the overall downtime depth
 will be more than `1`. This is useful when you want to extend
 your maintenance window taking longer than expected.
 
+If the downtime was scheduled after the problem changed to a critical hard
+state triggering a problem notification, and the service recovers during
+the downtime window, the recovery notification won't be suppressed.
+
 ### <a id="fixed-flexible-downtimes"></a> Fixed and Flexible Downtimes
 
 A `fixed` downtime will be activated at the defined start time, and
