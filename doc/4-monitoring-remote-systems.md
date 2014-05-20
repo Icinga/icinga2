@@ -206,6 +206,41 @@ Read further about additional [naming conventions](#cluster-naming-convention).
 Not specifying the node name will make Icinga 2 using the FQDN. Make sure that all
 configured endpoint names and common names are the same.
 
+### <a id="cluster-naming-convention"></a> Cluster Naming Convention
+
+The SSL certificate common name (CN) will be used by the [ApiListener](#objecttype-apilistener)
+object to determine the local authority. This name must match the local [Endpoint](#objecttype-endpoint)
+object name.
+
+Example:
+
+    # icinga2-build-key icinga2a
+    ...
+    Common Name (e.g. server FQDN or YOUR name) [icinga2a]:
+
+    # vim cluster.conf
+
+    object Endpoint "icinga2a" {
+      host = "icinga2a.icinga.org"
+    }
+
+The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
+[Zone](objecttype-zone) object.
+
+    object Endpoint "icinga2b" {
+      host = "icinga2b.icinga.org"
+    }
+
+    object Zone "config-ha-master" {
+      endpoints = [ "icinga2a", "icinga2b" ]
+    }
+
+Specifying the local node name using the [NodeName](#global-constants) variable requires
+the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
+
+    const NodeName = "icinga2a"
+    
+
 ### <a id="configure-clusterlistener-object"></a> Configure the ApiListener Object
 
 The [ApiListener](#objecttype-apilistener) object needs to be configured on
@@ -244,8 +279,7 @@ A sample configuration looks like:
      */
 
     object Endpoint "icinga2a" {
-      host = "icinga2a.localdomain"
-      port = 5665
+      host = "icinga2a.icinga.org"
     }
 
 If this endpoint object is reachable on a different port, you must configure the
@@ -311,14 +345,14 @@ syncs the configuration to the child zones, if allowed.
         health.conf
         demo.conf
 
+If the local configuration is newer than the received update Icinga 2 will skip the synchronisation
+process.
+
 > **Note**
 >
 > `zones.d` must not be included in [icinga2.conf](#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
 > [global constant](#global-constants) `ZonesDir`.
-
-If the local configuration is newer than the received update Icinga 2 will skip the synchronisation
-process.
 
 #### <a id="zone-synchronisation-permissions"></a> Zone Configuration Permissions
 
@@ -331,42 +365,6 @@ set to `true` to receive configuration from the parent `Zone` members. Default v
       ca_path = SysconfDir + "/icinga2/pki/ca.crt"
       accept_config = true
     }
-
-
-### <a id="cluster-naming-convention"></a> Cluster Naming Convention
-
-The SSL certificate common name (CN) will be used by the [ApiListener](#objecttype-apilistener)
-object to determine the local authority. This name must match the local [Endpoint](#objecttype-endpoint)
-object name.
-
-Example:
-
-    # icinga2-build-key icinga2a
-    ...
-    Common Name (e.g. server FQDN or YOUR name) [icinga2a]:
-
-    # vim cluster.conf
-
-    object Endpoint "icinga2a" {
-      host = "icinga2a.localdomain"
-    }
-
-The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
-[Zone](objecttype-zone) object.
-
-    object Endpoint "icinga2b" {
-      host = "icinga2b.localdomain"
-    }
-
-    object Zone "config-ha-master" {
-      endpoints = [ "icinga2a", "icinga2b" ]
-    }
-
-Specifying the local node name using the [NodeName](#global-constants) variable requires
-the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
-
-    const NodeName = "icinga2a"
-
 
 ### <a id="initial-cluster-sync"></a> Initial Cluster Sync
 
@@ -443,7 +441,7 @@ could look like this:
       templates/
     zones.d
       nuremberg/
-        hosts.conf
+        local.conf
       berlin/
         hosts.conf
       vienna/
@@ -476,12 +474,12 @@ The zones would look like:
 
     object Zone "berlin" {
       endpoints = [ "berlin-satellite" ]
-      parent = "nuremberg-master"
+      parent = "nuremberg"
     }
 
     object Zone "vienna" {
       endpoints = [ "vienna-satellite" ]
-      parent = "nuremberg-master"
+      parent = "nuremberg"
     }
 
 The `nuremberg-master` zone will only execute local checks, and receive
@@ -503,35 +501,36 @@ but you may also disable the `Checker` feature.
     conf.d/
       templates/
     zones.d/
-      many/
+      central/
+      checker/
 
 If you are planning to have some checks executed by a specific set of checker nodes
 you have to define additional zones and define these check objects there.
 
 Endpoints:
 
-    object Endpoint "central" {
+    object Endpoint "central-node" {
       host = "central.icinga.org"
     }
 
-    object Endpoint "checker1" {
+    object Endpoint "checker1-node" {
       host = "checker1.icinga.org"
     }
 
-    object Endpoint "checker2" {
+    object Endpoint "checker2-node" {
       host = "checker2.icinga.org"
     }
 
 
 Zones:
 
-    object Zone "master" {
-      endpoints = [ "central" ]
+    object Zone "central" {
+      endpoints = [ "central-node" ]
     }
 
-    object Zone "many" {
-      endpoints = [ "checker1", "checker2" ]
-      parent = "master"
+    object Zone "checker" {
+      endpoints = [ "checker1-node", "checker2-node" ]
+      parent = "central"
     }
 
 
@@ -548,7 +547,7 @@ Connections from other zones will be accepted by all active and passive nodes
 but all are forwarded to the current active master dealing with the check results,
 commands, etc.
 
-    object Zone "ha-master" {
+    object Zone "config-ha-master" {
       endpoints = [ "icinga2a", "icinga2b", "icinga2c" ]
     }
 
