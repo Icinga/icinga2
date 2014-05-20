@@ -194,12 +194,6 @@ Group:        Applications/System
 %if "%{_vendor}" == "suse"
 BuildRequires: postgresql-libs
 %endif
-%if "%{_vendor}" == "redhat"
-# el5 only provides mysql package
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
-BuildRequires: postgresql84
-%endif
-%endif
 BuildRequires: postgresql-devel
 Requires: postgresql-libs
 Requires: %{name} = %{version}-%{release}
