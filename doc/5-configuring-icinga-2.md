@@ -1,5 +1,29 @@
 # <a id="configuring-icinga2"></a> Configuring Icinga 2
 
+## <a id="global-constants"></a> Global Constants
+
+Icinga 2 provides a number of special global constants. Some of them can be overriden using the `--define` command line parameter:
+
+Variable            |Description
+--------------------|-------------------
+PrefixDir           |**Read-only.** Contains the installation prefix that was specified with cmake -DCMAKE_INSTALL_PREFIX. Defaults to "/usr/local".
+SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to PrefixDir + "/etc".
+ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to SysconfDir + "/zones.d".
+LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to PrefixDir + "/var".
+PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to PrefixDir + "/share/icinga2".
+StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to LocalStateDir + "/lib/icinga2/icinga2.state".
+PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to LocalStateDir + "/run/icinga2/icinga2.pid".
+Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
+NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
+ApplicationType     |**Read-write.** Contains the name of the Application type. Defaults to "icinga/IcingaApplication".
+EnableNotifications |**Read-write.** Whether notifications are globally enabled. Defaults to true.
+EnableEventHandlers |**Read-write.** Whether event handlers are globally enabled. Defaults to true.
+EnableFlapping      |**Read-write.** Whether flap detection is globally enabled. Defaults to true.
+EnableHostChecks    |**Read-write.** Whether active host checks are globally enabled. Defaults to true.
+EnableServiceChecks |**Read-write.** Whether active service checks are globally enabled. Defaults to true.
+EnablePerfdata      |**Read-write.** Whether performance data processing is globally enabled. Defaults to true.
+UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
+
 
 ## <a id="configuration-syntax"></a> Configuration Syntax
 
@@ -506,31 +530,6 @@ Example:
 
     library "snmphelper"
 
-
-
-## <a id="global-constants"></a> Global Constants
-
-Icinga 2 provides a number of special global constants. Some of them can be overriden using the `--define` command line parameter:
-
-Variable            |Description
---------------------|-------------------
-PrefixDir           |**Read-only.** Contains the installation prefix that was specified with cmake -DCMAKE_INSTALL_PREFIX. Defaults to "/usr/local".
-SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to PrefixDir + "/etc".
-ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to SysconfDir + "/zones.d".
-LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to PrefixDir + "/var".
-PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to PrefixDir + "/share/icinga2".
-StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to LocalStateDir + "/lib/icinga2/icinga2.state".
-PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to LocalStateDir + "/run/icinga2/icinga2.pid".
-Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
-NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
-ApplicationType     |**Read-write.** Contains the name of the Application type. Defaults to "icinga/IcingaApplication".
-EnableNotifications |**Read-write.** Whether notifications are globally enabled. Defaults to true.
-EnableEventHandlers |**Read-write.** Whether event handlers are globally enabled. Defaults to true.
-EnableFlapping      |**Read-write.** Whether flap detection is globally enabled. Defaults to true.
-EnableHostChecks    |**Read-write.** Whether active host checks are globally enabled. Defaults to true.
-EnableServiceChecks |**Read-write.** Whether active service checks are globally enabled. Defaults to true.
-EnablePerfdata      |**Read-write.** Whether performance data processing is globally enabled. Defaults to true.
-UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
 
 
 ## <a id="object-types"></a> Object Types
@@ -1611,3 +1610,346 @@ Attributes:
   endpoints       |**Optional.** Dictionary with endpoints located in this zone.
   parent          |**Optional.** Parent zone.
 
+
+
+## <a id="icinga-template-library"></a> Icinga Template Library
+
+### <a id="itl-overview"></a> Overview
+
+The Icinga Template Library (ITL) implements standard templates and object
+definitions for commonly used services.
+
+You can include the ITL by using the `include` directive in your configuration
+file:
+
+    include <itl>
+
+### <a id="itl-generic-templates"></a> Generic Templates
+
+These templates are imported by the provided example configuration.
+
+#### <a id="itl-plugin-check-command"></a> plugin-check-command
+
+Command template for check plugins executed by Icinga 2.
+
+The `plugin-check-command` command does not support any vars.
+
+#### <a id="itl-plugin-notification-command"></a> plugin-notification-command
+
+Command template for notification scripts executed by Icinga 2.
+
+The `plugin-notification-command` command does not support any vars.
+
+#### <a id="itl-plugin-event-command"></a> plugin-event-command
+
+Command template for event handler scripts executed by Icinga 2.
+
+The `plugin-event-command` command does not support any vars.
+
+### <a id="itl-check-commands"></a> Check Commands
+
+These check commands are embedded into Icinga 2 and do not require any external
+plugin scripts.
+
+#### <a id="itl-icinga"></a> icinga
+
+Check command for the built-in `icinga` check. This check returns performance
+data for the current Icinga instance.
+
+The `icinga` check command does not support any vars.
+
+#### <a id="itl-icinga"></a> cluster
+
+Check command for the built-in `cluster` check. This check returns performance
+data for the current Icinga instance and connected endpoints.
+
+The `cluster` check command does not support any vars.
+
+
+
+## <a id="plugin-check-commands"></a> Plugin Check Commands
+
+### <a id="plugin-check-command-overview"></a> Overview
+
+The Plugin Check Commands provides example configuration for plugin check commands
+provided by the the Monitoring Plugins project.
+
+You can include the plugin check command definitions by using the `include`
+directive in your configuration file:
+
+    include <plugins>
+
+The plugin check commands assume that there's a global constant named `PluginDir`
+which contains the path of the plugins from the Monitoring Plugins project.
+
+
+#### <a id="plugin-check-command-ping4"></a> ping4
+
+Check command object for the `check_ping` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
+#### <a id="plugin-check-command-ping6"></a> ping6
+
+Check command object for the `check_ping` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's IPv6 address. Defaults to "$address6$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
+#### <a id="plugin-check-command-hostalive"></a> hostalive
+
+Check command object for the `check_ping` plugin with host check default values.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 80.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
+#### <a id="plugin-check-command-dummy"></a> dummy
+
+Check command object for the `check_dummy` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
+dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
+
+#### <a id="plugin-check-command-passive"></a> passive
+
+Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
+dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
+
+#### <a id="plugin-check-command-tcp"></a> tcp
+
+Check command object for the `check_tcp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+tcp_address     | **Optional.** The host's address. Defaults to "$address$".
+tcp_port        | **Required.** The port that should be checked.
+
+#### <a id="plugin-check-command-udp"></a> udp
+
+Check command object for the `check_udp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+udp_address     | **Optional.** The host's address. Defaults to "$address$".
+udp_port        | **Required.** The port that should be checked.
+
+#### <a id="plugin-check-command-http-ip"></a> http
+
+Check command object for the `check_http` plugin.
+
+Custom Attributes:
+
+Name               | Description
+-------------------|--------------
+http_address       | **Optional.** The host's address. Defaults to "$address".
+http_vhost         | **Optional.** The virtual host that should be sent in the "Host" header.
+http_uri           | **Optional.** The request URI.
+http_port          | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
+http_ssl           | **Optional.** Whether to use SSL. Defaults to false.
+http_warn_time     | **Optional.** The warning threshold.
+http_critical_time | **Optional.** The critical threshold.
+
+#### <a id="plugin-check-command-smtp"></a> smtp
+
+Check command object for the `check_smtp` plugin.
+
+Custom Attributes:
+
+Name                 | Description
+---------------------|--------------
+smtp_address         | **Optional.** The host's address. Defaults to "$address$".
+
+#### <a id="plugin-check-command-ssmtp"></a> ssmtp
+
+Check command object for the `check_ssmtp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ssmtp_address   | **Required.** The host's address. Defaults to "$address$".
+ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
+
+#### <a id="plugin-check-command-ntp-time"></a> ntp_time
+
+Check command object for the `check_ntp_time` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ntp_address     | **Optional.** The host's address. Defaults to "$address$".
+
+#### <a id="plugin-check-command-ssh"></a> ssh
+
+Check command object for the `check_ssh` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ssh_address     | **Optional.** The host's address. Defaults to "$address$".
+ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
+
+#### <a id="plugin-check-command-disk"></a> disk
+
+Check command object for the `check_disk` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+disk_wfree      | **Optional.** The free space warning threshold in %. Defaults to 20.
+disk_cfree      | **Optional.** The free space critical threshold in %. Defaults to 10.
+
+#### <a id="plugin-check-command-users"></a> users
+
+Check command object for the `check_disk` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
+users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
+
+#### <a id="plugin-check-command-processes"></a> procs
+
+Check command object for the `check_procs` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+procs_wgreater  | **Optional.** The process count warning threshold. Defaults to 250.
+procs_cgreater  | **Optional.** The process count critical threshold. Defaults to 400.
+
+#### <a id="plugin-check-command-swap"></a> swap
+
+Check command object for the `check_swap` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+swap_wfree      | **Optional.** The free swap space warning threshold in %. Defaults to 50.
+swap_cfree      | **Optional.** The free swap space critical threshold in %. Defaults to 25.
+
+#### <a id="plugin-check-command-load"></a> load
+
+Check command object for the `check_load` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+load_wload1     | **Optional.** The 1-minute warning threshold. Defaults to 5.
+load_wload5     | **Optional.** The 5-minute warning threshold. Defaults to 4.
+load_wload15    | **Optional.** The 15-minute warning threshold. Defaults to 3.
+load_cload1     | **Optional.** The 1-minute critical threshold. Defaults to 10.
+load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
+load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
+
+#### <a id="plugin-check-command-snmp"></a> snmp
+
+Check command object for the `check_snmp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+snmp_address    | **Optional.** The host's address. Defaults to "$address$".
+snmp_oid        | **Required.** The SNMP OID.
+snmp_community  | **Optional.** The SNMP community. Defaults to "public".
+
+#### <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
+
+Check command object for the `check_snmp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+snmp_address    | **Optional.** The host's address. Defaults to "$address$".
+snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
+snmp_community  | **Optional.** The SNMP community. Defaults to "public".
+
+#### <a id="plugin-check-command-dhcp"></a> dhcp
+
+Check command object for the `check_dhcp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+dhcp_serverip   | **Optional.** The IP address of the DHCP server which we should get a response from.
+dhcp_requestedip| **Optional.** The IP address which we should be offered by a DHCP server.
+dhcp_timeout    | **Optional.** The timeout in seconds.
+dhcp_interface  | **Optional.** The interface to use.
+dhcp_mac        | **Optional.** The MAC address to use in the DHCP request.
+dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to false.
+
+#### <a id="plugin-check-command-nscp"></a> nscp
+
+Check command object for the `check_nt` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+nscp_address    | **Optional.** The host's address. Defaults to "$address$".
+nscp_port       | **Optional.** The NSClient++ port. Defaults to 12489.
+nscp_password   | **Optional.** The NSClient++ password.
+nscp_variable   | **Required.** The variable that should be checked.
+nscp_params     | **Optional.** Parameters for the query.
+nscp_warn       | **Optional.** The warning threshold.
+nscp_crit       | **Optional.** The critical threshold.
+nscp_timeout    | **Optional.** The query timeout in seconds.
+
+#### <a id="plugin-check-command-apt"></a> apt
+
+Check command for the `check_apt` plugin.
+
+The `apt` check command does not support any vars.
