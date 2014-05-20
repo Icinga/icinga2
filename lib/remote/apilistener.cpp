@@ -320,7 +320,7 @@ void ApiListener::ApiTimerHandler(void)
 			Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts));
 	}
 
-	Log(LogInformation, "remote", "Current master: " + GetMaster()->GetName());
+	Log(LogInformation, "remote", "Current zone master: " + GetMaster()->GetName());
 
 	std::vector<String> names;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>())
