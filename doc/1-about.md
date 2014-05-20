@@ -27,6 +27,10 @@ is appreciated!
 
 Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
 
+## <a id="demo-vm"></a> Demo VM
+
+Icinga 2 is available as [Vagrant Demo VM](#vagrant).
+
 ## <a id="whats-new"></a> What's new
 
 ### What's New in Version 0.0.11
@@ -50,3 +54,5 @@ Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
 ### Archive
 
 Please check the `ChangeLog` file.
+
+
