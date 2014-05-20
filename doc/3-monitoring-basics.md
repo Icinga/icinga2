@@ -117,18 +117,36 @@ object if necessary.
 Instead of assigning each object (`Service`, `Notification`, `Dependency`, `ScheduledDowntime`)
 based on attribute identifiers for example `host_name` objects can be [applied](#apply).
 
-    apply Service "ping4" {
+    apply Service "load" {
       import "generic-service"
 
-      check_command = "ping4"
+      check_command = "load"
 
-      assign where "generic-host" in host.templates
-      ignore where host.address == ""
+      assign where "linux-server" in host.groups
+      ignore where host.vars.no_load_check
     }
 
-In this example the `ping4` service will be created as object for all hosts importing
-the `generic-host` template. If the `address` attribute is not set, the host will be
+In this example the `load` service will be created as object for all hosts in the `linux-server`
+host group. If the `no_load_check` custom attribute is set, the host will be
 ignored.
+
+Notifications are applied to specific targets (`Host` or `Service`) and work in a similar
+manner:
+
+    apply Notification "mail-noc" to Service {
+      import "mail-service-notification"
+      command = "mail-service-notification"
+      user_groups = [ "noc" ]
+
+      assign where service.vars.sla == "24x7"
+    }
+
+In this example the `mail-noc` notification will be created as object for all services having the
+`sla` custom attribute set to `24x7`. The notification command is set to `mail-service-notification`
+and all members of the user group `noc` will get notified.
+
+`Dependency` and `ScheduledDowntime` objects can be applied in a similar fashion.
+
 
 ## <a id="groups"></a> Groups
 
@@ -190,7 +208,7 @@ the user groups are associated as attributes in `Notification` objects.
 
 If there is a certain number of hosts, services or users matching a pattern
 it's reasonable to assign the group object to these members.
-Details on the `assign where` syntax can be found [here]
+Details on the `assign where` syntax can be found [here](#group-assign)
 
     object HostGroup "mssql" {
       display_name = "MSSQL Servers"
