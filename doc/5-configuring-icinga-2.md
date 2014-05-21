@@ -635,6 +635,7 @@ Attributes:
 
   Name            |Description
   ----------------|----------------
+  display_name    |**Optional.** A short description of the service.
   host_name       |**Required.** The host this service belongs to. There must be a `Host` object with that name.
   name            |**Required.** The service name. Must be unique on a per-host basis (Similar to the service_description attribute in Icinga 1.x).
   groups          |**Optional.** The service groups this service belongs to.
