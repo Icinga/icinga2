@@ -79,6 +79,7 @@ BuildRequires: libstdc++-devel
 BuildRequires: cmake
 BuildRequires: flex >= 2.5.35
 BuildRequires: bison
+BuildRequires: make
 
 # redhat
 %if "%{_vendor}" == "redhat"
