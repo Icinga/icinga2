@@ -70,5 +70,10 @@ bool Zone::IsChildOf(const Zone::Ptr& zone)
 
 Zone::Ptr Zone::GetLocalZone(void)
 {
-	return Endpoint::GetLocalEndpoint()->GetZone();
+	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
+
+	if (!local)
+		return Zone::Ptr();
+
+	return local->GetZone();
 }
