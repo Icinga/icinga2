@@ -592,6 +592,10 @@ Attributes:
 
 A group of hosts.
 
+> **Best Practice**
+>
+> Assign host group members using the [group assign](#group-assign) rules.
+
 Example:
 
     object HostGroup "my-hosts" {
@@ -615,6 +619,7 @@ by Icinga 2.
 > Rather than creating a `Service` object for a specific host it is usually easier
 > to just create a `Service` template and use the `apply` keyword to assign the
 > service to a number of hosts.
+> Check the [apply](#using-apply) chapter for details.
 
 Example:
 
@@ -670,6 +675,10 @@ you can define more than one object with the same (short) name as long as the `h
 ### <a id="objecttype-servicegroup"></a> ServiceGroup
 
 A group of services.
+
+> **Best Practice**
+>
+> Assign service group members using the [group assign](#group-assign) rules.
 
 Example:
 
@@ -744,6 +753,10 @@ Attributes:
 ### <a id="objecttype-usergroup"></a> UserGroup
 
 A user group.
+
+> **Best Practice**
+>
+> Assign user group members using the [group assign](#group-assign) rules.
 
 Example:
 
@@ -915,6 +928,7 @@ of host and service state changes and other events.
 > usually easier to just create a `Notification` template and use the `apply` keyword
 > to assign the notification to a number of hosts or services. Use the `to` keyword
 > to set the specific target type for `Host` or `Service`.
+> Check the [notifications](#notifications) chapter for detailed examples.
 
 Example:
 
@@ -1013,6 +1027,7 @@ ScheduledDowntime objects can be used to set up recurring downtimes for services
 > to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
 > scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
+> Check the [recurring downtimes](#recurring-downtimes) example for details.
 
 Example:
 
@@ -1060,6 +1075,7 @@ Dependency objects are used to specify dependencies between hosts and services.
 > to just create a `Dependency` template and use the `apply` keyword to assign the
 > dependency to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
+> Check the [dependencies](#dependencies) chapter for detailed examples.
 
 Example:
 

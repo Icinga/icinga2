@@ -208,7 +208,7 @@ the user groups are associated as attributes in `Notification` objects.
 
 If there is a certain number of hosts, services or users matching a pattern
 it's reasonable to assign the group object to these members.
-Details on the `assign where` syntax can be found [here](#group-assign)
+Details on the `assign where` syntax can be found [here](#apply)
 
     object HostGroup "mssql" {
       display_name = "MSSQL Servers"
@@ -260,7 +260,6 @@ An example notification command is explained [here](#notification-commands).
 You can add all shared attributes to a `Notification` template which is inherited
 to the defined notifications. That way you'll save duplicated attributes in each
 `Notification` object. Attributes can be overridden locally.
-
 
     template Notification "generic-notification" {
       interval = 15m
