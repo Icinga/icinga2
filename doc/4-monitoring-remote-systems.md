@@ -44,8 +44,8 @@ requires the `check_by_ssh` check plugin which is available in the [Monitoring P
       import "by_ssh"
 
       vars.by_ssh_command = "/usr/lib/nagios/plugins/check_swap -w $by_ssh_swap_warn$ -c $by_ssh_swap_crit$"
-      vars.by_ssh_swap_warn = "50%"
-      vars.by_ssh_swap_crit = "75%"
+      vars.by_ssh_swap_warn = "75%"
+      vars.by_ssh_swap_crit = "50%"
     }
 
     object Service "swap" {
