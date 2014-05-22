@@ -920,6 +920,52 @@ be suppressed. This is achieved by setting the `disable_checks` attribute to `tr
       assign where host.name != "dsl-router"
     }
 
+Another classic example are agent based checks. You would define a health check
+for the agent daemon responding to your requests, and make all other services
+querying that daemon depend on that health check.
+
+The following configuration defines two nrpe based service checks `nrpe-load`
+and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
+`nrpe-health` service.
+
+    apply Service "nrpe-health" {
+      import "generic-service"
+      check_command = "nrpe"
+      assign where match("nrpe-*", host.name)
+    }
+
+    apply Service "nrpe-load" {
+      import "generic-service"
+      check_command = "nrpe"
+      vars.nrpe_command = "check_load"
+      assign where match("nrpe-*", host.name)
+    }
+
+    apply Service "nrpe-disk" {
+      import "generic-service"
+      check_command = "nrpe"
+      vars.nrpe_command = "check_disk"
+      assign where match("nrpe-*", host.name)
+    }
+
+    object Host "nrpe-server" {
+      import "generic-host"
+      address = "192.168.1.5",
+    }
+
+    apply Dependency "disable-nrpe-checks" to Service {
+      parent_service_name = "nrpe-health"
+
+      states = [ Warning, Critical, Unknown ]
+      disable_checks = true
+      disable_notifications = true
+      assign where match("nrpe-*", host.name)
+      ignore where service.name == "nrpe-health"
+    }
+
+The `disable-nrpe-checks` dependency is applied to all services
+on the `nrpe-service` host but not the `nrpe-health` service itself.
+
 
 ## <a id="custom-attributes"></a> Custom Attributes
 

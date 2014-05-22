@@ -60,6 +60,8 @@ While Icinga 1.x ships sample configuration and templates spread in various
 object files Icinga 2 moves all templates into the Icinga Template Library (ITL)
 and includes that in the sample configuration.
 
+Additional plugin check commands are shipped with Icinga 2 as well.
+
 The ITL will be updated on every release and should not be edited by the user.
 
 There are still generic templates available for your convenience which may or may
@@ -68,6 +70,15 @@ all required attributes except `check_command` for an inline service.
 
 Sample configuration files are located in the `conf.d/` directory which is
 included in `icinga2.conf` by default.
+
+### <a id="differences-1x-2-main-config"></a> Main Config File
+
+In Icinga 1.x there are many global configuration settings available in `icinga.cfg`.
+Icinga 2 only uses a small set of [global constants](#global-constants) allowing
+you to specify certain different setting such as the `NodeName` in a cluster scenario.
+
+Aside from that, the [icinga2.conf](#icinga2-conf) should take care of including
+global constants, enabled [features](#features) and the object configuration.
 
 ### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories
 
@@ -86,9 +97,9 @@ Icinga 2 supports wildcard includes and relative paths, e.g. for including
     include "conf.d/*.conf"
 
 If you want to include files and directories recursively, you need to define
-a separate option and add the directory and an option pattern.
+a separate option and add the directory and an optional pattern.
 
-    include_recursive "conf.d" "*.conf"
+    include_recursive "conf.d"
 
 A global search path for includes is available for advanced features like
 the Icinga Template Library (ITL) or additional monitoring plugins check
@@ -125,7 +136,8 @@ In Icinga 1.x comments are made using a leading hash (`#`) or a semi-colon (`;`)
 for inline comments.
 
 In Icinga 2 comments can either be encapsulated by `/*` and `*/` (allowing for
-multi-line comments) or starting with two slashes (`//`).
+multi-line comments) or starting with two slashes (`//`). A leading hash (`#`)
+could also be used.
 
 ### <a id="differences-1x-2-object-names"></a> Object names
 
@@ -166,9 +178,11 @@ Icinga 2 uses the keyword `import` with template names in double quotes.
       import "tmpl3"
     }
 
+The last template overrides previously set values.
+
 ### <a id="differences-1x-2-object-attributes"></a> Object attributes
 
-Icinga 1.x separates attribute and value with whitespaces/tabs. Icinga 2
+Icinga 1.x separates attribute and value pairs with whitespaces/tabs. Icinga 2
 requires an equal sign (=) between them.
 
     define service {
@@ -193,7 +207,7 @@ In Icinga 1.x a host can have an `alias` and a `display_name` attribute used
 for a more descriptive name. A service only can have a `display_name` attribute.
 The `alias` is used for group, timeperiod, etc. objects too.
 Icinga 2 only supports the `display_name` attribute which is also taken into
-account by Icinga 1.x Classic UI and Web.
+account by Icinga web interfaces.
 
 ### <a id="differences-1x-2-custom-attributes"></a> Custom Attributes
 
@@ -211,6 +225,8 @@ In Icinga 2 these attributes must be added to the `vars` dictionary as custom at
     vars.dn = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
     vars.cv = "my custom cmdb description"
 
+These custom attributes are also used as [command parameters](#command-passing-parameters).
+
 ### <a id="differences-1x-2-host-service-relation"></a> Host Service Relation
 
 In Icinga 1.x a service object is associated with a host by defining the
@@ -218,7 +234,7 @@ In Icinga 1.x a service object is associated with a host by defining the
 to `hostgroup_name` or behavior changing regular expression.
 
 The preferred way of associating hosts with services in Icinga 2 is by
-using the `apply` keyword.
+using the [apply](#using-apply) keyword.
 
 ### <a id="differences-1x-2-users"></a> Users
 
@@ -282,8 +298,8 @@ The Classic UI feature named `Command Expander` does not work with Icinga 2.
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
 
-Macros exported into the environment must be set using the `env`
-attribute in command objects.
+Macros exported into the [environment](#runtime-custom-attribute-env-vars)
+must be set using the `env` attribute in command objects.
 
 #### <a id="differences-1x-2-runtime-macros"></a> Runtime Macros
 
@@ -334,7 +350,7 @@ Changes to host runtime macros
   HOSTNAME               | host.name
   HOSTDISPLAYNAME        | host.display_name
   HOSTCHECKCOMMAND       | host.check_command
-  HOSTALIAS              | ..
+  HOSTALIAS              | (use `host.display_name` instead)
   HOSTSTATE              | host.state
   HOSTSTATEID            | host.state_id
   HOSTSTATETYPE          | host.state_type
@@ -374,8 +390,8 @@ Changes to notification runtime macros
   NOTIFICATIONTYPE       | notification.type
   NOTIFICATIONAUTHOR     | notification.author
   NOTIFICATIONCOMMENT    | notification.comment
-  NOTIFICATIONAUTHORNAME | --
-  NOTIFICATIONAUTHORALIAS   | --
+  NOTIFICATIONAUTHORNAME | (use `notification.author`)
+  NOTIFICATIONAUTHORALIAS   | (use `notification.author`)
 
 
 Changes to global runtime macros:
@@ -523,7 +539,7 @@ conditions.
       assign where match("*-dev", host.name)
     }
 
-#### <a id="differences-1x-2-service-hostgroup-host"></a> Add Service to Hostgroup where Host is member
+#### <a id="differences-1x-2-service-hostgroup-host"></a> Add Service to Hostgroup where Host is Member
 
 In order to associate a service with all hosts in a host group the `apply`
 keyword can be used:
@@ -631,6 +647,13 @@ object.
 A service can now depend on a host, and vice versa. A service has an implicit dependeny
 (parent) to its host. A host to host dependency acts implicit as host parent relation.
 
+The former `host_name` and `dependent_host_name` have been renamed to `parent_host_name`
+and `child_host_name` (same for the service attribute). When using apply rules the
+child attributes may be omitted.
+
+For detailed examples on how to use the dependencies please check the [dependencies](#dependencies)
+chapter.
+
 Dependencies can be applied to hosts or services using the [apply rules](#apply).
 
 The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
@@ -696,10 +719,6 @@ popular broker modules was implemented for Icinga 2:
 * Livestatus
 * Cluster (allows for high availability and load balancing)
 
-In Icinga 1.x broker modules may only be loaded once which means it is not easily possible
-to have one Icinga instance write to multiple IDO databases. Due to the way
-objects work in Icinga 2 it is possible to set up multiple IDO database instances.
-
 
 ### <a id="differences-1x-2-distributed-monitoring"></a> Distributed Monitoring
 
@@ -710,8 +729,8 @@ distribution out-of-the-box. Furthermore comments, downtimes and other stateful 
 not synced between the master and slave nodes. There are addons available solving the check
 and configuration distribution problems Icinga 1.x distributed monitoring currently suffers from.
 
-Icinga 2 implements a new built-in distributed monitoring architecture, including config and check
-distribution, IPv4/IPv6 support, SSL certificates and domain support for DMZ. High Availability
-and load balancing are also part of the Icinga 2 Cluster setup.
+Icinga 2 implements a new built-in [distributed monitoring architecture](#distributed-monitoring-high-availability),
+including config and check distribution, IPv4/IPv6 support, SSL certificates and zone support for DMZ.
+High Availability and load balancing are also part of the Icinga 2 Cluster setup.
 
 
