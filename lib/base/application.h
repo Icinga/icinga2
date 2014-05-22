@@ -37,6 +37,8 @@ class I2_BASE_API Application : public ObjectImpl<Application> {
 public:
 	DECLARE_PTR_TYPEDEFS(Application);
 
+	static boost::signals2::signal<void (void)> OnReopenLogs;
+
 	~Application(void);
 
 	static void InitializeBase(void);
@@ -64,6 +66,7 @@ public:
 
 	static void RequestShutdown(void);
 	static void RequestRestart(void);
+	static void RequestReopenLogs(void);
 
 	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);
@@ -128,6 +131,7 @@ private:
 	static bool m_RequestRestart; /**< A restart was requested through SIGHUP */
 	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, 
 									only valid when l_Restarting==true */
+	static bool m_RequestReopenLogs; /**< Whether we should re-open log files. */
 
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
@@ -146,6 +150,7 @@ private:
 	static void DisplayBugMessage(void);
 
 	static void SigAbrtHandler(int signum);
+	static void SigUsr1Handler(int signum);
 	static void ExceptionHandler(void);
 };
 

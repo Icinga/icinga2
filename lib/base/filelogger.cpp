@@ -20,6 +20,7 @@
 #include "base/filelogger.h"
 #include "base/dynamictype.h"
 #include "base/statsfunction.h"
+#include "base/application.h"
 #include <fstream>
 
 using namespace icinga;
@@ -44,10 +45,17 @@ Value FileLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 /**
  * Constructor for the FileLogger class.
  */
-void FileLogger::Start()
+void FileLogger::Start(void)
 {
 	StreamLogger::Start();
 
+	ReopenLogFile();
+
+	Application::OnReopenLogs.connect(boost::bind(&FileLogger::ReopenLogFile, this));
+}
+
+void FileLogger::ReopenLogFile(void)
+{
 	std::ofstream *stream = new std::ofstream();
 
 	String path = GetPath();

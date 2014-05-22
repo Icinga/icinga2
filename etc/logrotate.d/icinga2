@@ -8,22 +8,11 @@
        	notifempty
        	create 644 icinga icinga
 	copytruncate
-	#postrotate
-	#	if /etc/init.d/icinga2 status > /dev/null ; then \
-        #            /etc/init.d/icinga2 reload > /dev/null; \
-        #        fi;
-       	#endscript
-}
-
-/var/log/icinga2/error.log {
-       	daily
-	rotate 90
-	compress
-	delaycompress
-       	missingok
-       	notifempty
-       	create 644 icinga icinga
-	copytruncate
+	postrotate
+		if ! killall -q -USR1 icinga2; then
+			exit 1
+		fi
+       	endscript
 }
 
 /var/log/icinga2/debug.log {
@@ -34,6 +23,22 @@
        	missingok
        	notifempty
        	create 644 icinga icinga
+	copytruncate
+	postrotate
+		if ! killall -q -USR1 icinga2; then
+			exit 1
+		fi
+	endscript
+}
+
+/var/log/icinga2/error.log {
+	daily
+	rotate 90
+	compress
+	delaycompress
+	missingok
+	notifempty
+	create 644 icinga icinga
 	copytruncate
 }
 

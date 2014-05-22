@@ -43,9 +43,11 @@ using namespace icinga;
 
 REGISTER_TYPE(Application);
 
+boost::signals2::signal<void (void)> Application::OnReopenLogs;
 Application *Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
+bool Application::m_RequestReopenLogs = false;
 pid_t Application::m_ReloadProcess = 0;
 static bool l_Restarting = false;
 bool Application::m_Debugging = false;
@@ -238,6 +240,12 @@ mainloop:
 		/* Watches for changes to the system time. Adjusts timers if necessary. */
 		Utility::Sleep(2.5);
 
+		if (m_RequestReopenLogs) {
+			Log(LogInformation, "base", "Reopening log files");
+			m_RequestReopenLogs = false;
+			OnReopenLogs();
+		}
+
 		double now = Utility::GetTime();
 		double timeDiff = lastLoop - now;
 
@@ -334,6 +342,15 @@ void Application::RequestShutdown(void)
 void Application::RequestRestart(void)
 {
 	m_RequestRestart = true;
+}
+
+/**
+ * Signals the application to reopen log files during the
+ * next execution of the event loop.
+ */
+void Application::RequestReopenLogs(void)
+{
+	m_RequestReopenLogs = true;
 }
 
 /**
@@ -485,6 +502,17 @@ void Application::SigIntTermHandler(int signum)
 }
 
 /**
+ * Signal handler for SIGUSR1. This signal causes Icinga to re-open
+ * its log files and is mainly for use by logrotate.
+ *
+ * @param - The signal number.
+ */
+void Application::SigUsr1Handler(int)
+{
+	RequestReopenLogs();
+}
+
+/**
  * Signal handler for SIGABRT. Helps with debugging ASSERT()s.
  *
  * @param - The signal number.
@@ -614,6 +642,9 @@ int Application::Run(void)
 
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sa, NULL);
+
+	sa.sa_handler = &Application::SigUsr1Handler;
+	sigaction(SIGUSR1, &sa, NULL);
 #else /* _WIN32 */
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */

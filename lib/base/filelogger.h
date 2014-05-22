@@ -40,6 +40,9 @@ public:
         static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 	virtual void Start(void);
+
+private:
+	void ReopenLogFile(void);
 };
 
 }
