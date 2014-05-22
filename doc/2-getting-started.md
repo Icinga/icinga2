@@ -306,8 +306,8 @@ a valid `address` resp. `address6` attribute will be excluded.
       check_command = "ping4"
       vars.sla = "24x7"
 
-      assign where "linux-server" in host.groups
-      assign where "windows-server" in host.groups
+      assign where "linux-servers" in host.groups
+      assign where "windows-servers" in host.groups
       ignore where host.address == ""
     }
 
@@ -317,8 +317,8 @@ a valid `address` resp. `address6` attribute will be excluded.
       check_command = "ping6"
       vars.sla = "24x7"
 
-      assign where "linux-server" in host.groups
-      assign where "windows-server" in host.groups
+      assign where "linux-servers" in host.groups
+      assign where "windows-servers" in host.groups
       ignore where host.address6 == ""
     }
 
