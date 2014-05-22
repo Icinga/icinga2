@@ -218,6 +218,211 @@ Details on the `assign where` syntax can be found [here](#group-assign)
 In this inherited example from above all hosts with the `var` `mssql_port`
 set will be added as members to the host group `mssql`.
 
+## <a id="notifications"></a> Notifications
+
+Notifications for service and host problems are an integral part of your
+monitoring setup.
+
+When a host or service is in a downtime, a problem has been acknowledged or
+the dependency logic determined that the host/service is unreachable, no
+notirications are sent. You can configure additional type and state filters
+refining the notifications being actually sent.
+
+There are many ways of sending notifications, e.g. by e-mail, XMPP,
+IRC, Twitter, etc. On its own Icinga 2 does not know how to send notifications.
+Instead it relies on external mechanisms such as shell scripts to notify users.
+
+A notification specification requires one or more users (and/or user groups)
+who will be notified in case of problems. These users must have all custom
+attributes defined which will be used in the `NotificationCommand` on execution.
+
+The user `icingaadmin` in the example below will get notified only on `WARNING` and
+`CRITICAL` states and `problem` and `recovery` notification types.
+
+    object User "icingaadmin" {
+      display_name = "Icinga 2 Admin"
+      enable_notifications = true
+      states = [ OK, Warning, Critical ]
+      types = [ Problem, Recovery ]
+      email = "icinga@localhost"
+    }
+
+If you don't set the `states` and `types`
+configuration attributes for the `User` object, notifications for all states and types
+will be sent.
+
+You should choose which information you (and your notified users) are interested in
+case of emergency, and also which information does not provide any value to you and
+your environment.
+
+An example notification command is explained [here](#notification-commands).
+
+You can add all shared attributes to a `Notification` template which is inherited
+to the defined notifications. That way you'll save duplicated attributes in each
+`Notification` object. Attributes can be overridden locally.
+
+
+    template Notification "generic-notification" {
+      interval = 15m
+
+      command = "mail-service-notification"
+
+      states = [ Warning, Critical, Unknown ]
+      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
+                FlappingEnd, DowntimeStart,DowntimeEnd, DowntimeRemoved ]
+
+      period = "24x7"
+    }
+
+The time period `24x7` is shipped as example configuration with Icinga 2.
+
+Use the `apply` keyword to create `Notification` objects for your services:
+
+    apply Notification "mail" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      assign where service.name == "mysql"
+    }
+
+Instead of assigning users to notifications, you can also add the `user_groups`
+attribute with a list of user groups to the `Notification` object. Icinga 2 will
+send notifications to all group members.
+
+### <a id="notification-escalations"></a> Notification Escalations
+
+When a problem notification is sent and a problem still exists after re-notification
+you may want to escalate the problem to the next support level. A different approach
+is to configure the default notification by email, and escalate the problem via sms
+if not already solved.
+
+You can define notification start and end times as additional configuration
+attributes making the `Notification` object a so-called `notification escalation`.
+Using templates you can share the basic notification attributes such as users or the
+`interval` (and override them for the escalation then).
+
+Using the example from above, you can define additional users being escalated for sms
+notifications between start and end time.
+
+    object User "icinga-oncall-2nd-level" {
+      display_name = "Icinga 2nd Level"
+
+      vars.mobile = "+1 555 424642"
+    }
+
+    object User "icinga-oncall-1st-level" {
+      display_name = "Icinga 1st Level"
+
+      vars.mobile = "+1 555 424642"
+    }
+
+Define an additional `NotificationCommand` for SMS notifications.
+
+> **Note**
+>
+> The example is not complete as there are many different SMS providers.
+> Please note that sending SMS notifications will require an SMS provider
+> or local hardware with a SIM card active.
+
+    object NotificationCommand "sms-notification" {
+       command = [
+         PluginDir + "/send_sms_notification",
+         "$mobile$",
+         "..."
+    }
+
+The two new notification escalations are added onto the host `localhost`
+and its service `ping4` using the `generic-notification` template.
+The user `icinga-oncall-2nd-level` will get notified by SMS (`sms-notification`
+command) after `30m` until `1h`.
+
+> **Note**
+>
+> The `interval` was set to 15m in the `generic-notification`
+> template example. Lower that value in your escalations by using a secondary
+> template or overriding the attribute directly in the `notifications` array
+> position for `escalation-sms-2nd-level`.
+
+If the problem does not get resolved or acknowledged preventing further notifications
+the `escalation-sms-1st-level` user will be escalated `1h` after the initial problem was
+notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
+
+    apply Notification "mail" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      assign where service.name == "ping4"
+    }
+
+    apply Notification "escalation-sms-2nd-level" to Service {
+      import "generic-notification"
+
+      command = "sms-notification"
+      users = [ "icinga-oncall-2nd-level" ]
+
+      times = {
+        begin = 30m
+        end = 1h
+      }
+
+      assign where service.name == "ping4"
+    }
+
+    apply Notification "escalation-sms-1st-level" to Service {
+      import "generic-notification"
+
+      command = "sms-notification"
+      users = [ "icinga-oncall-1st-level" ]
+
+      times = {
+        begin = 1h
+        end = 2h
+      }
+
+      assign where service.name == "ping4"
+    }
+
+### <a id="first-notification-delay"></a> First Notification Delay
+
+Sometimes the problem in question should not be notified when the first notification
+happens, but a defined time duration afterwards. In Icinga 2 you can use the `times`
+dictionary and set `begin = 15m` as key and value if you want to suppress notifications
+in the first 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
+end time for this notification.
+
+    apply Notification "mail" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      times.begin = 15m // delay first notification
+
+      assign where service.name == "ping4"
+    }
+
+### <a id="notification-filters-state-type"></a> Notification Filters by State and Type
+
+If there are no notification state and type filter attributes defined at the `Notification`
+or `User` object Icinga 2 assumes that all states and types are being notified.
+
+Available state and type filters for notifications are:
+
+    template Notification "generic-notification" {
+
+      states = [ Warning, Critical, Unknown ]
+      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
+                FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+    }
+
+If you are familiar with Icinga 1.x `notification_options` please note that they have been split
+into type and state, and allow more fine granular filtering for example on downtimes and flapping.
+You can filter for acknowledgements and custom notifications too.
+
 
 ## <a id="timeperiods"></a> Time Periods
 
@@ -296,7 +501,6 @@ Use the `period` attribute to assign time periods to
       users = [ "icingaadmin" ]
       period = "workhours"
     }
-
 
 
 ## <a id="commands"></a> Commands
@@ -539,210 +743,99 @@ Details on all available options can be found in the
 [CheckCommand object definition](#objecttype-checkcommand).
 
 
-## <a id="notifications"></a> Notifications
+## <a id="dependencies"></a> Dependencies
 
-Notifications for service and host problems are an integral part of your
-monitoring setup.
+Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects
+for determing their network reachability.
+The `parent_host_name` and `parent_service_name` attributes are mandatory for
+service dependencies, `parent_host_name` is required for host dependencies.
 
-When a host or service is in a downtime, a problem has been acknowledged or
-the dependency logic determined that the host/service is unreachable, no
-notirications are sent. You can configure additional type and state filters
-refining the notifications being actually sent.
+A service can depend on a host, and vice versa. A service has an implicit
+dependency (parent) to its host. A host to host dependency acts implicit
+as host parent relation.
+When dependencies are calculated, not only the immediate parent is taken into
+account but all parents are inherited.
 
-There are many ways of sending notifications, e.g. by e-mail, XMPP,
-IRC, Twitter, etc. On its own Icinga 2 does not know how to send notifications.
-Instead it relies on external mechanisms such as shell scripts to notify users.
+Notifications are suppressed if a host or service becomes unreachable.
 
-A notification specification requires one or more users (and/or user groups)
-who will be notified in case of problems. These users must have all custom
-attributes defined which will be used in the `NotificationCommand` on execution.
+A common scenario is the Icinga 2 server behind a router. Checking internet
+access by pinging the Google DNS server `google-dns` is a common method, but
+will fail in case the `dsl-router` host is down. Therefore the example below
+defines a host dependency which acts implicit as parent relation too.
 
-The user `icingaadmin` in the example below will get notified only on `WARNING` and
-`CRITICAL` states and `problem` and `recovery` notification types.
+Furthermore the host may be reachable but ping probes are dropped by the
+router's firewall. In case the `dsl-router``ping4` service check fails, all
+further checks for the `ping4` service on host `google-dns` service should
+be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
 
-    object User "icingaadmin" {
-      display_name = "Icinga 2 Admin"
-      enable_notifications = true
-      states = [ OK, Warning, Critical ]
-      types = [ Problem, Recovery ]
-      email = "icinga@localhost"
+    object Host "dsl-router" {
+      address = "192.168.1.1"
     }
 
-If you don't set the `states` and `types`
-configuration attributes for the `User` object, notifications for all states and types
-will be sent.
+    object Host "google-dns" {
+      address = "8.8.8.8"
+    }
 
-You should choose which information you (and your notified users) are interested in
-case of emergency, and also which information does not provide any value to you and
-your environment.
+    apply Service "ping4" {
+      import "generic-service"
 
-An example notification command is explained [here](#notification-commands).
+      check_command = "ping4"
 
-You can add all shared attributes to a `Notification` template which is inherited
-to the defined notifications. That way you'll save duplicated attributes in each
-`Notification` object. Attributes can be overridden locally.
+      assign where host.address
+    }
 
+    apply Dependency "internet" to Service {
+      parent_host_name = "dsl-router"
+      disable_checks = true
 
-    template Notification "generic-notification" {
-      interval = 15m
+      assign where host.name != "dsl-router"
+    }
 
-      command = "mail-service-notification"
+Another classic example are agent based checks. You would define a health check
+for the agent daemon responding to your requests, and make all other services
+querying that daemon depend on that health check.
+
+The following configuration defines two nrpe based service checks `nrpe-load`
+and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
+`nrpe-health` service.
+
+    apply Service "nrpe-health" {
+      import "generic-service"
+      check_command = "nrpe"
+      assign where match("nrpe-*", host.name)
+    }
+
+    apply Service "nrpe-load" {
+      import "generic-service"
+      check_command = "nrpe"
+      vars.nrpe_command = "check_load"
+      assign where match("nrpe-*", host.name)
+    }
+
+    apply Service "nrpe-disk" {
+      import "generic-service"
+      check_command = "nrpe"
+      vars.nrpe_command = "check_disk"
+      assign where match("nrpe-*", host.name)
+    }
+
+    object Host "nrpe-server" {
+      import "generic-host"
+      address = "192.168.1.5",
+    }
+
+    apply Dependency "disable-nrpe-checks" to Service {
+      parent_service_name = "nrpe-health"
 
       states = [ Warning, Critical, Unknown ]
-      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
-                FlappingEnd, DowntimeStart,DowntimeEnd, DowntimeRemoved ]
-
-      period = "24x7"
+      disable_checks = true
+      disable_notifications = true
+      assign where match("nrpe-*", host.name)
+      ignore where service.name == "nrpe-health"
     }
 
-The time period `24x7` is shipped as example configuration with Icinga 2.
-
-Use the `apply` keyword to create `Notification` objects for your services:
-
-    apply Notification "mail" to Service {
-      import "generic-notification"
-
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
-
-      assign where service.name == "mysql"
-    }
-
-Instead of assigning users to notifications, you can also add the `user_groups`
-attribute with a list of user groups to the `Notification` object. Icinga 2 will
-send notifications to all group members.
-
-### <a id="notification-escalations"></a> Notification Escalations
-
-When a problem notification is sent and a problem still exists after re-notification
-you may want to escalate the problem to the next support level. A different approach
-is to configure the default notification by email, and escalate the problem via sms
-if not already solved.
-
-You can define notification start and end times as additional configuration
-attributes making the `Notification` object a so-called `notification escalation`.
-Using templates you can share the basic notification attributes such as users or the
-`interval` (and override them for the escalation then).
-
-Using the example from above, you can define additional users being escalated for sms
-notifications between start and end time.
-
-    object User "icinga-oncall-2nd-level" {
-      display_name = "Icinga 2nd Level"
-
-      vars.mobile = "+1 555 424642"
-    }
-
-    object User "icinga-oncall-1st-level" {
-      display_name = "Icinga 1st Level"
-
-      vars.mobile = "+1 555 424642"
-    }
-
-Define an additional `NotificationCommand` for SMS notifications.
-
-> **Note**
->
-> The example is not complete as there are many different SMS providers.
-> Please note that sending SMS notifications will require an SMS provider
-> or local hardware with a SIM card active.
-
-    object NotificationCommand "sms-notification" {
-       command = [
-         PluginDir + "/send_sms_notification",
-         "$mobile$",
-         "..."
-    }
-
-The two new notification escalations are added onto the host `localhost`
-and its service `ping4` using the `generic-notification` template.
-The user `icinga-oncall-2nd-level` will get notified by SMS (`sms-notification`
-command) after `30m` until `1h`.
-
-> **Note**
->
-> The `interval` was set to 15m in the `generic-notification`
-> template example. Lower that value in your escalations by using a secondary
-> template or overriding the attribute directly in the `notifications` array
-> position for `escalation-sms-2nd-level`.
-
-If the problem does not get resolved or acknowledged preventing further notifications
-the `escalation-sms-1st-level` user will be escalated `1h` after the initial problem was
-notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
-
-    apply Notification "mail" to Service {
-      import "generic-notification"
-
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
-
-      assign where service.name == "ping4"
-    }
-
-    apply Notification "escalation-sms-2nd-level" to Service {
-      import "generic-notification"
-
-      command = "sms-notification"
-      users = [ "icinga-oncall-2nd-level" ]
-
-      times = {
-        begin = 30m
-        end = 1h
-      }
-
-      assign where service.name == "ping4"
-    }
-
-    apply Notification "escalation-sms-1st-level" to Service {
-      import "generic-notification"
-
-      command = "sms-notification"
-      users = [ "icinga-oncall-1st-level" ]
-
-      times = {
-        begin = 1h
-        end = 2h
-      }
-
-      assign where service.name == "ping4"
-    }
-
-### <a id="first-notification-delay"></a> First Notification Delay
-
-Sometimes the problem in question should not be notified when the first notification
-happens, but a defined time duration afterwards. In Icinga 2 you can use the `times`
-dictionary and set `begin = 15m` as key and value if you want to suppress notifications
-in the first 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
-end time for this notification.
-
-    apply Notification "mail" to Service {
-      import "generic-notification"
-
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
-
-      times.begin = 15m // delay first notification
-
-      assign where service.name == "ping4"
-    }
-
-### <a id="notification-filters-state-type"></a> Notification Filters by State and Type
-
-If there are no notification state and type filter attributes defined at the `Notification`
-or `User` object Icinga 2 assumes that all states and types are being notified.
-
-Available state and type filters for notifications are:
-
-    template Notification "generic-notification" {
-
-      states = [ Warning, Critical, Unknown ]
-      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
-                FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
-    }
-
-If you are familiar with Icinga 1.x `notification_options` please note that they have been split
-into type and state, and allow more fine granular filtering for example on downtimes and flapping.
-You can filter for acknowledgements and custom notifications too.
+The `disable-nrpe-checks` dependency is applied to all services
+on the `nrpe-service` host but not the `nrpe-health` service itself.
 
 
 ## <a id="downtimes"></a> Downtimes
@@ -871,100 +964,6 @@ you can define an expiration time when acknowledging the problem.
 Icinga 2 will clear the acknowledgement when expired and start to
 re-notify if the problem persists.
 
-
-## <a id="dependencies"></a> Dependencies
-
-Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects
-for determing their network reachability.
-The `parent_host_name` and `parent_service_name` attributes are mandatory for
-service dependencies, `parent_host_name` is required for host dependencies.
-
-A service can depend on a host, and vice versa. A service has an implicit
-dependency (parent) to its host. A host to host dependency acts implicit
-as host parent relation.
-When dependencies are calculated, not only the immediate parent is taken into
-account but all parents are inherited.
-
-Notifications are suppressed if a host or service becomes unreachable.
-
-A common scenario is the Icinga 2 server behind a router. Checking internet
-access by pinging the Google DNS server `google-dns` is a common method, but
-will fail in case the `dsl-router` host is down. Therefore the example below
-defines a host dependency which acts implicit as parent relation too.
-
-Furthermore the host may be reachable but ping probes are dropped by the
-router's firewall. In case the `dsl-router``ping4` service check fails, all
-further checks for the `ping4` service on host `google-dns` service should
-be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
-
-    object Host "dsl-router" {
-      address = "192.168.1.1"
-    }
-
-    object Host "google-dns" {
-      address = "8.8.8.8"
-    }
-
-    apply Service "ping4" {
-      import "generic-service"
-
-      check_command = "ping4"
-
-      assign where host.address
-    }
-
-    apply Dependency "internet" to Service {
-      parent_host_name = "dsl-router"
-      disable_checks = true
-
-      assign where host.name != "dsl-router"
-    }
-
-Another classic example are agent based checks. You would define a health check
-for the agent daemon responding to your requests, and make all other services
-querying that daemon depend on that health check.
-
-The following configuration defines two nrpe based service checks `nrpe-load`
-and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
-`nrpe-health` service.
-
-    apply Service "nrpe-health" {
-      import "generic-service"
-      check_command = "nrpe"
-      assign where match("nrpe-*", host.name)
-    }
-
-    apply Service "nrpe-load" {
-      import "generic-service"
-      check_command = "nrpe"
-      vars.nrpe_command = "check_load"
-      assign where match("nrpe-*", host.name)
-    }
-
-    apply Service "nrpe-disk" {
-      import "generic-service"
-      check_command = "nrpe"
-      vars.nrpe_command = "check_disk"
-      assign where match("nrpe-*", host.name)
-    }
-
-    object Host "nrpe-server" {
-      import "generic-host"
-      address = "192.168.1.5",
-    }
-
-    apply Dependency "disable-nrpe-checks" to Service {
-      parent_service_name = "nrpe-health"
-
-      states = [ Warning, Critical, Unknown ]
-      disable_checks = true
-      disable_notifications = true
-      assign where match("nrpe-*", host.name)
-      ignore where service.name == "nrpe-health"
-    }
-
-The `disable-nrpe-checks` dependency is applied to all services
-on the `nrpe-service` host but not the `nrpe-health` service itself.
 
 
 ## <a id="custom-attributes"></a> Custom Attributes
