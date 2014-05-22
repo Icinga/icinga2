@@ -124,10 +124,15 @@ checkconfig() {
 
         echo "Validating the configuration file:"
         if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C -u $ICINGA2_USER -g $ICINGA2_GROUP; then
-                echo "Not "$1"ing Icinga 2 due to configuration errors."
-                if [ "x$2" = "xfail" ]; then
-			exit 1
-		fi
+                if [ "x$1" = "x" ]; then
+                        echo "Icinga 2 detected configuration errors."
+                        exit 1
+                else
+                        echo "Not "$1"ing Icinga 2 due to configuration errors."
+                        if [ "x$2" = "xfail" ]; then
+                                exit 1
+                        fi
+                fi
         fi
 }
 
