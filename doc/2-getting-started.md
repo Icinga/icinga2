@@ -163,40 +163,76 @@ The `conf.d/localhost.conf` file contains our first host definition:
      * in the conf.d directory (e.g. one per host). By default all *.conf
      * files in this directory are included.
      */
+
     object Host "localhost" {
-      import "linux-server"
+      import "generic-host"
 
       address = "127.0.0.1"
       address6 = "::1"
+
+      vars.os = "Linux"
+      vars.sla = "24x7"
     }
 
 This defines the host `localhost`. The `import` keyword is used to import
 the `linux-server` template which takes care of setting up the host check
-as well as adding the host to the `linux-servers` host group.
+command.
 
 The `vars` attribute can be used to define custom attributes which are available
 for check and notification commands. Most of the templates in the Icinga
-Template Library require an `address` custom attribute.
+Template Library require an `address` attribute.
 
-    object Service "icinga" {
+The custom attribute `os` is evaluated by the `linux-servers` group in
+`groups.conf `making the host `localhost` a member.
+
+    object HostGroup "linux-servers" {
+      display_name = "Linux Servers"
+
+      assign where host.vars.os == "Linux"
+    }
+
+A host notification apply rule in `notifications.conf` checks for the custom
+attribute `sla` being set to `24x7` automatically applying a host notification.
+
+    /**
+     * The example notification apply rules.
+     *
+     * Only applied if host/service objects have
+     * the custom attribute `sla` set to `24x7`.
+     */
+
+    apply Notification "mail-icingaadmin" to Host {
+      import "mail-host-notification"
+
+      user_groups = [ "icingaadmins" ]
+
+      assign where host.vars.sla == "24x7"
+    }
+
+Now it's time to define services for the host object. Because these checks
+are only available for the `localhost` host, they are organized below
+`hosts/localhost/`.
+
+> **Tip**
+>
+> The directory tree and file organisation is just an example. You are
+> free to define your own strategy. Just keep in mind to include the
+> main directories in the [icinga2.conf](#icinga2-conf) file.
+
+    object Service "disk" {
       import "generic-service"
 
       host_name = "localhost"
-      check_command = "icinga"
+      check_command = "disk"
+      vars.sla = "24x7"
     }
 
     object Service "http" {
       import "generic-service"
 
       host_name = "localhost"
-      check_command = "http_ip"
-    }
-
-    object Service "ssh" {
-      import "generic-service"
-
-      host_name = "localhost"
-      check_command = "ssh"
+      check_command = "http"
+      vars.sla = "24x7"
     }
 
     object Service "load" {
@@ -204,20 +240,31 @@ Template Library require an `address` custom attribute.
 
       host_name = "localhost"
       check_command = "load"
+      vars.sla = "24x7"
     }
 
-    object ScheduledDowntime "backup-downtime" {
-      import "backup-downtime"
-
-      host_name = "localhost"
-      service_name = "load"
-    }
-
-    object Service "processes" {
+    object Service "procs" {
       import "generic-service"
 
       host_name = "localhost"
-      check_command = "processes"
+      check_command = "procs"
+      vars.sla = "24x7"
+    }
+
+    object Service "ssh" {
+      import "generic-service"
+
+      host_name = "localhost"
+      check_command = "ssh"
+      vars.sla = "24x7"
+    }
+
+    object Service "swap" {
+      import "generic-service"
+
+      host_name = "localhost"
+      check_command = "swap"
+      vars.sla = "24x7"
     }
 
     object Service "users" {
@@ -225,13 +272,15 @@ Template Library require an `address` custom attribute.
 
       host_name = "localhost"
       check_command = "users"
+      vars.sla = "24x7"
     }
 
-    object Service "disk" {
+    object Service "icinga" {
       import "generic-service"
 
       host_name = "localhost"
-      check_command = "disk"
+      check_command = "icinga"
+      vars.sla = "24x7"
     }
 
 The command object `icinga` for the embedded health check is provided by the
@@ -239,12 +288,57 @@ The command object `icinga` for the embedded health check is provided by the
 `users` and `disk` are all provided by the plugin check commands which we enabled
 earlier by including the `itl` and `plugins` configuration file.
 
+The Debian packages also ship an additional `apt` service check.
+
 > **Best Practice**
 >
 > Instead of defining each service object and assigning it to a host object
 > using the `host_name` attribute rather use the [apply rules](#apply)
 > simplifying your configuration.
 
+There are two generic services applied to all hosts in the host group `linux-servers`
+and `windows-servers` by default: `ping4` and `ping6`. Host objects without
+a valid `address` resp. `address6` attribute will be excluded.
+
+    apply Service "ping4" {
+      import "generic-service"
+
+      check_command = "ping4"
+      vars.sla = "24x7"
+
+      assign where "linux-server" in host.groups
+      assign where "windows-server" in host.groups
+      ignore where host.address == ""
+    }
+
+    apply Service "ping6" {
+      import "generic-service"
+
+      check_command = "ping6"
+      vars.sla = "24x7"
+
+      assign where "linux-server" in host.groups
+      assign where "windows-server" in host.groups
+      ignore where host.address6 == ""
+    }
+
+Each of these services has the custom attribute `sla` set to `24x7`. The
+notification apply rule in `notifications.conf` will automatically apply
+a service notification matchting this attribute pattern.
+
+    apply Notification "mail-icingaadmin" to Service {
+      import "mail-service-notification"
+
+      user_groups = [ "icingaadmins" ]
+
+      assign where service.vars.sla == "24x7"
+    }
+
+Don't forget to install the [check plugins](#setting-up-check-plugins) required by the services and
+their check commands.
+
+Further details on the monitoring configuration can be found in the
+[monitoring basics](#monitoring-basics) chapter.
 
 ## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
 
