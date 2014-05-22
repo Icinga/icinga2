@@ -477,8 +477,8 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 		String path = DirName(pathSpec) + "/" + wfd.cFileName;
 
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobDirectory))
-			dirs.push_back(path)
-		else if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobFile)
+			dirs.push_back(path);
+		else if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobFile))
 			files.push_back(path);
 	} while (FindNextFile(handle, &wfd));
 

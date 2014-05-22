@@ -20,6 +20,7 @@
 #ifndef CUSTOMVAROBJECT_H
 #define CUSTOMVAROBJECT_H
 
+#include "icinga/i2-icinga.h"
 #include "icinga/customvarobject.th"
 #include "base/dynamicobject.h"
 #include "remote/messageorigin.h"
@@ -53,7 +54,7 @@ enum ModifiedAttributeType
  *
  * @ingroup icinga
  */
-class I2_BASE_API CustomVarObject : public ObjectImpl<CustomVarObject>
+class I2_ICINGA_API CustomVarObject : public ObjectImpl<CustomVarObject>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CustomVarObject);
