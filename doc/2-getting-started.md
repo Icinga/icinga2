@@ -88,6 +88,12 @@ Icinga 2 supports [C/C++-style comments](#comments).
 
 The `include` directive can be used to include other files.
 
+   /**
+    * The zones.conf defines zones for a cluster setup.
+    * Not required for single instance setups.
+    */
+    include "zones.conf"
+
     /**
      * The Icinga Template Library (ITL) provides a number of useful templates
      * and command definitions.
@@ -135,6 +141,17 @@ The `constants.conf` configuration file can be used to define global constants:
 
     /* Our local zone name. */
     const ZoneName = NodeName
+
+### <a id="zones-conf"></a> zones.conf
+
+The `zones.conf` configuration file can be used to configure `Endpoint` and `Zone` objects
+required for a [distributed zone setup](#distributed-monitoring-high-availability). By default
+a local dummy zone is defined based on the `NodeName` constant defined in
+[constants.conf](#constants-conf).
+
+> **Note**
+>
+> Not required for single instance installations.
 
 
 ### <a id="localhost-conf"></a> localhost.conf
