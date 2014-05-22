@@ -84,7 +84,18 @@ String DiagnosticInformation(const T& ex, StackTrace *stack = NULL, ContextTrace
 	return result.str();
 }
 
+template<typename T>
+String ErrorInformation(const T& ex)
+{
+	std::ostringstream result;
+
+	result << ex.what();
+
+	return result.str();
+}
+
 I2_BASE_API String DiagnosticInformation(boost::exception_ptr eptr);
+I2_BASE_API String ErrorInformation(boost::exception_ptr eptr);
 
 class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception { };
 

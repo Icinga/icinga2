@@ -181,7 +181,7 @@ void ApiListener::AddConnection(const String& node, const String& service)
 		Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleClient));
 	} catch (const std::exception& ex) {
 		std::ostringstream info, debug;
-		info << "Cannot connect to host '" << node << "' on port '" << service << "'.";
+		info << "Cannot connect to host '" << node << "' on port '" << service << "'";
 		debug << info << std::endl << DiagnosticInformation(ex);
 		Log(LogCritical, "remote", info.str());
 		Log(LogDebug, "remote", debug.str());
