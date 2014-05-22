@@ -85,9 +85,11 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 		if (message->Get("method") != "log::SetLogPosition")
 			m_Seen = Utility::GetTime();
 	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Error while sending JSON-RPC message for identity '" << m_Identity << "': " << DiagnosticInformation(ex);
-		Log(LogWarning, "remote", msgbuf.str());
+		std::ostringstream info, debug;
+		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
+		debug << info << std::endl << DiagnosticInformation(ex);
+		Log(LogWarning, "remote", info.str());
+		Log(LogDebug, "remote", debug.str());
 
 		Disconnect();
 	}

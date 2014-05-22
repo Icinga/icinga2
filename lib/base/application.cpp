@@ -241,7 +241,7 @@ mainloop:
 		Utility::Sleep(2.5);
 
 		if (m_RequestReopenLogs) {
-			Log(LogInformation, "base", "Reopening log files");
+			Log(LogNotice, "base", "Reopening log files");
 			m_RequestReopenLogs = false;
 			OnReopenLogs();
 		}

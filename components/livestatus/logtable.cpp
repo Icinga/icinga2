@@ -91,7 +91,7 @@ String LogTable::GetName(void) const
 
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Log(LogInformation, "livestatus", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
+	Log(LogNotice, "livestatus", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
 
 	/* create log file index */
 	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);

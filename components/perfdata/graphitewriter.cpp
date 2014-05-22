@@ -177,7 +177,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 		msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
 		       << DiagnosticInformation(ex);
 
-		Log(LogCritical, "base", msgbuf.str());
+		Log(LogCritical, "perfdata", msgbuf.str());
 
 		m_Stream.reset();
 	}

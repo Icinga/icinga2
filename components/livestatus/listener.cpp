@@ -123,7 +123,7 @@ void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		Socket::Ptr client = server->Accept();
 
-		Log(LogInformation, "livestatus", "Client connected");
+		Log(LogNotice, "livestatus", "Client connected");
 
 		Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client));
 	}

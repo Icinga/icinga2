@@ -426,7 +426,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	m_FD = outReadPipe;
 	m_PID = pi.dwProcessId;
 
-	Log(LogInformation, "base", "Running command '" + m_Arguments +
+	Log(LogNotice, "base", "Running command '" + m_Arguments +
 		"': PID " + Convert::ToString(m_PID));
 
 #else /* _WIN32 */
@@ -531,7 +531,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	m_PID = m_Process;
 
-	Log(LogInformation, "base", "Running command '" + boost::algorithm::join(m_Arguments, " ") +
+	Log(LogNotice, "base", "Running command '" + boost::algorithm::join(m_Arguments, " ") +
 		"': PID " + Convert::ToString(m_PID));
 
 	m_Arguments.clear();

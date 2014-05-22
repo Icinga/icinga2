@@ -434,7 +434,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		if (rotate) {
 			String archiveFile = GetLogDir() + "/archives/icinga-" + Utility::FormatDateTime("%m-%d-%Y-%H", Utility::GetTime()) + ".log";
 
-			Log(LogInformation, "compat", "Rotating compat log file '" + tempFile + "' -> '" + archiveFile + "'");
+			Log(LogNotice, "compat", "Rotating compat log file '" + tempFile + "' -> '" + archiveFile + "'");
 			(void) rename(tempFile.CStr(), archiveFile.CStr());
 		}
 	}
@@ -536,7 +536,7 @@ void CompatLogger::ScheduleNextRotation(void)
 
 	time_t ts = mktime(&tmthen);
 
-	Log(LogInformation, "compat", "Rescheduling rotation timer for compat log '"
+	Log(LogNotice, "compat", "Rescheduling rotation timer for compat log '"
 	    + GetName() + "' to '" + Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", ts) + "'");
 	m_RotationTimer->Reschedule(ts);
 }

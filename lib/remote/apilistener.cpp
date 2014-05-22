@@ -133,7 +133,7 @@ void ApiListener::AddListener(const String& service)
 
 	std::ostringstream s;
 	s << "Adding new listener: port " << service;
-	Log(LogInformation, "agent", s.str());
+	Log(LogInformation, "remote", s.str());
 
 	TcpSocket::Ptr server = make_shared<TcpSocket>();
 	server->Bind(service, AF_INET6);
@@ -265,7 +265,7 @@ void ApiListener::ApiTimerHandler(void)
 
 		if (!need) {
 			String path = GetApiDir() + "log/" + Convert::ToString(ts);
-			Log(LogInformation, "remote", "Removing old log file: " + path);
+			Log(LogNotice, "remote", "Removing old log file: " + path);
 			(void)unlink(path.CStr());
 		}
 	}
@@ -325,7 +325,7 @@ void ApiListener::ApiTimerHandler(void)
 		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
 			client->SendMessage(lmessage);
 
-		Log(LogInformation, "remote", "Setting log position for identity '" + endpoint->GetName() + "': " +
+		Log(LogNotice, "remote", "Setting log position for identity '" + endpoint->GetName() + "': " +
 			Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts));
 	}
 
@@ -545,7 +545,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			if (ts < peer_ts)
 				continue;
 
-			Log(LogInformation, "cluster", "Replaying log: " + path);
+			Log(LogNotice, "remote", "Replaying log: " + path);
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
 			StdioStream::Ptr logStream = make_shared<StdioStream>(fp, true);
@@ -560,7 +560,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 					pmessage = JsonDeserialize(message);
 				} catch (const std::exception&) {
-					Log(LogWarning, "cluster", "Unexpected end-of-file for cluster log: " + path);
+					Log(LogWarning, "remote", "Unexpected end-of-file for cluster log: " + path);
 
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
@@ -578,7 +578,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			logStream->Close();
 		}
 
-		Log(LogInformation, "cluster", "Replayed " + Convert::ToString(count) + " messages.");
+		Log(LogNotice, "remote", "Replayed " + Convert::ToString(count) + " messages.");
 
 		if (last_sync) {
 			{

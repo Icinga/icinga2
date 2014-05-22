@@ -289,7 +289,7 @@ void ThreadPool::ManagerThreadProc(void)
 				if (tthreads != 0) {
 					std::ostringstream msgbuf;
 					msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
-					Log(LogDebug, "base", msgbuf.str());
+					Log(LogNotice, "base", msgbuf.str());
 				}
 
 				for (int i = 0; i < -tthreads; i++)
@@ -319,7 +319,7 @@ void ThreadPool::ManagerThreadProc(void)
 				<< (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
 				<< "; Threads: " << total_alive
 				<< "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
-			Log(LogDebug, "base", msgbuf.str());
+			Log(LogNotice, "base", msgbuf.str());
 		}
 	}
 }

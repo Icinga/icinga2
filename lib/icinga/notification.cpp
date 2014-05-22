@@ -303,7 +303,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		if (!CheckNotificationUserFilters(type, user, force))
 			continue;
 
-		Log(LogDebug, "icinga", "Sending notification for user '" + user->GetName() + "'");
+		Log(LogInformation, "icinga", "Sending notification for user '" + user->GetName() + "'");
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 
 		/* collect all notified users */
