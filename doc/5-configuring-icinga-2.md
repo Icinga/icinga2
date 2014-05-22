@@ -212,7 +212,7 @@ Constants may be used in expressions:
       check_interval = MyCheckInterval / 2.5
     }
 
-#### Function Calls
+#### <a id="function-calls"></a> Function Calls
 
 Functions can be called using the `()` operator:
 
@@ -236,7 +236,7 @@ log(value)                      | Writes a message to the log. Non-string values
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning` and `LogCritical`. Non-string values are converted to a JSON string.
 exit(integer)                   | Terminates the application.
 
-### <a id="operators"></a> Dictionary Operators
+### <a id="dictionary-operators"></a> Dictionary Operators
 
 In addition to the `=` operator shown above a number of other operators
 to manipulate dictionary elements are supported. Here's a list of all
@@ -385,6 +385,9 @@ Global constants can be set using the `const` keyword:
 
 Once defined a constant can be access from any file. Constants cannot be changed
 once they are set.
+
+There is a defined set of [global constants](#global-constants) which allow
+you to specify application settings.
 
 ### <a id="apply"></a> Apply
 

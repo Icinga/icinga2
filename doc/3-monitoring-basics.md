@@ -204,7 +204,7 @@ the user groups are associated as attributes in `Notification` objects.
       email = "ops@example.com"
     }
 
-### <a id="groups"></a> Group Membership Assign
+### <a id="group-assign"></a> Group Membership Assign
 
 If there is a certain number of hosts, services or users matching a pattern
 it's reasonable to assign the group object to these members.
