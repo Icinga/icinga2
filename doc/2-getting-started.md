@@ -91,7 +91,7 @@ The `include` directive can be used to include other files.
     /**
      * The Icinga Template Library (ITL) provides a number of useful templates
      * and command definitions.
-     * Common monitoring plugin command definitions are included seperately.
+     * Common monitoring plugin command definitions are included separately.
      */
     include <itl>
     include <plugins>

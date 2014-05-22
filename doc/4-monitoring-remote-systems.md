@@ -308,7 +308,7 @@ failure of the `icinga2a` instance, `icinga2b` will take over automatically.
       endpoints = [ "icinga2a", "icinga2b" ]
     }
 
-The `check-satellite` zone is a seperated location and only sends back their checkresults to
+The `check-satellite` zone is a separated location and only sends back their checkresults to
 the defined parent zone `config-ha-master`.
 
     object Zone "check-satellite" {

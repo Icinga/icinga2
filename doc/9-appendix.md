@@ -166,7 +166,7 @@ Example:
 
 * CSV
 
-CSV Output uses two levels of array seperators: The members array separator
+CSV Output uses two levels of array separators: The members array separator
 is a comma (1st level) while extra info and host|service relation separator
 is a pipe (2nd level).
 

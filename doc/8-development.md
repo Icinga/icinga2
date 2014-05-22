@@ -16,7 +16,7 @@ For general support questions, please refer to [https://www.icinga.org/support/]
 
 Make sure that the debug symbols are available for Icinga 2.
 The Icinga 2 packages provide a debug package which must be
-installed seperately for all involved binaries, like `icinga2-bin`
+installed separately for all involved binaries, like `icinga2-bin`
 or `icinga2-ido-mysql`.
 
     # yum install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
@@ -61,12 +61,12 @@ If Icinga 2 aborted its operation abnormally, generate a backtrace.
 
 Identifying the problem may require stepping into the backtrace analysing
 the current scope, attributes and possible unmet requirements. `p` prints
-the value of the selected variable or function call result, if applicable.
+the value of the selected variable or function call result.
 
     (gdb) up
     (gdb) down
     (gdb) p checkable
-    (gdb) p checkable-GetName()
+    (gdb) p checkable.px->m_Name
 
 
 ### <a id="development-debug-gdb-breakpoint"></a> GDB Breakpoints
