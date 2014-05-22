@@ -22,31 +22,30 @@ the `check_snmp` plugin binary, but there are plenty of [existing plugins](#inte
 for specific use cases already around, for example monitoring Cisco routers.
 
 The following example uses the [SNMP ITL](#itl-snmp) `CheckCommand` and just
-overrides the `oid` custom attribute. A service is created for all hosts which
-have the `community` custom attribute.
+overrides the `snmp_oid` custom attribute. A service is created for all hosts which
+have the `snmP-community` custom attribute.
 
     apply Service "uptime" {
       import "generic-service"
 
       check_command = "snmp"
-      vars.oid = "1.3.6.1.2.1.1.3.0"
+      vars.snmp_oid = "1.3.6.1.2.1.1.3.0"
   
-      assign where host.vars.community
+      assign where host.vars.snmp_community != ""
     }
 
 ### <a id="agent-based-checks-ssh"></a> SSH
 
 Calling a plugin using the SSH protocol to execute a plugin on the remote server fetching
-its return code and output. `check_by_ssh` is available in the [Monitoring Plugins package](#setting-up-check-plugins).
+its return code and output. The `by_ssh` command object is part of the built-in templates and
+requires the `check_by_ssh` check plugin which is available in the [Monitoring Plugins package](#setting-up-check-plugins).
 
-    object CheckCommand "check_by_ssh_swap" {
-      import "plugin-check-command"
+    object CheckCommand "by_ssh_swap" {
+      import "by_ssh"
 
-      command = [ PluginDir + "/check_by_ssh",
-                  "-l", "remoteuser",
-                  "-H", "$address$",
-                  "-C", "\"/usr/local/icinga/libexec/check_swap -w $warn$ -c $crit$\""
-                ]
+      vars.by_ssh_command = "/usr/lib/nagios/plugins/check_swap -w $by_ssh_swap_warn$ -c $by_ssh_swap_crit$"
+      vars.by_ssh_swap_warn = "50%"
+      vars.by_ssh_swap_crit = "75%"
     }
 
     object Service "swap" {
@@ -54,11 +53,9 @@ its return code and output. `check_by_ssh` is available in the [Monitoring Plugi
 
       host_name = "remote-ssh-host"
 
-      check_command = "check_by_ssh_swap"
-      vars = {
-            "warn" = "50%"
-            "crit" = "75%"
-      }
+      check_command = "by_ssh_swap"
+
+      vars.by_ssh_logname = "icinga"
     }
 
 ### <a id="agent-based-checks-nrpe"></a> NRPE

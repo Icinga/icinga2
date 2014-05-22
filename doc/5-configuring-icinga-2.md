@@ -1949,6 +1949,24 @@ nscp_warn       | **Optional.** The warning threshold.
 nscp_crit       | **Optional.** The critical threshold.
 nscp_timeout    | **Optional.** The query timeout in seconds.
 
+#### <a id="plugin-check-command-by-ssh"></a> by_ssh
+
+Check command object for the `check_by_ssh` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+by_ssh_address  | **Optional.** The host's address. Defaults to "$address$".
+by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
+by_ssh_command  | **Optional.** The command that should be executed.
+by_ssh_logname  | **Optional.** The SSH username.
+by_ssh_identity | **Optional.** The SSH identity.
+by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to false.
+by_ssh_warn     | **Optional.** The warning threshold.
+by_ssh_crit     | **Optional.** The critical threshold.
+by_ssh_timeout  | **Optional.** The timeout in seconds.
+
 #### <a id="plugin-check-command-apt"></a> apt
 
 Check command for the `check_apt` plugin.
