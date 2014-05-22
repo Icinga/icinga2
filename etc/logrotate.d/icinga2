@@ -1,7 +1,6 @@
-# ----- logrotate config -------------
-/var/log/icinga2/icinga2.log {
+/var/log/icinga2/icinga2.log /var/log/icinga2/debug.log {
        	daily
-	rotate 90
+	rotate 7
 	compress
 	delaycompress
        	missingok
@@ -15,22 +14,6 @@
        	endscript
 }
 
-/var/log/icinga2/debug.log {
-       	hourly
-	rotate 90
-	compress
-	delaycompress
-       	missingok
-       	notifempty
-       	create 644 icinga icinga
-	copytruncate
-	postrotate
-		if ! killall -q -USR1 icinga2; then
-			exit 1
-		fi
-	endscript
-}
-
 /var/log/icinga2/error.log {
 	daily
 	rotate 90
@@ -40,5 +23,6 @@
 	notifempty
 	create 644 icinga icinga
 	copytruncate
+	# TODO: figure out how to get Icinga to re-open this log file
 }
 
