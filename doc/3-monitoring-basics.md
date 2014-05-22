@@ -43,6 +43,8 @@ check command.
 The `address` custom attribute is used by check commands to determine which network
 address is associated with the host object.
 
+Details on troubleshooting check problems can be found [here](#troubleshooting).
+
 ### <a id="host-states"></a> Host States
 
 Hosts can be in any of the following states:
@@ -247,9 +249,10 @@ The user `icingaadmin` in the example below will get notified only on `WARNING` 
       email = "icinga@localhost"
     }
 
-If you don't set the `states` and `types`
-configuration attributes for the `User` object, notifications for all states and types
-will be sent.
+If you don't set the `states` and `types` configuration attributes for the `User`
+object, notifications for all states and types will be sent.
+
+Details on troubleshooting notification problems can be found [here](#troubleshooting).
 
 You should choose which information you (and your notified users) are interested in
 case of emergency, and also which information does not provide any value to you and

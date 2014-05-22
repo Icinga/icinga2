@@ -4,6 +4,8 @@ This tutorial is a step-by-step introduction to installing Icinga 2 and
 available Icinga web interfaces. It assumes that you are familiar with
 the system you're installing Icinga 2 on.
 
+Details on troubleshooting problems can be found [here](#troubleshooting).
+
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
 First of all you will have to install Icinga 2. The preferred way of doing this

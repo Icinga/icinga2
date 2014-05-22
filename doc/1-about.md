@@ -27,6 +27,19 @@ is appreciated!
 
 Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
 
+## <a id="development"></a> Icinga 2 Development
+
+You can follow Icinga 2's development closely by checking
+out these resources:
+
+* Development Bug Tracker: [https://dev.icinga.org/projects/i2?jump=issues] ([http://www.icinga.org/faq/how-to-report-a-bug/])
+* Git Repositories: [https://git.icinga.org/?p=icinga2.git;a=summary] (mirror at [https://github.com/Icinga/icinga2])
+* Git Checkins Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-checkins]
+* Development Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-devel]
+* \#icinga-devel on irc.freenode.net [http://webchat.freenode.net/?channels=icinga-devel] including a Git Commit Bot
+
+For general support questions, please refer to [https://www.icinga.org/support/].
+
 ## <a id="demo-vm"></a> Demo VM
 
 Icinga 2 is available as [Vagrant Demo VM](#vagrant).
