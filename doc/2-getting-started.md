@@ -796,6 +796,55 @@ The `icinga2-enable-feature` and `icinga2-disable-feature` commands do not
 restart Icinga 2. You will need to restart Icinga 2 using the init script
 after enabling or disabling features.
 
+### <a id="config-validation"></a> Configuration Validation
+
+Once you've edited the configuration files make sure to tell Icinga 2 to validate
+the configuration changes. Icinga 2 will log any configuration error including
+a hint on the file, the line number and the affected configuration line itself.
+
+The following example creates an apply rule without any `assign` condition.
+
+    apply Service "5872-ping4" {
+      import "test-generic-service"
+      check_command = "ping4"
+      //assign where match("5872-*", host.name)
+    }
+
+Validate the configuration with the init script option `checkconfig`
+
+    # /etc/init.d/icinga2 checkconfig
+
+or manually passing the `-C` argument:
+
+    # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -C
+
+    [2014-05-22 17:07:25 +0200] <Main Thread> critical/config: Location:
+    /etc/icinga2/conf.d/tests/5872.conf(5): }
+    /etc/icinga2/conf.d/tests/5872.conf(6):
+    /etc/icinga2/conf.d/tests/5872.conf(7): apply Service "5872-ping4" {
+                                            ^^^^^^^^^^^^^
+    /etc/icinga2/conf.d/tests/5872.conf(8):   import "test-generic-service"
+    /etc/icinga2/conf.d/tests/5872.conf(9):   check_command = "ping4"
+
+    Config error: 'apply' is missing 'assign'
+    [2014-05-22 17:07:25 +0200] <Main Thread> critical/config: 1 errors, 0 warnings.
+    Icinga 2 detected configuration errors.
+
+
+### <a id="config-change-reload"></a> Reload on Configuration Changes
+
+Everytime you have changed your configuration you should first tell  Icinga 2
+to [validate](#config-validation). If there are no validation errors you can
+safely reload the Icinga 2 daemon.
+
+    # /etc/init.d/icinga2 reload
+
+> **Note**
+>
+> The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
+> which will validate the configuration in a seperate process and not stop
+> the other events like check execution, notifications, etc.
+
 
 ## <a id="vagrant"></a> Vagrant Demo VM
 
