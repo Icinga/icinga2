@@ -34,6 +34,7 @@ namespace icinga
 enum LogSeverity
 {
 	LogDebug,
+	LogNotice,
 	LogInformation,
 	LogWarning,
 	LogCritical

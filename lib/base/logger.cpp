@@ -40,6 +40,7 @@ bool Logger::m_ConsoleLogEnabled = true;
 void Logger::StaticInitialize(void)
 {
 	ScriptVariable::Set("LogDebug", LogDebug, true, true);
+	ScriptVariable::Set("LogNotice", LogNotice, true, true);
 	ScriptVariable::Set("LogInformation", LogInformation, true, true);
 	ScriptVariable::Set("LogWarning", LogWarning, true, true);
 	ScriptVariable::Set("LogCritical", LogCritical, true, true);
@@ -142,6 +143,8 @@ String Logger::SeverityToString(LogSeverity severity)
 	switch (severity) {
 		case LogDebug:
 			return "debug";
+		case LogNotice:
+			return "notice";
 		case LogInformation:
 			return "information";
 		case LogWarning:
@@ -162,6 +165,8 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 {
 	if (severity == "debug")
 		return LogDebug;
+	else if (severity == "notice")
+		return LogNotice;
 	else if (severity == "information")
 		return LogInformation;
 	else if (severity == "warning")

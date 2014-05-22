@@ -97,6 +97,12 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 
 	if (tty) {
 		switch (entry.Severity) {
+			case LogNotice:
+				stream << "\x1b[1;34m"; // blue
+				break;
+			case LogInformation:
+				stream << "\x1b[1;32m"; // green
+				break;
 			case LogWarning:
 				stream << "\x1b[1;33m"; // yellow;
 				break;

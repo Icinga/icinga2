@@ -191,7 +191,7 @@ void ApiClient::KeepAliveTimerHandler(void)
 
 		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
 			if (client->m_Seen < timeout) {
-				Log(LogInformation, "remote", "Closing connection with inactive endpoint '" + endpoint->GetName() + "'");
+				Log(LogNotice, "remote", "Closing connection with inactive endpoint '" + endpoint->GetName() + "'");
 				client->Disconnect();
 			}
 		}
@@ -205,7 +205,7 @@ void ApiClient::KeepAliveTimerHandler(void)
 
 		BOOST_FOREACH(const ApiClient::Ptr& client, listener->GetAnonymousClients()) {
 			if (client->m_Seen < timeout) {
-				Log(LogInformation, "remote", "Closing connection with inactive anonymous endpoint '" + client->GetIdentity() + "'");
+				Log(LogNotice, "remote", "Closing connection with inactive anonymous endpoint '" + client->GetIdentity() + "'");
 				client->Disconnect();
 			}
 		}
