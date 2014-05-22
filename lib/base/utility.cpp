@@ -450,6 +450,8 @@ String Utility::NewUniqueID(void)
  */
 bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type)
 {
+	std::vector<String> files, dirs;
+
 #ifdef _WIN32
 	HANDLE handle;
 	WIN32_FIND_DATA wfd;
@@ -472,13 +474,12 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 		if (strcmp(wfd.cFileName, ".") == 0 || strcmp(wfd.cFileName, "..") == 0)
 			continue;
 
-		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobDirectory))
-			continue;
+		String path = DirName(pathSpec) + "/" + wfd.cFileName;
 
-		if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobFile))
-			continue;
-
-		callback(DirName(pathSpec) + "/" + wfd.cFileName);
+		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobDirectory))
+			dirs.push_back(path)
+		else if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobFile)
+			files.push_back(path);
 	} while (FindNextFile(handle, &wfd));
 
 	if (!FindClose(handle)) {
@@ -486,8 +487,6 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 		    << boost::errinfo_api_function("FindClose")
 		    << errinfo_win32_error(GetLastError()));
 	}
-
-	return true;
 #else /* _WIN32 */
 	glob_t gr;
 
@@ -519,19 +518,26 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
 			continue;
 
-		if (S_ISDIR(statbuf.st_mode) && !(type & GlobDirectory))
-			continue;
-
-		if (!S_ISDIR(statbuf.st_mode) && !(type & GlobFile))
-			continue;
-
-		callback(*gp);
+		if (S_ISDIR(statbuf.st_mode) && (type & GlobDirectory))
+			dirs.push_back(*gp);
+		else if (!S_ISDIR(statbuf.st_mode) && (type & GlobFile))
+			files.push_back(*gp);
 	}
 
 	globfree(&gr);
+#endif /* _WIN32 */
+
+	std::sort(files.begin(), files.end());
+	BOOST_FOREACH(const String& cpath, files) {
+		callback(cpath);
+	}
+
+	std::sort(dirs.begin(), dirs.end());
+	BOOST_FOREACH(const String& cpath, dirs) {
+		callback(cpath);
+	}
 
 	return true;
-#endif /* _WIN32 */
 }
 
 /**
@@ -546,6 +552,8 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
  */
 bool Utility::GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type)
 {
+	std::vector<String> files, dirs, alldirs;
+
 #ifdef _WIN32
 	HANDLE handle;
 	WIN32_FIND_DATA wfd;
@@ -573,18 +581,16 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 		String cpath = path + "/" + wfd.cFileName;
 
 		if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			GlobRecursive(cpath, pattern, callback, type);
-
-		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobDirectory))
-			continue;
-
-		if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(type & GlobFile))
-			continue;
+			alldirs.push_back(cpath);
 
 		if (!Utility::Match(pattern, wfd.cFileName))
 			continue;
 
-		callback(cpath);
+		if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobFile))
+			files.push_back(cpath);
+
+		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobDirectory))
+			dirs.push_back(cpath);
 	} while (FindNextFile(handle, &wfd));
 
 	if (!FindClose(handle)) {
@@ -625,44 +631,40 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 		struct stat statbuf;
 
-		if (lstat(cpath.CStr(), &statbuf) < 0) {
-			closedir(dirp);
-
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("lstat")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(cpath));
-		}
+		if (lstat(cpath.CStr(), &statbuf) < 0)
+			continue;
 
 		if (S_ISDIR(statbuf.st_mode))
-			GlobRecursive(cpath, pattern, callback, type);
-
-		if (stat(cpath.CStr(), &statbuf) < 0) {
-			closedir(dirp);
-
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("stat")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(cpath));
-		}
-
-		if (!S_ISDIR(statbuf.st_mode) && !S_ISREG(statbuf.st_mode))
-			continue;
-
-		if (S_ISDIR(statbuf.st_mode) && !(type & GlobDirectory))
-			continue;
-
-		if (!S_ISDIR(statbuf.st_mode) && !(type & GlobFile))
-			continue;
+			alldirs.push_back(cpath);
 
 		if (!Utility::Match(pattern, ent.d_name))
 			continue;
 
-		callback(cpath);
+		if (S_ISDIR(statbuf.st_mode) && (type & GlobDirectory))
+			dirs.push_back(cpath);
+
+		if (!S_ISDIR(statbuf.st_mode) && (type & GlobFile))
+			files.push_back(cpath);
 	}
 
 	closedir(dirp);
+
 #endif /* _WIN32 */
+
+	std::sort(files.begin(), files.end());
+	BOOST_FOREACH(const String& cpath, files) {
+		callback(cpath);
+	}
+
+	std::sort(dirs.begin(), dirs.end());
+	BOOST_FOREACH(const String& cpath, dirs) {
+		callback(cpath);
+	}
+
+	std::sort(alldirs.begin(), alldirs.end());
+	BOOST_FOREACH(const String& cpath, alldirs) {
+		GlobRecursive(cpath, pattern, callback, type);
+	}
 
 	return true;
 }
