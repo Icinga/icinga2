@@ -60,7 +60,7 @@ private:
 };
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
-    const MacroProcessor::ResolverList& macroResolvers,
+    const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
     const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
@@ -68,7 +68,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	Value command;
 	if (!raw_arguments || raw_command.IsObjectType<Array>())
-		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, checkable->GetLastCheckResult(), NULL, Utility::EscapeShellArg);
+		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL, Utility::EscapeShellArg);
 	else {
 		Array::Ptr arr = make_shared<Array>();
 		arr->Add(raw_command);
@@ -101,7 +101,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 				if (!set_if.IsEmpty()) {
 					String missingMacro;
 					String set_if_resolved = MacroProcessor::ResolveMacros(set_if, macroResolvers,
-						checkable->GetLastCheckResult(), &missingMacro);
+						cr, &missingMacro);
 
 					if (!missingMacro.IsEmpty() || !Convert::ToLong(set_if_resolved))
 						continue;
@@ -115,7 +115,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 			String missingMacro;
 			arg.Value = MacroProcessor::ResolveMacros(argval, macroResolvers,
-			    checkable->GetLastCheckResult(), &missingMacro);
+			    cr, &missingMacro);
 
 			if (!missingMacro.IsEmpty()) {
 				if (required) {
@@ -162,7 +162,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 
-			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, checkable->GetLastCheckResult());
+			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr);
 
 			envMacros->Set(kv.first, value);
 		}

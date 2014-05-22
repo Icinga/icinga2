@@ -40,7 +40,7 @@ class I2_ICINGA_API PluginUtility
 {
 public:
 	static void ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
-	    const MacroProcessor::ResolverList& macroResolvers,
+	    const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
 	    const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback = boost::function<void(const Value& commandLine, const ProcessResult&)>());
 
 	static ServiceState ExitStatusToState(int exitStatus);

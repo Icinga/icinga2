@@ -50,7 +50,7 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, resolvers, boost::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
+	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(), resolvers, boost::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
 }
 
 void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)

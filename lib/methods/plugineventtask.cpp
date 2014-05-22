@@ -48,5 +48,5 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, resolvers);
+	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(), resolvers);
 }
