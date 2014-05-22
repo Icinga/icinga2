@@ -182,7 +182,7 @@ void ApiListener::AddConnection(const String& node, const String& service)
 	} catch (const std::exception& ex) {
 		std::ostringstream info, debug;
 		info << "Cannot connect to host '" << node << "' on port '" << service << "'";
-		debug << info << std::endl << DiagnosticInformation(ex);
+		debug << info.str() << std::endl << DiagnosticInformation(ex);
 		Log(LogCritical, "remote", info.str());
 		Log(LogDebug, "remote", debug.str());
 	}
