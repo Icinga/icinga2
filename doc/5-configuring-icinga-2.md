@@ -1981,10 +1981,9 @@ Name            | Description
 nrpe_address    | **Optional.** The host's address. Defaults to "$address$".
 nrpe_port       | **Optional.** The NRPE port. Defaults to 5668.
 nrpe_command    | **Optional.** The command that should be executed.
-nrpe_no_ssl     | **Optional.** Whether to disable SSL or not.
-nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state.
+nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `false`.
+nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
 nrpe_timeout    | **Optional.** The timeout in seconds.
-nrpe_arguments  | **Optional.** Optional nrpe arguments (must be enabled on the NRPE client).
 
 #### <a id="plugin-check-command-apt"></a> apt
 
