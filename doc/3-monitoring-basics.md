@@ -309,9 +309,12 @@ events should be handled.
 
 Please check [Runtime Custom Attributes as Environment Variables](#runtime-custom-attribute-env-vars).
 
+
 ### <a id="check-commands"></a> Check Commands
 
 `CheckCommand` objects define the command line how a check is called.
+
+#### <a id="command-plugin-integration"></a> Integrate the Plugin with a CheckCommand Definition
 
 `CheckCommand` objects require the [ITL template](#itl-plugin-check-command)
 `plugin-check-command` to support native plugin based check methods.
@@ -328,8 +331,29 @@ all available options. Our example defines warning (`-w`) and
 critical (`-c`) thresholds for the disk usage. Without any
 partition defined (`-p`) it will check all local partitions.
 
+    icinga@icinga2 $ /usr/lib/nagios/plugins/check_disk --help
+    ...
+    This plugin checks the amount of used disk space on a mounted file system
+    and generates an alert if free space is less than one of the threshold values
+
+
+    Usage:
+     check_disk -w limit -c limit [-W limit] [-K limit] {-p path | -x device}
+    [-C] [-E] [-e] [-f] [-g group ] [-k] [-l] [-M] [-m] [-R path ] [-r path ]
+    [-t timeout] [-u unit] [-v] [-X type] [-N type]
+    ...
+
+Next step is to understand how command parameters are being passed from
+a host or service object, and add a `CheckCommand` definition based on these
+required parameters and/or default values.
+
+#### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
+
+Unline Icinga 1.x check command parameters are defined as custom attributes
+which can be accessed as runtime macros by the executed check command.
+
 Define the default check command custom attribute `disk_wfree` and `disk_cfree`
-freely definable naming schema) and their default threshold values. You can
+(freely definable naming schema) and their default threshold values. You can
 then use these custom attributes as runtime macros on the command line.
 
 The default custom attributes can be overridden by the custom attributes
