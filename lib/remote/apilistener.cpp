@@ -163,7 +163,8 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
  * @param node The remote host.
  * @param service The remote port.
  */
-void ApiListener::AddConnection(const String& node, const String& service) {
+void ApiListener::AddConnection(const String& node, const String& service)
+{
 	{
 		ObjectLock olock(this);
 
@@ -175,8 +176,16 @@ void ApiListener::AddConnection(const String& node, const String& service) {
 
 	TcpSocket::Ptr client = make_shared<TcpSocket>();
 
-	client->Connect(node, service);
-	Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleClient));
+	try {
+		client->Connect(node, service);
+		Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleClient));
+	} catch (const std::exception& ex) {
+		std::ostringstream info, debug;
+		info << "Cannot connect to host '" << node << "' on port '" << service << "'.";
+		debug << info << std::endl << DiagnosticInformation(ex);
+		Log(LogCritical, "remote", info.str());
+		Log(LogDebug, "remote", debug.str());
+	}
 }
 
 /**
