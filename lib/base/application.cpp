@@ -140,9 +140,9 @@ void Application::SetResourceLimits(void)
 	rl.rlim_max = rl.rlim_cur;
 
 	if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
-		Log(LogDebug, "base", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
+		Log(LogNotice, "base", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
 #	else /* RLIMIT_NOFILE */
-	Log(LogDebug, "base", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
+	Log(LogNotice, "base", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
 #	endif /* RLIMIT_NOFILE */
 
 #	ifdef RLIMIT_NPROC
@@ -150,9 +150,9 @@ void Application::SetResourceLimits(void)
 	rl.rlim_max = rl.rlim_cur;
 
 	if (setrlimit(RLIMIT_NPROC, &rl) < 0)
-		Log(LogDebug, "base", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
+		Log(LogNotice, "base", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
 #	else /* RLIMIT_NPROC */
-	Log(LogDebug, "base", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
+	Log(LogNotice, "base", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
 
 #	ifdef RLIMIT_STACK
@@ -172,7 +172,7 @@ void Application::SetResourceLimits(void)
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_STACK, &rl) < 0)
-			Log(LogDebug, "base", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
+			Log(LogNotice, "base", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
 		else {
 			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
 
@@ -200,7 +200,7 @@ void Application::SetResourceLimits(void)
 		}
 	}
 #	else /* RLIMIT_STACK */
-	Log(LogDebug, "base", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
+	Log(LogNotice, "base", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
 #	endif /* RLIMIT_STACK */
 #endif /* _WIN32 */
 }

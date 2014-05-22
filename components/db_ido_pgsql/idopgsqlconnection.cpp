@@ -273,7 +273,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* deactivate all deleted configuration objects */
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
 		if (dbobj->GetObject() == NULL) {
-			Log(LogDebug, "db_ido", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
+			Log(LogNotice, "db_ido", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
 			    "' name2: '" + Convert::ToString(dbobj->GetName2() + "'.")));
 			DeactivateObject(dbobj);
 		}

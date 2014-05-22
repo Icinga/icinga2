@@ -69,7 +69,7 @@ void Checkable::ExecuteEventHandler(void)
 	if (!ec)
 		return;
 
-	Log(LogDebug, "icinga", "Executing event handler for service '" + GetName() + "'");
+	Log(LogNotice, "icinga", "Executing event handler '" + ec->GetName() + "' for service '" + GetName() + "'");
 
 	ec->Execute(GetSelf());
 

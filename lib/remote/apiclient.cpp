@@ -140,7 +140,7 @@ bool ApiClient::ProcessMessage(void)
 
 	String method = message->Get("method");
 
-	Log(LogDebug, "remote", "Received '" + method + "' message from '" + m_Identity + "'");
+	Log(LogNotice, "remote", "Received '" + method + "' message from '" + m_Identity + "'");
 
 	Dictionary::Ptr resultMessage = make_shared<Dictionary>();
 

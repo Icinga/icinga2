@@ -838,5 +838,5 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    << boost::errinfo_file_name(statuspathtmp));
 	}
 
-	Log(LogInformation, "compat", "Writing status.dat file took " + Utility::FormatDuration(Utility::GetTime() - start));
+	Log(LogNotice, "compat", "Writing status.dat file took " + Utility::FormatDuration(Utility::GetTime() - start));
 }

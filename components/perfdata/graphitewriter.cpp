@@ -77,7 +77,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	try {
 		if (m_Stream) {
 			m_Stream->Write("\n", 1);
-			Log(LogDebug, "perfdata", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+			Log(LogNotice, "perfdata", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 			return;
 		}
 	} catch (const std::exception& ex) {
@@ -86,7 +86,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 
 	TcpSocket::Ptr socket = make_shared<TcpSocket>();
 
-	Log(LogDebug, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+	Log(LogNotice, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 	socket->Connect(GetHost(), GetPort());
 
 	m_Stream = make_shared<NetworkStream>(socket);

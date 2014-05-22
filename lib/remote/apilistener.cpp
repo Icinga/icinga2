@@ -374,7 +374,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
 
-	Log(LogDebug, "remote", "Relaying '" + message->Get("method") + "' message");
+	Log(LogNotice, "remote", "Relaying '" + message->Get("method") + "' message");
 
 	if (log)
 		m_LogQueue.Enqueue(boost::bind(&ApiListener::PersistMessage, this, message));
@@ -437,7 +437,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 			ObjectLock olock(endpoint);
 
 			if (!endpoint->GetSyncing()) {
-				Log(LogDebug, "remote", "Sending message to '" + endpoint->GetName() + "'");
+				Log(LogNotice, "remote", "Sending message to '" + endpoint->GetName() + "'");
 
 				BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
 					client->SendMessage(message);

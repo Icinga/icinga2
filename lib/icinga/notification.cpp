@@ -231,7 +231,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		TimePeriod::Ptr tp = GetPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': not in timeperiod");
+			Log(LogNotice, "icinga", "Not sending notifications for notification object '" + GetName() + "': not in timeperiod");
 			return;
 		}
 
@@ -240,12 +240,12 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem) {
 			if (times && times->Contains("begin") && now < checkable->GetLastHardStateChange() + times->Get("begin")) {
-				Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': before escalation range");
+				Log(LogNotice, "icinga", "Not sending notifications for notification object '" + GetName() + "': before escalation range");
 				return;
 			}
 
 			if (times && times->Contains("end") && now > checkable->GetLastHardStateChange() + times->Get("end")) {
-				Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
+				Log(LogNotice, "icinga", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
 				return;
 			}
 		}
@@ -255,7 +255,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		Log(LogDebug, "icinga", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetTypeFilter()));
 
 		if (!(ftype & GetTypeFilter())) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': type filter does not match");
+			Log(LogNotice, "icinga", "Not sending notifications for notification object '" + GetName() + "': type filter does not match");
 			return;
 		}
 
@@ -271,7 +271,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			fstate = HostStateToFilter(host->GetState());
 
 		if (!(fstate & GetStateFilter())) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
+			Log(LogNotice, "icinga", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
 			return;
 		}
 	}
@@ -322,7 +322,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		TimePeriod::Ptr tp = user->GetPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
+			Log(LogNotice, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': user not in timeperiod");
 			return false;
 		}
@@ -330,7 +330,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		unsigned long ftype = 1 << type;
 
 		if (!(ftype & user->GetTypeFilter())) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
+			Log(LogNotice, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': type filter does not match");
 			return false;
 		}
@@ -348,7 +348,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 				fstate = HostStateToFilter(host->GetState());
 
 		if (!(fstate & user->GetStateFilter())) {
-			Log(LogInformation, "icinga", "Not sending notifications for notification object '" +
+			Log(LogNotice, "icinga", "Not sending notifications for notification object '" +
 			    GetName() + " and user '" + user->GetName() + "': state filter does not match");
 			return false;
 		}

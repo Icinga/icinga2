@@ -198,7 +198,7 @@ void DbConnection::CleanUpHandler(void)
 			continue;
 
 		CleanUpExecuteQuery(tables[i].name, tables[i].time_column, now - max_age);
-		Log(LogDebug, "db_ido", "Cleanup (" + tables[i].name + "): " + Convert::ToString(max_age) +
+		Log(LogNotice, "db_ido", "Cleanup (" + tables[i].name + "): " + Convert::ToString(max_age) +
 		    " now: " + Convert::ToString(now) +
 		    " old: " + Convert::ToString(now - max_age));
 	}

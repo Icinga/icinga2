@@ -104,7 +104,7 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 		l_DowntimesCache[uid] = GetSelf();
 	}
 
-	Log(LogDebug, "icinga", "Added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) +
+	Log(LogNotice, "icinga", "Added downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) +
 	    "' between '" + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime) + "' and '" + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) + "'.");
 
 	OnDowntimeAdded(GetSelf(), downtime, origin);
@@ -145,7 +145,7 @@ void Checkable::RemoveDowntime(const String& id, bool cancelled, const MessageOr
 
 	downtime->SetWasCancelled(cancelled);
 
-	Log(LogDebug, "icinga", "Removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
+	Log(LogNotice, "icinga", "Removed downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "' from service '" + owner->GetName() + "'.");
 
 	OnDowntimeRemoved(owner, downtime, origin);
 }
@@ -187,7 +187,7 @@ void Checkable::TriggerDowntime(const String& id)
 		return;
 	}
 
-	Log(LogDebug, "icinga", "Triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
+	Log(LogNotice, "icinga", "Triggering downtime with ID '" + Convert::ToString(downtime->GetLegacyId()) + "'.");
 
 	if (downtime->GetTriggerTime() == 0)
 		downtime->SetTriggerTime(Utility::GetTime());

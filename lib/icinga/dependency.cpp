@@ -97,19 +97,19 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* ignore if it's the same checkable object */
 	if (parent == GetChild()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Parent and child " + (service ? "service" : "host") + " are identical.");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Parent and child " + (service ? "service" : "host") + " are identical.");
 		return true;
 	}
 
 	/* ignore pending  */
 	if (!parent->GetLastCheckResult()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' hasn't been checked yet.");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' hasn't been checked yet.");
 		return true;
 	}
 
 	/* ignore soft states */
 	if (parent->GetStateType() == StateTypeSoft) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' is in a soft state.");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' is in a soft state.");
 		return true;
 	}
 
@@ -122,26 +122,28 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* check state */
 	if (state & GetStateFilter()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' matches state filter.");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' matches state filter.");
 		return true;
 	}
 
 	/* ignore if not in time period */
 	TimePeriod::Ptr tp = GetPeriod();
 	if (tp && !tp->IsInside(Utility::GetTime())) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Outside time period.");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Outside time period.");
 		return true;
 	}
 
 	if (dt == DependencyCheckExecution && !GetDisableChecks()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Checks are not disabled.");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Checks are not disabled.");
 		return true;
 	} else if (dt == DependencyNotification && !GetDisableNotifications()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' passed: Notifications are not disabled");
+		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Notifications are not disabled");
 		return true;
 	}
 
-	Log(LogDebug, "icinga", "Dependency '" + GetName() + "' failed.");
+	Log(LogNotice, "icinga", "Dependency '" + GetName() + "' failed. Parent " +
+		(service ? "service" : "host") + " '" + parent->GetName() + "' is " +
+		(service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState())));
 	return false;
 }
 

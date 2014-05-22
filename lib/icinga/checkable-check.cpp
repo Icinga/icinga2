@@ -400,10 +400,13 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	/* signal status updates to for example db_ido */
 	OnStateChanged(GetSelf());
 
-	if (hardChange)
+	if (hardChange) {
 		OnStateChange(GetSelf(), cr, StateTypeHard, origin);
-	else if (stateChange)
+		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " hard state change from " + Convert::ToString(old_state) + " to " + Convert::ToString(new_state) + " detected.");
+	} else if (stateChange) {
 		OnStateChange(GetSelf(), cr, StateTypeSoft, origin);
+		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " soft state change from " + Convert::ToString(old_state) + " to " + Convert::ToString(new_state) + " detected.");
+	}
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery)
 		ExecuteEventHandler();
@@ -414,12 +417,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (!was_flapping && is_flapping) {
 		OnNotificationsRequested(GetSelf(), NotificationFlappingStart, cr, "", "");
 
-		Log(LogDebug, "icinga", "Flapping: Checkable " + GetName() + " started flapping (" + Convert::ToString(GetFlappingThreshold()) + "% < " + Convert::ToString(GetFlappingCurrent()) + "%).");
+		Log(LogNotice, "icinga", "Flapping: Checkable " + GetName() + " started flapping (" + Convert::ToString(GetFlappingThreshold()) + "% < " + Convert::ToString(GetFlappingCurrent()) + "%).");
 		OnFlappingChanged(GetSelf(), FlappingStarted);
 	} else if (was_flapping && !is_flapping) {
 		OnNotificationsRequested(GetSelf(), NotificationFlappingEnd, cr, "", "");
 
-		Log(LogDebug, "icinga", "Flapping: Checkable " + GetName() + " stopped flapping (" + Convert::ToString(GetFlappingThreshold()) + "% >= " + Convert::ToString(GetFlappingCurrent()) + "%).");
+		Log(LogNotice, "icinga", "Flapping: Checkable " + GetName() + " stopped flapping (" + Convert::ToString(GetFlappingThreshold()) + "% >= " + Convert::ToString(GetFlappingCurrent()) + "%).");
 		OnFlappingChanged(GetSelf(), FlappingStopped);
 	} else if (send_notification)
 		OnNotificationsRequested(GetSelf(), recovery ? NotificationRecovery : NotificationProblem, cr, "", "");

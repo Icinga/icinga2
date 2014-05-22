@@ -135,7 +135,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		if (!forced) {
 			if (!checkable->IsReachable(DependencyCheckExecution)) {
-				Log(LogDebug, "icinga", "Skipping check for object '" + checkable->GetName() + "': Dependency failed.");
+				Log(LogNotice, "icinga", "Skipping check for object '" + checkable->GetName() + "': Dependency failed.");
 				check = false;
 			}
 
@@ -144,18 +144,18 @@ void CheckerComponent::CheckThreadProc(void)
 			tie(host, service) = GetHostService(checkable);
 
 			if (host && !service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
-				Log(LogDebug, "checker", "Skipping check for host '" + host->GetName() + "': active host checks are disabled");
+				Log(LogNotice, "checker", "Skipping check for host '" + host->GetName() + "': active host checks are disabled");
 				check = false;
 			}
 			if (host && service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
-				Log(LogDebug, "checker", "Skipping check for service '" + service->GetName() + "': active service checks are disabled");
+				Log(LogNotice, "checker", "Skipping check for service '" + service->GetName() + "': active service checks are disabled");
 				check = false;
 			}
 
 			TimePeriod::Ptr tp = checkable->GetCheckPeriod();
 
 			if (tp && !tp->IsInside(Utility::GetTime())) {
-				Log(LogDebug, "checker", "Skipping check for object '" + checkable->GetName() + "': not in check_period");
+				Log(LogNotice, "checker", "Skipping check for object '" + checkable->GetName() + "': not in check_period");
 				check = false;
 			}
 		}
@@ -243,7 +243,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
 	}
 
-	Log(LogDebug, "checker", msgbuf.str());
+	Log(LogNotice, "checker", msgbuf.str());
 }
 
 void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
