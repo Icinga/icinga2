@@ -31,7 +31,7 @@ REGISTER_TYPE(ExternalCommandListener);
 
 REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::StatsFunc);
 
-Value ExternalCommandListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value ExternalCommandListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

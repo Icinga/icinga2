@@ -732,7 +732,7 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 	return CompatUtility::GetCheckableActiveChecksEnabled(host);
 }
 
-Value HostsTable::CheckOptionsAccessor(const Value& row)
+Value HostsTable::CheckOptionsAccessor(const Value&)
 {
 	/* TODO - forcexec, freshness, orphan, none */
 	return Empty;

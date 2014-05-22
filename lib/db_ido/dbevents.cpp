@@ -650,7 +650,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	fields1->Set("entry_time_usec", time_bag.second);
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("object_id", checkable);
-	fields1->Set("state", service ? service->GetState() : host->GetState());
+	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields1->Set("author_name", author);
 	fields1->Set("comment_data", comment);
 	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
@@ -741,7 +741,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	fields1->Set("start_time_usec", time_bag.second);
 	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("end_time_usec", time_bag.second);
-	fields1->Set("state", service ? service->GetState() : host->GetState());
+	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 
 	if (cr) {
 		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
@@ -807,7 +807,7 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	fields1->Set("state_time_usec", time_bag.second);
 	fields1->Set("object_id", checkable);
 	fields1->Set("state_change", 1); /* service */
-	fields1->Set("state", service ? service->GetState() : host->GetState());
+	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields1->Set("state_type", checkable->GetStateType());
 	fields1->Set("current_check_attempt", checkable->GetCheckAttempt());
 	fields1->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
@@ -1281,7 +1281,7 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 
 	fields1->Set("eventhandler_type", service ? 1 : 0);
 	fields1->Set("object_id", checkable);
-	fields1->Set("state", service ? service->GetState() : host->GetState());
+	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields1->Set("state_type", checkable->GetStateType());
 
 	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));

@@ -270,7 +270,7 @@ void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr StateHistTable::HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr StateHistTable::HostAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	String host_name = static_cast<Dictionary::Ptr>(row)->Get("host_name");
 
@@ -280,7 +280,7 @@ Object::Ptr StateHistTable::HostAccessor(const Value& row, const Column::ObjectA
 	return Host::GetByName(host_name);
 }
 
-Object::Ptr StateHistTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr StateHistTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	String host_name = static_cast<Dictionary::Ptr>(row)->Get("host_name");
 	String service_description = static_cast<Dictionary::Ptr>(row)->Get("service_description");

@@ -45,7 +45,7 @@ REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationM
 
 REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
 
-Value CompatLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value CompatLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

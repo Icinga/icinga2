@@ -82,7 +82,7 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 	return Checkable::GetOwnerByCommentID(comment->GetId()); // XXX: this might return a Host object

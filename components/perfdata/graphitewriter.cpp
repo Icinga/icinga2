@@ -46,7 +46,7 @@ REGISTER_TYPE(GraphiteWriter);
 
 REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
-Value GraphiteWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value GraphiteWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

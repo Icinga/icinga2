@@ -205,7 +205,7 @@ void DbConnection::CleanUpHandler(void)
 
 }
 
-void DbConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
+void DbConnection::CleanUpExecuteQuery(const String&, const String&, double)
 {
 	/* Default handler does nothing. */
 }

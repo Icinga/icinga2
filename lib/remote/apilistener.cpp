@@ -204,7 +204,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 
 	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
-	bool need_sync;
+	bool need_sync = false;
 
 	if (endpoint)
 		need_sync = !endpoint->IsConnected();

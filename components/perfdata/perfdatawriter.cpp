@@ -36,7 +36,7 @@ REGISTER_TYPE(PerfdataWriter);
 
 REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
 
-Value PerfdataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value PerfdataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

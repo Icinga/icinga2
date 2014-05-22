@@ -71,7 +71,7 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
-Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
 	return Service::GetOwnerByDowntimeID(downtime->GetId());

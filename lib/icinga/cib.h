@@ -27,16 +27,16 @@
 namespace icinga
 {
 
-typedef struct {
+struct ServiceCheckStatistics {
     double min_latency;
     double max_latency;
     double avg_latency;
     double min_execution_time;
     double max_execution_time;
     double avg_execution_time;
-} ServiceCheckStatistics;
+};
 
-typedef struct {
+struct ServiceStatistics {
     double services_ok;
     double services_warning;
     double services_critical;
@@ -46,9 +46,9 @@ typedef struct {
     double services_flapping;
     double services_in_downtime;
     double services_acknowledged;
-} ServiceStatistics;
+};
 
-typedef struct {
+struct HostStatistics {
     double hosts_up;
     double hosts_down;
     double hosts_unreachable;
@@ -56,7 +56,7 @@ typedef struct {
     double hosts_flapping;
     double hosts_in_downtime;
     double hosts_acknowledged;
-} HostStatistics;
+};
 
 /**
  * Common Information Base class. Holds some statistics (and will likely be

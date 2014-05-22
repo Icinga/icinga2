@@ -57,7 +57,7 @@ void Demo::DemoTimerHandler(void)
 	}
 }
 
-Value Demo::DemoMessageHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+Value Demo::DemoMessageHandler(const MessageOrigin& origin, const Dictionary::Ptr&)
 {
 	Log(LogInformation, "demo", "Got demo message from '" + origin.FromClient->GetEndpoint()->GetName() + "'");
 

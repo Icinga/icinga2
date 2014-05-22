@@ -33,7 +33,7 @@ REGISTER_TYPE(NotificationComponent);
 
 REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::StatsFunc);
 
-Value NotificationComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value NotificationComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

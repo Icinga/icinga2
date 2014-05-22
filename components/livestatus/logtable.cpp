@@ -109,7 +109,7 @@ void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line
 	addRowFn(log_entry_attrs);
 }
 
-Object::Ptr LogTable::HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr LogTable::HostAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	String host_name = static_cast<Dictionary::Ptr>(row)->Get("host_name");
 
@@ -119,7 +119,7 @@ Object::Ptr LogTable::HostAccessor(const Value& row, const Column::ObjectAccesso
 	return Host::GetByName(host_name);
 }
 
-Object::Ptr LogTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr LogTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	String host_name = static_cast<Dictionary::Ptr>(row)->Get("host_name");
 	String service_description = static_cast<Dictionary::Ptr>(row)->Get("service_description");
@@ -130,7 +130,7 @@ Object::Ptr LogTable::ServiceAccessor(const Value& row, const Column::ObjectAcce
 	return Service::GetByNamePair(host_name, service_description);
 }
 
-Object::Ptr LogTable::ContactAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr LogTable::ContactAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	String contact_name = static_cast<Dictionary::Ptr>(row)->Get("contact_name");
 
@@ -140,7 +140,7 @@ Object::Ptr LogTable::ContactAccessor(const Value& row, const Column::ObjectAcce
 	return User::GetByName(contact_name);
 }
 
-Object::Ptr LogTable::CommandAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor)
+Object::Ptr LogTable::CommandAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	String command_name = static_cast<Dictionary::Ptr>(row)->Get("command_name");
 

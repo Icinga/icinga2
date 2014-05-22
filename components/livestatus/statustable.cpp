@@ -213,7 +213,7 @@ Value StatusTable::LivestatusActiveConnectionsAccessor(const Value&)
 	return LivestatusListener::GetClientsConnected();
 }
 
-Value StatusTable::CustomVariableNamesAccessor(const Value& row)
+Value StatusTable::CustomVariableNamesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
@@ -231,7 +231,7 @@ Value StatusTable::CustomVariableNamesAccessor(const Value& row)
 	return cv;
 }
 
-Value StatusTable::CustomVariableValuesAccessor(const Value& row)
+Value StatusTable::CustomVariableValuesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 

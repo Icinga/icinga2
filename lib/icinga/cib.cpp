@@ -87,7 +87,7 @@ ServiceCheckStatistics CIB::CalculateServiceCheckStats(void)
 		count_execution_time++;
 	}
 
-	ServiceCheckStatistics scs = {0};
+	ServiceCheckStatistics scs;
 
 	scs.min_latency = min_latency;
 	scs.max_latency = max_latency;
