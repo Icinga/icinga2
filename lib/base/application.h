@@ -24,6 +24,7 @@
 #include "base/application.th"
 #include "base/threadpool.h"
 #include "base/utility.h"
+#include "base/logger_fwd.h"
 
 namespace icinga
 {
@@ -70,6 +71,9 @@ public:
 
 	static void SetDebugging(bool debug);
 	static bool IsDebugging(void);
+
+	static void SetDebuggingSeverity(LogSeverity severity);
+	static LogSeverity GetDebuggingSeverity(void);
 
 	void UpdatePidFile(const String& filename, pid_t pid = Utility::GetPid());
 	void ClosePidFile(bool unlink);
@@ -137,6 +141,7 @@ private:
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
 	static bool m_Debugging; /**< Whether debugging is enabled. */
+	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
 
 #ifndef _WIN32

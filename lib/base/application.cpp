@@ -51,6 +51,7 @@ bool Application::m_RequestReopenLogs = false;
 pid_t Application::m_ReloadProcess = 0;
 static bool l_Restarting = false;
 bool Application::m_Debugging = false;
+LogSeverity Application::m_DebuggingSeverity = LogDebug;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
@@ -457,6 +458,29 @@ void Application::SetDebugging(bool debug)
 bool Application::IsDebugging(void)
 {
 	return m_Debugging;
+}
+
+/**
+ * Sets debugging severity.
+ *
+ * @param severity Debug log severity.
+ */
+void Application::SetDebuggingSeverity(LogSeverity severity)
+{
+	Application::m_DebuggingSeverity = severity;
+}
+
+/**
+ * Retrieves the debugging severity of the application.
+ *
+ * @returns severity 'debug' if not set, severity value otherwise.
+ */
+LogSeverity Application::GetDebuggingSeverity(void)
+{
+	if (!Application::m_DebuggingSeverity)
+		return LogDebug;
+
+	return Application::m_DebuggingSeverity;
 }
 
 /**

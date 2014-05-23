@@ -4,12 +4,6 @@ For a more verbose output of the Icinga 2 daemon increase the
 `severity` attribute of the [logs](#logging) to `notice` or
 `debug`.
 
-Additionally you can enable the debug log using
-
-    # icinga2-enable-feature debuglog
-    # service icinga2 restart
-    # tail -f /var/log/icinga2/debug.log
-
 ## <a id="troubleshooting-information-required"></a> Which information is required
 
 * Which distribution and version
@@ -19,6 +13,20 @@ Additionally you can enable the debug log using
 * Provide complete logs targetting your problem
 * If the check command failed - what's the output of your manual plugin tests?
 * In case of [debugging](#debug) Icinga 2, the full back traces and outputs
+
+## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
+
+Run Icinga 2 in foreground with debugging enabled You can specify the debug
+log severity as additional parameter argument to `-x` (or `--debug`). Default
+is `debug`.
+
+    # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -x notice
+
+Additionally you can enable the debug log using
+
+    # icinga2-enable-feature debuglog
+    # service icinga2 restart
+    # tail -f /var/log/icinga2/debug.log
 
 ## <a id="checks-not-executed"></a> Checks are not executed
 

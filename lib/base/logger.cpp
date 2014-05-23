@@ -108,7 +108,7 @@ void icinga::Log(LogSeverity severity, const String& facility,
 	LogSeverity defaultLogLevel;
 
 	if (Application::IsDebugging())
-		defaultLogLevel = LogDebug;
+		defaultLogLevel = Application::GetDebuggingSeverity();
 	else
 		defaultLogLevel = LogInformation;
 
