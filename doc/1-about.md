@@ -52,6 +52,8 @@ Lots of things. Please read [Icinga 2 in a nutshell](#icinga2-in-a-nutshell).
 
 #### Changes
 
+* Updated sample configuration for final release.
+
 ### Archive
 
 Please check the `ChangeLog` file.
