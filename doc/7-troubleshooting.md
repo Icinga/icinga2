@@ -16,8 +16,8 @@ For a more verbose output of the Icinga 2 daemon increase the
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
-Run Icinga 2 in foreground with debugging enabled You can specify the debug
-log severity as additional parameter argument to `-x` (or `--debug`). Default
+Run Icinga 2 in foreground with debugging enabled Specify the console
+log severity as additional parameter argument to `-x`. Default
 is `debug`.
 
     # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -x notice
