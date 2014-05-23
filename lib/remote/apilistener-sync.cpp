@@ -142,7 +142,7 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 	Zone::Ptr lzone = Zone::GetLocalZone();
 
 	/* don't try to send config updates to our master */
-	if (lzone->IsChildOf(azone))
+	if (!azone->IsChildOf(lzone))
 		return;
 
 	Dictionary::Ptr configUpdate = make_shared<Dictionary>();
@@ -171,7 +171,7 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 
 Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromZone || !Zone::GetLocalZone()->IsChildOf(origin.FromZone))
+	if (!origin.FromClient->GetEndpoint() || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
 		return Empty;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
