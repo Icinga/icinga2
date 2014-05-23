@@ -22,8 +22,8 @@
 #include "base/debug.h"
 #include "base/utility.h"
 #include "base/exception.h"
-#include <iostream>
 #include <boost/bind.hpp>
+#include <iostream>
 
 using namespace icinga;
 
@@ -271,8 +271,8 @@ void ThreadPool::ManagerThreadProc(void)
 
 				int tthreads = wthreads - alive;
 
-				/* Don't ever kill the last thread. */
-				if (alive + tthreads < 1)
+				/* Make sure there is at least one thread per CPU */
+				if (alive + tthreads < std::max(boost::thread::hardware_concurrency(), 4U))
 					tthreads = 1 - alive;
 
 				/* Don't kill more than 8 threads at once. */
