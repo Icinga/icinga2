@@ -82,13 +82,13 @@ static Value ExternalCommandAPIWrapper(const String& command, const Dictionary::
 	return true;
 }
 
-static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = -1)
+static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
 	ExternalCommandInfo eci;
 	eci.Callback = callback;
 	eci.MinArgs = minArgs;
-	eci.MaxArgs = (maxArgs == -1) ? minArgs : maxArgs;
+	eci.MaxArgs = (maxArgs == UINT_MAX) ? minArgs : maxArgs;
 	GetCommands()[command] = eci;
 
 	ApiFunction::Ptr afunc = make_shared<ApiFunction>(boost::bind(&ExternalCommandAPIWrapper, command, _2));

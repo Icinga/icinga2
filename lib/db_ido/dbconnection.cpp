@@ -191,7 +191,7 @@ void DbConnection::CleanUpHandler(void)
 		{ "systemcommands", "start_time" }
 	};
 
-	for (int i = 0; i < sizeof(tables) / sizeof(tables[0]); i++) {
+	for (size_t i = 0; i < sizeof(tables) / sizeof(tables[0]); i++) {
 		double max_age = GetCleanup()->Get(tables[i].name + "_age");
 
 		if (max_age == 0)
