@@ -58,6 +58,12 @@ to `features-enabled` and that the latter is included in [icinga2.conf](#icinga2
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
 
+## <a id="configuration-ignored"></a> Configuration is ignored
+
+* Make sure that the line(s) are not [commented](#comments) (starting with `//` or `#`, or
+encapsulated by `/* ... */`.
+* Is the configuration file included in [icinga2.conf](#icinga2-conf)?
+
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
 Icinga 2 allows you to import templates using the [import](#import) keyword. If these template
