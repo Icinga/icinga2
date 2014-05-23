@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/checkable.h"
+#include "icinga/service.h"
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
@@ -402,10 +403,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (hardChange) {
 		OnStateChange(GetSelf(), cr, StateTypeHard, origin);
-		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " hard state change from " + Convert::ToString(old_state) + " to " + Convert::ToString(new_state) + " detected.");
+		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " hard state change from " + Service::StateToString(old_state) + " to " + Service::StateToString(new_state) + " detected.");
 	} else if (stateChange) {
 		OnStateChange(GetSelf(), cr, StateTypeSoft, origin);
-		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " soft state change from " + Convert::ToString(old_state) + " to " + Convert::ToString(new_state) + " detected.");
+		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " soft state change from " + Service::StateToString(old_state) + " to " + Service::StateToString(new_state) + " detected.");
 	}
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery)
