@@ -114,6 +114,15 @@ Application::~Application(void)
 
 void Application::InitializeBase(void)
 {
+#ifndef _WIN32
+	rlimit rl;
+	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0)
+		for (rlim_t i = 3; i < rl.rlim_max; i++) {
+			if (close(i) >= 0)
+				std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
+		}
+#endif /* _WIN32 */
+
 	Utility::ExecuteDeferredInitializers();
 }
 
