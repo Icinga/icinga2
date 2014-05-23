@@ -36,6 +36,7 @@ INITIALIZE_ONCE(&Logger::StaticInitialize);
 std::set<Logger::Ptr> Logger::m_Loggers;
 boost::mutex Logger::m_Mutex;
 bool Logger::m_ConsoleLogEnabled = true;
+LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 
 void Logger::StaticInitialize(void)
 {
@@ -105,14 +106,7 @@ void icinga::Log(LogSeverity severity, const String& facility,
 			logger->ProcessLogEntry(entry);
 	}
 
-	LogSeverity defaultLogLevel;
-
-	if (Application::IsDebugging())
-		defaultLogLevel = Application::GetDebuggingSeverity();
-	else
-		defaultLogLevel = LogInformation;
-
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= defaultLogLevel) {
+	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
 		static bool tty = StreamLogger::IsTty(std::cout);
 
 		StreamLogger::ProcessLogEntry(std::cout, tty, entry);
@@ -187,3 +181,12 @@ bool Logger::IsConsoleLogEnabled(void)
 	return m_ConsoleLogEnabled;
 }
 
+void Logger::SetConsoleLogSeverity(LogSeverity logSeverity)
+{
+	m_ConsoleLogSeverity = logSeverity;
+}
+
+LogSeverity Logger::GetConsoleLogSeverity(void)
+{
+	return m_ConsoleLogSeverity;
+}

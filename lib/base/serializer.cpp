@@ -37,10 +37,11 @@ String icinga::JsonSerialize(const Value& value)
 
 	char *jsonString;
 
-	if (Application::IsDebugging())
-		jsonString = cJSON_Print(json);
-	else
-		jsonString = cJSON_PrintUnformatted(json);
+#ifdef _DEBUG
+	jsonString = cJSON_Print(json);
+#else /* _DEBUG */
+	jsonString = cJSON_PrintUnformatted(json);
+#endif /* _DEBUG */
 
 	cJSON_Delete(json);
 

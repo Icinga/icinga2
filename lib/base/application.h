@@ -69,9 +69,6 @@ public:
 	static void RequestRestart(void);
 	static void RequestReopenLogs(void);
 
-	static void SetDebugging(bool debug);
-	static bool IsDebugging(void);
-
 	static void SetDebuggingSeverity(LogSeverity severity);
 	static LogSeverity GetDebuggingSeverity(void);
 

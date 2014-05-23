@@ -68,6 +68,9 @@ public:
 	static void DisableConsoleLog(void);
 	static bool IsConsoleLogEnabled(void);
 
+	static void SetConsoleLogSeverity(LogSeverity logSeverity);
+	static LogSeverity GetConsoleLogSeverity(void);
+
 	static void StaticInitialize(void);
 
 protected:
@@ -78,6 +81,7 @@ private:
 	static boost::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
+	static LogSeverity m_ConsoleLogSeverity;
 
 	friend I2_BASE_API void Log(LogSeverity severity, const String& facility,
 	    const String& message);

@@ -50,8 +50,6 @@ bool Application::m_RequestRestart = false;
 bool Application::m_RequestReopenLogs = false;
 pid_t Application::m_ReloadProcess = 0;
 static bool l_Restarting = false;
-bool Application::m_Debugging = false;
-LogSeverity Application::m_DebuggingSeverity = LogDebug;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
@@ -73,11 +71,6 @@ void Application::OnConfigLoaded(void)
 		    << boost::errinfo_api_function("WSAStartup")
 		    << errinfo_win32_error(WSAGetLastError()));
 	}
-#endif /* _WIN32 */
-
-#ifdef _WIN32
-	if (IsDebuggerPresent())
-		m_Debugging = true;
 #endif /* _WIN32 */
 
 	ASSERT(m_Instance == NULL);
@@ -438,49 +431,6 @@ String Application::GetExePath(const String& argv0)
 
 	return FullExePath;
 #endif /* _WIN32 */
-}
-
-/**
- * Sets whether debugging is enabled.
- *
- * @param debug Whether to enable debugging.
- */
-void Application::SetDebugging(bool debug)
-{
-	m_Debugging = debug;
-}
-
-/**
- * Retrieves the debugging mode of the application.
- *
- * @returns true if the application is being debugged, false otherwise
- */
-bool Application::IsDebugging(void)
-{
-	return m_Debugging;
-}
-
-/**
- * Sets debugging severity.
- *
- * @param severity Debug log severity.
- */
-void Application::SetDebuggingSeverity(LogSeverity severity)
-{
-	Application::m_DebuggingSeverity = severity;
-}
-
-/**
- * Retrieves the debugging severity of the application.
- *
- * @returns severity 'debug' if not set, severity value otherwise.
- */
-LogSeverity Application::GetDebuggingSeverity(void)
-{
-	if (!Application::m_DebuggingSeverity)
-		return LogDebug;
-
-	return Application::m_DebuggingSeverity;
 }
 
 /**
