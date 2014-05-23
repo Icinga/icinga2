@@ -830,7 +830,7 @@ for historical reasons.
       -D [ --define] args   define a constant
       -c [ --config ] arg   parse a configuration file
       -C [ --validate ]     exit after validating the configuration
-      -x [ --debug ] arg    enable debugging with optional severity level specified
+      -x [ --debug ] arg    enable debugging with severity level specified
       -d [ --daemonize ]    detach from the controlling terminal
       -e [ --errorlog ] arg log fatal errors to the specified log file (only works
                             in combination with --daemonize)

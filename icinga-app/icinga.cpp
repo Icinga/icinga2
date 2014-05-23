@@ -334,7 +334,7 @@ int Main(void)
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
-		("debug,x", po::value<std::string>(), "enable debugging with optional severity level specified")
+		("debug,x", po::value<std::string>(), "enable debugging with severity level specified")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
 		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead")
@@ -431,10 +431,15 @@ int Main(void)
 	if (g_AppParams.count("debug")) {
 		Application::SetDebugging(true);
 
-		String debug_severity = g_AppParams["debug"].as<std::string>();
+		LogSeverity debug_severity;
+		try {
+			debug_severity = Logger::StringToSeverity(g_AppParams["debug"].as<std::string>());
+		} catch (std::exception&) {
+			//not set, use default
+			debug_severity = LogDebug;
+		}
 
-		if (!debug_severity.IsEmpty())
-			Application::SetDebuggingSeverity(Logger::StringToSeverity(debug_severity));
+		Application::SetDebuggingSeverity(debug_severity);
 	}
 
 	if (g_AppParams.count("help") || g_AppParams.count("version")) {
