@@ -329,14 +329,14 @@ void ApiListener::ApiTimerHandler(void)
 			Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts));
 	}
 
-	Log(LogInformation, "remote", "Current zone master: " + GetMaster()->GetName());
+	Log(LogNotice, "remote", "Current zone master: " + GetMaster()->GetName());
 
 	std::vector<String> names;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>())
 		if (endpoint->IsConnected())
 			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
-	Log(LogInformation, "remote", "Connected endpoints: " + Utility::NaturalJoin(names));
+	Log(LogNotice, "remote", "Connected endpoints: " + Utility::NaturalJoin(names));
 }
 
 void ApiListener::RelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
