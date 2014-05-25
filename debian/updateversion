@@ -1,0 +1,14 @@
+#!/bin/bash
+###
+# Helper script to update the Debian changelog locally
+###
+
+set -e
+set -x
+
+#VERSION=$(grep -E "^Version:" icinga2.spec | cut -d" " -f2)
+VERSION=`git describe | sed 's/^v//' | grep -oP "^\d+\.\d+\.\d+"`
+DEB_VERSION_SUFFIX=$(echo "+icingasnap"`date +%Y%m%d%H%M`"."`git rev-parse --short HEAD`)
+
+# update Debian version
+dch "$@" --newversion "${VERSION}${DEB_VERSION_SUFFIX}" ""
