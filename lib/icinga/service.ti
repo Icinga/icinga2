@@ -1,7 +1,7 @@
-#include "icinga/checkable.h"
-#include "icinga/host.h"
-#include "icinga/icingaapplication.h"
-#include "icinga/customvarobject.h"
+#include "icinga/checkable.hpp"
+#include "icinga/host.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/customvarobject.hpp"
 
 namespace icinga
 {

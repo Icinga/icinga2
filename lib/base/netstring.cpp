@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/netstring.h"
-#include "base/qstring.h"
-#include "base/debug.h"
+#include "base/netstring.hpp"
+#include "base/qstring.hpp"
+#include "base/debug.hpp"
 #include <sstream>
 
 using namespace icinga;

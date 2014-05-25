@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/application.h"
-#include "base/stacktrace.h"
-#include "base/timer.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
-#include "base/debug.h"
-#include "base/type.h"
-#include "base/convert.h"
-#include "base/scriptvariable.h"
-#include "base/process.h"
+#include "base/application.hpp"
+#include "base/stacktrace.hpp"
+#include "base/timer.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "base/debug.hpp"
+#include "base/type.hpp"
+#include "base/convert.hpp"
+#include "base/scriptvariable.hpp"
+#include "base/process.hpp"
 #include "icinga-version.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>

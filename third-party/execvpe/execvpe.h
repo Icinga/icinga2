@@ -20,7 +20,7 @@
 #ifndef EXECVPE_H
 #define EXECVPE_H
 
-#include "base/visibility.h"
+#include "base/visibility.hpp"
 
 #ifdef __cplusplus
 extern "C" {

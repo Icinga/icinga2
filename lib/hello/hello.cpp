@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "hello/hello.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
+#include "hello/hello.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
 
 using namespace icinga;
 

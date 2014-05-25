@@ -17,20 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/listener.h"
-#include "config/configcompilercontext.h"
-#include "base/utility.h"
-#include "base/objectlock.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
-#include "base/tcpsocket.h"
-#include "base/unixsocket.h"
-#include "base/networkstream.h"
-#include "base/application.h"
-#include "base/scriptfunction.h"
-#include "base/statsfunction.h"
-#include "base/convert.h"
+#include "livestatus/listener.hpp"
+#include "config/configcompilercontext.hpp"
+#include "base/utility.hpp"
+#include "base/objectlock.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/unixsocket.hpp"
+#include "base/networkstream.hpp"
+#include "base/application.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/statsfunction.hpp"
+#include "base/convert.hpp"
 
 using namespace icinga;
 

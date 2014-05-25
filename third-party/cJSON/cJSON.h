@@ -23,7 +23,7 @@
 #ifndef cJSON__h
 #define cJSON__h
 
-#include "base/visibility.h"
+#include "base/visibility.hpp"
 
 #ifdef I2_CJSON_BUILD
 #	define I2_CJSON_API I2_EXPORT

@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/array.h"
-#include "base/objectlock.h"
-#include "base/serializer.h"
+#include "base/array.hpp"
+#include "base/objectlock.hpp"
+#include "base/serializer.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 

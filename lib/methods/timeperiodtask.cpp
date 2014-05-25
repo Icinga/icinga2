@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/timeperiodtask.h"
-#include "base/scriptfunction.h"
+#include "methods/timeperiodtask.hpp"
+#include "base/scriptfunction.hpp"
 
 using namespace icinga;
 

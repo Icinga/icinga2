@@ -17,20 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/servicestable.h"
-#include "livestatus/hoststable.h"
-#include "livestatus/endpointstable.h"
-#include "icinga/service.h"
-#include "icinga/checkcommand.h"
-#include "icinga/eventcommand.h"
-#include "icinga/timeperiod.h"
-#include "icinga/macroprocessor.h"
-#include "icinga/icingaapplication.h"
-#include "icinga/compatutility.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/utility.h"
+#include "livestatus/servicestable.hpp"
+#include "livestatus/hoststable.hpp"
+#include "livestatus/endpointstable.hpp"
+#include "icinga/service.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/timeperiod.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/compatutility.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>

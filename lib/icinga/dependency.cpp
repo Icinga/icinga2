@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/dependency.h"
-#include "icinga/service.h"
-#include "config/configcompilercontext.h"
-#include "base/logger_fwd.h"
-#include "base/scriptfunction.h"
+#include "icinga/dependency.hpp"
+#include "icinga/service.hpp"
+#include "config/configcompilercontext.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

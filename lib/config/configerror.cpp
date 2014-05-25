@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configerror.h"
+#include "config/configerror.hpp"
 #include <sstream>
 
 using namespace icinga;

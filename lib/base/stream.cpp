@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/stream.h"
-#include "base/qstring.h"
+#include "base/stream.hpp"
+#include "base/qstring.hpp"
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;

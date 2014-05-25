@@ -17,13 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/contactstable.h"
-#include "icinga/user.h"
-#include "icinga/timeperiod.h"
-#include "icinga/compatutility.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
+#include "livestatus/contactstable.hpp"
+#include "icinga/user.hpp"
+#include "icinga/timeperiod.hpp"
+#include "icinga/compatutility.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 

@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/applyrule.h"
-#include "base/logger_fwd.h"
+#include "config/applyrule.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 #include <set>
 

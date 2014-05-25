@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/timeperiod.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/timer.h"
-#include "base/utility.h"
+#include "icinga/timeperiod.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/value.h"
+#include "base/value.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace icinga;

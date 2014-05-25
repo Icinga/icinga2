@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/user.h"
-#include "icinga/notification.h"
-#include "icinga/usergroup.h"
-#include "config/configcompilercontext.h"
-#include "base/scriptfunction.h"
-#include "base/objectlock.h"
+#include "icinga/user.hpp"
+#include "icinga/notification.hpp"
+#include "icinga/usergroup.hpp"
+#include "config/configcompilercontext.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

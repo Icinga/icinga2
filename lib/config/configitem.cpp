@@ -17,19 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configitem.h"
-#include "config/configcompilercontext.h"
-#include "config/applyrule.h"
-#include "config/objectrule.h"
-#include "config/configtype.h"
-#include "base/application.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/logger_fwd.h"
-#include "base/debug.h"
-#include "base/workqueue.h"
-#include "base/exception.h"
+#include "config/configitem.hpp"
+#include "config/configcompilercontext.hpp"
+#include "config/applyrule.hpp"
+#include "config/objectrule.hpp"
+#include "config/configtype.hpp"
+#include "base/application.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/debug.hpp"
+#include "base/workqueue.hpp"
+#include "base/exception.hpp"
 #include <sstream>
 #include <boost/foreach.hpp>
 

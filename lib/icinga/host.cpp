@@ -17,15 +17,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/host.h"
-#include "icinga/service.h"
-#include "icinga/hostgroup.h"
-#include "icinga/pluginutility.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/utility.h"
-#include "base/debug.h"
-#include "base/serializer.h"
+#include "icinga/host.hpp"
+#include "icinga/service.hpp"
+#include "icinga/hostgroup.hpp"
+#include "icinga/pluginutility.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/utility.hpp"
+#include "base/debug.hpp"
+#include "base/serializer.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

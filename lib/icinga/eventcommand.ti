@@ -1,4 +1,4 @@
-#include "icinga/command.h"
+#include "icinga/command.hpp"
 
 namespace icinga
 {

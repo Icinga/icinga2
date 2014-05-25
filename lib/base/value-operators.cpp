@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/value.h"
-#include "base/array.h"
-#include "base/dictionary.h"
-#include "base/utility.h"
-#include "base/objectlock.h"
+#include "base/value.hpp"
+#include "base/array.hpp"
+#include "base/dictionary.hpp"
+#include "base/utility.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 

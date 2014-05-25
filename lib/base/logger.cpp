@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/application.h"
-#include "base/streamlogger.h"
-#include "base/logger.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "base/objectlock.h"
-#include "base/context.h"
-#include "base/scriptvariable.h"
+#include "base/application.hpp"
+#include "base/streamlogger.hpp"
+#include "base/logger.hpp"
+#include "base/dynamictype.hpp"
+#include "base/utility.hpp"
+#include "base/objectlock.hpp"
+#include "base/context.hpp"
+#include "base/scriptvariable.hpp"
 #include <boost/foreach.hpp>
 #include <iostream>
 

@@ -17,15 +17,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/endpointstable.h"
-#include "icinga/host.h"
-#include "icinga/service.h"
-#include "icinga/icingaapplication.h"
-#include "remote/endpoint.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/utility.h"
+#include "livestatus/endpointstable.hpp"
+#include "icinga/host.hpp"
+#include "icinga/service.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "remote/endpoint.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>

@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/timer.h"
-#include "base/debug.h"
-#include "base/utility.h"
+#include "base/timer.hpp"
+#include "base/debug.hpp"
+#include "base/utility.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>

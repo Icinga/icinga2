@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/socket.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
-#include "base/exception.h"
+#include "base/socket.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
 #include <sstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>

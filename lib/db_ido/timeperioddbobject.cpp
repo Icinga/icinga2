@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/timeperioddbobject.h"
-#include "db_ido/dbtype.h"
-#include "db_ido/dbvalue.h"
-#include "icinga/timeperiod.h"
-#include "icinga/legacytimeperiod.h"
-#include "base/utility.h"
-#include "base/exception.h"
-#include "base/objectlock.h"
+#include "db_ido/timeperioddbobject.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "icinga/timeperiod.hpp"
+#include "icinga/legacytimeperiod.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

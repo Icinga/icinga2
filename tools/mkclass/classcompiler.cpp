@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "classcompiler.h"
+#include "classcompiler.hpp"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -486,13 +486,13 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 {
 	stream->exceptions(std::istream::badbit);
 
-	std::cout << "#include \"base/object.h\"" << std::endl
-			  << "#include \"base/type.h\"" << std::endl
-			  << "#include \"base/debug.h\"" << std::endl
-			  << "#include \"base/value.h\"" << std::endl
-			  << "#include \"base/array.h\"" << std::endl
-			  << "#include \"base/dictionary.h\"" << std::endl
-			  << "#include \"base/utility.h\"" << std::endl << std::endl
+	std::cout << "#include \"base/object.hpp\"" << std::endl
+			  << "#include \"base/type.hpp\"" << std::endl
+			  << "#include \"base/debug.hpp\"" << std::endl
+			  << "#include \"base/value.hpp\"" << std::endl
+			  << "#include \"base/array.hpp\"" << std::endl
+			  << "#include \"base/dictionary.hpp\"" << std::endl
+			  << "#include \"base/utility.hpp\"" << std::endl << std::endl
 			  << "#ifdef _MSC_VER" << std::endl
 			  << "#pragma warning( push )" << std::endl
 			  << "#pragma warning( disable : 4244 )" << std::endl

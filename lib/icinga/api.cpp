@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/api.h"
-#include "remote/apifunction.h"
-#include "base/logger_fwd.h"
+#include "icinga/api.hpp"
+#include "remote/apifunction.hpp"
+#include "base/logger_fwd.hpp"
 
 using namespace icinga;
 

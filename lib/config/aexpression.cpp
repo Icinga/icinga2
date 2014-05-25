@@ -17,20 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/aexpression.h"
-#include "config/configerror.h"
-#include "config/configitem.h"
-#include "config/configitembuilder.h"
-#include "config/applyrule.h"
-#include "config/objectrule.h"
-#include "base/array.h"
-#include "base/serializer.h"
-#include "base/scriptfunction.h"
-#include "base/scriptvariable.h"
-#include "base/utility.h"
-#include "base/objectlock.h"
-#include "base/object.h"
-#include "base/logger_fwd.h"
+#include "config/aexpression.hpp"
+#include "config/configerror.hpp"
+#include "config/configitem.hpp"
+#include "config/configitembuilder.hpp"
+#include "config/applyrule.hpp"
+#include "config/objectrule.hpp"
+#include "base/array.hpp"
+#include "base/serializer.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/scriptvariable.hpp"
+#include "base/utility.hpp"
+#include "base/objectlock.hpp"
+#include "base/object.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>

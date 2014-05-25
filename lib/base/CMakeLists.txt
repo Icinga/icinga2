@@ -15,22 +15,22 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(application.ti application.th)
-mkclass_target(dynamicobject.ti dynamicobject.th)
-mkclass_target(filelogger.ti filelogger.th)
-mkclass_target(logger.ti logger.th)
-mkclass_target(streamlogger.ti streamlogger.th)
-mkclass_target(sysloglogger.ti sysloglogger.th)
+mkclass_target(application.ti application.thpp)
+mkclass_target(dynamicobject.ti dynamicobject.thpp)
+mkclass_target(filelogger.ti filelogger.thpp)
+mkclass_target(logger.ti logger.thpp)
+mkclass_target(streamlogger.ti streamlogger.thpp)
+mkclass_target(sysloglogger.ti sysloglogger.thpp)
 
 add_library(base SHARED
-  application.cpp application.th array.cpp context.cpp
-  convert.cpp dictionary.cpp dynamicobject.cpp dynamicobject.th dynamictype.cpp
-  exception.cpp fifo.cpp filelogger.cpp filelogger.th logger.cpp logger.th
+  application.cpp application.thpp array.cpp context.cpp
+  convert.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
+  exception.cpp fifo.cpp filelogger.cpp filelogger.thpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp
   qstring.cpp ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp
   scriptutils.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
-  statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.th
-  sysloglogger.cpp sysloglogger.th tcpsocket.cpp threadpool.cpp timer.cpp
+  statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp
+  sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
   value-operators.cpp workqueue.cpp
 )

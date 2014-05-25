@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/apilistener.h"
-#include "remote/apiclient.h"
-#include "remote/endpoint.h"
-#include "base/convert.h"
-#include "base/netstring.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
-#include "base/objectlock.h"
-#include "base/stdiostream.h"
-#include "base/application.h"
-#include "base/context.h"
-#include "base/statsfunction.h"
+#include "remote/apilistener.hpp"
+#include "remote/apiclient.hpp"
+#include "remote/endpoint.hpp"
+#include "base/convert.hpp"
+#include "base/netstring.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/objectlock.hpp"
+#include "base/stdiostream.hpp"
+#include "base/application.hpp"
+#include "base/context.hpp"
+#include "base/statsfunction.hpp"
 #include <fstream>
 
 using namespace icinga;

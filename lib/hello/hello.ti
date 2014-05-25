@@ -1,4 +1,4 @@
-#include "base/application.h"
+#include "base/application.hpp"
 
 namespace icinga
 {

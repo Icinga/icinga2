@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/workqueue.h"
-#include "base/utility.h"
-#include "base/logger_fwd.h"
-#include "base/convert.h"
+#include "base/workqueue.hpp"
+#include "base/utility.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/convert.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 

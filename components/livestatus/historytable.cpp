@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/historytable.h"
+#include "livestatus/historytable.hpp"
 
 using namespace icinga;
 

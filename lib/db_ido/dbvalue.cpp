@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/dbvalue.h"
+#include "db_ido/dbvalue.hpp"
 
 using namespace icinga;
 

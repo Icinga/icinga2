@@ -20,7 +20,7 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE icinga2_test
 
-#include "base/application.h"
+#include "base/application.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;

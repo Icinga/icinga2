@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/macroprocessor.h"
-#include "icinga/macroresolver.h"
-#include "icinga/customvarobject.h"
-#include "base/array.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/context.h"
-#include "base/dynamicobject.h"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/macroresolver.hpp"
+#include "icinga/customvarobject.hpp"
+#include "base/array.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/context.hpp"
+#include "base/dynamicobject.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/objectrule.h"
+#include "config/objectrule.hpp"
 #include <boost/foreach.hpp>
 #include <set>
 

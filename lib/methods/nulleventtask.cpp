@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/nulleventtask.h"
-#include "base/scriptfunction.h"
-#include "base/logger_fwd.h"
+#include "methods/nulleventtask.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/logger_fwd.hpp"
 
 using namespace icinga;
 

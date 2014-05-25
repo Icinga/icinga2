@@ -17,17 +17,17 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "checker/checkercomponent.h"
-#include "icinga/icingaapplication.h"
-#include "icinga/cib.h"
-#include "remote/apilistener.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
-#include "base/convert.h"
-#include "base/statsfunction.h"
+#include "checker/checkercomponent.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/cib.hpp"
+#include "remote/apilistener.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
+#include "base/convert.hpp"
+#include "base/statsfunction.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

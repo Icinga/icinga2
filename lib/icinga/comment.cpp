@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/comment.h"
-#include "base/utility.h"
-#include "base/dynamictype.h"
+#include "icinga/comment.hpp"
+#include "base/utility.hpp"
+#include "base/dynamictype.hpp"
 
 using namespace icinga;
 

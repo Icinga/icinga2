@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/qstring.h"
-#include "base/value.h"
+#include "base/qstring.hpp"
+#include "base/value.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <ostream>
 

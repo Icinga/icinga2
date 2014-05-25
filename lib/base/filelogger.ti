@@ -1,4 +1,4 @@
-#include "base/streamlogger.h"
+#include "base/streamlogger.hpp"
 
 namespace icinga
 {

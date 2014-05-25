@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/legacytimeperiod.h"
-#include "base/scriptfunction.h"
-#include "base/convert.h"
-#include "base/exception.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/debug.h"
-#include "base/utility.h"
+#include "icinga/legacytimeperiod.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/debug.hpp"
+#include "base/utility.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>

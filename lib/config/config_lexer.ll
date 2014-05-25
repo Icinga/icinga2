@@ -18,10 +18,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configcompiler.h"
-#include "config/typerule.h"
-#include "config/configcompilercontext.h"
-#include "config/aexpression.h"
+#include "config/configcompiler.hpp"
+#include "config/typerule.hpp"
+#include "config/configcompilercontext.hpp"
+#include "config/aexpression.hpp"
 
 using namespace icinga;
 

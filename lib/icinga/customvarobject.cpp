@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/customvarobject.h"
-#include "base/logger_fwd.h"
+#include "icinga/customvarobject.hpp"
+#include "base/logger_fwd.hpp"
 
 using namespace icinga;
 

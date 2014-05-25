@@ -17,19 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.h"
-#include "base/dynamictype.h"
-#include "base/serializer.h"
-#include "base/netstring.h"
-#include "base/stdiostream.h"
-#include "base/debug.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
-#include "base/scriptfunction.h"
-#include "base/initialize.h"
-#include "base/scriptvariable.h"
-#include "base/workqueue.h"
+#include "base/dynamicobject.hpp"
+#include "base/dynamictype.hpp"
+#include "base/serializer.hpp"
+#include "base/netstring.hpp"
+#include "base/stdiostream.hpp"
+#include "base/debug.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/initialize.hpp"
+#include "base/scriptvariable.hpp"
+#include "base/workqueue.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>

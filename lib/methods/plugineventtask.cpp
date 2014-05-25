@@ -17,16 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/plugineventtask.h"
-#include "icinga/eventcommand.h"
-#include "icinga/macroprocessor.h"
-#include "icinga/pluginutility.h"
-#include "icinga/icingaapplication.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
-#include "base/scriptfunction.h"
-#include "base/utility.h"
-#include "base/process.h"
+#include "methods/plugineventtask.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/pluginutility.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/utility.hpp"
+#include "base/process.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

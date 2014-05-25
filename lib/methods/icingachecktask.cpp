@@ -17,15 +17,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "methods/icingachecktask.h"
-#include "icinga/cib.h"
-#include "icinga/service.h"
-#include "icinga/icingaapplication.h"
-#include "base/application.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
-#include "base/scriptfunction.h"
-#include "base/dynamictype.h"
+#include "methods/icingachecktask.hpp"
+#include "icinga/cib.hpp"
+#include "icinga/service.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "base/application.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/dynamictype.hpp"
 
 using namespace icinga;
 

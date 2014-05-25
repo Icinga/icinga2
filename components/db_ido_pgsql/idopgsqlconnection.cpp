@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/logger_fwd.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/utility.h"
-#include "base/application.h"
-#include "base/dynamictype.h"
-#include "base/exception.h"
-#include "base/context.h"
-#include "base/statsfunction.h"
-#include "db_ido/dbtype.h"
-#include "db_ido/dbvalue.h"
-#include "db_ido_pgsql/idopgsqlconnection.h"
+#include "base/logger_fwd.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/utility.hpp"
+#include "base/application.hpp"
+#include "base/dynamictype.hpp"
+#include "base/exception.hpp"
+#include "base/context.hpp"
+#include "base/statsfunction.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "db_ido_pgsql/idopgsqlconnection.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 

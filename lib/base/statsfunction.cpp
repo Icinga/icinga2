@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/statsfunction.h"
-#include "base/registry.h"
-#include "base/singleton.h"
+#include "base/statsfunction.hpp"
+#include "base/registry.hpp"
+#include "base/singleton.hpp"
 
 using namespace icinga;
 

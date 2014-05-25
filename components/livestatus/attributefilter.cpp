@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/attributefilter.h"
-#include "base/convert.h"
-#include "base/array.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
+#include "livestatus/attributefilter.hpp"
+#include "base/convert.hpp"
+#include "base/array.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 

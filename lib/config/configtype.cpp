@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configtype.h"
-#include "config/configcompilercontext.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/singleton.h"
-#include "base/scriptfunction.h"
+#include "config/configtype.hpp"
+#include "config/configcompilercontext.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/singleton.hpp"
+#include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

@@ -24,7 +24,7 @@ add_flex_bison_dependency(class_lexer class_parser)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(mkclass mkclass.cpp classcompiler.cpp classcompiler.h ${FLEX_class_lexer_OUTPUTS} ${BISON_class_parser_OUTPUTS})
+add_executable(mkclass mkclass.cpp classcompiler.cpp classcompiler.hpp ${FLEX_class_lexer_OUTPUTS} ${BISON_class_parser_OUTPUTS})
 
 set_target_properties (
   mkclass PROPERTIES

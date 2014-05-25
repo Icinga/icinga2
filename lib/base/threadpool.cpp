@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/threadpool.h"
-#include "base/logger_fwd.h"
-#include "base/debug.h"
-#include "base/utility.h"
-#include "base/exception.h"
+#include "base/threadpool.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/debug.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
 #include <boost/bind.hpp>
 #include <iostream>
 

@@ -18,14 +18,14 @@
 find_package(PostgreSQL)
 
 if(PostgreSQL_FOUND)
-    mkclass_target(idopgsqlconnection.ti idopgsqlconnection.th)
+    mkclass_target(idopgsqlconnection.ti idopgsqlconnection.thpp)
 
     mkembedconfig_target(db_ido_pgsql-type.conf db_ido_pgsql-type.cpp)
 
     link_directories(${PostgreSQL_LIBRARY_DIRS})
     include_directories(${PostgreSQL_INCLUDE_DIRS})
 
-    add_library(db_ido_pgsql SHARED idopgsqlconnection.cpp idopgsqlconnection.th db_ido_pgsql-type.cpp)
+    add_library(db_ido_pgsql SHARED idopgsqlconnection.cpp idopgsqlconnection.thpp db_ido_pgsql-type.cpp)
 
     target_link_libraries(db_ido_pgsql ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} base config icinga db_ido)
 

@@ -17,13 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "compat/externalcommandlistener.h"
-#include "icinga/externalcommandprocessor.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
-#include "base/application.h"
-#include "base/statsfunction.h"
+#include "compat/externalcommandlistener.hpp"
+#include "icinga/externalcommandprocessor.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
+#include "base/application.hpp"
+#include "base/statsfunction.hpp"
 
 using namespace icinga;
 

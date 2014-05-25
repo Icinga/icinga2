@@ -1,4 +1,4 @@
-#include "icinga/customvarobject.h"
+#include "icinga/customvarobject.hpp"
 
 namespace icinga
 {

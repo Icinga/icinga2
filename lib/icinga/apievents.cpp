@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/apievents.h"
-#include "icinga/service.h"
-#include "remote/apilistener.h"
-#include "remote/endpoint.h"
-#include "remote/messageorigin.h"
-#include "remote/zone.h"
-#include "remote/apifunction.h"
-#include "base/application.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "base/exception.h"
-#include "base/initialize.h"
+#include "icinga/apievents.hpp"
+#include "icinga/service.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/endpoint.hpp"
+#include "remote/messageorigin.hpp"
+#include "remote/zone.hpp"
+#include "remote/apifunction.hpp"
+#include "base/application.hpp"
+#include "base/dynamictype.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
+#include "base/initialize.hpp"
 #include <fstream>
 
 using namespace icinga;

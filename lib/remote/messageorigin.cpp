@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/messageorigin.h"
+#include "remote/messageorigin.hpp"
 
 using namespace icinga;
 

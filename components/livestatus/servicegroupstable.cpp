@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/servicegroupstable.h"
-#include "icinga/servicegroup.h"
-#include "base/dynamictype.h"
+#include "livestatus/servicegroupstable.hpp"
+#include "icinga/servicegroup.hpp"
+#include "base/dynamictype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

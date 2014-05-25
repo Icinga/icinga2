@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/scheduleddowntime.h"
-#include "icinga/legacytimeperiod.h"
-#include "icinga/downtime.h"
-#include "icinga/service.h"
-#include "base/timer.h"
-#include "base/dynamictype.h"
-#include "base/initialize.h"
-#include "base/utility.h"
-#include "base/objectlock.h"
-#include "base/convert.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
+#include "icinga/scheduleddowntime.hpp"
+#include "icinga/legacytimeperiod.hpp"
+#include "icinga/downtime.hpp"
+#include "icinga/service.hpp"
+#include "base/timer.hpp"
+#include "base/dynamictype.hpp"
+#include "base/initialize.hpp"
+#include "base/utility.hpp"
+#include "base/objectlock.hpp"
+#include "base/convert.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

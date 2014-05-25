@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configitembuilder.h"
-#include "base/dynamictype.h"
+#include "config/configitembuilder.hpp"
+#include "base/dynamictype.hpp"
 #include <sstream>
 #include <boost/foreach.hpp>
 

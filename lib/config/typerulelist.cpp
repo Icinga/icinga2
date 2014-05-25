@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/typerulelist.h"
-#include "config/typerule.h"
+#include "config/typerulelist.hpp"
+#include "config/typerule.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

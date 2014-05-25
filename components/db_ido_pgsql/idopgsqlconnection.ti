@@ -1,4 +1,4 @@
-#include "db_ido/dbconnection.h"
+#include "db_ido/dbconnection.hpp"
 
 namespace icinga
 {

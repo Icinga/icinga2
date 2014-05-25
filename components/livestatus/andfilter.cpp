@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/andfilter.h"
+#include "livestatus/andfilter.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

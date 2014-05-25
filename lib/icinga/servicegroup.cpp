@@ -17,13 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/servicegroup.h"
-#include "config/objectrule.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/context.h"
-#include "base/workqueue.h"
+#include "icinga/servicegroup.hpp"
+#include "config/objectrule.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/context.hpp"
+#include "base/workqueue.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

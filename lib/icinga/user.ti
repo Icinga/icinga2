@@ -1,5 +1,5 @@
-#include "icinga/customvarobject.h"
-#include "base/array.h"
+#include "icinga/customvarobject.hpp"
+#include "base/array.hpp"
 
 namespace icinga
 {

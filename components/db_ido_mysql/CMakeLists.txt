@@ -18,11 +18,11 @@
 find_package(MYSQL)
 
 if(MYSQL_FOUND)
-    mkclass_target(idomysqlconnection.ti idomysqlconnection.th)
+    mkclass_target(idomysqlconnection.ti idomysqlconnection.thpp)
 
     mkembedconfig_target(db_ido_mysql-type.conf db_ido_mysql-type.cpp)
 
-    add_library(db_ido_mysql SHARED idomysqlconnection.cpp idomysqlconnection.th db_ido_mysql-type.cpp)
+    add_library(db_ido_mysql SHARED idomysqlconnection.cpp idomysqlconnection.thpp db_ido_mysql-type.cpp)
 
     include_directories(${MYSQL_INCLUDE_DIR})
     target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} ${MYSQL_LIBRARIES} base config icinga db_ido)

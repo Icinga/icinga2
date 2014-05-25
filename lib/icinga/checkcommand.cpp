@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/checkcommand.h"
-#include "base/dynamictype.h"
+#include "icinga/checkcommand.hpp"
+#include "base/dynamictype.hpp"
 
 using namespace icinga;
 

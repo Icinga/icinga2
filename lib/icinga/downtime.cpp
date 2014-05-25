@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/downtime.h"
-#include "base/utility.h"
+#include "icinga/downtime.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 

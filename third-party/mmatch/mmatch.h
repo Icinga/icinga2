@@ -1,7 +1,7 @@
 #ifndef MMATCH_H
 #define MMATCH_H
 
-#include "base/visibility.h"
+#include "base/visibility.hpp"
 
 #ifdef __cplusplus
 extern "C" {

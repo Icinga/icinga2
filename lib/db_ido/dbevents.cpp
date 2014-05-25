@@ -17,22 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/dbevents.h"
-#include "db_ido/dbtype.h"
-#include "db_ido/dbvalue.h"
-#include "base/convert.h"
-#include "base/objectlock.h"
-#include "base/initialize.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "base/logger_fwd.h"
-#include "remote/endpoint.h"
-#include "icinga/notification.h"
-#include "icinga/checkcommand.h"
-#include "icinga/eventcommand.h"
-#include "icinga/externalcommandprocessor.h"
-#include "icinga/compatutility.h"
-#include "icinga/icingaapplication.h"
+#include "db_ido/dbevents.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "base/convert.hpp"
+#include "base/objectlock.hpp"
+#include "base/initialize.hpp"
+#include "base/dynamictype.hpp"
+#include "base/utility.hpp"
+#include "base/logger_fwd.hpp"
+#include "remote/endpoint.hpp"
+#include "icinga/notification.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/externalcommandprocessor.hpp"
+#include "icinga/compatutility.hpp"
+#include "icinga/icingaapplication.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 

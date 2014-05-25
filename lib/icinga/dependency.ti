@@ -1,5 +1,5 @@
-#include "icinga/customvarobject.h"
-#include "icinga/checkable.h"
+#include "icinga/customvarobject.hpp"
+#include "icinga/checkable.hpp"
 
 namespace icinga
 {

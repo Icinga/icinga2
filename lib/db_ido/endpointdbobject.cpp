@@ -17,16 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/endpointdbobject.h"
-#include "db_ido/dbtype.h"
-#include "db_ido/dbvalue.h"
-#include "icinga/icingaapplication.h"
-#include "base/objectlock.h"
-#include "base/initialize.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/logger_fwd.h"
+#include "db_ido/endpointdbobject.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "base/objectlock.hpp"
+#include "base/initialize.hpp"
+#include "base/dynamictype.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

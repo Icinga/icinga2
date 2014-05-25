@@ -1,5 +1,5 @@
-#include "db_ido/dbquery.h"
-#include "base/dynamicobject.h"
+#include "db_ido/dbquery.hpp"
+#include "base/dynamicobject.hpp"
 
 namespace icinga
 {

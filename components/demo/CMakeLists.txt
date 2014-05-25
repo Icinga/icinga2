@@ -15,11 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(demo.ti demo.th)
+mkclass_target(demo.ti demo.thpp)
 
 mkembedconfig_target(demo-type.conf demo-type.cpp)
 
-add_library(demo SHARED demo.cpp demo.th demo-type.cpp)
+add_library(demo SHARED demo.cpp demo.thpp demo-type.cpp)
 
 target_link_libraries(demo ${Boost_LIBRARIES} base config icinga remote)
 

@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/scriptutils.h"
-#include "base/scriptfunction.h"
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/array.h"
-#include "base/dictionary.h"
-#include "base/serializer.h"
-#include "base/logger_fwd.h"
+#include "base/scriptutils.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/array.hpp"
+#include "base/dictionary.hpp"
+#include "base/serializer.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>

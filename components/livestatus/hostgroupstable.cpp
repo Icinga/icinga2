@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/hostgroupstable.h"
-#include "icinga/hostgroup.h"
-#include "icinga/host.h"
-#include "icinga/service.h"
-#include "base/dynamictype.h"
+#include "livestatus/hostgroupstable.hpp"
+#include "icinga/hostgroup.hpp"
+#include "icinga/host.hpp"
+#include "icinga/service.hpp"
+#include "base/dynamictype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

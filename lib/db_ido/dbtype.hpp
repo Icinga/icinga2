@@ -1,0 +1,128 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#ifndef DBTYPE_H
+#define DBTYPE_H
+
+#include "db_ido/i2-db_ido.hpp"
+#include "base/object.hpp"
+#include "base/registry.hpp"
+#include "base/singleton.hpp"
+#include <set>
+
+namespace icinga
+{
+
+class DbObject;
+
+/**
+ * A database object type.
+ *
+ * @ingroup ido
+ */
+class I2_DB_IDO_API DbType : public Object
+{
+public:
+	DECLARE_PTR_TYPEDEFS(DbType);
+
+	typedef boost::function<shared_ptr<DbObject> (const shared_ptr<DbType>&, const String&, const String&)> ObjectFactory;
+	typedef std::map<String, DbType::Ptr> TypeMap;
+	typedef std::map<std::pair<String, String>, shared_ptr<DbObject> > ObjectMap;
+
+	DbType(const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
+
+	std::vector<String> GetNames(void) const;
+	String GetTable(void) const;
+	long GetTypeID(void) const;
+	String GetIDColumn(void) const;
+
+	static void RegisterType(const String& name, const DbType::Ptr& type);
+
+	static DbType::Ptr GetByName(const String& name);
+	static DbType::Ptr GetByID(long tid);
+
+	shared_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
+
+	static std::set<DbType::Ptr> GetAllTypes(void);
+
+private:
+	std::vector<String> m_Names;
+	String m_Table;
+	long m_TypeID;
+	String m_IDColumn;
+	ObjectFactory m_ObjectFactory;
+
+	static boost::mutex& GetStaticMutex(void);
+	static TypeMap& GetTypes(void);
+
+	ObjectMap m_Objects;
+};
+
+/**
+ * A registry for DbType objects.
+ *
+ * @ingroup ido
+ */
+class I2_DB_IDO_API DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
+{
+public:
+	static inline DbTypeRegistry *GetInstance(void)
+	{
+		return Singleton<DbTypeRegistry>::GetInstance();
+	}
+};
+
+/**
+ * Helper class for registering DynamicObject implementation classes.
+ *
+ * @ingroup ido
+ */
+class RegisterDbTypeHelper
+{
+public:
+	RegisterDbTypeHelper(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
+	{
+		DbType::Ptr dbtype;
+
+		dbtype = DbType::GetByID(tid);
+
+		if (!dbtype)
+			dbtype = make_shared<DbType>(table, tid, idcolumn, factory);
+
+		DbType::RegisterType(name, dbtype);
+	}
+};
+
+/**
+ * Factory function for DbObject-based classes.
+ *
+ * @ingroup ido
+ */
+template<typename T>
+shared_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, const String& name2)
+{
+	return make_shared<T>(type, name1, name2);
+}
+
+#define REGISTER_DBTYPE(name, table, tid, idcolumn, type) \
+	I2_EXPORT icinga::RegisterDbTypeHelper g_RegisterDBT_ ## name(#name, table, tid, idcolumn, DbObjectFactory<type>);
+
+}
+
+#endif /* DBTYPE_H */

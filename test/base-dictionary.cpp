@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dictionary.h"
-#include "base/objectlock.h"
-#include "base/serializer.h"
+#include "base/dictionary.hpp"
+#include "base/objectlock.hpp"
+#include "base/serializer.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>

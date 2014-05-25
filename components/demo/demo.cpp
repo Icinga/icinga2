@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "demo/demo.h"
-#include "remote/apilistener.h"
-#include "remote/apifunction.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
+#include "demo/demo.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/apifunction.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
 
 using namespace icinga;
 

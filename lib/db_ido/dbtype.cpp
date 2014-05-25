@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/dbtype.h"
-#include "db_ido/dbconnection.h"
-#include "base/objectlock.h"
-#include "base/debug.h"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbconnection.hpp"
+#include "base/objectlock.hpp"
+#include "base/debug.hpp"
 #include <boost/thread/once.hpp>
 #include <boost/foreach.hpp>
 

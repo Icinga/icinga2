@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/debuginfo.h"
-#include "base/convert.h"
+#include "config/debuginfo.hpp"
+#include "base/convert.hpp"
 #include <fstream>
 
 using namespace icinga;

@@ -17,20 +17,20 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/dbobject.h"
-#include "db_ido/dbtype.h"
-#include "db_ido/dbvalue.h"
-#include "icinga/customvarobject.h"
-#include "icinga/service.h"
-#include "icinga/compatutility.h"
-#include "remote/endpoint.h"
-#include "base/dynamicobject.h"
-#include "base/dynamictype.h"
-#include "base/convert.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
-#include "base/initialize.h"
-#include "base/logger_fwd.h"
+#include "db_ido/dbobject.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "icinga/customvarobject.hpp"
+#include "icinga/service.hpp"
+#include "icinga/compatutility.hpp"
+#include "remote/endpoint.hpp"
+#include "base/dynamicobject.hpp"
+#include "base/dynamictype.hpp"
+#include "base/convert.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
+#include "base/initialize.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

@@ -17,13 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/endpoint.h"
-#include "remote/apilistener.h"
-#include "remote/apiclient.h"
-#include "remote/zone.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "base/exception.h"
+#include "remote/endpoint.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/apiclient.hpp"
+#include "remote/zone.hpp"
+#include "base/dynamictype.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

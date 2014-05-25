@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "perfdata/perfdatawriter.h"
-#include "icinga/service.h"
-#include "icinga/macroprocessor.h"
-#include "icinga/icingaapplication.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/convert.h"
-#include "base/utility.h"
-#include "base/context.h"
-#include "base/application.h"
-#include "base/statsfunction.h"
+#include "perfdata/perfdatawriter.hpp"
+#include "icinga/service.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/convert.hpp"
+#include "base/utility.hpp"
+#include "base/context.hpp"
+#include "base/application.hpp"
+#include "base/statsfunction.hpp"
 
 using namespace icinga;
 

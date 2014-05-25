@@ -20,11 +20,11 @@
 #ifndef _WIN32
 #	include <stdlib.h>
 #endif /* _WIN32 */
-#include "methods/nullchecktask.h"
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/scriptfunction.h"
-#include "base/logger_fwd.h"
+#include "methods/nullchecktask.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/logger_fwd.hpp"
 
 using namespace icinga;
 

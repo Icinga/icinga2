@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/apilistener.h"
-#include "remote/apifunction.h"
-#include "base/dynamictype.h"
-#include "base/logger_fwd.h"
-#include "base/convert.h"
+#include "remote/apilistener.hpp"
+#include "remote/apifunction.hpp"
+#include "base/dynamictype.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/convert.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
 

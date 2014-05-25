@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/checkable.h"
-#include "base/objectlock.h"
-#include "base/utility.h"
+#include "icinga/checkable.hpp"
+#include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
 

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/exception.h"
+#include "base/exception.hpp"
 #include <boost/thread/tss.hpp>
 
 #ifndef _MSC_VER

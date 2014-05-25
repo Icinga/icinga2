@@ -17,18 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/notification.h"
-#include "icinga/notificationcommand.h"
-#include "icinga/service.h"
-#include "config/configcompilercontext.h"
-#include "base/objectlock.h"
-#include "base/logger_fwd.h"
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/exception.h"
-#include "base/initialize.h"
-#include "base/scriptvariable.h"
-#include "base/scriptfunction.h"
+#include "icinga/notification.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/service.hpp"
+#include "config/configcompilercontext.hpp"
+#include "base/objectlock.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
+#include "base/initialize.hpp"
+#include "base/scriptvariable.hpp"
+#include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

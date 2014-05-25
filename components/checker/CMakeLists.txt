@@ -15,11 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(checkercomponent.ti checkercomponent.th)
+mkclass_target(checkercomponent.ti checkercomponent.thpp)
 
 mkembedconfig_target(checker-type.conf checker-type.cpp)
 
-add_library(checker SHARED checkercomponent.cpp checkercomponent.th checker-type.cpp)
+add_library(checker SHARED checkercomponent.cpp checkercomponent.thpp checker-type.cpp)
 
 target_link_libraries(checker ${Boost_LIBRARIES} base config icinga remote)
 

@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/pluginutility.h"
-#include "icinga/macroprocessor.h"
-#include "icinga/perfdatavalue.h"
-#include "base/logger_fwd.h"
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/process.h"
-#include "base/objectlock.h"
+#include "icinga/pluginutility.hpp"
+#include "icinga/macroprocessor.hpp"
+#include "icinga/perfdatavalue.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/process.hpp"
+#include "base/objectlock.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>

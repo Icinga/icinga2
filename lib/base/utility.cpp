@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/application.h"
-#include "base/logger_fwd.h"
-#include "base/exception.h"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/application.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/exception.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>

@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/scriptfunction.h"
-#include "base/scriptvariable.h"
+#include "base/scriptfunction.hpp"
+#include "base/scriptvariable.hpp"
 
 using namespace icinga;
 

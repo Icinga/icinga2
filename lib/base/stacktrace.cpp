@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/stacktrace.h"
-#include "base/qstring.h"
-#include "base/utility.h"
-#include "base/initialize.h"
+#include "base/stacktrace.hpp"
+#include "base/qstring.hpp"
+#include "base/utility.hpp"
+#include "base/initialize.hpp"
 
 #ifdef HAVE_BACKTRACE_SYMBOLS
 #	include <execinfo.h>

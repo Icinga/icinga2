@@ -17,15 +17,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/statustable.h"
-#include "livestatus/listener.h"
-#include "icinga/icingaapplication.h"
-#include "icinga/cib.h"
-#include "icinga/host.h"
-#include "icinga/service.h"
-#include "base/dynamictype.h"
-#include "base/utility.h"
-#include "base/application.h"
+#include "livestatus/statustable.hpp"
+#include "livestatus/listener.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/cib.hpp"
+#include "icinga/host.hpp"
+#include "icinga/service.hpp"
+#include "base/dynamictype.hpp"
+#include "base/utility.hpp"
+#include "base/application.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

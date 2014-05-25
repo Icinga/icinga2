@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/objectlock.h"
-#include "base/debug.h"
+#include "base/objectlock.hpp"
+#include "base/debug.hpp"
 
 using namespace icinga;
 

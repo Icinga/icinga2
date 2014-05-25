@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/serializer.h"
-#include "base/type.h"
-#include "base/application.h"
-#include "base/objectlock.h"
+#include "base/serializer.hpp"
+#include "base/type.hpp"
+#include "base/application.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 #include <cJSON.h>
 

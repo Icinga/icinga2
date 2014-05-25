@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/perfdatavalue.h"
-#include "base/dictionary.h"
-#include "base/objectlock.h"
-#include "base/application.h"
-#include "base/type.h"
+#include "icinga/perfdatavalue.hpp"
+#include "base/dictionary.hpp"
+#include "base/objectlock.hpp"
+#include "base/application.hpp"
+#include "base/type.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>

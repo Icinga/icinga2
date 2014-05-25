@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamictype.h"
-#include "base/serializer.h"
-#include "base/debug.h"
-#include "base/objectlock.h"
+#include "base/dynamictype.hpp"
+#include "base/serializer.hpp"
+#include "base/debug.hpp"
+#include "base/objectlock.hpp"
 
 using namespace icinga;
 

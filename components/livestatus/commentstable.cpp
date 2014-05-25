@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/commentstable.h"
-#include "livestatus/servicestable.h"
-#include "icinga/service.h"
-#include "base/dynamictype.h"
-#include "base/objectlock.h"
+#include "livestatus/commentstable.hpp"
+#include "livestatus/servicestable.hpp"
+#include "icinga/service.hpp"
+#include "base/dynamictype.hpp"
+#include "base/objectlock.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 

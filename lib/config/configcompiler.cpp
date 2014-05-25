@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configcompiler.h"
-#include "config/configitem.h"
-#include "base/logger_fwd.h"
-#include "base/utility.h"
-#include "base/context.h"
-#include "base/exception.h"
+#include "config/configcompiler.hpp"
+#include "config/configitem.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/utility.hpp"
+#include "base/context.hpp"
+#include "base/exception.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
 

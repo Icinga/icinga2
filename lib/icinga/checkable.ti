@@ -1,6 +1,6 @@
-#include "icinga/icingaapplication.h"
-#include "icinga/customvarobject.h"
-#include "base/array.h"
+#include "icinga/icingaapplication.hpp"
+#include "icinga/customvarobject.hpp"
+#include "base/array.hpp"
 
 namespace icinga
 {

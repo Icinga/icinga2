@@ -15,16 +15,16 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(apilistener.ti apilistener.th)
-mkclass_target(endpoint.ti endpoint.th)
-mkclass_target(zone.ti zone.th)
+mkclass_target(apilistener.ti apilistener.thpp)
+mkclass_target(endpoint.ti endpoint.thpp)
+mkclass_target(zone.ti zone.thpp)
 
 mkembedconfig_target(remote-type.conf remote-type.cpp)
 
 add_library(remote SHARED
   apiclient.cpp apifunction.cpp apilistener.cpp apilistener-sync.cpp
-  apilistener.th authority.cpp endpoint.cpp endpoint.th jsonrpc.cpp
-  messageorigin.cpp remote-type.cpp zone.cpp zone.th
+  apilistener.thpp authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
+  messageorigin.cpp remote-type.cpp zone.cpp zone.thpp
 )
 
 include_directories(${Boost_INCLUDE_DIRS})

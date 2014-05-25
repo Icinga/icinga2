@@ -17,17 +17,17 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configcompilercontext.h"
-#include "config/configcompiler.h"
-#include "config/configitembuilder.h"
-#include "base/application.h"
-#include "base/logger.h"
-#include "base/timer.h"
-#include "base/utility.h"
-#include "base/exception.h"
-#include "base/convert.h"
-#include "base/scriptvariable.h"
-#include "base/context.h"
+#include "config/configcompilercontext.hpp"
+#include "config/configcompiler.hpp"
+#include "config/configitembuilder.hpp"
+#include "base/application.hpp"
+#include "base/logger.hpp"
+#include "base/timer.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
+#include "base/convert.hpp"
+#include "base/scriptvariable.hpp"
+#include "base/context.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>

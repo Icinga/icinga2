@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/streamlogger.h"
-#include "base/utility.h"
-#include "base/objectlock.h"
+#include "base/streamlogger.hpp"
+#include "base/utility.hpp"
+#include "base/objectlock.hpp"
 #include <iostream>
 
 using namespace icinga;

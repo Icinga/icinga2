@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/hostgroupdbobject.h"
-#include "db_ido/dbtype.h"
-#include "db_ido/dbvalue.h"
-#include "base/objectlock.h"
-#include "base/initialize.h"
-#include "base/dynamictype.h"
+#include "db_ido/hostgroupdbobject.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "base/objectlock.hpp"
+#include "base/initialize.hpp"
+#include "base/dynamictype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

@@ -1,4 +1,4 @@
-#include "base/logger.h"
+#include "base/logger.hpp"
 
 namespace icinga
 {

@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/checkable.h"
-#include "icinga/icingaapplication.h"
-#include "base/utility.h"
+#include "icinga/checkable.hpp"
+#include "icinga/icingaapplication.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

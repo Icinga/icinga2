@@ -15,11 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(notificationcomponent.ti notificationcomponent.th)
+mkclass_target(notificationcomponent.ti notificationcomponent.thpp)
 
 mkembedconfig_target(notification-type.conf notification-type.cpp)
 
-add_library(notification SHARED notificationcomponent.cpp notificationcomponent.th notification-type.cpp)
+add_library(notification SHARED notificationcomponent.cpp notificationcomponent.thpp notification-type.cpp)
 
 target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
 

@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/jsonrpc.h"
-#include "base/netstring.h"
-#include "base/serializer.h"
+#include "remote/jsonrpc.hpp"
+#include "base/netstring.hpp"
+#include "base/serializer.hpp"
 //#include <iostream>
 
 using namespace icinga;

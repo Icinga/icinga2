@@ -17,16 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/logutility.h"
-#include "icinga/service.h"
-#include "icinga/host.h"
-#include "icinga/user.h"
-#include "icinga/checkcommand.h"
-#include "icinga/eventcommand.h"
-#include "icinga/notificationcommand.h"
-#include "base/utility.h"
-#include "base/convert.h"
-#include "base/logger_fwd.h"
+#include "livestatus/logutility.hpp"
+#include "icinga/service.hpp"
+#include "icinga/host.hpp"
+#include "icinga/user.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>

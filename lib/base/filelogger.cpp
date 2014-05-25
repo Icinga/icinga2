@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/filelogger.h"
-#include "base/dynamictype.h"
-#include "base/statsfunction.h"
-#include "base/application.h"
+#include "base/filelogger.hpp"
+#include "base/dynamictype.hpp"
+#include "base/statsfunction.hpp"
+#include "base/application.hpp"
 #include <fstream>
 
 using namespace icinga;

@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/stdaggregator.h"
+#include "livestatus/stdaggregator.hpp"
 #include <math.h>
 
 using namespace icinga;
