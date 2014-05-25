@@ -92,6 +92,7 @@ void yyerror(YYLTYPE *locp, ClassCompiler *, const char *err)
 	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-" << locp->last_line << ":" << locp->last_column << ": "
 			  << err
 			  << std::endl;
+	exit(1);
 }
 
 int yyparse(ClassCompiler *context);
