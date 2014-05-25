@@ -19,6 +19,7 @@
 
 #include "icinga/checkable.h"
 #include "icinga/service.h"
+#include "icinga/host.h"
 #include "icinga/checkcommand.h"
 #include "icinga/icingaapplication.h"
 #include "icinga/cib.h"
@@ -401,12 +402,18 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	/* signal status updates to for example db_ido */
 	OnStateChanged(GetSelf());
 
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(GetSelf());
+	String old_state_str = (service ? Service::StateToString(old_state) : Host::StateToString(Host::CalculateState(old_state)));
+	String new_state_str = (service ? Service::StateToString(new_state) : Host::StateToString(Host::CalculateState(new_state)));
+
 	if (hardChange) {
 		OnStateChange(GetSelf(), cr, StateTypeHard, origin);
-		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " hard state change from " + Service::StateToString(old_state) + " to " + Service::StateToString(new_state) + " detected.");
+		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " hard state change from " + old_state_str + " to " + new_state_str + " detected.");
 	} else if (stateChange) {
 		OnStateChange(GetSelf(), cr, StateTypeSoft, origin);
-		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " soft state change from " + Service::StateToString(old_state) + " to " + Service::StateToString(new_state) + " detected.");
+		Log(LogNotice, "icinga", "State Change: Checkable " + GetName() + " soft state change from " + old_state_str + " to " + new_state_str + " detected.");
 	}
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery)
