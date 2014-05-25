@@ -17,17 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-object CheckCommand "icinga" {
-	import "icinga-check-command"
+#ifndef CLUSTERZONECHECKTASK_H
+#define CLUSTERZONECHECKTASK_H
+
+#include "icinga/service.hpp"
+
+namespace icinga
+{
+
+/**
+ * Cluster zone check type.
+ *
+ * @ingroup methods
+ */
+class ClusterZoneCheckTask
+{
+public:
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
+
+private:
+	ClusterZoneCheckTask(void);
+};
+
 }
 
-object CheckCommand "cluster" {
-	import "cluster-check-command"
-}
-
-object CheckCommand "cluster-zone" {
-	import "cluster-zone-check-command"
-
-	vars.cluster_zone = "$host.name$"
-}
-
+#endif /* CLUSTERZONECHECKTASK_H */

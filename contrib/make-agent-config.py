@@ -32,13 +32,32 @@ for agent, agent_info in inventory.items():
     print "  endpoints = [ \"%s\" ]" % (agent)
     print "}"
     print ""
+
+    print "object Host \"%s\" {" % (agent_info["zone"])
+    print "  check_command = \"cluster-zone\""
+    print "}"
+    print ""
+
+    print "apply Dependency \"host-zone-%s\" to Host {" % (agent_info["zone"])
+    print "  parent_host_name = \"%s\"" % (agent_info["zone"])
+    print "  assign where host.@zone == \"%s\"" % (agent_info["zone"])
+    print "}"
+    print ""
+
+    print "apply Dependency \"service-zone-%s\" to Service {" % (agent_info["zone"])
+    print "  parent_host_name = \"%s\"" % (agent_info["zone"])
+    print "  assign where service.@zone == \"%s\"" % (agent_info["zone"])
+    print "}"
+    print ""
+
     print "zone \"%s\" {" % (agent_info["zone"])
 
     for host, services in agent_info["repository"].items():
-        print "object Host \"%s\" {" % (host)
-        print "  check_command = \"dummy\""
-        print "}"
-        print ""
+        if host != agent_info["zone"]:
+            print "object Host \"%s\" {" % (host)
+            print "  check_command = \"dummy\""
+            print "}"
+            print ""
 
         for service in services:
             print "object Service \"%s\" {" % (service)

@@ -1678,14 +1678,22 @@ data for the current Icinga instance.
 
 The `icinga` check command does not support any vars.
 
-#### <a id="itl-icinga"></a> cluster
+#### <a id="itl-icinga-cluster"></a> cluster
 
 Check command for the built-in `cluster` check. This check returns performance
 data for the current Icinga instance and connected endpoints.
 
 The `cluster` check command does not support any vars.
 
+#### <a id="itl-icinga-cluster-zone"></a> cluster-zone
 
+Check command for the built-in `cluster-zone` check.
+
+Cluster Attributes:
+
+Name         | Description
+-------------|---------------
+cluster_zone | **Optional.** The zone name. Defaults to "$host.name$".
 
 ## <a id="plugin-check-commands"></a> Plugin Check Commands
 
