@@ -110,11 +110,17 @@ void Application::InitializeBase(void)
 {
 #ifndef _WIN32
 	rlimit rl;
-	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0)
-		for (rlim_t i = 3; i < rl.rlim_max; i++) {
+	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
+		rlim_t maxfds = rl.rlim_max;
+
+		if (maxfds == RLIM_INFINITY)
+			maxfds = 65536;
+
+		for (rlim_t i = 3; i < maxfds; i++) {
 			if (close(i) >= 0)
 				std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
 		}
+	}
 #endif /* _WIN32 */
 
 	Utility::ExecuteDeferredInitializers();
