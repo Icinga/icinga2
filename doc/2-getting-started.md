@@ -90,11 +90,11 @@ Icinga 2 supports [C/C++-style comments](#comments).
 
 The `include` directive can be used to include other files.
 
-   /**
-    * The zones.conf defines zones for a cluster setup.
-    * Not required for single instance setups.
-    */
-    include "zones.conf"
+    /**
+     * The zones.conf defines zones for a cluster setup.
+     * Not required for single instance setups.
+     */
+     include "zones.conf"
 
     /**
      * The Icinga Template Library (ITL) provides a number of useful templates
