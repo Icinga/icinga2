@@ -9,9 +9,6 @@ class Endpoint : DynamicObject
 	[config] String port {
 		default {{{ return "5665"; }}}
 	};
-	[config] double keep_alive {
-		default {{{ return 300; }}}
-	};
 	[config] double log_duration {
 		default {{{ return 86400; }}}
 	};

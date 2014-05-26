@@ -26,13 +26,8 @@
 #include "base/utility.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/exception.hpp"
-#include "base/initialize.hpp"
 
 using namespace icinga;
-
-Timer::Ptr ApiClient::m_KeepAliveTimer;
-
-INITIALIZE_ONCE(&ApiClient::StaticInitialize);
 
 static Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
@@ -41,14 +36,6 @@ ApiClient::ApiClient(const String& identity, const Stream::Ptr& stream, Connecti
 	: m_Identity(identity), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
 {
 	m_Endpoint = Endpoint::GetByName(identity);
-}
-
-void ApiClient::StaticInitialize(void)
-{
-	m_KeepAliveTimer = make_shared<Timer>();
-	m_KeepAliveTimer->OnTimerExpired.connect(boost::bind(&ApiClient::KeepAliveTimerHandler));
-	m_KeepAliveTimer->SetInterval(5);
-	m_KeepAliveTimer->Start();
 }
 
 void ApiClient::Start(void)
@@ -176,43 +163,6 @@ void ApiClient::MessageThreadProc(void)
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "remote", "Error while reading JSON-RPC message for identity '" + m_Identity + "': " + DiagnosticInformation(ex));
 	}
-}
-
-void ApiClient::KeepAliveTimerHandler(void)
-{
-	double now = Utility::GetTime();
-
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
-		if (endpoint->GetZone() == Zone::GetLocalZone())
-			continue;
-
-		if (endpoint->GetSyncing() || endpoint->GetKeepAlive() <= 0)
-			continue;
-
-		double timeout = now - endpoint->GetKeepAlive();
-
-		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
-			if (client->m_Seen < timeout) {
-				Log(LogNotice, "remote", "Closing connection with inactive endpoint '" + endpoint->GetName() + "'");
-				client->Disconnect();
-			}
-		}
-	}
-
-
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	if (listener) {
-		double timeout = now - 60;
-
-		BOOST_FOREACH(const ApiClient::Ptr& client, listener->GetAnonymousClients()) {
-			if (client->m_Seen < timeout) {
-				Log(LogNotice, "remote", "Closing connection with inactive anonymous endpoint '" + client->GetIdentity() + "'");
-				client->Disconnect();
-			}
-		}
-	}
-
 }
 
 Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)

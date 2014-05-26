@@ -46,8 +46,6 @@ public:
 
 	ApiClient(const String& identity, const Stream::Ptr& stream, ConnectionRole role);
 
-	static void StaticInitialize(void);
-
 	void Start(void);
 
 	String GetIdentity(void) const;
@@ -68,9 +66,6 @@ private:
 
 	bool ProcessMessage(void);
 	void MessageThreadProc(void);
-
-	static Timer::Ptr m_KeepAliveTimer;
-	static void KeepAliveTimerHandler(void);
 };
 
 }

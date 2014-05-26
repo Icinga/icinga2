@@ -1602,7 +1602,6 @@ Attributes:
   ----------------|----------------
   host            |**Required.** The hostname/IP address of the remote Icinga 2 instance.
   port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
-  keep_alive      |**Optional.** Keep-alive duration for connections. Defaults to `5m`.
   log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d`.
 
 
