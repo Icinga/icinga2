@@ -1,227 +1,5 @@
 # <a id="appendix"></a> Appendix
 
-
-## <a id="schemas"></a> Schemas
-
-By convention `CheckCommand`, `EventCommand` and `NotificationCommand` objects
-are exported using a prefix. This is mandatory for unique objects in the
-command tables.
-
-Object                  | Prefix
-------------------------|------------------------
-CheckCommand            | check_
-EventCommand            | event_
-NotificationCommand     | notification_
-
-### <a id="schema-status-files"></a> Status Files
-
-Status files used by Icinga 1.x Classic UI: `status.dat`, `objects.cache`.
-
-Icinga 2 specific extensions:
-
-* host and service objects support 'check_source' (added in Classic UI 1.10.0)
-* command objects support custom variables (added in Classic UI 1.11.2)
-* host and service objects support 'is_reachable' (added in Classic UI 1.11.3)
-
-### <a id="schema-db-ido"></a> DB IDO
-
-There is a detailed documentation for the Icinga IDOUtils 1.x
-database schema available on [http://docs.icinga.org/latest/en/db_model.html]
-
-#### <a id="schema-db-ido-extensions"></a> DB IDO Schema Extensions
-
-Icinga 2 specific extensions are shown below:
-
-New tables: `endpoints`, `endpointstatus`
-
-  Table               | Column             | Type     | Default | Description
-  --------------------|--------------------|----------|---------|-------------
-  endpoints           | endpoint_object_id | bigint   | NULL    | FK: objects table
-  endpoints           | identity           | TEXT     | NULL    | endpoint name
-  endpoints           | node               | TEXT     | NULL    | local node name
-
-  Table               | Column             | Type     | Default | Description
-  --------------------|--------------------|----------|---------|-------------
-  endpointstatus      | endpoint_object_id | bigint   | NULL    | FK: objects table
-  endpointstatus      | identity           | TEXT     | NULL    | endpoint name
-  endpointstatus      | node               | TEXT     | NULL    | local node name
-  endpointstatus      | is_connected       | smallint | 0       | update on endpoint connect/disconnect
-
-New columns:
-
-  Table               | Column                  | Type     | Default | Description
-  --------------------|-------------------------|----------|---------|-------------
-  all status/history  | endpoint_object_id      | bigint   | NULL    | FK: objects table
-  servicestatus       | check_source            | TEXT     | NULL    | node name where check was executed
-  hoststatus          | check_source            | TEXT     | NULL    | node name where check was executed
-  statehistory        | check_source            | TEXT     | NULL    | node name where check was executed
-  servicestatus       | is_reachable            | integer  | NULL    | object reachability
-  hoststatus          | is_reachable            | integer  | NULL    | object reachability
-  logentries          | object_id               | bigint   | NULL    | FK: objects table (service associated with column)
-  {host,service}group | notes                   | TEXT     | NULL    | -
-  {host,service}group | notes_url               | TEXT     | NULL    | -
-  {host,service}group | action_url              | TEXT     | NULL    | -
-
-Additional command custom variables populated from 'vars' dictionary.
-Additional global custom variables populated from 'Vars' constant (object_id is NULL).
-
-
-### <a id="schema-livestatus"></a> Livestatus
-
-
-#### <a id="schema-livestatus-tables"></a> Livestatus Tables
-
-  Table         | Join      |Description
-  --------------|-----------|----------------------------
-  hosts         | &nbsp;    | host config and status attributes, services counter
-  hostgroups    | &nbsp;    | hostgroup config, status attributes and host/service counters
-  services      | hosts     | service config and status attributes
-  servicegroups | &nbsp;    | servicegroup config, status attributes and service counters
-  contacts      | &nbsp;    | contact config and status attributes
-  contactgroups | &nbsp;    | contact config, members
-  commands      | &nbsp;    | command name and line
-  status        | &nbsp;    | programstatus, config and stats
-  comments      | services  | status attributes
-  downtimes     | services  | status attributes
-  timeperiods   | &nbsp;    | name and is inside flag
-  endpoints     | &nbsp;    | config and status attributes
-  log           | services, hosts, contacts, commands | parses [compatlog](#objecttype-compatlogger) and shows log attributes
-  statehist     | hosts, services | parses [compatlog](#objecttype-compatlogger) and aggregates state change attributes
-
-The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
-
-
-#### <a id="schema-livestatus-table-attributes"></a> Livestatus Table Attributes
-
-A detailed list which table attributes are supported can be found here: [https://wiki.icinga.org/display/icinga2/Livestatus#Livestatus-Attributes]
-
-
-#### <a id="schema-livestatus-get-queries"></a> Livestatus GET Queries
-
-    $ echo -e 'GET services' | netcat 127.0.0.1 6558
-
-    $ cat servicegroups <<EOF
-    GET servicegroups
-
-    EOF
-
-    (cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
-
-#### <a id="schema-livestatus-command-queries"></a> Livestatus COMMAND Queries
-
-A list of available external commands and their parameters can be found [here](#external-commands-list-detail)
-
-    $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
-
-
-#### <a id="schema-livestatus-filters"></a> Livestatus Filters
-
-and, or, negate
-
-  Operator  | Negate   | Description
-  ----------|------------------------
-   =        | !=       | Euqality
-   ~        | !~       | Regex match
-   =~       | !=~      | Euqality ignoring case
-   ~~       | !~~      | Regex ignoring case
-   >        |          | Less than
-   <        |          | Greater than
-   >=       |          | Less than or equal
-   <=       |          | Greater than or equal
-
-
-#### <a id="schema-livestatus-stats"></a> Livestatus Stats
-
-Schema: "Stats: aggregatefunction aggregateattribute"
-
-  Aggregate Function | Description
-  -------------------|--------------
-  sum                | &nbsp;
-  min                | &nbsp;
-  max                | &nbsp;
-  avg                | sum / count
-  std                | standard deviation
-  suminv             | sum (1 / value)
-  avginv             | suminv / count
-  count              | ordinary default for any stats query if not aggregate function defined
-
-Example:
-
-    GET hosts
-    Filter: has_been_checked = 1
-    Filter: check_type = 0
-    Stats: sum execution_time
-    Stats: sum latency
-    Stats: sum percent_state_change
-    Stats: min execution_time
-    Stats: min latency
-    Stats: min percent_state_change
-    Stats: max execution_time
-    Stats: max latency
-    Stats: max percent_state_change
-    OutputFormat: json
-    ResponseHeader: fixed16
-
-#### <a id="schema-livestatus-output"></a> Livestatus Output
-
-* CSV
-
-CSV Output uses two levels of array separators: The members array separator
-is a comma (1st level) while extra info and host|service relation separator
-is a pipe (2nd level).
-
-Seperators can be set using ASCII codes like:
-
-    Separators: 10 59 44 124
-
-* JSON
-
-Default separators.
-
-#### <a id="schema-livestatus-error-codes"></a> Livestatus Error Codes
-
-  Code      | Description
-  ----------|--------------
-  200       | OK
-  404       | Table does not exist
-  452       | Exception on query
-
-#### <a id="schema-livestatus-extensions"></a> Livestatus Schema Extensions
-
-Icinga 2 specific extensions are shown below:
-
-New table: `endpoints`
-
-  Table     | Column
-  ----------|--------------
-  endpoints | name
-  endpoints | identity
-  endpoints | node
-  endpoints | is_connected
-
-New columns:
-
-  Table     | Column
-  ----------|--------------
-  hosts     | is_reachable
-  services  | is_reachable
-  hosts     | check_source
-  services  | check_source
-  downtimes | triggers
-  downtimes | trigger_time
-  commands  | custom_variable_names
-  commands  | custom_variable_values
-  commands  | custom_variables
-  commands  | modified_attributes
-  commands  | modified_attributes_list
-  status    | custom_variable_names
-  status    | custom_variable_values
-  status    | custom_variables
-
-Command custom variables reflect the local 'vars' dictionary.
-Status custom variables reflect the global 'Vars' constant.
-
-
 ## <a id="external-commands-list-detail"></a> External Commands List
 
 Additional details can be found in the [Icinga 1.x Documentation](http://docs.icinga.org/latest/en/extcommands2.html)
@@ -346,3 +124,647 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS   | ;&lt;servicegroup_name&gt; (1)  | -
   ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS     | ;&lt;servicegroup_name&gt; (1)  | -
   DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS    | ;&lt;servicegroup_name&gt; (1)  | -
+
+
+## <a id="schemas"></a> Schemas
+
+By convention `CheckCommand`, `EventCommand` and `NotificationCommand` objects
+are exported using a prefix. This is mandatory for unique objects in the
+command tables.
+
+Object                  | Prefix
+------------------------|------------------------
+CheckCommand            | check_
+EventCommand            | event_
+NotificationCommand     | notification_
+
+### <a id="schema-status-files"></a> Status Files
+
+Status files used by Icinga 1.x Classic UI: `status.dat`, `objects.cache`.
+
+Icinga 2 specific extensions:
+
+* host and service objects support 'check_source' (added in Classic UI 1.10.0)
+* command objects support custom variables (added in Classic UI 1.11.2)
+* host and service objects support 'is_reachable' (added in Classic UI 1.11.3)
+
+### <a id="schema-db-ido"></a> DB IDO
+
+There is a detailed documentation for the Icinga IDOUtils 1.x
+database schema available on [http://docs.icinga.org/latest/en/db_model.html]
+
+#### <a id="schema-db-ido-extensions"></a> DB IDO Schema Extensions
+
+Icinga 2 specific extensions are shown below:
+
+New tables: `endpoints`, `endpointstatus`
+
+  Table               | Column             | Type     | Default | Description
+  --------------------|--------------------|----------|---------|-------------
+  endpoints           | endpoint_object_id | bigint   | NULL    | FK: objects table
+  endpoints           | identity           | TEXT     | NULL    | endpoint name
+  endpoints           | node               | TEXT     | NULL    | local node name
+
+  Table               | Column             | Type     | Default | Description
+  --------------------|--------------------|----------|---------|-------------
+  endpointstatus      | endpoint_object_id | bigint   | NULL    | FK: objects table
+  endpointstatus      | identity           | TEXT     | NULL    | endpoint name
+  endpointstatus      | node               | TEXT     | NULL    | local node name
+  endpointstatus      | is_connected       | smallint | 0       | update on endpoint connect/disconnect
+
+New columns:
+
+  Table               | Column                  | Type     | Default | Description
+  --------------------|-------------------------|----------|---------|-------------
+  all status/history  | endpoint_object_id      | bigint   | NULL    | FK: objects table
+  servicestatus       | check_source            | TEXT     | NULL    | node name where check was executed
+  hoststatus          | check_source            | TEXT     | NULL    | node name where check was executed
+  statehistory        | check_source            | TEXT     | NULL    | node name where check was executed
+  servicestatus       | is_reachable            | integer  | NULL    | object reachability
+  hoststatus          | is_reachable            | integer  | NULL    | object reachability
+  logentries          | object_id               | bigint   | NULL    | FK: objects table (service associated with column)
+  {host,service}group | notes                   | TEXT     | NULL    | -
+  {host,service}group | notes_url               | TEXT     | NULL    | -
+  {host,service}group | action_url              | TEXT     | NULL    | -
+
+Additional command custom variables populated from 'vars' dictionary.
+Additional global custom variables populated from 'Vars' constant (object_id is NULL).
+
+
+### <a id="schema-livestatus"></a> Livestatus
+
+#### <a id="schema-livestatus-get-queries"></a> Livestatus GET Queries
+
+    $ echo -e 'GET services' | netcat 127.0.0.1 6558
+
+    $ cat servicegroups <<EOF
+    GET servicegroups
+
+    EOF
+
+    (cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
+
+#### <a id="schema-livestatus-command-queries"></a> Livestatus COMMAND Queries
+
+A list of available external commands and their parameters can be found [here](#external-commands-list-detail)
+
+    $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
+
+
+#### <a id="schema-livestatus-filters"></a> Livestatus Filters
+
+and, or, negate
+
+  Operator  | Negate   | Description
+  ----------|------------------------
+   =        | !=       | Euqality
+   ~        | !~       | Regex match
+   =~       | !=~      | Euqality ignoring case
+   ~~       | !~~      | Regex ignoring case
+   >        |          | Less than
+   <        |          | Greater than
+   >=       |          | Less than or equal
+   <=       |          | Greater than or equal
+
+
+#### <a id="schema-livestatus-stats"></a> Livestatus Stats
+
+Schema: "Stats: aggregatefunction aggregateattribute"
+
+  Aggregate Function | Description
+  -------------------|--------------
+  sum                | &nbsp;
+  min                | &nbsp;
+  max                | &nbsp;
+  avg                | sum / count
+  std                | standard deviation
+  suminv             | sum (1 / value)
+  avginv             | suminv / count
+  count              | ordinary default for any stats query if not aggregate function defined
+
+Example:
+
+    GET hosts
+    Filter: has_been_checked = 1
+    Filter: check_type = 0
+    Stats: sum execution_time
+    Stats: sum latency
+    Stats: sum percent_state_change
+    Stats: min execution_time
+    Stats: min latency
+    Stats: min percent_state_change
+    Stats: max execution_time
+    Stats: max latency
+    Stats: max percent_state_change
+    OutputFormat: json
+    ResponseHeader: fixed16
+
+#### <a id="schema-livestatus-output"></a> Livestatus Output
+
+* CSV
+
+CSV Output uses two levels of array separators: The members array separator
+is a comma (1st level) while extra info and host|service relation separator
+is a pipe (2nd level).
+
+Seperators can be set using ASCII codes like:
+
+    Separators: 10 59 44 124
+
+* JSON
+
+Default separators.
+
+#### <a id="schema-livestatus-error-codes"></a> Livestatus Error Codes
+
+  Code      | Description
+  ----------|--------------
+  200       | OK
+  404       | Table does not exist
+  452       | Exception on query
+
+#### <a id="schema-livestatus-tables"></a> Livestatus Tables
+
+  Table         | Join      |Description
+  --------------|-----------|----------------------------
+  hosts         | &nbsp;    | host config and status attributes, services counter
+  hostgroups    | &nbsp;    | hostgroup config, status attributes and host/service counters
+  services      | hosts     | service config and status attributes
+  servicegroups | &nbsp;    | servicegroup config, status attributes and service counters
+  contacts      | &nbsp;    | contact config and status attributes
+  contactgroups | &nbsp;    | contact config, members
+  commands      | &nbsp;    | command name and line
+  status        | &nbsp;    | programstatus, config and stats
+  comments      | services  | status attributes
+  downtimes     | services  | status attributes
+  timeperiods   | &nbsp;    | name and is inside flag
+  endpoints     | &nbsp;    | config and status attributes
+  log           | services, hosts, contacts, commands | parses [compatlog](#objecttype-compatlogger) and shows log attributes
+  statehist     | hosts, services | parses [compatlog](#objecttype-compatlogger) and aggregates state change attributes
+
+The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
+
+#### <a id="schema-livestatus-extensions"></a> Livestatus Schema Extensions
+
+Icinga 2 specific extensions are shown below:
+
+New table: `endpoints`
+
+  Table     | Column
+  ----------|--------------
+  endpoints | name
+  endpoints | identity
+  endpoints | node
+  endpoints | is_connected
+
+New columns:
+
+  Table     | Column
+  ----------|--------------
+  hosts     | is_reachable
+  services  | is_reachable
+  hosts     | check_source
+  services  | check_source
+  downtimes | triggers
+  downtimes | trigger_time
+  commands  | custom_variable_names
+  commands  | custom_variable_values
+  commands  | custom_variables
+  commands  | modified_attributes
+  commands  | modified_attributes_list
+  status    | custom_variable_names
+  status    | custom_variable_values
+  status    | custom_variables
+
+Command custom variables reflect the local 'vars' dictionary.
+Status custom variables reflect the global 'Vars' constant.
+
+#### <a id="schema-livestatus-hosts-table-attributes"></a> Livestatus Hosts Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | .
+  display_name          | string    | .
+  alias                 | string    | same as display_name.
+  address               | string    | .
+  address6              | string    | NEW in Icinga.
+  check_command         | string    | .
+  check_command_expanded | string   | .
+  event_handler         | string    | .
+  notification_period   | string    | host with notifications: period.
+  check_period          | string    | .
+  notes                 | string    | .
+  notes_expanded        | string    | .
+  notes_url             | string    | .
+  notes_url_expanded    | string    | .
+  action_url            | string    | .
+  action_url_expanded   | string    | .
+  plugin_output         | string    | .
+  perf_data             | string    | .
+  icon_image            | string    | .
+  icon_image_expanded   | string    | .
+  icon_image_alt        | stirng    | .
+  statusmap_image       | string    | .
+  long_plugin_output    | string    | .
+  max_check_attempts    | int       | .
+  flap_detection_enabled | int      | .
+  check_freshness       | int       | .
+  process_performance_data | int    | .
+  accept_passive_checks | int       | .
+  event_handler_enabled | int       | .
+  acknowledgement_type  | int       | Only 0 or 1.
+  check_type            | int       | .
+  last_state            | int       | .
+  last_hard_state       | int       | .
+  current_attempt       | int       | .
+  last_notification     | int       | host with notifications: last notification.
+  next_notification     | int       | host with notifications: next notification.
+  next_check            | int       | .
+  last_hard_state_change | int      | .
+  has_been_checked      | int       | .
+  current_notification_number | int | host with notifications: number.
+  total_services        | int       | .
+  checks_enabled        | int       | .
+  notifications_enabled | int       | .
+  acknowledged          | int       | .
+  state                 | int       | .
+  state_type            | int       | .
+  no_more_notifications | int       | notification_interval == 0 && volatile == false.
+  last_check            | int       | .
+  last_state_change     | int       | .
+  last_time_up          | int       | .
+  last_time_down        | int       | .
+  last_time_unreachable | int       | .
+  is_flapping           | int       | .
+  scheduled_downtime_depth | int    | .
+  active_checks_enabled | int       | .
+  modified_attributes   | array     | .
+  modified_attributes_list | array  | .
+  check_interval        | double    | .
+  retry_interval        | double    | .
+  notification_interval | double    | host with notifications: smallest interval.
+  low_flap_threshold    | double    | flapping_threshold
+  high_flap_threshold   | double    | flapping_threshold
+  latency               | double    | .
+  execution_time        | double    | .
+  percent_state_change  | double    | flapping.
+  in_notification_period | int      | host with notifications: matching period.
+  in_check_period       | int       | .
+  contacts              | array     | host with notifications, users and user groups.
+  downtimes             | array     | id.
+  downtimes_with_info   | array     | id+author+comment.
+  comments              | array     | id.
+  comments_with_info    | array     | id+author+comment.
+  comments_with_extra_info | array  | id+author+comment+entry_type+entry_time.
+  custom_variable_names | array     | .
+  custom_variable_values | array    | .
+  custom_variables      | array     | Array of custom variable array pair.
+  parents               | array     | Direct host parents.
+  childs                | array     | Direct host children (Note: `childs` is inherited from the origin MK_Livestatus protocol).
+  num_services          | int       | .
+  worst_service_state   | int       | All services and their worst state.
+  num_services_ok       | int       | All services with Ok state.
+  num_services_warn     | int       | All services with Warning state.
+  num_services_crit     | int       | All services with Critical state.
+  num_services_unknown  | int       | All services with Unknown state.
+  worst_service_hard_state | int    | All services and their worst hard state.
+  num_services_hard_ok  | int       | All services in a hard state with Ok state.
+  num_services_hard_warn | int      | All services in a hard state with Warning state.
+  num_services_hard_crit | int      | All services in a hard state with Critical state.
+  num_services_hard_unknown  | int  | All services in a hard state with Unknown state.
+  hard_state            | int       | Returns OK, if state is OK. Returns current state if now a hard state type. Returns last hard state otherwise.
+  staleness             | int       | Indicates time since last check normalized onto the check_interval.
+  groups                | array     | All hostgroups this host is a member of.
+  contact_groups        | array     | All usergroups associated with this host through notifications.
+  services              | array     | All services associated with this host.
+  services_with_state   | array     | All services associated with this host with state and hasbeenchecked.
+  services_with_info    | array     | All services associated with this host with state, hasbeenchecked and output.
+
+Not supported: `initial_state`, `pending_flex_downtime`, `check_flapping_recovery_notification`,
+`is_executing`, `check_options`, `obsess_over_host`, `first_notification_delay`, `x_3d`, `y_3d`, `z_3d`,
+`x_2d`, `y_2d`, `filename`, `pnpgraph_present`.
+
+#### <a id="schema-livestatus-hostgroups-table-attributes"></a> Livestatus Hostgroups Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | .
+  alias                 | string    | `display_name` attribute.
+  notes                 | string    | .
+  notes_url             | string    | .
+  action_url            | string    | .
+  members               | array     | .
+  members_with_state    | array     | Host name and state.
+  worst_host_state      | int       | Of all group members.
+  num_hosts             | int       | In this group.
+  num_hosts_pending     | int       | .
+  num_hosts_up          | int       | .
+  num_hosts_down        | int       | .
+  num_hosts_unreach     | int       | .
+  num_services          | int       | Number of services associated with hosts in this hostgroup.
+  worst_services_state  | int       | .
+  num_services_pending  | int       | .
+  num_services_ok       | int       | .
+  num_services_warn     | int       | .
+  num_services_crit     | int       | .
+  num_services_unknown  | int       | .
+  worst_service_hard_state | int    | .
+  num_services_hard_ok | int        | .
+  num_services_hard_warn | int      | .
+  num_services_hard_crit | int      | .
+  num_services_hard_unknown | int   | .
+
+#### <a id="schema-livestatus-services-table-attributes"></a> Livestatus Services Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  description           | string    | .
+  display_name          | string    | .
+  alias                 | string    | same as display_name.
+  check_command         | string    | .
+  check_command_expanded | string   | .
+  event_handler         | string    | .
+  notification_period   | string    | host with notifications: period.
+  check_period          | string    | .
+  notes                 | string    | .
+  notes_expanded        | string    | .
+  notes_url             | string    | .
+  notes_url_expanded    | string    | .
+  action_url            | string    | .
+  action_url_expanded   | string    | .
+  plugin_output         | string    | .
+  perf_data             | string    | .
+  icon_image            | string    | .
+  icon_image_expanded   | string    | .
+  icon_image_alt        | stirng    | .
+  statusmap_image       | string    | .
+  long_plugin_output    | string    | .
+  max_check_attempts    | int       | .
+  flap_detection_enabled | int      | .
+  check_freshness       | int       | .
+  process_performance_data | int    | .
+  accept_passive_checks | int       | .
+  event_handler_enabled | int       | .
+  acknowledgement_type  | int       | Only 0 or 1.
+  check_type            | int       | .
+  last_state            | int       | .
+  last_hard_state       | int       | .
+  current_attempt       | int       | .
+  last_notification     | int       | service with notifications: last notification.
+  next_notification     | int       | service with notifications: next notification.
+  next_check            | int       | .
+  last_hard_state_change | int      | .
+  has_been_checked      | int       | .
+  current_notification_number | int | service with notifications: number.
+  checks_enabled        | int       | .
+  notifications_enabled | int       | .
+  acknowledged          | int       | .
+  state                 | int       | .
+  state_type            | int       | .
+  no_more_notifications | int       | notification_interval == 0 && volatile == false.
+  last_check            | int       | .
+  last_state_change     | int       | .
+  last_time_up          | int       | .
+  last_time_down        | int       | .
+  last_time_unreachable | int       | .
+  is_flapping           | int       | .
+  scheduled_downtime_depth | int    | .
+  active_checks_enabled | int       | .
+  modified_attributes   | array     | .
+  modified_attributes_list | array  | .
+  check_interval        | double    | .
+  retry_interval        | double    | .
+  notification_interval | double    | service with notifications: smallest interval.
+  low_flap_threshold    | double    | flapping_threshold
+  high_flap_threshold   | double    | flapping_threshold
+  latency               | double    | .
+  execution_time        | double    | .
+  percent_state_change  | double    | flapping.
+  in_notification_period | int      | service with notifications: matching period.
+  in_check_period       | int       | .
+  contacts              | array     | service with notifications, users and user groups.
+  downtimes             | array     | id.
+  downtimes_with_info   | array     | id+author+comment.
+  comments              | array     | id.
+  comments_with_info    | array     | id+author+comment.
+  comments_with_extra_info | array  | id+author+comment+entry_type+entry_time.
+  custom_variable_names | array     | .
+  custom_variable_values | array    | .
+  custom_variables      | array     | Array of custom variable array pair.
+  hard_state            | int       | Returns OK, if state is OK. Returns current state if now a hard state type. Returns last hard state otherwise.
+  staleness             | int       | Indicates time since last check normalized onto the check_interval.
+  groups                | array     | All hostgroups this host is a member of.
+  contact_groups        | array     | All usergroups associated with this host through notifications.
+  host_                 | join      | Prefix for attributes from implicit join with hosts table.
+
+Not supported: `initial_state`, `is_executing`, `check_options`, `obsess_over_service`, `first_notification_delay`,
+`pnpgraph_present`.
+
+#### <a id="schema-livestatus-servicegroups-table-attributes"></a> Livestatus Servicegroups Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | .
+  alias                 | string    | `display_name` attribute.
+  notes                 | string    | .
+  notes_url             | string    | .
+  action_url            | string    | .
+  members               | array     | CSV format uses `host|service` syntax.
+  members_with_state    | array     | Host, service, hoststate, servicestate.
+  worst_service_state   | int       | .
+  num_services          | int       | .
+  num_services_pending  | int       | .
+  num_services_ok       | int       | .
+  num_services_warn     | int       | .
+  num_services_crit     | int       | .
+  num_services_unknown  | int       | .
+  num_services_hard_ok | int        | .
+  num_services_hard_warn | int      | .
+  num_services_hard_crit | int      | .
+  num_services_hard_unknown | int   | .
+
+#### <a id="schema-livestatus-contacts-table-attributes"></a> Livestatus Contacts Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | .
+  alias                 | string    | `display_name` attribute.
+  email                 | string    | .
+  pager                 | string    | .
+  host_notification_period | string | .
+  service_notification_period | string | .
+  host_notifications_enabled | int | .
+  service_notifications_enabled | int | .
+  in_host_notification_period | int | .
+  in_service_notification_period | int | .
+  custom_variable_names | array     | .
+  custom_variable_values | array    | .
+  custom_variables      | array     | Array of customvariable array pairs.
+  modified_attributes   | array     | .
+  modified_attributes_list | array  | .
+
+
+Not supported: `can_submit_commands`.
+
+#### <a id="schema-livestatus-contactgroups-table-attributes"></a> Livestatus Contactgroups Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | .
+  alias                 | string    | `display_name` attribute.
+  members               | array     | .
+
+
+#### <a id="schema-livestatus-commands-table-attributes"></a> Livestatus Commands Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | 3 types of commands in Icinga 2.
+  line                  | string    | .
+
+
+#### <a id="schema-livestatus-status-table-attributes"></a> Livestatus Status Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  connections           | int       | Since application start.
+  connections_rate      | double    | .
+  service_checks        | int       | Since application start.
+  service_checks_rate   | double    | .
+  host_checks           | int       | Since application start.
+  host_checks_rate      | double    | .
+  external_commands     | int       | Since application start.
+  external_commands_rate | double   | .
+  nagios_pid            | string    | Application PID.
+  enable_notifications  | int       | .
+  execute_service_checks | int      | .
+  accept_passive_service_checks | int | .
+  execute_host_checks   | int       | .
+  accept_passive_host_checks | int  | .
+  enable_event_handlers | int       | .
+  check_service_freshness | int     | .
+  check_host_freshness  | int       | .
+  enable_flap_detection | int       | .
+  process_performance_data | int    | .
+  check_external_commands | int     | Always enabled.
+  program_start         | int       | In seconds.
+  last_command_check    | int       | Always.
+  interval_length       | int       | Compatibility mode: 60.
+  num_hosts             | int       | .
+  num_services          | int       | .
+  program_version       | string    | 2.0.
+  livestatus_active_connections | string | .
+
+Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate`, `forks`, `forks_rate`,
+`log_messages`, `log_messages_rate`, `livechecks`, `livechecks_rate`, `livecheck_overflows`,
+`livecheck_overflows_rate`, `obsess_over_services`, `obsess_over_hosts`, `last_log_rotation`,
+`external_command_buffer_slots`, `external_command_buffer_usage`, `external_command_buffer_max`,
+`cached_log_messages`, `livestatus_queued_connections`, `livestatus_threads`.
+
+
+#### <a id="schema-livestatus-comments-table-attributes"></a> Livestatus Comments Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  author                | string    | .
+  comment               | string    | .
+  id                    | int       | legacy_id.
+  entry_time            | string    | Seconds.
+  type                  | int       | 1=host, 2=service.
+  is_service            | int       | .
+  persistent            | int       | Always.
+  source                | string    | Always external (1).
+  entry_type            | int       | .
+  expires               | int       | .
+  expire_time           | string    | Seconds.
+  service_              | join      | Prefix for attributes from implicit join with services table (and implicit host table).
+
+
+#### <a id="schema-livestatus-downtimes-table-attributes"></a> Livestatus Downtimes Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  author                | string    | .
+  comment               | string    | .
+  id                    | int       | legacy_id.
+  entry_time            | string    | Seconds.
+  type                  | int       | 1=host, 2=service.
+  is_service            | int       | .
+  start_time            | string    | Seconds.
+  end_time              | string    | Seconds.
+  fixed                 | int       | 0=flexible, 1=fixed.
+  duration              | int       | .
+  triggered_by          | int       | legacy_id.
+  triggers              | int       | NEW in Icinga 2.
+  trigger_time          | string    | NEW in Icinga 2.
+  service_              | join      | Prefix for attributes from implicit join with services table (and implicit host table).
+
+
+#### <a id="schema-livestatus-timeperiod-table-attributes"></a> Livestatus Timeperiod Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  name                  | string    | .
+  alias                 | string    | `display_name` attribute.
+  in                    | int       | Current time is in timeperiod or not.
+
+#### <a id="schema-livestatus-log-table-attributes"></a> Livestatus Log Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  time                  | int       | Time of log event (unix timestamp).
+  lineno                | int       | Line number in `CompatLogger` log file.
+  class                 | int       | Log message class: 0=info, 1=state, 2=program, 3=notification, 4=passive, 5=command.
+  message               | string    | Complete message line.
+  type                  | string    | Text before the colon `:`.
+  options               | string    | Text after the colon `:`.
+  comment               | string    | Comment if available.
+  plugin_output         | string    | Check output if available.
+  state                 | int       | Host or service state.
+  state_type            | int       | State type if available.
+  attempt               | int       | Current check attempt.
+  service_description   | string    | .
+  host_name             | string    | .
+  contact_name          | string    | .
+  command_name          | string    | .
+  current_service_      | join      | Prefix for attributes from implicit join with services table.
+  current_host_         | join      | Prefix for attributes from implicit join with hosts table.
+  current_contact_      | join      | Prefix for attributes from implicit join with contacts table.
+  current_command_      | join      | Prefix for attributes from implicit join with commands table.
+
+#### <a id="schema-livestatus-statehist-table-attributes"></a> Livestatus Statehist Table Attributes
+
+  Key                   | Type      | Note
+  ----------------------|-----------|-------------------------
+  time                  | int       | Time of log event (unix timestamp).
+  lineno                | int       | Line number in `CompatLogger` log file.
+  from                  | int       | Start timestamp (unix timestamp).
+  until                 | int       | End timestamp (unix timestamp).
+  duration              | int       | until-from.
+  duration_part         | double    | duration / query_part.
+  state                 | int       | State: 0=ok, 1=warn, 2=crit, 3=unknown, -1=notmonitored.
+  host_down             | int       | Host associated with the service is down or not.
+  in_downtime           | int       | Host/service is in downtime.
+  in_host_downtime      | int       | Host associated with the service is in a downtime or not.
+  is_flapping           | int       | Host/service is flapping.
+  in_notification_period | int      | Host/service notification periods match or not.
+  notification_period   | string    | Host/service notification period.
+  host_name             | string    | .
+  service_description   | string    | .
+  log_output            | string    | Log file output for this state.
+  duration_ok           | int       | until-from for OK state.
+  duration_part_ok      | double    | .
+  duration_warning      | int       | until-from for Warning state.
+  duration_part_warning | double    | .
+  duration_critical     | int       | until-from for Critical state.
+  duration_part_critical | double    | .
+  duration_unknown      | int       | until-from for Unknown state.
+  duration_part_unknown | double    | .
+  duration_unmonitored  | int       | until-from for Not-Monitored state.
+  duration_part_unmonitored | double    | .
+  current_service_      | join      | Prefix for attributes from implicit join with services table.
+  current_host_         | join      | Prefix for attributes from implicit join with hosts table.
+
+Not supported: `debug_info`.
+
+
