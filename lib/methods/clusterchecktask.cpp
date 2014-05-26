@@ -82,7 +82,7 @@ String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
 			if (first)
 				first = false;
 			else
-				str += ",";
+				str += ", ";
 
 			str += Convert::ToString(value);
 		}
