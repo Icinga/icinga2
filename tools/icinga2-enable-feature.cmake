@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh 
 ICINGA2CONFDIR=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2
 
 TOOL=$(basename -- $0)
@@ -9,7 +9,8 @@ if [ "$TOOL" != "icinga2-enable-feature" -a "$TOOL" != "icinga2-disable-feature"
 fi
 
 if [ -z "$1" ]; then
-	echo "Syntax: $0 <feature>"
+	echo "Syntax: $0 <features separated with whitespaces>"
+	echo "    Example: $0 checker ido-mysql livestatus"
 
 	if [ "$TOOL" = "icinga2-enable-feature" ]; then
 		echo "Enables the specified feature."
@@ -36,38 +37,58 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-FEATURE=$1
+FEATURES=$1
 
-if [ ! -e $ICINGA2CONFDIR/features-available/$FEATURE.conf ]; then
-	echo "The feature '$FEATURE' does not exist."
-	exit 1
+# Get total params
+echo "Total params: $#"
+
+for FEATURES
+do
+	SKIP=""
+	# Define array var
+	# Based http://blog.isonoe.net/post/2010/09/24/Pseudo-arrays-for-POSIX-shell
+	eval "set -- $FEATURES"
+	for FEATURE
+	do
+		SKIP="NOTOK"
+		if [ ! -e $ICINGA2CONFDIR/features-available/$FEATURE.conf ]; then
+			echo "Feature '$FEATURE' does not exist."
+			exit 1
+		fi
+
+		if [ "$TOOL" = "icinga2-enable-feature" ]; then
+			if [ -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
+				echo "The feature '$FEATURE' is already enabled."
+				SKIP="OK"
+			fi
+			if [ "$SKIP" != "OK" ]; then
+				if ! ln -s ../features-available/$FEATURE.conf $ICINGA2CONFDIR/features-enabled/; then
+				echo "Enabling '$FEATURE' failed. Check permissions for $ICINGA2CONFDIR/features-enabled/"
+					exit 1
+				else
+					echo "Module '$FEATURE' was enabled."
+					RELOAD="YES"
+				fi
+			fi
+		elif [ "$TOOL" = "icinga2-disable-feature" ]; then
+			if [ ! -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
+				echo "The feature '$FEATURE' is already disabled."
+				SKIP="OK"
+			fi
+
+			if [ "$SKIP" != "OK" ]; then
+				if ! rm -f $ICINGA2CONFDIR/features-enabled/$FEATURE.conf; then
+				echo "Disabling '$FEATURE' failed. Check permissions for $ICINGA2CONFDIR/features-enabled/$FEATURE.conf"
+					exit 1
+				else
+					echo "Feature '$FEATURE' was disabled."
+					RELOAD="YES"
+				fi
+			fi
+		fi
+	done
+done
+if [ "$RELOAD" = "YES" ]; then
+	echo "Make sure to restart Icinga 2 for these changes to take effect."
 fi
-
-if [ "$TOOL" = "icinga2-enable-feature" ]; then
-	if [ -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
-		echo "The feature '$FEATURE' is already enabled."
-		exit 0
-	fi
-
-	if ! ln -s ../features-available/$FEATURE.conf $ICINGA2CONFDIR/features-enabled/; then
-	echo "Enabling '$FEATURE' failed. Check permissions for $ICINGA2CONFDIR/features-enabled/"
-		exit 1
-	else
-		echo "Module '$FEATURE' was enabled."
-	fi
-elif [ "$TOOL" = "icinga2-disable-feature" ]; then
-	if [ ! -e $ICINGA2CONFDIR/features-enabled/$FEATURE.conf ]; then
-		echo "The feature '$FEATURE' is already disabled."
-		exit 0
-	fi
-
-	if ! rm -f $ICINGA2CONFDIR/features-enabled/$FEATURE.conf; then
-	echo "Disabling '$FEATURE' failed. Check permissions for $ICINGA2CONFDIR/features-enabled/$FEATURE.conf"
-		exit 1
-	else
-		echo "Module '$FEATURE' was disabled."
-	fi
-fi
-
-echo "Make sure to restart Icinga 2 for these changes to take effect."
 exit 0
