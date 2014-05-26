@@ -119,6 +119,11 @@ object if necessary.
 Instead of assigning each object (`Service`, `Notification`, `Dependency`, `ScheduledDowntime`)
 based on attribute identifiers for example `host_name` objects can be [applied](#apply).
 
+Detailed scenario examples are used in their respective chapters, for example
+[apply services with custom command arguments](#using-apply-services-command-arguments).
+
+### <a id="using-apply-services"></a> Apply Services to Hosts
+
     apply Service "load" {
       import "generic-service"
 
@@ -131,6 +136,8 @@ based on attribute identifiers for example `host_name` objects can be [applied](
 In this example the `load` service will be created as object for all hosts in the `linux-server`
 host group. If the `no_load_check` custom attribute is set, the host will be
 ignored.
+
+### <a id="using-apply-notifications"></a> Apply Notifications to Hosts and Services
 
 Notifications are applied to specific targets (`Host` or `Service`) and work in a similar
 manner:
@@ -147,7 +154,13 @@ In this example the `mail-noc` notification will be created as object for all se
 `sla` custom attribute set to `24x7`. The notification command is set to `mail-service-notification`
 and all members of the user group `noc` will get notified.
 
-`Dependency` and `ScheduledDowntime` objects can be applied in a similar fashion.
+### <a id="using-apply-dependencies"></a> Apply Dependencies to Hosts and Services
+
+Detailed examples can be found in the [dependencies](#dependencies) chapter.
+
+### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
+
+Detailed examples can be found in the [recurring downtimes](#recurring-downtimes) chapter.
 
 
 ## <a id="groups"></a> Groups
@@ -600,6 +613,114 @@ free disk space).
       vars.disk_cfree = 5
     }
 
+#### <a id="commands-arguments"></a> Command Arguments
+
+By defining a check command line using the `command` attribute Icinga 2
+will resolve all macros in the static string or array. Sometimes it is
+required to extend the arguments list based on a met condition evaluated
+at command execution. Or making arguments optional - only set if the
+macro value can be resolved by Icinga 2.
+
+    object CheckCommand "check_http" {
+      import "plugin-check-command"
+
+      command = PluginDir + "/check_http"
+
+      arguments = {
+        "-H" = "$http_vhost$"
+        "-I" = "$http_address$"
+        "-u" = "$http_uri$"
+        "-p" = "$http_port$"
+        "-S" = {
+          set_if = "$http_ssl$"
+        }
+        "-w" = "$http_warn_time$"
+        "-c" = "$http_critical_time$"
+      }
+
+      vars.http_address = "$address$"
+      vars.http_ssl = false
+    }
+
+The example shows the `check_http` check command defining the most common
+arguments. Each of them is optional by default and will be omitted if
+the value is not set. For example if the service calling the check command
+does not have `vars.http_port` set, it won't get added to the command
+line.
+If the `vars.http_ssl` custom attribute is set in the service, host or command
+object definition, Icinga 2 will add the `-S` argument based on the `set_if`
+option to the command line.
+That way you can use the `check_http` command definition for both, with and
+without SSL enabled checks saving you duplicated command definitions.
+
+Details on all available options can be found in the
+[CheckCommand object definition](#objecttype-checkcommand).
+
+### <a id="using-apply-services-command-arguments"></a> Apply Services with custom Command Arguments
+
+Imagine the following scenario: The `my-host1` host is reachable using the default port 22, while
+the `my-host2` host requires a different port on 2222. Both hosts are in the hostgroup `my-linux-servers`.
+
+    object HostGroup "my-linux-servers" {
+      display_name = "Linux Servers"
+      assign where host.vars.os == "Linux"
+    }
+
+    /* this one has port 22 opened */
+    object Host "my-host1" {
+      import "generic-host"
+      address = "129.168.1.50"
+      vars.os = "Linux"
+    }
+
+    /* this one listens on a different ssh port */
+    object Host "my-host2" {
+      import "generic-host" 
+      address = "129.168.2.50"
+      vars.os = "Linux"
+      vars.custom_ssh_port = 2222
+    }
+
+All hosts in the `my-linux-servers` hostgroup should get the `my-ssh` service applied based on an
+[apply rule](#apply). The optional `ssh_port` command argument should be inherited from the host
+the service is applied to. If not set, the check command `my-ssh` will omit the argument.
+
+    object CheckCommand "my-ssh" {
+            import "plugin-check-command"
+
+            command = PluginDir + "/check_ssh"
+
+            arguments = {
+                    "-p" = "$ssh_port$"
+                    "host" = {
+                            value = "$ssh_address$"
+                            skip_key = true
+                            order = -1
+                    }
+            }
+
+            vars.ssh_address = "$address$"
+    }
+
+    /* apply ssh service */
+    apply Service "my-ssh" {
+      import "generic-service"
+      check_command = "ssh"
+
+      //set the command argument for ssh port with a custom host attribute, if set
+      vars.ssh_port = "$host.vars.custom_ssh_port$"
+
+      assign where "my-linux-servers" in host.groups
+    }
+
+The `my-host1` will get the `my-ssh` service checking on the default port:
+
+    [2014-05-26 21:52:23 +0200] <Q #0x7f8bdd5f4a48 W #0x7f8bdd5f4b88> notice/base: Running command '/usr/lib/nagios/plugins/check_ssh', '129.168.1.50': PID 27281
+
+The `my-host2` will inherit the `custom_ssh_port` variable to the service and execute a different command:
+
+    [2014-05-26 21:51:32 +0200] <Q #0x7f8bdd5f4708 W #0x7f8bdd5f4848> notice/base: Running command '/usr/lib/nagios/plugins/check_ssh', '-p', '2222', '129.168.2.50': PID 26956
+
 
 ### <a id="notification-commands"></a> Notification Commands
 
@@ -700,49 +821,6 @@ information in the check output (`-o`).
         "-o", "Event Handler triggered in state '$service.state$' with output '$service.output$'."
       ]
     }
-
-### <a id="commands-arguments"></a> Command Arguments
-
-By defining a check command line using the `command` attribute Icinga 2
-will resolve all macros in the static string or array. Sometimes it is
-required to extend the arguments list based on a met condition evaluated
-at command execution. Or making arguments optional - only set if the
-macro value can be resolved by Icinga 2.
-
-    object CheckCommand "check_http" {
-      import "plugin-check-command"
-
-      command = PluginDir + "/check_http"
-
-      arguments = {
-        "-H" = "$http_vhost$"
-        "-I" = "$http_address$"
-        "-u" = "$http_uri$"
-        "-p" = "$http_port$"
-        "-S" = {
-          set_if = "$http_ssl$"
-        }
-        "-w" = "$http_warn_time$"
-        "-c" = "$http_critical_time$"
-      }
-
-      vars.http_address = "$address$"
-      vars.http_ssl = false
-    }
-
-The example shows the `check_http` check command defining the most common
-arguments. Each of them is optional by default and will be omitted if
-the value is not set. For example if the service calling the check command
-does not have `vars.http_port` set, it won't get added to the command
-line.
-If the `vars.http_ssl` custom attribute is set in the service, host or command
-object definition, Icinga 2 will add the `-S` argument based on the `set_if`
-option to the command line.
-That way you can use the `check_http` command definition for both, with and
-without SSL enabled checks saving you duplicated command definitions.
-
-Details on all available options can be found in the
-[CheckCommand object definition](#objecttype-checkcommand).
 
 
 ## <a id="dependencies"></a> Dependencies
