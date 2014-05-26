@@ -803,8 +803,10 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    "\t" "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
 		    "\t" "enable_failure_prediction=0" "\n"
 		    "\t" "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
-		    "\t" "active_scheduled_service_check_stats=" << CIB::GetActiveChecksStatistics(60) << "," << CIB::GetActiveChecksStatistics(5 * 60) << "," << CIB::GetActiveChecksStatistics(15 * 60) << "\n"
-		    "\t" "passive_service_check_stats=" << CIB::GetPassiveChecksStatistics(60) << "," << CIB::GetPassiveChecksStatistics(5 * 60) << "," << CIB::GetPassiveChecksStatistics(15 * 60) << "\n"
+		    "\t" "active_scheduled_host_check_stats=" << CIB::GetActiveHostChecksStatistics(60) << "," << CIB::GetActiveHostChecksStatistics(5 * 60) << "," << CIB::GetActiveHostChecksStatistics(15 * 60) << "\n"
+		    "\t" "passive_host_check_stats=" << CIB::GetPassiveHostChecksStatistics(60) << "," << CIB::GetPassiveHostChecksStatistics(5 * 60) << "," << CIB::GetPassiveHostChecksStatistics(15 * 60) << "\n"
+		    "\t" "active_scheduled_service_check_stats=" << CIB::GetActiveServiceChecksStatistics(60) << "," << CIB::GetActiveServiceChecksStatistics(5 * 60) << "," << CIB::GetActiveServiceChecksStatistics(15 * 60) << "\n"
+		    "\t" "passive_service_check_stats=" << CIB::GetPassiveServiceChecksStatistics(60) << "," << CIB::GetPassiveServiceChecksStatistics(5 * 60) << "," << CIB::GetPassiveServiceChecksStatistics(15 * 60) << "\n"
 		    "\t" "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
 		    "\t" "next_comment_id=" << Service::GetNextCommentID() << "\n";
 

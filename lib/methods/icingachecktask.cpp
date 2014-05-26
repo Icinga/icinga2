@@ -39,17 +39,26 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 		interval = 60;
 
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
-	perfdata->Set("active_checks", CIB::GetActiveChecksStatistics(interval) / interval);
-	perfdata->Set("passive_checks", CIB::GetPassiveChecksStatistics(interval) / interval);
 
-	perfdata->Set("active_checks_1min", CIB::GetActiveChecksStatistics(60));
-	perfdata->Set("passive_checks_1min", CIB::GetPassiveChecksStatistics(60));
-	perfdata->Set("active_checks_5min", CIB::GetActiveChecksStatistics(60 * 5));
-	perfdata->Set("passive_checks_5min", CIB::GetPassiveChecksStatistics(60 * 5));
-	perfdata->Set("active_checks_15min", CIB::GetActiveChecksStatistics(60 * 15));
-	perfdata->Set("passive_checks_15min", CIB::GetPassiveChecksStatistics(60 * 15));
+	perfdata->Set("active_host_checks", CIB::GetActiveHostChecksStatistics(interval) / interval);
+	perfdata->Set("passive_host_checks", CIB::GetPassiveHostChecksStatistics(interval) / interval);
+	perfdata->Set("active_host_checks_1min", CIB::GetActiveHostChecksStatistics(60));
+	perfdata->Set("passive_host_checks_1min", CIB::GetPassiveHostChecksStatistics(60));
+	perfdata->Set("active_host_checks_5min", CIB::GetActiveHostChecksStatistics(60 * 5));
+	perfdata->Set("passive_host_checks_5min", CIB::GetPassiveHostChecksStatistics(60 * 5));
+	perfdata->Set("active_host_checks_15min", CIB::GetActiveHostChecksStatistics(60 * 15));
+	perfdata->Set("passive_host_checks_15min", CIB::GetPassiveHostChecksStatistics(60 * 15));
 
-	ServiceCheckStatistics scs = CIB::CalculateServiceCheckStats();
+	perfdata->Set("active_service_checks", CIB::GetActiveServiceChecksStatistics(interval) / interval);
+	perfdata->Set("passive_service_checks", CIB::GetPassiveServiceChecksStatistics(interval) / interval);
+	perfdata->Set("active_service_checks_1min", CIB::GetActiveServiceChecksStatistics(60));
+	perfdata->Set("passive_service_checks_1min", CIB::GetPassiveServiceChecksStatistics(60));
+	perfdata->Set("active_service_checks_5min", CIB::GetActiveServiceChecksStatistics(60 * 5));
+	perfdata->Set("passive_service_checks_5min", CIB::GetPassiveServiceChecksStatistics(60 * 5));
+	perfdata->Set("active_service_checks_15min", CIB::GetActiveServiceChecksStatistics(60 * 15));
+	perfdata->Set("passive_service_checks_15min", CIB::GetPassiveServiceChecksStatistics(60 * 15));
+
+	CheckableCheckStatistics scs = CIB::CalculateServiceCheckStats();
 
 	perfdata->Set("min_latency", scs.min_latency);
 	perfdata->Set("max_latency", scs.max_latency);

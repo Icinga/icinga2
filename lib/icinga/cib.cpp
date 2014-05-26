@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/cib.hpp"
+#include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -27,30 +28,101 @@
 
 using namespace icinga;
 
-RingBuffer CIB::m_ActiveChecksStatistics(15 * 60);
-RingBuffer CIB::m_PassiveChecksStatistics(15 * 60);
+RingBuffer CIB::m_ActiveHostChecksStatistics(15 * 60);
+RingBuffer CIB::m_ActiveServiceChecksStatistics(15 * 60);
+RingBuffer CIB::m_PassiveHostChecksStatistics(15 * 60);
+RingBuffer CIB::m_PassiveServiceChecksStatistics(15 * 60);
 
-void CIB::UpdateActiveChecksStatistics(long tv, int num)
+void CIB::UpdateActiveHostChecksStatistics(long tv, int num)
 {
-	m_ActiveChecksStatistics.InsertValue(tv, num);
+	m_ActiveHostChecksStatistics.InsertValue(tv, num);
 }
 
-int CIB::GetActiveChecksStatistics(long timespan)
+void CIB::UpdateActiveServiceChecksStatistics(long tv, int num)
 {
-	return m_ActiveChecksStatistics.GetValues(timespan);
+	m_ActiveServiceChecksStatistics.InsertValue(tv, num);
 }
 
-void CIB::UpdatePassiveChecksStatistics(long tv, int num)
+int CIB::GetActiveHostChecksStatistics(long timespan)
 {
-	m_PassiveChecksStatistics.InsertValue(tv, num);
+	return m_ActiveHostChecksStatistics.GetValues(timespan);
 }
 
-int CIB::GetPassiveChecksStatistics(long timespan)
+int CIB::GetActiveServiceChecksStatistics(long timespan)
 {
-	return m_PassiveChecksStatistics.GetValues(timespan);
+	return m_ActiveServiceChecksStatistics.GetValues(timespan);
 }
 
-ServiceCheckStatistics CIB::CalculateServiceCheckStats(void)
+void CIB::UpdatePassiveHostChecksStatistics(long tv, int num)
+{
+	m_PassiveServiceChecksStatistics.InsertValue(tv, num);
+}
+
+void CIB::UpdatePassiveServiceChecksStatistics(long tv, int num)
+{
+	m_PassiveServiceChecksStatistics.InsertValue(tv, num);
+}
+
+int CIB::GetPassiveHostChecksStatistics(long timespan)
+{
+	return m_PassiveHostChecksStatistics.GetValues(timespan);
+}
+
+int CIB::GetPassiveServiceChecksStatistics(long timespan)
+{
+	return m_PassiveServiceChecksStatistics.GetValues(timespan);
+}
+
+CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
+{
+	double min_latency = -1, max_latency = 0, sum_latency = 0;
+	int count_latency = 0;
+	double min_execution_time = -1, max_execution_time = 0, sum_execution_time = 0;
+	int count_execution_time = 0;
+
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		ObjectLock olock(host);
+
+		CheckResult::Ptr cr = host->GetLastCheckResult();
+
+		/* latency */
+		double latency = Host::CalculateLatency(cr);
+
+		if (min_latency == -1 || latency < min_latency)
+			min_latency = latency;
+
+		if (latency > max_latency)
+			max_latency = latency;
+
+		sum_latency += latency;
+		count_latency++;
+
+		/* execution_time */
+		double execution_time = Host::CalculateExecutionTime(cr);
+
+		if (min_execution_time == -1 || execution_time < min_execution_time)
+			min_execution_time = execution_time;
+
+		if (execution_time > max_execution_time)
+			max_execution_time = execution_time;
+
+		sum_execution_time += execution_time;
+		count_execution_time++;
+	}
+
+	CheckableCheckStatistics ccs;
+
+	ccs.min_latency = min_latency;
+	ccs.max_latency = max_latency;
+	ccs.avg_latency = sum_latency / count_latency;
+	ccs.min_execution_time = min_execution_time;
+	ccs.max_execution_time = max_execution_time;
+	ccs.avg_execution_time = sum_execution_time / count_execution_time;
+
+	return ccs;
+}
+
+CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 {
 	double min_latency = -1, max_latency = 0, sum_latency = 0;
 	int count_latency = 0;
@@ -87,16 +159,16 @@ ServiceCheckStatistics CIB::CalculateServiceCheckStats(void)
 		count_execution_time++;
 	}
 
-	ServiceCheckStatistics scs;
+	CheckableCheckStatistics ccs;
 
-	scs.min_latency = min_latency;
-	scs.max_latency = max_latency;
-	scs.avg_latency = sum_latency / count_latency;
-	scs.min_execution_time = min_execution_time;
-	scs.max_execution_time = max_execution_time;
-	scs.avg_execution_time = sum_execution_time / count_execution_time;
+	ccs.min_latency = min_latency;
+	ccs.max_latency = max_latency;
+	ccs.avg_latency = sum_latency / count_latency;
+	ccs.min_execution_time = min_execution_time;
+	ccs.max_execution_time = max_execution_time;
+	ccs.avg_execution_time = sum_execution_time / count_execution_time;
 
-	return scs;
+	return ccs;
 }
 
 ServiceStatistics CIB::CalculateServiceStats(void)

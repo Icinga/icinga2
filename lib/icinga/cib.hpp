@@ -27,7 +27,7 @@
 namespace icinga
 {
 
-struct ServiceCheckStatistics {
+struct CheckableCheckStatistics {
     double min_latency;
     double max_latency;
     double avg_latency;
@@ -67,15 +67,22 @@ struct HostStatistics {
 class I2_ICINGA_API CIB
 {
 public:
-	static void UpdateActiveChecksStatistics(long tv, int num);
-	static int GetActiveChecksStatistics(long timespan);
+	static void UpdateActiveHostChecksStatistics(long tv, int num);
+	static int GetActiveHostChecksStatistics(long timespan);
 
-	static void UpdatePassiveChecksStatistics(long tv, int num);
-	static int GetPassiveChecksStatistics(long timespan);
+	static void UpdateActiveServiceChecksStatistics(long tv, int num);
+	static int GetActiveServiceChecksStatistics(long timespan);
 
-        static ServiceCheckStatistics CalculateServiceCheckStats(void);
-        static ServiceStatistics CalculateServiceStats(void);
+	static void UpdatePassiveHostChecksStatistics(long tv, int num);
+	static int GetPassiveHostChecksStatistics(long timespan);
+
+	static void UpdatePassiveServiceChecksStatistics(long tv, int num);
+	static int GetPassiveServiceChecksStatistics(long timespan);
+
+        static CheckableCheckStatistics CalculateHostCheckStats(void);
+        static CheckableCheckStatistics CalculateServiceCheckStats(void);
         static HostStatistics CalculateHostStats(void);
+        static ServiceStatistics CalculateServiceStats(void);
 
         static std::pair<Dictionary::Ptr, Dictionary::Ptr> GetFeatureStats(void);
 
@@ -83,8 +90,10 @@ private:
 	CIB(void);
 
 	static boost::mutex m_Mutex;
-	static RingBuffer m_ActiveChecksStatistics;
-	static RingBuffer m_PassiveChecksStatistics;
+	static RingBuffer m_ActiveHostChecksStatistics;
+	static RingBuffer m_PassiveHostChecksStatistics;
+	static RingBuffer m_ActiveServiceChecksStatistics;
+	static RingBuffer m_PassiveServiceChecksStatistics;
 };
 
 }

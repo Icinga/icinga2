@@ -50,8 +50,8 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "service_checks", Column(&StatusTable::ServiceChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "service_checks_rate", Column(&StatusTable::ServiceChecksRateAccessor, objectAccessor));
 
-	table->AddColumn(prefix + "host_checks", Column(&Table::ZeroAccessor, objectAccessor));
-	table->AddColumn(prefix + "host_checks_rate", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "host_checks", Column(&StatusTable::HostChecksAccessor, objectAccessor));
+	table->AddColumn(prefix + "host_checks_rate", Column(&StatusTable::HostChecksRateAccessor, objectAccessor));
 
 	table->AddColumn(prefix + "forks", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "forks_rate", Column(&Table::ZeroAccessor, objectAccessor));
@@ -126,16 +126,28 @@ Value StatusTable::ConnectionsRateAccessor(const Value&)
 	return (LivestatusListener::GetConnections() / (Utility::GetTime() - Application::GetStartTime()));
 }
 
+Value StatusTable::HostChecksAccessor(const Value&)
+{
+	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	return CIB::GetActiveHostChecksStatistics(timespan);
+}
+
+Value StatusTable::HostChecksRateAccessor(const Value&)
+{
+	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	return (CIB::GetActiveHostChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
+}
+
 Value StatusTable::ServiceChecksAccessor(const Value&)
 {
 	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
-	return CIB::GetActiveChecksStatistics(timespan);
+	return CIB::GetActiveServiceChecksStatistics(timespan);
 }
 
 Value StatusTable::ServiceChecksRateAccessor(const Value&)
 {
 	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
-	return (CIB::GetActiveChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
+	return (CIB::GetActiveServiceChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::ExternalCommandsAccessor(const Value&)

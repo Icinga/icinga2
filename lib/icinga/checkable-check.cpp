@@ -349,7 +349,16 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (new_state != ServiceOK)
 		TriggerDowntimes();
 
-	Checkable::UpdateStatistics(cr);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(GetSelf());
+
+	CheckableType checkable_type = CheckableHost;
+	if (service)
+		checkable_type = CheckableService;
+
+	/* statistics for external tools */
+	Checkable::UpdateStatistics(cr, checkable_type);
 
 	bool in_downtime = IsInDowntime();
 	bool send_notification = hardChange && notification_reachable && !in_downtime && !IsAcknowledged();
@@ -402,9 +411,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	/* signal status updates to for example db_ido */
 	OnStateChanged(GetSelf());
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(GetSelf());
 	String old_state_str = (service ? Service::StateToString(old_state) : Host::StateToString(Host::CalculateState(old_state)));
 	String new_state_str = (service ? Service::StateToString(new_state) : Host::StateToString(Host::CalculateState(new_state)));
 
@@ -480,14 +486,23 @@ void Checkable::ExecuteCheck(void)
 	GetCheckCommand()->Execute(GetSelf(), result);
 }
 
-void Checkable::UpdateStatistics(const CheckResult::Ptr& cr)
+void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)
 {
 	time_t ts = cr->GetScheduleEnd();
 
-	if (cr->GetActive())
-		CIB::UpdateActiveChecksStatistics(ts, 1);
-	else
-		CIB::UpdatePassiveChecksStatistics(ts, 1);
+	if (type == CheckableHost) {
+		if (cr->GetActive())
+			CIB::UpdateActiveHostChecksStatistics(ts, 1);
+		else
+			CIB::UpdatePassiveHostChecksStatistics(ts, 1);
+	} else if (type == CheckableService) {
+		if (cr->GetActive())
+			CIB::UpdateActiveServiceChecksStatistics(ts, 1);
+		else
+			CIB::UpdatePassiveServiceChecksStatistics(ts, 1);
+	} else {
+		Log(LogWarning, "icinga", "Unknown checkable type for statistic update.");
+	}
 }
 
 double Checkable::CalculateExecutionTime(const CheckResult::Ptr& cr)

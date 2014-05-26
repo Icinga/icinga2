@@ -240,7 +240,8 @@ void CheckerComponent::ResultTimerHandler(void)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: " << CIB::GetActiveChecksStatistics(5) / 5.0;
+		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: "
+		    << (CIB::GetActiveHostChecksStatistics(5) + CIB::GetActiveServiceChecksStatistics(5)) / 5.0;
 	}
 
 	Log(LogNotice, "checker", msgbuf.str());

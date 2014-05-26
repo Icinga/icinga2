@@ -132,7 +132,7 @@ public:
 	bool GetForceNextCheck(void) const;
 	void SetForceNextCheck(bool forced, const MessageOrigin& origin = MessageOrigin());
 
-	static void UpdateStatistics(const CheckResult::Ptr& cr);
+	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
 	void ExecuteCheck(void);
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin = MessageOrigin());
