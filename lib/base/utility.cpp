@@ -22,6 +22,7 @@
 #include "base/application.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/exception.hpp"
+#include "base/socket.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
@@ -977,14 +978,42 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	return 0;
 }
 
+/**
+ * Returns the fully-qualified domain name for the host
+ * we're running on.
+ *
+ * @returns The FQDN.
+ */
 String Utility::GetHostName(void)
 {
 	char name[255];
 
-	if (gethostname(name, sizeof(name)) < 0)
-		strcpy(name, "<unknown host>");
+	if (gethostname(name, sizeof(name)) < 0) {
+		return "localhost";
+	}
 
-	return String(name);
+	addrinfo hints;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_flags = AI_CANONNAME;
+
+	addrinfo *result;
+	int rc = getaddrinfo(name, NULL, &hints, &result);
+
+	if (rc < 0)
+		result = NULL;
+
+	String canonicalName;
+
+	if (result && strcmp(result->ai_canonname, "localhost") != 0) {
+		canonicalName = result->ai_canonname;
+		freeaddrinfo(result);
+	} else {
+		canonicalName = name;
+	}
+
+	return canonicalName;
 }
 
 int Utility::Random(void)
