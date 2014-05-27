@@ -2,25 +2,14 @@
 
 ## <a id="configuration-migration"></a> Configuration Migration
 
-The Icinga 2 configuration format introduces plenty of behavioural changes. In
-order to ease migration from Icinga 1.x,
-Icinga 2 ships its own config migration script.
+The Icinga 2 configuration format introduces plenty of behavioural changes.
 
 ### <a id="configuration-migration-script"></a> Configuration Migration Script
 
-In order to migrate existing configuration in Icinga 1.x format
-the Icinga CLI as part of the Icinga Web 2 project will provide
-a conversion module.
+In order to migrate existing configuration in Icinga 1.x format the Icinga CLI
+as part of the Icinga Web 2 project will provide a configuration migration module.
 
-Due to the complexity of the Icinga 1.x configuration format the migration
-script might not currently work for all use cases.
-
-The migration script tries to preserve your existing template structure and
-adds new templates where appropriate. However, the original file structure is
-not preserved.
-
-The migration script uses templates from the Icinga Template Library where
-possible.
+Details can be found in [https://dev.icinga.org/issues/5929].
 
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
