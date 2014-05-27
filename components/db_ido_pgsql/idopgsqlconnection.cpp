@@ -96,8 +96,7 @@ void IdoPgsqlConnection::Pause(void)
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogCritical, "db_ido_pgsql", "Exception during database operation: '" + ErrorInformation(exp) + "'");
-	Log(LogDebug, "db_ido_pgsql", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogWarning, "db_ido_pgsql", "Exception during database operation: " + DiagnosticInformation(exp));
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 

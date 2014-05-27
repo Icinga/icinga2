@@ -153,11 +153,3 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr)
 	return boost::diagnostic_information(eptr);
 }
 
-String icinga::ErrorInformation(boost::exception_ptr eptr)
-{
-	try {
-		boost::rethrow_exception(eptr);
-	} catch (const std::exception& ex) {
-		return ex.what();
-	}
-}
