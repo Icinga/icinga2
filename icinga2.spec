@@ -245,6 +245,11 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
  -DBoost_NO_SYSTEM_PATHS=TRUE \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
+
+%if 0%{?fedora}
+CMAKE_OPTS="$CMAKE_OPTS -DUSE_SYSTEMD=ON"
+%endif
+
 %endif
 %endif
 
@@ -294,7 +299,11 @@ exit 0
 %else
 # rhel
 
+%if 0%{?el5}{?el6}
 /sbin/chkconfig --add %{name}
+%else
+%systemd_post %{name}.service
+%endif
 
 if [ ${1:-0} -eq 1 ]
 then
@@ -324,9 +333,13 @@ exit 0
 %else
 # rhel
 
+%if 0%{?el5}{?el6}
 if [ "$1" -ge  "1" ]; then
 	/sbin/service %{name} condrestart >/dev/null 2>&1 || :
 fi
+%else
+%systemd_postun_with_restart %{name}.service
+%endif
 
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove enabled features
@@ -350,10 +363,14 @@ exit 0
 %else
 # rhel
 
+%if 0%{?el5}{?el6}
 if [ "$1" = "0" ]; then
 	/sbin/service %{name} stop > /dev/null 2>&1 || :
 	/sbin/chkconfig --del %{name} || :
 fi
+%else
+%systemd_preun %{name}.service
+%endif
 
 exit 0
 
