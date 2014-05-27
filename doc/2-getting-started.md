@@ -955,7 +955,7 @@ safely reload the Icinga 2 daemon.
 > **Note**
 >
 > The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
-> which will validate the configuration in a seperate process and not stop
+> which will validate the configuration in a separate process and not stop
 > the other events like check execution, notifications, etc.
 
 
