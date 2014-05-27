@@ -282,9 +282,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable default features
-	%{_sbindir}/icinga2-enable-feature checker
-	%{_sbindir}/icinga2-enable-feature notification
-	%{_sbindir}/icinga2-enable-feature mainlog
+	%{_sbindir}/icinga2-enable-feature checker notification mainlog
 fi
 
 exit 0
@@ -311,9 +309,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable default features
-	%{_sbindir}/icinga2-enable-feature checker
-	%{_sbindir}/icinga2-enable-feature notification
-	%{_sbindir}/icinga2-enable-feature mainlog
+	%{_sbindir}/icinga2-enable-feature checker notification mainlog
 fi
 
 exit 0
@@ -376,9 +372,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
         # initial installation, enable features
-        %{_sbindir}/icinga2-enable-feature statusdata
-        %{_sbindir}/icinga2-enable-feature compatlog
-        %{_sbindir}/icinga2-enable-feature command
+        %{_sbindir}/icinga2-enable-feature statusdata compatlog command
 fi
 
 exit 0

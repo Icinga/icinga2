@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh
 ICINGA2CONFDIR=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2
 
 TOOL=$(basename -- $0)

@@ -37,10 +37,7 @@ is_fresh_install()
 enable_features_for_classic() {
     if is_fresh_install $@; then
         echo "enabling icinga2 features for classicui"
-
-        for feature in compatlog statusdata command; do
-            icinga2-enable-feature $feature
-        done
+        icinga2-enable-feature compatlog statusdata command
 
         echo "reloading icinga2"
         [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
