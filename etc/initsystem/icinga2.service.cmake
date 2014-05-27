@@ -1,5 +1,5 @@
 [Unit]
-Description=Icinga host/service/network monitoring system
+Description=Host/service/network monitoring system
 After=syslog.target postgresql.service mariadb.service
 
 [Service]
