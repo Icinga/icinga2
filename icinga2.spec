@@ -435,7 +435,10 @@ exit 0
 %files bin
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
+%if 0%{?el5}%{?el6}%{?opensuse_version}
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
+%else
+%attr(755,-,0) %{_unitdir}/%{name}.service
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d/hosts
