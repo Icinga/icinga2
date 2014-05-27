@@ -4,6 +4,15 @@ Please check doc/1-about.md.
 
 ## What's New
 
+### What's New in Version 2.0.0 Beta 1
+
+Lots of things. Please read doc/1-about.md - "Icinga 2 in a nutshell"
+
+#### Changes
+
+* Updated sample configuration for final release.
+
+
 ### What's New in Version 0.0.11
 
 * Redesigned cluster stack. #6192
