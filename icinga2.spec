@@ -439,6 +439,7 @@ exit 0
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %else
 %attr(755,-,0) %{_unitdir}/%{name}.service
+%endif
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d/hosts
