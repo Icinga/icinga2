@@ -978,19 +978,25 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	return 0;
 }
 
+String Utility::GetHostName(void)
+{
+	char name[255];
+
+	if (gethostname(name, sizeof(name)) < 0)
+		return "localhost";
+
+	return name;
+}
+
 /**
  * Returns the fully-qualified domain name for the host
  * we're running on.
  *
  * @returns The FQDN.
  */
-String Utility::GetHostName(void)
+String Utility::GetFQDN(void)
 {
-	char name[255];
-
-	if (gethostname(name, sizeof(name)) < 0) {
-		return "localhost";
-	}
+	String hostname = GetHostName();
 
 	addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
@@ -999,18 +1005,20 @@ String Utility::GetHostName(void)
 	hints.ai_flags = AI_CANONNAME;
 
 	addrinfo *result;
-	int rc = getaddrinfo(name, NULL, &hints, &result);
+	int rc = getaddrinfo(hostname.CStr(), NULL, &hints, &result);
 
 	if (rc < 0)
 		result = NULL;
 
 	String canonicalName;
 
-	if (result && strcmp(result->ai_canonname, "localhost") != 0) {
-		canonicalName = result->ai_canonname;
+	if (result) {
+		if (strcmp(result->ai_canonname, "localhost") != 0)
+			canonicalName = result->ai_canonname;
+
 		freeaddrinfo(result);
 	} else {
-		canonicalName = name;
+		canonicalName = hostname;
 	}
 
 	return canonicalName;

@@ -120,6 +120,7 @@ public:
 	static int Random(void);
 
 	static String GetHostName(void);
+	static String GetFQDN(void);
 
 	static tm LocalTime(time_t ts);
 
