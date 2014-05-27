@@ -45,7 +45,7 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptVariable::Set("EnableHostChecks", true);
 	ScriptVariable::Set("EnableServiceChecks", true);
 	ScriptVariable::Set("EnablePerfdata", true);
-	ScriptVariable::Set("NodeName", Utility::GetHostName());
+	ScriptVariable::Set("NodeName", Utility::GetFQDN());
 }
 
 REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);

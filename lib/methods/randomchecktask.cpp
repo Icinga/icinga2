@@ -34,7 +34,7 @@ REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
 {
 	String output = "Hello from ";
-	output += Utility::GetHostName();
+	output += Utility::GetFQDN();
 
 	Dictionary::Ptr perfdata = make_shared<Dictionary>();
 	perfdata->Set("time", Convert::ToDouble(Utility::GetTime()));
