@@ -285,6 +285,10 @@ void Checkable::RemoveExpiredDowntimes(void)
 	}
 
 	BOOST_FOREACH(const String& id, expiredDowntimes) {
+		/* override config owner to clear expired downtimes once */
+		Downtime::Ptr downtime = GetDowntimeByID(id);
+		downtime->SetConfigOwner(Empty);
+
 		RemoveDowntime(id, false);
 	}
 }
