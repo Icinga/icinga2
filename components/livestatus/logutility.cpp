@@ -68,7 +68,7 @@ void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, 
 
 	stream.close();
 
-	Log(LogDebug, "livestatus", "Indexing log file: '" + path + "' with timestamp start: '" + Convert::ToString(ts_start) + "'.");
+	Log(LogDebug, "LivestatusListener/LogUtility", "Indexing log file: '" + path + "' with timestamp start: '" + Convert::ToString(ts_start) + "'.");
 
 	index[ts_start] = path;
 }
@@ -104,7 +104,7 @@ void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *ta
 
 			/* no attributes available - invalid log line */
 			if (!log_entry_attrs) {
-				Log(LogDebug, "livestatus", "Skipping invalid log line: '" + line + "'.");
+				Log(LogDebug, "LivestatusListener/LogUtility", "Skipping invalid log line: '" + line + "'.");
 				continue;
 			}
 
@@ -127,7 +127,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
          */
         unsigned long time = atoi(text.SubStr(1, 11).CStr());
 
-        Log(LogDebug, "livestatus", "Processing log line: '" + text + "'.");
+        Log(LogDebug, "LivestatusListener/LogUtility", "Processing log line: '" + text + "'.");
         bag->Set("time", time);
 
         size_t colon = text.FindFirstOf(':');

@@ -65,7 +65,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			boost::smatch what;
 			bool ret = boost::regex_search(operand.GetData(), what, expr);
 
-			//Log(LogDebug, "livestatus", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
+			//Log(LogDebug, "LivestatusListener/AttributeFilter", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
 			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
 
 			return ret;
@@ -77,7 +77,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			boost::smatch what;
 			bool ret = boost::regex_search(operand.GetData(), what, expr);
 
-			//Log(LogDebug, "livestatus", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
+			//Log(LogDebug, "LivestatusListener/AttributeFilter", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
 			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
 
 			return ret;

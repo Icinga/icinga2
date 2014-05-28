@@ -74,7 +74,7 @@ void LivestatusListener::Start(void)
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
-		Log(LogInformation, "livestatus", "Created tcp socket listening on host '" + GetBindHost() + "' port '" + GetBindPort() + "'.");
+		Log(LogInformation, "LivestatusListener", "Created tcp socket listening on host '" + GetBindHost() + "' port '" + GetBindPort() + "'.");
 	}
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
@@ -93,10 +93,10 @@ void LivestatusListener::Start(void)
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
-		Log(LogInformation, "livestatus", "Created unix socket in '" + GetSocketPath() + "'.");
+		Log(LogInformation, "LivestatusListener", "Created unix socket in '" + GetSocketPath() + "'.");
 #else
 		/* no unix sockets on windows */
-		Log(LogCritical, "livestatus", "Unix sockets are not supported on Windows.");
+		Log(LogCritical, "LivestatusListener", "Unix sockets are not supported on Windows.");
 		return;
 #endif
 	}
@@ -123,7 +123,7 @@ void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		Socket::Ptr client = server->Accept();
 
-		Log(LogNotice, "livestatus", "Client connected");
+		Log(LogNotice, "LivestatusListener", "Client connected");
 
 		Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client));
 	}

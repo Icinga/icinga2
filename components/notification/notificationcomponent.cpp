@@ -105,7 +105,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 		}
 
 		try {
-			Log(LogInformation, "notification", "Sending reminder notification for object '" + checkable->GetName() + "'");
+			Log(LogInformation, "NotificationComponent", "Sending reminder notification for object '" + checkable->GetName() + "'");
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false);
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
@@ -113,7 +113,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 			       << GetName() << "': " << DiagnosticInformation(ex);
 			String message = msgbuf.str();
 
-			Log(LogWarning, "icinga", message);
+			Log(LogWarning, "NotificationComponent", message);
 		}
 	}
 }

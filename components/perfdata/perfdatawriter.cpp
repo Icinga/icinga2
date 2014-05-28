@@ -122,7 +122,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 	output.open(temp_path.CStr());
 
 	if (!output.good())
-		Log(LogWarning, "icinga", "Could not open perfdata file '" + temp_path + "' for writing. Perfdata will be lost.");
+		Log(LogWarning, "PerfdataWriter", "Could not open perfdata file '" + temp_path + "' for writing. Perfdata will be lost.");
 }
 
 void PerfdataWriter::RotationTimerHandler(void)

@@ -62,7 +62,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 	BOOST_FOREACH(const String& line, lines) {
 		msg += line + "\n";
 	}
-	Log(LogDebug, "livestatus", msg);
+	Log(LogDebug, "LivestatusListener/Query", msg);
 
 	m_CompatLogPath = compat_log_path;
 
@@ -202,10 +202,10 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 
 			if (header == "Or" || header == "StatsOr") {
 				filter = make_shared<OrFilter>();
-				Log(LogDebug, "livestatus", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+				Log(LogDebug, "LivestatusListener/Query", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
 			} else {
 				filter = make_shared<AndFilter>();
-				Log(LogDebug, "livestatus", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+				Log(LogDebug, "LivestatusListener/Query", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
 			}
 
 			if (num > deq.size()) {
@@ -217,7 +217,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 
 			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
-				Log(LogDebug, "livestatus", "Add " +  Convert::ToString(num) + " filter.");
+				Log(LogDebug, "LivestatusListener/Query", "Add " +  Convert::ToString(num) + " filter.");
 				deq.pop_back();
 				if (&deq == &stats)
 					aggregators.pop_back();
@@ -340,7 +340,7 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 		}
 	}
 
-	Log(LogDebug, "livestatus", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
+	Log(LogDebug, "LivestatusListener/Query", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
 
 	return filter;
 }
@@ -393,7 +393,7 @@ void Query::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
 
 void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-	Log(LogInformation, "livestatus", "Table: " + m_Table);
+	Log(LogInformation, "LivestatusListener/Query", "Table: " + m_Table);
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -498,14 +498,14 @@ void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 		l_ExternalCommands++;
 	}
 
-	Log(LogInformation, "livestatus", "Executing command: " + m_Command);
+	Log(LogInformation, "LivestatusListener/Query", "Executing command: " + m_Command);
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
 }
 
 void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
-	Log(LogDebug, "livestatus", "ERROR: Code: '" + Convert::ToString(m_ErrorCode) + "' Message: '" + m_ErrorMessage + "'.");
+	Log(LogDebug, "LivestatusListener/Query", "ERROR: Code: '" + Convert::ToString(m_ErrorCode) + "' Message: '" + m_ErrorMessage + "'.");
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 
@@ -521,7 +521,7 @@ void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data
 			std::ostringstream info;
 			info << "Exception thrown while writing to the livestatus socket: " << std::endl
 			     << DiagnosticInformation(ex);
-			Log(LogCritical, "livestatus", info.str());
+			Log(LogCritical, "LivestatusListener/Query", info.str());
 		}
 	}
 }
@@ -541,14 +541,14 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 		std::ostringstream info;
 		info << "Exception thrown while writing to the livestatus socket: " << std::endl
 		     << DiagnosticInformation(ex);
-		Log(LogCritical, "livestatus", info.str());
+		Log(LogCritical, "LivestatusListener/Query", info.str());
 	}
 }
 
 bool Query::Execute(const Stream::Ptr& stream)
 {
 	try {
-		Log(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
+		Log(LogInformation, "LivestatusListener/Query", "Executing livestatus query: " + m_Verb);
 
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);
