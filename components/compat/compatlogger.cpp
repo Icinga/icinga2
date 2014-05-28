@@ -321,7 +321,7 @@ void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingStat
 			flapping_state_str = "DISABLED";
 			break;
 		default:
-			Log(LogCritical, "compat", "Unknown flapping state: " + Convert::ToString(flapping_state));
+			Log(LogCritical, "CompatLogger", "Unknown flapping state: " + Convert::ToString(flapping_state));
 			return;
 	}
 
@@ -434,7 +434,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		if (rotate) {
 			String archiveFile = GetLogDir() + "/archives/icinga-" + Utility::FormatDateTime("%m-%d-%Y-%H", Utility::GetTime()) + ".log";
 
-			Log(LogNotice, "compat", "Rotating compat log file '" + tempFile + "' -> '" + archiveFile + "'");
+			Log(LogNotice, "CompatLogger", "Rotating compat log file '" + tempFile + "' -> '" + archiveFile + "'");
 			(void) rename(tempFile.CStr(), archiveFile.CStr());
 		}
 	}
@@ -442,7 +442,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	m_OutputFile.open(tempFile.CStr(), std::ofstream::app);
 
 	if (!m_OutputFile.good()) {
-		Log(LogWarning, "icinga", "Could not open compat log file '" + tempFile + "' for writing. Log output will be lost.");
+		Log(LogWarning, "CompatLogger", "Could not open compat log file '" + tempFile + "' for writing. Log output will be lost.");
 
 		return;
 	}
@@ -536,7 +536,7 @@ void CompatLogger::ScheduleNextRotation(void)
 
 	time_t ts = mktime(&tmthen);
 
-	Log(LogNotice, "compat", "Rescheduling rotation timer for compat log '"
+	Log(LogNotice, "CompatLogger", "Rescheduling rotation timer for compat log '"
 	    + GetName() + "' to '" + Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", ts) + "'");
 	m_RotationTimer->Reschedule(ts);
 }

@@ -94,7 +94,7 @@ void IdoMysqlConnection::Pause(void)
 
 void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogWarning, "db_ido_mysql", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogWarning, "IdoMysqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -228,7 +228,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 		std::ostringstream msgbuf;
 		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
-		Log(LogInformation, "db_ido_mysql", msgbuf.str());
+		Log(LogInformation, "IdoMysqlConnection", msgbuf.str());
 
 		/* set session time zone to utc */
 		Query("SET SESSION TIME_ZONE='+00:00'");
@@ -268,7 +268,7 @@ void IdoMysqlConnection::Reconnect(void)
 	/* deactivate all deleted configuration objects */
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
 		if (dbobj->GetObject() == NULL) {
-			Log(LogNotice, "db_ido", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
+			Log(LogNotice, "IdoMysqlConnection", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
 			    "' name2: '" + Convert::ToString(dbobj->GetName2() + "'.")));
 			DeactivateObject(dbobj);
 		}
@@ -284,7 +284,7 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
 
-	Log(LogDebug, "db_ido_mysql", "Query: " + query);
+	Log(LogDebug, "IdoMysqlConnection", "Query: " + query);
 
 	if (mysql_query(&m_Connection, query.CStr()) != 0)
 		BOOST_THROW_EXCEPTION(
@@ -619,7 +619,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name
 		SetNotificationInsertID(query.NotificationObject, GetLastInsertID());
-		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetLastInsertID())));
+		Log(LogDebug, "IdoMysqlConnection", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetLastInsertID())));
 	}
 }
 

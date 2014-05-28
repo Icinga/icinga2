@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/statustable.hpp"
-#include "livestatus/listener.hpp"
+#include "livestatus/livestatuslistener.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
@@ -152,12 +152,12 @@ Value StatusTable::ServiceChecksRateAccessor(const Value&)
 
 Value StatusTable::ExternalCommandsAccessor(const Value&)
 {
-	return Query::GetExternalCommands();
+	return LivestatusQuery::GetExternalCommands();
 }
 
 Value StatusTable::ExternalCommandsRateAccessor(const Value&)
 {
-	return (Query::GetExternalCommands() / (Utility::GetTime() - Application::GetStartTime()));
+	return (LivestatusQuery::GetExternalCommands() / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::NagiosPidAccessor(const Value&)

@@ -184,7 +184,7 @@ void HostDbObject::OnConfigUpdate(void)
 		if (!parent)
 			continue;
 
-		Log(LogDebug, "db_ido", "host parents: " + parent->GetName());
+		Log(LogDebug, "HostDbObject", "host parents: " + parent->GetName());
 
 		/* parents: host_id, parent_host_object_id */
 		Dictionary::Ptr fields1 = make_shared<Dictionary>();
@@ -201,19 +201,19 @@ void HostDbObject::OnConfigUpdate(void)
 	}
 
 	/* host dependencies */
-	Log(LogDebug, "db_ido", "host dependencies for '" + host->GetName() + "'");
+	Log(LogDebug, "HostDbObject", "host dependencies for '" + host->GetName() + "'");
 
 	BOOST_FOREACH(const Dependency::Ptr& dep, host->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
-			Log(LogDebug, "db_ido", "Missing parent for dependency '" + dep->GetName() + "'.");
+			Log(LogDebug, "HostDbObject", "Missing parent for dependency '" + dep->GetName() + "'.");
 			continue;
 		}
 
 		int state_filter = dep->GetStateFilter();
 
-		Log(LogDebug, "db_ido", "parent host: " + parent->GetName());
+		Log(LogDebug, "HostDbObject", "parent host: " + parent->GetName());
 
 		Dictionary::Ptr fields2 = make_shared<Dictionary>();
 		fields2->Set("host_object_id", parent);
@@ -232,10 +232,10 @@ void HostDbObject::OnConfigUpdate(void)
 		OnQuery(query2);
 	}
 
-	Log(LogDebug, "db_ido", "host contacts: " + host->GetName());
+	Log(LogDebug, "HostDbObject", "host contacts: " + host->GetName());
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(host)) {
-		Log(LogDebug, "db_ido", "host contacts: " + user->GetName());
+		Log(LogDebug, "HostDbObject", "host contacts: " + user->GetName());
 
 		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
 		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
@@ -250,10 +250,10 @@ void HostDbObject::OnConfigUpdate(void)
 		OnQuery(query_contact);
 	}
 
-	Log(LogDebug, "db_ido", "host contactgroups: " + host->GetName());
+	Log(LogDebug, "HostDbObject", "host contactgroups: " + host->GetName());
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(host)) {
-		Log(LogDebug, "db_ido", "host contactgroups: " + usergroup->GetName());
+		Log(LogDebug, "HostDbObject", "host contactgroups: " + usergroup->GetName());
 
 		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
 		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));

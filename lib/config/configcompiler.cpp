@@ -200,7 +200,7 @@ void ConfigCompiler::CompileFile(const String& path, const String& zone)
 			<< boost::errinfo_errno(errno)
 			<< boost::errinfo_file_name(path));
 
-	Log(LogInformation, "config", "Compiling config file: " + path);
+	Log(LogInformation, "ConfigCompiler", "Compiling config file: " + path);
 
 	return CompileStream(path, &stream, zone);
 }
@@ -225,7 +225,7 @@ void ConfigCompiler::CompileText(const String& path, const String& text, const S
  */
 void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 {
-	Log(LogInformation, "config", "Adding include search dir: " + dir);
+	Log(LogInformation, "ConfigCompiler", "Adding include search dir: " + dir);
 
 	m_IncludeSearchDirs.push_back(dir);
 }

@@ -177,17 +177,17 @@ void ServiceDbObject::OnConfigUpdate(void)
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
 	/* service dependencies */
-	Log(LogDebug, "db_ido", "service dependencies for '" + service->GetName() + "'");
+	Log(LogDebug, "ServiceDbObject", "service dependencies for '" + service->GetName() + "'");
 
 	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
-			Log(LogDebug, "db_ido", "Missing parent for dependency '" + dep->GetName() + "'.");
+			Log(LogDebug, "ServiceDbObject", "Missing parent for dependency '" + dep->GetName() + "'.");
 			continue;
 		}
 
-		Log(LogDebug, "db_ido", "service parents: " + parent->GetName());
+		Log(LogDebug, "ServiceDbObject", "service parents: " + parent->GetName());
 
 		int state_filter = dep->GetStateFilter();
 
@@ -212,10 +212,10 @@ void ServiceDbObject::OnConfigUpdate(void)
 	}
 
 	/* service contacts, contactgroups */
-	Log(LogDebug, "db_ido", "service contacts: " + service->GetName());
+	Log(LogDebug, "ServiceDbObject", "service contacts: " + service->GetName());
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
-		Log(LogDebug, "db_ido", "service contacts: " + user->GetName());
+		Log(LogDebug, "ServiceDbObject", "service contacts: " + user->GetName());
 
 		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
 		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
@@ -230,10 +230,10 @@ void ServiceDbObject::OnConfigUpdate(void)
 		OnQuery(query_contact);
 	}
 
-	Log(LogDebug, "db_ido", "service contactgroups: " + service->GetName());
+	Log(LogDebug, "ServiceDbObject", "service contactgroups: " + service->GetName());
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
-		Log(LogDebug, "db_ido", "service contactgroups: " + usergroup->GetName());
+		Log(LogDebug, "ServiceDbObject", "service contactgroups: " + usergroup->GetName());
 
 		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
 		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));

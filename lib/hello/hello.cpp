@@ -32,7 +32,7 @@ REGISTER_TYPE(Hello);
  */
 int Hello::Main(void)
 {
-	Log(LogInformation, "hello", "Hello World!");
+	Log(LogInformation, "Hello", "Hello World!");
 
 	return 0;
 }

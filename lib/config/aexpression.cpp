@@ -52,7 +52,7 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 		if (m_Operator != &AExpression::OpLiteral) {
 			std::ostringstream msgbuf;
 			ShowCodeFragment(msgbuf, m_DebugInfo, false);
-			Log(LogDebug, "config", "Executing:\n" + msgbuf.str());
+			Log(LogDebug, "AExpression", "Executing:\n" + msgbuf.str());
 		}
 #endif /* _DEBUG */
 

@@ -32,7 +32,7 @@ Value API::GetAnswerToEverything(const Dictionary::Ptr& params)
 	if (params)
 		text = params->Get("text");
 
-	Log(LogInformation, "icinga", "Hello from the Icinga 2 API: " + text);
+	Log(LogInformation, "API", "Hello from the Icinga 2 API: " + text);
 
 	return 42;
 }

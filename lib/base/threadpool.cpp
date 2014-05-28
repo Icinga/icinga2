@@ -136,9 +136,9 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 			msgbuf << "Exception thrown in event handler: " << std::endl
 			       << DiagnosticInformation(ex);
 
-			Log(LogCritical, "base", msgbuf.str());
+			Log(LogCritical, "ThreadPool", msgbuf.str());
 		} catch (...) {
-			Log(LogCritical, "base", "Exception of unknown type thrown in event handler.");
+			Log(LogCritical, "ThreadPool", "Exception of unknown type thrown in event handler.");
 		}
 
 		double et = Utility::GetTime();
@@ -178,7 +178,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 			msgbuf << "Event call took " << (et - st) << "s";
 #	endif /* RUSAGE_THREAD */
 
-			Log(LogWarning, "base", msgbuf.str());
+			Log(LogWarning, "ThreadPool", msgbuf.str());
 		}
 #endif /* _DEBUG */
 	}
@@ -289,7 +289,7 @@ void ThreadPool::ManagerThreadProc(void)
 				if (tthreads != 0) {
 					std::ostringstream msgbuf;
 					msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
-					Log(LogNotice, "base", msgbuf.str());
+					Log(LogNotice, "ThreadPool", msgbuf.str());
 				}
 
 				for (int i = 0; i < -tthreads; i++)
@@ -319,7 +319,7 @@ void ThreadPool::ManagerThreadProc(void)
 				<< (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
 				<< "; Threads: " << total_alive
 				<< "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
-			Log(LogNotice, "base", msgbuf.str());
+			Log(LogNotice, "ThreadPool", msgbuf.str());
 		}
 	}
 }
@@ -331,7 +331,7 @@ void ThreadPool::Queue::SpawnWorker(boost::thread_group& group)
 {
 	for (size_t i = 0; i < sizeof(Threads) / sizeof(Threads[0]); i++) {
 		if (Threads[i].State == ThreadDead) {
-			Log(LogDebug, "base", "Spawning worker thread.");
+			Log(LogDebug, "ThreadPool", "Spawning worker thread.");
 
 			Threads[i] = WorkerThread(ThreadIdle);
 			Threads[i].Thread = group.create_thread(boost::bind(&ThreadPool::WorkerThread::ThreadProc, boost::ref(Threads[i]), boost::ref(*this)));
@@ -348,7 +348,7 @@ void ThreadPool::Queue::KillWorker(boost::thread_group& group)
 {
 	for (size_t i = 0; i < sizeof(Threads) / sizeof(Threads[0]); i++) {
 		if (Threads[i].State == ThreadIdle && !Threads[i].Zombie) {
-			Log(LogDebug, "base", "Killing worker thread.");
+			Log(LogDebug, "ThreadPool", "Killing worker thread.");
 
 			group.remove_thread(Threads[i].Thread);
 			Threads[i].Thread->detach();

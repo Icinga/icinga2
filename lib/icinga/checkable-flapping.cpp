@@ -80,7 +80,7 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 	if (negative < 0)
 		negative = 0;
 
-//	Log(LogDebug, "icinga", "Flapping counter for '" + GetName() + "' is positive=" + Convert::ToString(positive) + ", negative=" + Convert::ToString(negative));
+//	Log(LogDebug, "Checkable", "Flapping counter for '" + GetName() + "' is positive=" + Convert::ToString(positive) + ", negative=" + Convert::ToString(negative));
 
 	SetFlappingLastChange(now);
 	SetFlappingPositive(positive);

@@ -72,7 +72,7 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 			configChange = true;
 
 			String path = configDir + "/" + kv.first;
-			Log(LogInformation, "remote", "Updating configuration file: " + path);
+			Log(LogInformation, "ApiListener", "Updating configuration file: " + path);
 
 			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 			fp << kv.second;
@@ -101,7 +101,7 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 
 void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 {
-	Log(LogInformation, "remote", "Syncing zone: " + zone->GetName());
+	Log(LogInformation, "ApiListener", "Syncing zone: " + zone->GetName());
 
 	String newDir = Application::GetZonesDir() + "/" + zone->GetName();
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
@@ -187,7 +187,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 		Zone::Ptr zone = Zone::GetByName(kv.first);
 
 		if (!zone) {
-			Log(LogWarning, "remote", "Ignoring config update for unknown zone: " + kv.first);
+			Log(LogWarning, "ApiListener", "Ignoring config update for unknown zone: " + kv.first);
 			continue;
 		}
 
@@ -212,7 +212,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 	}
 
 	if (configChange) {
-		Log(LogInformation, "remote", "Restarting after configuration change.");
+		Log(LogInformation, "ApiListener", "Restarting after configuration change.");
 		Application::RequestRestart();
 	}
 

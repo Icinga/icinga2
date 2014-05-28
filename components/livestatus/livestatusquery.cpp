@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/query.hpp"
+#include "livestatus/livestatusquery.hpp"
 #include "livestatus/countaggregator.hpp"
 #include "livestatus/sumaggregator.hpp"
 #include "livestatus/minaggregator.hpp"
@@ -47,7 +47,7 @@ using namespace icinga;
 static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
 
-Query::Query(const std::vector<String>& lines, const String& compat_log_path)
+LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true),
 	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
@@ -62,7 +62,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 	BOOST_FOREACH(const String& line, lines) {
 		msg += line + "\n";
 	}
-	Log(LogDebug, "livestatus", msg);
+	Log(LogDebug, "LivestatusQuery", msg);
 
 	m_CompatLogPath = compat_log_path;
 
@@ -202,10 +202,10 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 
 			if (header == "Or" || header == "StatsOr") {
 				filter = make_shared<OrFilter>();
-				Log(LogDebug, "livestatus", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+				Log(LogDebug, "LivestatusQuery", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
 			} else {
 				filter = make_shared<AndFilter>();
-				Log(LogDebug, "livestatus", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+				Log(LogDebug, "LivestatusQuery", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
 			}
 
 			if (num > deq.size()) {
@@ -217,7 +217,7 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 
 			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
-				Log(LogDebug, "livestatus", "Add " +  Convert::ToString(num) + " filter.");
+				Log(LogDebug, "LivestatusQuery", "Add " +  Convert::ToString(num) + " filter.");
 				deq.pop_back();
 				if (&deq == &stats)
 					aggregators.pop_back();
@@ -269,14 +269,14 @@ Query::Query(const std::vector<String>& lines, const String& compat_log_path)
 	m_Aggregators.swap(aggregators);
 }
 
-int Query::GetExternalCommands(void)
+int LivestatusQuery::GetExternalCommands(void)
 {
 	boost::mutex::scoped_lock lock(l_QueryMutex);
 
 	return l_ExternalCommands;
 }
 
-Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsigned long& until)
+Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& from, unsigned long& until)
 {
 	/*
 	 * time >= 1382696656
@@ -340,12 +340,12 @@ Filter::Ptr Query::ParseFilter(const String& params, unsigned long& from, unsign
 		}
 	}
 
-	Log(LogDebug, "livestatus", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
+	Log(LogDebug, "LivestatusQuery", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
 
 	return filter;
 }
 
-void Query::PrintResultSet(std::ostream& fp, const Array::Ptr& rs)
+void LivestatusQuery::PrintResultSet(std::ostream& fp, const Array::Ptr& rs)
 {
 	if (m_OutputFormat == "csv") {
 		ObjectLock olock(rs);
@@ -373,7 +373,7 @@ void Query::PrintResultSet(std::ostream& fp, const Array::Ptr& rs)
 	}
 }
 
-void Query::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
+void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
 {
 	bool first = true;
 
@@ -391,9 +391,9 @@ void Query::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
 	}
 }
 
-void Query::ExecuteGetHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-	Log(LogInformation, "livestatus", "Table: " + m_Table);
+	Log(LogInformation, "LivestatusQuery", "Table: " + m_Table);
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -490,7 +490,7 @@ void Query::ExecuteGetHelper(const Stream::Ptr& stream)
 	SendResponse(stream, LivestatusErrorOK, result.str());
 }
 
-void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 {
 	{
 		boost::mutex::scoped_lock lock(l_QueryMutex);
@@ -498,18 +498,18 @@ void Query::ExecuteCommandHelper(const Stream::Ptr& stream)
 		l_ExternalCommands++;
 	}
 
-	Log(LogInformation, "livestatus", "Executing command: " + m_Command);
+	Log(LogInformation, "LivestatusQuery", "Executing command: " + m_Command);
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
 }
 
-void Query::ExecuteErrorHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
-	Log(LogDebug, "livestatus", "ERROR: Code: '" + Convert::ToString(m_ErrorCode) + "' Message: '" + m_ErrorMessage + "'.");
+	Log(LogDebug, "LivestatusQuery", "ERROR: Code: '" + Convert::ToString(m_ErrorCode) + "' Message: '" + m_ErrorMessage + "'.");
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 
-void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data)
+void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const String& data)
 {
 	if (m_ResponseHeader == "fixed16")
 		PrintFixed16(stream, code, data);
@@ -521,12 +521,12 @@ void Query::SendResponse(const Stream::Ptr& stream, int code, const String& data
 			std::ostringstream info;
 			info << "Exception thrown while writing to the livestatus socket: " << std::endl
 			     << DiagnosticInformation(ex);
-			Log(LogCritical, "livestatus", info.str());
+			Log(LogCritical, "LivestatusQuery", info.str());
 		}
 	}
 }
 
-void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data)
+void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const String& data)
 {
 	ASSERT(code >= 100 && code <= 999);
 
@@ -541,14 +541,14 @@ void Query::PrintFixed16(const Stream::Ptr& stream, int code, const String& data
 		std::ostringstream info;
 		info << "Exception thrown while writing to the livestatus socket: " << std::endl
 		     << DiagnosticInformation(ex);
-		Log(LogCritical, "livestatus", info.str());
+		Log(LogCritical, "LivestatusQuery", info.str());
 	}
 }
 
-bool Query::Execute(const Stream::Ptr& stream)
+bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 {
 	try {
-		Log(LogInformation, "livestatus", "Executing livestatus query: " + m_Verb);
+		Log(LogInformation, "LivestatusQuery", "Executing livestatus query: " + m_Verb);
 
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);

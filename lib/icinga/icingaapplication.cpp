@@ -82,7 +82,7 @@ Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& per
  */
 int IcingaApplication::Main(void)
 {
-	Log(LogDebug, "icinga", "In IcingaApplication::Main()");
+	Log(LogDebug, "IcingaApplication", "In IcingaApplication::Main()");
 
 	/* periodically dump the program state */
 	l_RetentionTimer = make_shared<Timer>();
@@ -92,7 +92,7 @@ int IcingaApplication::Main(void)
 
 	RunEventLoop();
 
-	Log(LogInformation, "icinga", "Icinga has shut down.");
+	Log(LogInformation, "IcingaApplication", "Icinga has shut down.");
 
 	return EXIT_SUCCESS;
 }

@@ -63,7 +63,7 @@ std::set<Dependency::Ptr> Checkable::GetReverseDependencies(void) const
 bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
 {
 	if (rstack > 20) {
-		Log(LogWarning, "icinga", "Too many nested dependencies for service '" + GetName() + "': Dependency failed.");
+		Log(LogWarning, "Checkable", "Too many nested dependencies for service '" + GetName() + "': Dependency failed.");
 
 		return false;
 	}

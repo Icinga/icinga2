@@ -77,16 +77,16 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	try {
 		if (m_Stream) {
 			m_Stream->Write("\n", 1);
-			Log(LogNotice, "perfdata", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+			Log(LogNotice, "GraphiteWriter", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 			return;
 		}
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "perfdata", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");
+		Log(LogWarning, "GraphiteWriter", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");
 	}
 
 	TcpSocket::Ptr socket = make_shared<TcpSocket>();
 
-	Log(LogNotice, "perfdata", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+	Log(LogNotice, "GraphiteWriter", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 	socket->Connect(GetHost(), GetPort());
 
 	m_Stream = make_shared<NetworkStream>(socket);
@@ -163,7 +163,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	msgbuf << prefix << "." << name << " " << value << " " << static_cast<long>(Utility::GetTime()) << "\n";
 
 	String metric = msgbuf.str();
-	Log(LogDebug, "perfdata", "GraphiteWriter: Add to metric list:'" + metric + "'.");
+	Log(LogDebug, "GraphiteWriter", "GraphiteWriter: Add to metric list:'" + metric + "'.");
 
 	ObjectLock olock(this);
 
@@ -177,7 +177,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 		msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
 		       << DiagnosticInformation(ex);
 
-		Log(LogCritical, "perfdata", msgbuf.str());
+		Log(LogCritical, "GraphiteWriter", msgbuf.str());
 
 		m_Stream.reset();
 	}

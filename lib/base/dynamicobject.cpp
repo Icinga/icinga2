@@ -229,7 +229,7 @@ Value DynamicObject::InvokeMethod(const String& method,
 
 void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 {
-	Log(LogInformation, "base", "Dumping program state to file '" + filename + "'");
+	Log(LogInformation, "DynamicObject", "Dumping program state to file '" + filename + "'");
 
 	String tempFilename = filename + ".tmp";
 
@@ -297,7 +297,7 @@ void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 
 	ASSERT(!object->IsActive());
 #ifdef _DEBUG
-	Log(LogDebug, "base", "Restoring object '" + name + "' of type '" + type + "'.");
+	Log(LogDebug, "DynamicObject", "Restoring object '" + name + "' of type '" + type + "'.");
 #endif /* _DEBUG */
 	Dictionary::Ptr update = persistentObject->Get("update");
 	Deserialize(object, update, false, attributeTypes);
@@ -306,7 +306,7 @@ void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 
 void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 {
-	Log(LogInformation, "base", "Restoring program state from file '" + filename + "'");
+	Log(LogInformation, "DynamicObject", "Restoring program state from file '" + filename + "'");
 
 	std::fstream fp;
 	fp.open(filename.CStr(), std::ios_base::in);
@@ -329,7 +329,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	std::ostringstream msgbuf;
 	msgbuf << "Restored " << restored << " objects";
-	Log(LogInformation, "base", msgbuf.str());
+	Log(LogInformation, "DynamicObject", msgbuf.str());
 }
 
 void DynamicObject::StopObjects(void)

@@ -53,13 +53,13 @@ void Demo::DemoTimerHandler(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	if (listener) {
 		listener->RelayMessage(MessageOrigin(), DynamicObject::Ptr(), message, true);
-		Log(LogInformation, "demo", "Sent demo::HelloWorld message");
+		Log(LogInformation, "Demo", "Sent demo::HelloWorld message");
 	}
 }
 
 Value Demo::DemoMessageHandler(const MessageOrigin& origin, const Dictionary::Ptr&)
 {
-	Log(LogInformation, "demo", "Got demo message from '" + origin.FromClient->GetEndpoint()->GetName() + "'");
+	Log(LogInformation, "Demo", "Got demo message from '" + origin.FromClient->GetEndpoint()->GetName() + "'");
 
 	return Empty;
 }

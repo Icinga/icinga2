@@ -161,7 +161,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	ASSERT(!OwnsLock());
 
 #ifdef _DEBUG
-	Log(LogDebug, "base", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
+	Log(LogDebug, "ConfigItem", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
 #endif /* _DEBUG */
 
 	/* Make sure the type is valid. */
@@ -271,7 +271,7 @@ bool ConfigItem::ValidateItems(void)
 
 	ParallelWorkQueue upq;
 
-	Log(LogInformation, "config", "Validating config items (step 1)...");
+	Log(LogInformation, "ConfigItem", "Validating config items (step 1)...");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
@@ -282,7 +282,7 @@ bool ConfigItem::ValidateItems(void)
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	Log(LogInformation, "config", "Committing config items");
+	Log(LogInformation, "ConfigItem", "Committing config items");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second));
@@ -298,7 +298,7 @@ bool ConfigItem::ValidateItems(void)
 			objects.push_back(object);
 	}
 
-	Log(LogInformation, "config", "Triggering OnConfigLoaded signal for config items");
+	Log(LogInformation, "ConfigItem", "Triggering OnConfigLoaded signal for config items");
 
 	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
 		upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, object));
@@ -306,16 +306,16 @@ bool ConfigItem::ValidateItems(void)
 
 	upq.Join();
 
-	Log(LogInformation, "config", "Evaluating 'object' rules (step 1)...");
+	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 1)...");
 	ObjectRule::EvaluateRules(false);
 
-	Log(LogInformation, "config", "Evaluating 'apply' rules...");
+	Log(LogInformation, "ConfigItem", "Evaluating 'apply' rules...");
 	ApplyRule::EvaluateRules(true);
 
-	Log(LogInformation, "config", "Evaluating 'object' rules (step 2)...");
+	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 2)...");
 	ObjectRule::EvaluateRules(true);
 
-	Log(LogInformation, "config", "Validating config items (step 2)...");
+	Log(LogInformation, "ConfigItem", "Validating config items (step 2)...");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
@@ -330,7 +330,7 @@ bool ConfigItem::ValidateItems(void)
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		int count = std::distance(type->GetObjects().first, type->GetObjects().second);
 		if (count > 0)
-			Log(LogInformation, "config", "Checked " + Convert::ToString(count) + " " + type->GetName() + "(s).");
+			Log(LogInformation, "ConfigItem", "Checked " + Convert::ToString(count) + " " + type->GetName() + "(s).");
 	}
 
 	return !ConfigCompilerContext::GetInstance()->HasErrors();
@@ -345,10 +345,10 @@ bool ConfigItem::ActivateItems(void)
 	try {
 		DynamicObject::RestoreObjects(Application::GetStatePath());
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "config", "Failed to restore state file: " + DiagnosticInformation(ex));
+		Log(LogCritical, "ConfigItem", "Failed to restore state file: " + DiagnosticInformation(ex));
 	}
 
-	Log(LogInformation, "config", "Triggering Start signal for config items");
+	Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
 	ParallelWorkQueue upq;
 
@@ -358,7 +358,7 @@ bool ConfigItem::ActivateItems(void)
 				continue;
 
 #ifdef _DEBUG
-			Log(LogDebug, "config", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
+			Log(LogDebug, "ConfigItem", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
 #endif /* _DEBUG */
 			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
 		}
@@ -374,7 +374,7 @@ bool ConfigItem::ActivateItems(void)
 	}
 #endif /* _DEBUG */
 
-	Log(LogInformation, "config", "Activated all objects.");
+	Log(LogInformation, "ConfigItem", "Activated all objects.");
 
 	return true;
 }

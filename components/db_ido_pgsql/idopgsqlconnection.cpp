@@ -96,7 +96,7 @@ void IdoPgsqlConnection::Pause(void)
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogWarning, "db_ido_pgsql", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -232,7 +232,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		std::ostringstream msgbuf;
 		msgbuf << "pgSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
-		Log(LogInformation, "db_ido_pgsql", msgbuf.str());
+		Log(LogInformation, "IdoPgsqlConnection", msgbuf.str());
 
 		/* record connection */
 		Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
@@ -272,7 +272,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* deactivate all deleted configuration objects */
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
 		if (dbobj->GetObject() == NULL) {
-			Log(LogNotice, "db_ido", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
+			Log(LogNotice, "IdoPgsqlConnection", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
 			    "' name2: '" + Convert::ToString(dbobj->GetName2() + "'.")));
 			DeactivateObject(dbobj);
 		}
@@ -288,7 +288,7 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
 
-	Log(LogDebug, "db_ido_pgsql", "Query: " + query);
+	Log(LogDebug, "IdoPgsqlConnection", "Query: " + query);
 
 	PGresult *result = PQexec(m_Connection, query.CStr());
 
@@ -330,7 +330,7 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 
 	std::ostringstream msgbuf;
 	msgbuf << "Sequence Value: " << row->Get("id");
-	Log(LogDebug, "db_ido_pgsql", msgbuf.str());
+	Log(LogDebug, "IdoPgsqlConnection", msgbuf.str());
 
 	return DbReference(Convert::ToLong(row->Get("id")));
 }
@@ -630,7 +630,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name
 		String idField = "notification_id";
 		SetNotificationInsertID(query.NotificationObject, GetSequenceValue(GetTablePrefix() + query.Table, idField));
-		Log(LogDebug, "db_ido", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetSequenceValue(GetTablePrefix() + query.Table, idField))));
+		Log(LogDebug, "IdoPgsqlConnection", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetSequenceValue(GetTablePrefix() + query.Table, idField))));
 	}
 }
 

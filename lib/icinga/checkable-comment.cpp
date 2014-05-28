@@ -166,7 +166,7 @@ Comment::Ptr Checkable::GetCommentByID(const String& id)
 void Checkable::AddCommentsToCache(void)
 {
 #ifdef _DEBUG
-	Log(LogDebug, "icinga", "Updating Checkable comments cache.");
+	Log(LogDebug, "Checkable", "Updating Checkable comments cache.");
 #endif /* _DEBUG */
 
 	Dictionary::Ptr comments = GetComments();
