@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef QUERY_H
-#define QUERY_H
+#ifndef LIVESTATUSQUERY_H
+#define LIVESTATUSQUERY_H
 
 #include "livestatus/filter.hpp"
 #include "livestatus/aggregator.hpp"
@@ -42,12 +42,12 @@ enum LivestatusError
 /**
  * @ingroup livestatus
  */
-class Query : public Object
+class LivestatusQuery : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Query);
+	DECLARE_PTR_TYPEDEFS(LivestatusQuery);
 
-	Query(const std::vector<String>& lines, const String& compat_log_path);
+	LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path);
 
 	bool Execute(const Stream::Ptr& stream);
 
@@ -97,4 +97,4 @@ private:
 
 }
 
-#endif /* QUERY_H */
+#endif /* LIVESTATUSQUERY_H */

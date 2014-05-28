@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/logutility.hpp"
+#include "livestatus/livestatuslogutility.hpp"
 #include "icinga/service.hpp"
 #include "icinga/host.hpp"
 #include "icinga/user.hpp"
@@ -38,13 +38,13 @@
 
 using namespace icinga;
 
-void LogUtility::CreateLogIndex(const String& path, std::map<time_t, String>& index)
+void LivestatusLogUtility::CreateLogIndex(const String& path, std::map<time_t, String>& index)
 {
-	Utility::Glob(path + "/icinga.log", boost::bind(&LogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
-	Utility::Glob(path + "/archives/*.log", boost::bind(&LogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
+	Utility::Glob(path + "/icinga.log", boost::bind(&LivestatusLogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
+	Utility::Glob(path + "/archives/*.log", boost::bind(&LivestatusLogUtility::CreateLogIndexFileHandler, _1, boost::ref(index)), GlobFile);
 }
 
-void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index)
+void LivestatusLogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index)
 {
 	std::ifstream stream;
 	stream.open(path.CStr(), std::ifstream::in);
@@ -68,12 +68,12 @@ void LogUtility::CreateLogIndexFileHandler(const String& path, std::map<time_t, 
 
 	stream.close();
 
-	Log(LogDebug, "LivestatusListener/LogUtility", "Indexing log file: '" + path + "' with timestamp start: '" + Convert::ToString(ts_start) + "'.");
+	Log(LogDebug, "LivestatusLogUtility", "Indexing log file: '" + path + "' with timestamp start: '" + Convert::ToString(ts_start) + "'.");
 
 	index[ts_start] = path;
 }
 
-void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *table,
+void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *table,
     time_t from, time_t until, const AddRowFunction& addRowFn)
 {
 	ASSERT(table);
@@ -100,11 +100,11 @@ void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *ta
 			if (line.empty())
 				continue; /* Ignore empty lines */
 
-			Dictionary::Ptr log_entry_attrs = LogUtility::GetAttributes(line);
+			Dictionary::Ptr log_entry_attrs = LivestatusLogUtility::GetAttributes(line);
 
 			/* no attributes available - invalid log line */
 			if (!log_entry_attrs) {
-				Log(LogDebug, "LivestatusListener/LogUtility", "Skipping invalid log line: '" + line + "'.");
+				Log(LogDebug, "LivestatusLogUtility", "Skipping invalid log line: '" + line + "'.");
 				continue;
 			}
 
@@ -118,7 +118,7 @@ void LogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *ta
 	}
 }
 
-Dictionary::Ptr LogUtility::GetAttributes(const String& text)
+Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 {
         Dictionary::Ptr bag = make_shared<Dictionary>();
 
@@ -127,7 +127,7 @@ Dictionary::Ptr LogUtility::GetAttributes(const String& text)
          */
         unsigned long time = atoi(text.SubStr(1, 11).CStr());
 
-        Log(LogDebug, "LivestatusListener/LogUtility", "Processing log line: '" + text + "'.");
+        Log(LogDebug, "LivestatusLogUtility", "Processing log line: '" + text + "'.");
         bag->Set("time", time);
 
         size_t colon = text.FindFirstOf(':');

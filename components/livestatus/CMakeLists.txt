@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(listener.ti listener.thpp)
+mkclass_target(livestatuslistener.ti livestatuslistener.thpp)
 
 mkembedconfig_target(livestatus-type.conf livestatus-type.cpp)
 
@@ -24,8 +24,9 @@ add_library(livestatus SHARED aggregator.cpp andfilter.cpp attributefilter.cpp
   commentstable.cpp contactgroupstable.cpp contactstable.cpp countaggregator.cpp
   downtimestable.cpp endpointstable.cpp filter.cpp historytable.cpp
   hostgroupstable.cpp hoststable.cpp invavgaggregator.cpp invsumaggregator.cpp
-  listener.cpp listener.thpp logutility.cpp logtable.cpp maxaggregator.cpp
-  minaggregator.cpp negatefilter.cpp orfilter.cpp query.cpp
+  livestatuslistener.cpp livestatuslistener.thpp livestatusquery.cpp
+  livestatuslogutility.cpp logtable.cpp maxaggregator.cpp
+  minaggregator.cpp negatefilter.cpp orfilter.cpp
   servicegroupstable.cpp servicestable.cpp statehisttable.cpp
   statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp
   timeperiodstable.cpp livestatus-type.cpp)

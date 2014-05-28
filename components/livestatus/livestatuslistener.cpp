@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "livestatus/listener.hpp"
+#include "livestatus/livestatuslistener.hpp"
 #include "config/configcompilercontext.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
@@ -155,7 +155,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 		if (lines.empty())
 			break;
 
-		Query::Ptr query = make_shared<Query>(lines, GetCompatLogPath());
+		LivestatusQuery::Ptr query = make_shared<LivestatusQuery>(lines, GetCompatLogPath());
 		if (!query->Execute(stream))
 			break;
 	}

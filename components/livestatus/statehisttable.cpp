@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/statehisttable.hpp"
-#include "livestatus/logutility.hpp"
+#include "livestatus/livestatuslogutility.hpp"
 #include "livestatus/hoststable.hpp"
 #include "livestatus/servicestable.hpp"
 #include "livestatus/contactstable.hpp"
@@ -117,7 +117,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 
 		state_hist_service_states->Add(state_hist_bag);
 
-		Log(LogDebug, "LivestatusListener/StateHistTable", "statehist: Adding new object '" + checkable->GetName() + "' to services cache.");
+		Log(LogDebug, "StateHistTable", "statehist: Adding new object '" + checkable->GetName() + "' to services cache.");
 	} else {
 		state_hist_service_states = m_CheckablesCache[checkable];
 		state_hist_bag = state_hist_service_states->Get(state_hist_service_states->GetLength()-1); /* fetch latest state from history */
@@ -173,7 +173,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 
 					state_hist_service_states->Add(state_hist_bag_new);
 
-					Log(LogDebug, "LivestatusListener/StateHistTable", "statehist: State change detected for object '" +
+					Log(LogDebug, "StateHistTable", "statehist: State change detected for object '" +
 					    checkable->GetName() + "' in '" + log_line + "'.");
 				}
 				break;
@@ -252,13 +252,13 @@ String StateHistTable::GetName(void) const
 
 void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Log(LogNotice, "LivestatusListener/StateHistTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
+	Log(LogDebug, "StateHistTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
 
 	/* create log file index */
-	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
+	LivestatusLogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
 
 	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
+	LivestatusLogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
 
 	Checkable::Ptr checkable;
 

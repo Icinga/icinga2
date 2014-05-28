@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/logtable.hpp"
-#include "livestatus/logutility.hpp"
+#include "livestatus/livestatuslogutility.hpp"
 #include "livestatus/hoststable.hpp"
 #include "livestatus/servicestable.hpp"
 #include "livestatus/contactstable.hpp"
@@ -91,16 +91,16 @@ String LogTable::GetName(void) const
 
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Log(LogNotice, "LivestatusListener/LogTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
+	Log(LogDebug, "LogTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
 
 	/* create log file index */
-	LogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
+	LivestatusLogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);
 
 	/* generate log cache */
-	LogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
+	LivestatusLogUtility::CreateLogCache(m_LogFileIndex, this, m_TimeFrom, m_TimeUntil, addRowFn);
 }
 
-/* gets called in LogUtility::CreateLogCache */
+/* gets called in LivestatusLogUtility::CreateLogCache */
 void LogTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
 {
 	/* additional attributes only for log table */

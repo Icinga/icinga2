@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef LOGUTILITY_H
-#define LOGUTILITY_H
+#ifndef LIVESTATUSLOGUTILITY_H
+#define LIVESTATUSLOGUTILITY_H
 
 #include "livestatus/historytable.hpp"
 
@@ -60,7 +60,7 @@ enum LogEntryClass {
 /**
  * @ingroup livestatus
  */
-class LogUtility
+class LivestatusLogUtility
 {
 
 public:
@@ -70,9 +70,9 @@ public:
 	static Dictionary::Ptr GetAttributes(const String& text);
 
 private:
-	LogUtility(void);
+	LivestatusLogUtility(void);
 };
 
 }
 
-#endif /* LOGUTILITY_H */
+#endif /* LIVESTATUSLOGUTILITY_H */

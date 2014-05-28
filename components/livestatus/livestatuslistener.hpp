@@ -20,8 +20,8 @@
 #ifndef LIVESTATUSLISTENER_H
 #define LIVESTATUSLISTENER_H
 
-#include "livestatus/listener.thpp"
-#include "livestatus/query.hpp"
+#include "livestatus/livestatuslistener.thpp"
+#include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
 #include <boost/thread/thread.hpp>
 
