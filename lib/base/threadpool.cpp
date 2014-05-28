@@ -272,8 +272,9 @@ void ThreadPool::ManagerThreadProc(void)
 				int tthreads = wthreads - alive;
 
 				/* Make sure there is at least one thread per CPU */
-				if (alive + tthreads < std::max(boost::thread::hardware_concurrency(), 4U))
-					tthreads = 1 - alive;
+				int ncput = std::max(boost::thread::hardware_concurrency() / QUEUECOUNT, 1U);
+				if (alive + tthreads < ncput)
+					tthreads = ncput - alive;
 
 				/* Don't kill more than 8 threads at once. */
 				if (tthreads < -8)

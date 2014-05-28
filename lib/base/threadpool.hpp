@@ -30,6 +30,8 @@
 namespace icinga
 {
 
+#define QUEUECOUNT 4
+
 /**
  * A thread pool.
  *
@@ -118,7 +120,7 @@ private:
 	boost::condition_variable m_MgmtCV;
 	bool m_Stopped;
 
-	Queue m_Queues[4];
+	Queue m_Queues[QUEUECOUNT];
 
 	void ManagerThreadProc(void);
 };
