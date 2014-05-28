@@ -63,12 +63,12 @@ void Dependency::OnStateLoaded(void)
 	ASSERT(!OwnsLock());
 
 	if (!GetChild())
-		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid child object and will be ignored.");
+		Log(LogWarning, "Dependency", "Dependency '" + GetName() + "' references an invalid child object and will be ignored.");
 	else
 		GetChild()->AddDependency(GetSelf());
 
 	if (!GetParent())
-		Log(LogWarning, "icinga", "Dependency '" + GetName() + "' references an invalid parent object and will always fail.");
+		Log(LogWarning, "Dependency", "Dependency '" + GetName() + "' references an invalid parent object and will always fail.");
 	else
 		GetParent()->AddReverseDependency(GetSelf());
 }
@@ -97,19 +97,19 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* ignore if it's the same checkable object */
 	if (parent == GetChild()) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Parent and child " + (service ? "service" : "host") + " are identical.");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: Parent and child " + (service ? "service" : "host") + " are identical.");
 		return true;
 	}
 
 	/* ignore pending  */
 	if (!parent->GetLastCheckResult()) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' hasn't been checked yet.");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' hasn't been checked yet.");
 		return true;
 	}
 
 	/* ignore soft states */
 	if (parent->GetStateType() == StateTypeSoft) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' is in a soft state.");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' is in a soft state.");
 		return true;
 	}
 
@@ -122,26 +122,26 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* check state */
 	if (state & GetStateFilter()) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' matches state filter.");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: " + (service ? "Service" : "Host") + " '" + parent->GetName() + "' matches state filter.");
 		return true;
 	}
 
 	/* ignore if not in time period */
 	TimePeriod::Ptr tp = GetPeriod();
 	if (tp && !tp->IsInside(Utility::GetTime())) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Outside time period.");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: Outside time period.");
 		return true;
 	}
 
 	if (dt == DependencyCheckExecution && !GetDisableChecks()) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Checks are not disabled.");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: Checks are not disabled.");
 		return true;
 	} else if (dt == DependencyNotification && !GetDisableNotifications()) {
-		Log(LogNotice, "icinga", "Dependency '" + GetName() + "' passed: Notifications are not disabled");
+		Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' passed: Notifications are not disabled");
 		return true;
 	}
 
-	Log(LogNotice, "icinga", "Dependency '" + GetName() + "' failed. Parent " +
+	Log(LogNotice, "Dependency", "Dependency '" + GetName() + "' failed. Parent " +
 		(service ? "service" : "host") + " '" + parent->GetName() + "' is " +
 		(service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState())));
 	return false;
@@ -168,10 +168,10 @@ Checkable::Ptr Dependency::GetParent(void) const
 		return Service::Ptr();
 
 	if (GetParentServiceName().IsEmpty()) {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + ".");
+		Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + ".");
 		return host;
 	} else {
-		Log(LogDebug, "icinga", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + "' service '" + GetParentServiceName() + "' .");
+		Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + "' service '" + GetParentServiceName() + "' .");
 		return host->GetServiceByShortName(GetParentServiceName());
 	}
 }

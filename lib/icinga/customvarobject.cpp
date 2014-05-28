@@ -38,7 +38,7 @@ void CustomVarObject::SetVars(const Dictionary::Ptr& vars, const MessageOrigin& 
 {
 	SetOverrideVars(vars);
 
-	Log(LogNotice, "icinga", "Setting vars for object '" + GetName() + "'");
+	Log(LogNotice, "CustomVarObject", "Setting vars for object '" + GetName() + "'");
 
 	OnVarsChanged(GetSelf(), origin);
 }

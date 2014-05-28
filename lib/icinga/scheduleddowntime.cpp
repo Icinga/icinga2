@@ -91,7 +91,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 	time_t refts = Utility::GetTime();
 	tm reference = Utility::LocalTime(refts);
 
-	Log(LogDebug, "icinga", "Finding next scheduled downtime segment for time " + Convert::ToString(static_cast<long>(refts)));
+	Log(LogDebug, "ScheduledDowntime", "Finding next scheduled downtime segment for time " + Convert::ToString(static_cast<long>(refts)));
 
 	Dictionary::Ptr ranges = GetRanges();
 

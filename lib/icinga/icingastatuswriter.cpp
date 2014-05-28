@@ -141,7 +141,7 @@ Dictionary::Ptr IcingaStatusWriter::GetStatusData(void)
 
 void IcingaStatusWriter::StatusTimerHandler(void)
 {
-	Log(LogInformation, "icinga", "Writing status.json file");
+	Log(LogNotice, "IcingaStatusWriter", "Writing status.json file");
 
         String statuspath = GetStatusPath();
         String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
@@ -166,6 +166,6 @@ void IcingaStatusWriter::StatusTimerHandler(void)
                     << boost::errinfo_file_name(statuspathtmp));
         }
 
-        Log(LogInformation, "icinga", "Finished writing status.json file");
+        Log(LogNotice, "IcingaStatusWriter", "Finished writing status.json file");
 }
 

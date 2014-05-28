@@ -122,7 +122,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 					String message = "Non-optional macro '" + missingMacro + "' used in argument '" +
 					    arg.Key + "' is missing while executing command '" + commandObj->GetName() +
 					    "' for object '" + checkable->GetName() + "'";
-					Log(LogWarning, "methods", message);
+					Log(LogWarning, "PluginUtility", message);
 
 					if (callback) {
 						ProcessResult pr;

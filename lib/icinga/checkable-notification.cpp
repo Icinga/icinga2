@@ -51,21 +51,21 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
-			Log(LogInformation, "icinga", "Notifications are disabled for service '" + GetName() + "'.");
+			Log(LogInformation, "Checkable", "Notifications are disabled for service '" + GetName() + "'.");
 			return;
 		}
 
 		SetForceNextNotification(false);
 	}
 
-	Log(LogInformation, "icinga", "Sending notifications for object '" + GetName() + "'");
+	Log(LogInformation, "Checkable", "Sending notifications for object '" + GetName() + "'");
 
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
 	if (notifications.empty())
-		Log(LogInformation, "icinga", "Checkable '" + GetName() + "' does not have any notifications.");
+		Log(LogInformation, "Checkable", "Checkable '" + GetName() + "' does not have any notifications.");
 
-	Log(LogDebug, "icinga", "Checkable '" + GetName() + "' has " + Convert::ToString(notifications.size()) + " notification(s).");
+	Log(LogDebug, "Checkable", "Checkable '" + GetName() + "' has " + Convert::ToString(notifications.size()) + " notification(s).");
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
@@ -76,7 +76,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 			       << GetName() << "': " << DiagnosticInformation(ex);
 			String message = msgbuf.str();
 
-			Log(LogWarning, "icinga", message);
+			Log(LogWarning, "Checkable", message);
 		}
 	}
 }

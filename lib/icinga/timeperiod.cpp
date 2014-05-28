@@ -55,7 +55,7 @@ void TimePeriod::AddSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	Log(LogDebug, "icinga", "Adding segment '" + Utility::FormatDateTime("%c", begin) + "' <-> '" + Utility::FormatDateTime("%c", end) + "' to TimePeriod '" + GetName() + "'");
+	Log(LogDebug, "TimePeriod", "Adding segment '" + Utility::FormatDateTime("%c", begin) + "' <-> '" + Utility::FormatDateTime("%c", end) + "' to TimePeriod '" + GetName() + "'");
 
 	if (GetValidBegin().IsEmpty() || begin < GetValidBegin())
 		SetValidBegin(begin);
@@ -106,7 +106,7 @@ void TimePeriod::RemoveSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	Log(LogDebug, "icinga", "Removing segment '" + Utility::FormatDateTime("%c", begin) + "' <-> '" + Utility::FormatDateTime("%c", end) + "' from TimePeriod '" + GetName() + "'");
+	Log(LogDebug, "TimePeriod", "Removing segment '" + Utility::FormatDateTime("%c", begin) + "' <-> '" + Utility::FormatDateTime("%c", end) + "' from TimePeriod '" + GetName() + "'");
 
 	if (GetValidBegin().IsEmpty() || begin < GetValidBegin())
 		SetValidBegin(begin);
@@ -154,7 +154,7 @@ void TimePeriod::PurgeSegments(double end)
 {
 	ASSERT(OwnsLock());
 
-	Log(LogDebug, "icinga", "Purging segments older than '" + Utility::FormatDateTime("%c", end) + "' from TimePeriod '" + GetName() + "'");
+	Log(LogDebug, "TimePeriod", "Purging segments older than '" + Utility::FormatDateTime("%c", end) + "' from TimePeriod '" + GetName() + "'");
 
 	if (GetValidBegin().IsEmpty() || end < GetValidBegin())
 		return;
@@ -275,17 +275,17 @@ void TimePeriod::Dump(void)
 {
 	Array::Ptr segments = GetSegments();
 
-	Log(LogDebug, "icinga", "Dumping TimePeriod '" + GetName() + "'");
-	Log(LogDebug, "icinga", "Valid from '" + Utility::FormatDateTime("%c", GetValidBegin()) + "' until '" + Utility::FormatDateTime("%c", GetValidEnd()));
+	Log(LogDebug, "TimePeriod", "Dumping TimePeriod '" + GetName() + "'");
+	Log(LogDebug, "TimePeriod", "Valid from '" + Utility::FormatDateTime("%c", GetValidBegin()) + "' until '" + Utility::FormatDateTime("%c", GetValidEnd()));
 
 	if (segments) {
 		ObjectLock dlock(segments);
 		BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
-			Log(LogDebug, "icinga", "Segment: " +
+			Log(LogDebug, "TimePeriod", "Segment: " +
 			    Utility::FormatDateTime("%c", segment->Get("begin")) + " <-> " +
 			    Utility::FormatDateTime("%c", segment->Get("end")));
 		}
 	}
 
-	Log(LogDebug, "icinga", "---");
+	Log(LogDebug, "TimePeriod", "---");
 }
