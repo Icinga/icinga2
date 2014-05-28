@@ -149,9 +149,9 @@ void Application::SetResourceLimits(void)
 	rl.rlim_max = rl.rlim_cur;
 
 	if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
-		Log(LogNotice, "base", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
+		Log(LogNotice, "Application", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
 #	else /* RLIMIT_NOFILE */
-	Log(LogNotice, "base", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
+	Log(LogNotice, "Application", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
 #	endif /* RLIMIT_NOFILE */
 
 #	ifdef RLIMIT_NPROC
@@ -159,9 +159,9 @@ void Application::SetResourceLimits(void)
 	rl.rlim_max = rl.rlim_cur;
 
 	if (setrlimit(RLIMIT_NPROC, &rl) < 0)
-		Log(LogNotice, "base", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
+		Log(LogNotice, "Application", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
 #	else /* RLIMIT_NPROC */
-	Log(LogNotice, "base", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
+	Log(LogNotice, "Application", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
 
 #	ifdef RLIMIT_STACK
@@ -181,7 +181,7 @@ void Application::SetResourceLimits(void)
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_STACK, &rl) < 0)
-			Log(LogNotice, "base", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
+			Log(LogNotice, "Application", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
 		else {
 			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
 
@@ -209,7 +209,7 @@ void Application::SetResourceLimits(void)
 		}
 	}
 #	else /* RLIMIT_STACK */
-	Log(LogNotice, "base", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
+	Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
 #	endif /* RLIMIT_STACK */
 #endif /* _WIN32 */
 }
@@ -250,7 +250,7 @@ mainloop:
 		Utility::Sleep(2.5);
 
 		if (m_RequestReopenLogs) {
-			Log(LogNotice, "base", "Reopening log files");
+			Log(LogNotice, "Application", "Reopening log files");
 			m_RequestReopenLogs = false;
 			OnReopenLogs();
 		}
@@ -264,7 +264,7 @@ mainloop:
 			msgbuf << "We jumped "
 				<< (timeDiff < 0 ? "forward" : "backward")
 				<< " in time: " << abs(timeDiff) << " seconds";
-			Log(LogInformation, "base", msgbuf.str());
+			Log(LogInformation, "Application", msgbuf.str());
 
 			Timer::AdjustTimers(-timeDiff);
 		}
@@ -285,7 +285,7 @@ mainloop:
 		goto mainloop;
 	}
 	
-	Log(LogInformation, "base", "Shutting down Icinga...");
+	Log(LogInformation, "Application", "Shutting down Icinga...");
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
@@ -307,13 +307,13 @@ void Application::OnShutdown(void)
 static void ReloadProcessCallback(const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0)
-		Log(LogCritical, "base", "Found error in config: reloading aborted");
+		Log(LogCritical, "Application", "Found error in config: reloading aborted");
 	l_Restarting = false;
 }
 
 pid_t Application::StartReloadProcess(void)
 {
-	Log(LogInformation, "base", "Got reload command: Starting new instance.");
+	Log(LogInformation, "Application", "Got reload command: Starting new instance.");
 
 	// prepare arguments
 	Array::Ptr args = make_shared<Array>();
@@ -683,7 +683,7 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	lock.l_whence = SEEK_SET;
 
 	if (fcntl(fd, F_SETLK, &lock) < 0) {
-		Log(LogCritical, "base", "Could not lock PID file. Make sure that only one instance of the application is running.");
+		Log(LogCritical, "Application", "Could not lock PID file. Make sure that only one instance of the application is running.");
 
 		_exit(EXIT_FAILURE);
 	}
