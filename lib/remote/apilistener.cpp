@@ -44,7 +44,7 @@ void ApiListener::OnConfigLoaded(void)
 	/* set up SSL context */
 	shared_ptr<X509> cert = GetX509Certificate(GetCertPath());
 	SetIdentity(GetCertificateCN(cert));
-	Log(LogInformation, "remote", "My API identity: " + GetIdentity());
+	Log(LogInformation, "ApiListener", "My API identity: " + GetIdentity());
 
 	m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 
@@ -133,7 +133,7 @@ void ApiListener::AddListener(const String& service)
 
 	std::ostringstream s;
 	s << "Adding new listener: port " << service;
-	Log(LogInformation, "remote", s.str());
+	Log(LogInformation, "ApiListener", s.str());
 
 	TcpSocket::Ptr server = make_shared<TcpSocket>();
 	server->Bind(service, AF_INET6);
@@ -184,7 +184,7 @@ void ApiListener::AddConnection(const String& node, const String& service)
 		info << "Cannot connect to host '" << node << "' on port '" << service << "'";
 		debug << info.str() << std::endl << DiagnosticInformation(ex);
 		Log(LogCritical, "remote", info.str());
-		Log(LogDebug, "remote", debug.str());
+		Log(LogDebug, "ApiListener", debug.str());
 	}
 }
 
@@ -209,7 +209,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity = GetCertificateCN(cert);
 
-	Log(LogInformation, "remote", "New client connection for identity '" + identity + "'");
+	Log(LogInformation, "ApiListener", "New client connection for identity '" + identity + "'");
 
 	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
 
@@ -265,7 +265,7 @@ void ApiListener::ApiTimerHandler(void)
 
 		if (!need) {
 			String path = GetApiDir() + "log/" + Convert::ToString(ts);
-			Log(LogNotice, "remote", "Removing old log file: " + path);
+			Log(LogNotice, "ApiListener", "Removing old log file: " + path);
 			(void)unlink(path.CStr());
 		}
 	}
@@ -325,18 +325,18 @@ void ApiListener::ApiTimerHandler(void)
 		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
 			client->SendMessage(lmessage);
 
-		Log(LogNotice, "remote", "Setting log position for identity '" + endpoint->GetName() + "': " +
+		Log(LogNotice, "ApiListener", "Setting log position for identity '" + endpoint->GetName() + "': " +
 			Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts));
 	}
 
-	Log(LogNotice, "remote", "Current zone master: " + GetMaster()->GetName());
+	Log(LogNotice, "ApiListener", "Current zone master: " + GetMaster()->GetName());
 
 	std::vector<String> names;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>())
 		if (endpoint->IsConnected())
 			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
-	Log(LogNotice, "remote", "Connected endpoints: " + Utility::NaturalJoin(names));
+	Log(LogNotice, "ApiListener", "Connected endpoints: " + Utility::NaturalJoin(names));
 }
 
 void ApiListener::RelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
@@ -374,7 +374,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
 
-	Log(LogNotice, "remote", "Relaying '" + message->Get("method") + "' message");
+	Log(LogNotice, "ApiListener", "Relaying '" + message->Get("method") + "' message");
 
 	if (log)
 		m_LogQueue.Enqueue(boost::bind(&ApiListener::PersistMessage, this, message));
@@ -437,7 +437,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 			ObjectLock olock(endpoint);
 
 			if (!endpoint->GetSyncing()) {
-				Log(LogNotice, "remote", "Sending message to '" + endpoint->GetName() + "'");
+				Log(LogNotice, "ApiListener", "Sending message to '" + endpoint->GetName() + "'");
 
 				BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
 					client->SendMessage(message);
@@ -462,7 +462,7 @@ void ApiListener::OpenLogFile(void)
 	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
 
 	if (!fp->good()) {
-		Log(LogWarning, "cluster", "Could not open spool file: " + path);
+		Log(LogWarning, "ApiListener", "Could not open spool file: " + path);
 		return;
 	}
 
@@ -545,7 +545,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			if (ts < peer_ts)
 				continue;
 
-			Log(LogNotice, "remote", "Replaying log: " + path);
+			Log(LogNotice, "ApiListener", "Replaying log: " + path);
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
 			StdioStream::Ptr logStream = make_shared<StdioStream>(fp, true);
@@ -560,7 +560,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 					pmessage = JsonDeserialize(message);
 				} catch (const std::exception&) {
-					Log(LogWarning, "remote", "Unexpected end-of-file for cluster log: " + path);
+					Log(LogWarning, "ApiListener", "Unexpected end-of-file for cluster log: " + path);
 
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
@@ -578,7 +578,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			logStream->Close();
 		}
 
-		Log(LogNotice, "remote", "Replayed " + Convert::ToString(count) + " messages.");
+		Log(LogNotice, "ApiListener", "Replayed " + Convert::ToString(count) + " messages.");
 
 		if (last_sync) {
 			{

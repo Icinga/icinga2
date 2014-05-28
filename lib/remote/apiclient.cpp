@@ -75,8 +75,8 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 		std::ostringstream info, debug;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
 		debug << info.str() << std::endl << DiagnosticInformation(ex);
-		Log(LogWarning, "remote", info.str());
-		Log(LogDebug, "remote", debug.str());
+		Log(LogWarning, "ApiClient", info.str());
+		Log(LogDebug, "ApiClient", debug.str());
 
 		Disconnect();
 	}
@@ -84,7 +84,7 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
-	Log(LogWarning, "remote", "API client disconnected for identity '" + m_Identity + "'");
+	Log(LogWarning, "ApiClient", "API client disconnected for identity '" + m_Identity + "'");
 	m_Stream->Close();
 
 	if (m_Endpoint)
@@ -127,7 +127,7 @@ bool ApiClient::ProcessMessage(void)
 
 	String method = message->Get("method");
 
-	Log(LogNotice, "remote", "Received '" + method + "' message from '" + m_Identity + "'");
+	Log(LogNotice, "ApiClient", "Received '" + method + "' message from '" + m_Identity + "'");
 
 	Dictionary::Ptr resultMessage = make_shared<Dictionary>();
 
@@ -161,7 +161,7 @@ void ApiClient::MessageThreadProc(void)
 
 		Disconnect();
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "remote", "Error while reading JSON-RPC message for identity '" + m_Identity + "': " + DiagnosticInformation(ex));
+		Log(LogWarning, "ApiClient", "Error while reading JSON-RPC message for identity '" + m_Identity + "': " + DiagnosticInformation(ex));
 	}
 }
 
