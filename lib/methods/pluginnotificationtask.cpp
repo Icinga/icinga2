@@ -72,6 +72,6 @@ void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checka
 		msgbuf << "Notification command '" << command << "' for object '"
 		       << checkable->GetName() << "' failed; exit status: "
 		       << pr.ExitStatus << ", output: " << pr.Output;
-		Log(LogWarning, "icinga", msgbuf.str());
+		Log(LogWarning, "PluginNotificationTask", msgbuf.str());
 	}
 }
