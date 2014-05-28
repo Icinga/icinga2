@@ -1839,6 +1839,48 @@ Name            | Description
 ssmtp_address   | **Required.** The host's address. Defaults to "$address$".
 ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
 
+#### <a id="plugin-check-command-imap"></a> imap
+
+Check command object for the `check_imap` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+imap_address    | **Optional.** The host's address. Defaults to "$address$".
+
+#### <a id="plugin-check-command-simap"></a> simap
+
+Check command object for the `check_simap` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+simap_address   | **Optional.** The host's address. Defaults to "$address$".
+simap_port      | **Optional.** The host's port.
+
+#### <a id="plugin-check-command-pop"></a> pop
+
+Check command object for the `check_pop` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+pop_address     | **Optional.** The host's address. Defaults to "$address$".
+
+#### <a id="plugin-check-command-spop"></a> spop 
+
+Check command object for the `check_spop` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+spop_address    | **Optional.** The host's address. Defaults to "$address$".
+spop_port       | **Optional.** The host's port.
+
 #### <a id="plugin-check-command-ntp-time"></a> ntp_time
 
 Check command object for the `check_ntp_time` plugin.
