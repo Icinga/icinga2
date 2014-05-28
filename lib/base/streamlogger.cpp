@@ -93,7 +93,7 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	stream << "[" << timestamp << "] <" << Utility::GetThreadName() << "> ";
+	stream << "[" << timestamp << "] ";
 
 	if (tty) {
 		switch (entry.Severity) {
