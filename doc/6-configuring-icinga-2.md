@@ -1802,7 +1802,7 @@ Name            | Description
 udp_address     | **Optional.** The host's address. Defaults to "$address$".
 udp_port        | **Required.** The port that should be checked.
 
-#### <a id="plugin-check-command-http-ip"></a> http
+#### <a id="plugin-check-command-http"></a> http
 
 Check command object for the `check_http` plugin.
 
@@ -1817,6 +1817,16 @@ http_port          | **Optional.** The TCP port. Defaults to 80 when not using S
 http_ssl           | **Optional.** Whether to use SSL. Defaults to false.
 http_warn_time     | **Optional.** The warning threshold.
 http_critical_time | **Optional.** The critical threshold.
+
+#### <a id="plugin-check-command-ftp"></a> ftp
+
+Check command object for the `check_ftp` plugin.
+
+Custom Attributes:
+
+Name               | Description
+-------------------|--------------
+ftp_address        | **Optional.** The host's address. Defaults to "$address".
 
 #### <a id="plugin-check-command-smtp"></a> smtp
 
@@ -2034,6 +2044,18 @@ by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to fa
 by_ssh_warn     | **Optional.** The warning threshold.
 by_ssh_crit     | **Optional.** The critical threshold.
 by_ssh_timeout  | **Optional.** The timeout in seconds.
+
+#### <a id="plugin-check-command-ups"></a> ups
+
+Check command object for the `check_ups` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ups_address     | **Optional.** The host's address. Defaults to "$address$".
+ups_name        | **Optional.** The UPS name. Defaults to `ups`.
+
 
 #### <a id="plugin-check-command-nrpe"></a> nrpe
 
