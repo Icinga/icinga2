@@ -85,7 +85,7 @@ void UserDbObject::OnConfigUpdate(void)
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	/* contact addresses */
-	Log(LogDebug, "db_ido", "contact addresses for '" + user->GetName() + "'");
+	Log(LogDebug, "UserDbObject", "contact addresses for '" + user->GetName() + "'");
 
 	Dictionary::Ptr vars = user->GetVars();
 

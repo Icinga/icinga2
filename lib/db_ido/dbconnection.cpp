@@ -49,7 +49,7 @@ void DbConnection::Resume(void)
 {
 	DynamicObject::Resume();
 
-	Log(LogInformation, "db_ido", "Resuming IDO connection: " + GetName());
+	Log(LogInformation, "DbConnection", "Resuming IDO connection: " + GetName());
 
 	m_CleanUpTimer = make_shared<Timer>();
 	m_CleanUpTimer->SetInterval(60);
@@ -61,7 +61,7 @@ void DbConnection::Pause(void)
 {
 	DynamicObject::Pause();
 
-	Log(LogInformation, "db_ido", "Pausing IDO connection: " + GetName());
+	Log(LogInformation, "DbConnection", "Pausing IDO connection: " + GetName());
 
 	m_CleanUpTimer.reset();
 
@@ -141,13 +141,13 @@ void DbConnection::ProgramStatusHandler(void)
 	if (!vars)
 		return;
 
-	Log(LogDebug, "db_ido", "Dumping global vars for icinga application");
+	Log(LogDebug, "DbConnection", "Dumping global vars for icinga application");
 
 	ObjectLock olock(vars);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		if (!kv.first.IsEmpty()) {
-			Log(LogDebug, "db_ido", "icinga application customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
+			Log(LogDebug, "DbConnection", "icinga application customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
 
 			Dictionary::Ptr fields4 = make_shared<Dictionary>();
 			fields4->Set("varname", Convert::ToString(kv.first));
@@ -198,7 +198,7 @@ void DbConnection::CleanUpHandler(void)
 			continue;
 
 		CleanUpExecuteQuery(tables[i].name, tables[i].time_column, now - max_age);
-		Log(LogNotice, "db_ido", "Cleanup (" + tables[i].name + "): " + Convert::ToString(max_age) +
+		Log(LogNotice, "DbConnection", "Cleanup (" + tables[i].name + "): " + Convert::ToString(max_age) +
 		    " now: " + Convert::ToString(now) +
 		    " old: " + Convert::ToString(now - max_age));
 	}
