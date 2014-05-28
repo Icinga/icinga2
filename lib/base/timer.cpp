@@ -31,17 +31,11 @@
 
 using namespace icinga;
 
-struct TimerHolder
-{
-	Timer::WeakPtr Object;
-	double Next;
-};
-
 typedef boost::multi_index_container<
-	TimerHolder,
+	Timer::Holder,
 	boost::multi_index::indexed_by<
-		boost::multi_index::ordered_unique<boost::multi_index::member<TimerHolder, Timer::WeakPtr, &TimerHolder::Object> >,
-		boost::multi_index::ordered_non_unique<boost::multi_index::member<TimerHolder, double, &TimerHolder::Next> >
+		boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<Timer::Holder, Timer *, &Timer::Holder::GetObject> >,
+		boost::multi_index::ordered_non_unique<boost::multi_index::const_mem_fun<Timer::Holder, double, &Timer::Holder::GetNextUnlocked> >
 	>
 > TimerSet;
 
@@ -57,6 +51,14 @@ static TimerSet l_Timers;
 Timer::Timer(void)
 	: m_Interval(0), m_Next(0)
 { }
+
+/**
+ * Destructor for the Timer class.
+ */
+Timer::~Timer(void)
+{
+	Stop();
+}
 
 /**
  * Initializes the timer sub-system.
@@ -153,7 +155,7 @@ void Timer::Stop(void)
 	boost::mutex::scoped_lock lock(l_Mutex);
 
 	m_Started = false;
-	l_Timers.erase(GetSelf());
+	l_Timers.erase(this);
 
 	/* Notify the worker thread that we've disabled a timer. */
 	l_CV.notify_all();
@@ -183,12 +185,8 @@ void Timer::Reschedule(double next)
 
 	if (m_Started) {
 		/* Remove and re-add the timer to update the index. */
-		l_Timers.erase(GetSelf());
-
-		TimerHolder th;
-		th.Object = GetSelf();
-		th.Next = m_Next;
-		l_Timers.insert(th);
+		l_Timers.erase(this);
+		l_Timers.insert(this);
 
 		/* Notify the worker that we've rescheduled a timer. */
 		l_CV.notify_all();
@@ -223,14 +221,9 @@ void Timer::AdjustTimers(double adjustment)
 	typedef boost::multi_index::nth_index<TimerSet, 1>::type TimerView;
 	TimerView& idx = boost::get<1>(l_Timers);
 
-	std::vector<Timer::Ptr> timers;
+	std::vector<Timer *> timers;
 
-	BOOST_FOREACH(const TimerHolder& th, idx) {
-		Timer::Ptr timer = th.Object.lock();
-
-		if (!timer)
-			continue;
-
+	BOOST_FOREACH(Timer *timer, idx) {
 		if (abs(now - (timer->m_Next + adjustment)) <
 		    abs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
@@ -238,13 +231,9 @@ void Timer::AdjustTimers(double adjustment)
 		}
 	}
 
-	BOOST_FOREACH(const Timer::Ptr& timer, timers) {
+	BOOST_FOREACH(Timer *timer, timers) {
 		l_Timers.erase(timer);
-
-		TimerHolder th;
-		th.Object = timer;
-		th.Next = timer->m_Next;
-		l_Timers.insert(th);
+		l_Timers.insert(timer);
 	}
 
 	/* Notify the worker that we've rescheduled some timers. */
@@ -272,20 +261,11 @@ void Timer::TimerThreadProc(void)
 			break;
 
 		NextTimerView::iterator it = idx.begin();
-		Timer::Ptr timer = it->Object.lock();
-
-		if (!timer) {
-			/* Remove the timer from the list if it's not alive anymore. */
-			idx.erase(it);
-			continue;
-		}
+		Timer *timer = *it;
 
 		double wait = timer->m_Next - Utility::GetTime();
 
 		if (wait > 0.01) {
-			/* Make sure the timer we just examined can be destroyed while we're waiting. */
-			timer.reset();
-
 			/* Wait for the next timer. */
 			l_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
@@ -296,9 +276,11 @@ void Timer::TimerThreadProc(void)
 		 * until the current call is completed. */
 		l_Timers.erase(timer);
 
+		Timer::Ptr ptimer = timer->GetSelf();
+
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Utility::QueueAsyncCallback(boost::bind(&Timer::Call, timer));
+		Utility::QueueAsyncCallback(boost::bind(&Timer::Call, ptimer));
 	}
 }
