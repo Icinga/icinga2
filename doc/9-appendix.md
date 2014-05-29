@@ -128,7 +128,7 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
 
 ## <a id="schemas"></a> Schemas
 
-By convention `CheckCommand`, `EventCommand` and `NotificationCommand` objects
+By convention `CheckCommand`, `EventCommand`, and `NotificationCommand` objects
 are exported using a prefix. This is mandatory for unique objects in the
 command tables.
 

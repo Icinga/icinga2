@@ -16,7 +16,7 @@ Details can be found in [https://dev.icinga.org/issues/5929].
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the Icinga 2 proposed way of doing configuration right.
 
-Please read the [next chapter](#differences-1x-2) to get an idea about the differences between 1.x and 2.
+Please read the [next section](#differences-1x-2) to get an idea about the differences between 1.x and 2.
 
 
 ## <a id="differences-1x-2"></a> Differences between Icinga 1.x and 2
@@ -130,7 +130,7 @@ could also be used.
 
 ### <a id="differences-1x-2-object-names"></a> Object names
 
-Object names must not contain a colon (`!`). Use the `display_name` attribute
+Object names must not contain an exclamation mark (`!`). Use the `display_name` attribute
 to specify user-friendly names which should be shown in UIs (supported by
 Icinga 1.x Classic UI and Web).
 
@@ -185,10 +185,10 @@ requires an equal sign (=) between them.
 Please note that the default time value is seconds, if no duration literal
 is given. `check_interval = 5` behaves the same as `check_interval = 5s`.
 
-All strings require double quotes in Icinga 2. Therefore a double-quote
-must be escaped with a backslash (e.g. in command line).
-If an attribute identifier starts with a number, it must be encapsulated
-with double quotes as well.
+All strings require double quotes in Icinga 2. Therefore a double quote
+must be escaped by a backslash (e.g. in command line).
+If an attribute identifier starts with a number, it must be enclosed
+in double quotes as well.
 
 #### <a id="differences-1x-2-alias-display-name"></a> Alias vs. Display Name
 
@@ -220,7 +220,7 @@ These custom attributes are also used as [command parameters](#command-passing-p
 
 In Icinga 1.x a service object is associated with a host by defining the
 `host_name` attribute in the service definition. Alternate methods refer
-to `hostgroup_name` or behavior changing regular expression.
+to `hostgroup_name` or behaviour changing regular expression.
 
 The preferred way of associating hosts with services in Icinga 2 is by
 using the [apply](#using-apply) keyword.
@@ -293,7 +293,7 @@ must be set using the `env` attribute in command objects.
 #### <a id="differences-1x-2-runtime-macros"></a> Runtime Macros
 
 Icinga 2 requires an object specific namespace when accessing configuration
-and stateful runtime macros. Custom attributes can be access directly.
+and stateful runtime macros. Custom attributes can be accessed directly.
 
 Changes to user (contact) runtime macros
 
@@ -495,8 +495,8 @@ Icinga 2 doesn't support non-persistent comments.
 
 ### <a id="differences-1x-2-commands"></a> Commands
 
-Unlike in Icinga 1.x there are 3 different command types in Icinga 2:
-`CheckCommand`, `NotificationCommand` and `EventCommand`.
+Unlike in Icinga 1.x there are three different command types in Icinga 2:
+`CheckCommand`, `NotificationCommand`, and `EventCommand`.
 
 For example in Icinga 1.x it is possible to accidently use a notification
 command as an event handler which might cause problems depending on which
@@ -614,7 +614,7 @@ object for the escalation itself.
 
 Unlike Icinga 1.x with the 'notification_options' attribute with comma-separated
 state and type filters, Icinga 2 uses two configuration attributes for that.
-All state and type filter use long names or'd with a pipe together
+All state and type filter use long names OR'd with a pipe together
 
     notification_options w,u,c,r,f,s
 
@@ -665,8 +665,8 @@ the value with a single flapping threshold configuration attribute.
 
 ### <a id="differences-1x-2-check-result-freshness"></a> Check Result Freshness
 
-Freshness of check results must be explicitely enabled in Icinga 1.x. The attribute
-`freshness_treshold` defines the threshold in seconds. Once the threshold is triggered, an
+Freshness of check results must be enabled explicitly in Icinga 1.x. The attribute
+`freshness_threshold` defines the threshold in seconds. Once the threshold is triggered, an
 active freshness check is executed defined by the `check_command` attribute. Both check
 methods (active and passive) use the same freshness check method.
 
@@ -693,7 +693,7 @@ Icinga 2 compat library provides the CompatLogger object which writes the icinga
 in Icinga 1.x format in order to stay compatible with Classic UI and other addons.
 
 The native Icinga 2 logging facilities are split into three configuration objects: SyslogLogger,
-FileLogger, StreamLogger. Each of them got their own severity and target configuration.
+FileLogger, StreamLogger. Each of them has their own severity and target configuration.
 
 The Icinga 2 daemon log does not log any alerts but is considered an application log only.
 
@@ -712,7 +712,7 @@ popular broker modules was implemented for Icinga 2:
 ### <a id="differences-1x-2-distributed-monitoring"></a> Distributed Monitoring
 
 Icinga 1.x uses the native "obsess over host/service" method which requires the NSCA addon
-passing the slave's checkresults passively onto the master's external command pipe.
+passing the slave's check results passively onto the master's external command pipe.
 While this method may be used for check load distribution, it does not provide any configuration
 distribution out-of-the-box. Furthermore comments, downtimes and other stateful runtime data is
 not synced between the master and slave nodes. There are addons available solving the check

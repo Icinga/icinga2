@@ -144,8 +144,8 @@ The `null` keyword can be used to specify an empty value.
 An unordered list of key-value pairs. Keys must be unique and are
 compared in a case-insensitive manner.
 
-Individual key-value pairs must be separated from each other with a
-comma. The comma after the last key-value pair is optional.
+Individual key-value pairs must either be comma-separated or on separate lines.
+The comma after the last key-value pair is optional.
 
 Example:
 
@@ -156,7 +156,7 @@ Example:
 
 Identifiers may not contain certain characters (e.g. space) or start
 with certain characters (e.g. digits). If you want to use a dictionary
-key that is not a valid identifier you can put the key in double
+key that is not a valid identifier you can enclose the key in double
 quotes.
 
 Setting a dictionary key to null causes the key and its value to be
@@ -166,8 +166,8 @@ removed from the dictionary.
 
 An ordered list of values.
 
-Individual array elements must be separated from each other with a
-comma. The comma after the last element is optional.
+Individual array elements must be comma-separated.
+The comma after the last element is optional.
 
 Example:
 
@@ -233,7 +233,7 @@ string(value)                   | Converts the value to a string.
 number(value)                   | Converts the value to a number.
 bool(value)                     | Converts the value to a bool.
 log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
-log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning` and `LogCritical`. Non-string values are converted to a JSON string.
+log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
 exit(integer)                   | Terminates the application.
 
 ### <a id="dictionary-operators"></a> Dictionary Operators
@@ -383,7 +383,7 @@ Global constants can be set using the `const` keyword:
 
     const VarName = "some value"
 
-Once defined a constant can be access from any file. Constants cannot be changed
+Once defined a constant can be accessed from any file. Constants cannot be changed
 once they are set.
 
 There is a defined set of [global constants](#global-constants) which allow
@@ -406,7 +406,7 @@ In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "ping"
 is created for each matching host.
 
-The `to` keyword and the target type may be omitted if there is only target
+The `to` keyword and the target type may be omitted if there is only one target
 type, e.g. for the `Service` type.
 
 Depending on the object type used in the `apply` expression additional local
@@ -573,7 +573,7 @@ Attributes:
   enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
   enable\_flap\_detection|**Optional.** Whether flap detection is enabled. Defaults to true.
   enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
-  event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes.
+  event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes and when the host is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
   notes           |**Optional.** Notes for the host.

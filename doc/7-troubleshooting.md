@@ -16,7 +16,7 @@ For a more verbose output of the Icinga 2 daemon increase the
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
-Run Icinga 2 in foreground with debugging enabled Specify the console
+Run Icinga 2 in foreground with debugging enabled. Specify the console
 log severity as additional parameter argument to `-x`. Default
 is `debug`.
 
@@ -31,7 +31,7 @@ Additionally you can enable the debug log using
 ## <a id="checks-not-executed"></a> Checks are not executed
 
 * Check the debug log if the check command gets executed
-* Verify that failed depedencies do not prevent the command execution
+* Verify that failed dependencies do not prevent the command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
 
     # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
@@ -62,7 +62,7 @@ Verify the following configuration
     Total params: 1
     The feature 'notification' is already enabled.
 
-* Does the referenced NotificationCommand work executed as Icinga user on the shell?
+* Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
 ## <a id="feature-not-working"></a> Feature is not working
 
@@ -74,7 +74,7 @@ to `features-enabled` and that the latter is included in [icinga2.conf](#icinga2
 ## <a id="configuration-ignored"></a> Configuration is ignored
 
 * Make sure that the line(s) are not [commented](#comments) (starting with `//` or `#`, or
-encapsulated by `/* ... */`.
+encapsulated by `/* ... */`).
 * Is the configuration file included in [icinga2.conf](#icinga2-conf)?
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from

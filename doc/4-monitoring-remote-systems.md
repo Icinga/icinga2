@@ -23,7 +23,7 @@ for specific use cases already around, for example monitoring Cisco routers.
 
 The following example uses the [SNMP ITL](#itl-snmp) `CheckCommand` and just
 overrides the `snmp_oid` custom attribute. A service is created for all hosts which
-have the `snmP-community` custom attribute.
+have the `snmp-community` custom attribute.
 
     apply Service "uptime" {
       import "generic-service"
@@ -192,7 +192,7 @@ you want to set up certificates for additional nodes at a later time.
 
 Instead of using the default FQDN as node name you can optionally set
 that value using the [NodeName](#global-constants) constant.
-This setting must be unique on each node, and must also match
+This setting must be unique for each node, and must also match
 the name of the local [Endpoint](#objecttype-endpoint) object and the
 SSL certificate common name.
 
@@ -201,7 +201,7 @@ SSL certificate common name.
 Read further about additional [naming conventions](#cluster-naming-convention).
 
 Not specifying the node name will make Icinga 2 using the FQDN. Make sure that all
-configured endpoint names and common names are the same.
+configured endpoint names and common names are in sync.
 
 ### <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
@@ -392,12 +392,12 @@ Example:
 
 Each cluster node should execute its own local cluster health check to
 get an idea about network related connection problems from different
-point of views.
+points of view.
 
 ### <a id="host-multiple-cluster-nodes"></a> Host With Multiple Cluster Nodes
 
 Special scenarios might require multiple cluster nodes running on a single host.
-By default Icinga 2 and its features will drop their runtime data below the prefix
+By default Icinga 2 and its features will place their runtime data below the prefix
 `LocalStateDir`. By default packages will set that path to `/var`.
 You can either set that variable as constant configuration
 definition in [icinga2.conf](#icinga2-conf) or pass it as runtime variable to
@@ -561,10 +561,10 @@ Within each DMZ there are additional check instances also serving interfaces for
 departments. The customers instances will collect all results, but also send them back to
 your central instance.
 Additionally the customers instance on the second level in the middle prohibits you from
-sending commands to the down below department nodes. You're only allowed to receive the
+sending commands to the subjacent department nodes. You're only allowed to receive the
 results, and a subset of each customers configuration too.
 
-Your central zone will generate global reports, aggregate alert notifications and check
+Your central zone will generate global reports, aggregate alert notifications, and check
 additional dependencies (for example, the customers internet uplink and bandwidth usage).
 
 The customers zone instances will only check a subset of local services and delegate the rest

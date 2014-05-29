@@ -13,7 +13,7 @@ the rotated performance data files.
 #### <a id="addons-graphing-pnp"></a> inGraph
 
 inGraph (https://www.netways.org/projects/ingraph/wiki) requires only the ingraph-collector
-configured pointed to the perfdata files Icinga 2's [PerfdataWriter](#performance-data) will
+configured pointing to the perfdata files Icinga 2's [PerfdataWriter](#performance-data) will
 write to the performance data spool directory.
 
 #### <a id="addons-graphing-pnp"></a> Graphite

@@ -10,8 +10,8 @@ and services can be virtually anything which can be checked in some way:
 
 * Network services (HTTP, SMTP, SNMP, SSH, etc.)
 * Printers
-* Switches / Routers
-* Temperature Sensors
+* Switches / routers
+* Temperature sensors
 * Other local or network-accessible services
 
 Host objects provide a mechanism to group services that are running
@@ -25,12 +25,12 @@ Here is an example of a host object which defines two child services:
     }
 
     object Service "ping4" {
-      host_name = "localhost"
+      host_name = "my-server1"
       check_command = "ping4"
     }
 
     object Service "http" {
-      host_name = "localhost"
+      host_name = "my-server1"
       check_command = "http_ip"
     }
 
@@ -86,7 +86,7 @@ state the host/service switches to a `HARD` state and notifications are sent.
 
 The [Getting Started](#getting-started) chapter already introduced various aspects
 of the Icinga 2 configuration language. If you are ready to configure additional
-hosts, services, notifications, dependencies, etc you should think about the
+hosts, services, notifications, dependencies, etc, you should think about the
 requirements first and then decide for a possible strategy.
 
 There are many ways of creating Icinga 2 configuration objects:
@@ -275,7 +275,7 @@ the user groups are associated as attributes in `Notification` objects.
 
 #### <a id="group-assign"></a> Group Membership Assign
 
-If there is a certain number of hosts, services or users matching a pattern
+If there is a certain number of hosts, services, or users matching a pattern
 it's reasonable to assign the group object to these members.
 Details on the `assign where` syntax can be found [here](#apply)
 
@@ -294,7 +294,7 @@ monitoring setup.
 
 When a host or service is in a downtime, a problem has been acknowledged or
 the dependency logic determined that the host/service is unreachable, no
-notirications are sent. You can configure additional type and state filters
+notifications are sent. You can configure additional type and state filters
 refining the notifications being actually sent.
 
 There are many ways of sending notifications, e.g. by e-mail, XMPP,
@@ -343,7 +343,7 @@ to the defined notifications. That way you'll save duplicated attributes in each
 
       states = [ Warning, Critical, Unknown ]
       types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
-                FlappingEnd, DowntimeStart,DowntimeEnd, DowntimeRemoved ]
+                FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
       period = "24x7"
     }
@@ -367,7 +367,7 @@ send notifications to all group members.
 
 ### <a id="notification-escalations"></a> Notification Escalations
 
-When a problem notification is sent and a problem still exists after re-notification
+When a problem notification is sent and a problem still exists at the time of re-notification
 you may want to escalate the problem to the next support level. A different approach
 is to configure the default notification by email, and escalate the problem via sms
 if not already solved.
@@ -419,7 +419,7 @@ command) after `30m` until `1h`.
 > template or overriding the attribute directly in the `notifications` array
 > position for `escalation-sms-2nd-level`.
 
-If the problem does not get resolved or acknowledged preventing further notifications
+If the problem does not get resolved nor acknowledged preventing further notifications
 the `escalation-sms-1st-level` user will be escalated `1h` after the initial problem was
 notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
 
@@ -462,8 +462,8 @@ notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
 
 ### <a id="first-notification-delay"></a> First Notification Delay
 
-Sometimes the problem in question should not be notified when the first notification
-happens, but a defined time duration afterwards. In Icinga 2 you can use the `times`
+Sometimes the problem in question should not be notified when the notification is due
+(the object reaching the `HARD` state) but a defined time duration afterwards. In Icinga 2 you can use the `times`
 dictionary and set `begin = 15m` as key and value if you want to suppress notifications
 in the first 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
 end time for this notification.
@@ -580,7 +580,7 @@ Use the `period` attribute to assign time periods to
 ## <a id="commands"></a> Commands
 
 Icinga 2 uses three different command object types to specify how
-checks should be performed, notifications should be sent and
+checks should be performed, notifications should be sent, and
 events should be handled.
 
 ### <a id="command-environment-variables"></a> Environment Variables for Commands
@@ -998,10 +998,11 @@ exceeds the maintenance, you can manually cancel the downtime.
 Planned downtimes will also be taken into account for SLA reporting
 tools calculating the SLAs based on the state and downtime history.
 
-Downtimes may overlap with their start and end times. If there
-are multiple downtimes triggered for one object, the overall downtime depth
-will be more than `1`. This is useful when you want to extend
-your maintenance window taking longer than expected.
+Multiple downtimes for a single object may overlap. This is useful
+when you want to extend your maintenance window taking longer than expected.
+If there are multiple downtimes triggered for one object, the overall downtime depth
+will be greater than `1`.
+
 
 If the downtime was scheduled after the problem changed to a critical hard
 state triggering a problem notification, and the service recovers during
@@ -1020,10 +1021,9 @@ about a fixed downtime window between 23:00 and 24:00. After 24:00
 all problems should be alerted again. Solution is simple -
 schedule a `fixed` downtime starting at 23:00 and ending at 24:00.
 
-Unlike a `fixed` downtime, a `flexible` downtime end does not necessarily
-happen at the provided end time. Instead the downtime will be triggered
-by the state change in the time span defined by start and end time, but
-then last a defined duration in minutes.
+Unlike a `fixed` downtime, a `flexible` downtime will be triggered
+by the state change in the time span defined by start and end time,
+and then last for the specified duration in minutes.
 
 Imagine the following scenario: Your service is frequently polled
 by users trying to grab free deleted domains for immediate registration.
@@ -1479,11 +1479,11 @@ enable sending commands to Icinga 2 through your web interface:
     # usermod -G -a icingacmd www-data
 
 Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
-`nagios`.
+`nagios`. The webserver's user is different between distributions as well.
 
 ### <a id="external-command-list"></a> External Command List
 
-A list of currently supported external commands can be found [here](#external-commands-list-detail)
+A list of currently supported external commands can be found [here](#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -1609,7 +1609,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
-SLA reports and trends in Icinga 1.x Classic UI. Futhermore the
+SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
 [Livestatus](#livestatus) feature uses these logs for answering queries to
 historical tables.
 
