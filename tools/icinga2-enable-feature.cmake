@@ -10,12 +10,12 @@ fi
 
 if [ -z "$1" ]; then
 	echo "Syntax: $0 <features separated with whitespaces>"
-	echo "    Example: $0 checker ido-mysql livestatus"
+	echo "    Example: $0 checker notification mainlog"
 
 	if [ "$TOOL" = "icinga2-enable-feature" ]; then
-		echo "Enables the specified feature."
+		echo "Enables the specified feature(s)."
 	else
-		echo "Disables the specified feature."
+		echo "Disables the specified feature(s)."
 	fi
 
 	echo
