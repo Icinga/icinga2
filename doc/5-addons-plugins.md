@@ -2,8 +2,6 @@
 
 ## <a id="addons"></a> Addons
 
-[Livestatus]
-
 ### <a id="addons-graphing-reporting"></a> Graphing Addons
 
 #### <a id="addons-graphing-pnp"></a> PNP
@@ -48,7 +46,7 @@ couple of community provided web interfaces too:
 Additional plugins next to the [Monitoring Plugins](https://www.monitoring-plugins.org)
 are available at the [Monitoring Exchange](#https://www.monitoringexchange.org) platform.
 
-More details on the plugins can also be found on the Icinga Wiki at https://www.icinga.org
+More details on the plugins can also be found on the Icinga Wiki at https://wiki.icinga.org
 
 ## <a id="plugin-api"></a> Plugin API
 
