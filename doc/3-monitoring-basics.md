@@ -1587,7 +1587,6 @@ Icinga 1.x Classic UI requires this data set as part of its backend.
 > you can safely disable this feature.
 
 
-
 ## <a id="compat-logging"></a> Compat Logging
 
 The Icinga 1.x log format is considered being the `Compat Log`
@@ -1596,7 +1595,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
 SLA reports and trends in Icinga 1.x Classic UI. Futhermore the
-`Livestatus` feature uses these logs for answering queries to
+[Livestatus](#livestatus) feature uses these logs for answering queries to
 historical tables.
 
 The `CompatLogger` object can be enabled with
@@ -1636,6 +1635,211 @@ existing log parsers.
 
 
 
+
+## <a id="db-ido"></a> DB IDO
+
+The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
+configuration and status information into a database. The IDO database is used
+by a number of projects including Icinga Web 1.x and 2.
+
+Details on the installation can be found in the [Getting Started](#configuring-ido)
+chapter. Details on the configuration can be found in the
+[IdoMysqlConnection](#objecttype-idomysqlconnection) and
+[IdoPgsqlConnection](#objecttype-idoPgsqlconnection)
+object configuration documentation.
+
+The following example query checks the health of the current Icinga 2 instance
+writing its current status to the DB IDO backend table `icinga_programstatus`
+every 10 seconds. By default it checks 60 seconds into the past which is a reasonable
+amount of time - adjust it for your requirements. If the condition is not met,
+the query returns an empty result.
+
+> **Tip**
+>
+> Use [check plugins](#plugins) to monitor the backend.
+
+Replace the `default` string with your instance name, if different.
+
+Example for MySQL:
+
+    # mysql -u root -p icinga -e "SELECT status_update_time FROM icinga_programstatus ps
+      JOIN icinga_instances i ON ps.instance_id=i.instance_id
+      WHERE (UNIX_TIMESTAMP(ps.status_update_time) > UNIX_TIMESTAMP(NOW())-60)
+      AND i.instance_name='default';"
+
+    +---------------------+
+    | status_update_time  |
+    +---------------------+
+    | 2014-05-29 14:29:56 |
+    +---------------------+
+
+
+Example for PostgreSQL:
+
+    # export PGPASSWORD=icinga; psql -U icinga -d icinga -c "SELECT ps.status_update_time FROM icinga_programstatus AS ps
+      JOIN icinga_instances AS i ON ps.instance_id=i.instance_id
+      WHERE ((SELECT extract(epoch from status_update_time) FROM icinga_programstatus) > (SELECT extract(epoch from now())-60))
+      AND i.instance_name='default'";
+
+    status_update_time   
+    ------------------------
+     2014-05-29 15:11:38+02
+    (1 Zeile)
+
+
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](#schema-db-ido).
+
+
+## <a id="livestatus"></a> Livestatus
+
+The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
+implements a query protocol that lets users query their Icinga instance for
+status information. It can also be used to send commands.
+
+Details on the installation can be found in the [Getting Started](#setting-up-livestatus)
+chapter.
+
+### <a id="livestatus-sockets"></a> Livestatus Sockets
+
+Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
+
+* Unix socket (default)
+* TCP socket
+
+Details on the configuration can be found in the [LivestatusListener](#objecttype-livestatuslistener)
+object configuration.
+
+### <a id="livestatus-get-queries"></a> Livestatus GET Queries
+
+> **Note**
+>
+> All Livestatus queries require an additional empty line as query end identifier.
+> The `unixcat` tool is either available by the MK Livestatus project or as seperate
+> binary.
+
+There also is a Perl module available in CPAN for accessing the Livestatus socket
+programmatically: [Monitoring::Livestatus](http://search.cpan.org/~nierlein/Monitoring-Livestatus-0.74/)
+
+
+Example using the unix socket:
+
+    # echo -e "GET services\n" | unixcat /var/run/icinga2/cmd/livestatus
+
+Example using the tcp socket listening on port `6558`:
+
+    # echo -e 'GET services\n' | netcat 127.0.0.1 6558
+
+    # cat servicegroups <<EOF
+    GET servicegroups
+
+    EOF
+
+    (cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
+
+
+### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
+
+A list of available external commands and their parameters can be found [here](#external-commands-list-detail)
+
+    $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
+
+
+### <a id="livestatus-filters"></a> Livestatus Filters
+
+and, or, negate
+
+  Operator  | Negate   | Description
+  ----------|------------------------
+   =        | !=       | Euqality
+   ~        | !~       | Regex match
+   =~       | !=~      | Euqality ignoring case
+   ~~       | !~~      | Regex ignoring case
+   >        |          | Less than
+   <        |          | Greater than
+   >=       |          | Less than or equal
+   <=       |          | Greater than or equal
+
+
+### <a id="livestatus-stats"></a> Livestatus Stats
+
+Schema: "Stats: aggregatefunction aggregateattribute"
+
+  Aggregate Function | Description
+  -------------------|--------------
+  sum                | &nbsp;
+  min                | &nbsp;
+  max                | &nbsp;
+  avg                | sum / count
+  std                | standard deviation
+  suminv             | sum (1 / value)
+  avginv             | suminv / count
+  count              | ordinary default for any stats query if not aggregate function defined
+
+Example:
+
+    GET hosts
+    Filter: has_been_checked = 1
+    Filter: check_type = 0
+    Stats: sum execution_time
+    Stats: sum latency
+    Stats: sum percent_state_change
+    Stats: min execution_time
+    Stats: min latency
+    Stats: min percent_state_change
+    Stats: max execution_time
+    Stats: max latency
+    Stats: max percent_state_change
+    OutputFormat: json
+    ResponseHeader: fixed16
+
+### <a id="livestatus-output"></a> Livestatus Output
+
+* CSV
+
+CSV Output uses two levels of array separators: The members array separator
+is a comma (1st level) while extra info and host|service relation separator
+is a pipe (2nd level).
+
+Seperators can be set using ASCII codes like:
+
+    Separators: 10 59 44 124
+
+* JSON
+
+Default separators.
+
+### <a id="livestatus-error-codes"></a> Livestatus Error Codes
+
+  Code      | Description
+  ----------|--------------
+  200       | OK
+  404       | Table does not exist
+  452       | Exception on query
+
+### <a id="livestatus-tables"></a> Livestatus Tables
+
+  Table         | Join      |Description
+  --------------|-----------|----------------------------
+  hosts         | &nbsp;    | host config and status attributes, services counter
+  hostgroups    | &nbsp;    | hostgroup config, status attributes and host/service counters
+  services      | hosts     | service config and status attributes
+  servicegroups | &nbsp;    | servicegroup config, status attributes and service counters
+  contacts      | &nbsp;    | contact config and status attributes
+  contactgroups | &nbsp;    | contact config, members
+  commands      | &nbsp;    | command name and line
+  status        | &nbsp;    | programstatus, config and stats
+  comments      | services  | status attributes
+  downtimes     | services  | status attributes
+  timeperiods   | &nbsp;    | name and is inside flag
+  endpoints     | &nbsp;    | config and status attributes
+  log           | services, hosts, contacts, commands | parses [compatlog](#objecttype-compatlogger) and shows log attributes
+  statehist     | hosts, services | parses [compatlog](#objecttype-compatlogger) and aggregates state change attributes
+
+The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
+
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](#schema-livestatus).
+
+
 ## <a id="check-result-files"></a> Check Result Files
 
 Icinga 1.x writes its check result files into a temporary spool directory
@@ -1654,9 +1858,3 @@ on-demand in your Icinga 2 objects configuration.
     object CheckResultReader "reader" {
       spool_dir = "/data/check-results"
     }
-
-
-
-
-
-

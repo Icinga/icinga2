@@ -148,7 +148,7 @@ Icinga 2 specific extensions:
 * command objects support custom variables (added in Classic UI 1.11.2)
 * host and service objects support 'is_reachable' (added in Classic UI 1.11.3)
 
-### <a id="schema-db-ido"></a> DB IDO
+### <a id="schema-db-ido"></a> DB IDO Schema
 
 There is a detailed documentation for the Icinga IDOUtils 1.x
 database schema available on [http://docs.icinga.org/latest/en/db_model.html]
@@ -190,119 +190,7 @@ New columns:
 Additional command custom variables populated from 'vars' dictionary.
 Additional global custom variables populated from 'Vars' constant (object_id is NULL).
 
-
-### <a id="schema-livestatus"></a> Livestatus
-
-#### <a id="schema-livestatus-get-queries"></a> Livestatus GET Queries
-
-    $ echo -e 'GET services' | netcat 127.0.0.1 6558
-
-    $ cat servicegroups <<EOF
-    GET servicegroups
-
-    EOF
-
-    (cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
-
-#### <a id="schema-livestatus-command-queries"></a> Livestatus COMMAND Queries
-
-A list of available external commands and their parameters can be found [here](#external-commands-list-detail)
-
-    $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
-
-
-#### <a id="schema-livestatus-filters"></a> Livestatus Filters
-
-and, or, negate
-
-  Operator  | Negate   | Description
-  ----------|------------------------
-   =        | !=       | Euqality
-   ~        | !~       | Regex match
-   =~       | !=~      | Euqality ignoring case
-   ~~       | !~~      | Regex ignoring case
-   >        |          | Less than
-   <        |          | Greater than
-   >=       |          | Less than or equal
-   <=       |          | Greater than or equal
-
-
-#### <a id="schema-livestatus-stats"></a> Livestatus Stats
-
-Schema: "Stats: aggregatefunction aggregateattribute"
-
-  Aggregate Function | Description
-  -------------------|--------------
-  sum                | &nbsp;
-  min                | &nbsp;
-  max                | &nbsp;
-  avg                | sum / count
-  std                | standard deviation
-  suminv             | sum (1 / value)
-  avginv             | suminv / count
-  count              | ordinary default for any stats query if not aggregate function defined
-
-Example:
-
-    GET hosts
-    Filter: has_been_checked = 1
-    Filter: check_type = 0
-    Stats: sum execution_time
-    Stats: sum latency
-    Stats: sum percent_state_change
-    Stats: min execution_time
-    Stats: min latency
-    Stats: min percent_state_change
-    Stats: max execution_time
-    Stats: max latency
-    Stats: max percent_state_change
-    OutputFormat: json
-    ResponseHeader: fixed16
-
-#### <a id="schema-livestatus-output"></a> Livestatus Output
-
-* CSV
-
-CSV Output uses two levels of array separators: The members array separator
-is a comma (1st level) while extra info and host|service relation separator
-is a pipe (2nd level).
-
-Seperators can be set using ASCII codes like:
-
-    Separators: 10 59 44 124
-
-* JSON
-
-Default separators.
-
-#### <a id="schema-livestatus-error-codes"></a> Livestatus Error Codes
-
-  Code      | Description
-  ----------|--------------
-  200       | OK
-  404       | Table does not exist
-  452       | Exception on query
-
-#### <a id="schema-livestatus-tables"></a> Livestatus Tables
-
-  Table         | Join      |Description
-  --------------|-----------|----------------------------
-  hosts         | &nbsp;    | host config and status attributes, services counter
-  hostgroups    | &nbsp;    | hostgroup config, status attributes and host/service counters
-  services      | hosts     | service config and status attributes
-  servicegroups | &nbsp;    | servicegroup config, status attributes and service counters
-  contacts      | &nbsp;    | contact config and status attributes
-  contactgroups | &nbsp;    | contact config, members
-  commands      | &nbsp;    | command name and line
-  status        | &nbsp;    | programstatus, config and stats
-  comments      | services  | status attributes
-  downtimes     | services  | status attributes
-  timeperiods   | &nbsp;    | name and is inside flag
-  endpoints     | &nbsp;    | config and status attributes
-  log           | services, hosts, contacts, commands | parses [compatlog](#objecttype-compatlogger) and shows log attributes
-  statehist     | hosts, services | parses [compatlog](#objecttype-compatlogger) and aggregates state change attributes
-
-The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
+### <a id="schema-livestatus"></a> Livestatus Schema
 
 #### <a id="schema-livestatus-extensions"></a> Livestatus Schema Extensions
 

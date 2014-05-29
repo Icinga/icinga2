@@ -1,6 +1,8 @@
-# <a id="addons-plugins"></a> Icinga Addons and Plugins
+# <a id="addons-plugins"></a> Icinga 2 Addons and Plugins
 
 ## <a id="addons"></a> Addons
+
+[Livestatus]
 
 ### <a id="addons-graphing-reporting"></a> Graphing Addons
 
@@ -38,8 +40,7 @@ based on your monitoring configuration and status data using NagVis (http://www.
 Next to the Icinga supported web interfaces (Classic UI 1.x, Web 1.x, Web 2) there are a
 couple of community provided web interfaces too:
 
-* Thruk (http://www.thruk.org) based on the Livestatus feature
-
+* Thruk (http://www.thruk.org) based on the [Livestatus](#livestatus) feature
 
 
 ## <a id="plugins"></a> Plugins

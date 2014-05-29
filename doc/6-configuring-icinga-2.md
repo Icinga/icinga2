@@ -1191,7 +1191,7 @@ Example:
       database = "icinga"
       table_prefix = "icinga_"
       instance_name = "icinga2"
-      instance_description = "icinga2 dev instance"
+      instance_description = "icinga2 instance"
 
       cleanup = {
         downtimehistory_age = 48h
@@ -1278,7 +1278,7 @@ Example:
       database = "icinga"
       table_prefix = "icinga_"
       instance_name = "icinga2"
-      instance_description = "icinga2 dev instance"
+      instance_description = "icinga2 instance"
 
       cleanup = {
         downtimehistory_age = 48h

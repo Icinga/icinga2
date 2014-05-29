@@ -467,14 +467,13 @@ following command:
 
     # mysql -u root -p icinga < /usr/share/doc/icinga2-ido-mysql-*/schema/mysql.sql
 
-The Icinga 2 RPM packages install the schema files into
-`/usr/share/doc/icinga2-ido-mysql-*/schema` (`*` means package version).
+The schema file location differs by the distribution used:
 
-On SuSE-based distributions the schema files are installed in
-`/usr/share/doc/packages/icinga2-ido-mysql/schema`.
-
-The Debian/Ubuntu packages put the schema files into
-`/usr/share/icinga2-ido-mysql/schema`.
+  Distribution  | Schema Files
+  --------------|---------------------
+  RHEL          | `/usr/share/doc/icinga2-ido-mysql-*/schema` (`*` means package version).
+  SUSE          | `/usr/share/doc/packages/icinga2-ido-mysql/schema`
+  Debian/Ubuntu | `/usr/share/icinga2-ido-mysql/schema`
 
 #### <a id="upgrading-mysql-db"></a> Upgrading the MySQL database
 
@@ -529,6 +528,10 @@ setting up a PostgreSQL database for Icinga 2:
     # sudo -u postgres createdb -O icinga -E UTF8 icinga
     # sudo -u postgres createlang plpgsql icinga
 
+> **Note**
+>
+> Using PostgreSQL 9.x you can omit the `createlang` command.
+
 Locate your pg_hba.conf (Debian: `/etc/postgresql/*/main/pg_hba.conf`,
 RHEL/SUSE: `/var/lib/pgsql/data/pg_hba.conf`), add the icinga user with md5
 authentication method and restart the postgresql server.
@@ -556,14 +559,14 @@ using the following command:
     # export PGPASSWORD=icinga
     # psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-*/schema/pgsql.sql
 
-The Icinga 2 RPM packages install the schema files into
-`/usr/share/doc/icinga2-ido-pgsql-*/schema` (`*` means package version).
+The schema file location differs by the distribution used:
 
-On SuSE-based distributions the schema files are installed in
-`/usr/share/doc/packages/icinga2-ido-pgsql/schema`.
+  Distribution  | Schema Files
+  --------------|---------------------
+  RHEL          | `/usr/share/doc/icinga2-ido-pgsql-*/schema` (`*` means package version).
+  SUSE          | `/usr/share/doc/packages/icinga2-ido-pgsql/schema`
+  Debian/Ubuntu | `/usr/share/icinga2-ido-pgsql/schema`
 
-The Debian/Ubuntu packages put the schema files into
-`/usr/share/icinga2-ido-pgsql/schema`.
 
 #### <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
 
