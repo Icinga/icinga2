@@ -55,7 +55,7 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log ` file
 
-Verify that by calling `icinga2-enable-feature` withour any additional parameters
+Verify that by calling `icinga2-enable-feature` without any additional parameters
 and enable the missing features, if any.
 
     # icinga2-enable-feature
