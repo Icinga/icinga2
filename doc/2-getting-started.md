@@ -46,6 +46,25 @@ not yet available you will have to use the release tarball which you
 can download from the [Icinga website](https://www.icinga.org/). The
 release tarballs contain an `INSTALL` file with further instructions.
 
+### <a id="installation-enabled-features"></a> Enabled Features during Installation
+
+The default installation will enable three features required for a basic
+Icinga 2 installation:
+
+* `checker` for executing checks
+* `notification` for sending notifications
+* `mainlog` for writing the `icinga2.log ` file
+
+Verify that by calling `icinga2-enable-feature` withour any additional parameters
+and enable the missing features, if any.
+
+    # icinga2-enable-feature
+    Syntax: /usr/sbin/icinga2-enable-feature <features separated with whitespaces>
+        Example: /usr/sbin/icinga2-enable-feature checker notification mainlog
+    Enables the specified feature(s).
+
+    Available features: api checker command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus mainlog notification perfdata statusdata syslog
+    Enabled features: checker mainlog notification
 
 ### <a id="installation-paths"></a> Installation Paths
 

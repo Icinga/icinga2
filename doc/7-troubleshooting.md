@@ -36,6 +36,13 @@ Additionally you can enable the debug log using
 
     # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
 
+* Make sure the [checker](#features) feature is enabled.
+
+    # icinga2-enable-feature checker
+    Total params: 1
+    The feature 'checker' is already enabled.
+
+
 ## <a id="notifications-not-sent"></a> Notifications are not sent
 
 * Check the debug log if a notification is triggered
@@ -48,6 +55,12 @@ Verify the following configuration
 * Do the notification attributes `states`, `types`, `period` match the notification conditions?
 * Do the user attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
+
+* Make sure the [notification](#features) feature is enabled.
+
+    # icinga2-enable-feature notification
+    Total params: 1
+    The feature 'notification' is already enabled.
 
 * Does the referenced NotificationCommand work executed as Icinga user on the shell?
 

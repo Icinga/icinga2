@@ -321,6 +321,11 @@ object, notifications for all states and types will be sent.
 
 Details on troubleshooting notification problems can be found [here](#troubleshooting).
 
+> **Note**
+>
+> Make sure that the [notification](#features) feature is enabled on your master instance
+> in order to execute notification commands.
+
 You should choose which information you (and your notified users) are interested in
 case of emergency, and also which information does not provide any value to you and
 your environment.
@@ -587,6 +592,11 @@ Please check [Runtime Custom Attributes as Environment Variables](#runtime-custo
 
 `CheckCommand` objects define the command line how a check is called.
 
+> **Note**
+>
+> Make sure that the [checker](#features) feature is enabled in order to
+> execute checks.
+
 #### <a id="command-plugin-integration"></a> Integrate the Plugin with a CheckCommand Definition
 
 `CheckCommand` objects require the [ITL template](#itl-plugin-check-command)
@@ -783,6 +793,11 @@ interfaces (E-Mail, XMPP, IRC, Twitter, etc).
 
 `NotificationCommand` objects require the [ITL template](#itl-plugin-notification-command)
 `plugin-notification-command` to support native plugin-based notifications.
+
+> **Note**
+>
+> Make sure that the [notification](#features) feature is enabled on your master instance
+> in order to execute notification commands.
 
 Below is an example using runtime macros from Icinga 2 (such as `$service.output$` for
 the current check output) sending an email to the user(s) associated with the
