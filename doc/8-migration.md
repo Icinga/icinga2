@@ -2,22 +2,34 @@
 
 ## <a id="configuration-migration"></a> Configuration Migration
 
-The Icinga 2 configuration format introduces plenty of behavioural changes.
+The Icinga 2 configuration format introduces plenty of behavioural changes. In
+order to ease migration from Icinga 1.x, Icinga 2 ships its own config migration 
+script.
 
 ### <a id="configuration-migration-script"></a> Configuration Migration Script
 
-In order to migrate existing configuration in Icinga 1.x format the Icinga CLI
-as part of the Icinga Web 2 project will provide a configuration migration module.
+In order to migrate existing configurations in Icinga 1.x format,
+the Icinga CLI, as part of the Icinga Web 2 project will provide
+a conversion module.
 
-Details can be found in [https://dev.icinga.org/issues/5929].
+Due to the complexity of the Icinga 1.x configuration format, the migration
+script might not currently work for all use cases.
+
+The migration script tries to preserve your existing template structure and
+adds new templates where appropriate. However, the original file structure is
+not preserved.
+
+The migration script also uses templates from the Icinga Template Library where
+possible.
+>>>>>>> Fixes for poor grammar and bad sentence structure.:doc/7-migration.md
 
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
 For a long-term migration of your configuration you should consider re-creating
-your configuration based on the Icinga 2 proposed way of doing configuration right.
+your configuration based on the proposed Icinga 2 configuration paradigm.
 
-Please read the [next section](#differences-1x-2) to get an idea about the differences between 1.x and 2.
-
+Please read the [next chapter](#differences-1x-2) to find out more about the differences 
+between 1.x and 2.
 
 ## <a id="differences-1x-2"></a> Differences between Icinga 1.x and 2
 
@@ -46,8 +58,8 @@ if it's the main configuration file, or any included file.
 #### <a id="differences-1x-2-sample-configuration-itl"></a> Sample Configuration and ITL
 
 While Icinga 1.x ships sample configuration and templates spread in various
-object files Icinga 2 moves all templates into the Icinga Template Library (ITL)
-and includes that in the sample configuration.
+object files, Icinga 2 moves all templates into the Icinga Template Library (ITL)
+and includes them in the sample configuration.
 
 Additional plugin check commands are shipped with Icinga 2 as well.
 

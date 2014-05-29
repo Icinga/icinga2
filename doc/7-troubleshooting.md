@@ -16,9 +16,8 @@ For a more verbose output of the Icinga 2 daemon increase the
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
-Run Icinga 2 in foreground with debugging enabled. Specify the console
-log severity as additional parameter argument to `-x`. Default
-is `debug`.
+Run Icinga 2 in the foreground with debugging enabled. Specify the console
+log severity as an additional parameter argument to `-x`.
 
     # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -x notice
 
@@ -30,8 +29,8 @@ Additionally you can enable the debug log using
 
 ## <a id="checks-not-executed"></a> Checks are not executed
 
-* Check the debug log if the check command gets executed
-* Verify that failed dependencies do not prevent the command execution
+* Check the debug log to see if the check command gets executed
+* Verify that failed depedencies do not prevent command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
 
     # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
@@ -44,9 +43,9 @@ Additionally you can enable the debug log using
 
 ## <a id="notifications-not-sent"></a> Notifications are not sent
 
-* Check the debug log if a notification is triggered
+* Check the debug log to see if a notification is triggered
 * If yes, verify that all conditions are satisfied
-* Any errors on the notification command execution logged?
+* Are any errors on the notification command execution logged?
 
 Verify the following configuration
 
@@ -64,7 +63,7 @@ Verify the following configuration
 
 ## <a id="feature-not-working"></a> Feature is not working
 
-* Make sure that the feature configuration is enabled by symlink from `features-available/`
+* Make sure that the feature configuration is enabled by symlinking from `features-available/`
 to `features-enabled` and that the latter is included in [icinga2.conf](#icinga2-conf).
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
@@ -77,8 +76,8 @@ encapsulated by `/* ... */`).
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
-Icinga 2 allows you to import templates using the [import](#import) keyword. If these template
-contain additional attributes your objects will automatically inherit them. You can override
+Icinga 2 allows you to import templates using the [import](#import) keyword. If these templates
+contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 
 
@@ -140,13 +139,13 @@ If Icinga 2 aborted its operation abnormally, generate a backtrace.
 >**Tip**
 >
 > If you're opening an issue at [https://dev.icinga.org] make sure
-> to attach as much details as possible.
+> to attach as much detail as possible.
 
 
 ### <a id="development-debug-gdb-backtrace-stepping"></a> GDB Backtrace Stepping
 
-Identifying the problem may require stepping into the backtrace analysing
-the current scope, attributes and possible unmet requirements. `p` prints
+Identifying the problem may require stepping into the backtrace, analysing
+the current scope, attributes, and possible unmet requirements. `p` prints
 the value of the selected variable or function call result.
 
     (gdb) up
@@ -157,7 +156,7 @@ the value of the selected variable or function call result.
 
 ### <a id="development-debug-gdb-breakpoint"></a> GDB Breakpoints
 
-Set a breakpoint to a specific function call, or file specific line.
+To set a breakpoint to a specific function call, or file specific line.
 
     (gdb) b checkable.cpp:125
     (gdb) b icinga::Checkable::SetEnablePerfdata

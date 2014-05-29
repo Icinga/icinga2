@@ -3,9 +3,9 @@
 ## <a id="what-is-icinga2"></a> What is Icinga 2?
 
 Icinga 2 is an open source monitoring system which checks the availability of your
-network resources, notifies users of outages and generates performance data for reporting.
+network resources, notifies users of outages, and generates performance data for reporting.
 
-Scalable and extensible, Icinga 2 can monitor complex, large environments across
+Scalable and extensible, Icinga 2 can monitor large, complex environments across
 multiple locations.
 
 ## <a id="licensing"></a> Licensing
@@ -21,8 +21,8 @@ the support overview page at [https://support.icinga.org].
 
 ## <a id="contribute"></a> Contribute
 
-There are many ways to contribute to Icinga - be it by sending patches, testing and
-reporting bugs, reviewing and updating the documentation. Every contribution
+There are many ways to contribute to Icinga - whether it be sending patches, testing,
+reporting bugs, or reviewing and updating the documentation. Every contribution
 is appreciated!
 
 Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
@@ -63,7 +63,7 @@ Please check the `ChangeLog` file.
 * Use [Packages](#getting-started)
 
 Look for available packages on [http://packages.icinga.org] or ask your distribution's maintainer.
-Compiling from source is not recommended, and not the default either.
+Compiling from source is not recommended.
 
 * Real Distributed Architecture
 
@@ -73,24 +73,22 @@ and High-Availability installations. Secured by SSL x509 certificates, supportin
 * High Performance
 
 Multithreaded and scalable for small embedded systems as well as large scale environments.
-Running checks every second - not an issue anymore.
+Running checks every second is no longer a problem.
 
 * Modular & flexible [features](#features)
 
-Enable only the features required for the local installation. Using Icinga Web 2 and requiring
-DB IDO, but no status data? No problem, just enable ido-mysql and disable statusdata.
-Another example: Graphite should be enabled on a dedicated cluster node. Enable it over there
-and point it to the carbon cache socket.
+Enable only the features you require. Want to use Icinga Web 2 with DB IDO but no status data?
+No problem! Just enable ido-mysql and disable statusdata. Another example: Graphite should be enabled 
+on a dedicated cluster node. Enable it over there and point it to the carbon cache socket.
 
 * Native support for the [Livestatus protocol](#setting-up-livestatus)
 
-Next to the Icinga 1.x status and log files and the IDO database backend the commonly used
-Livestatus protocol is available with Icinga 2. Either as unix or tcp socket.
+In Icinga2, the 'Livestatus' protocol is available for use as either a UNIX, or TCP socket.
 
 * Native support for [Graphite](#graphite-carbon-cache-writer)
 
 Icinga 2 still supports writing performance data files for graphing addons, but also adds the
-capability of writing performance data directly onto a Graphite tcp socket simplifying realtime
+capability of writing performance data directly into a Graphite TCP socket simplifying realtime
 monitoring graphs.
 
 * Dynamic configuration language
@@ -108,8 +106,8 @@ One command to rule them all - supporting optional and conditional [command argu
 [Environment variables](#command-environment-variables) exported on-demand populated with
 runtime evaluated macros.
 Three types of commands used for different actions: checks, notifications and events.
-Check timeout for commands instead of a global option. Command custom attributes allowing
-you to specify default values for the command.
+Check timeout for commands instead of a global option. Commands also have custom attributes allowing
+you to specify default values.
 
 * Custom Runtime Macros
 
@@ -124,7 +122,7 @@ Multiple [notifications](#notifications) for one host or service with existing u
 and notification commands. No more duplicated contacts for different notification types.
 Telling notification filters by state and type, even more fine-grained than Icinga 1.x.
 [Escalation notifications](#notification-escalations) and [delayed notifications](#first-notification-delay)
-are just notifications with additional begin and/or end time attribute.
+are just notifications with an additional begin and/or end time attribute.
 
 * Dependencies between Hosts and Services
 
@@ -136,8 +134,8 @@ required for network reachability calculations.
 
 * [Recurring Downtimes](#recurring-downtimes)
 
-Forget the external cronjob scheduling downtimes on-demand. Configure them right away as Icinga 2
-configuration objects and set their active time window.
+Forget using cronjobs to set up recurring downtime - you can configure them as Icinga2 configuration 
+objects and specify their active time window.
 
 * Embedded Health Checks
 
@@ -158,7 +156,7 @@ Additional information on the differences is documented in the [migration](#diff
 * [Vagrant Demo VM](#vagrant)
 
 Used for demo cases and development tests. Get Icinga 2 running within minutes and spread the #monitoringlove
-to your friends and partners.
+to your friends and colleagues.
 
 
 

@@ -8,7 +8,7 @@ Details on troubleshooting problems can be found [here](#troubleshooting).
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
-First of all you will have to install Icinga 2. The preferred way of doing this
+First off you will have to install Icinga 2. The preferred way of doing this
 is to use the official Debian or RPM package repositories depending on which
 operating system and distribution you are running.
 
@@ -41,8 +41,8 @@ Some parts of Icinga 2's functionality are available as separate packages:
   icinga2-ido-mysql       | IDO provider module for MySQL
   icinga2-ido-pgsql       | IDO provider module for PostgreSQL
 
-In case you're running a distribution for which Icinga 2 packages are
-not yet available you will have to use the release tarball which you
+If you're running a distribution for which Icinga 2 packages are
+not yet available you will need to use the release tarball which you
 can download from the [Icinga website](https://www.icinga.org/). The
 release tarballs contain an `INSTALL` file with further instructions.
 
@@ -363,7 +363,8 @@ Further details on the monitoring configuration can be found in the
 
 ## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
 
-On its own Icinga 2 does not know how to check external services. The
+Without plugins 
+Icinga 2 does not know how to check external services. The
 [Monitoring Plugins Project](https://www.monitoring-plugins.org/) provides
 an extensive set of plugins which can be used with Icinga 2 to check whether
 services are working properly.
@@ -394,7 +395,7 @@ where to find the plugin binaries.
 
 ### <a id="integrate-additional-plugins"></a> Integrate Additional Plugins
 
-For some services you may need additional check plugins which are not provided
+For some services you may need additional 'check plugins' which are not provided
 by the official Monitoring Plugins project.
 
 All existing Nagios or Icinga 1.x plugins should work with Icinga 2. Here's a
@@ -664,15 +665,15 @@ Change "www-data" to the user you're using to run queries.
 
 In order to use the historical tables provided by the livestatus feature (for example, the
 `log` table) you need to have the `CompatLogger` feature enabled. By default these logs
-are expected in `/var/log/icinga2/compat`. A different path can be set using the `compat_log_path`
-configuration attribute.
+are expected to be in `/var/log/icinga2/compat`. A different path can be set using the 
+`compat_log_path` configuration attribute.
 
     # icinga2-enable-feature compatlog
 
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 
-Icinga 2 is compatible to Icinga 1.x user interfaces by providing additional
+Icinga 2 is compatible with Icinga 1.x user interfaces by providing additional
 features required as backends.
 
 Furthermore these interfaces (and somewhere in the future an Icinga 2
@@ -681,7 +682,7 @@ user interface.
 
 Some interface features will only work in a limited manner due to
 [compatibility reasons](#differences-1x-2), other features like the
-statusmap parents are available dumping the host dependencies as parents.
+statusmap parents are available by dumping the host dependencies as parents.
 Special restrictions are noted specifically in the sections below.
 
 > **Tip**
