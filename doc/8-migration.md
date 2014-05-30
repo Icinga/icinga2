@@ -299,11 +299,13 @@ Changes to user (contact) runtime macros
 
   Icinga 1.x             | Icinga 2
   -----------------------|----------------------
-  USERNAME               | user.name
-  USERDISPLAYNAME        | user.display_name
-  USEREMAIL              | email if set as `email` custom attribute.
-  USERPAGER              | pager if set as `pager` custom attribute.
+  CONTACTNAME            | user.name
+  CONTACTALIAS           | user.display_name
+  CONTACTEMAIL           | user.email
+  CONTACTPAGER           | user.pager
 
+`CONTACTADDRESS*` is not supported but can be accessed as `$user.vars.address1$`
+if set.
 
 Changes to service runtime macros
 
