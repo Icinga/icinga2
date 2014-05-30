@@ -2,6 +2,17 @@
 # vi: set ft=ruby :
 
 VAGRANTFILE_API_VERSION = "2"
+VAGRANT_REQUIRED_VERSION = "1.2.0"
+
+# Require 1.2.x at least
+if ! defined? Vagrant.require_version
+  if Gem::Version.new(Vagrant::VERSION) < Gem::Version.new(VAGRANT_REQUIRED_VERSION)
+    puts "Vagrant >= " + VAGRANT_REQUIRED_VERSION + " required. Your version is " + Vagrant::VERSION
+    exit 1
+  end
+else
+  Vagrant.require_version ">= " + VAGRANT_REQUIRED_VERSION
+end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # All Vagrant configuration is done here. The most common configuration
