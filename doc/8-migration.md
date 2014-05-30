@@ -323,7 +323,7 @@ Changes to service runtime macros
   LASTSERVICESTATEID     | service.last_state_id
   LASTSERVICESTATETYPE   | service.last_state_type
   LASTSERVICESTATECHANGE | service.last_state_change
-  SERVICEDURATIONSEC     | service.durations_ec
+  SERVICEDURATIONSEC     | service.duration_sec
   SERVICELATENCY         | service.latency
   SERVICEEXECUTIONTIME   | service.execution_time
   SERVICEOUTPUT          | service.output
@@ -339,9 +339,11 @@ Changes to host runtime macros
   Icinga 1.x             | Icinga 2
   -----------------------|----------------------
   HOSTNAME               | host.name
+  HOSTADDRESS            | host.address
+  HOSTADDRESS6           | host.address6
   HOSTDISPLAYNAME        | host.display_name
-  HOSTCHECKCOMMAND       | host.check_command
   HOSTALIAS              | (use `host.display_name` instead)
+  HOSTCHECKCOMMAND       | host.check_command
   HOSTSTATE              | host.state
   HOSTSTATEID            | host.state_id
   HOSTSTATETYPE          | host.state_type
@@ -360,8 +362,6 @@ Changes to host runtime macros
   HOSTNOTES              | host.notes
   HOSTNOTESURL           | host.notes_url
   HOSTACTIONURL          | host.action_url
-  HOSTADDRESS            | host.address
-  HOSTADDRESS6           | host.address6
   TOTALSERVICES          | host.num_services
   TOTALSERVICESOK        | host.num_services_ok
   TOTALSERVICESWARNING   | host.num_services_warning
