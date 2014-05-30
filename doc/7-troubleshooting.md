@@ -39,7 +39,6 @@ Additionally you can enable the debug log using
 * Make sure the [checker](#features) feature is enabled.
 
     # icinga2-enable-feature checker
-    Total params: 1
     The feature 'checker' is already enabled.
 
 
@@ -59,7 +58,6 @@ Verify the following configuration
 * Make sure the [notification](#features) feature is enabled.
 
     # icinga2-enable-feature notification
-    Total params: 1
     The feature 'notification' is already enabled.
 
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?

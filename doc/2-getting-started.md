@@ -59,8 +59,8 @@ Verify that by calling `icinga2-enable-feature` without any additional parameter
 and enable the missing features, if any.
 
     # icinga2-enable-feature
-    Syntax: /usr/sbin/icinga2-enable-feature <features separated with whitespaces>
-        Example: /usr/sbin/icinga2-enable-feature checker notification mainlog
+    Syntax: icinga2-enable-feature <features separated with whitespaces>
+      Example: icinga2-enable-feature checker notification mainlog
     Enables the specified feature(s).
 
     Available features: api checker command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus mainlog notification perfdata statusdata syslog
@@ -776,6 +776,11 @@ to the default used in Icinga 2. Make sure to clear the cache afterwards.
                 </write>
 
     # icinga-web-clearcache
+
+> **Note**
+>
+> The path to the Icinga Web `clearcache` script may differ. Please check the
+> [Icinga Web documentation](https://docs.icinga.org) for details.
 
 Verify that your Icinga 1.x Web works by browsing to your Web installation URL:
 
