@@ -823,6 +823,21 @@ touch with their developers.
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
 to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).
 
+## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
+
+Icinga 2 ships configuration examples for syntax highlighting using the `vim` editor.
+The RHEL, SUSE and Debian package `icinga2-common` install these files into
+`/usr/share/*/icinga2-common/syntax`. Sources provide these files in `tools/syntax`.
+
+Create a new local vim configuration storage, if not already existing.
+Edit `vim/ftdetect/icinga2.vim` if your paths to the Icinga 2 configuration
+differ.
+
+    $ PREFIX=~/.vim
+    $ mkdir -p $PREFIX/{syntax,ftdetect}
+    $ cp vim/syntax/icinga2.vim $PREFIX/syntax/
+    $ cp vim/ftdetect/icinga2.vim $PREFIX/ftdetect/
+
 
 ## <a id="running-icinga2"></a> Running Icinga 2
 

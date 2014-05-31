@@ -1,0 +1,10 @@
+Icinga 2 Configuration Vim Syntax Highlighting
+==============================================
+
+$ PREFIX=~/.vim
+$ mkdir -p $PREFIX/{syntax,ftdetect}
+$ cp syntax/icinga2.vim $PREFIX/syntax/
+$ cp ftdetect/icinga2.vim $PREFIX/ftdetect/
+
+Modify 'ftdetect/icinga2.vim' if your configuration isn't located in
+'/etc/icinga2'.
