@@ -1,8 +1,6 @@
 debian/tmp/etc/icinga2
 debian/tmp/etc/logrotate.d
 debian/config/apt.conf        etc/icinga2/conf.d/hosts/localhost
-debian/config/kernel.conf     etc/icinga2/conf.d/hosts/localhost
-debian/config/check_kernel    etc/sudoers.d
 usr/bin/icinga2-build*
 usr/bin/icinga2-sign-key
 usr/sbin/icinga2-*-feature

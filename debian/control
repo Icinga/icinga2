@@ -40,7 +40,7 @@ Description: host and network monitoring system
 
 Package: icinga2-common
 Architecture: all
-Depends: adduser, sudo, binutils, ${misc:Depends}
+Depends: adduser, lsb-release, ${misc:Depends}
 Description: host and network monitoring system - common files
  Icinga 2 is still in development and not ready for production use!
  .
