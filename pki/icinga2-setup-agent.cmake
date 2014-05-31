@@ -117,7 +117,7 @@ if [ -n "$1" ]; then
 	base64 -d < $1 | tar -C $ICINGA2CONFIG/pki/ -zx || exit 1
 	chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/* || exit 1
 
-	echo "Setting up api.configuration..."
+	echo "Setting up api.conf..."
 	cat >$ICINGA2CONFIG/features-available/api.conf <<AGENT
 /**
  * The API listener is used for distributed monitoring setups.
@@ -131,27 +131,37 @@ object ApiListener "api" {
   bind_port = "$listener_port"
 }
 
+AGENT
+
+	echo "Setting up zones.conf..."
+	cat >$ICINGA2CONFIG/zones.conf <<ZONES
+/*
+ * Endpoint and Zone configuration for a cluster setup
+ * This local example requires `NodeName` defined in
+ * constants.conf.
+ */
+
 object Endpoint NodeName {
   host = NodeName
 }
 
 object Zone ZoneName {
-AGENT
+ZONES
 
 	if [ "$upstream_connect" = "y" ]; then
-		cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+		cat >>$ICINGA2CONFIG/features-available/api.conf <<ZONES
   parent = "$upstream_name"
-AGENT
+ZONES
 	fi
 
-	cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+	cat >>$ICINGA2CONFIG/features-available/api.conf <<ZONES
   endpoints = [ NodeName ]
 }
 
-AGENT
+ZONES
 
 	if [ "$upstream_connect" = "y" ]; then
-		cat >>$ICINGA2CONFIG/features-available/api.conf <<AGENT
+		cat >>$ICINGA2CONFIG/features-available/api.conf <<ZONES
 object Endpoint "$upstream_name" {
   host = "$upstream_host"
   port = "$upstream_port"
@@ -160,7 +170,7 @@ object Endpoint "$upstream_name" {
 object Zone "$upstream_name" {
   endpoints = [ "$upstream_name" ]
 }
-AGENT
+ZONES
 	fi
 
 	sed -i "s/NodeName = \"localhost\"/NodeName = \"$name\"/" /etc/icinga2/constants.conf
