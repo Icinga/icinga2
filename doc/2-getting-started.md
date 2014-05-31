@@ -196,7 +196,7 @@ The `conf.d/localhost.conf` file contains our first host definition:
     }
 
 This defines the host `localhost`. The `import` keyword is used to import
-the `linux-server` template which takes care of setting up the host check
+the `generic-host` template which takes care of setting up the host check
 command.
 
 The `vars` attribute can be used to define custom attributes which are available
