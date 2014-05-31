@@ -149,19 +149,19 @@ object Zone ZoneName {
 ZONES
 
 	if [ "$upstream_connect" = "y" ]; then
-		cat >>$ICINGA2CONFIG/features-available/api.conf <<ZONES
+		cat >>$ICINGA2CONFIG/zones.conf <<ZONES
   parent = "$upstream_name"
 ZONES
 	fi
 
-	cat >>$ICINGA2CONFIG/features-available/api.conf <<ZONES
+	cat >>$ICINGA2CONFIG/zones.conf <<ZONES
   endpoints = [ NodeName ]
 }
 
 ZONES
 
 	if [ "$upstream_connect" = "y" ]; then
-		cat >>$ICINGA2CONFIG/features-available/api.conf <<ZONES
+		cat >>$ICINGA2CONFIG/zones.conf <<ZONES
 object Endpoint "$upstream_name" {
   host = "$upstream_host"
   port = "$upstream_port"
