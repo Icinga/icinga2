@@ -1765,9 +1765,9 @@ and, or, negate
 
   Operator  | Negate   | Description
   ----------|------------------------
-   =        | !=       | Euqality
+   =        | !=       | Equality
    ~        | !~       | Regex match
-   =~       | !=~      | Euqality ignoring case
+   =~       | !=~      | Equality ignoring case
    ~~       | !~~      | Regex ignoring case
    >        |          | Less than
    <        |          | Greater than
