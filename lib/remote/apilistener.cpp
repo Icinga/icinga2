@@ -136,7 +136,7 @@ void ApiListener::AddListener(const String& service)
 	Log(LogInformation, "ApiListener", s.str());
 
 	TcpSocket::Ptr server = make_shared<TcpSocket>();
-	server->Bind(service, AF_INET6);
+	server->Bind(service, AF_UNSPEC);
 
 	boost::thread thread(boost::bind(&ApiListener::ListenerThreadProc, this, server));
 	thread.detach();

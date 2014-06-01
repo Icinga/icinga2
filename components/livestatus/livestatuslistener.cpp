@@ -70,7 +70,7 @@ void LivestatusListener::Start(void)
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = make_shared<TcpSocket>();
-		socket->Bind(GetBindHost(), GetBindPort(), AF_INET);
+		socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
