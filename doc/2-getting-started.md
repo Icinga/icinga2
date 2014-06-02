@@ -197,7 +197,8 @@ The `conf.d/localhost.conf` file contains our first host definition:
 
 This defines the host `localhost`. The `import` keyword is used to import
 the `generic-host` template which takes care of setting up the host check
-command.
+command to `hostalive`. If you require a different check command, you can
+override it in the object definition.
 
 The `vars` attribute can be used to define custom attributes which are available
 for check and notification commands. Most of the templates in the Icinga

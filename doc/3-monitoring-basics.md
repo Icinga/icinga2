@@ -40,7 +40,7 @@ host `my-server1`.
 It also specifies that the host should perform its own check using the `hostalive`
 check command.
 
-The `address` custom attribute is used by check commands to determine which network
+The `address` attribute is used by check commands to determine which network
 address is associated with the host object.
 
 Details on troubleshooting check problems can be found [here](#troubleshooting).
@@ -80,7 +80,24 @@ state the host/service switches to a `HARD` state and notifications are sent.
   HARD        | The host/service's state hasn't recently changed.
   SOFT        | The host/service has recently changed state and is being re-checked.
 
+### <a id="host-service-checks"></a> Host and Service Checks
 
+Hosts and Services determine their state from a check result returned from a check
+execution to the Icinga 2 application. By default the `generic-host` example template
+will define `hostalive` as host check. If your host is unreachable for ping, you should
+consider using a different check command, for instance the `http` check command, or if
+there is no check available, the `dummy` check command.
+
+    object Host "uncheckable-host" {
+      check_command = "dummy"
+      vars.dummy_state = 1
+      vars.dummy_text = "Pretending to be OK."
+    }
+
+Service checks could also use a `dummy` check, but the common strategy is to
+[integrate an existing plugin](#command-plugin-integration) as
+[check command](#check-commands) and [reference](#command-passing-parameters)
+that in your [Service](#objecttype-service) object definition.
 
 ## <a id="configuration-best-practice"></a> Configuration Best Practice
 
