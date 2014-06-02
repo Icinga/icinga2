@@ -20,6 +20,61 @@ your configuration based on the proposed Icinga 2 configuration paradigm.
 Please read the [next chapter](#differences-1x-2) to find out more about the differences 
 between 1.x and 2.
 
+### <a id="manual-config-migration-hints"></a> Manual Config Migration Hints
+
+These hints should provide you enough details for manually migrating your configuration,
+or to adapt your configuration export tool to dump Icinga 2 configuration instead of
+Icinga 1.x configuration.
+
+If you require in-depth explainations, please check the [next chapter](#differences-1x-2).
+
+#### <a id="manual-config-migration-hints-services"></a> Manual Config Migration Hints for Services
+
+If you have used the `host_name` attribute in Icinga 1.x with one or more host names this service
+belongs to, you can migrate this to the [apply rules](#using-apply) syntax.
+
+Icinga 1.x:
+
+    define service {
+        service_description             service1
+        host_name                       localhost1,localhost2
+        check_command                   test_check
+        use                             generic-service
+    }
+
+Icinga 2:
+
+    apply Service "service1" {
+        import "generic-service"
+        check_command = "test_check"
+
+        assign where host.name == "localhost1"
+        assign where host.name == "localhost2"
+    }
+
+In Icinga 1.x you would have organized your services with hostgroups using the `hostgroup_name` attribute
+like the following example:
+
+    define service {
+        service_description             servicewithhostgroups
+        hostgroup_name                  hostgroup1,hostgroup3
+        check_command                   test_check
+        use                             generic-service
+    }
+
+Using Icinga 2 you can migrate this to the [apply rules](#using-apply) syntax:
+
+    apply Service "servicewithhostgroups" {
+        import "generic-service"
+        check_command = "test_check"
+
+        assign where "hostgroup1" in host.groups
+        assign where "hostgroup3" in host.groups
+    }
+
+
+
+
 ## <a id="differences-1x-2"></a> Differences between Icinga 1.x and 2
 
 ### <a id="differences-1x-2-configuration-format"></a> Configuration Format
