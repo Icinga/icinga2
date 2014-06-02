@@ -26,7 +26,35 @@ These hints should provide you enough details for manually migrating your config
 or to adapt your configuration export tool to dump Icinga 2 configuration instead of
 Icinga 1.x configuration.
 
+The examples are taken from Icinga 1.x test and production environments and converted
+straight into a possible Icinga 2 format. If you found a different strategy, send a patch!
+
 If you require in-depth explainations, please check the [next chapter](#differences-1x-2).
+
+#### <a id="manual-config-migration-hints-Intervals"></a> Manual Config Migration Hints for Intervals
+
+By default all intervals without any duration literal are interpreted as seconds. Therefore
+all existing Icinga 1.x `*_interval` attributes require an additional `m` duration literal.
+
+Icinga 1.x:
+
+    define service {
+      service_description             service1
+      host_name                       localhost1
+      check_command                   test_customvar
+      use                             generic-service
+      check_interval                  5
+      retry_interval                  1
+    }
+
+Icinga 2:
+
+    object Service "service1" {
+      host_name = "localhost1"
+      check_command = "test_customvar"
+      check_interval = 5m
+      retry_interval = 1m
+    }
 
 #### <a id="manual-config-migration-hints-services"></a> Manual Config Migration Hints for Services
 
@@ -36,41 +64,623 @@ belongs to, you can migrate this to the [apply rules](#using-apply) syntax.
 Icinga 1.x:
 
     define service {
-        service_description             service1
-        host_name                       localhost1,localhost2
-        check_command                   test_check
-        use                             generic-service
+      service_description             service1
+      host_name                       localhost1,localhost2
+      check_command                   test_check
+      use                             generic-service
     }
 
 Icinga 2:
 
     apply Service "service1" {
-        import "generic-service"
-        check_command = "test_check"
+      import "generic-service"
+      check_command = "test_check"
 
-        assign where host.name == "localhost1"
-        assign where host.name == "localhost2"
+      assign where host.name == "localhost1"
+      assign where host.name == "localhost2"
     }
 
 In Icinga 1.x you would have organized your services with hostgroups using the `hostgroup_name` attribute
 like the following example:
 
     define service {
-        service_description             servicewithhostgroups
-        hostgroup_name                  hostgroup1,hostgroup3
-        check_command                   test_check
-        use                             generic-service
+      service_description             servicewithhostgroups
+      hostgroup_name                  hostgroup1,hostgroup3
+      check_command                   test_check
+      use                             generic-service
     }
 
 Using Icinga 2 you can migrate this to the [apply rules](#using-apply) syntax:
 
     apply Service "servicewithhostgroups" {
-        import "generic-service"
-        check_command = "test_check"
+      import "generic-service"
+      check_command = "test_check"
 
-        assign where "hostgroup1" in host.groups
-        assign where "hostgroup3" in host.groups
+      assign where "hostgroup1" in host.groups
+      assign where "hostgroup3" in host.groups
     }
+
+
+#### <a id="manual-config-migration-hints-services"></a> Manual Config Migration Hints for Group Members
+
+The Icinga 1.x hostgroup `hg1` has two members `host1` and `host2`. The hostgroup `hg2` has `host3` as
+a member and includes all members of the `hg1` hostgroup.
+
+    define hostgroup {
+      hostgroup_name                  hg1
+      members                         host1,host2
+    }
+
+    define hostgroup {
+      hostgroup_name                  hg2
+      members                         host3
+      hostgroup_members               hg1
+    }
+
+This can be migrated to Icinga 2 and [using group assign](#group-assign). The additional nested hostgroup
+`hg1` is included into `hg2` with the `groups` attribute.
+
+
+    object HostGroup "hg1" {
+      assign where host.name == "host1"
+      assign where host.name == "host2"
+    }
+
+    object HostGroup "hg2" {
+      groups = [ "hg1" ]
+      assign where host.name == "host3"
+    }
+
+These assign rules can be applied for all groups: `HostGroup`, `ServiceGroup` and `UserGroup`
+(requires renaming from `contactgroup`).
+
+> **Tip**
+>
+> Define custom attributes and assign/ignore members based on these attribute pattern matches.
+
+
+
+#### <a id="manual-config-migration-hints-check-command-arguments"></a> Manual Config Migration Hints for Check Command Arguments
+
+Host and service check command arguments are seperated by a `!` in Icinga 1.x. Their order is important and they
+are referenced as `$ARGn$` where `n` is the argument counter.
+
+    define command {
+      command_name                      ping4
+      command_line                      $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
+    }
+
+    define service {
+      use                               generic-service
+      host_name                         my-server
+      service_description               ping4
+      check_command                     ping4!100.0,20%!500.0,60%
+    }
+
+While you could manually migrate this using the [ping4 plugin command](#plugin-command-ping4) shipped with Icinga 2
+like:
+
+    apply Service "ping4" {
+      import "generic-service"
+
+      check_command = "ping4"
+
+      vars.ping_wrta = 100
+      vars.ping_wpl = 20
+      vars.ping_crta = 500
+      vars.ping_cpl = 60
+
+      assign where host.name == "my-server"
+      ignore where !host.address
+    }
+
+There also is a quick programatical workaround for this (example exported from LConf). Define a generic
+check command importing the basic template, and also setting the `$USER1$` macro. Assign it to the global
+`PluginDir` constant.
+
+    template CheckCommand "generic-check-command" {
+      import "plugin-check-command"
+
+      vars.USER1 = PluginDir
+    }
+
+Every check command importing the `generic-check-command` template will now automatically set the new plugin
+directory - one major problem solved.
+
+For the check command it is required to
+
+* Escape all double quotes with an additional `\`.
+* Replace all [runtime macros](#manual-config-migration-hints-runtime-macros), e.g. `$HOSTADDRESS$` with `$address$`.
+* Replace [custom variable macros](#manual-config-migration-hints-runtime-custom-attributes) if any.
+* Keep `$ARGn$` macros.
+
+The final check command look like this in Icinga2:
+
+    object CheckCommand "ping4" {
+      import "generic-check-command"
+
+      command = "$USER1$/check_ping -H $address$ -w $ARG1$ -c $ARG2$ -p 5"
+    }
+
+The service object will now set the command arguments as `ARGn` custom attributes.
+
+    check_command                     ping4!100.0,20%!500.0,60%
+
+This command line can be split by the `!` seperator into
+
+* `ping4` (command name, keep it for Icinga 2)
+* `100.0,20%` as `vars.ARG1`
+* `500.0,60%` as `vars.ARG2`
+
+The final service could look like:
+
+    apply Service "ping4" {
+      import "generic-service"
+
+      check_command = "ping4"
+
+      vars.ARG1 = "100.0,20%"
+      vars.ARG2 = "500.0,60%"
+
+      assign where host.name == "my-server"
+    }
+
+That way the old command arguments fashion can be applied for Icinga 2, although it's not recommended.
+
+
+#### <a id="manual-config-migration-hints-runtime-macros"></a> Manual Config Migration Hints for Runtime Macros
+
+Runtime macros have been renamed. A detailed comparison table can be found [here](#differences-1x-2-runtime-macros).
+
+For example, accessing the service check output looks like the following in Icinga 1.x:
+
+    $SERVICEOUTPUT$
+
+In Icinga 2 you will need to write:
+
+    $service.output$
+
+
+#### <a id="manual-config-migration-hints-runtime-custom-attributes"></a> Manual Config Migration Hints for Runtime Custom Attributes
+
+Custom variables from Icinga 1.x are available as Icinga 2 custom attributes.
+
+    define command {
+      command_name                    test_customvar
+      command_line                    echo "Host CV: $_HOSTCVTEST$ Service CV: $_SERVICECVTEST$\n"
+    }
+
+    define host {
+      host_name                       localhost1
+      check_command                   test_customvar
+      use                             generic-host
+      _CVTEST                         host cv value
+    }
+
+    define service {
+      service_description             service1
+      host_name                       localhost1
+      check_command                   test_customvar
+      use                             generic-service
+      _CVTEST                         service cv value
+    }
+
+Can be written as the following in Icinga 2:
+
+    object CheckCommand "test_customvar" {
+      import "plugin-check-command"
+      command = "echo "Host CV: $host.vars.CVTEST$ Service CV: $service.vars.CVTEST$\n""
+    }
+
+    object Host "localhost1" {
+      import "generic-host"
+      check_command = "test_customvar"
+      vars.CVTEST = "host cv value"
+    }
+
+    object Service "service1" {
+      host_name = "localhost1"
+      check_command = "test_customvar"
+      vars.CVTEST = "service cv value"
+    }
+
+If you are just defining `$CVTEST$ in your command definition its value depends on the
+execution scope - the host check command will fetch the host attribute value of `vars.CVTEST`
+while the service check command resolves its value to the service attribute attribute `vars.CVTEST`.
+
+#### <a id="manual-config-migration-hints-contacts-users"></a> Manual Config Migration Hints for Contacts (Users)
+
+Contacts in Icinga 1.x act as Users in Icinga 2, but do not have any notification commands specified.
+This migration part is explained in the [next chapter](#manual-config-migration-hints-notifications).
+
+    define contact{
+      contact_name                    testconfig-user
+      use                             generic-user
+      alias                           Icinga Test User
+      service_notification_options    c,f,s,u
+      email                           icinga@localhost
+    }
+
+The `service_notification_options` can be [mapped](#manual-config-migration-hints-notification-filters)
+into generic `state` and `type` filters, if additional notification filtering is required. `alias` gets
+renamed to `display_name`.
+
+    object User "testconfig-user" {
+      import "generic-user"
+      display_name = "Icinga Test User"
+      email = "icinga@localhost"
+    }
+
+This user can be put into usergroups (former contactgroups) or referenced in newly migration notification
+objects.
+
+#### <a id="manual-config-migration-hints-notifications"></a> Manual Config Migration Hints for Notifications
+
+If you are migrating a host or service notification, you'll need to extract the following information from
+your existing Icinga 1.x configuration objects
+
+* host/service attribute `contacts` and `contact_groups`
+* host/service attribute `notification_options`
+* host/service attribute `notification_period`
+* host/service attribute `notification_interval`
+
+The clean approach is to refactor your current contacts and their notification command methods into a
+generic strategy
+
+* host or service has a notification type (for example mail)
+* which contacts (users) are notified by mail?
+* do the notification filters, periods, intervals still apply for them? (do a cleanup during migration)
+* assign users and groups to these notifications
+* Redesign the notifications into generic [apply rules](#using-apply-notifications)
+
+
+The ugly workaround solution could look like this:
+
+Extract all contacts from the remaining groups, and create a unique list. This is required for determining
+the host and service notification commands involved.
+
+* contact attributes `host_notification_commands` and `service_notification_commands` (can be a comma separated list)
+* get the command line for each notification command and store them for later
+* create a new notification name and command name
+
+Generate a new notification object based on these values. Import the generic template based on the type (`host` or `service`).
+Assign it to the host or service and set the newly generated notification command name as `command` attribute.
+
+    object Notification "<notificationname>" {
+      import "mail-host-notification"
+      host_name = "<thishostname>"
+      command = "<notificationcommandname>"
+
+
+Convert the `notification_options` attribute from Icinga 1.x to Icinga 2 `states` and `types`. Details
+[here](#manual-config-migration-hints-notification-filters). Add the notification period.
+
+      states = [ OK, Warning, Critical ]
+      types = [ Recovery, Problem, Custom ]
+      period = "24x7"
+
+The current contact acts as `users` attribute.
+
+      users = [ "<contactwithnotificationcommand>" ]
+    }
+
+Do this in a loop for all notification commands (depending if host or service contact). Once done, dump the
+collected notification commands.
+
+The result of this migration are lots of unnecessary notification objects and commands but it will unroll
+the Icinga 1.x logic into the revamped Icinga 2 notification object schema. If you are looking for code
+examples, try [LConf](https://www.netways.org).
+
+
+
+#### <a id="manual-config-migration-hints-notification-filters"></a> Manual Config Migration Hints for Notification Filters
+
+Icinga 1.x defines all notification filters in an attribute called `notification_options`. Using Icinga 2 you will
+have to split these values into the `states` and `types` attributes.
+
+> **Note**
+>
+> `Recovery` type requires the `Ok` state.
+> `Custom` and `Problem` should always be set as `type` filter.
+
+  Icinga 1.x option     | Icinga 2 state        | Icinga 2 type
+  ----------------------|-----------------------|-------------------
+  o                     | OK (Up for hosts)     |
+  w                     | Warning               | Problem
+  c                     | Critical              | Problem
+  u                     | Unknown               | Problem
+  d                     | Down                  | Problem
+  s                     | .                     | DowntimeStart \| DowntimeEnd \| DowntimeRemoved
+  r                     | Ok                    | Recovery
+  f                     | .                     | FlappingStart \| FlappingEnd
+  n                     | 0  (none)             | 0 (none)
+  .                     | .                     | Custom
+
+
+
+#### <a id="manual-config-migration-hints-escalations"></a> Manual Config Migration Hints for Escalations
+
+Escalations in Icinga 1.x are a bit tricky. By default service escalations can be applied to hosts and
+hostgroups and require a defined service object.
+
+The following example applies a service escalation to the service `dep_svc01` and all hosts in the `hg_svcdep2`
+hostgroup. The default `notification_interval` is set to `10` minutes and notify the `cg_admin` contact.
+After 20 minutes (`10*2`, notification_interval * first_notification) the notification is escalated to the
+`cg_ops` contactgroup until 60 minutes (`10*6`).
+
+    define service {
+      service_description             dep_svc01
+      host_name                       dep_hostsvc01,dep_hostsvc03
+      check_command                   test2
+      use                             generic-service
+      notification_interval           10
+      contact_groups                  cg_admin
+    }
+
+    define hostgroup {
+      hostgroup_name                  hg_svcdep2
+      members                         dep_hostsvc03
+    }
+
+    # with hostgroup_name and service_description
+    define serviceescalation {
+      hostgroup_name                  hg_svcdep2
+      service_description             dep_svc01
+      first_notification              2
+      last_notification               6
+      contact_groups                  cg_ops
+    }
+
+In Icinga 2 the service and hostgroup definition will look quite the same. Save the `notification_interval`
+and `contact_groups` attribute for an additional notification.
+
+    apply Service "dep_svc01" {
+      import "generic-service"
+
+      check_command = "test2"
+
+      assign where host.name == "dep_hostsvc01"
+      assign where host.name == "dep_hostsvc03"
+    }
+
+    object HostGroup "hg_svcdep2" {
+      assign where host.name == "dep_hostsvc03"
+    }
+
+    apply Notification "email" to Service {
+      import "service-mail-notification"
+
+      interval = 10m
+      user_groups = [ "cg_admin" ]
+
+      assign where service.name == "dep_svc01" && (host.name == "dep_hostsvc01" || host.name == "dep_hostsvc03")
+    }
+
+Calculate the begin and end time for the newly created escalation notification:
+
+* begin = first_notification * notification_interval = 2 * 10m = 20m
+* end = last_notification * notification_interval = 6 * 10m = 60m = 1h
+
+Assign the notification escalation to the service `dep_svc01` on all hosts in the hostgroup `hg_svcdep2`.
+
+    apply Notification "email-escalation" to Service {
+      import "service-mail-notification"
+
+      interval = 10m
+      user_groups = [ "cg_ops" ]
+
+      times = {
+        begin = 20m
+        end = 1h
+      }
+
+      assign where service.name == "dep_svc01" && "hg_svcdep2" in host.groups
+    }
+
+
+> **Note**
+>
+> When the notification is escalated, Icinga 1.x suppresses notifications to the default contacts.
+> In Icinga 2 an escalation is an additional notification with a defined begin and end time. The
+> `email` notification will continue as normal.
+
+
+
+#### <a id="manual-config-migration-hints-dependencies"></a> Manual Config Migration Hints for Dependencies
+
+There are some dependency examples already in the [basics chapter](#dependencies). Dependencies in
+Icinga 1.x can be confusing in terms of which host/service is the parent and which host/service acts
+as the child.
+
+While Icinga 1.x defines `notification_failure_criteria` and `execution_failure_criteria` as dependency
+filters, this behaviour has changed in Icinga 2. There is no 1:1 migration but generally speaking
+the state filter defined in the `execution_failure_criteria` defines the Icinga 2 `state` attribute.
+If the state filter matches, you can define whether to disable checks and notifications or not.
+
+The following example describes service dependencies. If you migrating from Icinga 1.x you will only
+want to use the classic `Host-to-Host` and `Service-to-Service` dependency relationships.
+
+    define service {
+      service_description             dep_svc01
+      hostgroup_name                  hg_svcdep1
+      check_command                   test2
+      use                             generic-service
+    }
+
+    define service {
+      service_description             dep_svc02
+      hostgroup_name                  hg_svcdep2
+      check_command                   test2
+      use                             generic-service
+    }
+
+    define hostgroup {
+      hostgroup_name                  hg_svcdep2
+      members                         host2
+    }
+
+    define host{
+      use                             linux-server-template
+      host_name                       host1
+      address                         192.168.1.10
+    }
+
+    # with hostgroup_name and service_description
+    define servicedependency {
+      host_name                       host1
+      dependent_hostgroup_name        hg_svcdep2
+      service_description             dep_svc01
+      dependent_service_description   *
+      execution_failure_criteria      u,c
+      notification_failure_criteria   w,u,c
+      inherits_parent                 1
+    }
+
+Map the dependency attributes accordingly.
+
+  Icinga 1.x            | Icinga 2
+  ----------------------|---------------------
+  host_name             | parent_host_name
+  dependent_host_name   | child_host_name (used in assign/ignore)
+  dependent_hostgroup_name | all child hosts in group (used in assign/ignore)
+  service_description   | parent_service_name
+  dependent_service_description | child_service_name (used in assign/ignore)
+
+And migrate the host and services.
+
+  object Host "host1" {
+    import "linux-server-template"
+    address = "192.168.1.10"
+  }
+
+  object HostGroup "hg_svcdep2" {
+    assign where host.name == "host2"
+  }
+
+  apply Service "dep_svc01" {
+    import "generic-service"
+    check_command = "test2"
+
+    assign where "hp_svcdep1" in host.groups
+  }
+
+  apply Service "dep_svc02" {
+    import "generic-service"
+    check_command = "test2"
+
+    assign where "hp_svcdep2" in host.groups
+  }
+
+When it comes to the `execution_failure_criteria` and `notification_failure_criteria` attribute migration,
+you will need to map the most common values, in this example `u,c` (`Unknown` and `Critical` will cause the
+dependency to fail). Therefore the `Dependency` should be ok on Ok and Warning. `inherits_parents` is always
+enabled.
+
+    apply Dependency "all-svc-for-hg-hg_svcdep2-on-host1-dep_svc01" to Service {
+      parent_host_name = "host1"
+      parent_service_name = "dep_svc01"
+
+      states = [ Ok, Warning ]
+      disable_checks = true
+      disable_notifications = true
+
+      assign where "hg_svcdep2" in host.groups
+    }
+
+Host dependencies are explained in the [next chapter](#manual-config-migration-hints-host-parents).
+
+
+
+#### <a id="manual-config-migration-hints-host-parents"></a> Manual Config Migration Hints for Host Parents
+
+Host parents from Icinga 1.x are migrated into `Host-to-Host` dependencies in Icinga 2.
+
+The following example defines the `vmware-master` host as parent host for the guest
+virtual machines `vmware-vm1` and `vmware-vm2`.
+
+By default all hosts in the hostgroup `vmware` should get the parent assigned. This isn't really
+solvable with Icinga 1.x parents, but only with host dependencies.
+
+    define host{
+      use                             linux-server-template
+      host_name                       vmware-master
+      hostgroups                      vmware
+      address                         192.168.1.10
+    }
+
+    define host{
+      use                             linux-server-template
+      host_name                       vmware-vm1
+      hostgroups                      vmware
+      address                         192.168.27.1
+      parents                         vmware-master
+    }
+
+    define host{
+      use                             linux-server-template
+      host_name                       vmware-vm2
+      hostgroups                      vmware
+      address                         192.168.28.1
+      parents                         vmware-master
+    }
+
+By default all hosts in the hostgroup `vmware` should get the parent assigned (but not the `vmware-master`
+host itself). This isn't really solvable with Icinga 1.x parents, but only with host dependencies as shown
+below:
+
+    define hostdependency {
+      dependent_hostgroup_name        vmware
+      dependent_host_name             !vmware-master
+      host_name                       vmware-master
+      inherits_parent                 1
+      notification_failure_criteria   d,u
+      execution_failure_criteria      d,u
+      dependency_period               testconfig-24x7
+    }
+
+When migrating to Icinga 2, the parents must be changed to a newly created host dependency.
+
+
+
+Map the following attributes
+
+  Icinga 1.x            | Icinga 2
+  ----------------------|---------------------
+  host_name             | parent_host_name
+  dependent_host_name   | child_host_name (used in assign/ignore)
+  dependent_hostgroup_name | all child hosts in group (used in assign/ignore)
+
+
+    object Host "vmware-master" {
+      import "linux-server-template"
+      groups += [ "vmware" ]
+      address = "192.168.1.10"
+      vars.is_vmware_master = true
+    }
+
+    object Host "vmware-vm1" {
+      import "linux-server-template"
+      groups += [ "vmware" ]
+      address = "192.168.27.1"
+    }
+
+    object Host "vmware-vm2" {
+      import "linux-server-template"
+      groups += [ "vmware" ]
+      address = "192.168.28.1"
+    }
+
+    apply Dependency "vmware-master" to Host {
+      parent_host_name = "vmware-master"
+
+      assign where "vmware" in host.groups
+      ignore where host.vars.is_vmware_master
+      ignore where host.name == "vmware-master"
+    }
+
+For easier identification you could add the `vars.is_vmware_master` attribute to the `vmware-master`
+host and let the dependency ignore that on that instead of the hardcoded host name. That's different
+to the Icinga 1.x example and a best practice hint only.
 
 
 
@@ -111,7 +721,7 @@ The ITL will be updated on every release and should not be edited by the user.
 
 There are still generic templates available for your convenience which may or may
 not be re-used in your configuration. For instance, `generic-service` includes
-all required attributes except `check_command` for an inline service.
+all required attributes except `check_command` for a service.
 
 Sample configuration files are located in the `conf.d/` directory which is
 included in `icinga2.conf` by default.
