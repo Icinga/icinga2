@@ -152,7 +152,7 @@ If you happen to have further questions, do not hesitate to join the [community 
 and ask community members for their experience and best practices.
 
 
-### <a id="using-templates"></a> Using Templates
+### <a id="object-inheritance-using-templates"></a> Object Inheritance Using Templates
 
 Templates may be used to apply a set of identical attributes to more than one
 object:
