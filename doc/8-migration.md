@@ -12,17 +12,6 @@ In order to migrate existing configurations in Icinga 1.x format,
 the Icinga CLI, as part of the Icinga Web 2 project will provide
 a conversion module.
 
-Due to the complexity of the Icinga 1.x configuration format, the migration
-script might not currently work for all use cases.
-
-The migration script tries to preserve your existing template structure and
-adds new templates where appropriate. However, the original file structure is
-not preserved.
-
-The migration script also uses templates from the Icinga Template Library where
-possible.
->>>>>>> Fixes for poor grammar and bad sentence structure.:doc/7-migration.md
-
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
 For a long-term migration of your configuration you should consider re-creating
