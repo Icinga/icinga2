@@ -976,15 +976,16 @@ and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
     apply Dependency "disable-nrpe-checks" to Service {
       parent_service_name = "nrpe-health"
 
-      states = [ Warning, Critical, Unknown ]
+      states = [ OK ]
       disable_checks = true
       disable_notifications = true
-      assign where match("nrpe-*", host.name)
+      assign where service.check_command == "nrpe"
       ignore where service.name == "nrpe-health"
     }
 
 The `disable-nrpe-checks` dependency is applied to all services
-on the `nrpe-service` host but not the `nrpe-health` service itself.
+on the `nrpe-service` host using the `nrpe` check_command attribute
+but not the `nrpe-health` service itself.
 
 
 ## <a id="downtimes"></a> Downtimes
