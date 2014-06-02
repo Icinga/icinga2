@@ -31,7 +31,7 @@ Here is an example of a host object which defines two child services:
 
     object Service "http" {
       host_name = "my-server1"
-      check_command = "http_ip"
+      check_command = "http"
     }
 
 The example creates two services `ping4` and `http` which belong to the
