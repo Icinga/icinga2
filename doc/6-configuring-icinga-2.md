@@ -1067,7 +1067,9 @@ with the same (short) name as long as one of the `host_name` and
 
 ### <a id="objecttype-dependency"></a> Dependency
 
-Dependency objects are used to specify dependencies between hosts and services.
+Dependency objects are used to specify dependencies between hosts and services. Dependencies
+can be defined as Host-to-Host, Service-to-Service, Service-to-Host, or Host-to-Service
+relations.
 
 > **Best Practice**
 >
@@ -1077,32 +1079,44 @@ Dependency objects are used to specify dependencies between hosts and services.
 > type for `Host` or `Service`.
 > Check the [dependencies](#dependencies) chapter for detailed examples.
 
-Example:
+Service-to-Service Example:
 
     object Dependency "webserver-internet" {
-      child_host_name = "webserver"
-      child_service_name = "ping4"
-
       parent_host_name = "internet"
       parent_service_name = "ping4"
+
+      child_host_name = "webserver"
+      child_service_name = "ping4"
 
       states = [ OK, Warning ]
 
       disable_checks = true
     }
 
+Host-to-Host Example:
+
+    object Dependency "webserver-internet" {
+      parent_host_name = "internet"
+
+      child_host_name = "webserver"
+
+      states = [ Up ]
+
+      disable_checks = true
+    }
+
 Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  parent_host_name     |**Required.** The parent host.
-  parent_service_name  |**Optional.** The parent service. If omitted this dependency object is treated as host dependency.
-  child_host_name      |**Required.** The child host.
-  child_service_name   |**Optional.** The child service. If omitted this dependency object is treated as host dependency.
-  disable_checks  |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
-  disable_notifications|**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
-  period          |**Optional.** Time period during which this dependency is enabled.
-  states    	  |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
+  Name                  |Description
+  ----------------------|----------------
+  parent_host_name      |**Required.** The parent host.
+  parent_service_name   |**Optional.** The parent service. If omitted this dependency object is treated as host dependency.
+  child_host_name       |**Required.** The child host.
+  child_service_name    |**Optional.** The child service. If omitted this dependency object is treated as host dependency.
+  disable_checks        |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
+  disable_notifications |**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
+  period                |**Optional.** Time period during which this dependency is enabled.
+  states    	        |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
 
 Available state filters:
 
@@ -1112,6 +1126,35 @@ Available state filters:
     Unknown
     Up
     Down
+
+When using [apply rules](#using-apply) for dependencies, you can leave out certain attributes which will be
+automatically determined by Icinga 2.
+
+Service-to-Host Dependency Example:
+
+    apply Dependency "internet" to Service {
+      parent_host_name = "dsl-router"
+      disable_checks = true
+
+      assign where host.name != "dsl-router"
+    }
+
+This examples sets all service objects matching the assign condition into a dependency relation to
+the parent host object `dsl-router` as implicit child services.
+
+Service-to-Service-on-the-same-Host Dependency Example:
+
+    apply Dependency "disable-nrpe-checks" to Service {
+      parent_service_name = "nrpe-health"
+
+      assign where service.check_command == "nrpe"
+      ignore where service.name == "nrpe-health"
+    }
+
+This examples omits the `parent_host_name` attribute and Icinga 2 automatically sets its value to the name of the
+host object matched by the apply rule condition. All services where apply matches are made implicit child services
+in this dependency relation.
+
 
 Dependency objects have composite names, i.e. their names are based on the `child_host_name` and `child_service_name` attributes and the
 name you specified. This means you can define more than one object with the same (short) name as long as one of the `child_host_name` and
