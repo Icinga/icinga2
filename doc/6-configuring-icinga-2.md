@@ -1858,6 +1858,7 @@ http_vhost         | **Optional.** The virtual host that should be sent in the "
 http_uri           | **Optional.** The request URI.
 http_port          | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
 http_ssl           | **Optional.** Whether to use SSL. Defaults to false.
+http_auth_pair	   | **Optional.** Add 'username:password' authorization pair.
 http_warn_time     | **Optional.** The warning threshold.
 http_critical_time | **Optional.** The critical threshold.
 
