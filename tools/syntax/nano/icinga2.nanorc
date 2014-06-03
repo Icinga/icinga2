@@ -1,0 +1,87 @@
+### Nano synteax file
+### Icinga2 object configuration file 
+
+syntax 	"icinga2" "/etc/icinga2/.*\.conf$" "/usr/share/icinga2/include/(plugin|itl|.*\.conf$)"
+
+## objects types
+icolor brightgreen 		"object[ \t]+(host|hostgroup|host|hostgroup|service|servicegroup|user|usergroup)"
+icolor brightgreen 		"object[ \t]+(checkcommand|notificationcommand|eventcommand|notification)"
+icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfdatawriter)"
+icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
+icolor brightgreen 		"object[ \t]+(livestatuslistener|statusdatawriter|externalcommandlistener)"
+icolor brightgreen 		"object[ \t]+(compatlogger|checkresultreader|checkcomponent|notificationcomponent)"
+icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|icingastatuswriter|apilistener|endpoint|zone)"
+
+## apply def
+
+icolor brightgreen 		"apply[ \t]+(Service|Dependency|Notification|ScheduledDowntime)"
+
+
+## objects attributes
+
+icolor red 		"(^|^\s+)(accept_config|action_url|address|address6|arguments|author|bind_host)"
+icolor red 		"(^|^\s+)(bind_port|ca_path|categories|cert_path|check_command|check_interval)"
+icolor red 		"(^|^\s+)(check_period|child_host_name|child_service_name|cleanup|command|command_path)"
+icolor red 		"(^|^\s+)(comment|compat_log_path|crl_path|database|disable_checks|disable_notifications)"
+icolor red 		"(^|^\s+)(display_name|duration|email|enable_active_checks|enable_event_handler)"
+icolor red 		"(^|^\s+)(enable_flap_detection|enable_notifications|enable_passive_checks|enable_perfdata)"
+icolor red 		"(^|^\s+)(endpoints|env|event_command|fixed|flapping_threshold|groups|host)"
+icolor red 		"(^|^\s+)(host_format_template|host_name|host_perfdata_path|host_temp_path|icon_image)"
+icolor red 		"(^|^\s+)(icon_image_alt|instance_description|instance_name|interval|key_path|log_dir)"
+icolor red 		"(^|^\s+)(log_duration|max_check_attempts|methods|name|notes|notes_url|objects_path)"
+icolor red 		"(^|^\s+)(pager|parent|parent_host_name|parent_service_name|password|path|period)"
+icolor red 		"(^|^\s+)(port|ranges|retry_interval|rotation_interval|rotation_method)"
+icolor red 		"(^|^\s+)(service_format_template|service_name|service_perfdata_path|service_temp_path)"
+icolor red 		"(^|^\s+)(severity|socket_path|socket_type|spool_dir|states|status_path|table_prefix)"
+icolor red 		"(^|^\s+)(timeout|times|types|update_interval|user|user_groups|users|volatile)"
+icolor red 		"(^|^\s+)(vars\.\w+)"
+
+
+## keywords
+
+icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive)"
+
+## Assign conditions
+
+icolor magenta 	"(assign|ignone)[ \t]+where"
+
+## functions
+
+icolor white 	"(regex|match|len|union|intersection|string|number|bool|log|exit)"
+
+
+## global constats
+icolor yellow  	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|PkgDataDir|StatePath|PidPath)"
+icolor yellow  	"(NodeName|ApplicationType|EnableNotifications|EnableEventHandlers)"
+icolor yellow  	"(EnableFlapping|EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork)"
+icolor yellow  	"(Vars\s+)"
+
+
+## Boolean
+icolor blue 	"(true|false)"
+
+# Null
+icolor blue  	"(null)"
+
+
+## comments
+color brightblue 	"\/\/.*"
+color brightblue  	"^[ \t]*\*\($\|[ \t]\+\)"
+color brightblue 	start="/\*"  end="\*/"
+
+## Braces and Parens definition
+# - Braces are used in dictionary definition
+
+color brightmagenta 	"[\[\]]"
+color brightmagenta 	"[()]"
+color brightmagenta 	"[{}]"
+
+
+## type definitions
+# - double quotes "
+# - single quotes '
+# - brackets <>
+
+color brightyellow 		""(\\.|[^"])*""
+color brightyellow 		"'(\\.|[^'])*'"
+color brightyellow  	start="<"   end=">"

@@ -8,3 +8,8 @@ $ cp ftdetect/icinga2.vim $PREFIX/ftdetect/
 
 Modify 'ftdetect/icinga2.vim' if your configuration isn't located in
 '/etc/icinga2'.
+
+Now test it :-)
+
+$ vim /etc/icinga2/conf.d/templates.conf
+

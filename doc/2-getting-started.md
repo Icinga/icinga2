@@ -825,9 +825,11 @@ to integrate them upstream, so please get in touch at [https://support.icinga.or
 
 ## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
 
-Icinga 2 ships configuration examples for syntax highlighting using the `vim` editor.
+Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano`editors.
 The RHEL, SUSE and Debian package `icinga2-common` install these files into
 `/usr/share/*/icinga2-common/syntax`. Sources provide these files in `tools/syntax`.
+
+### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
 
 Create a new local vim configuration storage, if not already existing.
 Edit `vim/ftdetect/icinga2.vim` if your paths to the Icinga 2 configuration
@@ -837,6 +839,31 @@ differ.
     $ mkdir -p $PREFIX/{syntax,ftdetect}
     $ cp vim/syntax/icinga2.vim $PREFIX/syntax/
     $ cp vim/ftdetect/icinga2.vim $PREFIX/ftdetect/
+
+Test it:
+
+    $ vim /etc/icinga2/conf.d/templates.conf
+
+### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
+
+Copy the `/etc/nanorc` sample file to your home directory. Create the `/etc/nano` directory
+and copy the provided `icinga2.nanorc` into it.
+
+    $ cp /etc/nanorc ~/.nanorc
+
+    # mkdir -p /etc/nano
+    # cp icinga2.nanorc /etc/nano/
+
+Then include the icinga2.nanorc file in your ~/.nanorc by adding the following line:
+
+    $ vim ~/.nanorc
+
+    ## Icinga 2
+    include "/etc/nano/icinga2.nanorc"
+
+Test it:
+
+    $ nano /etc/icinga2/conf.d/templates.conf
 
 
 ## <a id="running-icinga2"></a> Running Icinga 2
