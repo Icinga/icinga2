@@ -5,14 +5,14 @@ class icinga2-classicui {
   # workaround for package conflicts
   # icinga-gui pulls icinga-gui-config automatically
   package { 'icinga2-classicui-config':
-    ensure => installed,
+    ensure => latest,
     before => Package["icinga-gui"],
     require => Class['icinga-rpm-snapshot'],
     notify => Service['apache']
   }
 
   package { 'icinga-gui':
-    ensure => installed,
+    ensure => latest,
     alias => 'icinga-gui'
   }
 

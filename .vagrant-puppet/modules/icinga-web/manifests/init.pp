@@ -13,13 +13,13 @@ class icinga-web {
   }
 
   package { 'icinga-web':
-    ensure => installed,
+    ensure => latest,
     require => Class['icinga-rpm-snapshot'],
     notify => Service['apache']
   }
 
   package { 'icinga-web-mysql':
-    ensure => installed,
+    ensure => latest,
     require => Class['icinga-rpm-snapshot'],
     notify => Service['apache']
   }
