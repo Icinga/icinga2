@@ -477,6 +477,9 @@ Assign the notification escalation to the service `dep_svc01` on all hosts in th
       assign where service.name == "dep_svc01" && "hg_svcdep2" in host.groups
     }
 
+The assign rule could be made more generic and the notification be applied to more than
+just this service belonging to hosts in the matched hostgroup.
+
 
 > **Note**
 >
@@ -548,28 +551,28 @@ Map the dependency attributes accordingly.
 
 And migrate the host and services.
 
-  object Host "host1" {
-    import "linux-server-template"
-    address = "192.168.1.10"
-  }
+    object Host "host1" {
+      import "linux-server-template"
+      address = "192.168.1.10"
+    }
 
-  object HostGroup "hg_svcdep2" {
-    assign where host.name == "host2"
-  }
+    object HostGroup "hg_svcdep2" {
+      assign where host.name == "host2"
+    }
 
-  apply Service "dep_svc01" {
-    import "generic-service"
-    check_command = "test2"
+    apply Service "dep_svc01" {
+      import "generic-service"
+      check_command = "test2"
 
-    assign where "hp_svcdep1" in host.groups
-  }
+      assign where "hp_svcdep1" in host.groups
+    }
 
-  apply Service "dep_svc02" {
-    import "generic-service"
-    check_command = "test2"
+    apply Service "dep_svc02" {
+      import "generic-service"
+      check_command = "test2"
 
-    assign where "hp_svcdep2" in host.groups
-  }
+      assign where "hp_svcdep2" in host.groups
+    }
 
 When it comes to the `execution_failure_criteria` and `notification_failure_criteria` attribute migration,
 you will need to map the most common values, in this example `u,c` (`Unknown` and `Critical` will cause the
@@ -641,7 +644,6 @@ below:
 When migrating to Icinga 2, the parents must be changed to a newly created host dependency.
 
 
-
 Map the following attributes
 
   Icinga 1.x            | Icinga 2
@@ -649,6 +651,8 @@ Map the following attributes
   host_name             | parent_host_name
   dependent_host_name   | child_host_name (used in assign/ignore)
   dependent_hostgroup_name | all child hosts in group (used in assign/ignore)
+
+The Icinga 2 configuration looks like this:
 
 
     object Host "vmware-master" {
