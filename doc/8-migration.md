@@ -50,6 +50,7 @@ Icinga 1.x:
 Icinga 2:
 
     object Service "service1" {
+      import "generic-service"
       host_name = "localhost1"
       check_command = "test_customvar"
       check_interval = 5m
@@ -76,8 +77,7 @@ Icinga 2:
       import "generic-service"
       check_command = "test_check"
 
-      assign where host.name == "localhost1"
-      assign where host.name == "localhost2"
+      assign where host.name in [ "localhost1", "localhost2" ]
     }
 
 In Icinga 1.x you would have organized your services with hostgroups using the `hostgroup_name` attribute
