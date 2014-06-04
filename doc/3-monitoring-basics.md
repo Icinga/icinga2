@@ -924,6 +924,8 @@ account but all parents are inherited.
 
 Notifications are suppressed if a host or service becomes unreachable.
 
+### <a id="dependencies-network-reachability"></a> Dependencies for Network Reachability
+
 A common scenario is the Icinga 2 server behind a router. Checking internet
 access by pinging the Google DNS server `google-dns` is a common method, but
 will fail in case the `dsl-router` host is down. Therefore the example below
@@ -956,6 +958,8 @@ be suppressed. This is achieved by setting the `disable_checks` attribute to `tr
 
       assign where host.name != "dsl-router"
     }
+
+### <a id="dependencies-agent-checks"></a> Dependencies for Agent Checks
 
 Another classic example are agent based checks. You would define a health check
 for the agent daemon responding to your requests, and make all other services
@@ -1232,6 +1236,47 @@ when passing credentials to database checks:
       env.MYSQLUSER = "$mysql_user$",
       env.MYSQLPASS = "$mysql_pass$"
     }
+
+### <a id="multiple-host-addresses-custom-attributes"></a> Multiple Host Addresses using Custom Attributes
+
+The following example defines a `Host` with three different interface addresses defined as
+custom attributes in the `vars` dictionary. The `if-eth0` and `if-eth1` services will import
+these values into the `address` custom attribute. This attribute is available through the
+generic `$address$` runtime macro.
+
+    object Host "multi-ip" {
+      check_command = "dummy"
+      vars.address_lo = "127.0.0.1"
+      vars.address_eth0 = "10.0.0.10"
+      vars.address_eth1 = "192.168.1.10"
+    }
+
+    apply Service "if-eth0" {
+      import "generic-service"
+
+      vars.address = "$host.vars.address_eth0$"
+      check_command = "my-generic-interface-check"
+
+      assign where host.vars.address_eth0 != ""
+    }
+
+    apply Service "if-eth1" {
+      import "generic-service"
+
+      vars.address = "$host.vars.address_eth1$"
+      check_command = "my-generic-interface-check"
+
+      assign where host.vars.address_eth1 != ""
+    }
+
+    object CheckCommand "my-generic-interface-check" {
+      import "plugin-check-command"
+
+      command = "echo \"This would be the service $service.description$ using the address value: $address$\""
+    }
+
+The `CheckCommand` object is just an example to help you with testing and
+understanding the different custom attributes and runtime macros.
 
 ### <a id="modified-attributes"></a> Modified Attributes
 
