@@ -157,10 +157,7 @@ The `constants.conf` configuration file can be used to define global constants:
     /* The directory which contains the plugins from the Monitoring Plugins project. */
     const PluginDir = "/usr/lib/nagios/plugins"
 
-    /* Our local instance name. This should be the common name
-     * from the API certificate. Not required for a single
-     * instance setup.
-     */
+    /* Our local instance name. This should be the common name from the API certificate */
     const NodeName = "localhost"
 
     /* Our local zone name. */
