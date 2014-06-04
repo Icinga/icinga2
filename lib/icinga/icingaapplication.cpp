@@ -45,7 +45,20 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptVariable::Set("EnableHostChecks", true);
 	ScriptVariable::Set("EnableServiceChecks", true);
 	ScriptVariable::Set("EnablePerfdata", true);
-	ScriptVariable::Set("NodeName", Utility::GetFQDN());
+
+	String node_name = Utility::GetFQDN();
+
+	if (node_name.IsEmpty()) {
+		Log(LogNotice, "IcingaApplication", "No FQDN available. Trying Hostname.");
+		node_name = Utility::GetHostName();
+
+		if (node_name.IsEmpty()) {
+			Log(LogWarning, "IcingaApplication", "No FQDN nor Hostname available. Setting Nodename to 'localhost'.");
+			node_name = "localhost";
+		}
+	}
+
+	ScriptVariable::Set("NodeName", node_name);
 }
 
 REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
