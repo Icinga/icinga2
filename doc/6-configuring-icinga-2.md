@@ -2123,7 +2123,7 @@ Check command for the `check_apt` plugin.
 The `apt` check command does not support any vars.
 
 
-#### <a id="plugin-check-command-running-kernel"></a> ups
+#### <a id="plugin-check-command-running-kernel"></a> running_kernel
 
 Check command object for the `check_running_kernel` plugin
 provided by the `nagios-plugins-contrib` package on Debian.
