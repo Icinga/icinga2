@@ -32,6 +32,7 @@
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
+#include <iostream>
 
 #ifndef _WIN32
 #	include <sys/types.h>
@@ -187,9 +188,10 @@ static bool Daemonize(void)
 			Log(LogCritical, "icinga-app", "The daemon could not be started. See logfile for details.");
 			exit(EXIT_FAILURE);
 		} else if (ret == -1) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("waitpid")
-				<< boost::errinfo_errno(errno));
+			std::ostringstream msgbuf;
+			msgbuf << "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "icinga-app",  msgbuf.str());
+			exit(EXIT_FAILURE);
 		}
 
 		exit(0);
@@ -389,18 +391,23 @@ int Main(void)
 
 		if (!gr) {
 			if (errno == 0) {
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid group specified: " + group));
+				std::ostringstream msgbuf;
+				msgbuf << "Invalid group specified: " + group;
+				Log(LogCritical, "icinga-app",  msgbuf.str());
+				return EXIT_FAILURE;
 			} else {
-				BOOST_THROW_EXCEPTION(posix_error()
-					<< boost::errinfo_api_function("getgrnam")
-					<< boost::errinfo_errno(errno));
+				std::ostringstream msgbuf;
+				msgbuf << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "icinga-app",  msgbuf.str());
+				return EXIT_FAILURE;
 			}
 		}
 
 		if (setgid(gr->gr_gid) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("setgid")
-				<< boost::errinfo_errno(errno));
+			std::ostringstream msgbuf;
+			msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "icinga-app",  msgbuf.str());
+			return EXIT_FAILURE;
 		}
 	}
 
@@ -412,18 +419,23 @@ int Main(void)
 
 		if (!pw) {
 			if (errno == 0) {
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid user specified: " + user));
+				std::ostringstream msgbuf;
+				msgbuf << "Invalid user specified: " + user;
+				Log(LogCritical, "icinga-app",  msgbuf.str());
+				return EXIT_FAILURE;
 			} else {
-				BOOST_THROW_EXCEPTION(posix_error()
-					<< boost::errinfo_api_function("getpwnam")
-					<< boost::errinfo_errno(errno));
+				std::ostringstream msgbuf;
+				msgbuf << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "icinga-app",  msgbuf.str());
+				return EXIT_FAILURE;
 			}
 		}
 
 		if (setuid(pw->pw_uid) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("setuid")
-				<< boost::errinfo_errno(errno));
+			std::ostringstream msgbuf;
+			msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "icinga-app",  msgbuf.str());
+			return EXIT_FAILURE;
 		}
 	}
 #endif /* _WIN32 */
@@ -527,7 +539,12 @@ int Main(void)
 	if (g_AppParams.count("daemonize")) {
 		if (!g_AppParams.count("reload-internal")) {
 			// no additional fork neccessary on reload
-			Daemonize();
+			try {
+				Daemonize();
+			} catch (std::exception&) {
+				Log(LogCritical, "icinga-app", "Daemonize failed. Exiting.");
+				return EXIT_FAILURE;
+			}
 		}
 
 		String errorLog;
@@ -752,5 +769,6 @@ int main(int argc, char **argv)
 #endif /* _WIN32 */
 
 	int rc = Main();
+
 	exit(rc);
 }
