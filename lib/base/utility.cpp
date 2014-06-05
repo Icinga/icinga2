@@ -829,7 +829,7 @@ String Utility::FormatErrorNumber(int code) {
         msgbuf << code << ", \"" << result << "\"";
         return tmp.str();
 #else
-	msgbuf << gai_strerror(code) << std::endl;
+	msgbuf << strerror(code);
 #endif
 	return msgbuf.str();
 }
