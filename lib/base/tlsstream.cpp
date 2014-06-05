@@ -20,7 +20,9 @@
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/logger_fwd.hpp"
 #include <boost/bind.hpp>
+#include <iostream>
 
 using namespace icinga;
 
@@ -39,6 +41,10 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, shared_ptr<
 	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
 
 	if (!m_SSL) {
+		std::ostringstream msgbuf;
+		msgbuf << "SSL_new() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+		Log(LogCritical, "TlsStream", msgbuf.str());
+
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("SSL_new")
 			<< errinfo_openssl_error(ERR_get_error()));
@@ -111,6 +117,10 @@ void TlsStream::Handshake(void)
 				Close();
 				return;
 			default:
+				std::ostringstream msgbuf;
+				msgbuf << "SSL_do_handshake() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+				Log(LogCritical, "TlsStream", msgbuf.str());
+
 				BOOST_THROW_EXCEPTION(openssl_error()
 				    << boost::errinfo_api_function("SSL_do_handshake")
 				    << errinfo_openssl_error(ERR_get_error()));
@@ -148,6 +158,10 @@ size_t TlsStream::Read(void *buffer, size_t count)
 					Close();
 					return count - left;
 				default:
+					std::ostringstream msgbuf;
+					msgbuf << "SSL_read() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+					Log(LogCritical, "TlsStream", msgbuf.str());
+
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_read")
 					    << errinfo_openssl_error(ERR_get_error()));
@@ -187,6 +201,10 @@ void TlsStream::Write(const void *buffer, size_t count)
 					Close();
 					return;
 				default:
+					std::ostringstream msgbuf;
+					msgbuf << "SSL_write() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+					Log(LogCritical, "TlsStream", msgbuf.str());
+
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_write")
 					    << errinfo_openssl_error(ERR_get_error()));
