@@ -51,8 +51,10 @@ void ApiListener::OnConfigLoaded(void)
 	if (!GetCrlPath().IsEmpty())
 		AddCRLToSSLContext(m_SSLContext, GetCrlPath());
 
-	if (!Endpoint::GetByName(GetIdentity()))
-		BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint object for '" + GetIdentity() + "' is missing."));
+	if (!Endpoint::GetByName(GetIdentity())) {
+		Log(LogCritical, "ApiListener", "Endpoint object for '" + GetIdentity() + "' is missing.");
+		return;
+	}
 
 	SyncZoneDirs();
 }
@@ -62,8 +64,10 @@ void ApiListener::OnConfigLoaded(void)
  */
 void ApiListener::Start(void)
 {
-	if (std::distance(DynamicType::GetObjects<ApiListener>().first, DynamicType::GetObjects<ApiListener>().second) > 1)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Only one ApiListener object is allowed."));
+	if (std::distance(DynamicType::GetObjects<ApiListener>().first, DynamicType::GetObjects<ApiListener>().second) > 1) {
+		Log(LogCritical, "ApiListener", "Only one ApiListener object is allowed.");
+		return;
+	}
 
 	DynamicObject::Start();
 
@@ -128,15 +132,23 @@ void ApiListener::AddListener(const String& service)
 
 	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
-	if (!sslContext)
-		BOOST_THROW_EXCEPTION(std::logic_error("SSL context is required for AddListener()"));
+	if (!sslContext) {
+		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
+		return;
+	}
 
 	std::ostringstream s;
 	s << "Adding new listener: port " << service;
 	Log(LogInformation, "ApiListener", s.str());
 
 	TcpSocket::Ptr server = make_shared<TcpSocket>();
-	server->Bind(service, AF_UNSPEC);
+
+	try {
+		server->Bind(service, AF_UNSPEC);
+	} catch(std::exception&) {
+		Log(LogCritical, "ApiListener", "Cannot bind tcp socket on '" + service + "'.");
+		return;
+	}
 
 	boost::thread thread(boost::bind(&ApiListener::ListenerThreadProc, this, server));
 	thread.detach();
@@ -170,8 +182,10 @@ void ApiListener::AddConnection(const String& node, const String& service)
 
 		shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
-		if (!sslContext)
-			BOOST_THROW_EXCEPTION(std::logic_error("SSL context is required for AddConnection()"));
+		if (!sslContext) {
+			Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
+			return;
+		}
 	}
 
 	TcpSocket::Ptr client = make_shared<TcpSocket>();
@@ -183,7 +197,7 @@ void ApiListener::AddConnection(const String& node, const String& service)
 		std::ostringstream info, debug;
 		info << "Cannot connect to host '" << node << "' on port '" << service << "'";
 		debug << info.str() << std::endl << DiagnosticInformation(ex);
-		Log(LogCritical, "remote", info.str());
+		Log(LogCritical, "ApiListener", info.str());
 		Log(LogDebug, "ApiListener", debug.str());
 	}
 }
