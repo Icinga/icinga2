@@ -60,10 +60,16 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			else
 				return (static_cast<String>(value) == m_Operand);
 		} else if (m_Operator == "~") {
-			boost::regex expr(m_Operand.GetData());
-			String operand = value;
-			boost::smatch what;
-			bool ret = boost::regex_search(operand.GetData(), what, expr);
+			bool ret;
+			try {
+				boost::regex expr(m_Operand.GetData());
+				String operand = value;
+				boost::smatch what;
+				ret = boost::regex_search(operand.GetData(), what, expr);
+			} catch (boost::exception&) {
+				Log(LogWarning, "AttributeFilter", "Regex '" + m_Operand + " " + m_Operator + " " + Convert::ToString(value) + "' error.");
+				ret = false;
+			}
 
 			//Log(LogDebug, "LivestatusListener/AttributeFilter", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
 			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
@@ -72,10 +78,16 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 		} else if (m_Operator == "=~") {
 			return string_iless()(value, m_Operand);
 		} else if (m_Operator == "~~") {
-			boost::regex expr(m_Operand.GetData(), boost::regex::icase);
-			String operand = value;
-			boost::smatch what;
-			bool ret = boost::regex_search(operand.GetData(), what, expr);
+			bool ret;
+			try {
+				boost::regex expr(m_Operand.GetData(), boost::regex::icase);
+				String operand = value;
+				boost::smatch what;
+				ret = boost::regex_search(operand.GetData(), what, expr);
+			} catch (boost::exception&) {
+				Log(LogWarning, "AttributeFilter", "Regex '" + m_Operand + " " + m_Operator + " " + Convert::ToString(value) + "' error.");
+				ret = false;
+			}
 
 			//Log(LogDebug, "LivestatusListener/AttributeFilter", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
 			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );

@@ -43,9 +43,16 @@ REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
-	boost::regex expr(pattern.GetData());
-	boost::smatch what;
-	return boost::regex_search(text.GetData(), what, expr);
+	bool res = false;
+	try {
+		boost::regex expr(pattern.GetData());
+		boost::smatch what;
+		res = boost::regex_search(text.GetData(), what, expr);
+	} catch (boost::exception&) {
+		res = false; /* exception means something went terribly wrong */
+	}
+
+	return res;
 }
 
 int ScriptUtils::Len(const Value& value)
