@@ -70,7 +70,12 @@ void LivestatusListener::Start(void)
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = make_shared<TcpSocket>();
-		socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
+		try {
+			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
+		} catch (std::exception&) {
+			Log(LogCritical, "LivestatusListener", "Cannot bind tcp socket on host '" + GetBindHost() + "' port '" + GetBindPort() + "'.");
+			return;
+		}
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
@@ -79,7 +84,12 @@ void LivestatusListener::Start(void)
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
 		UnixSocket::Ptr socket = make_shared<UnixSocket>();
-		socket->Bind(GetSocketPath());
+		try {
+			socket->Bind(GetSocketPath());
+		} catch (std::exception&) {
+			Log(LogCritical, "LivestatusListener", "Cannot bind unix socket in '" + GetSocketPath() + "'.");
+			return;
+		}
 
 		/* group must be able to write */
 		mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;

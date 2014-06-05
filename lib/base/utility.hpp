@@ -88,6 +88,7 @@ public:
 
 	static String FormatDuration(int duration);
 	static String FormatDateTime(const char *format, double ts);
+	static String FormatErrorNumber(int code);
 
 	static
 #ifdef _WIN32
