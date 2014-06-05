@@ -42,14 +42,38 @@ REGISTER_STATSFUNCTION(ApiListenerStats, &ApiListener::StatsFunc);
 void ApiListener::OnConfigLoaded(void)
 {
 	/* set up SSL context */
-	shared_ptr<X509> cert = GetX509Certificate(GetCertPath());
-	SetIdentity(GetCertificateCN(cert));
+	shared_ptr<X509> cert = make_shared<X509>();
+	try {
+		cert = GetX509Certificate(GetCertPath());
+	} catch (std::exception&) {
+		Log(LogCritical, "ApiListener", "Cannot get certificate from cert path: '" + GetCertPath() + "'.");
+		return;
+	}
+
+	try {
+		SetIdentity(GetCertificateCN(cert));
+	} catch (std::exception&) {
+		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
+		return;
+	}
+
 	Log(LogInformation, "ApiListener", "My API identity: " + GetIdentity());
 
-	m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+	try {
+		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+	} catch (std::exception&) {
+		Log(LogCritical, "ApiListener", "Cannot make SSL context for cert path: '" + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.");
+		return;
+	}
 
-	if (!GetCrlPath().IsEmpty())
-		AddCRLToSSLContext(m_SSLContext, GetCrlPath());
+	if (!GetCrlPath().IsEmpty()) {
+		try {
+			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
+		} catch (std::exception&) {
+			Log(LogCritical, "ApiListener", "Cannot add certificate revocation list to SSL context for crl path: '" + GetCrlPath() + "'.");
+			return;
+		}
+	}
 
 	if (!Endpoint::GetByName(GetIdentity())) {
 		Log(LogCritical, "ApiListener", "Endpoint object for '" + GetIdentity() + "' is missing.");
@@ -215,13 +239,30 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 
 	{
 		ObjectLock olock(this);
-		tlsStream = make_shared<TlsStream>(client, role, m_SSLContext);
+		try {
+			tlsStream = make_shared<TlsStream>(client, role, m_SSLContext);
+		} catch (std::exception&) {
+			Log(LogCritical, "ApiListener", "Cannot create tls stream from client connection.");
+			return;
+		}
 	}
 
-	tlsStream->Handshake();
+	try {
+		tlsStream->Handshake();
+	} catch (std::exception) {
+		Log(LogCritical, "ApiListener", "Client TLS handshake failed.");
+		return;
+	}
 
 	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
-	String identity = GetCertificateCN(cert);
+	String identity;
+
+	try {
+		identity = GetCertificateCN(cert);
+	} catch (std::exception&) {
+		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
+		return;
+	}
 
 	Log(LogInformation, "ApiListener", "New client connection for identity '" + identity + "'");
 
