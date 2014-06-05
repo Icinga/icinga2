@@ -94,7 +94,9 @@ void IdoMysqlConnection::Pause(void)
 
 void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogWarning, "IdoMysqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogCritical, "IdoMysqlConnection", "Exception during database operation: Verify that your database is operational!");
+
+	Log(LogDebug, "IdoMysqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -186,11 +188,22 @@ void IdoMysqlConnection::Reconnect(void)
 		passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 		db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
 
-		if (!mysql_init(&m_Connection))
-			BOOST_THROW_EXCEPTION(std::bad_alloc());
+		if (!mysql_init(&m_Connection)) {
+			std::ostringstream msgbuf;
+			msgbuf << "mysql_init() failed: \"" << mysql_error(&m_Connection) << "\"";
+			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
-		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, NULL, CLIENT_FOUND_ROWS))
+			BOOST_THROW_EXCEPTION(std::bad_alloc());
+		}
+
+		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, NULL, CLIENT_FOUND_ROWS)) {
+			std::ostringstream msgbuf;
+			msgbuf << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
+			    << "' failed: \"" << mysql_error(&m_Connection) << "\"";
+			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
+
 			BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
+		}
 
 		m_Connected = true;
 
@@ -199,16 +212,21 @@ void IdoMysqlConnection::Reconnect(void)
 
 		Dictionary::Ptr version_row = FetchRow(result);
 
-		if (!version_row)
+		if (!version_row) {
+			Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema does not provide any valid version! Verify your schema installation."));
+		}
 
 		DiscardRows(result);
 
 		String version = version_row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
+			Log(LogCritical, "IdoMysqlConnection", "Schema version '" + version + "' does not match the required version '" +
+			   SCHEMA_VERSION + "'! Please check the upgrade documentation.");
+
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema version '" + version + "' does not match the required version '" +
-			   SCHEMA_VERSION + "'! Please check the upgrade documentation."));
+			   SCHEMA_VERSION + "'!"));
 		}
 
 		String instanceName = GetInstanceName();
@@ -286,24 +304,36 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 
 	Log(LogDebug, "IdoMysqlConnection", "Query: " + query);
 
-	if (mysql_query(&m_Connection, query.CStr()) != 0)
+	if (mysql_query(&m_Connection, query.CStr()) != 0) {
+		std::ostringstream msgbuf;
+		String message = mysql_error(&m_Connection);
+		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
+		Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
+
 		BOOST_THROW_EXCEPTION(
 		    database_error()
 		        << errinfo_message(mysql_error(&m_Connection))
 			<< errinfo_database_query(query)
 		);
+	}
 
 	m_AffectedRows = mysql_affected_rows(&m_Connection);
 
 	MYSQL_RES *result = mysql_use_result(&m_Connection);
 
 	if (!result) {
-		if (mysql_field_count(&m_Connection) > 0)
+		if (mysql_field_count(&m_Connection) > 0) {
+			std::ostringstream msgbuf;
+			String message = mysql_error(&m_Connection);
+			msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
+			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
+
 			BOOST_THROW_EXCEPTION(
 			    database_error()
 				<< errinfo_message(mysql_error(&m_Connection))
 				<< errinfo_database_query(query)
 			);
+		}
 
 		return IdoMysqlResult();
 	}

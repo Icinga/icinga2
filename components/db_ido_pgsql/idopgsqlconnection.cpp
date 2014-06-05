@@ -96,7 +96,9 @@ void IdoPgsqlConnection::Pause(void)
 
 void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
-	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
+
+	Log(LogDebug, "IdoPgsqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -199,6 +201,11 @@ void IdoPgsqlConnection::Reconnect(void)
 			PQfinish(m_Connection);
 			m_Connection = NULL;
 
+			std::ostringstream msgbuf;
+			msgbuf << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
+			    << "' failed: \"" << message << "\"";
+			Log(LogCritical, "IdoPgsqlConnection", msgbuf.str());
+
 			BOOST_THROW_EXCEPTION(std::runtime_error(message));
 		}
 
@@ -207,14 +214,19 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		Dictionary::Ptr version_row = FetchRow(result, 0);
 
-		if (!version_row)
+		if (!version_row) {
+			Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema does not provide any valid version! Verify your schema installation."));
+		}
 
 		String version = version_row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
+			Log(LogCritical, "IdoPgsqlConnection", "Schema version '" + version + "' does not match the required version '" +
+			    SCHEMA_VERSION + "'! Please check the upgrade documentation.");
+
 			BOOST_THROW_EXCEPTION(std::runtime_error("Schema version '" + version + "' does not match the required version '" +
-			   SCHEMA_VERSION + "'! Please check the upgrade documentation."));
+			   SCHEMA_VERSION + "'!"));
 		}
 
 		String instanceName = GetInstanceName();
@@ -292,11 +304,18 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 	PGresult *result = PQexec(m_Connection, query.CStr());
 
-	if (!result)
+	if (!result) {
+		String message = PQerrorMessage(m_Connection);
+		std::ostringstream msgbuf;
+		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
+		Log(LogCritical, "IdoPgsqlConnection", msgbuf.str());
+
 		BOOST_THROW_EXCEPTION(
 		    database_error()
+		        << errinfo_message(message)
 		        << errinfo_database_query(query)
 		);
+	}
 
 	char *rowCount = PQcmdTuples(result);
 	m_AffectedRows = atoi(rowCount);
@@ -307,6 +326,10 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 	if (PQresultStatus(result) != PGRES_TUPLES_OK) {
 		String message = PQresultErrorMessage(result);
 		PQclear(result);
+
+		std::ostringstream msgbuf;
+		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
+		Log(LogCritical, "IdoPgsqlConnection", msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(
 		    database_error()
