@@ -114,7 +114,12 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 		}
 	}
 
-	stream << Logger::SeverityToString(entry.Severity);
+	try {
+		stream << Logger::SeverityToString(entry.Severity);
+	} catch (std::exception&) {
+		/* bail early */
+		return;
+	}
 
 	if (tty)
 		stream << "\x1b[0m"; // clear colors

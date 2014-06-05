@@ -429,7 +429,16 @@ int Main(void)
 #endif /* _WIN32 */
 
 	if (g_AppParams.count("log-level")) {
-		LogSeverity logLevel = Logger::StringToSeverity(g_AppParams["log-level"].as<std::string>());
+		String severity = g_AppParams["log-level"].as<std::string>();
+
+		LogSeverity logLevel = LogInformation;
+		try {
+			logLevel = Logger::StringToSeverity(severity);
+		} catch (std::exception&) {
+			/* use the default */
+			Log(LogWarning, "icinga", "Invalid log level set. Using default 'information'.");
+		}
+
 		Logger::SetConsoleLogSeverity(logLevel);
 	}
 

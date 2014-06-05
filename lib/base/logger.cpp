@@ -123,8 +123,15 @@ LogSeverity Logger::GetMinSeverity(void) const
 	String severity = GetSeverity();
 	if (severity.IsEmpty())
 		return LogInformation;
-	else
-		return Logger::StringToSeverity(severity);
+	else {
+		LogSeverity ls = LogInformation;
+
+		try {
+			ls = Logger::StringToSeverity(severity);
+		} catch (std::exception&) { /* use the default level */ }
+
+		return ls;
+	}
 }
 
 /**
@@ -146,6 +153,7 @@ String Logger::SeverityToString(LogSeverity severity)
 		case LogCritical:
 			return "critical";
 		default:
+			Log(LogCritical, "Logger", "Invalid severity.");
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity."));
 	}
 }
@@ -167,8 +175,10 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 		return LogWarning;
 	else if (severity == "critical")
 		return LogCritical;
-	else
+	else {
+		Log(LogCritical, "Logger", "Invalid severity: '" + severity + "'.");
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
+	}
 }
 
 void Logger::DisableConsoleLog(void)
