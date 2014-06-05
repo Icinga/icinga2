@@ -93,7 +93,13 @@ void Application::Stop(void)
 	// over. Write the PID of the new process to the pidfile before this
 	// process exits to keep systemd happy.
 	if (l_Restarting) {
-		UpdatePidFile(GetPidPath(), m_ReloadProcess);
+		try {
+			UpdatePidFile(GetPidPath(), m_ReloadProcess);
+		} catch (std::exception&) {
+			/* abort restart */
+			Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
+			return;
+		}
 		ClosePidFile(false);
 	} else
 		ClosePidFile(true);
@@ -638,7 +644,12 @@ int Application::Run(void)
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
-	UpdatePidFile(GetPidPath());
+	try {
+		UpdatePidFile(GetPidPath());
+	} catch (std::exception&) {
+		Log(LogCritical, "Application", "Cannot update PID file '" + GetPidPath() + "'. Aborting.");
+		return false;
+	}
 
 	result = Main();
 
@@ -667,8 +678,10 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	if (m_PidFile == NULL)
 		m_PidFile = fopen(filename.CStr(), "w");
 
-	if (m_PidFile == NULL)
+	if (m_PidFile == NULL) {
+		Log(LogCritical, "Application", "Could not open PID file '" + filename + "'.");
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open PID file '" + filename + "'"));
+	}
 
 #ifndef _WIN32
 	int fd = fileno(m_PidFile);
@@ -689,6 +702,10 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	}
 
 	if (ftruncate(fd, 0) < 0) {
+		std::ostringstream msgbuf;
+		msgbuf << "ftruncate() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		Log(LogCritical, "Application",  msgbuf.str());
+
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("ftruncate")
 		    << boost::errinfo_errno(errno));
