@@ -81,19 +81,19 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("mkfifo")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(commandPath));
+		std::ostringstream msgbuf;
+		msgbuf << "mkfifo() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		Log(LogCritical, "LivestatusListener",  msgbuf.str());
+		return;
 	}
 
 	/* mkfifo() uses umask to mask off some bits, which means we need to chmod() the
 	 * fifo to get the right mask. */
 	if (chmod(commandPath.CStr(), mode) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("chmod")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(commandPath));
+		std::ostringstream msgbuf;
+		msgbuf << "chmod() on fifo '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		Log(LogCritical, "LivestatusListener",  msgbuf.str());
+		return;
 	}
 
 	for (;;) {
@@ -104,19 +104,19 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		} while (fd < 0 && errno == EINTR);
 
 		if (fd < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("open")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(commandPath));
+			std::ostringstream msgbuf;
+			msgbuf << "open() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "LivestatusListener",  msgbuf.str());
+			return;
 		}
 
 		FILE *fp = fdopen(fd, "r");
 
 		if (fp == NULL) {
-			(void) close(fd);
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("fdopen")
-			    << boost::errinfo_errno(errno));
+			std::ostringstream msgbuf;
+			msgbuf << "fdopen() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "LivestatusListener",  msgbuf.str());
+			return;
 		}
 
 		char line[2048];
@@ -133,9 +133,9 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 				Log(LogInformation, "ExternalCommandListener", "Executing external command: " + command);
 
 				ExternalCommandProcessor::Execute(command);
-			} catch (const std::exception& ex) {
+			} catch (const std::exception&) {
 				std::ostringstream msgbuf;
-				msgbuf << "External command failed: " << DiagnosticInformation(ex);
+				msgbuf << "External command failed.";
 				Log(LogWarning, "ExternalCommandListener", msgbuf.str());
 			}
 		}

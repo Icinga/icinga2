@@ -95,10 +95,10 @@ void LivestatusListener::Start(void)
 		mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
 		if (chmod(GetSocketPath().CStr(), mode) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("chmod")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(GetSocketPath()));
+			std::ostringstream msgbuf;
+			msgbuf << "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "LivestatusListener",  msgbuf.str());
+			return;
 		}
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
