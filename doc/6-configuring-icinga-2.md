@@ -1969,7 +1969,7 @@ disk_cfree      | **Optional.** The free space critical threshold in %. Defaults
 
 #### <a id="plugin-check-command-users"></a> users
 
-Check command object for the `check_disk` plugin.
+Check command object for the `check_users` plugin.
 
 Custom Attributes:
 
