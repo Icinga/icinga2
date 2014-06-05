@@ -187,9 +187,12 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	server->Listen();
 
 	for (;;) {
-		Socket::Ptr client = server->Accept();
-
-		Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleServer));
+		try {
+			Socket::Ptr client = server->Accept();
+			Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleServer));
+		} catch (std::exception&) {
+			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
+		}
 	}
 }
 

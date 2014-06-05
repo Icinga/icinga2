@@ -186,7 +186,14 @@ String Socket::GetClientAddress(void)
 #endif /* _WIN32 */
 	}
 
-	return GetAddressFromSockaddr((sockaddr *)&sin, len);
+	String address;
+	try {
+		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
+	} catch (std::exception&) {
+		/* already logged */
+	}
+
+	return address;
 }
 
 /**
@@ -221,7 +228,14 @@ String Socket::GetPeerAddress(void)
 #endif /* _WIN32 */
 	}
 
-	return GetAddressFromSockaddr((sockaddr *)&sin, len);
+	String address;
+	try {
+		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
+	} catch (std::exception&) {
+		/* already logged */
+	}
+
+	return address;
 }
 
 /**

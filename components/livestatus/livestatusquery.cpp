@@ -517,11 +517,8 @@ void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const St
 	if (m_ResponseHeader == "fixed16" || code == LivestatusErrorOK) {
 		try {
 			stream->Write(data.CStr(), data.GetLength());
-		} catch (const std::exception& ex) {
-			std::ostringstream info;
-			info << "Exception thrown while writing to the livestatus socket: " << std::endl
-			     << DiagnosticInformation(ex);
-			Log(LogCritical, "LivestatusQuery", info.str());
+		} catch (const std::exception&) {
+			Log(LogCritical, "LivestatusQuery", "Cannot write to tcp socket.");
 		}
 	}
 }
@@ -537,11 +534,8 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 
 	try {
 		stream->Write(header.CStr(), header.GetLength());
-	} catch (const std::exception& ex) {
-		std::ostringstream info;
-		info << "Exception thrown while writing to the livestatus socket: " << std::endl
-		     << DiagnosticInformation(ex);
-		Log(LogCritical, "LivestatusQuery", info.str());
+	} catch (const std::exception&) {
+		Log(LogCritical, "LivestatusQuery", "Cannot write to tcp socket.");
 	}
 }
 

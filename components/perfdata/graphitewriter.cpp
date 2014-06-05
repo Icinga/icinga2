@@ -77,17 +77,23 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	try {
 		if (m_Stream) {
 			m_Stream->Write("\n", 1);
-			Log(LogNotice, "GraphiteWriter", "GraphiteWriter already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+			Log(LogNotice, "GraphiteWriter", "Already connected on socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 			return;
 		}
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "GraphiteWriter", "GraphiteWriter socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");
+	} catch (const std::exception&) {
+		Log(LogWarning, "GraphiteWriter", "Socket on host '" + GetHost() + "' port '" + GetPort() + "' gone. Attempting to reconnect.");
 	}
 
 	TcpSocket::Ptr socket = make_shared<TcpSocket>();
 
-	Log(LogNotice, "GraphiteWriter", "GraphiteWriter: Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
-	socket->Connect(GetHost(), GetPort());
+	Log(LogNotice, "GraphiteWriter", "Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+
+	try {
+		socket->Connect(GetHost(), GetPort());
+	} catch (std::exception&) {
+		Log(LogCritical, "GraphiteWriter", "Can't connect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+		return;
+	}
 
 	m_Stream = make_shared<NetworkStream>(socket);
 }
@@ -173,11 +179,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	try {
 		m_Stream->Write(metric.CStr(), metric.GetLength());
 	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Exception thrown while writing to the Graphite socket: " << std::endl
-		       << DiagnosticInformation(ex);
-
-		Log(LogCritical, "GraphiteWriter", msgbuf.str());
+		Log(LogCritical, "GraphiteWriter", "Cannot write to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
 
 		m_Stream.reset();
 	}
