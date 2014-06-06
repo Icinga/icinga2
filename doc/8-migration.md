@@ -101,7 +101,7 @@ Using Icinga 2 you can migrate this to the [apply rules](#using-apply) syntax:
     }
 
 
-#### <a id="manual-config-migration-hints-services"></a> Manual Config Migration Hints for Group Members
+#### <a id="manual-config-migration-hints-group-members"></a> Manual Config Migration Hints for Group Members
 
 The Icinga 1.x hostgroup `hg1` has two members `host1` and `host2`. The hostgroup `hg2` has `host3` as
 a member and includes all members of the `hg1` hostgroup.
@@ -122,8 +122,7 @@ This can be migrated to Icinga 2 and [using group assign](#group-assign). The ad
 
 
     object HostGroup "hg1" {
-      assign where host.name == "host1"
-      assign where host.name == "host2"
+      assign where host.name in [ "host1", "host2" ]
     }
 
     object HostGroup "hg2" {
@@ -146,32 +145,50 @@ Host and service check command arguments are seperated by a `!` in Icinga 1.x. T
 are referenced as `$ARGn$` where `n` is the argument counter.
 
     define command {
-      command_name                      ping4
+      command_name                      my-ping
       command_line                      $USER1$/check_ping -H $HOSTADDRESS$ -w $ARG1$ -c $ARG2$ -p 5
     }
 
     define service {
       use                               generic-service
       host_name                         my-server
-      service_description               ping4
-      check_command                     ping4!100.0,20%!500.0,60%
+      service_description               my-ping
+      check_command                     my-ping-check!100.0,20%!500.0,60%
     }
 
-While you could manually migrate this using the [ping4 plugin command](#plugin-command-ping4) shipped with Icinga 2
-like:
+While you could manually migrate this like (Please note the new generic command arguments and default argument values!):
 
-    apply Service "ping4" {
+    object CheckCommand "my-ping-check" {
+      import "plugin-check-command"
+
+      command = [
+        PluginDir + "/check_ping", "-4"
+      ]
+
+      arguments = {
+        "-H" = "$ping_address$"
+        "-w" = "$ping_wrta$,$ping_wpl$%"
+        "-c" = "$ping_crta$,$ping_cpl$%"
+        "-p" = "$ping_packets$"
+        "-t" = "$ping_timeout$"
+      }
+
+      vars.ping_address = "$address$"
+      vars.ping_wrta = 100
+      vars.ping_wpl = 5
+      vars.ping_crta = 200
+      vars.ping_cpl = 15
+    }
+
+    object Service "my-ping" {
       import "generic-service"
-
-      check_command = "ping4"
+      host_name = "my-server"
+      check_command = "my-ping-check"
 
       vars.ping_wrta = 100
       vars.ping_wpl = 20
       vars.ping_crta = 500
       vars.ping_cpl = 60
-
-      assign where host.name == "my-server"
-      ignore where !host.address
     }
 
 There also is a quick programatical workaround for this (example exported from LConf). Define a generic
