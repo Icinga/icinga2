@@ -40,6 +40,9 @@ void Endpoint::OnConfigLoaded(void)
 	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
 		const std::set<Endpoint::Ptr> members = zone->GetEndpoints();
 
+		if (members.empty())
+			continue;
+
 		if (members.find(GetSelf()) != members.end()) {
 			if (m_Zone)
 				BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint '" + GetName() + "' is in more than one zone."));

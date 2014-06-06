@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "remote/zone.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -33,8 +34,20 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 {
 	std::set<Endpoint::Ptr> result;
 
-	BOOST_FOREACH(const String& endpoint, GetEndpointsRaw())
-		result.insert(Endpoint::GetByName(endpoint));
+	Array::Ptr endpoints = GetEndpointsRaw();
+
+	if (endpoints) {
+		ObjectLock olock(endpoints);
+
+		BOOST_FOREACH(const String& name, endpoints) {
+			Endpoint::Ptr endpoint = Endpoint::GetByName(name);
+
+			if (!endpoint)
+				continue;
+
+			result.insert(endpoint);
+		}
+	}
 
 	return result;
 }
