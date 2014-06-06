@@ -46,7 +46,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
-### What's New in Version 2.0.0 Beta 1
+### What's New in Version 2.0.0 Beta 2
 
 Lots of things. Please read [Icinga 2 in a nutshell](#icinga2-in-a-nutshell).
 
@@ -78,7 +78,7 @@ Running checks every second is no longer a problem.
 * Modular & flexible [features](#features)
 
 Enable only the features you require. Want to use Icinga Web 2 with DB IDO but no status data?
-No problem! Just enable ido-mysql and disable statusdata. Another example: Graphite should be enabled 
+No problem! Just enable ido-mysql and disable statusdata. Another example: Graphite should be enabled
 on a dedicated cluster node. Enable it over there and point it to the carbon cache socket.
 
 * Native support for the [Livestatus protocol](#setting-up-livestatus)
@@ -97,8 +97,7 @@ Simple [apply](#using-apply) and [assign](#group-assign) rules for creating conf
 relationships based on patterns. Supported with [duration literals](#duration-literals) for interval
 attributes, [expression operators](#expression-operators), [function calls](#function-calls) for
 pattern and regex matching and (global) [constants](#constants).
-Sample configuration for common plugins is shipped with Icinga 2 as
-part of the [Icinga Template Library](#itl).
+Sample configuration for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](#itl).
 
 * Revamped Commands
 
@@ -134,7 +133,7 @@ required for network reachability calculations.
 
 * [Recurring Downtimes](#recurring-downtimes)
 
-Forget using cronjobs to set up recurring downtime - you can configure them as Icinga2 configuration 
+Forget using cronjobs to set up recurring downtime - you can configure them as Icinga2 configuration
 objects and specify their active time window.
 
 * Embedded Health Checks
@@ -150,8 +149,16 @@ All known interfaces are optional available: [status files](#status-data), [logs
 [checkresult file reader](#check-result-files) too.
 All [Monitoring Plugins](#setting-up-check-plugins) can be integrated into Icinga 2 with
 newly created check command configuration if not already provided.
-[Configuration migration](#configuration-migration) is possible through the Icinga Web 2 CLI tool.
+[Configuration migration](#configuration-migration) is possible through an external migration tool.
+
+Detailed [migration hints](#manual-config-migration-hints) explain migration the Icinga 1.x
+configuration objects into the native Icinga 2 configuration schema.
 Additional information on the differences is documented in the [migration](#differences-1x-2) chapter.
+
+* Configuration Syntax Highlighting
+
+Icinga 2 ships [syntax highlighting](#configuration-syntax-highlighting) for `vim` and `nano` to help
+edit your configuration.
 
 * [Vagrant Demo VM](#vagrant)
 
