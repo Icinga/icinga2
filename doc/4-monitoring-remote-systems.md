@@ -344,6 +344,35 @@ process.
 > determines the required include directory. This can be overridden using the
 > [global constant](#global-constants) `ZonesDir`.
 
+#### <a id="zone-synchronisation-permissions"></a> Global configuration zone
+
+If your zone configuration setup shares the same templates, groups, commands, timeperiods, etc.
+you would have to duplicate quite a lot of configuration objects making the merged configuration
+on your configuration master unique.
+
+That is not necessary by defining a global zone shipping all those templates. By settting
+`global = true` you ensure that this zone configuration template will be synchronized to all
+involved nodes (only if they accept configuration though).
+
+    /etc/icinga2/zones.d
+      global-templates/
+        templates.conf
+        groups.conf
+      master
+        health.conf
+      checker
+        health.conf
+        demo.conf
+
+In this example, the global zone is called `global-templates` and must be defined in
+your zone configuration visible to all nodes.
+
+    object Zone "global-templates" {
+      global = true
+    }
+
+If you don't require any global configuration, skip this setting.
+
 #### <a id="zone-synchronisation-permissions"></a> Zone Configuration Permissions
 
 Each [ApiListener](#objecttype-apilistener) object must have the `accept_config` attribute
