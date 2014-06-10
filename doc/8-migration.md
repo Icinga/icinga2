@@ -8,9 +8,19 @@ script.
 
 ### <a id="configuration-migration-script"></a> Configuration Migration Script
 
-In order to migrate existing configurations in Icinga 1.x format,
-the Icinga CLI, as part of the Icinga Web 2 project will provide
-a conversion module.
+A standalone configuration migration script is available at
+[https://git.icinga.org/?p=icinga2-migration.git;a=summary]. All further
+details on the command line parameters are documented there too.
+
+This script will be merged back upstream into the Icinga Web 2 CLI once there
+is a final stable release.
+
+Please note that not each configuration detail, trick or attribute will work.
+Some specific migration steps will be still required to be done manually,
+especially if you want to preserve your existing file layout, or any other
+object specific policies.
+
+If you encounter a bug, please open an issue at [https://dev.icinga.org].
 
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
