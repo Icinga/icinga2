@@ -274,9 +274,10 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
+%post
 # suse
 %if 0%{?suse_version}
-%post
+
 %{fillup_and_insserv icinga2}
 
 if [ ${1:-0} -eq 1 ]
@@ -286,24 +287,9 @@ then
 fi
 
 exit 0
-%postun
-%restart_on_update icinga2
-%insserv_cleanup
-
-if [ "$1" = "0" ]; then
-	# deinstallation of the package - remove enabled features
-	rm -rf %{_sysconfdir}/%{name}/features-enabled
-fi
-
-exit 0
-
-%preun
-%stop_on_removal icinga2
-
-# rhel
 %else
+# rhel
 
-%post
 /sbin/chkconfig --add icinga2
 
 if [ ${1:-0} -eq 1 ]
@@ -314,7 +300,26 @@ fi
 
 exit 0
 
+%endif
+# suse/rhel
+
 %postun
+# suse
+%if 0%{?suse_version}
+
+%restart_on_update icinga2
+%insserv_cleanup
+
+if [ "$1" = "0" ]; then
+	# deinstallation of the package - remove enabled features
+	rm -rf %{_sysconfdir}/%{name}/features-enabled
+fi
+
+exit 0
+
+%else
+# rhel
+
 if [ "$1" -ge  "1" ]; then
 	/sbin/service icinga2 condrestart >/dev/null 2>&1 || :
 fi
@@ -325,14 +330,25 @@ if [ "$1" = "0" ]; then
 fi
 
 exit 0
+%endif
+# suse / rhel
+
 %preun
+# suse
+%if 0%{?suse_version}
+
+%stop_on_removal icinga2
+
+%else
+# rhel
+
 if [ "$1" = "0" ]; then
 	/sbin/service icinga2 stop > /dev/null 2>&1
 	/sbin/chkconfig --del icinga2
 fi
 
 %endif
-# suse/rhel
+# suse / rhel
 
 %post ido-mysql
 if [ ${1:-0} -eq 1 ]
