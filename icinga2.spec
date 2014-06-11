@@ -274,23 +274,22 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
-%post
+# all restart/feature actions belong to icinga2-bin
+%post bin
 # suse
 %if 0%{?suse_version}
 
-%{fillup_and_insserv icinga2}
+%fillup_and_insserv %{name}
 
-if [ ${1:-0} -eq 1 ]
-then
-	# initial installation, enable default features
-	%{_sbindir}/icinga2-enable-feature checker notification mainlog
-fi
+# initial installation, enable default features
+%{_sbindir}/icinga2-enable-feature checker notification mainlog
 
 exit 0
+
 %else
 # rhel
 
-/sbin/chkconfig --add icinga2
+/sbin/chkconfig --add %{name}
 
 if [ ${1:-0} -eq 1 ]
 then
@@ -303,11 +302,11 @@ exit 0
 %endif
 # suse/rhel
 
-%postun
+%postun bin
 # suse
 %if 0%{?suse_version}
 
-%restart_on_update icinga2
+%restart_on_update %{name}
 %insserv_cleanup
 
 if [ "$1" = "0" ]; then
@@ -321,7 +320,7 @@ exit 0
 # rhel
 
 if [ "$1" -ge  "1" ]; then
-	/sbin/service icinga2 condrestart >/dev/null 2>&1 || :
+	/sbin/service %{name} condrestart >/dev/null 2>&1 || :
 fi
 
 if [ "$1" = "0" ]; then
@@ -333,19 +332,25 @@ exit 0
 %endif
 # suse / rhel
 
-%preun
+%preun bin
 # suse
 %if 0%{?suse_version}
 
-%stop_on_removal icinga2
+if [ "$1" = "0" ]; then
+	%stop_on_removal %{name}
+fi
+
+exit 0
 
 %else
 # rhel
 
 if [ "$1" = "0" ]; then
-	/sbin/service icinga2 stop > /dev/null 2>&1
-	/sbin/chkconfig --del icinga2
+	/sbin/service %{name} stop > /dev/null 2>&1 || :
+	/sbin/chkconfig --del %{name} || :
 fi
+
+exit 0
 
 %endif
 # suse / rhel
