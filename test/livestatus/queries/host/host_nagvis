@@ -1,0 +1,6 @@
+GET hosts
+Columns: name alias
+OutputFormat:json
+KeepAlive: on
+ResponseHeader: fixed16
+
