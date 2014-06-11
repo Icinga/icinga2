@@ -714,6 +714,19 @@ host and let the dependency ignore that on that instead of the hardcoded host na
 to the Icinga 1.x example and a best practice hint only.
 
 
+#### <a id="manual-config-migration-hints-distributed-setup"></a> Manual Config Migration Hints for Distributed Setups
+
+* Icinga 2 does not use active/passive instances calling OSCP commands and requiring the NSCA
+daemon for passing check results between instances.
+* Icinga 2 does not support any 1.x NEB addons for check load distribution
+
+* If your current setup consists of instances distributing the check load, you should consider
+building a [load distribution](#cluster-scenarios-load-distribution) setup with Icinga 2.
+* If your current setup includes active/passive clustering with external tools like Pacemaker/DRBD
+consider the [High Availability](#cluster-scenarios-high-availability) setup.
+* If you have build your own custom configuration deployment and check result collecting mechanism
+you should re-design your setup and re-evaluate your requirements, and how they may be fulfilled
+using the Icinga 2 cluster capabilities.
 
 
 ## <a id="differences-1x-2"></a> Differences between Icinga 1.x and 2
@@ -976,8 +989,15 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
         vars.crta = 500
         vars.cpl = 60
     }
+    
+> **Note**
+>
+> For better maintainability you should consider using [command arguments](#command-arguments)
+> for your check commands.
 
-The Classic UI feature named `Command Expander` does not work with Icinga 2.
+> **Note**
+>
+> The Classic UI feature named `Command Expander` does not work with Icinga 2.
 
 #### <a id="differences-1x-2-environment-macros"></a> Environment Macros
 

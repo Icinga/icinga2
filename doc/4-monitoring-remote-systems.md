@@ -68,25 +68,18 @@ remote client.
 The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
 can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
 
+You can use the `check_nrpe` plugin from the NRPE project to query the NRPE daemon.
+Icinga 2 provides the [nrpe check command](#plugin-check-command-nrpe) for this:
+
 Example:
-
-    object CheckCommand "check_nrpe" {
-      import "plugin-check-command"
-
-      command = [
-        PluginDir + "/check_nrpe",
-        "-H", "$address$",
-        "-c", "$remote_nrpe_command$",
-      ]
-    }
 
     object Service "users" {
       import "generic-service"
   
       host_name = "remote-nrpe-host"
 
-      check_command = "check_nrpe"
-      vars.remote_nrpe_command = "check_users"
+      check_command = "nrpe"
+      vars.nrpe_command = "check_users"
     }
 
 nrpe.cfg:

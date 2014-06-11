@@ -654,26 +654,30 @@ which can be accessed as runtime macros by the executed check command.
 
 Define the default check command custom attribute `disk_wfree` and `disk_cfree`
 (freely definable naming schema) and their default threshold values. You can
-then use these custom attributes as runtime macros on the command line.
+then use these custom attributes as runtime macros for [command arguments](#command-arguments)
+on the command line.
 
 The default custom attributes can be overridden by the custom attributes
-defined in the service using the check command `disk`. The custom attributes
+defined in the service using the check command `my-disk`. The custom attributes
 can also be inherited from a parent template using additive inheritance (`+=`).
 
-    object CheckCommand "disk" {
+    
+    object CheckCommand "my-disk" {
       import "plugin-check-command"
-
-      command = [
-        PluginDir + "/check_disk",
-        "-w", "$disk_wfree$%",
-        "-c", "$disk_cfree$%"
-      ],
-
+    
+      command = PluginDir + "/check_disk"
+    
+      arguments = {
+        "-w" = "$disk_wfree$%"
+        "-c" = "$disk_cfree$%"
+      }
+    
       vars.disk_wfree = 20
       vars.disk_cfree = 10
     }
 
-The host `localhost` with the service `disk` checks all disks with modified
+
+The host `localhost` with the service `my-disk` checks all disks with modified
 custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
 free disk space).
 
@@ -684,17 +688,17 @@ free disk space).
       address6 = "::1"
     }
 
-    object Service "disk" {
+    object Service "my-disk" {
       import "generic-service"
 
       host_name = "localhost"
-      check_command = "disk"
+      check_command = "my-disk"
 
       vars.disk_wfree = 10
       vars.disk_cfree = 5
     }
 
-#### <a id="commands-arguments"></a> Command Arguments
+#### <a id="command-arguments"></a> Command Arguments
 
 By defining a check command line using the `command` attribute Icinga 2
 will resolve all macros in the static string or array. Sometimes it is
@@ -767,20 +771,20 @@ All hosts in the `my-linux-servers` hostgroup should get the `my-ssh` service ap
 the service is applied to. If not set, the check command `my-ssh` will omit the argument.
 
     object CheckCommand "my-ssh" {
-            import "plugin-check-command"
+      import "plugin-check-command"
 
-            command = PluginDir + "/check_ssh"
+      command = PluginDir + "/check_ssh"
 
-            arguments = {
-                    "-p" = "$ssh_port$"
-                    "host" = {
-                            value = "$ssh_address$"
-                            skip_key = true
-                            order = -1
-                    }
-            }
+      arguments = {
+        "-p" = "$ssh_port$"
+        "host" = {
+          value = "$ssh_address$"
+          skip_key = true
+          order = -1
+        }
+      }
 
-            vars.ssh_address = "$address$"
+      vars.ssh_address = "$address$"
     }
 
     /* apply ssh service */
@@ -796,11 +800,11 @@ the service is applied to. If not set, the check command `my-ssh` will omit the 
 
 The `my-host1` will get the `my-ssh` service checking on the default port:
 
-    [2014-05-26 21:52:23 +0200] <Q #0x7f8bdd5f4a48 W #0x7f8bdd5f4b88> notice/base: Running command '/usr/lib/nagios/plugins/check_ssh', '129.168.1.50': PID 27281
+    [2014-05-26 21:52:23 +0200] notice/Process: Running command '/usr/lib/nagios/plugins/check_ssh', '129.168.1.50': PID 27281
 
 The `my-host2` will inherit the `custom_ssh_port` variable to the service and execute a different command:
 
-    [2014-05-26 21:51:32 +0200] <Q #0x7f8bdd5f4708 W #0x7f8bdd5f4848> notice/base: Running command '/usr/lib/nagios/plugins/check_ssh', '-p', '2222', '129.168.2.50': PID 26956
+    [2014-05-26 21:51:32 +0200] notice/Process: Running command '/usr/lib/nagios/plugins/check_ssh', '-p', '2222', '129.168.2.50': PID 26956
 
 
 ### <a id="notification-commands"></a> Notification Commands
@@ -868,6 +872,11 @@ as environment variables and can be used in the notification script:
     )
 
     /usr/bin/printf "%b" $template | mail -s "$NOTIFICATIONTYPE - $HOSTDISPLAYNAME - $SERVICEDISPLAYNAME is $SERVICESTATE" $USEREMAIL
+    
+> **Note**
+>
+> This example is for `exim` only. Requires changes for `sendmail` and
+> other MTAs.
 
 While it's possible to specify the entire notification command right
 in the NotificationCommand object it is generally advisable to create a
@@ -1157,20 +1166,23 @@ runtime when executing a command. These custom attributes cannot be used elsewhe
 (e.g. in other configuration attributes).
 
 Here is an example of a command definition which uses user-defined custom attributes:
-
+   
     object CheckCommand "my-ping" {
       import "plugin-check-command"
 
       command = [
-        PluginDir + "/check_ping",
-        "-4",
-        "-H", "$address$",
-        "-w", "$ping_wrta$,$ping_wpl$%",
-        "-c", "$ping_crta$,$ping_cpl$%",
-        "-p", "$ping_packets$",
-        "-t", "$ping_timeout$"
+        PluginDir + "/check_ping", "-4"
       ]
 
+      arguments = {
+        "-H" = "$ping_address$"
+        "-w" = "$ping_wrta$,$ping_wpl$%"
+        "-c" = "$ping_crta$,$ping_cpl$%"
+        "-p" = "$ping_packets$"
+        "-t" = "$ping_timeout$"
+      }
+
+      vars.ping_address = "$address$"
       vars.ping_wrta = 100
       vars.ping_wpl = 5
       vars.ping_crta = 200
@@ -1181,7 +1193,9 @@ Here is an example of a command definition which uses user-defined custom attrib
 
 Custom attribute names used at runtime must be enclosed in two `$` signs, e.g.
 `$address$`. When using the `$` sign as single character, you need to escape
-it with an additional dollar sign (`$$`).
+it with an additional dollar sign (`$$`). This example also makes use of the
+[command arguments](#command-arguments) passed to the command line. `-4` must
+be added as additional array key.
 
 ### <a id="runtime-custom-attributes-evaluation-order"></a> Runtime Custom Attributes Evaluation Order
 
@@ -1226,14 +1240,23 @@ This is useful for example for hiding sensitive information on the command line 
 when passing credentials to database checks:
 
     object CheckCommand "mysql-health" {
-      import "plugin-check-command",
+      import "plugin-check-command"
 
-      command = PluginDir + "/check_mysql -H $address$ -d $db$",
+      command = [
+        PluginDir + "/check_mysql"
+      ]
+      
+      arguments = {
+        "-H" = "$mysql_address$"
+        "-d" = "$mysql_database$"
+      }
 
-      vars.mysql_user = "icinga_check",
+      vars.mysql_address = "$address$"
+      vars.mysql_database = "icinga"
+      vars.mysql_user = "icinga_check"
       vars.mysql_pass = "password"
 
-      env.MYSQLUSER = "$mysql_user$",
+      env.MYSQLUSER = "$mysql_user$"
       env.MYSQLPASS = "$mysql_pass$"
     }
 

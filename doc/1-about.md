@@ -101,7 +101,7 @@ Sample configuration for common plugins is shipped with Icinga 2 as part of the 
 
 * Revamped Commands
 
-One command to rule them all - supporting optional and conditional [command arguments](#commands-arguments).
+One command to rule them all - supporting optional and conditional [command arguments](#command-arguments).
 [Environment variables](#command-environment-variables) exported on-demand populated with
 runtime evaluated macros.
 Three types of commands used for different actions: checks, notifications and events.
