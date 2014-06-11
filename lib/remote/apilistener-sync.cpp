@@ -126,6 +126,12 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 void ApiListener::SyncZoneDirs(void) const
 {
 	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+		/* always sync global zone dirs */
+		if (zone->GetGlobal()) {
+			SyncZoneDir(zone);
+			continue;
+		}
+
 		if (!IsConfigMaster(zone))
 			continue;
 
