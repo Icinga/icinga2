@@ -7,7 +7,7 @@ set -e
 set -x
 
 #VERSION=$(grep -E "^Version:" icinga2.spec | cut -d" " -f2)
-VERSION=`git describe | sed 's/^v//' | grep -oP "^\d+\.\d+\.\d+"`
+VERSION=`git describe --abbrev=0 | sed 's/^v//' | grep -oP "^\d+\.\d+\.\d+(-.*)?" | sed 's/-/~/'`
 DEB_VERSION_SUFFIX=$(echo "+icingasnap"`date +%Y%m%d%H%M`"."`git rev-parse --short HEAD`)
 
 # update Debian version
