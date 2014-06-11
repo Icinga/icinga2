@@ -1177,6 +1177,9 @@ Icinga 2 does not make a difference between `output` (first line) and
 `long_output` (remaining lines) like in Icinga 1.x. Performance Data is
 provided separately.
 
+There is no output length restriction as known from Icinga 1.x using an
+[8KB static buffer](http://docs.icinga.org/latest/en/pluginapi.html#outputlengthrestrictions).
+
 The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
 split the raw output into `output` (first line) and `long_output` (remaining
 lines) for compatibility reasons.

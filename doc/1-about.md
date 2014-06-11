@@ -107,6 +107,7 @@ runtime evaluated macros.
 Three types of commands used for different actions: checks, notifications and events.
 Check timeout for commands instead of a global option. Commands also have custom attributes allowing
 you to specify default values.
+There is no plugin output or performance data length restriction anymore compared to Icinga 1.x.
 
 * Custom Runtime Macros
 

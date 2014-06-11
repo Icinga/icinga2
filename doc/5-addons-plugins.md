@@ -54,3 +54,6 @@ Currently Icinga 2 supports the native plugin API specification from the `Monito
 project.
 
 The `Monitoring Plugin API` is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
+
+There are no output length restrictions using Icinga 2. This is different to the
+[Icinga 1.x plugin api definition](http://docs.icinga.org/latest/en/pluginapi.html#outputlengthrestrictions).
