@@ -126,12 +126,6 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 void ApiListener::SyncZoneDirs(void) const
 {
 	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
-		/* always sync global zone dirs */
-		if (zone->GetGlobal()) {
-			SyncZoneDir(zone);
-			continue;
-		}
-
 		if (!IsConfigMaster(zone))
 			continue;
 
@@ -158,8 +152,17 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
-		if (!zone->IsChildOf(azone) || !Utility::PathExists(zoneDir))
+		if (!zone->IsChildOf(azone) && !zone->IsGlobal()) {
+			Log(LogNotice, "ApiListener", "Skipping sync for '" + zone->GetName() + "'. Not a child of zone '" + azone->GetName() + "'.");
 			continue;
+		}
+		if (!Utility::PathExists(zoneDir)) {
+			Log(LogNotice, "ApiListener", "Ignoring sync for '" + zone->GetName() + "'. Zone directory '" + zoneDir + "' does not exist.");
+			continue;
+		}
+
+		if (zone->IsGlobal())
+			Log(LogInformation, "ApiListener", "Syncing global zone '" + zone->GetName() + "'.");
 
 		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
 	}
@@ -182,8 +185,15 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener || !listener->GetAcceptConfig())
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
 		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener", "Ignoring config update. '" + listener->GetName() + "' does not accept config.");
+		return Empty;
+	}
 
 	Dictionary::Ptr update = params->Get("update");
 

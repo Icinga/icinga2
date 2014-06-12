@@ -41,6 +41,7 @@ public:
 
 	bool CanAccessObject(const DynamicObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
+	bool IsGlobal(void);
 
 	static Zone::Ptr GetLocalZone(void);
 };

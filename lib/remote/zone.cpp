@@ -81,6 +81,16 @@ bool Zone::IsChildOf(const Zone::Ptr& zone)
 	return false;
 }
 
+bool Zone::IsGlobal(void)
+{
+	Zone::Ptr zone = GetSelf();
+
+	if (!zone)
+		return false;
+
+	return zone->GetGlobal();
+}
+
 Zone::Ptr Zone::GetLocalZone(void)
 {
 	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
