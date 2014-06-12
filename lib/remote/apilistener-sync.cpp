@@ -35,9 +35,11 @@ bool ApiListener::IsConfigMaster(const Zone::Ptr& zone) const
 	return Utility::PathExists(path);
 }
 
-void ApiListener::ConfigGlobHandler(const Dictionary::Ptr& config, const String& path, const String& file)
+void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file)
 {
 	CONTEXT("Creating config update for file '" + file + "'");
+
+	Log(LogNotice, "ApiListener", "Creating config update for file '" + file + "'");
 
 	std::ifstream fp(file.CStr());
 	if (!fp)
@@ -50,7 +52,7 @@ void ApiListener::ConfigGlobHandler(const Dictionary::Ptr& config, const String&
 Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
 {
 	Dictionary::Ptr config = make_shared<Dictionary>();
-	Utility::GlobRecursive(dir, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, config, dir, _1), GlobFile);
+	Utility::GlobRecursive(dir, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
 	return config;
 }
 
@@ -74,6 +76,8 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 			String path = configDir + "/" + kv.first;
 			Log(LogInformation, "ApiListener", "Updating configuration file: " + path);
 
+			//TODO mkdir -p?
+			Utility::MkDirP(path, 0755);
 			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 			fp << kv.second;
 			fp.close();

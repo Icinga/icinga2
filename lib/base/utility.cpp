@@ -23,6 +23,7 @@
 #include "base/logger_fwd.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
+#include "base/utility.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
@@ -669,6 +670,31 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 	return true;
 }
+
+int Utility::MkDirP(const String& path, int flags)
+{
+
+#ifdef _WIN32
+	/* TODO */
+	return 0;
+#else /* _WIN32 */
+
+	if (path.IsEmpty()) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	if (path.GetLength() == 1 && path[0] == '.')
+		return 0;
+
+	String dir = DirName(path);
+
+	MkDirP(dir, flags);
+
+	return mkdir(dir.CStr(), flags);
+#endif /* _WIN32 */
+}
+
 
 #ifndef _WIN32
 void Utility::SetNonBlocking(int fd)

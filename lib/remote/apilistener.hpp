@@ -110,7 +110,7 @@ private:
 	void SyncZoneDir(const Zone::Ptr& zone) const;
 
 	bool IsConfigMaster(const Zone::Ptr& zone) const;
-	static void ConfigGlobHandler(const Dictionary::Ptr& config, const String& path, const String& file);
+	static void ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file);
 	void SendConfigUpdate(const ApiClient::Ptr& aclient);
 };
 
