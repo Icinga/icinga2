@@ -20,6 +20,7 @@ ICINGA2_CONFIG_FILE=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/icinga2.conf
 ICINGA2_STATE_DIR=@CMAKE_INSTALL_FULL_LOCALSTATEDIR@
 ICINGA2_PID_FILE=$ICINGA2_STATE_DIR/run/icinga2/icinga2.pid
 ICINGA2_ERROR_LOG=$ICINGA2_STATE_DIR/log/icinga2/error.log
+ICINGA2_STARTUP_LOG=$ICINGA2_STATE_DIR/log/icinga2/startup.log
 ICINGA2_LOG=$ICINGA2_STATE_DIR/log/icinga2/icinga2.log
 ICINGA2_USER=@ICINGA2_USER@
 ICINGA2_GROUP=@ICINGA2_GROUP@
@@ -48,24 +49,34 @@ if [ -f /etc/default/icinga ]; then
         . /etc/default/icinga
 fi
 
-# Start Icinga 2
-start() {
+check_run() {
 	mkdir -p $(dirname -- $ICINGA2_PID_FILE)
 	chown $ICINGA2_USER:$ICINGA2_GROUP $(dirname -- $ICINGA2_PID_FILE)
-	chown $ICINGA2_USER:$ICINGA2_GROUP $ICINGA2_PID_FILE
+	if [ -f $ICINGA2_PID_FILE ]; then
+		chown $ICINGA2_USER:$ICINGA2_GROUP $ICINGA2_PID_FILE
+	fi
 
 	mkdir -p $(dirname -- $ICINGA2_ERROR_LOG)
 	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $(dirname -- $ICINGA2_ERROR_LOG)
 	chmod 750 $(dirname -- $ICINGA2_ERROR_LOG)
-	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_ERROR_LOG $ICINGA2_LOG
+	if [ -f $ICINGA2_ERROR_LOG ]; then
+		chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_ERROR_LOG
+	fi
+	if [ -f $ICINGA2_LOG ]; then
+		chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_LOG
+	fi
 
 	mkdir -p $ICINGA2_STATE_DIR/run/icinga2/cmd
 	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_STATE_DIR/run/icinga2/cmd
 	chmod 2755 $ICINGA2_STATE_DIR/run/icinga2/cmd
+}
 
-	echo "Starting Icinga 2: "
-	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP; then
-		echo "Error starting Icinga."
+# Start Icinga 2
+start() {
+	printf "Starting Icinga 2: "
+
+	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP > $ICINGA2_STARTUP_LOG 2>&1; then
+		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."
 		exit 1
 	else
 		echo "Done"
@@ -75,6 +86,7 @@ start() {
 # Restart Icinga 2
 stop() {
         printf "Stopping Icinga 2: "
+
         if [ ! -e $ICINGA2_PID_FILE ]; then
                 echo "The PID file '$ICINGA2_PID_FILE' does not exist."
                 if [ "x$1" = "xnofail" ]; then
@@ -120,20 +132,26 @@ reload() {
 
 # Check the Icinga 2 configuration
 checkconfig() {
-	printf "Checking configuration:"
+	printf "Checking configuration: "
 
-        echo "Validating the configuration file:"
-        if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C -u $ICINGA2_USER -g $ICINGA2_GROUP; then
+	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -C -u $ICINGA2_USER -g $ICINGA2_GROUP > $ICINGA2_STARTUP_LOG 2>&1; then
                 if [ "x$1" = "x" ]; then
-                        echo "Icinga 2 detected configuration errors."
+			cat $ICINGA2_STARTUP_LOG
+			echo "Icinga 2 detected configuration errors. Check '$ICINGA2_STARTUP_LOG' for details."
                         exit 1
                 else
-                        echo "Not "$1"ing Icinga 2 due to configuration errors."
+			echo "Not "$1"ing Icinga 2 due to configuration errors. Check '$ICINGA2_STARTUP_LOG' for details."
                         if [ "x$2" = "xfail" ]; then
                                 exit 1
                         fi
                 fi
         fi
+	
+	echo "Done"
+	# no arguments requires full output
+        if [ "x$1" = "x" ]; then
+		cat $ICINGA2_STARTUP_LOG
+	fi
 }
 
 # Print status for Icinga 2
@@ -148,6 +166,8 @@ status() {
 		exit 3
 	fi
 }
+
+check_run
 
 ### main logic ###
 case "$1" in

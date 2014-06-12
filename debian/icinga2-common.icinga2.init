@@ -22,6 +22,7 @@ DAEMON_USER=nagios
 DAEMON_GROUP=nagios
 DAEMON_CMDGROUP=www-data
 DAEMON_ARGS="-e /var/log/icinga2/icinga2.err"
+STARTUP_LOG="/var/log/icinga2/startup.log"
 PIDFILE=/var/run/icinga2/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -128,10 +129,10 @@ do_reload() {
 do_check_config () {
   DOEXITONOK="$1"
   log_begin_msg "checking Icinga2 configuration"
-  if ! check_config >/dev/null 2>&1; then
+  if ! check_config >$STARTUP_LOG 2>&1; then
     echo
-    check_config
-    log_failure_msg "checking Icinga2 configuration"
+    [ -n "$DOEXITONOK" ] && cat $STARTUP_LOG
+    log_failure_msg "checking Icinga2 configuration. Check '$STARTUP_LOG' for details."
     exit 1
   else
     log_end_msg 0
