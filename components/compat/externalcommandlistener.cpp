@@ -83,7 +83,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		std::ostringstream msgbuf;
 		msgbuf << "mkfifo() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-		Log(LogCritical, "LivestatusListener",  msgbuf.str());
+		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 		return;
 	}
 
@@ -92,7 +92,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	if (chmod(commandPath.CStr(), mode) < 0) {
 		std::ostringstream msgbuf;
 		msgbuf << "chmod() on fifo '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-		Log(LogCritical, "LivestatusListener",  msgbuf.str());
+		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 		return;
 	}
 
@@ -106,7 +106,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		if (fd < 0) {
 			std::ostringstream msgbuf;
 			msgbuf << "open() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "LivestatusListener",  msgbuf.str());
+			Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 			return;
 		}
 
@@ -115,7 +115,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		if (fp == NULL) {
 			std::ostringstream msgbuf;
 			msgbuf << "fdopen() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "LivestatusListener",  msgbuf.str());
+			Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 			return;
 		}
 
