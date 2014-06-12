@@ -1,5 +1,5 @@
 GET hosts
-Columns: name alias
+Columns: name alias host_name
 OutputFormat:json
 KeepAlive: on
 ResponseHeader: fixed16
