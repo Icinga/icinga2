@@ -371,6 +371,11 @@ your zone configuration visible to all nodes.
       global = true
     }
 
+> **Note**
+>
+> If the remote node does not have this zone configured, it will ignore the configuration
+> update, if it accepts configuration.
+
 If you don't require any global configuration, skip this setting.
 
 #### <a id="zone-synchronisation-permissions"></a> Zone Configuration Permissions
