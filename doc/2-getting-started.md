@@ -709,7 +709,16 @@ the Classic UI using the following packages:
   all others    | icinga2-classicui-config icinga-gui
 
 The Debian packages require additional packages which are provided by the
-[Debian Monitoring Project](http://www.debmon.org) repository.
+[Debian Monitoring Project](http://www.debmon.org) (`DebMon`) repository.
+
+`libjs-jquery-ui` requires at least version `1.10.*` which is not available
+in Debian Wheezy and Ubunto 12.04 LTS (Precise). Add the following repositories
+to satisfy this dependency:
+
+  Distribution  		| Package Repositories
+  ------------------------------|------------------------------
+  Debian Wheezy 		| [wheezy-backports](http://backports.debian.org/Instructions/) or [DebMon](http://www.debmon.org)
+  Ubuntu 12.04 LTS (Precise)    | [Icinga PPA](https://launchpad.net/~formorer/+archive/icinga)
 
 On all distributions other than Debian you may have to restart both your web
 server as well as Icinga 2 after installing the Classic UI package.
