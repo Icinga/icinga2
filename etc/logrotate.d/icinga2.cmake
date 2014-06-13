@@ -1,6 +1,7 @@
 @CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/icinga2.log @CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/debug.log {
        	daily
 	rotate 7
+	su @ICINGA2_USER@ @ICINGA2_GROUP@
 	compress
 	delaycompress
        	missingok
@@ -16,6 +17,7 @@
 
 @CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/error.log {
 	daily
+	su @ICINGA2_USER@ @ICINGA2_GROUP@
 	rotate 90
 	compress
 	delaycompress
