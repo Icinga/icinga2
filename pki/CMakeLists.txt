@@ -19,18 +19,11 @@ if(UNIX OR CYGWIN)
   configure_file(icinga2-build-ca.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-build-ca @ONLY)
   configure_file(icinga2-build-key.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-build-key @ONLY)
   configure_file(icinga2-sign-key.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-sign-key @ONLY)
-  configure_file(icinga2-setup-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-setup-agent @ONLY)
 
   install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2-build-ca ${CMAKE_CURRENT_BINARY_DIR}/icinga2-build-key
           ${CMAKE_CURRENT_BINARY_DIR}/icinga2-sign-key
     DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-  )
-
-  install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2-setup-agent
-    DESTINATION ${CMAKE_INSTALL_SBINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
 
