@@ -25,14 +25,14 @@ There are many ways to contribute to Icinga - whether it be sending patches, tes
 reporting bugs, or reviewing and updating the documentation. Every contribution
 is appreciated!
 
-Please get in touch with the Icinga team at [https://www.icinga.org/ecosystem/].
+Please get in touch with the Icinga team at [https://www.icinga.org/community/].
 
 ## <a id="development"></a> Icinga 2 Development
 
 You can follow Icinga 2's development closely by checking
 out these resources:
 
-* Development Bug Tracker: [https://dev.icinga.org/projects/i2?jump=issues] ([http://www.icinga.org/faq/how-to-report-a-bug/])
+* Development Bug Tracker: [https://dev.icinga.org/projects/i2] ([http://www.icinga.org/faq/how-to-report-a-bug/])
 * Git Repositories: [https://git.icinga.org/?p=icinga2.git;a=summary] (mirror at [https://github.com/Icinga/icinga2])
 * Git Checkins Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-checkins]
 * Development Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-devel]
@@ -46,13 +46,12 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
-### What's New in Version 2.0.0 Beta 2
+### What's New in Version 2.0.0
 
 Lots of things. Please read [Icinga 2 in a nutshell](#icinga2-in-a-nutshell).
 
 #### Changes
 
-* Updated sample configuration for final release.
 
 ### Archive
 
@@ -68,12 +67,15 @@ Compiling from source is not recommended.
 * Real Distributed Architecture
 
 [Cluster](#distributed-monitoring-high-availability) model for distributed setups, load balancing
-and High-Availability installations. Secured by SSL x509 certificates, supporting IPv4 and IPv6.
+and High-Availability installations (or a combination of them). On-demand configuration
+synchronisation between zones is available, but not mandatory (for example when config management
+tools such as Puppet are used). Secured by SSL x509 certificates, supporting IPv4 and IPv6.
+High Availability for DB IDO: Only active on the current zone master, failover happens automatically.
 
 * High Performance
 
 Multithreaded and scalable for small embedded systems as well as large scale environments.
-Running checks every second is no longer a problem.
+Running checks every second is no longer a problem and enables real-time monitoring capabilities.
 
 * Modular & flexible [features](#features)
 
@@ -134,7 +136,7 @@ required for network reachability calculations.
 
 * [Recurring Downtimes](#recurring-downtimes)
 
-Forget using cronjobs to set up recurring downtime - you can configure them as Icinga2 configuration
+Forget using cronjobs to set up recurring downtime - you can configure them as Icinga 2 configuration
 objects and specify their active time window.
 
 * Embedded Health Checks
@@ -160,6 +162,11 @@ Additional information on the differences is documented in the [migration](#diff
 
 Icinga 2 ships [syntax highlighting](#configuration-syntax-highlighting) for `vim` and `nano` to help
 edit your configuration.
+
+* Puppet modules, Chef Cookbooks, Ansible Playbooks, Salt Formulas, etc
+
+This is a constant work-in-progress. For details checkout [https://dev.icinga.org/projects/icinga-tools].
+If you want to contribute to these projects, do not hesitate to contact us at [https://support.icinga.org].
 
 * [Vagrant Demo VM](#vagrant)
 
