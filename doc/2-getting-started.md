@@ -712,7 +712,7 @@ The Debian packages require additional packages which are provided by the
 [Debian Monitoring Project](http://www.debmon.org) (`DebMon`) repository.
 
 `libjs-jquery-ui` requires at least version `1.10.*` which is not available
-in Debian Wheezy and Ubunto 12.04 LTS (Precise). Add the following repositories
+in Debian Wheezy and Ubuntu 12.04 LTS (Precise). Add the following repositories
 to satisfy this dependency:
 
   Distribution  		| Package Repositories
