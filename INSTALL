@@ -90,11 +90,18 @@ disable the usage of "git describe".
 
 Use "git archive" to build the release tarball:
 
-$ git archive --format=tgz --prefix=icinga2-<VERSION>/ tags/v<VERSION>
+$ VERSION=2.0.0
+$ git archive --format=tgz --prefix=icinga2-$VERSION/ tags/v$VERSION
+
+On CentOS 6.x use
+
+$ VERSION=2.0.0
+$ git archive --format=tar --prefix=icinga2-$VERSION/ tags/v$VERSION | gzip >icinga2-$VERSION.tar.gz
 
 Finally you should verify that the tarball only contains the files it should contain:
 
-$ tar ztf icinga2-<VERSION>.tar.gz | less
+$ VERSION=2.0.0
+$ tar ztf icinga2-$VERSION.tar.gz | less
 
 
 ## Building Icinga 2
