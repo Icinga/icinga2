@@ -38,8 +38,8 @@ Some parts of Icinga 2's functionality are available as separate packages:
 
   Name                    | Description
   ------------------------|--------------------------------
-  icinga2-ido-mysql       | IDO provider module for MySQL
-  icinga2-ido-pgsql       | IDO provider module for PostgreSQL
+  icinga2-ido-mysql       | DB IDO provider module for MySQL
+  icinga2-ido-pgsql       | DB IDO provider module for PostgreSQL
 
 If you're running a distribution for which Icinga 2 packages are
 not yet available you will need to use the release tarball which you
@@ -440,19 +440,18 @@ For further information on your monitoring configuration read the
 [monitoring basics](#monitoring-basics).
 
 
-## <a id="configuring-ido"></a> Configuring IDO
+## <a id="configuring-db-ido"></a> Configuring DB IDO
 
-The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
-configuration and status information into a database. The IDO database is used
-by a number of projects including Icinga Web.
+The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of exporting
+all configuration and status information into a database. The IDO database is used
+by a number of projects including Icinga Web 1.x, Reporting or Icinga Web 2.
 
 There is a separate module for each database back-end. At present support for
 both MySQL and PostgreSQL is implemented.
 
 Icinga 2 uses the Icinga 1.x IDOUtils database schema starting with version
-`1.11.0`. Icinga 2 may require additional features not yet released with
-Icinga 1.x and therefore require manual upgrade steps during pre-final
-milestone releases.
+`1.11.3`. Icinga 2 requires additional features not yet released with older
+Icinga 1.x versions.
 
 > **Tip**
 >
@@ -460,19 +459,13 @@ milestone releases.
 > you to do so (for example, [Icinga Web](#setting-up-icinga-web) or [Icinga Web 2](#setting-up-icingaweb2)).
 > [Icinga Classic UI](#setting-up-icinga-classic-ui) does not use IDO as backend.
 
-### <a id="configuring-ido-mysql"></a> Configuring IDO MySQL
+### <a id="configuring-db-ido-mysql"></a> Configuring DB IDO MySQL
 
 #### <a id="setting-up-mysql-db"></a> Setting up the MySQL database
 
 First of all you have to install the `icinga2-ido-mysql` package using your
 distribution's package manager. Once you have done that you can proceed with
 setting up a MySQL database for Icinga 2:
-
-> **Note**
->
-> The Debian packages can optionally create and maintain the database for you
-> using Debian's `dbconfig` framework. This is the recommended way of setting up
-> the database.
 
     # mysql -u root -p
 
@@ -501,16 +494,11 @@ The schema file location differs by the distribution used:
 Check the `schema/upgrade` directory for an incremental schema upgrade file.
 If there isn't an upgrade file available there's nothing to do.
 
-> **Note**
->
-> During pre release status (0.x.y releases) small snippets called for example
-> `0.0.10.sql` will ship the required schema updates.
-
 Apply all database schema upgrade files incrementially.
 
-    # mysql -u root -p icinga < /usr/share/doc/icinga2-ido-mysql-*/schema/upgrade/0.0.10.sql
+    # mysql -u root -p icinga < /usr/share/doc/icinga2-ido-mysql-*/schema/upgrade/<version>.sql
 
-The Icinga 2 IDO module will check for the required database schema version on startup
+The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
 
 #### <a id="installing-ido-mysql"></a> Installing the IDO MySQL module
@@ -530,19 +518,13 @@ After enabling the ido-mysql feature you have to restart Icinga 2:
     # /etc/init.d/icinga2 restart
 
 
-### <a id="configuring-ido-postgresql"></a> Configuring IDO PostgreSQL
+### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
 #### Setting up the PostgreSQL database
 
 First of all you have to install the `icinga2-ido-pgsql` package using your
 distribution's package manager. Once you have done that you can proceed with
 setting up a PostgreSQL database for Icinga 2:
-
-> **Note**
->
-> The Debian packages can optionally create and maintain the database for you
-> using Debian's `dbconfig` framework. This is the recommended way of setting up
-> the database.
 
     # cd /tmp
     # sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'";
@@ -594,17 +576,12 @@ The schema file location differs by the distribution used:
 Check the `schema/upgrade` directory for an incremental schema upgrade file.
 If there isn't an upgrade file available there's nothing to do.
 
-> **Note**
->
-> During pre release status (0.x.y releases) small snippets called for example
-> `0.0.10.sql` will ship the required schema updates.
-
 Apply all database schema upgrade files incrementially.
 
     # export PGPASSWORD=icinga
-    # psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-*/schema/upgrade/0.0.10.sql
+    # psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-*/schema/upgrade/<version>.sql
 
-The Icinga 2 IDO module will check for the required database schema version on startup
+The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
 
 #### <a id="installing-ido-postgresql"></a> Installing the IDO PostgreSQL module
