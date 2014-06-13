@@ -35,6 +35,7 @@ License: GPL-2+-with-exeception
 Files: debian/*
 Copyright: 2012 Alexander Wirt <formorer@debian.org>
            2013-2014 Markus Frosch <markus@lazyfrosch.de>
+           2014 Icinga Development Team (http://www.icinga.org)
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

@@ -2,27 +2,30 @@ Source: icinga2
 Section: admin
 Priority: extra
 Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian.org>
-Uploaders: Alexander Wirt <formorer@debian.org>, Markus Frosch <markus@lazyfrosch.de>
-Build-Depends: cmake (>= 2.8.7),
-               make (>= 3.81),
-               bison,
-               debhelper (>= 9),
-               flex,
-               g++ (>= 1.96),
-               libboost-dev,
-               libboost-program-options-dev,
-               libboost-system-dev,
-               libboost-test-dev,
-               libboost-thread-dev,
-               libboost-regex-dev,
-               libmysqlclient-dev,
-               libpq-dev,
-               libssl-dev,
-               po-debconf,
-               python-dev,
-               pandoc,
-               python-sphinx
-Standards-Version: 3.9.4
+Uploaders:
+    Markus Frosch <markus@lazyfrosch.de>,
+    Alexander Wirt <formorer@debian.org>
+Build-Depends:
+    cmake (>= 2.8.7),
+    make (>= 3.81),
+    bison,
+    debhelper (>= 9),
+    flex,
+    g++ (>= 1.96),
+    libboost-dev,
+    libboost-program-options-dev,
+    libboost-system-dev,
+    libboost-test-dev,
+    libboost-thread-dev,
+    libboost-regex-dev,
+    libmysqlclient-dev,
+    libpq-dev,
+    libssl-dev,
+    po-debconf,
+    python-dev,
+    pandoc,
+    python-sphinx
+Standards-Version: 3.9.5
 Homepage: http://www.icinga.org
 
 Package: icinga2

@@ -1,14 +1,5 @@
 icinga2 source TODOs
 ====================
 
-* Replace embedded tools
-  - doc/ strapdownjs and jquery
-
-* Document embedded sources in tarball
-  - third-party/
-
-* init
-  - configtest
-  - multi instanz
-  - pid file handling testen
-
+* Update doc handling - still WIP
+  - publish via webserver / classicui?
