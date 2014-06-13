@@ -6,3 +6,6 @@ usr/bin/icinga2-build*
 usr/bin/icinga2-sign-key
 usr/sbin/icinga2-*-feature
 usr/share/icinga2
+usr/share/man/man8/icinga2-*-feature.8
+usr/share/man/man8/icinga2-build*.8
+usr/share/man/man8/icinga2-sign-key.8

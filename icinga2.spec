@@ -443,6 +443,11 @@ exit 0
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz
+%{_mandir}/man8/%{name}-enable-feature.8.gz
+%{_mandir}/man8/%{name}-disable-feature.8.gz
+%{_mandir}/man8/%{name}-build-ca.8.gz
+%{_mandir}/man8/%{name}-build-key.8.gz
+%{_mandir}/man8/%{name}-sign-key.8.gz
 
 %attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
