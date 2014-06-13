@@ -110,11 +110,11 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	String newDir = Application::GetZonesDir() + "/" + zone->GetName();
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
-#ifndef _WIN32
-	if (mkdir(oldDir.CStr(), 0700) < 0 && errno != EEXIST) {
-#else /*_ WIN32 */
-	if (mkdir(oldDir.CStr()) < 0 && errno != EEXIST) {
-#endif /* _WIN32 */
+	if (!Utility::MkDir(oldDir, 0700)) {
+		std::ostringstream msgbuf;
+		msgbuf << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		Log(LogCritical, "ApiListener",  msgbuf.str());
+
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("mkdir")
 			<< boost::errinfo_errno(errno)
@@ -133,7 +133,11 @@ void ApiListener::SyncZoneDirs(void) const
 		if (!IsConfigMaster(zone))
 			continue;
 
-		SyncZoneDir(zone);
+		try {
+			SyncZoneDir(zone);
+		} catch (std::exception&) {
+			continue;
+		}
 	}
 }
 
@@ -213,11 +217,11 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 
 		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
-#ifndef _WIN32
-		if (mkdir(oldDir.CStr(), 0700) < 0 && errno != EEXIST) {
-#else /*_ WIN32 */
-		if (mkdir(oldDir.CStr()) < 0 && errno != EEXIST) {
-#endif /* _WIN32 */
+		if (!Utility::MkDir(oldDir, 0700)) {
+			std::ostringstream msgbuf;
+			msgbuf << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "ApiListener",  msgbuf.str());
+
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("mkdir")
 				<< boost::errinfo_errno(errno)
