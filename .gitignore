@@ -1,3 +1,4 @@
 .vagrant
-icinga-version.h.force
 *.komodoproject
+.*.swp
+.*.swo
