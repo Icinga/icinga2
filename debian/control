@@ -21,10 +21,7 @@ Build-Depends:
     libmysqlclient-dev,
     libpq-dev,
     libssl-dev,
-    po-debconf,
-    python-dev,
-    pandoc,
-    python-sphinx
+    po-debconf
 Standards-Version: 3.9.5
 Homepage: http://www.icinga.org
 

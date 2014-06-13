@@ -18,37 +18,13 @@
 file(GLOB DOCSRCS "*.md")
 
 if(UNIX OR CYGWIN)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/htdocs/index.html
-    COMMAND ./mkdoc.sh
-    ARGS ${CMAKE_CURRENT_BINARY_DIR}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${DOCSRCS}
-  )
-
-  install(
-    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/htdocs
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}
-  )
-
-  add_custom_target(index-html ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/htdocs/index.html)
-
   install(
     FILES icinga2.8
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man8
   )
 endif()
 
-# pandoc is not available or working everywhere, so install the unprocessed markdown files too
 install(
   FILES ${DOCSRCS}
   DESTINATION ${CMAKE_INSTALL_DOCDIR}/markdown
 )
-
-if(UNIX OR CYGWIN)
-  # maybe someone wants to process his own doc files after installing current pandoc/sphinx
-  install(
-    FILES conf.py mkdoc.sh
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}/markdown
-  )
-endif()
