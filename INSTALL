@@ -1,5 +1,4 @@
-Installing Icinga 2
-===================
+# Installing Icinga 2
 
 The recommended way of installing Icinga 2 is to use packages. The Icinga
 project provides both release and development packages for a number
@@ -13,8 +12,7 @@ incorrect directory and file permissions. So even if you're planning to
 not use the official packages it is advisable to build your own Debian
 or RPM packages.
 
-Build Requirements
-------------------
+## Build Requirements
 
 The following requirements need to be fulfilled in order to build the
 application using a dist tarball (package names for RHEL and Debian in
@@ -38,8 +36,7 @@ example from the repoforge buildtools repository.
 
 http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/{i386,x86_64}/buildtools/
 
-User Requirements
------------------
+### User Requirements
 
 By default Icinga will run as user 'icinga' and group 'icinga'. Additionally the
 external command pipe and livestatus features require a dedicated command group
@@ -59,8 +56,8 @@ permissions to the external command pipe and livestatus socket:
 Make sure to replace "www-data" with the name of the user your web server
 is running as.
 
-Building Release Tarballs
--------------------------
+
+## Building Release Tarballs
 
 In order to build a release tarball you should first check out the Git repository
 in a new directory. If you're using an existing check-out you should make sure
@@ -99,8 +96,8 @@ Finally you should verify that the tarball only contains the files it should con
 
 $ tar ztf icinga2-<VERSION>.tar.gz | less
 
-Building Icinga 2
------------------
+
+## Building Icinga 2
 
 Once you have installed all the necessary build requirements you can build
 Icinga 2 using the following commands:
@@ -125,18 +122,32 @@ variables are supported:
 - CMAKE_INSTALL_SYSCONFDIR: The configuration directory; defaults to CMAKE_INSTALL_PREFIX/etc
 - CMAKE_INSTALL_LOCALSTATEDIR: The state directory; defaults to CMAKE_INSTALL_PREFIX/var
 
-Running Icinga 2
-----------------
+### Building Icinga 2 RPMs
+
+Setup your build environment on RHEL/SUSE and copy the generated tarball from your git
+repository to `rpmbuild/SOURCES`.
+Copy the icinga2.spec file to `rpmbuild/SPEC` and then invoke
+
+$ rpmbuild -ba SPEC/icinga2.spec
+
+### Building Icinga 2 Debs
+
+Setup your build environment on Debian/Ubuntu and run the following command straight from
+the git repository checkout:
+
+$ ./debian/updateversion && dpkg-buildpackage -uc -us
+
+## Running Icinga 2
 
 Icinga 2 comes with a single binary that takes care of loading all the relevant
 components (e.g. for check execution, notifications, etc.):
 
-# /usr/bin/icinga2
-[2013-10-22 13:06:22 +0200] <Main Thread> information/icinga-app: Icinga application loader (version: 0.0.3, git branch master, commit 07d9a59f + changes)
-[2013-10-22 13:06:22 +0200] <Main Thread> information/base: Adding library search dir: /usr/lib/icinga2
-[2013-10-22 13:06:22 +0200] <Main Thread> information/base: Loading library 'libicinga.la'
-[2013-10-22 13:06:22 +0200] <Main Thread> information/config: Adding include search dir: /usr/share/icinga2
-[2013-10-22 13:06:22 +0200] <Main Thread> critical/icinga-app: You need to specify at least one config file (using the --config option).
+# /usr/sbin/icinga2
+[2014-06-13 15:29:16 +0200] information/icinga-app: Icinga application loader (version: v2.0.0-beta2-17-gd9289ad)
+[2014-06-13 15:29:16 +0200] information/icinga-app: Loading application type: icinga/IcingaApplication
+[2014-06-13 15:29:16 +0200] information/Utility: Loading library 'libicinga.so'
+[2014-06-13 15:29:16 +0200] information/ConfigCompiler: Adding include search dir: /usr/share/icinga2/include
+[2014-06-13 15:29:16 +0200] critical/icinga-app: You need to specify at least one config file (using the --config option).
 
 Icinga 2 can be started as daemon using the provided init script:
 
