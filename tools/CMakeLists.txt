@@ -19,5 +19,6 @@ add_subdirectory(mkclass)
 add_subdirectory(mkembedconfig)
 
 if(UNIX OR CYGWIN)
+  configure_file(icinga2-enable-feature.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-enable-feature @ONLY)
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ./icinga2-enable-feature \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SBINDIR}/icinga2-disable-feature\")")
 endif()
