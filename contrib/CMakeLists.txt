@@ -15,9 +15,18 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_subdirectory(mkclass)
-add_subdirectory(mkembedconfig)
-
 if(UNIX OR CYGWIN)
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ./icinga2-enable-feature \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SBINDIR}/icinga2-disable-feature\")")
+  configure_file(icinga2-enable-feature.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-enable-feature @ONLY)
+  configure_file(icinga2-discover-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-discover-agent @ONLY)
+  configure_file(icinga2-forget-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-forget-agent @ONLY)
+  configure_file(icinga2-list-agents.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-list-agents @ONLY)
+endif()
+
+if(MSVC)
+  include_external_msproject(
+    icinga2setupagent
+    ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/Icinga2SetupAgent.csproj
+    TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC
+  )
+
 endif()
