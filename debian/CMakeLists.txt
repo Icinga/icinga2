@@ -16,7 +16,7 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 #
-# this file is used to build icinga-version.h.fallback
+# this file is used to build icinga-version.h.force
 # for the Debian builds, it needs to be included in the tarball
 #
 
@@ -26,5 +26,5 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 
 include(GetGitRevisionDescription)
 git_describe(GIT_VERSION --tags)
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../icinga-version.h.cmake" icinga-version.h.fallback)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../icinga-version.h.cmake" icinga-version.h.force)
 
