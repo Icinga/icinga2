@@ -1018,46 +1018,32 @@ safely reload the Icinga 2 daemon.
 
 ## <a id="vagrant"></a> Vagrant Demo VM
 
-The Icinga 2 Git repository contains support for [Vagrant](http://docs.vagrantup.com/v2/)
+The Icinga Vagrant Git repository contains support for [Vagrant](http://docs.vagrantup.com/v2/)
 with VirtualBox. Please note that Vagrant version `1.0.x` is not supported. At least
 version `1.2.x` is required.
 
 In order to build the Vagrant VM first you will have to check out
 the Git repository:
 
-    $ git clone git://git.icinga.org/icinga2.git
+    $ git clone git://git.icinga.org/icinga-vagrant.git
 
-Once you have checked out the Git repository you can build the VM using the
-following command:
+For Icinga 2 there are currently two scenarios available:
+
+* `icinga2x` bringing up a standalone box with Icinga 2
+* `icinga2x-cluster` setting up two virtual machines in a master/slave cluster
+
+> **Note**
+> 
+> Please consult the `README` file for each project for further installation
+> details at [https://github.com/Icinga/icinga-vagrant] 
+
+Once you have checked out the Git repository navigate to your required
+vagrant box and build the VM using the following command:
 
     $ vagrant up
 
-The Vagrant VM is based on CentOS 6.x and uses the official Icinga 2 RPM
-packages from `packages.icinga.org`. The check plugins are installed from
-EPEL providing RPMs with sources from the Monitoring Plugins project.
+The Vagrant VMs are based on CentOS 6.x and are using the official
+Icinga 2 RPM snapshot packages from `packages.icinga.org`. The check
+plugins are installed from EPEL providing RPMs with sources from the
+Monitoring Plugins project. 
 
-### <a id="vagrant-demo-guis"></a> Demo GUIs
-
-In addition to installing Icinga 2 the Vagrant puppet modules also install the
-Icinga 1.x Classic UI and Icinga Web.
-
-  GUI             | Url                                                                  | Credentials
-  ----------------|----------------------------------------------------------------------|------------------------
-  Classic UI      | [http://localhost:8080/icinga](http://localhost:8080/icinga)         | icingaadmin / icingaadmin
-  Icinga Web      | [http://localhost:8080/icinga-web](http://localhost:8080/icinga-web) | root / password
-
-
-### <a id="vagrant-ssh"></a> SSH Access
-
-You can access the Vagrant VM using SSH:
-
-    $ vagrant ssh
-
-Alternatively you can use your favorite SSH client:
-
-  Name            | Value
-  ----------------|----------------
-  Host            | 127.0.0.1
-  Port            | 2222
-  Username        | vagrant
-  Password        | vagrant

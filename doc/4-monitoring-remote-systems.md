@@ -139,10 +139,6 @@ passing the check results to Icinga 2.
 remote sender to push check results into the Icinga 2 `ExternalCommandListener`
 feature.
 
-The [Icinga 2 Vagrant Demo VM](#vagrant) ships a demo integration and further samples.
-
-
-
 ## <a id="distributed-monitoring-high-availability"></a> Distributed Monitoring and High Availability
 
 An Icinga 2 cluster consists of two or more nodes and can reside on multiple

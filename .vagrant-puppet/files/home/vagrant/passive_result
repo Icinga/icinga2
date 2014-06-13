@@ -1,3 +1,0 @@
-nsca-ng	PassiveService1	0	This is a test passive result check returning OK
-nsca-ng	PassiveService2	1	This is a test passive result check returning BAD
-
