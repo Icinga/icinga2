@@ -671,28 +671,33 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 	return true;
 }
 
-int Utility::MkDirP(const String& path, int flags)
+
+bool Utility::MkDir(const String& path, int flags)
 {
-
-#ifdef _WIN32
-	/* TODO */
-	return 0;
-#else /* _WIN32 */
-
-	if (path.IsEmpty()) {
-		errno = EINVAL;
-		return 1;
+#ifndef _WIN32
+	if (mkdir(path.CStr(), flags) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+	if (mkdir(path.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
+		//TODO handle missing dirs properly
+		return false;
 	}
 
-	if (path.GetLength() == 1 && path[0] == '.')
-		return 0;
+	return true;
+}
 
-	String dir = DirName(path);
+bool Utility::MkDirP(const String& path, int flags)
+{
+	size_t pos = 0;
 
-	MkDirP(dir, flags);
+	bool ret = true;
 
-	return mkdir(dir.CStr(), flags);
-#endif /* _WIN32 */
+	while (ret && pos != String::NPos) {
+		pos = path.Find("/", pos + 1);
+		ret = MkDir(path.SubStr(0, pos), flags);
+	}
+
+	return ret;
 }
 
 

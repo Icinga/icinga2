@@ -76,8 +76,8 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 			String path = configDir + "/" + kv.first;
 			Log(LogInformation, "ApiListener", "Updating configuration file: " + path);
 
-			//TODO mkdir -p?
-			Utility::MkDirP(path, 0755);
+			//pass the directory and generate a dir tree, if not existing already
+			Utility::MkDirP(Utility::DirName(path), 0755);
 			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 			fp << kv.second;
 			fp.close();
