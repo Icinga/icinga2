@@ -19,7 +19,7 @@ file(GLOB DOCSRCS "*.md")
 
 if(UNIX OR CYGWIN)
   install(
-    FILES icinga2.8
+    FILES icinga2.8 icinga2-enable-feature.8 icinga2-disable-feature.8 icinga2-build-ca.8 icinga2-build-key.8 icinga2-sign-key.8
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man8
   )
 endif()
