@@ -1834,6 +1834,20 @@ Name            | Description
 tcp_address     | **Optional.** The host's address. Defaults to "$address$".
 tcp_port        | **Required.** The port that should be checked.
 
+#### <a id="plugin-check-command-ssl"></a> ssl
+
+Check command object for the `check_tcp` plugin, using ssl-related options.
+
+Custom Attributes:
+
+Name                          | Description
+------------------------------|--------------
+ssl_address                   | **Optional.** The host's address. Defaults to "$address$".
+ssl_port                      | **Required.** The port that should be checked.
+ssl_timeout                   | **Optional.** Timeout in seconds for the connect and handshake. The plugin default is 10 seconds.
+ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, ssl_cert_valid_days_critical must also be set.
+ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before the certificate will expire. When used, ssl_cert_valid_days_warn must also be set.
+
 #### <a id="plugin-check-command-udp"></a> udp
 
 Check command object for the `check_udp` plugin.
