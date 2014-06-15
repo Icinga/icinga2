@@ -32,13 +32,13 @@ Please get in touch with the Icinga team at [https://www.icinga.org/community/].
 You can follow Icinga 2's development closely by checking
 out these resources:
 
-* Development Bug Tracker: [https://dev.icinga.org/projects/i2] ([http://www.icinga.org/faq/how-to-report-a-bug/])
-* Git Repositories: [https://git.icinga.org/?p=icinga2.git;a=summary] (mirror at [https://github.com/Icinga/icinga2])
-* Git Checkins Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-checkins]
-* Development Mailinglist: [https://lists.icinga.org/mailman/listinfo/icinga-devel]
-* \#icinga-devel on irc.freenode.net [http://webchat.freenode.net/?channels=icinga-devel] including a Git Commit Bot
+* [Development Bug Tracker](https://dev.icinga.org/projects/i2): [How to report a bug?](http://www.icinga.org/faq/how-to-report-a-bug/)
+* Git Repositories: [main mirror on icinga.org](https://git.icinga.org/?p=icinga2.git;a=summary) [release mirror at github.com](https://github.com/Icinga/icinga2)
+* (Git Checkins Mailinglist](https://lists.icinga.org/mailman/listinfo/icinga-checkins)
+* [Development](https://lists.icinga.org/mailman/listinfo/icinga-devel) and [Users](https://lists.icinga.org/mailman/listinfo/icinga-users) Mailinglists
+* [#icinga-devel on irc.freenode.net](http://webchat.freenode.net/?channels=icinga-devel) including a Git Commit Bot
 
-For general support questions, please refer to [https://www.icinga.org/support/].
+For general support questions, please refer to the [community support channels](https://support.icinga.org).
 
 ## <a id="demo-vm"></a> Demo VM
 
@@ -51,7 +51,6 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 Lots of things. Please read [Icinga 2 in a nutshell](#icinga2-in-a-nutshell).
 
 #### Changes
-
 
 ### Archive
 
@@ -76,6 +75,11 @@ High Availability for DB IDO: Only active on the current zone master, failover h
 
 Multithreaded and scalable for small embedded systems as well as large scale environments.
 Running checks every second is no longer a problem and enables real-time monitoring capabilities.
+Unlike Icinga 1.x the [daemon reload](#differences-1x-2-real-reload) happens asynchronously.
+A child daemon validates the new configuration, the parent process is still doing checks, replicating cluster events, triggering alert notifications, etc. If the configuration validation is ok, all remaining events are synchronized and the child process continues as normal.
+The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. The configuration validation itself runs in paralell allowing fast verification checks.
+That way you are not blind (anymore) during a configuration reload and benefit from a real scalable architecture.
+
 
 * Modular & flexible [features](#features)
 

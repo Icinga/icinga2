@@ -1398,6 +1398,36 @@ freshness is calculated from the `check_interval` attribute if set. There is no 
 `freshness_threshold` attribute in Icinga 2. If the freshness checks are invalid, a new
 service check is forced.
 
+### <a id="differences-1x-2-real-reload"></a> Real Reload
+
+In Nagios / Icinga 1.x a daemon reload happens like so
+
+* receive reload signal SIGHUP
+* stop all events (checks, notifications, etc)
+* read the configuration from disk and validate all config objects in a single threaded fashion
+* validation NOT ok: stop the daemon (cannot restore old config state)
+* validation ok: start with new objects, dump status.dat / ido
+
+Unlike Icinga 1.x the Icinga 2 daemon reload happens asynchronously.
+
+* receive reload signal SIGHUP
+* fork a child process, start configuration validation in parallel work queues
+* parent process continues with old configuration objects and the event scheduling
+(doing checks, replicating cluster events, triggering alert notifications, etc.)
+* validation NOT ok: child process terminates, parent process continues with old configuration state
+(this is ESSENTIAL for the [cluster config synchronisation](#cluster-zone-config-sync))
+* validation ok: child process signals parent process to terminate and save its current state
+(all events til now) into the icinga2 state file
+* parent process shuts down writing icinga2.state file
+* child process waits for parent process gone, reads the icinga2 state file and synchronizes all historical and status data
+* child becomes the new session leader
+
+The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. Same goes for any other enabled feature running in its own thread.
+The configuration validation itself runs in paralell allowing fast verification checks.
+
+That way you are not blind (anymore) during a configuration reload and benefit from a real scalable architecture.
+
+
 ### <a id="differences-1x-2-state-retention"></a> State Retention
 
 Icinga 1.x uses the `retention.dat` file to save its state in order to be able

@@ -1014,6 +1014,8 @@ safely reload the Icinga 2 daemon.
 > The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
 > which will validate the configuration in a separate process and not stop
 > the other events like check execution, notifications, etc.
+>
+> Details can be found [here](#differences-1x-2-real-reload).
 
 
 ## <a id="vagrant"></a> Vagrant Demo VM
