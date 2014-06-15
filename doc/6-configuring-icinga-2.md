@@ -2079,6 +2079,19 @@ snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
 #### <a id="plugin-check-command-dhcp"></a> dhcp
 
+Check command object for the `check_dns` plugin.
+
+Custom Attributes:
+
+Name                 | Description
+---------------------|--------------
+dns_lookup           | **Optional.** The hostname or IP to query the dns for. Defaults to $host_name$.
+dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
+dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot.
+dns_authorative      | **Optional.** Expect the server to send an authorative answer.
+
+#### <a id="plugin-check-command-dns"></a> dns
+
 Check command object for the `check_dhcp` plugin.
 
 Custom Attributes:
