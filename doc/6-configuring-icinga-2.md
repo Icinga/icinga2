@@ -2,7 +2,7 @@
 
 ## <a id="global-constants"></a> Global Constants
 
-Icinga 2 provides a number of special global constants. Some of them can be overriden using the `--define` command line parameter:
+Icinga 2 provides a number of special global constants. Some of them can be overridden using the `--define` command line parameter:
 
 Variable            |Description
 --------------------|-------------------
@@ -43,7 +43,7 @@ In general you need to write each statement on a new line. Expressions started
 with `{`, `(` and `[` extend until the matching closing character and can be broken
 up into multiple lines.
 
-Alternatively you can write multiple statements in a single line by separating
+Alternatively you can write multiple statements on a single line by separating
 them with a semicolon:
 
     object Host "host1.example.org" {
@@ -65,7 +65,7 @@ The following data types are available for property values:
 
 ### Expressions
 
-The following expressions can be used in the right-hand side of dictionary
+The following expressions can be used on the right-hand side of dictionary
 values.
 
 #### <a id="numeric-literals"></a> Numeric Literals
@@ -253,7 +253,7 @@ Example:
       a = 7
     }
 
-In this example a has the value 7 after both instructions are executed.
+In this example `a` has the value `7` after both instructions are executed.
 
 #### <a id="operator-additive-assignment"></a> Operator +=
 
@@ -350,13 +350,13 @@ Objects can import attributes from other objects.
 Example:
 
     template Host "default-host" {
-      vars.color = "red"
+      vars.colour = "red"
     }
 
     template Host "test-host" {
       import "default-host"
 
-      vars.color = "blue"
+      vars.colour = "blue"
     }
 
     object Host "localhost" {
@@ -372,7 +372,7 @@ instantiated at run-time. Parent objects do not necessarily have to be
 templates, however in general they are.
 
 The `vars` dictionary for the `localhost` object contains all three
-custom attributes and the custom attribute `color` has the value `"blue"`.
+custom attributes and the custom attribute `colour` has the value `"blue"`.
 
 Parent objects are resolved in the order they're specified using the
 `import` keyword.
@@ -573,7 +573,7 @@ Attributes:
   enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
   enable\_flap\_detection|**Optional.** Whether flap detection is enabled. Defaults to true.
   enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
-  event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes and when the host is in a `SOFT` state.
+  event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
   notes           |**Optional.** Notes for the host.
@@ -659,7 +659,7 @@ Attributes:
   enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
   enable\_flap\_detection|**Optional.** Whether flap detection is enabled. Defaults to true.
   enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
-  event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes.
+  event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
   notes           |**Optional.** Notes for the service.
@@ -984,7 +984,7 @@ Available notification type filters:
 
 ### <a id="objecttype-timeperiod"></a> TimePeriod
 
-Time periods can be used to specify when services should be checked or to limit
+Time periods can be used to specify when hosts/services should be checked or to limit
 when notifications should be sent out.
 
 Example:
@@ -1019,7 +1019,7 @@ timeperiods including this one.
 
 ### <a id="objecttype-scheduleddowntime"></a> ScheduledDowntime
 
-ScheduledDowntime objects can be used to set up recurring downtimes for services.
+ScheduledDowntime objects can be used to set up recurring downtimes for hosts/services.
 
 > **Best Practice**
 >
@@ -1139,7 +1139,7 @@ Service-to-Host Dependency Example:
       assign where host.name != "dsl-router"
     }
 
-This examples sets all service objects matching the assign condition into a dependency relation to
+This example sets all service objects matching the assign condition into a dependency relation to
 the parent host object `dsl-router` as implicit child services.
 
 Service-to-Service-on-the-same-Host Dependency Example:
@@ -1151,7 +1151,7 @@ Service-to-Service-on-the-same-Host Dependency Example:
       ignore where service.name == "nrpe-health"
     }
 
-This examples omits the `parent_host_name` attribute and Icinga 2 automatically sets its value to the name of the
+This example omits the `parent_host_name` attribute and Icinga 2 automatically sets its value to the name of the
 host object matched by the apply rule condition. All services where apply matches are made implicit child services
 in this dependency relation.
 
@@ -1191,10 +1191,10 @@ Attributes:
   service_temp\_path      |**Optional.** Path to the temporary service file. Defaults to LocalStateDir + "/spool/icinga2/tmp/service-perfdata".
   host_format\_template   |**Optional.** Host Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
   service_format\_template|**Optional.** Service Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
-  rotation\_interval      |**Optional.** Rotation interval for the files specified in `{host,service}\_perfdata\_path`. Defaults to 30 seconds.
+  rotation\_interval      |**Optional.** Rotation interval for the files specified in `{host,service}_perfdata_path`. Defaults to 30 seconds.
 
 When rotating the performance data file the current UNIX timestamp is appended to the path specified
-in `host_perfdata\_path` and `service_perfdata\_path` to generate a unique filename.
+in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.
 
 
 ### <a id="objecttype-graphitewriter"></a> GraphiteWriter
@@ -1419,8 +1419,8 @@ Attributes:
   ----------------|----------------
   socket\_type      |**Optional.** Specifies the socket type. Can be either "tcp" or "unix". Defaults to "unix".
   bind\_host        |**Optional.** Only valid when socket\_type is "tcp". Host address to listen on for connections. Defaults to "127.0.0.1".
-  bind\_port        |**Optional.** Only valid when `socket\_type` is "tcp". Port to listen on for connections. Defaults to 6558.
-  socket\_path      |**Optional.** Only valid when `socket\_type` is "unix". Specifies the path to the UNIX socket file. Defaults to LocalStateDir + "/run/icinga2/cmd/livestatus".
+  bind\_port        |**Optional.** Only valid when `socket_type` is "tcp". Port to listen on for connections. Defaults to 6558.
+  socket\_path      |**Optional.** Only valid when `socket_type` is "unix". Specifies the path to the UNIX socket file. Defaults to LocalStateDir + "/run/icinga2/cmd/livestatus".
   compat\_log\_path |**Optional.** Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LocalStateDir + "/log/icinga2/compat"
 
 > **Note**
@@ -1436,9 +1436,9 @@ Example:
     library "compat"
 
     object StatusDataWriter "status" {
-        status\_path = "/var/cache/icinga2/status.dat"
-        objects\_path = "/var/cache/icinga2/objects.path"
-        update\_interval = 30s
+        status_path = "/var/cache/icinga2/status.dat"
+        objects_path = "/var/cache/icinga2/objects.path"
+        update_interval = 30s
     }
 
 Attributes:
@@ -1459,7 +1459,7 @@ Example:
     library "compat"
 
     object ExternalCommandListener "external" {
-        command\_path = "/var/run/icinga2/cmd/icinga2.cmd"
+        command_path = "/var/run/icinga2/cmd/icinga2.cmd"
     }
 
 Attributes:
@@ -1477,8 +1477,8 @@ Example:
     library "compat"
 
     object CompatLogger "my-log" {
-      log\_dir = "/var/log/icinga2/compat"
-      rotation\_method = "HOURLY"
+      log_dir = "/var/log/icinga2/compat"
+      rotation_method = "HOURLY"
     }
 
 Attributes:
