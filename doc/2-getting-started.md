@@ -364,7 +364,7 @@ Further details on the monitoring configuration can be found in the
 
 ## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
 
-Without plugins 
+Without plugins
 Icinga 2 does not know how to check external services. The
 [Monitoring Plugins Project](https://www.monitoring-plugins.org/) provides
 an extensive set of plugins which can be used with Icinga 2 to check whether
@@ -485,7 +485,7 @@ The schema file location differs by the distribution used:
 
   Distribution  | Schema Files
   --------------|---------------------
-  RHEL          | `/usr/share/doc/icinga2-ido-mysql-*/schema` (`*` means package version).
+  RHEL          | `/usr/share/doc/icinga2-ido-mysql-*/schema` (* means package version).
   SUSE          | `/usr/share/doc/packages/icinga2-ido-mysql/schema`
   Debian/Ubuntu | `/usr/share/icinga2-ido-mysql/schema`
 
@@ -566,7 +566,7 @@ The schema file location differs by the distribution used:
 
   Distribution  | Schema Files
   --------------|---------------------
-  RHEL          | `/usr/share/doc/icinga2-ido-pgsql-*/schema` (`*` means package version).
+  RHEL          | `/usr/share/doc/icinga2-ido-pgsql-*/schema` (* means package version).
   SUSE          | `/usr/share/doc/packages/icinga2-ido-pgsql/schema`
   Debian/Ubuntu | `/usr/share/icinga2-ido-pgsql/schema`
 
@@ -643,7 +643,7 @@ Change "www-data" to the user you're using to run queries.
 
 In order to use the historical tables provided by the livestatus feature (for example, the
 `log` table) you need to have the `CompatLogger` feature enabled. By default these logs
-are expected to be in `/var/log/icinga2/compat`. A different path can be set using the 
+are expected to be in `/var/log/icinga2/compat`. A different path can be set using the
 `compat_log_path` configuration attribute.
 
     # icinga2-enable-feature compatlog
@@ -988,7 +988,7 @@ or manually passing the `-C` argument:
 
     # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -C
 
-    [2014-05-22 17:07:25 +0200] <Main Thread> critical/config: Location:
+    [2014-05-22 17:07:25 +0200] critical/ConfigItem: Location:
     /etc/icinga2/conf.d/tests/5872.conf(5): }
     /etc/icinga2/conf.d/tests/5872.conf(6):
     /etc/icinga2/conf.d/tests/5872.conf(7): apply Service "5872-ping4" {
@@ -997,7 +997,7 @@ or manually passing the `-C` argument:
     /etc/icinga2/conf.d/tests/5872.conf(9):   check_command = "ping4"
 
     Config error: 'apply' is missing 'assign'
-    [2014-05-22 17:07:25 +0200] <Main Thread> critical/config: 1 errors, 0 warnings.
+    [2014-05-22 17:07:25 +0200] critical/ConfigItem: 1 errors, 0 warnings.
     Icinga 2 detected configuration errors.
 
 
@@ -1035,9 +1035,9 @@ For Icinga 2 there are currently two scenarios available:
 * `icinga2x-cluster` setting up two virtual machines in a master/slave cluster
 
 > **Note**
-> 
+>
 > Please consult the `README` file for each project for further installation
-> details at [https://github.com/Icinga/icinga-vagrant] 
+> details at [https://github.com/Icinga/icinga-vagrant]
 
 Once you have checked out the Git repository navigate to your required
 vagrant box and build the VM using the following command:
@@ -1047,5 +1047,4 @@ vagrant box and build the VM using the following command:
 The Vagrant VMs are based on CentOS 6.x and are using the official
 Icinga 2 RPM snapshot packages from `packages.icinga.org`. The check
 plugins are installed from EPEL providing RPMs with sources from the
-Monitoring Plugins project. 
-
+Monitoring Plugins project.

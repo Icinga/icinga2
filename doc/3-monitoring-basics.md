@@ -477,13 +477,13 @@ notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
       assign where service.name == "ping4"
     }
 
-### <a id="first-notification-delay"></a> First Notification Delay
+### <a id="notification-delay"></a> Notification Delay
 
 Sometimes the problem in question should not be notified when the notification is due
-(the object reaching the `HARD` state) but a defined time duration afterwards. In Icinga 2 you can use the `times`
-dictionary and set `begin = 15m` as key and value if you want to postpone the first notification
-for 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
-end time for this notification.
+(the object reaching the `HARD` state) but a defined time duration afterwards. In Icinga 2
+you can use the `times` dictionary and set `begin = 15m` as key and value if you want to
+postpone the first notification for 15 minutes. Leave out the `end` key - if not set,
+Icinga 2 will not check against any end time for this notification.
 
     apply Notification "mail" to Service {
       import "generic-notification"
@@ -631,13 +631,6 @@ all available options. Our example defines warning (`-w`) and
 critical (`-c`) thresholds for the disk usage. Without any
 partition defined (`-p`) it will check all local partitions.
 
-> **Note**
-> 
-> Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us. 
-
-Below is an example using runtime macros from Icinga 2 (such as `$service.output$` for
-the current check output) sending an email to the user(s) associated with the
-notification itself (`$user.email$`).
     icinga@icinga2 $ /usr/lib/nagios/plugins/check_disk --help
     ...
     This plugin checks the amount of used disk space on a mounted file system
@@ -649,6 +642,10 @@ notification itself (`$user.email$`).
     [-C] [-E] [-e] [-f] [-g group ] [-k] [-l] [-M] [-m] [-R path ] [-r path ]
     [-t timeout] [-u unit] [-v] [-X type] [-N type]
     ...
+
+> **Note**
+>
+> Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us.
 
 Next step is to understand how command parameters are being passed from
 a host or service object, and add a `CheckCommand` definition based on these
@@ -668,17 +665,17 @@ The default custom attributes can be overridden by the custom attributes
 defined in the service using the check command `my-disk`. The custom attributes
 can also be inherited from a parent template using additive inheritance (`+=`).
 
-    
+
     object CheckCommand "my-disk" {
       import "plugin-check-command"
-    
+
       command = PluginDir + "/check_disk"
-    
+
       arguments = {
         "-w" = "$disk_wfree$%"
         "-c" = "$disk_cfree$%"
       }
-    
+
       vars.disk_wfree = 20
       vars.disk_cfree = 10
     }
@@ -767,7 +764,7 @@ the `my-host2` host requires a different port on 2222. Both hosts are in the hos
 
     /* this one listens on a different ssh port */
     object Host "my-host2" {
-      import "generic-host" 
+      import "generic-host"
       address = "129.168.2.50"
       vars.os = "Linux"
       vars.custom_ssh_port = 2222
@@ -879,7 +876,7 @@ as environment variables and can be used in the notification script:
     )
 
     /usr/bin/printf "%b" $template | mail -s "$NOTIFICATIONTYPE - $HOSTDISPLAYNAME - $SERVICEDISPLAYNAME is $SERVICESTATE" $USEREMAIL
-    
+
 > **Note**
 >
 > This example is for `exim` only. Requires changes for `sendmail` and
@@ -968,12 +965,22 @@ be suppressed. This is achieved by setting the `disable_checks` attribute to `tr
       assign where host.address
     }
 
+    apply Dependency "internet" to Host {
+      parent_host_name = "dsl-router"
+      disable_checks = true
+      disable_notifications = true
+
+      assign where host.name != "dsl-router"
+    }
+
     apply Dependency "internet" to Service {
       parent_host_name = "dsl-router"
+      parent_service_name = "ping4"
       disable_checks = true
 
       assign where host.name != "dsl-router"
     }
+
 
 ### <a id="dependencies-agent-checks"></a> Dependencies for Agent Checks
 
@@ -1173,7 +1180,7 @@ runtime when executing a command. These custom attributes cannot be used elsewhe
 (e.g. in other configuration attributes).
 
 Here is an example of a command definition which uses user-defined custom attributes:
-   
+
     object CheckCommand "my-ping" {
       import "plugin-check-command"
 
@@ -1252,7 +1259,7 @@ when passing credentials to database checks:
       command = [
         PluginDir + "/check_mysql"
       ]
-      
+
       arguments = {
         "-H" = "$mysql_address$"
         "-d" = "$mysql_database$"
@@ -1789,7 +1796,7 @@ Example for PostgreSQL:
       WHERE ((SELECT extract(epoch from status_update_time) FROM icinga_programstatus) > (SELECT extract(epoch from now())-60))
       AND i.instance_name='default'";
 
-    status_update_time   
+    status_update_time
     ------------------------
      2014-05-29 15:11:38+02
     (1 Zeile)

@@ -3,13 +3,13 @@
 ## <a id="configuration-migration"></a> Configuration Migration
 
 The Icinga 2 configuration format introduces plenty of behavioural changes. In
-order to ease migration from Icinga 1.x, Icinga 2 ships its own config migration 
+order to ease migration from Icinga 1.x, Icinga 2 ships its own config migration
 script.
 
 ### <a id="configuration-migration-script"></a> Configuration Migration Script
 
 A standalone configuration migration script is available at
-[https://github.com/Icinga/icinga2-migration]. All further
+https://github.com/Icinga/icinga2-migration. All further
 details on the command line parameters are documented there too.
 
 This script will be merged back upstream into the Icinga Web 2 CLI once there
@@ -20,14 +20,14 @@ Some specific migration steps will be still required to be done manually,
 especially if you want to preserve your existing file layout, or any other
 object specific policies.
 
-If you encounter a bug, please open an issue at [https://dev.icinga.org].
+If you encounter a bug, please open an issue at https://dev.icinga.org
 
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the proposed Icinga 2 configuration paradigm.
 
-Please read the [next chapter](#differences-1x-2) to find out more about the differences 
+Please read the [next chapter](#differences-1x-2) to find out more about the differences
 between 1.x and 2.
 
 ### <a id="manual-config-migration-hints"></a> Manual Config Migration Hints
@@ -989,7 +989,7 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
         vars.crta = 500
         vars.cpl = 60
     }
-    
+
 > **Note**
 >
 > For better maintainability you should consider using [command arguments](#command-arguments)
@@ -1473,5 +1473,3 @@ and configuration distribution problems Icinga 1.x distributed monitoring curren
 Icinga 2 implements a new built-in [distributed monitoring architecture](#distributed-monitoring-high-availability),
 including config and check distribution, IPv4/IPv6 support, SSL certificates and zone support for DMZ.
 High Availability and load balancing are also part of the Icinga 2 Cluster setup.
-
-

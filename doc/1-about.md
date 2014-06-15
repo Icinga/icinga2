@@ -17,7 +17,7 @@ LICENSE file included in the source package.
 ## <a id="support"></a> Support
 
 Support for Icinga 2 is available in a number of ways. Please have a look at
-the support overview page at [https://support.icinga.org].
+the support overview page at https://support.icinga.org.
 
 ## <a id="contribute"></a> Contribute
 
@@ -25,7 +25,7 @@ There are many ways to contribute to Icinga - whether it be sending patches, tes
 reporting bugs, or reviewing and updating the documentation. Every contribution
 is appreciated!
 
-Please get in touch with the Icinga team at [https://www.icinga.org/community/].
+Please get in touch with the Icinga team at https://www.icinga.org/community/.
 
 ## <a id="development"></a> Icinga 2 Development
 
@@ -34,7 +34,7 @@ out these resources:
 
 * [Development Bug Tracker](https://dev.icinga.org/projects/i2): [How to report a bug?](http://www.icinga.org/faq/how-to-report-a-bug/)
 * Git Repositories: [main mirror on icinga.org](https://git.icinga.org/?p=icinga2.git;a=summary) [release mirror at github.com](https://github.com/Icinga/icinga2)
-* (Git Checkins Mailinglist](https://lists.icinga.org/mailman/listinfo/icinga-checkins)
+* [Git Checkins Mailinglist](https://lists.icinga.org/mailman/listinfo/icinga-checkins)
 * [Development](https://lists.icinga.org/mailman/listinfo/icinga-devel) and [Users](https://lists.icinga.org/mailman/listinfo/icinga-users) Mailinglists
 * [#icinga-devel on irc.freenode.net](http://webchat.freenode.net/?channels=icinga-devel) including a Git Commit Bot
 
@@ -60,7 +60,7 @@ Please check the `ChangeLog` file.
 
 * Use [Packages](#getting-started)
 
-Look for available packages on [http://packages.icinga.org] or ask your distribution's maintainer.
+Look for available packages on http://packages.icinga.org or ask your distribution's maintainer.
 Compiling from source is not recommended.
 
 * Real Distributed Architecture
@@ -169,13 +169,10 @@ edit your configuration.
 
 * Puppet modules, Chef Cookbooks, Ansible Playbooks, Salt Formulas, etc
 
-This is a constant work-in-progress. For details checkout [https://dev.icinga.org/projects/icinga-tools].
-If you want to contribute to these projects, do not hesitate to contact us at [https://support.icinga.org].
+This is a constant work-in-progress. For details checkout https://dev.icinga.org/projects/icinga-tools
+If you want to contribute to these projects, do not hesitate to contact us at https://support.icinga.org
 
 * [Vagrant Demo VM](#vagrant)
 
 Used for demo cases and development tests. Get Icinga 2 running within minutes and spread the #monitoringlove
 to your friends and colleagues.
-
-
-
