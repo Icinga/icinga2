@@ -150,7 +150,7 @@ check providing direct statistics as performance data for your graphing addon, f
 
 * Compatibility with Icinga 1.x
 
-All known interfaces are optional available: [status files](#status-data), [logs](#compat-logging),
+All known interfaces are optionally available: [status files](#status-data), [logs](#compat-logging),
 [DB IDO](#configuring-ido) MySQL/PostgreSQL, [performance data](#performance-data),
 [external command pipe](#external-commands) and for migration reasons a
 [checkresult file reader](#check-result-files) too.

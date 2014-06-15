@@ -301,7 +301,7 @@ Details on the `assign where` syntax can be found [here](#apply)
       assign where host.vars.mssql_port
     }
 
-In this inherited example from above all hosts with the `var` `mssql_port`
+In this inherited example from above all hosts with the `vars` attribute `mssql_port`
 set will be added as members to the host group `mssql`.
 
 ## <a id="notifications"></a> Notifications
@@ -386,7 +386,7 @@ send notifications to all group members.
 
 When a problem notification is sent and a problem still exists at the time of re-notification
 you may want to escalate the problem to the next support level. A different approach
-is to configure the default notification by email, and escalate the problem via sms
+is to configure the default notification by email, and escalate the problem via SMS
 if not already solved.
 
 You can define notification start and end times as additional configuration
@@ -394,7 +394,7 @@ attributes making the `Notification` object a so-called `notification escalation
 Using templates you can share the basic notification attributes such as users or the
 `interval` (and override them for the escalation then).
 
-Using the example from above, you can define additional users being escalated for sms
+Using the example from above, you can define additional users being escalated for SMS
 notifications between start and end time.
 
     object User "icinga-oncall-2nd-level" {
@@ -433,7 +433,7 @@ command) after `30m` until `1h`.
 >
 > The `interval` was set to 15m in the `generic-notification`
 > template example. Lower that value in your escalations by using a secondary
-> template or overriding the attribute directly in the `notifications` array
+> template or by overriding the attribute directly in the `notifications` array
 > position for `escalation-sms-2nd-level`.
 
 If the problem does not get resolved nor acknowledged preventing further notifications
@@ -481,8 +481,8 @@ notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
 
 Sometimes the problem in question should not be notified when the notification is due
 (the object reaching the `HARD` state) but a defined time duration afterwards. In Icinga 2 you can use the `times`
-dictionary and set `begin = 15m` as key and value if you want to suppress notifications
-in the first 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
+dictionary and set `begin = 15m` as key and value if you want to postpone the first notification
+for 15 minutes. Leave out the `end` key - if not set, Icinga 2 will not check against any
 end time for this notification.
 
     apply Notification "mail" to Service {
@@ -511,7 +511,7 @@ Available state and type filters for notifications are:
     }
 
 If you are familiar with Icinga 1.x `notification_options` please note that they have been split
-into type and state, and allow more fine granular filtering for example on downtimes and flapping.
+into type and state to allow more fine granular filtering for example on downtimes and flapping.
 You can filter for acknowledgements and custom notifications too.
 
 
@@ -631,6 +631,13 @@ all available options. Our example defines warning (`-w`) and
 critical (`-c`) thresholds for the disk usage. Without any
 partition defined (`-p`) it will check all local partitions.
 
+> **Note**
+> 
+> Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us. 
+
+Below is an example using runtime macros from Icinga 2 (such as `$service.output$` for
+the current check output) sending an email to the user(s) associated with the
+notification itself (`$user.email$`).
     icinga@icinga2 $ /usr/lib/nagios/plugins/check_disk --help
     ...
     This plugin checks the amount of used disk space on a mounted file system
@@ -649,7 +656,7 @@ required parameters and/or default values.
 
 #### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
 
-Unline Icinga 1.x check command parameters are defined as custom attributes
+Unlike Icinga 1.x check command parameters are defined as custom attributes
 which can be accessed as runtime macros by the executed check command.
 
 Define the default check command custom attribute `disk_wfree` and `disk_cfree`
@@ -885,7 +892,7 @@ NotificationCommand object refer to that.
 
 ### <a id="event-commands"></a> Event Commands
 
-Unlike notifications event commands are called on every service state change
+Unlike notifications event commands are called on every service execution
 if defined. Therefore the `EventCommand` object should define a command line
 evaluating the current service state and other service runtime attributes
 available through runtime vars. Runtime macros such as `$SERVICESTATETYPE$`
@@ -926,7 +933,7 @@ The `parent_host_name` and `parent_service_name` attributes are mandatory for
 service dependencies, `parent_host_name` is required for host dependencies.
 
 A service can depend on a host, and vice versa. A service has an implicit
-dependency (parent) to its host. A host to host dependency acts implicit
+dependency (parent) to its host. A host to host dependency acts implicitly
 as host parent relation.
 When dependencies are calculated, not only the immediate parent is taken into
 account but all parents are inherited.
@@ -938,7 +945,7 @@ Notifications are suppressed if a host or service becomes unreachable.
 A common scenario is the Icinga 2 server behind a router. Checking internet
 access by pinging the Google DNS server `google-dns` is a common method, but
 will fail in case the `dsl-router` host is down. Therefore the example below
-defines a host dependency which acts implicit as parent relation too.
+defines a host dependency which acts implicitly as parent relation too.
 
 Furthermore the host may be reachable but ping probes are dropped by the
 router's firewall. In case the `dsl-router``ping4` service check fails, all
@@ -1123,7 +1130,7 @@ pass the comment id in case of manipulating an existing comment.
 ## <a id="acknowledgements"></a> Acknowledgements
 
 If a problem is alerted and notified you may signal the other notification
-receipients that you are aware of the problem and will handle it.
+recipients that you are aware of the problem and will handle it.
 
 By sending an acknowledgement to Icinga 2 (using the external command pipe
 provided with `ExternalCommandListener` configuration) all future notifications
@@ -1206,13 +1213,13 @@ up custom attributes and their respective values:
 2. Service object
 3. Host object
 4. Command object
-5. Global custom attributes in the Vars constant
+5. Global custom attributes in the `vars` constant
 
 This execution order allows you to define default values for custom attributes
 in your command objects. The `my-ping` command shown above uses this to set
 default values for some of the latency thresholds and timeouts.
 
-When using the `my-ping` command you can override all or some of the custom
+When using the `my-ping` command you can override some or all of the custom
 attributes in the service definition like this:
 
     object Service "ping" {
@@ -1815,7 +1822,7 @@ object configuration.
 > **Note**
 >
 > All Livestatus queries require an additional empty line as query end identifier.
-> The `unixcat` tool is either available by the MK Livestatus project or as seperate
+> The `unixcat` tool is either available by the MK Livestatus project or as separate
 > binary.
 
 There also is a Perl module available in CPAN for accessing the Livestatus socket
@@ -1855,10 +1862,10 @@ and, or, negate
    ~        | !~       | Regex match
    =~       | !=~      | Equality ignoring case
    ~~       | !~~      | Regex ignoring case
-   >        |          | Less than
-   <        |          | Greater than
-   >=       |          | Less than or equal
-   <=       |          | Greater than or equal
+   <        |          | Less than
+   >        |          | Greater than
+   <=       |          | Less than or equal
+   >=       |          | Greater than or equal
 
 
 ### <a id="livestatus-stats"></a> Livestatus Stats
@@ -1901,7 +1908,7 @@ CSV Output uses two levels of array separators: The members array separator
 is a comma (1st level) while extra info and host|service relation separator
 is a pipe (2nd level).
 
-Seperators can be set using ASCII codes like:
+Separators can be set using ASCII codes like:
 
     Separators: 10 59 44 124
 
@@ -1943,9 +1950,9 @@ A detailed list on the available table attributes can be found in the [Livestatu
 
 ## <a id="check-result-files"></a> Check Result Files
 
-Icinga 1.x writes its check result files into a temporary spool directory
-where it reads these check result files in a regular interval from.
-While this is extremly inefficient in performance regards it has been
+Icinga 1.x writes its check result files to a temporary spool directory
+where they are processed in a regular interval.
+While this is extremely inefficient in performance regards it has been
 rendered useful for passing passive check results directly into Icinga 1.x
 skipping the external command pipe.
 
