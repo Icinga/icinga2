@@ -9,3 +9,4 @@ usr/share/icinga2
 usr/share/man/man8/icinga2-*-feature.8
 usr/share/man/man8/icinga2-build*.8
 usr/share/man/man8/icinga2-sign-key.8
+usr/share/man/man8/icinga2-prepare-dirs.8

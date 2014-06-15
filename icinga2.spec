@@ -27,7 +27,14 @@
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %define apacheuser apache
 %define apachegroup apache
+%if 0%{?el5}%{?el6}
+%define use_systemd 0
+%else
+# fedora and el>=7
+%define use_systemd 1
 %endif
+%endif
+
 %if "%{_vendor}" == "suse"
 # opensuse 13
 %if 0%{?suse_version} >= 1310
@@ -40,6 +47,7 @@
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
 %define apachegroup www
+%define use_systemd 0
 %endif
 
 %define icinga_user icinga
@@ -131,6 +139,11 @@ Requires: libboost_regex%{opensuse_boost_version}
 %endif
 %endif
 # suse
+
+%if 0%{?use_systemd}
+BuildRequires: systemd
+Requires: systemd
+%endif
 
 Requires: %{name}-common = %{version}
 
@@ -243,6 +256,10 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
 %endif
 %endif
 
+%if 0%{?use_systemd}
+CMAKE_OPTS="$CMAKE_OPTS -DUSE_SYSTEMD=ON"
+%endif
+
 cmake $CMAKE_OPTS .
 
 make %{?_smp_mflags}
@@ -289,7 +306,11 @@ exit 0
 %else
 # rhel
 
+%if 0%{?use_systemd}
+%systemd_post %{name}.service
+%else
 /sbin/chkconfig --add %{name}
+%endif
 
 if [ ${1:-0} -eq 1 ]
 then
@@ -319,9 +340,13 @@ exit 0
 %else
 # rhel
 
+%if 0%{?use_systemd}
+%systemd_postun_with_restart %{name}.service
+%else
 if [ "$1" -ge  "1" ]; then
 	/sbin/service %{name} condrestart >/dev/null 2>&1 || :
 fi
+%endif
 
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove enabled features
@@ -345,10 +370,14 @@ exit 0
 %else
 # rhel
 
+%if 0%{?use_systemd}
+%systemd_preun %{name}.service
+%else
 if [ "$1" = "0" ]; then
 	/sbin/service %{name} stop > /dev/null 2>&1 || :
 	/sbin/chkconfig --del %{name} || :
 fi
+%endif
 
 exit 0
 
@@ -413,7 +442,11 @@ exit 0
 %files bin
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
+%if 0%{?use_systemd}
+%attr(644,-,0) %{_unitdir}/%{name}.service
+%else
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
+%endif
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d/hosts
@@ -431,12 +464,14 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
+%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-build-ca
 %{_bindir}/%{name}-build-key
 %{_bindir}/%{name}-sign-key
 %{_sbindir}/%{name}-enable-feature
 %{_sbindir}/%{name}-disable-feature
+%{_sbindir}/%{name}-prepare-dirs
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_libdir}/%{name}
@@ -448,6 +483,7 @@ exit 0
 %{_mandir}/man8/%{name}-build-ca.8.gz
 %{_mandir}/man8/%{name}-build-key.8.gz
 %{_mandir}/man8/%{name}-sign-key.8.gz
+%{_mandir}/man8/%{name}-prepare-dirs.8.gz
 
 %attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
