@@ -32,14 +32,14 @@ between 1.x and 2.
 
 ### <a id="manual-config-migration-hints"></a> Manual Config Migration Hints
 
-These hints should provide you enough details for manually migrating your configuration,
+These hints should provide you with enough details for manually migrating your configuration,
 or to adapt your configuration export tool to dump Icinga 2 configuration instead of
 Icinga 1.x configuration.
 
 The examples are taken from Icinga 1.x test and production environments and converted
 straight into a possible Icinga 2 format. If you found a different strategy, send a patch!
 
-If you require in-depth explainations, please check the [next chapter](#differences-1x-2).
+If you require in-depth explanations, please check the [next chapter](#differences-1x-2).
 
 #### <a id="manual-config-migration-hints-Intervals"></a> Manual Config Migration Hints for Intervals
 
@@ -151,7 +151,7 @@ These assign rules can be applied for all groups: `HostGroup`, `ServiceGroup` an
 
 #### <a id="manual-config-migration-hints-check-command-arguments"></a> Manual Config Migration Hints for Check Command Arguments
 
-Host and service check command arguments are seperated by a `!` in Icinga 1.x. Their order is important and they
+Host and service check command arguments are separated by a `!` in Icinga 1.x. Their order is important and they
 are referenced as `$ARGn$` where `n` is the argument counter.
 
     define command {
@@ -166,7 +166,7 @@ are referenced as `$ARGn$` where `n` is the argument counter.
       check_command                     my-ping-check!100.0,20%!500.0,60%
     }
 
-While you could manually migrate this like (Please note the new generic command arguments and default argument values!):
+While you could manually migrate this like (please note the new generic command arguments and default argument values!):
 
     object CheckCommand "my-ping-check" {
       import "plugin-check-command"
@@ -201,7 +201,7 @@ While you could manually migrate this like (Please note the new generic command 
       vars.ping_cpl = 60
     }
 
-There also is a quick programatical workaround for this (example exported from LConf). Define a generic
+There also is a quick programmatical workaround for this (example exported from LConf). Define a generic
 check command importing the basic template, and also setting the `$USER1$` macro. Assign it to the global
 `PluginDir` constant.
 
@@ -221,7 +221,7 @@ For the check command it is required to
 * Replace [custom variable macros](#manual-config-migration-hints-runtime-custom-attributes) if any.
 * Keep `$ARGn$` macros.
 
-The final check command look like this in Icinga2:
+The final check command looks like this in Icinga2:
 
     object CheckCommand "ping4" {
       import "generic-check-command"
@@ -233,7 +233,7 @@ The service object will now set the command arguments as `ARGn` custom attribute
 
     check_command                     ping4!100.0,20%!500.0,60%
 
-This command line can be split by the `!` seperator into
+This command line can be split by the `!` separator into
 
 * `ping4` (command name, keep it for Icinga 2)
 * `100.0,20%` as `vars.ARG1`
@@ -311,13 +311,13 @@ Can be written as the following in Icinga 2:
       vars.CVTEST = "service cv value"
     }
 
-If you are just defining `$CVTEST$ in your command definition its value depends on the
+If you are just defining `$CVTEST$` in your command definition its value depends on the
 execution scope - the host check command will fetch the host attribute value of `vars.CVTEST`
 while the service check command resolves its value to the service attribute attribute `vars.CVTEST`.
 
 #### <a id="manual-config-migration-hints-contacts-users"></a> Manual Config Migration Hints for Contacts (Users)
 
-Contacts in Icinga 1.x act as Users in Icinga 2, but do not have any notification commands specified.
+Contacts in Icinga 1.x act as users in Icinga 2, but do not have any notification commands specified.
 This migration part is explained in the [next chapter](#manual-config-migration-hints-notifications).
 
     define contact{
@@ -417,9 +417,9 @@ have to split these values into the `states` and `types` attributes.
   c                     | Critical              | Problem
   u                     | Unknown               | Problem
   d                     | Down                  | Problem
-  s                     | .                     | DowntimeStart \| DowntimeEnd \| DowntimeRemoved
+  s                     | .                     | DowntimeStart / DowntimeEnd / DowntimeRemoved
   r                     | Ok                    | Recovery
-  f                     | .                     | FlappingStart \| FlappingEnd
+  f                     | .                     | FlappingStart / FlappingEnd
   n                     | 0  (none)             | 0 (none)
   .                     | .                     | Custom
 
@@ -431,9 +431,9 @@ Escalations in Icinga 1.x are a bit tricky. By default service escalations can b
 hostgroups and require a defined service object.
 
 The following example applies a service escalation to the service `dep_svc01` and all hosts in the `hg_svcdep2`
-hostgroup. The default `notification_interval` is set to `10` minutes and notify the `cg_admin` contact.
+hostgroup. The default `notification_interval` is set to `10` minutes notifying the `cg_admin` contact.
 After 20 minutes (`10*2`, notification_interval * first_notification) the notification is escalated to the
-`cg_ops` contactgroup until 60 minutes (`10*6`).
+`cg_ops` contactgroup until 60 minutes (`10*6`) have passed.
 
     define service {
       service_description             dep_svc01
@@ -527,7 +527,7 @@ filters, this behaviour has changed in Icinga 2. There is no 1:1 migration but g
 the state filter defined in the `execution_failure_criteria` defines the Icinga 2 `state` attribute.
 If the state filter matches, you can define whether to disable checks and notifications or not.
 
-The following example describes service dependencies. If you migrating from Icinga 1.x you will only
+The following example describes service dependencies. If you migrate from Icinga 1.x you will only
 want to use the classic `Host-to-Host` and `Service-to-Service` dependency relationships.
 
     define service {
@@ -710,7 +710,7 @@ The Icinga 2 configuration looks like this:
     }
 
 For easier identification you could add the `vars.is_vmware_master` attribute to the `vmware-master`
-host and let the dependency ignore that on that instead of the hardcoded host name. That's different
+host and let the dependency ignore that instead of the hardcoded host name. That's different
 to the Icinga 1.x example and a best practice hint only.
 
 
@@ -937,7 +937,7 @@ using the [apply](#using-apply) keyword.
 
 ### <a id="differences-1x-2-users"></a> Users
 
-Contacts have been renamed to Users (same for groups). A user does not
+Contacts have been renamed to users (same for groups). A user does not
 only provide attributes and custom attributes used for notifications, but is also
 used for authorization checks.
 
@@ -1327,7 +1327,7 @@ duration literals (e.g. 30m).
 
 The Icinga 2 escalation does not replace the current running notification.
 In Icinga 1.x it's required to copy the contacts from the service notification
-to the escalation to garantuee the normal notifications once an escalation
+to the escalation to guarantee the normal notifications once an escalation
 happens.
 That's not necessary with Icinga 2 only requiring an additional notification
 object for the escalation itself.
@@ -1355,8 +1355,8 @@ notifications. A host must not depend on a service, and vice versa. All dependen
 are configured as separate objects and cannot be set directly on the host or service
 object.
 
-A service can now depend on a host, and vice versa. A service has an implicit dependeny
-(parent) to its host. A host to host dependency acts implicit as host parent relation.
+A service can now depend on a host, and vice versa. A service has an implicit dependency
+(parent) to its host. A host to host dependency acts implicitly as host parent relation.
 
 The former `host_name` and `dependent_host_name` have been renamed to `parent_host_name`
 and `child_host_name` (same for the service attribute). When using apply rules the
@@ -1400,7 +1400,7 @@ service check is forced.
 
 ### <a id="differences-1x-2-real-reload"></a> Real Reload
 
-In Nagios / Icinga 1.x a daemon reload happens like so
+In Nagios / Icinga 1.x a daemon reload happens like this
 
 * receive reload signal SIGHUP
 * stop all events (checks, notifications, etc)
@@ -1423,7 +1423,7 @@ Unlike Icinga 1.x the Icinga 2 daemon reload happens asynchronously.
 * child becomes the new session leader
 
 The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. Same goes for any other enabled feature running in its own thread.
-The configuration validation itself runs in paralell allowing fast verification checks.
+The configuration validation itself runs in parallel allowing fast verification checks.
 
 That way you are not blind (anymore) during a configuration reload and benefit from a real scalable architecture.
 
