@@ -140,8 +140,6 @@ status() {
 	fi
 }
 
-check_run
-
 ### main logic ###
 case "$1" in
   start)
