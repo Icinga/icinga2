@@ -443,7 +443,7 @@ exit 0
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %if 0%{?use_systemd}
-%attr(755,-,0) %{_unitdir}/%{name}.service
+%attr(644,-,0) %{_unitdir}/%{name}.service
 %else
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %endif
