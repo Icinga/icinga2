@@ -61,6 +61,7 @@ check_config () {
 #
 do_start()
 {
+  check_run
   # Return
   #   0 if daemon has been started
   #   1 if daemon was already running
@@ -139,8 +140,6 @@ do_check_config () {
     [ -n "$DOEXITONOK" ] && exit 0
   fi
 }
-
-check_run
 
 case "$1" in
   start)
