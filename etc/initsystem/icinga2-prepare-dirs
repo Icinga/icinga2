@@ -4,11 +4,11 @@
 #
 
 # load system specific defines
-SYSDEFFILE=$1
-if [ -f "$SYSDEFFILE" ]; then
-	. $SYSDEFFILE
+SYSCONFIGFILE=$1
+if [ -f "$SYSCONFIGFILE" ]; then
+	. $SYSCONFIGFILE
 else
-	echo "Error: You need to supply the path to the Icinga2 sysdefines.conf as parameter."
+	echo "Error: You need to supply the path to the Icinga2 sysconfig file as parameter."
 	exit 1
 fi
 

@@ -76,10 +76,17 @@ else()
 endif()
 
 if(NOT WIN32)
-  configure_file(icinga2/sysdefines.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf @ONLY)
+  if(NOT DEFINED ICINGA2_SYSCONFIGFILE)
+    set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
+  endif()
+
+  configure_file(initsystem/icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.sysconfig @ONLY)
+  get_filename_component(ICINGA2_SYSCONFIGFILE_NAME ${ICINGA2_SYSCONFIGFILE} NAME)
+  get_filename_component(ICINGA2_SYSCONFIGFILE_DIR ${ICINGA2_SYSCONFIGFILE} PATH)
   install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2/sysdefines.conf
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.sysconfig
+    DESTINATION ${ICINGA2_SYSCONFIGFILE_DIR}
+    RENAME ${ICINGA2_SYSCONFIGFILE_NAME}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
 

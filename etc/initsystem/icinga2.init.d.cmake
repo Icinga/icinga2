@@ -16,11 +16,11 @@
 ### END INIT INFO
 
 # load system specific defines
-SYSDEFFILE=@CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga2/sysdefines.conf
-if [ -f $SYSDEFFILE ]; then
-	. $SYSDEFFILE
+SYSCONFIGFILE=@ICINGA2_SYSCONFIGFILE@
+if [ -f $SYSCONFIGFILE ]; then
+	. $SYSCONFIGFILE
 else
-	echo "Can't load system specific defines from $SYSDEFFILE."
+	echo "Can't load system specific defines from $SYSCONFIGFILE."
 	exit 1
 fi
 
@@ -39,17 +39,14 @@ elif [ -f /etc/init.d/functions ]; then
 fi
 
 # Load extra environment variables
-if [ -f /etc/sysconfig/icinga ]; then
-        . /etc/sysconfig/icinga
-fi
-if [ -f /etc/default/icinga ]; then
-        . /etc/default/icinga
+if [ -f /etc/default/icinga2 ]; then
+        . /etc/default/icinga2
 fi
 
 # Start Icinga 2
 start() {
 	printf "Starting Icinga 2: "
-	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-prepare-dirs $SYSDEFFILE
+	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-prepare-dirs $SYSCONFIGFILE
 
 	if ! $DAEMON -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP > $ICINGA2_STARTUP_LOG 2>&1; then
 		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."
