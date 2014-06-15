@@ -22,7 +22,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 project(icinga2)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../third-party/cmake")
 
 include(GetGitRevisionDescription)
 git_describe(GIT_VERSION --tags)
