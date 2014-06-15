@@ -127,7 +127,10 @@ variables are supported:
 - ICINGA2_GIT_VERSION_INFO: Whether to use Git to determine the version number; defaults to "ON"
 - ICINGA2_COMMAND_GROUP: The command group Icinga 2 should use; default to "icingacmd"
 - CMAKE_INSTALL_SYSCONFDIR: The configuration directory; defaults to CMAKE_INSTALL_PREFIX/etc
+- ICINGA2_SYSCONFIGFILE: Where to put the config file the initscript/systemd pulls it's dirs from; 
+		defaults to CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2
 - CMAKE_INSTALL_LOCALSTATEDIR: The state directory; defaults to CMAKE_INSTALL_PREFIX/var
+- USE_SYSTEMD=ON|OFF: Use systemd or a classic SysV initscript; defaults to OFF
 
 ### Building Icinga 2 RPMs
 
@@ -160,6 +163,9 @@ Icinga 2 can be started as daemon using the provided init script:
 
 # /etc/init.d/icinga2
 Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
+
+Or if your distribution uses systemd:
+# systemctl {start|stop|reload|status|enable|disable} icinga2.service
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
