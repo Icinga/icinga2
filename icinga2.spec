@@ -27,7 +27,14 @@
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %define apacheuser apache
 %define apachegroup apache
+%if 0%{?el5}%{?el6}
+%define use_systemd 0
+%else
+# fedora and el>=7
+%define use_systemd 1
 %endif
+%endif
+
 %if "%{_vendor}" == "suse"
 # opensuse 13
 %if 0%{?suse_version} >= 1310
@@ -40,6 +47,7 @@
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
 %define apachegroup www
+%define use_systemd 0
 %endif
 
 %define icinga_user icinga
@@ -101,11 +109,6 @@ Requires: boost-thread >= 1.41
 Requires: boost-regex >= 1.41
 %endif
 %endif
-
-%if 0%{?fedora}%{?el7}
-BuildRequires: systemd
-Requires: systemd
-%endif
 #redhat
 
 # suse
@@ -136,6 +139,11 @@ Requires: libboost_regex%{opensuse_boost_version}
 %endif
 %endif
 # suse
+
+%if 0%{?use_systemd}
+BuildRequires: systemd
+Requires: systemd
+%endif
 
 Requires: %{name}-common = %{version}
 
@@ -245,12 +253,11 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
  -DBoost_NO_SYSTEM_PATHS=TRUE \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
+%endif
+%endif
 
-%if 0%{?fedora}
+%if 0%{?use_systemd}
 CMAKE_OPTS="$CMAKE_OPTS -DUSE_SYSTEMD=ON"
-%endif
-
-%endif
 %endif
 
 cmake $CMAKE_OPTS .
@@ -299,10 +306,10 @@ exit 0
 %else
 # rhel
 
-%if 0%{?el5}{?el6}
-/sbin/chkconfig --add %{name}
-%else
+%if 0%{?use_systemd}
 %systemd_post %{name}.service
+%else
+/sbin/chkconfig --add %{name}
 %endif
 
 if [ ${1:-0} -eq 1 ]
@@ -333,12 +340,12 @@ exit 0
 %else
 # rhel
 
-%if 0%{?el5}{?el6}
+%if 0%{?use_systemd}
+%systemd_postun_with_restart %{name}.service
+%else
 if [ "$1" -ge  "1" ]; then
 	/sbin/service %{name} condrestart >/dev/null 2>&1 || :
 fi
-%else
-%systemd_postun_with_restart %{name}.service
 %endif
 
 if [ "$1" = "0" ]; then
@@ -363,13 +370,13 @@ exit 0
 %else
 # rhel
 
-%if 0%{?el5}{?el6}
+%if 0%{?use_systemd}
+%systemd_preun %{name}.service
+%else
 if [ "$1" = "0" ]; then
 	/sbin/service %{name} stop > /dev/null 2>&1 || :
 	/sbin/chkconfig --del %{name} || :
 fi
-%else
-%systemd_preun %{name}.service
 %endif
 
 exit 0
@@ -435,10 +442,10 @@ exit 0
 %files bin
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
-%if 0%{?el5}%{?el6}%{?opensuse_version}
-%attr(755,-,-) %{_sysconfdir}/init.d/%{name}
-%else
+%if 0%{?use_systemd}
 %attr(755,-,0) %{_unitdir}/%{name}.service
+%else
+%attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %endif
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
@@ -451,6 +458,7 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/constants.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.conf
+%config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/sysdefines.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/hosts/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/hosts/localhost/*.conf
@@ -463,6 +471,7 @@ exit 0
 %{_bindir}/%{name}-sign-key
 %{_sbindir}/%{name}-enable-feature
 %{_sbindir}/%{name}-disable-feature
+%{_sbindir}/%{name}-prepare-dirs
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_libdir}/%{name}
