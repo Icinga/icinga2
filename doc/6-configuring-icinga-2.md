@@ -2044,6 +2044,26 @@ Name            | Description
 snmp_address    | **Optional.** The host's address. Defaults to "$address$".
 snmp_oid        | **Required.** The SNMP OID.
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
+snmp_warn       | **Optional.** The warning threshold.
+snmp_crit       | **Optional.** The critical threshold.
+
+#### <a id="plugin-check-command-snmp"></a> snmpv3
+
+Check command object for the `check_snmp` plugin, using SNMPv3 authentication and encryption options.
+
+Custom Attributes:
+
+Name              | Description
+------------------|--------------
+snmpv3_address    | **Optional.** The host's address. Defaults to "$address$".
+snmpv3_user       | **Required.** The username to log in with.
+snmpv3_auth_alg   | **Optional.** The authentication algorithm. Defaults to SHA.
+snmpv3_auth_key   | **Required.** The authentication key.
+snmpv3_priv_alg   | **Optional.** The encryption algorithm. Defaults to AES.
+snmpv3_priv_key   | **Required.** The encryption key.
+snmpv3_oid        | **Required.** The SNMP OID.
+snmpv3_warn       | **Optional.** The warning threshold.
+snmpv3_crit       | **Optional.** The critical threshold.
 
 #### <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
 
