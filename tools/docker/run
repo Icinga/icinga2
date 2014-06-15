@@ -16,7 +16,7 @@ RUN mkdir gdb_printers && cd gdb_printers && svn co svn://gcc.gnu.org/svn/gcc/tr
 RUN git clone https://github.com/ruediger/Boost-Pretty-Printer
 RUN mkdir build
 ENV HOME /home/icinga
-RUN ln -s icinga2/dev/docker/build debug
+RUN ln -s icinga2/tools/docker/docker/build debug
 DOCKER
 
 docker.io build -t icinga2 --rm .
