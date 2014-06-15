@@ -9,7 +9,7 @@ script.
 ### <a id="configuration-migration-script"></a> Configuration Migration Script
 
 A standalone configuration migration script is available at
-[https://git.icinga.org/?p=icinga2-migration.git;a=summary]. All further
+[https://github.com/Icinga/icinga2-migration]. All further
 details on the command line parameters are documented there too.
 
 This script will be merged back upstream into the Icinga Web 2 CLI once there
