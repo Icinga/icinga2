@@ -17,7 +17,7 @@
 # * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 # ******************************************************************************/
 
-%define revision 2.beta2.dev
+%define revision 3
 
 %if "%{_vendor}" == "redhat"
 %define el5_boost_version 141
