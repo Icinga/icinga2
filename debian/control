@@ -2,26 +2,24 @@ Source: icinga2
 Section: admin
 Priority: extra
 Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian.org>
-Uploaders:
-    Markus Frosch <markus@lazyfrosch.de>,
-    Alexander Wirt <formorer@debian.org>
-Build-Depends:
-    cmake (>= 2.8.7),
-    make (>= 3.81),
-    bison,
-    debhelper (>= 9),
-    flex,
-    g++ (>= 1.96),
-    libboost-dev,
-    libboost-program-options-dev,
-    libboost-system-dev,
-    libboost-test-dev,
-    libboost-thread-dev,
-    libboost-regex-dev,
-    libmysqlclient-dev,
-    libpq-dev,
-    libssl-dev,
-    po-debconf
+Uploaders: Markus Frosch <markus@lazyfrosch.de>,
+           Alexander Wirt <formorer@debian.org>
+Build-Depends: bison,
+               cmake (>= 2.8.7),
+               debhelper (>= 9),
+               flex,
+               g++ (>= 1.96),
+               libboost-dev,
+               libboost-program-options-dev,
+               libboost-regex-dev,
+               libboost-system-dev,
+               libboost-test-dev,
+               libboost-thread-dev,
+               libmysqlclient-dev,
+               libpq-dev,
+               libssl-dev,
+               make (>= 3.81),
+               po-debconf
 Standards-Version: 3.9.5
 Homepage: http://www.icinga.org
 
@@ -30,7 +28,7 @@ Architecture: any
 Depends: icinga2-bin (= ${binary:Version}),
          icinga2-common (= ${source:Version}),
          ${misc:Depends}
-Recommends: icinga2-doc
+Recommends: icinga2-doc, nagios-plugins-basic
 Description: host and network monitoring system
  Icinga 2 is a general-purpose monitoring application and the next generation
  after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
@@ -78,7 +76,8 @@ Package: icinga2-bin
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: icinga2-common (= ${source:Version}),
-         ${misc:Depends}, ${shlibs:Depends}
+         ${misc:Depends},
+         ${shlibs:Depends}
 Description: host and network monitoring system - daemon
  Icinga 2 is a general-purpose monitoring application and the next generation
  after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
@@ -125,8 +124,8 @@ Description: host and network monitoring system - documentation
 
 Package: icinga2-classicui
 Architecture: all
-Depends: icinga2-common (= ${source:Version}),
-         icinga-cgi-bin | icinga-cgi (>= 1.9.0~),
+Depends: icinga-cgi-bin | icinga-cgi (>= 1.9.0~),
+         icinga2-common (= ${source:Version}),
          ${misc:Depends}
 Recommends: apache2 | httpd
 Description: host and network monitoring system - classic ui integration
@@ -152,9 +151,12 @@ Description: host and network monitoring system - classic ui integration
 Package: icinga2-ido-mysql
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
-Depends: icinga2-common (= ${source:Version}),
+Conflicts: icinga2-ido-pgsql
+Depends: dbconfig-common,
          icinga2-bin (= ${binary:Version}),
-         ${shlibs:Depends}, ${misc:Depends}
+         icinga2-common (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
 Recommends: mysql-client
 Suggests: mysql-server
 Description: host and network monitoring system - IDO for MySQL
@@ -179,10 +181,12 @@ Description: host and network monitoring system - IDO for MySQL
 
 Package: icinga2-ido-pgsql
 Architecture: any
+Conflicts: icinga2-ido-mysql
 Pre-Depends: ${misc:Pre-Depends}
-Depends: icinga2-common (= ${source:Version}),
-         icinga2-bin (= ${binary:Version}),
-         ${shlibs:Depends}, ${misc:Depends}
+Depends: icinga2-bin (= ${binary:Version}),
+         icinga2-common (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
 Recommends: postgresql-client
 Suggests: postgresql
 Description: host and network monitoring system - IDO for PostgreSQL
@@ -209,8 +213,7 @@ Package: icinga2-dbg
 Architecture: any
 Section: debug
 Priority: extra
-Depends: icinga2-bin (= ${binary:Version}),
-         ${misc:Depends}
+Depends: icinga2-bin (= ${binary:Version}), ${misc:Depends}
 Description: host and network monitoring system - debug symbols
  Icinga 2 is a general-purpose monitoring application and the next generation
  after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
@@ -230,4 +233,3 @@ Description: host and network monitoring system - debug symbols
   * Native support for Livestatus and Graphite
  .
  This package provides debug symbols for Icinga 2.
-

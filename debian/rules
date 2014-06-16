@@ -17,8 +17,6 @@ ifeq ($(shell test -d .git && echo "git"),git) # verify we are in a GIT repo
 endif
 	# now clean build dir
 	dh_auto_clean
-	rm -f config.log
-	rm -f config.status
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
@@ -39,6 +37,16 @@ override_dh_install:
 	# remove ido files from other packages
 	if [ -d debian/icinga2-common/ ]; then rm debian/icinga2-common/etc/icinga2/features-available/ido-*; fi
 	rm debian/icinga2-bin/usr/lib/*/icinga2/libdb_ido_*
+	for dbms in mysql pgsql; do \
+		mkdir -p debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/install ; \
+		mkdir -p debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/upgrade/$$dbms; \
+		cp components/db_ido_$$dbms/schema/$$dbms.sql debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/install/$$dbms ; \
+	done
+	#	for file in components/db_ido_$$dbms/schema/upgrade/* ; do \
+	#		cp $$file debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/upgrade/$$dbms/`basename $$file .sql`; \
+	#	done; \
+	#done
+
 
 override_dh_installinit:
 	dh_installinit --name=icinga2

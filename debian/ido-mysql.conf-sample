@@ -1,0 +1,14 @@
+/**
+ * The db_ido_mysql library implements IDO functionality
+ * for MySQL.
+ */
+
+library "db_ido_mysql"
+
+object IdoMysqlConnection "ido-mysql" {
+  user = "_DBC_DBUSER_",
+  password = "_DBC_DBPASS_",
+  host = "_DBC_DBSERVER_",
+  database = "_DBC_DBNAME_"
+}
+

@@ -1,0 +1,9 @@
+Template: icinga2-ido-mysql/enable
+Type: boolean
+Default: true
+_Description: Enable icinga 2 mysql idoutils?
+ If you acknowledge this question the ido mysql
+ feature gets enabled for icinga 2.
+ .
+ If you want to disable the feature call 
+ icinga2-disable-feature ido-mysql
