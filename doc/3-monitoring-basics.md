@@ -794,7 +794,7 @@ the service is applied to. If not set, the check command `my-ssh` will omit the 
     /* apply ssh service */
     apply Service "my-ssh" {
       import "generic-service"
-      check_command = "ssh"
+      check_command = "my-ssh"
 
       //set the command argument for ssh port with a custom host attribute, if set
       vars.ssh_port = "$host.vars.custom_ssh_port$"
