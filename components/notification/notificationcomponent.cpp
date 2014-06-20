@@ -19,6 +19,7 @@
 
 #include "notification/notificationcomponent.hpp"
 #include "icinga/service.hpp"
+#include "icinga/icingaapplication.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger_fwd.hpp"
@@ -73,6 +74,9 @@ void NotificationComponent::NotificationTimerHandler(void)
 
 	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
 		Checkable::Ptr checkable = notification->GetCheckable();
+
+		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
+			continue;
 
 		if (notification->GetInterval() <= 0 && notification->GetLastProblemNotification() > checkable->GetLastHardStateChange())
 			continue;
