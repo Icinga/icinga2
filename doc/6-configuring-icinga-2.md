@@ -1938,6 +1938,7 @@ Custom Attributes:
 Name                 | Description
 ---------------------|--------------
 smtp_address         | **Optional.** The host's address. Defaults to "$address$".
+smtp_port            | **Optional.** The port that should be checked. Defaults to 25.
 smtp_mail_from       | **Optional.** Test a MAIL FROM command with the given email address.
 
 #### <a id="plugin-check-command-ssmtp"></a> ssmtp
@@ -1961,6 +1962,7 @@ Custom Attributes:
 Name            | Description
 ----------------|--------------
 imap_address    | **Optional.** The host's address. Defaults to "$address$".
+imap_port       | **Optional.** The port that should be checked. Defaults to 143.
 
 #### <a id="plugin-check-command-simap"></a> simap
 
@@ -1982,6 +1984,7 @@ Custom Attributes:
 Name            | Description
 ----------------|--------------
 pop_address     | **Optional.** The host's address. Defaults to "$address$".
+pop_port        | **Optional.** The port that should be checked. Defaults to 110.
 
 #### <a id="plugin-check-command-spop"></a> spop 
 
@@ -2130,6 +2133,17 @@ dns_lookup           | **Optional.** The hostname or IP to query the dns for. De
 dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
 dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot.
 dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
+
+#### <a id="plugin-check-command-dig"></a> dig
+
+Check command object for the `check_dig` plugin.
+
+Custom Attributes:
+
+Name                 | Description
+---------------------|--------------
+dig_server           | **Optional.** The DNS server to query. Defaults to "127.0.0.1".
+dig_lookup           | **Optional.** The address that should be looked up.
 
 #### <a id="plugin-check-command-dhcp"></a> dhcp
 
