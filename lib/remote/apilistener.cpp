@@ -197,12 +197,11 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 }
 
 /**
- * Creates a new JSON-RPC client and connects to the specified host and port.
+ * Creates a new JSON-RPC client and connects to the specified endpoint.
  *
- * @param node The remote host.
- * @param service The remote port.
+ * @param endpoint The endpoint.
  */
-void ApiListener::AddConnection(const String& node, const String& service)
+void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 {
 	{
 		ObjectLock olock(this);
@@ -215,14 +214,21 @@ void ApiListener::AddConnection(const String& node, const String& service)
 		}
 	}
 
+	String host = endpoint->GetHost();
+	String port = endpoint->GetPort();
+
 	TcpSocket::Ptr client = make_shared<TcpSocket>();
 
 	try {
-		client->Connect(node, service);
-		Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleClient));
+		endpoint->SetConnecting(true);
+		client->Connect(host, port);
+		NewClientHandler(client, RoleClient);
+		endpoint->SetConnecting(false);
 	} catch (const std::exception& ex) {
+		endpoint->SetConnecting(false);
+
 		std::ostringstream info, debug;
-		info << "Cannot connect to host '" << node << "' on port '" << service << "'";
+		info << "Cannot connect to host '" << host << "' on port '" << port << "'";
 		debug << info.str() << std::endl << DiagnosticInformation(ex);
 		Log(LogCritical, "ApiListener", info.str());
 		Log(LogDebug, "ApiListener", debug.str());
@@ -358,7 +364,7 @@ void ApiListener::ApiTimerHandler(void)
 				if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty())
 					continue;
 
-				AddConnection(endpoint->GetHost(), endpoint->GetPort());
+				Utility::QueueAsyncCallback(boost::bind(&ApiListener::AddConnection, this, endpoint));
 			}
 		}
 	}

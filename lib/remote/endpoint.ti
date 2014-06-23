@@ -16,6 +16,7 @@ class Endpoint : DynamicObject
 	[state] double local_log_position;
 	[state] double remote_log_position;
 
+	bool connecting;
 	bool syncing;
 };
 

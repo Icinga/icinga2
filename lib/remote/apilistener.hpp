@@ -80,7 +80,7 @@ private:
 	void ApiTimerHandler(void);
 
 	void AddListener(const String& service);
-	void AddConnection(const String& node, const String& service);
+	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(const Socket::Ptr& client, ConnectionRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
