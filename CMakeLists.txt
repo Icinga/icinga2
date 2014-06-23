@@ -19,6 +19,7 @@ cmake_minimum_required(VERSION 2.6)
 set(BOOST_MIN_VERSION "1.41.0")
 
 project(icinga2)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third-party/cmake")
 
 if(NOT CMAKE_BUILD_TYPE)
