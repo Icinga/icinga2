@@ -1,6 +1,6 @@
 [Unit]
-Description=Host/service/network monitoring system
-After=syslog.target postgresql.service mariadb.service
+Description=Icinga host/service/network monitoring system
+After=syslog.target postgresql.service mariadb.service carbon-cache.service
 
 [Service]
 Type=forking
