@@ -62,15 +62,39 @@ void Dependency::OnStateLoaded(void)
 
 	ASSERT(!OwnsLock());
 
-	if (!GetChild())
+	Host::Ptr childHost = Host::GetByName(GetChildHostName());
+
+	if (childHost) {
+		if (GetChildServiceName().IsEmpty()) {
+			Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' child host '" + GetChildHostName() + ".");
+			m_Child = childHost;
+		} else {
+			Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' child host '" + GetChildHostName() + "' service '" + GetChildServiceName() + "' .");
+			m_Child = childHost->GetServiceByShortName(GetChildServiceName());
+		}
+	}
+	
+	if (!m_Child)
 		Log(LogWarning, "Dependency", "Dependency '" + GetName() + "' references an invalid child object and will be ignored.");
 	else
-		GetChild()->AddDependency(GetSelf());
+		m_Child->AddDependency(GetSelf());
 
-	if (!GetParent())
+	Host::Ptr parentHost = Host::GetByName(GetParentHostName());
+
+	if (parentHost) {
+		if (GetParentServiceName().IsEmpty()) {
+			Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + ".");
+			m_Parent = parentHost;
+		} else {
+			Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + "' service '" + GetParentServiceName() + "' .");
+			m_Parent = parentHost->GetServiceByShortName(GetParentServiceName());
+		}
+	}
+	
+	if (!m_Parent)
 		Log(LogWarning, "Dependency", "Dependency '" + GetName() + "' references an invalid parent object and will always fail.");
 	else
-		GetParent()->AddReverseDependency(GetSelf());
+		m_Parent->AddReverseDependency(GetSelf());
 }
 
 void Dependency::Stop(void)
@@ -149,31 +173,12 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 Checkable::Ptr Dependency::GetChild(void) const
 {
-	Host::Ptr host = Host::GetByName(GetChildHostName());
-
-	if (!host)
-		return Service::Ptr();
-
-	if (GetChildServiceName().IsEmpty())
-		return host;
-	else
-		return host->GetServiceByShortName(GetChildServiceName());
+	return m_Child;
 }
 
 Checkable::Ptr Dependency::GetParent(void) const
 {
-	Host::Ptr host = Host::GetByName(GetParentHostName());
-
-	if (!host)
-		return Service::Ptr();
-
-	if (GetParentServiceName().IsEmpty()) {
-		Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + ".");
-		return host;
-	} else {
-		Log(LogDebug, "Dependency", "Dependency '" + GetName() + "' parent host '" + GetParentHostName() + "' service '" + GetParentServiceName() + "' .");
-		return host->GetServiceByShortName(GetParentServiceName());
-	}
+	return m_Parent;
 }
 
 TimePeriod::Ptr Dependency::GetPeriod(void) const
