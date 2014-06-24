@@ -293,9 +293,14 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	for (int i = 0; i < 2; i++) {
 		sp_index = temp_buffer.FindFirstOf(" ");
 
-		/* 'attr op' or 'attr op val' is valid */
-		if (i < 1 && sp_index == String::NPos)
-			BOOST_THROW_EXCEPTION(std::runtime_error("Livestatus filter '" + params + "' does not contain all required fields."));
+		/* check if this is the last argument */
+		if (sp_index == String::NPos) {
+			/* 'attr op' or 'attr op val' is valid */
+			if (i < 1)
+				BOOST_THROW_EXCEPTION(std::runtime_error("Livestatus filter '" + params + "' does not contain all required fields."));
+
+			break;
+		}
 
 		tokens.push_back(temp_buffer.SubStr(0, sp_index));
 		temp_buffer = temp_buffer.SubStr(sp_index + 1);
