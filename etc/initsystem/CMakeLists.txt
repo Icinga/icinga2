@@ -39,15 +39,20 @@ if(NOT WIN32)
   option (USE_SYSTEMD
      "Configure icinga as native systemd service instead of a SysV initscript" OFF) 
 
-  if (NOT USE_SYSTEMD)
-  
+  # required for packaging on Gentoo, see Bug #6498
+  option (INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT
+     "Force install both the systemd service definition file and the SysV initscript in parallel, regardless of how USE_SYSTEMD is set. Only use this for special packaging purposes and if you know what you are doing" OFF)
+
+  if (NOT USE_SYSTEMD OR INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT)
     configure_file(icinga2.init.d.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2)
     install(
       FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2
       DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/init.d
       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     )
-  else()
+  endif()
+
+  if (USE_SYSTEMD OR INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT)
     configure_file(icinga2.service.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.service @ONLY)
     install(
       FILES ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.service

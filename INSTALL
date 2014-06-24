@@ -131,6 +131,10 @@ variables are supported:
 		defaults to CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2
 - CMAKE_INSTALL_LOCALSTATEDIR: The state directory; defaults to CMAKE_INSTALL_PREFIX/var
 - USE_SYSTEMD=ON|OFF: Use systemd or a classic SysV initscript; defaults to OFF
+- INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT=ON|OFF Force install both the systemd service definition file 
+		and the SysV initscript in parallel, regardless of how USE_SYSTEMD is set. 
+		Only use this for special packaging purposes and if you know what you are doing.
+		Defaults to OFF
 
 ### Building Icinga 2 RPMs
 
