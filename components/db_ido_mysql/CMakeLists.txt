@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-find_package(MYSQL)
+find_package(MySQL)
 
 if(MYSQL_FOUND)
     mkclass_target(idomysqlconnection.ti idomysqlconnection.thpp)
@@ -25,7 +25,7 @@ if(MYSQL_FOUND)
     add_library(db_ido_mysql SHARED idomysqlconnection.cpp idomysqlconnection.thpp db_ido_mysql-type.cpp)
 
     include_directories(${MYSQL_INCLUDE_DIR})
-    target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} ${MYSQL_LIBRARIES} base config icinga db_ido)
+    target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} ${MYSQL_CLIENT_LIBS} base config icinga db_ido)
 
     set_target_properties (
       db_ido_mysql PROPERTIES
