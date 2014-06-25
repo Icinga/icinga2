@@ -89,6 +89,11 @@ String LogTable::GetName(void) const
 	return "log";
 }
 
+String LogTable::GetPrefix(void) const
+{
+	return "log";
+}
+
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	Log(LogDebug, "LogTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));

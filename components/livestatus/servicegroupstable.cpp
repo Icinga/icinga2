@@ -57,6 +57,11 @@ String ServiceGroupsTable::GetName(void) const
 	return "servicegroups";
 }
 
+String ServiceGroupsTable::GetPrefix(void) const
+{
+	return "servicegroup";
+}
+
 void ServiceGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjects<ServiceGroup>()) {

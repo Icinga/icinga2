@@ -353,7 +353,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	return filter;
 }
 
-void LivestatusQuery::PrintResultSet(std::ostream& fp, const Array::Ptr& rs)
+void LivestatusQuery::PrintResultSet(std::ostream& fp, const Array::Ptr& rs) const
 {
 	if (m_OutputFormat == "csv") {
 		ObjectLock olock(rs);
@@ -378,10 +378,12 @@ void LivestatusQuery::PrintResultSet(std::ostream& fp, const Array::Ptr& rs)
 		}
 	} else if (m_OutputFormat == "json") {
 		fp << JsonSerialize(rs);
+	} else if (m_OutputFormat == "python") {
+		PrintPythonArray(fp, rs);
 	}
 }
 
-void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level)
+void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level) const
 {
 	bool first = true;
 
@@ -397,6 +399,35 @@ void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, i
 		else
 			fp << value;
 	}
+}
+
+void LivestatusQuery::PrintPythonArray(std::ostream& fp, const Array::Ptr& rs) const
+{
+	fp << "[ ";
+
+	bool first = true;
+
+	BOOST_FOREACH(const Value& value, rs) {
+		if (first)
+			first = false;
+		else
+			fp << ", ";
+
+		if (value.IsObjectType<Array>())
+			PrintPythonArray(fp, value);
+		else if (value.IsNumber())
+			fp << value;
+		else
+			fp << QuoteStringPython(value);
+	}
+
+	fp << " ]";
+}
+
+String LivestatusQuery::QuoteStringPython(const String& str) {
+	String result = str;
+	boost::algorithm::replace_all(result, "\"", "\\\"");
+	return "r\"" + result + "\"";
 }
 
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)

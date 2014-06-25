@@ -43,6 +43,7 @@ public:
 	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
 
 	virtual String GetName(void) const = 0;
+	virtual String GetPrefix(void) const = 0;
 
 	std::vector<Value> FilterRows(const shared_ptr<Filter>& filter);
 

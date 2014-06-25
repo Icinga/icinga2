@@ -41,6 +41,7 @@ public:
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
 	virtual String GetName(void) const;
+	virtual String GetPrefix(void) const;
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);

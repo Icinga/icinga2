@@ -66,6 +66,11 @@ String HostGroupsTable::GetName(void) const
 	return "hostgroups";
 }
 
+String HostGroupsTable::GetPrefix(void) const
+{
+	return "hostgroup";
+}
+
 void HostGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjects<HostGroup>()) {

@@ -250,6 +250,11 @@ String StateHistTable::GetName(void) const
 	return "log";
 }
 
+String StateHistTable::GetPrefix(void) const
+{
+	return "log";
+}
+
 void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	Log(LogDebug, "StateHistTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));

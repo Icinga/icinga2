@@ -40,14 +40,16 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 	if (value.IsObjectType<Array>()) {
 		Array::Ptr array = value;
 
-		if (m_Operator == ">=") {
+		if (m_Operator == ">=" || m_Operator == "<") {
+			bool negate = (m_Operator == "<");
+
 			ObjectLock olock(array);
 			BOOST_FOREACH(const String& item, array) {
 				if (item == m_Operand)
-					return true; /* Item found in list. */
+					return !negate; /* Item found in list. */
 			}
 
-			return false; /* Item not found in list. */
+			return negate; /* Item not found in list. */
 		} else if (m_Operator == "=") {
 			return (array->GetLength() == 0);
 		} else {

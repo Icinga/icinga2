@@ -43,6 +43,7 @@ public:
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
 	virtual String GetName(void) const;
+	virtual String GetPrefix(void) const;
 
 	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn);
 

@@ -167,6 +167,11 @@ String HostsTable::GetName(void) const
 	return "hosts";
 }
 
+String HostsTable::GetPrefix(void) const
+{
+	return "host";
+}
+
 void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {

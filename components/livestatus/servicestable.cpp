@@ -138,6 +138,11 @@ String ServicesTable::GetName(void) const
 	return "services";
 }
 
+String ServicesTable::GetPrefix(void) const
+{
+	return "service";
+}
+
 void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {

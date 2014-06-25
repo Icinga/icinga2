@@ -60,6 +60,11 @@ String ContactsTable::GetName(void) const
 	return "contacts";
 }
 
+String ContactsTable::GetPrefix(void) const
+{
+	return "contact";
+}
+
 void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjects<User>()) {

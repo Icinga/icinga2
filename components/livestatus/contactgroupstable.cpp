@@ -42,6 +42,11 @@ String ContactGroupsTable::GetName(void) const
 	return "contactgroups";
 }
 
+String ContactGroupsTable::GetPrefix(void) const
+{
+	return "contactgroup";
+}
+
 void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjects<UserGroup>()) {

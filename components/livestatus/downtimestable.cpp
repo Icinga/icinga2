@@ -55,6 +55,11 @@ String DowntimesTable::GetName(void) const
 	return "downtimes";
 }
 
+String DowntimesTable::GetPrefix(void) const
+{
+	return "downtime";
+}
+
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {

@@ -50,6 +50,11 @@ void CommandsTable::AddColumns(Table *table, const String& prefix,
 
 String CommandsTable::GetName(void) const
 {
+	return "commands";
+}
+
+String CommandsTable::GetPrefix(void) const
+{
 	return "command";
 }
 
