@@ -60,9 +60,7 @@ class I2_BASE_API Utility
 public:
 	static String DemangleSymbolName(const String& sym);
 	static String GetTypeName(const std::type_info& ti);
-	static String Addr2Line(const String& exe, uintptr_t rva);
 	static String GetSymbolName(const void *addr);
-	static String GetSymbolSource(const void *addr);
 
 	static bool Match(const String& pattern, const String& text);
 

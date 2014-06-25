@@ -133,7 +133,6 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 					path = path.SubStr(slashp + 1);
 
 				message = path + ": " + sym_demangled + " (" + String(sym_end);
-				message += " (" + Utility::GetSymbolSource(m_Frames[i]) + ")";
 			}
 		}
 
@@ -148,9 +147,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 #	endif /* HAVE_BACKTRACE_SYMBOLS */
 #else /* _WIN32 */
 	for (int i = ignoreFrames + 1; i < m_Count; i++) {
-		fp << "\t(" << i - ignoreFrames - 1 << ") "
-		   << Utility::GetSymbolSource(m_Frames[i])
-		   << ": "
+		fp << "\t(" << i - ignoreFrames - 1 << "): "
 		   << Utility::GetSymbolName(m_Frames[i])
 		   << std::endl;
 	}
