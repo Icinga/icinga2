@@ -183,7 +183,8 @@ Package: icinga2-ido-pgsql
 Architecture: any
 Conflicts: icinga2-ido-mysql
 Pre-Depends: ${misc:Pre-Depends}
-Depends: icinga2-bin (= ${binary:Version}),
+Depends: dbconfig-common,
+         icinga2-bin (= ${binary:Version}),
          icinga2-common (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
