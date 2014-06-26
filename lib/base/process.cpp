@@ -228,7 +228,8 @@ void Process::IOThreadProc(int tid)
 #else /* _WIN32 */
 			if (pfds[0].revents & (POLLIN | POLLHUP | POLLERR)) {
 				char buffer[512];
-				(void)read(l_EventFDs[tid][0], buffer, sizeof(buffer));
+				if (read(l_EventFDs[tid][0], buffer, sizeof(buffer)) < 0)
+					Log(LogCritical, "base", "Read from event FD failed.");
 			}
 #endif /* _WIN32 */
 
@@ -512,7 +513,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		(void)close(fds[0]);
 		(void)close(fds[1]);
 
-		(void)nice(5);
+		if (nice(5) < 0)
+			Log(LogWarning, "base", "Failed to renice child process.");
 
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
 			char errmsg[512];
@@ -570,7 +572,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 #ifdef _WIN32
 	SetEvent(l_Events[tid]);
 #else /* _WIN32 */
-	(void)write(l_EventFDs[tid][1], "T", 1);
+	if (write(l_EventFDs[tid][1], "T", 1) < 0 && errno != EINTR && errno != EAGAIN)
+		Log(LogCritical, "base", "Write to event FD failed.");
 #endif /* _WIN32 */
 }
 
