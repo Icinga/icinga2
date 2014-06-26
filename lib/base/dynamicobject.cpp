@@ -237,7 +237,7 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 	fp.open(tempFilename.CStr(), std::ios_base::out);
 
 	if (!fp)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + filename + "' file"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
 
 	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
 
