@@ -2083,13 +2083,19 @@ Check command object for the `check_snmp` plugin.
 
 Custom Attributes:
 
-Name            | Description
-----------------|--------------
-snmp_address    | **Optional.** The host's address. Defaults to "$address$".
-snmp_oid        | **Required.** The SNMP OID.
-snmp_community  | **Optional.** The SNMP community. Defaults to "public".
-snmp_warn       | **Optional.** The warning threshold.
-snmp_crit       | **Optional.** The critical threshold.
+Name                | Description
+--------------------|--------------
+snmp_address        | **Optional.** The host's address. Defaults to "$address$".
+snmp_oid            | **Required.** The SNMP OID.
+snmp_community      | **Optional.** The SNMP community. Defaults to "public".
+snmp_warn           | **Optional.** The warning threshold.
+snmp_crit           | **Optional.** The critical threshold.
+snmp_string         | **Optional.** Return OK state if the string exact match with the output value
+snmp_ereg           | **Optional.** Return OK state if extended regular expression REGEX matches with the output value
+snmp_eregi          | **Optional.** Return OK state if case-insensitive extended REGEX matches with the output value
+snmp_label          | **Optional.** Prefix label for output value
+snmp_invert_search  | **Optional.** Invert search result and return CRITICAL state if found
+snmp_units          | **Optional.** Units label(s) for output value (e.g., 'sec.').
 
 #### <a id="plugin-check-command-snmp"></a> snmpv3
 
