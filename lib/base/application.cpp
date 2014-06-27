@@ -183,7 +183,7 @@ void Application::SetResourceLimits(void)
 	}
 
 	if (set_stack_rlimit) {
-		rl.rlim_cur = 256 * 1024;
+		rl.rlim_cur = 1024 * 1024;
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_STACK, &rl) < 0)
