@@ -124,7 +124,8 @@ Description: host and network monitoring system - documentation
 
 Package: icinga2-classicui
 Architecture: all
-Depends: icinga-cgi-bin | icinga-cgi (>= 1.9.0~),
+Depends: apache2-utils,
+         icinga-cgi-bin | icinga-cgi (>= 1.9.0~),
          icinga2-common (= ${source:Version}),
          ${misc:Depends}
 Recommends: apache2 | httpd
