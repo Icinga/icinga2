@@ -18,7 +18,7 @@ if [ -n "$1" ]; then
 		exit 1
 	fi
 
-	if ! base64 -i -d $1 | tar ztf >/dev/null 2>&1; then
+	if ! base64 -i -d $1 | tar zt >/dev/null 2>&1; then
 		echo "The bundle file is invalid or corrupted."
 		exit 1
 	fi
