@@ -18,7 +18,7 @@ if [ -n "$1" ]; then
 		exit 1
 	fi
 
-	if ! base64 -d $1 >/dev/null 2>&1; then
+	if ! base64 -i -d $1 | tar ztf >/dev/null 2>&1; then
 		echo "The bundle file is invalid or corrupted."
 		exit 1
 	fi
@@ -114,7 +114,7 @@ if [ -n "$1" ]; then
 	fi
 
 	echo "Installing the certificate bundle..."
-	base64 -d < $1 | tar -C $ICINGA2CONFIG/pki/ -zx || exit 1
+	base64 -i -d < $1 | tar -C $ICINGA2CONFIG/pki/ -zx || exit 1
 	chown @ICINGA2_USER@:@ICINGA2_GROUP@ $ICINGA2CONFIG/pki/* || exit 1
 
 	echo "Setting up api.conf..."
