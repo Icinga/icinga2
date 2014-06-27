@@ -1179,6 +1179,9 @@ Custom attributes in command definitions or performance data templates are evalu
 runtime when executing a command. These custom attributes cannot be used elsewhere
 (e.g. in other configuration attributes).
 
+Custom attribute values must be either a string, a number or a boolean value. Arrays
+and dictionaries cannot be used.
+
 Here is an example of a command definition which uses user-defined custom attributes:
 
     object CheckCommand "my-ping" {
