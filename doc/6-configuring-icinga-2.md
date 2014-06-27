@@ -190,6 +190,8 @@ Operator | Examples (Result)                             | Description
 /        | 5m / 5 (60)                                   | Divides two numbers
 &        | 7 & 3 (3)                                     | Binary AND
 &#124;   | 2 &#124; 3 (3)                                | Binary OR
+&&       | true && false (false)                         | Logical AND
+&#124;&#124; | true &#124;&#124; false (true)            | Logical OR
 <        | 3 < 5 (true)                                  | Less than
 >        | 3 > 5 (false)                                 | Greater than
 <=       | 3 <= 3 (true)                                 | Less than or equal
