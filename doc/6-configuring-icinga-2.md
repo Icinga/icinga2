@@ -795,12 +795,24 @@ Example:
         "-S" = {
           set_if = "$http_ssl$"
         }
+        "--sni" = {
+          set_if = "$http_sni$"
+        }
+        "-a" = {
+          value = "$http_auth_pair$"
+          description = "Username:password on sites with basic authentication"
+        }
+        "--no-body" = {
+          set_if = "$http_ignore_body$"
+        }
+        "-r" = "$http_expect_body_regex$"
         "-w" = "$http_warn_time$"
         "-c" = "$http_critical_time$"
       }
 
       vars.http_address = "$address$"
       vars.http_ssl = false
+      vars.http_sni = false
     }
 
 
@@ -1915,6 +1927,7 @@ http_vhost               | **Optional.** The virtual host that should be sent in
 http_uri                 | **Optional.** The request URI.
 http_port                | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
 http_ssl                 | **Optional.** Whether to use SSL. Defaults to false.
+http_sni                 | **Optional.** Whether to use SNI. Defaults to false.
 http_auth_pair           | **Optional.** Add 'username:password' authorization pair.
 http_ignore_body         | **Optional.** Don't download the body, just the headers.
 http_expect_body_regex   | **Optional.** A regular expression which the body must match against. Incompatible with http_ignore_body.
