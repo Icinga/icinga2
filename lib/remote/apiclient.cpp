@@ -67,7 +67,7 @@ ConnectionRole ApiClient::GetRole(void) const
 void ApiClient::SendMessage(const Dictionary::Ptr& message)
 {
 	try {
-		ObjectLock olock(m_Stream);
+		boost::mutex::scoped_lock lock(m_WriteMutex);
 		JsonRpc::SendMessage(m_Stream, message);
 		if (message->Get("method") != "log::SetLogPosition")
 			m_Seen = Utility::GetTime();

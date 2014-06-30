@@ -58,6 +58,7 @@ public:
 	void SendMessage(const Dictionary::Ptr& request);
 
 private:
+	boost::mutex m_WriteMutex;
 	String m_Identity;
 	Endpoint::Ptr m_Endpoint;
 	Stream::Ptr m_Stream;
