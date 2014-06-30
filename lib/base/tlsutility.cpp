@@ -66,7 +66,7 @@ shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, 
 
 	shared_ptr<SSL_CTX> sslContext = shared_ptr<SSL_CTX>(SSL_CTX_new(TLSv1_method()), SSL_CTX_free);
 
-	SSL_CTX_set_mode(sslContext.get(), 0);
+	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER | SSL_MODE_AUTO_RETRY);
 
 	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
 		BOOST_THROW_EXCEPTION(openssl_error()
