@@ -20,7 +20,6 @@
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/objectlock.hpp"
 #include "base/logger_fwd.hpp"
 #include <boost/bind.hpp>
 #include <iostream>
@@ -184,32 +183,6 @@ size_t TlsStream::Read(void *buffer, size_t count)
 }
 
 void TlsStream::Write(const void *buffer, size_t count)
-{
-	{
-		ObjectLock olock(&m_SendQ);
-		m_SendQ.Write(buffer, count);
-	}
-
-	Utility::QueueAsyncCallback(boost::bind(&TlsStream::FinishAsyncWrite, this));
-}
-
-void TlsStream::FinishAsyncWrite(void)
-{
-	boost::mutex::scoped_lock lock(m_WriteMutex);
-	
-	for (;;) {
-		ObjectLock olock(&m_SendQ);
-		char buffer[1024];
-		size_t count = m_SendQ.Read(buffer, sizeof(buffer));
-		
-		if (count == 0)
-			break; /* No more data in the sendq */
-		
-		WriteSync(buffer, count);
-	}
-}
-
-void TlsStream::WriteSync(const void *buffer, size_t count)
 {
 	size_t left = count;
 

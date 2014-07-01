@@ -23,7 +23,6 @@
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
 #include "base/stream.hpp"
-#include "base/fifo.hpp"
 #include "base/tlsutility.hpp"
 
 namespace icinga
@@ -50,7 +49,6 @@ public:
 
 	virtual size_t Read(void *buffer, size_t count);
 	virtual void Write(const void *buffer, size_t count);
-        void WriteSync(const void *buffer, size_t count);
 
 	virtual bool IsEof(void) const;
 
@@ -58,9 +56,6 @@ private:
 	boost::mutex m_SSLLock;
 	shared_ptr<SSL> m_SSL;
 	BIO *m_BIO;
-        
-        boost::mutex m_WriteMutex;
-        FIFO m_SendQ;
 
 	Socket::Ptr m_Socket;
 	ConnectionRole m_Role;
@@ -69,8 +64,6 @@ private:
 	static bool m_SSLIndexInitialized;
 
 	static void NullCertificateDeleter(X509 *certificate);
-        
-        void FinishAsyncWrite(void);
 };
 
 }
