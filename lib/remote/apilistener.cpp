@@ -364,6 +364,10 @@ void ApiListener::ApiTimerHandler(void)
 				if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty())
 					continue;
 
+				/* don't try to connect if there's already a connection attempt */
+				if (endpoint->GetConnecting())
+					continue;
+
 				Utility::QueueAsyncCallback(boost::bind(&ApiListener::AddConnection, this, endpoint));
 			}
 		}

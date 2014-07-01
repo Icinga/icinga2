@@ -23,6 +23,7 @@
 #include "remote/endpoint.hpp"
 #include "base/stream.hpp"
 #include "base/timer.hpp"
+#include "base/workqueue.hpp"
 #include "remote/i2-remote.hpp"
 
 namespace icinga
@@ -64,8 +65,11 @@ private:
 	ConnectionRole m_Role;
 	double m_Seen;
 
+	WorkQueue m_WriteQueue;
+
 	bool ProcessMessage(void);
 	void MessageThreadProc(void);
+	void SendMessageSync(const Dictionary::Ptr& request);
 };
 
 }
