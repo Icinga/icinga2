@@ -18,6 +18,6 @@ touch $ICINGA_CA/index.txt
 cp $ICINGA2PKIDIR/vars $ICINGA_CA/
 . $ICINGA_CA/vars
 
-KEY_DIR=$ICINGA_CA openssl req -config $ICINGA2PKIDIR/openssl.cnf -new -newkey rsa:4096 -x509 -days 3650 -keyform PEM -keyout $ICINGA_CA/ca.key -outform PEM -out $ICINGA_CA/ca.crt && \
+KEY_DIR=$ICINGA_CA openssl req -config $ICINGA2PKIDIR/openssl-quiet.cnf -new -newkey rsa:4096 -x509 -days 3650 -keyform PEM -keyout $ICINGA_CA/ca.key -outform PEM -out $ICINGA_CA/ca.crt && \
 	chmod 600 $ICINGA_CA/ca.key && \
 	echo -e "\n\tIf you want to change the default settings for server certificates check out \"$ICINGA_CA/vars\".\n"
