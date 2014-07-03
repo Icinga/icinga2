@@ -432,9 +432,9 @@ exit 0
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %if 0%{?use_systemd}
-%attr(644,-,0) %{_unitdir}/%{name}.service
+%attr(644,root,root) %{_unitdir}/%{name}.service
 %else
-%attr(755,-,-) %{_sysconfdir}/init.d/%{name}
+%attr(755,root,root) %{_sysconfdir}/init.d/%{name}
 %endif
 %if "%{_vendor}" == "suse"
 %{_sbindir}/rc%{name}
