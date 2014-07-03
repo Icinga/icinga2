@@ -124,7 +124,7 @@ include(GNUInstallDirs)
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
 install(
-  FILES README COPYING COPYING.Exceptions AUTHORS ChangeLog INSTALL NEWS
+  FILES README COPYING COPYING.Exceptions AUTHORS ChangeLog NEWS
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
 )
 
