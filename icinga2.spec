@@ -36,11 +36,15 @@
 %endif
 
 %if "%{_vendor}" == "suse"
+%if 0%{?suse_version} >= 1310
+%define use_systemd 1
+%else
+%define use_systemd 0
+%endif
 %define apachename apache2
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
 %define apachegroup www
-%define use_systemd 0
 %endif
 
 %define icinga_user icinga
@@ -250,6 +254,18 @@ sed -i 's@PluginDir = .*@PluginDir = "%{_libdir}/nagios/plugins"@' %{buildroot}/
 # remove features-enabled symlinks
 rm -f %{buildroot}/%{_sysconfdir}/%{name}/features-enabled/*.conf
 
+# enable suse rc links
+%if "%{_vendor}" == "suse"
+%if 0%{?use_systemd}
+  ln -sf /usr/sbin/service %{buildroot}%{_sbindir}/rc%{name}
+%else
+  ln -sf ../../%{_initrddir}/%{name} "%{buildroot}%{_sbindir}/rc%{name}"
+%endif
+mkdir -p "%{buildroot}%{_localstatedir}/adm/fillup-templates/"
+mv "%{buildroot}%{_sysconfdir}/sysconfig/%{name}" "%{buildroot}%{_localstatedir}/adm/fillup-templates/sysconfig.%{name}"
+%endif
+
+
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 
@@ -259,12 +275,26 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
+
+%if "%{_vendor}" == "suse"
+%if 0%{?use_systemd}
+%pre bin
+  %service_add_pre %{name}.service
+%endif
+%endif
+
+
 # all restart/feature actions belong to icinga2-bin
 %post bin
 # suse
 %if 0%{?suse_version}
 
+%if 0%{?use_systemd}
+%fillup_only  %{name}
+%service_add_post %{name}.service
+%else
 %fillup_and_insserv %{name}
+%endif
 
 # initial installation, enable default features
 %{_sbindir}/icinga2-enable-feature checker notification mainlog
@@ -294,9 +324,12 @@ exit 0
 %postun bin
 # suse
 %if 0%{?suse_version}
-
-%restart_on_update %{name}
-%insserv_cleanup
+%if 0%{?using_systemd}
+  %service_del_postun %{name}.service
+%else
+  %restart_on_update %{name}
+  %insserv_cleanup
+%endif
 
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove enabled features
@@ -329,6 +362,11 @@ exit 0
 # suse
 %if 0%{?suse_version}
 
+%if 0%{?use_systemd}
+  %service_del_preun %{name}.service
+%else
+  %stop_on_removal %{name}
+%endif
 if [ "$1" = "0" ]; then
 	%stop_on_removal %{name}
 fi
@@ -415,6 +453,12 @@ exit 0
 %else
 %attr(755,-,-) %{_sysconfdir}/init.d/%{name}
 %endif
+%if "%{_vendor}" == "suse"
+%{_sbindir}/rc%{name}
+%{_localstatedir}/adm/fillup-templates/sysconfig.%{name}
+%else
+%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
+%endif
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d/hosts
@@ -432,7 +476,6 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
-%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-build-ca
 %{_bindir}/%{name}-build-key
