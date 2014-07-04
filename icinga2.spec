@@ -148,11 +148,6 @@ Summary:      IDO MySQL database backend for Icinga 2
 Group:        Applications/System
 %if "%{_vendor}" == "suse"
 BuildRequires: libmysqlclient-devel
-%if 0%{?suse_version} >= 1210
-Requires: libmysqlclient18
-%else
-Requires: libmysqlclient15
-%endif
 %endif
 %if "%{_vendor}" == "redhat"
 # el5 only provides mysql package
