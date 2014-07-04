@@ -173,7 +173,7 @@ Group:        Applications/System
 Requires:     %{name} = %{version}-%{release}
 
 %description doc
-Documentation for Icinga 2
+Provides documentation for Icinga 2.
 
 
 %package ido-mysql
