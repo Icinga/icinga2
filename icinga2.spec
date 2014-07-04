@@ -158,6 +158,9 @@ Group:        Applications/System
 Requires(pre): shadow-utils
 Requires(post): shadow-utils
 %endif
+%if "%{_vendor}" == "suse"
+Recommends:   logrotate
+%endif
 
 %description common
 Provides common directories, uid and gid among Icinga 2 related
