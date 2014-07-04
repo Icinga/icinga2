@@ -57,7 +57,7 @@ public:
 	void Listen(void);
 	Socket::Ptr Accept(void);
 
-	void Poll(bool read, bool write);
+	bool Poll(bool read, bool write);
 
 	void MakeNonBlocking(void);
 
