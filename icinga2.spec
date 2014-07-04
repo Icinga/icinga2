@@ -78,6 +78,9 @@ Meta package for Icinga 2 Core, DB IDO and Web.
 Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
+%if "%{_vendor}" == "suse"
+PreReq: permissions
+%endif
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
@@ -267,6 +270,11 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
+%if "%{_vendor}" == "suse"
+%verifyscript bin
+%verify_permissions -e /var/run/icinga2/cmd
+%endif
+
 
 %if "%{_vendor}" == "suse"
 %if 0%{?use_systemd}
@@ -280,7 +288,9 @@ exit 0
 %post bin
 # suse
 %if 0%{?suse_version}
-
+%if 0%{?suse_version} >= 1310
+%set_permissions /var/run/icinga2/cmd
+%endif
 %if 0%{?use_systemd}
 %fillup_only  %{name}
 %service_add_post %{name}.service
