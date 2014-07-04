@@ -331,13 +331,6 @@ exit 0
   %insserv_cleanup
 %endif
 
-if [ "$1" = "0" ]; then
-	# deinstallation of the package - remove enabled features
-	rm -rf %{_sysconfdir}/%{name}/features-enabled
-fi
-
-exit 0
-
 %else
 # rhel
 
@@ -349,14 +342,15 @@ if [ "$1" -ge  "1" ]; then
 fi
 %endif
 
+%endif
+# suse / rhel
+
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove enabled features
 	rm -rf %{_sysconfdir}/%{name}/features-enabled
 fi
 
 exit 0
-%endif
-# suse / rhel
 
 %preun bin
 # suse
@@ -367,9 +361,6 @@ exit 0
 %else
   %stop_on_removal %{name}
 %endif
-if [ "$1" = "0" ]; then
-	%stop_on_removal %{name}
-fi
 
 exit 0
 
