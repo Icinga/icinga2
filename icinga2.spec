@@ -170,9 +170,6 @@ IDOUtils schema >= 1.10
 %package ido-pgsql
 Summary:      IDO PostgreSQL database backend for Icinga 2
 Group:        Applications/System
-%if "%{_vendor}" == "suse"
-BuildRequires: postgresql-libs
-%endif
 BuildRequires: postgresql-devel
 Requires: postgresql-libs
 Requires: %{name} = %{version}-%{release}
