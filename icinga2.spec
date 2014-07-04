@@ -267,6 +267,8 @@ cmake $CMAKE_OPTS .
 
 make %{?_smp_mflags}
 
+rm -f components/db_ido_*sql/schema/upgrade/.gitignore
+
 %install
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 make install \
