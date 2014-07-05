@@ -471,6 +471,8 @@ fi
 exit 0
 
 %files
+%defattr(-,root,root,-)
+%doc COPYING
 
 %files bin
 %defattr(-,root,root,-)
