@@ -86,9 +86,9 @@ void IdoPgsqlConnection::Resume(void)
 
 void IdoPgsqlConnection::Pause(void)
 {
-	DbConnection::Pause();
-
 	m_ReconnectTimer.reset();
+
+	DbConnection::Pause();
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::Disconnect, this));
 	m_QueryQueue.Join();

@@ -84,9 +84,9 @@ void IdoMysqlConnection::Resume(void)
 
 void IdoMysqlConnection::Pause(void)
 {
-	DbConnection::Pause();
-
 	m_ReconnectTimer.reset();
+
+	DbConnection::Pause();
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this));
 	m_QueryQueue.Join();
