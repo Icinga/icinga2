@@ -119,9 +119,10 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			return;
 		}
 
-		char line[2048];
+		const int linesize = 128 * 1024;
+		char *line = new char[linesize];
 
-		while (fgets(line, sizeof(line), fp) != NULL) {
+		while (fgets(line, linesize, fp) != NULL) {
 			// remove trailing new-line
 			while (strlen(line) > 0 &&
 			    (line[strlen(line) - 1] == '\r' || line[strlen(line) - 1] == '\n'))
@@ -140,6 +141,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			}
 		}
 
+		delete line;
 		fclose(fp);
 	}
 }
