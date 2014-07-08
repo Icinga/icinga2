@@ -26,7 +26,10 @@ fi
 
 [ -f $ICINGA_CA/vars ] && . $ICINGA_CA/vars
 
-openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$csrfile -outform PEM -out $ICINGA_CA/$pubkfile.crt -CAserial $ICINGA_CA/serial
+if ! openssl x509 -days "$REQ_DAYS" -CA $ICINGA_CA/ca.crt -CAkey $ICINGA_CA/ca.key -req -in $ICINGA_CA/$csrfile -outform PEM -out $ICINGA_CA/$pubkfile.crt -CAserial $ICINGA_CA/serial; then
+	echo "Signing the CSR failed." >&2
+	exit 1
+fi
 
 cn=`openssl x509 -in $pubkfile.crt -subject | grep -Eo '/CN=[^ ]+' | cut -f2- -d=`
 
