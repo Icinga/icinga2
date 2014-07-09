@@ -72,7 +72,7 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 		return;
 	}
 
-	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, this, message));
+	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, static_cast<ApiClient::Ptr>(GetSelf()), message));
 }
 
 void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
@@ -96,7 +96,6 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 void ApiClient::Disconnect(void)
 {
 	Log(LogWarning, "ApiClient", "API client disconnected for identity '" + m_Identity + "'");
-	m_Stream->Close();
 
 	if (m_Endpoint)
 		m_Endpoint->RemoveClient(GetSelf());
@@ -104,6 +103,8 @@ void ApiClient::Disconnect(void)
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 		listener->RemoveAnonymousClient(GetSelf());
 	}
+
+	m_Stream->Close();
 }
 
 bool ApiClient::ProcessMessage(void)
