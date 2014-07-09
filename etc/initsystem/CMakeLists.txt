@@ -17,7 +17,7 @@
 
 if(NOT WIN32)
   if(NOT DEFINED ICINGA2_SYSCONFIGFILE)
-    set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
+    set(ICINGA2_SYSCONFIGFILE "${CMAKE_INSTALL_FULL_SYSCONFDIR}/sysconfig/icinga2" CACHE PATH "where to store configuation for the init system, defaults to /etc/sysconfig/icinga2")
   endif()
 
   configure_file(icinga2.sysconfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/initsystem/icinga2.sysconfig @ONLY)
