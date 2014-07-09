@@ -300,7 +300,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 	std::set<User::Ptr> allNotifiedUsers;
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
-		if (!CheckNotificationUserFilters(type, user, force))
+		if (!user->GetEnableNotifications() || !CheckNotificationUserFilters(type, user, force))
 			continue;
 
 		Log(LogInformation, "Notification", "Sending notification for user '" + user->GetName() + "'");
