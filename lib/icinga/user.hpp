@@ -46,8 +46,13 @@ public:
 
 	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
 
+	bool GetEnableNotifications(void) const;
+	void SetEnableNotifications(bool enabled, const MessageOrigin& origin = MessageOrigin());
+
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
+
+	static boost::signals2::signal<void (const User::Ptr&, bool, const MessageOrigin&)> OnEnableNotificationsChanged;
 
 protected:
 	virtual void Stop(void);

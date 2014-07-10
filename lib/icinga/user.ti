@@ -26,9 +26,11 @@ class User : CustomVarObject
 	[config] String email;
 	[config] String pager;
 
-	[state] bool enable_notifications {
+	[config] bool enable_notifications (EnableNotificationsRaw) {
 		default {{{ return true; }}}
 	};
+
+	[state] Value override_enable_notifications;
 	[state] double last_notification;
 };
 

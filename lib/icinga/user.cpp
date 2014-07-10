@@ -30,6 +30,8 @@ using namespace icinga;
 REGISTER_TYPE(User);
 REGISTER_SCRIPTFUNCTION(ValidateUserFilters, &User::ValidateFilters);
 
+boost::signals2::signal<void (const User::Ptr&, bool, const MessageOrigin&)> User::OnEnableNotificationsChanged;
+
 void User::OnConfigLoaded(void)
 {
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
@@ -48,7 +50,6 @@ void User::OnConfigLoaded(void)
 		}
 	}
 }
-
 
 void User::Stop(void)
 {
@@ -124,3 +125,19 @@ void User::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 		OnVarsChanged(GetSelf(), origin);
 	}
 }
+
+bool User::GetEnableNotifications(void) const
+{
+	if (!GetOverrideEnableNotifications().IsEmpty())
+		return GetOverrideEnableNotifications();
+	else
+		return GetEnableNotificationsRaw();
+}
+
+void User::SetEnableNotifications(bool enabled, const MessageOrigin& origin)
+{
+	SetOverrideEnableNotifications(enabled);
+
+	OnEnableNotificationsChanged(GetSelf(), enabled, origin);
+}
+
