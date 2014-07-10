@@ -808,6 +808,7 @@ Example:
         "-r" = "$http_expect_body_regex$"
         "-w" = "$http_warn_time$"
         "-c" = "$http_critical_time$"
+        "-e" = "$http_expect$"
       }
 
       vars.http_address = "$address$"
@@ -1933,6 +1934,7 @@ http_ignore_body         | **Optional.** Don't download the body, just the heade
 http_expect_body_regex   | **Optional.** A regular expression which the body must match against. Incompatible with http_ignore_body.
 http_warn_time           | **Optional.** The warning threshold.
 http_critical_time       | **Optional.** The critical threshold.
+http_expect              | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
 
 #### <a id="plugin-check-command-ftp"></a> ftp
 

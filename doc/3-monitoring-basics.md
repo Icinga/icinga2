@@ -736,6 +736,7 @@ macro value can be resolved by Icinga 2.
         "-r" = "$http_expect_body_regex$"
         "-w" = "$http_warn_time$"
         "-c" = "$http_critical_time$"
+        "-e" = "$http_expect$"
       }
 
       vars.http_address = "$address$"
