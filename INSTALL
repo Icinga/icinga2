@@ -72,7 +72,7 @@ Here's a short check-list for releases:
 * Bump the version in icinga2.spec.
 * Update the ChangeLog and doc/1-about.md files.
 * Commit these changes to the "next" branch and create a signed tag (tags/v<VERSION>).
-    $ git commit -v -a -m "Release version <VERSION>."
+    $ git commit -v -a -m "Release version <VERSION>"
     $ git tag -u EE8E0720 -m "Version <VERSION>" v<VERSION>
     $ git push --tags
 * Merge the "next" branch into the "master" branch (using --ff-only).

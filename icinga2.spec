@@ -17,7 +17,7 @@
 # * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 # ******************************************************************************/
 
-%define revision 3
+%define revision 1
 
 %if "%{_vendor}" == "redhat"
 %define el5_boost_version 141
@@ -62,7 +62,7 @@
 
 Summary: Network monitoring application
 Name: icinga2
-Version: 2.0.0
+Version: 2.0.1
 Release: %{revision}%{?dist}
 License: GPLv2+
 Group: Applications/System

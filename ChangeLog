@@ -4,9 +4,46 @@ Please check doc/1-about.md.
 
 ## What's New
 
-### What's New in Version 2.0.0
+### What's New in Version 2.0.1
 
-Lots of things. Please read doc/1-about.md - "Icinga 2 in a nutshell"
+* Bug #6316: application fails to start on wrong log file permissions but does not tell about it
+* Bug #6368: Deadlock in ApiListener::RelayMessage
+* Bug #6373: base64 on CentOS 5 fails to read certificate bundles
+* Bug #6388: Debian package icinga2-classicui needs versioned dependency of icinga-cgi*
+* Bug #6488: build warnings
+* Bug #6492: icinga2.state could not be opened
+* Bug #6493: Copyright problems
+* Bug #6498: icinga2 cannot be built with both systemd and init.d files
+* Bug #6510: Reminder notifications are sent on disabled services
+* Bug #6526: htpasswd should be installed with icinga2-classicui on Ubuntu
+* Bug #6529: parsing of double defined command can generate unexpected errors
+* Bug #6537: Icinga doesn't send SetLogPosition messages when one of the endpoints fails to connect
+* Bug #6551: Improve systemd service definition
+* Bug #6565: Dependencies should cache their parent and child object
+* Bug #6574: Check command result doesn't match
+* Bug #6576: Remove line number information from stack traces
+* Bug #6588: Notifications causing segfault from exim
+* Bug #6605: Please add --sni option to http check command
+* Bug #6612: Icinga stops updating IDO after a while
+* Bug #6617: TLS connections are still unstable
+* Bug #6620: icinga2-build-ca shouldn't prompt for DN
+* Bug #6622: icinga2-sign-key creates ".crt" and ".key" files when the CA passphrase is invalid
+* Bug #6657: ICINGA2_SYSCONFIGFILE should use full path using CMAKE_INSTALL_FULL_SYSCONFDIR
+* Bug #6662: Increase icinga.cmd Limit
+* Bug #6665: Build fails when MySQL is not installed
+* Bug #6671: enabled_notification doesn't work as expected
+* Bug #6672: Icinga crashes after "Too many queued messages"
+* Bug #6673: enable_notifications = false for users has no effect
+* Feature #6531: Add port option to check imap/pop/smtp and a new dig
+* Feature #6581: Add more options to snmp check
+* DB IDO - Bug #5577: PostgreSQL string escaping
+* DB IDO - Bug #6577: icinga2-ido-pgsql snapshot package missing dependecy dbconfig-common
+* Documentation - Bug #6506: Array section confusing
+* Documentation - Bug #6592: Documentation for || and && is missing
+* Documentation - Feature #6658: change docs.icinga.org/icinga2/latest to git master
+* Livestatus - Bug #6494: Thruk Panorama View cannot query Host Status
+* Livestatus - Feature #5312: OutputFormat python
+* Migration - Bug #6559: $SERVICEDESC$ isn't getting converted correctly
 
 #### Changes
 
