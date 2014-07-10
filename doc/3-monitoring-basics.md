@@ -901,11 +901,17 @@ NotificationCommand object refer to that.
 
 ### <a id="event-commands"></a> Event Commands
 
-Unlike notifications event commands are called on every service execution
-if defined. Therefore the `EventCommand` object should define a command line
+Unlike notifications event commands are called on every host/service execution
+if one of these conditions match:
+
+* The host/service is in a [soft state](#hard-soft-states)
+* The host/service state changes into a [hard state](#hard-soft-states)
+* The host/service state recovers from a [soft or hard state](#hard-soft-states) to [OK](#service-states)/[Up](#host-states)
+
+Therefore the `EventCommand` object should define a command line
 evaluating the current service state and other service runtime attributes
-available through runtime vars. Runtime macros such as `$SERVICESTATETYPE$`
-and `$SERVICESTATE$` will be processed by Icinga 2 helping on fine-granular
+available through runtime vars. Runtime macros such as `$service.state_type$`
+and `$service.state$` will be processed by Icinga 2 helping on fine-granular
 events being triggered.
 
 Common use case scenarios are a failing HTTP check requiring an immediate
@@ -1602,22 +1608,6 @@ A list of currently supported external commands can be found [here](#external-co
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
-
-
-## <a id="event-handlers"></a> Event Handlers
-
-Event handlers are defined as `EventCommand` objects in Icinga 2.
-
-Unlike notifications event commands are called on every host/service execution
-if defined. Therefore the `EventCommand` object should define a command line
-evaluating the current service state and other service runtime attributes
-available through runtime macros. Runtime macros such as `$service.state_type$`
-and `$service.state$` will be processed by Icinga 2 helping on fine-granular
-events being triggered.
-
-Common use case scenarios are a failing HTTP check requiring an immediate
-restart via event command, or if an application is locked and requires
-a restart upon detection.
 
 
 ## <a id="logging"></a> Logging
