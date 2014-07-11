@@ -66,7 +66,7 @@ Version: 2.0.1
 Release: %{revision}%{?dist}
 License: GPL-2.0+
 Group: Applications/System
-Source: %{name}-%{version}.tar.gz
+Source: https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
