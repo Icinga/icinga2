@@ -251,7 +251,7 @@ Sets a dictionary element to the specified value.
 Example:
 
     {
-      a = 5,
+      a = 5
       a = 7
     }
 
@@ -875,18 +875,18 @@ Example:
       ]
 
       env = {
-        "NOTIFICATIONTYPE" = "$notification.type$"
-        "SERVICEDESC" = "$service.name$"
-        "HOSTALIAS" = "$host.display_name$",
-        "HOSTADDRESS" = "$address$",
-        "SERVICESTATE" = "$service.state$",
-        "LONGDATETIME" = "$icinga.long_date_time$",
-        "SERVICEOUTPUT" = "$service.output$",
-        "NOTIFICATIONAUTHORNAME" = "$notification.author$",
-        "NOTIFICATIONCOMMENT" = "$notification.comment$",
-        "HOSTDISPLAYNAME" = "$host.display_name$",
-        "SERVICEDISPLAYNAME" = "$service.display_name$",
-        "USEREMAIL" = "$user.email$"
+        NOTIFICATIONTYPE = "$notification.type$"
+        SERVICEDESC = "$service.name$"
+        HOSTALIAS = "$host.display_name$"
+        HOSTADDRESS = "$address$"
+        SERVICESTATE = "$service.state$"
+        LONGDATETIME = "$icinga.long_date_time$"
+        SERVICEOUTPUT = "$service.output$"
+        NOTIFICATIONAUTHORNAME = "$notification.author$"
+        NOTIFICATIONCOMMENT = "$notification.comment$"
+        HOSTDISPLAYNAME = "$host.display_name$"
+        SERVICEDISPLAYNAME = "$service.display_name$"
+        USEREMAIL = "$user.email$"
       }
     }
 

@@ -849,18 +849,18 @@ you can add a `vars` dictionary as shown for the `CheckCommand` object.
       command = [ SysconfDir + "/icinga2/scripts/mail-notification.sh" ]
 
       env = {
-        "NOTIFICATIONTYPE" = "$notification.type$"
-        "SERVICEDESC" = "$service.name$"
-        "HOSTALIAS" = "$host.display_name$",
-        "HOSTADDRESS" = "$address$",
-        "SERVICESTATE" = "$service.state$",
-        "LONGDATETIME" = "$icinga.long_date_time$",
-        "SERVICEOUTPUT" = "$service.output$",
-        "NOTIFICATIONAUTHORNAME" = "$notification.author$",
-        "NOTIFICATIONCOMMENT" = "$notification.comment$",
-    	"HOSTDISPLAYNAME" = "$host.display_name$",
-        "SERVICEDISPLAYNAME" = "$service.display_name$",
-        "USEREMAIL" = "$user.email$"
+        NOTIFICATIONTYPE = "$notification.type$"
+        SERVICEDESC = "$service.name$"
+        HOSTALIAS = "$host.display_name$"
+        HOSTADDRESS = "$address$"
+        SERVICESTATE = "$service.state$"
+        LONGDATETIME = "$icinga.long_date_time$"
+        SERVICEOUTPUT = "$service.output$"
+        NOTIFICATIONAUTHORNAME = "$notification.author$"
+        NOTIFICATIONCOMMENT = "$notification.comment$"
+    	HOSTDISPLAYNAME = "$host.display_name$"
+        SERVICEDISPLAYNAME = "$service.display_name$"
+        USEREMAIL = "$user.email$"
       }
     }
 
@@ -1032,7 +1032,7 @@ and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
 
     object Host "nrpe-server" {
       import "generic-host"
-      address = "192.168.1.5",
+      address = "192.168.1.5"
     }
 
     apply Dependency "disable-nrpe-checks" to Service {
