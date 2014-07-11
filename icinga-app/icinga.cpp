@@ -403,6 +403,13 @@ int Main(void)
 			}
 		}
 
+		if (setgroups(0, NULL) < 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "icinga-app",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+
 		if (setgid(gr->gr_gid) < 0) {
 			std::ostringstream msgbuf;
 			msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
