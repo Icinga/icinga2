@@ -759,7 +759,7 @@ to the default used in Icinga 2. Make sure to clear the cache afterwards.
 
                 <write>
                     <files>
-                        <resource name="icinga_pipe">/var/run/icinga2/cmd/icinga.cmd</resource>
+                        <resource name="icinga_pipe">/var/run/icinga2/cmd/icinga2.cmd</resource>
                     </files>
                 </write>
 
