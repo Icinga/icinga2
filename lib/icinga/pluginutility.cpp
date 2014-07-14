@@ -46,16 +46,7 @@ struct CommandArgument
 
 	bool operator<(const CommandArgument& rhs) const
 	{
-		return GetNormalizedOrder() < rhs.GetNormalizedOrder();
-	}
-
-private:
-	int GetNormalizedOrder(void) const
-	{
-		if (Order == 0)
-			return 0;
-		else
-			return -(1 / Order);
+		return Order < rhs.Order;
 	}
 };
 
