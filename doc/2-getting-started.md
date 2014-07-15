@@ -177,7 +177,7 @@ a local dummy zone is defined based on the `NodeName` constant defined in
 
 ### <a id="localhost-conf"></a> localhost.conf
 
-The `conf.d/localhost.conf` file contains our first host definition:
+The `conf.d/hosts/localhost.conf` file contains our first host definition:
 
     /**
      * A host definition. You can create your own configuration files
