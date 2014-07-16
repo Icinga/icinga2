@@ -25,7 +25,8 @@ override_dh_auto_configure:
 		-DICINGA2_USER=nagios \
 		-DICINGA2_GROUP=nagios \
 		-DICINGA2_COMMAND_USER=nagios \
-		-DICINGA2_COMMAND_GROUP=www-data
+		-DICINGA2_COMMAND_GROUP=www-data \
+		-DICINGA2_PLUGIN_PATH=/usr/lib/nagios/plugins
 
 override_dh_auto_install:
 	dh_auto_install

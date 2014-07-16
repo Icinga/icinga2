@@ -237,12 +237,12 @@ for Icinga 2.
 %build
 CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DCMAKE_INSTALL_SYSCONFDIR=/etc \
-		 -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
+         -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
          -DICINGA2_USER=%{icinga_user} \
          -DICINGA2_GROUP=%{icinga_group} \
-	     -DICINGA2_COMMAND_USER=%{icinga_user} \
-	     -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
+         -DICINGA2_COMMAND_USER=%{icinga_user} \
+         -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
@@ -254,6 +254,12 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
 %endif
+%endif
+
+%if "%{_vendor}" != "suse"
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGIN_PATH=%{_libdir}/nagios/plugins"
+%else
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGIN_PATH=%{_prefix}/lib/nagios/plugins"
 %endif
 
 %if 0%{?use_systemd}
@@ -273,11 +279,6 @@ make install \
 install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassicconfdir}/passwd
 install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cfg
 install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apacheconfdir}/icinga.conf
-
-# fix plugin path on x64
-%if "%{_vendor}" != "suse"
-sed -i 's@PluginDir = .*@PluginDir = "%{_libdir}/nagios/plugins"@' %{buildroot}/%{_sysconfdir}/%{name}/constants.conf
-%endif
 
 # remove features-enabled symlinks
 rm -f %{buildroot}/%{_sysconfdir}/%{name}/features-enabled/*.conf

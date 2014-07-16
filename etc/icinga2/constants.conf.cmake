@@ -4,7 +4,7 @@
  */
 
 /* The directory which contains the plugins from the Monitoring Plugins project. */
-const PluginDir = "/usr/lib/nagios/plugins"
+const PluginDir = "@ICINGA2_PLUGIN_PATH@"
 
 /* Our local instance name. By default this is the server's hostname as returned by `hostname --fqdn`.
  * This should be the common name from the API certificate.
