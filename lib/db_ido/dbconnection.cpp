@@ -64,8 +64,6 @@ void DbConnection::Pause(void)
 	Log(LogInformation, "DbConnection", "Pausing IDO connection: " + GetName());
 
 	m_CleanUpTimer.reset();
-
-	ClearIDCache();
 }
 
 void DbConnection::StaticInitialize(void)
