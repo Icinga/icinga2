@@ -264,12 +264,14 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	long attempt = 1;
 
 	if (!old_cr) {
+		recovery = false;
 		SetStateType(StateTypeHard);
 	} else if (cr->GetState() == ServiceOK) {
-		if (old_state == ServiceOK && old_stateType == StateTypeSoft)
+		if (old_state == ServiceOK && old_stateType == StateTypeSoft) {
 			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
+			recovery = true;
+		}
 
-		recovery = true;
 		ResetNotificationNumbers();
 		SetLastStateOK(Utility::GetTime());
 	} else {
