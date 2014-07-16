@@ -785,7 +785,7 @@ Example:
     object CheckCommand "check_http" {
       import "plugin-check-command"
 
-      command = PluginDir + "/check_http"
+      command = [ PluginDir + "/check_http" ]
 
       arguments = {
         "-H" = "$http_vhost$"
@@ -822,7 +822,7 @@ Attributes:
   Name            |Description
   ----------------|----------------
   methods         |**Required.** The "execute" script method takes care of executing the check. In virtually all cases you should import the "plugin-check-command" template to take care of this setting.
-  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
+  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.

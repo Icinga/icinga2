@@ -669,7 +669,7 @@ can also be inherited from a parent template using additive inheritance (`+=`).
     object CheckCommand "my-disk" {
       import "plugin-check-command"
 
-      command = PluginDir + "/check_disk"
+      command = [ PluginDir + "/check_disk" ]
 
       arguments = {
         "-w" = "$disk_wfree$%"
@@ -713,7 +713,7 @@ macro value can be resolved by Icinga 2.
     object CheckCommand "check_http" {
       import "plugin-check-command"
 
-      command = PluginDir + "/check_http"
+      command = [ PluginDir + "/check_http" ]
 
       arguments = {
         "-H" = "$http_vhost$"
@@ -790,7 +790,7 @@ the service is applied to. If not set, the check command `my-ssh` will omit the 
     object CheckCommand "my-ssh" {
       import "plugin-check-command"
 
-      command = PluginDir + "/check_ssh"
+      command = [ PluginDir + "/check_ssh" ]
 
       arguments = {
         "-p" = "$ssh_port$"

@@ -39,6 +39,8 @@ public:
 
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
+	static void ValidateAttributes(const String& location, const Dictionary::Ptr& attrs);
+
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
 };

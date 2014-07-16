@@ -18,10 +18,13 @@
  ******************************************************************************/
 
 #include "icinga/command.hpp"
+#include "base/scriptfunction.hpp"
+#include "config/configcompilercontext.hpp"
 
 using namespace icinga;
 
 REGISTER_TYPE(Command);
+REGISTER_SCRIPTFUNCTION(ValidateCommandAttributes, &Command::ValidateAttributes);
 
 int Command::GetModifiedAttributes(void) const
 {
@@ -40,3 +43,12 @@ void Command::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 		OnVarsChanged(GetSelf(), origin);
 	}
 }
+
+void Command::ValidateAttributes(const String& location, const Dictionary::Ptr& attrs)
+{
+	if (attrs->Contains("arguments") && !attrs->Get("command").IsObjectType<Array>()) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": Attribute 'command' must be an array if the 'arguments' attribute is set.");
+	}
+}
+
