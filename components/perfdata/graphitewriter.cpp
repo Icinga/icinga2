@@ -166,7 +166,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 void GraphiteWriter::SendMetric(const String& prefix, const String& name, double value)
 {
 	std::ostringstream msgbuf;
-	msgbuf << prefix << "." << name << " " << value << " " << static_cast<long>(Utility::GetTime()) << "\n";
+	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(Utility::GetTime()) << "\n";
 
 	String metric = msgbuf.str();
 	Log(LogDebug, "GraphiteWriter", "GraphiteWriter: Add to metric list:'" + metric + "'.");
