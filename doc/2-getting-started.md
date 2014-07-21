@@ -9,20 +9,22 @@ Details on troubleshooting problems can be found [here](#troubleshooting).
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
 First off you will have to install Icinga 2. The preferred way of doing this
-is to use the official Debian or RPM package repositories depending on which
-operating system and distribution you are running.
+is to use the official package repositories depending on which operating system
+and distribution you are running.
 
-  Distribution            | Repository URL
+  Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | http://packages.icinga.org/debian/
-  Ubuntu                  | http://packages.icinga.org/ubuntu/
-  RHEL/CentOS             | http://packages.icinga.org/epel/
-  OpenSUSE                | http://packages.icinga.org/openSUSE/
-  SLES                    | http://packages.icinga.org/SUSE/
+  Debian                  | [Icinga Repository](http://packages.icinga.org/debian/), [Upstream](https://packages.debian.org/sid/icinga2), [DebMon](http://debmon.org/packages/debmon-wheezy/icinga2)
+  Ubuntu                  | [Icinga Repository](http://packages.icinga.org/ubuntu/), [Upstream](https://launchpad.net/ubuntu/+source/icinga2)
+  RHEL/CentOS             | [Icinga Repository](http://packages.icinga.org/epel/)
+  OpenSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
+  SLES                    | [Icinga Repository](http://packages.icinga.org/SUSE/)
+  Gentoo                  | [Upstream](http://packages.gentoo.org/package/net-analyzer/icinga2)
+  FreeBSD                 | [Upstream](http://www.freshports.org/net-mgmt/icinga2)
+  ArchLinux               | [Upstream](https://aur.archlinux.org/packages/icinga2)
 
 Packages for distributions other than the ones listed above may also be
-available. Please check http://packages.icinga.org/ to see if packages
-are available for your favourite distribution.
+available. Please contact your distribution packagers.
 
 The packages for RHEL/CentOS 5 depend on other packages which are distributed
 as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL). Please
