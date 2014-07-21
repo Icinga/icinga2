@@ -23,10 +23,8 @@
 using namespace icinga;
 
 StdAggregator::StdAggregator(const String& attr)
-    : m_StdSum(0), m_StdQSum(0), m_StdCount(0)
-{
-	m_StdAttr = attr;
-}
+    : m_StdSum(0), m_StdQSum(0), m_StdCount(0), m_StdAttr(attr)
+{ }
 
 void StdAggregator::Apply(const Table::Ptr& table, const Value& row)
 {

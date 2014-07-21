@@ -22,10 +22,8 @@
 using namespace icinga;
 
 InvAvgAggregator::InvAvgAggregator(const String& attr)
-    : m_InvAvg(0), m_InvAvgCount(0)
-{
-	m_InvAvgAttr = attr;
-}
+    : m_InvAvg(0), m_InvAvgCount(0), m_InvAvgAttr(attr)
+{ }
 
 void InvAvgAggregator::Apply(const Table::Ptr& table, const Value& row)
 {

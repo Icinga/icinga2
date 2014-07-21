@@ -22,10 +22,8 @@
 using namespace icinga;
 
 InvSumAggregator::InvSumAggregator(const String& attr)
-    : m_InvSum(0)
-{
-	m_InvSumAttr = attr;
-}
+    : m_InvSum(0), m_InvSumAttr(attr)
+{ }
 
 void InvSumAggregator::Apply(const Table::Ptr& table, const Value& row)
 {

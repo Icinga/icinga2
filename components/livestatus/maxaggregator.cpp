@@ -22,10 +22,8 @@
 using namespace icinga;
 
 MaxAggregator::MaxAggregator(const String& attr)
-    : m_Max(0)
-{
-	m_MaxAttr = attr;
-}
+    : m_Max(0), m_MaxAttr(attr)
+{ }
 
 void MaxAggregator::Apply(const Table::Ptr& table, const Value& row)
 {

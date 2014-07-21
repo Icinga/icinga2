@@ -22,10 +22,8 @@
 using namespace icinga;
 
 SumAggregator::SumAggregator(const String& attr)
-    : m_Sum(0)
-{
-	m_SumAttr = attr;
-}
+    : m_Sum(0), m_SumAttr(attr)
+{ }
 
 void SumAggregator::Apply(const Table::Ptr& table, const Value& row)
 {

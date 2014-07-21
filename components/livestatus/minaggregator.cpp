@@ -22,10 +22,8 @@
 using namespace icinga;
 
 MinAggregator::MinAggregator(const String& attr)
-    : m_Min(0)
-{
-	m_MinAttr = attr;
-}
+    : m_Min(0), m_MinAttr(attr)
+{ }
 
 void MinAggregator::Apply(const Table::Ptr& table, const Value& row)
 {
