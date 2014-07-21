@@ -182,37 +182,42 @@ void Application::SetResourceLimits(void)
 		}
 	}
 
-	if (set_stack_rlimit) {
-		rl.rlim_cur = 1024 * 1024;
-		rl.rlim_max = rl.rlim_cur;
+	if (getrlimit(RLIMIT_STACK, &rl) < 0) {
+		Log(LogWarning, "Application", "Could not determine resource limit for stack size (RLIMIT_STACK)");
+		rl.rlim_max = RLIM_INFINITY;
+	}
 
-		if (setrlimit(RLIMIT_STACK, &rl) < 0)
-			Log(LogNotice, "Application", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
-		else {
-			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
+	if (set_stack_rlimit)
+		rl.rlim_cur = 256 * 1024;
+	else
+		rl.rlim_cur = rl.rlim_max;
 
-			if (!new_argv) {
-				perror("malloc");
-				exit(1);
-			}
+	if (setrlimit(RLIMIT_STACK, &rl) < 0)
+		Log(LogNotice, "Application", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
+	else if (set_stack_rlimit) {
+		char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
 
-			for (int i = 0; i < argc; i++)
-				new_argv[i] = argv[i];
-
-			new_argv[argc] = strdup("--no-stack-rlimit");
-
-			if (!new_argv[argc]) {
-				perror("strdup");
-				exit(1);
-			}
-
-			new_argv[argc + 1] = NULL;
-
-			if (execvp(new_argv[0], new_argv) < 0)
-				perror("execvp");
-
+		if (!new_argv) {
+			perror("malloc");
 			exit(1);
 		}
+
+		for (int i = 0; i < argc; i++)
+			new_argv[i] = argv[i];
+
+		new_argv[argc] = strdup("--no-stack-rlimit");
+
+		if (!new_argv[argc]) {
+			perror("strdup");
+			exit(1);
+		}
+
+		new_argv[argc + 1] = NULL;
+
+		if (execvp(new_argv[0], new_argv) < 0)
+			perror("execvp");
+
+		exit(1);
 	}
 #	else /* RLIMIT_STACK */
 	Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
