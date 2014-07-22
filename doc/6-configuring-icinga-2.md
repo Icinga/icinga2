@@ -10,6 +10,7 @@ PrefixDir           |**Read-only.** Contains the installation prefix that was sp
 SysconfDir          |**Read-only.** Contains the path of the sysconf directory. Defaults to PrefixDir + "/etc".
 ZonesDir            |**Read-only.** Contains the path of the zones.d directory. Defaults to SysconfDir + "/zones.d".
 LocalStateDir       |**Read-only.** Contains the path of the local state directory. Defaults to PrefixDir + "/var".
+RunDir              |**Read-only.** Contains the path of the run directory. Defaults to LocalStateDir + "/run".
 PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to PrefixDir + "/share/icinga2".
 StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to LocalStateDir + "/lib/icinga2/icinga2.state".
 PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to LocalStateDir + "/run/icinga2/icinga2.pid".
@@ -1435,7 +1436,7 @@ Attributes:
   socket\_type      |**Optional.** Specifies the socket type. Can be either "tcp" or "unix". Defaults to "unix".
   bind\_host        |**Optional.** Only valid when socket\_type is "tcp". Host address to listen on for connections. Defaults to "127.0.0.1".
   bind\_port        |**Optional.** Only valid when `socket_type` is "tcp". Port to listen on for connections. Defaults to 6558.
-  socket\_path      |**Optional.** Only valid when `socket_type` is "unix". Specifies the path to the UNIX socket file. Defaults to LocalStateDir + "/run/icinga2/cmd/livestatus".
+  socket\_path      |**Optional.** Only valid when `socket_type` is "unix". Specifies the path to the UNIX socket file. Defaults to RunDir + "/icinga2/cmd/livestatus".
   compat\_log\_path |**Optional.** Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LocalStateDir + "/log/icinga2/compat"
 
 > **Note**
@@ -1481,7 +1482,7 @@ Attributes:
 
   Name            |Description
   ----------------|----------------
-  command\_path   |**Optional.** Path to the command pipe. Defaults to LocalStateDir + "/run/icinga2/cmd/icinga2.cmd".
+  command\_path   |**Optional.** Path to the command pipe. Defaults to RunDir + "/icinga2/cmd/icinga2.cmd".
 
 ### <a id="objecttype-compatlogger"></a> CompatLogger
 

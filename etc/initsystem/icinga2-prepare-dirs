@@ -28,6 +28,6 @@ if [ -f $ICINGA2_LOG ]; then
 	chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_LOG
 fi
 
-mkdir -p $ICINGA2_STATE_DIR/run/icinga2/cmd
-chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_STATE_DIR/run/icinga2/cmd
-chmod 2755 $ICINGA2_STATE_DIR/run/icinga2/cmd
+mkdir -p $ICINGA2_RUN_DIR/icinga2/cmd
+chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_RUN_DIR/icinga2/cmd
+chmod 2755 $ICINGA2_RUN_DIR/icinga2/cmd

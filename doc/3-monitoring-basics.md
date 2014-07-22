@@ -934,7 +934,7 @@ information in the check output (`-o`).
         PluginDir + "/process_check_result",
         "-H", "$host.name$",
         "-S", "$service.name$",
-        "-c", LocalStateDir + "/run/icinga2/cmd/icinga2.cmd",
+        "-c", RunDir + "/icinga2/cmd/icinga2.cmd",
         "-r", "0",
         "-o", "Event Handler triggered in state '$service.state$' with output '$service.output$'."
       ]

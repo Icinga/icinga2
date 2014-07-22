@@ -300,6 +300,7 @@ int Main(void)
 			String prefix = (char *)pvData;
 			Application::DeclarePrefixDir(prefix);
 			Application::DeclareSysconfDir(prefix + "\\etc");
+			Application::DeclareRunDir(prefix + "\\var\\run");
 			Application::DeclareLocalStateDir(prefix + "\\var");
 			Application::DeclarePkgDataDir(prefix + "\\share\\icinga2");
 			Application::DeclareIncludeConfDir(prefix + "\\share\\icinga2\\include");
@@ -316,6 +317,7 @@ int Main(void)
 #endif /* _WIN32 */
 		Application::DeclarePrefixDir(ICINGA_PREFIX);
 		Application::DeclareSysconfDir(ICINGA_SYSCONFDIR);
+		Application::DeclareRunDir(ICINGA_RUNDIR);
 		Application::DeclareLocalStateDir(ICINGA_LOCALSTATEDIR);
 		Application::DeclarePkgDataDir(ICINGA_PKGDATADIR);
 		Application::DeclareIncludeConfDir(ICINGA_INCLUDECONFDIR);
@@ -380,7 +382,7 @@ int Main(void)
 	}
 
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
-	Application::DeclarePidPath(Application::GetLocalStateDir() + "/run/icinga2/icinga2.pid");
+	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");
 
 #ifndef _WIN32
 	if (g_AppParams.count("group")) {

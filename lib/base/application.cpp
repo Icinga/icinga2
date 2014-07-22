@@ -459,6 +459,7 @@ void Application::DisplayVersionMessage(void)
 		  << "* Application version: " << GetVersion() << std::endl
 		  << "* Installation root: " << GetPrefixDir() << std::endl
 		  << "* Sysconf directory: " << GetSysconfDir() << std::endl
+		  << "* Run directory: " << GetRunDir() << std::endl
 		  << "* Local state directory: " << GetLocalStateDir() << std::endl
 		  << "* Package data directory: " << GetPkgDataDir() << std::endl
 		  << "* State path: " << GetStatePath() << std::endl
@@ -842,6 +843,26 @@ void Application::DeclareSysconfDir(const String& path)
 }
 
 /**
+ * Retrieves the path for the run dir.
+ *
+ * @returns The path.
+ */
+String Application::GetRunDir(void)
+{
+	return ScriptVariable::Get("RunDir");
+}
+
+/**
+ * Sets the path of the run dir.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareRunDir(const String& path)
+{
+	ScriptVariable::Set("RunDir", path, false);
+}
+
+/**
  * Retrieves the path for the local state dir.
  *
  * @returns The path.
@@ -852,13 +873,13 @@ String Application::GetLocalStateDir(void)
 }
 
 /**
- * Sets the path of the zones dir.
+ * Sets the path for the local state dir.
  *
  * @param path The new path.
  */
-void Application::DeclareZonesDir(const String& path)
+void Application::DeclareLocalStateDir(const String& path)
 {
-	ScriptVariable::Set("ZonesDir", path, false);
+	ScriptVariable::Set("LocalStateDir", path, false);
 }
 
 /**
@@ -872,13 +893,13 @@ String Application::GetZonesDir(void)
 }
 
 /**
- * Sets the path for the local state dir.
+ * Sets the path of the zones dir.
  *
  * @param path The new path.
  */
-void Application::DeclareLocalStateDir(const String& path)
+void Application::DeclareZonesDir(const String& path)
 {
-	ScriptVariable::Set("LocalStateDir", path, false);
+	ScriptVariable::Set("ZonesDir", path, false);
 }
 
 /**

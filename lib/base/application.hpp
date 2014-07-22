@@ -87,6 +87,9 @@ public:
 	static String GetZonesDir(void);
 	static void DeclareZonesDir(const String& path);
 
+	static String GetRunDir(void);
+	static void DeclareRunDir(const String& path);
+
 	static String GetLocalStateDir(void);
 	static void DeclareLocalStateDir(const String& path);
 

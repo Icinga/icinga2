@@ -22,6 +22,7 @@ override_dh_auto_configure:
 	dh_auto_configure -- \
 		-DCMAKE_INSTALL_LOCALSTATEDIR=/var \
 		-DCMAKE_INSTALL_SYSCONFDIR=/etc \
+		-DICINGA2_RUNDIR=/run \
 		-DICINGA2_USER=nagios \
 		-DICINGA2_GROUP=nagios \
 		-DICINGA2_COMMAND_USER=nagios \
