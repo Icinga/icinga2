@@ -421,9 +421,16 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 	std::ostringstream qbuf;
 
 	if (!dbref.IsValid()) {
-		qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
-		      << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
-		      << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
+		if (!dbobj->GetName2().IsEmpty()) {
+			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, name2, is_active) VALUES ("
+			     << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+			     << "'" << Escape(dbobj->GetName1()) << "', '" << Escape(dbobj->GetName2()) << "', 1)";
+		} else {
+			qbuf << "INSERT INTO " + GetTablePrefix() + "objects (instance_id, objecttype_id, name1, is_active) VALUES ("
+			     << static_cast<long>(m_InstanceID) << ", " << dbobj->GetType()->GetTypeID() << ", "
+			     << "'" << Escape(dbobj->GetName1()) << "', 1)";
+		}
+
 		Query(qbuf.str());
 		SetObjectID(dbobj, GetLastInsertID());
 	} else {
