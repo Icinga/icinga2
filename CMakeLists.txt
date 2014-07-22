@@ -38,7 +38,7 @@ set(ICINGA2_GROUP "icinga" CACHE STRING "Icinga 2 group")
 set(ICINGA2_COMMAND_USER "icinga" CACHE STRING "Icinga 2 command user")
 set(ICINGA2_COMMAND_GROUP "icingacmd" CACHE STRING "Icinga 2 command group")
 set(ICINGA2_RUNDIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/run" CACHE STRING "/run directory")
-set(ICINGA2_PLUGIN_PATH "/usr/lib/nagios/plugins" CACHE STRING "Path for the check plugins")
+set(ICINGA2_PLUGINDIR "/usr/lib/nagios/plugins" CACHE STRING "Path for the check plugins")
 set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/COPYING" ICINGA2_LICENSE_GPL)

@@ -257,9 +257,9 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
 %endif
 
 %if "%{_vendor}" != "suse"
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGIN_PATH=%{_libdir}/nagios/plugins"
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_libdir}/nagios/plugins"
 %else
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGIN_PATH=%{_prefix}/lib/nagios/plugins"
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
 %endif
 
 %if 0%{?use_systemd}
