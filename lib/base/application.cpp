@@ -451,21 +451,23 @@ String Application::GetExePath(const String& argv0)
 }
 
 /**
- * Display version information.
+ * Display version and path information.
  */
-void Application::DisplayVersionMessage(void)
+void Application::DisplayInfoMessage(bool skipVersion)
 {
-	std::cerr << "***" << std::endl
-		  << "* Application version: " << GetVersion() << std::endl
-		  << "* Installation root: " << GetPrefixDir() << std::endl
-		  << "* Sysconf directory: " << GetSysconfDir() << std::endl
-		  << "* Run directory: " << GetRunDir() << std::endl
-		  << "* Local state directory: " << GetLocalStateDir() << std::endl
-		  << "* Package data directory: " << GetPkgDataDir() << std::endl
-		  << "* State path: " << GetStatePath() << std::endl
-		  << "* PID path: " << GetPidPath() << std::endl
-		  << "* Application type: " << GetApplicationType() << std::endl
-		  << "***" << std::endl;
+	std::cerr << "Application information:" << std::endl;
+
+	if (!skipVersion)
+		std::cerr << "* Application version: " << GetVersion() << std::endl;
+
+	std::cerr << "  Installation root: " << GetPrefixDir() << std::endl
+		  << "  Sysconf directory: " << GetSysconfDir() << std::endl
+		  << "  Run directory: " << GetRunDir() << std::endl
+		  << "  Local state directory: " << GetLocalStateDir() << std::endl
+		  << "  Package data directory: " << GetPkgDataDir() << std::endl
+		  << "  State path: " << GetStatePath() << std::endl
+		  << "  PID path: " << GetPidPath() << std::endl
+		  << "  Application type: " << GetApplicationType() << std::endl;
 }
 
 /**
@@ -531,7 +533,7 @@ void Application::SigAbrtHandler(int)
 		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
 		  << std::endl;
 
-	DisplayVersionMessage();
+	DisplayInfoMessage();
 
 	StackTrace trace;
 	std::cerr << "Stacktrace:" << std::endl;
@@ -574,7 +576,7 @@ void Application::ExceptionHandler(void)
 		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
 		  << std::endl;
 
-	DisplayVersionMessage();
+	DisplayInfoMessage();
 
 	try {
 		RethrowUncaughtException();
@@ -592,7 +594,7 @@ void Application::ExceptionHandler(void)
 #ifdef _WIN32
 LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 {
-	DisplayVersionMessage();
+	DisplayInfoMessage();
 
 	std::cerr << "Caught unhandled SEH exception." << std::endl
 		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl

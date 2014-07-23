@@ -117,6 +117,8 @@ public:
 	static double GetStartTime(void);
 	static void SetStartTime(double ts);
 
+	static void DisplayInfoMessage(bool skipVersion = false);
+
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void Stop(void);
@@ -126,7 +128,7 @@ protected:
 	pid_t StartReloadProcess(void);
 
 	virtual void OnShutdown(void);
-
+	
 private:
 	static Application *m_Instance; /**< The application instance. */
 
@@ -151,7 +153,6 @@ private:
 	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
-	static void DisplayVersionMessage(void);
 	static void DisplayBugMessage(void);
 
 	static void SigAbrtHandler(int signum);

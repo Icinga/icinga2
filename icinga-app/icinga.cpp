@@ -482,8 +482,13 @@ int Main(void)
 
 		std::cout << std::endl;
 
-		if (g_AppParams.count("version"))
+		if (g_AppParams.count("version")) {
+			std::cout << std::endl;
+
+			Application::DisplayInfoMessage(true);
+
 			return EXIT_SUCCESS;
+		}
 	}
 
 	if (g_AppParams.count("help")) {
