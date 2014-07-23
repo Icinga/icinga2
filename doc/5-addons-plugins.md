@@ -6,7 +6,8 @@
 
 #### <a id="addons-graphing-pnp"></a> PNP
 
-[PNP](http://www.pnp4nagios.org) must be configured using the "bulk mode with npcd and npcdmod"
+[PNP](http://www.pnp4nagios.org) must be configured using the
+[bulk mode with npcd and npcdmod](http://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
 hence Icinga 2's [PerfdataWriter](#performance-data) acts as npcdmod. NPCD will collect
 the rotated performance data files.
 

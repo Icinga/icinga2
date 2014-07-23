@@ -656,8 +656,7 @@ are expected to be in `/var/log/icinga2/compat`. A different path can be set usi
 Icinga 2 is compatible with Icinga 1.x user interfaces by providing additional
 features required as backends.
 
-Furthermore these interfaces (and somewhere in the future an Icinga 2
-exclusive interface) can be used for the newly created `Icinga Web 2`
+Furthermore these interfaces can be used for the newly created `Icinga Web 2`
 user interface.
 
 Some interface features will only work in a limited manner due to
@@ -673,8 +672,8 @@ Special restrictions are noted specifically in the sections below.
 ### <a id="setting-up-icinga-classic-ui"></a> Setting up Icinga Classic UI
 
 Icinga 2 can write `status.dat` and `objects.cache` files in the format that
-is supported by the Icinga 1.x Classic UI. External commands (a.k.a. the
-"command pipe") are also supported. It also supports writing Icinga 1.x
+is supported by the Icinga 1.x Classic UI. [External commands](#external-commands)
+(a.k.a. the "command pipe") are also supported. It also supports writing Icinga 1.x
 log files which are required for the reporting functionality in the Classic UI.
 
 #### <a id="installing-icinga-classic-ui"></a> Installing Icinga Classic UI
@@ -702,6 +701,28 @@ to satisfy this dependency:
 On all distributions other than Debian you may have to restart both your web
 server as well as Icinga 2 after installing the Classic UI package.
 
+Icinga Classic UI requires the [StatusDataWriter](#status-data), [CompatLogger](#compat-logging)
+and [ExternalCommandListener](#external-commands) features.
+Enable these features and restart Icinga 2.
+
+    # icinga2-enable-feature statusdata compatlog command
+
+In order for commands to work you will need to add your webserver's user to the `icingacmd` group.
+
+> **Note**
+>
+> Packages will do that automatically. Verify that by running `id <your-webserver-user>` and skip this
+> step.
+
+    # usermod -a -G icingacmd www-data
+
+The Debian packages use `nagios` as the user and group name. Make sure to change `icingacmd` to
+`nagios` if you're using Debian.
+
+Change "www-data" to the user your webserver is running as.
+
+#### <a id="setting-up-icinga-classic-ui-summary"></a> Setting Up Icinga Classic UI Summary
+
 Verify that your Icinga 1.x Classic UI works by browsing to your Classic
 UI installation URL:
 
@@ -709,6 +730,9 @@ UI installation URL:
   --------------|--------------------------------------------------------------------------|--------------------------
   Debian        | [http://localhost/icinga2-classicui](http://localhost/icinga2-classicui) | asked during installation
   all others    | [http://localhost/icinga](http://localhost/icinga)                       | icingaadmin/icingaadmin
+
+For further information on configuration, troubleshooting and interface documentation
+please check the official [Icinga 1.x user interface documentation](http://docs.icinga.org/latest/en/ch06.html).
 
 ### <a id="setting-up-icinga-web"></a> Setting up Icinga Web
 
@@ -749,7 +773,7 @@ found in the [Icinga Web documentation](http://docs.icinga.org/latest/en/icinga-
 
     # icinga-web-clearcache
 
-Additionally you need to enable the `command` feature:
+Additionally you need to enable the `command` feature for sending [external commands](#external-commands):
 
     # icinga2-enable-feature command
 
@@ -772,6 +796,8 @@ to the default used in Icinga 2. Make sure to clear the cache afterwards.
 > The path to the Icinga Web `clearcache` script may differ. Please check the
 > [Icinga Web documentation](https://docs.icinga.org) for details.
 
+#### <a id="setting-up-icinga-web-summary"></a> Setting Up Icinga Web Summary
+
 Verify that your Icinga 1.x Web works by browsing to your Web installation URL:
 
   Distribution  | URL                                                         | Default Login
@@ -779,24 +805,45 @@ Verify that your Icinga 1.x Web works by browsing to your Web installation URL:
   Debian        | [http://localhost/icinga-web](http://localhost/icinga-web)  | asked during installation
   all others    | [http://localhost/icinga-web](http://localhost/icinga-web)  | root/password
 
+For further information on configuration, troubleshooting and interface documentation
+please check the official [Icinga 1.x user interface documentation](http://docs.icinga.org/latest/en/ch06.html).
+
 
 ### <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
 
 Icinga Web 2 currently supports `status.dat`, `DB IDO`, or `Livestatus` as backends.
-Please consult the INSTALL documentation shipped with `Icinga Web 2` for
-further instructions.
 
-Icinga Web 2 is still under development. Rather than installing it
-yourself you should consider testing it using the available Vagrant
-demo VM.
+Using DB IDO as backend, you need to install and configure the [DB IDO backend](#configuring-db-ido).
+Once finished, you can enable the feature for DB IDO MySQL:
+
+    # icinga2-enable-feature ido-mysql
+
+furthermore [external commands](#external-commands) are supported through the external
+command pipe.
+
+    # icinga2-enable-feature command
+
+Please consult the INSTALL documentation shipped with `Icinga Web 2` for
+further instructions on how to install Icinga Web 2 and to configure
+backends, resources and instances.
+
+> **Note**
+>
+> Icinga Web 2 is still under heavy development. Rather than installing it
+> yourself you should consider testing it using the available Vagrant
+> demo VM in the [git repository](https://github.com/icinga/icingaweb2).
+
+Check the [Icinga website](https://www.icinga.org) for release schedules,
+blog updates and more.
 
 
 ### <a id="additional-visualization"></a> Additional visualization
 
 There are many visualization addons which can be used with Icinga 2.
 
-Some of the more popular ones are PNP, inGraph (graphing performance data),
-Graphite, and NagVis (network maps).
+Some of the more popular ones are [PNP](#addons-graphing-pnp), [inGraph](#addons-graphing-pnp)
+graphing performance data), [Graphite](#addons-graphing-pnp), and
+[NagVis](#addons-visualization-nagvis) (network maps).
 
 
 ## <a id="configuration-tools"></a> Configuration Tools
@@ -804,9 +851,18 @@ Graphite, and NagVis (network maps).
 Well known configuration tools for Icinga 1.x such as [LConf](http://www.netways.de/en/de/produkte/icinga/addons/lconf/),
 [NConf](http://www.nconf.org/) or [NagiosQL](http://www.nagiosql.org/)
 store their configuration in a custom format in their backends (LDAP or RDBMS).
-Currently only LConf 1.4.x supports Icinga 2 configuration export. If you require
-your favourite configuration tool to export Icinga 2 configuration, please get in
+Currently only LConf 1.4.x supports Icinga 2 configuration export as compatibility extension.
+It does not use advanced Icinga 2 features such as [apply](#using-apply) rules or
+easy [notifications](#using-apply-notifications) and [dependencies](#using-apply-dependencies)
+for example.
+
+If you require your favourite configuration tool to export Icinga 2 configuration, please get in
 touch with their developers.
+
+> **Tip**
+>
+> Get to know the new configuration format and the advanced [apply](#using-apply) rules and
+> use [syntax highlighting](#configuration-syntax-highlighting) in vim/nano.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
 to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).
