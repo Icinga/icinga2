@@ -56,10 +56,12 @@ case "$1" in
         if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
             . /usr/share/apache2/apache2-maintscript-helper
 
+            apache2_invoke enmod cgi
             apache2_invoke enconf icinga2-classicui
 
         # OLD methods for Apache < 2.4
         elif [ "$COMMON_STATE" = "installed" ] || [ "$COMMON_STATE" = "unpacked" ] ; then
+            a2enmod cgi
             # create symlink if not existing
             [ -f /etc/apache2/conf.d/icinga2-classicui.conf ] || ln -vs ../../icinga2/classicui/apache2.conf /etc/apache2/conf.d/icinga2-classicui.conf
 
