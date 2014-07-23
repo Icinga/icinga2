@@ -458,7 +458,7 @@ void Application::DisplayInfoMessage(bool skipVersion)
 	std::cerr << "Application information:" << std::endl;
 
 	if (!skipVersion)
-		std::cerr << "* Application version: " << GetVersion() << std::endl;
+		std::cerr << "  Application version: " << GetVersion() << std::endl;
 
 	std::cerr << "  Installation root: " << GetPrefixDir() << std::endl
 		  << "  Sysconf directory: " << GetSysconfDir() << std::endl
