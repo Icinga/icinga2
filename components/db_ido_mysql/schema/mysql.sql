@@ -337,7 +337,7 @@ CREATE TABLE IF NOT EXISTS icinga_customvariables (
   object_id bigint unsigned default 0,
   config_type smallint default 0,
   has_been_modified smallint default 0,
-  varname varchar(255) character set latin1  default '',
+  varname varchar(255) character set latin1 collate latin1_general_cs default NULL,
   varvalue TEXT character set latin1  default '',
   PRIMARY KEY  (customvariable_id),
   UNIQUE KEY object_id_2 (object_id,config_type,varname),
@@ -356,7 +356,7 @@ CREATE TABLE IF NOT EXISTS icinga_customvariablestatus (
   object_id bigint unsigned default 0,
   status_update_time timestamp  default '0000-00-00 00:00:00',
   has_been_modified smallint default 0,
-  varname varchar(255) character set latin1  default '',
+  varname varchar(255) character set latin1 collate latin1_general_cs default NULL,
   varvalue TEXT character set latin1  default '',
   PRIMARY KEY  (customvariablestatus_id),
   UNIQUE KEY object_id_2 (object_id,varname),
@@ -1600,6 +1600,6 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
-INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.11.3', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.11.3', modify_time=NOW();
+INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.11.6', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.11.6', modify_time=NOW();
 
 

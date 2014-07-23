@@ -451,9 +451,11 @@ by a number of projects including Icinga Web 1.x, Reporting or Icinga Web 2.
 There is a separate module for each database back-end. At present support for
 both MySQL and PostgreSQL is implemented.
 
-Icinga 2 uses the Icinga 1.x IDOUtils database schema starting with version
-`1.11.3`. Icinga 2 requires additional features not yet released with older
-Icinga 1.x versions.
+Icinga 2 uses the Icinga 1.x IDOUtils database schema. Icinga 2 requires additional
+features not yet released with older Icinga 1.x versions.
+
+* Current required schema version: `1.11.6`.
+
 
 > **Tip**
 >

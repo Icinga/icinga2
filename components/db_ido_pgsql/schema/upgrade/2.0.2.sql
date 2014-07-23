@@ -8,3 +8,10 @@
 -- -----------------------------------------
 
 UPDATE icinga_objects SET name2 = NULL WHERE name2 = '';
+
+-- -----------------------------------------
+-- update dbversion
+-- -----------------------------------------
+
+SELECT updatedbversion('1.11.6');
+

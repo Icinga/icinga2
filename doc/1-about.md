@@ -46,6 +46,12 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
+### What's New in Version 2.0.2
+
+#### Changes
+
+* DB IDO schema upgrade required (new schema version: 1.11.6)
+
 ### What's New in Version 2.0.1
 
 * Bug #6316: application fails to start on wrong log file permissions but does not tell about it
