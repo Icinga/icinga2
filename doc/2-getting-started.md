@@ -932,6 +932,47 @@ By default the Icinga 2 daemon is running as `icinga` user and group
 using the init script. Using Debian packages the user and group are set to `nagios`
 for historical reasons.
 
+### <a id="systemd-service"></a> Systemd Service
+
+Modern distributions (Fedora, OpenSUSE, etc.) already use `Systemd` natively. Enterprise-grade
+distributions such as RHEL7 changed to `Systemd` recently. Icinga 2 Packages will install the
+service automatically.
+
+The Icinga 2 `Systemd` service can be (re)started, reloaded, stopped and also queried for its current status.
+
+    # systemctl status icinga2
+    icinga2.service - Icinga host/service/network monitoring system
+       Loaded: loaded (/usr/lib/systemd/system/icinga2.service; disabled)
+       Active: active (running) since Mi 2014-07-23 13:39:38 CEST; 15s ago
+      Process: 21692 ExecStart=/usr/sbin/icinga2 -c ${ICINGA2_CONFIG_FILE} -d -e ${ICINGA2_ERROR_LOG} -u ${ICINGA2_USER} -g ${ICINGA2_GROUP} (code=exited, status=0/SUCCESS)
+      Process: 21674 ExecStartPre=/usr/sbin/icinga2-prepare-dirs /etc/sysconfig/icinga2 (code=exited, status=0/SUCCESS)
+     Main PID: 21727 (icinga2)
+       CGroup: /system.slice/icinga2.service
+               └─21727 /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -d -e /var/log/icinga2/error.log -u icinga -g icinga --no-stack-rlimit
+
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 309 Service(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 User(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 15 Notification(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 4 ScheduledDowntime(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 UserGroup(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 IcingaApplication(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 8 Dependency(s).
+    Jul 23 13:39:38 nbmif systemd[1]: Started Icinga host/service/network monitoring system.
+
+`Systemd` supports the following command actions:
+
+  Command             | Description
+  --------------------|------------------------
+  start               | The `start` action starts the Icinga 2 daemon.
+  stop                | The `stop` action stops the Icinga 2 daemon.
+  restart             | The `restart` action is a shortcut for running the `stop` action followed by `start`.
+  reload              | The `reload` action sends the `HUP` signal to Icinga 2 which causes it to restart. Unlike the `restart` action `reload` does not wait until Icinga 2 has restarted.
+  status              | The `status` action checks if Icinga 2 is running.
+
+If you're stuck with configuration errors, you can manually invoke the [configuration validation](#config-validation).
+
+
+
 ### <a id="cmdline"></a> Command-line Options
 
     $ icinga2 --help
