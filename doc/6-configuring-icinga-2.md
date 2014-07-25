@@ -2259,3 +2259,14 @@ Check command object for the `check_running_kernel` plugin
 provided by the `nagios-plugins-contrib` package on Debian.
 
 The `running_kernel` check command does not support any vars.
+
+#### <a id="plugin-check-command-ide-smart"></a> ide_smart
+
+Check command object for the `check_ide_smart` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ide_smart_device     | **Optional.** The device to check. Defaults to "/dev/sda".
+ide_smart_verbose        | **Optional.** Show details for command-line debugging (output may be truncated by the monitoring system). Defaults to `false`.
