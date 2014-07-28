@@ -2035,6 +2035,7 @@ Name            | Description
 ----------------|--------------
 ssh_address     | **Optional.** The host's address. Defaults to "$address$".
 ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
+ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
 
 #### <a id="plugin-check-command-disk"></a> disk
 
