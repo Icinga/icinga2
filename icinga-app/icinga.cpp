@@ -405,7 +405,7 @@ int Main(void)
 			}
 		}
 
-		if (setgroups(0, NULL) < 0) {
+		if (!g_AppParams.count("reload-internal") && setgroups(0, NULL) < 0) {
 			std::ostringstream msgbuf;
 			msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			Log(LogCritical, "icinga-app",  msgbuf.str());
