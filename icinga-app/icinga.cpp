@@ -440,6 +440,14 @@ int Main(void)
 			}
 		}
 
+		// also activate the additional groups the configured user is member of
+		if (!g_AppParams.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "icinga-app",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+
 		if (setuid(pw->pw_uid) < 0) {
 			std::ostringstream msgbuf;
 			msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
