@@ -35,6 +35,7 @@ to install the `icinga2` package.
 
 On RHEL/CentOS and SLES you will need to use `chkconfig` to enable the
 `icinga2` service. You can manually start Icinga 2 using `/etc/init.d/icinga2 start`.
+RHEL/CentOS 7 use [Systemd](#systemd-service) with `systemctl {enable,start} icinga2`.
 
 Some parts of Icinga 2's functionality are available as separate packages:
 
