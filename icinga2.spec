@@ -20,9 +20,6 @@
 %define revision 1
 
 %if "%{_vendor}" == "redhat"
-%define el5_boost_version 141
-%define el5_boost_libs %{_libdir}/boost%{el5_boost_version}
-%define el5_boost_includes /usr/include/boost%{el5_boost_version}
 %define apachename httpd
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %define apacheuser apache
@@ -36,18 +33,15 @@
 %endif
 
 %if "%{_vendor}" == "suse"
-# opensuse 13
-%if 0%{?suse_version} >= 1310
-%define opensuse_boost_version 1_53_0
-%else
-%define opensuse_boost_version 1_49_0
-%endif
-%define sles_boost_version 1_54_0
 %define apachename apache2
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
 %define apachegroup www
+%if 0%{?suse_version} >= 1310
+%define use_systemd 1
+%else
 %define use_systemd 0
+%endif
 %endif
 
 %define icinga_user icinga
@@ -64,9 +58,9 @@ Summary: Network monitoring application
 Name: icinga2
 Version: 2.0.1
 Release: %{revision}%{?dist}
-License: GPLv2+
+License: GPL-2.0+
 Group: Applications/System
-Source: %{name}-%{version}.tar.gz
+Source: https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
@@ -81,6 +75,9 @@ Meta package for Icinga 2 Core, DB IDO and Web.
 Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
+%if "%{_vendor}" == "suse"
+PreReq: permissions
+%endif
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
@@ -89,56 +86,12 @@ BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: make
 
-# redhat
-%if "%{_vendor}" == "redhat"
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+%if "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
 # el5 requires EPEL
-BuildRequires: boost%{el5_boost_version}-devel
-BuildRequires: boost%{el5_boost_version}
-Requires: boost%{el5_boost_version}-program-options
-Requires: boost%{el5_boost_version}-system
-Requires: boost%{el5_boost_version}-test
-Requires: boost%{el5_boost_version}-thread
-Requires: boost%{el5_boost_version}-regex
+BuildRequires: boost141-devel
 %else
 BuildRequires: boost-devel >= 1.41
-Requires: boost-program-options >= 1.41
-Requires: boost-system >= 1.41
-Requires: boost-test >= 1.41
-Requires: boost-thread >= 1.41
-Requires: boost-regex >= 1.41
 %endif
-%endif
-#redhat
-
-# suse
-%if "%{_vendor}" == "suse"
-# sles
-# note: sles_version macro is not set in SLES11 anymore
-# note: sles service packs are not under version control
-%if 0%{?suse_version} == 1110
-BuildRequires: gcc-fortran
-BuildRequires: libgfortran43
-BuildRequires: boost-license%{sles_boost_version}
-BuildRequires: boost-devel >= 1.41
-Requires: boost-license%{sles_boost_version}
-Requires: libboost_program_options%{sles_boost_version}
-Requires: libboost_system%{sles_boost_version}
-Requires: libboost_test%{sles_boost_version}
-Requires: libboost_thread%{sles_boost_version}
-Requires: libboost_regex%{sles_boost_version}
-%endif
-# opensuse
-%if 0%{?suse_version} >= 1210
-BuildRequires: boost-devel >= 1.41
-Requires: libboost_program_options%{opensuse_boost_version}
-Requires: libboost_system%{opensuse_boost_version}
-Requires: libboost_test%{opensuse_boost_version}
-Requires: libboost_thread%{opensuse_boost_version}
-Requires: libboost_regex%{opensuse_boost_version}
-%endif
-%endif
-# suse
 
 %if 0%{?use_systemd}
 BuildRequires: systemd
@@ -158,6 +111,9 @@ Group:        Applications/System
 Requires(pre): shadow-utils
 Requires(post): shadow-utils
 %endif
+%if "%{_vendor}" == "suse"
+Recommends:   logrotate
+%endif
 
 %description common
 Provides common directories, uid and gid among Icinga 2 related
@@ -170,7 +126,7 @@ Group:        Applications/System
 Requires:     %{name} = %{version}-%{release}
 
 %description doc
-Documentation for Icinga 2
+Provides documentation for Icinga 2.
 
 
 %package ido-mysql
@@ -178,23 +134,9 @@ Summary:      IDO MySQL database backend for Icinga 2
 Group:        Applications/System
 %if "%{_vendor}" == "suse"
 BuildRequires: libmysqlclient-devel
-%if 0%{?suse_version} >= 1210
-Requires: libmysqlclient18
-%else
-Requires: libmysqlclient15
-%endif
-%endif
-%if "%{_vendor}" == "redhat"
-# el5 only provides mysql package
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
-BuildRequires: mysql
-%else
-BuildRequires: mysql-libs
-BuildRequires: mysql
 %endif
 BuildRequires: mysql-devel
 Requires: mysql
-%endif
 Requires: %{name} = %{version}-%{release}
 
 %description ido-mysql
@@ -205,11 +147,7 @@ IDOUtils schema >= 1.10
 %package ido-pgsql
 Summary:      IDO PostgreSQL database backend for Icinga 2
 Group:        Applications/System
-%if "%{_vendor}" == "suse"
-BuildRequires: postgresql-libs
-%endif
 BuildRequires: postgresql-devel
-Requires: postgresql-libs
 Requires: %{name} = %{version}-%{release}
 
 %description ido-pgsql
@@ -270,6 +208,8 @@ cmake $CMAKE_OPTS .
 
 make %{?_smp_mflags}
 
+rm -f components/db_ido_*sql/schema/upgrade/.gitignore
+
 %install
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 make install \
@@ -283,6 +223,18 @@ install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apachecon
 # remove features-enabled symlinks
 rm -f %{buildroot}/%{_sysconfdir}/%{name}/features-enabled/*.conf
 
+# enable suse rc links
+%if "%{_vendor}" == "suse"
+%if 0%{?use_systemd}
+  ln -sf /usr/sbin/service %{buildroot}%{_sbindir}/rc%{name}
+%else
+  ln -sf ../../%{_initrddir}/%{name} "%{buildroot}%{_sbindir}/rc%{name}"
+%endif
+mkdir -p "%{buildroot}%{_localstatedir}/adm/fillup-templates/"
+mv "%{buildroot}%{_sysconfdir}/sysconfig/%{name}" "%{buildroot}%{_localstatedir}/adm/fillup-templates/sysconfig.%{name}"
+%endif
+
+
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 
@@ -292,12 +244,33 @@ getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacm
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
 exit 0
 
+%if "%{_vendor}" == "suse"
+%verifyscript bin
+%verify_permissions -e /var/run/icinga2/cmd
+%endif
+
+
+%if "%{_vendor}" == "suse"
+%if 0%{?use_systemd}
+%pre bin
+  %service_add_pre %{name}.service
+%endif
+%endif
+
+
 # all restart/feature actions belong to icinga2-bin
 %post bin
 # suse
 %if 0%{?suse_version}
-
+%if 0%{?suse_version} >= 1310
+%set_permissions /var/run/icinga2/cmd
+%endif
+%if 0%{?use_systemd}
+%fillup_only  %{name}
+%service_add_post %{name}.service
+%else
 %fillup_and_insserv %{name}
+%endif
 
 # initial installation, enable default features
 %{_sbindir}/icinga2-enable-feature checker notification mainlog
@@ -327,16 +300,12 @@ exit 0
 %postun bin
 # suse
 %if 0%{?suse_version}
-
-%restart_on_update %{name}
-%insserv_cleanup
-
-if [ "$1" = "0" ]; then
-	# deinstallation of the package - remove enabled features
-	rm -rf %{_sysconfdir}/%{name}/features-enabled
-fi
-
-exit 0
+%if 0%{?using_systemd}
+  %service_del_postun %{name}.service
+%else
+  %restart_on_update %{name}
+  %insserv_cleanup
+%endif
 
 %else
 # rhel
@@ -349,22 +318,25 @@ if [ "$1" -ge  "1" ]; then
 fi
 %endif
 
+%endif
+# suse / rhel
+
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove enabled features
 	rm -rf %{_sysconfdir}/%{name}/features-enabled
 fi
 
 exit 0
-%endif
-# suse / rhel
 
 %preun bin
 # suse
 %if 0%{?suse_version}
 
-if [ "$1" = "0" ]; then
-	%stop_on_removal %{name}
-fi
+%if 0%{?use_systemd}
+  %service_del_preun %{name}.service
+%else
+  %stop_on_removal %{name}
+%endif
 
 exit 0
 
@@ -439,14 +411,22 @@ fi
 exit 0
 
 %files
+%defattr(-,root,root,-)
+%doc COPYING
 
 %files bin
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
 %if 0%{?use_systemd}
-%attr(644,-,0) %{_unitdir}/%{name}.service
+%attr(644,root,root) %{_unitdir}/%{name}.service
 %else
-%attr(755,-,-) %{_sysconfdir}/init.d/%{name}
+%attr(755,root,root) %{_sysconfdir}/init.d/%{name}
+%endif
+%if "%{_vendor}" == "suse"
+%{_sbindir}/rc%{name}
+%{_localstatedir}/adm/fillup-templates/sysconfig.%{name}
+%else
+%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %endif
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
@@ -465,7 +445,6 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/*.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
-%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %{_sbindir}/%{name}
 %{_bindir}/%{name}-build-ca
 %{_bindir}/%{name}-build-key
@@ -498,7 +477,8 @@ exit 0
 %files common
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog tools/syntax
-%config(noreplace) %attr(755,-,-) %{_sysconfdir}/logrotate.d/%{name}
+%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
