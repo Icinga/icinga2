@@ -136,7 +136,6 @@ Group:        Applications/System
 BuildRequires: libmysqlclient-devel
 %endif
 BuildRequires: mysql-devel
-Requires: mysql
 Requires: %{name} = %{version}-%{release}
 
 %description ido-mysql
