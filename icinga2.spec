@@ -20,9 +20,6 @@
 %define revision 1
 
 %if "%{_vendor}" == "redhat"
-%define el5_boost_version 141
-%define el5_boost_libs %{_libdir}/boost%{el5_boost_version}
-%define el5_boost_includes /usr/include/boost%{el5_boost_version}
 %define apachename httpd
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %define apacheuser apache
@@ -36,18 +33,15 @@
 %endif
 
 %if "%{_vendor}" == "suse"
-%if 0%{?suse_version} >= 1310
-%define use_systemd 1
-%define opensuse_boost_version 1_53_0
-%else
-%define use_systemd 0
-%define opensuse_boost_version 1_49_0
-%endif
-%define sles_boost_version 1_54_0
 %define apachename apache2
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
 %define apachegroup www
+%if 0%{?suse_version} >= 1310
+%define use_systemd 1
+%else
+%define use_systemd 0
+%endif
 %endif
 
 %define icinga_user icinga
@@ -92,56 +86,12 @@ BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: make
 
-# redhat
-%if "%{_vendor}" == "redhat"
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+%if "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
 # el5 requires EPEL
-BuildRequires: boost%{el5_boost_version}-devel
-BuildRequires: boost%{el5_boost_version}
-Requires: boost%{el5_boost_version}-program-options
-Requires: boost%{el5_boost_version}-system
-Requires: boost%{el5_boost_version}-test
-Requires: boost%{el5_boost_version}-thread
-Requires: boost%{el5_boost_version}-regex
+BuildRequires: boost141-devel
 %else
 BuildRequires: boost-devel >= 1.41
-Requires: boost-program-options >= 1.41
-Requires: boost-system >= 1.41
-Requires: boost-test >= 1.41
-Requires: boost-thread >= 1.41
-Requires: boost-regex >= 1.41
 %endif
-%endif
-#redhat
-
-# suse
-%if "%{_vendor}" == "suse"
-# sles
-# note: sles_version macro is not set in SLES11 anymore
-# note: sles service packs are not under version control
-%if 0%{?suse_version} == 1110
-BuildRequires: gcc-fortran
-BuildRequires: libgfortran43
-BuildRequires: boost-license%{sles_boost_version}
-BuildRequires: boost-devel >= 1.41
-Requires: boost-license%{sles_boost_version}
-Requires: libboost_program_options%{sles_boost_version}
-Requires: libboost_system%{sles_boost_version}
-Requires: libboost_test%{sles_boost_version}
-Requires: libboost_thread%{sles_boost_version}
-Requires: libboost_regex%{sles_boost_version}
-%endif
-# opensuse
-%if 0%{?suse_version} >= 1210
-BuildRequires: boost-devel >= 1.41
-Requires: libboost_program_options%{opensuse_boost_version}
-Requires: libboost_system%{opensuse_boost_version}
-Requires: libboost_test%{opensuse_boost_version}
-Requires: libboost_thread%{opensuse_boost_version}
-Requires: libboost_regex%{opensuse_boost_version}
-%endif
-%endif
-# suse
 
 %if 0%{?use_systemd}
 BuildRequires: systemd
@@ -185,17 +135,8 @@ Group:        Applications/System
 %if "%{_vendor}" == "suse"
 BuildRequires: libmysqlclient-devel
 %endif
-%if "%{_vendor}" == "redhat"
-# el5 only provides mysql package
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
-BuildRequires: mysql
-%else
-BuildRequires: mysql-libs
-BuildRequires: mysql
-%endif
 BuildRequires: mysql-devel
 Requires: mysql
-%endif
 Requires: %{name} = %{version}-%{release}
 
 %description ido-mysql
@@ -207,7 +148,6 @@ IDOUtils schema >= 1.10
 Summary:      IDO PostgreSQL database backend for Icinga 2
 Group:        Applications/System
 BuildRequires: postgresql-devel
-Requires: postgresql-libs
 Requires: %{name} = %{version}-%{release}
 
 %description ido-pgsql
