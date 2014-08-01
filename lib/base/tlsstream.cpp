@@ -35,7 +35,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, shared_ptr<SSL_CTX> sslContext)
+TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext)
 	: m_Socket(socket), m_Role(role)
 {
 	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
@@ -61,9 +61,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, shared_ptr<
 
 	socket->MakeNonBlocking();
 
-	m_BIO = BIO_new_socket(socket->GetFD(), 0);
-	BIO_set_nbio(m_BIO, 1);
-	SSL_set_bio(m_SSL.get(), m_BIO, m_BIO);
+	SSL_set_fd(m_SSL.get(), socket->GetFD());
 
 	if (m_Role == RoleServer)
 		SSL_set_accept_state(m_SSL.get());
@@ -96,15 +94,12 @@ void TlsStream::Handshake(void)
 	for (;;) {
 		int rc, err;
 
-		{
-			boost::mutex::scoped_lock lock(m_SSLLock);
-			rc = SSL_do_handshake(m_SSL.get());
+		rc = SSL_do_handshake(m_SSL.get());
 
-			if (rc > 0)
-				break;
+		if (rc > 0)
+			break;
 
-			err = SSL_get_error(m_SSL.get(), rc);
-		}
+		err = SSL_get_error(m_SSL.get(), rc);
 
 		switch (err) {
 			case SSL_ERROR_WANT_READ:
@@ -142,13 +137,10 @@ size_t TlsStream::Read(void *buffer, size_t count)
 	while (left > 0) {
 		int rc, err;
 
-		{
-			boost::mutex::scoped_lock lock(m_SSLLock);
-			rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
+		rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
 
-			if (rc <= 0)
-				err = SSL_get_error(m_SSL.get(), rc);
-		}
+		if (rc <= 0)
+			err = SSL_get_error(m_SSL.get(), rc);
 
 		if (rc <= 0) {
 			switch (err) {
@@ -189,13 +181,10 @@ void TlsStream::Write(const void *buffer, size_t count)
 	while (left > 0) {
 		int rc, err;
 
-		{
-			boost::mutex::scoped_lock lock(m_SSLLock);
-			rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
+		rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
 
-			if (rc <= 0)
-				err = SSL_get_error(m_SSL.get(), rc);
-		}
+		if (rc <= 0)
+			err = SSL_get_error(m_SSL.get(), rc);
 
 		if (rc <= 0) {
 			switch (err) {
@@ -235,18 +224,14 @@ void TlsStream::Close(void)
 	for (;;) {
 		int rc, err;
 
-		{
-			boost::mutex::scoped_lock lock(m_SSLLock);
+		do {
+			rc = SSL_shutdown(m_SSL.get());
+		} while (rc == 0);
 
-			do {
-				rc = SSL_shutdown(m_SSL.get());
-			} while (rc == 0);
+		if (rc > 0)
+			break;
 
-			if (rc > 0)
-				break;
-
-			err = SSL_get_error(m_SSL.get(), rc);
-		}
+		err = SSL_get_error(m_SSL.get(), rc);
 
 		switch (err) {
 			case SSL_ERROR_WANT_READ:

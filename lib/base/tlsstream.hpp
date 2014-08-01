@@ -38,7 +38,7 @@ class I2_BASE_API TlsStream : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
-	TlsStream(const Socket::Ptr& socket, ConnectionRole role, shared_ptr<SSL_CTX> sslContext);
+	TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext);
 
 	shared_ptr<X509> GetClientCertificate(void) const;
 	shared_ptr<X509> GetPeerCertificate(void) const;
@@ -53,7 +53,6 @@ public:
 	virtual bool IsEof(void) const;
 
 private:
-	boost::mutex m_SSLLock;
 	shared_ptr<SSL> m_SSL;
 	BIO *m_BIO;
 

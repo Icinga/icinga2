@@ -33,6 +33,15 @@ static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 		l_Mutexes[type].unlock();
 }
 
+static unsigned long OpenSSLIDCallback(void)
+{
+#ifdef _WIN32
+	return static_cast<unsigned long>(GetCurrentThreadId());
+#else /* _WIN32 */
+	return static_cast<unsigned long>(pthread_self());
+#endif /* _WIN32 */
+}
+
 /**
  * Initializes the OpenSSL library.
  */
@@ -48,6 +57,7 @@ static void InitializeOpenSSL(void)
 
 	l_Mutexes = new boost::mutex[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(&OpenSSLLockingCallback);
+	CRYPTO_set_id_callback(&OpenSSLIDCallback);
 
 	l_SSLInitialized = true;
 }
@@ -66,7 +76,7 @@ shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, 
 
 	shared_ptr<SSL_CTX> sslContext = shared_ptr<SSL_CTX>(SSL_CTX_new(TLSv1_method()), SSL_CTX_free);
 
-	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER | SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
 	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
 		BOOST_THROW_EXCEPTION(openssl_error()
