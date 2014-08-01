@@ -746,14 +746,15 @@ Therefore you need to setup the [DB IDO feature](#configuring-ido) remarked in t
 #### <a id="installing-icinga-web"></a> Installing Icinga Web
 
 The Icinga package repository has both Debian and RPM packages. You can install
-the Classic UI using the following packages:
+Icinga Web using the following packages (RPMs ship an additional configuration package):
 
   Distribution  | Packages
   --------------|-------------------------------------
   RHEL/SUSE     | icinga-web icinga-web-{mysql,pgsql}
   Debian        | icinga-web
 
-Additionally you need to setup the `icinga_web` database.
+Additionally you need to setup the `icinga_web` database and import the database schema.
+Details can be found in the package `README` files, for example [README.RHEL](https://github.com/Icinga/icinga-web/blob/master/doc/README.RHEL)
 
 The Icinga Web RPM packages install the schema files into
 `/usr/share/doc/icinga-web-*/schema` (`*` means package version).
@@ -761,6 +762,16 @@ The Icinga Web dist tarball ships the schema files in `etc/schema`.
 
 On SuSE-based distributions the schema files are installed in
 `/usr/share/doc/packages/icinga-web/schema`.
+
+Example for RHEL and MySQL:
+
+    # mysql -u root -p
+
+    mysql> CREATE DATABASE icinga_web;
+           GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga_web.* TO 'icinga_web'@'localhost' IDENTIFIED BY 'icinga_web';
+           quit
+
+    # mysql -u root -p icinga_web <  /usr/share/doc/icinga-web-<version>/schema/mysql.sql
 
 Icinga Web requires the IDO feature as database backend using MySQL or PostgreSQL.
 Enable that feature, e.g. for MySQL.
