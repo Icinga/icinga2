@@ -36,9 +36,9 @@ static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 static unsigned long OpenSSLIDCallback(void)
 {
 #ifdef _WIN32
-	return static_cast<unsigned long>(GetCurrentThreadId());
+	return reinterpret_cast<unsigned long>(GetCurrentThreadId());
 #else /* _WIN32 */
-	return static_cast<unsigned long>(pthread_self());
+	return reinterpret_cast<unsigned long>(pthread_self());
 #endif /* _WIN32 */
 }
 
