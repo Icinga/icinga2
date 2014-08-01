@@ -97,6 +97,56 @@ You should add your own command definitions to a new file in `conf.d/` called `c
 or similar.
 
 
+## <a id="troubleshooting-cluster"></a> Cluster Troubleshooting
+
+You should configure the [cluster health checks](#cluster-health-check) if you haven't
+done so already.
+
+> **Note**
+>
+> Some problems just exist due to wrong file permissions or packet filters applied. Make
+> sure to check these in the first place.
+
+### <a id="troubleshooting-cluster-connection-errors"></a> Cluster Troubleshooting Connection Errors
+
+General connection errors normally lead you to one of the following problems:
+
+* Wrong network configuration
+* Packet loss on the connection
+* Firewall rules preventing traffic
+
+Use tools like `netstat`, `tcpdump`, `nmap`, etc to make sure that the cluster communication
+happens (default port is `5665`).
+
+    # tcpdump -n port 5665 -i any
+    
+    # netstat -tulpen | grep icinga
+
+    # nmap yourclusternode.localdomain
+
+### <a id="troubleshooting-cluster-ssl-errors"></a> Cluster Troubleshooting SSL Errors
+
+If the cluster communication fails with cryptic SSL error messages, make sure to check
+the following
+
+* File permissions on the SSL certificate files
+
+    # ls -la /etc/icinga2/pki
+
+* Does the used CA match for all cluster endpoints?
+
+
+### <a id="troubleshooting-cluster-message-errors"></a> Cluster Troubleshooting Message Errors
+
+At some point, when the network connection is broken or gone, the Icinga 2 instances
+will be disconnected. If the connection can't be re-established between zones and endpoints,
+they remain in a Split-Brain-mode and history may differ.
+
+Although the Icinga 2 cluster protocol stores historical events in a replay log for later synchronisation,
+you should make sure to check why the network connection failed.
+
+
+
 ## <a id="debug"></a> Debug Icinga 2
 
 Make sure that the debug symbols are available for Icinga 2.
@@ -177,4 +227,3 @@ afterwards.
 If you want to delete all breakpoints, use `d` and select `yes`.
 
     (gdb) d
-

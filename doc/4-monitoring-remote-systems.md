@@ -157,6 +157,11 @@ An Icinga 2 cluster can be used for the following scenarios:
 * [Distributed Zones](#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
 * [Load Distribution](#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
 
+> **Tip**
+>
+> If you're looking for troubleshooting cluster problems, check the general
+> [troubleshooting](#troubleshooting-cluster) section.
+
 Before you start configuring the diffent nodes it is necessary to setup the underlying
 communication layer based on SSL.
 
