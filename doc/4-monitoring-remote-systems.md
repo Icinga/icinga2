@@ -30,7 +30,7 @@ have the `snmp-community` custom attribute.
 
       check_command = "snmp"
       vars.snmp_oid = "1.3.6.1.2.1.1.3.0"
-  
+
       assign where host.vars.snmp_community != ""
     }
 
@@ -75,7 +75,7 @@ Example:
 
     object Service "users" {
       import "generic-service"
-  
+
       host_name = "remote-nrpe-host"
 
       check_command = "nrpe"
@@ -100,7 +100,7 @@ Example:
 
     object Service "disk" {
       import "generic-service"
-  
+
       host_name = "remote-windows-host"
 
       check_command = "nscp"
@@ -122,6 +122,11 @@ Meanwhile remote checkers in a [cluster](#distributed-monitoring-high-availabili
 immediate replacement, but without any local configuration - or pushing
 their standalone configuration back to the master node including their check
 result messages.
+
+> **Note**
+>
+> Remote checker instances are independent Icinga 2 instances which schedule
+> their checks and just synchronize them back to the defined master zone.
 
 ### <a id="agent-based-checks-snmp-traps"></a> Passive Check Results and SNMP Traps
 
@@ -177,6 +182,15 @@ Now create a certificate and key file for each node running the following comman
 Repeat the step for all nodes in your cluster scenario. Save the CA key in case
 you want to set up certificates for additional nodes at a later time.
 
+Each node requires the following files in `etc/icinga2/pki` (replace ` fqdn-nodename` with
+the host's FQDN):
+
+* ca.crt
+* <fqdn-nodename>.crt
+* <fqdn-nodename>.key
+
+
+
 ### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
@@ -225,7 +239,7 @@ Specifying the local node name using the [NodeName](#global-constants) variable 
 the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
 
     const NodeName = "icinga2a"
-    
+
 
 ### <a id="configure-clusterlistener-object"></a> Configure the ApiListener Object
 
@@ -246,10 +260,12 @@ You can simply enable the `api` feature using
     # icinga2-enable-feature api
 
 Edit `/etc/icinga2/features-enabled/api.conf` if you require the configuration
-synchronisation enabled.
+synchronisation enabled for this node.
 
-The certificate files must be readable by the user Icinga 2 is running as. Also,
-the private key file must not be world-readable.
+> **Note**
+>
+> The certificate files must be readable by the user Icinga 2 is running as. Also,
+> the private key file must not be world-readable.
 
 
 ### <a id="configure-cluster-endpoints"></a> Configure Cluster Endpoints
@@ -309,6 +325,21 @@ By default all objects for specific zones should be organized in
 
     /etc/icinga2/zones.d/<zonename>
 
+on the configuration master. You should remove the sample config included in
+`conf.d` by commenting the `recursive_include` statement in [icinga2.conf](#icinga2-conf):
+
+    //include_recursive "conf.d"
+
+Better use a dedicated directory name like `cluster` or similar, and include that
+one if your nodes require local configuration not being synced to other nodes. That's
+useful for local [health checks](#cluster-health-check) for example.
+
+> **Note**
+>
+> In a [high availability](#cluster-scenarios-high-availability)
+> setup only one assigned node can act as configuration master. All other zone
+> member nodes must not have the `/etc/icinga2/zones.d` directory populated.
+
 These zone packages are then distributed to all nodes in the same zone, and
 to their respective target zone instances.
 
@@ -340,15 +371,15 @@ process.
 > determines the required include directory. This can be overridden using the
 > [global constant](#global-constants) `ZonesDir`.
 
-#### <a id="zone-synchronisation-permissions"></a> Global configuration zone
+#### <a id="zone-synchronisation-permissions"></a> Global Configuration Zone
 
 If your zone configuration setup shares the same templates, groups, commands, timeperiods, etc.
 you would have to duplicate quite a lot of configuration objects making the merged configuration
 on your configuration master unique.
 
-That is not necessary by defining a global zone shipping all those templates. By settting
-`global = true` you ensure that this zone configuration template will be synchronized to all
-involved nodes (only if they accept configuration though).
+That is not necessary by defining a global zone shipping all those templates. By setting
+`global = true` you ensure that this zone serving common configuration templates will be
+synchronized to all involved nodes (only if they accept configuration though).
 
     /etc/icinga2/zones.d
       global-templates/
@@ -417,6 +448,21 @@ Each cluster node should execute its own local cluster health check to
 get an idea about network related connection problems from different
 points of view.
 
+Additionally you can monitor the connection from the local zone to the remote
+connected zones.
+
+Example for the `checker` zone checking the connection to the `master` zone:
+
+    apply Service "cluster-zone-master" {
+      check_command = "cluster-zone"
+      check_interval = 5s
+      retry_interval = 1s
+      vars.cluster_zone = "master"
+
+      assign where host.name == "icinga2b"
+    }
+
+
 ### <a id="host-multiple-cluster-nodes"></a> Host With Multiple Cluster Nodes
 
 Special scenarios might require multiple cluster nodes running on a single host.
@@ -431,11 +477,22 @@ the Icinga 2 daemon.
 
 ### <a id="cluster-scenarios"></a> Cluster Scenarios
 
+All cluster nodes are full-featured Icinga 2 instances. You only need to enabled
+the features for their role (for example, a `Checker` node only requires the `checker`
+feature enabled, but not `notification` or `ido-mysql` features).
+
+Each instance got their own event scheduler, and does not depend on a centralized master
+coordinating and distributing the events. In case of a cluster failure, all nodes
+continue to run independently. Be alarmed when your cluster fails and a Split-Brain-scenario
+is in effect - all alive instances continue to do their job, and history will begin to differ.
+
 #### <a id="cluster-scenarios-features"></a> Features in Cluster Zones
 
-Each cluster zone may use available features. If you have multiple locations
+Each cluster zone may use all available features. If you have multiple locations
 or departments, they may write to their local database, or populate graphite.
-Even further all commands are distributed.
+Even further all commands are distributed amongst connected nodes. For example, you could
+re-schedule a check or acknowledge a problem on the master, and it gets replicated to the
+actual slave checker node.
 
 DB IDO on the left, graphite on the right side - works.
 Icinga Web 2 on the left, checker and notifications on the right side - works too.
@@ -449,17 +506,18 @@ to a central instance. Their network connection only works towards the central m
 (or the master is able to connect, depending on firewall policies) which means
 remote instances won't see each/connect to each other.
 
-All events are synced to the central node, but the remote nodes can still run
-local features such as a web interface, reporting, graphing, etc. in their own specified
-zone.
+All events (check results, downtimes, comments, etc) are synced to the central node,
+but the remote nodes can still run local features such as a web interface, reporting,
+graphing, etc. in their own specified zone.
 
 Imagine the following example with a central node in Nuremberg, and two remote DMZ
 based instances in Berlin and Vienna. The configuration tree on the central instance
 could look like this:
 
-    conf.d/
-      templates/
     zones.d
+      global-templates/
+        templates.conf
+        groups.conf
       nuremberg/
         local.conf
       berlin/
@@ -502,6 +560,10 @@ The zones would look like:
       parent = "nuremberg"
     }
 
+    object Zone "global-templates" {
+      global = true
+    }
+
 The `nuremberg-master` zone will only execute local checks, and receive
 check results from the satellite nodes in the zones `berlin` and `vienna`.
 
@@ -515,13 +577,12 @@ you can achieve that by:
 * Let Icinga 2 distribute the load amongst all available nodes.
 
 That way all remote check instances will receive the same configuration
-but only execute their part. The central instance can also execute checks,
-but you may also disable the `Checker` feature.
+but only execute their part. The central instance located in the `master` zone
+can also execute checks, but you may also disable the `Checker` feature.
 
-    conf.d/
-      templates/
     zones.d/
-      central/
+      global-templates/
+      master/
       checker/
 
 If you are planning to have some checks executed by a specific set of checker nodes
@@ -544,13 +605,17 @@ Endpoints:
 
 Zones:
 
-    object Zone "central" {
+    object Zone "master" {
       endpoints = [ "central-node" ]
     }
 
     object Zone "checker" {
       endpoints = [ "checker1-node", "checker2-node" ]
       parent = "central"
+    }
+
+    object Zone "global-templates" {
+      global = true
     }
 
 
@@ -572,6 +637,12 @@ commands, etc.
     }
 
 Two or more nodes in a high availability setup require an [initial cluster sync](#initial-cluster-sync).
+
+> **Note**
+>
+> Keep in mind that only one node can act as configuration master having the
+> configuration files in the `zones.d` directory. All other nodes must not
+> have that directory populated. Detail in the [Configuration Sync Chapter](#cluster-zone-config-sync).
 
 
 #### <a id="cluster-scenarios-multiple-hierachies"></a> Multiple Hierachies
@@ -597,9 +668,3 @@ department instances. Furthermore the central NOC is able to see what's going on
 
 The instances in the departments will serve a local interface, and allow the administrators
 to reschedule checks or acknowledge problems for their services.
-
-
-
-
-
-
