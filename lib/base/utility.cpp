@@ -90,7 +90,7 @@ String Utility::GetSymbolName(const void *addr)
 #ifdef HAVE_DLADDR
 	Dl_info dli;
 
-	if (dladdr(addr, &dli) > 0)
+	if (dladdr(const_cast<void *>(addr), &dli) > 0)
 		return dli.dli_sname;
 #endif /* HAVE_DLADDR */
 
