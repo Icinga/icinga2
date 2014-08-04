@@ -46,6 +46,8 @@ public:
 
 	static Application::Ptr GetInstance(void);
 
+	static void Exit(int rc);
+
 	int Run(void);
 
 	/**
@@ -128,7 +130,7 @@ protected:
 	pid_t StartReloadProcess(void);
 
 	virtual void OnShutdown(void);
-	
+
 private:
 	static Application *m_Instance; /**< The application instance. */
 

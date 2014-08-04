@@ -898,6 +898,12 @@ void ApiEvents::RepositoryTimerHandler(void)
 	}
 
 	Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
+
+	if (!my_endpoint) {
+		Log(LogWarning, "ApiEvents", "No local endpoint defined. Bailing out.");
+		return;
+	}
+
 	Zone::Ptr my_zone = my_endpoint->GetZone();
 
 	Dictionary::Ptr params = make_shared<Dictionary>();
@@ -965,14 +971,26 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 String ApiEvents::GetVirtualHostName(const Host::Ptr& host)
 {
 	String host_name = host->GetName();
-	if (host_name == "localhost")
-		host_name = Endpoint::GetLocalEndpoint()->GetName();
+	if (host_name == "localhost") {
+		Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
+
+		if (!local)
+			return Empty;
+
+		host_name = local->GetName();
+	}
+
 	return host_name;
 }
 
 Host::Ptr ApiEvents::FindHostByVirtualName(const String& hostName)
 {
-	if (hostName == Endpoint::GetLocalEndpoint()->GetName())
+	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
+
+	if (!local)
+		return Host::Ptr();
+
+	if (hostName == local->GetName())
 		return Host::GetByName("localhost");
 	else
 		return Host::GetByName(hostName);

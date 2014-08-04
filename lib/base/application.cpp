@@ -112,6 +112,11 @@ Application::~Application(void)
 	m_Instance = NULL;
 }
 
+void Application::Exit(int rc)
+{
+	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
+}
+
 void Application::InitializeBase(void)
 {
 #ifndef _WIN32
@@ -282,7 +287,7 @@ mainloop:
 
 		lastLoop = now;
 	}
-		
+
 	if (m_RequestRestart) {
 		m_RequestRestart = false;         // we are now handling the request, once is enough
 
@@ -295,7 +300,7 @@ mainloop:
 
 		goto mainloop;
 	}
-	
+
 	Log(LogInformation, "Application", "Shutting down Icinga...");
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
@@ -342,7 +347,7 @@ pid_t Application::StartReloadProcess(void)
 	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
 	process->SetTimeout(300);
 	process->Run(&ReloadProcessCallback);
- 
+
 	return process->GetPID();
 }
 
@@ -706,7 +711,7 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	if (fcntl(fd, F_SETLK, &lock) < 0) {
 		Log(LogCritical, "Application", "Could not lock PID file. Make sure that only one instance of the application is running.");
 
-		_exit(EXIT_FAILURE);
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	if (ftruncate(fd, 0) < 0) {
@@ -1009,6 +1014,7 @@ void Application::MakeVariablesConstant(void)
 	ScriptVariable::GetByName("PrefixDir")->SetConstant(true);
 	ScriptVariable::GetByName("SysconfDir")->SetConstant(true);
 	ScriptVariable::GetByName("LocalStateDir")->SetConstant(true);
+	ScriptVariable::GetByName("RunDir")->SetConstant(true);
 	ScriptVariable::GetByName("PkgDataDir")->SetConstant(true);
 	ScriptVariable::GetByName("StatePath")->SetConstant(false);
 	ScriptVariable::GetByName("PidPath")->SetConstant(false);

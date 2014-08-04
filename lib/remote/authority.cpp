@@ -42,6 +42,9 @@ static void AuthorityTimerHandler(void)
 		return;
 
 	Zone::Ptr my_zone = Zone::GetLocalZone();
+	if (!my_zone)
+		return;
+
 	Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
 
 	std::vector<Endpoint::Ptr> endpoints;

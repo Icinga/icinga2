@@ -102,7 +102,10 @@ void ApiListener::Start(void)
 	}
 
 	/* create the primary JSON-RPC listener */
-	AddListener(GetBindPort());
+	if (!AddListener(GetBindPort())) {
+		Log(LogCritical, "ApiListener", "Cannot add listener for port '" + Convert::ToString(GetBindPort()) + "'.");
+		Application::Exit(EXIT_FAILURE);
+	}
 
 	m_Timer = make_shared<Timer>();
 	m_Timer->OnTimerExpired.connect(boost::bind(&ApiListener::ApiTimerHandler, this));
@@ -129,6 +132,10 @@ shared_ptr<SSL_CTX> ApiListener::GetSSLContext(void) const
 Endpoint::Ptr ApiListener::GetMaster(void) const
 {
 	Zone::Ptr zone = Zone::GetLocalZone();
+
+	if (!zone)
+		return Endpoint::Ptr();
+
 	std::vector<String> names;
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints())
@@ -142,7 +149,12 @@ Endpoint::Ptr ApiListener::GetMaster(void) const
 
 bool ApiListener::IsMaster(void) const
 {
-	return GetMaster()->GetName() == GetIdentity();
+	Endpoint::Ptr master = GetMaster();
+
+	if (!master)
+		return false;
+
+	return master->GetName() == GetIdentity();
 }
 
 /**
@@ -150,7 +162,7 @@ bool ApiListener::IsMaster(void) const
  *
  * @param service The port to listen on.
  */
-void ApiListener::AddListener(const String& service)
+bool ApiListener::AddListener(const String& service)
 {
 	ObjectLock olock(this);
 
@@ -158,7 +170,7 @@ void ApiListener::AddListener(const String& service)
 
 	if (!sslContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
-		return;
+		return false;
 	}
 
 	std::ostringstream s;
@@ -171,13 +183,15 @@ void ApiListener::AddListener(const String& service)
 		server->Bind(service, AF_UNSPEC);
 	} catch(std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot bind tcp socket on '" + service + "'.");
-		return;
+		return false;
 	}
 
 	boost::thread thread(boost::bind(&ApiListener::ListenerThreadProc, this, server));
 	thread.detach();
 
 	m_Servers.insert(server);
+
+	return true;
 }
 
 void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
@@ -209,7 +223,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 		if (!sslContext) {
-			Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
+			Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
 			return;
 		}
 	}
@@ -398,7 +412,10 @@ void ApiListener::ApiTimerHandler(void)
 			Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts));
 	}
 
-	Log(LogNotice, "ApiListener", "Current zone master: " + GetMaster()->GetName());
+	Endpoint::Ptr master = GetMaster();
+
+	if (master)
+		Log(LogNotice, "ApiListener", "Current zone master: " + master->GetName());
 
 	std::vector<String> names;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>())

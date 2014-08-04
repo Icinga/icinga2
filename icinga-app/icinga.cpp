@@ -595,7 +595,7 @@ int Main(void)
 	int rc = Application::GetInstance()->Run();
 
 #ifndef _DEBUG
-	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
+	Application::Exit(rc);
 #endif /* _DEBUG */
 
 	return rc;
@@ -788,11 +788,11 @@ int main(int argc, char **argv)
 		};
 
 		StartServiceCtrlDispatcher(dispatchTable);
-		_exit(1);
+		Application::Exit(1);
 	}
 #endif /* _WIN32 */
 
 	int rc = Main();
 
-	_exit(rc);
+	Application::Exit(rc);
 }
