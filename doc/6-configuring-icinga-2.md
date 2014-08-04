@@ -13,7 +13,7 @@ LocalStateDir       |**Read-only.** Contains the path of the local state directo
 RunDir              |**Read-only.** Contains the path of the run directory. Defaults to LocalStateDir + "/run".
 PkgDataDir          |**Read-only.** Contains the path of the package data directory. Defaults to PrefixDir + "/share/icinga2".
 StatePath           |**Read-write.** Contains the path of the Icinga 2 state file. Defaults to LocalStateDir + "/lib/icinga2/icinga2.state".
-PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to LocalStateDir + "/run/icinga2/icinga2.pid".
+PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to RunDir + "/icinga2/icinga2.pid".
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 ApplicationType     |**Read-write.** Contains the name of the Application type. Defaults to "icinga/IcingaApplication".
@@ -399,9 +399,9 @@ another group of objects.
 
     apply Service "ping" to Host {
       import "generic-service"
- 
+
       check_command = "ping4"
-  
+
       assign where host.name == "localhost"
     }
 
@@ -673,7 +673,7 @@ Attributes:
 
 
 Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
-you can define more than one object with the same (short) name as long as the `host_name` attribute has a different value. 
+you can define more than one object with the same (short) name as long as the `host_name` attribute has a different value.
 
 ### <a id="objecttype-servicegroup"></a> ServiceGroup
 
@@ -2004,7 +2004,7 @@ Name            | Description
 pop_address     | **Optional.** The host's address. Defaults to "$address$".
 pop_port        | **Optional.** The port that should be checked. Defaults to 110.
 
-#### <a id="plugin-check-command-spop"></a> spop 
+#### <a id="plugin-check-command-spop"></a> spop
 
 Check command object for the `check_spop` plugin.
 
