@@ -252,7 +252,8 @@ Value PluginUtility::ParsePerfdata(const String& perfdata)
 		}
 
 		return result;
-	} catch (const std::exception&) {
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "PluginUtility", "Error parsing performance data '" + perfdata + "': " + ex.what());
 		return perfdata;
 	}
 }

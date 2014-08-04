@@ -19,6 +19,7 @@
 
 #include "icinga/perfdatavalue.hpp"
 #include "base/convert.hpp"
+#include "base/exception.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>

@@ -142,7 +142,10 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 	Value pdv = cr->GetPerformanceData();
 
 	if (!pdv.IsObjectType<Dictionary>())
+	{
+		Log(LogWarning, "GraphiteWriter", "Could not send performance data: unparsed data.");
 		return;
+	}
 
 	Dictionary::Ptr perfdata = pdv;
 
