@@ -96,7 +96,7 @@ syn keyword		icinga2Function		contained	regex match len union intersection strin
 
 
 " global constats
-syn keyword		icinga2Gconst		PrefixDir SysconfDir ZonesDir LocalStateDir PkgDataDir StatePath PidPath
+syn keyword		icinga2Gconst		PrefixDir SysconfDir ZonesDir LocalStateDir PkgDataDir RunDir StatePath PidPath
 syn keyword		icinga2Gconst		NodeName ApplicationType EnableNotifications EnableEventHandlers 
 syn keyword		icinga2Gconst		EnableFlapping EnableHostChecks EnableServiceChecks EnablePerfdata UseVfork
 syn	match		icinga2Gconst		"\(Vars[ \t]\+\)"

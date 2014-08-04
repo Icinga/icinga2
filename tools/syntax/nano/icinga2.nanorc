@@ -51,7 +51,7 @@ icolor white 	"(regex|match|len|union|intersection|string|number|bool|log|exit)"
 
 
 ## global constats
-icolor yellow  	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|PkgDataDir|StatePath|PidPath)"
+icolor yellow  	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|PkgDataDir|RunDir|StatePath|PidPath)"
 icolor yellow  	"(NodeName|ApplicationType|EnableNotifications|EnableEventHandlers)"
 icolor yellow  	"(EnableFlapping|EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork)"
 icolor yellow  	"(Vars\s+)"
