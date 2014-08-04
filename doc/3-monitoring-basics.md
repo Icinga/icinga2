@@ -956,6 +956,22 @@ account but all parents are inherited.
 
 Notifications are suppressed if a host or service becomes unreachable.
 
+### <a id="dependencies-implicit-host-service"></a> Implicit Dependencies for Services on Host
+
+Icinga 2 automatically adds an implicit dependency for services on their host. That way
+service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
+does not overwrite other dependencies and implicitely sets `disable_notifications = true` and
+`states = [ Up ]` for all service objects.
+
+Service checks are still executed. If you want to prevent them from happening, you can
+apply the following dependency to all services setting their host as `parent_host_name`
+and disabling the checks. `assign where true` matches on all `Service` objects.
+
+    apply Dependency "disable-host-service-checks" to Service {
+      disable_checks = true
+      assign where true
+    }
+
 ### <a id="dependencies-network-reachability"></a> Dependencies for Network Reachability
 
 A common scenario is the Icinga 2 server behind a router. Checking internet
