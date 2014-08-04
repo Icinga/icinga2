@@ -95,6 +95,11 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
+	Utility::QueueAsyncCallback(boost::bind(&ApiClient::DisconnectSync, this));
+}
+
+void ApiClient::DisconnectSync(void)
+{
 	Log(LogWarning, "ApiClient", "API client disconnected for identity '" + m_Identity + "'");
 
 	if (m_Endpoint)

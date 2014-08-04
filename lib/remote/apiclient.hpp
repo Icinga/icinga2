@@ -55,6 +55,7 @@ public:
 	ConnectionRole GetRole(void) const;
 
 	void Disconnect(void);
+	void DisconnectSync(void);
 
 	void SendMessage(const Dictionary::Ptr& request);
 
