@@ -226,6 +226,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		endpoint->SetConnecting(false);
 	} catch (const std::exception& ex) {
 		endpoint->SetConnecting(false);
+		client->Close();
 
 		std::ostringstream info, debug;
 		info << "Cannot connect to host '" << host << "' on port '" << port << "'";
