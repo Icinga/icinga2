@@ -282,7 +282,7 @@ mainloop:
 
 		lastLoop = now;
 	}
-		
+
 	if (m_RequestRestart) {
 		m_RequestRestart = false;         // we are now handling the request, once is enough
 
@@ -295,7 +295,7 @@ mainloop:
 
 		goto mainloop;
 	}
-	
+
 	Log(LogInformation, "Application", "Shutting down Icinga...");
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
@@ -342,7 +342,7 @@ pid_t Application::StartReloadProcess(void)
 	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
 	process->SetTimeout(300);
 	process->Run(&ReloadProcessCallback);
- 
+
 	return process->GetPID();
 }
 
@@ -1009,6 +1009,7 @@ void Application::MakeVariablesConstant(void)
 	ScriptVariable::GetByName("PrefixDir")->SetConstant(true);
 	ScriptVariable::GetByName("SysconfDir")->SetConstant(true);
 	ScriptVariable::GetByName("LocalStateDir")->SetConstant(true);
+	ScriptVariable::GetByName("RunDir")->SetConstant(true);
 	ScriptVariable::GetByName("PkgDataDir")->SetConstant(true);
 	ScriptVariable::GetByName("StatePath")->SetConstant(false);
 	ScriptVariable::GetByName("PidPath")->SetConstant(false);
