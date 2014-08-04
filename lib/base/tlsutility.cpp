@@ -38,7 +38,7 @@ static unsigned long OpenSSLIDCallback(void)
 #ifdef _WIN32
 	return reinterpret_cast<unsigned long>(GetCurrentThreadId());
 #else /* _WIN32 */
-	return reinterpret_cast<unsigned long>(pthread_self());
+	return (unsigned long)pthread_self();
 #endif /* _WIN32 */
 }
 
