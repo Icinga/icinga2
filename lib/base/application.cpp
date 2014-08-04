@@ -112,6 +112,11 @@ Application::~Application(void)
 	m_Instance = NULL;
 }
 
+void Application::Exit(int code)
+{
+	_exit(code);
+}
+
 void Application::InitializeBase(void)
 {
 #ifndef _WIN32
