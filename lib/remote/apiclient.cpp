@@ -95,7 +95,7 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
-	Utility::QueueAsyncCallback(boost::bind(&ApiClient::DisconnectSync, this));
+	Utility::QueueAsyncCallback(boost::bind(&ApiClient::DisconnectSync, static_cast<ApiClient::Ptr>(GetSelf())));
 }
 
 void ApiClient::DisconnectSync(void)
