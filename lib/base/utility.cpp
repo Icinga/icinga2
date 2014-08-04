@@ -90,7 +90,7 @@ String Utility::GetSymbolName(const void *addr)
 #ifdef HAVE_DLADDR
 	Dl_info dli;
 
-	if (dladdr(addr, &dli) > 0)
+	if (dladdr(const_cast<void *>(addr), &dli) > 0)
 		return dli.dli_sname;
 #endif /* HAVE_DLADDR */
 
@@ -545,13 +545,15 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 		    << boost::errinfo_file_name(path));
 
 	while (dirp) {
-		dirent ent, *pent;
+		dirent *pent;
 
-		if (readdir_r(dirp, &ent, &pent) < 0) {
+		errno = 0;
+		pent = readdir(dirp);
+		if (!pent && errno != 0) {
 			closedir(dirp);
 
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("readdir_r")
+			    << boost::errinfo_api_function("readdir")
 			    << boost::errinfo_errno(errno)
 			    << boost::errinfo_file_name(path));
 		}
@@ -559,10 +561,10 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 		if (!pent)
 			break;
 
-		if (strcmp(ent.d_name, ".") == 0 || strcmp(ent.d_name, "..") == 0)
+		if (strcmp(pent->d_name, ".") == 0 || strcmp(pent->d_name, "..") == 0)
 			continue;
 
-		String cpath = path + "/" + ent.d_name;
+		String cpath = path + "/" + pent->d_name;
 
 		struct stat statbuf;
 
@@ -572,7 +574,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 		if (S_ISDIR(statbuf.st_mode))
 			alldirs.push_back(cpath);
 
-		if (!Utility::Match(pattern, ent.d_name))
+		if (!Utility::Match(pattern, pent->d_name))
 			continue;
 
 		if (S_ISDIR(statbuf.st_mode) && (type & GlobDirectory))
