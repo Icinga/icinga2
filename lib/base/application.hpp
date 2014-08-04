@@ -46,7 +46,7 @@ public:
 
 	static Application::Ptr GetInstance(void);
 
-	static void Exit(int code);
+	static void Exit(int rc);
 
 	int Run(void);
 

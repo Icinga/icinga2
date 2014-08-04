@@ -112,9 +112,9 @@ Application::~Application(void)
 	m_Instance = NULL;
 }
 
-void Application::Exit(int code)
+void Application::Exit(int rc)
 {
-	_exit(code);
+	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
 }
 
 void Application::InitializeBase(void)
@@ -711,7 +711,7 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	if (fcntl(fd, F_SETLK, &lock) < 0) {
 		Log(LogCritical, "Application", "Could not lock PID file. Make sure that only one instance of the application is running.");
 
-		_exit(EXIT_FAILURE);
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	if (ftruncate(fd, 0) < 0) {
