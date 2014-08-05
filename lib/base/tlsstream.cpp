@@ -38,11 +38,13 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
 TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext)
 	: m_Socket(socket), m_Role(role)
 {
+	std::ostringstream msgbuf;
+	char errbuf[120];
+
 	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
 
 	if (!m_SSL) {
-		std::ostringstream msgbuf;
-		msgbuf << "SSL_new() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+		msgbuf << "SSL_new() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
 		Log(LogCritical, "TlsStream", msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(openssl_error()
@@ -93,6 +95,9 @@ shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 
 void TlsStream::Handshake(void)
 {
+	std::ostringstream msgbuf;
+	char errbuf[120];
+
 	for (;;) {
 		int rc, err;
 
@@ -121,8 +126,7 @@ void TlsStream::Handshake(void)
 				Close();
 				return;
 			default:
-				std::ostringstream msgbuf;
-				msgbuf << "SSL_do_handshake() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+				msgbuf << "SSL_do_handshake() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
 				Log(LogCritical, "TlsStream", msgbuf.str());
 
 				BOOST_THROW_EXCEPTION(openssl_error()
@@ -138,6 +142,8 @@ void TlsStream::Handshake(void)
 size_t TlsStream::Read(void *buffer, size_t count)
 {
 	size_t left = count;
+	std::ostringstream msgbuf;
+	char errbuf[120];
 
 	while (left > 0) {
 		int rc, err;
@@ -166,8 +172,7 @@ size_t TlsStream::Read(void *buffer, size_t count)
 					Close();
 					return count - left;
 				default:
-					std::ostringstream msgbuf;
-					msgbuf << "SSL_read() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+					msgbuf << "SSL_read() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
 					Log(LogCritical, "TlsStream", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(openssl_error()
@@ -185,6 +190,8 @@ size_t TlsStream::Read(void *buffer, size_t count)
 void TlsStream::Write(const void *buffer, size_t count)
 {
 	size_t left = count;
+	std::ostringstream msgbuf;
+	char errbuf[120];
 
 	while (left > 0) {
 		int rc, err;
@@ -213,8 +220,7 @@ void TlsStream::Write(const void *buffer, size_t count)
 					Close();
 					return;
 				default:
-					std::ostringstream msgbuf;
-					msgbuf << "SSL_write() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), NULL) << "\"";
+					msgbuf << "SSL_write() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
 					Log(LogCritical, "TlsStream", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(openssl_error()
