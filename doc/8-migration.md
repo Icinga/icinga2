@@ -1189,6 +1189,16 @@ The following external commands are not supported:
     STOP_OBSESSING_OVER_SVC
     STOP_OBSESSING_OVER_SVC_CHECKS
 
+### <a id="differences-1x-2-async-event-execution"></a> Asynchronous Event Execution
+
+Unlike Icinga 1.x, Icinga 2 does not block when it waits for a check command
+being executed. Similar when a notification or event handler is triggered - they
+run asynchronously in their own thread.
+
+Writing performance data files or status data and log files doesn't block either.
+Last but not least the external command pipe runs asynchronously and accepts
+multiple connections at once.
+
 ### <a id="differences-1x-2-checks"></a> Checks
 
 #### <a id="differences-1x-2-check-output"></a> Check Output

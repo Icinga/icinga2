@@ -118,6 +118,9 @@ High Availability for DB IDO: Only active on the current zone master, failover h
 
 Multithreaded and scalable for small embedded systems as well as large scale environments.
 Running checks every second is no longer a problem and enables real-time monitoring capabilities.
+Checks, notifications and event handlers [do not block Icinga 2](#differences-1x-2-async-event-execution)
+in its operation. Same goes for performance data writers and the external command pipe, or any
+file writers on disk (`statusdata`).
 Unlike Icinga 1.x the [daemon reload](#differences-1x-2-real-reload) happens asynchronously.
 A child daemon validates the new configuration, the parent process is still doing checks, replicating cluster events, triggering alert notifications, etc. If the configuration validation is ok, all remaining events are synchronized and the child process continues as normal.
 The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. The configuration validation itself runs in paralell allowing fast verification checks.
