@@ -301,6 +301,8 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	aclient->Start();
 
 	if (endpoint) {
+		endpoint->AddClient(aclient);
+
 		if (need_sync) {
 			{
 				ObjectLock olock(endpoint);
@@ -312,8 +314,6 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 		}
 
 		SendConfigUpdate(aclient);
-
-		endpoint->AddClient(aclient);
 	} else
 		AddAnonymousClient(aclient);
 }
