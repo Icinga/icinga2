@@ -76,6 +76,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const share
  */
 shared_ptr<X509> TlsStream::GetClientCertificate(void) const
 {
+	boost::mutex::scoped_lock lock(m_SSLLock);
 	return shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
 }
 
@@ -86,6 +87,7 @@ shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  */
 shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 {
+	boost::mutex::scoped_lock lock(m_SSLLock);
 	return shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
 }
 
@@ -94,12 +96,15 @@ void TlsStream::Handshake(void)
 	for (;;) {
 		int rc, err;
 
-		rc = SSL_do_handshake(m_SSL.get());
+		{
+			boost::mutex::scoped_lock lock(m_SSLLock);
+			rc = SSL_do_handshake(m_SSL.get());
 
-		if (rc > 0)
-			break;
+			if (rc > 0)
+				break;
 
-		err = SSL_get_error(m_SSL.get(), rc);
+			err = SSL_get_error(m_SSL.get(), rc);
+		}
 
 		switch (err) {
 			case SSL_ERROR_WANT_READ:
@@ -137,10 +142,13 @@ size_t TlsStream::Read(void *buffer, size_t count)
 	while (left > 0) {
 		int rc, err;
 
-		rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
+		{
+			boost::mutex::scoped_lock lock(m_SSLLock);
+			rc = SSL_read(m_SSL.get(), ((char *)buffer) + (count - left), left);
 
-		if (rc <= 0)
-			err = SSL_get_error(m_SSL.get(), rc);
+			if (rc <= 0)
+				err = SSL_get_error(m_SSL.get(), rc);
+		}
 
 		if (rc <= 0) {
 			switch (err) {
@@ -181,10 +189,13 @@ void TlsStream::Write(const void *buffer, size_t count)
 	while (left > 0) {
 		int rc, err;
 
-		rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
+		{
+			boost::mutex::scoped_lock lock(m_SSLLock);
+			rc = SSL_write(m_SSL.get(), ((const char *)buffer) + (count - left), left);
 
-		if (rc <= 0)
-			err = SSL_get_error(m_SSL.get(), rc);
+			if (rc <= 0)
+				err = SSL_get_error(m_SSL.get(), rc);
+		}
 
 		if (rc <= 0) {
 			switch (err) {
@@ -221,7 +232,7 @@ void TlsStream::Write(const void *buffer, size_t count)
  */
 void TlsStream::Close(void)
 {
-	for (;;) {
+	for (int i = 0; i < 5; i++) {
 		int rc, err;
 
 		do {
