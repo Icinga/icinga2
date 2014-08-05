@@ -235,14 +235,18 @@ void TlsStream::Close(void)
 	for (int i = 0; i < 5; i++) {
 		int rc, err;
 
-		do {
+		{
+			boost::mutex::scoped_lock lock(m_SSLLock);
 			rc = SSL_shutdown(m_SSL.get());
-		} while (rc == 0);
 
-		if (rc > 0)
-			break;
+			if (rc == 0)
+				continue;
 
-		err = SSL_get_error(m_SSL.get(), rc);
+			if (rc > 0)
+				break;
+
+			err = SSL_get_error(m_SSL.get(), rc);
+		}
 
 		switch (err) {
 			case SSL_ERROR_WANT_READ:
