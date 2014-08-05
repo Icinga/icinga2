@@ -432,7 +432,7 @@ by trying to run it on the console using whichever user Icinga 2 is running as:
     $ /opt/plugins/check_snmp_int.pl --help
 
 Additional libraries may be required for some plugins. Please consult the plugin
-documentation and/or README for installation instructions.
+documentation and/or plugin provided README for installation instructions.
 
 Each plugin requires a [CheckCommand](#objecttype-checkcommand) object in your
 configuration which can be used in the [Service](#objecttype-service) or
@@ -1149,7 +1149,7 @@ For Icinga 2 there are currently two scenarios available:
 
 > **Note**
 >
-> Please consult the `README` file for each project for further installation
+> Please consult the `README.md` file for each project for further installation
 > details at [https://github.com/Icinga/icinga-vagrant]
 
 Once you have checked out the Git repository navigate to your required

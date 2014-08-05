@@ -415,7 +415,7 @@ exit 0
 
 %files bin
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
 %if 0%{?use_systemd}
 %attr(644,root,root) %{_unitdir}/%{name}.service
 %else
@@ -475,7 +475,7 @@ exit 0
 
 %files common
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog tools/syntax
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog tools/syntax
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
@@ -491,12 +491,12 @@ exit 0
 
 %files ido-mysql
 %defattr(-,root,root,-)
-%doc components/db_ido_mysql/schema COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
+%doc components/db_ido_mysql/schema COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
 %{_libdir}/%{name}/libdb_ido_mysql*
 
 %files ido-pgsql
 %defattr(-,root,root,-)
-%doc components/db_ido_pgsql/schema COPYING COPYING.Exceptions README NEWS AUTHORS ChangeLog
+%doc components/db_ido_pgsql/schema COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
 %{_libdir}/%{name}/libdb_ido_pgsql*
 
 %files classicui-config
