@@ -47,14 +47,14 @@ void ApiListener::OnConfigLoaded(void)
 		cert = GetX509Certificate(GetCertPath());
 	} catch (std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot get certificate from cert path: '" + GetCertPath() + "'.");
-		return;
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
 	} catch (std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
-		return;
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	Log(LogInformation, "ApiListener", "My API identity: " + GetIdentity());
@@ -63,7 +63,7 @@ void ApiListener::OnConfigLoaded(void)
 		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 	} catch (std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot make SSL context for cert path: '" + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.");
-		return;
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	if (!GetCrlPath().IsEmpty()) {
@@ -71,13 +71,13 @@ void ApiListener::OnConfigLoaded(void)
 			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
 		} catch (std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot add certificate revocation list to SSL context for crl path: '" + GetCrlPath() + "'.");
-			return;
+			Application::Exit(EXIT_FAILURE);
 		}
 	}
 
 	if (!Endpoint::GetByName(GetIdentity())) {
 		Log(LogCritical, "ApiListener", "Endpoint object for '" + GetIdentity() + "' is missing.");
-		return;
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	SyncZoneDirs();
