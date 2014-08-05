@@ -114,6 +114,7 @@ Application::~Application(void)
 
 void Application::Exit(int rc)
 {
+	std::cout.flush();
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
 }
 
