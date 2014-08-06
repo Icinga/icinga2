@@ -63,7 +63,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 
 	if (rc != 0) {
 		std::ostringstream msgbuf;
-		msgbuf << "getaddrinfo() failed with return code " << rc << ", \"" << Utility::FormatErrorNumber(rc) << "\"";
+		msgbuf << "getaddrinfo() failed with return code " << rc << ", \"" << gai_strerror(rc) << "\"";
 		Log(LogCritical, "TcpSocket",  msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -156,7 +156,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 
 	if (rc != 0) {
 		std::ostringstream msgbuf;
-		msgbuf << "getaddrinfo() failed with return code " << rc << ", \"" << Utility::FormatErrorNumber(rc) << "\"";
+		msgbuf << "getaddrinfo() failed with return code " << rc << ", \"" << gai_strerror(rc) << "\"";
 		Log(LogCritical, "TcpSocket",  msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(socket_error()
