@@ -48,5 +48,16 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(), resolvers);
+	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(), resolvers, boost::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
+}
+
+void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& command, const ProcessResult& pr)
+{
+	if (pr.ExitStatus != 0) {
+		std::ostringstream msgbuf;
+		msgbuf << "Event command '" << command << "' for object '"
+		       << checkable->GetName() << "' failed; exit status: "
+		       << pr.ExitStatus << ", output: " << pr.Output;
+		Log(LogWarning, "PluginEventTask", msgbuf.str());
+	}
 }

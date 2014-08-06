@@ -22,6 +22,7 @@
 
 #include "methods/i2-methods.hpp"
 #include "icinga/service.hpp"
+#include "base/process.hpp"
 
 namespace icinga
 {
@@ -38,6 +39,8 @@ public:
 
 private:
 	PluginEventTask(void);
+
+        static void ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& command, const ProcessResult& pr);
 };
 
 }

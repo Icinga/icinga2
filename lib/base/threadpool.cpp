@@ -130,7 +130,8 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 #endif /* _DEBUG */
 
 		try {
-			wi.Callback();
+			if (wi.Callback)
+				wi.Callback();
 		} catch (const std::exception& ex) {
 			std::ostringstream msgbuf;
 			msgbuf << "Exception thrown in event handler: " << std::endl
