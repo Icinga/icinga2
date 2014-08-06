@@ -82,7 +82,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		std::ostringstream msgbuf;
-		msgbuf << "mkfifo() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		msgbuf << "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 		return;
 	}
@@ -91,7 +91,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	 * fifo to get the right mask. */
 	if (chmod(commandPath.CStr(), mode) < 0) {
 		std::ostringstream msgbuf;
-		msgbuf << "chmod() on fifo '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		msgbuf << "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 		return;
 	}
@@ -106,7 +106,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 			if (fd < 0) {
 				std::ostringstream msgbuf;
-				msgbuf << "open() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				msgbuf << "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 				return;
 			}
@@ -127,7 +127,7 @@ void ExternalCommandListener::ClientHandler(const String& commandPath, int fd)
 
 	if (fp == NULL) {
 		std::ostringstream msgbuf;
-		msgbuf << "fdopen() for fifo path '" << commandPath << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		msgbuf << "fdopen() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
 		return;
 	}
