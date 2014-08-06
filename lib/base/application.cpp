@@ -208,15 +208,16 @@ void Application::SetResourceLimits(void)
 			exit(1);
 		}
 
-		for (int i = 0; i < argc; i++)
-			new_argv[i] = argv[i];
+		new_argv[0] = argv[0];
+		new_argv[1] = strdup("--no-stack-rlimit");
 
-		new_argv[argc] = strdup("--no-stack-rlimit");
-
-		if (!new_argv[argc]) {
+		if (!new_argv[1]) {
 			perror("strdup");
 			exit(1);
 		}
+
+		for (int i = 1; i < argc; i++)
+			new_argv[i + 1] = argv[i];
 
 		new_argv[argc + 1] = NULL;
 
