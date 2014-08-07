@@ -187,12 +187,12 @@ Now create a certificate and key file for each node running the following comman
 Repeat the step for all nodes in your cluster scenario. Save the CA key in case
 you want to set up certificates for additional nodes at a later time.
 
-Each node requires the following files in `etc/icinga2/pki` (replace ` fqdn-nodename` with
+Each node requires the following files in `/etc/icinga2/pki` (replace `fqdn-nodename` with
 the host's FQDN):
 
 * ca.crt
-* <fqdn-nodename>.crt
-* <fqdn-nodename>.key
+* &lt;fqdn-nodename&gt;.crt
+* &lt;fqdn-nodename&gt;.key
 
 
 
