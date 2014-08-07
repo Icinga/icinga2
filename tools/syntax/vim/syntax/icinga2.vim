@@ -67,7 +67,7 @@ syn keyword		icinga2ObjAttr		contained	bind_port ca_path categories cert_path ch
 syn keyword		icinga2ObjAttr		contained	check_period child_host_name child_service_name cleanup command command_path
 syn keyword		icinga2ObjAttr		contained	comment compat_log_path crl_path database disable_checks disable_notifications
 syn keyword		icinga2ObjAttr		contained	display_name duration email enable_active_checks enable_event_handler
-syn keyword		icinga2ObjAttr		contained	enable_flap_detection enable_notifications enable_passive_checks enable_perfdata
+syn keyword		icinga2ObjAttr		contained	enable_flapping enable_notifications enable_passive_checks enable_perfdata
 syn keyword		icinga2ObjAttr		contained	endpoints env event_command fixed flapping_threshold groups host
 syn keyword		icinga2ObjAttr		contained	host_format_template host_name host_perfdata_path host_temp_path icon_image
 syn keyword		icinga2ObjAttr		contained	icon_image_alt instance_description instance_name interval key_path log_dir
