@@ -63,6 +63,8 @@ public:
 	 */
 	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
 
+	virtual void Flush(void) = 0;
+
 	static std::set<Logger::Ptr> GetLoggers(void);
 
 	static void DisableConsoleLog(void);

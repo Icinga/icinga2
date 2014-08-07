@@ -20,7 +20,7 @@
 #include "base/application.hpp"
 #include "base/stacktrace.hpp"
 #include "base/timer.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -115,6 +115,11 @@ Application::~Application(void)
 void Application::Exit(int rc)
 {
 	std::cout.flush();
+
+	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
+		logger->Flush();
+	}
+
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
 }
 

@@ -60,7 +60,13 @@ StreamLogger::~StreamLogger(void)
 
 void StreamLogger::FlushLogTimerHandler(void)
 {
-	m_Stream->flush();
+	Flush();
+}
+
+void StreamLogger::Flush(void)
+{
+	if (m_Stream)
+		m_Stream->flush();
 }
 
 void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)

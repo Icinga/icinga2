@@ -70,4 +70,9 @@ void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 
 	syslog(severity | LOG_USER, "%s", entry.Message.CStr());
 }
+
+void SyslogLogger::Flush(void)
+{
+	/* Nothing to do here. */
+}
 #endif /* _WIN32 */

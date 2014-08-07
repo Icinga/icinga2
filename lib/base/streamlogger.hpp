@@ -49,6 +49,7 @@ public:
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);
+	virtual void Flush(void);
 
 private:
 	static boost::mutex m_Mutex;
