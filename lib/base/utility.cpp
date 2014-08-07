@@ -793,7 +793,6 @@ String Utility::FormatErrorNumber(int code) {
         }
 
         msgbuf << code << ", \"" << result << "\"";
-        return tmp.str();
 #else
 	msgbuf << strerror(code);
 #endif
