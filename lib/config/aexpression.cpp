@@ -45,7 +45,7 @@ AExpression::AExpression(OpCallback op, const Value& operand1, const Value& oper
 	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2), m_DebugInfo(di)
 { }
 
-Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
+Value AExpression::Evaluate(const Dictionary::Ptr& locals, DebugHint *dhint) const
 {
 	try {
 #ifdef _DEBUG
@@ -56,7 +56,7 @@ Value AExpression::Evaluate(const Dictionary::Ptr& locals) const
 		}
 #endif /* _DEBUG */
 
-		return m_Operator(this, locals);
+		return m_Operator(this, locals, dhint);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
@@ -98,22 +98,22 @@ void AExpression::Dump(std::ostream& stream, int indent) const
 	DumpOperand(stream, m_Operand2, indent + 1);
 }
 
-Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals) const
+Value AExpression::EvaluateOperand1(const Dictionary::Ptr& locals, DebugHint *dhint) const
 {
-	return static_cast<AExpression::Ptr>(m_Operand1)->Evaluate(locals);
+	return static_cast<AExpression::Ptr>(m_Operand1)->Evaluate(locals, dhint);
 }
 
-Value AExpression::EvaluateOperand2(const Dictionary::Ptr& locals) const
+Value AExpression::EvaluateOperand2(const Dictionary::Ptr& locals, DebugHint *dhint) const
 {
-	return static_cast<AExpression::Ptr>(m_Operand2)->Evaluate(locals);
+	return static_cast<AExpression::Ptr>(m_Operand2)->Evaluate(locals, dhint);
 }
 
-Value AExpression::OpLiteral(const AExpression *expr, const Dictionary::Ptr&)
+Value AExpression::OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->m_Operand1;
 }
 
-Value AExpression::OpVariable(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpVariable(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Dictionary::Ptr scope = locals;
 
@@ -127,87 +127,87 @@ Value AExpression::OpVariable(const AExpression *expr, const Dictionary::Ptr& lo
 	return ScriptVariable::Get(expr->m_Operand1);
 }
 
-Value AExpression::OpNegate(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpNegate(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return ~(long)expr->EvaluateOperand1(locals);
 }
 
-Value AExpression::OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return !expr->EvaluateOperand1(locals).ToBool();
 }
 
-Value AExpression::OpAdd(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpAdd(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) + expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) - expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) * expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpDivide(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpDivide(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) / expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpBinaryAnd(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpBinaryAnd(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) & expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpBinaryOr(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpBinaryOr(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) | expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpShiftLeft(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpShiftLeft(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) << expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpShiftRight(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpShiftRight(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) >> expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpEqual(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) == expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpNotEqual(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpNotEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) != expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpLessThan(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpLessThan(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) < expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpGreaterThan(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpGreaterThan(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) > expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpLessThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpLessThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) <= expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpGreaterThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpGreaterThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals) >= expr->EvaluateOperand2(locals);
 }
 
-Value AExpression::OpIn(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpIn(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value right = expr->EvaluateOperand2(locals);
 
@@ -231,22 +231,22 @@ Value AExpression::OpIn(const AExpression *expr, const Dictionary::Ptr& locals)
 	return found;
 }
 
-Value AExpression::OpNotIn(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpNotIn(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
-	return !OpIn(expr, locals);
+	return !OpIn(expr, locals, dhint);
 }
 
-Value AExpression::OpLogicalAnd(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpLogicalAnd(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals).ToBool() && expr->EvaluateOperand2(locals).ToBool();
 }
 
-Value AExpression::OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	return expr->EvaluateOperand1(locals).ToBool() || expr->EvaluateOperand2(locals).ToBool();
 }
 
-Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value funcName = expr->EvaluateOperand1(locals);
 
@@ -270,7 +270,7 @@ Value AExpression::OpFunctionCall(const AExpression *expr, const Dictionary::Ptr
 	return func->Invoke(arguments);
 }
 
-Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr arr = expr->m_Operand1;
 	Array::Ptr result = make_shared<Array>();
@@ -285,7 +285,7 @@ Value AExpression::OpArray(const AExpression *expr, const Dictionary::Ptr& local
 	return result;
 }
 
-Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr arr = expr->m_Operand1;
 	bool in_place = expr->m_Operand2;
@@ -297,7 +297,7 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const AExpression::Ptr& aexpr = arr->Get(index);
 			Dictionary::Ptr alocals = in_place ? locals : result;
-			aexpr->Evaluate(alocals);
+			aexpr->Evaluate(alocals, dhint);
 
 			if (alocals->Contains("__result"))
 				break;
@@ -309,15 +309,17 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 	return xresult;
 }
 
-Value AExpression::OpSet(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpSet(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value index = expr->EvaluateOperand1(locals);
-	Value right = expr->EvaluateOperand2(locals);
+	DebugHint *sdhint = dhint->GetChild(index);
+	Value right = expr->EvaluateOperand2(locals, sdhint);
 	locals->Set(index, right);
+	sdhint->AddMessage("=", expr->m_DebugInfo);
 	return right;
 }
 
-Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value index = expr->EvaluateOperand1(locals);
 	Value left = locals->Get(index);
@@ -333,7 +335,8 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 		xlocals->Set("__parent", locals);
 	}
 
-	Value result = left + expr->EvaluateOperand2(xlocals);
+	DebugHint *sdhint = dhint->GetChild(index);
+	Value result = left + expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
 		Dictionary::Ptr dict = result;
@@ -341,10 +344,12 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 	}
 
 	locals->Set(index, result);
+	sdhint->AddMessage("+=", expr->m_DebugInfo);
+
 	return result;
 }
 
-Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value index = expr->EvaluateOperand1(locals);
 	Value left = locals->Get(index);
@@ -360,7 +365,8 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 		xlocals->Set("__parent", locals);
 	}
 
-	Value result = left - expr->EvaluateOperand2(xlocals);
+	DebugHint *sdhint = dhint->GetChild(index);
+	Value result = left - expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
 		Dictionary::Ptr dict = result;
@@ -368,10 +374,12 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 	}
 
 	locals->Set(index, result);
+	sdhint->AddMessage("-=", expr->m_DebugInfo);
+
 	return result;
 }
 
-Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value index = expr->EvaluateOperand1(locals);
 	Value left = locals->Get(index);
@@ -387,7 +395,8 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 		xlocals->Set("__parent", locals);
 	}
 
-	Value result = left * expr->EvaluateOperand2(xlocals);
+	DebugHint *sdhint = dhint->GetChild(index);
+	Value result = left * expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
 		Dictionary::Ptr dict = result;
@@ -395,10 +404,12 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 	}
 
 	locals->Set(index, result);
+	sdhint->AddMessage("*=", expr->m_DebugInfo);
+
 	return result;
 }
 
-Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value index = expr->EvaluateOperand1(locals);
 	Value left = locals->Get(index);
@@ -414,7 +425,8 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 		xlocals->Set("__parent", locals);
 	}
 
-	Value result = left / expr->EvaluateOperand2(xlocals);
+	DebugHint *sdhint = dhint->GetChild(index);
+	Value result = left / expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
 		Dictionary::Ptr dict = result;
@@ -422,10 +434,12 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 	}
 
 	locals->Set(index, result);
+	sdhint->AddMessage("/=", expr->m_DebugInfo);
+
 	return result;
 }
 
-Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value value = expr->EvaluateOperand1(locals);
 	Value index = expr->EvaluateOperand2(locals);
@@ -456,7 +470,7 @@ Value AExpression::OpIndexer(const AExpression *expr, const Dictionary::Ptr& loc
 	}
 }
 
-Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& locals)
+Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value type = expr->EvaluateOperand1(locals);
 	Value name = expr->EvaluateOperand2(locals);
@@ -466,7 +480,7 @@ Value AExpression::OpImport(const AExpression *expr, const Dictionary::Ptr& loca
 	if (!item)
 		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
 
-	item->GetExpressionList()->Evaluate(locals);
+	item->GetExpressionList()->Evaluate(locals, dhint);
 
 	return Empty;
 }
@@ -486,7 +500,7 @@ Value AExpression::FunctionWrapper(const std::vector<Value>& arguments, const Ar
 	return locals->Get("__result");
 }
 
-Value AExpression::OpFunction(const AExpression* expr, const Dictionary::Ptr& locals)
+Value AExpression::OpFunction(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	AExpression::Ptr aexpr = left->Get(1);
@@ -501,7 +515,7 @@ Value AExpression::OpFunction(const AExpression* expr, const Dictionary::Ptr& lo
 	return func;
 }
 
-Value AExpression::OpApply(const AExpression* expr, const Dictionary::Ptr& locals)
+Value AExpression::OpApply(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	AExpression::Ptr exprl = expr->m_Operand2;
@@ -510,14 +524,14 @@ Value AExpression::OpApply(const AExpression* expr, const Dictionary::Ptr& local
 	AExpression::Ptr aname = left->Get(2);
 	AExpression::Ptr filter = left->Get(3);
 
-	String name = aname->Evaluate(locals);
+	String name = aname->Evaluate(locals, dhint);
 
 	ApplyRule::AddRule(type, target, name, exprl, filter, expr->m_DebugInfo, locals);
 
 	return Empty;
 }
 
-Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& locals)
+Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	AExpression::Ptr exprl = expr->m_Operand2;
@@ -527,7 +541,7 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	AExpression::Ptr filter = left->Get(3);
 	String zone = left->Get(4);
 
-	String name = aname->Evaluate(locals);
+	String name = aname->Evaluate(locals, dhint);
 
 	ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(expr->m_DebugInfo);
 
@@ -571,14 +585,14 @@ Value AExpression::OpObject(const AExpression* expr, const Dictionary::Ptr& loca
 	return Empty;
 }
 
-Value AExpression::OpFor(const AExpression* expr, const Dictionary::Ptr& locals)
+Value AExpression::OpFor(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	String varname = left->Get(0);
 	AExpression::Ptr aexpr = left->Get(1);
 	AExpression::Ptr ascope = expr->m_Operand2;
 
-	Array::Ptr arr = aexpr->Evaluate(locals);
+	Array::Ptr arr = aexpr->Evaluate(locals, dhint);
 
 	ObjectLock olock(arr);
 	BOOST_FOREACH(const Value& value, arr) {
@@ -586,8 +600,40 @@ Value AExpression::OpFor(const AExpression* expr, const Dictionary::Ptr& locals)
 		xlocals->Set("__parent", locals);
 		xlocals->Set(varname, value);
 
-		ascope->Evaluate(xlocals);
+		ascope->Evaluate(xlocals, dhint);
 	}
 
 	return Empty;
 }
+
+Dictionary::Ptr DebugHint::ToDictionary(void) const
+{
+	Dictionary::Ptr result = make_shared<Dictionary>();
+
+	Array::Ptr messages = make_shared<Array>();
+	typedef std::pair<String, DebugInfo> MessageType;
+	BOOST_FOREACH(const MessageType& message, Messages) {
+		Array::Ptr amsg = make_shared<Array>();
+		amsg->Add(message.first);
+		amsg->Add(message.second.Path);
+		amsg->Add(message.second.FirstLine);
+		amsg->Add(message.second.FirstColumn);
+		amsg->Add(message.second.LastLine);
+		amsg->Add(message.second.LastColumn);
+		messages->Add(amsg);
+	}
+
+	result->Set("messages", messages);
+
+	Dictionary::Ptr properties = make_shared<Dictionary>();
+
+	typedef std::map<String, DebugHint>::value_type ChildType;
+	BOOST_FOREACH(const ChildType& kv, Children) {
+		properties->Set(kv.first, kv.second.ToDictionary());
+	}
+
+	result->Set("properties", properties);
+
+	return result;
+}
+

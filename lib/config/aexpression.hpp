@@ -28,6 +28,24 @@
 namespace icinga
 {
 
+struct DebugHint
+{
+	std::vector<std::pair<String, DebugInfo> > Messages;
+	std::map<String, DebugHint> Children;
+
+	inline void AddMessage(const String& message, const DebugInfo& di)
+	{
+		Messages.push_back(std::make_pair(message, di));
+	}
+
+	inline DebugHint *GetChild(const String& name)
+	{
+		return &Children[name];
+	}
+
+	Dictionary::Ptr ToDictionary(void) const;
+};
+
 /**
  * @ingroup config
  */
@@ -36,53 +54,53 @@ class I2_CONFIG_API AExpression : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(AExpression);
 	
-	typedef Value (*OpCallback)(const AExpression *, const Dictionary::Ptr&);
+	typedef Value (*OpCallback)(const AExpression *, const Dictionary::Ptr&, DebugHint *dhint);
 
 	AExpression(OpCallback op, const Value& operand1, const DebugInfo& di);
 	AExpression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di);
 
-	Value Evaluate(const Dictionary::Ptr& locals) const;
+	Value Evaluate(const Dictionary::Ptr& locals, DebugHint *dhint = NULL) const;
 
 	void MakeInline(void);
 	
 	void Dump(std::ostream& stream, int indent = 0) const;
 
-	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpAdd(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpDivide(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpBinaryAnd(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpBinaryOr(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpShiftLeft(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpShiftRight(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpEqual(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpNotEqual(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpLessThan(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpGreaterThan(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpLessThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpGreaterThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpIn(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpNotIn(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpLogicalAnd(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpArray(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpDict(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpSet(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpImport(const AExpression *expr, const Dictionary::Ptr& locals);
-	static Value OpFunction(const AExpression* expr, const Dictionary::Ptr& locals);
-	static Value OpApply(const AExpression* expr, const Dictionary::Ptr& locals);
-	static Value OpObject(const AExpression* expr, const Dictionary::Ptr& locals);
-	static Value OpFor(const AExpression* expr, const Dictionary::Ptr& locals);
+	static Value OpLiteral(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpVariable(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpNegate(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpLogicalNegate(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpAdd(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpSubtract(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpMultiply(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpDivide(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpBinaryAnd(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpBinaryOr(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpShiftLeft(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpShiftRight(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpNotEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpLessThan(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpGreaterThan(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpLessThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpGreaterThanOrEqual(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpIn(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpNotIn(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpLogicalAnd(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpLogicalOr(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpFunctionCall(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpArray(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpDict(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpSet(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpSetPlus(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpSetMinus(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpSetMultiply(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpSetDivide(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpIndexer(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpImport(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpFunction(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpApply(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpObject(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint);
+	static Value OpFor(const AExpression* expr, const Dictionary::Ptr& locals, DebugHint *dhint);
 
 private:
 	OpCallback m_Operator;
@@ -90,8 +108,8 @@ private:
 	Value m_Operand2;
 	DebugInfo m_DebugInfo;
 
-	Value EvaluateOperand1(const Dictionary::Ptr& locals) const;
-	Value EvaluateOperand2(const Dictionary::Ptr& locals) const;
+	Value EvaluateOperand1(const Dictionary::Ptr& locals, DebugHint *dhint = NULL) const;
+	Value EvaluateOperand2(const Dictionary::Ptr& locals, DebugHint *dhint = NULL) const;
 
 	static void DumpOperand(std::ostream& stream, const Value& operand, int indent);
 

@@ -121,13 +121,15 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	ASSERT(OwnsLock());
 
 	if (!m_Properties) {
+		DebugHint dhint;
 		m_Properties = make_shared<Dictionary>();
 		m_Properties->Set("type", m_Type);
 		if (!m_Zone.IsEmpty())
 			m_Properties->Set("zone", m_Zone);
 		m_Properties->Set("__parent", m_Scope);
-		GetExpressionList()->Evaluate(m_Properties);
+		GetExpressionList()->Evaluate(m_Properties, &dhint);
 		m_Properties->Remove("__parent");
+		m_DebugHints = dhint.ToDictionary();
 
 		String name = m_Name;
 
@@ -151,6 +153,11 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	}
 
 	return m_Properties;
+}
+
+Dictionary::Ptr ConfigItem::GetDebugHints(void) const
+{
+	return m_DebugHints;
 }
 
 /**
@@ -290,6 +297,7 @@ void ConfigItem::WriteObjectsFile(const String& filename)
 		persistentItem->Set("name", item->GetName());
 		persistentItem->Set("abstract", item->IsAbstract());
 		persistentItem->Set("properties", item->GetProperties());
+		persistentItem->Set("debug_hints", item->GetDebugHints());
 
 		String json = JsonSerialize(persistentItem);
 
