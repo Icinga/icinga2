@@ -104,6 +104,9 @@ public:
 	static String GetStatePath(void);
 	static void DeclareStatePath(const String& path);
 
+	static String GetObjectsPath(void);
+	static void DeclareObjectsPath(const String& path);
+
 	static String GetPidPath(void);
 	static void DeclarePidPath(const String& path);
 

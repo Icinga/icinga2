@@ -478,6 +478,7 @@ void Application::DisplayInfoMessage(bool skipVersion)
 		  << "  Local state directory: " << GetLocalStateDir() << std::endl
 		  << "  Package data directory: " << GetPkgDataDir() << std::endl
 		  << "  State path: " << GetStatePath() << std::endl
+		  << "  Objects path: " << GetObjectsPath() << std::endl
 		  << "  PID path: " << GetPidPath() << std::endl
 		  << "  Application type: " << GetApplicationType() << std::endl;
 }
@@ -977,6 +978,26 @@ void Application::DeclareStatePath(const String& path)
 }
 
 /**
+ * Retrieves the path for the objects file.
+ *
+ * @returns The path.
+ */
+String Application::GetObjectsPath(void)
+{
+	return ScriptVariable::Get("ObjectsPath");
+}
+
+/**
+ * Sets the path for the objects file.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareObjectsPath(const String& path)
+{
+	ScriptVariable::Set("ObjectsPath", path, false);
+}
+
+/**
  * Retrieves the path for the PID file.
  *
  * @returns The path.
@@ -1023,8 +1044,9 @@ void Application::MakeVariablesConstant(void)
 	ScriptVariable::GetByName("LocalStateDir")->SetConstant(true);
 	ScriptVariable::GetByName("RunDir")->SetConstant(true);
 	ScriptVariable::GetByName("PkgDataDir")->SetConstant(true);
-	ScriptVariable::GetByName("StatePath")->SetConstant(false);
-	ScriptVariable::GetByName("PidPath")->SetConstant(false);
+	ScriptVariable::GetByName("StatePath")->SetConstant(true);
+	ScriptVariable::GetByName("ObjectsPath")->SetConstant(true);
+	ScriptVariable::GetByName("PidPath")->SetConstant(true);
 	ScriptVariable::GetByName("ApplicationType")->SetConstant(true);
 }
 

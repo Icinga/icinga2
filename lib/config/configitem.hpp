@@ -64,9 +64,11 @@ public:
 
 	void ValidateItem(void);
 
-	static bool ValidateItems(void);
+	static bool ValidateItems(const String& objectsFile = String());
 	static bool ActivateItems(void);
 	static void DiscardItems(void);
+
+	static void WriteObjectsFile(const String& filename);
 
 private:
 	String m_Type; /**< The object type. */
