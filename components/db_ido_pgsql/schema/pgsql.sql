@@ -928,6 +928,7 @@ CREATE TABLE  icinga_programstatus (
   program_start_time timestamp with time zone default '1970-01-01 00:00:00',
   program_end_time timestamp with time zone default '1970-01-01 00:00:00',
   is_currently_running INTEGER  default 0,
+  endpoint_name TEXT  default '',
   process_id bigint default 0,
   daemon_mode INTEGER  default 0,
   last_command_check timestamp with time zone default '1970-01-01 00:00:00',
