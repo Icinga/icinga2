@@ -108,6 +108,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query2.Fields->Set("program_start_time", DbValue::FromTimestamp(Application::GetStartTime()));
 	query2.Fields->Set("is_currently_running", 1);
+	query2.Fields->Set("endpoint_name", IcingaApplication::GetInstance()->GetNodeName());
 	query2.Fields->Set("process_id", Utility::GetPid());
 	query2.Fields->Set("daemon_mode", 1);
 	query2.Fields->Set("last_command_check", DbValue::FromTimestamp(Utility::GetTime()));
@@ -358,7 +359,7 @@ void DbConnection::UpdateAllObjects(void)
 
 void DbConnection::PrepareDatabase(void)
 {
-	/* 
+	/*
 	 * only clear tables on reconnect which
 	 * cannot be updated by their existing ids
 	 * for details check https://dev.icinga.org/issues/5565

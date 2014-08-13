@@ -21,6 +21,10 @@ abstract class DbConnection : DynamicObject
 			    DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention | DbCatStateHistory;
 		}}}
 	};
+
+	[config] bool enable_ha {
+		default {{{ return true; }}}
+	};
 };
 
 }

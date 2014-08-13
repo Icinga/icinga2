@@ -62,6 +62,9 @@ Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 void IdoMysqlConnection::Resume(void)
 {
+	if (!IsPaused())
+		return;
+
 	DbConnection::Resume();
 
 	m_Connected = false;
@@ -84,6 +87,11 @@ void IdoMysqlConnection::Resume(void)
 
 void IdoMysqlConnection::Pause(void)
 {
+	if (!GetEnableHa()) {
+		Log(LogInformation, "IdoMysqlConnection", "HA functionality disabled. Won't pause IDO connection: " + GetName());
+		return;
+	}
+
 	m_ReconnectTimer.reset();
 
 	DbConnection::Pause();
