@@ -38,6 +38,16 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
 INITIALIZE_ONCE(&DbConnection::StaticInitialize);
 
+void DbConnection::OnConfigLoaded(void)
+{
+	DynamicObject::OnConfigLoaded();
+
+	if (!GetEnableHa()) {
+		Log(LogDebug, "DbConnection", "HA functionality disabled. Won't pause IDO connection: " + GetName());
+		SetHAMode(HARunEverywhere);
+	}
+}
+
 void DbConnection::Start(void)
 {
 	DynamicObject::Start();
@@ -385,7 +395,6 @@ void DbConnection::PrepareDatabase(void)
 	//ClearConfigTable("hostgroups");
 	//ClearConfigTable("hosts");
 	//ClearConfigTable("hoststatus");
-	ClearConfigTable("programstatus");
 	ClearConfigTable("scheduleddowntime");
 	ClearConfigTable("service_contactgroups");
 	ClearConfigTable("service_contacts");

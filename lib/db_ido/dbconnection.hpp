@@ -64,6 +64,7 @@ public:
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
 protected:
+        virtual void OnConfigLoaded(void);
 	virtual void Start(void);
 	virtual void Resume(void);
 	virtual void Pause(void);
