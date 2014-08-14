@@ -507,16 +507,16 @@ and automated check distribution.
 #### <a id="cluster-scenarios-distributed-zones"></a> Distributed Zones
 
 That scenario fits if your instances are spread over the globe and they all report
-to a central instance. Their network connection only works towards the central master
+to a master instance. Their network connection only works towards the master master
 (or the master is able to connect, depending on firewall policies) which means
 remote instances won't see each/connect to each other.
 
-All events (check results, downtimes, comments, etc) are synced to the central node,
+All events (check results, downtimes, comments, etc) are synced to the master node,
 but the remote nodes can still run local features such as a web interface, reporting,
 graphing, etc. in their own specified zone.
 
-Imagine the following example with a central node in Nuremberg, and two remote DMZ
-based instances in Berlin and Vienna. The configuration tree on the central instance
+Imagine the following example with a master node in Nuremberg, and two remote DMZ
+based instances in Berlin and Vienna. The configuration tree on the master instance
 could look like this:
 
     zones.d
@@ -582,7 +582,7 @@ you can achieve that by:
 * Let Icinga 2 distribute the load amongst all available nodes.
 
 That way all remote check instances will receive the same configuration
-but only execute their part. The central instance located in the `master` zone
+but only execute their part. The master instance located in the `master` zone
 can also execute checks, but you may also disable the `Checker` feature.
 
     zones.d/
@@ -595,8 +595,8 @@ you have to define additional zones and define these check objects there.
 
 Endpoints:
 
-    object Endpoint "central-node" {
-      host = "central.icinga.org"
+    object Endpoint "master-node" {
+      host = "master.icinga.org"
     }
 
     object Endpoint "checker1-node" {
@@ -611,12 +611,12 @@ Endpoints:
 Zones:
 
     object Zone "master" {
-      endpoints = [ "central-node" ]
+      endpoints = [ "master-node" ]
     }
 
     object Zone "checker" {
       endpoints = [ "checker1-node", "checker2-node" ]
-      parent = "central"
+      parent = "master"
     }
 
     object Zone "global-templates" {
@@ -652,24 +652,24 @@ Two or more nodes in a high availability setup require an [initial cluster sync]
 
 #### <a id="cluster-scenarios-multiple-hierachies"></a> Multiple Hierachies
 
-Your central zone collects all check results for reporting and graphing and also
+Your master zone collects all check results for reporting and graphing and also
 does some sort of additional notifications.
 The customers got their own instances in their local DMZ zones. They are limited to read/write
-only their services, but replicate all events back to the central instance.
+only their services, but replicate all events back to the master instance.
 Within each DMZ there are additional check instances also serving interfaces for local
 departments. The customers instances will collect all results, but also send them back to
-your central instance.
+your master instance.
 Additionally the customers instance on the second level in the middle prohibits you from
 sending commands to the subjacent department nodes. You're only allowed to receive the
 results, and a subset of each customers configuration too.
 
-Your central zone will generate global reports, aggregate alert notifications, and check
+Your master zone will generate global reports, aggregate alert notifications, and check
 additional dependencies (for example, the customers internet uplink and bandwidth usage).
 
 The customers zone instances will only check a subset of local services and delegate the rest
-to each department. Even though it acts as configuration master with a central dashboard
+to each department. Even though it acts as configuration master with a master dashboard
 for all departments managing their configuration tree which is then deployed to all
-department instances. Furthermore the central NOC is able to see what's going on.
+department instances. Furthermore the master NOC is able to see what's going on.
 
 The instances in the departments will serve a local interface, and allow the administrators
 to reschedule checks or acknowledge problems for their services.
