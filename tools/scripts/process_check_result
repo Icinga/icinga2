@@ -89,6 +89,6 @@ else
 fi
 
 echo "Sending '$ECHO $CMDLINE >> $CMDFILE'"
-`$ECHO $CMDLINE >> $CMDFILE`
+`$ECHO "$CMDLINE" >> $CMDFILE`
 
 exit 0
