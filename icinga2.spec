@@ -274,7 +274,7 @@ exit 0
 # all restart/feature actions belong to icinga2-bin
 %post bin
 # suse
-%if 0%{?suse_version}
+%if "%{_vendor}" == "suse"
 %if 0%{?suse_version} >= 1310
 %set_permissions /var/run/icinga2/cmd
 %endif
@@ -312,7 +312,7 @@ exit 0
 
 %postun bin
 # suse
-%if 0%{?suse_version}
+%if "%{_vendor}" == "suse"
 %if 0%{?using_systemd}
   %service_del_postun %{name}.service
 %else
@@ -343,7 +343,7 @@ exit 0
 
 %preun bin
 # suse
-%if 0%{?suse_version}
+%if "%{_vendor}" == "suse"
 
 %if 0%{?use_systemd}
   %service_del_preun %{name}.service
