@@ -862,16 +862,9 @@ graphing performance data), [Graphite](#addons-graphing-pnp), and
 
 ## <a id="configuration-tools"></a> Configuration Tools
 
-Well known configuration tools for Icinga 1.x such as [LConf](http://www.netways.de/en/de/produkte/icinga/addons/lconf/),
-[NConf](http://www.nconf.org/) or [NagiosQL](http://www.nagiosql.org/)
-store their configuration in a custom format in their backends (LDAP or RDBMS).
-Currently only LConf 1.4.x supports Icinga 2 configuration export as compatibility extension.
-It does not use advanced Icinga 2 features such as [apply](#using-apply) rules or
-easy [notifications](#using-apply-notifications) and [dependencies](#using-apply-dependencies)
-for example.
-
 If you require your favourite configuration tool to export Icinga 2 configuration, please get in
-touch with their developers.
+touch with their developers. The Icinga project does not provide a configuration web interface
+or similar.
 
 > **Tip**
 >
@@ -880,6 +873,11 @@ touch with their developers.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
 to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).
+
+These tools are in development and require feedback and tests:
+
+* [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
+* [Puppet Module](https://github.com/Icinga/puppet-icinga2)
 
 ## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
 
