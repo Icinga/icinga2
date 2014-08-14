@@ -1028,7 +1028,7 @@ Changes to service runtime macros
 
   Icinga 1.x             | Icinga 2
   -----------------------|----------------------
-  SERVICEDESC            | service.description
+  SERVICEDESC            | service.name
   SERVICEDISPLAYNAME     | service.display_name
   SERVICECHECKCOMMAND    | service.check_command
   SERVICESTATE           | service.state

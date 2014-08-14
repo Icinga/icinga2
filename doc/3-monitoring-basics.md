@@ -1673,7 +1673,7 @@ the output template format for host and services backed with Icinga 2
 runtime vars.
 
     host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$"
-    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.description$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.statetype$"
+    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.statetype$"
 
 The default templates are already provided with the Icinga 2 feature configuration
 which can be enabled using
