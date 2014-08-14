@@ -19,6 +19,11 @@
 
 %define revision 1
 
+# make sure that _rundir is working on older systems
+%if ! %{defined _rundir}
+%define _rundir %{_localstatedir}/run
+%endif
+
 %if "%{_vendor}" == "redhat"
 %define apachename httpd
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
@@ -189,6 +194,7 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DCMAKE_INSTALL_SYSCONFDIR=/etc \
          -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+         -DICINGA2_RUNDIR=%{_rundir} \
          -DICINGA2_USER=%{icinga_user} \
          -DICINGA2_GROUP=%{icinga_group} \
          -DICINGA2_COMMAND_USER=%{icinga_user} \
@@ -257,7 +263,7 @@ exit 0
 
 %if "%{_vendor}" == "suse"
 %verifyscript bin
-%verify_permissions -e /var/run/icinga2/cmd
+%verify_permissions -e %{_rundir}/%{name}/cmd
 %endif
 
 
@@ -274,7 +280,7 @@ exit 0
 # suse
 %if "%{_vendor}" == "suse"
 %if 0%{?suse_version} >= 1310
-%set_permissions /var/run/icinga2/cmd
+%set_permissions %{_rundir}/%{name}/cmd
 %endif
 %if 0%{?use_systemd}
 %fillup_only  %{name}
@@ -481,10 +487,10 @@ exit 0
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
 %attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
-%attr(0755,%{icinga_user},%{icinga_group}) %ghost %{_localstatedir}/run/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
 
-%attr(2755,%{icinga_user},%{icingacmd_group}) %ghost %{_localstatedir}/run/icinga2/cmd
+%attr(0755,%{icinga_user},%{icinga_group}) %ghost %{_rundir}/%{name}
+%attr(2755,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}/cmd
 
 %files common
 %defattr(-,root,root,-)
