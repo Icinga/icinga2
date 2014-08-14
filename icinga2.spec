@@ -84,6 +84,7 @@ Group:        Applications/System
 Requires: python-%{name} = %{version}
 %if "%{_vendor}" == "suse"
 PreReq:        permissions
+Provides:      monitoring_daemon
 Recommends:    monitoring-plugins
 %endif
 BuildRequires: openssl-devel
