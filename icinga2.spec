@@ -216,6 +216,7 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_libdir}/nagios/plugins"
 %else
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
+sed -i "s|@CMAKE_INSTALL_FULL_LIBDIR@|/usr/lib|" etc/icinga/icinga-classic-apache.conf.cmake
 %endif
 
 %if 0%{?use_systemd}
