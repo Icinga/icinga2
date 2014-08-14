@@ -68,8 +68,6 @@ Source: https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-bin = %{version}
-#Requires: %{name}-ido-mysql = %{version}
-#Requires: %{icingaweb2name} >= %{icingaweb2version}
 
 %description
 Meta package for Icinga 2 Core, DB IDO and Web.
