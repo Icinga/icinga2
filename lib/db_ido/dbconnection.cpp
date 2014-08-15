@@ -416,6 +416,9 @@ void DbConnection::PrepareDatabase(void)
 
 void DbConnection::ValidateFailoverTimeout(const String& location, const Dictionary::Ptr& attrs)
 {
+	if (!attrs->Contains("failover_timeout"))
+		return;
+
 	Value failover_timeout = attrs->Get("failover_timeout");
 	if (failover_timeout < 60) {
                 ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
