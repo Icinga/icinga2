@@ -2317,6 +2317,10 @@ The SNMP Manubulon Plugin Check Commands provides example configuration for plug
 
 The SNMP manubulon plugin check commands assume that there's a global constant named `ManubulonPluginDir` which contains the path of the plugins from the <a href="http://nagios.manubulon.com/index_snmp.html">Snmp Manubulon</a> page.
 
+You can make usage this plugin by using the include directive in your configuration file:
+
+    include <manubulon>
+
 ### Checks you can make by host type
 
 **N/A**      : nothing of this type to check.
