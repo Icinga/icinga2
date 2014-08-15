@@ -1705,7 +1705,40 @@ The current naming schema is
     icinga.<hostname>.<metricname>
     icinga.<hostname>.<servicename>.<metricname>
 
+To make sure Icinga 2 writes a valid label into Graphite some characters are replaced
+with `_` in the target name:
 
+    \/.-  (and space)
+
+The resulting name in Graphite might look like:
+
+    www-01 / http-cert / response time
+    icinga.www_01.http_cert.response_time
+
+In addition to the performance data retrieved from the check plugin, Icinga 2 sends
+some internal statistics data of the check to Graphite:
+
+  metric             | description
+  -------------------|------------------------------------------
+  current_attempt    | attempt of the state evaluation
+  max_check_attempts | max. attempts until hard state
+  reachable          | designated cluster component is reachable
+  execution_time     | check execution time
+  latency            | latency between check end and processing
+  state              | current state of the check
+  state_type         | 0=SOFT, 1=HARD state
+
+Here is an example how one could configure the storage-schemas for Carbon Cache.
+Please make sure your ordering is correct, the first match wins!
+
+    [icinga_internals]
+    pattern = ^icinga\..*\.(max_check_attempts|reachable|current_attempt|execution_time|latency|state|state_type)
+    retentions = 5m:7d
+
+    [icinga_default]
+    # intervals like PNP4Nagios uses them per default
+    pattern = ^icinga\.
+    retentions = 1m:2d,5m:10d,30m:90d,360m:4y
 
 ## <a id="status-data"></a> Status Data
 
