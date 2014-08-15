@@ -479,6 +479,45 @@ the Icinga 2 daemon.
 
     # icinga2 -c /etc/icinga2/node1/icinga2.conf -DLocalStateDir=/opt/node1/var
 
+### <a id="high-availability-db-ido"></a> High Availability with DB IDO
+
+All instances within the same zone (e.g. the `master` zone as HA cluster) must
+have the DB IDO feature enabled.
+
+Example DB IDO MySQL:
+
+    # icinga2-enable-feature ido-mysql
+    The feature 'ido-mysql' is already enabled.
+
+By default the DB IDO feature only runs on the elected zone master. All other nodes
+disable the active IDO database connection at runtime.
+
+> **Note**
+>
+> The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
+> for the [IdoMysqlConnection](#objecttype-idomysqlconnection) or
+> [IdoPgsqlConnection](#objecttype-idopgsqlconnection) object on all nodes in the
+> same zone.
+>
+> All endpoints will enable the DB IDO feature then, connect to the configured
+> database and dump configuration, status and historical data on their own.
+
+If the instance with the active DB IDO connection dies, the HA functionality will
+re-enable the DB IDO connection on the newly elected zone master.
+
+The DB IDO feature will try to determine which cluster endpoint is currently writing
+to the database and bail out if another endpoint is active. You can manually verify that
+by running the following query:
+
+    icinga=> SELECT status_update_time, endpoint_name FROM icinga_programstatus;
+       status_update_time   | endpoint_name
+    ------------------------+---------------
+     2014-08-15 15:52:26+02 | icinga2a
+    (1 Zeile)
+
+This is useful when the cluster connection between endpoints breaks, and prevents
+data duplication in split-brain-scenarios.
+
 
 ### <a id="cluster-scenarios"></a> Cluster Scenarios
 
@@ -630,7 +669,8 @@ High availability with Icinga 2 is possible by putting multiple nodes into
 a dedicated `Zone`. All nodes will elect their active master, and retry an
 election once the current active master failed.
 
-Selected features (such as DB IDO) will only be active on the current active master.
+Selected features (such as [DB IDO](#high-availability-db-ido)) will only be
+active on the current active master.
 All other passive nodes will pause the features without reload/restart.
 
 Connections from other zones will be accepted by all active and passive nodes
