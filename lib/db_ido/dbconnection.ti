@@ -25,6 +25,10 @@ abstract class DbConnection : DynamicObject
 	[config] bool enable_ha {
 		default {{{ return true; }}}
 	};
+
+	[config] double failover_timeout {
+		default {{{ return 60; }}}
+	};
 };
 
 }

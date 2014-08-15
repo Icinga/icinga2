@@ -271,7 +271,7 @@ void IdoPgsqlConnection::Reconnect(void)
 				Log(LogNotice, "IdoPgsqlConnection", "Last update by '" +
 				    endpoint_name + "' was " + Convert::ToString(status_update_age) + "s ago.");
 
-				if (status_update_age < 60) {
+				if (status_update_age < GetFailoverTimeout()) {
 					PQfinish(m_Connection);
 					m_Connection = NULL;
 

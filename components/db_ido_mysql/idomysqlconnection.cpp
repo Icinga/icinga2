@@ -275,7 +275,7 @@ void IdoMysqlConnection::Reconnect(void)
 				Log(LogNotice, "IdoMysqlConnection", "Last update by '" +
 				    endpoint_name + "' was " + Convert::ToString(status_update_age) + "s ago.");
 
-				if (status_update_age < 60) {
+				if (status_update_age < GetFailoverTimeout()) {
 					mysql_close(&m_Connection);
 					m_Connected = false;
 

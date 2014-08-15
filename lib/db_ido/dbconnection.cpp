@@ -22,17 +22,20 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "config/configcompilercontext.hpp"
 #include "base/dynamictype.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/initialize.hpp"
 #include "base/logger_fwd.hpp"
+#include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(DbConnection);
+REGISTER_SCRIPTFUNCTION(ValidateFailoverTimeout, &DbConnection::ValidateFailoverTimeout);
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 
@@ -408,5 +411,14 @@ void DbConnection::PrepareDatabase(void)
 
 	BOOST_FOREACH(const DbType::Ptr& type, DbType::GetAllTypes()) {
 		FillIDCache(type);
+	}
+}
+
+void DbConnection::ValidateFailoverTimeout(const String& location, const Dictionary::Ptr& attrs)
+{
+	Value failover_timeout = attrs->Get("failover_timeout");
+	if (failover_timeout < 60) {
+                ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+                    location + ": Failover timeout minimum is 60s.");
 	}
 }

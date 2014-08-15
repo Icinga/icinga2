@@ -516,7 +516,8 @@ by running the following query:
     (1 Zeile)
 
 This is useful when the cluster connection between endpoints breaks, and prevents
-data duplication in split-brain-scenarios.
+data duplication in split-brain-scenarios. The failover timeout can be set for the
+`failover_timeout` attribute, but not lower than 60 seconds.
 
 
 ### <a id="cluster-scenarios"></a> Cluster Scenarios
