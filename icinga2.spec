@@ -44,6 +44,10 @@
 %endif
 %endif
 
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+
 %define icinga_user icinga
 %define icinga_group icinga
 %define icingacmd_group icingacmd
@@ -63,7 +67,6 @@ Group: Applications/System
 Source: https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-
 Requires: %{name}-bin = %{version}
 #Requires: %{name}-ido-mysql = %{version}
 #Requires: %{icingaweb2name} >= %{icingaweb2version}
@@ -75,6 +78,7 @@ Meta package for Icinga 2 Core, DB IDO and Web.
 Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
+Requires: python-%{name} = %{version}
 %if "%{_vendor}" == "suse"
 PreReq: permissions
 %endif
@@ -168,6 +172,17 @@ Icinga 1.x Classic UI Standalone configuration with locations
 for Icinga 2.
 
 
+%package -n python-icinga2
+Summary:      Python module for Icinga 2
+Group:        Application/System
+BuildRequires: python
+BuildRequires: python-devel
+BuildRequires: python-setuptools
+Requires:     python-setuptools
+
+%description -n python-icinga2
+Python module for Icinga 2.
+
 %prep
 %setup -q -n %{name}-%{version}
 
@@ -207,7 +222,6 @@ cmake $CMAKE_OPTS .
 
 make %{?_smp_mflags}
 
-rm -f components/db_ido_*sql/schema/upgrade/.gitignore
 
 %install
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
@@ -448,6 +462,7 @@ exit 0
 %{_bindir}/%{name}-build-ca
 %{_bindir}/%{name}-build-key
 %{_bindir}/%{name}-sign-key
+%{_sbindir}/%{name}-list-objects
 %{_sbindir}/%{name}-enable-feature
 %{_sbindir}/%{name}-disable-feature
 %{_sbindir}/%{name}-prepare-dirs
@@ -505,6 +520,9 @@ exit 0
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
+
+%files -n python-icinga2
+%{python2_sitelib}/icinga2*
 
 
 %changelog

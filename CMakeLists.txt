@@ -147,6 +147,7 @@ add_subdirectory(doc)
 add_subdirectory(test)
 add_subdirectory(pki)
 add_subdirectory(contrib)
+add_subdirectory(python)
 
 set(CPACK_PACKAGE_NAME "Icinga2")
 set(CPACK_PACKAGE_VENDOR "Icinga Development Team")
