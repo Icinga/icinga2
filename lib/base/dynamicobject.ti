@@ -2,6 +2,12 @@ namespace icinga
 {
 
 code {{{
+enum HAMode
+{
+	HARunOnce,
+	HARunEverywhere
+};
+
 class NameComposer {
 public:
 	virtual String MakeName(const String& shortName, const Dictionary::Ptr props) const = 0;
@@ -32,6 +38,7 @@ abstract class DynamicObject
 	[get_protected] bool stop_called;
 	[get_protected] bool pause_called;
 	[get_protected] bool resume_called;
+	[enum] HAMode ha_mode (HAMode);
 	Dictionary::Ptr authority_info;
 	[protected] Dictionary::Ptr extensions;
 

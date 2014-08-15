@@ -33,7 +33,7 @@
 
 using namespace icinga;
 
-#define SCHEMA_VERSION "1.11.6"
+#define SCHEMA_VERSION "1.11.7"
 
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
@@ -188,6 +188,7 @@ void IdoMysqlConnection::Reconnect(void)
 		passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 		db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
 
+		/* connection */
 		if (!mysql_init(&m_Connection)) {
 			std::ostringstream msgbuf;
 			msgbuf << "mysql_init() failed: \"" << mysql_error(&m_Connection) << "\"";
@@ -210,9 +211,9 @@ void IdoMysqlConnection::Reconnect(void)
 		String dbVersionName = "idoutils";
 		IdoMysqlResult result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
 
-		Dictionary::Ptr version_row = FetchRow(result);
+		Dictionary::Ptr row = FetchRow(result);
 
-		if (!version_row) {
+		if (!row) {
 			Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
 			Application::Exit(EXIT_FAILURE);
@@ -220,7 +221,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 		DiscardRows(result);
 
-		String version = version_row->Get("version");
+		String version = row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
 			Log(LogCritical, "IdoMysqlConnection", "Schema version '" + version + "' does not match the required version '" +
@@ -232,16 +233,68 @@ void IdoMysqlConnection::Reconnect(void)
 		String instanceName = GetInstanceName();
 
 		result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = '" + Escape(instanceName) + "'");
-
-		Dictionary::Ptr row = FetchRow(result);
+		row = FetchRow(result);
 
 		if (!row) {
 			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES ('" + Escape(instanceName) + "', '" + Escape(GetInstanceDescription()) + "')");
 			m_InstanceID = GetLastInsertID();
 		} else {
+			m_InstanceID = DbReference(row->Get("instance_id"));
+		}
+
+		DiscardRows(result);
+
+		Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
+
+		/* we have an endpoint in a cluster setup, so decide if we can proceed here */
+		if (my_endpoint && GetHAMode() == HARunOnce) {
+			/* get the current endpoint writing to programstatus table */
+			result = Query("SELECT UNIX_TIMESTAMP(status_update_time) AS status_update_time, endpoint_name FROM " +
+			    GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
+			row = FetchRow(result);
 			DiscardRows(result);
 
-			m_InstanceID = DbReference(row->Get("instance_id"));
+			String endpoint_name;
+
+			if (row)
+				endpoint_name = row->Get("endpoint_name");
+			else
+				Log(LogNotice, "IdoMysqlConnection", "Empty program status table");
+
+			/* if we did not write into the database earlier, another instance is active */
+			if (endpoint_name != my_endpoint->GetName()) {
+				double status_update_time;
+
+				if (row)
+					status_update_time = row->Get("status_update_time");
+				else
+					status_update_time = 0;
+
+				double status_update_age = Utility::GetTime() - status_update_time;
+
+				Log(LogNotice, "IdoMysqlConnection", "Last update by '" +
+				    endpoint_name + "' was " + Convert::ToString(status_update_age) + "s ago.");
+
+				if (status_update_age < GetFailoverTimeout()) {
+					mysql_close(&m_Connection);
+					m_Connected = false;
+
+					return;
+				}
+
+				/* activate the IDO only, if we're authoritative in this zone */
+				if (IsPaused()) {
+					Log(LogNotice, "IdoMysqlConnection", "Local endpoint '" +
+					    my_endpoint->GetName() + "' is not authoritative, bailing out.");
+
+					mysql_close(&m_Connection);
+					m_Connected = false;
+
+					return;
+				}
+			}
+
+			Log(LogNotice, "IdoMysqlConnection", "Enabling IDO connection.");
 		}
 
 		std::ostringstream msgbuf;

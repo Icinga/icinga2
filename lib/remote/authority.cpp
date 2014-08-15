@@ -61,7 +61,8 @@ static void AuthorityTimerHandler(void)
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			Endpoint::Ptr endpoint = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()];
 
-			object->SetAuthority(endpoint == my_endpoint);
+			if (object->GetHAMode() == HARunOnce)
+				object->SetAuthority(endpoint == my_endpoint);
 		}
 	}
 }

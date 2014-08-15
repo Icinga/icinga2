@@ -34,7 +34,7 @@
 
 using namespace icinga;
 
-#define SCHEMA_VERSION "1.11.6"
+#define SCHEMA_VERSION "1.11.7"
 
 REGISTER_TYPE(IdoPgsqlConnection);
 
@@ -212,15 +212,15 @@ void IdoPgsqlConnection::Reconnect(void)
 		String dbVersionName = "idoutils";
 		IdoPgsqlResult result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
 
-		Dictionary::Ptr version_row = FetchRow(result, 0);
+		Dictionary::Ptr row = FetchRow(result, 0);
 
-		if (!version_row) {
+		if (!row) {
 			Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
 			Application::Exit(EXIT_FAILURE);
 		}
 
-		String version = version_row->Get("version");
+		String version = row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
 			Log(LogCritical, "IdoPgsqlConnection", "Schema version '" + version + "' does not match the required version '" +
@@ -232,14 +232,65 @@ void IdoPgsqlConnection::Reconnect(void)
 		String instanceName = GetInstanceName();
 
 		result = Query("SELECT instance_id FROM " + GetTablePrefix() + "instances WHERE instance_name = E'" + Escape(instanceName) + "'");
-
-		Dictionary::Ptr row = FetchRow(result, 0);
+		row = FetchRow(result, 0);
 
 		if (!row) {
 			Query("INSERT INTO " + GetTablePrefix() + "instances (instance_name, instance_description) VALUES (E'" + Escape(instanceName) + "', E'" + Escape(GetInstanceDescription()) + "')");
 			m_InstanceID = GetSequenceValue(GetTablePrefix() + "instances", "instance_id");
 		} else {
 			m_InstanceID = DbReference(row->Get("instance_id"));
+		}
+
+		Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
+
+		/* we have an endpoint in a cluster setup, so decide if we can proceed here */
+		if (my_endpoint && GetHAMode() == HARunOnce) {
+			/* get the current endpoint writing to programstatus table */
+			result = Query("SELECT UNIX_TIMESTAMP(status_update_time) AS status_update_time, endpoint_name FROM " +
+			    GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
+			row = FetchRow(result, 0);
+
+			String endpoint_name;
+
+			if (row)
+				endpoint_name = row->Get("endpoint_name");
+			else
+				Log(LogNotice, "IdoPgsqlConnection", "Empty program status table");
+
+			/* if we did not write into the database earlier, another instance is active */
+			if (endpoint_name != my_endpoint->GetName()) {
+				double status_update_time;
+
+				if (row)
+					status_update_time = row->Get("status_update_time");
+				else
+					status_update_time = 0;
+
+				double status_update_age = Utility::GetTime() - status_update_time;
+
+				Log(LogNotice, "IdoPgsqlConnection", "Last update by '" +
+				    endpoint_name + "' was " + Convert::ToString(status_update_age) + "s ago.");
+
+				if (status_update_age < GetFailoverTimeout()) {
+					PQfinish(m_Connection);
+					m_Connection = NULL;
+
+					return;
+				}
+
+				/* activate the IDO only, if we're authoritative in this zone */
+				if (IsPaused()) {
+					Log(LogNotice, "IdoPgsqlConnection", "Local endpoint '" +
+					    my_endpoint->GetName() + "' is not authoritative, bailing out.");
+
+					PQfinish(m_Connection);
+					m_Connection = NULL;
+
+					return;
+				}
+			}
+
+			Log(LogNotice, "IdoPgsqlConnection", "Enabling IDO connection.");
 		}
 
 		std::ostringstream msgbuf;

@@ -63,7 +63,10 @@ public:
 	void SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
+        static void ValidateFailoverTimeout(const String& location, const Dictionary::Ptr& attrs);
+
 protected:
+        virtual void OnConfigLoaded(void);
 	virtual void Start(void);
 	virtual void Resume(void);
 	virtual void Pause(void);

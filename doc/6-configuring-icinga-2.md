@@ -1272,6 +1272,8 @@ Attributes:
   table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](#high-availability-db-ido). Must not be lower than 60s". Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -1359,6 +1361,8 @@ Attributes:
   table\_prefix   |**Optional.** PostgreSQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](#high-availability-db-ido). Must not be lower than 60s". Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
