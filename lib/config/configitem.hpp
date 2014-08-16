@@ -49,6 +49,7 @@ public:
 
 	AExpression::Ptr GetExpressionList(void) const;
 	Dictionary::Ptr GetProperties(void);
+	Dictionary::Ptr GetDebugHints(void) const;
 
 	DynamicObject::Ptr Commit(void);
 	void Register(void);
@@ -64,9 +65,11 @@ public:
 
 	void ValidateItem(void);
 
-	static bool ValidateItems(void);
+	static bool ValidateItems(const String& objectsFile = String());
 	static bool ActivateItems(void);
 	static void DiscardItems(void);
+
+	static void WriteObjectsFile(const String& filename);
 
 private:
 	String m_Type; /**< The object type. */
@@ -76,6 +79,7 @@ private:
 
 	AExpression::Ptr m_ExpressionList;
 	Dictionary::Ptr m_Properties;
+	Dictionary::Ptr m_DebugHints;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */

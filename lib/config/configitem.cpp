@@ -30,7 +30,10 @@
 #include "base/debug.hpp"
 #include "base/workqueue.hpp"
 #include "base/exception.hpp"
+#include "base/stdiostream.hpp"
+#include "base/netstring.hpp"
 #include <sstream>
+#include <fstream>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -118,13 +121,15 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	ASSERT(OwnsLock());
 
 	if (!m_Properties) {
+		DebugHint dhint;
 		m_Properties = make_shared<Dictionary>();
 		m_Properties->Set("type", m_Type);
 		if (!m_Zone.IsEmpty())
 			m_Properties->Set("zone", m_Zone);
 		m_Properties->Set("__parent", m_Scope);
-		GetExpressionList()->Evaluate(m_Properties);
+		GetExpressionList()->Evaluate(m_Properties, &dhint);
 		m_Properties->Remove("__parent");
+		m_DebugHints = dhint.ToDictionary();
 
 		String name = m_Name;
 
@@ -148,6 +153,11 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	}
 
 	return m_Properties;
+}
+
+Dictionary::Ptr ConfigItem::GetDebugHints(void) const
+{
+	return m_DebugHints;
 }
 
 /**
@@ -264,7 +274,53 @@ void ConfigItem::ValidateItem(void)
 	m_Validated = true;
 }
 
-bool ConfigItem::ValidateItems(void)
+void ConfigItem::WriteObjectsFile(const String& filename)
+{
+	Log(LogInformation, "ConfigItem", "Dumping config items to file '" + filename + "'");
+
+	String tempFilename = filename + ".tmp";
+
+	std::fstream fp;
+	fp.open(tempFilename.CStr(), std::ios_base::out);
+
+	if (!fp)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
+
+	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+
+	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+		ConfigItem::Ptr item = kv.second;
+
+		Dictionary::Ptr persistentItem = make_shared<Dictionary>();
+
+		persistentItem->Set("type", item->GetType());
+		persistentItem->Set("name", item->GetName());
+		persistentItem->Set("abstract", item->IsAbstract());
+		persistentItem->Set("properties", item->GetProperties());
+		persistentItem->Set("debug_hints", item->GetDebugHints());
+
+		String json = JsonSerialize(persistentItem);
+
+		NetString::WriteStringToStream(sfp, json);
+	}
+
+	sfp->Close();
+
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(filename.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempFilename));
+	}
+}
+
+bool ConfigItem::ValidateItems(const String& objectsFile)
 {
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
@@ -322,6 +378,9 @@ bool ConfigItem::ValidateItems(void)
 	}
 
 	upq.Join();
+
+	if (!objectsFile.IsEmpty())
+		ConfigItem::WriteObjectsFile(objectsFile);
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();

@@ -19,7 +19,9 @@ Build-Depends: bison,
                libpq-dev,
                libssl-dev,
                make (>= 3.81),
-               po-debconf
+               po-debconf,
+               python-setuptools,
+               python-all
 Standards-Version: 3.9.5
 Homepage: http://www.icinga.org
 
@@ -51,7 +53,7 @@ Description: host and network monitoring system
 
 Package: icinga2-common
 Architecture: all
-Depends: adduser, lsb-release, ${misc:Depends}
+Depends: python-icinga2 (= ${source:Version}), adduser, lsb-release, ${misc:Depends}
 Description: host and network monitoring system - common files
  Icinga 2 is a general-purpose monitoring application and the next generation
  after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
@@ -235,3 +237,29 @@ Description: host and network monitoring system - debug symbols
   * Native support for Livestatus and Graphite
  .
  This package provides debug symbols for Icinga 2.
+
+Package: python-icinga2
+Architecture: all
+Section: python
+Priority: extra
+Depends: ${misc:Depends}, ${python:Depends}
+Description: host and network monitoring system - debug symbols
+ Icinga 2 is a general-purpose monitoring application and the next generation
+ after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
+ environment as well as big installations.
+ .
+ Rewritten from scratch in C++, with multi-threading and cluster support.
+ .
+ Features:
+  * All common features of Icinga and Nagios
+  * Much faster and more scalable than Icinga 1 and Nagios
+  * New configuration format, more intuitive and template based
+  * Monitoring several services by executing checks (see nagios-plugins*)
+    for example ICMP/ping, SMTP, POP3, HTTP, NNTP, or other TCP port
+  * Any small script can be used as a check plugin, when following the Nagios
+    plugin API
+  * Notifications about alerts with any custom script, or shipped examples
+  * Native support for Livestatus and Graphite
+ .
+ This package provides the Python module for Icinga 2.
+

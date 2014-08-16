@@ -27,9 +27,9 @@ parentheses):
                                   on Debian)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
+* Python (python-devel on RHEL, python-dev on Debian)
 * recommended: libexecinfo on FreeBSD
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
-* optional: Python (python-devel on RHEL, python-dev on Debian)
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
 example from the repoforge buildtools repository.

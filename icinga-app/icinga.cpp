@@ -82,7 +82,7 @@ static void IncludeNonLocalZone(const String& zonePath)
 	IncludeZoneDirRecursive(zonePath);
 }
 
-static bool LoadConfigFiles(const String& appType)
+static bool LoadConfigFiles(const String& appType, const String& objectsFile = String())
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
@@ -113,7 +113,7 @@ static bool LoadConfigFiles(const String& appType)
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	bool result = ConfigItem::ValidateItems();
+	bool result = ConfigItem::ValidateItems(objectsFile);
 
 	int warnings = 0, errors = 0;
 
@@ -382,6 +382,7 @@ int Main(void)
 	}
 
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
+	Application::DeclareObjectsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.debug");
 	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");
 
 #ifndef _WIN32
@@ -543,7 +544,7 @@ int Main(void)
 		}
 	}
 
-	if (!LoadConfigFiles(appType))
+	if (!LoadConfigFiles(appType, Application::GetObjectsPath()))
 		return EXIT_FAILURE;
 
 	if (g_AppParams.count("validate")) {
