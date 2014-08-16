@@ -17,8 +17,11 @@
 
 from icinga2.utils.debug import ObjectsFile
 from icinga2.config import LocalStateDir
+from signal import signal, SIGPIPE, SIG_DFL
 
 def main():
+    signal(SIGPIPE, SIG_DFL)
+
     fp = open(LocalStateDir + "/cache/icinga2/icinga2.debug")
     of = ObjectsFile(fp)
     for obj in of:
