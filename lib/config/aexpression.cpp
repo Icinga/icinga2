@@ -312,10 +312,17 @@ Value AExpression::OpDict(const AExpression *expr, const Dictionary::Ptr& locals
 Value AExpression::OpSet(const AExpression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Value index = expr->EvaluateOperand1(locals);
-	DebugHint *sdhint = dhint->GetChild(index);
+
+	DebugHint *sdhint = NULL;
+	if (dhint)
+		sdhint = dhint->GetChild(index);
+
 	Value right = expr->EvaluateOperand2(locals, sdhint);
 	locals->Set(index, right);
-	sdhint->AddMessage("=", expr->m_DebugInfo);
+
+	if (sdhint)
+		sdhint->AddMessage("=", expr->m_DebugInfo);
+
 	return right;
 }
 
@@ -335,7 +342,10 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 		xlocals->Set("__parent", locals);
 	}
 
-	DebugHint *sdhint = dhint->GetChild(index);
+	DebugHint *sdhint = NULL;
+	if (dhint)
+		sdhint = dhint->GetChild(index);
+
 	Value result = left + expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
@@ -344,7 +354,9 @@ Value AExpression::OpSetPlus(const AExpression *expr, const Dictionary::Ptr& loc
 	}
 
 	locals->Set(index, result);
-	sdhint->AddMessage("+=", expr->m_DebugInfo);
+
+	if (sdhint)
+		sdhint->AddMessage("+=", expr->m_DebugInfo);
 
 	return result;
 }
@@ -365,7 +377,10 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 		xlocals->Set("__parent", locals);
 	}
 
-	DebugHint *sdhint = dhint->GetChild(index);
+	DebugHint *sdhint = NULL;
+	if (dhint)
+		sdhint = dhint->GetChild(index);
+
 	Value result = left - expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
@@ -374,7 +389,9 @@ Value AExpression::OpSetMinus(const AExpression *expr, const Dictionary::Ptr& lo
 	}
 
 	locals->Set(index, result);
-	sdhint->AddMessage("-=", expr->m_DebugInfo);
+
+	if (sdhint)
+		sdhint->AddMessage("-=", expr->m_DebugInfo);
 
 	return result;
 }
@@ -395,7 +412,10 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 		xlocals->Set("__parent", locals);
 	}
 
-	DebugHint *sdhint = dhint->GetChild(index);
+	DebugHint *sdhint = NULL;
+	if (dhint)
+		sdhint = dhint->GetChild(index);
+
 	Value result = left * expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
@@ -404,7 +424,9 @@ Value AExpression::OpSetMultiply(const AExpression *expr, const Dictionary::Ptr&
 	}
 
 	locals->Set(index, result);
-	sdhint->AddMessage("*=", expr->m_DebugInfo);
+
+	if (sdhint)
+		sdhint->AddMessage("*=", expr->m_DebugInfo);
 
 	return result;
 }
@@ -425,7 +447,10 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 		xlocals->Set("__parent", locals);
 	}
 
-	DebugHint *sdhint = dhint->GetChild(index);
+	DebugHint *sdhint = NULL;
+	if (dhint)
+		sdhint = dhint->GetChild(index);
+
 	Value result = left / expr->EvaluateOperand2(xlocals, sdhint);
 
 	if (exp_right->m_Operator == &AExpression::OpDict) {
@@ -434,7 +459,9 @@ Value AExpression::OpSetDivide(const AExpression *expr, const Dictionary::Ptr& l
 	}
 
 	locals->Set(index, result);
-	sdhint->AddMessage("/=", expr->m_DebugInfo);
+
+	if (sdhint)
+		sdhint->AddMessage("/=", expr->m_DebugInfo);
 
 	return result;
 }

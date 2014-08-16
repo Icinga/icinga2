@@ -243,7 +243,7 @@ Architecture: all
 Section: python
 Priority: extra
 Depends: ${misc:Depends}, ${python:Depends}
-Description: host and network monitoring system - debug symbols
+Description: host and network monitoring system - Python module
  Icinga 2 is a general-purpose monitoring application and the next generation
  after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
  environment as well as big installations.
