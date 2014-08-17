@@ -44,17 +44,17 @@ public:
 	void AddMember(const Host::Ptr& host);
 	void RemoveMember(const Host::Ptr& host);
 
-        bool ResolveGroupMembership(Host::Ptr const& host, bool add = true, int rstack = 0);
+	bool ResolveGroupMembership(const Host::Ptr& host, bool add = true, int rstack = 0);
 
-        static void RegisterObjectRuleHandler(void);
+	static void RegisterObjectRuleHandler(void);
 
 private:
 	mutable boost::mutex m_HostGroupMutex;
 	std::set<Host::Ptr> m_Members;
 
-        static bool EvaluateObjectRuleOne(const Host::Ptr host, const ObjectRule& rule);
+	static bool EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& rule);
 	static void EvaluateObjectRule(const ObjectRule& rule);
-        static void EvaluateObjectRules(const std::vector<ObjectRule>& rules);
+	static void EvaluateObjectRules(const std::vector<ObjectRule>& rules);
 };
 
 }

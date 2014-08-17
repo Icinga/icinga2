@@ -136,7 +136,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 			}
 		}
 
-        	fp << "\t(" << i - ignoreFrames - 1 << ") " << message << std::endl;
+		fp << "\t(" << i - ignoreFrames - 1 << ") " << message << std::endl;
 	}
 
 	free(messages);

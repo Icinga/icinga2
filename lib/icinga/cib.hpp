@@ -37,25 +37,25 @@ struct CheckableCheckStatistics {
 };
 
 struct ServiceStatistics {
-    double services_ok;
-    double services_warning;
-    double services_critical;
-    double services_unknown;
-    double services_pending;
-    double services_unreachable;
-    double services_flapping;
-    double services_in_downtime;
-    double services_acknowledged;
+	double services_ok;
+	double services_warning;
+	double services_critical;
+	double services_unknown;
+	double services_pending;
+	double services_unreachable;
+	double services_flapping;
+	double services_in_downtime;
+	double services_acknowledged;
 };
 
 struct HostStatistics {
-    double hosts_up;
-    double hosts_down;
-    double hosts_unreachable;
-    double hosts_pending;
-    double hosts_flapping;
-    double hosts_in_downtime;
-    double hosts_acknowledged;
+	double hosts_up;
+	double hosts_down;
+	double hosts_unreachable;
+	double hosts_pending;
+	double hosts_flapping;
+	double hosts_in_downtime;
+	double hosts_acknowledged;
 };
 
 /**
@@ -79,12 +79,12 @@ public:
 	static void UpdatePassiveServiceChecksStatistics(long tv, int num);
 	static int GetPassiveServiceChecksStatistics(long timespan);
 
-        static CheckableCheckStatistics CalculateHostCheckStats(void);
-        static CheckableCheckStatistics CalculateServiceCheckStats(void);
-        static HostStatistics CalculateHostStats(void);
-        static ServiceStatistics CalculateServiceStats(void);
+	static CheckableCheckStatistics CalculateHostCheckStats(void);
+	static CheckableCheckStatistics CalculateServiceCheckStats(void);
+	static HostStatistics CalculateHostStats(void);
+	static ServiceStatistics CalculateServiceStats(void);
 
-        static std::pair<Dictionary::Ptr, Dictionary::Ptr> GetFeatureStats(void);
+	static std::pair<Dictionary::Ptr, Dictionary::Ptr> GetFeatureStats(void);
 
 private:
 	CIB(void);

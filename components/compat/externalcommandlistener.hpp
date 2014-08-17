@@ -37,9 +37,9 @@ class ExternalCommandListener : public ObjectImpl<ExternalCommandListener>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ExternalCommandListener);
-        DECLARE_TYPENAME(ExternalCommandListener);
+	DECLARE_TYPENAME(ExternalCommandListener);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);
@@ -49,7 +49,7 @@ private:
 	boost::thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
-        void ClientHandler(const String& commandPath, int fd);
+	void ClientHandler(const String& commandPath, int fd);
 #endif /* _WIN32 */
 };
 

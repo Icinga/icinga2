@@ -49,7 +49,7 @@ public:
 	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 
 	/* service */
-        static String GetCheckableCommandArgs(const Checkable::Ptr& checkable);
+	static String GetCheckableCommandArgs(const Checkable::Ptr& checkable);
 	static int GetCheckableCheckType(const Checkable::Ptr& checkable);
 	static double GetCheckableCheckInterval(const Checkable::Ptr& checkable);
 	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);
@@ -62,7 +62,7 @@ public:
 	static int GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableIsFlapping(const Checkable::Ptr& checkable);
-        static int GetCheckableIsReachable(const Checkable::Ptr& checkable);
+	static int GetCheckableIsReachable(const Checkable::Ptr& checkable);
 	static String GetCheckablePercentStateChange(const Checkable::Ptr& checkable);
 	static int GetCheckableProcessPerformanceData(const Checkable::Ptr& checkable);
 

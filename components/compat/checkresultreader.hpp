@@ -38,7 +38,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(CheckResultReader);
 	DECLARE_TYPENAME(CheckResultReader);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);

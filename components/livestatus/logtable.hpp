@@ -44,15 +44,15 @@ public:
 	virtual String GetName(void) const;
 	virtual String GetPrefix(void) const;
 
-        void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn);
+	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn);
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
-        static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
-        static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
-        static Object::Ptr ContactAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
-        static Object::Ptr CommandAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr ContactAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr CommandAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 
 	static Value TimeAccessor(const Value& row);
 	static Value LinenoAccessor(const Value& row);
@@ -71,11 +71,11 @@ protected:
 	static Value CommandNameAccessor(const Value& row);
 
 private:
-        std::map<time_t, String> m_LogFileIndex;
-        std::map<time_t, Dictionary::Ptr> m_RowsCache;
-        time_t m_TimeFrom;
-        time_t m_TimeUntil;
-        String m_CompatLogPath;
+	std::map<time_t, String> m_LogFileIndex;
+	std::map<time_t, Dictionary::Ptr> m_RowsCache;
+	time_t m_TimeFrom;
+	time_t m_TimeUntil;
+	String m_CompatLogPath;
 };
 
 }

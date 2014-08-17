@@ -95,7 +95,7 @@ protected:
 	static Value AcceptPassiveChecksAccessor(const Value& row);
 	static Value EventHandlerEnabledAccessor(const Value& row);
 	static Value NotificationsEnabledAccessor(const Value& row);
-        static Value ProcessPerformanceDataAccessor(const Value& row);
+	static Value ProcessPerformanceDataAccessor(const Value& row);
 	static Value ActiveChecksEnabledAccessor(const Value& row);
 	static Value CheckOptionsAccessor(const Value& row);
 	static Value FlapDetectionEnabledAccessor(const Value& row);
@@ -124,8 +124,8 @@ protected:
 	static Value CustomVariablesAccessor(const Value& row);
 	static Value GroupsAccessor(const Value& row);
 	static Value ContactGroupsAccessor(const Value& row);
-        static Value CheckSourceAccessor(const Value& row);
-        static Value IsReachableAccessor(const Value& row);
+	static Value CheckSourceAccessor(const Value& row);
+	static Value IsReachableAccessor(const Value& row);
 };
 
 }

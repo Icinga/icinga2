@@ -34,10 +34,10 @@ INITIALIZE_ONCE(&HostGroup::RegisterObjectRuleHandler);
 
 void HostGroup::RegisterObjectRuleHandler(void)
 {
-        ObjectRule::RegisterType("HostGroup", &HostGroup::EvaluateObjectRules);
+	ObjectRule::RegisterType("HostGroup", &HostGroup::EvaluateObjectRules);
 }
 
-bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr host, const ObjectRule& rule)
+bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 

@@ -584,7 +584,7 @@ Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-        return CompatUtility::GetCheckableNotificationNotificationNumber(host);
+	return CompatUtility::GetCheckableNotificationNotificationNumber(host);
 }
 
 Value HostsTable::TotalServicesAccessor(const Value& row)

@@ -54,7 +54,7 @@ public:
 	static ConfigCompilerContext *GetInstance(void);
 
 private:
-        std::vector<ConfigCompilerMessage> m_Messages;
+	std::vector<ConfigCompilerMessage> m_Messages;
 
 	mutable boost::mutex m_Mutex;
 };

@@ -41,20 +41,20 @@ public:
 	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
 	DECLARE_TYPENAME(GraphiteWriter);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);
 
 private:
 	Stream::Ptr m_Stream;
-        
+	
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-        void SendMetric(const String& prefix, const String& name, double value);
-        void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr);
-        static void SanitizeMetric(String& str);
+	void SendMetric(const String& prefix, const String& name, double value);
+	void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr);
+	static void SanitizeMetric(String& str);
 
 	void ReconnectTimerHandler(void);
 };

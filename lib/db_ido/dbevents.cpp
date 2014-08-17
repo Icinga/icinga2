@@ -1087,18 +1087,18 @@ void DbEvents::AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingSt
 	std::ostringstream msgbuf;
 
 	if (service) {
-	        msgbuf << "SERVICE FLAPPING ALERT: "
-        	        << host->GetName() << ";"
-	                << service->GetShortName() << ";"
-        	        << flapping_state_str << "; "
-	                << flapping_output
-	                << "";
+		msgbuf << "SERVICE FLAPPING ALERT: "
+		       << host->GetName() << ";"
+		       << service->GetShortName() << ";"
+		       << flapping_state_str << "; "
+		       << flapping_output
+		       << "";
 	} else {
-                msgbuf << "HOST FLAPPING ALERT: "
-                        << host->GetName() << ";"
-                        << flapping_state_str << "; "
-                        << flapping_output
-                        << "";
+		msgbuf << "HOST FLAPPING ALERT: "
+		       << host->GetName() << ";"
+		       << flapping_state_str << "; "
+		       << flapping_output
+		       << "";
 	}
 
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);

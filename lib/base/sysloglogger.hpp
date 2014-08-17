@@ -36,9 +36,9 @@ class I2_BASE_API SyslogLogger : public ObjectImpl<SyslogLogger>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(SyslogLogger);
-        DECLARE_TYPENAME(SyslogLogger);
+	DECLARE_TYPENAME(SyslogLogger);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);

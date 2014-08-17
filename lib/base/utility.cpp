@@ -777,22 +777,22 @@ String Utility::FormatErrorNumber(int code) {
 	std::ostringstream msgbuf;
 
 #ifdef _WIN32
-        char *message;
-        String result = "Unknown error.";
+	char *message;
+	String result = "Unknown error.";
 
-        DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message,
-                0, NULL);
+	DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message,
+		0, NULL);
 
-        if (rc != 0) {
-                result = String(message);
-                LocalFree(message);
+	if (rc != 0) {
+		result = String(message);
+		LocalFree(message);
 
-                /* remove trailing new-line characters */
-                boost::algorithm::trim_right(result);
-        }
+		/* remove trailing new-line characters */
+		boost::algorithm::trim_right(result);
+	}
 
-        msgbuf << code << ", \"" << result << "\"";
+	msgbuf << code << ", \"" << result << "\"";
 #else
 	msgbuf << strerror(code);
 #endif

@@ -40,9 +40,9 @@ class IdoPgsqlConnection : public ObjectImpl<IdoPgsqlConnection>
 {
 public:
 	DECLARE_PTR_TYPEDEFS(IdoPgsqlConnection);
-        DECLARE_TYPENAME(IdoPgsqlConnection);
+	DECLARE_TYPENAME(IdoPgsqlConnection);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void Resume(void);
@@ -51,7 +51,7 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj);
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
 	virtual void ExecuteQuery(const DbQuery& query);
-        virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
+	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 	virtual void FillIDCache(const DbType::Ptr& type);
 
 private:

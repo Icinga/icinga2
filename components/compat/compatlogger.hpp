@@ -39,7 +39,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(CompatLogger);
 	DECLARE_TYPENAME(CompatLogger);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
 
@@ -52,8 +52,8 @@ private:
 
 	void CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
 	void NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& service,
-            const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
-            const String& author, const String& comment_text, const String& command_name);
+	    const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
+	    const String& author, const String& comment_text, const String& command_name);
 	void FlappingHandler(const Checkable::Ptr& service, FlappingState flapping_state);
 	void TriggerDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);
 	void RemoveDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);

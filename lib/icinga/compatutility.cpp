@@ -314,8 +314,8 @@ int CompatUtility::GetCheckableIsAcknowledged(const Checkable::Ptr& checkable)
 
 int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)
 {
-        if (CompatUtility::GetCheckableNotificationNotificationInterval(checkable) == 0 && !checkable->GetVolatile())
-                return 1;
+	if (CompatUtility::GetCheckableNotificationNotificationInterval(checkable) == 0 && !checkable->GetVolatile())
+		return 1;
 
 	return 0;
 }

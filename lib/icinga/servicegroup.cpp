@@ -34,10 +34,10 @@ INITIALIZE_ONCE(&ServiceGroup::RegisterObjectRuleHandler);
 
 void ServiceGroup::RegisterObjectRuleHandler(void)
 {
-        ObjectRule::RegisterType("ServiceGroup", &ServiceGroup::EvaluateObjectRules);
+	ObjectRule::RegisterType("ServiceGroup", &ServiceGroup::EvaluateObjectRules);
 }
 
-bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr service, const ObjectRule& rule)
+bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr& service, const ObjectRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 

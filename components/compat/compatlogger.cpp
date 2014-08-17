@@ -257,14 +257,14 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 		author_comment = author + ";" + comment_text;
 	}
 
-        if (!cr)
-                return;
+	if (!cr)
+		return;
 
 	String output;
 	if (cr)
 		output = CompatUtility::GetCheckResultOutput(cr);
 
-        std::ostringstream msgbuf;
+	std::ostringstream msgbuf;
 
 	if (service) {
 		msgbuf << "SERVICE NOTIFICATION: "
@@ -277,22 +277,22 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 			<< author_comment
 			<< "";
 	} else {
-                msgbuf << "HOST NOTIFICATION: "
+		msgbuf << "HOST NOTIFICATION: "
 			<< user->GetName() << ";"
-                        << host->GetName() << ";"
-                	<< notification_type_str << " "
+			<< host->GetName() << ";"
+			<< notification_type_str << " "
 			<< "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ");"
 			<< command_name << ";"
 			<< output << ";"
 			<< author_comment
-                        << "";
+			<< "";
 	}
 
 	{
 		ObjectLock oLock(this);
 		WriteLine(msgbuf.str());
-                Flush();
-        }
+		Flush();
+	}
 }
 
 /**
@@ -325,7 +325,7 @@ void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingStat
 			return;
 	}
 
-        std::ostringstream msgbuf;
+	std::ostringstream msgbuf;
 
 	if (service) {
 		msgbuf << "SERVICE FLAPPING ALERT: "
@@ -335,32 +335,32 @@ void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingStat
 			<< flapping_output
 			<< "";
 	} else {
-                msgbuf << "HOST FLAPPING ALERT: "
-                        << host->GetName() << ";"
-                        << flapping_state_str << "; "
-                        << flapping_output
-                        << "";
+		msgbuf << "HOST FLAPPING ALERT: "
+			<< host->GetName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
 	}
 
 	{
 		ObjectLock oLock(this);
 		WriteLine(msgbuf.str());
-                Flush();
-        }
+		Flush();
+	}
 }
 
 void CompatLogger::ExternalCommandHandler(const String& command, const std::vector<String>& arguments)
 {
-        std::ostringstream msgbuf;
-        msgbuf << "EXTERNAL COMMAND: "
-                << command << ";"
-                << boost::algorithm::join(arguments, ";")
-                << "";
+	std::ostringstream msgbuf;
+	msgbuf << "EXTERNAL COMMAND: "
+		<< command << ";"
+		<< boost::algorithm::join(arguments, ";")
+		<< "";
 
-        {
-                ObjectLock oLock(this);
-                WriteLine(msgbuf.str());
-        }
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
+	}
 }
 
 void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
@@ -373,7 +373,7 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 	String event_command_name = event_command->GetName();
 	long current_attempt = checkable->GetCheckAttempt();
 
-        std::ostringstream msgbuf;
+	std::ostringstream msgbuf;
 
 	if (service) {
 		msgbuf << "SERVICE EVENT HANDLER: "
@@ -385,7 +385,7 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 			<< event_command_name;
 	} else {
 		msgbuf << "HOST EVENT HANDLER: "
-                        << host->GetName() << ";"
+			<< host->GetName() << ";"
 			<< (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< current_attempt << ";"
@@ -395,8 +395,8 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 	{
 		ObjectLock oLock(this);
 		WriteLine(msgbuf.str());
-                Flush();
-        }
+		Flush();
+	}
 }
 
 void CompatLogger::WriteLine(const String& line)

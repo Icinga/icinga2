@@ -519,7 +519,7 @@ Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-        return CompatUtility::GetCheckableNoMoreNotifications(service);
+	return CompatUtility::GetCheckableNoMoreNotifications(service);
 }
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)

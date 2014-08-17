@@ -419,9 +419,8 @@ void DbConnection::ValidateFailoverTimeout(const String& location, const Diction
 	if (!attrs->Contains("failover_timeout"))
 		return;
 
-	Value failover_timeout = attrs->Get("failover_timeout");
-	if (failover_timeout < 60) {
-                ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-                    location + ": Failover timeout minimum is 60s.");
+	if (attrs->Get("failover_timeout") < 60) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
+		    location + ": Failover timeout minimum is 60s.");
 	}
 }

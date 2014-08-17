@@ -42,7 +42,7 @@ public:
 	virtual Dictionary::Ptr GetStatusFields(void) const;
 
 protected:
-        virtual void OnConfigUpdate(void);
+	virtual void OnConfigUpdate(void);
 };
 
 }

@@ -62,7 +62,7 @@ protected:
 	static Value ActionUrlAccessor(const Value& row);
 	static Value ActionUrlExpandedAccessor(const Value& row);
 	static Value PluginOutputAccessor(const Value& row);
-        static Value PerfDataAccessor(const Value& row);
+	static Value PerfDataAccessor(const Value& row);
 	static Value IconImageAccessor(const Value& row);
 	static Value IconImageExpandedAccessor(const Value& row);
 	static Value IconImageAltAccessor(const Value& row);
@@ -141,8 +141,8 @@ protected:
 	static Value ServicesAccessor(const Value& row);
 	static Value ServicesWithStateAccessor(const Value& row);
 	static Value ServicesWithInfoAccessor(const Value& row);
-        static Value CheckSourceAccessor(const Value& row);
-        static Value IsReachableAccessor(const Value& row);
+	static Value CheckSourceAccessor(const Value& row);
+	static Value IsReachableAccessor(const Value& row);
 };
 
 }

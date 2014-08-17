@@ -34,10 +34,10 @@ INITIALIZE_ONCE(&UserGroup::RegisterObjectRuleHandler);
 
 void UserGroup::RegisterObjectRuleHandler(void)
 {
-        ObjectRule::RegisterType("UserGroup", &UserGroup::EvaluateObjectRules);
+	ObjectRule::RegisterType("UserGroup", &UserGroup::EvaluateObjectRules);
 }
 
-bool UserGroup::EvaluateObjectRuleOne(const User::Ptr user, const ObjectRule& rule)
+bool UserGroup::EvaluateObjectRuleOne(const User::Ptr& user, const ObjectRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 

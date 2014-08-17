@@ -47,9 +47,9 @@ protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 	static Value NameAccessor(const Value& row);
-        static Value IdentityAccessor(const Value& row);
-        static Value NodeAccessor(const Value& row);
-        static Value IsConnectedAccessor(const Value& row);
+	static Value IdentityAccessor(const Value& row);
+	static Value NodeAccessor(const Value& row);
+	static Value IsConnectedAccessor(const Value& row);
 };
 
 }

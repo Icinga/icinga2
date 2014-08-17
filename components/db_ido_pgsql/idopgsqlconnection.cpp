@@ -363,8 +363,8 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 		BOOST_THROW_EXCEPTION(
 		    database_error()
-		        << errinfo_message(message)
-		        << errinfo_database_query(query)
+			<< errinfo_message(message)
+			<< errinfo_database_query(query)
 		);
 	}
 
@@ -384,8 +384,8 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 		BOOST_THROW_EXCEPTION(
 		    database_error()
-		        << errinfo_message(message)
-		        << errinfo_database_query(query)
+			<< errinfo_message(message)
+			<< errinfo_database_query(query)
 		);
 	}
 

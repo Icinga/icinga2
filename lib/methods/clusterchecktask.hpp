@@ -37,7 +37,7 @@ public:
 
 private:
 	ClusterCheckTask(void);
-        static String FormatArray(const Array::Ptr& arr);
+	static String FormatArray(const Array::Ptr& arr);
 };
 
 }

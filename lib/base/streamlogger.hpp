@@ -45,7 +45,7 @@ public:
 	void BindStream(std::ostream *stream, bool ownsStream);
 
 	static void ProcessLogEntry(std::ostream& stream, bool tty, const LogEntry& entry);
-        static bool IsTty(std::ostream& stream);
+	static bool IsTty(std::ostream& stream);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);

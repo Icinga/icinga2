@@ -40,7 +40,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
 	DECLARE_TYPENAME(PerfdataWriter);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);
@@ -52,7 +52,7 @@ private:
 	void RotationTimerHandler(void);
 
 	std::ofstream m_ServiceOutputFile;
-        std::ofstream m_HostOutputFile;
+	std::ofstream m_HostOutputFile;
 	void RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path);
 };
 

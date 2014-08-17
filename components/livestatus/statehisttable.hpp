@@ -50,8 +50,8 @@ public:
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
-        static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
-        static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 
 	static Value TimeAccessor(const Value& row);
 	static Value LinenoAccessor(const Value& row);
@@ -81,11 +81,11 @@ protected:
 	static Value DurationPartUnmonitoredAccessor(const Value& row);
 
 private:
-        std::map<time_t, String> m_LogFileIndex;
-        std::map<Checkable::Ptr, Array::Ptr> m_CheckablesCache;
-        time_t m_TimeFrom;
-        time_t m_TimeUntil;
-        String m_CompatLogPath;
+	std::map<time_t, String> m_LogFileIndex;
+	std::map<Checkable::Ptr, Array::Ptr> m_CheckablesCache;
+	time_t m_TimeFrom;
+	time_t m_TimeUntil;
+	String m_CompatLogPath;
 };
 
 }

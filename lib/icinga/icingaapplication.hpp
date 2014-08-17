@@ -42,13 +42,13 @@ public:
 
 	int Main(void);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 	static IcingaApplication::Ptr GetInstance(void);
 
 	String GetPidPath(void) const;
 	Dictionary::Ptr GetVars(void) const;
-        String GetNodeName(void) const;
+	String GetNodeName(void) const;
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
 

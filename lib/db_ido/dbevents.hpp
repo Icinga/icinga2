@@ -71,16 +71,16 @@ public:
 	static void StaticInitialize(void);
 
 	static void AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical);
-        static void AddComments(const Checkable::Ptr& checkable);
-        static void RemoveComments(const Checkable::Ptr& checkable);
+	static void AddComments(const Checkable::Ptr& checkable);
+	static void RemoveComments(const Checkable::Ptr& checkable);
 
-        static void AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical);
-        static void AddDowntimes(const Checkable::Ptr& checkable);
-        static void RemoveDowntimes(const Checkable::Ptr& checkable);
+	static void AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical);
+	static void AddDowntimes(const Checkable::Ptr& checkable);
+	static void RemoveDowntimes(const Checkable::Ptr& checkable);
 
-        static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
+	static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
 
-        /* Status */
+	/* Status */
 	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck);
 	static void FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state);
 	static void LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable);
@@ -102,34 +102,34 @@ public:
 	static void RemoveAcknowledgement(const Checkable::Ptr& checkable);
 	static void AddAcknowledgementInternal(const Checkable::Ptr& checkable, AcknowledgementType type, bool add);
 
-        /* comment, downtime, acknowledgement history */
-        static void AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
+	/* comment, downtime, acknowledgement history */
+	static void AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void AddDowntimeHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
-        static void AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
-            AcknowledgementType type, double expiry);
+	static void AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
+	    AcknowledgementType type, double expiry);
 
-        /* notification & contactnotification history */
+	/* notification & contactnotification history */
 	static void AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-            const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
-            const String& text);
+	    const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
+	    const String& text);
 
-        /* statehistory */
+	/* statehistory */
 	static void AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
 
-        /* logentries */
+	/* logentries */
 	static void AddCheckResultLogHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
-        static void AddTriggerDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
-        static void AddRemoveDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void AddTriggerDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void AddRemoveDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-            const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
-            const String& comment_text);
-        static void AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
+	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
+	    const String& comment_text);
+	static void AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
 
-        /* other history */
-        static void AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
+	/* other history */
+	static void AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
 	static void AddServiceCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
-        static void AddEventHandlerHistory(const Checkable::Ptr& checkable);
-        static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
+	static void AddEventHandlerHistory(const Checkable::Ptr& checkable);
+	static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
 
 private:
 	DbEvents(void);

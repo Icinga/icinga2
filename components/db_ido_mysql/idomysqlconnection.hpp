@@ -42,7 +42,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
 	DECLARE_TYPENAME(IdoMysqlConnection);
 
-        static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
 
 protected:
 	virtual void Resume(void);

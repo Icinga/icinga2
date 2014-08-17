@@ -190,7 +190,7 @@ public:
 
 	static void RemoveDowntime(const String& id, bool cancelled, const MessageOrigin& origin = MessageOrigin());
 
-        void TriggerDowntimes(void);
+	void TriggerDowntimes(void);
 	static void TriggerDowntime(const String& id);
 
 	static String GetDowntimeIDFromLegacyID(int id);

@@ -120,27 +120,27 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 
 Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 {
-        Dictionary::Ptr bag = make_shared<Dictionary>();
+	Dictionary::Ptr bag = make_shared<Dictionary>();
 
-        /*
-         * [1379025342] SERVICE NOTIFICATION: contactname;hostname;servicedesc;WARNING;true;foo output
-         */
-        unsigned long time = atoi(text.SubStr(1, 11).CStr());
+	/*
+	 * [1379025342] SERVICE NOTIFICATION: contactname;hostname;servicedesc;WARNING;true;foo output
+	 */
+	unsigned long time = atoi(text.SubStr(1, 11).CStr());
 
-        Log(LogDebug, "LivestatusLogUtility", "Processing log line: '" + text + "'.");
-        bag->Set("time", time);
+	Log(LogDebug, "LivestatusLogUtility", "Processing log line: '" + text + "'.");
+	bag->Set("time", time);
 
-        size_t colon = text.FindFirstOf(':');
-        size_t colon_offset = colon - 13;
+	size_t colon = text.FindFirstOf(':');
+	size_t colon_offset = colon - 13;
 
-        String type = String(text.SubStr(13, colon_offset));
-        String options = String(text.SubStr(colon + 1));
+	String type = String(text.SubStr(13, colon_offset));
+	String options = String(text.SubStr(colon + 1));
 
-        type.Trim();
-        options.Trim();
+	type.Trim();
+	options.Trim();
 
-        bag->Set("type", type);
-        bag->Set("options", options);
+	bag->Set("type", type);
+	bag->Set("options", options);
 
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, options, boost::is_any_of(";"));
@@ -260,7 +260,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		bag->Set("contact_name", tokens[0]);
 		bag->Set("host_name", tokens[1]);
 		bag->Set("state_type", tokens[2].CStr());
-                bag->Set("state", Service::StateFromString(tokens[3]));
+		bag->Set("state", Service::StateFromString(tokens[3]));
 		bag->Set("command_name", tokens[4]);
 		bag->Set("plugin_output", tokens[5]);
 
@@ -274,9 +274,9 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		bag->Set("contact_name", tokens[0]);
 		bag->Set("host_name", tokens[1]);
-                bag->Set("service_description", tokens[2]);
+		bag->Set("service_description", tokens[2]);
 		bag->Set("state_type", tokens[3].CStr());
-                bag->Set("state", Service::StateFromString(tokens[4]));
+		bag->Set("state", Service::StateFromString(tokens[4]));
 		bag->Set("command_name", tokens[5]);
 		bag->Set("plugin_output", tokens[6]);
 
@@ -292,41 +292,41 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		bag->Set("state", Host::StateFromString(tokens[1]));
 		bag->Set("plugin_output", tokens[2]);
 
-                bag->Set("log_class", LogEntryClassPassive);
+		bag->Set("log_class", LogEntryClassPassive);
 
-                return bag;
+		return bag;
 	} else if (type.Contains("PASSIVE SERVICE CHECK")) {
 		if (tokens.size() < 4)
 			return bag;
 
 		bag->Set("host_name", tokens[0]);
-                bag->Set("service_description", tokens[1]);
+		bag->Set("service_description", tokens[1]);
 		bag->Set("state", Host::StateFromString(tokens[2]));
 		bag->Set("plugin_output", tokens[3]);
 
-                bag->Set("log_class", LogEntryClassPassive);
+		bag->Set("log_class", LogEntryClassPassive);
 
-                return bag;
+		return bag;
 	} else if (type.Contains("EXTERNAL COMMAND")) {
 		bag->Set("log_class", LogEntryClassCommand);
 		/* string processing not implemented in 1.x */
 
-                return bag;
+		return bag;
 	} else if (type.Contains("LOG VERSION")) {
 		bag->Set("log_class", LogEntryClassProgram);
 		bag->Set("log_type", LogEntryTypeVersion);
 
-                return bag;
+		return bag;
 	} else if (type.Contains("logging initial states")) {
 		bag->Set("log_class", LogEntryClassProgram);
 		bag->Set("log_type", LogEntryTypeInitialStates);
 
-                return bag;
+		return bag;
 	} else if (type.Contains("starting... (PID=")) {
 		bag->Set("log_class", LogEntryClassProgram);
 		bag->Set("log_type", LogEntryTypeProgramStarting);
 
-                return bag;
+		return bag;
 	}
 	/* program */
 	else if (type.Contains("restarting...") ||
@@ -336,8 +336,8 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		 type.Contains("standby mode...")) {
 		bag->Set("log_class", LogEntryClassProgram);
 
-                return bag;
+		return bag;
 	}
 
-        return bag;
+	return bag;
 }
