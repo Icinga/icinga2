@@ -1716,20 +1716,20 @@ The resulting name in Graphite might look like:
     icinga.www_01.http_cert.response_time
 
 In addition to the performance data retrieved from the check plugin, Icinga 2 sends
-some internal statistics data of the check to Graphite:
+internal check statistic data to Graphite:
 
   metric             | description
   -------------------|------------------------------------------
-  current_attempt    | attempt of the state evaluation
-  max_check_attempts | max. attempts until hard state
-  reachable          | designated cluster component is reachable
+  current_attempt    | current check attempt
+  max_check_attempts | maximum check attempts until the hard state is reached
+  reachable          | checked object is reachable
   execution_time     | check execution time
-  latency            | latency between check end and processing
-  state              | current state of the check
+  latency            | check latency
+  state              | current state of the checked object
   state_type         | 0=SOFT, 1=HARD state
 
-Here is an example how one could configure the storage-schemas for Carbon Cache.
-Please make sure your ordering is correct, the first match wins!
+The following example illustrates how to configure the storage-schemas for Graphite Carbon
+Cache. Please make sure that the order is correct because the first match wins.
 
     [icinga_internals]
     pattern = ^icinga\..*\.(max_check_attempts|reachable|current_attempt|execution_time|latency|state|state_type)
