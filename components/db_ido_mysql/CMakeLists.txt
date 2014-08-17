@@ -38,4 +38,16 @@ if(MYSQL_FOUND)
       RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
     )
+
+    install(
+      DIRECTORY schema
+      DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2-ido-mysql
+      FILES_MATCHING PATTERN "*.sql"
+    )
+
+    install(
+      DIRECTORY schema/upgrade
+      DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2-ido-mysql/schema
+      FILES_MATCHING PATTERN "*.sql"
+    )
 endif()

@@ -516,13 +516,15 @@ exit 0
 
 %files ido-mysql
 %defattr(-,root,root,-)
-%doc components/db_ido_mysql/schema COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
 %{_libdir}/%{name}/libdb_ido_mysql*
+%{_datadir}/icinga2-ido-mysql
 
 %files ido-pgsql
 %defattr(-,root,root,-)
-%doc components/db_ido_pgsql/schema COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
 %{_libdir}/%{name}/libdb_ido_pgsql*
+%{_datadir}/icinga2-ido-pgsql
 
 %files classicui-config
 %defattr(-,root,root,-)

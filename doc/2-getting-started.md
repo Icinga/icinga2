@@ -484,24 +484,17 @@ setting up a MySQL database for Icinga 2:
 After creating the database you can import the Icinga 2 IDO schema using the
 following command:
 
-    # mysql -u root -p icinga < /usr/share/doc/icinga2-ido-mysql-*/schema/mysql.sql
-
-The schema file location differs by the distribution used:
-
-  Distribution  | Schema Files
-  --------------|---------------------
-  RHEL          | `/usr/share/doc/icinga2-ido-mysql-*/schema` (* means package version).
-  SUSE          | `/usr/share/doc/packages/icinga2-ido-mysql/schema`
-  Debian/Ubuntu | `/usr/share/icinga2-ido-mysql/schema`
+    # mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
 
 #### <a id="upgrading-mysql-db"></a> Upgrading the MySQL database
 
-Check the `schema/upgrade` directory for an incremental schema upgrade file.
-If there isn't an upgrade file available there's nothing to do.
+Check the `/usr/share/icinga2-ido-mysql/schema/upgrade` directory for an
+incremental schema upgrade file. If there isn't an upgrade file available
+there's nothing to do.
 
 Apply all database schema upgrade files incrementially.
 
-    # mysql -u root -p icinga < /usr/share/doc/icinga2-ido-mysql-*/schema/upgrade/<version>.sql
+    # mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/<version>.sql
 
 The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
@@ -565,26 +558,18 @@ After creating the database and permissions you can import the Icinga 2 IDO sche
 using the following command:
 
     # export PGPASSWORD=icinga
-    # psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-*/schema/pgsql.sql
-
-The schema file location differs by the distribution used:
-
-  Distribution  | Schema Files
-  --------------|---------------------
-  RHEL          | `/usr/share/doc/icinga2-ido-pgsql-*/schema` (* means package version).
-  SUSE          | `/usr/share/doc/packages/icinga2-ido-pgsql/schema`
-  Debian/Ubuntu | `/usr/share/icinga2-ido-pgsql/schema`
-
+    # psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
 
 #### <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
 
-Check the `schema/upgrade` directory for an incremental schema upgrade file.
-If there isn't an upgrade file available there's nothing to do.
+Check the `/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for an
+incremental schema upgrade file. If there isn't an upgrade file available
+there's nothing to do.
 
 Apply all database schema upgrade files incrementially.
 
     # export PGPASSWORD=icinga
-    # psql -U icinga -d icinga < /usr/share/doc/icinga2-ido-pgsql-*/schema/upgrade/<version>.sql
+    # psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/<version>.sql
 
 The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
