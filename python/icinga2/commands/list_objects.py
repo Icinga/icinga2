@@ -15,14 +15,52 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from icinga2.utils.debug import ObjectsFile
+import os, sys, getopt
+from icinga2.utils.debug import ObjectsFileReader
 from icinga2.config import LocalStateDir
 from signal import signal, SIGPIPE, SIG_DFL
 
 def main():
     signal(SIGPIPE, SIG_DFL)
 
-    fp = open(LocalStateDir + "/cache/icinga2/icinga2.debug")
-    of = ObjectsFile(fp)
-    for obj in of:
-        print obj
+    color_mode = 'auto'
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "color"])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err) # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+    output = None
+    verbose = False
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o == "--color":
+            color_mode = 'always'
+        else:
+            assert False, "unhandled option"
+
+    if len(args) > 0:
+        fname = args[0]
+    else:
+        fname = LocalStateDir + "/cache/icinga2/icinga2.debug"
+
+    if color_mode == 'always':
+        use_colors = True
+    elif color_mode == 'never':
+        use_colors = False
+    else:
+        use_colors = os.isatty(1)
+
+    fp = open(fname)
+    ofr = ObjectsFileReader(fp)
+    for obj in ofr:
+        print obj.format(use_colors)
+
+def usage():
+    print "Syntax: %s [--color] [file]" % (sys.argv[0])
+    print ""
+    print "Displays a list of objects from the specified Icinga 2 objects file."

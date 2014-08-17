@@ -39,16 +39,13 @@ class DebugObject(object):
     def __init__(self, obj):
         self._obj = obj
 
-    def __str__(self):
-        return self.format_object()
-
-    def format_object(self):
+    def format(self, use_colors=False):
         if self._obj["abstract"]:
             result = "Template '"
         else:
             result = "Object '"
         result += self._obj["properties"]["__name"] + "' of type '" + self._obj["type"] + "':\n"
-        result += self.format_properties(2)
+        result += self.format_properties(use_colors, 2)
         return result
 
     @staticmethod
@@ -65,26 +62,33 @@ class DebugObject(object):
         else:
             return str(value)
 
-    def format_properties(self, indent=0, path=[]):
+    def format_properties(self, use_colors=False, indent=0, path=[]):
         props = self._obj["properties"]
         for component in path:
             props = props[component]
 
+        if use_colors:
+            color_begin = _colors.GREEN
+            color_end = _colors.RESET
+        else:
+            color_begin = ''
+            color_end = ''
+
         result = ""
         for key, value in props.items():
             path.append(key)
-            result += ' ' * indent + "* %s%s%s" % (_colors.GREEN, key, _colors.RESET)
-            hints = self.format_hints(self, indent + 2, path)
+            result += ' ' * indent + "* %s%s%s" % (color_begin, key, color_end)
+            hints = self.format_hints(use_colors, indent + 2, path)
             if isinstance(value, dict):
                 result += "\n" + hints
-                result += self.format_properties(indent + 2, path)
+                result += self.format_properties(use_colors, indent + 2, path)
             else:
                 result += " = %s\n" % (DebugObject.format_value(value))
                 result += hints
             path.pop()
         return result
 
-    def format_hints(self, dhints, indent=0, path=[]):
+    def format_hints(self, use_colors, indent=0, path=[]):
         dhints = self._obj["debug_hints"]
         try:
             for component in path:
@@ -92,13 +96,20 @@ class DebugObject(object):
         except KeyError:
             return ""
 
+        if use_colors:
+            color_begin = _colors.CYAN
+            color_end = _colors.RESET
+        else:
+            color_begin = ''
+            color_end = ''
+
         result = ""
         for message in dhints["messages"]:
-            result += ' ' * indent + "%% %smodified in %s, lines %s:%s-%s:%s%s\n" % (_colors.CYAN,
-              message[1], message[2], message[3], message[4], message[5], _colors.RESET)
+            result += ' ' * indent + "%% %smodified in %s, lines %s:%s-%s:%s%s\n" % (color_begin,
+              message[1], message[2], message[3], message[4], message[5], color_end)
         return result
 
-class ObjectsFile(object):
+class ObjectsFileReader(object):
     def __init__(self, file):
         self._file = file
 
