@@ -90,7 +90,8 @@ static bool LoadConfigFiles(const String& appType, const String& objectsFile = S
 		BOOST_FOREACH(const String& configPath, g_AppParams["config"].as<std::vector<std::string> >()) {
 			ConfigCompiler::CompileFile(configPath);
 		}
-	}
+	} else if (!g_AppParams.count("no-config"))
+		ConfigCompiler::CompileFile(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
 
 	/* Load cluster config files - this should probably be in libremote but
 	* unfortunately moving it there is somewhat non-trivial. */
@@ -528,12 +529,6 @@ int Main(void)
 		BOOST_FOREACH(const String& includePath, g_AppParams["include"].as<std::vector<std::string> >()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
-	}
-
-	if (g_AppParams.count("no-config") == 0 && g_AppParams.count("config") == 0) {
-		Log(LogCritical, "icinga-app", "You need to specify at least one config file (using the --config option).");
-
-		return EXIT_FAILURE;
 	}
 
 	if (!g_AppParams.count("validate") && !g_AppParams.count("reload-internal")) {

@@ -1022,6 +1022,10 @@ added.
 Using the `--config` option you can specify one or more configuration files.
 Config files are processed in the order they're specified on the command-line.
 
+When no configuration file is specified and the `--no-config` is not used
+Icinga 2 automatically falls back to using the configuration file
+`SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
+
 #### Config Validation
 
 The `--validate` option can be used to check if your configuration files
