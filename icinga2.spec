@@ -83,7 +83,9 @@ Group:        Applications/System
 
 Requires: python-%{name} = %{version}
 %if "%{_vendor}" == "suse"
-PreReq: permissions
+PreReq:        permissions
+Provides:      monitoring_daemon
+Recommends:    monitoring-plugins
 %endif
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
@@ -167,6 +169,9 @@ Group:        Applications/System
 BuildRequires: %{apachename}
 Requires:     %{apachename}
 Requires:     %{name} = %{version}-%{release}
+%if "%{_vendor}" == "suse"
+Recommends:   icinga-www
+%endif
 Provides:     icinga-classicui-config
 Conflicts:    icinga-gui-config
 
