@@ -27,7 +27,8 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "color"])
-    except getopt.GetoptError as err:
+    except getopt.GetoptError:
+        t, err = sys.exc_info()[:2]
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
         usage()
