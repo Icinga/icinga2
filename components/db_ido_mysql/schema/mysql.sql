@@ -1601,6 +1601,6 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
-INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.11.6', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.11.6', modify_time=NOW();
+INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.11.7', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.11.7', modify_time=NOW();
 
 
