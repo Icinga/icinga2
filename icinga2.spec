@@ -489,19 +489,19 @@ exit 0
 %{_mandir}/man8/%{name}-sign-key.8.gz
 %{_mandir}/man8/%{name}-prepare-dirs.8.gz
 
-%attr(0755,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
-%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
-%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
-%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
+%attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/cache/%{name}
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
 
-%attr(0755,%{icinga_user},%{icinga_group}) %ghost %{_rundir}/%{name}
-%attr(2755,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}/cmd
+%attr(0750,%{icinga_user},%{icinga_group}) %ghost %{_rundir}/%{name}
+%attr(2750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}/cmd
 
 %files common
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog tools/syntax
-%attr(0755,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
