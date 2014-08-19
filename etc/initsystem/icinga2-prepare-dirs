@@ -30,4 +30,4 @@ fi
 
 mkdir -p $ICINGA2_RUN_DIR/icinga2/cmd
 chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_RUN_DIR/icinga2/cmd
-chmod 2755 $ICINGA2_RUN_DIR/icinga2/cmd
+chmod 2750 $ICINGA2_RUN_DIR/icinga2/cmd
