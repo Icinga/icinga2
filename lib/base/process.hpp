@@ -97,6 +97,8 @@ private:
 	static void IOThreadProc(int tid);
 	bool DoEvents(void);
 	int GetTID(void) const;
+
+	String PrettyPrintArguments(void) const;
 };
 
 }

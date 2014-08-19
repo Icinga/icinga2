@@ -280,6 +280,15 @@ void Process::IOThreadProc(int tid)
 	}
 }
 
+String Process::PrettyPrintArguments(void) const
+{
+#ifdef _WIN32
+	return "'" + m_Arguments + "'";
+#else /* _WIN32 */
+	return "'" + boost::algorithm::join(m_Arguments, "' '") + "'";
+#endif /* _WIN32 */
+}
+
 void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 {
 	boost::call_once(l_OnceFlag, &Process::ThreadInitialize);
@@ -427,8 +436,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	m_FD = outReadPipe;
 	m_PID = pi.dwProcessId;
 
-	Log(LogNotice, "Process", "Running command '" + m_Arguments +
-		"': PID " + Convert::ToString(m_PID));
+	Log(LogNotice, "Process", "Running command " + PrettyPrintArguments() +
+	    ": PID " + Convert::ToString(m_PID));
 
 #else /* _WIN32 */
 	int fds[2];
@@ -533,10 +542,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	m_PID = m_Process;
 
-	Log(LogNotice, "Process", "Running command '" + boost::algorithm::join(m_Arguments, "', '") +
-		"': PID " + Convert::ToString(m_PID));
-
-	m_Arguments.clear();
+	Log(LogNotice, "Process", "Running command " + PrettyPrintArguments() + ": PID " + Convert::ToString(m_PID));
 
 	// free arguments
 	for (int i = 0; argv[i] != NULL; i++)
@@ -585,7 +591,8 @@ bool Process::DoEvents(void)
 		double timeout = m_Result.ExecutionStart + m_Timeout;
 
 		if (timeout < Utility::GetTime()) {
-			Log(LogNotice, "Process", "Killing process '" + Convert::ToString(m_PID) + " after timeout of " + Convert::ToString(m_Timeout) + " seconds");
+			Log(LogWarning, "Process", "Killing process " + Convert::ToString(m_PID) +
+			    " (" + PrettyPrintArguments() + ") after timeout of " + Convert::ToString(m_Timeout) + " seconds");
 
 			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
@@ -633,7 +640,8 @@ bool Process::DoEvents(void)
 	DWORD exitcode;
 	GetExitCodeProcess(m_Process, &exitcode);
 
-	Log(LogNotice, "Process", "PID " + Convert::ToString(m_PID) + " terminated with exit code " + Convert::ToString(exitcode));
+	Log((exitcode == 0) ? LogNotice : LogWarning, "Process", "PID " + Convert::ToString(m_PID) +
+	    " (" + PrettyPrintArguments() + ") terminated with exit code " + Convert::ToString(exitcode));
 #else /* _WIN32 */
 	int status, exitcode;
 	if (waitpid(m_Process, &status, 0) != m_Process) {
@@ -645,9 +653,11 @@ bool Process::DoEvents(void)
 	if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 
-		Log(LogNotice, "Process", "PID " + Convert::ToString(m_PID) + " terminated with exit code " + Convert::ToString(exitcode));
+		Log((exitcode == 0) ? LogNotice : LogWarning, "Process", "PID " + Convert::ToString(m_PID) +
+		    " (" + PrettyPrintArguments() + ") terminated with exit code " + Convert::ToString(exitcode));
 	} else if (WIFSIGNALED(status)) {
-		Log(LogNotice, "Process", "PID " + Convert::ToString(m_PID) + " was terminated by signal " + Convert::ToString(WTERMSIG(status)));
+		Log(LogWarning, "Process", "PID " + Convert::ToString(m_PID) + " was terminated by signal " +
+		    Convert::ToString(WTERMSIG(status)));
 
 		std::ostringstream outputbuf;
 		outputbuf << "<Terminated by signal " << WTERMSIG(status) << ".>";
