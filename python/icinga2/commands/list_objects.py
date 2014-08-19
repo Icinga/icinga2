@@ -62,6 +62,13 @@ def main():
         print obj.format(use_colors)
 
 def usage():
-    print "Syntax: %s [--color] [file]" % (sys.argv[0])
-    print ""
+    print "Syntax: %s [--help|-h] [--color] [file]" % (sys.argv[0])
     print "Displays a list of objects from the specified Icinga 2 objects file."
+    print ""
+    print "Arguments:"
+    print "  --help or -h      Displays this help message."
+    print "  --color           Enables using color codes even if standard output"
+    print "                    is not a terminal."
+    print ""
+    print "You can specify an alternative path for the Icinga 2 objects file. By"
+    print "default '" + LocalStateDir + "/cache/icinga2/icinga2.debug' is used."

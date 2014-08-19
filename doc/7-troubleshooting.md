@@ -80,6 +80,23 @@ Icinga 2 allows you to import templates using the [import](#import) keyword. If 
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 
+The `icinga2-list-objects` tool can be used to list all configuration objects and their
+attributes. The tool also shows where each of the attributes was modified:
+
+    # icinga2-list-objects
+    Object 'apt' of type 'CheckCommand':
+      * templates = ['apt', 'plugin-check-command']
+        % modified in /usr/share/icinga2/include/command-plugins.conf, lines 458:1-462:1
+        % modified in /usr/share/icinga2/include/command.conf, lines 34:1-36:1
+      * __name = 'apt'
+      * command = ['/usr/lib/nagios/plugins/check_apt']
+        % modified in /usr/share/icinga2/include/command-plugins.conf, lines 461:2-461:39
+      * methods
+        % modified in /usr/share/icinga2/include/command.conf, lines 35:2-35:32
+        * execute = 'PluginCheck'
+          % modified in /usr/share/icinga2/include/command.conf, lines 35:2-35:32
+      * type = 'CheckCommand'
+    [...]
 
 ## <a id="check-command-definitions"></a> Where are the check command definitions
 
