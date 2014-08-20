@@ -111,7 +111,9 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 				return;
 			}
 
-			Log(LogDebug, "ExternalCommandListener", "Client connected");
+
+
+			Log(LogNotice, "ExternalCommandListener", "Client connected");
 			Utility::QueueAsyncCallback(boost::bind(&ExternalCommandListener::ClientHandler, this, commandPath, fd));
 		} catch (std::exception&) {
 			Log(LogCritical, "ExternalCommandListener", "Cannot accept new connection.");
@@ -142,19 +144,6 @@ void ExternalCommandListener::ClientHandler(const String& commandPath, int fd)
 
 	String command = line;
 
-	if (command.IsEmpty()) {
-		fclose(fp);
-		return;
-	}
-
-	/* check if line contains [$unixts] */
-	if (line[0] != '[' || line[11] != ']') {
-		Log(LogDebug, "ExternalCommandListener", "Cannot find timestamp prefix in external command '" + command + "'. Bailing out.");
-		delete line;
-		fclose(fp);
-		return;
-	}
-
 	try {
 		Log(LogInformation, "ExternalCommandListener", "Executing external command: " + command);
 
@@ -163,6 +152,7 @@ void ExternalCommandListener::ClientHandler(const String& commandPath, int fd)
 		std::ostringstream msgbuf;
 		msgbuf << "External command failed.";
 		Log(LogWarning, "ExternalCommandListener", msgbuf.str());
+		return;
 	}
 
 	delete line;
