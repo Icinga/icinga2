@@ -130,7 +130,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			    (line[strlen(line) - 1] == '\r' || line[strlen(line) - 1] == '\n'))
 				line[strlen(line) - 1] = '\0';
 
-			Utility::QueueAsyncCallback(boost::bind(&ExternalCommandListener::ExecuteCommand, line));
+			Utility::QueueAsyncCallback(boost::bind(&ExternalCommandListener::ExecuteCommand, String(line)));
 		}
 
 		delete line;
