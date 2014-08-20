@@ -49,7 +49,6 @@ private:
 	boost::thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
-	void ClientHandler(const String& commandPath, int fd);
 #endif /* _WIN32 */
 };
 
