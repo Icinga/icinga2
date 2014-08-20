@@ -44,12 +44,12 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const share
 	m_SSL = shared_ptr<SSL>(SSL_new(sslContext.get()), SSL_free);
 
 	if (!m_SSL) {
-		msgbuf << "SSL_new() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
+		msgbuf << "SSL_new() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		Log(LogCritical, "TlsStream", msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("SSL_new")
-			<< errinfo_openssl_error(ERR_get_error()));
+			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
 	if (!m_SSLIndexInitialized) {
@@ -126,12 +126,12 @@ void TlsStream::Handshake(void)
 				Close();
 				return;
 			default:
-				msgbuf << "SSL_do_handshake() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
+				msgbuf << "SSL_do_handshake() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 				Log(LogCritical, "TlsStream", msgbuf.str());
 
 				BOOST_THROW_EXCEPTION(openssl_error()
 				    << boost::errinfo_api_function("SSL_do_handshake")
-				    << errinfo_openssl_error(ERR_get_error()));
+				    << errinfo_openssl_error(ERR_peek_error()));
 		}
 	}
 }
@@ -172,12 +172,12 @@ size_t TlsStream::Read(void *buffer, size_t count)
 					Close();
 					return count - left;
 				default:
-					msgbuf << "SSL_read() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
+					msgbuf << "SSL_read() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 					Log(LogCritical, "TlsStream", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_read")
-					    << errinfo_openssl_error(ERR_get_error()));
+					    << errinfo_openssl_error(ERR_peek_error()));
 			}
 		}
 
@@ -220,12 +220,12 @@ void TlsStream::Write(const void *buffer, size_t count)
 					Close();
 					return;
 				default:
-					msgbuf << "SSL_write() failed with code " << ERR_get_error() << ", \"" << ERR_error_string(ERR_get_error(), errbuf) << "\"";
+					msgbuf << "SSL_write() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 					Log(LogCritical, "TlsStream", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_write")
-					    << errinfo_openssl_error(ERR_get_error()));
+					    << errinfo_openssl_error(ERR_peek_error()));
 			}
 		}
 
