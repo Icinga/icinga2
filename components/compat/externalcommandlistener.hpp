@@ -49,6 +49,7 @@ private:
 	boost::thread m_CommandThread;
 
 	void CommandPipeThread(const String& commandPath);
+	static void ExecuteCommand(const String& command);
 #endif /* _WIN32 */
 };
 

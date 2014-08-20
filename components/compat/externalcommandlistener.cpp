@@ -113,6 +113,8 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		FILE *fp = fdopen(fd, "r");
 
 		if (fp == NULL) {
+			(void) close(fd);
+
 			std::ostringstream msgbuf;
 			msgbuf << "fdopen() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
@@ -128,21 +130,24 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			    (line[strlen(line) - 1] == '\r' || line[strlen(line) - 1] == '\n'))
 				line[strlen(line) - 1] = '\0';
 
-			String command = line;
-
-			try {
-				Log(LogInformation, "ExternalCommandListener", "Executing external command: " + command);
-
-				ExternalCommandProcessor::Execute(command);
-			} catch (const std::exception&) {
-				std::ostringstream msgbuf;
-				msgbuf << "External command failed.";
-				Log(LogWarning, "ExternalCommandListener", msgbuf.str());
-			}
+			Utility::QueueAsyncCallback(boost::bind(&ExternalCommandListener::ExecuteCommand, line));
 		}
 
 		delete line;
 		fclose(fp);
+	}
+}
+
+void ExternalCommandListener::ExecuteCommand(const String& command)
+{
+	try {
+		Log(LogInformation, "ExternalCommandListener", "Executing external command: " + command);
+
+		ExternalCommandProcessor::Execute(command);
+	} catch (const std::exception&) {
+		std::ostringstream msgbuf;
+		msgbuf << "External command failed: " << command;
+		Log(LogWarning, "ExternalCommandListener", msgbuf.str());
 	}
 }
 #endif /* _WIN32 */
