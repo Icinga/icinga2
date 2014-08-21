@@ -27,6 +27,7 @@
 #include "base/scriptfunction.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"
+#include "base/convert.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/foreach.hpp>
@@ -55,6 +56,13 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
 {
+	if (pr.ExitStatus > 3) {
+		Process::Arguments parguments = Process::PrepareCommand(commandLine);
+		Log(LogWarning, "PluginCheckTask", "Check command for object '" + checkable->GetName() + "' (PID: " + Convert::ToString(pr.PID) +
+		    ", arguments: " + Process::PrettyPrintArguments(parguments) + ") terminated with exit code " +
+		    Convert::ToString(pr.ExitStatus) + ", output: " + pr.Output);
+	}
+
 	String output = pr.Output;
 	output.Trim();
 	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(output);

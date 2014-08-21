@@ -37,6 +37,7 @@ namespace icinga
  */
 struct ProcessResult
 {
+	pid_t PID;
 	double ExecutionStart;
 	double ExecutionEnd;
 	long ExitStatus;
@@ -80,6 +81,8 @@ public:
 	static void StaticInitialize(void);
 	static void ThreadInitialize(void);
 
+	static String PrettyPrintArguments(const Arguments& arguments);
+
 private:
 	Arguments m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
@@ -97,8 +100,6 @@ private:
 	static void IOThreadProc(int tid);
 	bool DoEvents(void);
 	int GetTID(void) const;
-
-	String PrettyPrintArguments(void) const;
 };
 
 }

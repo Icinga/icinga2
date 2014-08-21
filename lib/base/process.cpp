@@ -280,12 +280,12 @@ void Process::IOThreadProc(int tid)
 	}
 }
 
-String Process::PrettyPrintArguments(void) const
+String Process::PrettyPrintArguments(const Process::Arguments& arguments)
 {
 #ifdef _WIN32
-	return "'" + m_Arguments + "'";
+	return "'" + arguments + "'";
 #else /* _WIN32 */
-	return "'" + boost::algorithm::join(m_Arguments, "' '") + "'";
+	return "'" + boost::algorithm::join(arguments, "' '") + "'";
 #endif /* _WIN32 */
 }
 
@@ -436,7 +436,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	m_FD = outReadPipe;
 	m_PID = pi.dwProcessId;
 
-	Log(LogNotice, "Process", "Running command " + PrettyPrintArguments() +
+	Log(LogNotice, "Process", "Running command " + PrettyPrintArguments(m_Arguments) +
 	    ": PID " + Convert::ToString(m_PID));
 
 #else /* _WIN32 */
@@ -515,7 +515,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		// child process
 
 		if (dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[1], STDERR_FILENO) < 0) {
-			perror("dup2() failed.");
+			perror("dup2() failed");
 			_exit(128);
 		}
 
@@ -529,7 +529,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 			char errmsg[512];
 			strcpy(errmsg, "execvpe(");
 			strncat(errmsg, argv[0], sizeof(errmsg) - 1);
-			strncat(errmsg, ") failed.", sizeof(errmsg) - 1);
+			strncat(errmsg, ") failed", sizeof(errmsg) - 1);
 			errmsg[sizeof(errmsg) - 1] = '\0';
 			perror(errmsg);
 			_exit(128);
@@ -542,7 +542,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	m_PID = m_Process;
 
-	Log(LogNotice, "Process", "Running command " + PrettyPrintArguments() + ": PID " + Convert::ToString(m_PID));
+	Log(LogNotice, "Process", "Running command " + PrettyPrintArguments(m_Arguments) +
+	    ": PID " + Convert::ToString(m_PID));
 
 	// free arguments
 	for (int i = 0; argv[i] != NULL; i++)
@@ -592,7 +593,8 @@ bool Process::DoEvents(void)
 
 		if (timeout < Utility::GetTime()) {
 			Log(LogWarning, "Process", "Killing process " + Convert::ToString(m_PID) +
-			    " (" + PrettyPrintArguments() + ") after timeout of " + Convert::ToString(m_Timeout) + " seconds");
+			    " (" + PrettyPrintArguments(m_Arguments) + ") after timeout of " +
+			    Convert::ToString(m_Timeout) + " seconds");
 
 			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
@@ -640,8 +642,9 @@ bool Process::DoEvents(void)
 	DWORD exitcode;
 	GetExitCodeProcess(m_Process, &exitcode);
 
-	Log((exitcode == 0) ? LogNotice : LogWarning, "Process", "PID " + Convert::ToString(m_PID) +
-	    " (" + PrettyPrintArguments() + ") terminated with exit code " + Convert::ToString(exitcode));
+	Log(LogNotice, "Process", "PID " + Convert::ToString(m_PID) +
+	    " (" + PrettyPrintArguments(m_Arguments) + ") terminated with exit code " +
+	    Convert::ToString(exitcode));
 #else /* _WIN32 */
 	int status, exitcode;
 	if (waitpid(m_Process, &status, 0) != m_Process) {
@@ -653,8 +656,9 @@ bool Process::DoEvents(void)
 	if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 
-		Log((exitcode == 0) ? LogNotice : LogWarning, "Process", "PID " + Convert::ToString(m_PID) +
-		    " (" + PrettyPrintArguments() + ") terminated with exit code " + Convert::ToString(exitcode));
+		Log(LogNotice, "Process", "PID " + Convert::ToString(m_PID) +
+		    " (" + PrettyPrintArguments(m_Arguments) + ") terminated with exit code " +
+		    Convert::ToString(exitcode));
 	} else if (WIFSIGNALED(status)) {
 		Log(LogWarning, "Process", "PID " + Convert::ToString(m_PID) + " was terminated by signal " +
 		    Convert::ToString(WTERMSIG(status)));
@@ -668,6 +672,7 @@ bool Process::DoEvents(void)
 	}
 #endif /* _WIN32 */
 
+	m_Result.PID = m_PID;
 	m_Result.ExecutionEnd = Utility::GetTime();
 	m_Result.ExitStatus = exitcode;
 	m_Result.Output = output;

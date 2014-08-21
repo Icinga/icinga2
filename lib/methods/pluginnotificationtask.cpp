@@ -28,6 +28,7 @@
 #include "base/logger_fwd.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"
+#include "base/convert.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -65,13 +66,12 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers, boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
-void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& command, const ProcessResult& pr)
+void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "Notification command '" << command << "' for object '"
-		       << checkable->GetName() << "' failed; exit status: "
-		       << pr.ExitStatus << ", output: " << pr.Output;
-		Log(LogWarning, "PluginNotificationTask", msgbuf.str());
+		Process::Arguments parguments = Process::PrepareCommand(commandLine);
+		Log(LogWarning, "PluginNotificationTask", "Notification command for object '" + checkable->GetName() + "' (PID: " + Convert::ToString(pr.PID) +
+		    ", arguments: " + Process::PrettyPrintArguments(parguments) + ") terminated with exit code " +
+		    Convert::ToString(pr.ExitStatus) + ", output: " + pr.Output);
 	}
 }
