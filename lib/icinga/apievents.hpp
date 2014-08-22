@@ -83,8 +83,7 @@ public:
 	static void RepositoryTimerHandler(void);
 	static Value UpdateRepositoryAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
-	static String GetVirtualHostName(const Host::Ptr& host);
-	static Host::Ptr FindHostByVirtualName(const String& hostName);
+	static Host::Ptr FindHostByVirtualName(const String& hostName, const MessageOrigin& origin);
 };
 
 }
