@@ -674,6 +674,9 @@ Selected features (such as [DB IDO](#high-availability-db-ido)) will only be
 active on the current active master.
 All other passive nodes will pause the features without reload/restart.
 
+Checks and notifications are load-balanced between nodes in the high availability
+zone.
+
 Connections from other zones will be accepted by all active and passive nodes
 but all are forwarded to the current active master dealing with the check results,
 commands, etc.

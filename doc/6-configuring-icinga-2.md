@@ -1556,6 +1556,13 @@ Example:
 
     object NotificationComponent "notification" { }
 
+Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability). Defaults to "true".
+
+
 Can be enabled/disabled using
 
     # icinga2-enable-feature notification
