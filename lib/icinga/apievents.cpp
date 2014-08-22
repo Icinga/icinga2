@@ -982,8 +982,14 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 
 Host::Ptr ApiEvents::FindHostByVirtualName(const String& hostName, const MessageOrigin& origin)
 {
-	if (origin.FromZone && hostName == "localhost")
-		return Host::GetByName(origin.FromZone->GetName());
-	else
-		return Host::GetByName(hostName);
+	if (origin.FromZone) {
+		Zone::Ptr my_zone = Zone::GetLocalZone();
+
+		if (origin.FromZone->IsChildOf(my_zone) && hostName == "localhost")
+			return Host::GetByName(origin.FromZone->GetName());
+		else if (!origin.FromZone->IsChildOf(my_zone) && hostName == my_zone->GetName())
+			return Host::GetByName("localhost");
+	}
+
+	return Host::GetByName(hostName);
 }
