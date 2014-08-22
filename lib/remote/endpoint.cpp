@@ -24,6 +24,7 @@
 #include "base/dynamictype.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/convert.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -79,6 +80,8 @@ void Endpoint::RemoveClient(const ApiClient::Ptr& client)
 	{
 		boost::mutex::scoped_lock lock(m_ClientsLock);
 		m_Clients.erase(client);
+
+		Log(LogWarning, "ApiListener", "Removing API client for endpoint '" + GetName() + "'. " + Convert::ToString(m_Clients.size()) + " API clients left.");
 	}
 
 	bool is_master = ApiListener::GetInstance()->IsMaster();

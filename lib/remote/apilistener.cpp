@@ -231,6 +231,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	String host = endpoint->GetHost();
 	String port = endpoint->GetPort();
 
+	Log(LogWarning, "ApiClient", "Reconnecting to API endpoint '" + endpoint->GetName() + "' via host '" + host + "' and port " + port);
+
 	TcpSocket::Ptr client = make_shared<TcpSocket>();
 
 	try {

@@ -175,11 +175,11 @@ void ApiClient::MessageThreadProc(void)
 	try {
 		while (ProcessMessage())
 			; /* empty loop body */
-
-		Disconnect();
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ApiClient", "Error while reading JSON-RPC message for identity '" + m_Identity + "': " + DiagnosticInformation(ex));
 	}
+
+	Disconnect();
 }
 
 Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
