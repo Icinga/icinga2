@@ -32,10 +32,11 @@ Additionally you can enable the debug log using
 * Check the debug log to see if the check command gets executed
 * Verify that failed depedencies do not prevent command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
+* Make sure the [checker](#features) feature is enabled.
+
+Examples:
 
     # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
-
-* Make sure the [checker](#features) feature is enabled.
 
     # icinga2-enable-feature checker
     The feature 'checker' is already enabled.
@@ -53,13 +54,13 @@ Verify the following configuration
 * Do the notification attributes `states`, `types`, `period` match the notification conditions?
 * Do the user attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
-
 * Make sure the [notification](#features) feature is enabled.
+* Does the referenced NotificationCommand work when executed as Icinga user on the shell?
+
+Examples:
 
     # icinga2-enable-feature notification
     The feature 'notification' is already enabled.
-
-* Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
 ## <a id="feature-not-working"></a> Feature is not working
 
@@ -136,7 +137,7 @@ Use tools like `netstat`, `tcpdump`, `nmap`, etc to make sure that the cluster c
 happens (default port is `5665`).
 
     # tcpdump -n port 5665 -i any
-    
+
     # netstat -tulpen | grep icinga
 
     # nmap yourclusternode.localdomain
@@ -147,10 +148,11 @@ If the cluster communication fails with cryptic SSL error messages, make sure to
 the following
 
 * File permissions on the SSL certificate files
+* Does the used CA match for all cluster endpoints?
+
+Examples:
 
     # ls -la /etc/icinga2/pki
-
-* Does the used CA match for all cluster endpoints?
 
 
 ### <a id="troubleshooting-cluster-message-errors"></a> Cluster Troubleshooting Message Errors
