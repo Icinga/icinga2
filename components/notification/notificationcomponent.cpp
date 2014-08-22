@@ -75,6 +75,9 @@ void NotificationComponent::NotificationTimerHandler(void)
 	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
 		Checkable::Ptr checkable = notification->GetCheckable();
 
+		if (checkable->IsPaused() && GetEnableHA())
+			continue;
+
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
 
@@ -128,5 +131,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 void NotificationComponent::SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
+	if (checkable->IsPaused() && GetEnableHA())
+		return;
+
 	checkable->SendNotifications(type, cr, author, text);
 }
