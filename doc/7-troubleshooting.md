@@ -164,6 +164,14 @@ they remain in a Split-Brain-mode and history may differ.
 Although the Icinga 2 cluster protocol stores historical events in a replay log for later synchronisation,
 you should make sure to check why the network connection failed.
 
+### <a id="troubleshooting-cluster-config-sync"></a> Cluster Troubleshooting Config Sync
+
+If the cluster zones do not sync their configuration, make sure to check the following:
+
+* Within a config master zone, only one configuration master is allowed to have its config in `/etc/icinga2/zones.d`.
+** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes
+** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`
+* The `icinga2.log` log file will indicate whether this ApiListener [accepts config](#zone-config-sync-permissions), or not
 
 
 ## <a id="debug"></a> Debug Icinga 2
