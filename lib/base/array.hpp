@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
+#include <boost/range/iterator.hpp>
 #include <vector>
 
 namespace icinga
