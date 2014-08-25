@@ -102,8 +102,8 @@ void ApiListener::Start(void)
 	}
 
 	/* create the primary JSON-RPC listener */
-	if (!AddListener(GetBindPort())) {
-		Log(LogCritical, "ApiListener", "Cannot add listener for port '" + Convert::ToString(GetBindPort()) + "'.");
+	if (!AddListener(GetBindHost(), GetBindPort())) {
+		Log(LogCritical, "ApiListener", "Cannot add listener on host '" + GetBindHost() + "' for port '" + GetBindPort() + "'.");
 		Application::Exit(EXIT_FAILURE);
 	}
 
@@ -160,9 +160,10 @@ bool ApiListener::IsMaster(void) const
 /**
  * Creates a new JSON-RPC listener on the specified port.
  *
+ * @param node The host the listener should be bound to.
  * @param service The port to listen on.
  */
-bool ApiListener::AddListener(const String& service)
+bool ApiListener::AddListener(const String& node, const String& service)
 {
 	ObjectLock olock(this);
 
@@ -180,9 +181,9 @@ bool ApiListener::AddListener(const String& service)
 	TcpSocket::Ptr server = make_shared<TcpSocket>();
 
 	try {
-		server->Bind(service, AF_UNSPEC);
-	} catch(std::exception&) {
-		Log(LogCritical, "ApiListener", "Cannot bind tcp socket on '" + service + "'.");
+		server->Bind(node, service, AF_UNSPEC);
+	} catch (const std::exception&) {
+		Log(LogCritical, "ApiListener", "Cannot bind TCP socket for host '" + node + "' on port '" + service + "'.");
 		return false;
 	}
 
