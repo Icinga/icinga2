@@ -128,7 +128,7 @@ LogSeverity Logger::GetMinSeverity(void) const
 
 		try {
 			ls = Logger::StringToSeverity(severity);
-		} catch (std::exception&) { /* use the default level */ }
+		} catch (const std::exception&) { /* use the default level */ }
 
 		return ls;
 	}

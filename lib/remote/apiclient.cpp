@@ -155,7 +155,7 @@ bool ApiClient::ProcessMessage(void)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + method + "' does not exist."));
 
 		resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
-	} catch (std::exception& ex) {
+	} catch (const std::exception& ex) {
 		resultMessage->Set("error", DiagnosticInformation(ex));
 	}
 

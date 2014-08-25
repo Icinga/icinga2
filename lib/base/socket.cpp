@@ -189,7 +189,7 @@ String Socket::GetClientAddress(void)
 	String address;
 	try {
 		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		/* already logged */
 	}
 
@@ -231,7 +231,7 @@ String Socket::GetPeerAddress(void)
 	String address;
 	try {
 		address = GetAddressFromSockaddr((sockaddr *)&sin, len);
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		/* already logged */
 	}
 

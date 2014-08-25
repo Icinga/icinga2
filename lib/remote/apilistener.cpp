@@ -45,14 +45,14 @@ void ApiListener::OnConfigLoaded(void)
 	shared_ptr<X509> cert = make_shared<X509>();
 	try {
 		cert = GetX509Certificate(GetCertPath());
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot get certificate from cert path: '" + GetCertPath() + "'.");
 		Application::Exit(EXIT_FAILURE);
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
 		Application::Exit(EXIT_FAILURE);
 	}
@@ -61,7 +61,7 @@ void ApiListener::OnConfigLoaded(void)
 
 	try {
 		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot make SSL context for cert path: '" + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.");
 		Application::Exit(EXIT_FAILURE);
 	}
@@ -69,7 +69,7 @@ void ApiListener::OnConfigLoaded(void)
 	if (!GetCrlPath().IsEmpty()) {
 		try {
 			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
-		} catch (std::exception&) {
+		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot add certificate revocation list to SSL context for crl path: '" + GetCrlPath() + "'.");
 			Application::Exit(EXIT_FAILURE);
 		}
@@ -205,7 +205,7 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 		try {
 			Socket::Ptr client = server->Accept();
 			Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleServer));
-		} catch (std::exception&) {
+		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
 		}
 	}
@@ -268,7 +268,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 		ObjectLock olock(this);
 		try {
 			tlsStream = make_shared<TlsStream>(client, role, m_SSLContext);
-		} catch (std::exception&) {
+		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot create tls stream from client connection.");
 			return;
 		}
@@ -276,7 +276,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 
 	try {
 		tlsStream->Handshake();
-	} catch (std::exception) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener", "Client TLS handshake failed.");
 		return;
 	}
@@ -286,7 +286,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 
 	try {
 		identity = GetCertificateCN(cert);
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
 		return;
 	}

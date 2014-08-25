@@ -115,12 +115,12 @@ void TlsStream::Handshake(void)
 			case SSL_ERROR_WANT_READ:
 				try {
 					m_Socket->Poll(true, false);
-				} catch (std::exception&) {}
+				} catch (const std::exception&) {}
 				continue;
 			case SSL_ERROR_WANT_WRITE:
 				try {
 					m_Socket->Poll(false, true);
-				} catch (std::exception&) {}
+				} catch (const std::exception&) {}
 				continue;
 			case SSL_ERROR_ZERO_RETURN:
 				Close();
@@ -161,12 +161,12 @@ size_t TlsStream::Read(void *buffer, size_t count)
 				case SSL_ERROR_WANT_READ:
 					try {
 						m_Socket->Poll(true, false);
-					} catch (std::exception&) {}
+					} catch (const std::exception&) {}
 					continue;
 				case SSL_ERROR_WANT_WRITE:
 					try {
 						m_Socket->Poll(false, true);
-					} catch (std::exception&) {}
+					} catch (const std::exception&) {}
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
@@ -209,12 +209,12 @@ void TlsStream::Write(const void *buffer, size_t count)
 				case SSL_ERROR_WANT_READ:
 					try {
 						m_Socket->Poll(true, false);
-					} catch (std::exception&) {}
+					} catch (const std::exception&) {}
 					continue;
 				case SSL_ERROR_WANT_WRITE:
 					try {
 						m_Socket->Poll(false, true);
-					} catch (std::exception&) {}
+					} catch (const std::exception&) {}
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
 					Close();
@@ -258,12 +258,12 @@ void TlsStream::Close(void)
 			case SSL_ERROR_WANT_READ:
 				try {
 					m_Socket->Poll(true, false);
-				} catch (std::exception&) {}
+				} catch (const std::exception&) {}
 				continue;
 			case SSL_ERROR_WANT_WRITE:
 				try {
 					m_Socket->Poll(false, true);
-				} catch (std::exception&) {}
+				} catch (const std::exception&) {}
 				continue;
 			default:
 				goto close_socket;

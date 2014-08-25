@@ -95,7 +95,7 @@ void Application::Stop(void)
 	if (l_Restarting) {
 		try {
 			UpdatePidFile(GetPidPath(), m_ReloadProcess);
-		} catch (std::exception&) {
+		} catch (const std::exception&) {
 			/* abort restart */
 			Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
 			return;
@@ -667,7 +667,7 @@ int Application::Run(void)
 
 	try {
 		UpdatePidFile(GetPidPath());
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "Application", "Cannot update PID file '" + GetPidPath() + "'. Aborting.");
 		return false;
 	}

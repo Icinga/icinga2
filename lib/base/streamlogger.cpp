@@ -122,7 +122,7 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, bool tty, const LogEntr
 
 	try {
 		stream << Logger::SeverityToString(entry.Severity);
-	} catch (std::exception&) {
+	} catch (const std::exception&) {
 		/* bail early */
 		return;
 	}

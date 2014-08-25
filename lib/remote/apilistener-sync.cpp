@@ -135,7 +135,7 @@ void ApiListener::SyncZoneDirs(void) const
 
 		try {
 			SyncZoneDir(zone);
-		} catch (std::exception&) {
+		} catch (const std::exception&) {
 			continue;
 		}
 	}
