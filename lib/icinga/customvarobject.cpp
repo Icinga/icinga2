@@ -24,7 +24,7 @@ using namespace icinga;
 
 REGISTER_TYPE(CustomVarObject);
 
-boost::signals2::signal<void (const CustomVarObject::Ptr&, const MessageOrigin&)> CustomVarObject::OnVarsChanged;
+boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> CustomVarObject::OnVarsChanged;
 
 Dictionary::Ptr CustomVarObject::GetVars(void) const
 {
@@ -38,9 +38,7 @@ void CustomVarObject::SetVars(const Dictionary::Ptr& vars, const MessageOrigin& 
 {
 	SetOverrideVars(vars);
 
-	Log(LogNotice, "CustomVarObject", "Setting vars for object '" + GetName() + "'");
-
-	OnVarsChanged(GetSelf(), origin);
+	OnVarsChanged(GetSelf(), vars, origin);
 }
 
 int CustomVarObject::GetModifiedAttributes(void) const
