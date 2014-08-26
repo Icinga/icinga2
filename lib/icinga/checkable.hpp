@@ -153,6 +153,9 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableNotificationsChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableFlappingChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnablePerfdataChanged;
+
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableEventHandlerChanged;
+
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
@@ -238,7 +241,7 @@ public:
 	void SetEventCommand(const shared_ptr<EventCommand>& command);
 
 	bool GetEnableEventHandler(void) const;
-	void SetEnableEventHandler(bool enabled);
+	void SetEnableEventHandler(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	/* Flapping Detection */
 	double GetFlappingCurrent(void) const;
