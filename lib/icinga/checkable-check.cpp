@@ -47,6 +47,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin
 boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnRetryIntervalChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckCommand::Ptr&, const MessageOrigin&)> Checkable::OnCheckCommandChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> Checkable::OnMaxCheckAttemptsChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, const TimePeriod::Ptr&, const MessageOrigin&)> Checkable::OnCheckPeriodChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> Checkable::OnFlappingChanged;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
@@ -80,9 +81,11 @@ TimePeriod::Ptr Checkable::GetCheckPeriod(void) const
 	return TimePeriod::GetByName(tp);
 }
 
-void Checkable::SetCheckPeriod(const TimePeriod::Ptr& tp)
+void Checkable::SetCheckPeriod(const TimePeriod::Ptr& tp, const MessageOrigin& origin)
 {
 	SetOverrideCheckPeriod(tp->GetName());
+
+	OnCheckPeriodChanged(GetSelf(), tp, origin);
 }
 
 double Checkable::GetCheckInterval(void) const

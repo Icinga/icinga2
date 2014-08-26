@@ -101,7 +101,7 @@ public:
 	void SetCheckCommand(const shared_ptr<CheckCommand>& command, const MessageOrigin& origin = MessageOrigin());
 
 	TimePeriod::Ptr GetCheckPeriod(void) const;
-	void SetCheckPeriod(const TimePeriod::Ptr& tp);
+	void SetCheckPeriod(const TimePeriod::Ptr& tp, const MessageOrigin& origin = MessageOrigin());
 
 	double GetCheckInterval(void) const;
 	void SetCheckInterval(double interval, const MessageOrigin& origin = MessageOrigin());
@@ -160,6 +160,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> OnMaxCheckAttemptsChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<EventCommand>&, const MessageOrigin&)> OnEventCommandChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<CheckCommand>&, const MessageOrigin&)> OnCheckCommandChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const TimePeriod::Ptr&, const MessageOrigin&)> OnCheckPeriodChanged;
 
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
