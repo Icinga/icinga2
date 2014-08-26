@@ -98,7 +98,7 @@ public:
 
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
-	void SetCheckCommand(const shared_ptr<CheckCommand>& command);
+	void SetCheckCommand(const shared_ptr<CheckCommand>& command, const MessageOrigin& origin = MessageOrigin());
 
 	TimePeriod::Ptr GetCheckPeriod(void) const;
 	void SetCheckPeriod(const TimePeriod::Ptr& tp);
@@ -157,6 +157,8 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableEventHandlerChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnCheckIntervalChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnRetryIntervalChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<EventCommand>&, const MessageOrigin&)> OnEventCommandChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<CheckCommand>&, const MessageOrigin&)> OnCheckCommandChanged;
 
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
@@ -240,7 +242,7 @@ public:
 	void ExecuteEventHandler(void);
 
 	shared_ptr<EventCommand> GetEventCommand(void) const;
-	void SetEventCommand(const shared_ptr<EventCommand>& command);
+	void SetEventCommand(const shared_ptr<EventCommand>& command, const MessageOrigin& origin = MessageOrigin());
 
 	bool GetEnableEventHandler(void) const;
 	void SetEnableEventHandler(bool enabled, const MessageOrigin& origin = MessageOrigin());
