@@ -88,14 +88,13 @@ private:
 	void MessageHandler(const TlsStream::Ptr& sender, const String& identity, const Dictionary::Ptr& message);
 
 	WorkQueue m_RelayQueue;
-	WorkQueue m_LogQueue;
 
 	boost::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
 	void SyncRelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
-	void PersistMessage(const Dictionary::Ptr& message);
+	void PersistMessage(const Dictionary::Ptr& message, const DynamicObject::Ptr& secobj);
 
 	void OpenLogFile(void);
 	void RotateLogFile(void);

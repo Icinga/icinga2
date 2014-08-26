@@ -433,7 +433,7 @@ void ApiListener::RelayMessage(const MessageOrigin& origin, const DynamicObject:
 	m_RelayQueue.Enqueue(boost::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log));
 }
 
-void ApiListener::PersistMessage(const Dictionary::Ptr& message)
+void ApiListener::PersistMessage(const Dictionary::Ptr& message, const DynamicObject::Ptr& secobj)
 {
 	double ts = message->Get("ts");
 
@@ -443,6 +443,11 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message)
 	pmessage->Set("timestamp", ts);
 
 	pmessage->Set("message", JsonSerialize(message));
+	
+	Dictionary::Ptr secname = make_shared<Dictionary>();
+	secname->Set("type", secobj->GetType()->GetName());
+	secname->Set("name", secobj->GetName());
+	pmessage->Set("secobj", secname);
 
 	boost::mutex::scoped_lock lock(m_LogLock);
 	if (m_LogFile) {
@@ -466,7 +471,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	Log(LogNotice, "ApiListener", "Relaying '" + message->Get("method") + "' message");
 
 	if (log)
-		m_LogQueue.Enqueue(boost::bind(&ApiListener::PersistMessage, this, message));
+		PersistMessage(message, secobj);
 
 	if (origin.FromZone)
 		message->Set("originZone", origin.FromZone->GetName());
@@ -608,6 +613,14 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 	int count = -1;
 	double peer_ts = endpoint->GetLocalLogPosition();
 	bool last_sync = false;
+	
+	Endpoint::Ptr target_endpoint = client->GetEndpoint();
+	ASSERT(target_endpoint);
+	
+	Zone::Ptr target_zone = target_endpoint->GetZone();
+	
+	if (!target_zone)
+		return;
 
 	for (;;) {
 		boost::mutex::scoped_lock lock(m_LogLock);
@@ -657,6 +670,23 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 				if (pmessage->Get("timestamp") <= peer_ts)
 					continue;
+
+				Dictionary::Ptr secname = pmessage->Get("secname");
+				
+				if (secname) {
+					DynamicType::Ptr dtype = DynamicType::GetByName(secname->Get("type"));
+					
+					if (!dtype)
+						continue;
+					
+					DynamicObject::Ptr secobj = dtype->GetObject(secname->Get("name"));
+					
+					if (!secobj)
+						continue;
+					
+					if (!target_zone->CanAccessObject(secobj))
+						continue;
+				}
 
 				NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
 				count++;
