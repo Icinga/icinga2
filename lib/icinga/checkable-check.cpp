@@ -43,6 +43,11 @@ boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)
 boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnablePassiveChecksChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableNotificationsChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableFlappingChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnCheckIntervalChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnRetryIntervalChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckCommand::Ptr&, const MessageOrigin&)> Checkable::OnCheckCommandChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> Checkable::OnMaxCheckAttemptsChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, const TimePeriod::Ptr&, const MessageOrigin&)> Checkable::OnCheckPeriodChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> Checkable::OnFlappingChanged;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
@@ -57,9 +62,11 @@ CheckCommand::Ptr Checkable::GetCheckCommand(void) const
 	return CheckCommand::GetByName(command);
 }
 
-void Checkable::SetCheckCommand(const CheckCommand::Ptr& command)
+void Checkable::SetCheckCommand(const CheckCommand::Ptr& command, const MessageOrigin& origin)
 {
 	SetOverrideCheckCommand(command->GetName());
+
+	OnCheckCommandChanged(GetSelf(), command, origin);
 }
 
 TimePeriod::Ptr Checkable::GetCheckPeriod(void) const
@@ -74,9 +81,11 @@ TimePeriod::Ptr Checkable::GetCheckPeriod(void) const
 	return TimePeriod::GetByName(tp);
 }
 
-void Checkable::SetCheckPeriod(const TimePeriod::Ptr& tp)
+void Checkable::SetCheckPeriod(const TimePeriod::Ptr& tp, const MessageOrigin& origin)
 {
 	SetOverrideCheckPeriod(tp->GetName());
+
+	OnCheckPeriodChanged(GetSelf(), tp, origin);
 }
 
 double Checkable::GetCheckInterval(void) const
@@ -87,9 +96,11 @@ double Checkable::GetCheckInterval(void) const
 		return GetCheckIntervalRaw();
 }
 
-void Checkable::SetCheckInterval(double interval)
+void Checkable::SetCheckInterval(double interval, const MessageOrigin& origin)
 {
 	SetOverrideCheckInterval(interval);
+
+	OnCheckIntervalChanged(GetSelf(), interval, origin);
 }
 
 double Checkable::GetRetryInterval(void) const
@@ -100,9 +111,11 @@ double Checkable::GetRetryInterval(void) const
 		return GetRetryIntervalRaw();
 }
 
-void Checkable::SetRetryInterval(double interval)
+void Checkable::SetRetryInterval(double interval, const MessageOrigin& origin)
 {
 	SetOverrideRetryInterval(interval);
+
+	OnRetryIntervalChanged(GetSelf(), interval, origin);
 }
 
 void Checkable::SetSchedulingOffset(long offset)
@@ -211,9 +224,11 @@ int Checkable::GetMaxCheckAttempts(void) const
 		return GetMaxCheckAttemptsRaw();
 }
 
-void Checkable::SetMaxCheckAttempts(int attempts)
+void Checkable::SetMaxCheckAttempts(int attempts, const MessageOrigin& origin)
 {
 	SetOverrideMaxCheckAttempts(attempts);
+
+	OnMaxCheckAttemptsChanged(GetSelf(), attempts, origin);
 }
 
 void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin)

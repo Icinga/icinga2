@@ -59,7 +59,7 @@ class I2_ICINGA_API CustomVarObject : public ObjectImpl<CustomVarObject>
 public:
 	DECLARE_PTR_TYPEDEFS(CustomVarObject);
 
-	static boost::signals2::signal<void (const CustomVarObject::Ptr&, const MessageOrigin&)> OnVarsChanged;
+	static boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> OnVarsChanged;
 
 	Dictionary::Ptr GetVars(void) const;
 	void SetVars(const Dictionary::Ptr& vars, const MessageOrigin& origin = MessageOrigin());

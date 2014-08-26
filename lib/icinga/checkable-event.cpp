@@ -26,6 +26,8 @@
 using namespace icinga;
 
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnEventCommandExecuted;
+boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableEventHandlerChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, const EventCommand::Ptr&, const MessageOrigin&)> Checkable::OnEventCommandChanged;
 
 bool Checkable::GetEnableEventHandler(void) const
 {
@@ -35,9 +37,11 @@ bool Checkable::GetEnableEventHandler(void) const
 		return GetEnableEventHandlerRaw();
 }
 
-void Checkable::SetEnableEventHandler(bool enabled)
+void Checkable::SetEnableEventHandler(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableEventHandler(enabled);
+
+	OnEnableEventHandlerChanged(GetSelf(), enabled, origin);
 }
 
 EventCommand::Ptr Checkable::GetEventCommand(void) const
@@ -52,9 +56,11 @@ EventCommand::Ptr Checkable::GetEventCommand(void) const
 	return EventCommand::GetByName(command);
 }
 
-void Checkable::SetEventCommand(const EventCommand::Ptr& command)
+void Checkable::SetEventCommand(const EventCommand::Ptr& command, const MessageOrigin& origin)
 {
 	SetOverrideEventCommand(command->GetName());
+
+	OnEventCommandChanged(GetSelf(), command, origin);
 }
 
 void Checkable::ExecuteEventHandler(void)

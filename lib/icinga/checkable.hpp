@@ -98,19 +98,19 @@ public:
 
 	/* Checks */
 	shared_ptr<CheckCommand> GetCheckCommand(void) const;
-	void SetCheckCommand(const shared_ptr<CheckCommand>& command);
+	void SetCheckCommand(const shared_ptr<CheckCommand>& command, const MessageOrigin& origin = MessageOrigin());
 
 	TimePeriod::Ptr GetCheckPeriod(void) const;
-	void SetCheckPeriod(const TimePeriod::Ptr& tp);
+	void SetCheckPeriod(const TimePeriod::Ptr& tp, const MessageOrigin& origin = MessageOrigin());
 
 	double GetCheckInterval(void) const;
-	void SetCheckInterval(double interval);
+	void SetCheckInterval(double interval, const MessageOrigin& origin = MessageOrigin());
 
 	double GetRetryInterval(void) const;
-	void SetRetryInterval(double interval);
+	void SetRetryInterval(double interval, const MessageOrigin& origin = MessageOrigin());
 
 	int GetMaxCheckAttempts(void) const;
-	void SetMaxCheckAttempts(int attempts);
+	void SetMaxCheckAttempts(int attempts, const MessageOrigin& origin = MessageOrigin());
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
@@ -153,6 +153,15 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableNotificationsChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableFlappingChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnablePerfdataChanged;
+
+	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableEventHandlerChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnCheckIntervalChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnRetryIntervalChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> OnMaxCheckAttemptsChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<EventCommand>&, const MessageOrigin&)> OnEventCommandChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<CheckCommand>&, const MessageOrigin&)> OnCheckCommandChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const TimePeriod::Ptr&, const MessageOrigin&)> OnCheckPeriodChanged;
+
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
@@ -235,10 +244,10 @@ public:
 	void ExecuteEventHandler(void);
 
 	shared_ptr<EventCommand> GetEventCommand(void) const;
-	void SetEventCommand(const shared_ptr<EventCommand>& command);
+	void SetEventCommand(const shared_ptr<EventCommand>& command, const MessageOrigin& origin = MessageOrigin());
 
 	bool GetEnableEventHandler(void) const;
-	void SetEnableEventHandler(bool enabled);
+	void SetEnableEventHandler(bool enabled, const MessageOrigin& origin = MessageOrigin());
 
 	/* Flapping Detection */
 	double GetFlappingCurrent(void) const;
