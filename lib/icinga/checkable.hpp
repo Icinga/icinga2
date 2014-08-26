@@ -110,7 +110,7 @@ public:
 	void SetRetryInterval(double interval, const MessageOrigin& origin = MessageOrigin());
 
 	int GetMaxCheckAttempts(void) const;
-	void SetMaxCheckAttempts(int attempts);
+	void SetMaxCheckAttempts(int attempts, const MessageOrigin& origin = MessageOrigin());
 
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
@@ -157,6 +157,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableEventHandlerChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnCheckIntervalChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnRetryIntervalChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> OnMaxCheckAttemptsChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<EventCommand>&, const MessageOrigin&)> OnEventCommandChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const shared_ptr<CheckCommand>&, const MessageOrigin&)> OnCheckCommandChanged;
 

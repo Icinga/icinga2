@@ -46,6 +46,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)
 boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnCheckIntervalChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnRetryIntervalChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckCommand::Ptr&, const MessageOrigin&)> Checkable::OnCheckCommandChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> Checkable::OnMaxCheckAttemptsChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> Checkable::OnFlappingChanged;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
@@ -220,9 +221,11 @@ int Checkable::GetMaxCheckAttempts(void) const
 		return GetMaxCheckAttemptsRaw();
 }
 
-void Checkable::SetMaxCheckAttempts(int attempts)
+void Checkable::SetMaxCheckAttempts(int attempts, const MessageOrigin& origin)
 {
 	SetOverrideMaxCheckAttempts(attempts);
+
+	OnMaxCheckAttemptsChanged(GetSelf(), attempts, origin);
 }
 
 void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin)
