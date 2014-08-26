@@ -104,10 +104,10 @@ public:
 	void SetCheckPeriod(const TimePeriod::Ptr& tp);
 
 	double GetCheckInterval(void) const;
-	void SetCheckInterval(double interval);
+	void SetCheckInterval(double interval, const MessageOrigin& origin = MessageOrigin());
 
 	double GetRetryInterval(void) const;
-	void SetRetryInterval(double interval);
+	void SetRetryInterval(double interval, const MessageOrigin& origin = MessageOrigin());
 
 	int GetMaxCheckAttempts(void) const;
 	void SetMaxCheckAttempts(int attempts);
@@ -155,6 +155,8 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnablePerfdataChanged;
 
 	static boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> OnEnableEventHandlerChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnCheckIntervalChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> OnRetryIntervalChanged;
 
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> OnStateChange;
