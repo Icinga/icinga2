@@ -44,6 +44,15 @@ REGISTER_APIFUNCTION(SetEnableActiveChecks, event, &ApiEvents::EnableActiveCheck
 REGISTER_APIFUNCTION(SetEnablePassiveChecks, event, &ApiEvents::EnablePassiveChecksChangedAPIHandler);
 REGISTER_APIFUNCTION(SetEnableNotifications, event, &ApiEvents::EnableNotificationsChangedAPIHandler);
 REGISTER_APIFUNCTION(SetEnableFlapping, event, &ApiEvents::EnableFlappingChangedAPIHandler);
+REGISTER_APIFUNCTION(SetEnableEventHandler, event, &ApiEvents::EnableEventHandlerChangedAPIHandler);
+REGISTER_APIFUNCTION(SetEnablePerfdata, event, &ApiEvents::EnablePerfdataChangedAPIHandler);
+REGISTER_APIFUNCTION(SetCheckInterval, event, &ApiEvents::CheckIntervalChangedAPIHandler);
+REGISTER_APIFUNCTION(SetRetryInterval, event, &ApiEvents::RetryIntervalChangedAPIHandler);
+REGISTER_APIFUNCTION(SetMaxCheckAttempts, event, &ApiEvents::MaxCheckAttemptsChangedAPIHandler);
+REGISTER_APIFUNCTION(SetEventCommand, event, &ApiEvents::EventCommandChangedAPIHandler);
+REGISTER_APIFUNCTION(SetCheckCommand, event, &ApiEvents::CheckCommandChangedAPIHandler);
+REGISTER_APIFUNCTION(SetCheckPeriod, event, &ApiEvents::CheckPeriodChangedAPIHandler);
+REGISTER_APIFUNCTION(SetVars, event, &ApiEvents::VarsChangedAPIHandler);
 REGISTER_APIFUNCTION(AddComment, event, &ApiEvents::CommentAddedAPIHandler);
 REGISTER_APIFUNCTION(RemoveComment, event, &ApiEvents::CommentRemovedAPIHandler);
 REGISTER_APIFUNCTION(AddDowntime, event, &ApiEvents::DowntimeAddedAPIHandler);
@@ -65,6 +74,15 @@ void ApiEvents::StaticInitialize(void)
 	Checkable::OnEnablePassiveChecksChanged.connect(&ApiEvents::EnablePassiveChecksChangedHandler);
 	Checkable::OnEnableNotificationsChanged.connect(&ApiEvents::EnableNotificationsChangedHandler);
 	Checkable::OnEnableFlappingChanged.connect(&ApiEvents::EnableFlappingChangedHandler);
+	Checkable::OnEnableEventHandlerChanged.connect(&ApiEvents::EnableEventHandlerChangedHandler);
+	Checkable::OnEnablePerfdataChanged.connect(&ApiEvents::EnablePerfdataChangedHandler);
+	Checkable::OnCheckIntervalChanged.connect(&ApiEvents::CheckIntervalChangedHandler);
+	Checkable::OnRetryIntervalChanged.connect(&ApiEvents::RetryIntervalChangedHandler);
+	Checkable::OnMaxCheckAttemptsChanged.connect(&ApiEvents::MaxCheckAttemptsChangedHandler);
+	Checkable::OnEventCommandChanged.connect(&ApiEvents::EventCommandChangedHandler);
+	Checkable::OnCheckCommandChanged.connect(&ApiEvents::CheckCommandChangedHandler);
+	Checkable::OnCheckPeriodChanged.connect(&ApiEvents::CheckPeriodChangedHandler);
+	Checkable::OnVarsChanged.connect(&ApiEvents::VarsChangedHandler);
 	Checkable::OnCommentAdded.connect(&ApiEvents::CommentAddedHandler);
 	Checkable::OnCommentRemoved.connect(&ApiEvents::CommentRemovedHandler);
 	Checkable::OnDowntimeAdded.connect(&ApiEvents::DowntimeAddedHandler);
@@ -541,6 +559,504 @@ Value ApiEvents::EnableFlappingChangedAPIHandler(const MessageOrigin& origin, co
 		return Empty;
 
 	checkable->SetEnableFlapping(params->Get("enabled"), origin);
+
+	return Empty;
+}
+
+void ApiEvents::EnableEventHandlerChangedHandler(const Checkable::Ptr& checkable, bool enabled, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("enabled", enabled);
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetEnableEventHandler");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::EnableEventHandlerChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	checkable->SetEnableEventHandler(params->Get("enabled"), origin);
+
+	return Empty;
+}
+
+void ApiEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bool enabled, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("enabled", enabled);
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetEnablePerfdata");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::EnablePerfdataChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	checkable->SetEnablePerfdata(params->Get("enabled"), origin);
+
+	return Empty;
+}
+
+void ApiEvents::CheckIntervalChangedHandler(const Checkable::Ptr& checkable, double interval, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("interval", interval);
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetCheckInterval");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::CheckIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	checkable->SetCheckInterval(params->Get("interval"), origin);
+
+	return Empty;
+}
+
+void ApiEvents::RetryIntervalChangedHandler(const Checkable::Ptr& checkable, double interval, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("interval", interval);
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetRetryInterval");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::RetryIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	checkable->SetRetryInterval(params->Get("interval"), origin);
+
+	return Empty;
+}
+
+void ApiEvents::MaxCheckAttemptsChangedHandler(const Checkable::Ptr& checkable, int attempts, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("attempts", attempts);
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetMaxCheckAttempts");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::MaxCheckAttemptsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	checkable->SetMaxCheckAttempts(params->Get("attempts"), origin);
+
+	return Empty;
+}
+
+void ApiEvents::EventCommandChangedHandler(const Checkable::Ptr& checkable, const EventCommand::Ptr& command, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("command", command->GetName());
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetEventCommand");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::EventCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	EventCommand::Ptr command = EventCommand::GetByName(params->Get("command"));
+
+	if (!command)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	checkable->SetEventCommand(command, origin);
+
+	return Empty;
+}
+
+void ApiEvents::CheckCommandChangedHandler(const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("command", command->GetName());
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetCheckCommand");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::CheckCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	CheckCommand::Ptr command = CheckCommand::GetByName(params->Get("command"));
+
+	if (!command)
+		return Empty;
+
+	checkable->SetCheckCommand(command, origin);
+
+	return Empty;
+}
+
+void ApiEvents::CheckPeriodChangedHandler(const Checkable::Ptr& checkable, const TimePeriod::Ptr& timeperiod, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("timeperiod", timeperiod->GetName());
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetCheckPeriod");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ApiEvents::CheckPeriodChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+		return Empty;
+
+	TimePeriod::Ptr timeperiod = TimePeriod::GetByName(params->Get("timeperiod"));
+
+	if (!timeperiod)
+		return Empty;
+
+	checkable->SetCheckPeriod(timeperiod, origin);
+
+	return Empty;
+}
+
+void ApiEvents::VarsChangedHandler(const CustomVarObject::Ptr& object, const Dictionary::Ptr& vars, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Dictionary::Ptr params = make_shared<Dictionary>();
+	params->Set("object", object->GetName());
+	params->Set("vars", Serialize(vars));
+
+	Dictionary::Ptr message = make_shared<Dictionary>();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::SetVars");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, object, message, true);
+}
+
+Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	String objectName = params->Get("object");
+
+	if (objectName.IsEmpty())
+		return Empty;
+
+	/* ugly, but there is no other way currently */
+	CustomVarObject::Ptr object = Host::GetByName(objectName);
+	if (!object)
+		object = Service::GetByName(objectName);
+	if (!object)
+		object = User::GetByName(objectName);
+	if (!object)
+		object = Service::GetByName(objectName);
+	if (!object)
+		object = EventCommand::GetByName(objectName);
+	if (!object)
+		object = CheckCommand::GetByName(objectName);
+	if (!object)
+		object = NotificationCommand::GetByName(objectName);
+	if (!object)
+		return Empty;
+
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(object))
+		return Empty;
+
+	Dictionary::Ptr vars = Deserialize(params->Get("vars"), true);
+
+	if (!vars)
+		return Empty;
+
+	object->SetVars(vars, origin);
 
 	return Empty;
 }

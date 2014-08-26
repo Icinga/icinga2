@@ -22,6 +22,9 @@
 
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/notificationcommand.hpp"
 
 namespace icinga
 {
@@ -60,6 +63,33 @@ public:
 
 	static void EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bool enabled, const MessageOrigin& origin);
 	static Value EnableFlappingChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void EnableEventHandlerChangedHandler(const Checkable::Ptr& checkable, bool enabled, const MessageOrigin& origin);
+        static Value EnableEventHandlerChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bool enabled, const MessageOrigin& origin);
+        static Value EnablePerfdataChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void CheckIntervalChangedHandler(const Checkable::Ptr& checkable, double interval, const MessageOrigin& origin);
+        static Value CheckIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void RetryIntervalChangedHandler(const Checkable::Ptr& checkable, double interval, const MessageOrigin& origin);
+        static Value RetryIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void MaxCheckAttemptsChangedHandler(const Checkable::Ptr& checkable, int attempts, const MessageOrigin& origin);
+        static Value MaxCheckAttemptsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void EventCommandChangedHandler(const Checkable::Ptr& checkable, const EventCommand::Ptr& command, const MessageOrigin& origin);
+        static Value EventCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void CheckCommandChangedHandler(const Checkable::Ptr& checkable, const CheckCommand::Ptr& command, const MessageOrigin& origin);
+        static Value CheckCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void CheckPeriodChangedHandler(const Checkable::Ptr& checkable, const TimePeriod::Ptr& timeperiod, const MessageOrigin& origin);
+        static Value CheckPeriodChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+        static void VarsChangedHandler(const CustomVarObject::Ptr& object, const Dictionary::Ptr& vars, const MessageOrigin& origin);
+        static Value VarsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
 	static void CommentAddedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin& origin);
 	static Value CommentAddedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
