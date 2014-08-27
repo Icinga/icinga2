@@ -46,69 +46,54 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
-### What's New in Version 2.0.2
+### What's New in Version 2.1.0
 
-* Bug #6450: ipmi-sensors segfault due to stack size
-* Bug #6479: Notifications not always triggered
-* Bug #6501: Classic UI Debian/Ubuntu: apache 2.4 requires 'a2enmod cgi' & apacheutils installed
-* Bug #6548: Add cmake constant for PluginDir
-* Bug #6549: GraphiteWriter regularly sends empty lines
-* Bug #6550: add log message for invalid performance data
-* Bug #6589: Command pipe blocks when trying to open it more than once in parallel
-* Bug #6621: Infinite loop in TlsStream::Close
-* Bug #6627: Location of the run directory is hard coded and bound to "local_state_dir"
-* Bug #6659: RPMLint security warning - missing-call-to-setgroups-before-setuid /usr/sbin/icinga2
-* Bug #6682: Missing detailed error messages on ApiListener SSL Errors
-* Bug #6686: Event Commands are triggered in OK HARD state everytime
-* Bug #6687: Remove superfluous quotes and commas in dictionaries
-* Bug #6713: sample config: add check commands location hint (itl/plugin check commands)
-* Bug #6718: "order" attribute doesn't seem to work as expected
-* Bug #6724: TLS Connections still unstable in 2.0.1
-* Bug #6756: GraphiteWriter: Malformatted integer values
-* Bug #6765: Config validation without filename argument fails with unhandled exception
-* Bug #6768: Repo Error on RHEL 6.5
-* Bug #6773: Order doesn't work in check ssh command
-* Bug #6782: The "ssl" check command always sets -D
-* Bug #6790: Service icinga2 reload command does not cause effect
-* Bug #6809: additional group rights missing when Icinga started with -u and -g
-* Bug #6810: High Availablity does not synchronise the data like expected
-* Bug #6820: Icinga 2 crashes during startup
-* Bug #6821: [Patch] Fix build issue and crash found on Solaris, potentially other Unix OSes
-* Bug #6825: incorrect sysconfig path on sles11
-* Bug #6832: Remove if(NOT DEFINED ICINGA2_SYSCONFIGFILE) in etc/initsystem/CMakeLists.txt
-* Bug #6840: Missing space in error message
-* Bug #6849: Error handler for getaddrinfo must use gai_strerror
-* Bug #6852: Startup logfile is not flushed to disk
-* Bug #6856: event command execution does not call finish handler
-* Bug #6861: write startup error messages to error.log
-* Feature #5818: SUSE packages
-* Feature #6655: Build packages for el7
-* Feature #6688: Rename README to README.md
-* Feature #6698: Require command to be an array when the arguments attribute is used
-* Feature #6700: Release 2.0.2
-* Feature #6783: Print application paths for --version
-* DB IDO - Bug #6414: objects and their ids are inserted twice
-* DB IDO - Bug #6608: Two Custom Variables with same name, but Upper/Lowercase creating IDO duplicate entry
-* DB IDO - Bug #6646: NULL vs empty string
-* DB IDO - Bug #6850: exit application if ido schema version does not match
-* Documentation - Bug #6652: clarify on which features are required for classic ui/web/web2
-* Documentation - Bug #6708: update installation with systemd usage
-* Documentation - Bug #6711: icinga Web: wrong path to command pipe
-* Documentation - Bug #6725: Missing documentation about implicit dependency
-* Documentation - Bug #6728: wrong path for the file 'localhost.conf'
-* Migration - Bug #6558: group names quoted twice in arrays
-* Migration - Bug #6560: Service dependencies aren't getting converted properly
-* Migration - Bug #6561: $TOTALHOSTSERVICESWARNING$ and $TOTALHOSTSERVICESCRITICAL$ aren't getting converted
-* Migration - Bug #6563: Check and retry intervals are incorrect
-* Migration - Bug #6786: Fix notification definition if no host_name / service_description given
-* Plugins - Feature #6695: Plugin Check Commands: Add expect option to check_http
-* Plugins - Feature #6791: Plugin Check Commands: Add timeout option to check_ssh
+* Bug #6881: make install does not install the db-schema
+* Bug #6915: use _rundir macro for configuring the run directory
+* Bug #6916: External command pipe: Too many open files
+* Bug #6917: enforce /usr/lib as base for the cgi path on SUSE distributions
+* Bug #6942: ExternalCommandListener fails open pipe: Too many open files
+* Bug #6948: check file permissions in /var/cache/icinga2
+* Bug #6962: Commands are processed multiple times
+* Bug #6964: Host and service checks stuck in "pending" when hostname = localhost a parent/satellite setup
+* Bug #7001: Build fails with Boost 1.56
+* Bug #7016: 64-bit RPMs are not installable
+* Feature #5219: Cluster support for modified attributes
+* Feature #6066: Better log messages for cluster changes
+* Feature #6203: Better cluster support for notifications / IDO
+* Feature #6205: Log replay sends messages to instances which shouldn't get those messages
+* Feature #6702: Information for config objects
+* Feature #6704: Release 2.1
+* Feature #6751: Change log level for failed commands
+* Feature #6874: add search path for icinga2.conf
+* Feature #6898: Enhance logging for perfdata/graphitewriter
+* Feature #6919: Clean up spec file
+* Feature #6920: Recommend related packages on SUSE distributions
+* API - Bug #6998: ApiListener ignores bind_host attribute
+* DB IDO - Feature #6827: delay ido connect in ha cluster
+* Documentation - Bug #6870: Wrong object attribute 'enable_flap_detection'
+* Documentation - Bug #6878: Wrong parent in Load Distribution
+* Documentation - Bug #6909: clarify on which config tools are available
+* Documentation - Feature #6703: Documentation for zones and cluster permissions
+* Documentation - Feature #6743: Better explanation for HA config cluster
+* Documentation - Feature #6922: Enhance Graphite Writer description
+* Documentation - Feature #6949: Add documentation for icinga2-list-objects
+* Documentation - Feature #6997: how to add a new cluster node
 
 #### Changes
 
-* DB IDO schema upgrade required (new schema version: 1.11.6)
+* DB IDO schema upgrade ([MySQL](#upgrading-mysql-db),[PostgreSQL](#upgrading-postgresql-db) required!
+    * new schema version: **1.11.7**
+    * RPMs install the schema files into `/usr/share/icinga2-ido*` instead of `/usr/share/doc/icinga2-ido*` #6881
+* [Information for config objects](#list-configuration-objects) using `icinga2-list-objects` script #6702
+* Add search path: If `-c /etc/icinga2/icinga2.conf` is omitted, use `SysconfDir + "/icinga2/icinga2.conf"` #6874
+* Change log level for failed commands #6751
+* Notifications are load-balanced in a [High Availability cluster setup](#high-availability-notifications) #6203
+    * New config attribute: `enable_ha`
+* DB IDO "run once" or "run everywhere" mode in a [High Availability cluster setup](#high-availability-db-ido) #6203 #6827
+    * New config attributes: `enable_ha` and `failover_timeout`
+* RPMs use the `icingacmd` group for /var/{cache,log,run}/icinga2 #6948
 
-#### Changes
 
 ### Archive
 

@@ -4,6 +4,55 @@ Please check doc/1-about.md.
 
 ## What's New
 
+### What's New in Version 2.1.0
+
+* Bug #6881: make install does not install the db-schema
+* Bug #6915: use _rundir macro for configuring the run directory
+* Bug #6916: External command pipe: Too many open files
+* Bug #6917: enforce /usr/lib as base for the cgi path on SUSE distributions
+* Bug #6942: ExternalCommandListener fails open pipe: Too many open files
+* Bug #6948: check file permissions in /var/cache/icinga2
+* Bug #6962: Commands are processed multiple times
+* Bug #6964: Host and service checks stuck in "pending" when hostname = localhost a parent/satellite setup
+* Bug #7001: Build fails with Boost 1.56
+* Bug #7016: 64-bit RPMs are not installable
+* Feature #5219: Cluster support for modified attributes
+* Feature #6066: Better log messages for cluster changes
+* Feature #6203: Better cluster support for notifications / IDO
+* Feature #6205: Log replay sends messages to instances which shouldn't get those messages
+* Feature #6702: Information for config objects
+* Feature #6704: Release 2.1
+* Feature #6751: Change log level for failed commands
+* Feature #6874: add search path for icinga2.conf
+* Feature #6898: Enhance logging for perfdata/graphitewriter
+* Feature #6919: Clean up spec file
+* Feature #6920: Recommend related packages on SUSE distributions
+* API - Bug #6998: ApiListener ignores bind_host attribute
+* DB IDO - Feature #6827: delay ido connect in ha cluster
+* Documentation - Bug #6870: Wrong object attribute 'enable_flap_detection'
+* Documentation - Bug #6878: Wrong parent in Load Distribution
+* Documentation - Bug #6909: clarify on which config tools are available
+* Documentation - Feature #6703: Documentation for zones and cluster permissions
+* Documentation - Feature #6743: Better explanation for HA config cluster
+* Documentation - Feature #6922: Enhance Graphite Writer description
+* Documentation - Feature #6949: Add documentation for icinga2-list-objects
+* Documentation - Feature #6997: how to add a new cluster node
+
+#### Changes
+
+* DB IDO schema upgrade ([MySQL](#upgrading-mysql-db),[PostgreSQL](#upgrading-postgresql-db) required!
+    * new schema version: **1.11.7**
+    * RPMs install the schema files into `/usr/share/icinga2-ido*` instead of `/usr/share/doc/icinga2-ido*` #6881
+* [Information for config objects](#list-configuration-objects) using `icinga2-list-objects` script #6702
+* Add search path: If `-c /etc/icinga2/icinga2.conf` is omitted, use `SysconfDir + "/icinga2/icinga2.conf"` #6874
+* Change log level for failed commands #6751
+* Notifications are load-balanced in a [High Availability cluster setup](#high-availability-notifications) #6203
+    * New config attribute: `enable_ha`
+* DB IDO "run once" or "run everywhere" mode in a [High Availability cluster setup](#high-availability-db-ido) #6203 #6827
+    * New config attributes: `enable_ha` and `failover_timeout`
+* RPMs use the `icingacmd` group for /var/{cache,log,run}/icinga2 #6948
+
+
 ### What's New in Version 2.0.2
 
 * Bug #6450: ipmi-sensors segfault due to stack size
