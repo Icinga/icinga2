@@ -1631,14 +1631,12 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-By default the command pipe file is owned by the group `icingacmd` with read/write
-permissions. Add your webserver's user to the group `icingacmd` to
-enable sending commands to Icinga 2 through your web interface:
-
-    # usermod -G -a icingacmd www-data
-
-Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
-`nagios`. The webserver's user is different between distributions as well.
+> **Note**
+>
+> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
+> new policy allowing external users to access the external command pipe fifo.
+> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
+> provides details on that.
 
 ### <a id="external-command-list"></a> External Command List
 
@@ -1646,7 +1644,6 @@ A list of currently supported external commands can be found [here](#external-co
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
-
 
 ## <a id="logging"></a> Logging
 
@@ -1901,6 +1898,13 @@ Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
 
 Details on the configuration can be found in the [LivestatusListener](#objecttype-livestatuslistener)
 object configuration.
+
+> **Note**
+>
+> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
+> new policy allowing external users to access the Livestatus unix socket.
+> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
+> provides details on that.
 
 ### <a id="livestatus-get-queries"></a> Livestatus GET Queries
 

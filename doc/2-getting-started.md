@@ -720,6 +720,90 @@ After enabling the ido-pgsql feature you have to restart Icinga 2:
     # service icinga2 restart
 
 
+### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
+
+Web interfaces and other Icinga addons are able to send commands to
+Icinga 2 through the external command pipe.
+
+You can enable the External Command Pipe using icinga2-enable-feature:
+
+    # icinga2-enable-feature command
+
+After that you will have to restart Icinga 2:
+
+    # service icinga2 restart
+
+By default the command pipe file is owned by the group `icingacmd` with read/write
+permissions. Add your webserver's user to the group `icingacmd` to
+enable sending commands to Icinga 2 through your web interface:
+
+    # usermod -G -a icingacmd www-data
+
+Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
+`nagios`. The webserver's user is different between distributions as well.
+
+Change "www-data" to the user you're using to run queries.
+
+> **Note**
+>
+> Packages will do that automatically. Verify that by running `id <your-webserver-user>` and skip this
+> step.
+
+> **Note**
+>
+> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
+> new policy allowing external users to access the external command pipe fifo.
+> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
+> provides details on that.
+
+#### <a id="external-command-pipe-selinux-policy"></a> SELinux Policy for External Command Pipe
+
+First, verify that the `/var/log/audit/audit.log` contains errors when accessing
+the external command pipe `icinga2.cmd` and use the [audit2allow](http://fedoraproject.org/wiki/SELinux/audit2allow)
+tool to generate a type enforcement policy.
+
+    # grep 'icinga2.cmd' /var/log/audit/audit.log | audit2allow -m icinga2 > icinga2.te
+
+The generated policy looks like this:
+
+    # cat icinga2.te
+
+    module icinga2 1.0;
+
+    require {
+    	type var_run_t;
+    	type httpd_t;
+    	type ping_t;
+    	class fifo_file { write read getattr open };
+    }
+
+    #============= httpd_t ==============
+    allow httpd_t var_run_t:fifo_file { write getattr open };
+
+    #============= ping_t ==============
+    allow ping_t var_run_t:fifo_file read;
+
+Now tell `audit2allow` to generate a custom policy module which can be imported
+using the `semodule` command.
+
+    # grep 'icinga2.cmd' /var/log/audit/audit.log | audit2allow -M icinga2
+    ******************** IMPORTANT ***********************
+    To make this policy package active, execute:
+
+    semodule -i icinga2.pp
+
+    # semodule -i icinga2.pp
+
+If you want to remove a custom policy module, obtain a list of modules and
+remove it by its name.
+
+    # semodule -l
+    # semodule -r icinga2
+
+That way your [user interfaces](setting-up-icinga2-user-interfaces) and other
+tools may write to the command pipe without disabling SELinux.
+
+
 ## <a id="setting-up-livestatus"></a> Setting up Livestatus
 
 The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
@@ -746,7 +830,7 @@ You can enable Livestatus using icinga2-enable-feature:
 
 After that you will have to restart Icinga 2:
 
-    # /etc/init.d/icinga2 restart
+    # service icinga2 restart
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 
@@ -767,6 +851,12 @@ are expected to be in `/var/log/icinga2/compat`. A different path can be set usi
 
     # icinga2-enable-feature compatlog
 
+> **Note**
+>
+> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
+> new policy allowing external users to access the Livestatus unix socket.
+> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
+> provides details on that.
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 
@@ -858,19 +948,7 @@ Enable these features and restart Icinga 2.
 
     # icinga2-enable-feature statusdata compatlog command
 
-In order for commands to work you will need to add your webserver's user to the `icingacmd` group.
-
-> **Note**
->
-> Packages will do that automatically. Verify that by running `id <your-webserver-user>` and skip this
-> step.
-
-    # usermod -a -G icingacmd www-data
-
-The Debian packages use `nagios` as the user and group name. Make sure to change `icingacmd` to
-`nagios` if you're using Debian.
-
-Change "www-data" to the user your webserver is running as.
+In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
 
 #### <a id="setting-up-icinga-classic-ui-summary"></a> Setting Up Icinga Classic UI Summary
 
@@ -939,6 +1017,8 @@ Additionally you need to enable the `command` feature for sending [external comm
 
     # icinga2-enable-feature command
 
+In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
+
 Then edit the Icinga Web configuration for sending commands in `/etc/icinga-web/conf.d/access.xml`
 (RHEL) or `/etc/icinga-web/access.xml` (SUSE) setting the command pipe path
 to the default used in Icinga 2. Make sure to clear the cache afterwards.
@@ -984,6 +1064,8 @@ Furthermore [external commands](#external-commands) are supported through the ex
 command pipe.
 
     # icinga2-enable-feature command
+
+In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
 
 Please consult the INSTALL documentation shipped with `Icinga Web 2` for
 further instructions on how to install Icinga Web 2 and to configure
