@@ -496,6 +496,22 @@ Icinga 2 will not check against any end time for this notification.
       assign where service.name == "ping4"
     }
 
+### <a id="disable-renotification"></a> Disable Re-notifications
+
+If you prefer to be notified only once, you can disable re-notifications by setting the
+`interval` attribute to `0`.
+
+    apply Notification "notify-once" to Service {
+      import "generic-notification"
+
+      command = "mail-notification"
+      users = [ "icingaadmin" ]
+
+      interval = 0 // disable re-notification
+
+      assign where service.name == "ping4"
+    }
+
 ### <a id="notification-filters-state-type"></a> Notification Filters by State and Type
 
 If there are no notification state and type filter attributes defined at the `Notification`
@@ -749,9 +765,11 @@ arguments. Each of them is optional by default and will be omitted if
 the value is not set. For example if the service calling the check command
 does not have `vars.http_port` set, it won't get added to the command
 line.
+
 If the `vars.http_ssl` custom attribute is set in the service, host or command
 object definition, Icinga 2 will add the `-S` argument based on the `set_if`
-option to the command line.
+numeric value to the command line. String values are not supported.
+
 That way you can use the `check_http` command definition for both, with and
 without SSL enabled checks saving you duplicated command definitions.
 
@@ -786,6 +804,9 @@ the `my-host2` host requires a different port on 2222. Both hosts are in the hos
 All hosts in the `my-linux-servers` hostgroup should get the `my-ssh` service applied based on an
 [apply rule](#apply). The optional `ssh_port` command argument should be inherited from the host
 the service is applied to. If not set, the check command `my-ssh` will omit the argument.
+The `host` argument is special: `skip_key` tells Icinga 2 to ignore the key, and directly put the
+value onto the command line. The `order` attribute specifies that this argument is the first one
+(`-1` is smaller than the other defaults).
 
     object CheckCommand "my-ssh" {
       import "plugin-check-command"

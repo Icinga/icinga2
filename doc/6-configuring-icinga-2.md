@@ -26,6 +26,30 @@ EnableServiceChecks |**Read-write.** Whether active service checks are globally 
 EnablePerfdata      |**Read-write.** Whether performance data processing is globally enabled. Defaults to true.
 UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
 
+## <a id="reserved-keywords"></a> Reserved Keywords
+
+These keywords are reserved by the configuration parser and must not be
+used as constants or custom attributes.
+
+    object
+    template
+    include
+    include_recursive
+    library
+    null
+    partial
+    true
+    false
+    const
+    apply
+    to
+    where
+    import
+    assign
+    ignore
+    zone
+    in
+
 
 ## <a id="configuration-syntax"></a> Configuration Syntax
 
@@ -583,13 +607,13 @@ Attributes:
   notes           |**Optional.** Notes for the host.
   notes_url       |**Optional.** Url for notes for the host (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the host (for example, an external graphing tool).
-  icon_image      |**Optional.** Icon image for the host. Required for external interfaces only.
-  icon_image_alt  |**Optional.** Icon image description for the host. Required for external interface only.
+  icon_image      |**Optional.** Icon image for the host. Used by external interfaces only.
+  icon_image_alt  |**Optional.** Icon image description for the host. Used by external interface only.
 
 > **Best Practice**
 >
 > The `address` and `address6` attributes are required for running commands using
-> the `$address$` and `$address6` runtime macros.
+> the `$address$` and `$address6$` runtime macros.
 
 
 ### <a id="objecttype-hostgroup"></a> HostGroup
@@ -669,8 +693,8 @@ Attributes:
   notes           |**Optional.** Notes for the service.
   notes_url       |**Optional.** Url for notes for the service (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the service (for example, an external graphing tool).
-  icon_image      |**Optional.** Icon image for the service. Required for external interfaces only.
-  icon_image_alt  |**Optional.** Icon image description for the service. Required for external interface only.
+  icon_image      |**Optional.** Icon image for the service. Used by external interfaces only.
+  icon_image_alt  |**Optional.** Icon image description for the service. Used by external interface only.
 
 
 Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
@@ -849,8 +873,16 @@ CheckCommand:
         description = "My plugin requires this argument for doing X."
         required = false    /* optional, no error if not set */
         skip_key = false    /* always use "-X <value>" */
-        set_if = "$have_x$" /* only set if variable defined */
-        order = 0           /* first position */
+        set_if = "$have_x$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
+        order = -1          /* first position */
+      }
+      "-Y" = {
+        value = "$y_val$"
+        description = "My plugin requires this argument for doing Y."
+        required = false    /* optional, no error if not set */
+        skip_key = true     /* don't prefix "-Y" only use "<value>" */
+        set_if = "$have_y$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
+        order = 0           /* second position */
       }
     }
 
@@ -860,8 +892,11 @@ CheckCommand:
   description | Optional argument description.
   required    | Required argument. Execution error if not set. Defaults to false (optional).
   skip_key    | Use the value as argument and skip the key.
-  set_if      | Argument added if value is set (macro resolves to a defined value).
+  set_if      | Argument is added if the macro resolves to a defined numeric value. String values are not supported.
   order       | Set if multiple arguments require a defined argument order.
+
+Argument order:
+    `..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...`
 
 
 ### <a id="objecttype-notificationcommand"></a> NotificationCommand
@@ -971,7 +1006,7 @@ Attributes:
   user_groups               | **Optional.** A list of user group names who should be notified.
   times                     | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
   command                   | **Required.** The name of the notification command which should be executed when the notification is triggered.
-  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes.
+  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](#disable-renotification) are disabled.
   period                    | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
   types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
   states                    | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
