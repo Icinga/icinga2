@@ -2313,23 +2313,26 @@ The `running_kernel` check command does not support any vars.
 
 ### <a id="snmp-manubulon-plugin-check-commands-overview"></a> Overview
 
-The SNMP Manubulon Plugin Check Commands provides example configuration for plugin check commands provided by the <a href="http://nagios.manubulon.com/index_snmp.html">Snmp Manubulon</a> plugins.
+The `SNMP Manubulon Plugin Check Commands` provide example configuration for plugin check
+commands provided by the [SNMP Manubulon project](http://nagios.manubulon.com/index_snmp.html).
 
-The SNMP manubulon plugin check commands assume that there's a global constant named `ManubulonPluginDir` which contains the path of the plugins from the <a href="http://nagios.manubulon.com/index_snmp.html">Snmp Manubulon</a> page.
+The SNMP manubulon plugin check commands assume that the global constant named `ManubulonPluginDir`
+is set to the path where the Manubublon SNMP plugins are installed.
 
-You can make usage this plugin by using the include directive in your configuration file:
+You can enable these plugin check commands by adding the following the include directive in your
+configuration [icinga2.conf](#icinga2-conf) file:
 
     include <manubulon>
 
-### Checks you can make by host type
+### Checks by Host Type 
 
-**N/A**      : nothing of this type to check.
+**N/A**      : Not available for this type.
 
-**SNMP**     : yes with simple SNMP query.
+**SNMP**     : Available for simple SNMP query.
 
-**??**       : not tested because useless most of the time.
+**??**       : Untested.
 
-**Specific** : name of the script to look at for platform specific checks.
+**Specific** : Script name for platform specific checks.
 
 
   Host type               | Interface  | storage  | load/cpu  | mem | process  | env | specific
@@ -2351,7 +2354,7 @@ You can make usage this plugin by using the include directive in your configurat
 
 #### <a id="plugin-check-command-snmp-load"></a> snmp-load
 
-Check command object for the <a href="http://nagios.manubulon.com/snmp_load.html">check_snmp_load.pl</a> plugin.
+Check command object for the [check_snmp_load.pl](http://nagios.manubulon.com/snmp_load.html) plugin.
 
 Custom Attributes:
 
@@ -2371,12 +2374,12 @@ snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. 
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
-snmp_load_type          | **Optional.** Load type. Default  to "stand". Check all availables <a href="http://nagios.manubulon.com/snmp_load.html">snmp load</a>.
+snmp_load_type          | **Optional.** Load type. Defaults to "stand". Check all available types int the [snmp load](http://nagios.manubulon.com/snmp_load.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
 
 #### <a id="plugin-check-command-snmp-memory"></a> snmp-memory
 
-Check command object for the <a href="http://nagios.manubulon.com/snmp_mem.html">check_snmp_mem.pl</a> plugin.
+Check command object for the [check_snmp_mem.pl](http://nagios.manubulon.com/snmp_mem.html) plugin.
 
 Custom Attributes:
 
@@ -2399,7 +2402,7 @@ snmp_perf               | **Optional.** Enable perfdata values. Defaults to "tru
 
 #### <a id="plugin-check-command-snmp-storage"></a> snmp-storage
 
-Check command object for the <a href="http://nagios.manubulon.com/snmp_storage.html">check_snmp_storage.pl</a> plugin.
+Check command object for the [check_snmp_storage.pl](http://nagios.manubulon.com/snmp_storage.html) plugin.
 
 Custom Attributes:
 
@@ -2418,12 +2421,12 @@ snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. 
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default..
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
-snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". Check more options in <a href="http://nagios.manubulon.com/snmp_storage.html">snmp storage</a>.
+snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
 
 #### <a id="plugin-check-command-snmp-int"></a> snmp-int
 
-Check command object for the <a href="http://nagios.manubulon.com/snmp_int.html">check_snmp_int.pl</a> plugin.
+Check command object for the [check_snmp_int.pl](http://nagios.manubulon.com/snmp_int.html) plugin.
 
 Custom Attributes:
 
@@ -2450,7 +2453,7 @@ snmp_perf               | **Optional.** Enable perfdata values. Defaults to "tru
 
 #### <a id="plugin-check-command-snmp-process"></a> snmp-process
 
-Check command object for the <a href="http://nagios.manubulon.com/snmp_process.html">check_snmp_process.pl</a> plugin.
+Check command object for the [check_snmp_process.pl](http://nagios.manubulon.com/snmp_process.html) plugin.
 
 Custom Attributes:
 
