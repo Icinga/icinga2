@@ -32,11 +32,20 @@ Please check doc/1-about.md.
 * Documentation - Bug #6870: Wrong object attribute 'enable_flap_detection'
 * Documentation - Bug #6878: Wrong parent in Load Distribution
 * Documentation - Bug #6909: clarify on which config tools are available
+* Documentation - Bug #6968: Update command arguments 'set_if' and beautify error message
+* Documentation - Bug #6995: Keyword "required" used inconsistently for host and service "icon_image*" attributes
+* Documentation - Feature #6651: Migration: note on check command timeouts
 * Documentation - Feature #6703: Documentation for zones and cluster permissions
 * Documentation - Feature #6743: Better explanation for HA config cluster
+* Documentation - Feature #6839: Explain how the order attribute works in commands
+* Documentation - Feature #6864: Add section for reserved keywords
+* Documentation - Feature #6867: add section about disabling re-notifications
+* Documentation - Feature #6869: Add systemd options: enable, journal
 * Documentation - Feature #6922: Enhance Graphite Writer description
 * Documentation - Feature #6949: Add documentation for icinga2-list-objects
 * Documentation - Feature #6997: how to add a new cluster node
+* Documentation - Feature #7018: add example selinux policy for external command pipe
+* Plugins - Feature #6650: Plugin Check Commands: add manubulon snmp plugins
 
 #### Changes
 
