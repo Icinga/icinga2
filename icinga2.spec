@@ -72,7 +72,7 @@ Group: Applications/System
 Source: https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
 URL: http://www.icinga.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Requires: %{name}-bin = %{version}
+Requires: %{name}-bin = %{version}-%{release}
 
 %description
 Meta package for Icinga 2 Core, DB IDO and Web.
@@ -81,7 +81,7 @@ Meta package for Icinga 2 Core, DB IDO and Web.
 Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
-Requires: python-%{name} = %{version}
+Requires: python-%{name} = %{version}-%{release}
 %if "%{_vendor}" == "suse"
 PreReq:        permissions
 Provides:      monitoring_daemon
@@ -107,7 +107,7 @@ BuildRequires: systemd
 Requires: systemd
 %endif
 
-Requires: %{name}-common = %{version}
+Requires: %{name}-common = %{version}-%{release}
 
 %description bin
 Icinga 2 is a general-purpose network monitoring application.
