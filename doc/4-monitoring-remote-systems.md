@@ -177,9 +177,9 @@ Before you start deploying, keep the following things in mind:
 
 * Your [SSL CA and certificates](#certificate-authority-certificates) are mandatory for secure communication
 * Get pen and paper or a drawing board and design your nodes and zones!
-** all nodes in a cluster zone are providing high availability functionality and trust each other
-** cluster zones can be built in a Top-Down-design where the child trusts the parent
-** communication between zones happens bi-directional which means that a DMZ-located node can still reach the master node, or vice versa
+    * all nodes in a cluster zone are providing high availability functionality and trust each other
+    * cluster zones can be built in a Top-Down-design where the child trusts the parent
+    * communication between zones happens bi-directional which means that a DMZ-located node can still reach the master node, or vice versa
 * Update firewall rules and ACLs
 * Decide whether to use the built-in [configuration syncronization](#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment
 
@@ -333,7 +333,7 @@ You can simply enable the `api` feature using
     # icinga2-enable-feature api
 
 Edit `/etc/icinga2/features-enabled/api.conf` if you require the configuration
-synchronisation enabled for this node.
+synchronisation enabled for this node. Set the `accept_config` attribute to `true`.
 
 > **Note**
 >
@@ -396,8 +396,16 @@ By default all objects for specific zones should be organized in
 
     /etc/icinga2/zones.d/<zonename>
 
-on the configuration master. You should remove the sample config included in
-`conf.d` by commenting the `recursive_include` statement in [icinga2.conf](#icinga2-conf):
+on the configuration master.
+
+Your child zones and endpoint members **must not** have their config copied to `zones.d`.
+The built-in configuration synchronisation takes care of that if your nodes accept
+configuration from the parent zone. You can define that in the
+[ApiListener](#configure-apilistener-object) object by configuring the `accept_config`
+attribute accordingly.
+
+You should remove the sample config included in `conf.d` by commenting the `recursive_include`
+statement in [icinga2.conf](#icinga2-conf):
 
     //include_recursive "conf.d"
 
@@ -409,13 +417,16 @@ useful for local [health checks](#cluster-health-check) for example.
 >
 > In a [high availability](#cluster-scenarios-high-availability)
 > setup only one assigned node can act as configuration master. All other zone
-> member nodes must not have the `/etc/icinga2/zones.d` directory populated.
+> member nodes **must not** have the `/etc/icinga2/zones.d` directory populated.
 
 These zone packages are then distributed to all nodes in the same zone, and
 to their respective target zone instances.
 
 Each configured zone must exist with the same directory name. The parent zone
-syncs the configuration to the child zones, if allowed.
+syncs the configuration to the child zones, if allowed using the `accept_config`
+attribute of the [ApiListener](#configure-apilistener-object) object.
+
+Config on node `icinga2a`:
 
     object Zone "master" {
       endpoints = [ "icinga2a" ]
@@ -432,6 +443,20 @@ syncs the configuration to the child zones, if allowed.
       checker
         health.conf
         demo.conf
+
+Config on node `icinga2b`:
+
+    object Zone "master" {
+      endpoints = [ "icinga2a" ]
+    }
+
+    object Zone "checker" {
+      endpoints = [ "icinga2b" ]
+      parent = "master"
+    }
+
+    /etc/icinga2/zones.d
+      EMPTY_IF_CONFIG_SYNC_ENABLED
 
 If the local configuration is newer than the received update Icinga 2 will skip the synchronisation
 process.
@@ -458,6 +483,8 @@ on your configuration master unique.
 That is not necessary by defining a global zone shipping all those templates. By setting
 `global = true` you ensure that this zone serving common configuration templates will be
 synchronized to all involved nodes (only if they accept configuration though).
+
+Config on configuration master:
 
     /etc/icinga2/zones.d
       global-templates/
@@ -584,8 +611,10 @@ but the remote nodes can still run local features such as a web interface, repor
 graphing, etc. in their own specified zone.
 
 Imagine the following example with a master node in Nuremberg, and two remote DMZ
-based instances in Berlin and Vienna. The configuration tree on the master instance
-could look like this:
+based instances in Berlin and Vienna. Additonally you'll specify
+[global templates](#zone-global-config-templates) available in all zones.
+
+The configuration tree on the master instance `nuremberg` could look like this:
 
     zones.d
       global-templates/
@@ -598,10 +627,12 @@ could look like this:
       vienna/
         hosts.conf
 
-The configuration deployment should look like:
+The configuration deployment will take care of automatically synchronising
+the child zone configuration:
 
 * The master node sends `zones.d/berlin` to the `berlin` child zone.
 * The master node sends `zones.d/vienna` to the `vienna` child zone.
+* The master node sends `zones.d/global-templates` to the `vienna` and `berlin` child zones.
 
 The endpoint configuration would look like:
 
@@ -640,6 +671,13 @@ The zones would look like:
 The `nuremberg-master` zone will only execute local checks, and receive
 check results from the satellite nodes in the zones `berlin` and `vienna`.
 
+> **Note**
+>
+> The child zones `berlin` and `vienna` will get their configuration synchronised
+> from the configuration master 'nuremberg'. The endpoints in the child
+> zones **must not** have their `zones.d` directory populated if this endpoint
+> [accepts synced configuration](#zone-config-sync-permissions).
+
 #### <a id="cluster-scenarios-load-distribution"></a> Load Distribution
 
 If you are planning to off-load the checks to a defined set of remote workers
@@ -651,6 +689,8 @@ you can achieve that by:
 That way all remote check instances will receive the same configuration
 but only execute their part. The master instance located in the `master` zone
 can also execute checks, but you may also disable the `Checker` feature.
+
+Configuration on the master node:
 
     zones.d/
       global-templates/
@@ -690,11 +730,18 @@ Zones:
       global = true
     }
 
+> **Note**
+>
+> The child zones `checker` will get its configuration synchronised
+> from the configuration master 'master'. The endpoints in the child
+> zone **must not** have their `zones.d` directory populated if this endpoint
+> [accepts synced configuration](#zone-config-sync-permissions).
+
 #### <a id="cluster-scenarios-high-availability"></a> Cluster High Availability
 
 High availability with Icinga 2 is possible by putting multiple nodes into
-a dedicated `Zone`. All nodes will elect one active master, and retry an
-election once the current active master failed.
+a dedicated [zone](#configure-cluster-zones). All nodes will elect one
+active master, and retry an election once the current active master is down.
 
 Selected features provide advanced [HA functionality](#high-availability-features).
 Checks and notifications are load-balanced between nodes in the high availability
@@ -712,9 +759,11 @@ Two or more nodes in a high availability setup require an [initial cluster sync]
 
 > **Note**
 >
-> Keep in mind that only one node can act as configuration master having the
-> configuration files in the `zones.d` directory. All other nodes must not
-> have that directory populated. Detail in the [Configuration Sync Chapter](#cluster-zone-config-sync).
+> Keep in mind that **only one node acts as configuration master** having the
+> configuration files in the `zones.d` directory. All other nodes **must not**
+> have that directory populated. Instead they are required to
+> [accept synced configuration](#zone-config-sync-permissions).
+> Details in the [Configuration Sync Chapter](#cluster-zone-config-sync).
 
 #### <a id="cluster-scenarios-multiple-hierachies"></a> Multiple Hierachies
 
@@ -750,11 +799,11 @@ By default the following features provide advanced HA functionality:
 
 * [Checks](#high-availability-checks) (load balanced, automated failover)
 * [Notifications](#high-availability-notifications) (load balanced, automated failover)
-* DB IDO (Run-Once, automated failover)
+* [DB IDO](#high-availability-db-ido) (Run-Once, automated failover)
 
 #### <a id="high-availability-checks"></a> High Availability with Checks
 
-All nodes in the same zone automatically load-balance the check execution. When one instance
+All nodes in the same zone load-balance the check execution. When one instance
 fails the other nodes will automatically take over the reamining checks.
 
 > **Note**
@@ -821,7 +870,8 @@ These steps are required for integrating a new cluster endpoint:
 * generate a new [SSL client certificate](#certificate-authority-certificates)
 * identify its location in the zones
 * update the `zones.conf` file on each involved node ([endpoint](#configure-cluster-endpoints), [zones](#configure-cluster-zones))
-** a new slave zone node requires updates for the master and slave zones
+    * a new slave zone node requires updates for the master and slave zones
+    * verify if this endpoints requires [configuration synchronisation](#cluster-zone-config-sync) enabled
 * if the node requires the existing zone history: [initial cluster sync](#initial-cluster-sync)
 * add a [cluster health check](#cluster-health-check)
 
