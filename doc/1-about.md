@@ -54,6 +54,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * new schema version: **1.11.7**
     * RPMs install the schema files into `/usr/share/icinga2-ido*` instead of `/usr/share/doc/icinga2-ido*` #6881
 * [Information for config objects](#list-configuration-objects) using `icinga2-list-objects` script #6702
+* Add Python 2.4 as requirement #6702
 * Add search path: If `-c /etc/icinga2/icinga2.conf` is omitted, use `SysconfDir + "/icinga2/icinga2.conf"` #6874
 * Change log level for failed commands #6751
 * Notifications are load-balanced in a [High Availability cluster setup](#high-availability-notifications) #6203
