@@ -48,6 +48,22 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ### What's New in Version 2.1.0
 
+#### Changes
+
+* DB IDO schema upgrade ([MySQL](#upgrading-mysql-db),[PostgreSQL](#upgrading-postgresql-db) required!
+    * new schema version: **1.11.7**
+    * RPMs install the schema files into `/usr/share/icinga2-ido*` instead of `/usr/share/doc/icinga2-ido*` #6881
+* [Information for config objects](#list-configuration-objects) using `icinga2-list-objects` script #6702
+* Add search path: If `-c /etc/icinga2/icinga2.conf` is omitted, use `SysconfDir + "/icinga2/icinga2.conf"` #6874
+* Change log level for failed commands #6751
+* Notifications are load-balanced in a [High Availability cluster setup](#high-availability-notifications) #6203
+    * New config attribute: `enable_ha`
+* DB IDO "run once" or "run everywhere" mode in a [High Availability cluster setup](#high-availability-db-ido) #6203 #6827
+    * New config attributes: `enable_ha` and `failover_timeout`
+* RPMs use the `icingacmd` group for /var/{cache,log,run}/icinga2 #6948
+
+#### Issues
+
 * Bug #6881: make install does not install the db-schema
 * Bug #6915: use _rundir macro for configuring the run directory
 * Bug #6916: External command pipe: Too many open files
@@ -87,20 +103,6 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 * Documentation - Feature #6949: Add documentation for icinga2-list-objects
 * Documentation - Feature #6997: how to add a new cluster node
 * Documentation - Feature #7018: add example selinux policy for external command pipe
-
-#### Changes
-
-* DB IDO schema upgrade ([MySQL](#upgrading-mysql-db),[PostgreSQL](#upgrading-postgresql-db) required!
-    * new schema version: **1.11.7**
-    * RPMs install the schema files into `/usr/share/icinga2-ido*` instead of `/usr/share/doc/icinga2-ido*` #6881
-* [Information for config objects](#list-configuration-objects) using `icinga2-list-objects` script #6702
-* Add search path: If `-c /etc/icinga2/icinga2.conf` is omitted, use `SysconfDir + "/icinga2/icinga2.conf"` #6874
-* Change log level for failed commands #6751
-* Notifications are load-balanced in a [High Availability cluster setup](#high-availability-notifications) #6203
-    * New config attribute: `enable_ha`
-* DB IDO "run once" or "run everywhere" mode in a [High Availability cluster setup](#high-availability-db-ido) #6203 #6827
-    * New config attributes: `enable_ha` and `failover_timeout`
-* RPMs use the `icingacmd` group for /var/{cache,log,run}/icinga2 #6948
 
 
 ### Archive
