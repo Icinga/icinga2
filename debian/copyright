@@ -108,7 +108,6 @@ Files: third-party/cmake/BoostTestTargets.*
        third-party/cmake/CopyResourcesToBuildTree.cmake
        third-party/cmake/GetForceIncludeDefinitions.cmake
        third-party/cmake/GetGitRevisionDescription.cmake.in
-
 Copyright: 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
            2009-2010 Iowa State University
 License: Boost Software License 1.0

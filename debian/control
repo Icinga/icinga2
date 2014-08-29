@@ -3,6 +3,7 @@ Section: admin
 Priority: extra
 Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian.org>
 Uploaders: Markus Frosch <markus@lazyfrosch.de>,
+           Jan Wagner <waja@cyconet.org>,
            Alexander Wirt <formorer@debian.org>
 Build-Depends: bison,
                cmake (>= 2.8.7),
@@ -30,7 +31,7 @@ Architecture: any
 Depends: icinga2-bin (= ${binary:Version}),
          icinga2-common (= ${source:Version}),
          ${misc:Depends}
-Recommends: icinga2-doc, nagios-plugins-basic
+Recommends: icinga2-doc, monitoring-plugins-basic | nagios-plugins-basic
 Description: host and network monitoring system
  Icinga 2 is a general-purpose monitoring application and the next generation
  after Icinga 1.x - which was a Nagios fork. It should fit the needs of a small
@@ -127,7 +128,7 @@ Description: host and network monitoring system - documentation
 Package: icinga2-classicui
 Architecture: all
 Depends: apache2-utils,
-         icinga-cgi-bin | icinga-cgi (>= 1.11.4~),
+         icinga-cgi-bin (>= 1.11.5~),
          icinga2-common (= ${source:Version}),
          ${misc:Depends}
 Recommends: apache2 | httpd
@@ -142,7 +143,7 @@ Description: host and network monitoring system - classic ui integration
   * All common features of Icinga and Nagios
   * Much faster and more scalable than Icinga 1 and Nagios
   * New configuration format, more intuitive and template based
-  * Monitoring several services by executing checks (see nagios-plugins*)
+  * Monitoring several services by executing checks (see monitoring-plugins*)
     for example ICMP/ping, SMTP, POP3, HTTP, NNTP, or other TCP port
   * Any small script can be used as a check plugin, when following the Nagios
     plugin API
@@ -158,6 +159,7 @@ Conflicts: icinga2-ido-pgsql
 Depends: dbconfig-common,
          icinga2-bin (= ${binary:Version}),
          icinga2-common (= ${source:Version}),
+         ucf,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: mysql-client
@@ -189,6 +191,7 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: dbconfig-common,
          icinga2-bin (= ${binary:Version}),
          icinga2-common (= ${source:Version}),
+         ucf,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: postgresql-client
@@ -262,4 +265,3 @@ Description: host and network monitoring system - Python module
   * Native support for Livestatus and Graphite
  .
  This package provides the Python module for Icinga 2.
-

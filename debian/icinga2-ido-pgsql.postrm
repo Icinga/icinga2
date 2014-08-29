@@ -20,3 +20,5 @@ if [ "$1" = "purge" ]; then
     db_purge
 fi
 
+#DEBHELPER#
+
