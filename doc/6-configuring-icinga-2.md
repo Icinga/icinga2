@@ -208,7 +208,7 @@ The following operators are supported in expressions:
 
 Operator | Examples (Result)                             | Description
 ---------|-----------------------------------------------|--------------------------------
-!        | !"Hello" (false), !false (true)               | Log<!-- ignore BLACKLIST -->ical negation of the operand
+!        | !"Hello" (false), !false (true)               | Logical negation of the operand
 ~        | ~true (false)                                 | Bitwise negation of the operand
 +        | 1 + 3 (4), "hello " + "world" ("hello world") | Adds two numbers; concatenates strings
 -        | 3 - 1 (2)                                     | Subtracts two numbers
