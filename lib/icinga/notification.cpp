@@ -39,7 +39,7 @@ INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> Notification::OnNextNotificationChanged;
 
-String NotificationNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const
+String NotificationNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const
 {
 	if (!props)
 		return "";

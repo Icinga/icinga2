@@ -29,7 +29,7 @@ using namespace icinga;
 REGISTER_TYPE(Dependency);
 REGISTER_SCRIPTFUNCTION(ValidateDependencyFilters, &Dependency::ValidateFilters);
 
-String DependencyNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const
+String DependencyNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const
 {
 	if (!props)
 		return "";

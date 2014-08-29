@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
-String ServiceNameComposer::MakeName(const String& shortName, const Dictionary::Ptr props) const {
+String ServiceNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const {
 	if (!props)
 		return "";
 

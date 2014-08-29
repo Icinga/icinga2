@@ -10,7 +10,7 @@ enum HAMode
 
 class NameComposer {
 public:
-	virtual String MakeName(const String& shortName, const Dictionary::Ptr props) const = 0;
+	virtual String MakeName(const String& shortName, const Dictionary::Ptr& props) const = 0;
 };
 }}}
 

@@ -7,7 +7,7 @@ code {{{
 class I2_ICINGA_API NotificationNameComposer : public NameComposer
 {
 public:
-	virtual String MakeName(const String& shortName, const Dictionary::Ptr props) const;
+	virtual String MakeName(const String& shortName, const Dictionary::Ptr& props) const;
 };
 }}}
 
