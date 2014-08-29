@@ -40,9 +40,8 @@ http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/{i386,x86_64}/buildtools/
 
 By default Icinga will run as user 'icinga' and group 'icinga'. Additionally the
 external command pipe and livestatus features require a dedicated command group
-'icingacmd'. You can choose your own user/group names and pass them to the
-configure script using the --with-icinga-user, --with-icinga-group,
---with-icingacmd-user and --with-icingacmd-group options.
+'icingacmd'. You can choose your own user/group names and pass them to cmake
+using the ICINGA2_USER, ICINGA2_GROUP and ICINGA2_COMMAND_GROUP variables.
 
 # groupadd icinga
 # groupadd icingacmd
@@ -71,15 +70,16 @@ Here's a short check-list for releases:
     $ git log --use-mailmap | grep ^Author: | cut -f2- -d' ' | sort | uniq > AUTHORS
 * Bump the version in icinga2.spec.
 * Update the ChangeLog and doc/1-about.md files.
-* Commit these changes to the "master" branch and create a signed tag (tags/v<VERSION>).
+* Commit these changes to the "master" branch.
     $ git commit -v -a -m "Release version <VERSION>"
-    $ git tag -u EE8E0720 -m "Version <VERSION>" v<VERSION>
+* Create a signed tag (tags/v<VERSION>) and push it.
+    GB: $ git tag -u EE8E0720 -m "Version <VERSION>" v<VERSION>
+    MF: $ git tag -u D14A1F16 -m "Version <VERSION>" v<VERSION>
     $ git push --tags
-* Merge the "master" branch into the "support/2.0" branch (using --ff-only).
-    $ git checkout support/2.0
+* Merge the "master" branch into the "support/2.1" branch (using --ff-only).
+    $ git checkout support/2.1
     $ git merge --ff-only master
-    $ git push origin support/2.0
-* Bump the version to "v<NEXT-VERSION>-dev" and commit this change to the "master" branch.
+    $ git push origin support/2.1
 
 Note: CMake determines the Icinga 2 version number using "git describe" if the
 source directory is contained in a Git repository. Otherwise the version number
@@ -90,17 +90,12 @@ disable the usage of "git describe".
 
 Use "git archive" to build the release tarball:
 
-$ VERSION=2.0.0
-$ git archive --format=tgz --prefix=icinga2-$VERSION/ tags/v$VERSION
-
-On CentOS 6.x use
-
-$ VERSION=2.0.0
+$ VERSION=2.1.0
 $ git archive --format=tar --prefix=icinga2-$VERSION/ tags/v$VERSION | gzip >icinga2-$VERSION.tar.gz
 
 Finally you should verify that the tarball only contains the files it should contain:
 
-$ VERSION=2.0.0
+$ VERSION=2.1.0
 $ tar ztf icinga2-$VERSION.tar.gz | less
 
 
