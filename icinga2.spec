@@ -189,7 +189,7 @@ BuildRequires: python-setuptools
 Requires:     python-setuptools
 
 %description -n python-icinga2
-Python module for Icinga 2.
+Provides a Python module for Icinga 2.
 
 %prep
 %setup -q -n %{name}-%{version}
