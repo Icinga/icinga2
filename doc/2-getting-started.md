@@ -749,61 +749,6 @@ Change "www-data" to the user you're using to run queries.
 > Packages will do that automatically. Verify that by running `id <your-webserver-user>` and skip this
 > step.
 
-> **Note**
->
-> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
-> new policy allowing external users to access the external command pipe fifo.
-> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
-> provides details on that.
-
-#### <a id="external-command-pipe-selinux-policy"></a> SELinux Policy for External Command Pipe
-
-First, verify that the `/var/log/audit/audit.log` contains errors when accessing
-the external command pipe `icinga2.cmd` and use the [audit2allow](http://fedoraproject.org/wiki/SELinux/audit2allow)
-tool to generate a type enforcement policy.
-
-    # grep 'icinga2.cmd' /var/log/audit/audit.log | audit2allow -m icinga2 > icinga2.te
-
-The generated policy looks like this:
-
-    # cat icinga2.te
-
-    module icinga2 1.0;
-
-    require {
-    	type var_run_t;
-    	type httpd_t;
-    	type ping_t;
-    	class fifo_file { write read getattr open };
-    }
-
-    #============= httpd_t ==============
-    allow httpd_t var_run_t:fifo_file { write getattr open };
-
-    #============= ping_t ==============
-    allow ping_t var_run_t:fifo_file read;
-
-Now tell `audit2allow` to generate a custom policy module which can be imported
-using the `semodule` command.
-
-    # grep 'icinga2.cmd' /var/log/audit/audit.log | audit2allow -M icinga2
-    ******************** IMPORTANT ***********************
-    To make this policy package active, execute:
-
-    semodule -i icinga2.pp
-
-    # semodule -i icinga2.pp
-
-If you want to remove a custom policy module, obtain a list of modules and
-remove it by its name.
-
-    # semodule -l
-    # semodule -r icinga2
-
-That way your [user interfaces](setting-up-icinga2-user-interfaces) and other
-tools may write to the command pipe without disabling SELinux.
-
-
 ## <a id="setting-up-livestatus"></a> Setting up Livestatus
 
 The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
@@ -850,13 +795,6 @@ are expected to be in `/var/log/icinga2/compat`. A different path can be set usi
 `compat_log_path` configuration attribute.
 
     # icinga2-enable-feature compatlog
-
-> **Note**
->
-> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
-> new policy allowing external users to access the Livestatus unix socket.
-> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
-> provides details on that.
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 

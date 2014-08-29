@@ -1631,12 +1631,6 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-> **Note**
->
-> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
-> new policy allowing external users to access the external command pipe fifo.
-> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
-> provides details on that.
 
 ### <a id="external-command-list"></a> External Command List
 
@@ -1898,13 +1892,6 @@ Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
 
 Details on the configuration can be found in the [LivestatusListener](#objecttype-livestatuslistener)
 object configuration.
-
-> **Note**
->
-> With SELinux enabled in `targetted` or `permissive` mode, you need to add a
-> new policy allowing external users to access the Livestatus unix socket.
-> The [external command pipe SELinux policy documentation](#external-command-pipe-selinux-policy)
-> provides details on that.
 
 ### <a id="livestatus-get-queries"></a> Livestatus GET Queries
 
