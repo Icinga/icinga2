@@ -22,7 +22,17 @@ mkclass_target(statusdatawriter.ti statusdatawriter.thpp)
 
 mkembedconfig_target(compat-type.conf compat-type.cpp)
 
-add_library(compat SHARED checkresultreader.cpp checkresultreader.thpp compatlogger.cpp compatlogger.thpp externalcommandlistener.cpp externalcommandlistener.thpp statusdatawriter.cpp statusdatawriter.thpp compat-type.cpp)
+set(compat_SOURCES
+  checkresultreader.cpp checkresultreader.thpp compatlogger.cpp
+  compatlogger.thpp externalcommandlistener.cpp externalcommandlistener.thpp
+  statusdatawriter.cpp statusdatawriter.thpp compat-type.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(compat compat_SOURCES)
+endif()
+
+add_library(compat SHARED ${compat_SOURCES})
 
 target_link_libraries(compat ${Boost_LIBRARIES} base config icinga)
 

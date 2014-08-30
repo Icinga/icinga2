@@ -56,9 +56,9 @@
 #	pragma warning(disable:4251)
 #	pragma warning(disable:4275)
 #	pragma warning(disable:4345)
-#else /* _MSC_VER */
-#	include "config.h"
 #endif /* _MSC_VER */
+
+#include "config.h"
 
 #ifdef _WIN32
 #	include "base/win32.hpp"

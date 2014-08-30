@@ -19,7 +19,15 @@ mkclass_target(checkercomponent.ti checkercomponent.thpp)
 
 mkembedconfig_target(checker-type.conf checker-type.cpp)
 
-add_library(checker SHARED checkercomponent.cpp checkercomponent.thpp checker-type.cpp)
+set(checker_SOURCES
+  checkercomponent.cpp checkercomponent.thpp checker-type.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(checker checker_SOURCES)
+endif()
+
+add_library(checker SHARED ${checker_SOURCES})
 
 target_link_libraries(checker ${Boost_LIBRARIES} base config icinga remote)
 

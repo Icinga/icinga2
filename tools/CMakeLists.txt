@@ -17,6 +17,7 @@
 
 add_subdirectory(mkclass)
 add_subdirectory(mkembedconfig)
+add_subdirectory(mkunity)
 
 if(UNIX OR CYGWIN)
   configure_file(icinga2-enable-feature.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-enable-feature @ONLY)

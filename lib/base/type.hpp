@@ -24,6 +24,7 @@
 #include "base/qstring.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
+#include "base/utility.hpp"
 #include <boost/function.hpp>
 
 namespace icinga
@@ -99,7 +100,7 @@ struct FactoryHelper
 };
 
 #define REGISTER_TYPE(type) \
-	namespace { \
+	namespace { namespace TOKENPASTE2(rt, __COUNTER__) { \
 		void RegisterType(void) \
 		{ \
 			icinga::Type *t = new TypeImpl<type>(); \
@@ -108,7 +109,7 @@ struct FactoryHelper
 		} \
 		\
 		INITIALIZE_ONCE(RegisterType); \
-	}
+	} }
 
 }
 

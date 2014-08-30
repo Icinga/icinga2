@@ -21,12 +21,18 @@ else()
   set(WindowsSources "")
 endif()
 
-add_library(methods SHARED
+set(methods_SOURCES
   castfuncs.cpp clusterchecktask.cpp clusterzonechecktask.cpp
   icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
   randomchecktask.cpp timeperiodtask.cpp ${WindowsSources}
 )
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(methods methods_SOURCES)
+endif()
+
+add_library(methods SHARED ${methods_SOURCES})
 
 target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)
 

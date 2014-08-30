@@ -17,28 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef INITIALIZE_H
-#define INITIALIZE_H
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "base/i2-base.hpp"
-#include "base/utility.hpp"
-
-namespace icinga
+int main(int argc, char **argv)
 {
+	int i;
 
-typedef void (*InitializeFunc)(void);
+	if (argc < 3) {
+		fprintf(stderr, "Syntax: %s <prefix> [<file> ...]\n", argv[0]);
+		return EXIT_FAILURE;
+	}
 
-inline bool InitializeOnceHelper(InitializeFunc func)
-{
-	Utility::AddDeferredInitializer(func);
-	return true;
+	for (i = 2; i < argc; i++) {
+		printf("#include \"%s/%s\"\n", argv[1], argv[i]);
+	}
+
+	return EXIT_SUCCESS;
 }
-
-#define INITIALIZE_ONCE(func) \
-	namespace { namespace TOKENPASTE2(io, __COUNTER__) { \
-		I2_EXPORT bool l_InitializeOnce(icinga::InitializeOnceHelper(func)); \
-	} }
-
-}
-
-#endif /* INITIALIZE_H */

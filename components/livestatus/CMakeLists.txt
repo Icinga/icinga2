@@ -19,7 +19,8 @@ mkclass_target(livestatuslistener.ti livestatuslistener.thpp)
 
 mkembedconfig_target(livestatus-type.conf livestatus-type.cpp)
 
-add_library(livestatus SHARED aggregator.cpp andfilter.cpp attributefilter.cpp
+set(livestatus_SOURCES
+  aggregator.cpp andfilter.cpp attributefilter.cpp
   avgaggregator.cpp column.cpp combinerfilter.cpp commandstable.cpp
   commentstable.cpp contactgroupstable.cpp contactstable.cpp countaggregator.cpp
   downtimestable.cpp endpointstable.cpp filter.cpp historytable.cpp
@@ -29,7 +30,14 @@ add_library(livestatus SHARED aggregator.cpp andfilter.cpp attributefilter.cpp
   minaggregator.cpp negatefilter.cpp orfilter.cpp
   servicegroupstable.cpp servicestable.cpp statehisttable.cpp
   statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp
-  timeperiodstable.cpp livestatus-type.cpp)
+  timeperiodstable.cpp livestatus-type.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(livestatus livestatus_SOURCES)
+endif()
+
+add_library(livestatus SHARED ${livestatus_SOURCES})
 
 target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga remote)
 

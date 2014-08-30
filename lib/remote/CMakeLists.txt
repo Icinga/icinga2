@@ -21,11 +21,17 @@ mkclass_target(zone.ti zone.thpp)
 
 mkembedconfig_target(remote-type.conf remote-type.cpp)
 
-add_library(remote SHARED
+set(remote_SOURCES
   apiclient.cpp apifunction.cpp apilistener.cpp apilistener-sync.cpp
   apilistener.thpp authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
   messageorigin.cpp remote-type.cpp zone.cpp zone.thpp
 )
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(remote remote_SOURCES)
+endif()
+
+add_library(remote SHARED ${remote_SOURCES})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(remote ${Boost_LIBRARIES} base config)

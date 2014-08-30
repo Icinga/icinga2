@@ -19,13 +19,19 @@ mkclass_target(dbconnection.ti dbconnection.thpp)
 
 mkembedconfig_target(db_ido-type.conf db_ido-type.cpp)
 
-add_library(db_ido SHARED
+set(db_ido_SOURCES
   commanddbobject.cpp dbconnection.cpp dbconnection.thpp dbconnection.thpp
   db_ido-type.cpp dbevents.cpp dbobject.cpp dbquery.cpp dbreference.cpp dbtype.cpp
   dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp hostgroupdbobject.cpp
   servicedbobject.cpp servicegroupdbobject.cpp timeperioddbobject.cpp
   userdbobject.cpp usergroupdbobject.cpp
 )
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(db_ido db_ido_SOURCES)
+endif()
+
+add_library(db_ido SHARED ${db_ido_SOURCES})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga remote)

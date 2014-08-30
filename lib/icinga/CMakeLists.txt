@@ -40,7 +40,7 @@ mkclass_target(user.ti user.thpp)
 
 mkembedconfig_target(icinga-type.conf icinga-type.cpp)
 
-add_library(icinga SHARED
+set(icinga_SOURCES
   api.cpp apievents.cpp checkable.cpp checkable.thpp checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
   checkable-flapping.cpp checkcommand.cpp checkcommand.thpp checkresult.cpp checkresult.thpp
   cib.cpp command.cpp command.thpp comment.cpp comment.thpp compatutility.cpp dependency.cpp dependency.thpp
@@ -53,6 +53,12 @@ add_library(icinga SHARED
   service.cpp service.thpp servicegroup.cpp servicegroup.thpp checkable-notification.cpp timeperiod.cpp timeperiod.thpp
   user.cpp user.thpp usergroup.cpp usergroup.thpp icinga-type.cpp
 )
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(icinga icinga_SOURCES)
+endif()
+
+add_library(icinga SHARED ${icinga_SOURCES})
 
 target_link_libraries(icinga ${Boost_LIBRARIES} base config remote)
 

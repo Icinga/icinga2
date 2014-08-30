@@ -20,7 +20,15 @@ mkclass_target(perfdatawriter.ti perfdatawriter.thpp)
 
 mkembedconfig_target(perfdata-type.conf perfdata-type.cpp)
 
-add_library(perfdata SHARED graphitewriter.cpp graphitewriter.thpp perfdatawriter.cpp perfdatawriter.thpp perfdata-type.cpp)
+set(perfdata_SOURCES
+  graphitewriter.cpp graphitewriter.thpp perfdatawriter.cpp perfdatawriter.thpp perfdata-type.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(perfdata perfdata_SOURCES)
+endif()
+
+add_library(perfdata SHARED ${perfdata_SOURCES})
 
 target_link_libraries(perfdata ${Boost_LIBRARIES} base config icinga)
 

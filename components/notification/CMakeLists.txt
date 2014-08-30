@@ -19,7 +19,15 @@ mkclass_target(notificationcomponent.ti notificationcomponent.thpp)
 
 mkembedconfig_target(notification-type.conf notification-type.cpp)
 
-add_library(notification SHARED notificationcomponent.cpp notificationcomponent.thpp notification-type.cpp)
+set(notification_SOURCES
+  notificationcomponent.cpp notificationcomponent.thpp notification-type.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(notification notification_SOURCES)
+endif()
+
+add_library(notification SHARED ${notification_SOURCES})
 
 target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
 

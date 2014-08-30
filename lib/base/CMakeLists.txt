@@ -22,7 +22,7 @@ mkclass_target(logger.ti logger.thpp)
 mkclass_target(streamlogger.ti streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.thpp)
 
-add_library(base SHARED
+set(base_SOURCES
   application.cpp application.thpp array.cpp context.cpp
   convert.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp logger.cpp logger.thpp
@@ -35,10 +35,16 @@ add_library(base SHARED
   value-operators.cpp workqueue.cpp
 )
 
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(base base_SOURCES)
+endif()
+
+add_library(base SHARED ${base_SOURCES})
+
 target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)
 
 if(HAVE_LIBEXECINFO)
-  target_link_libraries(base execinfo)
+    target_link_libraries(base execinfo)
 endif()
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/cJSON)

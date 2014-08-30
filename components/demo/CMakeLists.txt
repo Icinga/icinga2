@@ -19,7 +19,15 @@ mkclass_target(demo.ti demo.thpp)
 
 mkembedconfig_target(demo-type.conf demo-type.cpp)
 
-add_library(demo SHARED demo.cpp demo.thpp demo-type.cpp)
+set(demo_SOURCES
+  demo.cpp demo.thpp demo-type.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(demo demo_SOURCES)
+endif()
+
+add_library(demo SHARED ${demo_SOURCES})
 
 target_link_libraries(demo ${Boost_LIBRARIES} base config icinga remote)
 

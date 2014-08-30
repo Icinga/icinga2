@@ -19,9 +19,15 @@ mkclass_target(hello.ti hello.thpp)
 
 mkembedconfig_target(hello-type.conf hello-type.cpp)
 
-add_library(hello SHARED
+set(hello_SOURCES
   hello.cpp hello.thpp hello-type.cpp
 )
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(hello hello_SOURCES)
+endif()
+
+add_library(hello SHARED ${hello_SOURCES})
 
 target_link_libraries(hello ${Boost_LIBRARIES} base config)
 

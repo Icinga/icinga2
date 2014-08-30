@@ -25,7 +25,15 @@ if(PostgreSQL_FOUND)
     link_directories(${PostgreSQL_LIBRARY_DIRS})
     include_directories(${PostgreSQL_INCLUDE_DIRS})
 
-    add_library(db_ido_pgsql SHARED idopgsqlconnection.cpp idopgsqlconnection.thpp db_ido_pgsql-type.cpp)
+    set(db_ido_pgsql_SOURCES
+      idopgsqlconnection.cpp idopgsqlconnection.thpp db_ido_pgsql-type.cpp
+    )
+
+    if(ICINGA2_UNITY_BUILD)
+        mkunity_target(db_ido_pgsql db_ido_pgsql_SOURCES)
+    endif()
+
+    add_library(db_ido_pgsql SHARED ${db_ido_pgsql_SOURCES})
 
     target_link_libraries(db_ido_pgsql ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} base config icinga db_ido)
 

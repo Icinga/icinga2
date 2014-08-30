@@ -17,12 +17,20 @@
 
 include(BoostTestTargets)
 
+set(base_test_SOURCES
+  base-array.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp
+  base-match.cpp base-netstring.cpp base-object.cpp base-serialize.cpp
+  base-shellescape.cpp base-stacktrace.cpp base-stream.cpp
+  base-string.cpp base-timer.cpp base-type.cpp base-value.cpp
+  icinga-perfdata.cpp test.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(test base_test_SOURCES)
+endif()
+
 add_boost_test(base
-  SOURCES base-array.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp
-          base-match.cpp base-netstring.cpp base-object.cpp base-serialize.cpp
-          base-shellescape.cpp base-stacktrace.cpp base-stream.cpp
-          base-string.cpp base-timer.cpp base-type.cpp base-value.cpp
-          icinga-perfdata.cpp test.cpp
+  SOURCES test.cpp ${base_test_SOURCES}
   LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
