@@ -15,6 +15,7 @@ setup(
     packages = find_packages(),
     entry_points = {
         'console_scripts': [ 'icinga2-list-objects=icinga2.commands.list_objects:main' ]
-    }
+    },
+    use_2to3 = True
 )
 
