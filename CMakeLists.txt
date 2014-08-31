@@ -113,8 +113,17 @@ endif()
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Library output path")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Executable output path")
 
+include(CheckSymbolExists)
 include(CheckFunctionExists)
 include(CheckLibraryExists)
+
+check_symbol_exists(__COUNTER__ "" HAVE_COUNTER_MACRO)
+
+if(NOT HAVE_COUNTER_MACRO AND ICINGA2_UNITY_BUILD)
+  message(STATUS "Your C/C++ compiler does not support the __COUNTER__ macro. Disabling unity build.")
+  set(ICINGA2_UNITY_BUILD FALSE)
+endif()
+
 check_function_exists(vfork HAVE_VFORK)
 check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)

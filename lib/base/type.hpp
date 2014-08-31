@@ -100,7 +100,7 @@ struct FactoryHelper
 };
 
 #define REGISTER_TYPE(type) \
-	namespace { namespace TOKENPASTE2(rt, __COUNTER__) { \
+	namespace { namespace UNIQUE_NAME(rt) { \
 		void RegisterType(void) \
 		{ \
 			icinga::Type *t = new TypeImpl<type>(); \
