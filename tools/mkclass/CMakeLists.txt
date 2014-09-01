@@ -41,4 +41,5 @@ macro(MKCLASS_TARGET ClassInput ClassOutput)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS mkclass ${ClassInput}
     )
+    set_property(SOURCE ${ClassOutput} PROPERTY EXCLUDE_UNITY_BUILD)
 endmacro()

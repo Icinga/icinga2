@@ -19,7 +19,11 @@ find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
 bison_target(config_parser config_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
+set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc PROPERTY EXCLUDE_UNITY_BUILD TRUE)
+
 flex_target(config_lexer config_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc)
+set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc PROPERTY EXCLUDE_UNITY_BUILD TRUE)
+
 add_flex_bison_dependency(config_lexer config_parser)
 
 mkembedconfig_target(base-type.conf base-type.cpp)

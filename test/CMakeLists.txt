@@ -25,6 +25,8 @@ set(base_test_SOURCES
   icinga-perfdata.cpp test.cpp
 )
 
+set_property(SOURCE test.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
+
 if(ICINGA2_UNITY_BUILD)
     mkunity_target(test base_test_SOURCES)
 endif()

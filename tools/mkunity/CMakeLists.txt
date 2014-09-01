@@ -22,16 +22,24 @@ set_target_properties (
   FOLDER Bin
 )
 
+define_property(
+  SOURCE
+  PROPERTY EXCLUDE_UNITY_BUILD
+  BRIEF_DOCS "Whether to exclude the source file from unity builds"
+  FULL_DOCS "Specified whether a source file should be excluded from unity builds and should be built separately"
+)
+
 function(MKUNITY_TARGET Prefix UnityInputRef)
     set(UnityInput ${${UnityInputRef}})
     set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Prefix}_unity.cpp)
     set(RealSources "")
     set(UnitySources "")
     foreach(UnitySource ${UnityInput})
-        if(${UnitySource} MATCHES "\\.cpp\$")
-            list(APPEND UnitySources ${UnitySource})
-        else()
+        get_property(SourceExcluded SOURCE ${UnitySource} PROPERTY EXCLUDE_UNITY_BUILD)
+        if(SourceExcluded MATCHES TRUE OR NOT ${UnitySource} MATCHES "\\.(cpp|cxx|cc)\$")
             list(APPEND RealSources ${UnitySource})
+        else()
+            list(APPEND UnitySources ${UnitySource})
         endif()
     endforeach()
     add_custom_command(
