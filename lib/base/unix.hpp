@@ -48,6 +48,10 @@ typedef int SOCKET;
 #define closesocket close
 #define ioctlsocket ioctl
 
+#ifndef PATH_MAX
+#	define PATH_MAX 1024
+#endif /* PATH_MAX */
+
 #ifndef MAXPATHLEN
 #	define MAXPATHLEN PATH_MAX
 #endif /* MAXPATHLEN */
