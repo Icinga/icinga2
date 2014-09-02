@@ -65,7 +65,7 @@ stop() {
                 if [ "x$1" = "xnofail" ]; then
 			return
 		else
-			exit 1
+			exit 7
 		fi
         fi
 
@@ -93,6 +93,10 @@ stop() {
 # Reload Icinga 2
 reload() {
 	printf "Reloading Icinga 2: "
+
+	if [ ! -e $ICINGA2_PID_FILE ]; then
+		exit 7
+	fi
 
 	pid=`cat $ICINGA2_PID_FILE`
 	if kill -HUP $pid >/dev/null 2>&1; then
@@ -130,6 +134,11 @@ checkconfig() {
 # Print status for Icinga 2
 status() {
 	printf "Icinga 2 status: "
+
+	if [ ! -e $ICINGA2_PID_FILE ]; then
+		echo "Not running"
+		exit 7
+	fi
 
 	pid=`cat $ICINGA2_PID_FILE`
 	if kill -CHLD $pid >/dev/null 2>&1; then
