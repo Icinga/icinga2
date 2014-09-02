@@ -21,14 +21,14 @@ if [ -f $SYSCONFIGFILE ]; then
 	. $SYSCONFIGFILE
 else
 	echo "Can't load system specific defines from $SYSCONFIGFILE."
-	exit 1
+	exit 6
 fi
 
-test -x $DAEMON || exit 0
+test -x $DAEMON || exit 5
 
 if [ ! -e $ICINGA2_CONFIG_FILE ]; then
         echo "Config file '$ICINGA2_CONFIG_FILE' does not exist."
-        exit 1
+        exit 6
 fi
 
 # Get function from functions library
@@ -99,7 +99,7 @@ reload() {
 		echo "Done"
 	else
 		echo "Error: Icinga not running"
-		exit 3
+		exit 7
 	fi
 }
 
@@ -136,7 +136,7 @@ status() {
 		echo "Running"
 	else
 		echo "Not running"
-		exit 3
+		exit 7
 	fi
 }
 
@@ -165,6 +165,6 @@ case "$1" in
 	;;
   *)
         echo "Usage: $0 {start|stop|restart|reload|checkconfig|status}"
-        exit 1
+        exit 3
 esac
 exit 0
