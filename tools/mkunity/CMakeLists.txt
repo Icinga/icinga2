@@ -15,13 +15,6 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_executable(mkunity mkunity.c)
-
-set_target_properties (
-  mkunity PROPERTIES
-  FOLDER Bin
-)
-
 define_property(
   SOURCE
   PROPERTY EXCLUDE_UNITY_BUILD
@@ -29,27 +22,35 @@ define_property(
   FULL_DOCS "Specified whether a source file should be excluded from unity builds and should be built separately"
 )
 
-function(MKUNITY_TARGET Prefix UnityInputRef)
-    set(UnityInput ${${UnityInputRef}})
-    set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Prefix}_unity.cpp)
-    set(RealSources "")
-    set(UnitySources "")
-    foreach(UnitySource ${UnityInput})
-        get_property(SourceExcluded SOURCE ${UnitySource} PROPERTY EXCLUDE_UNITY_BUILD)
-        if(SourceExcluded MATCHES TRUE OR NOT ${UnitySource} MATCHES "\\.(cpp|cxx|cc)\$")
-            list(APPEND RealSources ${UnitySource})
-        else()
-            list(APPEND UnitySources ${UnitySource})
-        endif()
-    endforeach()
-    add_custom_command(
-        OUTPUT ${UnityOutput}
-        COMMAND mkunity
-        ARGS ${Prefix} ${UnitySources} >${UnityOutput}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS mkunity ${UnityInput}
-    )
-    list(APPEND RealSources ${UnityOutput})
-    set(${UnityInputRef} ${RealSources} PARENT_SCOPE)
-endfunction()
+if(ICINGA2_UNITY_BUILD)
+    add_executable(mkunity mkunity.c)
 
+    set_target_properties (
+      mkunity PROPERTIES
+      FOLDER Bin
+    )
+
+    function(MKUNITY_TARGET Prefix UnityInputRef)
+        set(UnityInput ${${UnityInputRef}})
+        set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Prefix}_unity.cpp)
+        set(RealSources "")
+        set(UnitySources "")
+        foreach(UnitySource ${UnityInput})
+            get_property(SourceExcluded SOURCE ${UnitySource} PROPERTY EXCLUDE_UNITY_BUILD)
+            if(SourceExcluded MATCHES TRUE OR NOT ${UnitySource} MATCHES "\\.(cpp|cxx|cc)\$")
+                list(APPEND RealSources ${UnitySource})
+            else()
+                list(APPEND UnitySources ${UnitySource})
+            endif()
+        endforeach()
+        add_custom_command(
+            OUTPUT ${UnityOutput}
+            COMMAND mkunity
+            ARGS ${Prefix} ${UnitySources} >${UnityOutput}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS mkunity ${UnityInput}
+        )
+        list(APPEND RealSources ${UnityOutput})
+        set(${UnityInputRef} ${RealSources} PARENT_SCOPE)
+    endfunction()
+endif()
