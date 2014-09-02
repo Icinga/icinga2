@@ -62,7 +62,7 @@ String DowntimesTable::GetPrefix(void) const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 		Dictionary::Ptr downtimes = service->GetDowntimes();
 
 		ObjectLock olock(downtimes);

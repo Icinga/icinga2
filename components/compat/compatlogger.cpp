@@ -49,7 +49,7 @@ Value CompatLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, DynamicType::GetObjects<CompatLogger>()) {
+	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, DynamicType::GetObjectsByType<CompatLogger>()) {
 		nodes->Set(compat_logger->GetName(), 1); //add more stats
 	}
 
@@ -450,7 +450,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	WriteLine("LOG ROTATION: " + GetRotationMethod());
 	WriteLine("LOG VERSION: 2.0");
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		String output;
 		CheckResult::Ptr cr = host->GetLastCheckResult();
 
@@ -468,7 +468,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		WriteLine(msgbuf.str());
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 		Host::Ptr host = service->GetHost();
 
 		String output;

@@ -60,7 +60,7 @@ String EndpointsTable::GetPrefix(void) const
 
 void EndpointsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		addRowFn(endpoint);
 	}
 }

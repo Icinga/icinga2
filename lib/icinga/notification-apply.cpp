@@ -107,7 +107,7 @@ void Notification::EvaluateApplyRule(const ApplyRule& rule)
 	if (rule.GetTargetType() == "Host") {
 		apply_count = 0;
 
-		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 			CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 			if (EvaluateApplyRuleOne(host, rule))
@@ -120,7 +120,7 @@ void Notification::EvaluateApplyRule(const ApplyRule& rule)
 	} else if (rule.GetTargetType() == "Service") {
 		apply_count = 0;
 
-		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 			CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
 
 			if (EvaluateApplyRuleOne(service, rule))

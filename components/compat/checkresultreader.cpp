@@ -42,7 +42,7 @@ Value CheckResultReader::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, DynamicType::GetObjects<CheckResultReader>()) {
+	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, DynamicType::GetObjectsByType<CheckResultReader>()) {
 		nodes->Set(checkresultreader->GetName(), 1); //add more stats
 	}
 

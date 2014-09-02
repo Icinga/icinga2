@@ -67,7 +67,7 @@ Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& per
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, DynamicType::GetObjects<IcingaApplication>()) {
+	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, DynamicType::GetObjectsByType<IcingaApplication>()) {
 		Dictionary::Ptr stats = make_shared<Dictionary>();
 		stats->Set("node_name", icingaapplication->GetNodeName());
 		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());

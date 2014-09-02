@@ -74,7 +74,7 @@ bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& r
 
 void HostGroup::EvaluateObjectRule(const ObjectRule& rule)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for host '" + host->GetName() + "'");
 
 		EvaluateObjectRuleOne(host, rule);

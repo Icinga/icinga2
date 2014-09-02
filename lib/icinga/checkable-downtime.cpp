@@ -295,11 +295,11 @@ void Checkable::RemoveExpiredDowntimes(void)
 
 void Checkable::DowntimesExpireTimerHandler(void)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		host->RemoveExpiredDowntimes();
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 		service->RemoveExpiredDowntimes();
 	}
 }

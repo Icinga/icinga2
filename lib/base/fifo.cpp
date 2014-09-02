@@ -68,7 +68,7 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
 void FIFO::Optimize(void)
 {
 	if (m_DataSize < m_Offset) {
-		memcpy(m_Buffer, m_Buffer + m_Offset, m_DataSize);
+		std::memcpy(m_Buffer, m_Buffer + m_Offset, m_DataSize);
 		m_Offset = 0;
 
 		if (m_DataSize > 0)
@@ -87,7 +87,7 @@ size_t FIFO::Read(void *buffer, size_t count)
 		count = m_DataSize;
 
 	if (buffer != NULL)
-		memcpy(buffer, m_Buffer + m_Offset, count);
+		std::memcpy(buffer, m_Buffer + m_Offset, count);
 
 	m_DataSize -= count;
 	m_Offset += count;
@@ -103,7 +103,7 @@ size_t FIFO::Read(void *buffer, size_t count)
 void FIFO::Write(const void *buffer, size_t count)
 {
 	ResizeBuffer(m_Offset + m_DataSize + count, false);
-	memcpy(m_Buffer + m_Offset + m_DataSize, buffer, count);
+	std::memcpy(m_Buffer + m_Offset + m_DataSize, buffer, count);
 	m_DataSize += count;
 }
 

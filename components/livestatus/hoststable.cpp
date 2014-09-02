@@ -174,7 +174,7 @@ String HostsTable::GetPrefix(void) const
 
 void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		addRowFn(host);
 	}
 }

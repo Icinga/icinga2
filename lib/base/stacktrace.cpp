@@ -139,7 +139,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 		fp << "\t(" << i - ignoreFrames - 1 << ") " << message << std::endl;
 	}
 
-	free(messages);
+	std::free(messages);
 
 	fp << std::endl;
 #	else /* HAVE_BACKTRACE_SYMBOLS */

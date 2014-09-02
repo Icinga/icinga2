@@ -40,7 +40,7 @@ Value PerfdataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const PerfdataWriter::Ptr& perfdatawriter, DynamicType::GetObjects<PerfdataWriter>()) {
+	BOOST_FOREACH(const PerfdataWriter::Ptr& perfdatawriter, DynamicType::GetObjectsByType<PerfdataWriter>()) {
 		nodes->Set(perfdatawriter->GetName(), 1); //add more stats
 	}
 

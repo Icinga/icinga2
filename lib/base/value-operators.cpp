@@ -49,7 +49,7 @@ Value::operator String(void) const
 		case ValueEmpty:
 			return String();
 		case ValueNumber:
-			fractional = modf(boost::get<double>(m_Value), &integral);
+			fractional = std::modf(boost::get<double>(m_Value), &integral);
 
 			if (fractional != 0)
 				return boost::lexical_cast<std::string>(m_Value);

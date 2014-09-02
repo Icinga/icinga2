@@ -271,7 +271,7 @@ boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(
 template<typename TR>
 boost::function<TR (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(const std::vector<Value>&))
 {
-	return boost::bind(function, _1);
+	return boost::bind<TR>(function, _1);
 }
 
 inline boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(const std::vector<Value>&))

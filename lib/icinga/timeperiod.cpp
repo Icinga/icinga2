@@ -256,7 +256,7 @@ void TimePeriod::UpdateTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjectsByType<TimePeriod>()) {
 		double valid_end;
 
 		{

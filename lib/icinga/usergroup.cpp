@@ -74,7 +74,7 @@ bool UserGroup::EvaluateObjectRuleOne(const User::Ptr& user, const ObjectRule& r
 
 void UserGroup::EvaluateObjectRule(const ObjectRule& rule)
 {
-	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjects<User>()) {
+	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjectsByType<User>()) {
 		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for user '" + user->GetName() + "'");
 
 		EvaluateObjectRuleOne(user, rule);

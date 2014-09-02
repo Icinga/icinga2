@@ -77,7 +77,7 @@ bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr& service, const Obje
 
 void ServiceGroup::EvaluateObjectRule(const ObjectRule& rule)
 {
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for service '" + service->GetName() + "'");
 
 		EvaluateObjectRuleOne(service, rule);

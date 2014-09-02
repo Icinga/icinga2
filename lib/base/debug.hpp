@@ -52,7 +52,7 @@ NORETURNPRE int icinga_assert_fail(const char *expr, const char *file, int line)
 inline int icinga_assert_fail(const char *expr, const char *file, int line)
 {
 	fprintf(stderr, "%s:%d: assertion failed: %s\n", file, line, expr);
-	abort();
+	std::abort();
 
 #if !defined(__GNUC__) && !defined(_MSC_VER)
 	return 0;

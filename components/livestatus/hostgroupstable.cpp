@@ -73,7 +73,7 @@ String HostGroupsTable::GetPrefix(void) const
 
 void HostGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjects<HostGroup>()) {
+	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
 		addRowFn(hg);
 	}
 }

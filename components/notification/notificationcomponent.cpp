@@ -38,7 +38,7 @@ Value NotificationComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, DynamicType::GetObjects<NotificationComponent>()) {
+	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, DynamicType::GetObjectsByType<NotificationComponent>()) {
 		nodes->Set(notification_component->GetName(), 1); //add more stats
 	}
 
@@ -72,7 +72,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjects<Notification>()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjectsByType<Notification>()) {
 		Checkable::Ptr checkable = notification->GetCheckable();
 
 		if (checkable->IsPaused() && GetEnableHA())

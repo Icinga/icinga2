@@ -32,7 +32,7 @@ Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const SyslogLogger::Ptr& sysloglogger, DynamicType::GetObjects<SyslogLogger>()) {
+	BOOST_FOREACH(const SyslogLogger::Ptr& sysloglogger, DynamicType::GetObjectsByType<SyslogLogger>()) {
 		nodes->Set(sysloglogger->GetName(), 1); //add more stats
 	}
 

@@ -21,6 +21,11 @@
 #include "classcompiler.hpp"
 #include <iostream>
 #include <vector>
+#include <cstring>
+
+using std::malloc;
+using std::free;
+using std::exit;
 
 using namespace icinga;
 
@@ -92,7 +97,7 @@ void yyerror(YYLTYPE *locp, ClassCompiler *, const char *err)
 	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-" << locp->last_line << ":" << locp->last_column << ": "
 			  << err
 			  << std::endl;
-	exit(1);
+	std::exit(1);
 }
 
 int yyparse(ClassCompiler *context);
@@ -119,12 +124,12 @@ statements: /* empty */
 statement: include
 	{
 		context->HandleInclude($1, yylloc);
-		free($1);
+		std::free($1);
 	}
 	| angle_include
 	{
 		context->HandleAngleInclude($1, yylloc);
-		free($1);
+		std::free($1);
 	}
 	| class
 	{
@@ -135,7 +140,7 @@ statement: include
 	| code
 	{
 		context->HandleCode($1, yylloc);
-		free($1);
+		std::free($1);
 	}
 	;
 
@@ -154,7 +159,7 @@ angle_include: T_INCLUDE T_ANGLE_STRING
 namespace: T_NAMESPACE identifier '{'
 	{
 		context->HandleNamespaceBegin($2, yylloc);
-		free($2);
+		std::free($2);
 	}
 	statements '}'
 	{
@@ -173,16 +178,16 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 		$$ = new Klass();
 
 		$$->Name = $3;
-		free($3);
+		std::free($3);
 
 		if ($4) {
 			$$->Parent = $4;
-			free($4);
+			std::free($4);
 		}
 
 		if ($5) {
 			$$->TypeBase = $5;
-			free($5);
+			std::free($5);
 		}
 
 		$$->Attributes = $1;
@@ -243,14 +248,14 @@ class_field: field_attribute_list identifier identifier alternative_name_specifi
 		field->Attributes = $1;
 
 		field->Type = $2;
-		free($2);
+		std::free($2);
 
 		field->Name = $3;
-		free($3);
+		std::free($3);
 
 		if ($4) {
 			field->AlternativeName = $4;
-			free($4);
+			std::free($4);
 		}
 
 		std::vector<FieldAccessor>::const_iterator it;
@@ -333,7 +338,7 @@ field_accessors: /* empty */
 field_accessor: T_FIELD_ACCESSOR_TYPE T_STRING
 	{
 		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), $2);
-		free($2);
+		std::free($2);
 	}
 	;
 

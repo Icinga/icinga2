@@ -53,7 +53,7 @@ public:
 	std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > GetObjects(void);
 
 	template<typename T>
-	static std::pair<DynamicTypeIterator<T>, DynamicTypeIterator<T> > GetObjects(void)
+	static std::pair<DynamicTypeIterator<T>, DynamicTypeIterator<T> > GetObjectsByType(void)
 	{
 		DynamicType::Ptr type = GetByName(T::GetTypeName());
 		return std::make_pair(

@@ -116,6 +116,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PAT
 include(CheckSymbolExists)
 include(CheckFunctionExists)
 include(CheckLibraryExists)
+include(CheckIncludeFileCXX)
 
 check_symbol_exists(__COUNTER__ "" HAVE_COUNTER_MACRO)
 
@@ -129,6 +130,7 @@ check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)
 check_library_exists(execinfo backtrace_symbols "" HAVE_LIBEXECINFO)
+check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
 
 if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)

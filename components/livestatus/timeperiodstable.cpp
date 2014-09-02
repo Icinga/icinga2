@@ -54,7 +54,7 @@ String TimePeriodsTable::GetPrefix(void) const
 
 void TimePeriodsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjects<TimePeriod>()) {
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjectsByType<TimePeriod>()) {
 		addRowFn(tp);
 	}
 }

@@ -40,7 +40,7 @@ Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perf
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const CheckerComponent::Ptr& checker, DynamicType::GetObjects<CheckerComponent>()) {
+	BOOST_FOREACH(const CheckerComponent::Ptr& checker, DynamicType::GetObjectsByType<CheckerComponent>()) {
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 

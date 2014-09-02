@@ -94,7 +94,7 @@ void Service::EvaluateApplyRule(const ApplyRule& rule)
 {
 	int apply_count = 0;
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 		if (EvaluateApplyRuleOne(host, rule))

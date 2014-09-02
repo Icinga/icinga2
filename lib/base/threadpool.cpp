@@ -268,7 +268,7 @@ void ThreadPool::ManagerThreadProc(void)
 				avg_latency = 0;
 
 			if (utilization < 60 || utilization > 80 || alive < 8) {
-				double wthreads = ceil((utilization * alive) / 80.0);
+				double wthreads = std::ceil((utilization * alive) / 80.0);
 
 				int tthreads = wthreads - alive;
 

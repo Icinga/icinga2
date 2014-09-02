@@ -47,7 +47,7 @@ Value LivestatusListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, DynamicType::GetObjects<LivestatusListener>()) {
+	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, DynamicType::GetObjectsByType<LivestatusListener>()) {
 		Dictionary::Ptr stats = make_shared<Dictionary>();
 		stats->Set("connections", l_Connections);
 

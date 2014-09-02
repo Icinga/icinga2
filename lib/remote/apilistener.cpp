@@ -88,7 +88,7 @@ void ApiListener::OnConfigLoaded(void)
  */
 void ApiListener::Start(void)
 {
-	if (std::distance(DynamicType::GetObjects<ApiListener>().first, DynamicType::GetObjects<ApiListener>().second) > 1) {
+	if (std::distance(DynamicType::GetObjectsByType<ApiListener>().first, DynamicType::GetObjectsByType<ApiListener>().second) > 1) {
 		Log(LogCritical, "ApiListener", "Only one ApiListener object is allowed.");
 		return;
 	}
@@ -118,7 +118,7 @@ void ApiListener::Start(void)
 
 ApiListener::Ptr ApiListener::GetInstance(void)
 {
-	BOOST_FOREACH(const ApiListener::Ptr& listener, DynamicType::GetObjects<ApiListener>())
+	BOOST_FOREACH(const ApiListener::Ptr& listener, DynamicType::GetObjectsByType<ApiListener>())
 		return listener;
 
 	return ApiListener::Ptr();
@@ -332,7 +332,7 @@ void ApiListener::ApiTimerHandler(void)
 	BOOST_FOREACH(int ts, files) {
 		bool need = false;
 
-		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 			if (endpoint->GetName() == GetIdentity())
 				continue;
 
@@ -355,7 +355,7 @@ void ApiListener::ApiTimerHandler(void)
 	if (IsMaster()) {
 		Zone::Ptr my_zone = Zone::GetLocalZone();
 
-		BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+		BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
 			/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
 			if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent())
 				continue;
@@ -391,7 +391,7 @@ void ApiListener::ApiTimerHandler(void)
 		}
 	}
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		if (!endpoint->IsConnected())
 			continue;
 
@@ -421,7 +421,7 @@ void ApiListener::ApiTimerHandler(void)
 		Log(LogNotice, "ApiListener", "Current zone master: " + master->GetName());
 
 	std::vector<String> names;
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>())
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>())
 		if (endpoint->IsConnected())
 			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
@@ -483,7 +483,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	std::vector<Endpoint::Ptr> skippedEndpoints;
 	std::set<Zone::Ptr> finishedZones;
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		/* don't relay messages to ourselves or disconnected endpoints */
 		if (endpoint->GetName() == GetIdentity() || !endpoint->IsConnected())
 			continue;
@@ -744,7 +744,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	Array::Ptr not_connected_endpoints = make_shared<Array>();
 	Array::Ptr connected_endpoints = make_shared<Array>();
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjects<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		if (endpoint->GetName() == GetIdentity())
 			continue;
 

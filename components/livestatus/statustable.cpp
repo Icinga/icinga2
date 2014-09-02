@@ -207,12 +207,12 @@ Value StatusTable::ProgramStartAccessor(const Value&)
 
 Value StatusTable::NumHostsAccessor(const Value&)
 {
-	return std::distance(DynamicType::GetObjects<Host>().first, DynamicType::GetObjects<Host>().second);
+	return std::distance(DynamicType::GetObjectsByType<Host>().first, DynamicType::GetObjectsByType<Host>().second);
 }
 
 Value StatusTable::NumServicesAccessor(const Value&)
 {
-	return std::distance(DynamicType::GetObjects<Service>().first, DynamicType::GetObjects<Service>().second);
+	return std::distance(DynamicType::GetObjectsByType<Service>().first, DynamicType::GetObjectsByType<Service>().second);
 }
 
 Value StatusTable::ProgramVersionAccessor(const Value&)

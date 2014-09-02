@@ -129,7 +129,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 
 void ApiListener::SyncZoneDirs(void) const
 {
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
 		if (!IsConfigMaster(zone))
 			continue;
 
@@ -157,7 +157,7 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 
 	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
 		if (!zone->IsChildOf(azone) && !zone->IsGlobal()) {

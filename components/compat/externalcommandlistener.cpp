@@ -35,7 +35,7 @@ Value ExternalCommandListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Pt
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, DynamicType::GetObjects<ExternalCommandListener>()) {
+	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, DynamicType::GetObjectsByType<ExternalCommandListener>()) {
 		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats
 	}
 

@@ -49,7 +49,7 @@ String ContactGroupsTable::GetPrefix(void) const
 
 void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjects<UserGroup>()) {
+	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjectsByType<UserGroup>()) {
 		addRowFn(ug);
 	}
 }

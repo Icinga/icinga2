@@ -62,7 +62,7 @@ String CommentsTable::GetPrefix(void) const
 
 void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		Dictionary::Ptr comments = host->GetComments();
 
 		ObjectLock olock(comments);
@@ -74,7 +74,7 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 		}
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjects<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 		Dictionary::Ptr comments = service->GetComments();
 
 		ObjectLock olock(comments);

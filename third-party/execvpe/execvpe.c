@@ -17,16 +17,13 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifdef __linux__
 #include <alloca.h>
-#endif /* __linux */
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <paths.h>
 #include "execvpe.h"
 
 #if !defined(_MSC_VER) && !defined(HAVE_EXECVPE)
@@ -37,7 +34,7 @@ static void
 scripts_argv (const char *file, char *const argv[], int argc, char **new_argv)
 {
   /* Construct an argument list for the shell.  */
-  new_argv[0] = (char *) _PATH_BSHELL;
+  new_argv[0] = (char *) "/bin/sh";
   new_argv[1] = (char *) file;
   while (argc > 1)
     {

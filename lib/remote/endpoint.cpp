@@ -38,7 +38,7 @@ void Endpoint::OnConfigLoaded(void)
 {
 	DynamicObject::OnConfigLoaded();
 
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjects<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
 		const std::set<Endpoint::Ptr> members = zone->GetEndpoints();
 
 		if (members.empty())

@@ -60,13 +60,13 @@ String CommandsTable::GetPrefix(void) const
 
 void CommandsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects<CheckCommand>()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjectsByType<CheckCommand>()) {
 		addRowFn(object);
 	}
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects<EventCommand>()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjectsByType<EventCommand>()) {
 		addRowFn(object);
 	}
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjects<NotificationCommand>()) {
+	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjectsByType<NotificationCommand>()) {
 		addRowFn(object);
 	}
 }

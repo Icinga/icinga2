@@ -42,7 +42,7 @@ Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const IdoMysqlConnection::Ptr& idomysqlconnection, DynamicType::GetObjects<IdoMysqlConnection>()) {
+	BOOST_FOREACH(const IdoMysqlConnection::Ptr& idomysqlconnection, DynamicType::GetObjectsByType<IdoMysqlConnection>()) {
 		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = make_shared<Dictionary>();

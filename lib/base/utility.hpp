@@ -95,7 +95,7 @@ public:
 
 	static String NaturalJoin(const std::vector<String>& tokens);
 
-	static String FormatDuration(int duration);
+	static String FormatDuration(double duration);
 	static String FormatDateTime(const char *format, double ts);
 	static String FormatErrorNumber(int code);
 

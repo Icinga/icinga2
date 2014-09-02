@@ -71,7 +71,7 @@ void ScheduledDowntime::Start(void)
 
 void ScheduledDowntime::TimerProc(void)
 {
-	BOOST_FOREACH(const ScheduledDowntime::Ptr& sd, DynamicType::GetObjects<ScheduledDowntime>()) {
+	BOOST_FOREACH(const ScheduledDowntime::Ptr& sd, DynamicType::GetObjectsByType<ScheduledDowntime>()) {
 		sd->CreateNextDowntime();
 	}
 }

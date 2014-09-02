@@ -35,9 +35,9 @@
 #	include <pthread_np.h>
 #endif /* __FreeBSD__ */
 
-#ifndef _MSC_VER
+#ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>
-#endif /* _MSC_VER */
+#endif /* HAVE_CXXABI_H */
 
 using namespace icinga;
 
@@ -56,7 +56,7 @@ String Utility::DemangleSymbolName(const String& sym)
 {
 	String result = sym;
 
-#ifndef _MSC_VER
+#ifdef HAVE_CXXABI_H
 	int status;
 	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
 
@@ -64,11 +64,13 @@ String Utility::DemangleSymbolName(const String& sym)
 		result = String(realname);
 		free(realname);
 	}
-#else /* _MSC_VER */
+#elif defined(_MSC_VER) /* HAVE_CXXABI_H */
 	CHAR output[256];
 
 	if (UnDecorateSymbolName(sym.CStr(), output, sizeof(output), UNDNAME_COMPLETE) > 0)
 		result = output;
+#else /* _MSC_VER */
+	/* We're pretty much out of options here. */
 #endif /* _MSC_VER */
 
 	return result;
@@ -705,7 +707,7 @@ String Utility::NaturalJoin(const std::vector<String>& tokens)
 	return result;
 }
 
-String Utility::FormatDuration(int duration)
+String Utility::FormatDuration(double duration)
 {
 	std::vector<String> tokens;
 	String result;
@@ -713,19 +715,19 @@ String Utility::FormatDuration(int duration)
 	if (duration >= 86400) {
 		int days = duration / 86400;
 		tokens.push_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
-		duration %= 86400;
+		duration = static_cast<int>(duration) % 86400;
 	}
 
 	if (duration >= 3600) {
 		int hours = duration / 3600;
 		tokens.push_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
-		duration %= 3600;
+		duration = static_cast<int>(duration) % 3600;
 	}
 
 	if (duration >= 60) {
 		int minutes = duration / 60;
 		tokens.push_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
-		duration %= 60;
+		duration = static_cast<int>(duration) % 60;
 	}
 
 	if (duration >= 1) {
@@ -734,7 +736,7 @@ String Utility::FormatDuration(int duration)
 	}
 
 	if (tokens.size() == 0) {
-		int milliseconds = floor(duration * 1000);
+		int milliseconds = std::floor(duration * 1000);
 		if (milliseconds >= 1)
 			tokens.push_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
 		else

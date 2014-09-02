@@ -7,6 +7,7 @@
 #cmakedefine HAVE_VFORK
 #cmakedefine HAVE_DLADDR
 #cmakedefine HAVE_LIBEXECINFO
+#cmakedefine HAVE_CXXABI_H
 
 #cmakedefine ICINGA2_UNITY_BUILD
 

@@ -38,7 +38,7 @@ Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const IcingaStatusWriter::Ptr& icingastatuswriter, DynamicType::GetObjects<IcingaStatusWriter>()) {
+	BOOST_FOREACH(const IcingaStatusWriter::Ptr& icingastatuswriter, DynamicType::GetObjectsByType<IcingaStatusWriter>()) {
 		nodes->Set(icingastatuswriter->GetName(), 1); //add more stats
 	}
 

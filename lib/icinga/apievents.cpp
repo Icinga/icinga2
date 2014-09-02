@@ -1403,7 +1403,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 
 	Dictionary::Ptr repository = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjects<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		Array::Ptr services = make_shared<Array>();
 
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
