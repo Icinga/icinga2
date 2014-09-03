@@ -71,23 +71,24 @@ void Process::StaticInitialize(void)
 #else /* _WIN32 */
 #	ifdef HAVE_PIPE2
 		if (pipe2(l_EventFDs[tid], O_CLOEXEC) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("pipe2")
-				<< boost::errinfo_errno(errno));
-		}
-#	else /* HAVE_PIPE2 */
-		if (pipe(l_EventFDs[tid]) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("pipe")
-				<< boost::errinfo_errno(errno));
-		}
-
-		Utility::SetCloExec(l_EventFDs[tid][0]);
-		Utility::SetCloExec(l_EventFDs[tid][1]);
+			if (errno == ENOSYS) {
 #	endif /* HAVE_PIPE2 */
+				if (pipe(l_EventFDs[tid]) < 0) {
+					BOOST_THROW_EXCEPTION(posix_error()
+					    << boost::errinfo_api_function("pipe")
+					    << boost::errinfo_errno(errno));
+				}
 
-		Utility::SetNonBlocking(l_EventFDs[tid][0]);
-		Utility::SetNonBlocking(l_EventFDs[tid][1]);
+				Utility::SetCloExec(l_EventFDs[tid][0]);
+				Utility::SetCloExec(l_EventFDs[tid][1]);
+#	ifdef HAVE_PIPE2
+			} else {
+				BOOST_THROW_EXCEPTION(posix_error()
+					<< boost::errinfo_api_function("pipe2")
+					<< boost::errinfo_errno(errno));
+			}
+		}
+#	endif /* HAVE_PIPE2 */
 #endif /* _WIN32 */
 	}
 }
@@ -444,19 +445,23 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 #ifdef HAVE_PIPE2
 	if (pipe2(fds, O_CLOEXEC) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("pipe2")
-			<< boost::errinfo_errno(errno));
-	}
-#else /* HAVE_PIPE2 */
-	if (pipe(fds) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("pipe")
-			<< boost::errinfo_errno(errno));
-	}
+		if (errno == ENOSYS) {
+#endif /* HAVE_PIPE2 */
+			if (pipe(fds) < 0) {
+				BOOST_THROW_EXCEPTION(posix_error()
+				    << boost::errinfo_api_function("pipe")
+				    << boost::errinfo_errno(errno));
+			}
 
-	Utility::SetCloExec(fds[0]);
-	Utility::SetCloExec(fds[1]);
+			Utility::SetCloExec(fds[0]);
+			Utility::SetCloExec(fds[1]);
+#ifdef HAVE_PIPE2
+		} else {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("pipe2")
+				<< boost::errinfo_errno(errno));
+		}
+	}
 #endif /* HAVE_PIPE2 */
 
 	// build argv
