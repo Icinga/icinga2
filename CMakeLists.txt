@@ -97,6 +97,11 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -g")
 endif()
 
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "SunPro")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mt")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mt -library=stlport4")
+endif()
+
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
   if(${CMAKE_SYSTEM_NAME} MATCHES AIX)
