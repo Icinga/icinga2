@@ -58,7 +58,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 		SetForceNextNotification(false);
 	}
 
-	Log(LogInformation, "Checkable", "Sending notifications for object '" + GetName() + "'");
+	Log(LogInformation, "Checkable", "Checking for configured notifications for object '" + GetName() + "'");
 
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
