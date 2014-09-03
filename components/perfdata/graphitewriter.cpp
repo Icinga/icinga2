@@ -136,6 +136,9 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 {
 	Value pdv = cr->GetPerformanceData();
 
+	if (pdv.IsEmpty())
+		return;
+
 	if (!pdv.IsObjectType<Dictionary>())
 	{
 		CONTEXT("Processing performance data value '" + String(pdv) + "'");
