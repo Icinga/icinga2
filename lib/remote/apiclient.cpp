@@ -114,7 +114,12 @@ void ApiClient::DisconnectSync(void)
 
 bool ApiClient::ProcessMessage(void)
 {
-	Dictionary::Ptr message = JsonRpc::ReadMessage(m_Stream);
+	Dictionary::Ptr message;
+
+	{
+		ObjectLock olock(m_Stream);
+		message = JsonRpc::ReadMessage(m_Stream);
+	}
 
 	if (!message)
 		return false;
