@@ -32,6 +32,7 @@ You need to add the Icinga repository to your package management configuration.
 Below is a list with examples for the various distributions.
 
 Debian (debmon):
+
     # wget -O - http://debmon.org/debmon/repo.key 2>/dev/null | apt-key add -
     # cat >/etc/apt/sources.list.d/debmon.list<<EOF
     deb http://debmon.org/debmon debmon-wheezy main
@@ -39,23 +40,28 @@ Debian (debmon):
     # apt-get update
 
 Ubuntu (PPA):
+
     # add-apt-repository ppa:formorer/icinga
     # apt-get update
 
 RHEL/CentOS:
+
     # rpm --import http://packages.icinga.org/icinga.key
     # wget http://packages.icinga.org/epel/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
     # yum makecache
 
 Fedora:
+
     # wget http://packages.icinga.org/fedora/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
     # yum makecache
 
 SLES:
+
     # zypper ar http://packages.icinga.org/SUSE/ICINGA-release.repo
     # zypper ref
 
 OpenSUSE:
+
     # zypper ar http://packages.icinga.org/openSUSE/ICINGA-release.repo
     # zypper ref
 
@@ -70,12 +76,15 @@ You can install Icinga 2 by using your distribution's package manager
 to install the `icinga2` package.
 
 Debian/Ubuntu:
+
     # apt-get install icinga2
 
 RHEL/CentOS/Fedora:
+
     # yum install icinga2
 
 SLES/OpenSUSE:
+
     # zypper install icinga2
 
 On RHEL/CentOS and SLES you will need to use `chkconfig` to enable the
@@ -538,19 +547,23 @@ or [PostgreSQL](#installing-database-postgresql-server) as supported database se
 #### <a id="installing-database-mysql-server"></a> Installing MySQL database server
 
 Debian/Ubuntu:
+
     # apt-get install mysql-server mysql-client
 
 RHEL/CentOS 5/6:
+
     # yum install mysql-server mysql
     # chkconfig mysqld on
     # service mysqld start
 
 RHEL/CentOS 7 and Fedora 20 prefer MariaDB over MySQL:
+
     # yum install mariadb-server mariadb
     # systemctl enable mariadb.service
     # systemctl start mariadb.service
 
 SUSE:
+
     # zypper install mysql mysql-client
     # chkconfig mysqld on
     # service mysqld start
@@ -563,19 +576,23 @@ RHEL based distributions do not automatically set a secure root password. Do tha
 #### <a id="installing-database-postgresql-server"></a> Installing PostgreSQL database server
 
 Debian/Ubuntu:
+
     # apt-get install postgresql
 
 RHEL/CentOS 5/6:
+
     # yum install postgresql-server postgresql
     # chkconfig postgresql on
     # service postgresql start
 
 RHEL/CentOS 7 and Fedora 20 use [systemd](#systemd-service):
+
     # yum install postgresql-server postgresql
     # systemctl enable postgresql.service
     # systemctl start postgresql.service
 
 SUSE:
+
     # zypper install postgresql postgresql-server
     # chkconfig postgresql on
     # service postgresql start
@@ -636,8 +653,13 @@ You can enable the `ido-mysql` feature configuration file using `icinga2-enable-
 
 After enabling the ido-mysql feature you have to restart Icinga 2:
 
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
+
     # service icinga2 restart
 
+RHEL/CentOS 7 and Fedora 20:
+
+    # systemctl restart icinga2.service
 
 ### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
@@ -717,7 +739,13 @@ You can enable the `ido-pgsql` feature configuration file using `icinga2-enable-
 
 After enabling the ido-pgsql feature you have to restart Icinga 2:
 
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
+
     # service icinga2 restart
+
+RHEL/CentOS 7 and Fedora 20:
+
+    # systemctl restart icinga2.service
 
 
 ### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
@@ -731,7 +759,13 @@ You can enable the External Command Pipe using icinga2-enable-feature:
 
 After that you will have to restart Icinga 2:
 
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
+
     # service icinga2 restart
+
+RHEL/CentOS 7 and Fedora 20:
+
+    # systemctl restart icinga2.service
 
 By default the command pipe file is owned by the group `icingacmd` with read/write
 permissions. Add your webserver's user to the group `icingacmd` to
@@ -775,7 +809,13 @@ You can enable Livestatus using icinga2-enable-feature:
 
 After that you will have to restart Icinga 2:
 
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
+
     # service icinga2 restart
+
+RHEL/CentOS 7 and Fedora 20:
+
+    # systemctl restart icinga2.service
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 
@@ -829,22 +869,26 @@ as web server.
 Debian/Ubuntu packages will automatically fetch and install the required packages.
 
 RHEL/CentOS/Fedora:
+
     # yum install httpd
     # chkconfig httpd on && service httpd start
     ## RHEL7
     # systemctl enable httpd && systemctl start httpd
 
 SUSE:
+
     # zypper install apache2
     # chkconfig on && service apache2 start
 
 #### <a id="icinga2-user-interface-firewall-rules"></a> Firewall Rules
 
 Example:
+
     # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
     # service iptables save
 
 RHEL/CentOS 7 specific:
+
     # firewall-cmd --add-service=http
     # firewall-cmd --permanent --add-service=http
 
