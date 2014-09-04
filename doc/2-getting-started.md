@@ -636,8 +636,9 @@ You can enable the `ido-mysql` feature configuration file using `icinga2-enable-
 
 After enabling the ido-mysql feature you have to restart Icinga 2:
 
-    # service icinga2 restart
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE: # service icinga2 restart
 
+RHEL/CentOS 7 and Fedora 20: # systemctl restart icinga2.service
 
 ### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
@@ -717,7 +718,9 @@ You can enable the `ido-pgsql` feature configuration file using `icinga2-enable-
 
 After enabling the ido-pgsql feature you have to restart Icinga 2:
 
-    # service icinga2 restart
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE: # service icinga2 restart
+
+RHEL/CentOS 7 and Fedora 20: # systemctl restart icinga2.service
 
 
 ### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
@@ -731,7 +734,9 @@ You can enable the External Command Pipe using icinga2-enable-feature:
 
 After that you will have to restart Icinga 2:
 
-    # service icinga2 restart
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE: # service icinga2 restart
+
+RHEL/CentOS 7 and Fedora 20: # systemctl restart icinga2.service
 
 By default the command pipe file is owned by the group `icingacmd` with read/write
 permissions. Add your webserver's user to the group `icingacmd` to
@@ -775,7 +780,9 @@ You can enable Livestatus using icinga2-enable-feature:
 
 After that you will have to restart Icinga 2:
 
-    # service icinga2 restart
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE: # service icinga2 restart
+
+RHEL/CentOS 7 and Fedora 20: # systemctl restart icinga2.service
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 
