@@ -66,7 +66,7 @@ ConnectionRole ApiClient::GetRole(void) const
 
 void ApiClient::SendMessage(const Dictionary::Ptr& message)
 {
-	if (m_WriteQueue.GetLength() > 5000) {
+	if (m_WriteQueue.GetLength() > 20000) {
 		Log(LogWarning, "remote", "Closing connection for API identity '" + m_Identity + "': Too many queued messages.");
 		Disconnect();
 		return;
