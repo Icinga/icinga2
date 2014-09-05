@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os, sys, getopt
+import os, sys, getopt, codecs
 from icinga2.utils.debug import ObjectsFileReader
 from icinga2.config import LocalStateDir
 from signal import signal, SIGPIPE, SIG_DFL
@@ -59,7 +59,7 @@ def main():
     fp = open(fname)
     ofr = ObjectsFileReader(fp)
     for obj in ofr:
-        print obj.format(use_colors)
+        print codecs.encode(obj.format(use_colors), 'utf8')
 
 def usage():
     print "Syntax: %s [--help|-h] [--color] [file]" % (sys.argv[0])
