@@ -98,6 +98,8 @@ void TlsStream::Handshake(void)
 	std::ostringstream msgbuf;
 	char errbuf[120];
 
+	boost::mutex::scoped_lock alock(m_IOActionLock);
+
 	for (;;) {
 		int rc, err;
 
@@ -144,6 +146,10 @@ size_t TlsStream::Read(void *buffer, size_t count)
 	size_t left = count;
 	std::ostringstream msgbuf;
 	char errbuf[120];
+
+	m_Socket->Poll(true, false);
+
+	boost::mutex::scoped_lock alock(m_IOActionLock);
 
 	while (left > 0) {
 		int rc, err;
@@ -192,6 +198,10 @@ void TlsStream::Write(const void *buffer, size_t count)
 	size_t left = count;
 	std::ostringstream msgbuf;
 	char errbuf[120];
+
+	m_Socket->Poll(false, true);
+
+	boost::mutex::scoped_lock alock(m_IOActionLock);
 
 	while (left > 0) {
 		int rc, err;

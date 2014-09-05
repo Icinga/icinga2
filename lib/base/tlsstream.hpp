@@ -55,6 +55,7 @@ public:
 private:
 	shared_ptr<SSL> m_SSL;
 	mutable boost::mutex m_SSLLock;
+	mutable boost::mutex m_IOActionLock;
 	BIO *m_BIO;
 
 	Socket::Ptr m_Socket;
