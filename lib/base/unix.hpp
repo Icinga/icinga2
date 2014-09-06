@@ -49,6 +49,12 @@ typedef int SOCKET;
 #define closesocket close
 #define ioctlsocket ioctl
 
+#ifndef SUN_LEN
+/* TODO: Ideally this should take into the account how
+   long the socket path really is. */
+#	define SUN_LEN(sun) (sizeof(sockaddr_un))
+#endif /* SUN_LEN */
+
 #ifndef PATH_MAX
 #	define PATH_MAX 1024
 #endif /* PATH_MAX */
