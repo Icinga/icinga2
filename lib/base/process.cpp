@@ -527,8 +527,10 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		(void)close(fds[0]);
 		(void)close(fds[1]);
 
+#ifdef HAVE_NICE
 		if (nice(5) < 0)
 			Log(LogWarning, "base", "Failed to renice child process.");
+#endif /* HAVE_NICE */
 
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
 			char errmsg[512];

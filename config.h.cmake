@@ -8,6 +8,7 @@
 #cmakedefine HAVE_DLADDR
 #cmakedefine HAVE_LIBEXECINFO
 #cmakedefine HAVE_CXXABI_H
+#cmakedefine HAVE_NICE
 
 #cmakedefine ICINGA2_UNITY_BUILD
 
