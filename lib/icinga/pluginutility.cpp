@@ -189,7 +189,7 @@ ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 	}
 }
 
-std::pair<String, Value> PluginUtility::ParseCheckOutput(const String& output)
+std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 {
 	String text;
 	String perfdata;
@@ -217,7 +217,7 @@ std::pair<String, Value> PluginUtility::ParseCheckOutput(const String& output)
 
 	boost::algorithm::trim(perfdata);
 
-	return std::make_pair(text, ParsePerfdata(perfdata));
+	return std::make_pair(text, perfdata);
 }
 
 Value PluginUtility::ParsePerfdata(const String& perfdata)

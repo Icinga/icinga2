@@ -44,7 +44,7 @@ public:
 	    const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback = boost::function<void(const Value& commandLine, const ProcessResult&)>());
 
 	static ServiceState ExitStatusToState(int exitStatus);
-	static std::pair<String, Value> ParseCheckOutput(const String& output);
+	static std::pair<String, String> ParseCheckOutput(const String& output);
 
 	static Value ParsePerfdata(const String& perfdata);
 	static String FormatPerfdata(const Value& perfdata);

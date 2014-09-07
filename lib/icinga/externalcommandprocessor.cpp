@@ -304,9 +304,15 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
 	CheckResult::Ptr result = make_shared<CheckResult>();
-	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(arguments[2]);
+	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[2]);
 	result->SetOutput(co.first);
-	result->SetPerformanceData(co.second);
+
+	Value perfdata = co.second;
+
+	if (host->GetEnablePerfdata())
+		perfdata = PluginUtility::ParsePerfdata(perfdata);
+
+	result->SetPerformanceData(perfdata);
 
 	ServiceState state;
 
@@ -350,9 +356,15 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
 	CheckResult::Ptr result = make_shared<CheckResult>();
-	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(arguments[3]);
+	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[3]);
 	result->SetOutput(co.first);
-	result->SetPerformanceData(co.second);
+
+	Value perfdata = co.second;
+
+	if (service->GetEnablePerfdata())
+		perfdata = PluginUtility::ParsePerfdata(perfdata);
+
+	result->SetPerformanceData(perfdata);
 	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
 
 	result->SetScheduleStart(time);
