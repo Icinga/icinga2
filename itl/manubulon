@@ -21,4 +21,4 @@
  * This is the SNMP Manubulon Template Library.
  */
 
-include "plugin-commands-manubulon.conf"
+include "command-plugins-manubulon.conf"
