@@ -50,6 +50,7 @@ bool Application::m_RequestRestart = false;
 bool Application::m_RequestReopenLogs = false;
 pid_t Application::m_ReloadProcess = 0;
 static bool l_Restarting = false;
+static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
@@ -578,6 +579,12 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
  */
 void Application::ExceptionHandler(void)
 {
+	if (l_InExceptionHandler)
+		for (;;)
+			Utility::Sleep(5);
+
+	l_InExceptionHandler = true;
+
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -607,6 +614,11 @@ void Application::ExceptionHandler(void)
 #ifdef _WIN32
 LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 {
+	if (l_InExceptionHandler)
+		return EXCEPTION_CONTINUE_SEARCH;
+
+	l_InExceptionHandler = true;
+
 	DisplayInfoMessage();
 
 	std::cerr << "Caught unhandled SEH exception." << std::endl

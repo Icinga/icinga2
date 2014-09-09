@@ -21,7 +21,7 @@
 #define CONFIGERROR_H
 
 #include "config/i2-config.hpp"
-#include "config/debuginfo.hpp"
+#include "base/debuginfo.hpp"
 #include "base/exception.hpp"
 
 namespace icinga
@@ -34,18 +34,7 @@ class I2_CONFIG_API ConfigError : virtual public user_error
 {
 public:
 	ConfigError(const String& message);
-	~ConfigError(void) throw();
-
-	const char *what(void) const throw();
-
-private:
-	String m_Message;
 };
-
-struct errinfo_debuginfo_;
-typedef boost::error_info<struct errinfo_debuginfo_, DebugInfo> errinfo_debuginfo;
-
-std::string to_string(const errinfo_debuginfo& e);
 
 }
 

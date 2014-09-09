@@ -22,7 +22,7 @@
 
 #include "config/i2-config.hpp"
 #include "config/typerulelist.hpp"
-#include "config/debuginfo.hpp"
+#include "base/debuginfo.hpp"
 
 namespace icinga
 {

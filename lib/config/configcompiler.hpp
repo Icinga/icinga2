@@ -21,7 +21,7 @@
 #define CONFIGCOMPILER_H
 
 #include "config/i2-config.hpp"
-#include "config/debuginfo.hpp"
+#include "base/debuginfo.hpp"
 #include "base/registry.hpp"
 #include "base/initialize.hpp"
 #include "base/singleton.hpp"

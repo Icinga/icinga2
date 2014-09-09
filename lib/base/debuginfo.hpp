@@ -20,8 +20,9 @@
 #ifndef DEBUGINFO_H
 #define DEBUGINFO_H
 
-#include "config/i2-config.hpp"
+#include "base/i2-base.hpp"
 #include "base/qstring.hpp"
+#include "base/exception.hpp"
 
 namespace icinga
 {
@@ -60,11 +61,16 @@ struct DebugInfo
 	};
 };
 
-I2_CONFIG_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
+I2_BASE_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
 
-I2_CONFIG_API DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
+I2_BASE_API DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
 
-I2_CONFIG_API void ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbose);
+I2_BASE_API void ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbose);
+
+struct errinfo_debuginfo_;
+typedef boost::error_info<struct errinfo_debuginfo_, DebugInfo> errinfo_debuginfo;
+
+std::string to_string(const errinfo_debuginfo& e);
 
 }
 

@@ -34,7 +34,7 @@ set(config_SOURCES
   aexpression.cpp applyrule.cpp base-type.conf base-type.cpp
   configcompilercontext.cpp configcompiler.cpp configerror.cpp configitembuilder.cpp
   configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
-  configtype.cpp debuginfo.cpp objectrule.cpp typerule.cpp typerulelist.cpp
+  configtype.cpp objectrule.cpp typerule.cpp typerulelist.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

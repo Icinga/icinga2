@@ -24,7 +24,7 @@ mkclass_target(sysloglogger.ti sysloglogger.thpp)
 
 set(base_SOURCES
   application.cpp application.thpp array.cpp context.cpp
-  convert.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
+  convert.cpp debuginfo.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp
   qstring.cpp ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp

@@ -25,6 +25,7 @@
 #include "base/object.hpp"
 #include "base/serializer.hpp"
 #include "base/dictionary.hpp"
+#include "base/debuginfo.hpp"
 #include <boost/signals2.hpp>
 #include <map>
 
@@ -52,6 +53,9 @@ public:
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
 	shared_ptr<DynamicType> GetType(void) const;
+
+	DebugInfo GetDebugInfo(void) const;
+	void SetDebugInfo(const DebugInfo& di);
 
 	bool IsActive(void) const;
 	bool IsPaused(void) const;
@@ -93,6 +97,8 @@ protected:
 private:
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 	static void RestoreObject(const String& message, int attributeTypes);
+
+	DebugInfo m_DebugInfo;
 };
 
 #define DECLARE_TYPENAME(klass)						\

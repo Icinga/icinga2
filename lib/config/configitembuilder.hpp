@@ -20,9 +20,9 @@
 #ifndef CONFIGITEMBUILDER_H
 #define CONFIGITEMBUILDER_H
 
-#include "config/debuginfo.hpp"
 #include "config/aexpression.hpp"
 #include "config/configitem.hpp"
+#include "base/debuginfo.hpp"
 #include "base/object.hpp"
 
 namespace icinga

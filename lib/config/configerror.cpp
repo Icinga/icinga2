@@ -23,21 +23,6 @@
 using namespace icinga;
 
 ConfigError::ConfigError(const String& message)
-	: m_Message(message)
+	: user_error(message)
 { }
 
-ConfigError::~ConfigError(void) throw()
-{ }
-
-const char *ConfigError::what(void) const throw()
-{
-	return m_Message.CStr();
-}
-
-std::string icinga::to_string(const errinfo_debuginfo& e)
-{
-	std::ostringstream msgbuf;
-	msgbuf << "Config location: " << e.value() << "\n";
-	ShowCodeFragment(msgbuf, e.value(), true);
-	return msgbuf.str();
-}

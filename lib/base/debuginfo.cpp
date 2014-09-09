@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/debuginfo.hpp"
+#include "base/debuginfo.hpp"
 #include "base/convert.hpp"
 #include <fstream>
 
@@ -107,3 +107,12 @@ void icinga::ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbo
 		}
 	}
 }
+
+std::string icinga::to_string(const errinfo_debuginfo& e)
+{
+	std::ostringstream msgbuf;
+	msgbuf << "Config location: " << e.value() << "\n";
+	ShowCodeFragment(msgbuf, e.value(), true);
+	return msgbuf.str();
+}
+

@@ -21,7 +21,7 @@
 #define AEXPRESSION_H
 
 #include "config/i2-config.hpp"
-#include "config/debuginfo.hpp"
+#include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 

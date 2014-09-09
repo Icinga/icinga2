@@ -54,6 +54,16 @@ DynamicType::Ptr DynamicObject::GetType(void) const
 	return DynamicType::GetByName(GetTypeName());
 }
 
+DebugInfo DynamicObject::GetDebugInfo(void) const
+{
+	return m_DebugInfo;
+}
+
+void DynamicObject::SetDebugInfo(const DebugInfo& di)
+{
+	m_DebugInfo = di;
+}
+
 bool DynamicObject::IsActive(void) const
 {
 	return GetActive();

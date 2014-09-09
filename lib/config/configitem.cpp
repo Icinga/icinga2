@@ -22,6 +22,7 @@
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
 #include "config/configtype.hpp"
+#include "config/configerror.hpp"
 #include "base/application.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
@@ -180,9 +181,6 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (!dtype)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Type '" + GetType() + "' does not exist."));
 
-	if (dtype->GetObject(GetName()))
-	    BOOST_THROW_EXCEPTION(std::runtime_error("An object with type '" + GetType() + "' and name '" + GetName() + "' already exists."));
-
 	if (IsAbstract())
 		return DynamicObject::Ptr();
 
@@ -195,6 +193,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	}
 
 	DynamicObject::Ptr dobj = dtype->CreateObject(properties);
+	dobj->SetDebugInfo(m_DebugInfo);
 	dobj->Register();
 
 	m_Object = dobj;

@@ -22,7 +22,7 @@
 
 #include "config/i2-config.hpp"
 #include "config/aexpression.hpp"
-#include "config/debuginfo.hpp"
+#include "base/debuginfo.hpp"
 #include "base/dynamictype.hpp"
 
 namespace icinga
