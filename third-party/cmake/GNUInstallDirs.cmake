@@ -94,13 +94,30 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   # reason is: amd64 ABI: http://www.x86-64.org/documentation/abi.pdf
   # For Debian with multiarch, use 'lib/${CMAKE_LIBRARY_ARCHITECTURE}' if
   # CMAKE_LIBRARY_ARCHITECTURE is set (which contains e.g. "i386-linux-gnu"
+  # and CMAKE_INSTALL_PREFIX is "/usr"
   # See http://wiki.debian.org/Multiarch
-  if(CMAKE_SYSTEM_NAME MATCHES "Linux"
+  if(DEFINED _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX)
+    set(__LAST_LIBDIR_DEFAULT "lib")
+    # __LAST_LIBDIR_DEFAULT is the default value that we compute from
+    # _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX, not a cache entry for
+    # the value that was last used as the default.
+    # This value is used to figure out whether the user changed the
+    # CMAKE_INSTALL_LIBDIR value manually, or if the value was the
+    # default one. When CMAKE_INSTALL_PREFIX changes, the value is
+    # updated to the new default, unless the user explicitly changed it.
+  endif()
+  if(CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU)$"
       AND NOT CMAKE_CROSSCOMPILING)
     if (EXISTS "/etc/debian_version") # is this a debian system ?
-       if(CMAKE_LIBRARY_ARCHITECTURE)
-         set(_LIBDIR_DEFAULT "lib/${CMAKE_LIBRARY_ARCHITECTURE}")
-       endif()
+      if(CMAKE_LIBRARY_ARCHITECTURE)
+        if("${CMAKE_INSTALL_PREFIX}" MATCHES "^/usr/?$")
+          set(_LIBDIR_DEFAULT "lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+        endif()
+        if(DEFINED _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX
+            AND "${_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX}" MATCHES "^/usr/?$")
+          set(__LAST_LIBDIR_DEFAULT "lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+        endif()
+      endif()
     else() # not debian, rely on CMAKE_SIZEOF_VOID_P:
       if(NOT DEFINED CMAKE_SIZEOF_VOID_P)
         message(AUTHOR_WARNING
@@ -109,12 +126,23 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
       else()
         if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
           set(_LIBDIR_DEFAULT "lib64")
+          if(DEFINED _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX)
+            set(__LAST_LIBDIR_DEFAULT "lib64")
+          endif()
         endif()
       endif()
     endif()
   endif()
-  set(CMAKE_INSTALL_LIBDIR "${_LIBDIR_DEFAULT}" CACHE PATH "object code libraries (${_LIBDIR_DEFAULT})")
+  if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR "${_LIBDIR_DEFAULT}" CACHE PATH "object code libraries (${_LIBDIR_DEFAULT})")
+  elseif(DEFINED __LAST_LIBDIR_DEFAULT
+      AND "${__LAST_LIBDIR_DEFAULT}" STREQUAL "${CMAKE_INSTALL_LIBDIR}")
+    set_property(CACHE CMAKE_INSTALL_LIBDIR PROPERTY VALUE "${_LIBDIR_DEFAULT}")
+  endif()
 endif()
+# Save for next run
+set(_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE INTERNAL "CMAKE_INSTALL_PREFIX during last run")
+
 
 if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
   set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "C header files (include)")
@@ -138,19 +166,31 @@ if(NOT CMAKE_INSTALL_DATADIR)
   set(CMAKE_INSTALL_DATADIR "${CMAKE_INSTALL_DATAROOTDIR}")
 endif()
 
-if(NOT CMAKE_INSTALL_INFODIR)
-  set(CMAKE_INSTALL_INFODIR "" CACHE PATH "info documentation (DATAROOTDIR/info)")
-  set(CMAKE_INSTALL_INFODIR "${CMAKE_INSTALL_DATAROOTDIR}/info")
+if(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+  if(NOT CMAKE_INSTALL_INFODIR)
+    set(CMAKE_INSTALL_INFODIR "" CACHE PATH "info documentation (info)")
+    set(CMAKE_INSTALL_INFODIR "info")
+  endif()
+
+  if(NOT CMAKE_INSTALL_MANDDIR)
+    set(CMAKE_INSTALL_MANDIR "" CACHE PATH "man documentation (man)")
+    set(CMAKE_INSTALL_MANDIR "man")
+  endif()
+else()
+  if(NOT CMAKE_INSTALL_INFODIR)
+    set(CMAKE_INSTALL_INFODIR "" CACHE PATH "info documentation (DATAROOTDIR/info)")
+    set(CMAKE_INSTALL_INFODIR "${CMAKE_INSTALL_DATAROOTDIR}/info")
+  endif()
+
+  if(NOT CMAKE_INSTALL_MANDDIR)
+    set(CMAKE_INSTALL_MANDIR "" CACHE PATH "man documentation (DATAROOTDIR/man)")
+    set(CMAKE_INSTALL_MANDIR "${CMAKE_INSTALL_DATAROOTDIR}/man")
+  endif()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCALEDIR)
   set(CMAKE_INSTALL_LOCALEDIR "" CACHE PATH "locale-dependent data (DATAROOTDIR/locale)")
   set(CMAKE_INSTALL_LOCALEDIR "${CMAKE_INSTALL_DATAROOTDIR}/locale")
-endif()
-
-if(NOT CMAKE_INSTALL_MANDIR)
-  set(CMAKE_INSTALL_MANDIR "" CACHE PATH "man documentation (DATAROOTDIR/man)")
-  set(CMAKE_INSTALL_MANDIR "${CMAKE_INSTALL_DATAROOTDIR}/man")
 endif()
 
 if(NOT CMAKE_INSTALL_DOCDIR)
