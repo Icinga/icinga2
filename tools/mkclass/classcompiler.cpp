@@ -24,6 +24,9 @@
 #include <map>
 #include <vector>
 #include <cstring>
+#ifndef _WIN32
+#include <libgen.h>
+#endif /* _WIN32 */
 
 using namespace icinga;
 
