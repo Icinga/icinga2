@@ -151,6 +151,8 @@ private:
 	void *m_Scanner;
 
 	static unsigned long SDBM(const std::string& str, size_t len);
+	static std::string BaseName(const std::string& path);
+	static std::string FileNameToGuardName(const std::string& path);
 };
 
 }

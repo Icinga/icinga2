@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include <map>
 #include <vector>
+#include <cstring>
 
 using namespace icinga;
 
@@ -482,9 +483,47 @@ void ClassCompiler::CompileFile(const std::string& path)
 	return CompileStream(path, &stream);
 }
 
+std::string ClassCompiler::BaseName(const  std::string& path)
+{
+	char *dir = strdup(path.c_str());
+	std::string result;
+
+	if (dir == NULL)
+		throw std::bad_alloc();
+
+#ifndef _WIN32
+	result = basename(dir);
+#else /* _WIN32 */
+	result = PathFindFileName(dir);
+#endif /* _WIN32 */
+
+	free(dir);
+
+	return result;
+}
+
+std::string ClassCompiler::FileNameToGuardName(const std::string& fname)
+{
+	std::string result = fname;
+
+	for (int i = 0; i < result.size(); i++) {
+		result[i] = toupper(result[i]);
+
+		if (result[i] == '.')
+			result[i] = '_';
+	}
+
+	return result;
+}
+
 void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 {
 	stream->exceptions(std::istream::badbit);
+
+	std::string guard_name = FileNameToGuardName(BaseName(path));
+
+	std::cout << "#ifndef " << guard_name << std::endl
+			  << "#define " << guard_name << std::endl << std::endl;
 
 	std::cout << "#include \"base/object.hpp\"" << std::endl
 			  << "#include \"base/type.hpp\"" << std::endl
@@ -505,4 +544,6 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 	std::cout << "#ifdef _MSC_VER" << std::endl
 			  << "#pragma warning ( pop )" << std::endl
 			  << "#endif /* _MSC_VER */" << std::endl;
+
+	std::cout << "#endif /* " << guard_name << " */" << std::endl;
 }
