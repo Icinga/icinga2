@@ -957,9 +957,11 @@ The Icinga package repository has both Debian and RPM packages. You can install
 Icinga Web using the following packages (RPMs ship an additional configuration package):
 
   Distribution  | Packages
-  --------------|-------------------------------------
+  --------------|-------------------------------------------------------
   RHEL/SUSE     | icinga-web icinga-web-{mysql,pgsql}
-  Debian        | icinga-web
+  Debian        | icinga-web icinga-web-config-icinga2-ido-{mysql,pgsql}
+
+#### <a id="icinga-web-rpm-notes"></a> Icinga Web on RPM based systems
 
 Additionally you need to setup the `icinga_web` database and import the database schema.
 Details can be found in the package `README` files, for example [README.RHEL](https://github.com/Icinga/icinga-web/blob/master/doc/README.RHEL)
@@ -1019,6 +1021,33 @@ to the default used in Icinga 2. Make sure to clear the cache afterwards.
 >
 > The path to the Icinga Web `clearcache` script may differ. Please check the
 > [Icinga Web documentation](https://docs.icinga.org) for details.
+
+#### <a id="icinga-web-debian-notes"></a> Icinga Web on Debian systems
+
+Since Icinga Web 1.11.1-2 on Debian and Ubuntu, the IDO autoconfiguration has been moved to additional packages.
+
+The package `icinga-web` no longer configures the IDO connection, you can use one of the config packages:
+
+ - `icinga-web-config-icinga2-ido-mysql`
+ - `icinga-web-config-icinga2-ido-pgsql`
+
+These packages take care of setup up the IDO connection, enabling the command pipe from Icinga Web
+and depend on the corresponding packages of Icinga 2.
+
+Please read the README.Debian files for details and how to do advanced configuration:
+
+ - `/usr/share/doc/icinga-web/README.Debian`
+ - `/usr/share/doc/icinga-web-config-icinga2-ido-mysql/README.Debian`
+ - `/usr/share/doc/icinga-web-config-icinga2-ido-pgsql/README.Debian`
+
+If you change the XML configuration of Icinga Web, make sure to clear the config cache:
+
+    # /usr/lib/icinga-web/bin/clearcache.sh
+
+> **Note**
+>
+> When you use an older version of icinga-web you should install it with:
+> `apt-get install --no-install-recommends icinga-web`
 
 #### <a id="setting-up-icinga-web-summary"></a> Setting Up Icinga Web Summary
 
