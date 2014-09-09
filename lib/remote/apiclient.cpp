@@ -79,6 +79,8 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 {
 	try {
 		ObjectLock olock(m_Stream);
+		if (m_Stream->IsEof())
+			return;
 		JsonRpc::SendMessage(m_Stream, message);
 		if (message->Get("method") != "log::SetLogPosition")
 			m_Seen = Utility::GetTime();
