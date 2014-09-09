@@ -43,7 +43,7 @@ String I2_BASE_API SHA256(const String& s);
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 
 struct errinfo_openssl_error_;
-typedef boost::error_info<struct errinfo_openssl_error_, int> errinfo_openssl_error;
+typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
 
 inline std::string to_string(const errinfo_openssl_error& e)
 {

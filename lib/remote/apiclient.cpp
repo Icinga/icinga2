@@ -116,7 +116,21 @@ void ApiClient::DisconnectSync(void)
 
 bool ApiClient::ProcessMessage(void)
 {
-	Dictionary::Ptr message = JsonRpc::ReadMessage(m_Stream);
+	Dictionary::Ptr message;
+
+	if (m_Stream->IsEof())
+		return false;
+
+	try {
+		message = JsonRpc::ReadMessage(m_Stream);
+	} catch (const openssl_error& ex) {
+		const unsigned long *pe = boost::get_error_info<errinfo_openssl_error>(ex);
+
+		if (pe && *pe == 0)
+			return false; /* Connection was closed cleanly */
+
+		throw;
+	}
 
 	if (!message)
 		return false;
