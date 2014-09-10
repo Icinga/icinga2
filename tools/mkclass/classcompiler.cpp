@@ -26,6 +26,8 @@
 #include <cstring>
 #ifndef _WIN32
 #include <libgen.h>
+#else /* _WIN32 */
+#include <shlwapi.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
