@@ -70,7 +70,7 @@ I2_BASE_API void ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool v
 struct errinfo_debuginfo_;
 typedef boost::error_info<struct errinfo_debuginfo_, DebugInfo> errinfo_debuginfo;
 
-std::string to_string(const errinfo_debuginfo& e);
+I2_BASE_API std::string to_string(const errinfo_debuginfo& e);
 
 }
 
