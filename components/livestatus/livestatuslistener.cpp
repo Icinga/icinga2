@@ -134,7 +134,7 @@ void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 		try {
 			Socket::Ptr client = server->Accept();
 			Log(LogNotice, "LivestatusListener", "Client connected");
-			Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client));
+			Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client), LowLatencyScheduler);
 		} catch (std::exception&) {
 			Log(LogCritical, "ListenerListener", "Cannot accept new connection.");
 		}

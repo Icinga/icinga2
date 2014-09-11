@@ -32,6 +32,12 @@ namespace icinga
 
 #define QUEUECOUNT 4
 
+enum SchedulerPolicy
+{
+	DefaultScheduler,
+	LowLatencyScheduler
+};
+
 /**
  * A thread pool.
  *
@@ -49,7 +55,7 @@ public:
 	void Stop(void);
 	void Join(bool wait_for_stop = false);
 
-	bool Post(const WorkFunction& callback);
+	bool Post(const WorkFunction& callback, SchedulerPolicy policy = DefaultScheduler);
 
 private:
 	enum ThreadState

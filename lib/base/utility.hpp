@@ -26,6 +26,7 @@
 #include <boost/function.hpp>
 #include <boost/thread/tss.hpp>
 #include <vector>
+#include "base/threadpool.hpp"
 
 namespace icinga
 {
@@ -91,7 +92,7 @@ public:
 	static bool MkDir(const String& path, int flags);
 	static bool MkDirP(const String& path, int flags);
 
-	static void QueueAsyncCallback(const boost::function<void (void)>& callback);
+	static void QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);
 
 	static String NaturalJoin(const std::vector<String>& tokens);
 

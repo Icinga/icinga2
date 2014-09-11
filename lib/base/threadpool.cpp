@@ -193,9 +193,10 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
  * Appends a work item to the work queue. Work items will be processed in FIFO order.
  *
  * @param callback The callback function for the work item.
+ * @param policy The scheduling policy
  * @returns true if the item was queued, false otherwise.
  */
-bool ThreadPool::Post(const ThreadPool::WorkFunction& callback)
+bool ThreadPool::Post(const ThreadPool::WorkFunction& callback, SchedulerPolicy policy)
 {
 	WorkItem wi;
 	wi.Callback = callback;
@@ -208,6 +209,9 @@ bool ThreadPool::Post(const ThreadPool::WorkFunction& callback)
 
 		if (queue.Stopped)
 			return false;
+
+		if (policy == LowLatencyScheduler)
+			queue.SpawnWorker(m_ThreadGroup);
 
 		queue.Items.push_back(wi);
 		queue.CV.notify_one();
@@ -233,7 +237,7 @@ void ThreadPool::ManagerThreadProc(void)
 			boost::mutex::scoped_lock lock(m_MgmtMutex);
 
 			if (!m_Stopped)
-				m_MgmtCV.timed_wait(lock, boost::posix_time::seconds(5));
+				m_MgmtCV.timed_wait(lock, boost::posix_time::milliseconds(500));
 
 			if (m_Stopped)
 				break;
@@ -273,7 +277,7 @@ void ThreadPool::ManagerThreadProc(void)
 				int tthreads = wthreads - alive;
 
 				/* Make sure there is at least one thread per CPU */
-				int ncput = std::max(boost::thread::hardware_concurrency() / QUEUECOUNT, 1U);
+				int ncput = std::max(boost::thread::hardware_concurrency() / QUEUECOUNT, 4U);
 				if (alive + tthreads < ncput)
 					tthreads = ncput - alive;
 

@@ -684,9 +684,9 @@ void Utility::SetNonBlockingSocket(SOCKET s)
 #endif /* _WIN32 */
 }
 
-void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback)
+void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy)
 {
-	Application::GetTP().Post(callback);
+	Application::GetTP().Post(callback, policy);
 }
 
 String Utility::NaturalJoin(const std::vector<String>& tokens)
