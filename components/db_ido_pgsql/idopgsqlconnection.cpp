@@ -371,8 +371,10 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 	char *rowCount = PQcmdTuples(result);
 	m_AffectedRows = atoi(rowCount);
 
-	if (PQresultStatus(result) == PGRES_COMMAND_OK)
+	if (PQresultStatus(result) == PGRES_COMMAND_OK) {
+		PQclear(result);
 		return IdoPgsqlResult();
+	}
 
 	if (PQresultStatus(result) != PGRES_TUPLES_OK) {
 		String message = PQresultErrorMessage(result);
