@@ -1074,29 +1074,34 @@ to the default used in Icinga 2. Make sure to clear the cache afterwards.
 
 #### <a id="icinga-web-debian-notes"></a> Icinga Web on Debian systems
 
-Since Icinga Web 1.11.1-2 on Debian and Ubuntu, the IDO autoconfiguration has been moved to additional packages.
+Since Icinga Web `1.11.1-2` the IDO auto-configuration has been moved into
+additional packages on Debian and Ubuntu.
 
-The package `icinga-web` no longer configures the IDO connection, you can use one of the config packages:
+The package `icinga-web` no longer configures the IDO connection. You must now
+use one of the config packages:
 
  - `icinga-web-config-icinga2-ido-mysql`
  - `icinga-web-config-icinga2-ido-pgsql`
 
-These packages take care of setup up the IDO connection, enabling the command pipe from Icinga Web
-and depend on the corresponding packages of Icinga 2.
+These packages take care of setting up the [DB IDO](#configuring-db-ido) configuration,
+enabling the external command pipe for Icinga Web and depend on
+the corresponding packages of Icinga 2.
 
-Please read the README.Debian files for details and how to do advanced configuration:
+Please read the `README.Debian` files for details and advanced configuration:
 
  - `/usr/share/doc/icinga-web/README.Debian`
  - `/usr/share/doc/icinga-web-config-icinga2-ido-mysql/README.Debian`
  - `/usr/share/doc/icinga-web-config-icinga2-ido-pgsql/README.Debian`
 
-If you change the XML configuration of Icinga Web, make sure to clear the config cache:
+When changing Icinga Web configuration files make sure to clear the config cache:
 
     # /usr/lib/icinga-web/bin/clearcache.sh
 
 > **Note**
 >
-> When you use an older version of icinga-web you should install it with:
+> If you are using an older version of Icinga Web, install it like this and adapt
+> the configuration manually as shown in [the RPM notes](#icinga-web-rpm-notes):
+>
 > `apt-get install --no-install-recommends icinga-web`
 
 #### <a id="setting-up-icinga-web-summary"></a> Setting Up Icinga Web Summary
