@@ -50,6 +50,36 @@ used as constants or custom attributes.
     zone
     in
 
+You can escape reserved keywords using the `@` character. The following example
+will try to set `vars.include` which references a reserved keyword and generates
+the following error:
+
+
+    [2014-09-15 17:24:00 +0200] critical/config: Location:
+    /etc/icinga2/conf.d/hosts/localhost.conf(13):   vars.sla = "24x7"
+    /etc/icinga2/conf.d/hosts/localhost.conf(14):
+    /etc/icinga2/conf.d/hosts/localhost.conf(15):   vars.include = "some cmdb export field"
+                                                         ^^^^^^^
+    /etc/icinga2/conf.d/hosts/localhost.conf(16): }
+    /etc/icinga2/conf.d/hosts/localhost.conf(17):
+
+    Config error: in /etc/icinga2/conf.d/hosts/localhost.conf: 15:8-15:14: syntax error, unexpected include (T_INCLUDE), expecting T_IDENTIFIER
+    [2014-09-15 17:24:00 +0200] critical/config: 1 errors, 0 warnings.
+
+You can escape the `include` key with an additiona `@` character becoming `vars.@include`:
+
+    object Host "localhost" {
+      import "generic-host"
+
+      address = "127.0.0.1"
+      address6 = "::1"
+
+      vars.os = "Linux"
+      vars.sla = "24x7"
+
+      vars.@include = "some cmdb export field"
+    }
+
 
 ## <a id="configuration-syntax"></a> Configuration Syntax
 
@@ -2324,7 +2354,7 @@ configuration [icinga2.conf](#icinga2-conf) file:
 
     include <manubulon>
 
-### Checks by Host Type 
+### Checks by Host Type
 
 **N/A**      : Not available for this type.
 
