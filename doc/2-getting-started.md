@@ -102,8 +102,8 @@ Some parts of Icinga 2's functionality are available as separate packages:
 
   Name                    | Description
   ------------------------|--------------------------------
-  icinga2-ido-mysql       | DB IDO provider module for MySQL
-  icinga2-ido-pgsql       | DB IDO provider module for PostgreSQL
+  icinga2-ido-mysql       | [DB IDO](#configuring-db-ido) provider module for MySQL
+  icinga2-ido-pgsql       | [DB IDO](#configuring-db-ido) provider module for PostgreSQL
 
 If you're running a distribution for which Icinga 2 packages are
 not yet available you will need to use the release tarball which you
@@ -599,6 +599,23 @@ SUSE:
 
 ### <a id="configuring-db-ido-mysql"></a> Configuring DB IDO MySQL
 
+First of all you have to install the `icinga2-ido-mysql` package using your
+distribution's package manager.
+
+Debian/Ubuntu:
+
+    # apt-get install icinga2-ido-mysql
+
+RHEL/CentOS:
+
+    # yum install icinga2-ido-mysql
+
+SUSE:
+
+    # zypper install icinga2-ido-mysql
+
+
+
 > **Note**
 >
 > Upstream Debian packages provide a database configuration wizard by default.
@@ -607,18 +624,13 @@ SUSE:
 
 #### <a id="setting-up-mysql-db"></a> Setting up the MySQL database
 
-First of all you have to install the `icinga2-ido-mysql` package using your
-distribution's package manager. Once you have done that you can proceed with
-setting up a MySQL database for Icinga 2:
+Set up a MySQL database for Icinga 2:
 
     # mysql -u root -p
 
     mysql>  CREATE DATABASE icinga;
-
-    mysql>  GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
-
-    mysql> quit
-
+            GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+            quit
 
 After creating the database you can import the Icinga 2 IDO schema using the
 following command:
@@ -629,8 +641,11 @@ following command:
 #### <a id="upgrading-mysql-db"></a> Upgrading the MySQL database
 
 Check the `/usr/share/icinga2-ido-mysql/schema/upgrade` directory for an
-incremental schema upgrade file. If there isn't an upgrade file available
-there's nothing to do.
+incremental schema upgrade file.
+
+> **Note**
+>
+> If there isn't an upgrade file for your current version available there's nothing to do.
 
 Apply all database schema upgrade files incrementially.
 
@@ -638,6 +653,16 @@ Apply all database schema upgrade files incrementially.
 
 The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
+
+
+**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.1.0`. Look into
+the *upgrade* directory:
+
+    $ ls /usr/share/icinga2-ido-mysql/schema/upgrade/
+    2.0.2.sql  2.1.0.sql
+
+There is a new upgrade file called `2.1.0.sql` which must be applied to your IDO database.
+
 
 #### <a id="installing-ido-mysql"></a> Installing the IDO MySQL module
 
@@ -663,6 +688,21 @@ RHEL/CentOS 7 and Fedora 20:
 
 ### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
+First of all you have to install the `icinga2-ido-pgsql` package using your
+distribution's package manager.
+
+Debian/Ubuntu:
+
+    # apt-get install icinga2-ido-pgsql
+
+RHEL/CentOS:
+
+    # yum install icinga2-ido-pgsql
+
+SUSE:
+
+    # zypper install icinga2-ido-pgsql
+
 > **Note**
 >
 > Upstream Debian packages provide a database configuration wizard by default.
@@ -671,9 +711,7 @@ RHEL/CentOS 7 and Fedora 20:
 
 #### Setting up the PostgreSQL database
 
-First of all you have to install the `icinga2-ido-pgsql` package using your
-distribution's package manager. Once you have done that you can proceed with
-setting up a PostgreSQL database for Icinga 2:
+Set up a PostgreSQL database for Icinga 2:
 
     # cd /tmp
     # sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'";
@@ -714,8 +752,11 @@ using the following command:
 #### <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
 
 Check the `/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for an
-incremental schema upgrade file. If there isn't an upgrade file available
-there's nothing to do.
+incremental schema upgrade file.
+
+> **Note**
+>
+> If there isn't an upgrade file for your current version available there's nothing to do.
 
 Apply all database schema upgrade files incrementially.
 
@@ -724,6 +765,15 @@ Apply all database schema upgrade files incrementially.
 
 The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
+
+**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.1.0`. Look into
+the *upgrade* directory:
+
+    $ ls /usr/share/icinga2-ido-pgsql/schema/upgrade/
+    2.0.2.sql  2.1.0.sql
+
+There is a new upgrade file called `2.1.0.sql` which must be applied to your IDO database.
+
 
 #### <a id="installing-ido-postgresql"></a> Installing the IDO PostgreSQL module
 
