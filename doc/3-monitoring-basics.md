@@ -409,7 +409,7 @@ notifications between start and end time.
       vars.mobile = "+1 555 424642"
     }
 
-Define an additional `NotificationCommand` for SMS notifications.
+Define an additional [NotificationCommand](#notification) for SMS notifications.
 
 > **Note**
 >
@@ -623,7 +623,12 @@ Please check [Runtime Custom Attributes as Environment Variables](#runtime-custo
 
 ### <a id="check-commands"></a> Check Commands
 
-`CheckCommand` objects define the command line how a check is called.
+[CheckCommand](#objecttype-checkcommand) objects define the command line how
+a check is called.
+
+[CheckCommand](#objecttype-checkcommand) objects are referenced by
+[Host](#objecttype-host) and [Service](#objecttype-service) objects
+using the `check_command` attribute.
 
 > **Note**
 >
@@ -632,11 +637,11 @@ Please check [Runtime Custom Attributes as Environment Variables](#runtime-custo
 
 #### <a id="command-plugin-integration"></a> Integrate the Plugin with a CheckCommand Definition
 
-`CheckCommand` objects require the [ITL template](#itl-plugin-check-command)
+[CheckCommand](#objecttype-checkcommand) objects require the [ITL template](#itl-plugin-check-command)
 `plugin-check-command` to support native plugin based check methods.
 
 Unless you have done so already, download your check plugin and put it
-into the `PluginDir` directory. The following example uses the
+into the [PluginDir](#constants-conf) directory. The following example uses the
 `check_disk` plugin shipped with the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
@@ -664,8 +669,8 @@ partition defined (`-p`) it will check all local partitions.
 > Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us.
 
 Next step is to understand how command parameters are being passed from
-a host or service object, and add a `CheckCommand` definition based on these
-required parameters and/or default values.
+a host or service object, and add a [CheckCommand](#objecttype-checkcommand)
+definition based on these required parameters and/or default values.
 
 #### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
 
@@ -676,6 +681,12 @@ Define the default check command custom attribute `disk_wfree` and `disk_cfree`
 (freely definable naming schema) and their default threshold values. You can
 then use these custom attributes as runtime macros for [command arguments](#command-arguments)
 on the command line.
+
+> **Tip**
+>
+> Use a common command type as prefix for your command arguments to increase
+> readability. `disk_wfree` helps understanding the context better than just
+> `wfree` as argument.
 
 The default custom attributes can be overridden by the custom attributes
 defined in the service using the check command `my-disk`. The custom attributes
@@ -776,7 +787,7 @@ without SSL enabled checks saving you duplicated command definitions.
 Details on all available options can be found in the
 [CheckCommand object definition](#objecttype-checkcommand).
 
-### <a id="using-apply-services-command-arguments"></a> Apply Services with custom Command Arguments
+### <a id="using-apply-services-command-arguments"></a> Apply Services with Custom Command Arguments
 
 Imagine the following scenario: The `my-host1` host is reachable using the default port 22, while
 the `my-host2` host requires a different port on 2222. Both hosts are in the hostgroup `my-linux-servers`.
@@ -847,8 +858,11 @@ The `my-host2` will inherit the `custom_ssh_port` variable to the service and ex
 
 ### <a id="notification-commands"></a> Notification Commands
 
-`NotificationCommand` objects define how notifications are delivered to external
+[NotificationCommand](#objecttype-notificationcommand) objects define how notifications are delivered to external
 interfaces (E-Mail, XMPP, IRC, Twitter, etc).
+
+[NotificationCommand](#objecttype-notificationcommand) objects are referenced by
+[Notification](#objecttype-notification) objects using the `command` attribute.
 
 `NotificationCommand` objects require the [ITL template](#itl-plugin-notification-command)
 `plugin-notification-command` to support native plugin-based notifications.
@@ -923,12 +937,16 @@ NotificationCommand object refer to that.
 
 ### <a id="event-commands"></a> Event Commands
 
-Unlike notifications event commands are called on every host/service execution
-if one of these conditions match:
+Unlike notifications event commands for hosts/services are called on every
+check execution if one of these conditions match:
 
 * The host/service is in a [soft state](#hard-soft-states)
 * The host/service state changes into a [hard state](#hard-soft-states)
 * The host/service state recovers from a [soft or hard state](#hard-soft-states) to [OK](#service-states)/[Up](#host-states)
+
+[EventCommand](#objecttype-eventcommand) objects are referenced by
+[Host](#objecttype-host) and [Service](#objecttype-service) objects
+using the `event_command` attribute.
 
 Therefore the `EventCommand` object should define a command line
 evaluating the current service state and other service runtime attributes
@@ -943,23 +961,124 @@ a restart upon detection.
 `EventCommand` objects require the ITL template `plugin-event-command`
 to support native plugin based checks.
 
-When the event command is triggered on a service state change, it will
-send a check result using the `process_check_result` script forcibly
-changing the service state back to `OK` (`-r 0`) providing some debug
-information in the check output (`-o`).
+#### <a id="event-command-restart-service-daemon"></a> Use Event Commands to Restart Service Daemon
 
-    object EventCommand "plugin-event-process-check-result" {
+The following example will triggert a restart of the `httpd` daemon
+via ssh when the `http` service check fails. If the service state is
+`OK`, it will not trigger any event action.
+
+Requirements:
+
+* ssh connection
+* icinga user with public key authentication
+* icinga user with sudo permissions for restarting the httpd daemon.
+
+Example on Debian:
+
+    # ls /home/icinga/.ssh/
+    authorized_keys
+
+    # visudo
+    icinga  ALL=(ALL) NOPASSWD: /etc/init.d/apache2 restart
+
+
+Define a generic [EventCommand](#objecttype-eventcommand) object `event_by_ssh`
+which can be used for all event commands triggered using ssh:
+
+    /* pass event commands through ssh */
+    object EventCommand "event_by_ssh" {
       import "plugin-event-command"
 
-      command = [
-        PluginDir + "/process_check_result",
-        "-H", "$host.name$",
-        "-S", "$service.name$",
-        "-c", RunDir + "/icinga2/cmd/icinga2.cmd",
-        "-r", "0",
-        "-o", "Event Handler triggered in state '$service.state$' with output '$service.output$'."
-      ]
+      command = [ PluginDir + "/check_by_ssh" ]
+
+      arguments = {
+        "-H" = "$event_by_ssh_address$"
+        "-p" = "$event_by_ssh_port$"
+        "-C" = "$event_by_ssh_command$"
+        "-l" = "$event_by_ssh_logname$"
+        "-i" = "$event_by_ssh_identity$"
+        "-q" = {
+          set_if = "$event_by_ssh_quiet$"
+        }
+        "-w" = "$event_by_ssh_warn$"
+        "-c" = "$event_by_ssh_crit$"
+        "-t" = "$event_by_ssh_timeout$"
+      }
+
+      vars.event_by_ssh_address = "$address$"
+      vars.event_by_ssh_quiet = false
     }
+
+The actual event command only passes the `event_by_ssh_command` attribute.
+The `event_by_ssh_service` custom attribute takes care of passing the correct
+daemon name, while `test $service.state_id$ -gt 0` makes sure that the daemon
+is only restarted when the service is an a not `OK` state.
+
+
+object EventCommand "event_by_ssh_restart_service" {
+  import "event_by_ssh"
+
+  //only restart the daemon if state > 0 (not-ok)
+  //requires sudo permissions for the icinga user
+  vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo /etc/init.d/$event_by_ssh_service$ restart"
+}
+
+
+Now set the `event_command` attribute to `event_by_ssh_restart_service` and tell it
+which service should be restarted using the `event_by_ssh_service` attribute.
+
+    object Service "http" {
+      import "generic-service"
+      host_name = "remote-http-host"
+      check_command = "http"
+
+      event_command = "event_by_ssh_restart_service"
+      vars.event_by_ssh_service = "$host.vars.httpd_name$"
+
+      //vars.event_by_ssh_logname = "icinga"
+      //vars.event_by_ssh_identity = "/home/icinga/.ssh/id_rsa.pub"
+    }
+
+
+Each host with this service then must define the `httpd_name` custom attribute
+(for example generated from your cmdb):
+
+    object Host "remote-http-host" {
+      import "generic-host"
+      address = "192.168.1.100"
+
+      vars.httpd_name = "apache2"
+    }
+
+You can testdrive this example by manually stopping the `httpd` daemon
+on your `remote-http-host`. Enable the `debuglog` feature and tail the
+`/var/log/icinga2/debug.log` file.
+
+Remote Host Terminal:
+
+    # date; service apache2 status
+    Mon Sep 15 18:57:39 CEST 2014
+    Apache2 is running (pid 23651).
+    # date; service apache2 stop
+    Mon Sep 15 18:57:47 CEST 2014
+    [ ok ] Stopping web server: apache2 ... waiting .
+
+Icinga 2 Host Terminal:
+
+    [2014-09-15 18:58:32 +0200] notice/Process: Running command '/usr/lib64/nagios/plugins/check_http' '-I' '192.168.1.100': PID 32622
+    [2014-09-15 18:58:32 +0200] notice/Process: PID 32622 ('/usr/lib64/nagios/plugins/check_http' '-I' '192.168.1.100') terminated with exit code 2
+    [2014-09-15 18:58:32 +0200] notice/Checkable: State Change: Checkable remote-http-host!http soft state change from OK to CRITICAL detected.
+    [2014-09-15 18:58:32 +0200] notice/Checkable: Executing event handler 'event_by_ssh_restart_service' for service 'remote-http-host!http'
+    [2014-09-15 18:58:32 +0200] notice/Process: Running command '/usr/lib64/nagios/plugins/check_by_ssh' '-C' 'test 2 -gt 0 && sudo /etc/init.d/apache2 restart' '-H' '192.168.1.100': PID 32623
+    [2014-09-15 18:58:33 +0200] notice/Process: PID 32623 ('/usr/lib64/nagios/plugins/check_by_ssh' '-C' 'test 2 -gt 0 && sudo /etc/init.d/apache2 restart' '-H' '192.168.1.100') terminated with exit code 0
+
+Remote Host Terminal:
+
+    # date; service apache2 status
+    Mon Sep 15 18:58:44 CEST 2014
+    Apache2 is running (pid 24908).
+
+
 
 
 ## <a id="dependencies"></a> Dependencies
