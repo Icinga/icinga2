@@ -1015,13 +1015,13 @@ daemon name, while `test $service.state_id$ -gt 0` makes sure that the daemon
 is only restarted when the service is an a not `OK` state.
 
 
-object EventCommand "event_by_ssh_restart_service" {
-  import "event_by_ssh"
+    object EventCommand "event_by_ssh_restart_service" {
+      import "event_by_ssh"
 
-  //only restart the daemon if state > 0 (not-ok)
-  //requires sudo permissions for the icinga user
-  vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo /etc/init.d/$event_by_ssh_service$ restart"
-}
+      //only restart the daemon if state > 0 (not-ok)
+      //requires sudo permissions for the icinga user
+      vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo /etc/init.d/$event_by_ssh_service$ restart"
+    }
 
 
 Now set the `event_command` attribute to `event_by_ssh_restart_service` and tell it
