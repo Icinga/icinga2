@@ -46,65 +46,46 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
-### What's New in Version 2.1.0
-
-#### Changes
-
-* DB IDO schema upgrade ([MySQL](#upgrading-mysql-db),[PostgreSQL](#upgrading-postgresql-db) required!
-    * new schema version: **1.11.7**
-    * RPMs install the schema files into `/usr/share/icinga2-ido*` instead of `/usr/share/doc/icinga2-ido*` #6881
-* [Information for config objects](#list-configuration-objects) using `icinga2-list-objects` script #6702
-* Add Python 2.4 as requirement #6702
-* Add search path: If `-c /etc/icinga2/icinga2.conf` is omitted, use `SysconfDir + "/icinga2/icinga2.conf"` #6874
-* Change log level for failed commands #6751
-* Notifications are load-balanced in a [High Availability cluster setup](#high-availability-notifications) #6203
-    * New config attribute: `enable_ha`
-* DB IDO "run once" or "run everywhere" mode in a [High Availability cluster setup](#high-availability-db-ido) #6203 #6827
-    * New config attributes: `enable_ha` and `failover_timeout`
-* RPMs use the `icingacmd` group for /var/{cache,log,run}/icinga2 #6948
+### What's New in Version 2.1.1
 
 #### Issues
 
-* Bug #6881: make install does not install the db-schema
-* Bug #6915: use _rundir macro for configuring the run directory
-* Bug #6916: External command pipe: Too many open files
-* Bug #6917: enforce /usr/lib as base for the cgi path on SUSE distributions
-* Bug #6942: ExternalCommandListener fails open pipe: Too many open files
-* Bug #6948: check file permissions in /var/cache/icinga2
-* Bug #6962: Commands are processed multiple times
-* Bug #6964: Host and service checks stuck in "pending" when hostname = localhost a parent/satellite setup
-* Bug #7001: Build fails with Boost 1.56
-* Bug #7016: 64-bit RPMs are not installable
-* Feature #5219: Cluster support for modified attributes
-* Feature #6066: Better log messages for cluster changes
-* Feature #6203: Better cluster support for notifications / IDO
-* Feature #6205: Log replay sends messages to instances which shouldn't get those messages
-* Feature #6702: Information for config objects
-* Feature #6704: Release 2.1
-* Feature #6751: Change log level for failed commands
-* Feature #6874: add search path for icinga2.conf
-* Feature #6898: Enhance logging for perfdata/graphitewriter
-* Feature #6919: Clean up spec file
-* Feature #6920: Recommend related packages on SUSE distributions
-* API - Bug #6998: ApiListener ignores bind_host attribute
-* DB IDO - Feature #6827: delay ido connect in ha cluster
-* Documentation - Bug #6870: Wrong object attribute 'enable_flap_detection'
-* Documentation - Bug #6878: Wrong parent in Load Distribution
-* Documentation - Bug #6909: clarify on which config tools are available
-* Documentation - Bug #6968: Update command arguments 'set_if' and beautify error message
-* Documentation - Bug #6995: Keyword "required" used inconsistently for host and service "icon_image*" attributes
-* Documentation - Feature #6651: Migration: note on check command timeouts
-* Documentation - Feature #6703: Documentation for zones and cluster permissions
-* Documentation - Feature #6743: Better explanation for HA config cluster
-* Documentation - Feature #6839: Explain how the order attribute works in commands
-* Documentation - Feature #6864: Add section for reserved keywords
-* Documentation - Feature #6867: add section about disabling re-notifications
-* Documentation - Feature #6869: Add systemd options: enable, journal
-* Documentation - Feature #6922: Enhance Graphite Writer description
-* Documentation - Feature #6949: Add documentation for icinga2-list-objects
-* Documentation - Feature #6997: how to add a new cluster node
-* Documentation - Feature #7018: add example selinux policy for external command pipe
-
+* Bug #6147: Link libcJSON against libm
+* Bug #6696: make test fails on openbsd
+* Bug #6841: Too many queued messages
+* Bug #6862: SSL_read errors during restart
+* Bug #6981: SSL errors with interleaved SSL_read/write
+* Bug #7029: icinga2.spec: files-attr-not-set for python-icinga2 package
+* Bug #7032: "Error parsing performance data" in spite of "enable_perfdata = false"
+* Bug #7036: Remove validator for the Script type
+* Bug #7037: icinga2-list-objects doesn't work with Python 3
+* Bug #7038: Fix rpmlint errors
+* Bug #7042: icinga2-list-objects complains about Umlauts and stops output
+* Bug #7044: icinga2 init-script terminates with exit code 0 if $DAEMON is not in place or not executable
+* Bug #7047: service icinga2 status - prints cat error if the service is stopped
+* Bug #7058: Exit code is not initialized for some failed checks
+* Bug #7065: pipe2 returns ENOSYS on GNU Hurd and Debian kfreebsd
+* Bug #7072: GraphiteWriter should ignore empty perfdata value
+* Bug #7080: Missing differentiation between service and systemctl
+* Bug #7096: new SSL Errors with too many queued messages
+* Bug #7115: Build fails on Haiku
+* Bug #7123: Manubulon-Plugin conf Filename wrong
+* Bug #7139: GNUInstallDirs.cmake outdated
+* Bug #7167: Segfault using cluster in TlsStream::IsEof
+* Bug #7168: fping4 doesn't work correctly with the shipped command-plugins.conf
+* Bug #7186: Livestatus hangs from time to time
+* Bug #7195: fix memory leak ido_pgsql
+* Bug #7210: clarify on db ido upgrades
+* Feature #6719: Change log message for checking/sending notifications
+* Feature #7028: Document how to use @ to escape keywords
+* Feature #7033: Add include guards for mkclass files
+* Feature #7034: Ensure that namespaces for INITIALIZE_ONCE and REGISTER_TYPE are truly unique
+* Feature #7035: Implement support for unity builds
+* Feature #7039: Figure out a better way to set the version for snapshot builds
+* Feature #7040: Unity builds: Detect whether __COUNTER__ is available
+* Feature #7041: Enable unity build for RPM/Debian packages
+* Feature #7070: Explain event commands and their integration by a real life example (httpd restart via ssh)
+* Feature #7158: Extend documentation for icinga-web on Debian systems
 
 ### Archive
 
