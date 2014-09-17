@@ -272,6 +272,9 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 
 String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
 {
+	if (!perfdata)
+		return "";
+
 	std::ostringstream result;
 
 	ObjectLock olock(perfdata);
