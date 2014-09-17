@@ -164,7 +164,7 @@ add_subdirectory(itl)
 add_subdirectory(doc)
 add_subdirectory(test)
 add_subdirectory(pki)
-add_subdirectory(contrib)
+add_subdirectory(agent)
 add_subdirectory(python)
 
 set(CPACK_PACKAGE_NAME "Icinga2")

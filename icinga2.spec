@@ -474,6 +474,10 @@ exit 0
 %{_sbindir}/%{name}-list-objects
 %{_sbindir}/%{name}-enable-feature
 %{_sbindir}/%{name}-disable-feature
+%{_sbindir}/%{name}-setup-agent
+%{_sbindir}/%{name}-discover-agent
+%{_sbindir}/%{name}-forget-agent
+%{_sbindir}/%{name}-list-agents
 %{_sbindir}/%{name}-prepare-dirs
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*

@@ -20,6 +20,13 @@ if(UNIX OR CYGWIN)
   configure_file(icinga2-forget-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-forget-agent @ONLY)
   configure_file(icinga2-list-agents.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-list-agents @ONLY)
   configure_file(icinga2-setup-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-setup-agent @ONLY)
+
+  install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2-discover-agent ${CMAKE_CURRENT_BINARY_DIR}/icinga2-setup-agent
+          ${CMAKE_CURRENT_BINARY_DIR}/icinga2-forget-agent ${CMAKE_CURRENT_BINARY_DIR}/icinga2-list-agents
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+  )
 endif()
 
 if(MSVC)
@@ -29,4 +36,8 @@ if(MSVC)
     TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC
   )
 
+  install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/bin/\${CMAKE_INSTALL_CONFIG_NAME}/Icinga2SetupAgent.exe
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  )
 endif()
