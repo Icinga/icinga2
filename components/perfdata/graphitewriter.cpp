@@ -136,6 +136,9 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
+	if (!perfdata)
+		return;
+
 	ObjectLock olock(perfdata);
 	BOOST_FOREACH(const Value& val, perfdata) {
 		PerfdataValue::Ptr pdv;
