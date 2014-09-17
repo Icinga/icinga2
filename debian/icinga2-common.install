@@ -6,4 +6,6 @@ usr/bin/icinga2-build*
 usr/bin/icinga2-sign-key
 usr/sbin/icinga2-*-feature
 usr/sbin/icinga2-list-objects
+usr/sbin/icinga2-*-agent
+usr/sbin/icinga2-list-agents
 usr/share/icinga2
