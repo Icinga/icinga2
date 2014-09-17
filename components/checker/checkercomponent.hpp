@@ -72,7 +72,7 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 	unsigned long GetIdleCheckables(void);
 	unsigned long GetPendingCheckables(void);
 

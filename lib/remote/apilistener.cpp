@@ -712,7 +712,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 	}
 }
 
-Value ApiListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
@@ -724,8 +724,8 @@ Value ApiListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
 
 	stats = listener->GetStatus();
 
-	BOOST_FOREACH(Dictionary::Pair const& kv, stats.second)
-		perfdata->Set("api_" + kv.first, kv.second);
+	BOOST_FOREACH(const Dictionary::Pair& kv, stats.second)
+		perfdata->Add("'api_" + kv.first + "'=" + Convert::ToString(kv.second));
 
 	status->Set("api", stats.first);
 

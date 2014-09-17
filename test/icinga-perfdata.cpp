@@ -27,30 +27,34 @@ BOOST_AUTO_TEST_SUITE(icinga_perfdata)
 
 BOOST_AUTO_TEST_CASE(empty)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("");
+	Array::Ptr pd = PluginUtility::SplitPerfdata("");
 	BOOST_CHECK(pd->GetLength() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(simple)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456");
-	BOOST_CHECK(pd->Get("test") == 123456);
+	PerfdataValue::Ptr pdv = PerfdataValue::Parse("test=123456");
+	BOOST_CHECK(pdv->GetLabel() == "test");
+	BOOST_CHECK(pdv->GetValue() == 123456);
 
-	String str = PluginUtility::FormatPerfdata(pd);
+	String str = pdv->Format();
 	BOOST_CHECK(str == "test=123456");
 }
 
 BOOST_AUTO_TEST_CASE(quotes)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("'hello world'=123456");
-	BOOST_CHECK(pd->Get("hello world") == 123456);
+	Array::Ptr pd = PluginUtility::SplitPerfdata("'hello world'=123456");
+	BOOST_CHECK(pd->GetLength() == 1);
+	
+	PerfdataValue::Ptr pdv = PerfdataValue::Parse("'hello world'=123456");
+	BOOST_CHECK(pdv->GetLabel() == "hello world");
+	BOOST_CHECK(pdv->GetValue() == 123456);
 }
 
 BOOST_AUTO_TEST_CASE(multiple)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("testA=123456 testB=123456");
-	BOOST_CHECK(pd->Get("testA") == 123456);
-	BOOST_CHECK(pd->Get("testB") == 123456);
+	Array::Ptr pd = PluginUtility::SplitPerfdata("testA=123456 testB=123456");
+	BOOST_CHECK(pd->GetLength() == 2);
 
 	String str = PluginUtility::FormatPerfdata(pd);
 	BOOST_CHECK(str == "testA=123456 testB=123456");
@@ -58,9 +62,7 @@ BOOST_AUTO_TEST_CASE(multiple)
 
 BOOST_AUTO_TEST_CASE(uom)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456B");
-
-	PerfdataValue::Ptr pv = pd->Get("test");
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=123456B");
 	BOOST_CHECK(pv);
 
 	BOOST_CHECK(pv->GetValue() == 123456);
@@ -71,13 +73,10 @@ BOOST_AUTO_TEST_CASE(uom)
 	BOOST_CHECK(pv->GetMin() == Empty);
 	BOOST_CHECK(pv->GetMax() == Empty);
 
-	String str = PluginUtility::FormatPerfdata(pd);
+	String str = pv->Format();
 	BOOST_CHECK(str == "test=123456B");
 
-	pd = PluginUtility::ParsePerfdata("test=1000ms;200;500");
-	BOOST_CHECK(pd);
-
-	pv = pd->Get("test");
+	pv = PerfdataValue::Parse("test=1000ms;200;500");
 	BOOST_CHECK(pv);
 
 	BOOST_CHECK(pv->GetValue() == 1);
@@ -85,10 +84,7 @@ BOOST_AUTO_TEST_CASE(uom)
 	BOOST_CHECK(pv->GetWarn() == 0.2);
 	BOOST_CHECK(pv->GetCrit() == 0.5);
 
-	pd = PluginUtility::ParsePerfdata("test=1000ms");
-	BOOST_CHECK(pd);
-
-	pv = pd->Get("test");
+	pv = PerfdataValue::Parse("test=1000ms");
 	BOOST_CHECK(pv);
 
 	BOOST_CHECK(pv->GetValue() == 1);
@@ -98,15 +94,13 @@ BOOST_AUTO_TEST_CASE(uom)
 	BOOST_CHECK(pv->GetMin() == Empty);
 	BOOST_CHECK(pv->GetMax() == Empty);
 
-	str = PluginUtility::FormatPerfdata(pd);
+	str = pv->Format();
 	BOOST_CHECK(str == "test=1s");
 }
 
 BOOST_AUTO_TEST_CASE(warncritminmax)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test=123456B;1000;2000;3000;4000");
-
-	PerfdataValue::Ptr pv = pd->Get("test");
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=123456B;1000;2000;3000;4000");
 	BOOST_CHECK(pv);
 
 	BOOST_CHECK(pv->GetValue() == 123456);
@@ -117,21 +111,20 @@ BOOST_AUTO_TEST_CASE(warncritminmax)
 	BOOST_CHECK(pv->GetMin() == 3000);
 	BOOST_CHECK(pv->GetMax() == 4000);
 
-	String str = PluginUtility::FormatPerfdata(pd);
-	BOOST_CHECK(str == "test=123456B;1000;2000;3000;4000");
+	BOOST_CHECK(pv->Format() == "test=123456B;1000;2000;3000;4000");
 }
 
 BOOST_AUTO_TEST_CASE(invalid)
 {
-	BOOST_CHECK(PluginUtility::ParsePerfdata("test=1,23456") == "test=1,23456");
-	BOOST_CHECK(PluginUtility::ParsePerfdata("test=123456;10%;20%") == "test=123456;10%;20%");
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1,23456"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=123456;10%;20%"), boost::exception);
 }
 
 BOOST_AUTO_TEST_CASE(multi)
 {
-	Dictionary::Ptr pd = PluginUtility::ParsePerfdata("test::a=3 b=4");
-	BOOST_CHECK(pd->Get("test::a") == 3);
-	BOOST_CHECK(pd->Get("test::b") == 4);
+	Array::Ptr pd = PluginUtility::SplitPerfdata("test::a=3 b=4");
+	BOOST_CHECK(pd->Get(0) == "test::a=3");
+	BOOST_CHECK(pd->Get(1) == "test::b=4");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

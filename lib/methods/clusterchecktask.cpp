@@ -52,7 +52,7 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	Dictionary::Ptr status = stats.first;
 
 	/* use feature stats perfdata */
-	std::pair<Dictionary::Ptr, Dictionary::Ptr> feature_stats = CIB::GetFeatureStats();
+	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
 	cr->SetPerformanceData(feature_stats.second);
 
 	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));

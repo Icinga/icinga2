@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(dictionary)
 
 BOOST_AUTO_TEST_CASE(object)
 {
-	PerfdataValue::Ptr pdv = make_shared<PerfdataValue>(100, true, "bytes");
+	PerfdataValue::Ptr pdv = make_shared<PerfdataValue>("size", 100, true, "bytes");
 
 	PerfdataValue::Ptr result = Deserialize(Serialize(pdv));
 

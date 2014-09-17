@@ -34,7 +34,7 @@ REGISTER_TYPE(IcingaStatusWriter);
 
 REGISTER_STATSFUNCTION(IcingaStatusWriterStats, &IcingaStatusWriter::StatsFunc);
 
-Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
@@ -72,7 +72,7 @@ Dictionary::Ptr IcingaStatusWriter::GetStatusData(void)
 	Dictionary::Ptr bag = make_shared<Dictionary>();
 
 	/* features */
-	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats = CIB::GetFeatureStats();
+	std::pair<Dictionary::Ptr, Array::Ptr> stats = CIB::GetFeatureStats();
 
 	bag->Set("feature_status", stats.first);
 	bag->Set("feature_perfdata", stats.second);

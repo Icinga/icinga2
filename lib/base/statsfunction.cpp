@@ -27,7 +27,7 @@ StatsFunction::StatsFunction(const Callback& function)
 	: m_Callback(function)
 { }
 
-Value StatsFunction::Invoke(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value StatsFunction::Invoke(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
 	return m_Callback(status, perfdata);
 }

@@ -29,7 +29,7 @@ REGISTER_TYPE(FileLogger);
 
 REGISTER_STATSFUNCTION(FileLoggerStats, &FileLogger::StatsFunc);
 
-Value FileLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value FileLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

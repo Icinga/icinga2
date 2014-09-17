@@ -24,6 +24,7 @@
 #include "base/registry.hpp"
 #include "base/value.hpp"
 #include "base/dictionary.hpp"
+#include "base/array.hpp"
 #include <boost/function.hpp>
 
 namespace icinga
@@ -39,11 +40,11 @@ class I2_BASE_API StatsFunction : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(StatsFunction);
 
-	typedef boost::function<Value (Dictionary::Ptr& status, Dictionary::Ptr& perfdata)> Callback;
+	typedef boost::function<Value (Dictionary::Ptr& status, Array::Ptr& perfdata)> Callback;
 
 	StatsFunction(const Callback& function);
 
-	Value Invoke(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	Value Invoke(Dictionary::Ptr& status, Array::Ptr& perfdata);
 
 private:
 	Callback m_Callback;

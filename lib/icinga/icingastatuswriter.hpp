@@ -35,7 +35,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(IcingaStatusWriter);
 	DECLARE_TYPENAME(IcingaStatusWriter);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
 	static Dictionary::Ptr GetStatusData(void);
 
 protected:

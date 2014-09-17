@@ -20,6 +20,7 @@
 #include "checker/checkercomponent.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "remote/apilistener.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
@@ -36,7 +37,7 @@ REGISTER_TYPE(CheckerComponent);
 
 REGISTER_STATSFUNCTION(CheckerComponentStats, &CheckerComponent::StatsFunc);
 
-Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
@@ -51,8 +52,8 @@ Value CheckerComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perf
 		nodes->Set(checker->GetName(), stats);
 
 		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
-		perfdata->Set(perfdata_prefix + "idle", Convert::ToDouble(idle));
-		perfdata->Set(perfdata_prefix + "pending", Convert::ToDouble(pending));
+		perfdata->Add(make_shared<PerfdataValue>(perfdata_prefix + "idle", Convert::ToDouble(idle)));
+		perfdata->Add(make_shared<PerfdataValue>(perfdata_prefix + "pending", Convert::ToDouble(pending)));
 	}
 
 	status->Set("checkercomponent", nodes);

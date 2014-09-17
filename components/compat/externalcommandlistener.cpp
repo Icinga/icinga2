@@ -31,7 +31,7 @@ REGISTER_TYPE(ExternalCommandListener);
 
 REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::StatsFunc);
 
-Value ExternalCommandListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

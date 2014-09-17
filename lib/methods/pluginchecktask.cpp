@@ -68,13 +68,7 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
 	cr->SetCommand(commandLine);
 	cr->SetOutput(co.first);
-
-	Value perfdata = co.second;
-
-	if (checkable->GetEnablePerfdata())
-		perfdata = PluginUtility::ParsePerfdata(perfdata);
-
-	cr->SetPerformanceData(perfdata);
+	cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
 	cr->SetState(PluginUtility::ExitStatusToState(pr.ExitStatus));
 	cr->SetExitStatus(pr.ExitStatus);
 	cr->SetExecutionStart(pr.ExecutionStart);

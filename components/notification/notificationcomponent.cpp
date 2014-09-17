@@ -34,7 +34,7 @@ REGISTER_TYPE(NotificationComponent);
 
 REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::StatsFunc);
 
-Value NotificationComponent::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

@@ -63,7 +63,7 @@ void IcingaApplication::StaticInitialize(void)
 
 REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
 
-Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

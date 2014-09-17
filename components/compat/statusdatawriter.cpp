@@ -48,7 +48,7 @@ REGISTER_TYPE(StatusDataWriter);
 
 REGISTER_STATSFUNCTION(StatusDataWriterStats, &StatusDataWriter::StatsFunc);
 
-Value StatusDataWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

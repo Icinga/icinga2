@@ -46,7 +46,7 @@ REGISTER_TYPE(GraphiteWriter);
 
 REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
-Value GraphiteWriter::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
@@ -134,34 +134,28 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& cr)
 {
-	Value pdv = cr->GetPerformanceData();
-
-	if (pdv.IsEmpty())
-		return;
-
-	if (!pdv.IsObjectType<Dictionary>())
-	{
-		CONTEXT("Processing performance data value '" + String(pdv) + "'");
-		Log(LogWarning, "GraphiteWriter", "Could not send performance data: unparsed data.");
-		return;
-	}
-
-	Dictionary::Ptr perfdata = pdv;
+	Array::Ptr perfdata = cr->GetPerformanceData();
 
 	ObjectLock olock(perfdata);
-	BOOST_FOREACH(const Dictionary::Pair& kv, perfdata) {
-		double valueNum;
-
-		if (!kv.second.IsObjectType<PerfdataValue>())
-			valueNum = kv.second;
-		else
-			valueNum = static_cast<PerfdataValue::Ptr>(kv.second)->GetValue();
-
-		String escaped_key = kv.first;
+	BOOST_FOREACH(const Value& val, perfdata) {
+		PerfdataValue::Ptr pdv;
+		
+		if (val.IsObjectType<PerfdataValue>())
+			pdv = val;
+		else {
+			try {
+				pdv = PerfdataValue::Parse(val);
+			} catch (const std::exception&) {
+				Log(LogWarning, "GraphiteWriter", "Ignoring invalid perfdata value: " + val);
+				continue;
+			}
+		}
+		
+		String escaped_key = pdv->GetLabel();
 		SanitizeMetric(escaped_key);
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
-		SendMetric(prefix, escaped_key, valueNum);
+		SendMetric(prefix, escaped_key, pdv->GetValue());
 	}
 }
 

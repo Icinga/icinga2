@@ -17,6 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "db_ido_pgsql/idopgsqlconnection.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -26,9 +30,6 @@
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
-#include "db_ido/dbtype.hpp"
-#include "db_ido/dbvalue.hpp"
-#include "db_ido_pgsql/idopgsqlconnection.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -40,7 +41,7 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
 
-Value IdoPgsqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
@@ -54,7 +55,7 @@ Value IdoPgsqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 		nodes->Set(idopgsqlconnection->GetName(), stats);
 
-		perfdata->Set("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", Convert::ToDouble(items));
+		perfdata->Add(make_shared<PerfdataValue>("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", items));
 	}
 
 	status->Set("idopgsqlconnection", nodes);

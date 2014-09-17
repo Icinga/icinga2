@@ -220,80 +220,73 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 	return std::make_pair(text, perfdata);
 }
 
-Value PluginUtility::ParsePerfdata(const String& perfdata)
+Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 {
-	try {
-		Dictionary::Ptr result = make_shared<Dictionary>();
+	Array::Ptr result = make_shared<Array>();
 
-		size_t begin = 0;
-		String multi_prefix;
+	size_t begin = 0;
+	String multi_prefix;
 
-		for (;;) {
-			size_t eqp = perfdata.FindFirstOf('=', begin);
+	for (;;) {
+		size_t eqp = perfdata.FindFirstOf('=', begin);
 
-			if (eqp == String::NPos)
-				break;
+		if (eqp == String::NPos)
+			break;
 
-			String key = perfdata.SubStr(begin, eqp - begin);
+		String label = perfdata.SubStr(begin, eqp - begin);
 
-			if (key.GetLength() > 2 && key[0] == '\'' && key[key.GetLength() - 1] == '\'')
-				key = key.SubStr(1, key.GetLength() - 2);
+		if (label.GetLength() > 2 && label[0] == '\'' && label[label.GetLength() - 1] == '\'')
+			label = label.SubStr(1, label.GetLength() - 2);
 
-			size_t multi_index = key.RFind("::");
+		size_t multi_index = label.RFind("::");
 
-			if (multi_index != String::NPos)
-				multi_prefix = "";
+		if (multi_index != String::NPos)
+			multi_prefix = "";
 
-			size_t spq = perfdata.FindFirstOf(' ', eqp);
+		size_t spq = perfdata.FindFirstOf(' ', eqp);
 
-			if (spq == String::NPos)
-				spq = perfdata.GetLength();
+		if (spq == String::NPos)
+			spq = perfdata.GetLength();
 
-			String value = perfdata.SubStr(eqp + 1, spq - eqp - 1);
+		String value = perfdata.SubStr(eqp + 1, spq - eqp - 1);
 
-			if (!multi_prefix.IsEmpty())
-				key = multi_prefix + "::" + key;
+		if (!multi_prefix.IsEmpty())
+			label = multi_prefix + "::" + label;
 
-			result->Set(key, PerfdataValue::Parse(value));
+		String pdv;
+		if (label.FindFirstOf(" ") != String::NPos)
+			pdv = "'" + label + "'=" + value;
+		else
+			pdv = label + "=" + value;
 
-			if (multi_index != String::NPos)
-				multi_prefix = key.SubStr(0, multi_index);
+		result->Add(pdv);
 
-			begin = spq + 1;
-		}
+		if (multi_index != String::NPos)
+			multi_prefix = label.SubStr(0, multi_index);
 
-		return result;
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "PluginUtility", "Error parsing performance data '" + perfdata + "': " + ex.what());
-		return perfdata;
+		begin = spq + 1;
 	}
+
+	return result;
 }
 
-String PluginUtility::FormatPerfdata(const Value& perfdata)
+String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
 {
 	std::ostringstream result;
 
-	if (!perfdata.IsObjectType<Dictionary>())
-		return perfdata;
-
-	Dictionary::Ptr dict = perfdata;
-
-	ObjectLock olock(dict);
+	ObjectLock olock(perfdata);
 
 	bool first = true;
-	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-		String key;
-		if (kv.first.FindFirstOf(" ") != String::NPos)
-			key = "'" + kv.first + "'";
-		else
-			key = kv.first;
-
+	BOOST_FOREACH(const Value& pdv, perfdata) {
 		if (!first)
 			result << " ";
 		else
 			first = false;
 
-		result << key << "=" << PerfdataValue::Format(kv.second);
+		if (pdv.IsObjectType<PerfdataValue>())
+			result << static_cast<PerfdataValue::Ptr>(pdv)->Format();
+		else
+			result << pdv;
 	}
 
 	return result.str();

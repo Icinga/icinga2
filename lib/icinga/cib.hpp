@@ -23,6 +23,7 @@
 #include "icinga/i2-icinga.hpp"
 #include "base/ringbuffer.hpp"
 #include "base/dictionary.hpp"
+#include "base/array.hpp"
 
 namespace icinga
 {
@@ -84,7 +85,7 @@ public:
 	static HostStatistics CalculateHostStats(void);
 	static ServiceStatistics CalculateServiceStats(void);
 
-	static std::pair<Dictionary::Ptr, Dictionary::Ptr> GetFeatureStats(void);
+	static std::pair<Dictionary::Ptr, Array::Ptr> GetFeatureStats(void);
 
 private:
 	CIB(void);

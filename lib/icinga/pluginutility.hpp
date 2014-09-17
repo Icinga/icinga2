@@ -46,8 +46,8 @@ public:
 	static ServiceState ExitStatusToState(int exitStatus);
 	static std::pair<String, String> ParseCheckOutput(const String& output);
 
-	static Value ParsePerfdata(const String& perfdata);
-	static String FormatPerfdata(const Value& perfdata);
+	static Array::Ptr SplitPerfdata(const String& perfdata);
+	static String FormatPerfdata(const Array::Ptr& perfdata);
 
 private:
 	PluginUtility(void);

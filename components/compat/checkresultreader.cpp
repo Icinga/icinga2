@@ -38,7 +38,7 @@ REGISTER_TYPE(CheckResultReader);
 
 REGISTER_STATSFUNCTION(CheckResultReaderStats, &CheckResultReader::StatsFunc);
 
-Value CheckResultReader::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

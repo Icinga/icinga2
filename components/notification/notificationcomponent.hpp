@@ -37,7 +37,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(NotificationComponent);
 	DECLARE_TYPENAME(NotificationComponent);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	virtual void Start(void);
 

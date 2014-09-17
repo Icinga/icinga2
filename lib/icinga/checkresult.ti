@@ -50,7 +50,7 @@ safe class CheckResult
 
 	[state, enum] ServiceState "state";
 	[state] String output;
-	[state] Value performance_data;
+	[state] Array::Ptr performance_data;
 
 	[state] bool active {
 		default {{{ return true; }}}

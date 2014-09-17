@@ -28,7 +28,7 @@ REGISTER_TYPE(SyslogLogger);
 
 REGISTER_STATSFUNCTION(SyslogLoggerStats, &SyslogLogger::StatsFunc);
 
-Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr&)
+Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 

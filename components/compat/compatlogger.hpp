@@ -39,7 +39,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(CompatLogger);
 	DECLARE_TYPENAME(CompatLogger);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static void ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs);
 

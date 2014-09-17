@@ -5,6 +5,7 @@ namespace icinga
 
 safe class PerfdataValue
 {
+	[state] String label;
 	[state] double value;
 	[state] bool counter;
 	[state] String unit;

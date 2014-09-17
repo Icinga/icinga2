@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/livestatuslistener.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "config/configcompilercontext.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
@@ -43,7 +44,7 @@ static boost::mutex l_ComponentMutex;
 
 REGISTER_STATSFUNCTION(LivestatusListenerStats, &LivestatusListener::StatsFunc);
 
-Value LivestatusListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
@@ -53,7 +54,7 @@ Value LivestatusListener::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 		nodes->Set(livestatuslistener->GetName(), stats);
 
-		perfdata->Set("livestatuslistener_" + livestatuslistener->GetName() + "_connections", Convert::ToDouble(l_Connections));
+		perfdata->Add(make_shared<PerfdataValue>("livestatuslistener_" + livestatuslistener->GetName() + "_connections", l_Connections));
 	}
 
 	status->Set("livestatuslistener", nodes);

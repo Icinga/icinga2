@@ -17,6 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "icinga/perfdatavalue.hpp"
+#include "db_ido/dbtype.hpp"
+#include "db_ido/dbvalue.hpp"
+#include "db_ido_mysql/idomysqlconnection.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -25,9 +29,6 @@
 #include "base/dynamictype.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include "db_ido/dbtype.hpp"
-#include "db_ido/dbvalue.hpp"
-#include "db_ido_mysql/idomysqlconnection.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -38,7 +39,7 @@ using namespace icinga;
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
 
-Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata)
+Value IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = make_shared<Dictionary>();
 
@@ -52,7 +53,7 @@ Value IdoMysqlConnection::StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& pe
 
 		nodes->Set(idomysqlconnection->GetName(), stats);
 
-		perfdata->Set("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", Convert::ToDouble(items));
+		perfdata->Add(make_shared<PerfdataValue>("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", items));
 	}
 
 	status->Set("idomysqlconnection", nodes);

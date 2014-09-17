@@ -44,7 +44,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(StatusDataWriter);
 	DECLARE_TYPENAME(StatusDataWriter);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Dictionary::Ptr& perfdata);
+	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);

@@ -21,6 +21,7 @@
 #	include <stdlib.h>
 #endif /* _WIN32 */
 #include "methods/nullchecktask.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/scriptfunction.hpp"
@@ -35,8 +36,8 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 	String output = "Hello from ";
 	output += Utility::GetFQDN();
 
-	Dictionary::Ptr perfdata = make_shared<Dictionary>();
-	perfdata->Set("time", Convert::ToDouble(Utility::GetTime()));
+	Array::Ptr perfdata = make_shared<Array>();
+	perfdata->Add(make_shared<PerfdataValue>("time", Convert::ToDouble(Utility::GetTime())));
 
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);

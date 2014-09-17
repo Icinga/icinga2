@@ -31,9 +31,11 @@ REGISTER_TYPE(PerfdataValue);
 PerfdataValue::PerfdataValue(void)
 { }
 
-PerfdataValue::PerfdataValue(double value, bool counter, const String& unit,
-    const Value& warn, const Value& crit, const Value& min, const Value& max)
+PerfdataValue::PerfdataValue(String label, double value, bool counter,
+    const String& unit, const Value& warn, const Value& crit, const Value& min,
+    const Value& max)
 {
+	SetLabel(label);
 	SetValue(value);
 	SetCounter(counter);
 	SetUnit(unit);
@@ -43,23 +45,38 @@ PerfdataValue::PerfdataValue(double value, bool counter, const String& unit,
 	SetMax(max);
 }
 
-Value PerfdataValue::Parse(const String& perfdata)
+PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 {
-	size_t pos = perfdata.FindFirstNotOf("+-0123456789.e");
+	size_t eqp = perfdata.FindFirstOf('=');
 
-	double value = Convert::ToDouble(perfdata.SubStr(0, pos));
+	if (eqp == String::NPos)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data value: " + perfdata));
 
-	if (pos == String::NPos)
-		return value;
+	String label = perfdata.SubStr(0, eqp);
+
+	if (label.GetLength() > 2 && label[0] == '\'' && label[label.GetLength() - 1] == '\'')
+		label = label.SubStr(1, label.GetLength() - 2);
+
+	size_t spq = perfdata.FindFirstOf(' ', eqp);
+
+	if (spq == String::NPos)
+		spq = perfdata.GetLength();
+
+	String valueStr = perfdata.SubStr(eqp + 1, spq - eqp - 1);
+		
+	size_t pos = valueStr.FindFirstNotOf("+-0123456789.e");
+
+	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
 
 	std::vector<String> tokens;
-	boost::algorithm::split(tokens, perfdata, boost::is_any_of(";"));
+	boost::algorithm::split(tokens, valueStr, boost::is_any_of(";"));
 
 	bool counter = false;
 	String unit;
 	Value warn, crit, min, max;
 
-	unit = perfdata.SubStr(pos, tokens[0].GetLength() - pos);
+	if (pos != String::NPos)
+		unit = valueStr.SubStr(pos, tokens[0].GetLength() - pos);
 
 	boost::algorithm::to_lower(unit);
 
@@ -122,48 +139,48 @@ Value PerfdataValue::Parse(const String& perfdata)
 	if (!max.IsEmpty())
 		max = max * base;
 
-	return make_shared<PerfdataValue>(value, counter, unit, warn, crit, min, max);
+	return make_shared<PerfdataValue>(label, value, counter, unit, warn, crit, min, max);
 }
 
-String PerfdataValue::Format(const Value& perfdata)
+String PerfdataValue::Format(void) const
 {
-	if (perfdata.IsObjectType<PerfdataValue>()) {
-		PerfdataValue::Ptr pdv = perfdata;
-		std::ostringstream result;
+	std::ostringstream result;
 
-		result << Convert::ToString(pdv->GetValue());
+	if (GetLabel().FindFirstOf(" ") != String::NPos)
+		result << "'" << GetLabel() << "'";
+	else
+		result << GetLabel();
 
-		String unit;
+	result << "=" << Convert::ToString(GetValue());
 
-		if (pdv->GetCounter())
-			unit = "c";
-		else if (pdv->GetUnit() == "seconds")
-			unit = "s";
-		else if (pdv->GetUnit() == "percent")
-			unit = "%";
-		else if (pdv->GetUnit() == "bytes")
-			unit = "B";
+	String unit;
 
-		result << unit;
+	if (GetCounter())
+		unit = "c";
+	else if (GetUnit() == "seconds")
+		unit = "s";
+	else if (GetUnit() == "percent")
+		unit = "%";
+	else if (GetUnit() == "bytes")
+		unit = "B";
 
-		if (!pdv->GetWarn().IsEmpty()) {
-			result << ";" << pdv->GetWarn();
+	result << unit;
 
-			if (!pdv->GetCrit().IsEmpty()) {
-				result << ";" << pdv->GetCrit();
+	if (!GetWarn().IsEmpty()) {
+		result << ";" << Convert::ToString(GetWarn());
 
-				if (!pdv->GetMin().IsEmpty()) {
-					result << ";" << pdv->GetMin();
+		if (!GetCrit().IsEmpty()) {
+			result << ";" << Convert::ToString(GetCrit());
 
-					if (!pdv->GetMax().IsEmpty()) {
-						result << ";" << pdv->GetMax();
-					}
+			if (!GetMin().IsEmpty()) {
+				result << ";" << Convert::ToString(GetMin());
+
+				if (!GetMax().IsEmpty()) {
+					result << ";" << Convert::ToString(GetMax());
 				}
 			}
 		}
-
-		return result.str();
-	} else {
-		return perfdata;
 	}
+
+	return result.str();
 }
