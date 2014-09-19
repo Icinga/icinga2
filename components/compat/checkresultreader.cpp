@@ -136,7 +136,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	CheckResult::Ptr result = make_shared<CheckResult>();
 	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(attrs["output"]);
 	result->SetOutput(co.first);
-	result->SetPerformanceData(co.second);
+	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
 	result->SetState(PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
 	result->SetExecutionStart(Convert::ToDouble(attrs["start_time"]));
 	result->SetExecutionEnd(Convert::ToDouble(attrs["finish_time"]));
