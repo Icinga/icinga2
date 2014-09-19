@@ -343,6 +343,7 @@ int Main(void)
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
 		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead")
+		("reload-timeout", po::value<int>()->default_value(300), "seconds to wait for the child to finish during a reload. defaults to 300.")
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
@@ -385,6 +386,7 @@ int Main(void)
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
 	Application::DeclareObjectsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.debug");
 	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");
+	Application::SetReloadTimeout(g_AppParams["reload-timeout"].as<int>());
 
 #ifndef _WIN32
 	if (g_AppParams.count("group")) {
