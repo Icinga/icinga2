@@ -32,12 +32,12 @@ endif()
 if(MSVC)
   include_external_msproject(
     icinga2setupagent
-    ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/Icinga2SetupAgent.csproj
+    ${CMAKE_CURRENT_SOURCE_DIR}/windows-setup-agent/Icinga2SetupAgent.csproj
     TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC
   )
 
   install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/icinga2-setup-agent/bin/\${CMAKE_INSTALL_CONFIG_NAME}/Icinga2SetupAgent.exe
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/windows-setup-agent/bin/\${CMAKE_INSTALL_CONFIG_NAME}/Icinga2SetupAgent.exe
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
 endif()
