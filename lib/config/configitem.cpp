@@ -268,7 +268,14 @@ void ConfigItem::ValidateItem(void)
 		return;
 	}
 
-	ctype->ValidateItem(GetSelf());
+	try {
+		ctype->ValidateItem(GetSelf());
+	} catch (const ConfigError& ex) {
+		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+	} catch (const std::exception& ex) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
+	}
 
 	m_Validated = true;
 }
