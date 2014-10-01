@@ -15,29 +15,31 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-find_package(PythonInterp REQUIRED)
+if(NOT WIN32)
+  find_package(PythonInterp REQUIRED)
 
-add_subdirectory(icinga2)
+  add_subdirectory(icinga2)
 
-configure_file(setup.py.cmake ${CMAKE_CURRENT_BINARY_DIR}/setup.py @ONLY)
+  configure_file(setup.py.cmake ${CMAKE_CURRENT_BINARY_DIR}/setup.py @ONLY)
 
-install(CODE "
-  execute_process(
-   COMMAND \"${CMAKE_COMMAND}\"
-     \"-DSETUP_PY=${CMAKE_CURRENT_BINARY_DIR}/setup.py\"
-     \"-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}\"
-     \"-DPREFIX=${CMAKE_INSTALL_PREFIX}\"
-     \"-DWDIR=${CMAKE_CURRENT_BINARY_DIR}\"
-     -P \"${PROJECT_SOURCE_DIR}/third-party/cmake/PythonSetup.cmake\"
+  install(CODE "
+    execute_process(
+     COMMAND \"${CMAKE_COMMAND}\"
+       \"-DSETUP_PY=${CMAKE_CURRENT_BINARY_DIR}/setup.py\"
+       \"-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}\"
+       \"-DPREFIX=${CMAKE_INSTALL_PREFIX}\"
+       \"-DWDIR=${CMAKE_CURRENT_BINARY_DIR}\"
+       -P \"${PROJECT_SOURCE_DIR}/third-party/cmake/PythonSetup.cmake\"
+    )
+
+    configure_file(
+        \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_BINDIR}/icinga2-list-objects
+        \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SBINDIR}/icinga2-list-objects COPYONLY}
+    )
+
+    file(
+      REMOVE
+        \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_BINDIR}/icinga2-list-objects
+    )"
   )
-
-  configure_file(
-      \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_BINDIR}/icinga2-list-objects
-      \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SBINDIR}/icinga2-list-objects COPYONLY}
-  )
-
-  file(
-    REMOVE
-      \$ENV{DESTDIR}${CMAKE_INSTALL_FULL_BINDIR}/icinga2-list-objects
-  )"
-)
+endif()
