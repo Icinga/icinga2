@@ -142,7 +142,7 @@ static void FillCheckResult(const CheckResult::Ptr& cr, variant_t vtResult)
 		vtResult,
 		psa);
 	SafeArrayDestroy(psa);
-	cr->SetPerformanceData(static_cast<const char *>(sPerformanceData));
+	cr->SetPerformanceData(PluginUtility::SplitPerfdata(static_cast<const char *>(sPerformanceData)));
 }
 
 void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
