@@ -22,7 +22,6 @@
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
 #include "config/configtype.hpp"
-#include "config/configerror.hpp"
 #include "base/application.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
@@ -33,6 +32,7 @@
 #include "base/exception.hpp"
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
+#include "base/configerror.hpp"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>

@@ -38,17 +38,8 @@
 namespace icinga
 {
 
-class I2_BASE_API user_error : virtual public std::exception, virtual public boost::exception {
-public:
-	user_error(void);
-	user_error(const String& message);
-	~user_error(void) throw();
-
-	const char *what(void) const throw();
-
-private:
-	String m_Message;
-};
+class I2_BASE_API user_error : virtual public std::exception, virtual public boost::exception
+{ };
 
 I2_BASE_API StackTrace *GetLastExceptionStack(void);
 I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);

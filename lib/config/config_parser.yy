@@ -25,7 +25,6 @@
 #include "config/configtype.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
-#include "config/configerror.hpp"
 #include "config/typerule.hpp"
 #include "config/typerulelist.hpp"
 #include "config/aexpression.hpp"
@@ -38,6 +37,7 @@
 #include "base/scriptvariable.hpp"
 #include "base/exception.hpp"
 #include "base/dynamictype.hpp"
+#include "base/configerror.hpp"
 #include <sstream>
 #include <stack>
 #include <boost/foreach.hpp>

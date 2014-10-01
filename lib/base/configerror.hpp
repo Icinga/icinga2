@@ -20,7 +20,7 @@
 #ifndef CONFIGERROR_H
 #define CONFIGERROR_H
 
-#include "config/i2-config.hpp"
+#include "base/i2-base.hpp"
 #include "base/debuginfo.hpp"
 #include "base/exception.hpp"
 
@@ -28,12 +28,18 @@ namespace icinga
 {
 
 /*
- * @ingroup config
+ * @ingroup base
  */
-class I2_CONFIG_API ConfigError : virtual public user_error
+class I2_BASE_API ConfigError : virtual public user_error
 {
 public:
 	ConfigError(const String& message);
+	~ConfigError(void) throw();
+
+	virtual const char *what(void) const throw();
+
+private:
+	String m_Message;
 };
 
 }

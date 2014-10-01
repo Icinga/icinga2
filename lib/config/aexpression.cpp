@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "config/aexpression.hpp"
-#include "config/configerror.hpp"
 #include "config/configitem.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
@@ -31,6 +30,7 @@
 #include "base/objectlock.hpp"
 #include "base/object.hpp"
 #include "base/logger_fwd.hpp"
+#include "base/configerror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>

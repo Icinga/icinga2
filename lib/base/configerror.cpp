@@ -17,12 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configerror.hpp"
+#include "base/configerror.hpp"
 #include <sstream>
 
 using namespace icinga;
 
 ConfigError::ConfigError(const String& message)
-	: user_error(message)
+	: m_Message(message)
 { }
 
+ConfigError::~ConfigError(void) throw()
+{ }
+
+const char *ConfigError::what(void) const throw()
+{
+	return m_Message.CStr();
+}

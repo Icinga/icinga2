@@ -153,18 +153,3 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr)
 	return boost::diagnostic_information(eptr);
 }
 
-user_error::user_error(void)
-{ }
-
-user_error::user_error(const String& message)
-	: m_Message(message)
-{ }
-
-user_error::~user_error(void) throw()
-{ }
-
-const char *user_error::what(void) const throw()
-{
-	return m_Message.CStr();
-}
-
