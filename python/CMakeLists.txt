@@ -23,12 +23,12 @@ configure_file(setup.py.cmake ${CMAKE_CURRENT_BINARY_DIR}/setup.py @ONLY)
 
 install(CODE "
   execute_process(
-   COMMAND ${CMAKE_COMMAND}
-     -DSETUP_PY=${CMAKE_CURRENT_BINARY_DIR}/setup.py
-     -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
-     -DPREFIX=${CMAKE_INSTALL_PREFIX}
-     -DWDIR=${CMAKE_CURRENT_BINARY_DIR}
-     -P ${PROJECT_SOURCE_DIR}/third-party/cmake/PythonSetup.cmake
+   COMMAND \"${CMAKE_COMMAND}\"
+     \"-DSETUP_PY=${CMAKE_CURRENT_BINARY_DIR}/setup.py\"
+     \"-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}\"
+     \"-DPREFIX=${CMAKE_INSTALL_PREFIX}\"
+     \"-DWDIR=${CMAKE_CURRENT_BINARY_DIR}\"
+     -P \"${PROJECT_SOURCE_DIR}/third-party/cmake/PythonSetup.cmake\"
   )
 
   configure_file(
