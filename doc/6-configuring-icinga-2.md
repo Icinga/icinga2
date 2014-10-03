@@ -881,7 +881,7 @@ Attributes:
   command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
-  timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.
+  timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
 
@@ -966,7 +966,7 @@ Attributes:
   command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
-  timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.
+  timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for `CheckCommand` objects.
@@ -993,7 +993,7 @@ Attributes:
   command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
-  timeout         |**Optional.** The command timeout in seconds. Defaults to 5 minutes.
+  timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for `CheckCommand` objects.
