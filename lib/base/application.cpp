@@ -54,6 +54,7 @@ static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
+int Application::m_ReloadTimeout;
 
 /**
  * Constructor for the Application class.
@@ -353,7 +354,7 @@ pid_t Application::StartReloadProcess(void)
 	args->Add(Convert::ToString(Utility::GetPid()));
 
 	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
-	process->SetTimeout(300);
+	process->SetTimeout(Application::GetReloadTimeout());
 	process->Run(&ReloadProcessCallback);
 
 	return process->GetPID();
@@ -1086,4 +1087,14 @@ double Application::GetStartTime(void)
 void Application::SetStartTime(double ts)
 {
 	m_StartTime = ts;
+}
+
+int Application::GetReloadTimeout(void)
+{
+	return m_ReloadTimeout;
+}
+
+void Application::SetReloadTimeout(int timeout_seconds)
+{
+	m_ReloadTimeout = timeout_seconds;
 }

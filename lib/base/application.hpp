@@ -122,6 +122,9 @@ public:
 	static double GetStartTime(void);
 	static void SetStartTime(double ts);
 
+    static int GetReloadTimeout(void);
+    static void SetReloadTimeout(int timeout_seconds);
+
 	static void DisplayInfoMessage(bool skipVersion = false);
 
 protected:
@@ -150,6 +153,7 @@ private:
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
+	static int m_ReloadTimeout;
 
 #ifndef _WIN32
 	static void SigIntTermHandler(int signum);
