@@ -1001,7 +1001,7 @@ String Utility::GetFQDN(void)
 	addrinfo *result;
 	int rc = getaddrinfo(hostname.CStr(), NULL, &hints, &result);
 
-	if (rc < 0)
+	if (rc != 0)
 		result = NULL;
 
 	String canonicalName;

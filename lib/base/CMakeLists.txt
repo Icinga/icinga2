@@ -23,7 +23,7 @@ mkclass_target(streamlogger.ti streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.thpp)
 
 set(base_SOURCES
-  application.cpp application.thpp array.cpp configerror.cpp context.cpp
+  application.cpp application.thpp array.cpp clicommand.cpp configerror.cpp context.cpp
   convert.cpp debuginfo.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp

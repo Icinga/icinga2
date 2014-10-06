@@ -135,8 +135,10 @@ void Application::InitializeBase(void)
 			maxfds = 65536;
 
 		for (rlim_t i = 3; i < maxfds; i++) {
+#ifdef _DEBUG
 			if (close(i) >= 0)
 				std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
+#endif /* _DEBUG */
 		}
 	}
 #endif /* _WIN32 */

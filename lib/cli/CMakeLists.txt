@@ -15,11 +15,28 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_subdirectory(base)
-add_subdirectory(cli)
-add_subdirectory(config)
-add_subdirectory(icinga)
-add_subdirectory(db_ido)
-add_subdirectory(methods)
-add_subdirectory(hello)
-add_subdirectory(remote)
+set(cli_SOURCES
+  cainitcommand.cpp daemoncommand.cpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(cli cli_SOURCES)
+endif()
+
+add_library(cli SHARED ${cli_SOURCES})
+
+target_link_libraries(cli ${Boost_LIBRARIES} base config)
+
+set_target_properties (
+  cli PROPERTIES
+  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  FOLDER Lib
+)
+
+install(
+  TARGETS cli
+  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
+)
+
+
