@@ -2454,7 +2454,7 @@ snmp_crit               | **Optional.** The critical threshold.
 snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
 
-#### <a id="plugin-check-command-snmp-int"></a> snmp-int
+#### <a id="plugin-check-command-snmp-interface"></a> snmp-interface
 
 Check command object for the [check_snmp_int.pl](http://nagios.manubulon.com/snmp_int.html) plugin.
 
