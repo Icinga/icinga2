@@ -462,7 +462,8 @@ another group of objects.
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "ping"
-is created for each matching host.
+is created for each matching host. [Expression operators](#expression-operators)
+may be used in `assign where` conditions.
 
 The `to` keyword and the target type may be omitted if there is only one target
 type, e.g. for the `Service` type.
@@ -498,7 +499,8 @@ and `ignore where` conditions.
 In this example the `assign where` condition is a boolean expression which is evaluated
 for all objects of the type `Host`. Each matching host is added as member to the host group
 with the name "linux-servers". Membership exclusion can be controlled using the `ignore where`
-condition.
+condition. [Expression operators](#expression-operators) may be used in `assign where` and
+`ignore where` conditions.
 
 Source Type       | Variables
 ------------------|--------------
@@ -524,6 +526,9 @@ Empty array          | []                | false
 Non-empty array      | [ "Hello" ]       | true
 Empty dictionary     | {}                | false
 Non-empty dictionary | { key = "value" } | true
+
+For a list of supported expression operators for `assign where` and `ignore where`
+statements, see [expression operators](#expression-operators).
 
 ### <a id="comments"></a> Comments
 
