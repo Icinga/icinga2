@@ -2402,8 +2402,8 @@ snmp_password           | **Required.** SNMP version 3 password. No value define
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
-snmp_warn               | **Optional.** The warning threshold.
-snmp_crit               | **Optional.** The critical threshold.
+snmp_warn               | **Optional.** The warning threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
+snmp_crit               | **Optional.** The critical threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
 snmp_load_type          | **Optional.** Load type. Defaults to "stand". Check all available types int the [snmp load](http://nagios.manubulon.com/snmp_load.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
 
