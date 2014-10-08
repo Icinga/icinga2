@@ -1401,7 +1401,7 @@ Validate the configuration with the init script option `checkconfig`
 
 or manually passing the `-C` argument:
 
-    # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -C
+    # /usr/sbin/icinga2 daemon -c /etc/icinga2/icinga2.conf -C
 
     [2014-05-22 17:07:25 +0200] critical/ConfigItem: Location:
     /etc/icinga2/conf.d/tests/5872.conf(5): }
