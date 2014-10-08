@@ -68,6 +68,8 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& de
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
 
+	autocomplete = false;
+	
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 
 	std::vector<String> best_match;
