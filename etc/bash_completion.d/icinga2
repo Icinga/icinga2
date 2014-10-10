@@ -3,7 +3,7 @@ _icinga2()
   local cur opts
   opts="${COMP_WORDS[*]}"
   cur="${COMP_WORDS[COMP_CWORD]}"
-  COMPREPLY=($(icinga2 --autocomplete $COMP_CWORD ${COMP_WORDS[*]:1} < /dev/null))
+  COMPREPLY=($(icinga2 --autocomplete $COMP_CWORD ${COMP_WORDS[*]} < /dev/null))
   return 0
 }
 
