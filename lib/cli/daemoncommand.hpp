@@ -39,7 +39,8 @@ public:
     
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
-	virtual void InitParameters(boost::program_options::options_description& desc) const;
+	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+	    boost::program_options::options_description& hiddenDesc) const;
 	virtual int Run(const boost::program_options::variables_map& vm) const;
 };
 

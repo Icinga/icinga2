@@ -116,15 +116,20 @@ int Main(void)
 	
 	Utility::LoadExtensionLibrary("cli");
 
-	po::options_description desc("Global options");
+	po::options_description visibleDesc("Global options");
 
-	desc.add_options()
+	visibleDesc.add_options()
 		("help", "show this help message")
 		("version,V", "show version information")
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
-		("log-level,x", po::value<std::string>(), "specify the log level for the console log")
+		("log-level,x", po::value<std::string>(), "specify the log level for the console log");
+
+
+	po::options_description hiddenDesc("Hidden options");
+
+	hiddenDesc.add_options()
 		("no-stack-rlimit", "used internally, do not specify manually");
 	
 	String cmdname;
@@ -132,7 +137,7 @@ int Main(void)
 	po::variables_map vm;
 
 	try {
-		CLICommand::ParseCommand(argc, argv, desc, vm, cmdname, command, autocomplete);
+		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
@@ -243,7 +248,7 @@ int Main(void)
 			}
 	
 			std::cout << std::endl
-				<< desc << std::endl
+				<< visibleDesc << std::endl
 				<< "Report bugs at <https://dev.icinga.org/>" << std::endl
 				<< "Icinga home page: <http://www.icinga.org/>" << std::endl;
 			return EXIT_SUCCESS;
@@ -253,7 +258,7 @@ int Main(void)
 	int rc = 1;
 
 	if (autocomplete) {
-		CLICommand::ShowCommands(argc, argv, &desc, true, autoindex);
+		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc, true, autoindex);
 		rc = 0;
 	} else if (command)
 		rc = command->Run(vm);

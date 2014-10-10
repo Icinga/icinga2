@@ -63,7 +63,8 @@ RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLI
 	CLICommand::Register(vname, command);
 }
 
-bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& desc, po::variables_map& vm,
+bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
+    po::options_description& hiddenDesc, po::variables_map& vm,
     String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
@@ -100,24 +101,28 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& de
 found_command:
 	lock.unlock();
 
-	po::options_description ldesc("Command options");
+	po::options_description vdesc("Command options");
 	
 	if (command)	
-		command->InitParameters(ldesc);
+		command->InitParameters(vdesc, hiddenDesc);
 
-	desc.add(ldesc);
+	visibleDesc.add(vdesc);
 
 	if (autocomplete)
 		return true;
 
-	po::store(po::parse_command_line(argc - arg_end, argv + arg_end, desc), vm);
+	po::options_description adesc;
+	adesc.add(visibleDesc);
+	adesc.add(hiddenDesc);
+
+	po::store(po::parse_command_line(argc - arg_end, argv + arg_end, adesc), vm);
 	po::notify(vm);
 
 	return true;
 }
 
-void CLICommand::ShowCommands(int argc, char **argv, po::options_description *desc,
-    bool autocomplete, int autoindex)
+void CLICommand::ShowCommands(int argc, char **argv, po::options_description *visibleDesc,
+    po::options_description *hiddenDesc, bool autocomplete, int autoindex)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
 
@@ -193,14 +198,14 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *de
 	}
 
 	if (command && autocomplete) {
-		po::options_description ldesc("Command options");
+		po::options_description vdesc("Command options");
 		
-		if (command)	
-			command->InitParameters(ldesc);
+		if (command)
+			command->InitParameters(vdesc, *hiddenDesc);
 			
-		desc->add(ldesc);
+		visibleDesc->add(vdesc);
 
-		BOOST_FOREACH(const shared_ptr<po::option_description>& odesc, desc->options()) {
+		BOOST_FOREACH(const shared_ptr<po::option_description>& odesc, visibleDesc->options()) {
 			String cname = "--" + odesc->long_name();
 
 			if (cname.Find(aword) == 0)

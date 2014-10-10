@@ -281,20 +281,25 @@ String DaemonCommand::GetShortDescription(void) const
 	return "starts Icinga 2";
 }
 
-void DaemonCommand::InitParameters(boost::program_options::options_description& desc) const
+void DaemonCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
 {
-	desc.add_options()
+	visibleDesc.add_options()
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
 		("no-config,z", "start without a configuration file")
 		("validate,C", "exit after validating the configuration")
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
-		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead")
 		("daemonize,d", "detach from the controlling terminal")
 		("user,u", po::value<std::string>(), "user to run Icinga as")
 		("group,g", po::value<std::string>(), "group to run Icinga as")
 #endif /* _WIN32 */
 	;
+
+#ifndef _WIN32
+	hiddenDesc.add_options()
+		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead");
+#endif /* _WIN32 */
 }
 
 /**

@@ -35,7 +35,8 @@ String CAInitCommand::GetShortDescription(void) const
 	return "sets up a new CA";
 }
 
-void CAInitCommand::InitParameters(boost::program_options::options_description& desc) const
+void CAInitCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
 {
 	/* Command doesn't support any parameters. */
 }
