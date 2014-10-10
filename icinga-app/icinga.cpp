@@ -47,9 +47,20 @@ int Main(void)
 	int argc = Application::GetArgC();
 	char **argv = Application::GetArgV();
 
+	bool autocomplete = false;
+	int autoindex = 0;
+
+	if (argc >= 4 && strcmp(argv[1], "--autocomplete") == 0) {
+		autocomplete = true;
+		autoindex = Convert::ToLong(argv[2]);
+		argc -= 3;
+		argv += 3;
+	}
+
 	Application::SetStartTime(Utility::GetTime());
 
-	Application::SetResourceLimits();
+	if (!autocomplete)
+		Application::SetResourceLimits();
 
 	/* Set thread title. */
 	Utility::SetThreadName("Main Thread", false);
@@ -114,12 +125,10 @@ int Main(void)
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log")
-		("no-stack-rlimit", "used internally, do not specify manually")
-		("autocomplete", "auto-complete arguments");
+		("no-stack-rlimit", "used internally, do not specify manually");
 	
 	String cmdname;
 	CLICommand::Ptr command;
-	bool autocomplete;
 	po::variables_map vm;
 
 	try {
@@ -230,7 +239,7 @@ int Main(void)
 		if (!command || vm.count("help")) {
 			if (!command) {
 				std::cout << std::endl;
-				CLICommand::ShowCommands(argc, argv, NULL, false);
+				CLICommand::ShowCommands(argc, argv, NULL);
 			}
 	
 			std::cout << std::endl
@@ -244,7 +253,7 @@ int Main(void)
 	int rc = 1;
 
 	if (autocomplete) {
-		CLICommand::ShowCommands(argc, argv, &desc, true);
+		CLICommand::ShowCommands(argc, argv, &desc, true, autoindex);
 		rc = 0;
 	} else if (command)
 		rc = command->Run(vm);

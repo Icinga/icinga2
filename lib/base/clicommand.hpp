@@ -49,8 +49,8 @@ public:
 	static void Unregister(const std::vector<String>& name);
 
 	static bool ParseCommand(int argc, char **argv, boost::program_options::options_description& desc,
-	    boost::program_options::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool& autocomplete);
-	static void ShowCommands(int argc, char **argv, boost::program_options::options_description *desc, bool autocomplete);
+	    boost::program_options::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete);
+	static void ShowCommands(int argc, char **argv, boost::program_options::options_description *desc = NULL, bool autocomplete = false, int autoindex = -1);
 };
 
 /**
