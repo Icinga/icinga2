@@ -20,11 +20,13 @@
 #include "icinga/service.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
+#include "config/configcompilercontext.hpp"
 #include "base/initialize.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
+#include "base/configerror.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -97,8 +99,13 @@ void Service::EvaluateApplyRule(const ApplyRule& rule)
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
 		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-		if (EvaluateApplyRuleOne(host, rule))
-			apply_count++;
+		try {
+			if (EvaluateApplyRuleOne(host, rule))
+				apply_count++;
+		} catch (const ConfigError& ex) {
+			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+		}
 	}
 
 	if (apply_count == 0)
