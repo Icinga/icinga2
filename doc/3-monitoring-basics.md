@@ -1836,6 +1836,20 @@ The current naming schema is
     icinga.<hostname>.<metricname>
     icinga.<hostname>.<servicename>.<metricname>
 
+You can customize the metric prefix name by using the `host_name_template` and
+`service_name_template` configuration attributes.
+
+The example below uses [runtime macros](#runtime-macros) and a
+[global constant](#global-constants) named `GraphiteEnv`. The constant name
+is freely definable and should be put in the [constants.conf](#constants-conf) file.
+
+    const GraphiteEnv = "icinga.env1"
+
+    object GraphiteWriter "graphite" {
+      host_name_template = GraphiteEnv + ".$host.name$"
+      service_name_template = GraphiteEnv + ".$host.name$.$service.name$"
+    }
+
 To make sure Icinga 2 writes a valid label into Graphite some characters are replaced
 with `_` in the target name:
 
@@ -1854,6 +1868,7 @@ internal check statistic data to Graphite:
   current_attempt    | current check attempt
   max_check_attempts | maximum check attempts until the hard state is reached
   reachable          | checked object is reachable
+  downtime_depth     | number of downtimes this object is in
   execution_time     | check execution time
   latency            | check latency
   state              | current state of the checked object

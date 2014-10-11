@@ -1300,10 +1300,21 @@ Example:
 
 Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host            |**Optional.** Graphite Carbon host address. Defaults to '127.0.0.1'.
-  port            |**Optional.** Graphite Carbon port. Defaults to 2003.
+  Name            	|Description
+  ----------------------|----------------------
+  host            	|**Optional.** Graphite Carbon host address. Defaults to '127.0.0.1'.
+  port            	|**Optional.** Graphite Carbon port. Defaults to 2003.
+  host_name_template 	|**Optional.** Metric prefix for host name. Defaults to "icinga.$host.name$".
+  service_name_template |**Optional.** Metric prefix for service name. Defaults to "icinga.$host.name$.$service.name$".
+
+Metric prefix names can be modified using [runtime macros](#runtime-macros).
+
+Example with your custom [global constant](#global-constants) `GraphiteEnv`:
+
+    const GraphiteEnv = "icinga.env1"
+
+    host_name_template = GraphiteEnv + ".$host.name$"
+    service_name_template = GraphiteEnv + ".$host.name$.$service.name$"
 
 ### <a id="objecttype-idomysqlconnection"></a> IdoMySqlConnection
 

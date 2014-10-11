@@ -11,6 +11,12 @@ class GraphiteWriter : DynamicObject
 	[config] String port {
 		default {{{ return "2003"; }}}
 	};
+	[config] String host_name_template {
+		default {{{ return "icinga.$host.name$"; }}}
+	};
+	[config] String service_name_template {
+		default {{{ return "icinga.$host.name$.$service.name$"; }}}
+	};
 };
 
 }

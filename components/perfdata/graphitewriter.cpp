@@ -111,14 +111,27 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	String prefix;
 
+	MacroProcessor::ResolverList resolvers;
+	if (service)
+		resolvers.push_back(std::make_pair("service", service));
+	resolvers.push_back(std::make_pair("host", host));
+	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+
 	if (service) {
 		String serviceName = service->GetShortName();
 		SanitizeMetric(serviceName);
-		prefix = "icinga." + hostName + "." + serviceName;
+
+		/* custom prefix or default pattern */
+		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr);
+		if (prefix.IsEmpty())
+			prefix = "icinga." + hostName + "." + serviceName;
 
 		SendMetric(prefix, "state", service->GetState());
 	} else {
-		prefix = "icinga." + hostName;
+		/* custom prefix or default pattern */
+		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr);
+		if (prefix.IsEmpty())
+			prefix = "icinga." + hostName;
 
 		SendMetric(prefix, "state", host->GetState());
 	}
