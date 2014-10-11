@@ -26,7 +26,9 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	int state_filter_real (StateFilter);
 
 	[config] bool disable_checks;
-	[config] bool disable_notifications;
+	[config] bool disable_notifications {
+		default {{{ return true; }}}
+	};
 };
 
 }
