@@ -106,32 +106,20 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	else
 		host = static_pointer_cast<Host>(checkable);
 
-	String hostName = host->GetName();
-	SanitizeMetric(hostName);
-
-	String prefix;
-
 	MacroProcessor::ResolverList resolvers;
 	if (service)
 		resolvers.push_back(std::make_pair("service", service));
 	resolvers.push_back(std::make_pair("host", host));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	if (service) {
-		String serviceName = service->GetShortName();
-		SanitizeMetric(serviceName);
+	String prefix;
 
-		/* custom prefix or default pattern */
-		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr);
-		if (prefix.IsEmpty())
-			prefix = "icinga." + hostName + "." + serviceName;
+	if (service) {
+		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, &GraphiteWriter::EscapeMetric);
 
 		SendMetric(prefix, "state", service->GetState());
 	} else {
-		/* custom prefix or default pattern */
-		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr);
-		if (prefix.IsEmpty())
-			prefix = "icinga." + hostName;
+		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, NULL, &GraphiteWriter::EscapeMetric);
 
 		SendMetric(prefix, "state", host->GetState());
 	}
@@ -168,8 +156,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 			}
 		}
 		
-		String escaped_key = pdv->GetLabel();
-		SanitizeMetric(escaped_key);
+		String escaped_key = EscapeMetric(pdv->GetLabel());
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
 		SendMetric(prefix, escaped_key, pdv->GetValue());
@@ -210,11 +197,15 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	}
 }
 
-void GraphiteWriter::SanitizeMetric(String& str)
+String GraphiteWriter::EscapeMetric(const String& str)
 {
-	boost::replace_all(str, " ", "_");
-	boost::replace_all(str, ".", "_");
-	boost::replace_all(str, "-", "_");
-	boost::replace_all(str, "\\", "_");
-	boost::replace_all(str, "/", "_");
+	String result = str;
+
+	boost::replace_all(result, " ", "_");
+	boost::replace_all(result, ".", "_");
+	boost::replace_all(result, "-", "_");
+	boost::replace_all(result, "\\", "_");
+	boost::replace_all(result, "/", "_");
+
+	return result;
 }

@@ -54,7 +54,7 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const String& prefix, const String& name, double value);
 	void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr);
-	static void SanitizeMetric(String& str);
+	static String EscapeMetric(const String& str);
 
 	void ReconnectTimerHandler(void);
 };
