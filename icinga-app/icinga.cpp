@@ -132,12 +132,7 @@ int Main(void)
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
-		("log-level,x", po::value<std::string>(), "specify the log level for the console log")
-#ifndef _WIN32
-		("user,u", po::value<std::string>(), "user to run Icinga as")
-		("group,g", po::value<std::string>(), "group to run Icinga as")
-#endif /* _WIN32 */
-	;
+		("log-level,x", po::value<std::string>(), "specify the log level for the console log");
 
 	po::options_description hiddenDesc("Hidden options");
 
@@ -178,12 +173,6 @@ int Main(void)
 			ScriptVariable::Set(key, value);
 		}
 	}
-
-	if (vm.count("group"))
-		ScriptVariable::Set("RunAsGroup", String(vm["group"].as<std::string>()));
-
-	if (vm.count("user"))
-		ScriptVariable::Set("RunAsUser", String(vm["user"].as<std::string>()));
 
 #ifndef _WIN32
 	String group = Application::GetRunAsGroup();
