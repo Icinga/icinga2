@@ -43,8 +43,8 @@ override_dh_install:
 	for dbms in mysql pgsql; do \
 		mkdir -p debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/install ; \
 		mkdir -p debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/upgrade/$$dbms; \
-		cp components/db_ido_$$dbms/schema/$$dbms.sql debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/install/$$dbms ; \
-		for file in components/db_ido_$$dbms/schema/upgrade/* ; do \
+		cp lib/db_ido_$$dbms/schema/$$dbms.sql debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/install/$$dbms ; \
+		for file in lib/db_ido_$$dbms/schema/upgrade/* ; do \
 			cp $$file debian/icinga2-ido-$$dbms/usr/share/dbconfig-common/data/icinga2-ido-$$dbms/upgrade/$$dbms/`basename $$file .sql`; \
 		done; \
 	done
