@@ -17,28 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/cainitcommand.hpp"
+#include "cli/pkinewcsrcommand.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/clicommand.hpp"
+#include "base/tlsutility.hpp"
 
 using namespace icinga;
+namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("ca/init", CAInitCommand);
+REGISTER_CLICOMMAND("pki/new-csr", PKINewCSRCommand);
 
-String CAInitCommand::GetDescription(void) const
+String PKINewCSRCommand::GetDescription(void) const
 {
-	return "Sets up a new Certificate Authority.";
+	return "Creates a new Certificate Signing Request and optionally a self-signed X509 certificate.";
 }
 
-String CAInitCommand::GetShortDescription(void) const
+String PKINewCSRCommand::GetShortDescription(void) const
 {
-	return "sets up a new CA";
+	return "creates a new CSR";
 }
 
-void CAInitCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void PKINewCSRCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
-	/* Command doesn't support any parameters. */
+	visibleDesc.add_options()
+		("cn", po::value<std::string>(), "Common Name")
+		("keyfile", po::value<std::string>(), "Key file path")
+		("csrfile", po::value<std::string>(), "CSR file path")
+		("certfile", po::value<std::string>(), "Certificate file path (optional)");
 }
 
 /**
@@ -46,10 +52,29 @@ void CAInitCommand::InitParameters(boost::program_options::options_description& 
  *
  * @returns An exit status.
  */
-int CAInitCommand::Run(const boost::program_options::variables_map& vm) const
+int PKINewCSRCommand::Run(const boost::program_options::variables_map& vm) const
 {
-	Log(LogNotice, "cli", "Test!");
-	Log(LogInformation, "cli", "Hello World!");
+	if (!vm.count("cn")) {
+		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
+		return 1;
+	}
+	
+	if (!vm.count("keyfile")) {
+		Log(LogCritical, "cli", "Key file path (--keyfile) must be specified.");
+		return 1;
+	}
+
+	if (!vm.count("csrfile")) {
+		Log(LogCritical, "cli", "CSR file path (--csrfile) must be specified.");
+		return 1;
+	}
+
+	String certfile;
+	
+	if (vm.count("certfile"))
+		certfile = vm["certfile"].as<std::string>();
+	
+	MakeX509CSR(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), vm["csrfile"].as<std::string>(), certfile);
 
 	return 0;
 }

@@ -16,7 +16,7 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 set(cli_SOURCES
-  cainitcommand.cpp daemoncommand.cpp
+  pkiinitcacommand.cpp pkinewcsrcommand.cpp daemoncommand.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

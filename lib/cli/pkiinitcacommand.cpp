@@ -17,49 +17,39 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef TLSUTILITY_H
-#define TLSUTILITY_H
+#include "cli/pkiinitcacommand.hpp"
+#include "base/logger_fwd.hpp"
+#include "base/clicommand.hpp"
 
-#include "base/i2-base.hpp"
-#include "base/object.hpp"
-#include "base/qstring.hpp"
-#include "base/exception.hpp"
-#include <openssl/ssl.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/comp.h>
-#include <openssl/sha.h>
+using namespace icinga;
 
-namespace icinga
+REGISTER_CLICOMMAND("pki/init-ca", PKIInitCACommand);
+
+String PKIInitCACommand::GetDescription(void) const
 {
-
-shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
-void I2_BASE_API AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPath);
-String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
-shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
-int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile = String());
-String I2_BASE_API SHA256(const String& s);
-
-class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
-
-struct errinfo_openssl_error_;
-typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
-
-inline std::string to_string(const errinfo_openssl_error& e)
-{
-	std::ostringstream tmp;
-	int code = e.value();
-	char errbuf[120];
-
-	const char *message = ERR_error_string(code, errbuf);
-
-	if (message == NULL)
-		message = "Unknown error.";
-
-	tmp << code << ", \"" << message << "\"";
-	return tmp.str();
+	return "Sets up a new Certificate Authority.";
 }
 
+String PKIInitCACommand::GetShortDescription(void) const
+{
+	return "sets up a new CA";
 }
 
-#endif /* TLSUTILITY_H */
+void PKIInitCACommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
+{
+	/* Command doesn't support any parameters. */
+}
+
+/**
+ * The entry point for the "ca init" CLI command.
+ *
+ * @returns An exit status.
+ */
+int PKIInitCACommand::Run(const boost::program_options::variables_map& vm) const
+{
+	Log(LogNotice, "cli", "Test!");
+	Log(LogInformation, "cli", "Hello World!");
+
+	return 0;
+}

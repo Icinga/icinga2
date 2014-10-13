@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CAINITCOMMAND_H
-#define CAINITCOMMAND_H
+#ifndef PKIINITCACOMMAND_H
+#define PKIINITCACOMMAND_H
 
 #include "base/qstring.hpp"
 #include "base/clicommand.hpp"
@@ -27,14 +27,14 @@ namespace icinga
 {
 
 /**
- * The "ca init" command.
+ * The "pki init-ca" command.
  *
  * @ingroup cli
  */
-class CAInitCommand : public CLICommand
+class PKIInitCACommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CAInitCommand);
+	DECLARE_PTR_TYPEDEFS(PKIInitCACommand);
     
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
@@ -46,4 +46,4 @@ public:
 
 }
 
-#endif /* CAINITCOMMAND_H */
+#endif /* PKIINITCACOMMAND_H */
