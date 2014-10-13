@@ -63,7 +63,7 @@ int PKINewCACommand::Run(const boost::program_options::variables_map& vm) const
 		return 1;
 	}
 	
-	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt");
+	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt", true);
 	
 	String serialpath = cadir + "/serial.txt";
 

@@ -29,6 +29,7 @@
 #include <openssl/err.h>
 #include <openssl/comp.h>
 #include <openssl/sha.h>
+#include <openssl/x509v3.h>
 
 namespace icinga
 {
@@ -37,7 +38,7 @@ shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const Strin
 void I2_BASE_API AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPath);
 String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
 shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
-int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String());
+int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);
 String I2_BASE_API SHA256(const String& s);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };

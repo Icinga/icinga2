@@ -22,7 +22,6 @@
 #include "base/logger_fwd.hpp"
 #include "base/context.hpp"
 
-
 namespace icinga
 {
 
@@ -246,7 +245,7 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return shared_ptr<X509>(cert, X509_free);
 }
 
-int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile)
+int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
 {
 	InitializeOpenSSL();
 
@@ -281,6 +280,21 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *name = X509_get_subject_name(cert);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 		X509_set_issuer_name(cert, name);
+		
+		if (ca) {
+			X509_EXTENSION *ext;
+			X509V3_CTX ctx;
+			X509V3_set_ctx_nodb(&ctx);
+			X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
+			ext = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>("critical,CA:TRUE"));
+			
+			if (ext)
+				X509_add_ext(cert, ext, -1);
+			
+			X509_EXTENSION_free(ext);
+		}
+		
+		
 		X509_sign(cert, key, EVP_sha1());
 		
 		Log(LogInformation, "base", "Writing X509 certificate to '" + certfile + "'.");
