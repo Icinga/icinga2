@@ -17,39 +17,33 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/pkiinitcacommand.hpp"
-#include "base/logger_fwd.hpp"
+#ifndef PKINEWCACOMMAND_H
+#define PKINEWCACOMMAND_H
+
+#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
-using namespace icinga;
-
-REGISTER_CLICOMMAND("pki/init-ca", PKIInitCACommand);
-
-String PKIInitCACommand::GetDescription(void) const
+namespace icinga
 {
-	return "Sets up a new Certificate Authority.";
-}
-
-String PKIInitCACommand::GetShortDescription(void) const
-{
-	return "sets up a new CA";
-}
-
-void PKIInitCACommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
-{
-	/* Command doesn't support any parameters. */
-}
 
 /**
- * The entry point for the "ca init" CLI command.
+ * The "pki new-ca" command.
  *
- * @returns An exit status.
+ * @ingroup cli
  */
-int PKIInitCACommand::Run(const boost::program_options::variables_map& vm) const
+class PKINewCACommand : public CLICommand
 {
-	Log(LogNotice, "cli", "Test!");
-	Log(LogInformation, "cli", "Hello World!");
+public:
+	DECLARE_PTR_TYPEDEFS(PKINewCACommand);
+    
+	virtual String GetDescription(void) const;
+	virtual String GetShortDescription(void) const;
+	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+	    boost::program_options::options_description& hiddenDesc) const;
+	virtual int Run(const boost::program_options::variables_map& vm) const;
 
-	return 0;
+};
+
 }
+
+#endif /* PKINEWCACOMMAND_H */

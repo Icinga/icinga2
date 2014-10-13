@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/pkinewcsrcommand.hpp"
+#include "cli/pkinewcertcommand.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/clicommand.hpp"
 #include "base/tlsutility.hpp"
@@ -25,34 +25,34 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("pki/new-csr", PKINewCSRCommand);
+REGISTER_CLICOMMAND("pki/new-cert", PKINewCertCommand);
 
-String PKINewCSRCommand::GetDescription(void) const
+String PKINewCertCommand::GetDescription(void) const
 {
-	return "Creates a new Certificate Signing Request and optionally a self-signed X509 certificate.";
+	return "Creates a new Certificate Signing Request, a self-signed X509 certificate or both.";
 }
 
-String PKINewCSRCommand::GetShortDescription(void) const
+String PKINewCertCommand::GetShortDescription(void) const
 {
 	return "creates a new CSR";
 }
 
-void PKINewCSRCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void PKINewCertCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name")
 		("keyfile", po::value<std::string>(), "Key file path")
-		("csrfile", po::value<std::string>(), "CSR file path")
+		("csrfile", po::value<std::string>(), "CSR file path (optional)")
 		("certfile", po::value<std::string>(), "Certificate file path (optional)");
 }
 
 /**
- * The entry point for the "ca init" CLI command.
+ * The entry point for the "pki new-cert" CLI command.
  *
  * @returns An exit status.
  */
-int PKINewCSRCommand::Run(const boost::program_options::variables_map& vm) const
+int PKINewCertCommand::Run(const boost::program_options::variables_map& vm) const
 {
 	if (!vm.count("cn")) {
 		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
@@ -64,17 +64,15 @@ int PKINewCSRCommand::Run(const boost::program_options::variables_map& vm) const
 		return 1;
 	}
 
-	if (!vm.count("csrfile")) {
-		Log(LogCritical, "cli", "CSR file path (--csrfile) must be specified.");
-		return 1;
-	}
-
-	String certfile;
+	String csrfile, certfile;
 	
+	if (vm.count("csrfile"))
+		csrfile = vm["csrfile"].as<std::string>();
+
 	if (vm.count("certfile"))
 		certfile = vm["certfile"].as<std::string>();
 	
-	MakeX509CSR(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), vm["csrfile"].as<std::string>(), certfile);
+	MakeX509CSR(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), csrfile, certfile);
 
 	return 0;
 }

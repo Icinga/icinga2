@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PKIINITCACOMMAND_H
-#define PKIINITCACOMMAND_H
+#ifndef PKINEWCERTCOMMAND_H
+#define PKINEWCERTCOMMAND_H
 
 #include "base/qstring.hpp"
 #include "base/clicommand.hpp"
@@ -27,14 +27,14 @@ namespace icinga
 {
 
 /**
- * The "pki init-ca" command.
+ * The "pki new-cert" command.
  *
  * @ingroup cli
  */
-class PKIInitCACommand : public CLICommand
+class PKINewCertCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(PKIInitCACommand);
+	DECLARE_PTR_TYPEDEFS(PKINewCertCommand);
     
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
@@ -46,4 +46,4 @@ public:
 
 }
 
-#endif /* PKIINITCACOMMAND_H */
+#endif /* PKINEWCERTCOMMAND_H */

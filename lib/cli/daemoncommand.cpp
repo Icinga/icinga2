@@ -37,12 +37,6 @@
 #include <boost/foreach.hpp>
 #include <iostream>
 
-#ifndef _WIN32
-#	include <sys/types.h>
-#	include <pwd.h>
-#	include <grp.h>
-#endif /* _WIN32 */
-
 using namespace icinga;
 namespace po = boost::program_options;
 
@@ -291,8 +285,6 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
 		("errorlog,e", po::value<std::string>(), "log fatal errors to the specified log file (only works in combination with --daemonize)")
 #ifndef _WIN32
 		("daemonize,d", "detach from the controlling terminal")
-		("user,u", po::value<std::string>(), "user to run Icinga as")
-		("group,g", po::value<std::string>(), "group to run Icinga as")
 #endif /* _WIN32 */
 	;
 
@@ -309,79 +301,6 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
  */
 int DaemonCommand::Run(const po::variables_map& vm) const
 {
-#ifndef _WIN32
-	if (vm.count("group")) {
-		String group = vm["group"].as<std::string>();
-
-		errno = 0;
-		struct group *gr = getgrnam(group.CStr());
-
-		if (!gr) {
-			if (errno == 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "Invalid group specified: " + group;
-				Log(LogCritical, "cli",  msgbuf.str());
-				return EXIT_FAILURE;
-			} else {
-				std::ostringstream msgbuf;
-				msgbuf << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
-				return EXIT_FAILURE;
-			}
-		}
-
-		if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-
-		if (setgid(gr->gr_gid) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-	}
-
-	if (vm.count("user")) {
-		String user = vm["user"].as<std::string>();
-
-		errno = 0;
-		struct passwd *pw = getpwnam(user.CStr());
-
-		if (!pw) {
-			if (errno == 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "Invalid user specified: " + user;
-				Log(LogCritical, "cli",  msgbuf.str());
-				return EXIT_FAILURE;
-			} else {
-				std::ostringstream msgbuf;
-				msgbuf << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
-				return EXIT_FAILURE;
-			}
-		}
-
-		// also activate the additional groups the configured user is member of
-		if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-
-		if (setuid(pw->pw_uid) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-	}
-#endif /* _WIN32 */
-
 	ScriptVariable::Set("UseVfork", true, false, true);
 
 	Application::MakeVariablesConstant();

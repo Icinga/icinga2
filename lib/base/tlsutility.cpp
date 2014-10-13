@@ -270,8 +270,6 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 	EVP_PKEY *key = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(key, rsa);
-	X509_REQ_set_version(req, 0);
-	X509_REQ_set_pubkey(req, key);
 	
 	if (!certfile.IsEmpty()) {
 		X509 *cert = X509_new();
@@ -295,21 +293,26 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_free(cert);
 	}
 
-	X509_NAME *name = X509_REQ_get_subject_name(req);
-	X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
-
-	X509_REQ_sign(req, key, EVP_sha1());
+	if (!csrfile.IsEmpty()) {
+		X509_REQ_set_version(req, 0);
+		X509_REQ_set_pubkey(req, key);
+	
+		X509_NAME *name = X509_REQ_get_subject_name(req);
+		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
+	
+		X509_REQ_sign(req, key, EVP_sha1());
+	
+		Log(LogInformation, "base", "Writing certificate signing request to '" + certfile + "'.");
+	
+		bio = BIO_new(BIO_s_file());
+		BIO_write_filename(bio, const_cast<char *>(csrfile.CStr()));
+		PEM_write_bio_X509_REQ(bio, req);
+		BIO_free(bio);
+	
+		X509_REQ_free(req);
+	}
 
 	EVP_PKEY_free(key);
-
-	Log(LogInformation, "base", "Writing certificate signing request to '" + certfile + "'.");
-
-	bio = BIO_new(BIO_s_file());
-	BIO_write_filename(bio, const_cast<char *>(csrfile.CStr()));
-	PEM_write_bio_X509_REQ(bio, req);
-	BIO_free(bio);
-
-	X509_REQ_free(req);
 
 	return 1;
 }

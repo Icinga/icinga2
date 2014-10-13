@@ -17,33 +17,62 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PKINEWCSRCOMMAND_H
-#define PKINEWCSRCOMMAND_H
-
-#include "base/qstring.hpp"
+#include "cli/pkinewcacommand.hpp"
+#include "base/logger_fwd.hpp"
 #include "base/clicommand.hpp"
+#include "base/application.hpp"
+#include "base/tlsutility.hpp"
+#include <fstream>
 
-namespace icinga
+using namespace icinga;
+
+REGISTER_CLICOMMAND("pki/new-ca", PKINewCACommand);
+
+String PKINewCACommand::GetDescription(void) const
 {
-
-/**
- * The "pki new-csr" command.
- *
- * @ingroup cli
- */
-class PKINewCSRCommand : public CLICommand
-{
-public:
-	DECLARE_PTR_TYPEDEFS(PKINewCSRCommand);
-    
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
-	virtual int Run(const boost::program_options::variables_map& vm) const;
-
-};
-
+	return "Sets up a new Certificate Authority.";
 }
 
-#endif /* PKINEWCSRCOMMAND_H */
+String PKINewCACommand::GetShortDescription(void) const
+{
+	return "sets up a new CA";
+}
+
+void PKINewCACommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
+{
+	/* Command doesn't support any parameters. */
+}
+
+/**
+ * The entry point for the "pki new-ca" CLI command.
+ *
+ * @returns An exit status.
+ */
+int PKINewCACommand::Run(const boost::program_options::variables_map& vm) const
+{
+	String cadir = Application::GetLocalStateDir() + "/lib/icinga2/ca";
+
+	if (Utility::PathExists(cadir)) {
+		Log(LogCritical, "base", "CA directory '" + cadir + "' already exists.");
+		return 1;
+	}
+	
+	if (!Utility::MkDirP(cadir, 0700)) {
+		Log(LogCritical, "base", "Could not create CA directory '" + cadir + "'.");
+		return 1;
+	}
+	
+	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt");
+	
+	String serialpath = cadir + "/serial.txt";
+
+	Log(LogInformation, "cli", "Initializing serial file in '" + serialpath + "'.");
+		
+	std::ofstream fp;
+	fp.open(serialpath.CStr());
+	fp << "01";
+	fp.close();
+
+	return 0;
+}

@@ -17,7 +17,6 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="icinga2 monitoring daemon"
 NAME=icinga2
 DAEMON=/usr/sbin/icinga2
-DAEMON_CONFIG="/etc/icinga2/icinga2.conf"
 DAEMON_USER=nagios
 DAEMON_GROUP=nagios
 DAEMON_CMDGROUP=www-data
@@ -53,7 +52,7 @@ check_run () {
 }
 
 check_config () {
-  $DAEMON daemon --validate -u "$DAEMON_USER" -g "$DAEMON_GROUP" -c "$DAEMON_CONFIG"
+  $DAEMON daemon --validate
 }
 
 #
@@ -69,7 +68,7 @@ do_start()
   start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
     || return 1
   start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
-    daemon -c "$DAEMON_CONFIG" -u "$DAEMON_USER" -g "$DAEMON_GROUP" -d $DAEMON_ARGS \
+    daemon -d $DAEMON_ARGS \
     || return 2
   # Add code here, if necessary, that waits for the process to be ready
   # to handle requests from services started subsequently which depend
@@ -84,7 +83,7 @@ do_foreground()
   start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test \
     || return 1
   start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON -- \
-    daemon -c "$DAEMON_CONFIG" -u "$DAEMON_USER" -g "$DAEMON_GROUP" $DAEMON_ARGS \
+    daemon $DAEMON_ARGS \
     || return 2
 }
 

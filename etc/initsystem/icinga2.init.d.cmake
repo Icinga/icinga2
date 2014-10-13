@@ -48,7 +48,7 @@ start() {
 	printf "Starting Icinga 2: "
 	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-prepare-dirs $SYSCONFIGFILE
 
-	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG -u $ICINGA2_USER -g $ICINGA2_GROUP > $ICINGA2_STARTUP_LOG 2>&1; then
+	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -d -e $ICINGA2_ERROR_LOG > $ICINGA2_STARTUP_LOG 2>&1; then
 		echo "Error starting Icinga. Check '$ICINGA2_STARTUP_LOG' for details."
 		exit 1
 	else
@@ -111,7 +111,7 @@ reload() {
 checkconfig() {
 	printf "Checking configuration: "
 
-	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -C -u $ICINGA2_USER -g $ICINGA2_GROUP > $ICINGA2_STARTUP_LOG 2>&1; then
+	if ! $DAEMON daemon -c $ICINGA2_CONFIG_FILE -C > $ICINGA2_STARTUP_LOG 2>&1; then
                 if [ "x$1" = "x" ]; then
 			cat $ICINGA2_STARTUP_LOG
 			echo "Icinga 2 detected configuration errors. Check '$ICINGA2_STARTUP_LOG' for details."

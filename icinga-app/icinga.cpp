@@ -34,6 +34,12 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
+#ifndef _WIN32
+#	include <sys/types.h>
+#	include <pwd.h>
+#	include <grp.h>
+#endif /* _WIN32 */
+
 using namespace icinga;
 namespace po = boost::program_options;
 
@@ -110,6 +116,8 @@ int Main(void)
 
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 	Application::DeclareApplicationType("icinga/IcingaApplication");
+	Application::DeclareRunAsUser(ICINGA_USER);
+	Application::DeclareRunAsGroup(ICINGA_GROUP);
 
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
@@ -124,8 +132,12 @@ int Main(void)
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
-		("log-level,x", po::value<std::string>(), "specify the log level for the console log");
-
+		("log-level,x", po::value<std::string>(), "specify the log level for the console log")
+#ifndef _WIN32
+		("user,u", po::value<std::string>(), "user to run Icinga as")
+		("group,g", po::value<std::string>(), "group to run Icinga as")
+#endif /* _WIN32 */
+	;
 
 	po::options_description hiddenDesc("Hidden options");
 
@@ -145,6 +157,13 @@ int Main(void)
 		return EXIT_FAILURE;
 	}
 
+	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
+
+	if (Utility::PathExists(initconfig)) {
+		ConfigCompilerContext::GetInstance()->Reset();
+		ConfigCompiler::CompileFile(initconfig);
+	}
+	
 	if (vm.count("define")) {
 		BOOST_FOREACH(const String& define, vm["define"].as<std::vector<std::string> >()) {
 			String key, value;
@@ -159,7 +178,86 @@ int Main(void)
 			ScriptVariable::Set(key, value);
 		}
 	}
+
+	if (vm.count("group"))
+		ScriptVariable::Set("RunAsGroup", String(vm["group"].as<std::string>()));
+
+	if (vm.count("user"))
+		ScriptVariable::Set("RunAsUser", String(vm["user"].as<std::string>()));
+
+#ifndef _WIN32
+	String group = Application::GetRunAsGroup();
+
+	errno = 0;
+	struct group *gr = getgrnam(group.CStr());
+
+	if (!gr) {
+		if (errno == 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "Invalid group specified: " + group;
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		} else {
+			std::ostringstream msgbuf;
+			msgbuf << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+	}
+
+	if (getgid() != gr->gr_gid) {
+		if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
 	
+		if (setgid(gr->gr_gid) < 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+	}
+
+	String user = Application::GetRunAsUser();
+
+	errno = 0;
+	struct passwd *pw = getpwnam(user.CStr());
+
+	if (!pw) {
+		if (errno == 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "Invalid user specified: " + user;
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		} else {
+			std::ostringstream msgbuf;
+			msgbuf << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+	}
+
+	// also activate the additional groups the configured user is member of
+	if (getuid() != pw->pw_uid) {
+		if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+	
+		if (setuid(pw->pw_uid) < 0) {
+			std::ostringstream msgbuf;
+			msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			Log(LogCritical, "cli",  msgbuf.str());
+			return EXIT_FAILURE;
+		}
+	}
+#endif /* _WIN32 */
+
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
 	Application::DeclareObjectsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.debug");
 	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");

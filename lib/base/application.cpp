@@ -1051,6 +1051,45 @@ void Application::DeclareApplicationType(const String& type)
 	ScriptVariable::Set("ApplicationType", type, false);
 }
 
+/**
+ * Retrieves the name of the user.
+ *
+ * @returns The name.
+ */
+String Application::GetRunAsUser(void)
+{
+	return ScriptVariable::Get("RunAsUser");
+}
+
+/**
+ * Sets the name of the user.
+ *
+ * @param path The new user name.
+ */
+void Application::DeclareRunAsUser(const String& user)
+{
+	ScriptVariable::Set("RunAsUser", user, false);
+}
+/**
+ * Retrieves the name of the group.
+ *
+ * @returns The name.
+ */
+String Application::GetRunAsGroup(void)
+{
+	return ScriptVariable::Get("RunAsGroup");
+}
+
+/**
+ * Sets the name of the group.
+ *
+ * @param path The new group name.
+ */
+void Application::DeclareRunAsGroup(const String& group)
+{
+	ScriptVariable::Set("RunAsGroup", group, false);
+}
+
 void Application::MakeVariablesConstant(void)
 {
 	ScriptVariable::GetByName("PrefixDir")->SetConstant(true);
@@ -1062,6 +1101,8 @@ void Application::MakeVariablesConstant(void)
 	ScriptVariable::GetByName("ObjectsPath")->SetConstant(true);
 	ScriptVariable::GetByName("PidPath")->SetConstant(true);
 	ScriptVariable::GetByName("ApplicationType")->SetConstant(true);
+	ScriptVariable::GetByName("RunAsUser")->SetConstant(true);
+	ScriptVariable::GetByName("RunAsGroup")->SetConstant(true);
 }
 
 /**

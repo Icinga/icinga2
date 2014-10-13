@@ -113,6 +113,12 @@ public:
 	static String GetApplicationType(void);
 	static void DeclareApplicationType(const String& type);
 
+	static String GetRunAsUser(void);
+	static void DeclareRunAsUser(const String& user);
+
+	static String GetRunAsGroup(void);
+	static void DeclareRunAsGroup(const String& group);
+
 	static void MakeVariablesConstant(void);
 
 	static ThreadPool& GetTP(void);
