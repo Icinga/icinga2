@@ -64,10 +64,10 @@ do {									\
 
 #define YY_LOCATION_PRINT(file, loc)			\
 do {							\
-       std::ostringstream msgbuf;			\
-       msgbuf << loc;					\
-       std::string str = msgbuf.str();			\
-       fputs(str.c_str(), file);			\
+	std::ostringstream msgbuf;			\
+	msgbuf << loc;					\
+	std::string str = msgbuf.str();			\
+	fputs(str.c_str(), file);			\
 } while (0)
 
 using namespace icinga;

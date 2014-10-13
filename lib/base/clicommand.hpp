@@ -42,7 +42,7 @@ public:
 	virtual String GetDescription(void) const = 0;
 	virtual String GetShortDescription(void) const = 0;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc, boost::program_options::options_description& hiddenDesc) const = 0;
-        virtual int Run(const boost::program_options::variables_map& vm) const = 0;
+	virtual int Run(const boost::program_options::variables_map& vm) const = 0;
 
 	static CLICommand::Ptr GetByName(const std::vector<String>& name);
 	static void Register(const std::vector<String>& name, const CLICommand::Ptr& command);
