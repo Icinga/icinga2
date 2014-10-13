@@ -82,8 +82,8 @@ find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
 include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib ${CMAKE_CURRENT_SOURCE_DIR}/components
-  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib ${CMAKE_CURRENT_BINARY_DIR}/components
+  ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
+  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
 #set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -157,7 +157,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_subdirectory(third-party)
 add_subdirectory(tools)
 add_subdirectory(lib)
-add_subdirectory(components)
 add_subdirectory(icinga-app)
 add_subdirectory(etc)
 add_subdirectory(itl)
