@@ -49,7 +49,7 @@ void PKINewCACommand::InitParameters(boost::program_options::options_description
  *
  * @returns An exit status.
  */
-int PKINewCACommand::Run(const boost::program_options::variables_map& vm) const
+int PKINewCACommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	String cadir = Application::GetLocalStateDir() + "/lib/icinga2/ca";
 
@@ -57,18 +57,18 @@ int PKINewCACommand::Run(const boost::program_options::variables_map& vm) const
 		Log(LogCritical, "base", "CA directory '" + cadir + "' already exists.");
 		return 1;
 	}
-	
+
 	if (!Utility::MkDirP(cadir, 0700)) {
 		Log(LogCritical, "base", "Could not create CA directory '" + cadir + "'.");
 		return 1;
 	}
-	
+
 	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt", true);
-	
+
 	String serialpath = cadir + "/serial.txt";
 
 	Log(LogInformation, "cli", "Initializing serial file in '" + serialpath + "'.");
-		
+
 	std::ofstream fp;
 	fp.open(serialpath.CStr());
 	fp << "01";

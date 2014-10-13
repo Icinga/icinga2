@@ -299,7 +299,7 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
  *
  * @returns An exit status.
  */
-int DaemonCommand::Run(const po::variables_map& vm) const
+int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	ScriptVariable::Set("UseVfork", true, false, true);
 
@@ -358,7 +358,7 @@ int DaemonCommand::Run(const po::variables_map& vm) const
 		SetDaemonIO(errorLog);
 		Logger::DisableConsoleLog();
 	}
-	
+
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));

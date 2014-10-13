@@ -121,7 +121,7 @@ int Main(void)
 
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
-	
+
 	Utility::LoadExtensionLibrary("cli");
 
 	po::options_description visibleDesc("Global options");
@@ -138,13 +138,14 @@ int Main(void)
 
 	hiddenDesc.add_options()
 		("no-stack-rlimit", "used internally, do not specify manually");
-	
+
 	String cmdname;
 	CLICommand::Ptr command;
 	po::variables_map vm;
+	std::vector<std::string> ap;
 
 	try {
-		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, vm, cmdname, command, autocomplete);
+		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, vm, ap, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
@@ -158,7 +159,7 @@ int Main(void)
 		ConfigCompilerContext::GetInstance()->Reset();
 		ConfigCompiler::CompileFile(initconfig);
 	}
-	
+
 	if (vm.count("define")) {
 		BOOST_FOREACH(const String& define, vm["define"].as<std::vector<std::string> >()) {
 			String key, value;
@@ -201,7 +202,7 @@ int Main(void)
 			Log(LogCritical, "cli",  msgbuf.str());
 			return EXIT_FAILURE;
 		}
-	
+
 		if (setgid(gr->gr_gid) < 0) {
 			std::ostringstream msgbuf;
 			msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
@@ -237,7 +238,7 @@ int Main(void)
 			Log(LogCritical, "cli",  msgbuf.str());
 			return EXIT_FAILURE;
 		}
-	
+
 		if (setuid(pw->pw_uid) < 0) {
 			std::ostringstream msgbuf;
 			msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
@@ -258,13 +259,13 @@ int Main(void)
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}
-	
+
 	Logger::SetConsoleLogSeverity(logLevel);
 
 	if (!autocomplete) {
 		if (vm.count("log-level")) {
 			String severity = vm["log-level"].as<std::string>();
-	
+
 			LogSeverity logLevel = LogInformation;
 			try {
 				logLevel = Logger::StringToSeverity(severity);
@@ -272,42 +273,42 @@ int Main(void)
 				/* use the default */
 				Log(LogWarning, "icinga", "Invalid log level set. Using default 'information'.");
 			}
-	
+
 			Logger::SetConsoleLogSeverity(logLevel);
 		}
-	
+
 		if (vm.count("library")) {
 			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >()) {
 				(void)Utility::LoadExtensionLibrary(libraryName);
 			}
 		}
-	
+
 		if (!command || vm.count("help") || vm.count("version")) {
 			String appName = Utility::BaseName(Application::GetArgV()[0]);
-	
+
 			if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 				appName = appName.SubStr(3, appName.GetLength() - 3);
-	
+
 			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon.";
-	
+
 			if (!command || vm.count("help")) {
 				std::cout << std::endl << std::endl
 				    << "Usage:" << std::endl
 				    << "  " << argv[0] << " ";
-				    
+
 				if (cmdname.IsEmpty())
 					std::cout << "<command>";
 				else
 					std::cout << cmdname;
-					
+
 				std::cout << " [<arguments>]";
-				
+
 				if (command) {
 					std::cout << std::endl << std::endl
 						  << command->GetDescription();
 				}
 			}
-			
+
 			if (vm.count("version")) {
 				std::cout << " (Version: " << Application::GetVersion() << ")";
 				std::cout << std::endl
@@ -316,24 +317,24 @@ int Main(void)
 					<< "This is free software: you are free to change and redistribute it." << std::endl
 					<< "There is NO WARRANTY, to the extent permitted by law.";
 			}
-	
+
 			std::cout << std::endl;
-	
+
 			if (vm.count("version")) {
 				std::cout << std::endl;
-	
+
 				Application::DisplayInfoMessage(true);
-	
+
 				return EXIT_SUCCESS;
 			}
 		}
-	
+
 		if (!command || vm.count("help")) {
 			if (!command) {
 				std::cout << std::endl;
 				CLICommand::ShowCommands(argc, argv, NULL);
 			}
-	
+
 			std::cout << std::endl
 				<< visibleDesc << std::endl
 				<< "Report bugs at <https://dev.icinga.org/>" << std::endl
@@ -348,7 +349,7 @@ int Main(void)
 		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc, true, autoindex);
 		rc = 0;
 	} else if (command)
-		rc = command->Run(vm);
+		rc = command->Run(vm, ap);
 
 #ifndef _DEBUG
 	Application::Exit(rc);

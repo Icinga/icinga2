@@ -65,7 +65,8 @@ RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLI
 
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
     po::options_description& hiddenDesc, po::variables_map& vm,
-    String& cmdname, CLICommand::Ptr& command, bool autocomplete)
+    std::vector<std::string>& ap, String& cmdname,
+    CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
 
@@ -85,10 +86,10 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 
 			if (vname[i] != argv[k])
 				break;
-			
+
 			if (i >= best_match.size())
 				best_match.push_back(vname[i]);
-			
+
 			if (i == vname.size() - 1) {
 				cmdname = boost::algorithm::join(vname, " ");
 				command = kv.second;
@@ -97,13 +98,13 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 			}
 		}
 	}
-	
+
 found_command:
 	lock.unlock();
 
 	po::options_description vdesc("Command options");
-	
-	if (command)	
+
+	if (command)
 		command->InitParameters(vdesc, hiddenDesc);
 
 	visibleDesc.add(vdesc);
@@ -115,7 +116,13 @@ found_command:
 	adesc.add(visibleDesc);
 	adesc.add(hiddenDesc);
 
-	po::store(po::parse_command_line(argc - arg_end, argv + arg_end, adesc), vm);
+	po::parsed_options parsed = po::command_line_parser(argc - arg_end, argv + arg_end).
+	    options(adesc).allow_unregistered().run();
+
+	ap = collect_unrecognized(parsed.options,
+	    po::include_positional);
+
+	po::store(parsed, vm);
 	po::notify(vm);
 
 	return true;
@@ -136,7 +143,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		const std::vector<String>& vname = kv.first;
 
 		arg_begin = 0;
-		
+
 		for (int i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
 			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0) {
 				i--;
@@ -146,11 +153,11 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 			if (vname[i] != argv[k])
 				break;
-			
+
 			if (i >= best_match.size()) {
 				best_match.push_back(vname[i]);
 			}
-			
+
 			if (i == vname.size() - 1) {
 				command = kv.second;
 				break;
@@ -171,16 +178,16 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 		if (vname.size() < best_match.size())
 			continue;
- 
+
 		bool match = true;
- 
+
 		for (int i = 0; i < best_match.size(); i++) {
 			if (vname[i] != best_match[i]) {
 				match = false;
 				break;
 			}
 		}
- 
+
 		if (!match)
 			continue;
 
@@ -199,10 +206,10 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 	if (command && autocomplete) {
 		po::options_description vdesc("Command options");
-		
+
 		if (command)
 			command->InitParameters(vdesc, *hiddenDesc);
-			
+
 		visibleDesc->add(vdesc);
 
 		BOOST_FOREACH(const shared_ptr<po::option_description>& odesc, visibleDesc->options()) {

@@ -52,26 +52,26 @@ void PKINewCertCommand::InitParameters(boost::program_options::options_descripti
  *
  * @returns An exit status.
  */
-int PKINewCertCommand::Run(const boost::program_options::variables_map& vm) const
+int PKINewCertCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	if (!vm.count("cn")) {
 		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
 		return 1;
 	}
-	
+
 	if (!vm.count("keyfile")) {
 		Log(LogCritical, "cli", "Key file path (--keyfile) must be specified.");
 		return 1;
 	}
 
 	String csrfile, certfile;
-	
+
 	if (vm.count("csrfile"))
 		csrfile = vm["csrfile"].as<std::string>();
 
 	if (vm.count("certfile"))
 		certfile = vm["certfile"].as<std::string>();
-	
+
 	MakeX509CSR(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), csrfile, certfile);
 
 	return 0;
