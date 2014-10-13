@@ -16,7 +16,9 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 set(cli_SOURCES
-  pkinewcacommand.cpp pkinewcertcommand.cpp daemoncommand.cpp
+  featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp
+  pkinewcacommand.cpp pkinewcertcommand.cpp
+  daemoncommand.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -38,5 +40,3 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
-
-
