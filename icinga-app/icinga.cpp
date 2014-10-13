@@ -153,7 +153,7 @@ int Main(void)
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
-		Log(LogCritical, "cli_daemon", msgbuf.str());
+		Log(LogCritical, "icinga-app", msgbuf.str());
 		return EXIT_FAILURE;
 	}
 
