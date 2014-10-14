@@ -29,7 +29,7 @@ enable_default_features() {
     if is_fresh_install $@ \
        || dpkg --compare-versions "$2" lt "$FIX_VERSION"; then
         echo "enabling default icinga2 features"
-        icinga2-enable-feature checker notification mainlog
+        icinga2 feature enable checker notification mainlog
     fi
     # handle new default features here in the future
 }

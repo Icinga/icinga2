@@ -23,7 +23,7 @@ log severity as an additional parameter argument to `-x`.
 
 Additionally you can enable the debug log using
 
-    # icinga2-enable-feature debuglog
+    # icinga2 feature enable debuglog
     # service icinga2 restart
     # tail -f /var/log/icinga2/debug.log
 
@@ -59,7 +59,7 @@ Examples:
 
     # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
 
-    # icinga2-enable-feature checker
+    # icinga2 feature enable checker
     The feature 'checker' is already enabled.
 
 
@@ -80,7 +80,7 @@ Verify the following configuration
 
 Examples:
 
-    # icinga2-enable-feature notification
+    # icinga2 feature enable notification
     The feature 'notification' is already enabled.
 
 ## <a id="feature-not-working"></a> Feature is not working

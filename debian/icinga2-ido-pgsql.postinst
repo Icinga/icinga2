@@ -21,7 +21,7 @@ if [ "$1" = configure ]; then
         if [ -L /etc/icinga2/features-enabled/ido-pgsql.conf ]
         then
             echo "disable ido pgsql feature"
-            icinga2-disable-feature ido-pgsql
+            icinga2 feature disable ido-pgsql
             echo "reloading icinga2"
             [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
         fi
@@ -29,7 +29,7 @@ if [ "$1" = configure ]; then
         if [ ! -L /etc/icinga2/features-enabled/ido-pgsql.conf ]
         then
             echo "enable ido pgsql feature"
-            icinga2-enable-feature ido-pgsql
+            icinga2 feature enable ido-pgsql
             echo "reloading icinga2"
             [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
 

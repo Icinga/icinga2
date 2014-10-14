@@ -1624,7 +1624,7 @@ Example:
 
 Can be enabled/disabled using
 
-    # icinga2-enable-feature checker
+    # icinga2 feature enable checker
 
 
 ### <a id="objecttype-notificationcomponent"></a> NotificationComponent
@@ -1646,7 +1646,7 @@ Attributes:
 
 Can be enabled/disabled using
 
-    # icinga2-enable-feature notification
+    # icinga2 feature enable notification
 
 
 ### <a id="objecttype-filelogger"></a> FileLogger

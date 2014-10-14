@@ -295,7 +295,7 @@ exit 0
 %endif
 
 # initial installation, enable default features
-%{_sbindir}/icinga2-enable-feature checker notification mainlog
+%{_sbindir}/icinga2 feature enable checker notification mainlog
 
 exit 0
 
@@ -311,7 +311,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable default features
-	%{_sbindir}/icinga2-enable-feature checker notification mainlog
+	%{_sbindir}/icinga2 feature enable checker notification mainlog
 fi
 
 exit 0
@@ -383,7 +383,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable ido-mysql feature
-	%{_sbindir}/icinga2-enable-feature ido-mysql
+	%{_sbindir}/icinga2 feature enable ido-mysql
 fi
 
 exit 0
@@ -391,7 +391,7 @@ exit 0
 %postun ido-mysql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-mysql
+	test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable ido-mysql
 fi
 
 exit 0
@@ -400,7 +400,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable ido-pgsql feature
-	%{_sbindir}/icinga2-enable-feature ido-pgsql
+	%{_sbindir}/icinga2 feature enable ido-pgsql
 fi
 
 exit 0
@@ -408,7 +408,7 @@ exit 0
 %postun ido-pgsql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature ido-pgsql
+	test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable ido-pgsql
 fi
 
 exit 0
@@ -417,7 +417,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
         # initial installation, enable features
-        %{_sbindir}/icinga2-enable-feature statusdata compatlog command
+        %{_sbindir}/icinga2 feature enable statusdata compatlog command
 fi
 
 exit 0
@@ -425,9 +425,9 @@ exit 0
 %postun classicui-config
 if [ "$1" = "0" ]; then
         # deinstallation of the package - remove feature
-        test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature statusdata
-        test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature compatlog
-        test -x %{_sbindir}/icinga2-disable-feature && %{_sbindir}/icinga2-disable-feature command
+        test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable statusdata
+        test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable compatlog
+        test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable command
 fi
 
 exit 0
@@ -472,8 +472,6 @@ exit 0
 %{_bindir}/%{name}-build-key
 %{_bindir}/%{name}-sign-key
 %{_sbindir}/%{name}-list-objects
-%{_sbindir}/%{name}-enable-feature
-%{_sbindir}/%{name}-disable-feature
 %{_sbindir}/%{name}-setup-agent
 %{_sbindir}/%{name}-discover-agent
 %{_sbindir}/%{name}-forget-agent
@@ -485,8 +483,7 @@ exit 0
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz
-%{_mandir}/man8/%{name}-enable-feature.8.gz
-%{_mandir}/man8/%{name}-disable-feature.8.gz
+%{_mandir}/man8/%{name}-feature enable.8.gz
 %{_mandir}/man8/%{name}-build-ca.8.gz
 %{_mandir}/man8/%{name}-build-key.8.gz
 %{_mandir}/man8/%{name}-sign-key.8.gz

@@ -330,7 +330,7 @@ A sample config looks like:
 
 You can simply enable the `api` feature using
 
-    # icinga2-enable-feature api
+    # icinga2 feature enable api
 
 Edit `/etc/icinga2/features-enabled/api.conf` if you require the configuration
 synchronisation enabled for this node. Set the `accept_config` attribute to `true`.
@@ -811,7 +811,7 @@ fails the other nodes will automatically take over the reamining checks.
 > If a node should not check anything, disable the `checker` feature explicitely and
 > reload Icinga 2.
 
-    # icinga2-disable-feature checker
+    # icinga2 feature disable checker
     # service icinga2 reload
 
 #### <a id="high-availability-notifications"></a> High Availability with Notifications
@@ -829,7 +829,7 @@ have the DB IDO feature enabled.
 
 Example DB IDO MySQL:
 
-    # icinga2-enable-feature ido-mysql
+    # icinga2 feature enable ido-mysql
     The feature 'ido-mysql' is already enabled.
 
 By default the DB IDO feature only runs on the elected zone master. All other passive

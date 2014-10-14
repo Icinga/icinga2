@@ -21,7 +21,7 @@ if [ "$1" = configure ]; then
         if [ -L /etc/icinga2/features-enabled/ido-mysql.conf ]
         then
             echo "disable ido mysql feature"
-            icinga2-disable-feature ido-mysql
+            icinga2 feature disable ido-mysql
             echo "reloading icinga2"
             [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
         fi
@@ -29,7 +29,7 @@ if [ "$1" = configure ]; then
         if [ ! -L /etc/icinga2/features-enabled/ido-mysql.conf ]
         then
             echo "enable ido mysql feature"
-            icinga2-enable-feature ido-mysql
+            icinga2 feature enable ido-mysql
             echo "reloading icinga2"
             [ -x $(which invoke-rc.d) ] && invoke-rc.d icinga2 reload
 

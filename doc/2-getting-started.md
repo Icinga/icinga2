@@ -119,12 +119,12 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log ` file
 
-Verify that by calling `icinga2-enable-feature` without any additional parameters
+Verify that by calling `icinga2 feature enable` without any additional parameters
 and enable the missing features, if any.
 
-    # icinga2-enable-feature
-    Syntax: icinga2-enable-feature <features separated with whitespaces>
-      Example: icinga2-enable-feature checker notification mainlog
+    # icinga2 feature enable
+    Syntax: icinga2 feature enable <features separated with whitespaces>
+      Example: icinga2 feature enable checker notification mainlog
     Enables the specified feature(s).
 
     Available features: api checker command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus mainlog notification perfdata statusdata syslog
@@ -276,13 +276,14 @@ The `include` directive can be used to include other files.
     /**
      * The features-available directory contains a number of configuration
      * files for features which can be enabled and disabled using the
-     * icinga2-enable-feature / icinga2-disable-feature tools. These two tools work by creating
-     * and removing symbolic links in the features-enabled directory.
+     * icinga2 feature enable / icinga2 feature disable CLI commands.
+     * These commands work by creating and removing symbolic links in
+     * the features-enabled directory.
      */
     include "features-enabled/*.conf"
 
 This `include` directive takes care of including the configuration files for all
-the features which have been enabled with `icinga2-enable-feature`. See
+the features which have been enabled with `icinga2 feature enable`. See
 [Enabling/Disabling Features](#features) for more details.
 
     /**
@@ -670,9 +671,9 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
 database credentials in this file.
 
-You can enable the `ido-mysql` feature configuration file using `icinga2-enable-feature`:
+You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
-    # icinga2-enable-feature ido-mysql
+    # icinga2 feature enable ido-mysql
     Module 'ido-mysql' was enabled.
     Make sure to restart Icinga 2 for these changes to take effect.
 
@@ -781,9 +782,9 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
 database credentials in this file.
 
-You can enable the `ido-pgsql` feature configuration file using `icinga2-enable-feature`:
+You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
-    # icinga2-enable-feature ido-pgsql
+    # icinga2 feature enable ido-pgsql
     Module 'ido-pgsql' was enabled.
     Make sure to restart Icinga 2 for these changes to take effect.
 
@@ -803,9 +804,9 @@ RHEL/CentOS 7 and Fedora 20:
 Web interfaces and other Icinga addons are able to send commands to
 Icinga 2 through the external command pipe.
 
-You can enable the External Command Pipe using icinga2-enable-feature:
+You can enable the External Command Pipe using icinga2 feature enable:
 
-    # icinga2-enable-feature command
+    # icinga2 feature enable command
 
 After that you will have to restart Icinga 2:
 
@@ -853,9 +854,9 @@ Livestatus.
 Details on the available tables and attributes with Icinga 2 can be found
 in the [Livestatus Schema](#schema-livestatus) section.
 
-You can enable Livestatus using icinga2-enable-feature:
+You can enable Livestatus using icinga2 feature enable:
 
-    # icinga2-enable-feature livestatus
+    # icinga2 feature enable livestatus
 
 After that you will have to restart Icinga 2:
 
@@ -884,7 +885,7 @@ In order to use the historical tables provided by the livestatus feature (for ex
 are expected to be in `/var/log/icinga2/compat`. A different path can be set using the
 `compat_log_path` configuration attribute.
 
-    # icinga2-enable-feature compatlog
+    # icinga2 feature enable compatlog
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 
@@ -978,7 +979,7 @@ Icinga Classic UI requires the [StatusDataWriter](#status-data), [CompatLogger](
 and [ExternalCommandListener](#external-commands) features.
 Enable these features and restart Icinga 2.
 
-    # icinga2-enable-feature statusdata compatlog command
+    # icinga2 feature enable statusdata compatlog command
 
 In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
 
@@ -1036,7 +1037,7 @@ Example for RHEL and MySQL:
 Icinga Web requires the IDO feature as database backend using MySQL or PostgreSQL.
 Enable that feature, e.g. for MySQL.
 
-    # icinga2-enable-feature ido-mysql
+    # icinga2 feature enable ido-mysql
 
 If you've changed your default credentials you may either create a read-only user
 or use the credentials defined in the IDO feature for Icinga Web backend configuration.
@@ -1049,7 +1050,7 @@ found in the [Icinga Web documentation](http://docs.icinga.org/latest/en/icinga-
 
 Additionally you need to enable the `command` feature for sending [external commands](#external-commands):
 
-    # icinga2-enable-feature command
+    # icinga2 feature enable command
 
 In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
 
@@ -1124,12 +1125,12 @@ Icinga Web 2 will support `status.dat`, `DB IDO`, or `Livestatus` as backends.
 Using DB IDO as backend, you need to install and configure the [DB IDO backend](#configuring-db-ido).
 Once finished, you can enable the feature for DB IDO MySQL:
 
-    # icinga2-enable-feature ido-mysql
+    # icinga2 feature enable ido-mysql
 
 Furthermore [external commands](#external-commands) are supported through the external
 command pipe.
 
-    # icinga2-enable-feature command
+    # icinga2 feature enable command
 
 In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
 
@@ -1351,33 +1352,33 @@ is returned.
 
 Icinga 2 provides configuration files for some commonly used features. These
 are installed in the `/etc/icinga2/features-available` directory and can be
-enabled and disabled using the `icinga2-enable-feature` and `icinga2-disable-feature` tools,
+enabled and disabled using the `icinga2 feature enable` and `icinga2 feature disable` tools,
 respectively.
 
-The `icinga2-enable-feature` tool creates symlinks in the `/etc/icinga2/features-enabled`
+The `icinga2 feature enable` tool creates symlinks in the `/etc/icinga2/features-enabled`
 directory which is included by default in the example configuration file.
 
 You can view a list of available feature configuration files:
 
-    # icinga2-enable-feature
-    Syntax: icinga2-enable-feature <feature>
+    # icinga2 feature enable
+    Syntax: icinga2 feature enable <feature>
     Enables the specified feature.
 
     Available features: statusdata
 
-Using the `icinga2-enable-feature` command you can enable features:
+Using the `icinga2 feature enable` command you can enable features:
 
-    # icinga2-enable-feature statusdata
+    # icinga2 feature enable statusdata
     Module 'statusdata' was enabled.
     Make sure to restart Icinga 2 for these changes to take effect.
 
-You can disable features using the `icinga2-disable-feature` command:
+You can disable features using the `icinga2 feature disable` command:
 
-    # icinga2-disable-feature statusdata
+    # icinga2 feature disable statusdata
     Module 'statusdata' was disabled.
     Make sure to restart Icinga 2 for these changes to take effect.
 
-The `icinga2-enable-feature` and `icinga2-disable-feature` commands do not
+The `icinga2 feature enable` and `icinga2 feature disable` commands do not
 restart Icinga 2. You will need to restart Icinga 2 using the init script
 after enabling or disabling features.
 

@@ -1734,7 +1734,7 @@ through the web interface).
 In order to enable the `ExternalCommandListener` configuration use the
 following command and restart Icinga 2 afterwards:
 
-    # icinga2-enable-feature command
+    # icinga2 feature enable command
 
 Icinga 2 creates the command pipe file as `/var/run/icinga2/cmd/icinga2.cmd`
 using the default configuration.
@@ -1766,8 +1766,8 @@ Icinga 2 supports three different types of logging:
 * Syslog (on *NIX-based operating systems)
 * Console logging (`STDOUT` on tty)
 
-You can enable additional loggers using the `icinga2-enable-feature`
-and `icinga2-disable-feature` commands to configure loggers:
+You can enable additional loggers using the `icinga2 feature enable`
+and `icinga2 feature disable` commands to configure loggers:
 
 Feature  | Description
 ---------|------------
@@ -1809,7 +1809,7 @@ runtime vars.
 The default templates are already provided with the Icinga 2 feature configuration
 which can be enabled using
 
-    # icinga2-enable-feature perfdata
+    # icinga2 feature enable perfdata
 
 By default all performance data files are rotated in a 15 seconds interval into
 the `/var/spool/icinga2/perfdata/` directory as `host-perfdata.<timestamp>` and
@@ -1826,7 +1826,7 @@ write them to the defined Graphite Carbon daemon tcp socket.
 
 You can enable the feature using
 
-    # icinga2-enable-feature graphite
+    # icinga2 feature enable graphite
 
 By default the `GraphiteWriter` object expects the Graphite Carbon Cache to listen at
 `127.0.0.1` on port `2003`.
@@ -1893,7 +1893,7 @@ interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
 the `StatusDataWriter` object which dumps all configuration objects and
 status updates in a regular interval.
 
-    # icinga2-enable-feature statusdata
+    # icinga2 feature enable statusdata
 
 Icinga 1.x Classic UI requires this data set as part of its backend.
 
@@ -1916,7 +1916,7 @@ historical tables.
 
 The `CompatLogger` object can be enabled with
 
-    # icinga2-enable-feature compatlog
+    # icinga2 feature enable compatlog
 
 By default, the Icinga 1.x log file called `icinga.log` is located
 in `/var/log/icinga2/compat`. Rotated log files are moved into

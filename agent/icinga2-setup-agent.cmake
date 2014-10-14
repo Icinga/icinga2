@@ -176,7 +176,7 @@ ZONES
 	sed -i "s/NodeName = \"localhost\"/NodeName = \"$name\"/" /etc/icinga2/constants.conf
 
 	echo "Enabling API feature..."
-	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-enable-feature api
+	@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 feature enable api
 
 	if [ ! -e "@CMAKE_INSTALL_FULL_SYSCONFDIR@/monitoring" ]; then
 		ln -s $ICINGA2CONFIG/conf.d/hosts/localhost @CMAKE_INSTALL_FULL_SYSCONFDIR@/monitoring
@@ -184,7 +184,7 @@ ZONES
 
 	if [ "$master" = "n" ]; then
 		echo "Disabling notification feature..."
-		@CMAKE_INSTALL_FULL_SBINDIR@/icinga2-disable-feature notification
+		@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 feature disable notification
 	fi
 
 	echo ""
