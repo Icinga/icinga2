@@ -64,9 +64,8 @@ RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLI
 }
 
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
-    po::options_description& hiddenDesc, po::variables_map& vm,
-    std::vector<std::string>& ap, String& cmdname,
-    CLICommand::Ptr& command, bool autocomplete)
+    po::options_description& hiddenDesc, po::positional_options_description& positionalDesc, po::variables_map& vm,
+    String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
 
@@ -116,13 +115,7 @@ found_command:
 	adesc.add(visibleDesc);
 	adesc.add(hiddenDesc);
 
-	po::parsed_options parsed = po::command_line_parser(argc - arg_end, argv + arg_end).
-	    options(adesc).allow_unregistered().run();
-
-	ap = collect_unrecognized(parsed.options,
-	    po::include_positional);
-
-	po::store(parsed, vm);
+	po::store(po::command_line_parser(argc - arg_end, argv + arg_end).options(adesc).positional(positionalDesc).run(), vm);
 	po::notify(vm);
 
 	return true;

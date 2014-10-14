@@ -137,15 +137,18 @@ int Main(void)
 	po::options_description hiddenDesc("Hidden options");
 
 	hiddenDesc.add_options()
-		("no-stack-rlimit", "used internally, do not specify manually");
+		("no-stack-rlimit", "used internally, do not specify manually")
+		("arg", po::value<std::vector<std::string> >(), "positional argument");
+
+	po::positional_options_description positionalDesc;
+	positionalDesc.add("arg", -1);
 
 	String cmdname;
 	CLICommand::Ptr command;
 	po::variables_map vm;
-	std::vector<std::string> ap;
 
 	try {
-		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, vm, ap, cmdname, command, autocomplete);
+		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc, vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
@@ -348,8 +351,13 @@ int Main(void)
 	if (autocomplete) {
 		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc, true, autoindex);
 		rc = 0;
-	} else if (command)
-		rc = command->Run(vm, ap);
+	} else if (command) {
+		std::vector<std::string> args;
+		if (vm.count("arg"))
+			args = vm["arg"].as<std::vector<std::string> >();
+
+		rc = command->Run(vm, args);
+	}
 
 #ifndef _DEBUG
 	Application::Exit(rc);
