@@ -21,6 +21,7 @@
 #include "base/logger_fwd.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
@@ -31,6 +32,46 @@ namespace po = boost::program_options;
 
 boost::mutex l_RegistryMutex;
 std::map<std::vector<String>, CLICommand::Ptr> l_Registry;
+
+static std::vector<String> BashArgumentCompletionHelper(const String& type, const String& arg)
+{
+	std::vector<String> result;
+
+#ifndef _WIN32
+	String bashArg = "compgen -A " + Utility::EscapeShellArg(type) + " " + Utility::EscapeShellArg(arg);
+	String cmd = "bash -c " + Utility::EscapeShellArg(bashArg);
+
+	FILE *fp = popen(cmd.CStr(), "r");
+
+	char line[4096];
+	while (fgets(line, sizeof(line), fp)) {
+		String wline = line;
+		boost::algorithm::trim_right_if(wline, boost::is_any_of("\r\n"));
+		result.push_back(wline);
+	}
+	fclose(fp);
+	
+	/* Append a slash if there's only one suggestion and it's a directory */
+	if ((type == "file" || type == "directory") && result.size() == 1) {
+		String path = result[0];
+
+		struct stat statbuf;
+		if (lstat(path.CStr(), &statbuf) >= 0) {
+			if (S_ISDIR(statbuf.st_mode)) {
+				result.clear(),
+				result.push_back(path + "/");
+			}
+		}
+	}
+#endif /* _WIN32 */
+
+	return result;
+}
+
+ArgumentCompletionCallback icinga::BashArgumentCompletion(const String& type)
+{
+	return boost::bind(BashArgumentCompletionHelper, type, _1);
+}
 
 CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 {
@@ -64,8 +105,10 @@ RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLI
 }
 
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
-    po::options_description& hiddenDesc, po::positional_options_description& positionalDesc, po::variables_map& vm,
-    String& cmdname, CLICommand::Ptr& command, bool autocomplete)
+    po::options_description& hiddenDesc,
+    po::positional_options_description& positionalDesc,
+    ArgumentCompletionDescription& argCompletionDesc,
+    po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
 
@@ -104,7 +147,7 @@ found_command:
 	po::options_description vdesc("Command options");
 
 	if (command)
-		command->InitParameters(vdesc, hiddenDesc);
+		command->InitParameters(vdesc, hiddenDesc, argCompletionDesc);
 
 	visibleDesc.add(vdesc);
 
@@ -122,7 +165,8 @@ found_command:
 }
 
 void CLICommand::ShowCommands(int argc, char **argv, po::options_description *visibleDesc,
-    po::options_description *hiddenDesc, bool autocomplete, int autoindex)
+    po::options_description *hiddenDesc, ArgumentCompletionDescription *argCompletionDesc,
+    bool autocomplete, int autoindex)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
 
@@ -198,13 +242,47 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	}
 
 	if (command && autocomplete) {
-		po::options_description vdesc("Command options");
+		String aname, prefix, pword;
+		ArgumentCompletionDescription::const_iterator it;
+		const po::option_description *odesc;
+	
+		if (autoindex - 2 >= 0 && strcmp(argv[autoindex - 1], "=") == 0 && strstr(argv[autoindex - 2], "--") == argv[autoindex - 2]) {
+			aname = argv[autoindex - 2] + 2;
+			pword = aword;
+		} else if (autoindex - 1 >= 0 && argv[autoindex - 1][0] == '-' && argv[autoindex - 1][1] == '-') {
+			aname = argv[autoindex - 1] + 2;
+			pword = aword;
+			
+			if (pword == "=")
+				pword = "";
+		} else if (aword.GetLength() > 1 && aword[0] == '-' && aword[1] != '-') {
+			aname = aword.SubStr(1, 1);
+			prefix = aword.SubStr(0, 2);
+			pword = aword.SubStr(2);
+		} else {
+			goto complete_option;
+		}
 
-		if (command)
-			command->InitParameters(vdesc, *hiddenDesc);
+		odesc = visibleDesc->find_nothrow(aname, false);
 
-		visibleDesc->add(vdesc);
+		if (!odesc)
+			return;
 
+		if (odesc->semantic()->min_tokens() == 0)
+			goto complete_option;
+			
+		it = argCompletionDesc->find(odesc->long_name());
+		
+		if (it == argCompletionDesc->end())
+			return;
+		
+		BOOST_FOREACH(const String& suggestion, it->second(pword)) {
+			std::cout << prefix << suggestion << "\n";
+		}
+		
+		return;
+
+complete_option:
 		BOOST_FOREACH(const shared_ptr<po::option_description>& odesc, visibleDesc->options()) {
 			String cname = "--" + odesc->long_name();
 

@@ -45,7 +45,8 @@ String FeatureEnableCommand::GetShortDescription(void) const
 }
 
 void FeatureEnableCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+    boost::program_options::options_description& hiddenDesc,
+    ArgumentCompletionDescription& argCompletionDesc) const
 {
         /* Command doesn't support any parameters. */
 }
