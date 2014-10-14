@@ -101,6 +101,8 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
                 if (symlink(source.CStr(), target.CStr()) < 0) {
 			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Linking source '" + source + "' to target file '" + target +
 			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+                        errors.push_back(feature);
+                        continue;
 		}
 
                 Log(LogInformation, "cli", "Enabling feature '" + feature + "' in '" + features_enabled_dir + "'.");

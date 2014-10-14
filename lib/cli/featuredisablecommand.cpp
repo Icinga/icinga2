@@ -88,6 +88,8 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
                 if (unlink(target.CStr()) < 0) {
 			Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Unlinking target file '" + target +
 			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+                        errors.push_back(feature);
+                        continue;
 		}
 
                 Log(LogInformation, "cli", "Disabling feature " + feature + " in '" + features_enabled_dir + "'.");
