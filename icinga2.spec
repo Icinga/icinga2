@@ -391,7 +391,7 @@ exit 0
 %postun ido-mysql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable ido-mysql
+	test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable ido-mysql
 fi
 
 exit 0
@@ -408,7 +408,7 @@ exit 0
 %postun ido-pgsql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable ido-pgsql
+	test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable ido-pgsql
 fi
 
 exit 0
@@ -425,9 +425,9 @@ exit 0
 %postun classicui-config
 if [ "$1" = "0" ]; then
         # deinstallation of the package - remove feature
-        test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable statusdata
-        test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable compatlog
-        test -x %{_sbindir}/icinga2 feature disable && %{_sbindir}/icinga2 feature disable command
+        test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable statusdata
+        test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable compatlog
+        test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable command
 fi
 
 exit 0
@@ -483,7 +483,6 @@ exit 0
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz
-%{_mandir}/man8/%{name}-feature enable.8.gz
 %{_mandir}/man8/%{name}-build-ca.8.gz
 %{_mandir}/man8/%{name}-build-key.8.gz
 %{_mandir}/man8/%{name}-sign-key.8.gz
