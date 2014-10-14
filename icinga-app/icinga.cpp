@@ -209,79 +209,6 @@ int Main(void)
 		}
 	}
 
-#ifndef _WIN32
-	String group = Application::GetRunAsGroup();
-
-	errno = 0;
-	struct group *gr = getgrnam(group.CStr());
-
-	if (!gr) {
-		if (errno == 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "Invalid group specified: " + group;
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		} else {
-			std::ostringstream msgbuf;
-			msgbuf << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-	}
-
-	if (getgid() != gr->gr_gid) {
-		if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-
-		if (setgid(gr->gr_gid) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-	}
-
-	String user = Application::GetRunAsUser();
-
-	errno = 0;
-	struct passwd *pw = getpwnam(user.CStr());
-
-	if (!pw) {
-		if (errno == 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "Invalid user specified: " + user;
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		} else {
-			std::ostringstream msgbuf;
-			msgbuf << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-	}
-
-	// also activate the additional groups the configured user is member of
-	if (getuid() != pw->pw_uid) {
-		if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-
-		if (setuid(pw->pw_uid) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
-			return EXIT_FAILURE;
-		}
-	}
-#endif /* _WIN32 */
-
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
 	Application::DeclareObjectsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.debug");
 	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");
@@ -383,6 +310,79 @@ int Main(void)
 		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc, &argDesc, true, autoindex);
 		rc = 0;
 	} else if (command) {
+#ifndef _WIN32
+		String group = Application::GetRunAsGroup();
+	
+		errno = 0;
+		struct group *gr = getgrnam(group.CStr());
+	
+		if (!gr) {
+			if (errno == 0) {
+				std::ostringstream msgbuf;
+				msgbuf << "Invalid group specified: " + group;
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			} else {
+				std::ostringstream msgbuf;
+				msgbuf << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			}
+		}
+	
+		if (getgid() != gr->gr_gid) {
+			if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
+				std::ostringstream msgbuf;
+				msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			}
+	
+			if (setgid(gr->gr_gid) < 0) {
+				std::ostringstream msgbuf;
+				msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			}
+		}
+	
+		String user = Application::GetRunAsUser();
+	
+		errno = 0;
+		struct passwd *pw = getpwnam(user.CStr());
+	
+		if (!pw) {
+			if (errno == 0) {
+				std::ostringstream msgbuf;
+				msgbuf << "Invalid user specified: " + user;
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			} else {
+				std::ostringstream msgbuf;
+				msgbuf << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			}
+		}
+	
+		// also activate the additional groups the configured user is member of
+		if (getuid() != pw->pw_uid) {
+			if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+				std::ostringstream msgbuf;
+				msgbuf << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			}
+	
+			if (setuid(pw->pw_uid) < 0) {
+				std::ostringstream msgbuf;
+				msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				Log(LogCritical, "cli",  msgbuf.str());
+				return EXIT_FAILURE;
+			}
+		}
+#endif /* _WIN32 */
+
 		std::vector<std::string> args;
 		if (vm.count("arg"))
 			args = vm["arg"].as<std::vector<std::string> >();
