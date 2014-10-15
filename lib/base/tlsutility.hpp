@@ -39,6 +39,7 @@ void I2_BASE_API AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const St
 String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
 shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
 int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);
+X509 * I2_BASE_API CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile = String());
 String I2_BASE_API SHA256(const String& s);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };

@@ -18,7 +18,7 @@
 set(cli_SOURCES
   featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp
   objectlistcommand.cpp
-  pkinewcacommand.cpp pkinewcertcommand.cpp
+  pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp
   daemoncommand.cpp
 )
 

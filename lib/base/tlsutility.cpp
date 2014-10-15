@@ -253,8 +253,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 	Log(LogInformation, "base", "Writing private key to '" + keyfile + "'.");
 
-	BIO *bio = BIO_new(BIO_s_file());
-	BIO_write_filename(bio, const_cast<char *>(keyfile.CStr()));
+	BIO *bio = BIO_new_file(const_cast<char *>(keyfile.CStr()), "w");
 	PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL);
 	BIO_free(bio);
 
@@ -262,52 +261,33 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	chmod(keyfile.CStr(), 0600);
 #endif /* _WIN32 */
 	
-	X509_REQ *req = X509_REQ_new();
-
-	if (!req)
-		return 0;
-
 	EVP_PKEY *key = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(key, rsa);
 	
 	if (!certfile.IsEmpty()) {
-		X509 *cert = X509_new();
-		ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
-		X509_gmtime_adj(X509_get_notBefore(cert), 0);
-		X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 60 * 60 * 30);
-		X509_set_pubkey(cert, key);
+		X509_NAME *subject = X509_NAME_new();
+		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 
-		X509_NAME *name = X509_get_subject_name(cert);
-		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
-		X509_set_issuer_name(cert, name);
-		
-		if (ca) {
-			X509_EXTENSION *ext;
-			X509V3_CTX ctx;
-			X509V3_set_ctx_nodb(&ctx);
-			X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
-			ext = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>("critical,CA:TRUE"));
-			
-			if (ext)
-				X509_add_ext(cert, ext, -1);
-			
-			X509_EXTENSION_free(ext);
-		}
-		
-		
-		X509_sign(cert, key, EVP_sha1());
-		
+		X509 *cert = CreateCert(key, subject, subject, key, ca);
+
+		X509_NAME_free(subject);
+
 		Log(LogInformation, "base", "Writing X509 certificate to '" + certfile + "'.");
-		
+
 		bio = BIO_new(BIO_s_file());
 		BIO_write_filename(bio, const_cast<char *>(certfile.CStr()));
 		PEM_write_bio_X509(bio, cert);
 		BIO_free(bio);
-		
+
 		X509_free(cert);
 	}
 
 	if (!csrfile.IsEmpty()) {
+		X509_REQ *req = X509_REQ_new();
+
+		if (!req)
+			return 0;
+
 		X509_REQ_set_version(req, 0);
 		X509_REQ_set_pubkey(req, key);
 	
@@ -329,6 +309,35 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	EVP_PKEY_free(key);
 
 	return 1;
+}
+
+X509 *CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
+{
+	X509 *cert = X509_new();
+	ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
+	X509_gmtime_adj(X509_get_notBefore(cert), 0);
+	X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 60 * 60 * 30);
+	X509_set_pubkey(cert, pubkey);
+
+	X509_set_subject_name(cert, subject);
+	X509_set_issuer_name(cert, issuer);
+
+	if (ca) {
+		X509_EXTENSION *ext;
+		X509V3_CTX ctx;
+		X509V3_set_ctx_nodb(&ctx);
+		X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
+		ext = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>("critical,CA:TRUE"));
+
+		if (ext)
+			X509_add_ext(cert, ext, -1);
+
+		X509_EXTENSION_free(ext);
+	}
+
+	X509_sign(cert, cakey, EVP_sha1());
+
+	return cert;
 }
 
 String SHA256(const String& s)
