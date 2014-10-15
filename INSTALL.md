@@ -25,7 +25,6 @@ parentheses):
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
-* Python (python-devel on RHEL, python-dev on Debian)
 * recommended: libexecinfo on FreeBSD
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian)

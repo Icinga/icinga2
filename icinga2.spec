@@ -49,10 +49,6 @@
 %endif
 %endif
 
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-
 %define icinga_user icinga
 %define icinga_group icinga
 %define icingacmd_group icingacmd
@@ -81,7 +77,6 @@ Meta package for Icinga 2 Core, DB IDO and Web.
 Summary:      Icinga 2 binaries and libraries
 Group:        Applications/System
 
-Requires: python-%{name} = %{version}-%{release}
 %if "%{_vendor}" == "suse"
 PreReq:        permissions
 Provides:      monitoring_daemon
@@ -179,17 +174,6 @@ Conflicts:    icinga-gui-config
 Icinga 1.x Classic UI Standalone configuration with locations
 for Icinga 2.
 
-
-%package -n python-icinga2
-Summary:      Python module for Icinga 2
-Group:        Application/System
-BuildRequires: python
-BuildRequires: python-devel
-BuildRequires: python-setuptools
-Requires:     python-setuptools
-
-%description -n python-icinga2
-Provides a Python module for Icinga 2.
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -533,10 +517,5 @@ exit 0
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
-
-%files -n python-icinga2
-%defattr(-,root,root,-)
-%{python2_sitelib}/icinga2*
-
 
 %changelog
