@@ -27,7 +27,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <unistd.h>
+#include <fstream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -58,63 +58,69 @@ void FeatureEnableCommand::InitParameters(boost::program_options::options_descri
  */
 int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-#ifdef _WIN32
-	//TODO: Add Windows support
-        Log(LogInformation, "cli", "This command is not available on Windows.");
-#else
 	String features_available_dir = Application::GetSysconfDir() + "/icinga2/features-available";
-        String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
+	String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
 
-        if (ap.empty()) {
-                Log(LogCritical, "cli", "Cannot enable feature(s). Name(s) are missing!");
-                return 0;
-        }
+	if (ap.empty()) {
+		Log(LogCritical, "cli", "Cannot enable feature(s). Name(s) are missing!");
+		return 0;
+	}
 
-        if (!Utility::PathExists(features_available_dir) ) {
-                Log(LogCritical, "cli", "Cannot parse available features. Path '" + features_available_dir + "' does not exist.");
-                return 0;
-        }
+	if (!Utility::PathExists(features_available_dir) ) {
+		Log(LogCritical, "cli", "Cannot parse available features. Path '" + features_available_dir + "' does not exist.");
+		return 0;
+	}
 
-        if (!Utility::PathExists(features_enabled_dir) ) {
-                Log(LogCritical, "cli", "Cannot enable features. Path '" + features_enabled_dir + "' does not exist.");
-                return 0;
-        }
+	if (!Utility::PathExists(features_enabled_dir) ) {
+		Log(LogCritical, "cli", "Cannot enable features. Path '" + features_enabled_dir + "' does not exist.");
+		return 0;
+	}
 
-        std::vector<std::string> errors;
+	std::vector<std::string> errors;
 
-        BOOST_FOREACH(const String& feature, ap) {
-                String source = features_available_dir + "/" + feature + ".conf";
+	BOOST_FOREACH(const String& feature, ap) {
+		String source = features_available_dir + "/" + feature + ".conf";
 
-                if (!Utility::PathExists(source) ) {
-                        Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Source file '" + source + "' does not exist.");
-                        errors.push_back(feature);
-                        continue;
-                }
-
-                String target = features_enabled_dir + "/" + feature + ".conf";
-
-                if (Utility::PathExists(target) ) {
-                        Log(LogWarning, "cli", "Feature '" + feature + "' already enabled.");
-                        continue;
-                }
-
-                if (symlink(source.CStr(), target.CStr()) < 0) {
-			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Linking source '" + source + "' to target file '" + target +
-			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
-                        errors.push_back(feature);
-                        continue;
+		if (!Utility::PathExists(source) ) {
+			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Source file '" + source + "' does not exist.");
+			errors.push_back(feature);
+			continue;
 		}
 
-                Log(LogInformation, "cli", "Enabling feature '" + feature + "' in '" + features_enabled_dir + "'.");
-        }
+		String target = features_enabled_dir + "/" + feature + ".conf";
 
-        if (!errors.empty()) {
-                Log(LogCritical, "cli", "Cannot enable feature(s): " + boost::algorithm::join(errors, " "));
-		errors.clear();
-                return 1;
-        }
+		if (Utility::PathExists(target) ) {
+			Log(LogWarning, "cli", "Feature '" + feature + "' already enabled.");
+			continue;
+		}
 
+		Log(LogInformation, "cli", "Enabling feature '" + feature + "' in '" + features_enabled_dir + "'.");
+
+#ifndef _WIN32
+		if (symlink(source.CStr(), target.CStr()) < 0) {
+			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Linking source '" + source + "' to target file '" + target +
+			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+			errors.push_back(feature);
+			continue;
+		}
+#else /* _WIN32 */
+		std::ofstream fp;
+		fp.open(target.CStr());
+		if (!fp) {
+			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Failed to open file '" + target + "'.");
+			errors.push_back(feature);
+			continue;
+		}
+		fp << "include \"../features-available/" << feature << ".conf\"" << std::endl;
+		fp.close();
 #endif /* _WIN32 */
+	}
+
+	if (!errors.empty()) {
+		Log(LogCritical, "cli", "Cannot enable feature(s): " + boost::algorithm::join(errors, " "));
+		errors.clear();
+		return 1;
+	}
 
 	return 0;
 }
