@@ -89,7 +89,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	std::map<String, int> type_count;
 
 	String message;
-	String name_filter, type_filter = "";
+	String name_filter, type_filter;
 
 	if (vm.count("name"))
 		name_filter = vm["name"].as<std::string>();
@@ -116,16 +116,18 @@ void ObjectListCommand::ReadObject(const String& message, std::map<String, int>&
 {
 	Dictionary::Ptr object = JsonDeserialize(message);
 
+	Dictionary::Ptr properties = object->Get("properties");
+
+	String internal_name = properties->Get("__name");
 	String name = object->Get("name");
 	String type = object->Get("type");
 
-	if(!name_filter.IsEmpty() && !Utility::Match(name_filter, name))
+	if (!name_filter.IsEmpty() && !Utility::Match(name_filter, name) && !Utility::Match(name_filter, internal_name))
 		return;
-	if(!type_filter.IsEmpty() && !Utility::Match(type_filter, type))
+	if (!type_filter.IsEmpty() && !Utility::Match(type_filter, type))
 		return;
 
 	bool abstract = object->Get("abstract");
-	Dictionary::Ptr properties = object->Get("properties");
 	Dictionary::Ptr debug_hints = object->Get("debug_hints");
 
 	std::ostringstream msgbuf;
@@ -135,7 +137,7 @@ void ObjectListCommand::ReadObject(const String& message, std::map<String, int>&
 	else
 		msgbuf << "Object '";
 
-	msgbuf << "\x1b[1;34m" << properties->Get("__name") << "\x1b[0m" << "'"; //blue
+	msgbuf << "\x1b[1;34m" << internal_name << "\x1b[0m" << "'"; //blue
 	msgbuf << " of type '" << "\x1b[1;34m" << type << "\x1b[0m" << "':\n"; //blue
 
 	msgbuf << FormatProperties(properties, debug_hints, 2);
