@@ -46,46 +46,21 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
-### What's New in Version 2.1.1
+### What's New in Version 2.2.0
+
+#### Changes
+
+* New CLI commands #7245
+    * `icinga2-{enable,disable}-feature` tool = cli command `icinga2 feature {enable,disable}` #7250
+    * `icinga2-list-objects` tool = cli command `icinga2 object list` #7251
+    * `icinga2-build-{ca,key}` can be used with cli command `icinga2 pki` #7247
+
+* `python-icinga2` package dropped in favor of cli commands #7245
+* GraphiteWriter: Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
 
 #### Issues
 
-* Bug #6147: Link libcJSON against libm
-* Bug #6696: make test fails on openbsd
-* Bug #6841: Too many queued messages
-* Bug #6862: SSL_read errors during restart
-* Bug #6981: SSL errors with interleaved SSL_read/write
-* Bug #7029: icinga2.spec: files-attr-not-set for python-icinga2 package
-* Bug #7032: "Error parsing performance data" in spite of "enable_perfdata = false"
-* Bug #7036: Remove validator for the Script type
-* Bug #7037: icinga2-list-objects doesn't work with Python 3
-* Bug #7038: Fix rpmlint errors
-* Bug #7042: icinga2-list-objects complains about Umlauts and stops output
-* Bug #7044: icinga2 init-script terminates with exit code 0 if $DAEMON is not in place or not executable
-* Bug #7047: service icinga2 status - prints cat error if the service is stopped
-* Bug #7058: Exit code is not initialized for some failed checks
-* Bug #7065: pipe2 returns ENOSYS on GNU Hurd and Debian kfreebsd
-* Bug #7072: GraphiteWriter should ignore empty perfdata value
-* Bug #7080: Missing differentiation between service and systemctl
-* Bug #7096: new SSL Errors with too many queued messages
-* Bug #7115: Build fails on Haiku
-* Bug #7123: Manubulon-Plugin conf Filename wrong
-* Bug #7139: GNUInstallDirs.cmake outdated
-* Bug #7167: Segfault using cluster in TlsStream::IsEof
-* Bug #7168: fping4 doesn't work correctly with the shipped command-plugins.conf
-* Bug #7186: Livestatus hangs from time to time
-* Bug #7195: fix memory leak ido_pgsql
-* Bug #7210: clarify on db ido upgrades
-* Feature #6719: Change log message for checking/sending notifications
-* Feature #7028: Document how to use @ to escape keywords
-* Feature #7033: Add include guards for mkclass files
-* Feature #7034: Ensure that namespaces for INITIALIZE_ONCE and REGISTER_TYPE are truly unique
-* Feature #7035: Implement support for unity builds
-* Feature #7039: Figure out a better way to set the version for snapshot builds
-* Feature #7040: Unity builds: Detect whether __COUNTER__ is available
-* Feature #7041: Enable unity build for RPM/Debian packages
-* Feature #7070: Explain event commands and their integration by a real life example (httpd restart via ssh)
-* Feature #7158: Extend documentation for icinga-web on Debian systems
+
 
 ### Archive
 
