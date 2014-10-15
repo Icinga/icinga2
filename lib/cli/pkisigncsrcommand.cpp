@@ -52,9 +52,20 @@ void PKISignCSRCommand::InitParameters(boost::program_options::options_descripti
  */
 int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	std::stringstream msgbuf;
+	char errbuf[120];
+
+	InitializeOpenSSL();
+
 	BIO *csrbio = BIO_new_fp(stdin, BIO_NOCLOSE);
-	X509_REQ *req;
-	PEM_read_bio_X509_REQ(csrbio, &req, NULL, NULL);
+	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, NULL, NULL, NULL);
+
+	if (!req) {
+		msgbuf << "Could not parse X509 certificate request: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return 1;
+	}
+
 	BIO_free(csrbio);
 
 	String cadir = Application::GetLocalStateDir() + "/lib/icinga2/ca";
@@ -64,13 +75,41 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 	RSA *rsa;
 
 	BIO *cakeybio = BIO_new_file(const_cast<char *>(cakeyfile.CStr()), "r");
+
+	if (!cakeybio) {
+		msgbuf << "Could not open CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return 1;
+	}
+
 	rsa = PEM_read_bio_RSAPrivateKey(cakeybio, NULL, NULL, NULL);
+
+	if (!rsa) {
+		msgbuf << "Could not read RSA key from CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return 1;
+	}
+
 	BIO_free(cakeybio);
 
 	String cacertfile = cadir + "/ca.crt";
 
 	BIO *cacertbio = BIO_new_file(const_cast<char *>(cacertfile.CStr()), "r");
+
+	if (!cacertbio) {
+		msgbuf << "Could not open CA certificate file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return 1;
+	}
+
 	X509 *cacert = PEM_read_bio_X509(cacertbio, NULL, NULL, NULL);
+
+	if (!cacert) {
+		msgbuf << "Could not read X509 certificate from CA certificate file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return 1;
+	}
+
 	BIO_free(cacertbio);
 
 	EVP_PKEY *privkey = EVP_PKEY_new();
@@ -83,7 +122,13 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 	X509_free(cacert);
 
 	BIO *certbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-	PEM_write_bio_X509(certbio, cert);
+
+	if (!PEM_write_bio_X509(certbio, cert)) {
+		msgbuf << "Could not write X509 certificate: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return 1;
+	}
+
 	BIO_free(certbio);
 
 	return 0;

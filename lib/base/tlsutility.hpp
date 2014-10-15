@@ -34,6 +34,7 @@
 namespace icinga
 {
 
+void I2_BASE_API InitializeOpenSSL(void);
 shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey);
 void I2_BASE_API AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPath);
 String I2_BASE_API GetCertificateCN(const shared_ptr<X509>& certificate);
