@@ -44,7 +44,7 @@ public:
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 private:
-        static void CollectFeatures(const String& feature_file, std::vector<String>& features);
+	static void CollectFeatures(const String& feature_file, std::vector<String>& features);
 
 };
 

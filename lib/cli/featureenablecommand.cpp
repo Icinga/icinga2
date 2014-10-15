@@ -48,7 +48,7 @@ void FeatureEnableCommand::InitParameters(boost::program_options::options_descri
     boost::program_options::options_description& hiddenDesc,
     ArgumentCompletionDescription& argCompletionDesc) const
 {
-        /* Command doesn't support any parameters. */
+	/* Command doesn't support any parameters. */
 }
 
 /**

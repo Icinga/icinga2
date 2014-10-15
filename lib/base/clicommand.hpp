@@ -56,14 +56,14 @@ public:
 	static void Unregister(const std::vector<String>& name);
 
 	static bool ParseCommand(int argc, char **argv, boost::program_options::options_description& visibleDesc,
-            boost::program_options::options_description& hiddenDesc,
-            boost::program_options::positional_options_description& positionalDesc,
-            ArgumentCompletionDescription& argCompletionDesc,
-            boost::program_options::variables_map& vm, String& cmdname,
-            CLICommand::Ptr& command, bool autocomplete);
+	    boost::program_options::options_description& hiddenDesc,
+	    boost::program_options::positional_options_description& positionalDesc,
+	    ArgumentCompletionDescription& argCompletionDesc,
+	    boost::program_options::variables_map& vm, String& cmdname,
+	   CLICommand::Ptr& command, bool autocomplete);
 
 	static void ShowCommands(int argc, char **argv,
-            boost::program_options::options_description *visibleDesc = NULL,
+	    boost::program_options::options_description *visibleDesc = NULL,
 	    boost::program_options::options_description *hiddenDesc = NULL,
 	    ArgumentCompletionDescription *argCompletionDesc = NULL,
 	    bool autocomplete = false, int autoindex = -1);

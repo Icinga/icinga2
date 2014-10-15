@@ -48,7 +48,7 @@ void FeatureListCommand::InitParameters(boost::program_options::options_descript
     boost::program_options::options_description& hiddenDesc,
     ArgumentCompletionDescription& argCompletionDesc) const
 {
-        /* Command doesn't support any parameters. */
+	/* Command doesn't support any parameters. */
 }
 
 /**
@@ -58,13 +58,13 @@ void FeatureListCommand::InitParameters(boost::program_options::options_descript
  */
 int FeatureListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-        if (!ap.empty()) {
-                Log(LogWarning, "cli", "Ignoring parameters: " + boost::algorithm::join(ap, " "));
-        }
+	if (!ap.empty()) {
+		Log(LogWarning, "cli", "Ignoring parameters: " + boost::algorithm::join(ap, " "));
+	}
 
 #ifdef _WIN32
 	//TODO: Add Windows support
-        Log(LogInformation, "cli", "This command is not available on Windows.");
+	Log(LogInformation, "cli", "This command is not available on Windows.");
 #else
 	std::vector<String> enabled_features;
 	std::vector<String> available_features;

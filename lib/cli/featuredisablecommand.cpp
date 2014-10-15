@@ -48,7 +48,7 @@ void FeatureDisableCommand::InitParameters(boost::program_options::options_descr
     boost::program_options::options_description& hiddenDesc,
     ArgumentCompletionDescription& argCompletionDesc) const
 {
-        /* Command doesn't support any parameters. */
+	/* Command doesn't support any parameters. */
 }
 
 /**
@@ -60,46 +60,46 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
 {
 #ifdef _WIN32
 	//TODO: Add Windows support
-        Log(LogInformation, "cli", "This command is not available on Windows.");
+	Log(LogInformation, "cli", "This command is not available on Windows.");
 #else
-        String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
+	String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
 
-        if (ap.empty()) {
-                Log(LogCritical, "cli", "Cannot disable feature(s). Name(s) are missing!");
-                return 0;
-        }
+	if (ap.empty()) {
+		Log(LogCritical, "cli", "Cannot disable feature(s). Name(s) are missing!");
+		return 0;
+	}
 
-        if (!Utility::PathExists(features_enabled_dir) ) {
-                Log(LogCritical, "cli", "Cannot disable features. Path '" + features_enabled_dir + "' does not exist.");
-                return 0;
-        }
+	if (!Utility::PathExists(features_enabled_dir) ) {
+		Log(LogCritical, "cli", "Cannot disable features. Path '" + features_enabled_dir + "' does not exist.");
+		return 0;
+	}
 
-        std::vector<std::string> errors;
+	std::vector<std::string> errors;
 
-        BOOST_FOREACH(const String& feature, ap) {
-                String target = features_enabled_dir + "/" + feature + ".conf";
+	BOOST_FOREACH(const String& feature, ap) {
+		String target = features_enabled_dir + "/" + feature + ".conf";
 
-                if (!Utility::PathExists(target) ) {
-                        Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Target file '" + target + "' does not exist.");
-                        errors.push_back(feature);
-                        continue;
-                }
-
-                if (unlink(target.CStr()) < 0) {
-			Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Unlinking target file '" + target +
-			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
-                        errors.push_back(feature);
-                        continue;
+		if (!Utility::PathExists(target) ) {
+			Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Target file '" + target + "' does not exist.");
+			errors.push_back(feature);
+			continue;
 		}
 
-                Log(LogInformation, "cli", "Disabling feature " + feature + " in '" + features_enabled_dir + "'.");
-        }
+		if (unlink(target.CStr()) < 0) {
+			Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Unlinking target file '" + target +
+			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+			errors.push_back(feature);
+			continue;
+		}
 
-        if (!errors.empty()) {
-                Log(LogCritical, "cli", "Cannot disable feature(s): " + boost::algorithm::join(errors, " "));
+		Log(LogInformation, "cli", "Disabling feature " + feature + " in '" + features_enabled_dir + "'.");
+	}
+
+	if (!errors.empty()) {
+		Log(LogCritical, "cli", "Cannot disable feature(s): " + boost::algorithm::join(errors, " "));
 		errors.clear();
-                return 1;
-        }
+		return 1;
+	}
 
 #endif /* _WIN32 */
 
