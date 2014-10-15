@@ -46,7 +46,7 @@ public:
         virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 private:
-        static void ReadObject(const String& message, std::map<String, int>& type_count);
+        static void ReadObject(const String& message, std::map<String, int>& type_count, String name_filter, String type_filter);
         static String FormatProperties(const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent = 0);
         static String FormatHints(const Dictionary::Ptr& hints, int indent = 0);
         static String FormatHint(const Array::Ptr& msg, int indent = 0);

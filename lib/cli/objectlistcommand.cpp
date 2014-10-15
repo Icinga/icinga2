@@ -56,8 +56,9 @@ void ObjectListCommand::InitParameters(boost::program_options::options_descripti
     boost::program_options::options_description& hiddenDesc,
     ArgumentCompletionDescription& argCompletionDesc) const
 {
-	/* Command doesn't support any parameters. */
-	//TODO Add filter regex #7199
+	visibleDesc.add_options()
+		("name,n", po::value<std::string>(), "filter by name matches")
+		("type,t", po::value<std::string>(), "filter by type matches");
 }
 
 /**
@@ -87,8 +88,15 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	std::map<String, int> type_count;
 
 	String message;
+	String name_filter, type_filter = "";
+
+	if (vm.count("name"))
+		name_filter = vm["name"].as<std::string>();
+	if (vm.count("type"))
+		type_filter = vm["type"].as<std::string>();
+
 	while (NetString::ReadStringFromStream(sfp, &message)) {
-		ReadObject(message, type_count);
+		ReadObject(message, type_count, name_filter, type_filter);
 		objects_count++;
 	}
 
@@ -97,20 +105,23 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	std::cout << FormatTypeCounts(type_count) << std::endl;
 
-	Log(LogInformation, "cli", "Found " + Convert::ToString(objects_count) + " objects.");
+	Log(LogInformation, "cli", "Parsed " + Convert::ToString(objects_count) + " objects.");
 
 	return 0;
 }
 
-void ObjectListCommand::ReadObject(const String& message, std::map<String, int>& type_count)
+void ObjectListCommand::ReadObject(const String& message, std::map<String, int>& type_count, String name_filter, String type_filter)
 {
 	Dictionary::Ptr object = JsonDeserialize(message);
 
+	String name = object->Get("name");
 	String type = object->Get("type");
 
-	type_count[type]++;
+	if(!name_filter.IsEmpty() && !Utility::Match(name_filter, name))
+		return;
+	if(!type_filter.IsEmpty() && !Utility::Match(type_filter, type))
+		return;
 
-	String name = object->Get("name");
 	bool abstract = object->Get("abstract");
 	Dictionary::Ptr properties = object->Get("properties");
 	Dictionary::Ptr debug_hints = object->Get("debug_hints");
@@ -129,6 +140,7 @@ void ObjectListCommand::ReadObject(const String& message, std::map<String, int>&
 
 	std::cout << msgbuf.str() << "\n";
 
+	type_count[type]++;
 }
 
 String ObjectListCommand::FormatProperties(const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent)
