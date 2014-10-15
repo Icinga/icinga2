@@ -159,7 +159,7 @@ String ObjectListCommand::FormatProperties(const Dictionary::Ptr& props, const D
 	int offset = 2;
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, props) {
-		Value key = kv.first;
+		String key = kv.first;
 		Value val = kv.second;
 
 		/* key & value */
@@ -214,7 +214,7 @@ String ObjectListCommand::FormatTypeCounts(const std::map<String, int>& type_cou
 
 	typedef std::map<String, int>::value_type TypeCount;
 
-	BOOST_FOREACH(TypeCount kv, type_count) {
+	BOOST_FOREACH(const TypeCount& kv, type_count) {
 		msgbuf << "Found " << kv.second << " " << kv.first << " objects.\n";
 	}
 
@@ -246,7 +246,7 @@ String ObjectListCommand::FormatArray(const Array::Ptr& arr)
 			else
 				str += ", ";
 
-			str += "'" + Convert::ToString(value) + "'";
+			str += FormatValue(value);
 		}
 	}
 
