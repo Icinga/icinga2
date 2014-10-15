@@ -133,7 +133,7 @@ void ObjectListCommand::ReadObject(const String& message, std::map<String, int>&
 	else
 		msgbuf << "Object '";
 
-	msgbuf << "\x1b[1;37m" << name << "\x1b[0m" << "'"; //light gray
+	msgbuf << "\x1b[1;37m" << properties->Get("__name") << "\x1b[0m" << "'"; //light gray
 	msgbuf << " of type '" << "\x1b[1;34m" << type << "\x1b[0m" << "':\n"; //blue
 
 	msgbuf << FormatProperties(properties, debug_hints, 2);
