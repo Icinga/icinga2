@@ -112,7 +112,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	return 0;
 }
 
-void ObjectListCommand::ReadObject(const String& message, std::map<String, int>& type_count, String name_filter, String type_filter)
+void ObjectListCommand::ReadObject(const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
 {
 	Dictionary::Ptr object = JsonDeserialize(message);
 
@@ -206,8 +206,7 @@ String ObjectListCommand::FormatHint(const Array::Ptr& msg, int indent)
 	return msgbuf.str();
 }
 
-
-String ObjectListCommand::FormatTypeCounts(std::map<String, int> type_count)
+String ObjectListCommand::FormatTypeCounts(const std::map<String, int>& type_count)
 {
 	std::ostringstream msgbuf;
 

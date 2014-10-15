@@ -46,11 +46,11 @@ public:
         virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 private:
-        static void ReadObject(const String& message, std::map<String, int>& type_count, String name_filter, String type_filter);
+        static void ReadObject(const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter);
         static String FormatProperties(const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent = 0);
         static String FormatHints(const Dictionary::Ptr& hints, int indent = 0);
         static String FormatHint(const Array::Ptr& msg, int indent = 0);
-        static String FormatTypeCounts(std::map<String, int> type_count);
+        static String FormatTypeCounts(const std::map<String, int>& type_count);
         static String FormatValue(const Value& val);
         static String FormatArray(const Array::Ptr& arr);
 };
