@@ -29,23 +29,64 @@ Additionally you can enable the debug log using
 
 ## <a id="list-configuration-objects"></a> List Configuration Objects
 
-The `icinga2-list-objects` tool can be used to list all configuration objects and their
+The `icinga2 object list` cli command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified:
 
-    # icinga2-list-objects
-    Object 'apt' of type 'CheckCommand':
-      * templates = ['apt', 'plugin-check-command']
-        % modified in /usr/share/icinga2/include/command-plugins.conf, lines 458:1-462:1
-        % modified in /usr/share/icinga2/include/command.conf, lines 34:1-36:1
-      * __name = 'apt'
-      * command = ['/usr/lib/nagios/plugins/check_apt']
-        % modified in /usr/share/icinga2/include/command-plugins.conf, lines 461:2-461:39
-      * methods
-        % modified in /usr/share/icinga2/include/command.conf, lines 35:2-35:32
-        * execute = 'PluginCheck'
-          % modified in /usr/share/icinga2/include/command.conf, lines 35:2-35:32
-      * type = 'CheckCommand'
+    # icinga2 object list
+
+    Object 'localhost!ssh' of type 'Service':
+      * __name = 'localhost!ssh'
+      * check_command = 'ssh'
+        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 5:3-5:23
+      * check_interval = 60
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 24:3-24:21
+      * host_name = 'localhost'
+        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 4:3-4:25
+      * max_check_attempts = 3
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 23:3-23:24
+      * name = 'ssh'
+      * retry_interval = 30
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 25:3-25:22
+      * templates = [ 'ssh', 'generic-service' ]
+        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 1:0-7:1
+        % += modified in '/etc/icinga2/conf.d/templates.conf', lines 22:1-26:1
+      * type = 'Service'
+      * vars
+        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+        * sla = '24x7'
+          % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+
     [...]
+
+You can filter by name or type too.
+
+    # icinga2 object list --name *ssh* --type Service
+    Object 'localhost!ssh' of type 'Service':
+      * __name = 'localhost!ssh'
+      * check_command = 'ssh'
+        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 5:3-5:23
+      * check_interval = 60
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 24:3-24:21
+      * host_name = 'localhost'
+        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 4:3-4:25
+      * max_check_attempts = 3
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 23:3-23:24
+      * name = 'ssh'
+      * retry_interval = 30
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 25:3-25:22
+      * templates = [ 'ssh', 'generic-service' ]
+        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 1:0-7:1
+        % += modified in '/etc/icinga2/conf.d/templates.conf', lines 22:1-26:1
+      * type = 'Service'
+      * vars
+        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+        * sla = '24x7'
+          % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+    
+    Found 1 Service objects.
+    
+    [2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
+
 
 
 ## <a id="checks-not-executed"></a> Checks are not executed
