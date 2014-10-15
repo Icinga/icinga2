@@ -57,6 +57,7 @@ void ObjectListCommand::InitParameters(boost::program_options::options_descripti
     ArgumentCompletionDescription& argCompletionDesc) const
 {
 	visibleDesc.add_options()
+		("count,c", "display object counts by types")
 		("name,n", po::value<std::string>(), "filter by name matches")
 		("type,t", po::value<std::string>(), "filter by type matches");
 }
@@ -103,9 +104,10 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	sfp->Close();
 	fp.close();
 
-	std::cout << FormatTypeCounts(type_count) << std::endl;
+	if (vm.count("count"))
+		std::cout << FormatTypeCounts(type_count) << std::endl;
 
-	Log(LogInformation, "cli", "Parsed " + Convert::ToString(objects_count) + " objects.");
+	Log(LogNotice, "cli", "Parsed " + Convert::ToString(objects_count) + " objects.");
 
 	return 0;
 }
@@ -133,7 +135,7 @@ void ObjectListCommand::ReadObject(const String& message, std::map<String, int>&
 	else
 		msgbuf << "Object '";
 
-	msgbuf << "\x1b[1;37m" << properties->Get("__name") << "\x1b[0m" << "'"; //light gray
+	msgbuf << "\x1b[1;34m" << properties->Get("__name") << "\x1b[0m" << "'"; //blue
 	msgbuf << " of type '" << "\x1b[1;34m" << type << "\x1b[0m" << "':\n"; //blue
 
 	msgbuf << FormatProperties(properties, debug_hints, 2);
