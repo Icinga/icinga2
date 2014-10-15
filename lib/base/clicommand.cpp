@@ -207,6 +207,9 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	if (autocomplete) {
 		if (autoindex < argc)
 			aword = argv[autoindex];
+
+		if (autoindex - 1 > best_match.size())
+			return;
 	} else
 		std::cout << "Supported commands: " << std::endl;
 
