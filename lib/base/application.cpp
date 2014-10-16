@@ -918,7 +918,7 @@ void Application::DeclareLocalStateDir(const String& path)
  */
 String Application::GetZonesDir(void)
 {
-	return ScriptVariable::Get("ZonesDir");
+	return ScriptVariable::Get("ZonesDir", &Empty);
 }
 
 /**
@@ -938,7 +938,8 @@ void Application::DeclareZonesDir(const String& path)
  */
 String Application::GetPkgDataDir(void)
 {
-	return ScriptVariable::Get("PkgDataDir");
+	String defaultValue = "";
+	return ScriptVariable::Get("PkgDataDir", &Empty);
 }
 
 /**
@@ -958,7 +959,7 @@ void Application::DeclarePkgDataDir(const String& path)
  */
 String Application::GetIncludeConfDir(void)
 {
-	return ScriptVariable::Get("IncludeConfDir");
+	return ScriptVariable::Get("IncludeConfDir", &Empty);
 }
 
 /**
@@ -978,7 +979,7 @@ void Application::DeclareIncludeConfDir(const String& path)
  */
 String Application::GetStatePath(void)
 {
-	return ScriptVariable::Get("StatePath");
+	return ScriptVariable::Get("StatePath", &Empty);
 }
 
 /**
@@ -998,7 +999,7 @@ void Application::DeclareStatePath(const String& path)
  */
 String Application::GetObjectsPath(void)
 {
-	return ScriptVariable::Get("ObjectsPath");
+	return ScriptVariable::Get("ObjectsPath", &Empty);
 }
 
 /**
@@ -1018,7 +1019,7 @@ void Application::DeclareObjectsPath(const String& path)
  */
 String Application::GetPidPath(void)
 {
-	return ScriptVariable::Get("PidPath");
+	return ScriptVariable::Get("PidPath", &Empty);
 }
 
 /**

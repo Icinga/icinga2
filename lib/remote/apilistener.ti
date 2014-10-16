@@ -18,6 +18,8 @@ class ApiListener : DynamicObject
 
 	[config] bool accept_config;
 
+	[config] String ticket_salt;
+
 	[state] double log_message_timestamp;
 
 	String identity;

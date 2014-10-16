@@ -21,7 +21,7 @@
 #define APICLIENT_H
 
 #include "remote/endpoint.hpp"
-#include "base/stream.hpp"
+#include "base/tlsstream.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "remote/i2-remote.hpp"
@@ -45,14 +45,14 @@ class I2_REMOTE_API ApiClient : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiClient);
 
-	ApiClient(const String& identity, bool authenticated, const Stream::Ptr& stream, ConnectionRole role);
+	ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role);
 
 	void Start(void);
 
 	String GetIdentity(void) const;
 	bool IsAuthenticated(void) const;
 	Endpoint::Ptr GetEndpoint(void) const;
-	Stream::Ptr GetStream(void) const;
+	TlsStream::Ptr GetStream(void) const;
 	ConnectionRole GetRole(void) const;
 
 	void Disconnect(void);
@@ -64,7 +64,7 @@ private:
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
-	Stream::Ptr m_Stream;
+	TlsStream::Ptr m_Stream;
 	ConnectionRole m_Role;
 	double m_Seen;
 

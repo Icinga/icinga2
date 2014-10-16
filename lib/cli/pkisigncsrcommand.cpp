@@ -68,73 +68,11 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	BIO_free(csrbio);
 
-	String cadir = Application::GetLocalStateDir() + "/lib/icinga2/ca";
+	shared_ptr<X509> cert = CreateCertIcingaCA(X509_REQ_get_pubkey(req), X509_REQ_get_subject_name(req));
 
-	String cakeyfile = cadir + "/ca.key";
+	X509_REQ_free(req);
 
-	RSA *rsa;
-
-	BIO *cakeybio = BIO_new_file(const_cast<char *>(cakeyfile.CStr()), "r");
-
-	if (!cakeybio) {
-		msgbuf << "Could not open CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		return 1;
-	}
-
-	rsa = PEM_read_bio_RSAPrivateKey(cakeybio, NULL, NULL, NULL);
-
-	if (!rsa) {
-		msgbuf << "Could not read RSA key from CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		return 1;
-	}
-
-	BIO_free(cakeybio);
-
-	String cacertfile = cadir + "/ca.crt";
-
-	BIO *cacertbio = BIO_new_file(const_cast<char *>(cacertfile.CStr()), "r");
-
-	if (!cacertbio) {
-		msgbuf << "Could not open CA certificate file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		return 1;
-	}
-
-	X509 *cacert = PEM_read_bio_X509(cacertbio, NULL, NULL, NULL);
-
-	if (!cacert) {
-		msgbuf << "Could not read X509 certificate from CA certificate file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		return 1;
-	}
-
-	BIO_free(cacertbio);
-
-	EVP_PKEY *privkey = EVP_PKEY_new();
-	EVP_PKEY_assign_RSA(privkey, rsa);
-
-	EVP_PKEY *pubkey = X509_REQ_get_pubkey(req);
-
-	X509 *cert = CreateCert(pubkey, X509_REQ_get_subject_name(req), X509_get_subject_name(cacert), privkey, false);
-
-	EVP_PKEY_free(pubkey);
-	X509_free(cacert);
-
-	BIO *certbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-	if (!PEM_write_bio_X509(certbio, cert)) {
-		BIO_free(certbio);
-
-		msgbuf << "Could not write X509 certificate: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		return 1;
-	}
-
-	X509_free(cert);
-
-	BIO_free(certbio);
+	std::cout << CertificateToString(cert);
 
 	return 0;
 }

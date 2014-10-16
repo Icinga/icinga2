@@ -31,8 +31,10 @@ using namespace icinga;
 
 static Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
+static Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
-ApiClient::ApiClient(const String& identity, bool authenticated, const Stream::Ptr& stream, ConnectionRole role)
+ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
 {
 	if (authenticated)
@@ -60,7 +62,7 @@ Endpoint::Ptr ApiClient::GetEndpoint(void) const
 	return m_Endpoint;
 }
 
-Stream::Ptr ApiClient::GetStream(void) const
+TlsStream::Ptr ApiClient::GetStream(void) const
 {
 	return m_Stream;
 }
@@ -219,4 +221,42 @@ Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& 
 		endpoint->SetLocalLogPosition(log_position);
 
 	return Empty;
+}
+
+Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	if (!params)
+		return Empty;
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	String salt = listener->GetTicketSalt();
+
+	Dictionary::Ptr result = make_shared<Dictionary>();
+
+	if (salt.IsEmpty()) {
+		result->Set("error", "Ticket salt is not configured.");
+		return result;
+	}
+
+	String ticket = params->Get("ticket");
+	String realTicket = PBKDF2_SHA512(origin.FromClient->GetIdentity(), salt, 50000);
+
+	if (ticket != realTicket) {
+		result->Set("error", "Invalid ticket.");
+		return result;
+	}
+
+	shared_ptr<X509> cert = origin.FromClient->GetStream()->GetPeerCertificate();
+
+	EVP_PKEY *pubkey = X509_get_pubkey(cert.get());
+	X509_NAME *subject = X509_get_subject_name(cert.get());
+
+	shared_ptr<X509> newcert = CreateCertIcingaCA(pubkey, subject);
+	result->Set("cert", CertificateToString(newcert));
+
+	String cacertfile = GetIcingaCADir() + "/ca.crt";
+	shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
+	result->Set("ca", CertificateToString(cacert));
+
+	return result;
 }

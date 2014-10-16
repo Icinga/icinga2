@@ -21,6 +21,7 @@
 #include "base/convert.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/context.hpp"
+#include "base/application.hpp"
 
 namespace icinga
 {
@@ -110,28 +111,30 @@ shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, 
 		    << errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL)) {
-		msgbuf << "Error loading and verifying locations in ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("SSL_CTX_load_verify_locations")
-		    << errinfo_openssl_error(ERR_peek_error())
-		    << boost::errinfo_file_name(cakey));
+	if (!cakey.IsEmpty()) {
+		if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL)) {
+			msgbuf << "Error loading and verifying locations in ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			Log(LogCritical, "SSL", msgbuf.str());
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("SSL_CTX_load_verify_locations")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(cakey));
+		}
+
+		STACK_OF(X509_NAME) *cert_names;
+
+		cert_names = SSL_load_client_CA_file(cakey.CStr());
+		if (cert_names == NULL) {
+			msgbuf << "Error loading client ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			Log(LogCritical, "SSL", msgbuf.str());
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("SSL_load_client_CA_file")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(cakey));
+		}
+
+		SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
 	}
-
-	STACK_OF(X509_NAME) *cert_names;
-
-	cert_names = SSL_load_client_CA_file(cakey.CStr());
-	if (cert_names == NULL) {
-		msgbuf << "Error loading client ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
-		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("SSL_load_client_CA_file")
-		    << errinfo_openssl_error(ERR_peek_error())
-		    << boost::errinfo_file_name(cakey));
-	}
-
-	SSL_CTX_set_client_CA_list(sslContext.get(), cert_names);
 
 	return sslContext;
 }
@@ -268,7 +271,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 
-		X509 *cert = CreateCert(key, subject, subject, key, ca);
+		shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca);
 
 		X509_NAME_free(subject);
 
@@ -276,10 +279,8 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 		bio = BIO_new(BIO_s_file());
 		BIO_write_filename(bio, const_cast<char *>(certfile.CStr()));
-		PEM_write_bio_X509(bio, cert);
+		PEM_write_bio_X509(bio, cert.get());
 		BIO_free(bio);
-
-		X509_free(cert);
 	}
 
 	if (!csrfile.IsEmpty()) {
@@ -311,7 +312,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	return 1;
 }
 
-X509 *CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
+shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
 {
 	X509 *cert = X509_new();
 	ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
@@ -337,7 +338,79 @@ X509 *CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PK
 
 	X509_sign(cert, cakey, EVP_sha1());
 
-	return cert;
+	return shared_ptr<X509>(cert, X509_free);
+}
+
+String GetIcingaCADir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
+}
+
+shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
+{
+	std::stringstream msgbuf;
+	char errbuf[120];
+
+	String cadir = GetIcingaCADir();
+
+	String cakeyfile = cadir + "/ca.key";
+
+	RSA *rsa;
+
+	BIO *cakeybio = BIO_new_file(const_cast<char *>(cakeyfile.CStr()), "r");
+
+	if (!cakeybio) {
+		msgbuf << "Could not open CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return shared_ptr<X509>();
+	}
+
+	rsa = PEM_read_bio_RSAPrivateKey(cakeybio, NULL, NULL, NULL);
+
+	if (!rsa) {
+		msgbuf << "Could not read RSA key from CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		Log(LogCritical, "SSL", msgbuf.str());
+		return shared_ptr<X509>();
+	}
+
+	BIO_free(cakeybio);
+
+	String cacertfile = cadir + "/ca.crt";
+
+	shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
+
+	EVP_PKEY *privkey = EVP_PKEY_new();
+	EVP_PKEY_assign_RSA(privkey, rsa);
+
+	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false, cadir + "/serial.txt");
+}
+
+String CertificateToString(const shared_ptr<X509>& cert)
+{
+	BIO *mem = BIO_new(BIO_s_mem());
+	PEM_write_bio_X509(mem, cert.get());
+
+	char *data;
+	long len = BIO_get_mem_data(mem, &data);
+
+	String result = String(data, data + len);
+
+	BIO_free(mem);
+
+	return result;
+}
+
+String PBKDF2_SHA512(const String& password, const String& salt, int iterations)
+{
+	unsigned char digest[SHA512_DIGEST_LENGTH];
+	PKCS5_PBKDF2_HMAC(password.CStr(), password.GetLength(), reinterpret_cast<const unsigned char *>(salt.CStr()), salt.GetLength(),
+	    iterations, EVP_sha512(), sizeof(digest), digest);
+
+	char output[SHA512_DIGEST_LENGTH*2+1];
+	for (int i = 0; i < 32; i++)
+		sprintf(output + 2 * i, "%02x", digest[i]);
+
+	return output;
 }
 
 String SHA256(const String& s)
@@ -371,9 +444,8 @@ String SHA256(const String& s)
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	int i;
 	char output[SHA256_DIGEST_LENGTH*2+1];
-	for (i = 0; i < 32; i++)
+	for (int i = 0; i < 32; i++)
 		sprintf(output + 2 * i, "%02x", digest[i]);
 
 	return output;

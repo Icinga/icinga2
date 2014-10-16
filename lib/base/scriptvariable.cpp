@@ -51,12 +51,16 @@ Value ScriptVariable::GetData(void) const
 	return m_Data;
 }
 
-Value ScriptVariable::Get(const String& name)
+Value ScriptVariable::Get(const String& name, const Value *defaultValue)
 {
 	ScriptVariable::Ptr sv = GetByName(name);
 
-	if (!sv)
+	if (!sv) {
+		if (defaultValue)
+			return *defaultValue;
+
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to access undefined script variable '" + name + "'"));
+	}
 
 	return sv->GetData();
 }

@@ -18,7 +18,7 @@
 set(cli_SOURCES
   featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp
   objectlistcommand.cpp
-  pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp
+  pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkiticketcommand.cpp
   daemoncommand.cpp
 )
 
@@ -28,7 +28,7 @@ endif()
 
 add_library(cli SHARED ${cli_SOURCES})
 
-target_link_libraries(cli ${Boost_LIBRARIES} base config)
+target_link_libraries(cli ${Boost_LIBRARIES} base config remote)
 
 set_target_properties (
   cli PROPERTIES
