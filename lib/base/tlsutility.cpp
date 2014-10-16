@@ -400,14 +400,14 @@ String CertificateToString(const shared_ptr<X509>& cert)
 	return result;
 }
 
-String PBKDF2_SHA512(const String& password, const String& salt, int iterations)
+String PBKDF2_SHA1(const String& password, const String& salt, int iterations)
 {
-	unsigned char digest[SHA512_DIGEST_LENGTH];
-	PKCS5_PBKDF2_HMAC(password.CStr(), password.GetLength(), reinterpret_cast<const unsigned char *>(salt.CStr()), salt.GetLength(),
-	    iterations, EVP_sha512(), sizeof(digest), digest);
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	PKCS5_PBKDF2_HMAC_SHA1(password.CStr(), password.GetLength(), reinterpret_cast<const unsigned char *>(salt.CStr()), salt.GetLength(),
+	    iterations, sizeof(digest), digest);
 
-	char output[SHA512_DIGEST_LENGTH*2+1];
-	for (int i = 0; i < 32; i++)
+	char output[SHA_DIGEST_LENGTH*2+1];
+	for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
 		sprintf(output + 2 * i, "%02x", digest[i]);
 
 	return output;

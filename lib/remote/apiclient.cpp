@@ -239,7 +239,7 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 	}
 
 	String ticket = params->Get("ticket");
-	String realTicket = PBKDF2_SHA512(origin.FromClient->GetIdentity(), salt, 50000);
+	String realTicket = PBKDF2_SHA1(origin.FromClient->GetIdentity(), salt, 50000);
 
 	if (ticket != realTicket) {
 		result->Set("error", "Invalid ticket.");
