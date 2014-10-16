@@ -32,10 +32,11 @@ using namespace icinga;
 static Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 
-ApiClient::ApiClient(const String& identity, const Stream::Ptr& stream, ConnectionRole role)
-	: m_Identity(identity), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
+ApiClient::ApiClient(const String& identity, bool authenticated, const Stream::Ptr& stream, ConnectionRole role)
+	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
 {
-	m_Endpoint = Endpoint::GetByName(identity);
+	if (authenticated)
+		m_Endpoint = Endpoint::GetByName(identity);
 }
 
 void ApiClient::Start(void)
@@ -47,6 +48,11 @@ void ApiClient::Start(void)
 String ApiClient::GetIdentity(void) const
 {
 	return m_Identity;
+}
+
+bool ApiClient::IsAuthenticated(void) const
+{
+	return m_Authenticated;
 }
 
 Endpoint::Ptr ApiClient::GetEndpoint(void) const

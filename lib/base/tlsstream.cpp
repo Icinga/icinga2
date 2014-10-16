@@ -36,7 +36,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext)
-	: m_Eof(false), m_Socket(socket), m_Role(role)
+	: m_Eof(false), m_Socket(socket), m_Role(role), m_VerifyOK(false)
 {
 	std::ostringstream msgbuf;
 	char errbuf[120];
@@ -59,7 +59,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const share
 
 	SSL_set_ex_data(m_SSL.get(), m_SSLIndex, this);
 
-	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+	SSL_set_verify(m_SSL.get(), SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &TlsStream::ValidateCertificate);
 
 	socket->MakeNonBlocking();
 
@@ -69,6 +69,19 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const share
 		SSL_set_accept_state(m_SSL.get());
 	else
 		SSL_set_connect_state(m_SSL.get());
+}
+
+int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
+{
+	SSL *ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
+	TlsStream *stream = static_cast<TlsStream *>(SSL_get_ex_data(ssl, m_SSLIndex));
+	stream->m_VerifyOK = preverify_ok;
+	return 1;
+}
+
+bool TlsStream::IsVerifyOK(void) const
+{
+	return m_VerifyOK;
 }
 
 /**

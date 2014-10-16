@@ -45,11 +45,12 @@ class I2_REMOTE_API ApiClient : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiClient);
 
-	ApiClient(const String& identity, const Stream::Ptr& stream, ConnectionRole role);
+	ApiClient(const String& identity, bool authenticated, const Stream::Ptr& stream, ConnectionRole role);
 
 	void Start(void);
 
 	String GetIdentity(void) const;
+	bool IsAuthenticated(void) const;
 	Endpoint::Ptr GetEndpoint(void) const;
 	Stream::Ptr GetStream(void) const;
 	ConnectionRole GetRole(void) const;
@@ -61,6 +62,7 @@ public:
 
 private:
 	String m_Identity;
+	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
 	Stream::Ptr m_Stream;
 	ConnectionRole m_Role;

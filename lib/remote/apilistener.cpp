@@ -291,16 +291,27 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 		return;
 	}
 
-	Log(LogInformation, "ApiListener", "New client connection for identity '" + identity + "'");
+	bool verify_ok = tlsStream->IsVerifyOK();
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(identity);
+	std::ostringstream msgbuf;
+	msgbuf << "New client connection for identity '" << identity << "'";
+
+	if (!verify_ok)
+		msgbuf << " (unauthenticated)";
+
+	Log(LogInformation, "ApiListener", msgbuf.str());
+
+	Endpoint::Ptr endpoint;
+
+	if (verify_ok)
+		endpoint = Endpoint::GetByName(identity);
 
 	bool need_sync = false;
 
 	if (endpoint)
 		need_sync = !endpoint->IsConnected();
 
-	ApiClient::Ptr aclient = make_shared<ApiClient>(identity, tlsStream, role);
+	ApiClient::Ptr aclient = make_shared<ApiClient>(identity, verify_ok, tlsStream, role);
 	aclient->Start();
 
 	if (endpoint) {

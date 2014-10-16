@@ -52,11 +52,14 @@ public:
 
 	virtual bool IsEof(void) const;
 
+	bool IsVerifyOK(void) const;
+
 private:
 	shared_ptr<SSL> m_SSL;
 	bool m_Eof;
 	mutable boost::mutex m_SSLLock;
 	mutable boost::mutex m_IOActionLock;
+	bool m_VerifyOK;
 
 	Socket::Ptr m_Socket;
 	ConnectionRole m_Role;
@@ -64,6 +67,7 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
+	static int ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx);
 	static void NullCertificateDeleter(X509 *certificate);
 };
 

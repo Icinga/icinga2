@@ -85,8 +85,6 @@ private:
 	void NewClientHandler(const Socket::Ptr& client, ConnectionRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
-	void MessageHandler(const TlsStream::Ptr& sender, const String& identity, const Dictionary::Ptr& message);
-
 	WorkQueue m_RelayQueue;
 
 	boost::mutex m_LogLock;
