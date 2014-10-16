@@ -24,6 +24,7 @@
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/clicommand.hpp"
+#include <ostream>
 
 namespace icinga
 {
@@ -46,13 +47,13 @@ public:
         virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 private:
-        static void ReadObject(const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter);
-        static String FormatProperties(const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent = 0);
-        static String FormatHints(const Dictionary::Ptr& hints, int indent = 0);
-        static String FormatHint(const Array::Ptr& msg, int indent = 0);
-        static String FormatTypeCounts(const std::map<String, int>& type_count);
-        static String FormatValue(const Value& val);
-        static String FormatArray(const Array::Ptr& arr);
+        static void PrintObject(std::ostream& fp, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter);
+        static void PrintProperties(std::ostream& fp, const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent = 0);
+        static void PrintHints(std::ostream& fp, const Dictionary::Ptr& hints, int indent = 0);
+        static void PrintHint(std::ostream& fp, const Array::Ptr& msg, int indent = 0);
+        static void PrintTypeCounts(std::ostream& fp, const std::map<String, int>& type_count);
+        static void PrintValue(std::ostream& fp, const Value& val);
+        static void PrintArray(std::ostream& fp, const Array::Ptr& arr);
 };
 
 }

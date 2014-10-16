@@ -96,23 +96,32 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	if (vm.count("type"))
 		type_filter = vm["type"].as<std::string>();
 
+	bool first = true;
+
 	while (NetString::ReadStringFromStream(sfp, &message)) {
-		ReadObject(message, type_count, name_filter, type_filter);
+		if (first)
+			first = false;
+		else
+			std::cout << "\n";
+
+		PrintObject(std::cout, message, type_count, name_filter, type_filter);
 		objects_count++;
 	}
 
 	sfp->Close();
 	fp.close();
 
-	if (vm.count("count"))
-		std::cout << FormatTypeCounts(type_count) << std::endl;
+	if (vm.count("count")) {
+		PrintTypeCounts(std::cout, type_count);
+		std::cout << "\n";
+	}
 
 	Log(LogNotice, "cli", "Parsed " + Convert::ToString(objects_count) + " objects.");
 
 	return 0;
 }
 
-void ObjectListCommand::ReadObject(const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
+void ObjectListCommand::PrintObject(std::ostream& fp, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
 {
 	Dictionary::Ptr object = JsonDeserialize(message);
 
@@ -130,27 +139,21 @@ void ObjectListCommand::ReadObject(const String& message, std::map<String, int>&
 	bool abstract = object->Get("abstract");
 	Dictionary::Ptr debug_hints = object->Get("debug_hints");
 
-	std::ostringstream msgbuf;
-
 	if (abstract)
-		msgbuf << "Template '";
+		fp << "Template '";
 	else
-		msgbuf << "Object '";
+		fp << "Object '";
 
-	msgbuf << "\x1b[1;34m" << internal_name << "\x1b[0m" << "'"; //blue
-	msgbuf << " of type '" << "\x1b[1;34m" << type << "\x1b[0m" << "':\n"; //blue
+	fp << "\x1b[1;34m" << internal_name << "\x1b[0m" << "'"; //blue
+	fp << " of type '" << "\x1b[1;34m" << type << "\x1b[0m" << "':\n"; //blue
 
-	msgbuf << FormatProperties(properties, debug_hints, 2);
-
-	std::cout << msgbuf.str() << "\n";
+	PrintProperties(fp, properties, debug_hints, 2);
 
 	type_count[type]++;
 }
 
-String ObjectListCommand::FormatProperties(const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent)
+void ObjectListCommand::PrintProperties(std::ostream& fp, const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent)
 {
-	std::ostringstream msgbuf;
-
 	/* get debug hint props */
 	Dictionary::Ptr debug_hint_props;
 	if (debug_hints)
@@ -163,7 +166,7 @@ String ObjectListCommand::FormatProperties(const Dictionary::Ptr& props, const D
 		Value val = kv.second;
 
 		/* key & value */
-		msgbuf << std::setw(indent) << " " << "* " << "\x1b[1;32m" << key << "\x1b[0m"; //green
+		fp << std::setw(indent) << " " << "* " << "\x1b[1;32m" << key << "\x1b[0m"; //green
 
 		/* extract debug hints for key */
 		Dictionary::Ptr debug_hints_fwd;
@@ -172,71 +175,65 @@ String ObjectListCommand::FormatProperties(const Dictionary::Ptr& props, const D
 
 		/* print dicts recursively */
 		if (val.IsObjectType<Dictionary>()) {
-			msgbuf << "\n";
-			msgbuf << FormatHints(debug_hints_fwd, indent + offset);
-			msgbuf << FormatProperties(val, debug_hints_fwd, indent + offset);
+			fp << "\n";
+			PrintHints(fp, debug_hints_fwd, indent + offset);
+			PrintProperties(fp, val, debug_hints_fwd, indent + offset);
 		} else {
-			msgbuf << " = " << FormatValue(val) << "\n";
-			msgbuf << FormatHints(debug_hints_fwd, indent + offset);
+			fp << " = ";
+			PrintValue(fp, val);
+			fp << "\n";
+			PrintHints(fp, debug_hints_fwd, indent + offset);
 		}
 	}
-
-	return msgbuf.str();
 }
 
-String ObjectListCommand::FormatHints(const Dictionary::Ptr& debug_hints, int indent)
+void ObjectListCommand::PrintHints(std::ostream& fp, const Dictionary::Ptr& debug_hints, int indent)
 {
 	if (!debug_hints)
-		return String();
+		return;
 
 	Array::Ptr messages = debug_hints->Get("messages");
-	String hints;
 
 	BOOST_FOREACH(const Value& msg, messages) {
-		hints += FormatHint(msg, indent);
+		PrintHint(fp, msg, indent);
 	}
-
-	return hints;
 }
 
-String ObjectListCommand::FormatHint(const Array::Ptr& msg, int indent)
+void ObjectListCommand::PrintHint(std::ostream& fp, const Array::Ptr& msg, int indent)
 {
-	std::ostringstream msgbuf;
-	msgbuf << std::setw(indent) << " " << "\x1b[1;36m" "% " << msg->Get(0) << " modified in '" << msg->Get(1) << "', lines "
+	fp << std::setw(indent) << " " << "\x1b[1;36m" "% " << msg->Get(0) << " modified in '" << msg->Get(1) << "', lines "
 	    << msg->Get(2) << ":" << msg->Get(3) << "-" << msg->Get(4) << ":" << msg->Get(5) << "\x1b[0m" "\n"; //cyan
-
-	return msgbuf.str();
 }
 
-String ObjectListCommand::FormatTypeCounts(const std::map<String, int>& type_count)
+void ObjectListCommand::PrintTypeCounts(std::ostream& fp, const std::map<String, int>& type_count)
 {
-	std::ostringstream msgbuf;
-
 	typedef std::map<String, int>::value_type TypeCount;
 
 	BOOST_FOREACH(const TypeCount& kv, type_count) {
-		msgbuf << "Found " << kv.second << " " << kv.first << " objects.\n";
+		fp << "Found " << kv.second << " " << kv.first << " objects.\n";
+	}
+}
+
+void ObjectListCommand::PrintValue(std::ostream& fp, const Value& val)
+{
+	if (val.IsObjectType<Array>()) {
+		PrintArray(fp, val);
+		return;
 	}
 
-	return msgbuf.str();
+	if (val.IsString()) {
+		fp << "'" << Convert::ToString(val) << "'";
+		return;
+	}
+
+	fp << Convert::ToString(val);
 }
 
-String ObjectListCommand::FormatValue(const Value& val)
-{
-	if (val.IsObjectType<Array>())
-		return "[ " + FormatArray(val) + " ]";
-
-	if (val.IsString())
-		return "'" + Convert::ToString(val) + "'";
-
-	return Convert::ToString(val);
-}
-
-
-String ObjectListCommand::FormatArray(const Array::Ptr& arr)
+void ObjectListCommand::PrintArray(std::ostream& fp, const Array::Ptr& arr)
 {
 	bool first = true;
-	String str;
+
+	fp << "[ ";
 
 	if (arr) {
 		ObjectLock olock(arr);
@@ -244,11 +241,14 @@ String ObjectListCommand::FormatArray(const Array::Ptr& arr)
 			if (first)
 				first = false;
 			else
-				str += ", ";
+				fp << ", ";
 
-			str += FormatValue(value);
+			PrintValue(fp, value);
 		}
 	}
 
-	return str;
+	if (!first)
+		fp << " ";
+
+	fp << "]";
 }
