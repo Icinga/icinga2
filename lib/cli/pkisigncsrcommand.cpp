@@ -119,15 +119,20 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	X509 *cert = CreateCert(pubkey, X509_REQ_get_subject_name(req), X509_get_subject_name(cacert), privkey, false);
 
+	EVP_PKEY_free(pubkey);
 	X509_free(cacert);
 
 	BIO *certbio = BIO_new_fp(stdout, BIO_NOCLOSE);
 
 	if (!PEM_write_bio_X509(certbio, cert)) {
+		BIO_free(certbio);
+
 		msgbuf << "Could not write X509 certificate: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		Log(LogCritical, "SSL", msgbuf.str());
 		return 1;
 	}
+
+	X509_free(cert);
 
 	BIO_free(certbio);
 

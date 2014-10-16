@@ -36,7 +36,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext)
-	: m_Eof(false), m_Socket(socket), m_Role(role), m_VerifyOK(false)
+	: m_Eof(false), m_Socket(socket), m_Role(role), m_VerifyOK(true)
 {
 	std::ostringstream msgbuf;
 	char errbuf[120];
@@ -75,7 +75,8 @@ int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
 {
 	SSL *ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
 	TlsStream *stream = static_cast<TlsStream *>(SSL_get_ex_data(ssl, m_SSLIndex));
-	stream->m_VerifyOK = preverify_ok;
+	if (!preverify_ok)
+		stream->m_VerifyOK = false;
 	return 1;
 }
 
