@@ -22,6 +22,7 @@
 #include "base/clicommand.hpp"
 #include "base/tlsutility.hpp"
 #include "base/application.hpp"
+#include <fstream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -42,7 +43,12 @@ void PKISignCSRCommand::InitParameters(boost::program_options::options_descripti
     boost::program_options::options_description& hiddenDesc,
     ArgumentCompletionDescription& argCompletionDesc) const
 {
-	/* Command doesn't support any parameters. */
+	visibleDesc.add_options()
+	    ("csrfile", po::value<std::string>(), "CSR file path (input)")
+	    ("certfile", po::value<std::string>(), "Certificate file path (output)");
+
+	argCompletionDesc["csrfile"] = BashArgumentCompletion("file");
+	argCompletionDesc["certfile"] = BashArgumentCompletion("file");
 }
 
 /**
@@ -52,16 +58,28 @@ void PKISignCSRCommand::InitParameters(boost::program_options::options_descripti
  */
 int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	if (!vm.count("csrfile")) {
+		Log(LogCritical, "cli", "Certificate signing request file path (--csrfile) must be specified.");
+		return 1;
+	}
+
+	if (!vm.count("certfile")) {
+		Log(LogCritical, "cli", "Certificate file path (--certfile) must be specified.");
+		return 1;
+	}
+
 	std::stringstream msgbuf;
 	char errbuf[120];
 
 	InitializeOpenSSL();
 
-	BIO *csrbio = BIO_new_fp(stdin, BIO_NOCLOSE);
+	String csrfile = vm["csrfile"].as<std::string>();
+
+	BIO *csrbio = BIO_new_file(csrfile.CStr(), "r");
 	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, NULL, NULL, NULL);
 
 	if (!req) {
-		msgbuf << "Could not parse X509 certificate request: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		msgbuf << "Could not read X509 certificate request from '" + csrfile + "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		Log(LogCritical, "SSL", msgbuf.str());
 		return 1;
 	}
@@ -72,7 +90,18 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	X509_REQ_free(req);
 
-	std::cout << CertificateToString(cert);
+	String certfile = vm["certfile"].as<std::string>();
+
+	std::ofstream fpcert;
+	fpcert.open(certfile.CStr());
+
+	if (!fpcert) {
+		Log(LogCritical, "cli", "Failed to open certificate file '" + certfile + "' for output");
+		return 1;
+	}
+
+	fpcert << CertificateToString(cert);
+	fpcert.close();
 
 	return 0;
 }

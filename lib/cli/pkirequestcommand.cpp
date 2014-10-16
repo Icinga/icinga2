@@ -54,6 +54,12 @@ void PKIRequestCommand::InitParameters(boost::program_options::options_descripti
 	    ("host", po::value<std::string>(), "Icinga 2 host")
 	    ("port", po::value<std::string>(), "Icinga 2 port")
 	    ("ticket", po::value<std::string>(), "Icinga 2 PKI ticket");
+
+	argCompletionDesc["keyfile"] = BashArgumentCompletion("file");
+	argCompletionDesc["certfile"] = BashArgumentCompletion("file");
+	argCompletionDesc["cafile"] = BashArgumentCompletion("file");
+	argCompletionDesc["host"] = BashArgumentCompletion("hostname");
+	argCompletionDesc["port"] = BashArgumentCompletion("service");
 }
 
 /**

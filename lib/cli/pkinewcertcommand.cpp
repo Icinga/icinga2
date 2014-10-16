@@ -43,9 +43,13 @@ void PKINewCertCommand::InitParameters(boost::program_options::options_descripti
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name")
-		("keyfile", po::value<std::string>(), "Key file path")
-		("csrfile", po::value<std::string>(), "CSR file path (optional)")
-		("certfile", po::value<std::string>(), "Certificate file path (optional)");
+		("keyfile", po::value<std::string>(), "Key file path (output")
+		("csrfile", po::value<std::string>(), "CSR file path (optional, output)")
+		("certfile", po::value<std::string>(), "Certificate file path (optional, output)");
+
+	argCompletionDesc["keyfile"] = BashArgumentCompletion("file");
+	argCompletionDesc["csrfile"] = BashArgumentCompletion("file");
+	argCompletionDesc["certfile"] = BashArgumentCompletion("file");
 }
 
 /**
