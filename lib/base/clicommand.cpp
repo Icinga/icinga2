@@ -26,6 +26,7 @@
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 #include <algorithm>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;

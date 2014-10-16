@@ -33,9 +33,7 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
-#include <vector>
-#include <string>
-#include <unistd.h>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
