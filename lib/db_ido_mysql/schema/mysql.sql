@@ -897,6 +897,7 @@ CREATE TABLE IF NOT EXISTS icinga_processevents (
 CREATE TABLE IF NOT EXISTS icinga_programstatus (
   programstatus_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   instance_id bigint unsigned default 0,
+  program_version varchar(64) character set latin1 collate latin1_general_cs default NULL,
   status_update_time timestamp  default '0000-00-00 00:00:00',
   program_start_time timestamp  default '0000-00-00 00:00:00',
   program_end_time timestamp  default '0000-00-00 00:00:00',
