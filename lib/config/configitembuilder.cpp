@@ -64,7 +64,7 @@ void ConfigItemBuilder::SetZone(const String& zone)
 	m_Zone = zone;
 }
 
-void ConfigItemBuilder::AddExpression(const AExpression::Ptr& expr)
+void ConfigItemBuilder::AddExpression(const Expression::Ptr& expr)
 {
 	m_Expressions->Add(expr);
 }
@@ -93,14 +93,14 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Array::Ptr templateArray = make_shared<Array>();
 	templateArray->Add(m_Name);
 
-	exprs->Add(make_shared<AExpression>(&AExpression::OpSetPlus,
-	    make_shared<AExpression>(&AExpression::OpLiteral, "templates", m_DebugInfo),
-	    make_shared<AExpression>(&AExpression::OpLiteral, templateArray, m_DebugInfo),
+	exprs->Add(make_shared<Expression>(&Expression::OpSetPlus,
+	    make_shared<Expression>(&Expression::OpLiteral, "templates", m_DebugInfo),
+	    make_shared<Expression>(&Expression::OpLiteral, templateArray, m_DebugInfo),
 	    m_DebugInfo));
 
-	exprs->Add(make_shared<AExpression>(&AExpression::OpDict, m_Expressions, true, m_DebugInfo));
+	exprs->Add(make_shared<Expression>(&Expression::OpDict, m_Expressions, true, m_DebugInfo));
 	
-	AExpression::Ptr exprl = make_shared<AExpression>(&AExpression::OpDict, exprs, true, m_DebugInfo);
+	Expression::Ptr exprl = make_shared<Expression>(&Expression::OpDict, exprs, true, m_DebugInfo);
 
 	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
 	    m_DebugInfo, m_Scope, m_Zone);

@@ -21,7 +21,7 @@
 #include "config/configcompiler.hpp"
 #include "config/typerule.hpp"
 #include "config/configcompilercontext.hpp"
-#include "config/aexpression.hpp"
+#include "config/expression.hpp"
 
 using namespace icinga;
 
@@ -233,16 +233,16 @@ __function			return T_FUNCTION;
 __return			return T_RETURN;
 zone				return T_ZONE;
 __for				return T_FOR;
-\<\<				{ yylval->op = &AExpression::OpShiftLeft; return T_SHIFT_LEFT; }
-\>\>				{ yylval->op = &AExpression::OpShiftRight; return T_SHIFT_RIGHT; }
-\<=				{ yylval->op = &AExpression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
-\>=				{ yylval->op = &AExpression::OpGreaterThanOrEqual; return T_GREATER_THAN_OR_EQUAL; }
-==				{ yylval->op = &AExpression::OpEqual; return T_EQUAL; }
-!=				{ yylval->op = &AExpression::OpNotEqual; return T_NOT_EQUAL; }
-!in				{ yylval->op = &AExpression::OpNotIn; return T_NOT_IN; }
-in				{ yylval->op = &AExpression::OpIn; return T_IN; }
-&&				{ yylval->op = &AExpression::OpLogicalAnd; return T_LOGICAL_AND; }
-\|\|				{ yylval->op = &AExpression::OpLogicalOr; return T_LOGICAL_OR; }
+\<\<				{ yylval->op = &Expression::OpShiftLeft; return T_SHIFT_LEFT; }
+\>\>				{ yylval->op = &Expression::OpShiftRight; return T_SHIFT_RIGHT; }
+\<=				{ yylval->op = &Expression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
+\>=				{ yylval->op = &Expression::OpGreaterThanOrEqual; return T_GREATER_THAN_OR_EQUAL; }
+==				{ yylval->op = &Expression::OpEqual; return T_EQUAL; }
+!=				{ yylval->op = &Expression::OpNotEqual; return T_NOT_EQUAL; }
+!in				{ yylval->op = &Expression::OpNotIn; return T_NOT_IN; }
+in				{ yylval->op = &Expression::OpIn; return T_IN; }
+&&				{ yylval->op = &Expression::OpLogicalAnd; return T_LOGICAL_AND; }
+\|\|				{ yylval->op = &Expression::OpLogicalOr; return T_LOGICAL_OR; }
 [a-zA-Z_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 @[a-zA-Z_][a-zA-Z0-9\-_]*	{ yylval->text = strdup(yytext + 1); return T_IDENTIFIER; }
 \<[^\>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }
@@ -252,19 +252,19 @@ in				{ yylval->op = &AExpression::OpIn; return T_IN; }
 -?[0-9]+(\.[0-9]+)?m		{ yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?s		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
-=				{ yylval->op = &AExpression::OpSet; return T_SET; }
-\+=				{ yylval->op = &AExpression::OpSetPlus; return T_SET_PLUS; }
--=				{ yylval->op = &AExpression::OpSetMinus; return T_SET_MINUS; }
-\*=				{ yylval->op = &AExpression::OpSetMultiply; return T_SET_MULTIPLY; }
-\/=				{ yylval->op = &AExpression::OpSetDivide; return T_SET_DIVIDE; }
-\+				{ yylval->op = &AExpression::OpAdd; return T_PLUS; }
-\-				{ yylval->op = &AExpression::OpSubtract; return T_MINUS; }
-\*				{ yylval->op = &AExpression::OpMultiply; return T_MULTIPLY; }
-\/				{ yylval->op = &AExpression::OpMultiply; return T_DIVIDE_OP; }
-\&				{ yylval->op = &AExpression::OpBinaryAnd; return T_BINARY_AND; }
-\|				{ yylval->op = &AExpression::OpBinaryOr; return T_BINARY_OR; }
-\<				{ yylval->op = &AExpression::OpLessThan; return T_LESS_THAN; }
-\>				{ yylval->op = &AExpression::OpLessThan; return T_GREATER_THAN; }
+=				{ yylval->op = &Expression::OpSet; return T_SET; }
+\+=				{ yylval->op = &Expression::OpSetPlus; return T_SET_PLUS; }
+-=				{ yylval->op = &Expression::OpSetMinus; return T_SET_MINUS; }
+\*=				{ yylval->op = &Expression::OpSetMultiply; return T_SET_MULTIPLY; }
+\/=				{ yylval->op = &Expression::OpSetDivide; return T_SET_DIVIDE; }
+\+				{ yylval->op = &Expression::OpAdd; return T_PLUS; }
+\-				{ yylval->op = &Expression::OpSubtract; return T_MINUS; }
+\*				{ yylval->op = &Expression::OpMultiply; return T_MULTIPLY; }
+\/				{ yylval->op = &Expression::OpMultiply; return T_DIVIDE_OP; }
+\&				{ yylval->op = &Expression::OpBinaryAnd; return T_BINARY_AND; }
+\|				{ yylval->op = &Expression::OpBinaryOr; return T_BINARY_OR; }
+\<				{ yylval->op = &Expression::OpLessThan; return T_LESS_THAN; }
+\>				{ yylval->op = &Expression::OpLessThan; return T_GREATER_THAN; }
 }
 
 [\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!ignore_newlines) return T_NEWLINE; }

@@ -20,7 +20,7 @@
 #ifndef CONFIGITEMBUILDER_H
 #define CONFIGITEMBUILDER_H
 
-#include "config/aexpression.hpp"
+#include "config/expression.hpp"
 #include "config/configitem.hpp"
 #include "base/debuginfo.hpp"
 #include "base/object.hpp"
@@ -48,7 +48,7 @@ public:
 	void SetScope(const Dictionary::Ptr& scope);
 	void SetZone(const String& zone);
 
-	void AddExpression(const AExpression::Ptr& expr);
+	void AddExpression(const Expression::Ptr& expr);
 
 	ConfigItem::Ptr Compile(void);
 

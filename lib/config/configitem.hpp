@@ -21,7 +21,7 @@
 #define CONFIGITEM_H
 
 #include "config/i2-config.hpp"
-#include "config/aexpression.hpp"
+#include "config/expression.hpp"
 #include "base/dynamicobject.hpp"
 
 namespace icinga
@@ -38,7 +38,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const String& type, const String& name, bool abstract,
-	    const AExpression::Ptr& exprl, const DebugInfo& debuginfo,
+	    const Expression::Ptr& exprl, const DebugInfo& debuginfo,
 	    const Dictionary::Ptr& scope, const String& zone);
 
 	String GetType(void) const;
@@ -47,7 +47,7 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	AExpression::Ptr GetExpressionList(void) const;
+	Expression::Ptr GetExpressionList(void) const;
 	Dictionary::Ptr GetProperties(void);
 	Dictionary::Ptr GetDebugHints(void) const;
 
@@ -77,7 +77,7 @@ private:
 	bool m_Abstract; /**< Whether this is a template. */
 	bool m_Validated; /** Whether this object has been validated. */
 
-	AExpression::Ptr m_ExpressionList;
+	Expression::Ptr m_ExpressionList;
 	Dictionary::Ptr m_Properties;
 	Dictionary::Ptr m_DebugHints;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration

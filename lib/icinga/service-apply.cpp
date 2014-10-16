@@ -63,22 +63,22 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 	builder->SetName(rule.GetName());
 	builder->SetScope(rule.GetScope());
 
-	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-	    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di), 
-	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	    make_shared<Expression>(&Expression::OpLiteral, "host_name", di), 
+	    make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
 	    di));
 
-	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-	    make_shared<AExpression>(&AExpression::OpLiteral, "name", di),
-	    make_shared<AExpression>(&AExpression::OpLiteral, rule.GetName(), di),
+	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	    make_shared<Expression>(&Expression::OpLiteral, "name", di),
+	    make_shared<Expression>(&Expression::OpLiteral, rule.GetName(), di),
 	    di));
 
 	String zone = host->GetZone();
 
 	if (!zone.IsEmpty()) {
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-		    make_shared<AExpression>(&AExpression::OpLiteral, "zone", di),
-		    make_shared<AExpression>(&AExpression::OpLiteral, zone, di),
+		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		    make_shared<Expression>(&Expression::OpLiteral, "zone", di),
+		    make_shared<Expression>(&Expression::OpLiteral, zone, di),
 		    di));
 	}
 

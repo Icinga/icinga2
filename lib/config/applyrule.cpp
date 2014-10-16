@@ -27,8 +27,8 @@ using namespace icinga;
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::CallbackMap ApplyRule::m_Callbacks;
 
-ApplyRule::ApplyRule(const String& targetType, const String& name, const AExpression::Ptr& expression,
-    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope)
+ApplyRule::ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
+    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
 { }
 
@@ -42,12 +42,12 @@ String ApplyRule::GetName(void) const
 	return m_Name;
 }
 
-AExpression::Ptr ApplyRule::GetExpression(void) const
+Expression::Ptr ApplyRule::GetExpression(void) const
 {
 	return m_Expression;
 }
 
-AExpression::Ptr ApplyRule::GetFilter(void) const
+Expression::Ptr ApplyRule::GetFilter(void) const
 {
 	return m_Filter;
 }
@@ -63,7 +63,7 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 }
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
-    const AExpression::Ptr& expression, const AExpression::Ptr& filter,
+    const Expression::Ptr& expression, const Expression::Ptr& filter,
     const DebugInfo& di, const Dictionary::Ptr& scope)
 {
 	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, di, scope));

@@ -21,7 +21,7 @@
 #define APPLYRULE_H
 
 #include "config/i2-config.hpp"
-#include "config/aexpression.hpp"
+#include "config/expression.hpp"
 #include "base/debuginfo.hpp"
 #include <boost/function.hpp>
 
@@ -40,15 +40,15 @@ public:
 
 	String GetTargetType(void) const;
 	String GetName(void) const;
-	AExpression::Ptr GetExpression(void) const;
-	AExpression::Ptr GetFilter(void) const;
+	Expression::Ptr GetExpression(void) const;
+	Expression::Ptr GetFilter(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Dictionary::Ptr GetScope(void) const;
 
 	bool EvaluateFilter(const Dictionary::Ptr& scope) const;
 
-	static void AddRule(const String& sourceType, const String& targetType, const String& name, const AExpression::Ptr& expression,
-	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
+	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
+	    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
@@ -59,16 +59,16 @@ public:
 private:
 	String m_TargetType;
 	String m_Name;
-	AExpression::Ptr m_Expression;
-	AExpression::Ptr m_Filter;
+	Expression::Ptr m_Expression;
+	Expression::Ptr m_Filter;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ApplyRule(const String& targetType, const String& name, const AExpression::Ptr& expression,
-	    const AExpression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
+	ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
+	    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 
 }

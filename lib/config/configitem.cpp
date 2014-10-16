@@ -53,7 +53,7 @@ ConfigItem::ItemMap ConfigItem::m_Items;
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
-    bool abstract, const AExpression::Ptr& exprl,
+    bool abstract, const Expression::Ptr& exprl,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
     const String& zone)
 	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
@@ -112,7 +112,7 @@ Dictionary::Ptr ConfigItem::GetScope(void) const
  *
  * @returns The expression list.
  */
-AExpression::Ptr ConfigItem::GetExpressionList(void) const
+Expression::Ptr ConfigItem::GetExpressionList(void) const
 {
 	return m_ExpressionList;
 }

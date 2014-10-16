@@ -71,24 +71,24 @@ bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const A
 	builder->SetName(rule.GetName());
 	builder->SetScope(rule.GetScope());
 
-	builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-	    make_shared<AExpression>(&AExpression::OpLiteral, "host_name", di),
-	    make_shared<AExpression>(&AExpression::OpLiteral, host->GetName(), di),
+	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	    make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
+	    make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
 	    di));
 
 	if (service) {
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-		    make_shared<AExpression>(&AExpression::OpLiteral, "service_name", di),
-		    make_shared<AExpression>(&AExpression::OpLiteral, service->GetShortName(), di),
+		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		    make_shared<Expression>(&Expression::OpLiteral, "service_name", di),
+		    make_shared<Expression>(&Expression::OpLiteral, service->GetShortName(), di),
 		    di));
 	}
 
 	String zone = checkable->GetZone();
 
 	if (!zone.IsEmpty()) {
-		builder->AddExpression(make_shared<AExpression>(&AExpression::OpSet,
-		    make_shared<AExpression>(&AExpression::OpLiteral, "zone", di),
-		    make_shared<AExpression>(&AExpression::OpLiteral, zone, di),
+		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		    make_shared<Expression>(&Expression::OpLiteral, "zone", di),
+		    make_shared<Expression>(&Expression::OpLiteral, zone, di),
 		    di));
 	}
 

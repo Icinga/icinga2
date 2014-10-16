@@ -31,10 +31,10 @@ mkembedconfig_target(base-type.conf base-type.cpp)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(config_SOURCES
-  aexpression.cpp applyrule.cpp base-type.conf base-type.cpp
+  applyrule.cpp base-type.conf base-type.cpp
   configcompilercontext.cpp configcompiler.cpp configitembuilder.cpp
   configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
-  configtype.cpp objectrule.cpp typerule.cpp typerulelist.cpp
+  configtype.cpp expression.cpp objectrule.cpp typerule.cpp typerulelist.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
