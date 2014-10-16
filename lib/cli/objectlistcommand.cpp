@@ -99,12 +99,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	bool first = true;
 
 	while (NetString::ReadStringFromStream(sfp, &message)) {
-		if (first)
-			first = false;
-		else
-			std::cout << "\n";
-
-		PrintObject(std::cout, message, type_count, name_filter, type_filter);
+		PrintObject(std::cout, first, message, type_count, name_filter, type_filter);
 		objects_count++;
 	}
 
@@ -112,6 +107,9 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	fp.close();
 
 	if (vm.count("count")) {
+		if (!first)
+			std::cout << "\n";
+
 		PrintTypeCounts(std::cout, type_count);
 		std::cout << "\n";
 	}
@@ -121,7 +119,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	return 0;
 }
 
-void ObjectListCommand::PrintObject(std::ostream& fp, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
+void ObjectListCommand::PrintObject(std::ostream& fp, bool& first, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
 {
 	Dictionary::Ptr object = JsonDeserialize(message);
 
@@ -135,6 +133,11 @@ void ObjectListCommand::PrintObject(std::ostream& fp, const String& message, std
 		return;
 	if (!type_filter.IsEmpty() && !Utility::Match(type_filter, type))
 		return;
+
+	if (first)
+		first = false;
+	else
+		fp << "\n";
 
 	bool abstract = object->Get("abstract");
 	Dictionary::Ptr debug_hints = object->Get("debug_hints");
@@ -210,7 +213,12 @@ void ObjectListCommand::PrintTypeCounts(std::ostream& fp, const std::map<String,
 	typedef std::map<String, int>::value_type TypeCount;
 
 	BOOST_FOREACH(const TypeCount& kv, type_count) {
-		fp << "Found " << kv.second << " " << kv.first << " objects.\n";
+		fp << "Found " << kv.second << " " << kv.first << " object";
+
+		if (kv.second != 1)
+			fp << "s";
+
+		fp << ".\n";
 	}
 }
 
