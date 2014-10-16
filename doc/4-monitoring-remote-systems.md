@@ -197,9 +197,8 @@ object name.
 
 Example:
 
-    # icinga2-build-key icinga2a
-    ...
-    Common Name (e.g. server FQDN or YOUR name) [icinga2a]:
+    # icinga2 pki new-cert --cn icinga2a --keyfile icinga2a.key --csrfile icinga2a.csr
+    # icinga2 pki sign-csr < icinga2a.csr > icinga2a.crt
 
     # vim cluster.conf
 
@@ -234,22 +233,16 @@ for your Icinga 2 cluster.
 > You're free to use your own method to generated a valid ca and signed client
 > certificates.
 
-Please make sure to export the environment variable `ICINGA_CA` pointing to
-an empty folder for the newly created CA files:
-
-    # export ICINGA_CA="/root/icinga-ca"
-
-The scripts will put all generated data and the required certificates in there.
-
-The first step is the creation of the certificate authority (CA) running the
+The first step is the creation of the certificate authority (CA) by running the
 following command:
 
-    # icinga2-build-ca
+    # icinga2 pki new-ca
 
 Now create a certificate and key file for each node running the following command
 (replace `icinga2a` with the required hostname):
 
-    # icinga2-build-key icinga2a
+    # icinga2 pki new-cert --cn icinga2a --keyfile icinga2a.key --csrfile icinga2a.csr
+    # icinga2 pki sign-csr < icinga2a.csr > icinga2a.crt
 
 Repeat the step for all nodes in your cluster scenario.
 

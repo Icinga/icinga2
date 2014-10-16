@@ -3,8 +3,6 @@ debian/tmp/etc/icinga2
 debian/tmp/etc/logrotate.d
 debian/tmp/etc/bash_completion.d
 tools/syntax/* 		      usr/share/icinga2-common/syntax
-usr/bin/icinga2-build*
-usr/bin/icinga2-sign-key
 usr/sbin/icinga2-*-agent
 usr/sbin/icinga2-list-agents
 usr/share/icinga2

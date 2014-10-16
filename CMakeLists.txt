@@ -162,7 +162,6 @@ add_subdirectory(etc)
 add_subdirectory(itl)
 add_subdirectory(doc)
 add_subdirectory(test)
-add_subdirectory(pki)
 add_subdirectory(agent)
 
 set(CPACK_PACKAGE_NAME "Icinga2")

@@ -453,10 +453,6 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %{_sbindir}/%{name}
-%{_bindir}/%{name}-build-ca
-%{_bindir}/%{name}-build-key
-%{_bindir}/%{name}-sign-key
-%{_sbindir}/%{name}-list-objects
 %{_sbindir}/%{name}-setup-agent
 %{_sbindir}/%{name}-discover-agent
 %{_sbindir}/%{name}-forget-agent
@@ -468,9 +464,6 @@ exit 0
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz
-%{_mandir}/man8/%{name}-build-ca.8.gz
-%{_mandir}/man8/%{name}-build-key.8.gz
-%{_mandir}/man8/%{name}-sign-key.8.gz
 %{_mandir}/man8/%{name}-prepare-dirs.8.gz
 
 %attr(0750,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/cache/%{name}
