@@ -36,7 +36,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext)
-	: m_Eof(false), m_Socket(socket), m_Role(role), m_VerifyOK(true)
+	: m_Eof(false), m_VerifyOK(true), m_Socket(socket), m_Role(role)
 {
 	std::ostringstream msgbuf;
 	char errbuf[120];
