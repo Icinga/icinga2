@@ -125,6 +125,9 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 
 Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -182,6 +185,9 @@ void ApiEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double 
 
 Value ApiEvents::NextCheckChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -229,6 +235,9 @@ void ApiEvents::NextNotificationChangedHandler(const Notification::Ptr& notifica
 
 Value ApiEvents::NextNotificationChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -272,6 +281,9 @@ void ApiEvents::ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, bo
 
 Value ApiEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -325,6 +337,9 @@ void ApiEvents::ForceNextNotificationChangedHandler(const Checkable::Ptr& checka
 
 Value ApiEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -378,6 +393,9 @@ void ApiEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable
 
 Value ApiEvents::EnableActiveChecksChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -431,6 +449,9 @@ void ApiEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkabl
 
 Value ApiEvents::EnablePassiveChecksChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -484,6 +505,9 @@ void ApiEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkabl
 
 Value ApiEvents::EnableNotificationsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -537,6 +561,9 @@ void ApiEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bo
 
 Value ApiEvents::EnableFlappingChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -590,6 +617,9 @@ void ApiEvents::EnableEventHandlerChangedHandler(const Checkable::Ptr& checkable
 
 Value ApiEvents::EnableEventHandlerChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -643,6 +673,9 @@ void ApiEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bo
 
 Value ApiEvents::EnablePerfdataChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -696,6 +729,9 @@ void ApiEvents::CheckIntervalChangedHandler(const Checkable::Ptr& checkable, dou
 
 Value ApiEvents::CheckIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -749,6 +785,9 @@ void ApiEvents::RetryIntervalChangedHandler(const Checkable::Ptr& checkable, dou
 
 Value ApiEvents::RetryIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -802,6 +841,9 @@ void ApiEvents::MaxCheckAttemptsChangedHandler(const Checkable::Ptr& checkable, 
 
 Value ApiEvents::MaxCheckAttemptsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -855,6 +897,9 @@ void ApiEvents::EventCommandChangedHandler(const Checkable::Ptr& checkable, cons
 
 Value ApiEvents::EventCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -913,6 +958,9 @@ void ApiEvents::CheckCommandChangedHandler(const Checkable::Ptr& checkable, cons
 
 Value ApiEvents::CheckCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -971,6 +1019,9 @@ void ApiEvents::CheckPeriodChangedHandler(const Checkable::Ptr& checkable, const
 
 Value ApiEvents::CheckPeriodChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1023,6 +1074,9 @@ void ApiEvents::VarsChangedHandler(const CustomVarObject::Ptr& object, const Dic
 
 Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1088,6 +1142,9 @@ void ApiEvents::CommentAddedHandler(const Checkable::Ptr& checkable, const Comme
 
 Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1144,6 +1201,9 @@ void ApiEvents::CommentRemovedHandler(const Checkable::Ptr& checkable, const Com
 
 Value ApiEvents::CommentRemovedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1197,6 +1257,9 @@ void ApiEvents::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Down
 
 Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1256,6 +1319,9 @@ void ApiEvents::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Do
 
 Value ApiEvents::DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1314,6 +1380,9 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 
 Value ApiEvents::AcknowledgementSetAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
@@ -1368,6 +1437,9 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 
 Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
+	if (!origin.FromClient->GetEndpoint())
+		return Empty;
+
 	if (!params)
 		return Empty;
 
