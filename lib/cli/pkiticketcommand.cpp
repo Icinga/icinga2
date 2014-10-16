@@ -26,6 +26,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
