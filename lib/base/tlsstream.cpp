@@ -200,8 +200,10 @@ size_t TlsStream::Read(void *buffer, size_t count)
 					Close();
 					return count - left;
 				default:
-					msgbuf << "SSL_read() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-					Log(LogCritical, "TlsStream", msgbuf.str());
+					if (ERR_peek_error() != 0) {
+						msgbuf << "SSL_read() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+						Log(LogCritical, "TlsStream", msgbuf.str());
+					}
 
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_read")
@@ -260,8 +262,10 @@ void TlsStream::Write(const void *buffer, size_t count)
 					Close();
 					return;
 				default:
-					msgbuf << "SSL_write() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-					Log(LogCritical, "TlsStream", msgbuf.str());
+					if (ERR_peek_error() != 0) {
+						msgbuf << "SSL_write() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+						Log(LogCritical, "TlsStream", msgbuf.str());
+					}
 
 					BOOST_THROW_EXCEPTION(openssl_error()
 					    << boost::errinfo_api_function("SSL_write")
