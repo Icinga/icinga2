@@ -69,6 +69,27 @@ static std::vector<String> BashArgumentCompletionHelper(const String& type, cons
 	return result;
 }
 
+void icinga::AddTypeFields(const String& type, boost::program_options::options_description& desc)
+{
+	const Type *ptype = Type::GetByName(type);
+
+	if (!ptype)
+		return;
+
+	for (int i = 0; i < ptype->GetFieldCount(); i++) {
+		Field field = ptype->GetFieldInfo(i);
+
+		if (strcmp(field.Name, "__name") == 0)
+			continue;
+
+		if (!(field.Attributes & FAConfig))
+			continue;
+
+		desc.add_options()
+			(field.Name, po::value<std::string>(), field.Name);
+	}
+}
+
 ArgumentCompletionCallback icinga::BashArgumentCompletion(const String& type)
 {
 	return boost::bind(BashArgumentCompletionHelper, type, _1);
