@@ -162,6 +162,8 @@ void ObjectListCommand::PrintProperties(std::ostream& fp, const Dictionary::Ptr&
 
 	int offset = 2;
 
+	ObjectLock olock(props);
+
 	BOOST_FOREACH(const Dictionary::Pair& kv, props) {
 		String key = kv.first;
 		Value val = kv.second;
@@ -194,6 +196,8 @@ void ObjectListCommand::PrintHints(std::ostream& fp, const Dictionary::Ptr& debu
 		return;
 
 	Array::Ptr messages = debug_hints->Get("messages");
+
+	ObjectLock olock(messages);
 
 	BOOST_FOREACH(const Value& msg, messages) {
 		PrintHint(fp, msg, indent);
