@@ -106,11 +106,8 @@ void icinga::Log(LogSeverity severity, const String& facility,
 			logger->ProcessLogEntry(entry);
 	}
 
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
-		static bool tty = StreamLogger::IsTty(std::cout);
-
-		StreamLogger::ProcessLogEntry(std::cout, tty, entry);
-	}
+	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity())
+		StreamLogger::ProcessLogEntry(std::cout, entry);
 }
 
 /**

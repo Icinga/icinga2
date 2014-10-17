@@ -29,6 +29,7 @@
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
+#include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -144,8 +145,8 @@ void ObjectListCommand::PrintObject(std::ostream& fp, bool& first, const String&
 	else
 		fp << "Object '";
 
-	fp << "\x1b[1;34m" << internal_name << "\x1b[0m" << "'"; //blue
-	fp << " of type '" << "\x1b[1;34m" << type << "\x1b[0m" << "':\n"; //blue
+	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << internal_name << ConsoleColorTag(Console_Normal) << "'";
+	fp << " of type '" << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << type << ConsoleColorTag(Console_Normal) << "':\n";
 
 	PrintProperties(fp, properties, debug_hints, 2);
 
@@ -166,7 +167,7 @@ void ObjectListCommand::PrintProperties(std::ostream& fp, const Dictionary::Ptr&
 		Value val = kv.second;
 
 		/* key & value */
-		fp << std::setw(indent) << " " << "* " << "\x1b[1;32m" << key << "\x1b[0m"; //green
+		fp << std::setw(indent) << " " << "* " << ConsoleColorTag(Console_ForegroundGreen) << key << ConsoleColorTag(Console_Normal);
 
 		/* extract debug hints for key */
 		Dictionary::Ptr debug_hints_fwd;
@@ -201,8 +202,8 @@ void ObjectListCommand::PrintHints(std::ostream& fp, const Dictionary::Ptr& debu
 
 void ObjectListCommand::PrintHint(std::ostream& fp, const Array::Ptr& msg, int indent)
 {
-	fp << std::setw(indent) << " " << "\x1b[1;36m" "% " << msg->Get(0) << " modified in '" << msg->Get(1) << "', lines "
-	    << msg->Get(2) << ":" << msg->Get(3) << "-" << msg->Get(4) << ":" << msg->Get(5) << "\x1b[0m" "\n"; //cyan
+	fp << std::setw(indent) << " " << ConsoleColorTag(Console_ForegroundCyan) << "% " << msg->Get(0) << " modified in '" << msg->Get(1) << "', lines "
+	    << msg->Get(2) << ":" << msg->Get(3) << "-" << msg->Get(4) << ":" << msg->Get(5) << ConsoleColorTag(Console_Normal) << "\n";
 }
 
 void ObjectListCommand::PrintTypeCounts(std::ostream& fp, const std::map<String, int>& type_count)

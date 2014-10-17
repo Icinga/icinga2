@@ -17,50 +17,87 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef STREAMLOGGER_H
-#define STREAMLOGGER_H
+#ifndef CONSOLE_H
+#define CONSOLE_H
 
 #include "base/i2-base.hpp"
-#include "base/streamlogger.thpp"
-#include "base/timer.hpp"
 #include <ostream>
 
 namespace icinga
 {
 
+enum ConsoleColor
+{
+	Console_Normal,
+
+	// bit 0-7: foreground
+	Console_ForegroundBlack = 1,
+	Console_ForegroundRed = 2,
+	Console_ForegroundGreen = 3,
+	Console_ForegroundYellow = 4,
+	Console_ForegroundBlue = 5,
+	Console_ForegroundMagenta = 6,
+	Console_ForegroundCyan = 7,
+	Console_ForegroundWhite = 8,
+
+	// bit 8-15: background
+	Console_BackgroundBlack = 256,
+	Console_BackgroundRed = 266,
+	Console_BackgroundGreen = 267,
+	Console_BackgroundYellow = 268,
+	Console_BackgroundBlue = 269,
+	Console_BackgroundMagenta = 270,
+	Console_BackgroundCyan = 271,
+	Console_BackgroundWhite = 272,
+
+	// bit 16-23: flags
+	Console_Bold = 65536
+};
+
+enum ConsoleType
+{
+	Console_Dumb,
+#ifndef _WIN32
+	Console_VT100,
+#else /* _WIN32 */
+	Console_Windows,
+#endif /* _WIN32 */
+};
+
+class I2_BASE_API ConsoleColorTag
+{
+public:
+	ConsoleColorTag(int color);
+
+	friend I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
+
+private:
+	int m_Color;
+};
+
 /**
- * A logger that logs to an iostream.
+ * Console utilities.
  *
  * @ingroup base
  */
-class I2_BASE_API StreamLogger : public ObjectImpl<StreamLogger>
+class I2_BASE_API Console
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StreamLogger);
+	static void DetectType(void);
 
-	virtual void Start(void);
-	virtual void Stop(void);
-	~StreamLogger(void);
+	static void SetType(std::ostream& fp, ConsoleType type);
+	static ConsoleType GetType(std::ostream& fp);
 
-	void BindStream(std::ostream *stream, bool ownsStream);
-
-	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
-
-protected:
-	virtual void ProcessLogEntry(const LogEntry& entry);
-	virtual void Flush(void);
+#ifndef _WIN32
+	static void PrintVT100ColorCode(std::ostream& fp, int color);
+#else /* _WIN32 */
+	static void SetWindowsConsoleColor(std::ostream& fp, int color);
+#endif /* _WIN32 */
 
 private:
-	static boost::mutex m_Mutex;
-	std::ostream *m_Stream;
-	bool m_OwnsStream;
-	bool m_Tty;
-
-	Timer::Ptr m_FlushLogTimer;
-
-	void FlushLogTimerHandler(void);
+	Console(void);
 };
 
 }
 
-#endif /* STREAMLOGGER_H */
+#endif /* CONSOLE_H */

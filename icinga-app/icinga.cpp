@@ -29,6 +29,7 @@
 #include "base/scriptvariable.hpp"
 #include "base/context.hpp"
 #include "base/clicommand.hpp"
+#include "base/console.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -166,6 +167,9 @@ int Main(void)
 	visibleDesc.add_options()
 		("help", "show this help message")
 		("version,V", "show version information")
+#ifndef _WIN32
+		("color", "use VT100 color codes even when stdout is not a terminal")
+#endif /* _WIN32 */
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
@@ -200,6 +204,13 @@ int Main(void)
 		ConfigCompilerContext::GetInstance()->Reset();
 		ConfigCompiler::CompileFile(initconfig);
 	}
+
+#ifndef _WIN32
+	if (vm.count("color")) {
+		Console::SetType(std::cout, Console_VT100);
+		Console::SetType(std::cerr, Console_VT100);
+	}
+#endif /* _WIN32 */
 
 	if (vm.count("define")) {
 		BOOST_FOREACH(const String& define, vm["define"].as<std::vector<std::string> >()) {

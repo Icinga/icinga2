@@ -302,7 +302,10 @@ void ConfigItem::WriteObjectsFile(const String& filename)
 		persistentItem->Set("type", item->GetType());
 		persistentItem->Set("name", item->GetName());
 		persistentItem->Set("abstract", item->IsAbstract());
-		persistentItem->Set("properties", item->GetProperties());
+		{
+			ObjectLock olock(item);
+			persistentItem->Set("properties", item->GetProperties());
+		}
 		persistentItem->Set("debug_hints", item->GetDebugHints());
 
 		String json = JsonSerialize(persistentItem);
