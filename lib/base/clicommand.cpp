@@ -81,7 +81,7 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, cons
 
 		String fname = field.Name;
 
-		if (fname == "__name" || fname == "templates")
+		if (fname == "__name" || fname == "templates" || fname == "type")
 			continue;
 
 		String suggestion = fname + "=";

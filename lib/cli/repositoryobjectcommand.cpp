@@ -111,9 +111,12 @@ void RepositoryObjectCommand::InitParameters(boost::program_options::options_des
 
 std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
 {
-	const Type *ptype = Type::GetByName(m_Type);
-	ASSERT(ptype);
-	return GetFieldCompletionSuggestions(ptype, word);
+	if (m_Command == RepositoryCommandAdd) {
+		const Type *ptype = Type::GetByName(m_Type);
+		ASSERT(ptype);
+		return GetFieldCompletionSuggestions(ptype, word);
+	} else
+		return CLICommand::GetPositionalSuggestions(word);
 }
 
 /**
