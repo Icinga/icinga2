@@ -471,8 +471,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			  << "{" << std::endl
 			  << "\t" << "Type::Factory GetFactory(void)" << std::endl
 			  << "\t" << "{" << std::endl
-			  << "\t\t" << "return Type::Factory();"
-			  << "\t" << "}"
+			  << "\t\t" << "return Type::Factory();" << std::endl
+			  << "\t" << "}" << std::endl
 			  << "};" << std::endl << std::endl;
 	}
 }
