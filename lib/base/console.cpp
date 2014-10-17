@@ -32,13 +32,11 @@ ConsoleColorTag::ConsoleColorTag(int color)
 
 std::ostream& icinga::operator<<(std::ostream& fp, const ConsoleColorTag& cct)
 {
-	fp.flush();
-
 #ifndef _WIN32
-	if (l_ConsoleType == Console_VT100)
+	if (Console::GetType(fp) == Console_VT100)
 		Console::PrintVT100ColorCode(fp, cct.m_Color);
 #else /* _WIN32 */
-	if (l_ConsoleType == Console_Windows) {
+	if (Console::GetType(fp) == Console_Windows) {
 		fp.flush();
 		Console::SetWindowsConsoleColor(fp, cct.m_Color);
 	}
