@@ -231,7 +231,6 @@ assign				return T_ASSIGN;
 ignore				return T_IGNORE;
 __function			return T_FUNCTION;
 __return			return T_RETURN;
-zone				return T_ZONE;
 __for				return T_FOR;
 \<\<				{ yylval->op = &Expression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &Expression::OpShiftRight; return T_SHIFT_RIGHT; }

@@ -160,7 +160,6 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %token T_IGNORE "ignore (T_IGNORE)"
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_RETURN "return (T_RETURN)"
-%token T_ZONE "zone (T_ZONE)"
 %token T_FOR "for (T_FOR)"
 
 %type <text> identifier
@@ -251,7 +250,7 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: type | zone | include | include_recursive | library | constant
+statement: type | include | include_recursive | library | constant
 	{
 		m_StatementNum++;
 	}
@@ -264,43 +263,6 @@ statement: type | zone | include | include_recursive | library | constant
 		delete $1;
 
 		m_StatementNum++;
-	}
-	;
-
-zone: T_ZONE rterm sep
-	{
-		Expression::Ptr aexpr = *$2;
-		delete $2;
-
-		if (!context->GetZone().IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Zone name cannot be changed once it's been set."));
-
-		if (m_StatementNum != 0)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("'zone' directive must be the first statement in a file."));
-
-		context->SetZone(aexpr->Evaluate(m_ModuleScope));
-	}
-	| T_ZONE rterm
-	{
-		Expression::Ptr aexpr = *$2;
-		delete $2;
-
-		if (!context->GetZone().IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Zone name cannot be changed once it's been set."));
-
-		context->SetZone(aexpr->Evaluate(m_ModuleScope));
-	}
-	rterm_scope sep
-	{
-		Expression::Ptr ascope = *$4;
-		delete $4;
-
-		try {
-			ascope->Evaluate(m_ModuleScope);
-			context->SetZone(String());
-		} catch (...) {
-			context->SetZone(String());
-		}
 	}
 	;
 

@@ -40,22 +40,21 @@ for agent, agent_info in inventory.items():
 
     print "apply Dependency \"host-zone-%s\" to Host {" % (agent_info["zone"])
     print "  parent_host_name = \"%s\"" % (agent_info["zone"])
-    print "  assign where host.@zone == \"%s\"" % (agent_info["zone"])
+    print "  assign where host.zone == \"%s\"" % (agent_info["zone"])
     print "}"
     print ""
 
     print "apply Dependency \"service-zone-%s\" to Service {" % (agent_info["zone"])
     print "  parent_host_name = \"%s\"" % (agent_info["zone"])
-    print "  assign where service.@zone == \"%s\"" % (agent_info["zone"])
+    print "  assign where service.zone == \"%s\"" % (agent_info["zone"])
     print "}"
     print ""
-
-    print "zone \"%s\" {" % (agent_info["zone"])
 
     for host, services in agent_info["repository"].items():
         if host != agent_info["zone"]:
             print "object Host \"%s\" {" % (host)
             print "  check_command = \"dummy\""
+            print "  zone = \"%s\"" % (agent_info["zone"])
             print "}"
             print ""
 
@@ -63,6 +62,7 @@ for agent, agent_info in inventory.items():
             print "object Service \"%s\" {" % (service)
             print "  check_command = \"dummy\""
             print "  host_name = \"%s\"" % (host)
+            print "  zone = \"%s\"" % (agent_info["zone"])
             print "}"
             print ""
 
