@@ -19,7 +19,6 @@
 
 #include "cli/agentutility.hpp"
 
-
 using namespace icinga;
 
 void AgentUtility::ListAgents(void)

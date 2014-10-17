@@ -27,7 +27,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <unistd.h>
 
 using namespace icinga;
 namespace po = boost::program_options;
