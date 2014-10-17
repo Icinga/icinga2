@@ -33,7 +33,7 @@ typedef boost::function<std::vector<String> (const String&)> ArgumentCompletionC
 typedef std::map<String, ArgumentCompletionCallback> ArgumentCompletionDescription;
 
 I2_BASE_API ArgumentCompletionCallback BashArgumentCompletion(const String& type);
-I2_BASE_API void AddTypeFields(const String& type, boost::program_options::options_description& desc);
+I2_BASE_API void AddTypeFields(const Type *type, boost::program_options::options_description& desc);
 
 /**
  * A CLI command.

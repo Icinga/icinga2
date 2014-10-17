@@ -69,15 +69,10 @@ static std::vector<String> BashArgumentCompletionHelper(const String& type, cons
 	return result;
 }
 
-void icinga::AddTypeFields(const String& type, boost::program_options::options_description& desc)
+void icinga::AddTypeFields(const Type *type, boost::program_options::options_description& desc)
 {
-	const Type *ptype = Type::GetByName(type);
-
-	if (!ptype)
-		return;
-
-	for (int i = 0; i < ptype->GetFieldCount(); i++) {
-		Field field = ptype->GetFieldInfo(i);
+	for (int i = 0; i < type->GetFieldCount(); i++) {
+		Field field = type->GetFieldInfo(i);
 
 		if (strcmp(field.Name, "__name") == 0)
 			continue;
