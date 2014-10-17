@@ -34,12 +34,12 @@ namespace po = boost::program_options;
 boost::mutex l_RegistryMutex;
 std::map<std::vector<String>, CLICommand::Ptr> l_Registry;
 
-static std::vector<String> BashArgumentCompletionHelper(const String& type, const String& arg)
+std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, const String& word)
 {
 	std::vector<String> result;
 
 #ifndef _WIN32
-	String bashArg = "compgen -A " + Utility::EscapeShellArg(type) + " " + Utility::EscapeShellArg(arg);
+	String bashArg = "compgen -A " + Utility::EscapeShellArg(type) + " " + Utility::EscapeShellArg(word);
 	String cmd = "bash -c " + Utility::EscapeShellArg(bashArg);
 
 	FILE *fp = popen(cmd.CStr(), "r");
@@ -69,25 +69,28 @@ static std::vector<String> BashArgumentCompletionHelper(const String& type, cons
 	return result;
 }
 
-void icinga::AddTypeFields(const Type *type, boost::program_options::options_description& desc)
+std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, const String& word)
 {
+	std::vector<String> result;
+
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
-
-		if (strcmp(field.Name, "__name") == 0)
-			continue;
 
 		if (!(field.Attributes & FAConfig))
 			continue;
 
-		desc.add_options()
-			(field.Name, po::value<std::string>(), field.Name);
-	}
-}
+		String fname = field.Name;
 
-ArgumentCompletionCallback icinga::BashArgumentCompletion(const String& type)
-{
-	return boost::bind(BashArgumentCompletionHelper, type, _1);
+		if (fname == "__name" || fname == "templates")
+			continue;
+
+		String suggestion = fname + "=";
+
+		if (suggestion.Find(word) == 0)
+			result.push_back(suggestion);
+	}
+
+	return result;
 }
 
 CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
@@ -121,10 +124,23 @@ RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLI
 	CLICommand::Register(vname, command);
 }
 
+std::vector<String> CLICommand::GetArgumentSuggestions(const String& argument, const String& word) const
+{
+	return std::vector<String>();
+}
+
+std::vector<String> CLICommand::GetPositionalSuggestions(const String& word) const
+{
+	return std::vector<String>();
+}
+
+void CLICommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
+{ }
+
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
     po::options_description& hiddenDesc,
     po::positional_options_description& positionalDesc,
-    ArgumentCompletionDescription& argCompletionDesc,
     po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
@@ -164,7 +180,7 @@ found_command:
 	po::options_description vdesc("Command options");
 
 	if (command)
-		command->InitParameters(vdesc, hiddenDesc, argCompletionDesc);
+		command->InitParameters(vdesc, hiddenDesc);
 
 	visibleDesc.add(vdesc);
 
@@ -182,7 +198,8 @@ found_command:
 }
 
 void CLICommand::ShowCommands(int argc, char **argv, po::options_description *visibleDesc,
-    po::options_description *hiddenDesc, ArgumentCompletionDescription *argCompletionDesc,
+    po::options_description *hiddenDesc,
+    ArgumentCompletionCallback globalArgCompletionCallback,
     bool autocomplete, int autoindex)
 {
 	boost::mutex::scoped_lock lock(l_RegistryMutex);
@@ -263,7 +280,6 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 	if (command && autocomplete) {
 		String aname, prefix, pword;
-		ArgumentCompletionDescription::const_iterator it;
 		const po::option_description *odesc;
 	
 		if (autoindex - 2 >= 0 && strcmp(argv[autoindex - 1], "=") == 0 && strstr(argv[autoindex - 2], "--") == argv[autoindex - 2]) {
@@ -290,13 +306,12 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 		if (odesc->semantic()->min_tokens() == 0)
 			goto complete_option;
-			
-		it = argCompletionDesc->find(odesc->long_name());
-		
-		if (it == argCompletionDesc->end())
-			return;
-		
-		BOOST_FOREACH(const String& suggestion, it->second(pword)) {
+
+		BOOST_FOREACH(const String& suggestion, globalArgCompletionCallback(aname, pword)) {
+			std::cout << prefix << suggestion << "\n";
+		}
+
+		BOOST_FOREACH(const String& suggestion, command->GetArgumentSuggestions(aname, pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 		
@@ -308,6 +323,10 @@ complete_option:
 
 			if (cname.Find(aword) == 0)
 				std::cout << cname << "\n";
+		}
+
+		BOOST_FOREACH(const String& suggestion, command->GetPositionalSuggestions(aword)) {
+			std::cout << suggestion << "\n";
 		}
 	}
 

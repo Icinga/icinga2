@@ -44,13 +44,6 @@ String FeatureListCommand::GetShortDescription(void) const
 	return "lists all enabled features";
 }
 
-void FeatureListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
-{
-	/* Command doesn't support any parameters. */
-}
-
 /**
  * The entry point for the "feature list" CLI command.
  *

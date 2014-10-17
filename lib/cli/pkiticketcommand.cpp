@@ -44,8 +44,7 @@ String PKITicketCommand::GetShortDescription(void) const
 }
 
 void PKITicketCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 	    ("cn", po::value<std::string>(), "Certificate common name")

@@ -40,15 +40,19 @@ String PKISignCSRCommand::GetShortDescription(void) const
 }
 
 void PKISignCSRCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 	    ("csrfile", po::value<std::string>(), "CSR file path (input)")
 	    ("certfile", po::value<std::string>(), "Certificate file path (output)");
+}
 
-	argCompletionDesc["csrfile"] = BashArgumentCompletion("file");
-	argCompletionDesc["certfile"] = BashArgumentCompletion("file");
+std::vector<String> PKISignCSRCommand::GetArgumentSuggestions(const String& argument, const String& word) const
+{
+	if (argument == "csrfile" || argument == "certfile")
+		return GetBashCompletionSuggestions("file", word);
+	else
+		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
 /**

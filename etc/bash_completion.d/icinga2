@@ -4,7 +4,12 @@ _icinga2()
   opts="${COMP_WORDS[*]}"
   cur="${COMP_WORDS[COMP_CWORD]}"
   COMPREPLY=($(icinga2 --autocomplete $COMP_CWORD ${COMP_WORDS[*]} < /dev/null))
-  [[ $COMPREPLY = */ ]] && compopt -o nospace
+  case $COMPREPLY in
+    */|*=)
+      compopt -o nospace
+      ;;
+  esac
+
   return 0
 }
 

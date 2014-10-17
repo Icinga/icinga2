@@ -38,18 +38,21 @@ String PKINewCertCommand::GetShortDescription(void) const
 }
 
 void PKINewCertCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name")
 		("keyfile", po::value<std::string>(), "Key file path (output")
 		("csrfile", po::value<std::string>(), "CSR file path (optional, output)")
 		("certfile", po::value<std::string>(), "Certificate file path (optional, output)");
+}
 
-	argCompletionDesc["keyfile"] = BashArgumentCompletion("file");
-	argCompletionDesc["csrfile"] = BashArgumentCompletion("file");
-	argCompletionDesc["certfile"] = BashArgumentCompletion("file");
+std::vector<String> PKINewCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
+{
+	if (argument == "keyfile" || argument == "csrfile" || argument == "certfile")
+		return GetBashCompletionSuggestions("file", word);
+	else
+		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
 /**

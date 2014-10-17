@@ -276,8 +276,7 @@ String DaemonCommand::GetShortDescription(void) const
 }
 
 void DaemonCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
@@ -293,9 +292,14 @@ void DaemonCommand::InitParameters(boost::program_options::options_description& 
 	hiddenDesc.add_options()
 		("reload-internal", po::value<int>(), "used internally to implement config reload: do not call manually, send SIGHUP instead");
 #endif /* _WIN32 */
+}
 
-	argCompletionDesc["config"] = BashArgumentCompletion("file");
-	argCompletionDesc["errorlog"] = BashArgumentCompletion("file");
+std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument, const String& word) const
+{
+	if (argument == "config" || argument == "errorlog")
+		return GetBashCompletionSuggestions("file", word);
+	else
+		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
 /**

@@ -38,13 +38,6 @@ String PKINewCACommand::GetShortDescription(void) const
 	return "sets up a new CA";
 }
 
-void PKINewCACommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
-{
-	/* Command doesn't support any parameters. */
-}
-
 /**
  * The entry point for the "pki new-ca" CLI command.
  *

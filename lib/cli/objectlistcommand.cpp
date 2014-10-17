@@ -51,8 +51,7 @@ String ObjectListCommand::GetShortDescription(void) const
 }
 
 void ObjectListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("count,c", "display object counts by types")

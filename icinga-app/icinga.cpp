@@ -48,7 +48,7 @@ SERVICE_STATUS l_SvcStatus;
 SERVICE_STATUS_HANDLE l_SvcStatusHandle;
 #endif /* _WIN32 */
 
-static std::vector<String> LogLevelCompletion(const String& arg)
+static std::vector<String> GetLogLevelCompletionSuggestions(const String& arg)
 {
 	std::vector<String> result;
 	
@@ -73,6 +73,16 @@ static std::vector<String> LogLevelCompletion(const String& arg)
 		result.push_back(criticalLevel);
 
 	return result;
+}
+
+static std::vector<String> GlobalArgumentCompletion(const String& argument, const String& word)
+{
+	if (argument == "include")
+		return GetBashCompletionSuggestions("directory", word);
+	else if (argument == "log-level")
+		return GetLogLevelCompletionSuggestions(word);
+	else
+		return std::vector<String>();
 }
 
 int Main(void)
@@ -170,16 +180,13 @@ int Main(void)
 	po::positional_options_description positionalDesc;
 	positionalDesc.add("arg", -1);
 
-	ArgumentCompletionDescription argDesc;
-	argDesc["include"] = BashArgumentCompletion("directory");
-	argDesc["log-level"] = LogLevelCompletion;
-	
 	String cmdname;
 	CLICommand::Ptr command;
 	po::variables_map vm;
 
 	try {
-		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc, argDesc, vm, cmdname, command, autocomplete);
+		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc,
+		    vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
 		std::ostringstream msgbuf;
 		msgbuf << "Error while parsing command-line options: " << ex.what();
@@ -307,7 +314,8 @@ int Main(void)
 	int rc = 1;
 
 	if (autocomplete) {
-		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc, &argDesc, true, autoindex);
+		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc,
+		    &GlobalArgumentCompletion, true, autoindex);
 		rc = 0;
 	} else if (command) {
 #ifndef _WIN32

@@ -103,17 +103,17 @@ String RepositoryObjectCommand::GetShortDescription(void) const
 }
 
 void RepositoryObjectCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("name", po::value<std::string>(), "The name of the object");
+}
 
-	if (m_Command == RepositoryCommandAdd) {
-		const Type *ptype = Type::GetByName(m_Type);
-		ASSERT(ptype);
-		AddTypeFields(ptype, visibleDesc);
-	}
+std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
+{
+	const Type *ptype = Type::GetByName(m_Type);
+	ASSERT(ptype);
+	return GetFieldCompletionSuggestions(ptype, word);
 }
 
 /**

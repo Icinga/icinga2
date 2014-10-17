@@ -44,8 +44,7 @@ String PKIRequestCommand::GetShortDescription(void) const
 }
 
 void PKIRequestCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc,
-    ArgumentCompletionDescription& argCompletionDesc) const
+    boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 	    ("keyfile", po::value<std::string>(), "Key file path")
@@ -54,12 +53,18 @@ void PKIRequestCommand::InitParameters(boost::program_options::options_descripti
 	    ("host", po::value<std::string>(), "Icinga 2 host")
 	    ("port", po::value<std::string>(), "Icinga 2 port")
 	    ("ticket", po::value<std::string>(), "Icinga 2 PKI ticket");
+}
 
-	argCompletionDesc["keyfile"] = BashArgumentCompletion("file");
-	argCompletionDesc["certfile"] = BashArgumentCompletion("file");
-	argCompletionDesc["cafile"] = BashArgumentCompletion("file");
-	argCompletionDesc["host"] = BashArgumentCompletion("hostname");
-	argCompletionDesc["port"] = BashArgumentCompletion("service");
+std::vector<String> PKIRequestCommand::GetArgumentSuggestions(const String& argument, const String& word) const
+{
+	if (argument == "keyfile" || argument == "certfile" || argument == "cafile")
+		return GetBashCompletionSuggestions("file", word);
+	else if (argument == "host")
+		return GetBashCompletionSuggestions("hostname", word);
+	else if (argument == "port")
+		return GetBashCompletionSuggestions("service", word);
+	else
+		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
 /**
