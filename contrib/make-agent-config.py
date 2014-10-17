@@ -66,5 +66,3 @@ for agent, agent_info in inventory.items():
             print "}"
             print ""
 
-    print "}"
-
