@@ -17,29 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTUTILITYCOMMAND_H
-#define AGENTUTILITYCOMMAND_H
+#ifndef AGENTUTILITY_H
+#define AGENTUTILITY_H
+
+#include "base/i2-base.hpp"
+#include "base/value.hpp"
 
 namespace icinga
 {
 
 /**
- * The "pki new-ca" command.
- *
  * @ingroup cli
  */
-class AgentUtility {
-
+class AgentUtility
+{
 public:
-	DECLARE_PTR_TYPEDEFS(AgentUtility);
+	static void ListAgents(void);
+	static bool AddAgent(const String& name);
+	static bool RemoveAgent(const String& name);
+	static bool SetAgentAttribute(const String& attr, const Value& val);
 
-	void ListAgents(void);
-	bool AddAgent(const String& name);
-	bool RemoveAgent(const String& name);
-	bool SetAgentAttribute(const String& attr, const Value& val);
-
+private:
+	AgentUtility(void);
 };
 
 }
 
-#endif /* AGENTUTILITYCOMMAND_H */
+#endif /* AGENTUTILITY_H */

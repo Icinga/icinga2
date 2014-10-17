@@ -19,6 +19,8 @@
 
 #include "base/clicommand.hpp"
 #include "base/logger_fwd.hpp"
+#include "base/type.hpp"
+#include "base/serializer.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim.hpp>

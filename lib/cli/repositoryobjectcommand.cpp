@@ -26,6 +26,7 @@
 #include <fstream>
 
 using namespace icinga;
+namespace po = boost::program_options;
 
 REGISTER_REPOSITORY_CLICOMMAND("Host");
 REGISTER_REPOSITORY_CLICOMMAND("Service");
