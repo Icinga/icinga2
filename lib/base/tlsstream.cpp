@@ -161,14 +161,7 @@ size_t TlsStream::Read(void *buffer, size_t count)
 	std::ostringstream msgbuf;
 	char errbuf[120];
 
-	bool want_read;
-
-	{
-		boost::mutex::scoped_lock lock(m_SSLLock);
-		want_read = SSL_want_read(m_SSL.get());
-	}
-
-	if (want_read)
+	if (SSL_want_read(m_SSL.get()))
 		m_Socket->Poll(true, false);
 
 	boost::mutex::scoped_lock alock(m_IOActionLock);
@@ -225,12 +218,7 @@ void TlsStream::Write(const void *buffer, size_t count)
 
 	bool want_write;
 
-	{
-		boost::mutex::scoped_lock lock(m_SSLLock);
-		want_write = SSL_want_write(m_SSL.get());
-	}
-
-	if (want_write)
+	if (SSL_want_write(m_SSL.get()))
 		m_Socket->Poll(false, true);
 
 	boost::mutex::scoped_lock alock(m_IOActionLock);
