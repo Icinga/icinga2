@@ -16,6 +16,8 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 set(cli_SOURCES
+  agentaddcommand.cpp agentblackandwhitelistcommand.cpp agentlistcommand.cpp agentremovecommand.cpp
+  agentsetcommand.cpp agentsetupcommand.cpp agentupdateconfigcommand.cpp agentwizardcommand.cpp agentutility.cpp
   featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp
   objectlistcommand.cpp
   pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkiticketcommand.cpp
