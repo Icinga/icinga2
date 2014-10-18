@@ -19,6 +19,7 @@
 
 #include "base/console.hpp"
 #include "base/initialize.hpp"
+#include <iostream>
 
 using namespace icinga;
 

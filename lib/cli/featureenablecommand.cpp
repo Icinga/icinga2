@@ -26,6 +26,7 @@
 #include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <iostream>
 #include <fstream>
 
 using namespace icinga;
