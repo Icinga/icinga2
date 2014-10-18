@@ -23,6 +23,7 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -33,18 +34,18 @@ REGISTER_CLICOMMAND("agent/set", AgentSetCommand);
 
 String AgentSetCommand::GetDescription(void) const
 {
-	return "Lists all Icinga 2 agents.";
+	return "Set agent attribute(s).";
 }
 
 String AgentSetCommand::GetShortDescription(void) const
 {
-	return "lists all agents";
+	return "set agent attributes";
 }
 
 void AgentSetCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
-	/* Command doesn't support any parameters. */
+
 }
 
 /**
@@ -59,9 +60,7 @@ int AgentSetCommand::Run(const boost::program_options::variables_map& vm, const 
 		return 1;
 	}
 
-	//ap[0] must contain name
-	//ap[1] must contain attr
-	//ap[2] must contain val
+	Log(LogWarning, "cli", "TODO: Not implemented yet.");
 
 	return 0;
 }

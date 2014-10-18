@@ -23,6 +23,7 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -52,6 +53,8 @@ int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, con
 		Log(LogWarning, "cli")
 		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
+
+	Log(LogWarning, "cli", "TODO: Not implemented yet.");
 
 	return 0;
 }

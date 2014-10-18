@@ -1535,7 +1535,7 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 		repository->Set(origin.FromZone->GetName(), hostInfo);
 	}
 
-	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint"));
+	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint")) + ".repo";
 	String repositoryTempFile = repositoryFile + ".tmp";
 
 	std::ofstream fp(repositoryTempFile.CStr(), std::ofstream::out | std::ostream::trunc);

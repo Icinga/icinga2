@@ -21,6 +21,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <iostream>
 #include <fstream>
 
 using namespace icinga;
@@ -119,5 +120,6 @@ void BlackAndWhitelistCommand::InitParameters(boost::program_options::options_de
  */
 int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	Log(LogWarning, "cli", "TODO: Not implemented yet.");
 	return 0;
 }

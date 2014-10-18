@@ -18,11 +18,13 @@
  ******************************************************************************/
 
 #include "cli/agentremovecommand.hpp"
+#include "cli/agentutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -33,12 +35,17 @@ REGISTER_CLICOMMAND("agent/remove", AgentRemoveCommand);
 
 String AgentRemoveCommand::GetDescription(void) const
 {
-	return "Remove Icinga 2 agent.";
+	return "Removes Icinga 2 agent.";
 }
 
 String AgentRemoveCommand::GetShortDescription(void) const
 {
-	return "remove agent";
+	return "removes agent";
+}
+
+std::vector<String> AgentRemoveCommand::GetPositionalSuggestions(const String& word) const
+{
+	return AgentUtility::GetFieldCompletionSuggestions(word);
 }
 
 /**
@@ -53,7 +60,10 @@ int AgentRemoveCommand::Run(const boost::program_options::variables_map& vm, con
 		return 1;
 	}
 
-	//ap[0] must contain name
+	if (!AgentUtility::RemoveAgent(ap[0])) {
+		Log(LogCritical, "cli", "Cannot remove agent '" + ap[0] + "'.");
+		return 1;
+	}
 
 	return 0;
 }

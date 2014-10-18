@@ -28,7 +28,7 @@ for root, dirs, files in os.walk(repository_dir):
         if len(file) != 64:
             continue
 
-        fp = open(root + file, "r")
+        fp = open(root + file + ".repo", "r")
         repository_info = json.load(fp)
         fp.close()
 
@@ -41,7 +41,7 @@ for root, dirs, files in os.walk(repository_dir):
         repository[repository_info["endpoint"]] = repository_info
 
         try:
-            fp = open(root + file + ".peer", "r")
+            fp = open(root + file + ".settings", "r")
             peer_info = json.load(fp)
             fp.close()
 

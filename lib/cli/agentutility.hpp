@@ -21,7 +21,8 @@
 #define AGENTUTILITY_H
 
 #include "base/i2-base.hpp"
-#include "base/value.hpp"
+#include "base/dictionary.hpp"
+#include "base/string.hpp"
 
 namespace icinga
 {
@@ -32,13 +33,28 @@ namespace icinga
 class AgentUtility
 {
 public:
-	static void ListAgents(void);
+	static String GetRepositoryPath(void);
+	static String GetAgentRepositoryFile(const String& name);
+	static String GetAgentSettingsFile(const String& name);
+	static std::vector<String> GetFieldCompletionSuggestions(const String& word);
+
+	static void PrintAgents(std::ostream& fp);
+	static void PrintAgentsJson(std::ostream& fp);
+	static void PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr& repository);
 	static bool AddAgent(const String& name);
+	static bool AddAgentSettings(const String& name, const String& host, const String& port);
 	static bool RemoveAgent(const String& name);
-	static bool SetAgentAttribute(const String& attr, const Value& val);
+	static bool SetAgentAttribute(const String& name, const String& attr, const Value& val);
+
+	static bool WriteAgentToRepository(const String& filename, const Dictionary::Ptr& item);
+	static Dictionary::Ptr GetAgentFromRepository(const String& filename);
+
+	static bool GetAgents(std::vector<String>& agents);
 
 private:
 	AgentUtility(void);
+	static bool RemoveAgentFile(const String& path);
+	static void CollectAgents(const String& agent_file, std::vector<String>& agents);
 };
 
 }

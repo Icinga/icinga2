@@ -40,6 +40,10 @@ public:
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+
+private:
+	static bool SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
+	static bool SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
 };
 
 }

@@ -68,13 +68,13 @@ if cn == None:
 
 ssl_sock.close()
 
-repository_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/api/repository/" + hashlib.sha256(cn).hexdigest()
+repository_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/api/repository/" + hashlib.sha256(cn).hexdigest() + ".repo"
 fp = open(repository_file, "w")
 repository_info = { "endpoint": cn, "seen": time.time(), "zone": cn, "repository": {} }
 json.dump(repository_info, fp)
 fp.close()
 
-peer_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/repository/" + hashlib.sha256(cn).hexdigest() + ".peer"
+peer_file = "@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/lib/icinga2/agent/repository/" + hashlib.sha256(cn).hexdigest() + ".settings"
 fp = open(peer_file, "w")
 peer_info = { "agent_host": host, "agent_port": port }
 json.dump(peer_info, fp)

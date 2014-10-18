@@ -23,6 +23,7 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -45,9 +46,14 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-		("master", po::value<std::string>(), "The name of the Icinga 2 master")
+		("zone", po::value<std::string>(), "The name of the local zone")
 		("master_zone", po::value<std::string>(), "The name of the master zone")
-		("listen", po::value<std::string>(), "Listen on host:port");
+		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint(s) on host,port")
+		("listen", po::value<std::string>(), "Listen on host,port")
+		("ticket", po::value<std::string>(), "Generated ticket number for this request")
+		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
+		("cn", po::value<std::string>(), "The certificate's common name")
+		("master", po::value<std::string>(), "Use setup for a master instance");
 }
 
 /**
@@ -62,5 +68,23 @@ int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, cons
 		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
+	Log(LogWarning, "cli", "TODO: Not implemented yet.");
+
+	if (vm.count("master")) {
+		SetupMaster(vm, ap);
+	} else {
+		SetupAgent(vm, ap);
+	}
+
 	return 0;
+}
+
+bool AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
+{
+	return true;
+}
+
+bool AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
+{
+	return true;
 }

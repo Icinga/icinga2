@@ -18,11 +18,13 @@
  ******************************************************************************/
 
 #include "cli/agentaddcommand.hpp"
+#include "cli/agentutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -53,7 +55,10 @@ int AgentAddCommand::Run(const boost::program_options::variables_map& vm, const 
 		return 1;
 	}
 
-	//ap[0] must contain name
+	if (!AgentUtility::AddAgent(ap[0])) {
+		Log(LogCritical, "cli", "Cannot add agent '" + ap[0] + "'.");
+		return 1;
+	}
 
 	return 0;
 }

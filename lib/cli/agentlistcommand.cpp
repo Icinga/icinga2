@@ -18,11 +18,14 @@
  ******************************************************************************/
 
 #include "cli/agentlistcommand.hpp"
+#include "cli/agentutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -41,6 +44,13 @@ String AgentListCommand::GetShortDescription(void) const
 	return "lists all agents";
 }
 
+void AgentListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
+{
+	visibleDesc.add_options()
+		("batch", "list agents in json");
+}
+
 /**
  * The entry point for the "agent list" CLI command.
  *
@@ -52,6 +62,16 @@ int AgentListCommand::Run(const boost::program_options::variables_map& vm, const
 		Log(LogWarning, "cli")
 		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
+
+	if (vm.count("batch")) {
+		AgentUtility::PrintAgentsJson(std::cout);
+		std::cout << "\n";
+		return 0;
+	}
+
+	std::cout << "Configured agents: \n";
+	AgentUtility::PrintAgents(std::cout);
+	std::cout << "\n";
 
 	return 0;
 }
