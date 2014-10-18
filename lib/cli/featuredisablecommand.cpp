@@ -18,10 +18,12 @@
  ******************************************************************************/
 
 #include "cli/featuredisablecommand.hpp"
+#include "cli/featureutility.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
+#include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <fstream>
@@ -42,10 +44,9 @@ String FeatureDisableCommand::GetShortDescription(void) const
 	return "disables specified feature";
 }
 
-void FeatureDisableCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+std::vector<String> FeatureDisableCommand::GetPositionalSuggestions(const String& word) const
 {
-	/* Command doesn't support any parameters. */
+	return FeatureUtility::GetFieldCompletionSuggestions(FeatureCommandDisable, word);
 }
 
 /**
@@ -89,7 +90,8 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
 			continue;
 		}
 
-		Log(LogInformation, "cli", "Disabling feature " + feature + " in '" + features_enabled_dir + "'.");
+		std::cout << "Disabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 	}
 
 	if (!errors.empty()) {

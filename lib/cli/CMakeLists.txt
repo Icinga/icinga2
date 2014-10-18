@@ -18,7 +18,7 @@
 set(cli_SOURCES
   agentaddcommand.cpp agentblackandwhitelistcommand.cpp agentlistcommand.cpp agentremovecommand.cpp
   agentsetcommand.cpp agentsetupcommand.cpp agentupdateconfigcommand.cpp agentwizardcommand.cpp agentutility.cpp
-  featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp
+  featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp featureutility.cpp
   objectlistcommand.cpp
   pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkiticketcommand.cpp
   repositoryobjectcommand.cpp

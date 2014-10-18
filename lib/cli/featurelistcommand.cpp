@@ -18,15 +18,14 @@
  ******************************************************************************/
 
 #include "cli/featurelistcommand.hpp"
+#include "cli/featureutility.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/clicommand.hpp"
-#include "base/application.hpp"
+#include "base/convert.hpp"
+#include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <fstream>
-#include <vector>
-#include <string>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -54,36 +53,23 @@ int FeatureListCommand::Run(const boost::program_options::variables_map& vm, con
 		Log(LogWarning, "cli", "Ignoring parameters: " + boost::algorithm::join(ap, " "));
 	}
 
-#ifdef _WIN32
-	//TODO: Add Windows support
-	Log(LogInformation, "cli", "This command is not available on Windows.");
-#else
-	std::vector<String> enabled_features;
 	std::vector<String> available_features;
+	std::vector<String> disabled_features;
+	std::vector<String> enabled_features;
 
-	if (!Utility::Glob(Application::GetSysconfDir() + "/icinga2/features-enabled/*.conf",
-	    boost::bind(&FeatureListCommand::CollectFeatures, _1, boost::ref(enabled_features)), GlobFile)) {
-		Log(LogCritical, "cli", "Cannot access path '" + Application::GetSysconfDir() + "/icinga2/features-enabled/'.");
-	}
+	if (!FeatureUtility::GetFeatures(FeaturesAvailable, available_features))
+		return 1;
+	if (!FeatureUtility::GetFeatures(FeaturesDisabled, disabled_features))
+		return 1;
+	if (!FeatureUtility::GetFeatures(FeaturesEnabled, enabled_features))
+		return 1;
 
-	if (!Utility::Glob(Application::GetSysconfDir() + "/icinga2/features-available/*.conf",
-	    boost::bind(&FeatureListCommand::CollectFeatures, _1, boost::ref(available_features)), GlobFile)) {
-		Log(LogCritical, "cli", "Cannot access path '" + Application::GetSysconfDir() + "/icinga2/available-available/'.");
-	}
-
-	Log(LogInformation, "cli", "Available features: " + boost::algorithm::join(available_features, " "));
-	Log(LogInformation, "cli", "---");
-	Log(LogInformation, "cli", "Enabled features: " + boost::algorithm::join(enabled_features, " "));
-#endif /* _WIN32 */
+	std::cout << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << "Available features: " << ConsoleColorTag(Console_Normal)
+	    << boost::algorithm::join(available_features, " ") << "\n";
+	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
+	    << boost::algorithm::join(disabled_features, " ") << "\n";
+	std::cout << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
+	    << boost::algorithm::join(enabled_features, " ") << "\n";
 
 	return 0;
-}
-
-void FeatureListCommand::CollectFeatures(const String& feature_file, std::vector<String>& features)
-{
-	String feature = Utility::BaseName(feature_file);
-	boost::algorithm::replace_all(feature, ".conf", "");
-
-	Log(LogDebug, "cli", "Adding feature: " + feature);
-	features.push_back(feature);
 }

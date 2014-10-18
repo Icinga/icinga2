@@ -17,30 +17,43 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef FEATURELISTCOMMAND_H
-#define FEATURELISTCOMMAND_H
+#ifndef FEATUREUTILITY_H
+#define FEATUREUTILITY_H
 
+#include "base/i2-base.hpp"
 #include "base/qstring.hpp"
-#include "base/clicommand.hpp"
+#include <vector>
 
 namespace icinga
 {
 
+enum FeatureType
+{
+	FeaturesAvailable,
+	FeaturesEnabled,
+	FeaturesDisabled
+};
+
+enum FeatureCommandType
+{
+	FeatureCommandEnable,
+	FeatureCommandDisable
+};
+
 /**
- * The "pki new-ca" command.
- *
  * @ingroup cli
  */
-class FeatureListCommand : public CLICommand
+class FeatureUtility
 {
 public:
-	DECLARE_PTR_TYPEDEFS(FeatureListCommand);
+	static std::vector<String> GetFieldCompletionSuggestions(FeatureCommandType fctype, const String& word);
+	static bool GetFeatures(FeatureType ftype, std::vector<String>& features);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+private:
+	FeatureUtility(void);
+	static void CollectFeatures(const String& feature_file, std::vector<String>& features);
 };
 
 }
 
-#endif /* FEATURELISTCOMMAND_H */
+#endif /* FEATUREUTILITY_H */

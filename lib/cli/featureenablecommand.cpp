@@ -18,15 +18,14 @@
  ******************************************************************************/
 
 #include "cli/featureenablecommand.hpp"
+#include "cli/featureutility.hpp"
 #include "base/logger_fwd.hpp"
 #include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
+#include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <fstream>
-#include <vector>
-#include <string>
 #include <fstream>
 
 using namespace icinga;
@@ -44,10 +43,9 @@ String FeatureEnableCommand::GetShortDescription(void) const
 	return "enables specified feature";
 }
 
-void FeatureEnableCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+std::vector<String> FeatureEnableCommand::GetPositionalSuggestions(const String& word) const
 {
-	/* Command doesn't support any parameters. */
+	return FeatureUtility::GetFieldCompletionSuggestions(FeatureCommandEnable, word);
 }
 
 /**
@@ -93,8 +91,6 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 			continue;
 		}
 
-		Log(LogInformation, "cli", "Enabling feature '" + feature + "' in '" + features_enabled_dir + "'.");
-
 #ifndef _WIN32
 		if (symlink(source.CStr(), target.CStr()) < 0) {
 			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Linking source '" + source + "' to target file '" + target +
@@ -113,6 +109,9 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 		fp << "include \"../features-available/" << feature << ".conf\"" << std::endl;
 		fp.close();
 #endif /* _WIN32 */
+
+		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 	}
 
 	if (!errors.empty()) {

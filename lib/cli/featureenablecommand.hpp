@@ -38,10 +38,8 @@ public:
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
-	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
+        virtual std::vector<String> GetPositionalSuggestions(const String& word) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
-
 };
 
 }
