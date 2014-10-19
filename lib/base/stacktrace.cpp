@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/stacktrace.hpp"
-#include "base/qstring.hpp"
 #include "base/utility.hpp"
 #include "base/initialize.hpp"
 

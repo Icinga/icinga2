@@ -20,7 +20,6 @@
 #ifndef AGENTADDCOMMAND_H
 #define AGENTADDCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga

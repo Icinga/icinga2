@@ -20,7 +20,6 @@
 #ifndef OBJECTLISTCOMMAND_H
 #define OBJECTLISTCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/clicommand.hpp"

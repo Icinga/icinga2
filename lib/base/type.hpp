@@ -21,7 +21,7 @@
 #define TYPE_H
 
 #include "base/i2-base.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
 #include "base/utility.hpp"

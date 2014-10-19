@@ -19,7 +19,6 @@
 
 #include "base/netstring.hpp"
 #include "base/fifo.hpp"
-#include "base/qstring.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace icinga;

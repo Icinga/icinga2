@@ -20,7 +20,6 @@
 #ifndef BLACKANDWHITELISTCOMMAND_H
 #define BLACKANDWHITELISTCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga

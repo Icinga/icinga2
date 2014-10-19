@@ -21,6 +21,7 @@
 #define NETSTRING_H
 
 #include "base/i2-base.hpp"
+#include "base/string.hpp"
 #include "base/stream.hpp"
 
 namespace icinga

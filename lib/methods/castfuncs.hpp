@@ -21,7 +21,7 @@
 #define CASTFUNCS_H
 
 #include "methods/i2-methods.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 
 namespace icinga
 {

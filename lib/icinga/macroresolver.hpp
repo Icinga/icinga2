@@ -23,7 +23,7 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkresult.hpp"
 #include "base/dictionary.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 
 namespace icinga
 {

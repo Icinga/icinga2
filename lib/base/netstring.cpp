@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/netstring.hpp"
-#include "base/qstring.hpp"
 #include "base/debug.hpp"
 #include <sstream>
 

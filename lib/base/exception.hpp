@@ -21,7 +21,7 @@
 #define EXCEPTION_H
 
 #include "base/i2-base.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include "base/stacktrace.hpp"
 #include "base/context.hpp"
 #include <sstream>

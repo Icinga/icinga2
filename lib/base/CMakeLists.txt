@@ -27,9 +27,9 @@ set(base_SOURCES
   convert.cpp debuginfo.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp
-  qstring.cpp ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp
+  ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp
   scriptutils.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
-  statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp
+  statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp 
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
   value-operators.cpp workqueue.cpp

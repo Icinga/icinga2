@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/stream.hpp"
-#include "base/qstring.hpp"
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;

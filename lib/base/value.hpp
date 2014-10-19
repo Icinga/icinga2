@@ -21,7 +21,7 @@
 #define VALUE_H
 
 #include "base/object.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
 

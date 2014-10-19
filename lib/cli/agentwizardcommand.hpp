@@ -20,7 +20,6 @@
 #ifndef AGENTWIZARDCOMMAND_H
 #define AGENTWIZARDCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga

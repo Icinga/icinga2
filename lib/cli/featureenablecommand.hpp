@@ -20,7 +20,6 @@
 #ifndef FEATUREENABLECOMMAND_H
 #define FEATUREENABLECOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga

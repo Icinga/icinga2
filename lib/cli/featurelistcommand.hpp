@@ -20,7 +20,6 @@
 #ifndef FEATURELISTCOMMAND_H
 #define FEATURELISTCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga

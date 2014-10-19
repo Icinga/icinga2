@@ -20,7 +20,6 @@
 #ifndef REPOSITORYOBJECTCOMMAND_H
 #define REPOSITORYOBJECTCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga

@@ -21,7 +21,7 @@
 #define REGISTRY_H
 
 #include "base/i2-base.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include <map>
 #include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>

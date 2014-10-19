@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 

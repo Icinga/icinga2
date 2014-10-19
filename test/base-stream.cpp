@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/stdiostream.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 #include <sstream>

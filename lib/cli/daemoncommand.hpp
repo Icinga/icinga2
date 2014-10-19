@@ -21,8 +21,6 @@
 #define DAEMONCOMMAND_H
 
 #include "base/clicommand.hpp"
-#include "base/qstring.hpp"
-#include <vector>
 
 namespace icinga
 {

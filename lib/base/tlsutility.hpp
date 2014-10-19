@@ -22,7 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include "base/exception.hpp"
 #include <openssl/ssl.h>
 #include <openssl/bio.h>

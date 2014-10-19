@@ -22,7 +22,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/command.hpp"
-#include "base/qstring.hpp"
+#include "base/string.hpp"
 #include <boost/function.hpp>
 #include <boost/signals2.hpp>
 #include <vector>

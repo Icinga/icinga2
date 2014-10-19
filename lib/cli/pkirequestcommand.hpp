@@ -20,7 +20,6 @@
 #ifndef PKIREQUESTCOMMAND_H
 #define PKIREQUESTCOMMAND_H
 
-#include "base/qstring.hpp"
 #include "base/clicommand.hpp"
 
 namespace icinga
