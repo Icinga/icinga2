@@ -90,6 +90,7 @@ include_directories(
 
 if(APPLE)
   set(CMAKE_INSTALL_NAME_DIR "@executable_path/../lib/icinga2")
+  set(CMAKE_MACOSX_RPATH 0)
 endif(APPLE)
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
