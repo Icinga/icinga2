@@ -112,15 +112,13 @@ void NotificationComponent::NotificationTimerHandler(void)
 		}
 
 		try {
-			Log(LogInformation, "NotificationComponent", "Sending reminder notification for object '" + checkable->GetName() + "'");
+			Log(LogInformation, "NotificationComponent")
+			    << "Sending reminder notification for object '" << checkable->GetName() << "'";
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false);
 		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Exception occured during notification for object '"
-			       << GetName() << "': " << DiagnosticInformation(ex);
-			String message = msgbuf.str();
-
-			Log(LogWarning, "NotificationComponent", message);
+			Log(LogWarning, "NotificationComponent")
+			    << "Exception occured during notification for object '"
+			    << GetName() << "': " << DiagnosticInformation(ex);
 		}
 	}
 }

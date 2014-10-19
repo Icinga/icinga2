@@ -192,9 +192,8 @@ int Main(void)
 		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc,
 		    vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Error while parsing command-line options: " << ex.what();
-		Log(LogCritical, "icinga-app", msgbuf.str());
+		Log(LogCritical, "icinga-app")
+		    << "Error while parsing command-line options: " << ex.what();
 		return EXIT_FAILURE;
 	}
 
@@ -337,30 +336,26 @@ int Main(void)
 	
 		if (!gr) {
 			if (errno == 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "Invalid group specified: " + group;
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "Invalid group specified: " << group;
 				return EXIT_FAILURE;
 			} else {
-				std::ostringstream msgbuf;
-				msgbuf << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				return EXIT_FAILURE;
 			}
 		}
 	
 		if (getgid() != gr->gr_gid) {
 			if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				return EXIT_FAILURE;
 			}
 	
 			if (setgid(gr->gr_gid) < 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				return EXIT_FAILURE;
 			}
 		}
@@ -372,14 +367,12 @@ int Main(void)
 	
 		if (!pw) {
 			if (errno == 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "Invalid user specified: " + user;
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "Invalid user specified: " << user;
 				return EXIT_FAILURE;
 			} else {
-				std::ostringstream msgbuf;
-				msgbuf << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				return EXIT_FAILURE;
 			}
 		}
@@ -387,16 +380,14 @@ int Main(void)
 		// also activate the additional groups the configured user is member of
 		if (getuid() != pw->pw_uid) {
 			if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				return EXIT_FAILURE;
 			}
 	
 			if (setuid(pw->pw_uid) < 0) {
-				std::ostringstream msgbuf;
-				msgbuf << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				Log(LogCritical, "cli",  msgbuf.str());
+				Log(LogCritical, "cli")
+				    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 				return EXIT_FAILURE;
 			}
 		}

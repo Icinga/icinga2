@@ -99,7 +99,8 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 
-	Log(LogDebug, "IdoPgsqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogDebug, "IdoPgsqlConnection")
+	    << "Exception during database operation: " << DiagnosticInformation(exp);
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -202,10 +203,9 @@ void IdoPgsqlConnection::Reconnect(void)
 			PQfinish(m_Connection);
 			m_Connection = NULL;
 
-			std::ostringstream msgbuf;
-			msgbuf << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
+			Log(LogCritical, "IdoPgsqlConnection")
+			    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
 			    << "' failed: \"" << message << "\"";
-			Log(LogCritical, "IdoPgsqlConnection", msgbuf.str());
 
 			BOOST_THROW_EXCEPTION(std::runtime_error(message));
 		}
@@ -224,8 +224,9 @@ void IdoPgsqlConnection::Reconnect(void)
 		String version = row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
-			Log(LogCritical, "IdoPgsqlConnection", "Schema version '" + version + "' does not match the required version '" +
-			    SCHEMA_VERSION + "'! Please check the upgrade documentation.");
+			Log(LogCritical, "IdoPgsqlConnection")
+			    << "Schema version '" << version << "' does not match the required version '"
+			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
 
 			Application::Exit(EXIT_FAILURE);
 		}
@@ -269,8 +270,8 @@ void IdoPgsqlConnection::Reconnect(void)
 
 				double status_update_age = Utility::GetTime() - status_update_time;
 
-				Log(LogNotice, "IdoPgsqlConnection", "Last update by '" +
-				    endpoint_name + "' was " + Convert::ToString(status_update_age) + "s ago.");
+				Log(LogNotice, "IdoPgsqlConnection")
+				    << "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
 
 				if (status_update_age < GetFailoverTimeout()) {
 					PQfinish(m_Connection);
@@ -281,8 +282,8 @@ void IdoPgsqlConnection::Reconnect(void)
 
 				/* activate the IDO only, if we're authoritative in this zone */
 				if (IsPaused()) {
-					Log(LogNotice, "IdoPgsqlConnection", "Local endpoint '" +
-					    my_endpoint->GetName() + "' is not authoritative, bailing out.");
+					Log(LogNotice, "IdoPgsqlConnection")
+					    << "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
 					PQfinish(m_Connection);
 					m_Connection = NULL;
@@ -294,9 +295,8 @@ void IdoPgsqlConnection::Reconnect(void)
 			Log(LogNotice, "IdoPgsqlConnection", "Enabling IDO connection.");
 		}
 
-		std::ostringstream msgbuf;
-		msgbuf << "pgSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
-		Log(LogInformation, "IdoPgsqlConnection", msgbuf.str());
+		Log(LogInformation, "IdoPgsqlConnection")
+		    << "pgSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
 
 		/* record connection */
 		Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
@@ -336,8 +336,9 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* deactivate all deleted configuration objects */
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
 		if (dbobj->GetObject() == NULL) {
-			Log(LogNotice, "IdoPgsqlConnection", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
-			    "' name2: '" + Convert::ToString(dbobj->GetName2() + "'.")));
+			Log(LogNotice, "IdoPgsqlConnection")
+			    << "Deactivate deleted object name1: '" << dbobj->GetName1()
+			    << "' name2: '" << dbobj->GetName2() + "'.";
 			DeactivateObject(dbobj);
 		}
 	}
@@ -352,15 +353,15 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
 
-	Log(LogDebug, "IdoPgsqlConnection", "Query: " + query);
+	Log(LogDebug, "IdoPgsqlConnection")
+	    << "Query: " << query;
 
 	PGresult *result = PQexec(m_Connection, query.CStr());
 
 	if (!result) {
 		String message = PQerrorMessage(m_Connection);
-		std::ostringstream msgbuf;
-		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
-		Log(LogCritical, "IdoPgsqlConnection", msgbuf.str());
+		Log(LogCritical, "IdoPgsqlConnection")
+		    << "Error \"" << message << "\" when executing query \"" << query << "\"";
 
 		BOOST_THROW_EXCEPTION(
 		    database_error()
@@ -381,9 +382,8 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		String message = PQresultErrorMessage(result);
 		PQclear(result);
 
-		std::ostringstream msgbuf;
-		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
-		Log(LogCritical, "IdoPgsqlConnection", msgbuf.str());
+		Log(LogCritical, "IdoPgsqlConnection")
+		    << "Error \"" << message << "\" when executing query \"" << query << "\"";
 
 		BOOST_THROW_EXCEPTION(
 		    database_error()
@@ -405,9 +405,8 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 
 	ASSERT(row);
 
-	std::ostringstream msgbuf;
-	msgbuf << "Sequence Value: " << row->Get("id");
-	Log(LogDebug, "IdoPgsqlConnection", msgbuf.str());
+	Log(LogDebug, "IdoPgsqlConnection")
+	    << "Sequence Value: " << row->Get("id");
 
 	return DbReference(Convert::ToLong(row->Get("id")));
 }
@@ -713,8 +712,10 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name
 		String idField = "notification_id";
-		SetNotificationInsertID(query.NotificationObject, GetSequenceValue(GetTablePrefix() + query.Table, idField));
-		Log(LogDebug, "IdoPgsqlConnection", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetSequenceValue(GetTablePrefix() + query.Table, idField))));
+		DbReference seqval = GetSequenceValue(GetTablePrefix() + query.Table, idField);
+		SetNotificationInsertID(query.NotificationObject, seqval);
+		Log(LogDebug, "IdoPgsqlConnection")
+		    << "saving contactnotification notification_id=" << Convert::ToString(seqval);
 	}
 }
 

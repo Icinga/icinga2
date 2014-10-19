@@ -68,13 +68,15 @@ void ObjectListCommand::InitParameters(boost::program_options::options_descripti
 int ObjectListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	if (!ap.empty()) {
-		Log(LogWarning, "cli", "Ignoring parameters: " + boost::algorithm::join(ap, " "));
+		Log(LogWarning, "cli")
+		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
 	String objectfile = Application::GetObjectsPath();
 
 	if (!Utility::PathExists(objectfile)) {
-		Log(LogCritical, "cli", "Cannot parse objects file '" + Application::GetObjectsPath() + "'.");
+		Log(LogCritical, "cli")
+		    << "Cannot open objects file '" << Application::GetObjectsPath() << "'.";
 		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
 		return 1;
 	}
@@ -112,7 +114,8 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 		std::cout << "\n";
 	}
 
-	Log(LogNotice, "cli", "Parsed " + Convert::ToString(objects_count) + " objects.");
+	Log(LogNotice, "cli")
+	    << "Parsed " << objects_count << " objects.";
 
 	return 0;
 }

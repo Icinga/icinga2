@@ -206,10 +206,12 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 			if (header == "Or" || header == "StatsOr") {
 				filter = make_shared<OrFilter>();
-				Log(LogDebug, "LivestatusQuery", "Add OR filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+				Log(LogDebug, "LivestatusQuery")
+				    << "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
 			} else {
 				filter = make_shared<AndFilter>();
-				Log(LogDebug, "LivestatusQuery", "Add AND filter for " + params + " column(s). " + Convert::ToString(deq.size()) + " filters available.");
+				Log(LogDebug, "LivestatusQuery")
+				    << "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
 			}
 
 			if (num > deq.size()) {
@@ -221,7 +223,8 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
-				Log(LogDebug, "LivestatusQuery", "Add " +  Convert::ToString(num) + " filter.");
+				Log(LogDebug, "LivestatusQuery")
+				    << "Add " << num << " filter.";
 				deq.pop_back();
 				if (&deq == &stats)
 					aggregators.pop_back();
@@ -349,7 +352,8 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 		}
 	}
 
-	Log(LogDebug, "LivestatusQuery", "Parsed filter with attr: '" + attr + "' op: '" + op + "' val: '" + val + "'.");
+	Log(LogDebug, "LivestatusQuery")
+	    << "Parsed filter with attr: '" << attr << "' op: '" << op << "' val: '" << val << "'.";
 
 	return filter;
 }
@@ -433,7 +437,8 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-	Log(LogInformation, "LivestatusQuery", "Table: " + m_Table);
+	Log(LogInformation, "LivestatusQuery")
+	    << "Table: " << m_Table;
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -538,14 +543,16 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 		l_ExternalCommands++;
 	}
 
-	Log(LogInformation, "LivestatusQuery", "Executing command: " + m_Command);
+	Log(LogInformation, "LivestatusQuery")
+	    << "Executing command: " << m_Command;
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
 }
 
 void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
-	Log(LogDebug, "LivestatusQuery", "ERROR: Code: '" + Convert::ToString(m_ErrorCode) + "' Message: '" + m_ErrorMessage + "'.");
+	Log(LogDebug, "LivestatusQuery")
+	    << "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 
@@ -558,7 +565,7 @@ void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const St
 		try {
 			stream->Write(data.CStr(), data.GetLength());
 		} catch (const std::exception&) {
-			Log(LogCritical, "LivestatusQuery", "Cannot write to tcp socket.");
+			Log(LogCritical, "LivestatusQuery", "Cannot write to TCP socket.");
 		}
 	}
 }
@@ -575,14 +582,15 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 	try {
 		stream->Write(header.CStr(), header.GetLength());
 	} catch (const std::exception&) {
-		Log(LogCritical, "LivestatusQuery", "Cannot write to tcp socket.");
+		Log(LogCritical, "LivestatusQuery", "Cannot write to TCP socket.");
 	}
 }
 
 bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 {
 	try {
-		Log(LogInformation, "LivestatusQuery", "Executing livestatus query: " + m_Verb);
+		Log(LogInformation, "LivestatusQuery")
+		    << "Executing livestatus query: " << m_Verb;
 
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);

@@ -69,7 +69,8 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
 	}
 
 	if (!Utility::PathExists(features_enabled_dir) ) {
-		Log(LogCritical, "cli", "Cannot disable features. Path '" + features_enabled_dir + "' does not exist.");
+		Log(LogCritical, "cli")
+		    << "Cannot disable features. Path '" << features_enabled_dir << "' does not exist.";
 		return 0;
 	}
 
@@ -79,14 +80,16 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(target) ) {
-			Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Target file '" + target + "' does not exist.");
+			Log(LogCritical, "cli")
+			    << "Cannot disable feature '" << feature << "'. Target file '" << target << "' does not exist.";
 			errors.push_back(feature);
 			continue;
 		}
 
 		if (unlink(target.CStr()) < 0) {
-			Log(LogCritical, "cli", "Cannot disable feature '" + feature + "'. Unlinking target file '" + target +
-			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+			Log(LogCritical, "cli")
+			    << "Cannot disable feature '" << feature << "'. Unlinking target file '" << target
+			    << "' failed with error code " << errno << ", \"" + Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
 			continue;
 		}
@@ -96,7 +99,8 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
 	}
 
 	if (!errors.empty()) {
-		Log(LogCritical, "cli", "Cannot disable feature(s): " + boost::algorithm::join(errors, " "));
+		Log(LogCritical, "cli")
+		    << "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
 		errors.clear();
 		return 1;
 	}

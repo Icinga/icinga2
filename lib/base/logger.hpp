@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/logger.thpp"
 #include <set>
+#include <sstream>
 
 namespace icinga
 {
@@ -100,6 +101,39 @@ private:
 
 	friend I2_BASE_API void Log(LogSeverity severity, const String& facility,
 	    const String& message);
+};
+
+I2_BASE_API void IcingaLog(LogSeverity severity, const String& facility, const String& message);
+
+class Log
+{
+public:
+	inline Log(LogSeverity severity, const String& facility, const String& message)
+		: m_Severity(severity), m_Facility(facility)
+	{
+		m_Buffer << message;
+	}
+
+	inline Log(LogSeverity severity, const String& facility)
+		: m_Severity(severity), m_Facility(facility)
+	{ }
+
+	inline ~Log(void)
+	{
+		IcingaLog(m_Severity, m_Facility, m_Buffer.str());
+	}
+
+	template<typename T>
+	Log& operator<<(const T& val)
+	{
+		m_Buffer << val;
+		return *this;
+	}
+
+private:
+	LogSeverity m_Severity;
+	String m_Facility;
+	std::ostringstream m_Buffer;
 };
 
 }

@@ -97,7 +97,8 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
 	Log(LogCritical, "IdoMysqlConnection", "Exception during database operation: Verify that your database is operational!");
 
-	Log(LogDebug, "IdoMysqlConnection", "Exception during database operation: " + DiagnosticInformation(exp));
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Exception during database operation: " << DiagnosticInformation(exp);
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
@@ -191,18 +192,16 @@ void IdoMysqlConnection::Reconnect(void)
 
 		/* connection */
 		if (!mysql_init(&m_Connection)) {
-			std::ostringstream msgbuf;
-			msgbuf << "mysql_init() failed: \"" << mysql_error(&m_Connection) << "\"";
-			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
+			Log(LogCritical, "IdoMysqlConnection")
+			    << "mysql_init() failed: \"" << mysql_error(&m_Connection) << "\"";
 
 			BOOST_THROW_EXCEPTION(std::bad_alloc());
 		}
 
 		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, NULL, CLIENT_FOUND_ROWS)) {
-			std::ostringstream msgbuf;
-			msgbuf << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
+			Log(LogCritical, "IdoMysqlConnection")
+			    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
 			    << "' failed: \"" << mysql_error(&m_Connection) << "\"";
-			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 			BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
 		}
@@ -225,8 +224,9 @@ void IdoMysqlConnection::Reconnect(void)
 		String version = row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
-			Log(LogCritical, "IdoMysqlConnection", "Schema version '" + version + "' does not match the required version '" +
-			   SCHEMA_VERSION + "'! Please check the upgrade documentation.");
+			Log(LogCritical, "IdoMysqlConnection")
+			    << "Schema version '" << version << "' does not match the required version '"
+			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
 
 			Application::Exit(EXIT_FAILURE);
 		}
@@ -273,8 +273,8 @@ void IdoMysqlConnection::Reconnect(void)
 
 				double status_update_age = Utility::GetTime() - status_update_time;
 
-				Log(LogNotice, "IdoMysqlConnection", "Last update by '" +
-				    endpoint_name + "' was " + Convert::ToString(status_update_age) + "s ago.");
+				Log(LogNotice, "IdoMysqlConnection")
+				    << "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
 
 				if (status_update_age < GetFailoverTimeout()) {
 					mysql_close(&m_Connection);
@@ -285,8 +285,8 @@ void IdoMysqlConnection::Reconnect(void)
 
 				/* activate the IDO only, if we're authoritative in this zone */
 				if (IsPaused()) {
-					Log(LogNotice, "IdoMysqlConnection", "Local endpoint '" +
-					    my_endpoint->GetName() + "' is not authoritative, bailing out.");
+					Log(LogNotice, "IdoMysqlConnection")
+					    << "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
 					mysql_close(&m_Connection);
 					m_Connected = false;
@@ -298,9 +298,8 @@ void IdoMysqlConnection::Reconnect(void)
 			Log(LogNotice, "IdoMysqlConnection", "Enabling IDO connection.");
 		}
 
-		std::ostringstream msgbuf;
-		msgbuf << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
-		Log(LogInformation, "IdoMysqlConnection", msgbuf.str());
+		Log(LogInformation, "IdoMysqlConnection")
+		    << "MySQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
 
 		/* set session time zone to utc */
 		Query("SET SESSION TIME_ZONE='+00:00'");
@@ -340,8 +339,9 @@ void IdoMysqlConnection::Reconnect(void)
 	/* deactivate all deleted configuration objects */
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
 		if (dbobj->GetObject() == NULL) {
-			Log(LogNotice, "IdoMysqlConnection", "Deactivate deleted object name1: '" + Convert::ToString(dbobj->GetName1() +
-			    "' name2: '" + Convert::ToString(dbobj->GetName2() + "'.")));
+			Log(LogNotice, "IdoMysqlConnection")
+			    << "Deactivate deleted object name1: '" << dbobj->GetName1()
+			    << "' name2: '" << dbobj->GetName2() + "'.";
 			DeactivateObject(dbobj);
 		}
 	}

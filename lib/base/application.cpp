@@ -286,11 +286,10 @@ mainloop:
 
 		if (abs(timeDiff) > 15) {
 			/* We made a significant jump in time. */
-			std::ostringstream msgbuf;
-			msgbuf << "We jumped "
-				<< (timeDiff < 0 ? "forward" : "backward")
-				<< " in time: " << abs(timeDiff) << " seconds";
-			Log(LogInformation, "Application", msgbuf.str());
+			Log(LogInformation, "Application")
+			    << "We jumped "
+			    << (timeDiff < 0 ? "forward" : "backward")
+			    << " in time: " << abs(timeDiff) << " seconds";
 
 			Timer::AdjustTimers(-timeDiff);
 		}
@@ -682,7 +681,8 @@ int Application::Run(void)
 	try {
 		UpdatePidFile(GetPidPath());
 	} catch (const std::exception&) {
-		Log(LogCritical, "Application", "Cannot update PID file '" + GetPidPath() + "'. Aborting.");
+		Log(LogCritical, "Application")
+		    << "Cannot update PID file '" << GetPidPath() << "'. Aborting.";
 		return false;
 	}
 
@@ -714,7 +714,8 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 		m_PidFile = fopen(filename.CStr(), "w");
 
 	if (m_PidFile == NULL) {
-		Log(LogCritical, "Application", "Could not open PID file '" + filename + "'.");
+		Log(LogCritical, "Application")
+		    << "Could not open PID file '" << filename << "'.";
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open PID file '" + filename + "'"));
 	}
 
@@ -737,9 +738,8 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	}
 
 	if (ftruncate(fd, 0) < 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "ftruncate() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-		Log(LogCritical, "Application",  msgbuf.str());
+		Log(LogCritical, "Application")
+		    << "ftruncate() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("ftruncate")

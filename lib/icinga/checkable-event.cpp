@@ -75,7 +75,8 @@ void Checkable::ExecuteEventHandler(void)
 	if (!ec)
 		return;
 
-	Log(LogNotice, "Checkable", "Executing event handler '" + ec->GetName() + "' for service '" + GetName() + "'");
+	Log(LogNotice, "Checkable")
+	    << "Executing event handler '" << ec->GetName() << "' for service '" << GetName() << "'";
 
 	ec->Execute(GetSelf());
 

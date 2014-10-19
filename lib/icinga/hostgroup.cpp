@@ -51,15 +51,15 @@ bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& r
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	std::ostringstream msgbuf2;
-	msgbuf2 << "Assigning membership for group '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
-	Log(LogDebug, "HostGroup", msgbuf2.str());
+	Log(LogDebug, "HostGroup")
+	    << "Assigning membership for group '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
 
 	String group_name = rule.GetName();
 	HostGroup::Ptr group = HostGroup::GetByName(group_name);
 
 	if (!group) {
-		Log(LogCritical, "HostGroup", "Invalid membership assignment. Group '" + group_name + "' does not exist.");
+		Log(LogCritical, "HostGroup")
+		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
 		return false;
 	}
 
@@ -113,8 +113,9 @@ void HostGroup::RemoveMember(const Host::Ptr& host)
 bool HostGroup::ResolveGroupMembership(Host::Ptr const& host, bool add, int rstack) {
 
 	if (add && rstack > 20) {
-		Log(LogWarning, "HostGroup", "Too many nested groups for group '" + GetName() + "': Host '" +
-		    host->GetName() + "' membership assignment failed.");
+		Log(LogWarning, "HostGroup")
+		    << "Too many nested groups for group '" << GetName() << "': Host '"
+		    << host->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

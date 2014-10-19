@@ -127,7 +127,8 @@ void DbObject::SendStatusUpdate(void)
 	if (GetType()->GetTable() != "endpoint") {
 		String node = IcingaApplication::GetInstance()->GetNodeName();
 
-		Log(LogDebug, "DbObject", "Endpoint node: '" + node + "' status update for '" + GetObject()->GetName() + "'");
+		Log(LogDebug, "DbObject")
+		    << "Endpoint node: '" << node << "' status update for '" << GetObject()->GetName() << "'";
 
 		Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 		if (endpoint)
@@ -160,7 +161,8 @@ void DbObject::SendVarsConfigUpdate(void)
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		Log(LogDebug, "DbObject", "Updating object vars for '" + custom_var_object->GetName() + "'");
+		Log(LogDebug, "DbObject")
+		    << "Updating object vars for '" << custom_var_object->GetName() << "'";
 
 		ObjectLock olock (vars);
 
@@ -168,8 +170,9 @@ void DbObject::SendVarsConfigUpdate(void)
 			if (!kv.first.IsEmpty()) {
 				int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
 
-				Log(LogDebug, "DbObject", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
-				    "' overridden: " + Convert::ToString(overridden));
+				Log(LogDebug, "DbObject")
+				    << "object customvar key: '" << kv.first << "' value: '" << kv.second
+				    << "' overridden: " << overridden;
 
 				Dictionary::Ptr fields = make_shared<Dictionary>();
 				fields->Set("varname", Convert::ToString(kv.first));
@@ -202,7 +205,8 @@ void DbObject::SendVarsStatusUpdate(void)
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		Log(LogDebug, "DbObject", "Updating object vars for '" + custom_var_object->GetName() + "'");
+		Log(LogDebug, "DbObject")
+		    << "Updating object vars for '" << custom_var_object->GetName() << "'";
 
 		ObjectLock olock (vars);
 
@@ -210,8 +214,9 @@ void DbObject::SendVarsStatusUpdate(void)
 			if (!kv.first.IsEmpty()) {
 				int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
 
-				Log(LogDebug, "DbObject", "object customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) +
-				    "' overridden: " + Convert::ToString(overridden));
+				Log(LogDebug, "DbObject")
+				    << "object customvar key: '" << kv.first << "' value: '" << kv.second
+				    << "' overridden: " << overridden;
 
 				Dictionary::Ptr fields = make_shared<Dictionary>();
 				fields->Set("varname", Convert::ToString(kv.first));
@@ -322,7 +327,8 @@ void DbObject::VarsChangedHandler(const CustomVarObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 
-	Log(LogDebug, "DbObject", "Vars changed for object '" + object->GetName() + "'");
+	Log(LogDebug, "DbObject")
+	    << "Vars changed for object '" << object->GetName() << "'";
 
 	if (!dbobj)
 		return;

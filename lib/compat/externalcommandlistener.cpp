@@ -81,18 +81,16 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
+		Log(LogCritical, "ExternalCommandListener")
+		    << "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return;
 	}
 
 	/* mkfifo() uses umask to mask off some bits, which means we need to chmod() the
 	 * fifo to get the right mask. */
 	if (chmod(commandPath.CStr(), mode) < 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-		Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
+		Log(LogCritical, "ExternalCommandListener")
+		    << "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return;
 	}
 
@@ -104,18 +102,16 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		} while (fd < 0 && errno == EINTR);
 
 		if (fd < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
+			Log(LogCritical, "ExternalCommandListener")
+			    << "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
 		FILE *fp = fdopen(fd, "r");
 
 		if (fp == NULL) {
-			std::ostringstream msgbuf;
-			msgbuf << "fdopen() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "ExternalCommandListener",  msgbuf.str());
+			Log(LogCritical, "ExternalCommandListener")
+			    << "fdopen() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
@@ -131,13 +127,13 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			String command = line;
 
 			try {
-				Log(LogInformation, "ExternalCommandListener", "Executing external command: " + command);
+				Log(LogInformation, "ExternalCommandListener")
+				    << "Executing external command: " << command;
 
 				ExternalCommandProcessor::Execute(command);
 			} catch (const std::exception& ex) {
-				std::ostringstream msgbuf;
-				msgbuf << "External command failed." << DiagnosticInformation(ex);
-				Log(LogWarning, "ExternalCommandListener", msgbuf.str());
+				Log(LogWarning, "ExternalCommandListener")
+				    << "External command failed." << DiagnosticInformation(ex);
 			}
 		}
 

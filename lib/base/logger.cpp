@@ -77,7 +77,7 @@ std::set<Logger::Ptr> Logger::GetLoggers(void)
  * @param facility The log facility.
  * @param message The message.
  */
-void icinga::Log(LogSeverity severity, const String& facility,
+void icinga::IcingaLog(LogSeverity severity, const String& facility,
     const String& message)
 {
 	LogEntry entry;

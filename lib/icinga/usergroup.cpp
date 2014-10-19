@@ -51,15 +51,15 @@ bool UserGroup::EvaluateObjectRuleOne(const User::Ptr& user, const ObjectRule& r
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	std::ostringstream msgbuf2;
-	msgbuf2 << "Assigning membership for group '" << rule.GetName() << "' to user '" << user->GetName() << "' for rule " << di;
-	Log(LogDebug, "UserGroup", msgbuf2.str());
+	Log(LogDebug, "UserGroup")
+	    << "Assigning membership for group '" << rule.GetName() << "' to user '" << user->GetName() << "' for rule " << di;
 
 	String group_name = rule.GetName();
 	UserGroup::Ptr group = UserGroup::GetByName(group_name);
 
 	if (!group) {
-		Log(LogCritical, "UserGroup", "Invalid membership assignment. Group '" + group_name + "' does not exist.");
+		Log(LogCritical, "UserGroup")
+		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
 		return false;
 	}
 
@@ -113,8 +113,9 @@ void UserGroup::RemoveMember(const User::Ptr& user)
 bool UserGroup::ResolveGroupMembership(User::Ptr const& user, bool add, int rstack) {
 
 	if (add && rstack > 20) {
-		Log(LogWarning, "UserGroup", "Too many nested groups for group '" + GetName() + "': User '" +
-		    user->GetName() + "' membership assignment failed.");
+		Log(LogWarning, "UserGroup")
+		    << "Too many nested groups for group '" << GetName() << "': User '"
+		    << user->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

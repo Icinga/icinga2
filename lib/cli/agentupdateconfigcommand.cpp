@@ -50,7 +50,8 @@ String AgentUpdateConfigCommand::GetShortDescription(void) const
 int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	if (!ap.empty()) {
-		Log(LogWarning, "cli", "Ignoring parameters: " + boost::algorithm::join(ap, " "));
+		Log(LogWarning, "cli")
+		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
 	return 0;

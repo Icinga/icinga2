@@ -74,13 +74,15 @@ void LivestatusListener::Start(void)
 		try {
 			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
 		} catch (std::exception&) {
-			Log(LogCritical, "LivestatusListener", "Cannot bind tcp socket on host '" + GetBindHost() + "' port '" + GetBindPort() + "'.");
+			Log(LogCritical, "LivestatusListener")
+			    << "Cannot bind TCP socket on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 			return;
 		}
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
-		Log(LogInformation, "LivestatusListener", "Created tcp socket listening on host '" + GetBindHost() + "' port '" + GetBindPort() + "'.");
+		Log(LogInformation, "LivestatusListener")
+		    << "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 	}
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
@@ -88,7 +90,8 @@ void LivestatusListener::Start(void)
 		try {
 			socket->Bind(GetSocketPath());
 		} catch (std::exception&) {
-			Log(LogCritical, "LivestatusListener", "Cannot bind unix socket in '" + GetSocketPath() + "'.");
+			Log(LogCritical, "LivestatusListener")
+			    << "Cannot bind UNIX socket to '" << GetSocketPath() << "'.";
 			return;
 		}
 
@@ -96,17 +99,17 @@ void LivestatusListener::Start(void)
 		mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
 		if (chmod(GetSocketPath().CStr(), mode) < 0) {
-			std::ostringstream msgbuf;
-			msgbuf << "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "LivestatusListener",  msgbuf.str());
+			Log(LogCritical, "LivestatusListener")
+			    << "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
-		Log(LogInformation, "LivestatusListener", "Created unix socket in '" + GetSocketPath() + "'.");
+		Log(LogInformation, "LivestatusListener")
+		    << "Created UNIX socket in '" << GetSocketPath() << "'.";
 #else
-		/* no unix sockets on windows */
+		/* no UNIX sockets on windows */
 		Log(LogCritical, "LivestatusListener", "Unix sockets are not supported on Windows.");
 		return;
 #endif

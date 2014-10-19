@@ -62,9 +62,8 @@ bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const A
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	std::ostringstream msgbuf2;
-	msgbuf2 << "Applying notification '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
-	Log(LogDebug, "Notification", msgbuf2.str());
+	Log(LogDebug, "Notification")
+	    << "Applying notification '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
 
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("Notification");
@@ -122,7 +121,8 @@ void Notification::EvaluateApplyRule(const ApplyRule& rule)
 		}
 
 		if (apply_count == 0)
-			Log(LogWarning, "Notification", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
+			Log(LogWarning, "Notification")
+			    << "Apply rule '" << rule.GetName() << "' for host does not match anywhere!";
 
 	} else if (rule.GetTargetType() == "Service") {
 		apply_count = 0;
@@ -140,10 +140,12 @@ void Notification::EvaluateApplyRule(const ApplyRule& rule)
 		}
 
 		if (apply_count == 0)
-			Log(LogWarning, "Notification", "Apply rule '" + rule.GetName() + "' for service does not match anywhere!");
+			Log(LogWarning, "Notification")
+			    << "Apply rule '" << rule.GetName() << "' for service does not match anywhere!";
 
 	} else {
-		Log(LogWarning, "Notification", "Wrong target type for apply rule '" + rule.GetName() + "'!");
+		Log(LogWarning, "Notification")
+		    << "Wrong target type for apply rule '" << rule.GetName() << "'!";
 	}
 }
 void Notification::EvaluateApplyRules(const std::vector<ApplyRule>& rules)

@@ -54,15 +54,15 @@ bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr& service, const Obje
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	std::ostringstream msgbuf2;
-	msgbuf2 << "Assigning membership for group '" << rule.GetName() << "' to service '" << service->GetName() << "' for rule " << di;
-	Log(LogDebug, "ServiceGroup", msgbuf2.str());
+	Log(LogDebug, "ServiceGroup")
+	    << "Assigning membership for group '" << rule.GetName() << "' to service '" << service->GetName() << "' for rule " << di;
 
 	String group_name = rule.GetName();
 	ServiceGroup::Ptr group = ServiceGroup::GetByName(group_name);
 
 	if (!group) {
-		Log(LogCritical, "ServiceGroup", "Invalid membership assignment. Group '" + group_name + "' does not exist.");
+		Log(LogCritical, "ServiceGroup")
+		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
 		return false;
 	}
 
@@ -116,8 +116,9 @@ void ServiceGroup::RemoveMember(const Service::Ptr& service)
 bool ServiceGroup::ResolveGroupMembership(Service::Ptr const& service, bool add, int rstack) {
 
 	if (add && rstack > 20) {
-		Log(LogWarning, "ServiceGroup", "Too many nested groups for group '" + GetName() + "': Service '" +
-		    service->GetName() + "' membership assignment failed.");
+		Log(LogWarning, "ServiceGroup")
+		    << "Too many nested groups for group '" << GetName() << "': Service '"
+		    << service->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

@@ -46,7 +46,8 @@ REGISTER_CLICOMMAND("daemon", DaemonCommand);
 
 static String LoadAppType(const String& typeSpec)
 {
-	Log(LogInformation, "cli", "Loading application type: " + typeSpec);
+	Log(LogInformation, "cli")
+	    << "Loading application type: " << typeSpec;
 
 	String::SizeType index = typeSpec.FindFirstOf('/');
 
@@ -141,7 +142,8 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 		else
 			severity = LogCritical;
 
-		Log(severity, "config", Convert::ToString(errors) + " errors, " + Convert::ToString(warnings) + " warnings.");
+		Log(severity, "config")
+		    << errors << " errors, " << warnings << " warnings.";
 	}
 
 	if (!result)
@@ -183,9 +185,8 @@ static bool Daemonize(void)
 			Log(LogCritical, "cli", "The daemon could not be started. See log output for details.");
 			exit(EXIT_FAILURE);
 		} else if (ret == -1) {
-			std::ostringstream msgbuf;
-			msgbuf << "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "cli",  msgbuf.str());
+			Log(LogCritical, "cli")
+			    << "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			exit(EXIT_FAILURE);
 		}
 
@@ -313,14 +314,16 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	Application::MakeVariablesConstant();
 
-	Log(LogInformation, "cli", "Icinga application loader (version: " + Application::GetVersion() + ")");
+	Log(LogInformation, "cli")
+	    << "Icinga application loader (version: " << Application::GetVersion() << ")";
 
 	String appType = LoadAppType(Application::GetApplicationType());
 
 	if (!vm.count("validate") && !vm.count("reload-internal")) {
 		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
 		if (runningpid > 0) {
-			Log(LogCritical, "cli", "Another instance of Icinga already running with PID " + Convert::ToString(runningpid));
+			Log(LogCritical, "cli")
+			    << "Another instance of Icinga already running with PID " << runningpid;
 			return EXIT_FAILURE;
 		}
 	}
@@ -335,7 +338,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	if(vm.count("reload-internal")) {
 		int parentpid = vm["reload-internal"].as<int>();
-		Log(LogInformation, "cli", "Terminating previous instance of Icinga (PID " + Convert::ToString(parentpid) + ")");
+		Log(LogInformation, "cli")
+		    << "Terminating previous instance of Icinga (PID " << parentpid << ")";
 		TerminateAndWaitForEnd(parentpid);
 		Log(LogInformation, "cli", "Previous instance has ended, taking over now.");
 	}

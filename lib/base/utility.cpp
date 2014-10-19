@@ -304,7 +304,8 @@ Utility::LoadExtensionLibrary(const String& library)
 	path = "lib" + library + ".so";
 #endif /* _WIN32 */
 
-	Log(LogInformation, "Utility", "Loading library '" + path + "'");
+	Log(LogInformation, "Utility")
+	    << "Loading library '" << path << "'";
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.CStr());

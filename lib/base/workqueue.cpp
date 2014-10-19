@@ -124,7 +124,8 @@ void WorkQueue::StatusTimerHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	Log(LogNotice, "WorkQueue", "#" + Convert::ToString(m_ID) + " items: " + Convert::ToString(m_Items.size()));
+	Log(LogNotice, "WorkQueue")
+	    << "#" << m_ID << " items: " << m_Items.size();
 }
 
 void WorkQueue::WorkerThreadProc(void)

@@ -81,7 +81,8 @@ bool FeatureUtility::GetFeatures(FeatureType ftype, std::vector<String>& feature
 
 		if (!Utility::Glob(path + "/*.conf",
 		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(features)), GlobFile)) {
-			Log(LogCritical, "cli", "Cannot access path '" + path + "'.");
+			Log(LogCritical, "cli")
+			    << "Cannot access path '" << path << "'.";
 			return false;
 		}
 	}
@@ -94,6 +95,7 @@ void FeatureUtility::CollectFeatures(const String& feature_file, std::vector<Str
 	String feature = Utility::BaseName(feature_file);
 	boost::algorithm::replace_all(feature, ".conf", "");
 
-	Log(LogDebug, "cli", "Adding feature: " + feature);
+	Log(LogDebug, "cli")
+	    << "Adding feature: " << feature;
 	features.push_back(feature);
 }

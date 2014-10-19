@@ -62,9 +62,8 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	    service.CStr(), &hints, &result);
 
 	if (rc != 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
-		Log(LogCritical, "TcpSocket",  msgbuf.str());
+		Log(LogCritical, "TcpSocket")
+		    << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getaddrinfo")
@@ -118,9 +117,8 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	freeaddrinfo(result);
 
 	if (GetFD() == INVALID_SOCKET) {
-		std::ostringstream msgbuf;
-		msgbuf << "Invalid socket: " << Utility::FormatErrorNumber(error);
-		Log(LogCritical, "TcpSocket",  msgbuf.str());
+		Log(LogCritical, "TcpSocket")
+		    << "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -155,9 +153,8 @@ void TcpSocket::Connect(const String& node, const String& service)
 	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
 	if (rc != 0) {
-		std::ostringstream msgbuf;
-		msgbuf << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
-		Log(LogCritical, "TcpSocket",  msgbuf.str());
+		Log(LogCritical, "TcpSocket")
+		    << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 		    << boost::errinfo_api_function("getaddrinfo")
@@ -203,9 +200,8 @@ void TcpSocket::Connect(const String& node, const String& service)
 	freeaddrinfo(result);
 
 	if (GetFD() == INVALID_SOCKET) {
-		std::ostringstream msgbuf;
-		msgbuf << "Invalid socket: " << Utility::FormatErrorNumber(error);
-		Log(LogCritical, "TcpSocket",  msgbuf.str());
+		Log(LogCritical, "TcpSocket")
+		    << "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32
 		BOOST_THROW_EXCEPTION(socket_error()

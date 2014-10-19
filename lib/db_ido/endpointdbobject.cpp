@@ -62,7 +62,8 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 	Dictionary::Ptr fields = make_shared<Dictionary>();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
 
-	Log(LogDebug, "EndpointDbObject", "update status for endpoint '" + endpoint->GetName() + "'");
+	Log(LogDebug, "EndpointDbObject")
+	    << "update status for endpoint '" << endpoint->GetName() << "'";
 
 	fields->Set("identity", endpoint->GetName());
 	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
@@ -75,7 +76,8 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 {
 	bool connected = EndpointIsConnected(endpoint);
 
-	Log(LogDebug, "EndpointDbObject", "update is_connected=" + Convert::ToString(connected ? 1 : 0) + " for endpoint '" + endpoint->GetName() + "'");
+	Log(LogDebug, "EndpointDbObject")
+	    << "update is_connected=" << connected << " for endpoint '" << endpoint->GetName() << "'";
 
 	DbQuery query1;
 	query1.Table = "endpointstatus";

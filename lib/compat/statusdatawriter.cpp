@@ -693,7 +693,8 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
-			Log(LogDebug, "StatusDataWriter", "Missing parent for dependency '" + dep->GetName() + "'.");
+			Log(LogDebug, "StatusDataWriter")
+			    << "Missing parent for dependency '" << dep->GetName() << "'.";
 			continue;
 		}
 
@@ -704,8 +705,9 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		Checkable::Ptr child = dep->GetChild();
 
 		if (!child) {
+			Log(LogDebug, "StatusDataWriter")
+			    << "Missing child for dependency '" << dep->GetName() << "'.";
 			continue;
-			Log(LogDebug, "StatusDataWriter", "Missing child for dependency '" + dep->GetName() + "'.");
 		}
 
 		Host::Ptr child_host;
@@ -840,5 +842,6 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    << boost::errinfo_file_name(statuspathtmp));
 	}
 
-	Log(LogNotice, "StatusDataWriter", "Writing status.dat file took " + Utility::FormatDuration(Utility::GetTime() - start));
+	Log(LogNotice, "StatusDataWriter")
+	    << "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);
 }

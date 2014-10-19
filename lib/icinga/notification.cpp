@@ -231,7 +231,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		TimePeriod::Ptr tp = GetPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
-			Log(LogNotice, "Notification", "Not sending notifications for notification object '" + GetName() + "': not in timeperiod");
+			Log(LogNotice, "Notification")
+			    << "Not sending notifications for notification object '" << GetName() << "': not in timeperiod";
 			return;
 		}
 
@@ -240,22 +241,26 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem) {
 			if (times && times->Contains("begin") && now < checkable->GetLastHardStateChange() + times->Get("begin")) {
-				Log(LogNotice, "Notification", "Not sending notifications for notification object '" + GetName() + "': before escalation range");
+				Log(LogNotice, "Notification")
+				    << "Not sending notifications for notification object '" << GetName() << "': before escalation range";
 				return;
 			}
 
 			if (times && times->Contains("end") && now > checkable->GetLastHardStateChange() + times->Get("end")) {
-				Log(LogNotice, "Notification", "Not sending notifications for notification object '" + GetName() + "': after escalation range");
+				Log(LogNotice, "Notification")
+				    << "Not sending notifications for notification object '" << GetName() << "': after escalation range";
 				return;
 			}
 		}
 
 		unsigned long ftype = 1 << type;
 
-		Log(LogDebug, "Notification", "FType=" + Convert::ToString(ftype) + ", TypeFilter=" + Convert::ToString(GetTypeFilter()));
+		Log(LogDebug, "Notification")
+		    << "FType=" << ftype << ", TypeFilter=" << GetTypeFilter();
 
 		if (!(ftype & GetTypeFilter())) {
-			Log(LogNotice, "Notification", "Not sending notifications for notification object '" + GetName() + "': type filter does not match");
+			Log(LogNotice, "Notification")
+			    << "Not sending notifications for notification object '" << GetName() << "': type filter does not match";
 			return;
 		}
 
@@ -271,7 +276,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			fstate = HostStateToFilter(host->GetState());
 
 		if (!(fstate & GetStateFilter())) {
-			Log(LogNotice, "Notification", "Not sending notifications for notification object '" + GetName() + "': state filter does not match");
+			Log(LogNotice, "Notification")
+			    << "Not sending notifications for notification object '" << GetName() << "': state filter does not match";
 			return;
 		}
 	}
@@ -303,7 +309,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		if (!user->GetEnableNotifications() || !CheckNotificationUserFilters(type, user, force))
 			continue;
 
-		Log(LogInformation, "Notification", "Sending notification for user '" + user->GetName() + "'");
+		Log(LogInformation, "Notification")
+		    << "Sending notification for user '" << user->GetName() << "'";
+
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 
 		/* collect all notified users */
@@ -322,16 +330,18 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		TimePeriod::Ptr tp = user->GetPeriod();
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
-			Log(LogNotice, "Notification", "Not sending notifications for notification object '" +
-			    GetName() + " and user '" + user->GetName() + "': user not in timeperiod");
+			Log(LogNotice, "Notification")
+			    << "Not sending notifications for notification object '"
+			    << GetName() << " and user '" << user->GetName() << "': user not in timeperiod";
 			return false;
 		}
 
 		unsigned long ftype = 1 << type;
 
 		if (!(ftype & user->GetTypeFilter())) {
-			Log(LogNotice, "Notification", "Not sending notifications for notification object '" +
-			    GetName() + " and user '" + user->GetName() + "': type filter does not match");
+			Log(LogNotice, "Notification")
+			    << "Not sending notifications for notification object '"
+			    << GetName() << " and user '" << user->GetName() << "': type filter does not match";
 			return false;
 		}
 
@@ -348,8 +358,9 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 				fstate = HostStateToFilter(host->GetState());
 
 		if (!(fstate & user->GetStateFilter())) {
-			Log(LogNotice, "Notification", "Not sending notifications for notification object '" +
-			    GetName() + " and user '" + user->GetName() + "': state filter does not match");
+			Log(LogNotice, "Notification")
+			    << "Not sending notifications for notification object '"
+			    << GetName() << " and user '" << user->GetName() << "': state filter does not match";
 			return false;
 		}
 	}
@@ -365,7 +376,8 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		NotificationCommand::Ptr command = GetCommand();
 
 		if (!command) {
-			Log(LogDebug, "Notification", "No notification_command found for notification '" + GetName() + "'. Skipping execution.");
+			Log(LogDebug, "Notification")
+			    << "No notification_command found for notification '" << GetName() << "'. Skipping execution.";
 			return;
 		}
 
@@ -380,12 +392,12 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		/* required by compatlogger */
 		Service::OnNotificationSentToUser(GetSelf(), GetCheckable(), user, type, cr, author, text, command->GetName());
 
-		Log(LogInformation, "Notification", "Completed sending notification for object '" + GetCheckable()->GetName() + "'");
+		Log(LogInformation, "Notification")
+		    << "Completed sending notification for object '" << GetCheckable()->GetName() << "'";
 	} catch (const std::exception& ex) {
-		std::ostringstream msgbuf;
-		msgbuf << "Exception occured during notification for object '"
-		       << GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
-		Log(LogWarning, "Notification", msgbuf.str());
+		Log(LogWarning, "Notification")
+		    << "Exception occured during notification for object '"
+		    << GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
 	}
 }
 

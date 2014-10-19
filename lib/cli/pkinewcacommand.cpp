@@ -48,12 +48,14 @@ int PKINewCACommand::Run(const boost::program_options::variables_map& vm, const 
 	String cadir = Application::GetLocalStateDir() + "/lib/icinga2/ca";
 
 	if (Utility::PathExists(cadir)) {
-		Log(LogCritical, "base", "CA directory '" + cadir + "' already exists.");
+		Log(LogCritical, "base")
+		    << "CA directory '" << cadir << "' already exists.";
 		return 1;
 	}
 
 	if (!Utility::MkDirP(cadir, 0700)) {
-		Log(LogCritical, "base", "Could not create CA directory '" + cadir + "'.");
+		Log(LogCritical, "base")
+		    << "Could not create CA directory '" << cadir << "'.";
 		return 1;
 	}
 
@@ -61,7 +63,8 @@ int PKINewCACommand::Run(const boost::program_options::variables_map& vm, const 
 
 	String serialpath = cadir + "/serial.txt";
 
-	Log(LogInformation, "cli", "Initializing serial file in '" + serialpath + "'.");
+	Log(LogInformation, "cli")
+	    << "Initializing serial file in '" << serialpath << "'.";
 
 	std::ofstream fp;
 	fp.open(serialpath.CStr());

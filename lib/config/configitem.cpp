@@ -172,7 +172,8 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	ASSERT(!OwnsLock());
 
 #ifdef _DEBUG
-	Log(LogDebug, "ConfigItem", "Commit called for ConfigItem Type=" + GetType() + ", Name=" + GetName());
+	Log(LogDebug, "ConfigItem")
+	    << "Commit called for ConfigItem Type=" << GetType() << ", Name=" << GetName();
 #endif /* _DEBUG */
 
 	/* Make sure the type is valid. */
@@ -282,7 +283,8 @@ void ConfigItem::ValidateItem(void)
 
 void ConfigItem::WriteObjectsFile(const String& filename)
 {
-	Log(LogInformation, "ConfigItem", "Dumping config items to file '" + filename + "'");
+	Log(LogInformation, "ConfigItem")
+	    << "Dumping config items to file '" << filename << "'";
 
 	String tempFilename = filename + ".tmp";
 
@@ -398,7 +400,8 @@ bool ConfigItem::ValidateItems(const String& objectsFile)
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		int count = std::distance(type->GetObjects().first, type->GetObjects().second);
 		if (count > 0)
-			Log(LogInformation, "ConfigItem", "Checked " + Convert::ToString(count) + " " + type->GetName() + "(s).");
+			Log(LogInformation, "ConfigItem")
+			    << "Checked " << count << " " << type->GetName() << "(s).";
 	}
 
 	return !ConfigCompilerContext::GetInstance()->HasErrors();
@@ -413,7 +416,8 @@ bool ConfigItem::ActivateItems(void)
 	try {
 		DynamicObject::RestoreObjects(Application::GetStatePath());
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "ConfigItem", "Failed to restore state file: " + DiagnosticInformation(ex));
+		Log(LogCritical, "ConfigItem")
+		    << "Failed to restore state file: " << DiagnosticInformation(ex);
 	}
 
 	Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
@@ -426,7 +430,8 @@ bool ConfigItem::ActivateItems(void)
 				continue;
 
 #ifdef _DEBUG
-			Log(LogDebug, "ConfigItem", "Activating object '" + object->GetName() + "' of type '" + object->GetType()->GetName() + "'");
+			Log(LogDebug, "ConfigItem")
+			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
 #endif /* _DEBUG */
 			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
 		}

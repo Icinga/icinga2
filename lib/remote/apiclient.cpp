@@ -75,7 +75,8 @@ ConnectionRole ApiClient::GetRole(void) const
 void ApiClient::SendMessage(const Dictionary::Ptr& message)
 {
 	if (m_WriteQueue.GetLength() > 20000) {
-		Log(LogWarning, "remote", "Closing connection for API identity '" + m_Identity + "': Too many queued messages.");
+		Log(LogWarning, "remote")
+		    << "Closing connection for API identity '" << m_Identity << "': Too many queued messages.";
 		Disconnect();
 		return;
 	}
@@ -93,11 +94,12 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 		if (message->Get("method") != "log::SetLogPosition")
 			m_Seen = Utility::GetTime();
 	} catch (const std::exception& ex) {
-		std::ostringstream info, debug;
+		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
-		debug << info.str() << std::endl << DiagnosticInformation(ex);
-		Log(LogWarning, "ApiClient", info.str());
-		Log(LogDebug, "ApiClient", debug.str());
+		Log(LogWarning, "ApiClient")
+		    << info.str();
+		Log(LogDebug, "ApiClient")
+		    << info.str() << "\n" << DiagnosticInformation(ex);
 
 		Disconnect();
 	}
@@ -110,7 +112,8 @@ void ApiClient::Disconnect(void)
 
 void ApiClient::DisconnectSync(void)
 {
-	Log(LogWarning, "ApiClient", "API client disconnected for identity '" + m_Identity + "'");
+	Log(LogWarning, "ApiClient")
+	    << "API client disconnected for identity '" << m_Identity << "'";
 
 	if (m_Endpoint)
 		m_Endpoint->RemoveClient(GetSelf());
@@ -168,7 +171,8 @@ bool ApiClient::ProcessMessage(void)
 
 	String method = message->Get("method");
 
-	Log(LogNotice, "ApiClient", "Received '" + method + "' message from '" + m_Identity + "'");
+	Log(LogNotice, "ApiClient")
+	    << "Received '" << method << "' message from '" << m_Identity << "'";
 
 	Dictionary::Ptr resultMessage = make_shared<Dictionary>();
 

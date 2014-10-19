@@ -46,7 +46,9 @@ void DbConnection::OnConfigLoaded(void)
 	DynamicObject::OnConfigLoaded();
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "DbConnection", "HA functionality disabled. Won't pause IDO connection: " + GetName());
+		Log(LogDebug, "DbConnection")
+		    << "HA functionality disabled. Won't pause IDO connection: " << GetName();
+
 		SetHAMode(HARunEverywhere);
 	}
 }
@@ -62,7 +64,8 @@ void DbConnection::Resume(void)
 {
 	DynamicObject::Resume();
 
-	Log(LogInformation, "DbConnection", "Resuming IDO connection: " + GetName());
+	Log(LogInformation, "DbConnection")
+	    << "Resuming IDO connection: " << GetName();
 
 	m_CleanUpTimer = make_shared<Timer>();
 	m_CleanUpTimer->SetInterval(60);
@@ -74,7 +77,8 @@ void DbConnection::Pause(void)
 {
 	DynamicObject::Pause();
 
-	Log(LogInformation, "DbConnection", "Pausing IDO connection: " + GetName());
+	Log(LogInformation, "DbConnection")
+	     << "Pausing IDO connection: " << GetName();
 
 	m_CleanUpTimer.reset();
 }
@@ -160,7 +164,8 @@ void DbConnection::ProgramStatusHandler(void)
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		if (!kv.first.IsEmpty()) {
-			Log(LogDebug, "DbConnection", "icinga application customvar key: '" + kv.first + "' value: '" + Convert::ToString(kv.second) + "'");
+			Log(LogDebug, "DbConnection")
+			    << "icinga application customvar key: '" << kv.first << "' value: '" << kv.second << "'";
 
 			Dictionary::Ptr fields4 = make_shared<Dictionary>();
 			fields4->Set("varname", Convert::ToString(kv.first));
@@ -211,9 +216,10 @@ void DbConnection::CleanUpHandler(void)
 			continue;
 
 		CleanUpExecuteQuery(tables[i].name, tables[i].time_column, now - max_age);
-		Log(LogNotice, "DbConnection", "Cleanup (" + tables[i].name + "): " + Convert::ToString(max_age) +
-		    " now: " + Convert::ToString(now) +
-		    " old: " + Convert::ToString(now - max_age));
+		Log(LogNotice, "DbConnection")
+		    << "Cleanup (" << tables[i].name << "): " << max_age
+		    << " now: " << now
+		    << " old: " << now - max_age;
 	}
 
 }

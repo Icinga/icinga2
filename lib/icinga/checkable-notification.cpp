@@ -51,32 +51,33 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
-			Log(LogInformation, "Checkable", "Notifications are disabled for service '" + GetName() + "'.");
+			Log(LogInformation, "Checkable")
+			    << "Notifications are disabled for service '" << GetName() << "'.";
 			return;
 		}
 
 		SetForceNextNotification(false);
 	}
 
-	Log(LogInformation, "Checkable", "Checking for configured notifications for object '" + GetName() + "'");
+	Log(LogInformation, "Checkable")
+	    << "Checking for configured notifications for object '" << GetName() << "'";
 
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
 	if (notifications.empty())
-		Log(LogInformation, "Checkable", "Checkable '" + GetName() + "' does not have any notifications.");
+		Log(LogInformation, "Checkable")
+		    << "Checkable '" << GetName() << "' does not have any notifications.";
 
-	Log(LogDebug, "Checkable", "Checkable '" + GetName() + "' has " + Convert::ToString(notifications.size()) + " notification(s).");
+	Log(LogDebug, "Checkable")
+	    << "Checkable '" << GetName() << "' has " << notifications.size() << " notification(s).";
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
 			notification->BeginExecuteNotification(type, cr, force, author, text);
 		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Exception occured during notification for service '"
-			       << GetName() << "': " << DiagnosticInformation(ex);
-			String message = msgbuf.str();
-
-			Log(LogWarning, "Checkable", message);
+			Log(LogWarning, "Checkable")
+			    << "Exception occured during notification for service '"
+			    << GetName() << "': " << DiagnosticInformation(ex);
 		}
 	}
 }

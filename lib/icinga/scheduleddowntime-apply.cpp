@@ -61,9 +61,8 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	std::ostringstream msgbuf2;
-	msgbuf2 << "Applying scheduled downtime '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
-	Log(LogDebug, "ScheduledDowntime", msgbuf2.str());
+	Log(LogDebug, "ScheduledDowntime")
+	    << "Applying scheduled downtime '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
 
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("ScheduledDowntime");
@@ -122,7 +121,8 @@ void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			}
 
 			if (apply_count == 0)
-				Log(LogWarning, "ScheduledDowntime", "Apply rule '" + rule.GetName() + "' for host does not match anywhere!");
+				Log(LogWarning, "ScheduledDowntime")
+				    << "Apply rule '" << rule.GetName() << "' for host does not match anywhere!";
 
 		} else if (rule.GetTargetType() == "Service") {
 			apply_count = 0;
@@ -140,10 +140,12 @@ void ScheduledDowntime::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
 			}
 
 			if (apply_count == 0)
-				Log(LogWarning, "ScheduledDowntime", "Apply rule '" + rule.GetName() + "' for service does not match anywhere!");
+				Log(LogWarning, "ScheduledDowntime")
+				    << "Apply rule '" << rule.GetName() << "' for service does not match anywhere!";
 
 		} else {
-			Log(LogWarning, "ScheduledDowntime", "Wrong target type for apply rule '" + rule.GetName() + "'!");
+			Log(LogWarning, "ScheduledDowntime")
+			    << "Wrong target type for apply rule '" << rule.GetName() << "'!";
 		}
 	}
 }

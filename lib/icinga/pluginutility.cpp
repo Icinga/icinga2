@@ -102,7 +102,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 							continue;
 					} catch (const std::exception& ex) {
 						/* tried to convert a string */
-						Log(LogWarning, "PluginUtility", "Error evaluating set_if value '" + set_if_resolved + "': " + ex.what());
+						Log(LogWarning, "PluginUtility")
+						    << "Error evaluating set_if value '" << set_if_resolved << "': " << ex.what();
 						continue;
 					}
 				}

@@ -155,7 +155,8 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 	fpcert.open(certfile.CStr());
 
 	if (!fpcert) {
-		Log(LogCritical, "cli", "Could not open certificate file '" + certfile + "' for writing.");
+		Log(LogCritical, "cli")
+		    << "Could not open certificate file '" << certfile << "' for writing.";
 		return 1;
 	}
 
@@ -166,7 +167,8 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 	fpca.open(cafile.CStr());
 
 	if (!fpcert) {
-		Log(LogCritical, "cli", "Could not open CA certificate file '" + cafile + "' for writing.");
+		Log(LogCritical, "cli")
+		    << "Could not open CA certificate file '" << cafile << "' for writing.";
 		return 1;
 	}
 

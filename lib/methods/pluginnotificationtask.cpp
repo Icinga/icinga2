@@ -70,8 +70,9 @@ void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checka
 {
 	if (pr.ExitStatus != 0) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
-		Log(LogWarning, "PluginNotificationTask", "Notification command for object '" + checkable->GetName() + "' (PID: " + Convert::ToString(pr.PID) +
-		    ", arguments: " + Process::PrettyPrintArguments(parguments) + ") terminated with exit code " +
-		    Convert::ToString(pr.ExitStatus) + ", output: " + pr.Output);
+		Log(LogWarning, "PluginNotificationTask")
+		    << "Notification command for object '" << checkable->GetName() << "' (PID: " << pr.PID
+		    << ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
+		    << pr.ExitStatus << ", output: " << pr.Output;
 	}
 }

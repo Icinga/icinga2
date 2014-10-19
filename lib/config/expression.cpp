@@ -52,7 +52,8 @@ Value Expression::Evaluate(const Dictionary::Ptr& locals, DebugHint *dhint) cons
 		if (m_Operator != &Expression::OpLiteral) {
 			std::ostringstream msgbuf;
 			ShowCodeFragment(msgbuf, m_DebugInfo, false);
-			Log(LogDebug, "Expression", "Executing:\n" + msgbuf.str());
+			Log(LogDebug, "Expression")
+			    << "Executing:\n" << msgbuf.str();
 		}
 #endif /* _DEBUG */
 

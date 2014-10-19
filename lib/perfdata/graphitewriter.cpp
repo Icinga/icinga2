@@ -177,7 +177,8 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	std::ostringstream msgbuf;
 	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(Utility::GetTime());
 
-	Log(LogDebug, "GraphiteWriter", "Add to metric list:'" + msgbuf.str() + "'.");
+	Log(LogDebug, "GraphiteWriter")
+	    << "Add to metric list:'" << msgbuf.str() << "'.";
 
 	// do not send \n to debug log
 	msgbuf << "\n";
@@ -191,7 +192,8 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	try {
 		m_Stream->Write(metric.CStr(), metric.GetLength());
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "GraphiteWriter", "Cannot write to TCP socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+		Log(LogCritical, "GraphiteWriter")
+		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 		m_Stream.reset();
 	}

@@ -133,11 +133,9 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 			if (wi.Callback)
 				wi.Callback();
 		} catch (const std::exception& ex) {
-			std::ostringstream msgbuf;
-			msgbuf << "Exception thrown in event handler: " << std::endl
-			       << DiagnosticInformation(ex);
-
-			Log(LogCritical, "ThreadPool", msgbuf.str());
+			Log(LogCritical, "ThreadPool")
+			    << "Exception thrown in event handler:\n"
+			    << DiagnosticInformation(ex);
 		} catch (...) {
 			Log(LogCritical, "ThreadPool", "Exception of unknown type thrown in event handler.");
 		}
@@ -172,14 +170,12 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 		int divctx = usage_end.ru_nivcsw - usage_start.ru_nivcsw;
 #	endif /* RUSAGE_THREAD */
 		if (et - st > 0.5) {
-			std::ostringstream msgbuf;
+			Log(LogWarning, "ThreadPool")
 #	ifdef RUSAGE_THREAD
-			msgbuf << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
+			    << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
 #	else
-			msgbuf << "Event call took " << (et - st) << "s";
+			    << "Event call took " << (et - st) << "s";
 #	endif /* RUSAGE_THREAD */
-
-			Log(LogWarning, "ThreadPool", msgbuf.str());
 		}
 #endif /* _DEBUG */
 	}
@@ -293,9 +289,8 @@ void ThreadPool::ManagerThreadProc(void)
 					tthreads = m_MaxThreads / (sizeof(m_Queues) / sizeof(m_Queues[0])) - alive;
 
 				if (tthreads != 0) {
-					std::ostringstream msgbuf;
-					msgbuf << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
-					Log(LogNotice, "ThreadPool", msgbuf.str());
+					Log(LogNotice, "ThreadPool")
+					    << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
 				}
 
 				for (int i = 0; i < -tthreads; i++)
@@ -320,12 +315,11 @@ void ThreadPool::ManagerThreadProc(void)
 		if (lastStats < now - 15) {
 			lastStats = now;
 
-			std::ostringstream msgbuf;
-			msgbuf << "Pool #" << m_ID << ": Pending tasks: " << total_pending << "; Average latency: "
-				<< (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
-				<< "; Threads: " << total_alive
-				<< "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
-			Log(LogNotice, "ThreadPool", msgbuf.str());
+			Log(LogNotice, "ThreadPool")
+			    << "Pool #" << m_ID << ": Pending tasks: " << total_pending << "; Average latency: "
+			    << (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
+			    << "; Threads: " << total_alive
+			    << "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
 		}
 	}
 }

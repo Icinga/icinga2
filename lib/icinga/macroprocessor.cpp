@@ -183,7 +183,8 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 
 		if (!found) {
 			if (!missingMacro)
-				Log(LogWarning, "MacroProcessor", "Macro '" + name + "' is not defined.");
+				Log(LogWarning, "MacroProcessor")
+				    << "Macro '" << name << "' is not defined.";
 			else
 				*missingMacro = name;
 		}

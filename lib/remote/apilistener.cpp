@@ -293,13 +293,8 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 
 	bool verify_ok = tlsStream->IsVerifyOK();
 
-	std::ostringstream msgbuf;
-	msgbuf << "New client connection for identity '" << identity << "'";
-
-	if (!verify_ok)
-		msgbuf << " (unauthenticated)";
-
-	Log(LogInformation, "ApiListener", msgbuf.str());
+	Log(LogInformation, "ApiListener")
+	    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated");
 
 	Endpoint::Ptr endpoint;
 

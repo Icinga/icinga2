@@ -65,12 +65,14 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 	}
 
 	if (!Utility::PathExists(features_available_dir) ) {
-		Log(LogCritical, "cli", "Cannot parse available features. Path '" + features_available_dir + "' does not exist.");
+		Log(LogCritical, "cli")
+		    << "Cannot parse available features. Path '" << features_available_dir << "' does not exist.";
 		return 0;
 	}
 
 	if (!Utility::PathExists(features_enabled_dir) ) {
-		Log(LogCritical, "cli", "Cannot enable features. Path '" + features_enabled_dir + "' does not exist.");
+		Log(LogCritical, "cli")
+		    << "Cannot enable features. Path '" << features_enabled_dir << "' does not exist.";
 		return 0;
 	}
 
@@ -80,7 +82,8 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 		String source = features_available_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(source) ) {
-			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Source file '" + source + "' does not exist.");
+			Log(LogCritical, "cli")
+			    << "Cannot enable feature '" << feature << "'. Source file '" << source + "' does not exist.";
 			errors.push_back(feature);
 			continue;
 		}
@@ -88,14 +91,16 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (Utility::PathExists(target) ) {
-			Log(LogWarning, "cli", "Feature '" + feature + "' already enabled.");
+			Log(LogWarning, "cli")
+			    << "Feature '" << feature << "' already enabled.";
 			continue;
 		}
 
 #ifndef _WIN32
 		if (symlink(source.CStr(), target.CStr()) < 0) {
-			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Linking source '" + source + "' to target file '" + target +
-			    "' failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+			Log(LogCritical, "cli")
+			    << "Cannot enable feature '" << feature << "'. Linking source '" << source << "' to target file '" << target
+			    << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
 			continue;
 		}
@@ -103,7 +108,8 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 		std::ofstream fp;
 		fp.open(target.CStr());
 		if (!fp) {
-			Log(LogCritical, "cli", "Cannot enable feature '" + feature + "'. Failed to open file '" + target + "'.");
+			Log(LogCritical, "cli")
+			    << "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
 			errors.push_back(feature);
 			continue;
 		}
@@ -116,7 +122,8 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 	}
 
 	if (!errors.empty()) {
-		Log(LogCritical, "cli", "Cannot enable feature(s): " + boost::algorithm::join(errors, " "));
+		Log(LogCritical, "cli")
+		    << "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
 		errors.clear();
 		return 1;
 	}

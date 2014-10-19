@@ -69,12 +69,14 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				boost::smatch what;
 				ret = boost::regex_search(operand.GetData(), what, expr);
 			} catch (boost::exception&) {
-				Log(LogWarning, "AttributeFilter", "Regex '" + m_Operand + " " + m_Operator + " " + Convert::ToString(value) + "' error.");
+				Log(LogWarning, "AttributeFilter")
+				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 
-			//Log(LogDebug, "LivestatusListener/AttributeFilter", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
-			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
+			//Log(LogDebug, "LivestatusListener/AttributeFilter")
+			//    << "Attribute filter '" << m_Operand + " " << m_Operator << " "
+			//    << value << "' " << (ret ? "matches" : "doesn't match") << ".";
 
 			return ret;
 		} else if (m_Operator == "=~") {
@@ -87,12 +89,14 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				boost::smatch what;
 				ret = boost::regex_search(operand.GetData(), what, expr);
 			} catch (boost::exception&) {
-				Log(LogWarning, "AttributeFilter", "Regex '" + m_Operand + " " + m_Operator + " " + Convert::ToString(value) + "' error.");
+				Log(LogWarning, "AttributeFilter")
+				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 
-			//Log(LogDebug, "LivestatusListener/AttributeFilter", "Attribute filter '" + m_Operand + " " + m_Operator + " " +
-			//    static_cast<String>(value) + "' " + (ret ? "matches" : "doesn't match") + "." );
+			//Log(LogDebug, "LivestatusListener/AttributeFilter")
+			//    << "Attribute filter '" << m_Operand << " " << m_Operator << " "
+			//    << value << "' " << (ret ? "matches" : "doesn't match") << ".";
 
 			return ret;
 		} else if (m_Operator == "<") {

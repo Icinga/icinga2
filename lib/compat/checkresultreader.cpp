@@ -118,8 +118,8 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	Host::Ptr host = Host::GetByName(attrs["host_name"]);
 
 	if (!host) {
-		Log(LogWarning, "CheckResultReader", "Ignoring checkresult file for host '" + attrs["host_name"] +
-		    "': Host does not exist.");
+		Log(LogWarning, "CheckResultReader")
+		    << "Ignoring checkresult file for host '" << attrs["host_name"] << "': Host does not exist.";
 
 		return;
 	}
@@ -127,8 +127,9 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	Service::Ptr service = host->GetServiceByShortName(attrs["service_description"]);
 
 	if (!service) {
-		Log(LogWarning, "CheckResultReader", "Ignoring checkresult file for host '" + attrs["host_name"] +
-		    "', service '" + attrs["service_description"] + "': Service does not exist.");
+		Log(LogWarning, "CheckResultReader")
+		    << "Ignoring checkresult file for host '" << attrs["host_name"]
+		    << "', service '" << attrs["service_description"] << "': Service does not exist.";
 
 		return;
 	}
@@ -143,8 +144,9 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 	service->ProcessCheckResult(result);
 
-	Log(LogDebug, "CheckResultReader", "Processed checkresult file for host '" + attrs["host_name"] +
-		    "', service '" + attrs["service_description"] + "'");
+	Log(LogDebug, "CheckResultReader")
+	    << "Processed checkresult file for host '" << attrs["host_name"]
+	    << "', service '" << attrs["service_description"] << "'";
 
 	{
 		ObjectLock olock(service);

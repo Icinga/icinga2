@@ -83,8 +83,8 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, NULL, NULL, NULL);
 
 	if (!req) {
-		msgbuf << "Could not read X509 certificate request from '" + csrfile + "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		Log(LogCritical, "SSL", msgbuf.str());
+		Log(LogCritical, "SSL")
+		    << "Could not read X509 certificate request from '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		return 1;
 	}
 
@@ -100,7 +100,8 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 	fpcert.open(certfile.CStr());
 
 	if (!fpcert) {
-		Log(LogCritical, "cli", "Failed to open certificate file '" + certfile + "' for output");
+		Log(LogCritical, "cli")
+		    << "Failed to open certificate file '" << certfile << "' for output";
 		return 1;
 	}
 
