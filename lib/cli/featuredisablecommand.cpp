@@ -19,7 +19,7 @@
 
 #include "cli/featuredisablecommand.hpp"
 #include "cli/featureutility.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"

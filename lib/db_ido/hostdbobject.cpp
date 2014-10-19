@@ -30,7 +30,7 @@
 #include "icinga/compatutility.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

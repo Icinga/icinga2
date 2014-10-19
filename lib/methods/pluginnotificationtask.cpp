@@ -25,7 +25,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/scriptfunction.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"
 #include "base/convert.hpp"

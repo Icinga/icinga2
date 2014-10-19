@@ -20,7 +20,7 @@
 #include "icinga/checkable.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/context.hpp"
 
 using namespace icinga;

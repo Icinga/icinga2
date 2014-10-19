@@ -22,7 +22,7 @@
 #include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/dynamicobject.hpp"
 #include <boost/foreach.hpp>

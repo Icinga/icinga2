@@ -19,7 +19,7 @@
 
 #include "cli/pkiticketcommand.hpp"
 #include "remote/jsonrpc.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/clicommand.hpp"
 #include "base/tlsutility.hpp"
 #include "base/tlsstream.hpp"

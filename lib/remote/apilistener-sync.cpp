@@ -20,7 +20,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>

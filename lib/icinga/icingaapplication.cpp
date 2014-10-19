@@ -20,7 +20,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/debug.hpp"

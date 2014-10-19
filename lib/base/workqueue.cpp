@@ -19,7 +19,7 @@
 
 #include "base/workqueue.hpp"
 #include "base/utility.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/convert.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>

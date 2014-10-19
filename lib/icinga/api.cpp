@@ -19,7 +19,7 @@
 
 #include "icinga/api.hpp"
 #include "remote/apifunction.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 

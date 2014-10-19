@@ -23,7 +23,7 @@
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/unixsocket.hpp"

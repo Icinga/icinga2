@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/clicommand.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/type.hpp"
 #include "base/serializer.hpp"
 #include <boost/algorithm/string/split.hpp>

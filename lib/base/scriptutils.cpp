@@ -24,7 +24,7 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/serializer.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>

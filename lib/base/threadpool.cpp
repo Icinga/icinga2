@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/threadpool.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"

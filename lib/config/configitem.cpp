@@ -26,7 +26,7 @@
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/workqueue.hpp"
 #include "base/exception.hpp"

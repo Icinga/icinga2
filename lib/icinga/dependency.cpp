@@ -20,7 +20,7 @@
 #include "icinga/dependency.hpp"
 #include "icinga/service.hpp"
 #include "config/configcompilercontext.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
 

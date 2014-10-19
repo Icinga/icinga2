@@ -33,7 +33,7 @@
 #include "icinga/notificationcommand.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include <boost/smart_ptr/make_shared.hpp>

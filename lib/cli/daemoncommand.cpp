@@ -21,7 +21,7 @@
 #include "config/configcompilercontext.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitembuilder.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/logger.hpp"

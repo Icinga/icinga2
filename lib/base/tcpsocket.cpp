@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/tcpsocket.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include <boost/exception/errinfo_api_function.hpp>

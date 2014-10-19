@@ -25,7 +25,7 @@
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/scriptfunction.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 

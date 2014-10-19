@@ -30,7 +30,7 @@
 #include "icinga/notificationcommand.hpp"
 #include "remote/apifunction.hpp"
 #include "base/convert.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"

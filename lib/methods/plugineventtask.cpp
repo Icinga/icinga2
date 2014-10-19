@@ -23,7 +23,7 @@
 #include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"

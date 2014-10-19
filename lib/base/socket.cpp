@@ -21,7 +21,7 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include <sstream>
 #include <iostream>
 #include <boost/exception/errinfo_api_function.hpp>

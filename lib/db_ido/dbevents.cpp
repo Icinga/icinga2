@@ -25,7 +25,7 @@
 #include "base/initialize.hpp"
 #include "base/dynamictype.hpp"
 #include "base/utility.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "remote/endpoint.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/checkcommand.hpp"

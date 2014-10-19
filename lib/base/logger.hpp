@@ -22,11 +22,24 @@
 
 #include "base/i2-base.hpp"
 #include "base/logger.thpp"
-#include "base/logger_fwd.hpp"
 #include <set>
 
 namespace icinga
 {
+
+/**
+ * Log severity.
+ *
+ * @ingroup base
+ */
+enum LogSeverity
+{
+	LogDebug,
+	LogNotice,
+	LogInformation,
+	LogWarning,
+	LogCritical
+};
 
 /**
  * A log entry.

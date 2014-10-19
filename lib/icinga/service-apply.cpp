@@ -23,7 +23,7 @@
 #include "config/configcompilercontext.hpp"
 #include "base/initialize.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
 #include "base/configerror.hpp"

@@ -22,7 +22,7 @@
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/split.hpp>

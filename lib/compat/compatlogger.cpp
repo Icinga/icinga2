@@ -28,7 +28,7 @@
 #include "config/configcompilercontext.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"

@@ -24,7 +24,7 @@
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/initialize.hpp"

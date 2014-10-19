@@ -21,7 +21,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 

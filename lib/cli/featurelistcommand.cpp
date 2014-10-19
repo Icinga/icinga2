@@ -19,7 +19,7 @@
 
 #include "cli/featurelistcommand.hpp"
 #include "cli/featureutility.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/clicommand.hpp"
 #include "base/convert.hpp"
 #include "base/console.hpp"

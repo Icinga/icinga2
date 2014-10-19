@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 

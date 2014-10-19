@@ -29,7 +29,7 @@
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/object.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/configerror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>

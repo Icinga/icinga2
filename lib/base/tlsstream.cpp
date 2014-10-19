@@ -20,7 +20,7 @@
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include <boost/bind.hpp>
 #include <iostream>
 

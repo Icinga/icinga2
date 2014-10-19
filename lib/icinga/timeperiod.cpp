@@ -20,7 +20,7 @@
 #include "icinga/timeperiod.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include <boost/foreach.hpp>

@@ -23,7 +23,7 @@
 #include "base/convert.hpp"
 #include "base/netstring.hpp"
 #include "base/dynamictype.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/stdiostream.hpp"
 #include "base/application.hpp"

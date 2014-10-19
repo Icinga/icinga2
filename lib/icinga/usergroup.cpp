@@ -21,7 +21,7 @@
 #include "config/objectrule.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
 #include <boost/foreach.hpp>

@@ -19,7 +19,7 @@
 
 #include "methods/nulleventtask.hpp"
 #include "base/scriptfunction.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 

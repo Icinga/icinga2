@@ -19,7 +19,7 @@
 
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"

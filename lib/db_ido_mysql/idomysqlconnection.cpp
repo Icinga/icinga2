@@ -21,7 +21,7 @@
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "db_ido_mysql/idomysqlconnection.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"

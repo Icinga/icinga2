@@ -24,7 +24,7 @@
 #include "base/application.thpp"
 #include "base/threadpool.hpp"
 #include "base/utility.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 
 namespace icinga
 {

@@ -22,7 +22,7 @@
 #include "icinga/service.hpp"
 #include "config/configcompilercontext.hpp"
 #include "base/objectlock.hpp"
-#include "base/logger_fwd.hpp"
+#include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
