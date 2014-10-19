@@ -98,9 +98,6 @@ private:
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
 	static LogSeverity m_ConsoleLogSeverity;
-
-	friend I2_BASE_API void Log(LogSeverity severity, const String& facility,
-	    const String& message);
 };
 
 I2_BASE_API void IcingaLog(LogSeverity severity, const String& facility, const String& message);
