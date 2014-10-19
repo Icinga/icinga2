@@ -103,6 +103,9 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 	ConsoleColor color;
 
 	switch (entry.Severity) {
+		case LogDebug:
+			color = Console_ForegroundCyan;
+			break;
 		case LogNotice:
 			color = Console_ForegroundBlue;
 			break;
