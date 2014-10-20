@@ -19,6 +19,12 @@
 
 #include "base/scriptvariable.hpp"
 #include "base/singleton.hpp"
+#include "base/logger.hpp"
+#include "base/stdiostream.hpp"
+#include "base/netstring.hpp"
+#include "base/convert.hpp"
+#include <boost/foreach.hpp>
+#include <fstream>
 
 using namespace icinga;
 
@@ -88,6 +94,55 @@ ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, 
 void ScriptVariable::Unregister(const String& name)
 {
 	ScriptVariableRegistry::GetInstance()->Unregister(name);
+}
+
+void ScriptVariable::WriteVariablesFile(const String& filename)
+{
+	Log(LogInformation, "ScriptVariable")
+		<< "Dumping variables to file '" << filename << "'";
+
+	String tempFilename = filename + ".tmp";
+
+	std::fstream fp;
+	fp.open(tempFilename.CStr(), std::ios_base::out);
+
+	if (!fp)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
+
+	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+
+	BOOST_FOREACH(const ScriptVariableRegistry::ItemMap::value_type& kv, ScriptVariableRegistry::GetInstance()->GetItems()) {
+		Dictionary::Ptr persistentVariable = make_shared<Dictionary>();
+
+		persistentVariable->Set("name", kv.first);
+
+		ScriptVariable::Ptr sv = kv.second;
+		Value value = sv->GetData();
+
+		if (value.IsObject())
+			value = Convert::ToString(value);
+
+		persistentVariable->Set("value", value);
+
+		String json = JsonSerialize(persistentVariable);
+
+		NetString::WriteStringToStream(sfp, json);
+	}
+
+	sfp->Close();
+
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(filename.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempFilename));
+	}
 }
 
 ScriptVariableRegistry *ScriptVariableRegistry::GetInstance(void)

@@ -481,6 +481,7 @@ void Application::DisplayInfoMessage(bool skipVersion)
 		  << "  Package data directory: " << GetPkgDataDir() << std::endl
 		  << "  State path: " << GetStatePath() << std::endl
 		  << "  Objects path: " << GetObjectsPath() << std::endl
+		  << "  Vars path: " << GetVarsPath() << std::endl
 		  << "  PID path: " << GetPidPath() << std::endl
 		  << "  Application type: " << GetApplicationType() << std::endl;
 }
@@ -1010,6 +1011,26 @@ String Application::GetObjectsPath(void)
 void Application::DeclareObjectsPath(const String& path)
 {
 	ScriptVariable::Set("ObjectsPath", path, false);
+}
+
+/**
+* Retrieves the path for the vars file.
+*
+* @returns The path.
+*/
+String Application::GetVarsPath(void)
+{
+	return ScriptVariable::Get("VarsPath", &Empty);
+}
+
+/**
+* Sets the path for the vars file.
+*
+* @param path The new path.
+*/
+void Application::DeclareVarsPath(const String& path)
+{
+	ScriptVariable::Set("VarsPath", path, false);
 }
 
 /**

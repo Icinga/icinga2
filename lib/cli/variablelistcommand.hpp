@@ -17,55 +17,35 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTVARIABLE_H
-#define SCRIPTVARIABLE_H
+#ifndef VARIABLELISTCOMMAND_H
+#define VARIABLELISTCOMMAND_H
 
-#include "base/i2-base.hpp"
-#include "base/registry.hpp"
-#include "base/value.hpp"
+#include "base/dictionary.hpp"
+#include "base/array.hpp"
+#include "cli/clicommand.hpp"
+#include <ostream>
 
 namespace icinga
 {
 
-class ScriptVariable;
-
-class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, shared_ptr<ScriptVariable> >
-{
-public:
-	static ScriptVariableRegistry *GetInstance(void);
-};
-	
 /**
- * A script variables.
+ * The "variable list" command.
  *
- * @ingroup base
+ * @ingroup cli
  */
-class I2_BASE_API ScriptVariable : public Object
+class VariableListCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ScriptVariable);
+	DECLARE_PTR_TYPEDEFS(VariableListCommand);
 
-	ScriptVariable(const Value& data);
-
-	void SetConstant(bool constant);
-	bool IsConstant(void) const;
-
-	void SetData(const Value& data);
-	Value GetData(void) const;
-
-	static ScriptVariable::Ptr GetByName(const String& name);
-	static void Unregister(const String& name);
-
-	static Value Get(const String& name, const Value *defaultValue = NULL);
-	static ScriptVariable::Ptr Set(const String& name, const Value& value, bool overwrite = true, bool make_const = false);
-
-	static void WriteVariablesFile(const String& filename);
+        virtual String GetDescription(void) const;
+        virtual String GetShortDescription(void) const;
+        virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 private:
-	Value m_Data;
-	bool m_Constant;
+	static void PrintVariable(std::ostream& fp, const String& message);
 };
 
 }
 
-#endif /* SCRIPTVARIABLE_H */
+#endif /* VARIABLELISTCOMMAND_H */

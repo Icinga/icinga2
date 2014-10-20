@@ -107,6 +107,9 @@ public:
 	static String GetObjectsPath(void);
 	static void DeclareObjectsPath(const String& path);
 
+	static String GetVarsPath(void);
+	static void DeclareVarsPath(const String& path);
+
 	static String GetPidPath(void);
 	static void DeclarePidPath(const String& path);
 

@@ -76,7 +76,8 @@ static void IncludeNonLocalZone(const String& zonePath)
 	IncludeZoneDirRecursive(zonePath);
 }
 
-static bool LoadConfigFiles(const boost::program_options::variables_map& vm, const String& appType, const String& objectsFile = String())
+static bool LoadConfigFiles(const boost::program_options::variables_map& vm, const String& appType,
+    const String& objectsFile = String(), const String& varsfile = String())
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
@@ -147,6 +148,8 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 
 	if (!result)
 		return false;
+
+	ScriptVariable::WriteVariablesFile(varsfile);
 
 	return true;
 }
@@ -327,7 +330,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 	}
 
-	if (!LoadConfigFiles(vm, appType, Application::GetObjectsPath()))
+	if (!LoadConfigFiles(vm, appType, Application::GetObjectsPath(), Application::GetVarsPath()))
 		return EXIT_FAILURE;
 
 	if (vm.count("validate")) {
