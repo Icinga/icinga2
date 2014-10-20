@@ -18,9 +18,14 @@
  ******************************************************************************/
 
 #include "cli/repositoryobjectcommand.hpp"
+#include "cli/repositoryutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -67,6 +72,11 @@ String RepositoryObjectCommand::GetDescription(void) const
 		case RepositoryCommandList:
 			description = "Lists all";
 			break;
+		case RepositoryCommandSet:
+			description = "Set attributes for a";
+			break;
+		default:
+			break;
 	}
 
 	description += " " + m_Type + " object";
@@ -90,6 +100,11 @@ String RepositoryObjectCommand::GetShortDescription(void) const
 			break;
 		case RepositoryCommandList:
 			description = "lists all";
+			break;
+		case RepositoryCommandSet:
+			description = "set attributes for a";
+			break;
+		default:
 			break;
 	}
 
@@ -125,5 +140,48 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
  */
 int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	if (ap.empty()) {
+		Log(LogCritical, "cli")
+		    << "No object name given. Bailing out.\n";
+		return 1;
+	}
+
+	String name = ap[0];
+
+        std::vector<String> tokens;
+	Dictionary::Ptr attr = make_shared<Dictionary>();
+
+	std::vector<std::string> attrs = ap;
+	attrs.erase(attrs.begin()); //remove name
+
+	BOOST_FOREACH(const String& kv, attrs) {
+		boost::algorithm::split(tokens, kv, boost::is_any_of("="));
+
+		if (tokens.size() == 2)
+			attr->Set(tokens[0], tokens[1]);
+		else
+			Log(LogWarning, "cli")
+			    << "Cannot parse passed attributes for object '" << name << "': " << boost::algorithm::join(tokens, "=");
+	}
+
+	if (m_Command == RepositoryCommandList) {
+		RepositoryUtility::PrintObjects(std::cout, m_Type);
+	}
+	else if (m_Command == RepositoryCommandAdd) {
+		RepositoryUtility::AddObject(name, m_Type, attr);
+	}
+	else if (m_Command == RepositoryCommandRemove) {
+		RepositoryUtility::RemoveObject(name, m_Type);
+	}
+	else if (m_Command == RepositoryCommandSet) {
+		Log(LogWarning, "cli")
+		    << "Not implemented yet.\n";
+		return 1;
+	} else {
+		Log(LogCritical, "cli")
+		    << "Invalid command '" << m_Command << "'specified.\n";
+		return 1;
+	}
+
 	return 0;
 }

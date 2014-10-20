@@ -17,62 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef REPOSITORYOBJECTCOMMAND_H
-#define REPOSITORYOBJECTCOMMAND_H
+#ifndef REPOSITORYCOMMITCOMMAND_H
+#define REPOSITORYCOMMITCOMMAND_H
 
+#include "base/dictionary.hpp"
+#include "base/array.hpp"
 #include "cli/clicommand.hpp"
+#include <ostream>
 
 namespace icinga
 {
 
-enum RepositoryCommandType
-{
-	RepositoryCommandAdd,
-	RepositoryCommandRemove,
-	RepositoryCommandList,
-	RepositoryCommandSet
-};
-
 /**
- * The "repository <type> <add/remove/list>" command.
+ * The "object list" command.
  *
  * @ingroup cli
  */
-class I2_CLI_API RepositoryObjectCommand : public CLICommand
+class RepositoryCommitCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(RepositoryObjectCommand);
+        DECLARE_PTR_TYPEDEFS(RepositoryCommitCommand);
 
-	RepositoryObjectCommand(const String& type, RepositoryCommandType command);
-
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
-	virtual std::vector<String> GetPositionalSuggestions(const String& word) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
-
-private:
-	String m_Type;
-	RepositoryCommandType m_Command;
+        virtual String GetDescription(void) const;
+        virtual String GetShortDescription(void) const;
+        virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+            boost::program_options::options_description& hiddenDesc) const;
+        virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 };
-
-/**
- * Helper class for registering repository CLICommand implementation classes.
- *
- * @ingroup cli
- */
-class I2_CLI_API RegisterRepositoryCLICommandHelper
-{
-public:
-	RegisterRepositoryCLICommandHelper(const String& type);
-};
-
-#define REGISTER_REPOSITORY_CLICOMMAND(type) \
-	namespace { namespace UNIQUE_NAME(cli) { \
-		I2_EXPORT icinga::RegisterRepositoryCLICommandHelper l_RegisterRepositoryCLICommand(type); \
-	} }
 
 }
 
-#endif /* REPOSITORYOBJECTCOMMAND_H */
+#endif /* REPOSITORYCOMMITCOMMAND_H */

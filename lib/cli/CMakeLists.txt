@@ -26,6 +26,7 @@ set(cli_SOURCES
   pkiutility.cpp
   repositoryobjectcommand.cpp
   variablegetcommand.cpp variablelistcommand.cpp
+  repositorycommitcommand.cpp repositoryobjectcommand.cpp repositoryutility.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
