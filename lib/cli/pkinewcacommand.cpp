@@ -19,7 +19,6 @@
 
 #include "cli/pkinewcacommand.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
 #include <fstream>

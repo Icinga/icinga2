@@ -19,9 +19,7 @@
 
 #include "cli/repositoryobjectcommand.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/application.hpp"
-#include "base/tlsutility.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <fstream>
 

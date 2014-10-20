@@ -20,7 +20,6 @@
 #include "cli/pkirequestcommand.hpp"
 #include "remote/jsonrpc.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/tlsutility.hpp"
 #include "base/tlsstream.hpp"
 #include "base/tcpsocket.hpp"

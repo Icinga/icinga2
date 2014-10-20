@@ -19,7 +19,6 @@
 
 #include "cli/objectlistcommand.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
 #include "base/dynamicobject.hpp"

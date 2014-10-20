@@ -20,7 +20,7 @@
 #ifndef AGENTSETUPCOMMAND_H
 #define AGENTSETUPCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

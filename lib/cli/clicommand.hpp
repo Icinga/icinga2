@@ -67,6 +67,10 @@ public:
 	    boost::program_options::options_description *hiddenDesc = NULL,
 	    ArgumentCompletionCallback globalArgCompletionCallback = NULL,
 	    bool autocomplete = false, int autoindex = -1);
+
+private:
+	static boost::mutex& GetRegistryMutex(void);
+	static std::map<std::vector<String>, CLICommand::Ptr>& GetRegistry(void);
 };
 
 /**

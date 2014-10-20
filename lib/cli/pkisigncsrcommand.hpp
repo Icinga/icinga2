@@ -20,7 +20,7 @@
 #ifndef PKISIGNCSRCOMMAND_H
 #define PKISIGNCSRCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

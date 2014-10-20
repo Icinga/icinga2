@@ -17,6 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "cli/clicommand.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitembuilder.hpp"
@@ -28,7 +29,6 @@
 #include "base/convert.hpp"
 #include "base/scriptvariable.hpp"
 #include "base/context.hpp"
-#include "base/clicommand.hpp"
 #include "base/console.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>

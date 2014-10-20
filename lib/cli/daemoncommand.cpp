@@ -22,7 +22,6 @@
 #include "config/configcompiler.hpp"
 #include "config/configitembuilder.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include "base/logger.hpp"
 #include "base/timer.hpp"

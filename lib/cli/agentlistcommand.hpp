@@ -20,7 +20,7 @@
 #ifndef AGENTLISTCOMMAND_H
 #define AGENTLISTCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

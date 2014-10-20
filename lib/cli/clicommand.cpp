@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 #include "base/logger.hpp"
 #include "base/type.hpp"
 #include "base/serializer.hpp"
@@ -32,9 +32,6 @@
 
 using namespace icinga;
 namespace po = boost::program_options;
-
-boost::mutex l_RegistryMutex;
-std::map<std::vector<String>, CLICommand::Ptr> l_Registry;
 
 std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, const String& word)
 {
@@ -95,13 +92,25 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, cons
 	return result;
 }
 
+boost::mutex& CLICommand::GetRegistryMutex(void)
+{
+	static boost::mutex mtx;
+	return mtx;
+}
+
+std::map<std::vector<String>, CLICommand::Ptr>& CLICommand::GetRegistry(void)
+{
+	static std::map<std::vector<String>, CLICommand::Ptr> registry;
+	return registry;
+}
+
 CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 {
-	boost::mutex::scoped_lock lock(l_RegistryMutex);
+	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
-	std::map<std::vector<String>, CLICommand::Ptr>::const_iterator it = l_Registry.find(name);
+	std::map<std::vector<String>, CLICommand::Ptr>::const_iterator it = GetRegistry().find(name);
 
-	if (it == l_Registry.end())
+	if (it == GetRegistry().end())
 		return CLICommand::Ptr();
 
 	return it->second;
@@ -109,14 +118,14 @@ CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 
 void CLICommand::Register(const std::vector<String>& name, const CLICommand::Ptr& function)
 {
-	boost::mutex::scoped_lock lock(l_RegistryMutex);
-	l_Registry[name] = function;
+	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	GetRegistry()[name] = function;
 }
 
 void CLICommand::Unregister(const std::vector<String>& name)
 {
-	boost::mutex::scoped_lock lock(l_RegistryMutex);
-	l_Registry.erase(name);
+	boost::mutex::scoped_lock lock(GetRegistryMutex());
+	GetRegistry().erase(name);
 }
 
 RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLICommand::Ptr& command)
@@ -145,14 +154,14 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
     po::positional_options_description& positionalDesc,
     po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
-	boost::mutex::scoped_lock lock(l_RegistryMutex);
+	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 
 	std::vector<String> best_match;
 	int arg_end = 1;
 
-	BOOST_FOREACH(const CLIKeyValue& kv, l_Registry) {
+	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		for (int i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
@@ -204,7 +213,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
     ArgumentCompletionCallback globalArgCompletionCallback,
     bool autocomplete, int autoindex)
 {
-	boost::mutex::scoped_lock lock(l_RegistryMutex);
+	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 
@@ -212,7 +221,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	int arg_begin = 0;
 	CLICommand::Ptr command;
 
-	BOOST_FOREACH(const CLIKeyValue& kv, l_Registry) {
+	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		arg_begin = 0;
@@ -249,7 +258,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	} else
 		std::cout << "Supported commands: " << std::endl;
 
-	BOOST_FOREACH(const CLIKeyValue& kv, l_Registry) {
+	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		if (vname.size() < best_match.size())

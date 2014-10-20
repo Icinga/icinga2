@@ -20,7 +20,7 @@
 #ifndef PKINEWCERTCOMMAND_H
 #define PKINEWCERTCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

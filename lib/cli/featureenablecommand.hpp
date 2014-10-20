@@ -20,7 +20,7 @@
 #ifndef FEATUREENABLECOMMAND_H
 #define FEATUREENABLECOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

@@ -24,7 +24,7 @@ endif()
 add_executable(icinga-app icinga.cpp ${WindowsSources})
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(icinga-app ${Boost_LIBRARIES} base config)
+target_link_libraries(icinga-app ${Boost_LIBRARIES} base config cli)
 
 set_target_properties (
   icinga-app PROPERTIES

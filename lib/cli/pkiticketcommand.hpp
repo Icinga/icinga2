@@ -20,7 +20,7 @@
 #ifndef PKITICKETCOMMAND_H
 #define PKITICKETCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

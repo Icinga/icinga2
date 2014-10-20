@@ -19,7 +19,6 @@
 
 #include "cli/agentlistcommand.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>

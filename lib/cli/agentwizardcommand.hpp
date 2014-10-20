@@ -20,7 +20,7 @@
 #ifndef AGENTWIZARDCOMMAND_H
 #define AGENTWIZARDCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

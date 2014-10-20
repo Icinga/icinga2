@@ -19,7 +19,6 @@
 
 #include "cli/pkisigncsrcommand.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/tlsutility.hpp"
 #include "base/application.hpp"
 #include <fstream>

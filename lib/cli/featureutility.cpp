@@ -19,7 +19,6 @@
 
 #include "cli/featureutility.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>

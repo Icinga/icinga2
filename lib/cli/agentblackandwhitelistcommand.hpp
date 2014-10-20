@@ -20,7 +20,7 @@
 #ifndef BLACKANDWHITELISTCOMMAND_H
 #define BLACKANDWHITELISTCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

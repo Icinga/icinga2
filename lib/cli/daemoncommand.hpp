@@ -20,7 +20,7 @@
 #ifndef DAEMONCOMMAND_H
 #define DAEMONCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

@@ -20,7 +20,7 @@
 #ifndef PKINEWCACOMMAND_H
 #define PKINEWCACOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

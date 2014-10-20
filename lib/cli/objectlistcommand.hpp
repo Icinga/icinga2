@@ -22,7 +22,7 @@
 
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 #include <ostream>
 
 namespace icinga

@@ -20,7 +20,7 @@
 #ifndef AGENTUPDATECONFIGCOMMAND_H
 #define AGENTUPDATECONFIGCOMMAND_H
 
-#include "base/clicommand.hpp"
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {

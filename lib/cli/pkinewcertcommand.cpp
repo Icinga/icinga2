@@ -19,7 +19,6 @@
 
 #include "cli/pkinewcertcommand.hpp"
 #include "base/logger.hpp"
-#include "base/clicommand.hpp"
 #include "base/tlsutility.hpp"
 
 using namespace icinga;
