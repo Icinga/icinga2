@@ -96,7 +96,7 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 		Dictionary::Ptr variable = JsonDeserialize(message);
 
 		if (variable->Get("name") == ap[0]) {
-			std::cout << variable->Get("value");
+			std::cout << variable->Get("value") << "\n";
 			break;
 		}
 	}
