@@ -71,7 +71,7 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 	}
 
 	if (vm.count("current")) {
-		std::cout << ScriptVariable::Get(ap[0], &Empty);
+		std::cout << ScriptVariable::Get(ap[0], &Empty) << "\n";
 		return 0;
 	}
 
