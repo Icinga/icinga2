@@ -25,7 +25,6 @@ override_dh_auto_configure:
 		-DICINGA2_RUNDIR=/run \
 		-DICINGA2_USER=nagios \
 		-DICINGA2_GROUP=nagios \
-		-DICINGA2_COMMAND_USER=nagios \
 		-DICINGA2_COMMAND_GROUP=www-data \
 		-DICINGA2_PLUGINDIR=/usr/lib/nagios/plugins \
 		-DICINGA2_UNITY_BUILD=TRUE

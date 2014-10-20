@@ -12,6 +12,9 @@ else
 	exit 1
 fi
 
+ICINGA2_USER=`$DAEMON variable get --current RunAsUser`
+ICINGA2_GROUP=`$DAEMON variable get --current RunAsGroup`
+
 mkdir -p $(dirname -- $ICINGA2_PID_FILE)
 chown $ICINGA2_USER:$ICINGA2_GROUP $(dirname -- $ICINGA2_PID_FILE)
 if [ -f $ICINGA2_PID_FILE ]; then

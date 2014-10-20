@@ -135,7 +135,6 @@ variables are supported:
 
 - `ICINGA2_USER`: The user Icinga 2 should run as; defaults to `icinga`
 - `ICINGA2_GROUP`: The group Icinga 2 should run as; defaults to `icinga`
-- `ICINGA2_COMMAND_USER`: The command user Icinga 2 should use; defaults to `icinga`
 - `ICINGA2_GIT_VERSION_INFO`: Whether to use Git to determine the version number; defaults to `ON`
 - `ICINGA2_COMMAND_GROUP`: The command group Icinga 2 should use; defaults to `icingacmd`
 - `ICINGA2_UNITY_BUILD`: Whether to perform a unity build

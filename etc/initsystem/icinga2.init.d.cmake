@@ -26,6 +26,9 @@ fi
 
 test -x $DAEMON || exit 5
 
+ICINGA2_USER=`$DAEMON variable get --current RunAsUser`
+ICINGA2_GROUP=`$DAEMON variable get --current RunAsGroup`
+
 if [ ! -e $ICINGA2_CONFIG_FILE ]; then
         echo "Config file '$ICINGA2_CONFIG_FILE' does not exist."
         exit 6

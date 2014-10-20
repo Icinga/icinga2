@@ -186,7 +186,6 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DICINGA2_RUNDIR=%{_rundir} \
          -DICINGA2_USER=%{icinga_user} \
          -DICINGA2_GROUP=%{icinga_group} \
-         -DICINGA2_COMMAND_USER=%{icinga_user} \
          -DICINGA2_COMMAND_GROUP=%{icingacmd_group} \
          -DICINGA2_UNITY_BUILD=TRUE"
 %if "%{_vendor}" == "redhat"

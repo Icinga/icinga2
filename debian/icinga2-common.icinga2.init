@@ -17,8 +17,6 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="icinga2 monitoring daemon"
 NAME=icinga2
 DAEMON=/usr/sbin/icinga2
-DAEMON_USER=nagios
-DAEMON_GROUP=nagios
 DAEMON_CMDGROUP=www-data
 DAEMON_ARGS="-e /var/log/icinga2/icinga2.err"
 STARTUP_LOG="/var/log/icinga2/startup.log"
@@ -27,6 +25,9 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
+
+DAEMON_USER=`$DAEMON variable get --current RunAsUser`
+DAEMON_GROUP=`$DAEMON variable get --current RunAsGroup`
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
