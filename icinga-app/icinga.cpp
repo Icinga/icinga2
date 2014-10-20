@@ -285,6 +285,8 @@ int Main(void)
 					std::cout << std::endl << std::endl
 						  << command->GetDescription();
 				}
+
+				std::cout << "\n";
 			}
 
 			if (vm.count("version")) {
@@ -308,13 +310,10 @@ int Main(void)
 		}
 
 		if (!command || vm.count("help")) {
-			if (!command) {
-				std::cout << std::endl;
+			if (!command)
 				CLICommand::ShowCommands(argc, argv, NULL);
-			}
 
-			std::cout << std::endl
-				<< visibleDesc << std::endl
+			std::cout << visibleDesc << std::endl
 				<< "Report bugs at <https://dev.icinga.org/>" << std::endl
 				<< "Icinga home page: <http://www.icinga.org/>" << std::endl;
 			return EXIT_SUCCESS;

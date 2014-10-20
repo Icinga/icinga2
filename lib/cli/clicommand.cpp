@@ -289,6 +289,9 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 			std::cout << "  * " << boost::algorithm::join(vname, " ") << " (" << kv.second->GetShortDescription() << ")" << std::endl;
 	}
 
+	if (!autocomplete)
+		std::cout << std::endl;
+
 	if (command && autocomplete) {
 		String aname, prefix, pword;
 		const po::option_description *odesc;
