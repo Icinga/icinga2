@@ -204,7 +204,8 @@ void ApiClient::MessageThreadProc(void)
 		while (ProcessMessage())
 			; /* empty loop body */
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "ApiClient", "Error while reading JSON-RPC message for identity '" + m_Identity + "': " + DiagnosticInformation(ex));
+		Log(LogWarning, "ApiClient")
+		    << "Error while reading JSON-RPC message for identity '" << m_Identity << "': " << DiagnosticInformation(ex);
 	}
 
 	Disconnect();

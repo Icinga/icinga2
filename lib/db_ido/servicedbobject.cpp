@@ -235,7 +235,8 @@ void ServiceDbObject::OnConfigUpdate(void)
 		OnQuery(query_contact);
 	}
 
-	Log(LogDebug, "ServiceDbObject", "service contactgroups: " + service->GetName());
+	Log(LogDebug, "ServiceDbObject")
+	    << "service contactgroups: " << service->GetName();
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		Log(LogDebug, "ServiceDbObject")

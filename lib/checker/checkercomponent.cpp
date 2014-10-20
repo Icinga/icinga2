@@ -136,7 +136,8 @@ void CheckerComponent::CheckThreadProc(void)
 
 		if (!forced) {
 			if (!checkable->IsReachable(DependencyCheckExecution)) {
-				Log(LogNotice, "CheckerComponent", "Skipping check for object '" + checkable->GetName() + "': Dependency failed.");
+				Log(LogNotice, "CheckerComponent")
+				    << "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
 				check = false;
 			}
 
@@ -145,18 +146,21 @@ void CheckerComponent::CheckThreadProc(void)
 			tie(host, service) = GetHostService(checkable);
 
 			if (host && !service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
-				Log(LogNotice, "CheckerComponent", "Skipping check for host '" + host->GetName() + "': active host checks are disabled");
+				Log(LogNotice, "CheckerComponent")
+				    << "Skipping check for host '" << host->GetName() << "': active host checks are disabled";
 				check = false;
 			}
 			if (host && service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
-				Log(LogNotice, "CheckerComponent", "Skipping check for service '" + service->GetName() + "': active service checks are disabled");
+				Log(LogNotice, "CheckerComponent")
+				    << "Skipping check for service '" << service->GetName() << "': active service checks are disabled";
 				check = false;
 			}
 
 			TimePeriod::Ptr tp = checkable->GetCheckPeriod();
 
 			if (tp && !tp->IsInside(Utility::GetTime())) {
-				Log(LogNotice, "CheckerComponent", "Skipping check for object '" + checkable->GetName() + "': not in check_period");
+				Log(LogNotice, "CheckerComponent")
+				    << "Skipping check for object '" << checkable->GetName() << "': not in check_period";
 				check = false;
 			}
 		}
@@ -182,7 +186,8 @@ void CheckerComponent::CheckThreadProc(void)
 			checkable->SetForceNextCheck(false);
 		}
 
-		Log(LogDebug, "CheckerComponent", "Executing check for '" + checkable->GetName() + "'");
+		Log(LogDebug, "CheckerComponent")
+		    << "Executing check for '" << checkable->GetName() << "'";
 
 		CheckerComponent::Ptr self = GetSelf();
 		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, checkable));
@@ -231,7 +236,8 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		}
 	}
 
-	Log(LogDebug, "CheckerComponent", "Check finished for object '" + checkable->GetName() + "'");
+	Log(LogDebug, "CheckerComponent")
+	    << "Check finished for object '" << checkable->GetName() << "'";
 }
 
 void CheckerComponent::ResultTimerHandler(void)

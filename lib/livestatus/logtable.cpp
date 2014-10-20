@@ -96,7 +96,8 @@ String LogTable::GetPrefix(void) const
 
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Log(LogDebug, "LogTable", "Pre-selecting log file from " + Convert::ToString(m_TimeFrom) + " until " + Convert::ToString(m_TimeUntil));
+	Log(LogDebug, "LogTable")
+	    << "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
 
 	/* create log file index */
 	LivestatusLogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);

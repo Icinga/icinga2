@@ -173,7 +173,8 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 	else if (severity == "critical")
 		return LogCritical;
 	else {
-		Log(LogCritical, "Logger", "Invalid severity: '" + severity + "'.");
+		Log(LogCritical, "Logger")
+		    << "Invalid severity: '" << severity << "'.";
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 	}
 }

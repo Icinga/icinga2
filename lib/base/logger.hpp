@@ -131,6 +131,9 @@ private:
 	LogSeverity m_Severity;
 	String m_Facility;
 	std::ostringstream m_Buffer;
+
+	Log(void);
+	Log& operator=(const Log& rhs);
 };
 
 }

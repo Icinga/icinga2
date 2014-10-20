@@ -46,23 +46,27 @@ void ApiListener::OnConfigLoaded(void)
 	try {
 		cert = GetX509Certificate(GetCertPath());
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener", "Cannot get certificate from cert path: '" + GetCertPath() + "'.");
+		Log(LogCritical, "ApiListener")
+		    << "Cannot get certificate from cert path: '" << GetCertPath() << "'.";
 		Application::Exit(EXIT_FAILURE);
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
+		Log(LogCritical, "ApiListener")
+		    << "Cannot get certificate common name from cert path: '" << GetCertPath() << "'.";
 		Application::Exit(EXIT_FAILURE);
 	}
 
-	Log(LogInformation, "ApiListener", "My API identity: " + GetIdentity());
+	Log(LogInformation, "ApiListener")
+	    << "My API identity: " << GetIdentity();
 
 	try {
 		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener", "Cannot make SSL context for cert path: '" + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.");
+		Log(LogCritical, "ApiListener")
+		    << "Cannot make SSL context for cert path: '" << GetCertPath() << "' key path: '" << GetKeyPath() << "' ca path: '" << GetCaPath() << "'.";
 		Application::Exit(EXIT_FAILURE);
 	}
 
@@ -70,13 +74,15 @@ void ApiListener::OnConfigLoaded(void)
 		try {
 			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
 		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener", "Cannot add certificate revocation list to SSL context for crl path: '" + GetCrlPath() + "'.");
+			Log(LogCritical, "ApiListener")
+			    << "Cannot add certificate revocation list to SSL context for crl path: '" << GetCrlPath() << "'.";
 			Application::Exit(EXIT_FAILURE);
 		}
 	}
 
 	if (!Endpoint::GetByName(GetIdentity())) {
-		Log(LogCritical, "ApiListener", "Endpoint object for '" + GetIdentity() + "' is missing.");
+		Log(LogCritical, "ApiListener")
+		    << "Endpoint object for '" << GetIdentity() << "' is missing.";
 		Application::Exit(EXIT_FAILURE);
 	}
 
@@ -103,7 +109,8 @@ void ApiListener::Start(void)
 
 	/* create the primary JSON-RPC listener */
 	if (!AddListener(GetBindHost(), GetBindPort())) {
-		Log(LogCritical, "ApiListener", "Cannot add listener on host '" + GetBindHost() + "' for port '" + GetBindPort() + "'.");
+		Log(LogCritical, "ApiListener")
+		     << "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
 		Application::Exit(EXIT_FAILURE);
 	}
 
@@ -174,16 +181,16 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	std::ostringstream s;
-	s << "Adding new listener: port " << service;
-	Log(LogInformation, "ApiListener", s.str());
+	Log(LogInformation, "ApiListener")
+	    << "Adding new listener on port '" << service << "'";
 
 	TcpSocket::Ptr server = make_shared<TcpSocket>();
 
 	try {
 		server->Bind(node, service, AF_UNSPEC);
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener", "Cannot bind TCP socket for host '" + node + "' on port '" + service + "'.");
+		Log(LogCritical, "ApiListener")
+		    << "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
 		return false;
 	}
 
@@ -232,7 +239,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	String host = endpoint->GetHost();
 	String port = endpoint->GetPort();
 
-	Log(LogInformation, "ApiClient", "Reconnecting to API endpoint '" + endpoint->GetName() + "' via host '" + host + "' and port " + port);
+	Log(LogInformation, "ApiClient")
+	    << "Reconnecting to API endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 	TcpSocket::Ptr client = make_shared<TcpSocket>();
 
@@ -245,11 +253,11 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		endpoint->SetConnecting(false);
 		client->Close();
 
-		std::ostringstream info, debug;
+		std::ostringstream info;
 		info << "Cannot connect to host '" << host << "' on port '" << port << "'";
-		debug << info.str() << std::endl << DiagnosticInformation(ex);
 		Log(LogCritical, "ApiListener", info.str());
-		Log(LogDebug, "ApiListener", debug.str());
+		Log(LogDebug, "ApiListener")
+		    << info.str() << "\n" << DiagnosticInformation(ex);
 	}
 }
 
@@ -269,7 +277,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 		try {
 			tlsStream = make_shared<TlsStream>(client, role, m_SSLContext);
 		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener", "Cannot create tls stream from client connection.");
+			Log(LogCritical, "ApiListener", "Cannot create TLS stream from client connection.");
 			return;
 		}
 	}
@@ -287,7 +295,8 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	try {
 		identity = GetCertificateCN(cert);
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener", "Cannot get certificate common name from cert path: '" + GetCertPath() + "'.");
+		Log(LogCritical, "ApiListener")
+		    << "Cannot get certificate common name from cert path: '" << GetCertPath() << "'.";
 		return;
 	}
 
@@ -353,7 +362,8 @@ void ApiListener::ApiTimerHandler(void)
 
 		if (!need) {
 			String path = GetApiDir() + "log/" + Convert::ToString(ts);
-			Log(LogNotice, "ApiListener", "Removing old log file: " + path);
+			Log(LogNotice, "ApiListener")
+			    << "Removing old log file: " << path;
 			(void)unlink(path.CStr());
 		}
 	}
@@ -417,21 +427,24 @@ void ApiListener::ApiTimerHandler(void)
 		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
 			client->SendMessage(lmessage);
 
-		Log(LogNotice, "ApiListener", "Setting log position for identity '" + endpoint->GetName() + "': " +
-			Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts));
+		Log(LogNotice, "ApiListener")
+		    << "Setting log position for identity '" << endpoint->GetName() << "': "
+		    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
 
 	Endpoint::Ptr master = GetMaster();
 
 	if (master)
-		Log(LogNotice, "ApiListener", "Current zone master: " + master->GetName());
+		Log(LogNotice, "ApiListener")
+		    << "Current zone master: " << master->GetName();
 
 	std::vector<String> names;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>())
 		if (endpoint->IsConnected())
 			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
-	Log(LogNotice, "ApiListener", "Connected endpoints: " + Utility::NaturalJoin(names));
+	Log(LogNotice, "ApiListener")
+	    << "Connected endpoints: " << Utility::NaturalJoin(names);
 }
 
 void ApiListener::RelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
@@ -474,7 +487,8 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
 
-	Log(LogNotice, "ApiListener", "Relaying '" + message->Get("method") + "' message");
+	Log(LogNotice, "ApiListener")
+	    << "Relaying '" << message->Get("method") << "' message";
 
 	if (log)
 		PersistMessage(message, secobj);
@@ -537,7 +551,8 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 			ObjectLock olock(endpoint);
 
 			if (!endpoint->GetSyncing()) {
-				Log(LogNotice, "ApiListener", "Sending message to '" + endpoint->GetName() + "'");
+				Log(LogNotice, "ApiListener")
+				    << "Sending message to '" << endpoint->GetName() << "'";
 
 				BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
 					client->SendMessage(message);
@@ -562,7 +577,8 @@ void ApiListener::OpenLogFile(void)
 	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
 
 	if (!fp->good()) {
-		Log(LogWarning, "ApiListener", "Could not open spool file: " + path);
+		Log(LogWarning, "ApiListener")
+		    << "Could not open spool file: " << path;
 		return;
 	}
 
@@ -653,7 +669,8 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			if (ts < peer_ts)
 				continue;
 
-			Log(LogNotice, "ApiListener", "Replaying log: " + path);
+			Log(LogNotice, "ApiListener")
+			    << "Replaying log: " << path;
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
 			StdioStream::Ptr logStream = make_shared<StdioStream>(fp, true);
@@ -668,7 +685,8 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 					pmessage = JsonDeserialize(message);
 				} catch (const std::exception&) {
-					Log(LogWarning, "ApiListener", "Unexpected end-of-file for cluster log: " + path);
+					Log(LogWarning, "ApiListener")
+					    << "Unexpected end-of-file for cluster log: " << path;
 
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
@@ -703,7 +721,8 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			logStream->Close();
 		}
 
-		Log(LogNotice, "ApiListener", "Replayed " + Convert::ToString(count) + " messages.");
+		Log(LogNotice, "ApiListener")
+		   << "Replayed " << count << " messages.";
 
 		if (last_sync) {
 			{

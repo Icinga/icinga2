@@ -356,7 +356,8 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 {
 	AssertOnWorkQueue();
 
-	Log(LogDebug, "IdoMysqlConnection", "Query: " + query);
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Query: " << query;
 
 	if (mysql_query(&m_Connection, query.CStr()) != 0) {
 		std::ostringstream msgbuf;
@@ -710,7 +711,8 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name
 		SetNotificationInsertID(query.NotificationObject, GetLastInsertID());
-		Log(LogDebug, "IdoMysqlConnection", "saving contactnotification notification_id=" + Convert::ToString(static_cast<long>(GetLastInsertID())));
+		Log(LogDebug, "IdoMysqlConnection")
+		    << "saving contactnotification notification_id=" << static_cast<long>(GetLastInsertID());
 	}
 }
 

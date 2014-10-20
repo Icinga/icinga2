@@ -39,7 +39,8 @@ void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path,
 {
 	CONTEXT("Creating config update for file '" + file + "'");
 
-	Log(LogNotice, "ApiListener", "Creating config update for file '" + file + "'");
+	Log(LogNotice, "ApiListener")
+	    << "Creating config update for file '" << file << "'";
 
 	std::ifstream fp(file.CStr());
 	if (!fp)
@@ -74,7 +75,8 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 			configChange = true;
 
 			String path = configDir + "/" + kv.first;
-			Log(LogInformation, "ApiListener", "Updating configuration file: " + path);
+			Log(LogInformation, "ApiListener")
+			    << "Updating configuration file: " << path;
 
 			//pass the directory and generate a dir tree, if not existing already
 			Utility::MkDirP(Utility::DirName(path), 0755);
@@ -108,12 +110,12 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	String newDir = Application::GetZonesDir() + "/" + zone->GetName();
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
-	Log(LogInformation, "ApiListener", "Copying zone configuration files from '" + newDir + "' to  '" + oldDir + "'.");
+	Log(LogInformation, "ApiListener")
+	    << "Copying zone configuration files from '" << newDir << "' to  '" << oldDir << "'.";
 
 	if (!Utility::MkDir(oldDir, 0700)) {
-		std::ostringstream msgbuf;
-		msgbuf << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-		Log(LogCritical, "ApiListener",  msgbuf.str());
+		Log(LogCritical, "ApiListener")
+		    << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("mkdir")
@@ -161,16 +163,19 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
 		if (!zone->IsChildOf(azone) && !zone->IsGlobal()) {
-			Log(LogNotice, "ApiListener", "Skipping sync for '" + zone->GetName() + "'. Not a child of zone '" + azone->GetName() + "'.");
+			Log(LogNotice, "ApiListener")
+			    << "Skipping sync for '" << zone->GetName() << "'. Not a child of zone '" << azone->GetName() << "'.";
 			continue;
 		}
 		if (!Utility::PathExists(zoneDir)) {
-			Log(LogNotice, "ApiListener", "Ignoring sync for '" + zone->GetName() + "'. Zone directory '" + zoneDir + "' does not exist.");
+			Log(LogNotice, "ApiListener")
+			    << "Ignoring sync for '" << zone->GetName() << "'. Zone directory '" << zoneDir << "' does not exist.";
 			continue;
 		}
 
 		if (zone->IsGlobal())
-			Log(LogInformation, "ApiListener", "Syncing global zone '" + zone->GetName() + "'.");
+			Log(LogInformation, "ApiListener")
+			    << "Syncing global zone '" << zone->GetName() << "'.";
 
 		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
 	}
@@ -199,7 +204,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 	}
 
 	if (!listener->GetAcceptConfig()) {
-		Log(LogWarning, "ApiListener", "Ignoring config update. '" + listener->GetName() + "' does not accept config.");
+		Log(LogWarning, "ApiListener")
+		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
@@ -211,16 +217,16 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 		Zone::Ptr zone = Zone::GetByName(kv.first);
 
 		if (!zone) {
-			Log(LogWarning, "ApiListener", "Ignoring config update for unknown zone: " + kv.first);
+			Log(LogWarning, "ApiListener")
+			    << "Ignoring config update for unknown zone: " << kv.first;
 			continue;
 		}
 
 		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
 		if (!Utility::MkDir(oldDir, 0700)) {
-			std::ostringstream msgbuf;
-			msgbuf << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Log(LogCritical, "ApiListener",  msgbuf.str());
+			Log(LogCritical, "ApiListener")
+			    << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("mkdir")

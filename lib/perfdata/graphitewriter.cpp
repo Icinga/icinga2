@@ -79,12 +79,14 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 
 	TcpSocket::Ptr socket = make_shared<TcpSocket>();
 
-	Log(LogNotice, "GraphiteWriter", "Reconnect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+	Log(LogNotice, "GraphiteWriter")
+	    << "Reconnecting to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 	try {
 		socket->Connect(GetHost(), GetPort());
 	} catch (std::exception&) {
-		Log(LogCritical, "GraphiteWriter", "Can't connect to tcp socket on host '" + GetHost() + "' port '" + GetPort() + "'.");
+		Log(LogCritical, "GraphiteWriter")
+		    << "Can't connect to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		return;
 	}
 
@@ -151,7 +153,8 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 			try {
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
-				Log(LogWarning, "GraphiteWriter", "Ignoring invalid perfdata value: " + val);
+				Log(LogWarning, "GraphiteWriter")
+				    << "Ignoring invalid perfdata value: " << val;
 				continue;
 			}
 		}
