@@ -100,7 +100,7 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 
 	stream << "[" << timestamp << "] ";
 
-	ConsoleColor color;
+	int color;
 
 	switch (entry.Severity) {
 		case LogDebug:
@@ -113,10 +113,10 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 			color = Console_ForegroundGreen;
 			break;
 		case LogWarning:
-			color = Console_ForegroundYellow;
+			color = Console_ForegroundYellow | Console_Bold;
 			break;
 		case LogCritical:
-			color = Console_ForegroundRed;
+			color = Console_ForegroundRed | Console_Bold;
 			break;
 		default:
 			return;
