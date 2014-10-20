@@ -165,7 +165,7 @@ int Main(void)
 	po::options_description visibleDesc("Global options");
 
 	visibleDesc.add_options()
-		("help", "show this help message")
+		("help,h", "show this help message")
 		("version,V", "show version information")
 #ifndef _WIN32
 		("color", "use VT100 color codes even when stdout is not a terminal")
