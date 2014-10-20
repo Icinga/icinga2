@@ -20,7 +20,7 @@
 #ifndef CLICOMMAND_H
 #define CLICOMMAND_H
 
-#include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/value.hpp"
 #include "base/utility.hpp"
 #include <vector>
@@ -29,15 +29,15 @@
 namespace icinga
 {
 
-I2_BASE_API std::vector<String> GetBashCompletionSuggestions(const String& type, const String& word);
-I2_BASE_API std::vector<String> GetFieldCompletionSuggestions(const Type *type, const String& word);
+std::vector<String> I2_CLI_API GetBashCompletionSuggestions(const String& type, const String& word);
+std::vector<String> I2_CLI_API GetFieldCompletionSuggestions(const Type *type, const String& word);
 
 /**
  * A CLI command.
  *
  * @ingroup base
  */
-class I2_BASE_API CLICommand : public Object
+class I2_CLI_API CLICommand : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CLICommand);
@@ -78,7 +78,7 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API RegisterCLICommandHelper
+class I2_CLI_API RegisterCLICommandHelper
 {
 public:
 	RegisterCLICommandHelper(const String& name, const CLICommand::Ptr& command);

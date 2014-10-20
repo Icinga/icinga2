@@ -37,7 +37,7 @@ enum RepositoryCommandType
  *
  * @ingroup cli
  */
-class RepositoryObjectCommand : public CLICommand
+class I2_CLI_API RepositoryObjectCommand : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(RepositoryObjectCommand);
@@ -61,7 +61,7 @@ private:
  *
  * @ingroup cli
  */
-class I2_BASE_API RegisterRepositoryCLICommandHelper
+class I2_CLI_API RegisterRepositoryCLICommandHelper
 {
 public:
 	RegisterRepositoryCLICommandHelper(const String& type);

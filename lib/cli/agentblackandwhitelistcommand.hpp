@@ -37,7 +37,7 @@ enum BlackAndWhitelistCommandType
  *
  * @ingroup cli
  */
-class BlackAndWhitelistCommand : public CLICommand
+class I2_CLI_API BlackAndWhitelistCommand : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(BlackAndWhitelistCommand);
@@ -60,7 +60,7 @@ private:
  *
  * @ingroup cli
  */
-class I2_BASE_API RegisterBlackAndWhitelistCLICommandHelper
+class I2_CLI_API RegisterBlackAndWhitelistCLICommandHelper
 {
 public:
 	RegisterBlackAndWhitelistCLICommandHelper(const String& type);

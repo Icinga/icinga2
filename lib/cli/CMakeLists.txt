@@ -37,6 +37,7 @@ target_link_libraries(cli ${Boost_LIBRARIES} base config remote icinga)
 set_target_properties (
   cli PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_CLI_BUILD
   FOLDER Lib
 )
 
