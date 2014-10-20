@@ -247,6 +247,8 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 
 int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
 {
+	char errbuf[120];
+
 	InitializeOpenSSL();
 
 	RSA *rsa = RSA_generate_key(4096, RSA_F4, NULL, NULL);
@@ -255,7 +257,25 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	    << "Writing private key to '" << keyfile << "'.";
 
 	BIO *bio = BIO_new_file(const_cast<char *>(keyfile.CStr()), "w");
-	PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL);
+
+	if (!bio) {
+		Log(LogCritical, "SSL")
+		    << "Error while opening private RSA key file '" << keyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("BIO_new_file")
+		    << errinfo_openssl_error(ERR_peek_error())
+		    << boost::errinfo_file_name(keyfile));
+	}
+
+	if (!PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL)) {
+		Log(LogCritical, "SSL")
+		    << "Error while writing private RSA key to file '" << keyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("PEM_write_bio_RSAPrivateKey")
+		    << errinfo_openssl_error(ERR_peek_error())
+		    << boost::errinfo_file_name(keyfile));
+	}
+
 	BIO_free(bio);
 
 #ifndef _WIN32
@@ -276,9 +296,26 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		Log(LogInformation, "base")
 		    << "Writing X509 certificate to '" << certfile << "'.";
 
-		bio = BIO_new(BIO_s_file());
-		BIO_write_filename(bio, const_cast<char *>(certfile.CStr()));
-		PEM_write_bio_X509(bio, cert.get());
+		bio = BIO_new_file(const_cast<char *>(certfile.CStr()), "w");
+
+		if (!bio) {
+			Log(LogCritical, "SSL")
+			    << "Error while opening certificate file '" << certfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("BIO_new_file")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(certfile));
+		}
+
+		if (!PEM_write_bio_X509(bio, cert.get())) {
+			Log(LogCritical, "SSL")
+			    << "Error while writing certificate to file '" << certfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("PEM_write_bio_X509")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(certfile));
+		}
+
 		BIO_free(bio);
 	}
 
@@ -299,9 +336,26 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		Log(LogInformation, "base")
 		    << "Writing certificate signing request to '" << csrfile << "'.";
 	
-		bio = BIO_new(BIO_s_file());
-		BIO_write_filename(bio, const_cast<char *>(csrfile.CStr()));
-		PEM_write_bio_X509_REQ(bio, req);
+		bio = BIO_new_file(const_cast<char *>(csrfile.CStr()), "w");
+
+		if (!bio) {
+			Log(LogCritical, "SSL")
+			    << "Error while opening CSR file '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("BIO_new_file")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(csrfile));
+		}
+
+		if (!PEM_write_bio_X509_REQ(bio, req)) {
+			Log(LogCritical, "SSL")
+			    << "Error while writing CSR to file '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("PEM_write_bio_X509")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(csrfile));
+		}
+
 		BIO_free(bio);
 	
 		X509_REQ_free(req);

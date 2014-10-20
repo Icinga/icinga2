@@ -96,6 +96,9 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 			continue;
 		}
 
+		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+
 #ifndef _WIN32
 		if (symlink(source.CStr(), target.CStr()) < 0) {
 			Log(LogCritical, "cli")
@@ -107,18 +110,16 @@ int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, c
 #else /* _WIN32 */
 		std::ofstream fp;
 		fp.open(target.CStr());
-		if (!fp) {
+		fp << "include \"../features-available/" << feature << ".conf\"" << std::endl;
+		fp.close();
+
+		if (fp.fail()) {
 			Log(LogCritical, "cli")
 			    << "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
 			errors.push_back(feature);
 			continue;
 		}
-		fp << "include \"../features-available/" << feature << ".conf\"" << std::endl;
-		fp.close();
 #endif /* _WIN32 */
-
-		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 	}
 
 	if (!errors.empty()) {

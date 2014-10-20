@@ -71,5 +71,11 @@ int PKINewCACommand::Run(const boost::program_options::variables_map& vm, const 
 	fp << "01";
 	fp.close();
 
+	if (fp.fail()) {
+		Log(LogCritical, "cli")
+		    << "Could not create serial file '" << serialpath << "'";
+		return 1;
+	}
+
 	return 0;
 }

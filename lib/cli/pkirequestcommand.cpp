@@ -153,27 +153,25 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	std::ofstream fpcert;
 	fpcert.open(certfile.CStr());
-
-	if (!fpcert) {
-		Log(LogCritical, "cli")
-		    << "Could not open certificate file '" << certfile << "' for writing.";
-		return 1;
-	}
-
 	fpcert << result->Get("cert");
 	fpcert.close();
 
+	if (fpcert.fail()) {
+		Log(LogCritical, "cli")
+		    << "Could not write certificate to file '" << certfile << "'.";
+		return 1;
+	}
+
 	std::ofstream fpca;
 	fpca.open(cafile.CStr());
+	fpca << result->Get("ca");
+	fpca.close();
 
-	if (!fpcert) {
+	if (fpca.fail()) {
 		Log(LogCritical, "cli")
 		    << "Could not open CA certificate file '" << cafile << "' for writing.";
 		return 1;
 	}
-
-	fpca << result->Get("ca");
-	fpca.close();
 
 	return 0;
 }
