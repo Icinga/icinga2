@@ -56,10 +56,6 @@ std::vector<String> FeatureDisableCommand::GetPositionalSuggestions(const String
  */
 int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-#ifdef _WIN32
-	//TODO: Add Windows support
-	Log(LogInformation, "cli", "This command is not available on Windows.");
-#else
 	String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
 
 	if (ap.empty()) {
@@ -103,8 +99,6 @@ int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, 
 		errors.clear();
 		return 1;
 	}
-
-#endif /* _WIN32 */
 
 	return 0;
 }
