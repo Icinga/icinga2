@@ -73,9 +73,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AgentWizard.cs">
@@ -84,15 +86,19 @@
     <Compile Include="AgentWizard.Designer.cs">
       <DependentUpon>AgentWizard.cs</DependentUpon>
     </Compile>
+    <Compile Include="EndpointInputBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EndpointInputBox.Designer.cs">
+      <DependentUpon>EndpointInputBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="tar-cs\ITarHeader.cs" />
-    <Compile Include="tar-cs\TarException.cs" />
-    <Compile Include="tar-cs\TarHeader.cs" />
-    <Compile Include="tar-cs\TarReader.cs" />
-    <Compile Include="tar-cs\UsTarHeader.cs" />
     <EmbeddedResource Include="AgentWizard.resx">
       <DependentUpon>AgentWizard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EndpointInputBox.resx">
+      <DependentUpon>EndpointInputBox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

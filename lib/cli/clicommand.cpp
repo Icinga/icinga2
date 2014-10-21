@@ -165,7 +165,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 		const std::vector<String>& vname = kv.first;
 
 		for (int i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
-			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0) {
+			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0 || strcmp(argv[k], "--scm") == 0) {
 				i--;
 				continue;
 			}
@@ -227,7 +227,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		arg_begin = 0;
 
 		for (int i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
-			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0) {
+			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0 || strcmp(argv[k], "--scm") == 0) {
 				i--;
 				arg_begin++;
 				continue;

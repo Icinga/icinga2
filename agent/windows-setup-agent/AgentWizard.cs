@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Net.NetworkInformation;
 using Microsoft.Win32;
@@ -12,17 +13,11 @@ using System.IO.Compression;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Security.AccessControl;
-using tar_cs;
 
 namespace Icinga
 {
 	public partial class AgentWizard : Form
 	{
-		[DllImport("base", CallingConvention = CallingConvention.Cdecl)]
-		private extern static int MakeX509CSR(string cn, string keyfile, string csrfile);
-
-		delegate void FormCallback();
-
 		public AgentWizard()
 		{
 			InitializeComponent();
@@ -78,46 +73,75 @@ namespace Icinga
 			}
 		}
 
-		private void GenerateHostKey()
-		{
-			if (!File.Exists(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.key") ||
-			    !File.Exists(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.csr")) {
-				try {
-					MakeX509CSR(Icinga2InstanceName,
-					    Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.key",
-					    Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.csr");
-				} catch (Exception ex) {
-					FatalError("MakeX509CSR failed: " + ex.Message);
-				}
-			}
-
-			FinishHostKey();
-		}
-
-		private void FinishHostKey()
+		private void SetRetrievalStatus(int pct)
 		{
 			if (InvokeRequired) {
-				Invoke(new FormCallback(FinishHostKey));
+				Invoke((MethodInvoker)delegate { SetRetrievalStatus(pct); });
 				return;
 			}
 
-			txtCSR.Text = File.ReadAllText(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.csr").Replace("\n", "\r\n");
-
-			if (!File.Exists(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.crt"))
-				tbcPages.SelectedTab = tabCSR;
-			else
-				tbcPages.SelectedTab = tabParameters;
+			prgRetrieveCertificate.Value = pct;
 		}
 
 		private void SetConfigureStatus(int pct, string message)
 		{
 			if (InvokeRequired) {
-				Invoke(new FormCallback(() => SetConfigureStatus(pct, message)));
+				Invoke((MethodInvoker)delegate { SetConfigureStatus(pct, message); });
 				return;
 			}
 
 			prgConfig.Value = pct;
 			lblConfigStatus.Text = message;
+		}
+
+		private void VerifyCertificate(string host, string port)
+		{
+			SetRetrievalStatus(25);
+
+			string pathPrefix = Icinga2InstallDir + "\\etc\\icinga2\\pki\\" + txtInstanceName.Text;
+
+			ProcessStartInfo psi;
+
+			if (!File.Exists(pathPrefix + ".crt")) {
+				psi = new ProcessStartInfo();
+				psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
+				psi.Arguments = "pki new-cert --cn \"" + txtInstanceName.Text + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\"";
+				psi.CreateNoWindow = true;
+				psi.UseShellExecute = false;
+
+				using (Process proc = Process.Start(psi)) {
+					proc.WaitForExit();
+
+					if (proc.ExitCode != 0) {
+						Invoke((MethodInvoker)delegate { FatalError("The Windows service could not be installed."); });
+						return;
+					}
+				}
+			}
+
+			SetRetrievalStatus(50);
+
+			string trustedfile = Path.GetTempFileName();
+
+			psi = new ProcessStartInfo();
+			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
+			psi.Arguments = "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\" --trustedfile \"" + trustedfile + "\"";
+			psi.CreateNoWindow = true;
+			psi.UseShellExecute = false;
+
+			using (Process proc = Process.Start(psi)) {
+				proc.WaitForExit();
+
+				if (proc.ExitCode != 0) {
+					Invoke((MethodInvoker)delegate { FatalError("Could not retrieve the master's X509 certificate."); });
+					return;
+				}
+			}
+
+			SetRetrievalStatus(100);
+	
+			X509Certificate2 cert = new X509Certificate2(trustedfile);
+			Invoke((MethodInvoker)delegate { ShowCertificatePrompt(cert); });
 		}
 
 		private void ConfigureService()
@@ -138,23 +162,23 @@ namespace Icinga
 					    "  ca_path = SysconfDir + \"/icinga2/pki/agent/ca.crt\"\n"
 					);
 
-					if (rdoNoMaster.Checked)
-						sw.Write("  upstream_name = \"{0}\"\n", txtMasterInstance.Text);
+					/*if (rdoNoMaster.Checked)
+						sw.Write("  upstream_name = \"{0}\"\n", txtMasterInstance.Text);*/
 
 					if (rdoListener.Checked)
 						sw.Write("  bind_port = \"{0}\"\n", txtListenerPort.Text);
 
-					if (rdoConnect.Checked)
+					/*if (rdoConnect.Checked)
 						sw.Write(
 						    "  upstream_host = \"{0}\"\n" +
 						    "  upstream_port = \"{1}\"\n", txtPeerHost.Text, txtPeerPort.Text
-						);
+						);*/
 
 					sw.Write("}\n");
 				}
 			}
 
-			EnableFeature("agent");
+			EnableFeature("api");
 			EnableFeature("checker");
 
 			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
@@ -167,17 +191,30 @@ namespace Icinga
 			di.SetAccessControl(ds);
 
 			SetConfigureStatus(75, "Installing the Icinga 2 service...");
+
 			ProcessStartInfo psi = new ProcessStartInfo();
 			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
-			psi.Arguments = "--scm-install -c \"" + Icinga2InstallDir + "\\etc\\icinga2\\icinga2.conf\"";
+			psi.Arguments = "--scm-uninstall";
+			psi.CreateNoWindow = true;
+			psi.UseShellExecute = false;
+
+			using (Process proc = Process.Start(psi)) {
+				proc.WaitForExit();
+			}
+			
+			psi = new ProcessStartInfo();
+			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
+			psi.Arguments = "--scm-install daemon";
 			psi.CreateNoWindow = true;
 			psi.UseShellExecute = false;
 
 			using (Process proc = Process.Start(psi)) {
 				proc.WaitForExit();
 
-				if (proc.ExitCode != 0)
-					FatalError("The Windows service could not be installed.");
+				if (proc.ExitCode != 0) {
+					Invoke((MethodInvoker)delegate { FatalError("The Windows service could not be installed."); });
+					return;
+				}
 			}
 
 			SetConfigureStatus(100, "Finished.");
@@ -188,7 +225,7 @@ namespace Icinga
 		private void FinishConfigure()
 		{
 			if (InvokeRequired) {
-				Invoke(new FormCallback(FinishConfigure));
+				Invoke((MethodInvoker)FinishConfigure);
 				return;
 			}
 
@@ -214,36 +251,34 @@ namespace Icinga
 
 			Directory.CreateDirectory(installDir + "\\etc\\icinga2\\pki\\agent");
 
-			Thread thread = new Thread(GenerateHostKey);
-			thread.IsBackground = true;
-			thread.Start();
+			
 		}
 
 		private void btnBack_Click(object sender, EventArgs e)
 		{
-			tbcPages.SelectedIndex--;
+			int offset = 1;
+
+			if (tbcPages.SelectedTab == tabVerifyCertificate)
+				offset++;
+
+			tbcPages.SelectedIndex -= offset;
 		}
 
 		private void btnNext_Click(object sender, EventArgs e)
 		{
 			if (tbcPages.SelectedTab == tabParameters) {
-				if (rdoNoMaster.Checked && txtMasterInstance.Text == "") {
-					Warning("You need to enter the name of the master instance.");
+				if (txtInstanceName.Text.Length == 0) {
+					Warning("Please enter an instance name.");
 					return;
 				}
 
-				if (rdoConnect.Checked && (txtPeerHost.Text == "" || txtPeerPort.Text == "")) {
-					Warning("You need to specify a host and port.");
+				if (rdoNoMaster.Checked && lvwEndpoints.Items.Count == 0) {
+					Warning("You need to add at least one master endpoint.");
 					return;
 				}
 
 				if (rdoListener.Checked && (txtListenerPort.Text == "")) {
 					Warning("You need to specify a listener port.");
-					return;
-				}
-
-				if (rdoNoListener.Checked && rdoNoConnect.Checked) {
-					Warning("You need to enable the listener or outbound connects.");
 					return;
 				}
 			}
@@ -252,7 +287,6 @@ namespace Icinga
 				Application.Exit();
 
 			tbcPages.SelectedIndex++;
-			btnBack.Enabled = true;
 		}
 
 		private void btnCancel_Click(object sender, EventArgs e)
@@ -264,15 +298,22 @@ namespace Icinga
 		{
 			Refresh();
 
-			btnBack.Enabled = (tbcPages.SelectedTab != tabCSR && tbcPages.SelectedTab != tabFinish);
-			btnNext.Enabled = true;
+			btnBack.Enabled = (tbcPages.SelectedTab == tabVerifyCertificate);
+			btnNext.Enabled = (tbcPages.SelectedTab == tabParameters || tbcPages.SelectedTab == tabVerifyCertificate || tbcPages.SelectedTab == tabFinish);
 
 			if (tbcPages.SelectedTab == tabFinish) {
 				btnNext.Text = "&Finish >";
 				btnCancel.Enabled = false;
 			}
 
-			if (tbcPages.SelectedTab == tabParameters &&
+			if (tbcPages.SelectedTab == tabRetrieveCertificate) {
+				ListViewItem lvi = lvwEndpoints.Items[0];
+
+				Thread thread = new Thread((ThreadStart)delegate { VerifyCertificate(lvi.SubItems[0].Text, lvi.SubItems[1].Text); });
+				thread.Start();
+			}
+
+			/*if (tbcPages.SelectedTab == tabParameters &&
 			    !File.Exists(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.crt")) {
 				byte[] bytes = Convert.FromBase64String(txtBundle.Text);
 				MemoryStream ms = new MemoryStream(bytes);
@@ -286,7 +327,7 @@ namespace Icinga
 				ms2.Position = 0;
 				TarReader tr = new TarReader(ms2);
 				tr.ReadToEnd(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent");
-			}
+			}*/
 
 			if (tbcPages.SelectedTab == tabConfigure) {
 				Thread thread = new Thread(ConfigureService);
@@ -296,7 +337,9 @@ namespace Icinga
 
 		private void RadioMaster_CheckedChanged(object sender, EventArgs e)
 		{
-			txtMasterInstance.Enabled = !rdoNewMaster.Checked;
+			lvwEndpoints.Enabled = !rdoNewMaster.Checked;
+			btnAddEndpoint.Enabled = !rdoNewMaster.Checked;
+			btnRemoveEndpoint.Enabled = !rdoNewMaster.Checked && lvwEndpoints.SelectedItems.Count > 0;
 		}
 
 		private void RadioListener_CheckedChanged(object sender, EventArgs e)
@@ -304,10 +347,88 @@ namespace Icinga
 			txtListenerPort.Enabled = rdoListener.Checked;
 		}
 
-		private void RadioConnect_CheckedChanged(object sender, EventArgs e)
+		private void AddCertificateField(string name, string shortValue, string longValue = null)
 		{
-			txtPeerHost.Enabled = rdoConnect.Checked;
-			txtPeerPort.Enabled = rdoConnect.Checked;
+			ListViewItem lvi = new ListViewItem();
+			lvi.Text = name;
+			lvi.SubItems.Add(shortValue);
+			if (longValue == null)
+				longValue = shortValue;
+			lvi.Tag = longValue;
+			lvwX509Fields.Items.Add(lvi);
+		}
+
+		private string PadText(string input)
+		{
+			string output = "";
+
+			for (int i = 0; i < input.Length; i += 2) {
+				if (output != "")
+					output += " ";
+
+				int len = 2;
+				if (input.Length - i < 2)
+					len = input.Length - i;
+				output += input.Substring(i, len);
+			}
+
+			return output;
+		}
+
+		private void ShowCertificatePrompt(X509Certificate2 certificate)
+		{
+			txtX509Issuer.Text = certificate.Issuer;
+			txtX509Subject.Text = certificate.Subject;
+
+			AddCertificateField("Version", "V" + certificate.Version.ToString());
+			AddCertificateField("Serial number", certificate.SerialNumber);
+			AddCertificateField("Signature algorithm", certificate.SignatureAlgorithm.FriendlyName);
+			AddCertificateField("Valid from", certificate.NotBefore.ToString());
+			AddCertificateField("Valid to", certificate.NotAfter.ToString());
+
+			string pkey = BitConverter.ToString(certificate.PublicKey.EncodedKeyValue.RawData).Replace("-", " ");
+			AddCertificateField("Public key", certificate.PublicKey.Oid.FriendlyName + " (" + certificate.PublicKey.Key.KeySize + " bits)", pkey);
+
+			string thumbprint = PadText(certificate.Thumbprint);
+			AddCertificateField("Thumbprint", thumbprint);
+
+			tbcPages.SelectedTab = tabVerifyCertificate;
+		}
+
+		private void btnAddEndpoint_Click(object sender, EventArgs e)
+		{
+			EndpointInputBox eib = new EndpointInputBox();
+
+			if (eib.ShowDialog(this) == DialogResult.Cancel)
+				return;
+
+			ListViewItem lvi = new ListViewItem();
+			lvi.Text = eib.txtHost.Text;
+			lvi.SubItems.Add(eib.txtPort.Text);
+
+			lvwEndpoints.Items.Add(lvi);
+		}
+
+		private void lvwEndpoints_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			btnRemoveEndpoint.Enabled = lvwEndpoints.SelectedItems.Count > 0;
+		}
+
+		private void lvwX509Fields_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (lvwX509Fields.SelectedItems.Count == 0)
+				return;
+
+			ListViewItem lvi = lvwX509Fields.SelectedItems[0];
+
+			txtX509Field.Text = (string)lvi.Tag;
+		}
+
+		private void btnRemoveEndpoint_Click(object sender, EventArgs e)
+		{
+			while (lvwEndpoints.SelectedItems.Count > 0) {
+				lvwEndpoints.Items.Remove(lvwEndpoints.SelectedItems[0]);
+			}
 		}
 	}
 }
