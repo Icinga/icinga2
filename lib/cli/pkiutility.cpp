@@ -31,9 +31,24 @@
 
 using namespace icinga;
 
+String PkiUtility::GetPkiPath(void)
+{
+	return Application::GetSysconfDir() + "/icinga2/pki";
+}
+
+String PkiUtility::GetLocalCaPath(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
+}
+
+String PkiUtility::GetLocalPkiPath(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/pki";
+}
+
 int PkiUtility::NewCa(void)
 {
-	String cadir = Application::GetLocalStateDir() + "/lib/icinga2/ca";
+	String cadir = GetLocalCaPath();
 
 	if (Utility::PathExists(cadir)) {
 		Log(LogCritical, "cli")
@@ -241,4 +256,23 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	    << "Writing CA certificate to file '" << certfile << "'.";
 
 	return 0;
+}
+
+
+bool PkiUtility::CopyCertFile(const String& source, const String& target)
+{
+	/*
+        if (PathExists(target)) {
+                Log(LogWarning, "Utility")
+                    << "Target file '" << target << "' already exists.";
+                return false;
+        }
+
+        std::ifstream ifs(source, std::ios::binary);
+        std::ofstream ofs(target, std::ios::binary);
+
+        ofs << ifs.rdbuf();
+	*/
+
+        return true;
 }

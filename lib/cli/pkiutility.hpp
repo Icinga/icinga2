@@ -33,6 +33,10 @@ namespace icinga
 class PkiUtility
 {
 public:
+	static String GetPkiPath(void);
+	static String GetLocalCaPath(void);
+	static String GetLocalPkiPath(void);
+
 	static int NewCa(void);
 	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);
 	static int SignCsr(const String& csrfile, const String& certfile);
@@ -41,8 +45,12 @@ public:
 	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
 	    const String& certfile, const String& cafile, const String& trustedfile, const String& ticket);
 
+	static bool CopyCertFile(const String& source, const String& target);
+
 private:
 	PkiUtility(void);
+
+
 };
 
 }
