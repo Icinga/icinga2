@@ -31,6 +31,7 @@
 #include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 #include <iostream>
 
