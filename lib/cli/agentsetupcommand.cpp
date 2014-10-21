@@ -81,10 +81,43 @@ int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, cons
 
 bool AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
+	/* 1. Generate a new CA, if not already existing */
+	if (PkiUtilility::NewCa() > 0) {
+		Log(LogWarning, "cli")
+		    << "Found CA, skipping and using the existing one.\n";
+	}
+
+	/* 2. Generate a self signed certificate */
+
+	/* 3. Copy certificates to /etc/icinga2/pki */
+
+	/* 4. read zones.conf and update with zone + endpoint information */
+
+	/* 5. enable the ApiListener config (verifiy its data) */
+
+	/* 5. tell the user to reload icinga2 */
+
 	return true;
 }
 
 bool AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
+	/* 1. require ticket number (generated on master) */
+
+	/* 2. trusted cert must be passed (retrieved by the user with 'pki save-cert' before) */
+
+	/* 3. retrieve CN and pass it if requested (defaults to FQDN) */
+
+	/* 4. pki request a signed certificate from the master */
+
+	/* 5. get public key signed by the master, private key and ca.crt and copy it to /etc/icinga2/pki */
+
+	/* 6. generate local zones.conf with zone+endpoint */
+
+	/* 7. update constants.conf with NodeName = CN */
+
+	/* 8. tell the user to reload icinga2 */
+
+
 	return true;
 }
