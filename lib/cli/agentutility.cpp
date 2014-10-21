@@ -253,3 +253,96 @@ void AgentUtility::CollectAgents(const String& agent_file, std::vector<String>& 
 	Log(LogDebug, "cli", "Adding agent: " << agent);
 	agents.push_back(agent);
 }
+
+/*
+ * This is ugly and requires refactoring into a generic config writer class.
+ * TODO.
+ */
+bool AgentUtility::WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects)
+{
+	Log(LogInformation, "cli", "Dumping config items to file '" + filename + "'");
+
+	Utility::MkDirP(Utility::DirName(filename), 0755);
+
+	String tempPath = filename + ".tmp";
+
+        std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
+
+	ObjectLock olock(objects);
+
+	BOOST_FOREACH(const Dictionary::Ptr& object, objects) {
+		String name = object->Get("__name");
+		String type = object->Get("__type");
+
+		SerializeObject(fp, name, type, object);
+	}
+
+	fp << std::endl;
+        fp.close();
+
+#ifdef _WIN32
+	_unlink(filename.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempPath.CStr(), filename.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempPath));
+	}
+
+	return true;
+}
+
+void AgentUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
+{
+        fp << "object " << type << " \"" << name << "\" {\n";
+        BOOST_FOREACH(const Dictionary::Pair& kv, object) {
+		if (kv.first == "__type" || kv.first == "__name")
+			continue;
+
+                fp << "\t" << kv.first << " = ";
+                FormatValue(fp, kv.second);
+                fp << "\n";
+        }
+        fp << "}\n";
+}
+
+void AgentUtility::FormatValue(std::ostream& fp, const Value& val)
+{
+        if (val.IsObjectType<Array>()) {
+                FormatArray(fp, val);
+                return;
+        }
+
+        if (val.IsString()) {
+                fp << "\"" << Convert::ToString(val) << "\"";
+                return;
+        }
+
+        fp << Convert::ToString(val);
+}
+
+void AgentUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
+{
+        bool first = true;
+
+        fp << "[ ";
+
+        if (arr) {
+                ObjectLock olock(arr);
+                BOOST_FOREACH(const Value& value, arr) {
+                        if (first)
+                                first = false;
+                        else
+                                fp << ", ";
+
+                        FormatValue(fp, value);
+                }
+        }
+
+        if (!first)
+                fp << " ";
+
+        fp << "]";
+}

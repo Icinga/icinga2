@@ -22,6 +22,8 @@
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
+#include "base/array.hpp"
+#include "base/value.hpp"
 #include "base/string.hpp"
 #include <vector>
 
@@ -52,10 +54,16 @@ public:
 
 	static bool GetAgents(std::vector<String>& agents);
 
+	static bool WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects);
+
 private:
 	AgentUtility(void);
 	static bool RemoveAgentFile(const String& path);
 	static void CollectAgents(const String& agent_file, std::vector<String>& agents);
+
+	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
+	static void FormatValue(std::ostream& fp, const Value& val);
+	static void FormatArray(std::ostream& fp, const Array::Ptr& arr);
 };
 
 }

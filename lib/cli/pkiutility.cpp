@@ -253,7 +253,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	}
 
 	Log(LogInformation, "cli")
-	    << "Writing CA certificate to file '" << certfile << "'.";
+	    << "Writing CA certificate to file '" << cafile << "'.";
 
 	return 0;
 }
