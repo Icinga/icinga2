@@ -19,8 +19,10 @@
 
 #include "cli/featureutility.hpp"
 #include "base/logger.hpp"
+#include "base/console.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -35,19 +37,12 @@ String FeatureUtility::GetFeaturesEnabledPath(void)
 	return Application::GetSysconfDir() + "/icinga2/features-enabled";
 }
 
-
-std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(FeatureCommandType fctype, const String& word)
+std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(const String& word, bool enable)
 {
 	std::vector<String> cache;
 	std::vector<String> suggestions;
 
-	if (fctype == FeatureCommandEnable) {
-		/* only suggest features not already enabled */
-		GetFeatures(FeaturesDisabled, cache);
-	} else if (fctype == FeatureCommandDisable) {
-		/* suggest all enabled features */
-		GetFeatures(FeaturesEnabled, cache);
-	}
+	GetFeatures(cache, enable);
 
 	std::sort(cache.begin(), cache.end());
 
@@ -59,16 +54,169 @@ std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(FeatureCommand
 	return suggestions;
 }
 
-bool FeatureUtility::GetFeatures(FeatureType ftype, std::vector<String>& features)
+int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 {
-	String path = Application::GetSysconfDir() + "/icinga2/";
+	String features_available_dir = GetFeaturesAvailablePath();
+	String features_enabled_dir = GetFeaturesEnabledPath();
 
-	/* disabled = available-enabled */
-	if (ftype == FeaturesDisabled) {
-		std::vector<String> enabled;
+	if (!Utility::PathExists(features_available_dir) ) {
+		Log(LogCritical, "cli")
+		    << "Cannot parse available features. Path '" << features_available_dir << "' does not exist.";
+		return 1;
+	}
+
+	if (!Utility::PathExists(features_enabled_dir) ) {
+		Log(LogCritical, "cli")
+		    << "Cannot enable features. Path '" << features_enabled_dir << "' does not exist.";
+		return 1;
+	}
+
+	std::vector<std::string> errors;
+
+	BOOST_FOREACH(const String& feature, features) {
+		String source = features_available_dir + "/" + feature + ".conf";
+
+		if (!Utility::PathExists(source) ) {
+			Log(LogCritical, "cli")
+			    << "Cannot enable feature '" << feature << "'. Source file '" << source + "' does not exist.";
+			errors.push_back(feature);
+			continue;
+		}
+
+		String target = features_enabled_dir + "/" + feature + ".conf";
+
+		if (Utility::PathExists(target) ) {
+			Log(LogWarning, "cli")
+			    << "Feature '" << feature << "' already enabled.";
+			continue;
+		}
+
+		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+
+#ifndef _WIN32
+		if (symlink(source.CStr(), target.CStr()) < 0) {
+			Log(LogCritical, "cli")
+			    << "Cannot enable feature '" << feature << "'. Linking source '" << source << "' to target file '" << target
+			    << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
+			errors.push_back(feature);
+			continue;
+		}
+#else /* _WIN32 */
+		std::ofstream fp;
+		fp.open(target.CStr());
+		fp << "include \"../features-available/" << feature << ".conf\"" << std::endl;
+		fp.close();
+
+		if (fp.fail()) {
+			Log(LogCritical, "cli")
+			    << "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
+			errors.push_back(feature);
+			continue;
+		}
+#endif /* _WIN32 */
+	}
+
+	if (!errors.empty()) {
+		Log(LogCritical, "cli")
+		    << "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
+		errors.clear();
+		return 1;
+	}
+
+	return 0;
+}
+
+int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
+{
+	String features_enabled_dir = GetFeaturesEnabledPath();
+
+	if (!Utility::PathExists(features_enabled_dir) ) {
+		Log(LogCritical, "cli")
+		    << "Cannot disable features. Path '" << features_enabled_dir << "' does not exist.";
+		return 0;
+	}
+
+	std::vector<std::string> errors;
+
+	BOOST_FOREACH(const String& feature, features) {
+		String target = features_enabled_dir + "/" + feature + ".conf";
+
+		if (!Utility::PathExists(target) ) {
+			Log(LogCritical, "cli")
+			    << "Cannot disable feature '" << feature << "'. Target file '" << target << "' does not exist.";
+			errors.push_back(feature);
+			continue;
+		}
+
+		if (unlink(target.CStr()) < 0) {
+			Log(LogCritical, "cli")
+			    << "Cannot disable feature '" << feature << "'. Unlinking target file '" << target
+			    << "' failed with error code " << errno << ", \"" + Utility::FormatErrorNumber(errno) << "\".";
+			errors.push_back(feature);
+			continue;
+		}
+
+		std::cout << "Disabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
+		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+	}
+
+	if (!errors.empty()) {
+		Log(LogCritical, "cli")
+		    << "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
+		errors.clear();
+		return 1;
+	}
+
+	return 0;
+}
+
+int FeatureUtility::ListFeatures(void)
+{
+	std::vector<String> disabled_features;
+	std::vector<String> enabled_features;
+
+	if (!FeatureUtility::GetFeatures(disabled_features, true))
+		return 1;
+
+	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
+	    << boost::algorithm::join(disabled_features, " ") << "\n";
+
+	if (!FeatureUtility::GetFeatures(enabled_features, false))
+		return 1;
+
+	std::cout << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
+	    << boost::algorithm::join(enabled_features, " ") << "\n";
+
+	return 0;
+}
+
+bool FeatureUtility::GetFeatures(std::vector<String>& features, bool get_disabled)
+{
+	String path;
+
+	/* request all disabled features */
+	if (get_disabled) {
+		/* disable = available-enabled */
+		String available_pattern = GetFeaturesAvailablePath() + "/*.conf";
 		std::vector<String> available;
-		GetFeatures(FeaturesAvailable, available);
-		GetFeatures(FeaturesEnabled, enabled);
+
+		if (!Utility::Glob(available_pattern,
+		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(available)), GlobFile)) {
+			Log(LogCritical, "cli")
+			    << "Cannot access path '" << path << "'.";
+			return false;
+		}
+
+		String enabled_pattern = GetFeaturesEnabledPath() + "/*.conf";
+		std::vector<String> enabled;
+
+		if (!Utility::Glob(enabled_pattern,
+		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(enabled)), GlobFile)) {
+			Log(LogCritical, "cli")
+			    << "Cannot access path '" << path << "'.";
+			return false;
+		}
 
 		std::sort(available.begin(), available.end());
 		std::sort(enabled.begin(), enabled.end());
@@ -77,19 +225,11 @@ bool FeatureUtility::GetFeatures(FeatureType ftype, std::vector<String>& feature
 			enabled.begin(), enabled.end(),
 			std::back_inserter(features)
 		);
-
-		return true;
 	} else {
-		if (ftype == FeaturesAvailable)
-			path += "features-available/";
-		else if (ftype == FeaturesEnabled)
-			path += "features-enabled/";
-		else {
-			Log(LogCritical, "cli", "Unknown feature type passed. Bailing out.");
-			return false;
-		}
+		/* all enabled features */
+		String enabled_pattern = GetFeaturesEnabledPath() + "/*.conf";
 
-		if (!Utility::Glob(path + "/*.conf",
+		if (!Utility::Glob(enabled_pattern,
 		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(features)), GlobFile)) {
 			Log(LogCritical, "cli")
 			    << "Cannot access path '" << path << "'.";

@@ -53,18 +53,5 @@ int FeatureListCommand::Run(const boost::program_options::variables_map& vm, con
 		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
-	std::vector<String> disabled_features;
-	std::vector<String> enabled_features;
-
-	if (!FeatureUtility::GetFeatures(FeaturesDisabled, disabled_features))
-		return 1;
-	if (!FeatureUtility::GetFeatures(FeaturesEnabled, enabled_features))
-		return 1;
-
-	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
-	    << boost::algorithm::join(disabled_features, " ") << "\n";
-	std::cout << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
-	    << boost::algorithm::join(enabled_features, " ") << "\n";
-
-	return 0;
+	return FeatureUtility::ListFeatures();
 }

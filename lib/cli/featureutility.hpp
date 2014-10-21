@@ -27,29 +27,22 @@
 namespace icinga
 {
 
-enum FeatureType
-{
-	FeaturesAvailable,
-	FeaturesEnabled,
-	FeaturesDisabled
-};
-
-enum FeatureCommandType
-{
-	FeatureCommandEnable,
-	FeatureCommandDisable
-};
-
 /**
  * @ingroup cli
  */
 class FeatureUtility
 {
 public:
-	static std::vector<String> GetFieldCompletionSuggestions(FeatureCommandType fctype, const String& word);
-	static bool GetFeatures(FeatureType ftype, std::vector<String>& features);
 	static String GetFeaturesAvailablePath(void);
 	static String GetFeaturesEnabledPath(void);
+
+	static std::vector<String> GetFieldCompletionSuggestions(const String& word, bool enable);
+
+	static int EnableFeatures(const std::vector<std::string>& features);
+	static int DisableFeatures(const std::vector<std::string>& features);
+	static int ListFeatures(void);
+
+	static bool GetFeatures(std::vector<String>& features, bool enable);
 
 private:
 	FeatureUtility(void);

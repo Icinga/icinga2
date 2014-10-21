@@ -20,13 +20,6 @@
 #include "cli/featureenablecommand.hpp"
 #include "cli/featureutility.hpp"
 #include "base/logger.hpp"
-#include "base/application.hpp"
-#include "base/convert.hpp"
-#include "base/console.hpp"
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <iostream>
-#include <fstream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -45,7 +38,7 @@ String FeatureEnableCommand::GetShortDescription(void) const
 
 std::vector<String> FeatureEnableCommand::GetPositionalSuggestions(const String& word) const
 {
-	return FeatureUtility::GetFieldCompletionSuggestions(FeatureCommandEnable, word);
+	return FeatureUtility::GetFieldCompletionSuggestions(word, true);
 }
 
 /**
@@ -55,78 +48,12 @@ std::vector<String> FeatureEnableCommand::GetPositionalSuggestions(const String&
  */
 int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String features_available_dir = Application::GetSysconfDir() + "/icinga2/features-available";
-	String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
-
 	if (ap.empty()) {
 		Log(LogCritical, "cli", "Cannot enable feature(s). Name(s) are missing!");
 		return 0;
 	}
 
-	if (!Utility::PathExists(features_available_dir) ) {
-		Log(LogCritical, "cli")
-		    << "Cannot parse available features. Path '" << features_available_dir << "' does not exist.";
-		return 0;
-	}
-
-	if (!Utility::PathExists(features_enabled_dir) ) {
-		Log(LogCritical, "cli")
-		    << "Cannot enable features. Path '" << features_enabled_dir << "' does not exist.";
-		return 0;
-	}
-
-	std::vector<std::string> errors;
-
-	BOOST_FOREACH(const String& feature, ap) {
-		String source = features_available_dir + "/" + feature + ".conf";
-
-		if (!Utility::PathExists(source) ) {
-			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Source file '" << source + "' does not exist.";
-			errors.push_back(feature);
-			continue;
-		}
-
-		String target = features_enabled_dir + "/" + feature + ".conf";
-
-		if (Utility::PathExists(target) ) {
-			Log(LogWarning, "cli")
-			    << "Feature '" << feature << "' already enabled.";
-			continue;
-		}
-
-		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
-
-#ifndef _WIN32
-		if (symlink(source.CStr(), target.CStr()) < 0) {
-			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Linking source '" << source << "' to target file '" << target
-			    << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
-			errors.push_back(feature);
-			continue;
-		}
-#else /* _WIN32 */
-		std::ofstream fp;
-		fp.open(target.CStr());
-		fp << "include \"../features-available/" << feature << ".conf\"" << std::endl;
-		fp.close();
-
-		if (fp.fail()) {
-			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
-			errors.push_back(feature);
-			continue;
-		}
-#endif /* _WIN32 */
-	}
-
-	if (!errors.empty()) {
-		Log(LogCritical, "cli")
-		    << "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
-		errors.clear();
-		return 1;
-	}
+	return FeatureUtility::EnableFeatures(ap);
 
 	return 0;
 }

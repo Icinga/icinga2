@@ -20,14 +20,6 @@
 #include "cli/featuredisablecommand.hpp"
 #include "cli/featureutility.hpp"
 #include "base/logger.hpp"
-#include "base/application.hpp"
-#include "base/convert.hpp"
-#include "base/console.hpp"
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <iostream>
-#include <fstream>
-#include <vector>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -46,7 +38,7 @@ String FeatureDisableCommand::GetShortDescription(void) const
 
 std::vector<String> FeatureDisableCommand::GetPositionalSuggestions(const String& word) const
 {
-	return FeatureUtility::GetFieldCompletionSuggestions(FeatureCommandDisable, word);
+	return FeatureUtility::GetFieldCompletionSuggestions(word, false);
 }
 
 /**
@@ -56,49 +48,10 @@ std::vector<String> FeatureDisableCommand::GetPositionalSuggestions(const String
  */
 int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String features_enabled_dir = Application::GetSysconfDir() + "/icinga2/features-enabled";
-
 	if (ap.empty()) {
 		Log(LogCritical, "cli", "Cannot disable feature(s). Name(s) are missing!");
 		return 0;
 	}
 
-	if (!Utility::PathExists(features_enabled_dir) ) {
-		Log(LogCritical, "cli")
-		    << "Cannot disable features. Path '" << features_enabled_dir << "' does not exist.";
-		return 0;
-	}
-
-	std::vector<std::string> errors;
-
-	BOOST_FOREACH(const String& feature, ap) {
-		String target = features_enabled_dir + "/" + feature + ".conf";
-
-		if (!Utility::PathExists(target) ) {
-			Log(LogCritical, "cli")
-			    << "Cannot disable feature '" << feature << "'. Target file '" << target << "' does not exist.";
-			errors.push_back(feature);
-			continue;
-		}
-
-		if (unlink(target.CStr()) < 0) {
-			Log(LogCritical, "cli")
-			    << "Cannot disable feature '" << feature << "'. Unlinking target file '" << target
-			    << "' failed with error code " << errno << ", \"" + Utility::FormatErrorNumber(errno) << "\".";
-			errors.push_back(feature);
-			continue;
-		}
-
-		std::cout << "Disabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
-	}
-
-	if (!errors.empty()) {
-		Log(LogCritical, "cli")
-		    << "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
-		errors.clear();
-		return 1;
-	}
-
-	return 0;
+	return FeatureUtility::DisableFeatures(ap);
 }
