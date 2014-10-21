@@ -18,14 +18,9 @@
  ******************************************************************************/
 
 #include "cli/pkirequestcommand.hpp"
-#include "remote/jsonrpc.hpp"
+#include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
-#include "base/tlsutility.hpp"
-#include "base/tlsstream.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/utility.hpp"
-#include "base/application.hpp"
-#include <fstream>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -80,22 +75,22 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 	}
 
 	if (!vm.count("keyfile")) {
-		Log(LogCritical, "cli", "Key file path (--keyfile) must be specified.");
+		Log(LogCritical, "cli", "Key input file path (--keyfile) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("certfile")) {
-		Log(LogCritical, "cli", "Certificate file path (--certfile) must be specified.");
+		Log(LogCritical, "cli", "Certificate output file path (--certfile) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("cafile")) {
-		Log(LogCritical, "cli", "CA certificate file path (--cafile) must be specified.");
+		Log(LogCritical, "cli", "CA certificate output file path (--cafile) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("trustedfile")) {
-		Log(LogCritical, "cli", "Trusted certificate file path (--trustedfile) must be specified.");
+		Log(LogCritical, "cli", "Trusted certificate input file path (--trustedfile) must be specified.");
 		return 1;
 	}
 
@@ -104,87 +99,12 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 		return 1;
 	}
 
-	TcpSocket::Ptr client = make_shared<TcpSocket>();
-
 	String port = "5665";
 
 	if (vm.count("port"))
 		port = vm["port"].as<std::string>();
 
-	client->Connect(vm["host"].as<std::string>(), port);
-
-	String certfile = vm["certfile"].as<std::string>();
-
-	shared_ptr<SSL_CTX> sslContext = MakeSSLContext(certfile, vm["keyfile"].as<std::string>());
-
-	TlsStream::Ptr stream = make_shared<TlsStream>(client, RoleClient, sslContext);
-
-	stream->Handshake();
-
-	shared_ptr<X509> peerCert = stream->GetPeerCertificate();
-	shared_ptr<X509> trustedCert = GetX509Certificate(vm["trustedfile"].as<std::string>());
-
-	if (CertificateToString(peerCert) != CertificateToString(trustedCert)) {
-		Log(LogCritical, "cli", "Peer certificate does not match trusted certificate.");
-		return 1;
-	}
-
-	Dictionary::Ptr request = make_shared<Dictionary>();
-
-	String msgid = Utility::NewUniqueID();
-
-	request->Set("jsonrpc", "2.0");
-	request->Set("id", msgid);
-	request->Set("method", "pki::RequestCertificate");
-
-	Dictionary::Ptr params = make_shared<Dictionary>();
-	params->Set("ticket", String(vm["ticket"].as<std::string>()));
-
-	request->Set("params", params);
-
-	JsonRpc::SendMessage(stream, request);
-
-	Dictionary::Ptr response;
-
-	for (;;) {
-		response = JsonRpc::ReadMessage(stream);
-
-		if (response->Get("id") != msgid)
-			continue;
-
-		break;
-	}
-
-	Dictionary::Ptr result = response->Get("result");
-
-	if (result->Contains("error")) {
-		Log(LogCritical, "cli", result->Get("error"));
-		return 1;
-	}
-
-	String cafile = vm["cafile"].as<std::string>();
-
-	std::ofstream fpcert;
-	fpcert.open(certfile.CStr());
-	fpcert << result->Get("cert");
-	fpcert.close();
-
-	if (fpcert.fail()) {
-		Log(LogCritical, "cli")
-		    << "Could not write certificate to file '" << certfile << "'.";
-		return 1;
-	}
-
-	std::ofstream fpca;
-	fpca.open(cafile.CStr());
-	fpca << result->Get("ca");
-	fpca.close();
-
-	if (fpca.fail()) {
-		Log(LogCritical, "cli")
-		    << "Could not open CA certificate file '" << cafile << "' for writing.";
-		return 1;
-	}
-
-	return 0;
+	return PkiUtility::RequestCertificate(vm["host"].as<std::string>(), port, vm["keyfile"].as<std::string>(),
+	    vm["certfile"].as<std::string>(), vm["cafile"].as<std::string>(), vm["trustedfile"].as<std::string>(),
+	    vm["ticket"].as<std::string>());
 }

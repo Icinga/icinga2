@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "cli/pkinewcertcommand.hpp"
+#include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
-#include "base/tlsutility.hpp"
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -79,7 +79,5 @@ int PKINewCertCommand::Run(const boost::program_options::variables_map& vm, cons
 	if (vm.count("certfile"))
 		certfile = vm["certfile"].as<std::string>();
 
-	MakeX509CSR(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), csrfile, certfile);
-
-	return 0;
+	return PkiUtility::NewCert(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), csrfile, certfile);
 }

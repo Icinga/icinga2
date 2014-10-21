@@ -18,10 +18,8 @@
  ******************************************************************************/
 
 #include "cli/pkisigncsrcommand.hpp"
+#include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
-#include "base/tlsutility.hpp"
-#include "base/application.hpp"
-#include <fstream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -71,41 +69,5 @@ int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, cons
 		return 1;
 	}
 
-	std::stringstream msgbuf;
-	char errbuf[120];
-
-	InitializeOpenSSL();
-
-	String csrfile = vm["csrfile"].as<std::string>();
-
-	BIO *csrbio = BIO_new_file(csrfile.CStr(), "r");
-	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, NULL, NULL, NULL);
-
-	if (!req) {
-		Log(LogCritical, "SSL")
-		    << "Could not read X509 certificate request from '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		return 1;
-	}
-
-	BIO_free(csrbio);
-
-	shared_ptr<X509> cert = CreateCertIcingaCA(X509_REQ_get_pubkey(req), X509_REQ_get_subject_name(req));
-
-	X509_REQ_free(req);
-
-	String certfile = vm["certfile"].as<std::string>();
-
-	std::ofstream fpcert;
-	fpcert.open(certfile.CStr());
-
-	if (!fpcert) {
-		Log(LogCritical, "cli")
-		    << "Failed to open certificate file '" << certfile << "' for output";
-		return 1;
-	}
-
-	fpcert << CertificateToString(cert);
-	fpcert.close();
-
-	return 0;
+	return PkiUtility::SignCsr(vm["csrfile"].as<std::string>(), vm["certfile"].as<std::string>());
 }

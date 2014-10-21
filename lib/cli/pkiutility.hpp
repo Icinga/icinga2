@@ -17,30 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/pkinewcacommand.hpp"
-#include "cli/pkiutility.hpp"
-#include "base/logger.hpp"
+#ifndef PKIUTILITY_H
+#define PKIUTILITY_H
 
-using namespace icinga;
+#include "base/i2-base.hpp"
+#include "base/dictionary.hpp"
+#include "base/string.hpp"
 
-REGISTER_CLICOMMAND("pki/new-ca", PKINewCACommand);
-
-String PKINewCACommand::GetDescription(void) const
+namespace icinga
 {
-	return "Sets up a new Certificate Authority.";
-}
-
-String PKINewCACommand::GetShortDescription(void) const
-{
-	return "sets up a new CA";
-}
 
 /**
- * The entry point for the "pki new-ca" CLI command.
- *
- * @returns An exit status.
+ * @ingroup cli
  */
-int PKINewCACommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+class PkiUtility
 {
-	return PkiUtility::NewCa();
+public:
+	static int NewCa(void);
+	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);
+	static int SignCsr(const String& csrfile, const String& certfile);
+	static int SaveCert(const String& host, const String& port, const String& keyfile, const String& certfile, const String& trustedfile);
+	static int GenTicket(const String& cn, const String& salt, std::ostream& ticketfp);
+	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
+	    const String& certfile, const String& cafile, const String& trustedfile, const String& ticket);
+
+private:
+	PkiUtility(void);
+};
+
 }
+
+#endif /* PKIUTILITY_H */

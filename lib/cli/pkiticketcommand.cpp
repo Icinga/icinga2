@@ -18,13 +18,8 @@
  ******************************************************************************/
 
 #include "cli/pkiticketcommand.hpp"
-#include "remote/jsonrpc.hpp"
+#include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
-#include "base/tlsutility.hpp"
-#include "base/tlsstream.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/utility.hpp"
-#include "base/application.hpp"
 #include <iostream>
 
 using namespace icinga;
@@ -67,7 +62,5 @@ int PKITicketCommand::Run(const boost::program_options::variables_map& vm, const
 		return 1;
 	}
 
-	std::cout << PBKDF2_SHA1(vm["cn"].as<std::string>(), vm["salt"].as<std::string>(), 50000) << std::endl;
-
-	return 0;
+	return PkiUtility::GenTicket(vm["cn"].as<std::string>(), vm["salt"].as<std::string>(), std::cout);
 }

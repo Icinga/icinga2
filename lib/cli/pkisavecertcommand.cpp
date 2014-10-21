@@ -18,14 +18,8 @@
  ******************************************************************************/
 
 #include "cli/pkisavecertcommand.hpp"
-#include "remote/jsonrpc.hpp"
+#include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
-#include "base/tlsutility.hpp"
-#include "base/tlsstream.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/utility.hpp"
-#include "base/application.hpp"
-#include <fstream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -78,53 +72,24 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 	}
 
 	if (!vm.count("keyfile")) {
-		Log(LogCritical, "cli", "Key file path (--keyfile) must be specified.");
+		Log(LogCritical, "cli", "Key input file path (--keyfile) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("certfile")) {
-		Log(LogCritical, "cli", "Certificate file path (--certfile) must be specified.");
+		Log(LogCritical, "cli", "Certificate input file path (--certfile) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("trustedfile")) {
-		Log(LogCritical, "cli", "Trusted certificate file path (--trustedfile) must be specified.");
+		Log(LogCritical, "cli", "Trusted certificate output file path (--trustedfile) must be specified.");
 		return 1;
 	}
-
-	TcpSocket::Ptr client = make_shared<TcpSocket>();
 
 	String port = "5665";
 
 	if (vm.count("port"))
 		port = vm["port"].as<std::string>();
 
-	client->Connect(vm["host"].as<std::string>(), port);
-
-	shared_ptr<SSL_CTX> sslContext = MakeSSLContext(vm["certfile"].as<std::string>(), vm["keyfile"].as<std::string>());
-
-	TlsStream::Ptr stream = make_shared<TlsStream>(client, RoleClient, sslContext);
-
-	try {
-		stream->Handshake();
-	} catch (...) {
-
-	}
-
-	shared_ptr<X509> cert = stream->GetPeerCertificate();
-
-	String trustedfile = vm["trustedfile"].as<std::string>();
-
-	std::ofstream fpcert;
-	fpcert.open(trustedfile.CStr());
-	fpcert << CertificateToString(cert);
-	fpcert.close();
-
-	if (fpcert.fail()) {
-		Log(LogCritical, "cli")
-		    << "Could not write certificate to file '" << trustedfile << "'.";
-		return 1;
-	}
-
-	return 0;
+	return PkiUtility::SaveCert(vm["host"].as<std::string>(), port, vm["keyfile"].as<std::string>(), vm["certfile"].as<std::string>(), vm["trustedfile"].as<std::string>());
 }
