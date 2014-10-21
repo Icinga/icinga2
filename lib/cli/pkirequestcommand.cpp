@@ -46,9 +46,10 @@ void PKIRequestCommand::InitParameters(boost::program_options::options_descripti
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("keyfile", po::value<std::string>(), "Key file path")
+	    ("keyfile", po::value<std::string>(), "Key file path (input)")
 	    ("certfile", po::value<std::string>(), "Certificate file path (input + output)")
 	    ("cafile", po::value<std::string>(), "CA file path (output)")
+	    ("trustedfile", po::value<std::string>(), "Trusted certificate file path (input)")
 	    ("host", po::value<std::string>(), "Icinga 2 host")
 	    ("port", po::value<std::string>(), "Icinga 2 port")
 	    ("ticket", po::value<std::string>(), "Icinga 2 PKI ticket");
@@ -56,7 +57,7 @@ void PKIRequestCommand::InitParameters(boost::program_options::options_descripti
 
 std::vector<String> PKIRequestCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "keyfile" || argument == "certfile" || argument == "cafile")
+	if (argument == "keyfile" || argument == "certfile" || argument == "cafile" || argument == "trustedfile")
 		return GetBashCompletionSuggestions("file", word);
 	else if (argument == "host")
 		return GetBashCompletionSuggestions("hostname", word);
@@ -93,6 +94,11 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 		return 1;
 	}
 
+	if (!vm.count("trustedfile")) {
+		Log(LogCritical, "cli", "Trusted certificate file path (--trustedfile) must be specified.");
+		return 1;
+	}
+
 	if (!vm.count("ticket")) {
 		Log(LogCritical, "cli", "Ticket (--ticket) must be specified.");
 		return 1;
@@ -114,6 +120,14 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 	TlsStream::Ptr stream = make_shared<TlsStream>(client, RoleClient, sslContext);
 
 	stream->Handshake();
+
+	shared_ptr<X509> peerCert = stream->GetPeerCertificate();
+	shared_ptr<X509> trustedCert = GetX509Certificate(vm["trustedfile"].as<std::string>());
+
+	if (CertificateToString(peerCert) != CertificateToString(trustedCert)) {
+		Log(LogCritical, "cli", "Peer certificate does not match trusted certificate.");
+		return 1;
+	}
 
 	Dictionary::Ptr request = make_shared<Dictionary>();
 

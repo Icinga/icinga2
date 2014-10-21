@@ -22,7 +22,7 @@ set(cli_SOURCES
   daemoncommand.cpp
   featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp featureutility.cpp
   objectlistcommand.cpp
-  pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkiticketcommand.cpp
+  pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkisavecertcommand.cpp pkiticketcommand.cpp
   repositoryobjectcommand.cpp
   variablegetcommand.cpp variablelistcommand.cpp
 )
