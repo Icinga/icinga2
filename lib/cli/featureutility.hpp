@@ -48,6 +48,8 @@ class FeatureUtility
 public:
 	static std::vector<String> GetFieldCompletionSuggestions(FeatureCommandType fctype, const String& word);
 	static bool GetFeatures(FeatureType ftype, std::vector<String>& features);
+	static String GetFeaturesAvailablePath(void);
+	static String GetFeaturesEnabledPath(void);
 
 private:
 	FeatureUtility(void);

@@ -25,6 +25,17 @@
 
 using namespace icinga;
 
+String FeatureUtility::GetFeaturesAvailablePath(void)
+{
+	return Application::GetSysconfDir() + "/icinga2/features-available";
+}
+
+String FeatureUtility::GetFeaturesEnabledPath(void)
+{
+	return Application::GetSysconfDir() + "/icinga2/features-enabled";
+}
+
+
 std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(FeatureCommandType fctype, const String& word)
 {
 	std::vector<String> cache;
