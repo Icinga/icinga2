@@ -38,6 +38,8 @@
 			this.lblConfigStatus = new System.Windows.Forms.Label();
 			this.prgConfig = new System.Windows.Forms.ProgressBar();
 			this.tabParameters = new System.Windows.Forms.TabPage();
+			this.txtTicket = new System.Windows.Forms.TextBox();
+			this.lblTicket = new System.Windows.Forms.Label();
 			this.txtInstanceName = new System.Windows.Forms.TextBox();
 			this.lblInstanceName = new System.Windows.Forms.Label();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -69,11 +71,9 @@
 			this.lblX509Issuer = new System.Windows.Forms.Label();
 			this.lblX509Prompt = new System.Windows.Forms.Label();
 			this.tabError = new System.Windows.Forms.TabPage();
-			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.lblError = new System.Windows.Forms.Label();
 			this.txtError = new System.Windows.Forms.TextBox();
-			this.lblTicket = new System.Windows.Forms.Label();
-			this.txtTicket = new System.Windows.Forms.TextBox();
+			this.lblError = new System.Windows.Forms.Label();
+			this.picBanner = new System.Windows.Forms.PictureBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -183,11 +183,27 @@
 			this.tabParameters.Text = "Agent Parameters";
 			this.tabParameters.UseVisualStyleBackColor = true;
 			// 
+			// txtTicket
+			// 
+			this.txtTicket.Location = new System.Drawing.Point(98, 45);
+			this.txtTicket.Name = "txtTicket";
+			this.txtTicket.Size = new System.Drawing.Size(340, 20);
+			this.txtTicket.TabIndex = 1;
+			// 
+			// lblTicket
+			// 
+			this.lblTicket.AutoSize = true;
+			this.lblTicket.Location = new System.Drawing.Point(9, 48);
+			this.lblTicket.Name = "lblTicket";
+			this.lblTicket.Size = new System.Drawing.Size(71, 13);
+			this.lblTicket.TabIndex = 4;
+			this.lblTicket.Text = "Agent Ticket:";
+			// 
 			// txtInstanceName
 			// 
 			this.txtInstanceName.Location = new System.Drawing.Point(98, 16);
 			this.txtInstanceName.Name = "txtInstanceName";
-			this.txtInstanceName.Size = new System.Drawing.Size(240, 20);
+			this.txtInstanceName.Size = new System.Drawing.Size(340, 20);
 			this.txtInstanceName.TabIndex = 0;
 			// 
 			// lblInstanceName
@@ -219,7 +235,7 @@
 			this.rdoNoListener.Location = new System.Drawing.Point(11, 82);
 			this.rdoNoListener.Name = "rdoNoListener";
 			this.rdoNoListener.Size = new System.Drawing.Size(163, 17);
-			this.rdoNoListener.TabIndex = 2;
+			this.rdoNoListener.TabIndex = 9;
 			this.rdoNoListener.TabStop = true;
 			this.rdoNoListener.Text = "Do not listen for connections.";
 			this.rdoNoListener.UseVisualStyleBackColor = true;
@@ -231,7 +247,7 @@
 			this.txtListenerPort.Location = new System.Drawing.Point(132, 51);
 			this.txtListenerPort.Name = "txtListenerPort";
 			this.txtListenerPort.Size = new System.Drawing.Size(84, 20);
-			this.txtListenerPort.TabIndex = 1;
+			this.txtListenerPort.TabIndex = 8;
 			this.txtListenerPort.Text = "5665";
 			// 
 			// lblListenerPort
@@ -249,7 +265,7 @@
 			this.rdoListener.Location = new System.Drawing.Point(11, 24);
 			this.rdoListener.Name = "rdoListener";
 			this.rdoListener.Size = new System.Drawing.Size(250, 17);
-			this.rdoListener.TabIndex = 0;
+			this.rdoListener.TabIndex = 7;
 			this.rdoListener.Text = "Listen for connections from the master instance:";
 			this.rdoListener.UseVisualStyleBackColor = true;
 			this.rdoListener.CheckedChanged += new System.EventHandler(this.RadioListener_CheckedChanged);
@@ -274,7 +290,7 @@
 			this.btnRemoveEndpoint.Location = new System.Drawing.Point(520, 112);
 			this.btnRemoveEndpoint.Name = "btnRemoveEndpoint";
 			this.btnRemoveEndpoint.Size = new System.Drawing.Size(75, 23);
-			this.btnRemoveEndpoint.TabIndex = 4;
+			this.btnRemoveEndpoint.TabIndex = 6;
 			this.btnRemoveEndpoint.Text = "Remove";
 			this.btnRemoveEndpoint.UseVisualStyleBackColor = true;
 			this.btnRemoveEndpoint.Click += new System.EventHandler(this.btnRemoveEndpoint_Click);
@@ -284,7 +300,7 @@
 			this.btnAddEndpoint.Location = new System.Drawing.Point(520, 83);
 			this.btnAddEndpoint.Name = "btnAddEndpoint";
 			this.btnAddEndpoint.Size = new System.Drawing.Size(75, 23);
-			this.btnAddEndpoint.TabIndex = 3;
+			this.btnAddEndpoint.TabIndex = 5;
 			this.btnAddEndpoint.Text = "Add";
 			this.btnAddEndpoint.UseVisualStyleBackColor = true;
 			this.btnAddEndpoint.Click += new System.EventHandler(this.btnAddEndpoint_Click);
@@ -297,7 +313,7 @@
 			this.lvwEndpoints.Location = new System.Drawing.Point(11, 83);
 			this.lvwEndpoints.Name = "lvwEndpoints";
 			this.lvwEndpoints.Size = new System.Drawing.Size(500, 176);
-			this.lvwEndpoints.TabIndex = 2;
+			this.lvwEndpoints.TabIndex = 4;
 			this.lvwEndpoints.UseCompatibleStateImageBehavior = false;
 			this.lvwEndpoints.View = System.Windows.Forms.View.Details;
 			this.lvwEndpoints.SelectedIndexChanged += new System.EventHandler(this.lvwEndpoints_SelectedIndexChanged);
@@ -319,7 +335,7 @@
 			this.rdoNoMaster.Location = new System.Drawing.Point(11, 50);
 			this.rdoNoMaster.Name = "rdoNoMaster";
 			this.rdoNoMaster.Size = new System.Drawing.Size(374, 17);
-			this.rdoNoMaster.TabIndex = 1;
+			this.rdoNoMaster.TabIndex = 3;
 			this.rdoNoMaster.TabStop = true;
 			this.rdoNoMaster.Text = "This instance should report its check results to an existing Icinga 2 master:";
 			this.rdoNoMaster.UseVisualStyleBackColor = true;
@@ -331,7 +347,7 @@
 			this.rdoNewMaster.Location = new System.Drawing.Point(11, 22);
 			this.rdoNewMaster.Name = "rdoNewMaster";
 			this.rdoNewMaster.Size = new System.Drawing.Size(167, 17);
-			this.rdoNewMaster.TabIndex = 0;
+			this.rdoNewMaster.TabIndex = 2;
 			this.rdoNewMaster.TabStop = true;
 			this.rdoNewMaster.Text = "This is a new master instance.";
 			this.rdoNewMaster.UseVisualStyleBackColor = true;
@@ -500,24 +516,6 @@
 			this.tabError.Text = "Error";
 			this.tabError.UseVisualStyleBackColor = true;
 			// 
-			// picBanner
-			// 
-			this.picBanner.Image = global::Icinga.Properties.Resources.icinga_banner;
-			this.picBanner.Location = new System.Drawing.Point(0, 0);
-			this.picBanner.Name = "picBanner";
-			this.picBanner.Size = new System.Drawing.Size(625, 77);
-			this.picBanner.TabIndex = 1;
-			this.picBanner.TabStop = false;
-			// 
-			// lblError
-			// 
-			this.lblError.AutoSize = true;
-			this.lblError.Location = new System.Drawing.Point(8, 12);
-			this.lblError.Name = "lblError";
-			this.lblError.Size = new System.Drawing.Size(209, 13);
-			this.lblError.TabIndex = 0;
-			this.lblError.Text = "An error occurred while setting up Icinga 2:";
-			// 
 			// txtError
 			// 
 			this.txtError.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -529,21 +527,23 @@
 			this.txtError.Size = new System.Drawing.Size(598, 397);
 			this.txtError.TabIndex = 1;
 			// 
-			// lblTicket
+			// lblError
 			// 
-			this.lblTicket.AutoSize = true;
-			this.lblTicket.Location = new System.Drawing.Point(9, 48);
-			this.lblTicket.Name = "lblTicket";
-			this.lblTicket.Size = new System.Drawing.Size(71, 13);
-			this.lblTicket.TabIndex = 4;
-			this.lblTicket.Text = "Agent Ticket:";
+			this.lblError.AutoSize = true;
+			this.lblError.Location = new System.Drawing.Point(8, 12);
+			this.lblError.Name = "lblError";
+			this.lblError.Size = new System.Drawing.Size(209, 13);
+			this.lblError.TabIndex = 0;
+			this.lblError.Text = "An error occurred while setting up Icinga 2:";
 			// 
-			// txtTicket
+			// picBanner
 			// 
-			this.txtTicket.Location = new System.Drawing.Point(98, 45);
-			this.txtTicket.Name = "txtTicket";
-			this.txtTicket.Size = new System.Drawing.Size(240, 20);
-			this.txtTicket.TabIndex = 5;
+			this.picBanner.Image = global::Icinga.Properties.Resources.icinga_banner;
+			this.picBanner.Location = new System.Drawing.Point(0, 0);
+			this.picBanner.Name = "picBanner";
+			this.picBanner.Size = new System.Drawing.Size(625, 77);
+			this.picBanner.TabIndex = 1;
+			this.picBanner.TabStop = false;
 			// 
 			// AgentWizard
 			// 

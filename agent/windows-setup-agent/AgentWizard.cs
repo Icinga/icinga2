@@ -185,6 +185,8 @@ namespace Icinga
 				args += " --master";
 
 			Invoke((MethodInvoker)delegate {
+				args += " --master_host " + lvwEndpoints.Items[0].SubItems[0].Text + "," + lvwEndpoints.Items[0].SubItems[1].Text;
+
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
 					args += " --endpoint " + lvi.SubItems[0].Text + "," + lvi.SubItems[1].Text;
 				}
@@ -250,6 +252,7 @@ namespace Icinga
 
 			/* TODO: This is something the NSIS installer should do */
 			Directory.CreateDirectory(installDir + "\\var\\cache\\icinga2");
+			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\pki");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\agent\\inventory");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\cluster\\config");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\cluster\\log");
@@ -257,10 +260,6 @@ namespace Icinga
 			Directory.CreateDirectory(installDir + "\\var\\run\\icinga2\\cmd");
 			Directory.CreateDirectory(installDir + "\\var\\spool\\icinga2\\perfdata");
 			Directory.CreateDirectory(installDir + "\\var\\spool\\icinga2\\tmp");
-
-			Directory.CreateDirectory(installDir + "\\etc\\icinga2\\pki\\agent");
-
-			
 		}
 
 		private void btnBack_Click(object sender, EventArgs e)

@@ -284,41 +284,25 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	 * Requires local ca & key/crt
 	 */
 
-	String local_pki_path = PkiUtility::GetLocalPkiPath();
-
-	String key = local_pki_path + "/" + cn + ".key";
-	String cert = local_pki_path + "/" + cn + ".crt";
-	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
-
-	//TODO: local CA or any other one?
-	if (!Utility::PathExists(ca)) {
-		Log(LogCritical, "cli")
-		    << "CA file '" << ca << "' does not exist. Please generate a new CA first.\n"
-		    << "Hist: 'icinga2 pki new-ca'";
-		return 1;
-	}
-
-	if (!Utility::PathExists(key)) {
-		Log(LogCritical, "cli")
-		    << "Private key file '" << key << "' does not exist. Please generate a new certificate first.\n"
-		    << "Hist: 'icinga2 pki new-cert'";
-		return 1;
-	}
-
-	if (!Utility::PathExists(cert)) {
-		Log(LogCritical, "cli")
-		    << "Cert file '" << cert << "' does not exist. Please generate a new certificate first.\n"
-		    << "Hist: 'icinga2 pki new-cert'";
-		return 1;
-	}
-
 	String pki_path = PkiUtility::GetPkiPath();
+
+	String key = pki_path + "/" + cn + ".key";
+	String cert = pki_path + "/" + cn + ".crt";
+	String ca = pki_path + "/ca.crt";
+
+	if (PkiUtility::NewCert(cn, key, String(), cert) != 0) {
+		Log(LogCritical, "cli", "Failed to generate new self-signed certificate.");
+		return 1;
+	}
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
 
 	String port = "5665";
 
-	PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket);
+	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
+		Log(LogCritical, "cli", "Failed to request certificate from Icinga 2 master.");
+		return 1;
+	}
 
 	/*
 	 * 5. get public key signed by the master, private key and ca.crt and copy it to /etc/icinga2/pki

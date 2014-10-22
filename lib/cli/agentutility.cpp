@@ -432,6 +432,7 @@ bool AgentUtility::CreateBackupFile(const String& target)
 void AgentUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
 {
         fp << "object " << type << " \"" << name << "\" {\n";
+	ObjectLock olock(object);
         BOOST_FOREACH(const Dictionary::Pair& kv, object) {
 		if (kv.first == "__type" || kv.first == "__name")
 			continue;
