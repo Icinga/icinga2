@@ -45,8 +45,6 @@ public:
 	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
 	    const String& certfile, const String& cafile, const String& trustedfile, const String& ticket);
 
-	static bool CopyCertFile(const String& source, const String& target);
-
 private:
 	PkiUtility(void);
 

@@ -58,8 +58,10 @@ public:
 
 	static bool WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects);
 
+
 	/* agent setup helpers */
 	static int GenerateAgentIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);
+	static int GenerateAgentMasterIcingaConfig(const String& nodename);
 
 private:
 	AgentUtility(void);

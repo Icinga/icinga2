@@ -325,6 +325,37 @@ int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endp
 	return 0;
 }
 
+int AgentUtility::GenerateAgentMasterIcingaConfig(const String& nodename)
+{
+	Array::Ptr my_config = make_shared<Array>();
+
+	/* store the local generated agent master configuration */
+	Dictionary::Ptr my_master_endpoint = make_shared<Dictionary>();
+	Dictionary::Ptr my_master_zone = make_shared<Dictionary>();
+	Array::Ptr my_master_zone_members = make_shared<Array>();
+
+	my_master_endpoint->Set("__name", nodename);
+	my_master_endpoint->Set("__type", "Endpoint");
+
+	my_master_zone_members->Add(nodename);
+
+	my_master_zone->Set("__name", "master");
+	my_master_zone->Set("__type", "Zone");
+	my_master_zone->Set("//this is the local agent master named ", "master");
+	my_master_zone->Set("endpoints", my_master_zone_members);
+
+	/* store the local config */
+	my_config->Add(my_master_endpoint);
+	my_config->Add(my_master_zone);
+
+	/* write the newly generated configuration */
+	String zones_path = Application::GetSysconfDir() + "/icinga2/zones.conf";
+
+	AgentUtility::WriteAgentConfigObjects(zones_path, my_config);
+
+	return 0;
+}
+
 /*
  * This is ugly and requires refactoring into a generic config writer class.
  * TODO.

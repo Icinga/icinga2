@@ -104,6 +104,16 @@ int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, cons
 int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
 	/*
+	 * 0. Ignore not required parameters
+	 */
+	if (vm.count("ticket"))
+		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --ticket");
+	if (vm.count("endpoint"))
+		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --endpoint");
+	if (vm.count("trustedcert"))
+		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --trustedcert");
+
+	/*
 	 * 1. Generate a new CA, if not already existing
 	 */
 
@@ -111,7 +121,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	    << "Generating new CA.";
 
 	if (PkiUtility::NewCa() > 0) {
-		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.\n");
+		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
 	}
 
 	/*
@@ -148,18 +158,16 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	String pki_path = PkiUtility::GetPkiPath();
 
 	Log(LogInformation, "cli")
-	    << "Moving certificates to " << pki_path << ".";
+	    << "Copying generated certificates to " << pki_path << ".";
 
 	String target_key = pki_path + "/" + cn + ".key";
 	String target_cert = pki_path + "/" + cn + ".crt";
 	String target_ca = pki_path + "/ca.crt";
 
-	//TODO
-	PkiUtility::CopyCertFile(key, target_key);
-	PkiUtility::CopyCertFile(cert, target_cert);
-	PkiUtility::CopyCertFile(ca, target_ca);
-
-	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
+	/* does not overwrite existing files! */
+	Utility::CopyFile(key, target_key);
+	Utility::CopyFile(cert, target_cert);
+	Utility::CopyFile(ca, target_ca);
 
 	/*
 	 * 4. read zones.conf and update with zone + endpoint information
@@ -167,7 +175,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
+	AgentUtility::GenerateAgentMasterIcingaConfig(cn);
 
 	/*
 	 * 5. enable the ApiListener config (verifiy its data)
@@ -182,6 +190,8 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	std::vector<std::string> enable;
 	enable.push_back("api");
 	FeatureUtility::EnableFeatures(enable);
+
+	//TODO read --listen and set that as bind_host,port on ApiListener
 
 	/*
 	 * 6. tell the user to set a safe salt in api.conf
@@ -344,6 +354,8 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 		std::cout << JsonSerialize(object) << std::endl;
 	}*/
 
+
+	//TODO read --listen and set that as bind_host,port on ApiListener
 
 	/*
 	 * 7. generate local zones.conf with zone+endpoint
