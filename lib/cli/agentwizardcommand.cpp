@@ -56,5 +56,36 @@ int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, con
 
 	Log(LogWarning, "cli", "TODO: Not implemented yet.");
 
+	/*
+	 * The wizard will get all information from the user,
+	 * and then call all required functions.
+	 */
+
+	std::cout << "Welcome to the Icinga 2 Setup Wizard!\n"
+	    << "\n"
+	    << "We'll guide you through all required configuration details.\n"
+	    << "\n"
+	    << "If you have questions, please consult the documentation at http://docs.icinga.org\n"
+	    << "or join the community support channels at https://support.icinga.org\n"
+	    << "\n\n";
+
+	//TODO: Add sort of bash completion to path input?
+
+
+	/* 0. master or agent setup?
+	 * 1. Ticket
+	 * 2. Master information for autosigning
+	 * 3. Trusted cert location
+	 * 4. CN to use (defaults to FQDN)
+	 * 5. Local CA
+	 * 6. New self signed certificate
+	 * 7. Request signed certificate from master
+	 * 8. copy key information to /etc/icinga2/pki
+	 * 9. enable ApiListener feature
+	 * 10. generate zones.conf with endpoints and zone objects
+	 * 11. set NodeName = cn in constants.conf
+	 * 12. reload icinga2, or tell the user to
+	 */
+
 	return 0;
 }
