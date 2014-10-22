@@ -137,6 +137,8 @@ public:
 
 	static bool PathExists(const String& path);
 
+	static bool CopyFile(const String& source, const String& target);
+
 private:
 	Utility(void);
 

@@ -30,6 +30,9 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <ios>
+#include <fstream>
+#include <iostream>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -309,7 +312,7 @@ Utility::LoadExtensionLibrary(const String& library)
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.CStr());
-	
+
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(win32_error()
 		    << boost::errinfo_api_function("LoadLibrary")
@@ -318,7 +321,7 @@ Utility::LoadExtensionLibrary(const String& library)
 	}
 #else /* _WIN32 */
 	void *hModule = dlopen(path.CStr(), RTLD_NOW);
-	
+
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " + dlerror()));
 	}
@@ -638,6 +641,21 @@ bool Utility::MkDirP(const String& path, int flags)
 	return ret;
 }
 
+bool Utility::CopyFile(const String& source, const String& target)
+{
+	if (Utility::PathExists(target)) {
+		Log(LogWarning, "Utility")
+		    << "Target file '" << target << "' already exists.";
+		return false;
+	}
+
+	std::ifstream ifs(source.CStr(), std::ios::binary);
+	std::ofstream ofs(target.CStr(), std::ios::binary);
+
+	ofs << ifs.rdbuf();
+
+	return true;
+}
 
 #ifndef _WIN32
 void Utility::SetNonBlocking(int fd)
