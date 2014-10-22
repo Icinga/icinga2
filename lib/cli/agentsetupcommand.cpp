@@ -238,13 +238,11 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	if (tokens.size() == 2)
 		master_port = tokens[1];
 
-
 	Log(LogInformation, "cli")
 	    << "Verifying master host connection information: host '" << master_host << "', port '" << master_port << "'.";
 
-
 	/*
-	 * 2. trusted cert must be passed (retrieved by the user with 'pki save-cert' before)
+	 * 3. trusted cert must be passed (retrieved by the user with 'pki save-cert' before)
 	 */
 
 	if (!vm.count("trustedcert")) {
@@ -259,50 +257,50 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 	    << "Verifying trusted certificate from file '" << trustedcert << "'.";
 
+	/*
+	 * 4. retrieve CN and pass it (defaults to FQDN)
+	 */
+
 	String cn = Utility::GetFQDN();
 
 	if (vm.count("cn"))
 		cn = vm["cn"].as<std::string>();
 
-	String NodeName = cn;
-	String ZoneName = cn;
-
-	/*
-	 * 3. retrieve CN and pass it (defaults to FQDN)
-	 */
-
 	Log(LogInformation, "cli")
 	    << "Using the following CN (defaults to FQDN): '" << cn << "'.";
 
 	/*
-	 * 4. new ca, new cert and pki request a signed certificate from the master
+	 * 4. pki request a signed certificate from the master
+	 * Requires local ca & key/crt
 	 */
 
 	String local_pki_path = PkiUtility::GetLocalPkiPath();
-
-	Log(LogInformation, "cli")
-	    << "Generating new CA.";
-
-	if (PkiUtility::NewCa() > 0) {
-		Log(LogWarning, "cli")
-		    << "Found CA, skipping and using the existing one.";
-	}
-
-	Log(LogInformation, "cli")
-	    << "Generating a self-signed certificate.";
 
 	String keyfile = local_pki_path + "/" + cn + ".key";
 	String certfile = local_pki_path + "/" + cn + ".crt";
 	String cafile = PkiUtility::GetLocalCaPath() + "/ca.crt";
 
-	if (PkiUtility::NewCert(cn, keyfile, Empty, certfile) > 0) {
+	//TODO: local CA or any other one?
+	if (!Utility::PathExists(cafile)) {
 		Log(LogCritical, "cli")
-		    << "Failed to create self-signed certificate";
+		    << "CA file '" << cafile << "' does not exist. Please generate a new CA first.\n"
+		    << "Hist: 'icinga2 pki new-ca'";
+		return 1;
 	}
 
-	/*
-	 * 5. Copy certificates to /etc/icinga2/pki
-	 */
+	if (!Utility::PathExists(keyfile)) {
+		Log(LogCritical, "cli")
+		    << "Private key file '" << keyfile << "' does not exist. Please generate a new certificate first.\n"
+		    << "Hist: 'icinga2 pki new-cert'";
+		return 1;
+	}
+
+	if (!Utility::PathExists(certfile)) {
+		Log(LogCritical, "cli")
+		    << "Cert file '" << certfile << "' does not exist. Please generate a new certificate first.\n"
+		    << "Hist: 'icinga2 pki new-cert'";
+		return 1;
+	}
 
 	String pki_path = PkiUtility::GetPkiPath();
 
@@ -310,11 +308,10 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	String port = "5665";
 
-	PkiUtility::RequestCertificate(master_host, master_port, keyfile,
-	    certfile, cafile, trustedcert, ticket);
+	PkiUtility::RequestCertificate(master_host, master_port, keyfile, certfile, cafile, trustedcert, ticket);
 
 	/*
-	 * 6. get public key signed by the master, private key and ca.crt and copy it to /etc/icinga2/pki
+	 * 5. get public key signed by the master, private key and ca.crt and copy it to /etc/icinga2/pki
 	 */
 
 	//Log(LogInformation, "cli")
@@ -323,7 +320,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	//std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
 	/*
-	 * 7. enable the ApiListener config (verifiy its data)
+	 * 6. enable the ApiListener config (verifiy its data)
 	 */
 
 	Log(LogInformation, "cli")
@@ -349,8 +346,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 
 	/*
-	 * 8. generate local zones.conf with zone+endpoint
-	 * TODO: Move that into a function
+	 * 7. generate local zones.conf with zone+endpoint
 	 */
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
@@ -362,78 +358,22 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 		endpoints.push_back("master-noconnect"); //no endpoint means no connection attempt. fake name required for master endpoint name
 	}
 
-	String zones_path = Application::GetSysconfDir() + "/icinga2/zones.conf.TESTBYMICHI"; //FIXME
-
-	Array::Ptr my_config = make_shared<Array>();
-
-	Dictionary::Ptr my_master_zone = make_shared<Dictionary>();
-	Array::Ptr my_master_zone_members = make_shared<Array>();
-
-	BOOST_FOREACH(const std::string& endpoint, endpoints) {
-
-		/* extract all --endpoint arguments and store host,port info */
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, endpoint, boost::is_any_of(","));
-
-		Dictionary::Ptr my_master_endpoint = make_shared<Dictionary>();
-
-		if (tokens.size() == 1 || tokens.size() == 2)
-			my_master_endpoint->Set("host", tokens[0]);
-
-		if (tokens.size() == 2)
-			my_master_endpoint->Set("port", tokens[1]);
-
-		my_master_endpoint->Set("__name", String(endpoint));
-		my_master_endpoint->Set("__type", "Endpoint");
-
-		/* save endpoint in master zone */
-		my_master_zone_members->Add(String(endpoint)); //find a better name
-
-		my_config->Add(my_master_endpoint);
-	}
-
-
-	/* add the master zone to the config */
-	my_master_zone->Set("__name", "master"); //hardcoded name
-	my_master_zone->Set("__type", "Zone");
-	my_master_zone->Set("endpoints", my_master_zone_members);
-
-	my_config->Add(my_master_zone);
-
-	/* store the local generated agent configuration */
-	Dictionary::Ptr my_endpoint = make_shared<Dictionary>();
-	Dictionary::Ptr my_zone = make_shared<Dictionary>();
-
-	my_endpoint->Set("__name", NodeName);
-	my_endpoint->Set("__type", "Endpoint");
-
-	Array::Ptr my_zone_members = make_shared<Array>();
-	my_zone_members->Add(NodeName);
-
-	my_zone->Set("__name", NodeName);
-	my_zone->Set("__type", "Zone");
-	my_zone->Set("//this is the local agent", NodeName);
-	my_zone->Set("endpoints", my_zone_members);
-
-	/* store the local config */
-	my_config->Add(my_endpoint);
-	my_config->Add(my_zone);
-
-	/* write the newly generated configuration */
-	AgentUtility::WriteAgentConfigObjects(zones_path, my_config);
+	AgentUtility::GenerateAgentIcingaConfig(endpoints, cn);
 
 	/*
-	 * 9. update constants.conf with NodeName = CN
+	 * 8. update constants.conf with NodeName = CN
 	 */
+	if (cn != Utility::GetFQDN()) {
+		Log(LogWarning, "cli")
+		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+	}
 	//Log(LogInformation, "cli")
 	//    << "Updating configuration with NodeName constant.";
 
 	//TODO requires parsing of constants.conf, editing the entry and dumping it again?
 
-	//std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
-
 	/*
-	 * 10. tell the user to reload icinga2
+	 * 9. tell the user to reload icinga2
 	 */
 
 	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");

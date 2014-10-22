@@ -54,7 +54,12 @@ public:
 
 	static bool GetAgents(std::vector<String>& agents);
 
+	static bool CreateBackupFile(const String& target);
+
 	static bool WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects);
+
+	/* agent setup helpers */
+	static int GenerateAgentIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);
 
 private:
 	AgentUtility(void);
