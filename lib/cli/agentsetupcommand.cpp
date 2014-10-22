@@ -57,7 +57,7 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
 		("ticket", po::value<std::string>(), "Generated ticket number for this request")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
 		("cn", po::value<std::string>(), "The certificate's common name")
-		("master", po::value<std::string>(), "Use setup for a master instance");
+		("master", "Use setup for a master instance");
 }
 
 std::vector<String> AgentSetupCommand::GetArgumentSuggestions(const String& argument, const String& word) const

@@ -18,6 +18,8 @@ namespace Icinga
 {
 	public partial class AgentWizard : Form
 	{
+		private string _TrustedFile;
+
 		public AgentWizard()
 		{
 			InitializeComponent();
@@ -94,92 +96,113 @@ namespace Icinga
 			lblConfigStatus.Text = message;
 		}
 
+		private void ShowErrorText(string text)
+		{
+			if (InvokeRequired) {
+				Invoke((MethodInvoker)delegate { ShowErrorText(text); });
+				return;
+			}
+
+			txtError.Text = text;
+			tbcPages.SelectedTab = tabError;
+		}
+
+		private bool RunProcess(string filename, string arguments, out string output)
+		{
+			ProcessStartInfo psi = new ProcessStartInfo();
+			psi.FileName = filename;
+			psi.Arguments = arguments;
+			psi.CreateNoWindow = true;
+			psi.UseShellExecute = false;
+			psi.RedirectStandardOutput = true;
+			psi.RedirectStandardError = true;
+
+			String result = "";
+
+			using (Process proc = Process.Start(psi)) {
+				proc.ErrorDataReceived += delegate(object sender, DataReceivedEventArgs args) {
+					result += args.Data + "\r\n";
+				};
+				proc.OutputDataReceived += delegate(object sender, DataReceivedEventArgs args) {
+					result += args.Data + "\r\n";
+				};
+				proc.BeginOutputReadLine();
+				proc.BeginErrorReadLine();
+				proc.WaitForExit();
+
+				output = result;
+
+				if (proc.ExitCode != 0)
+					return false;
+			}
+
+			return true;
+		}
+
 		private void VerifyCertificate(string host, string port)
 		{
 			SetRetrievalStatus(25);
 
 			string pathPrefix = Icinga2InstallDir + "\\etc\\icinga2\\pki\\" + txtInstanceName.Text;
 
-			ProcessStartInfo psi;
+			string output;
 
 			if (!File.Exists(pathPrefix + ".crt")) {
-				psi = new ProcessStartInfo();
-				psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
-				psi.Arguments = "pki new-cert --cn \"" + txtInstanceName.Text + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\"";
-				psi.CreateNoWindow = true;
-				psi.UseShellExecute = false;
-
-				using (Process proc = Process.Start(psi)) {
-					proc.WaitForExit();
-
-					if (proc.ExitCode != 0) {
-						Invoke((MethodInvoker)delegate { FatalError("The Windows service could not be installed."); });
-						return;
-					}
+				if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+				    "pki new-cert --cn \"" + txtInstanceName.Text + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\"",
+				    out output)) {
+					ShowErrorText(output);
+					return;
 				}
 			}
 
 			SetRetrievalStatus(50);
 
-			string trustedfile = Path.GetTempFileName();
+			_TrustedFile = Path.GetTempFileName();
 
-			psi = new ProcessStartInfo();
-			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
-			psi.Arguments = "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\" --trustedfile \"" + trustedfile + "\"";
-			psi.CreateNoWindow = true;
-			psi.UseShellExecute = false;
-
-			using (Process proc = Process.Start(psi)) {
-				proc.WaitForExit();
-
-				if (proc.ExitCode != 0) {
-					Invoke((MethodInvoker)delegate { FatalError("Could not retrieve the master's X509 certificate."); });
-					return;
-				}
+			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			    "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\" --trustedfile \"" + _TrustedFile + "\"",
+			    out output)) {
+				ShowErrorText(output);
+				return;
 			}
 
 			SetRetrievalStatus(100);
-	
-			X509Certificate2 cert = new X509Certificate2(trustedfile);
+
+			X509Certificate2 cert = new X509Certificate2(_TrustedFile);
 			Invoke((MethodInvoker)delegate { ShowCertificatePrompt(cert); });
 		}
 
 		private void ConfigureService()
 		{
 			SetConfigureStatus(0, "Updating configuration files...");
-			using (FileStream fp = File.Open(Icinga2InstallDir + "\\etc\\icinga2\\features-available\\agent.conf", FileMode.Create)) {
-				using (StreamWriter sw = new StreamWriter(fp, Encoding.ASCII)) {
-					sw.Write(
-					    "/**\n" +
-					    " * The agent listener accepts checks from agents.\n" +
-					    " */\n" +
-					    "\n" +
-					    "library \"agent\"\n" +
-					    "\n" +
-					    "object AgentListener \"agent\" {\n" +
-					    "  cert_path = SysconfDir + \"/icinga2/pki/agent/agent.crt\"\n" +
-					    "  key_path = SysconfDir + \"/icinga2/pki/agent/agent.key\"\n" +
-					    "  ca_path = SysconfDir + \"/icinga2/pki/agent/ca.crt\"\n"
-					);
 
-					/*if (rdoNoMaster.Checked)
-						sw.Write("  upstream_name = \"{0}\"\n", txtMasterInstance.Text);*/
+			string output;
 
-					if (rdoListener.Checked)
-						sw.Write("  bind_port = \"{0}\"\n", txtListenerPort.Text);
+			string args = "";
 
-					/*if (rdoConnect.Checked)
-						sw.Write(
-						    "  upstream_host = \"{0}\"\n" +
-						    "  upstream_port = \"{1}\"\n", txtPeerHost.Text, txtPeerPort.Text
-						);*/
+			if (rdoNewMaster.Checked)
+				args += " --master";
 
-					sw.Write("}\n");
+			Invoke((MethodInvoker)delegate {
+				foreach (ListViewItem lvi in lvwEndpoints.Items) {
+					args += " --endpoint " + lvi.SubItems[0].Text + "," + lvi.SubItems[1].Text;
 				}
-			}
+			});
 
-			EnableFeature("api");
-			EnableFeature("checker");
+			if (rdoListener.Checked)
+				args += " --listen ::," + txtListenerPort.Text;
+
+			args += " --ticket " + txtTicket.Text;
+			args += " --trustedcert " + _TrustedFile;
+			args += " --cn " + txtInstanceName.Text;
+
+			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			    "agent setup" + args,
+			    out output)) {
+				ShowErrorText(output);
+				return;
+			}
 
 			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
 			DirectoryInfo di = new DirectoryInfo(Icinga2InstallDir);
@@ -192,29 +215,15 @@ namespace Icinga
 
 			SetConfigureStatus(75, "Installing the Icinga 2 service...");
 
-			ProcessStartInfo psi = new ProcessStartInfo();
-			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
-			psi.Arguments = "--scm-uninstall";
-			psi.CreateNoWindow = true;
-			psi.UseShellExecute = false;
+			RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			    "--scm-uninstall",
+			    out output);
 
-			using (Process proc = Process.Start(psi)) {
-				proc.WaitForExit();
-			}
-			
-			psi = new ProcessStartInfo();
-			psi.FileName = Icinga2InstallDir + "\\sbin\\icinga2.exe";
-			psi.Arguments = "--scm-install daemon";
-			psi.CreateNoWindow = true;
-			psi.UseShellExecute = false;
-
-			using (Process proc = Process.Start(psi)) {
-				proc.WaitForExit();
-
-				if (proc.ExitCode != 0) {
-					Invoke((MethodInvoker)delegate { FatalError("The Windows service could not be installed."); });
-					return;
-				}
+			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			    "--scm-install daemon",
+			    out output)) {
+				ShowErrorText(output);
+				return;
 			}
 
 			SetConfigureStatus(100, "Finished.");
@@ -256,6 +265,11 @@ namespace Icinga
 
 		private void btnBack_Click(object sender, EventArgs e)
 		{
+			if (tbcPages.SelectedTab == tabError) {
+				tbcPages.SelectedIndex = 0;
+				return;
+			}
+
 			int offset = 1;
 
 			if (tbcPages.SelectedTab == tabVerifyCertificate)
@@ -272,6 +286,11 @@ namespace Icinga
 					return;
 				}
 
+				if (txtTicket.Text.Length == 0) {
+					Warning("Please enter an agent ticket.");
+					return;
+				}
+
 				if (rdoNoMaster.Checked && lvwEndpoints.Items.Count == 0) {
 					Warning("You need to add at least one master endpoint.");
 					return;
@@ -283,7 +302,7 @@ namespace Icinga
 				}
 			}
 
-			if (tbcPages.SelectedTab == tabFinish)
+			if (tbcPages.SelectedTab == tabFinish || tbcPages.SelectedTab == tabError)
 				Application.Exit();
 
 			tbcPages.SelectedIndex++;
@@ -298,7 +317,7 @@ namespace Icinga
 		{
 			Refresh();
 
-			btnBack.Enabled = (tbcPages.SelectedTab == tabVerifyCertificate);
+			btnBack.Enabled = (tbcPages.SelectedTab == tabVerifyCertificate || tbcPages.SelectedTab == tabError);
 			btnNext.Enabled = (tbcPages.SelectedTab == tabParameters || tbcPages.SelectedTab == tabVerifyCertificate || tbcPages.SelectedTab == tabFinish);
 
 			if (tbcPages.SelectedTab == tabFinish) {

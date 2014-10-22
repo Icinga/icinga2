@@ -55,6 +55,8 @@
 			this.rdoNewMaster = new System.Windows.Forms.RadioButton();
 			this.tbcPages = new System.Windows.Forms.TabControl();
 			this.tabRetrieveCertificate = new System.Windows.Forms.TabPage();
+			this.lblRetrieveCertificate = new System.Windows.Forms.Label();
+			this.prgRetrieveCertificate = new System.Windows.Forms.ProgressBar();
 			this.tabVerifyCertificate = new System.Windows.Forms.TabPage();
 			this.grpX509Fields = new System.Windows.Forms.GroupBox();
 			this.txtX509Field = new System.Windows.Forms.TextBox();
@@ -66,9 +68,12 @@
 			this.lblX509Subject = new System.Windows.Forms.Label();
 			this.lblX509Issuer = new System.Windows.Forms.Label();
 			this.lblX509Prompt = new System.Windows.Forms.Label();
+			this.tabError = new System.Windows.Forms.TabPage();
 			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.lblRetrieveCertificate = new System.Windows.Forms.Label();
-			this.prgRetrieveCertificate = new System.Windows.Forms.ProgressBar();
+			this.lblError = new System.Windows.Forms.Label();
+			this.txtError = new System.Windows.Forms.TextBox();
+			this.lblTicket = new System.Windows.Forms.Label();
+			this.txtTicket = new System.Windows.Forms.TextBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -78,6 +83,7 @@
 			this.tabRetrieveCertificate.SuspendLayout();
 			this.tabVerifyCertificate.SuspendLayout();
 			this.grpX509Fields.SuspendLayout();
+			this.tabError.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -163,6 +169,8 @@
 			// 
 			// tabParameters
 			// 
+			this.tabParameters.Controls.Add(this.txtTicket);
+			this.tabParameters.Controls.Add(this.lblTicket);
 			this.tabParameters.Controls.Add(this.txtInstanceName);
 			this.tabParameters.Controls.Add(this.lblInstanceName);
 			this.tabParameters.Controls.Add(this.groupBox2);
@@ -197,7 +205,7 @@
 			this.groupBox2.Controls.Add(this.txtListenerPort);
 			this.groupBox2.Controls.Add(this.lblListenerPort);
 			this.groupBox2.Controls.Add(this.rdoListener);
-			this.groupBox2.Location = new System.Drawing.Point(8, 330);
+			this.groupBox2.Location = new System.Drawing.Point(8, 359);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(601, 111);
 			this.groupBox2.TabIndex = 2;
@@ -253,7 +261,7 @@
 			this.groupBox1.Controls.Add(this.lvwEndpoints);
 			this.groupBox1.Controls.Add(this.rdoNoMaster);
 			this.groupBox1.Controls.Add(this.rdoNewMaster);
-			this.groupBox1.Location = new System.Drawing.Point(8, 48);
+			this.groupBox1.Location = new System.Drawing.Point(8, 77);
 			this.groupBox1.Name = "groupBox1";
 			this.groupBox1.Size = new System.Drawing.Size(601, 276);
 			this.groupBox1.TabIndex = 1;
@@ -337,6 +345,7 @@
 			this.tbcPages.Controls.Add(this.tabVerifyCertificate);
 			this.tbcPages.Controls.Add(this.tabConfigure);
 			this.tbcPages.Controls.Add(this.tabFinish);
+			this.tbcPages.Controls.Add(this.tabError);
 			this.tbcPages.ItemSize = new System.Drawing.Size(0, 1);
 			this.tbcPages.Location = new System.Drawing.Point(0, 80);
 			this.tbcPages.Margin = new System.Windows.Forms.Padding(0);
@@ -358,6 +367,22 @@
 			this.tabRetrieveCertificate.TabIndex = 7;
 			this.tabRetrieveCertificate.Text = "Checking Certificate";
 			this.tabRetrieveCertificate.UseVisualStyleBackColor = true;
+			// 
+			// lblRetrieveCertificate
+			// 
+			this.lblRetrieveCertificate.AutoSize = true;
+			this.lblRetrieveCertificate.Location = new System.Drawing.Point(164, 229);
+			this.lblRetrieveCertificate.Name = "lblRetrieveCertificate";
+			this.lblRetrieveCertificate.Size = new System.Drawing.Size(110, 13);
+			this.lblRetrieveCertificate.TabIndex = 3;
+			this.lblRetrieveCertificate.Text = "Checking certificate...";
+			// 
+			// prgRetrieveCertificate
+			// 
+			this.prgRetrieveCertificate.Location = new System.Drawing.Point(164, 248);
+			this.prgRetrieveCertificate.Name = "prgRetrieveCertificate";
+			this.prgRetrieveCertificate.Size = new System.Drawing.Size(289, 23);
+			this.prgRetrieveCertificate.TabIndex = 2;
 			// 
 			// tabVerifyCertificate
 			// 
@@ -463,6 +488,18 @@
 			this.lblX509Prompt.TabIndex = 0;
 			this.lblX509Prompt.Text = "Please verify the master\'s SSL certificate:";
 			// 
+			// tabError
+			// 
+			this.tabError.Controls.Add(this.txtError);
+			this.tabError.Controls.Add(this.lblError);
+			this.tabError.Location = new System.Drawing.Point(4, 5);
+			this.tabError.Name = "tabError";
+			this.tabError.Padding = new System.Windows.Forms.Padding(3);
+			this.tabError.Size = new System.Drawing.Size(617, 500);
+			this.tabError.TabIndex = 8;
+			this.tabError.Text = "Error";
+			this.tabError.UseVisualStyleBackColor = true;
+			// 
 			// picBanner
 			// 
 			this.picBanner.Image = global::Icinga.Properties.Resources.icinga_banner;
@@ -472,21 +509,41 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
-			// lblRetrieveCertificate
+			// lblError
 			// 
-			this.lblRetrieveCertificate.AutoSize = true;
-			this.lblRetrieveCertificate.Location = new System.Drawing.Point(164, 229);
-			this.lblRetrieveCertificate.Name = "lblRetrieveCertificate";
-			this.lblRetrieveCertificate.Size = new System.Drawing.Size(110, 13);
-			this.lblRetrieveCertificate.TabIndex = 3;
-			this.lblRetrieveCertificate.Text = "Checking certificate...";
+			this.lblError.AutoSize = true;
+			this.lblError.Location = new System.Drawing.Point(8, 12);
+			this.lblError.Name = "lblError";
+			this.lblError.Size = new System.Drawing.Size(209, 13);
+			this.lblError.TabIndex = 0;
+			this.lblError.Text = "An error occurred while setting up Icinga 2:";
 			// 
-			// prgRetrieveCertificate
+			// txtError
 			// 
-			this.prgRetrieveCertificate.Location = new System.Drawing.Point(164, 248);
-			this.prgRetrieveCertificate.Name = "prgRetrieveCertificate";
-			this.prgRetrieveCertificate.Size = new System.Drawing.Size(289, 23);
-			this.prgRetrieveCertificate.TabIndex = 2;
+			this.txtError.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.txtError.Location = new System.Drawing.Point(11, 38);
+			this.txtError.Multiline = true;
+			this.txtError.Name = "txtError";
+			this.txtError.ReadOnly = true;
+			this.txtError.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+			this.txtError.Size = new System.Drawing.Size(598, 397);
+			this.txtError.TabIndex = 1;
+			// 
+			// lblTicket
+			// 
+			this.lblTicket.AutoSize = true;
+			this.lblTicket.Location = new System.Drawing.Point(9, 48);
+			this.lblTicket.Name = "lblTicket";
+			this.lblTicket.Size = new System.Drawing.Size(71, 13);
+			this.lblTicket.TabIndex = 4;
+			this.lblTicket.Text = "Agent Ticket:";
+			// 
+			// txtTicket
+			// 
+			this.txtTicket.Location = new System.Drawing.Point(98, 45);
+			this.txtTicket.Name = "txtTicket";
+			this.txtTicket.Size = new System.Drawing.Size(240, 20);
+			this.txtTicket.TabIndex = 5;
 			// 
 			// AgentWizard
 			// 
@@ -523,6 +580,8 @@
 			this.tabVerifyCertificate.PerformLayout();
 			this.grpX509Fields.ResumeLayout(false);
 			this.grpX509Fields.PerformLayout();
+			this.tabError.ResumeLayout(false);
+			this.tabError.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).EndInit();
 			this.ResumeLayout(false);
 
@@ -570,6 +629,11 @@
 		private System.Windows.Forms.TabPage tabRetrieveCertificate;
 		private System.Windows.Forms.Label lblRetrieveCertificate;
 		private System.Windows.Forms.ProgressBar prgRetrieveCertificate;
+		private System.Windows.Forms.TabPage tabError;
+		private System.Windows.Forms.TextBox txtError;
+		private System.Windows.Forms.Label lblError;
+		private System.Windows.Forms.TextBox txtTicket;
+		private System.Windows.Forms.Label lblTicket;
 	}
 }
 
