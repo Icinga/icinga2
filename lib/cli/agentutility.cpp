@@ -117,7 +117,7 @@ bool AgentUtility::AddAgent(const String& name)
 
 	if (Utility::PathExists(path) ) {
 		Log(LogCritical, "cli")
-		    << "Cannot add agent repo. '" + path + "' already exists.\n";
+		    << "Cannot add agent repo. '" << path << "' already exists.\n";
 		return false;
 	}
 
@@ -147,13 +147,13 @@ bool AgentUtility::RemoveAgent(const String& name)
 {
 	if (!RemoveAgentFile(GetAgentRepositoryFile(name))) {
 		Log(LogCritical, "cli")
-		    << "Cannot remove agent repo. '" + GetAgentRepositoryFile(name) + "' does not exist.\n";
+		    << "Cannot remove agent repo. '" << GetAgentRepositoryFile(name) << "' does not exist.\n";
 		return false;
 	}
 	if (Utility::PathExists(GetAgentSettingsFile(name))) {
 		if (!RemoveAgentFile(GetAgentSettingsFile(name))) {
 			Log(LogWarning, "cli")
-			    << "Cannot remove agent settings. '" + GetAgentSettingsFile(name) + "' does not exist.\n";
+			    << "Cannot remove agent settings. '" << GetAgentSettingsFile(name) << "' does not exist.\n";
 			    return false;
 		}
 	}
@@ -164,13 +164,13 @@ bool AgentUtility::RemoveAgent(const String& name)
 bool AgentUtility::RemoveAgentFile(const String& path)
 {
 	if (!Utility::PathExists(path)) {
-		Log(LogCritical, "cli", "Cannot remove '" + path + "'. Does not exist.");
+		Log(LogCritical, "cli", "Cannot remove '" << path << "'. Does not exist.");
 		return false;
 	}
 
 	if (unlink(path.CStr()) < 0) {
-		Log(LogCritical, "cli", "Cannot remove file '" + path +
-		    "'. Failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
+		Log(LogCritical, "cli", "Cannot remove file '" << path <<
+		    "'. Failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) + "\".");
 		return false;
 	}
 
@@ -193,13 +193,13 @@ bool AgentUtility::SetAgentAttribute(const String& name, const String& attr, con
 
 bool AgentUtility::WriteAgentToRepository(const String& filename, const Dictionary::Ptr& item)
 {
-	Log(LogInformation, "cli", "Dumping agent to file '" + filename + "'");
+	Log(LogInformation, "cli", "Dumping agent to file '" << filename << "'");
 
 	String tempFilename = filename + ".tmp";
 
-        std::ofstream fp(tempFilename.CStr(), std::ofstream::out | std::ostream::trunc);
-        fp << JsonSerialize(item);
-        fp.close();
+	std::ofstream fp(tempFilename.CStr(), std::ofstream::out | std::ostream::trunc);
+	fp << JsonSerialize(item);
+	fp.close();
 
 #ifdef _WIN32
 	_unlink(filename.CStr());
@@ -238,7 +238,7 @@ bool AgentUtility::GetAgents(std::vector<String>& agents)
 
 	if (!Utility::Glob(path + "/*.repo",
 	    boost::bind(&AgentUtility::CollectAgents, _1, boost::ref(agents)), GlobFile)) {
-		Log(LogCritical, "cli", "Cannot access path '" + path + "'.");
+		Log(LogCritical, "cli", "Cannot access path '" << path << "'.");
 		return false;
 	}
 
@@ -250,6 +250,6 @@ void AgentUtility::CollectAgents(const String& agent_file, std::vector<String>& 
 	String agent = Utility::BaseName(agent_file);
 	boost::algorithm::replace_all(agent, ".repo", "");
 
-	Log(LogDebug, "cli", "Adding agent: " + agent);
+	Log(LogDebug, "cli", "Adding agent: " << agent);
 	agents.push_back(agent);
 }

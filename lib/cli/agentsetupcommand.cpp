@@ -100,13 +100,11 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	    << "Generating new CA.";
 
 	if (PkiUtility::NewCa() > 0) {
-		Log(LogWarning, "cli")
-		    << "Found CA, skipping and using the existing one.\n";
+		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.\n");
 	}
 
 	/* 2. Generate a self signed certificate */
-	Log(LogInformation, "cli")
-	    << "Generating new self-signed certificate.";
+	Log(LogInformation, "cli", "Generating new self-signed certificate.");
 
 	String local_pki_path = PkiUtility::GetLocalPkiPath();
 
@@ -126,8 +124,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	String cafile = PkiUtility::GetLocalCaPath() + "/ca.crt";
 
 	if (PkiUtility::NewCert(cn, keyfile, Empty, certfile) > 0) {
-		Log(LogCritical, "cli")
-		    << "Failed to create self-signed certificate";
+		Log(LogCritical, "cli", "Failed to create self-signed certificate");
 	}
 
 	/* 3. Copy certificates to /etc/icinga2/pki */
@@ -148,14 +145,12 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
 	/* 4. read zones.conf and update with zone + endpoint information */
-	Log(LogInformation, "cli")
-	    << "Generating zone and object configuration.";
+	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
 	/* 5. enable the ApiListener config (verifiy its data) */
-	Log(LogInformation, "cli")
-	    << "Enabling the APIListener feature.";
+	Log(LogInformation, "cli", "Enabling the APIListener feature.");
 
 	String api_path = FeatureUtility::GetFeaturesEnabledPath() + "/api.conf";
 
@@ -166,8 +161,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	    << "Edit the api feature config file '" << api_path << "' and set a secure 'ticket_salt' attribute.";
 
 	/* 6. tell the user to reload icinga2 */
-	Log(LogInformation, "cli")
-	    << "Make sure to restart Icinga 2.";
+	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
 	return 0;
 }
@@ -214,8 +208,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	String pki_path = PkiUtility::GetPkiPath();
 
 	/* 4. pki request a signed certificate from the master */
-	Log(LogInformation, "cli")
-	    << "Requesting a signed certificate from the master.";
+	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
 
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
@@ -226,20 +219,17 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
 	/* 6. generate local zones.conf with zone+endpoint */
-	Log(LogInformation, "cli")
-	    << "Generating zone and object configuration.";
+	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
 	/* 7. update constants.conf with NodeName = CN */
-	Log(LogInformation, "cli")
-	    << "Updating configuration with NodeName constant.";
+	Log(LogInformation, "cli", "Updating configuration with NodeName constant.");
 
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
 	/* 8. tell the user to reload icinga2 */
-	Log(LogInformation, "cli")
-	    << "Make sure to restart Icinga 2.";
+	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
 	return 0;
 }

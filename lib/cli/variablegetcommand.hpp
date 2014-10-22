@@ -36,13 +36,13 @@ namespace icinga
 class VariableGetCommand : public CLICommand
 {
 public:
-        DECLARE_PTR_TYPEDEFS(VariableGetCommand);
+	DECLARE_PTR_TYPEDEFS(VariableGetCommand);
 
-        virtual String GetDescription(void) const;
-        virtual String GetShortDescription(void) const;
+	virtual String GetDescription(void) const;
+	virtual String GetShortDescription(void) const;
 	void InitParameters(boost::program_options::options_description& visibleDesc,
-		boost::program_options::options_description& hiddenDesc) const;
-        virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	    boost::program_options::options_description& hiddenDesc) const;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 };
 
 }

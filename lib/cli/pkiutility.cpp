@@ -262,17 +262,17 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 bool PkiUtility::CopyCertFile(const String& source, const String& target)
 {
 	/*
-        if (PathExists(target)) {
-                Log(LogWarning, "Utility")
-                    << "Target file '" << target << "' already exists.";
-                return false;
-        }
+	if (PathExists(target)) {
+		Log(LogWarning, "Utility")
+		    << "Target file '" << target << "' already exists.";
+		return false;
+	}
 
-        std::ifstream ifs(source, std::ios::binary);
-        std::ofstream ofs(target, std::ios::binary);
+	std::ifstream ifs(source, std::ios::binary);
+	std::ofstream ofs(target, std::ios::binary);
 
-        ofs << ifs.rdbuf();
+	ofs << ifs.rdbuf();
 	*/
 
-        return true;
+	return true;
 }

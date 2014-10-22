@@ -27,9 +27,9 @@ namespace icinga
 
 enum BlackAndWhitelistCommandType
 {
-        BlackAndWhitelistCommandAdd,
-        BlackAndWhitelistCommandRemove,
-        BlackAndWhitelistCommandList
+	BlackAndWhitelistCommandAdd,
+	BlackAndWhitelistCommandRemove,
+	BlackAndWhitelistCommandList
 };
 
 /**
