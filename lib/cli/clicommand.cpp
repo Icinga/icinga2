@@ -233,6 +233,9 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 				continue;
 			}
 
+			if (autocomplete && i >= autoindex - 1)
+				break;
+
 			if (vname[i] != argv[k])
 				break;
 
