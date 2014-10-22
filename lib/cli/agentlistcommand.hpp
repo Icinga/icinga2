@@ -26,7 +26,7 @@ namespace icinga
 {
 
 /**
- * The "pki new-ca" command.
+ * The "agent list" command.
  *
  * @ingroup cli
  */
