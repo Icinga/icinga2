@@ -251,6 +251,7 @@ namespace Icinga
 				FatalError("Icinga 2 does not seem to be installed properly.");
 
 			/* TODO: This is something the NSIS installer should do */
+			Directory.CreateDirectory(installDir + "\\etc\\icinga2\\pki");
 			Directory.CreateDirectory(installDir + "\\var\\cache\\icinga2");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\pki");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\agent\\inventory");
