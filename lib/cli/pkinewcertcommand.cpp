@@ -41,14 +41,14 @@ void PKINewCertCommand::InitParameters(boost::program_options::options_descripti
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name")
-		("keyfile", po::value<std::string>(), "Key file path (output")
-		("csrfile", po::value<std::string>(), "CSR file path (optional, output)")
-		("certfile", po::value<std::string>(), "Certificate file path (optional, output)");
+		("key", po::value<std::string>(), "Key file path (output")
+		("csr", po::value<std::string>(), "CSR file path (optional, output)")
+		("cert", po::value<std::string>(), "Certificate file path (optional, output)");
 }
 
 std::vector<String> PKINewCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "keyfile" || argument == "csrfile" || argument == "certfile")
+	if (argument == "key" || argument == "csr" || argument == "cert")
 		return GetBashCompletionSuggestions("file", word);
 	else
 		return CLICommand::GetArgumentSuggestions(argument, word);
@@ -66,18 +66,18 @@ int PKINewCertCommand::Run(const boost::program_options::variables_map& vm, cons
 		return 1;
 	}
 
-	if (!vm.count("keyfile")) {
-		Log(LogCritical, "cli", "Key file path (--keyfile) must be specified.");
+	if (!vm.count("key")) {
+		Log(LogCritical, "cli", "Key file path (--key) must be specified.");
 		return 1;
 	}
 
-	String csrfile, certfile;
+	String csr, cert;
 
-	if (vm.count("csrfile"))
-		csrfile = vm["csrfile"].as<std::string>();
+	if (vm.count("csr"))
+		csr = vm["csr"].as<std::string>();
 
-	if (vm.count("certfile"))
-		certfile = vm["certfile"].as<std::string>();
+	if (vm.count("cert"))
+		cert = vm["cert"].as<std::string>();
 
-	return PkiUtility::NewCert(vm["cn"].as<std::string>(), vm["keyfile"].as<std::string>(), csrfile, certfile);
+	return PkiUtility::NewCert(vm["cn"].as<std::string>(), vm["key"].as<std::string>(), csr, cert);
 }

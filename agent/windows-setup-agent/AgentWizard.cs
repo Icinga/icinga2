@@ -149,7 +149,7 @@ namespace Icinga
 
 			if (!File.Exists(pathPrefix + ".crt")) {
 				if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				    "pki new-cert --cn \"" + txtInstanceName.Text + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\"",
+				    "pki new-cert --cn \"" + txtInstanceName.Text + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\"",
 				    out output)) {
 					ShowErrorText(output);
 					return;
@@ -161,7 +161,7 @@ namespace Icinga
 			_TrustedFile = Path.GetTempFileName();
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-			    "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --keyfile \"" + pathPrefix + ".key\" --certfile \"" + pathPrefix + ".crt\" --trustedfile \"" + _TrustedFile + "\"",
+			    "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"",
 			    out output)) {
 				ShowErrorText(output);
 				return;

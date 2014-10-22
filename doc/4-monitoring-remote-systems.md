@@ -197,8 +197,8 @@ object name.
 
 Example:
 
-    # icinga2 pki new-cert --cn icinga2a --keyfile icinga2a.key --csrfile icinga2a.csr
-    # icinga2 pki sign-csr --csrfile icinga2a.csr --certfile icinga2a.crt
+    # icinga2 pki new-cert --cn icinga2a --key icinga2a.key --csr icinga2a.csr
+    # icinga2 pki sign-csr --csr icinga2a.csr --cert icinga2a.crt
 
     # vim cluster.conf
 
@@ -241,8 +241,8 @@ following command:
 Now create a certificate and key file for each node running the following command
 (replace `icinga2a` with the required hostname):
 
-    # icinga2 pki new-cert --cn icinga2a --keyfile icinga2a.key --csrfile icinga2a.csr
-    # icinga2 pki sign-csr --csrfile icinga2a.csr --certfile icinga2a.crt
+    # icinga2 pki new-cert --cn icinga2a --key icinga2a.key --csr icinga2a.csr
+    # icinga2 pki sign-csr --csr icinga2a.csr --cert icinga2a.crt
 
 Repeat the step for all nodes in your cluster scenario.
 

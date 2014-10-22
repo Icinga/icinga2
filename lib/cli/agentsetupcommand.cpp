@@ -70,7 +70,7 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
 
 std::vector<String> AgentSetupCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "keyfile" || argument == "certfile" || argument == "trustedcert")
+	if (argument == "key" || argument == "cert" || argument == "trustedcert")
 		return GetBashCompletionSuggestions("file", word);
 	else if (argument == "host")
 		return GetBashCompletionSuggestions("hostname", word);
@@ -133,11 +133,11 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	if (vm.count("cn"))
 		cn = vm["cn"].as<std::string>();
 
-	String keyfile = local_pki_path + "/" + cn + ".key";
-	String certfile = local_pki_path + "/" + cn + ".crt";
-	String cafile = PkiUtility::GetLocalCaPath() + "/ca.crt";
+	String key = local_pki_path + "/" + cn + ".key";
+	String cert = local_pki_path + "/" + cn + ".crt";
+	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
 
-	if (PkiUtility::NewCert(cn, keyfile, Empty, certfile) > 0) {
+	if (PkiUtility::NewCert(cn, key, Empty, cert) > 0) {
 		Log(LogCritical, "cli", "Failed to create self-signed certificate");
 	}
 
@@ -150,14 +150,14 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	Log(LogInformation, "cli")
 	    << "Moving certificates to " << pki_path << ".";
 
-	String target_keyfile = pki_path + "/" + cn + ".key";
-	String target_certfile = pki_path + "/" + cn + ".crt";
-	String target_cafile = pki_path + "/ca.crt";
+	String target_key = pki_path + "/" + cn + ".key";
+	String target_cert = pki_path + "/" + cn + ".crt";
+	String target_ca = pki_path + "/ca.crt";
 
 	//TODO
-	PkiUtility::CopyCertFile(keyfile, target_keyfile);
-	PkiUtility::CopyCertFile(certfile, target_certfile);
-	PkiUtility::CopyCertFile(cafile, target_cafile);
+	PkiUtility::CopyCertFile(key, target_key);
+	PkiUtility::CopyCertFile(cert, target_cert);
+	PkiUtility::CopyCertFile(ca, target_ca);
 
 	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
 
@@ -248,7 +248,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli")
 		    << "Please pass the trusted cert retrieved from the master\n"
-		    << "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --keyfile local.key --certfile local.crt --trustedfile master.crt').";
+		    << "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert master.crt').";
 		return 1;
 	}
 
@@ -276,28 +276,28 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	String local_pki_path = PkiUtility::GetLocalPkiPath();
 
-	String keyfile = local_pki_path + "/" + cn + ".key";
-	String certfile = local_pki_path + "/" + cn + ".crt";
-	String cafile = PkiUtility::GetLocalCaPath() + "/ca.crt";
+	String key = local_pki_path + "/" + cn + ".key";
+	String cert = local_pki_path + "/" + cn + ".crt";
+	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
 
 	//TODO: local CA or any other one?
-	if (!Utility::PathExists(cafile)) {
+	if (!Utility::PathExists(ca)) {
 		Log(LogCritical, "cli")
-		    << "CA file '" << cafile << "' does not exist. Please generate a new CA first.\n"
+		    << "CA file '" << ca << "' does not exist. Please generate a new CA first.\n"
 		    << "Hist: 'icinga2 pki new-ca'";
 		return 1;
 	}
 
-	if (!Utility::PathExists(keyfile)) {
+	if (!Utility::PathExists(key)) {
 		Log(LogCritical, "cli")
-		    << "Private key file '" << keyfile << "' does not exist. Please generate a new certificate first.\n"
+		    << "Private key file '" << key << "' does not exist. Please generate a new certificate first.\n"
 		    << "Hist: 'icinga2 pki new-cert'";
 		return 1;
 	}
 
-	if (!Utility::PathExists(certfile)) {
+	if (!Utility::PathExists(cert)) {
 		Log(LogCritical, "cli")
-		    << "Cert file '" << certfile << "' does not exist. Please generate a new certificate first.\n"
+		    << "Cert file '" << cert << "' does not exist. Please generate a new certificate first.\n"
 		    << "Hist: 'icinga2 pki new-cert'";
 		return 1;
 	}
@@ -308,7 +308,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	String port = "5665";
 
-	PkiUtility::RequestCertificate(master_host, master_port, keyfile, certfile, cafile, trustedcert, ticket);
+	PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket);
 
 	/*
 	 * 5. get public key signed by the master, private key and ca.crt and copy it to /etc/icinga2/pki

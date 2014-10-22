@@ -40,13 +40,13 @@ void PKISignCSRCommand::InitParameters(boost::program_options::options_descripti
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("csrfile", po::value<std::string>(), "CSR file path (input)")
-	    ("certfile", po::value<std::string>(), "Certificate file path (output)");
+	    ("csr", po::value<std::string>(), "CSR file path (input)")
+	    ("cert", po::value<std::string>(), "Certificate file path (output)");
 }
 
 std::vector<String> PKISignCSRCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "csrfile" || argument == "certfile")
+	if (argument == "csr" || argument == "cert")
 		return GetBashCompletionSuggestions("file", word);
 	else
 		return CLICommand::GetArgumentSuggestions(argument, word);
@@ -59,15 +59,15 @@ std::vector<String> PKISignCSRCommand::GetArgumentSuggestions(const String& argu
  */
 int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!vm.count("csrfile")) {
-		Log(LogCritical, "cli", "Certificate signing request file path (--csrfile) must be specified.");
+	if (!vm.count("csr")) {
+		Log(LogCritical, "cli", "Certificate signing request file path (--csr) must be specified.");
 		return 1;
 	}
 
-	if (!vm.count("certfile")) {
-		Log(LogCritical, "cli", "Certificate file path (--certfile) must be specified.");
+	if (!vm.count("cert")) {
+		Log(LogCritical, "cli", "Certificate file path (--cert) must be specified.");
 		return 1;
 	}
 
-	return PkiUtility::SignCsr(vm["csrfile"].as<std::string>(), vm["certfile"].as<std::string>());
+	return PkiUtility::SignCsr(vm["csr"].as<std::string>(), vm["cert"].as<std::string>());
 }

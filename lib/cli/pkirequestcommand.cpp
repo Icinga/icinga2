@@ -41,10 +41,10 @@ void PKIRequestCommand::InitParameters(boost::program_options::options_descripti
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("keyfile", po::value<std::string>(), "Key file path (input)")
-	    ("certfile", po::value<std::string>(), "Certificate file path (input + output)")
-	    ("cafile", po::value<std::string>(), "CA file path (output)")
-	    ("trustedfile", po::value<std::string>(), "Trusted certificate file path (input)")
+	    ("key", po::value<std::string>(), "Key file path (input)")
+	    ("cert", po::value<std::string>(), "Certificate file path (input + output)")
+	    ("ca", po::value<std::string>(), "CA file path (output)")
+	    ("trustedcert", po::value<std::string>(), "Trusted certificate file path (input)")
 	    ("host", po::value<std::string>(), "Icinga 2 host")
 	    ("port", po::value<std::string>(), "Icinga 2 port")
 	    ("ticket", po::value<std::string>(), "Icinga 2 PKI ticket");
@@ -52,7 +52,7 @@ void PKIRequestCommand::InitParameters(boost::program_options::options_descripti
 
 std::vector<String> PKIRequestCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "keyfile" || argument == "certfile" || argument == "cafile" || argument == "trustedfile")
+	if (argument == "key" || argument == "cert" || argument == "ca" || argument == "trustedcert")
 		return GetBashCompletionSuggestions("file", word);
 	else if (argument == "host")
 		return GetBashCompletionSuggestions("hostname", word);
@@ -74,23 +74,23 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 		return 1;
 	}
 
-	if (!vm.count("keyfile")) {
-		Log(LogCritical, "cli", "Key input file path (--keyfile) must be specified.");
+	if (!vm.count("key")) {
+		Log(LogCritical, "cli", "Key input file path (--key) must be specified.");
 		return 1;
 	}
 
-	if (!vm.count("certfile")) {
-		Log(LogCritical, "cli", "Certificate output file path (--certfile) must be specified.");
+	if (!vm.count("cert")) {
+		Log(LogCritical, "cli", "Certificate output file path (--cert) must be specified.");
 		return 1;
 	}
 
-	if (!vm.count("cafile")) {
-		Log(LogCritical, "cli", "CA certificate output file path (--cafile) must be specified.");
+	if (!vm.count("ca")) {
+		Log(LogCritical, "cli", "CA certificate output file path (--ca) must be specified.");
 		return 1;
 	}
 
-	if (!vm.count("trustedfile")) {
-		Log(LogCritical, "cli", "Trusted certificate input file path (--trustedfile) must be specified.");
+	if (!vm.count("trustedcert")) {
+		Log(LogCritical, "cli", "Trusted certificate input file path (--trustedcert) must be specified.");
 		return 1;
 	}
 
@@ -104,7 +104,7 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 	if (vm.count("port"))
 		port = vm["port"].as<std::string>();
 
-	return PkiUtility::RequestCertificate(vm["host"].as<std::string>(), port, vm["keyfile"].as<std::string>(),
-	    vm["certfile"].as<std::string>(), vm["cafile"].as<std::string>(), vm["trustedfile"].as<std::string>(),
+	return PkiUtility::RequestCertificate(vm["host"].as<std::string>(), port, vm["key"].as<std::string>(),
+	    vm["cert"].as<std::string>(), vm["ca"].as<std::string>(), vm["trustedcert"].as<std::string>(),
 	    vm["ticket"].as<std::string>());
 }

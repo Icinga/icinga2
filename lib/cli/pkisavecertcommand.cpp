@@ -40,16 +40,16 @@ void PKISaveCertCommand::InitParameters(boost::program_options::options_descript
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("keyfile", po::value<std::string>(), "Key file path (input)")
-	    ("certfile", po::value<std::string>(), "Certificate file path (input)")
-	    ("trustedfile", po::value<std::string>(), "Trusted certificate file path (output)")
+	    ("key", po::value<std::string>(), "Key file path (input)")
+	    ("cert", po::value<std::string>(), "Certificate file path (input)")
+	    ("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
 	    ("host", po::value<std::string>(), "Icinga 2 host")
 	    ("port", po::value<std::string>(), "Icinga 2 port");
 }
 
 std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
-	if (argument == "keyfile" || argument == "certfile" || argument == "trustedfile")
+	if (argument == "key" || argument == "cert" || argument == "trustedcert")
 		return GetBashCompletionSuggestions("file", word);
 	else if (argument == "host")
 		return GetBashCompletionSuggestions("hostname", word);
@@ -71,18 +71,18 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 		return 1;
 	}
 
-	if (!vm.count("keyfile")) {
-		Log(LogCritical, "cli", "Key input file path (--keyfile) must be specified.");
+	if (!vm.count("key")) {
+		Log(LogCritical, "cli", "Key input file path (--key) must be specified.");
 		return 1;
 	}
 
-	if (!vm.count("certfile")) {
-		Log(LogCritical, "cli", "Certificate input file path (--certfile) must be specified.");
+	if (!vm.count("cert")) {
+		Log(LogCritical, "cli", "Certificate input file path (--cert) must be specified.");
 		return 1;
 	}
 
-	if (!vm.count("trustedfile")) {
-		Log(LogCritical, "cli", "Trusted certificate output file path (--trustedfile) must be specified.");
+	if (!vm.count("trustedcert")) {
+		Log(LogCritical, "cli", "Trusted certificate output file path (--trustedcert) must be specified.");
 		return 1;
 	}
 
@@ -91,5 +91,5 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 	if (vm.count("port"))
 		port = vm["port"].as<std::string>();
 
-	return PkiUtility::SaveCert(vm["host"].as<std::string>(), port, vm["keyfile"].as<std::string>(), vm["certfile"].as<std::string>(), vm["trustedfile"].as<std::string>());
+	return PkiUtility::SaveCert(vm["host"].as<std::string>(), port, vm["key"].as<std::string>(), vm["cert"].as<std::string>(), vm["trustedcert"].as<std::string>());
 }
