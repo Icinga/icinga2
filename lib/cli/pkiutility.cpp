@@ -173,16 +173,46 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 {
 	TcpSocket::Ptr client = make_shared<TcpSocket>();
 
-	client->Connect(host, port);
+	try {
+		client->Connect(host, port);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+		    << "Cannot connect to host '" << host << "' on port '" << port << "'";
+		Log(LogDebug, "cli")
+		    << "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
+		return 1;
+	}
 
-	shared_ptr<SSL_CTX> sslContext = MakeSSLContext(certfile, keyfile);
+	shared_ptr<SSL_CTX> sslContext = make_shared<SSL_CTX>();
+
+	try {
+		sslContext = MakeSSLContext(certfile, keyfile);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
+		return 1;
+	}
 
 	TlsStream::Ptr stream = make_shared<TlsStream>(client, RoleClient, sslContext);
 
-	stream->Handshake();
+	try {
+		stream->Handshake();
+	} catch (const std::exception&) {
+		Log(LogCritical, "cli", "Client TLS handshake failed.");
+		return 1;
+	}
 
 	shared_ptr<X509> peerCert = stream->GetPeerCertificate();
-	shared_ptr<X509> trustedCert = GetX509Certificate(trustedfile);
+
+	shared_ptr<X509> trustedCert = make_shared<X509>();
+
+	try {
+		trustedCert = GetX509Certificate(trustedfile);
+	} catch (const std::exception&) {
+		Log(LogCritical, "cli")
+                    << "Cannot get trusted from cert path: '" << trustedfile << "'.";
+		return 1;
+	}
 
 	if (CertificateToString(peerCert) != CertificateToString(trustedCert)) {
 		Log(LogCritical, "cli", "Peer certificate does not match trusted certificate.");

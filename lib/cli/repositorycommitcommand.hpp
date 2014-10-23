@@ -29,7 +29,7 @@ namespace icinga
 {
 
 /**
- * The "object list" command.
+ * The "repository commit" command.
  *
  * @ingroup cli
  */

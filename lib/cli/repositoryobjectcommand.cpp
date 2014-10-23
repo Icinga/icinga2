@@ -142,7 +142,7 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 {
 	if (ap.empty()) {
 		Log(LogCritical, "cli")
-		    << "No object name given. Bailing out.\n";
+		    << "No object name given. Bailing out.";
 		return 1;
 	}
 
@@ -157,9 +157,9 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 	BOOST_FOREACH(const String& kv, attrs) {
 		boost::algorithm::split(tokens, kv, boost::is_any_of("="));
 
-		if (tokens.size() == 2)
+		if (tokens.size() == 2) {
 			attr->Set(tokens[0], tokens[1]);
-		else
+		} else
 			Log(LogWarning, "cli")
 			    << "Cannot parse passed attributes for object '" << name << "': " << boost::algorithm::join(tokens, "=");
 	}

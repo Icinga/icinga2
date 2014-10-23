@@ -59,7 +59,7 @@ void RepositoryCommitCommand::InitParameters(boost::program_options::options_des
 }
 
 /**
- * The entry point for the "object list" CLI command.
+ * The entry point for the "repository commit" CLI command.
  *
  * @returns An exit status.
  */
