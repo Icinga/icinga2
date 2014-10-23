@@ -41,11 +41,6 @@ String PkiUtility::GetLocalCaPath(void)
 	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
 }
 
-String PkiUtility::GetLocalPkiPath(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/pki";
-}
-
 int PkiUtility::NewCa(void)
 {
 	String cadir = GetLocalCaPath();

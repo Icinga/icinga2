@@ -35,7 +35,6 @@ class PkiUtility
 public:
 	static String GetPkiPath(void);
 	static String GetLocalCaPath(void);
-	static String GetLocalPkiPath(void);
 
 	static int NewCa(void);
 	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);

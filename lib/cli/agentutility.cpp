@@ -54,7 +54,6 @@ String AgentUtility::GetAgentSettingsFile(const String& name)
 	return GetRepositoryPath() + "/" + SHA256(name) + ".settings";
 }
 
-
 std::vector<String> AgentUtility::GetFieldCompletionSuggestions(const String& word)
 {
 	std::vector<String> cache;
@@ -166,13 +165,15 @@ bool AgentUtility::RemoveAgent(const String& name)
 bool AgentUtility::RemoveAgentFile(const String& path)
 {
 	if (!Utility::PathExists(path)) {
-		Log(LogCritical, "cli", "Cannot remove '" << path << "'. Does not exist.");
+		Log(LogCritical, "cli")
+		    << "Cannot remove '" << path << "'. Does not exist.";
 		return false;
 	}
 
 	if (unlink(path.CStr()) < 0) {
-		Log(LogCritical, "cli", "Cannot remove file '" << path <<
-		    "'. Failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) + "\".");
+		Log(LogCritical, "cli")
+		    << "Cannot remove file '" << path
+		    << "'. Failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) + "\".";
 		return false;
 	}
 
@@ -195,7 +196,8 @@ bool AgentUtility::SetAgentAttribute(const String& name, const String& attr, con
 
 bool AgentUtility::WriteAgentToRepository(const String& filename, const Dictionary::Ptr& item)
 {
-	Log(LogInformation, "cli", "Dumping agent to file '" << filename << "'");
+	Log(LogInformation, "cli")
+	    << "Dumping agent to file '" << filename << "'";
 
 	String tempFilename = filename + ".tmp";
 
@@ -240,7 +242,8 @@ bool AgentUtility::GetAgents(std::vector<String>& agents)
 
 	if (!Utility::Glob(path + "/*.repo",
 	    boost::bind(&AgentUtility::CollectAgents, _1, boost::ref(agents)), GlobFile)) {
-		Log(LogCritical, "cli", "Cannot access path '" << path << "'.");
+		Log(LogCritical, "cli")
+		    << "Cannot access path '" << path << "'.";
 		return false;
 	}
 
@@ -252,7 +255,9 @@ void AgentUtility::CollectAgents(const String& agent_file, std::vector<String>& 
 	String agent = Utility::BaseName(agent_file);
 	boost::algorithm::replace_all(agent, ".repo", "");
 
-	Log(LogDebug, "cli", "Adding agent: " << agent);
+	Log(LogDebug, "cli")
+	    << "Adding agent: " << agent;
+
 	agents.push_back(agent);
 }
 
@@ -362,7 +367,8 @@ int AgentUtility::GenerateAgentMasterIcingaConfig(const String& nodename)
  */
 bool AgentUtility::WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects)
 {
-	Log(LogInformation, "cli", "Dumping config items to file '" + filename + "'.");
+	Log(LogInformation, "cli")
+	    << "Dumping config items to file '" << filename << "'.";
 
 	/* create a backup first */
 	CreateBackupFile(filename);
@@ -423,7 +429,8 @@ bool AgentUtility::CreateBackupFile(const String& target)
 			    << boost::errinfo_file_name(target));
 		}
 
-		Log(LogInformation, "cli", "Created backup file '" + backup + "'.");
+		Log(LogInformation, "cli")
+		    << "Created backup file '" << backup << "'.";
 	}
 
 	return true;

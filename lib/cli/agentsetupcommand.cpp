@@ -60,7 +60,7 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
 		("zone", po::value<std::string>(), "The name of the local zone")
 		("master_zone", po::value<std::string>(), "The name of the master zone")
 		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr")
-		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint(s) on host,port")
+		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint on host,port")
 		("listen", po::value<std::string>(), "Listen on host,port")
 		("ticket", po::value<std::string>(), "Generated ticket number for this request")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
@@ -103,38 +103,33 @@ int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, cons
 
 int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
-	/*
-	 * 0. Ignore not required parameters
-	 */
+	/* Ignore not required parameters */
 	if (vm.count("ticket"))
 		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --ticket");
+
 	if (vm.count("endpoint"))
 		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --endpoint");
+
 	if (vm.count("trustedcert"))
 		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --trustedcert");
 
-	/*
-	 * 1. Generate a new CA, if not already existing
-	 */
+	/* Generate a new CA, if not already existing */
 
-	Log(LogInformation, "cli")
-	    << "Generating new CA.";
+	Log(LogInformation, "cli", "Generating new CA.");
 
 	if (PkiUtility::NewCa() > 0) {
 		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
 	}
 
-	/*
-	 * 2. Generate a self signed certificate
-	 */
+	/* Generate a self signed certificate */
 
 	Log(LogInformation, "cli", "Generating new self-signed certificate.");
 
-	String local_pki_path = PkiUtility::GetLocalPkiPath();
+	String pki_path = PkiUtility::GetPkiPath();
 
-	if (!Utility::MkDirP(local_pki_path, 0700)) {
+	if (!Utility::MkDirP(pki_path, 0700)) {
 		Log(LogCritical, "cli")
-		    << "Could not create local pki directory '" << local_pki_path << "'.";
+		    << "Could not create local pki directory '" << pki_path << "'.";
 		return 1;
 	}
 
@@ -143,43 +138,42 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	if (vm.count("cn"))
 		cn = vm["cn"].as<std::string>();
 
-	String key = local_pki_path + "/" + cn + ".key";
-	String cert = local_pki_path + "/" + cn + ".crt";
-	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
+	String key = pki_path + "/" + cn + ".key";
+	String csr = pki_path + "/" + cn + ".csr";
 
-	if (PkiUtility::NewCert(cn, key, Empty, cert) > 0) {
+	if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
 		Log(LogCritical, "cli", "Failed to create self-signed certificate");
+		return 1;
 	}
 
-	/*
-	 * 3. Copy certificates to /etc/icinga2/pki
-	 */
+	/* Sign the CSR with the CA key */
 
-	String pki_path = PkiUtility::GetPkiPath();
+	String cert = pki_path + "/" + cn + ".crt";
+
+	if (PkiUtility::SignCsr(csr, cert) != 0) {
+		Log(LogCritical, "cli", "Could not sign CSR.");
+		return 1;
+	}
+
+	/* Copy CA certificate to /etc/icinga2/pki */
+
+	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
 
 	Log(LogInformation, "cli")
-	    << "Copying generated certificates to " << pki_path << ".";
+	    << "Copying CA certificate to '" << ca << "'.";
 
-	String target_key = pki_path + "/" + cn + ".key";
-	String target_cert = pki_path + "/" + cn + ".crt";
 	String target_ca = pki_path + "/ca.crt";
 
 	/* does not overwrite existing files! */
-	Utility::CopyFile(key, target_key);
-	Utility::CopyFile(cert, target_cert);
 	Utility::CopyFile(ca, target_ca);
 
-	/*
-	 * 4. read zones.conf and update with zone + endpoint information
-	 */
+	/* read zones.conf and update with zone + endpoint information */
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	AgentUtility::GenerateAgentMasterIcingaConfig(cn);
 
-	/*
-	 * 5. enable the ApiListener config (verifiy its data)
-	 */
+	/* enable the ApiListener config (verify its data) */
 
 	Log(LogInformation, "cli", "Enabling the APIListener feature.");
 
@@ -193,16 +187,20 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 	//TODO read --listen and set that as bind_host,port on ApiListener
 
-	/*
-	 * 6. tell the user to set a safe salt in api.conf
-	 */
+	/* update constants.conf with NodeName = CN + TicketSalt = random value */
+	if (cn != Utility::GetFQDN()) {
+		Log(LogWarning, "cli")
+			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+	}
+	//Log(LogInformation, "cli")
+	//    << "Updating configuration with NodeName constant.";
+
+	//TODO requires parsing of constants.conf, editing the entry and dumping it again?
 
 	Log(LogInformation, "cli")
 	    << "Edit the api feature config file '" << api_path << "' and set a secure 'ticket_salt' attribute.";
 
-	/*
-	 * 7. tell the user to reload icinga2
-	 */
+	/* tell the user to reload icinga2 */
 
 	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
@@ -211,9 +209,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
-	/*
-	 * 1. require ticket number (generated on master)
-	 */
+	/* require ticket number (generated on master) */
 
 	if (!vm.count("ticket")) {
 		Log(LogCritical, "cli")
@@ -227,9 +223,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 	    << "Verifying ticket '" << ticket << "'.";
 
-	/*
-	 * 2. require master host information for auto-signing requests
-	 */
+	/* require master host information for auto-signing requests */
 
 	if (!vm.count("master_host")) {
 		Log(LogCritical, "cli")
@@ -251,9 +245,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 	    << "Verifying master host connection information: host '" << master_host << "', port '" << master_port << "'.";
 
-	/*
-	 * 3. trusted cert must be passed (retrieved by the user with 'pki save-cert' before)
-	 */
+	/* trusted cert must be passed (retrieved by the user with 'pki save-cert' before) */
 
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli")
@@ -267,9 +259,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 	    << "Verifying trusted certificate from file '" << trustedcert << "'.";
 
-	/*
-	 * 4. retrieve CN and pass it (defaults to FQDN)
-	 */
+	/* retrieve CN and pass it (defaults to FQDN) */
 
 	String cn = Utility::GetFQDN();
 
@@ -279,10 +269,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 	    << "Using the following CN (defaults to FQDN): '" << cn << "'.";
 
-	/*
-	 * 4. pki request a signed certificate from the master
-	 * Requires local ca & key/crt
-	 */
+	/* pki request a signed certificate from the master */
 
 	String pki_path = PkiUtility::GetPkiPath();
 
@@ -297,28 +284,14 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
 
-	String port = "5665";
-
 	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
 		Log(LogCritical, "cli", "Failed to request certificate from Icinga 2 master.");
 		return 1;
 	}
 
-	/*
-	 * 5. get public key signed by the master, private key and ca.crt and copy it to /etc/icinga2/pki
-	 */
+	/* enable the ApiListener config (verify its data) */
 
-	//Log(LogInformation, "cli")
-	//    << "Copying retrieved signed certificate, private key and ca.crt to pki path '" << pki_path << "'.";
-
-	//std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "PLACEHOLDER" << ConsoleColorTag(Console_Normal) << std::endl;
-
-	/*
-	 * 6. enable the ApiListener config (verifiy its data)
-	 */
-
-	Log(LogInformation, "cli")
-	    << "Enabling the APIListener feature.";
+	Log(LogInformation, "cli", "Enabling the APIListener feature.");
 
 	std::vector<std::string> enable;
 	enable.push_back("api");
@@ -341,9 +314,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	//TODO read --listen and set that as bind_host,port on ApiListener
 
-	/*
-	 * 7. generate local zones.conf with zone+endpoint
-	 */
+	/* generate local zones.conf with zone+endpoint */
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
@@ -356,9 +327,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	AgentUtility::GenerateAgentIcingaConfig(endpoints, cn);
 
-	/*
-	 * 8. update constants.conf with NodeName = CN
-	 */
+	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
 		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
@@ -368,9 +337,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	//TODO requires parsing of constants.conf, editing the entry and dumping it again?
 
-	/*
-	 * 9. tell the user to reload icinga2
-	 */
+	/* tell the user to reload icinga2 */
 
 	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
