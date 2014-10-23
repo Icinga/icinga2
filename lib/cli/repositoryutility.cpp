@@ -370,9 +370,17 @@ void RepositoryUtility::CollectChange(const Dictionary::Ptr& change, Array::Ptr&
 void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
 {
 	fp << "object " << type << " \"" << name << "\" {\n";
+
+	if (object->Contains("templates"))
+		fp << "\t" << "import \"" << object->Get("templates") << "\"\n";
+
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
-		fp << "\t" << kv.first << " = ";
-		FormatValue(fp, kv.second);
+		if (kv.first == "templates") {
+			continue;
+		} else {
+			fp << "\t" << kv.first << " = ";
+			FormatValue(fp, kv.second);
+		}
 		fp << "\n";
 	}
 	fp << "}\n";

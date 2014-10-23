@@ -120,7 +120,15 @@ void RepositoryObjectCommand::InitParameters(boost::program_options::options_des
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
+		("name", po::value<std::string>(), "The name of the object")
+		("zone", po::value<std::string>(), "The name of the zone, e.g. the agent where this object is bound to")
+		("template", po::value<std::string>(), "Import the defined template into the object. This template must be defined and included separately in Icinga 2")
 		("name", po::value<std::string>(), "The name of the object");
+
+	if (m_Type == "Service") {
+		visibleDesc.add_options()
+			("host", po::value<std::string>(), "The host name related to this service object");
+	}
 }
 
 std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
@@ -163,6 +171,12 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 			Log(LogWarning, "cli")
 			    << "Cannot parse passed attributes for object '" << name << "': " << boost::algorithm::join(tokens, "=");
 	}
+
+	if (vm.count("zone"))
+		attr->Set("zone", String(vm["zone"].as<std::string>()));
+
+	if (vm.count("template"))
+		attr->Set("templates", String(vm["template"].as<std::string>()));
 
 	if (m_Command == RepositoryCommandList) {
 		RepositoryUtility::PrintObjects(std::cout, m_Type);
