@@ -27,8 +27,8 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_BLACKANDWHITELIST_CLICOMMAND("whitelist");
-REGISTER_BLACKANDWHITELIST_CLICOMMAND("blacklist");
+REGISTER_BLACKANDWHITELIST_CLICOMMAND(whitelist);
+REGISTER_BLACKANDWHITELIST_CLICOMMAND(blacklist);
 
 RegisterBlackAndWhitelistCLICommandHelper::RegisterBlackAndWhitelistCLICommandHelper(const String& type)
 {

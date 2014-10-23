@@ -30,6 +30,7 @@
 #include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -206,7 +207,7 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
         fp.close();
 
 #ifdef _WIN32
-	_unlink(filename.CStr());
+	_unlink(path.CStr());
 #endif /* _WIN32 */
 
 	if (rename(tempPath.CStr(), path.CStr()) < 0) {
@@ -238,7 +239,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
         fp.close();
 
 #ifdef _WIN32
-	_unlink(filename.CStr());
+	_unlink(path.CStr());
 #endif /* _WIN32 */
 
 	if (rename(tempPath.CStr(), path.CStr()) < 0) {

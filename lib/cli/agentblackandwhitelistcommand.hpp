@@ -68,7 +68,7 @@ public:
 
 #define REGISTER_BLACKANDWHITELIST_CLICOMMAND(type) \
 	namespace { namespace UNIQUE_NAME(blackandwhitelist) { \
-		I2_EXPORT icinga::RegisterBlackAndWhitelistCLICommandHelper l_RegisterBlackAndWhitelistCLICommand(type); \
+		I2_EXPORT icinga::RegisterBlackAndWhitelistCLICommandHelper l_RegisterBlackAndWhitelistCLICommand_ ## type(#type); \
 	} }
 
 }

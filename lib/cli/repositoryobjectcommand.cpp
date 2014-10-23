@@ -31,10 +31,10 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_REPOSITORY_CLICOMMAND("Host");
-REGISTER_REPOSITORY_CLICOMMAND("Service");
-REGISTER_REPOSITORY_CLICOMMAND("Zone");
-REGISTER_REPOSITORY_CLICOMMAND("Endpoint");
+REGISTER_REPOSITORY_CLICOMMAND(Host);
+REGISTER_REPOSITORY_CLICOMMAND(Service);
+REGISTER_REPOSITORY_CLICOMMAND(Zone);
+REGISTER_REPOSITORY_CLICOMMAND(Endpoint);
 
 RegisterRepositoryCLICommandHelper::RegisterRepositoryCLICommandHelper(const String& type)
 {

@@ -70,7 +70,7 @@ public:
 
 #define REGISTER_REPOSITORY_CLICOMMAND(type) \
 	namespace { namespace UNIQUE_NAME(repositoryobject) { \
-		I2_EXPORT icinga::RegisterRepositoryCLICommandHelper l_RegisterRepositoryCLICommand(type); \
+		I2_EXPORT icinga::RegisterRepositoryCLICommandHelper l_RegisterRepositoryCLICommand_ ## type(#type); \
 	} }
 
 }
