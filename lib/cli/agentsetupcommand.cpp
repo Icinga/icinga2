@@ -60,7 +60,7 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
 		("zone", po::value<std::string>(), "The name of the local zone")
 		("master_zone", po::value<std::string>(), "The name of the master zone")
 		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr")
-		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint; syntax: cn,host,port")
+		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint; syntax: cn[,host,port]")
 		("listen", po::value<std::string>(), "Listen on host,port")
 		("ticket", po::value<std::string>(), "Generated ticket number for this request")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
@@ -320,14 +320,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::vector<std::string> endpoints;
-	if (vm.count("endpoint")) {
-		endpoints = vm["endpoint"].as<std::vector<std::string> >();
-	} else {
-		endpoints.push_back("master-noconnect"); //no endpoint means no connection attempt. fake name required for master endpoint name
-	}
-
-	AgentUtility::GenerateAgentIcingaConfig(endpoints, cn);
+	AgentUtility::GenerateAgentIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn);
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
