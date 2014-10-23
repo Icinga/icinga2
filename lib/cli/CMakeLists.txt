@@ -24,9 +24,8 @@ set(cli_SOURCES
   objectlistcommand.cpp
   pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkisavecertcommand.cpp pkiticketcommand.cpp
   pkiutility.cpp
-  repositoryobjectcommand.cpp
-  variablegetcommand.cpp variablelistcommand.cpp
   repositorycommitcommand.cpp repositoryobjectcommand.cpp repositoryutility.cpp
+  variablegetcommand.cpp variablelistcommand.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
