@@ -42,7 +42,7 @@ REGISTER_STATSFUNCTION(ApiListenerStats, &ApiListener::StatsFunc);
 void ApiListener::OnConfigLoaded(void)
 {
 	/* set up SSL context */
-	shared_ptr<X509> cert = make_shared<X509>();
+	shared_ptr<X509> cert;
 	try {
 		cert = GetX509Certificate(GetCertPath());
 	} catch (const std::exception&) {

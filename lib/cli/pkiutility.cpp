@@ -183,7 +183,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	shared_ptr<SSL_CTX> sslContext = make_shared<SSL_CTX>();
+	shared_ptr<SSL_CTX> sslContext;
 
 	try {
 		sslContext = MakeSSLContext(certfile, keyfile);
@@ -204,7 +204,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 	shared_ptr<X509> peerCert = stream->GetPeerCertificate();
 
-	shared_ptr<X509> trustedCert = make_shared<X509>();
+	shared_ptr<X509> trustedCert;
 
 	try {
 		trustedCert = GetX509Certificate(trustedfile);
