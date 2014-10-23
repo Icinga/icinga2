@@ -151,6 +151,7 @@ bool AgentUtility::RemoveAgent(const String& name)
 		    << "Cannot remove agent repo. '" << GetAgentRepositoryFile(name) << "' does not exist.\n";
 		return false;
 	}
+
 	if (Utility::PathExists(GetAgentSettingsFile(name))) {
 		if (!RemoveAgentFile(GetAgentSettingsFile(name))) {
 			Log(LogWarning, "cli")
@@ -488,4 +489,41 @@ void AgentUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
                 fp << " ";
 
         fp << "]";
+}
+
+void AgentUtility::UpdateConstant(const String& name, const String& value)
+{
+	String constantsFile = Application::GetSysconfDir() + "/icinga2/constants.conf";
+	String tempFile = constantsFile + ".tmp";
+
+	std::ifstream ifp(constantsFile.CStr());
+	std::ofstream ofp(tempFile.CStr());
+
+	bool found = false;
+
+	std::string line;
+	while (std::getline(ifp, line)) {
+		if (line.find("const " + name + " = ") != std::string::npos) {
+			ofp << "const " + name + " = \"" + value + "\"\n";
+			found = true;
+		} else
+			ofp << line << "\n";
+	}
+
+	if (!found)
+		ofp << "const " + name + " = \"" + value + "\"\n";
+
+	ifp.close();
+	ofp.close();
+
+#ifdef _WIN32
+	_unlink(constantsFile.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempFile.CStr(), constantsFile.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(constantsFile));
+	}
 }

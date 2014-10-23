@@ -31,6 +31,7 @@
 #include <openssl/sha.h>
 #include <openssl/x509v3.h>
 #include <openssl/evp.h>
+#include <openssl/rand.h>
 
 namespace icinga
 {
@@ -47,6 +48,7 @@ String I2_BASE_API CertificateToString(const shared_ptr<X509>& cert);
 shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
 String I2_BASE_API PBKDF2_SHA1(const String& password, const String& salt, int iterations);
 String I2_BASE_API SHA256(const String& s);
+String I2_BASE_API RandomString(int length);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 

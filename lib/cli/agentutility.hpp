@@ -58,6 +58,7 @@ public:
 
 	static bool WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects);
 
+	static void UpdateConstant(const String& name, const String& value);
 
 	/* agent setup helpers */
 	static int GenerateAgentIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);

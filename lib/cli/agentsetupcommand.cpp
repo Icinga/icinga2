@@ -21,13 +21,10 @@
 #include "cli/agentutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/pkiutility.hpp"
-#include "config/configcompilercontext.hpp"
-#include "config/configcompiler.hpp"
-#include "config/configitembuilder.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
-#include "base/dynamictype.hpp"
+#include "base/tlsutility.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -189,10 +186,16 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 		Log(LogWarning, "cli")
 			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
-	//Log(LogInformation, "cli")
-	//    << "Updating configuration with NodeName constant.";
 
-	//TODO requires parsing of constants.conf, editing the entry and dumping it again?
+	Log(LogInformation, "cli", "Updating constants.conf.");
+
+	AgentUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+
+	AgentUtility::UpdateConstant("NodeName", cn);
+
+	String salt = RandomString(16);
+
+	AgentUtility::UpdateConstant("TicketSalt", salt);
 
 	Log(LogInformation, "cli")
 	    << "Edit the api feature config file '" << api_path << "' and set a secure 'ticket_salt' attribute.";
@@ -228,8 +231,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	/* require master host information for auto-signing requests */
 
 	if (!vm.count("master_host")) {
-		Log(LogCritical, "cli")
-		    << "Please pass the master host connection information for auto-signing using '--master_host <host>'";
+		Log(LogCritical, "cli", "Please pass the master host connection information for auto-signing using '--master_host <host>'");
 		return 1;
 	}
 
@@ -327,10 +329,12 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 		Log(LogWarning, "cli")
 		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
-	//Log(LogInformation, "cli")
-	//    << "Updating configuration with NodeName constant.";
 
-	//TODO requires parsing of constants.conf, editing the entry and dumping it again?
+	Log(LogInformation, "cli", "Updating constants.conf.");
+
+	AgentUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+
+	AgentUtility::UpdateConstant("NodeName", cn);
 
 	/* tell the user to reload icinga2 */
 

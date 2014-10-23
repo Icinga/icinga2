@@ -503,4 +503,30 @@ String SHA256(const String& s)
 	return output;
 }
 
+String RandomString(int length)
+{
+	unsigned char *bytes = new unsigned char[length];
+
+	if (!RAND_bytes(bytes, length)) {
+		delete [] bytes;
+
+		char errbuf[120];
+
+		Log(LogCritical, "SSL")
+			<< "Error for RAND_bytes: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("RAND_bytes")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	char *output = new char[length * 2 + 1];
+	for (int i = 0; i < length; i++)
+		sprintf(output + 2 * i, "%02x", bytes[i]);
+
+	String result = output;
+	delete [] output;
+
+	return result;
+}
+
 }
