@@ -43,6 +43,7 @@ String RepositoryUtility::GetRepositoryDPath(void)
 
 String RepositoryUtility::GetRepositoryDObjectsPath(const String& type, const String& hostname)
 {
+	//TODO find a better way to retrieve the objects path
 	if (type == "Host")
 		return GetRepositoryDPath() + "/hosts";
 	else if (type == "Service")
@@ -371,8 +372,19 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 {
 	fp << "object " << type << " \"" << name << "\" {\n";
 
-	if (object->Contains("templates"))
-		fp << "\t" << "import \"" << object->Get("templates") << "\"\n";
+	if (!object) {
+		fp << "}\n";
+		return;
+	}
+
+	if (object->Contains("templates")) {
+		Array::Ptr templates = object->Get("templates");
+
+		ObjectLock olock(templates);
+		BOOST_FOREACH(const String& tmpl, templates) {
+			fp << "\t" << "import \"" << tmpl << "\"\n";
+		}
+	}
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
 		if (kv.first == "templates") {

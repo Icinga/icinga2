@@ -121,9 +121,7 @@ void RepositoryObjectCommand::InitParameters(boost::program_options::options_des
 {
 	visibleDesc.add_options()
 		("name", po::value<std::string>(), "The name of the object")
-		("zone", po::value<std::string>(), "The name of the zone, e.g. the agent where this object is bound to")
-		("template", po::value<std::string>(), "Import the defined template into the object. This template must be defined and included separately in Icinga 2")
-		("name", po::value<std::string>(), "The name of the object");
+		("template", po::value<std::vector<std::string> >(), "Import the defined template(s) into the object. Must be defined and included separately in Icinga 2");
 
 	if (m_Type == "Service") {
 		visibleDesc.add_options()
@@ -172,11 +170,16 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 			    << "Cannot parse passed attributes for object '" << name << "': " << boost::algorithm::join(tokens, "=");
 	}
 
-	if (vm.count("zone"))
-		attr->Set("zone", String(vm["zone"].as<std::string>()));
+	if (vm.count("template")) {
+		Array::Ptr templates = make_shared<Array>();
 
-	if (vm.count("template"))
-		attr->Set("templates", String(vm["template"].as<std::string>()));
+		BOOST_FOREACH(const String& tmpl, vm["template"].as<std::vector<std::string> >()) {
+			templates->Add(tmpl);
+		}
+
+		if (templates->GetLength() > 0)
+			attr->Set("templates", templates);
+	}
 
 	if (m_Command == RepositoryCommandList) {
 		RepositoryUtility::PrintObjects(std::cout, m_Type);
