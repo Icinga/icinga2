@@ -60,7 +60,7 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
 		("zone", po::value<std::string>(), "The name of the local zone")
 		("master_zone", po::value<std::string>(), "The name of the master zone")
 		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr")
-		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint on host,port")
+		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint; syntax: cn,host,port")
 		("listen", po::value<std::string>(), "Listen on host,port")
 		("ticket", po::value<std::string>(), "Generated ticket number for this request")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
@@ -92,13 +92,10 @@ int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, cons
 		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
-	if (vm.count("master")) {
+	if (vm.count("master"))
 		return SetupMaster(vm, ap);
-	} else {
+	else
 		return SetupAgent(vm, ap);
-	}
-
-	return 0;
 }
 
 int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
@@ -209,12 +206,17 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
-	/* require ticket number (generated on master) */
+	/* require ticket number (generated on master) and at least one endpoint */
 
 	if (!vm.count("ticket")) {
 		Log(LogCritical, "cli")
 		    << "Please pass the ticket number generated on master\n"
 		    << "(Hint: 'icinga2 pki ticket --cn <masterhost> --salt <ticket_salt>').";
+		return 1;
+	}
+
+	if (!vm.count("endpoint")) {
+		Log(LogCritical, "cli", "You need to specify at least one endpoint (--endpoint).");
 		return 1;
 	}
 

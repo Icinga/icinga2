@@ -280,17 +280,17 @@ int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endp
 
 		Dictionary::Ptr my_master_endpoint = make_shared<Dictionary>();
 
-		if (tokens.size() == 1 || tokens.size() == 2)
-			my_master_endpoint->Set("host", tokens[0]);
+		if (tokens.size() > 1)
+			my_master_endpoint->Set("host", tokens[1]);
 
-		if (tokens.size() == 2)
-			my_master_endpoint->Set("port", tokens[1]);
+		if (tokens.size() > 2)
+			my_master_endpoint->Set("port", tokens[2]);
 
-		my_master_endpoint->Set("__name", String(endpoint));
+		my_master_endpoint->Set("__name", tokens[0]);
 		my_master_endpoint->Set("__type", "Endpoint");
 
 		/* save endpoint in master zone */
-		my_master_zone_members->Add(String(endpoint)); //find a better name
+		my_master_zone_members->Add(tokens[0]);
 
 		my_config->Add(my_master_endpoint);
 	}

@@ -66,6 +66,21 @@ namespace Icinga
 			}
 		}
 
+		private bool GetMasterHostPort(out string host, out string port)
+		{
+			foreach (ListViewItem lvi in lvwEndpoints.Items) {
+				if (lvi.SubItems.Count > 1) {
+					host = lvi.SubItems[1].Text;
+					port = lvi.SubItems[2].Text;
+					return true;
+				}
+			}
+
+			host = null;
+			port = null;
+			return false;
+		}
+
 		private void EnableFeature(string feature)
 		{
 			using (FileStream fp = File.Open(Icinga2InstallDir + String.Format("\\etc\\icinga2\\features-enabled\\{0}.conf", feature), FileMode.Create)) {
@@ -185,10 +200,16 @@ namespace Icinga
 				args += " --master";
 
 			Invoke((MethodInvoker)delegate {
-				args += " --master_host " + lvwEndpoints.Items[0].SubItems[0].Text + "," + lvwEndpoints.Items[0].SubItems[1].Text;
+				string master_host, master_port;
+				GetMasterHostPort(out master_host, out master_port);
+
+				args += " --master_host " + master_host + "," + master_port;
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
-					args += " --endpoint " + lvi.SubItems[0].Text + "," + lvi.SubItems[1].Text;
+					args += " --endpoint " + lvi.SubItems[0].Text;
+					
+					if (lvi.SubItems.Count > 1)
+						args += "," + lvi.SubItems[1].Text + "," + lvi.SubItems[2].Text;
 				}
 			});
 
@@ -220,6 +241,13 @@ namespace Icinga
 			RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
 			    "--scm-uninstall",
 			    out output);
+
+			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			    "daemon --validate",
+			    out output)) {
+				ShowErrorText(output);
+				return;
+			}
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
 			    "--scm-install daemon",
@@ -291,9 +319,17 @@ namespace Icinga
 					return;
 				}
 
-				if (rdoNoMaster.Checked && lvwEndpoints.Items.Count == 0) {
-					Warning("You need to add at least one master endpoint.");
-					return;
+				if (rdoNoMaster.Checked) {
+					if (lvwEndpoints.Items.Count == 0) {
+						Warning("You need to add at least one master endpoint.");
+						return;
+					}
+
+					string host, port;
+					if (!GetMasterHostPort(out host, out port)) {
+						Warning("Please enter a remote host and port for at least one of your endpoints.");
+						return;
+					}
 				}
 
 				if (rdoListener.Checked && (txtListenerPort.Text == "")) {
@@ -328,7 +364,10 @@ namespace Icinga
 			if (tbcPages.SelectedTab == tabRetrieveCertificate) {
 				ListViewItem lvi = lvwEndpoints.Items[0];
 
-				Thread thread = new Thread((ThreadStart)delegate { VerifyCertificate(lvi.SubItems[0].Text, lvi.SubItems[1].Text); });
+				string master_host, master_port;
+				GetMasterHostPort(out master_host, out master_port);
+
+				Thread thread = new Thread((ThreadStart)delegate { VerifyCertificate(master_host, master_port); });
 				thread.Start();
 			}
 
@@ -399,6 +438,8 @@ namespace Icinga
 			txtX509Issuer.Text = certificate.Issuer;
 			txtX509Subject.Text = certificate.Subject;
 
+			lvwX509Fields.Items.Clear();
+
 			AddCertificateField("Version", "V" + certificate.Version.ToString());
 			AddCertificateField("Serial number", certificate.SerialNumber);
 			AddCertificateField("Signature algorithm", certificate.SignatureAlgorithm.FriendlyName);
@@ -422,8 +463,12 @@ namespace Icinga
 				return;
 
 			ListViewItem lvi = new ListViewItem();
-			lvi.Text = eib.txtHost.Text;
-			lvi.SubItems.Add(eib.txtPort.Text);
+			lvi.Text = eib.txtInstanceName.Text;
+
+			if (eib.chkConnect.Checked) {
+				lvi.SubItems.Add(eib.txtHost.Text);
+				lvi.SubItems.Add(eib.txtPort.Text);
+			}
 
 			lvwEndpoints.Items.Add(lvi);
 		}

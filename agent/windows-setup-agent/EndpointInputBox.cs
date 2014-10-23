@@ -15,20 +15,38 @@ namespace Icinga
 			InitializeComponent();
 		}
 
-		private void txtHost_Validating(object sender, CancelEventArgs e)
+		private void Warning(string message)
 		{
-			if (txtHost.Text.Length == 0) {
-				e.Cancel = true;
-				errErrorProvider.SetError(txtHost, "Please enter a host name.");
-			}
+			MessageBox.Show(this, message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+		}
+		
+		private void chkConnect_CheckedChanged(object sender, EventArgs e)
+		{
+			txtHost.Enabled = chkConnect.Checked;
+			txtPort.Enabled = chkConnect.Checked;
 		}
 
-		private void txtPort_Validating(object sender, CancelEventArgs e)
+		private void btnOK_Click(object sender, EventArgs e)
 		{
-			if (txtPort.Text.Length == 0) {
-				e.Cancel = true;
-				errErrorProvider.SetError(txtPort, "Please enter a port.");
+			if (txtInstanceName.Text.Length == 0) {
+				Warning("Please enter an instance name.");
+				return;
 			}
+
+			if (chkConnect.Checked) {
+				if (txtHost.Text.Length == 0) {
+					Warning("Please enter a host name.");
+					return;
+				}
+
+				if (txtPort.Text.Length == 0) {
+					Warning("Please enter a port.");
+					return;
+				}
+			}
+
+			DialogResult = DialogResult.OK;
+			Close();
 		}
 	}
 }

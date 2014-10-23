@@ -74,6 +74,7 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
+			this.colInstanceName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -308,8 +309,10 @@
 			// lvwEndpoints
 			// 
 			this.lvwEndpoints.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.colInstanceName,
             this.colHost,
             this.colPort});
+			this.lvwEndpoints.FullRowSelect = true;
 			this.lvwEndpoints.Location = new System.Drawing.Point(11, 83);
 			this.lvwEndpoints.Name = "lvwEndpoints";
 			this.lvwEndpoints.Size = new System.Drawing.Size(500, 176);
@@ -321,12 +324,12 @@
 			// colHost
 			// 
 			this.colHost.Text = "Host";
-			this.colHost.Width = 300;
+			this.colHost.Width = 200;
 			// 
 			// colPort
 			// 
 			this.colPort.Text = "Port";
-			this.colPort.Width = 120;
+			this.colPort.Width = 80;
 			// 
 			// rdoNoMaster
 			// 
@@ -545,6 +548,11 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
+			// colInstanceName
+			// 
+			this.colInstanceName.Text = "Instance Name";
+			this.colInstanceName.Width = 200;
+			// 
 			// AgentWizard
 			// 
 			this.AcceptButton = this.btnNext;
@@ -634,6 +642,7 @@
 		private System.Windows.Forms.Label lblError;
 		private System.Windows.Forms.TextBox txtTicket;
 		private System.Windows.Forms.Label lblTicket;
+		private System.Windows.Forms.ColumnHeader colInstanceName;
 	}
 }
 
