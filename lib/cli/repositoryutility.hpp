@@ -37,8 +37,11 @@ class RepositoryUtility
 {
 public:
 	static Dictionary::Ptr GetArgumentAttributes(const std::vector<std::string>& arguments);
-	static String GetRepositoryDPath(void);
-	static String GetRepositoryDObjectsPath(const String& type, const String& hostname = Empty);
+
+	static String GetRepositoryConfigPath(void);
+	static String GetRepositoryObjectConfigPath(const String& type, const Dictionary::Ptr& object);
+	static String GetRepositoryObjectConfigFilePath(const String& type, const Dictionary::Ptr& object);
+
 	static String GetRepositoryChangeLogPath(void);
 
 	static void PrintObjects(std::ostream& fp, const String& type);
@@ -46,21 +49,22 @@ public:
 	static void PrintChangeLog(std::ostream& fp);
 
 	static bool AddObject(const String& name, const String& type, const Dictionary::Ptr& attr);
-	static bool RemoveObject(const String& name, const String& type);
+	static bool RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attr);
 
 	static bool SetObjectAttribute(const String& name, const String& type, const String& attr, const Value& val);
 
 	static bool CommitChangeLog(void);
 
-	static bool GetObjects(const String& type, std::vector<String>& objects);
+	static std::vector<String> GetObjects(void);
 private:
 	RepositoryUtility(void);
 
 	static bool RemoveObjectFileInternal(const String& path);
 
 	static bool AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr);
-	static bool RemoveObjectInternal(const String& name, const String& type);
-	static bool SetObjectAttributeInternal(const String& name, const String& type, const String& attr, const Value& val);
+	static bool RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr);
+	static bool SetObjectAttributeInternal(const String& name, const String& type, const String& key,
+	    const Value& val, const Dictionary::Ptr& attr);
 
 	/* repository.d */
 	static void CollectObjects(const String& object_file, std::vector<String>& objects);

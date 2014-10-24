@@ -179,7 +179,8 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 		RepositoryUtility::AddObject(name, m_Type, attrs);
 	}
 	else if (m_Command == RepositoryCommandRemove) {
-		RepositoryUtility::RemoveObject(name, m_Type);
+		/* pass attrs for service->host_name requirement */
+		RepositoryUtility::RemoveObject(name, m_Type, attrs);
 	}
 	else if (m_Command == RepositoryCommandSet) {
 		Log(LogWarning, "cli")

@@ -56,38 +56,48 @@ Dictionary::Ptr RepositoryUtility::GetArgumentAttributes(const std::vector<std::
 	return attr;
 }
 
-String RepositoryUtility::GetRepositoryDPath(void)
+String RepositoryUtility::GetRepositoryConfigPath(void)
 {
 	return Application::GetSysconfDir() + "/icinga2/repository.d";
 }
 
-String RepositoryUtility::GetRepositoryDObjectsPath(const String& type, const String& hostname)
+String RepositoryUtility::GetRepositoryObjectConfigPath(const String& type, const Dictionary::Ptr& object)
 {
-	//TODO find a better way to retrieve the objects path
-	if (type == "Host")
-		return GetRepositoryDPath() + "/hosts";
+	String path = GetRepositoryConfigPath() + "/";
+
+	if (type == "Host") {
+		path += "hosts";
+	}
 	else if (type == "Service")
-		return GetRepositoryDPath() + "/hosts/" + hostname;
+		path += "hosts/" + object->Get("host_name");
 	else if (type == "Zone")
-		return GetRepositoryDPath() + "/zones";
+		path += "zones";
 	else if (type == "Endpoints")
-		return GetRepositoryDPath() + "/endpoints";
-	else
-		return GetRepositoryDPath();
+		path += "endpoints";
+
+	return path;
+}
+
+String RepositoryUtility::GetRepositoryObjectConfigFilePath(const String& type, const Dictionary::Ptr& object)
+{
+	String path = GetRepositoryObjectConfigPath(type, object);
+
+	path += "/" + object->Get("name") + ".conf";
+
+	return path;
 }
 
 String RepositoryUtility::GetRepositoryChangeLogPath(void)
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/repository";
+	return Application::GetLocalStateDir() + "/lib/icinga2/repository/changes";
 }
 
 void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 {
-	std::vector<String> objects;
-	GetObjects(type, objects);
+	std::vector<String> objects = GetObjects(); //full path
 
 	BOOST_FOREACH(const String& object, objects) {
-		Dictionary::Ptr obj = GetObjectFromRepository(GetRepositoryDObjectsPath(type) + "/" + object + ".conf");
+		Dictionary::Ptr obj = GetObjectFromRepository(object);
 
 		if (obj) {
 			fp << "Object Name: " << object << "\n";
@@ -113,7 +123,7 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
 
-bool RepositoryUtility::RemoveObject(const String& name, const String& type)
+bool RepositoryUtility::RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attr)
 {
 	/* add a new changelog entry by timestamp */
 	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + ".change";
@@ -124,6 +134,7 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type)
 	change->Set("name", name);
 	change->Set("type", type);
 	change->Set("command", "remove");
+	change->Set("attr", attr); //required for service->host_name
 
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
@@ -159,14 +170,14 @@ bool RepositoryUtility::SetObjectAttribute(const String& name, const String& typ
 /* internal implementation when changes are committed */
 bool RepositoryUtility::AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr)
 {
-	String path = GetRepositoryDObjectsPath(type, name) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
 
 	return WriteObjectToRepository(path, name, type, attr);
 }
 
-bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type)
+bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr)
 {
-	String path = GetRepositoryDObjectsPath(type, name) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
 
 	return RemoveObjectFileInternal(path);
 }
@@ -187,10 +198,10 @@ bool RepositoryUtility::RemoveObjectFileInternal(const String& path)
 	return true;
 }
 
-bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const String& type, const String& attr, const Value& val)
+bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const String& type, const String& key, const Value& val, const Dictionary::Ptr& attr)
 {
 	//Fixme
-	String path = GetRepositoryDObjectsPath(type, name) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
 
 	Dictionary::Ptr obj = GetObjectFromRepository(path);
 
@@ -200,7 +211,7 @@ bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const Str
 		return false;
 	}
 
-	obj->Set(attr, val);
+	obj->Set(key, val);
 
 	std::cout << "Writing object '" << name << "' to path '" << path << "'.\n";
 
@@ -251,7 +262,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 {
 	Log(LogInformation, "cli", "Dumping changelog items to file '" + path + "'");
 
-	Utility::MkDirP(Utility::DirName(path), 0755);
+	Utility::MkDirP(Utility::DirName(path), 0750);
 
 	String tempPath = path + ".tmp";
 
@@ -288,35 +299,26 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String
 	return JsonDeserialize(content);
 }
 
-
 /*
  * collect functions
  */
-bool RepositoryUtility::GetObjects(const String& type, std::vector<String>& objects)
+std::vector<String> RepositoryUtility::GetObjects(void)
 {
-	String path = GetRepositoryDPath() + "/";
+	std::vector<String> objects;
+	String path = GetRepositoryConfigPath() + "/";
 
-	if (type == "service")
-		path = "hosts/*";
-	else
-		path = type;
+	Utility::Glob(path + "/*.conf",
+	    boost::bind(&RepositoryUtility::CollectObjects, _1, boost::ref(objects)), GlobFile);
 
-	if (!Utility::Glob(path + "/*.conf",
-	    boost::bind(&RepositoryUtility::CollectObjects, _1, boost::ref(objects)), GlobFile)) {
-		Log(LogCritical, "cli", "Cannot access path '" + path + "'.");
-		return false;
-	}
-
-	return true;
+	return objects;
 }
 
 void RepositoryUtility::CollectObjects(const String& object_file, std::vector<String>& objects)
 {
-	String object = Utility::BaseName(object_file);
-	boost::algorithm::replace_all(object, ".conf", "");
+	Log(LogDebug, "cli")
+	    << "Adding object: '" << object_file << "'.";
 
-	Log(LogDebug, "cli", "Adding object: " + object);
-	objects.push_back(object);
+	objects.push_back(object_file);
 }
 
 
@@ -325,11 +327,8 @@ bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionar
 	std::vector<String> changelog;
 	String path = GetRepositoryChangeLogPath() + "/";
 
-	if (!Utility::Glob(path + "/*.change",
-	    boost::bind(&RepositoryUtility::CollectChangeLog, _1, boost::ref(changelog)), GlobFile)) {
-		Log(LogCritical, "cli", "Cannot access path '" + path + "'.");
-		return false;
-	}
+	Utility::Glob(path + "/*.change",
+	    boost::bind(&RepositoryUtility::CollectChangeLog, _1, boost::ref(changelog)), GlobFile);
 
 	/* sort by timestamp ascending */
 	std::sort(changelog.begin(), changelog.end());
@@ -374,7 +373,7 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change)
 		AddObjectInternal(name, type, attr);
 	}
 	else if (command == "remove") {
-		RemoveObjectInternal(name, type);
+		RemoveObjectInternal(name, type, attr);
 	}
 }
 
@@ -407,7 +406,7 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 	}
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
-		if (kv.first == "import") {
+		if (kv.first == "import" || kv.first == "name") {
 			continue;
 		} else {
 			fp << "\t" << kv.first << " = ";
