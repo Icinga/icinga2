@@ -36,6 +36,7 @@ namespace icinga
 class RepositoryUtility
 {
 public:
+	static Dictionary::Ptr GetArgumentAttributes(const std::vector<std::string>& arguments);
 	static String GetRepositoryDPath(void);
 	static String GetRepositoryDObjectsPath(const String& type, const String& hostname = Empty);
 	static String GetRepositoryChangeLogPath(void);

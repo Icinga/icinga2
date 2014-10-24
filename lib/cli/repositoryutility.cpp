@@ -31,10 +31,30 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <fstream>
 #include <iostream>
 
 using namespace icinga;
+
+Dictionary::Ptr RepositoryUtility::GetArgumentAttributes(const std::vector<std::string>& arguments)
+{
+	Dictionary::Ptr attr = make_shared<Dictionary>();
+
+	BOOST_FOREACH(const String& kv, arguments) {
+		std::vector<String> tokens;
+		boost::algorithm::split(tokens, kv, boost::is_any_of("="));
+
+		if (tokens.size() == 2) {
+			attr->Set(tokens[0], tokens[1]);
+		} else
+			Log(LogWarning, "cli")
+			    << "Cannot parse passed attributes: " << boost::algorithm::join(tokens, "=");
+	}
+
+	return attr;
+}
 
 String RepositoryUtility::GetRepositoryDPath(void)
 {
@@ -377,17 +397,17 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 		return;
 	}
 
-	if (object->Contains("templates")) {
-		Array::Ptr templates = object->Get("templates");
+	if (object->Contains("import")) {
+		Array::Ptr imports = object->Get("import");
 
-		ObjectLock olock(templates);
-		BOOST_FOREACH(const String& tmpl, templates) {
-			fp << "\t" << "import \"" << tmpl << "\"\n";
+		ObjectLock olock(imports);
+		BOOST_FOREACH(const String& import, imports) {
+			fp << "\t" << "import \"" << import << "\"\n";
 		}
 	}
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
-		if (kv.first == "templates") {
+		if (kv.first == "import") {
 			continue;
 		} else {
 			fp << "\t" << kv.first << " = ";

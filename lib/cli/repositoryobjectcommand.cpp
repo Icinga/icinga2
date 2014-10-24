@@ -24,8 +24,6 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -121,13 +119,7 @@ void RepositoryObjectCommand::InitParameters(boost::program_options::options_des
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-		("name", po::value<std::string>(), "The name of the object")
-		("template", po::value<std::vector<std::string> >(), "Import the defined template(s) into the object. Must be defined and included separately in Icinga 2");
-
-	if (m_Type == "Service") {
-		visibleDesc.add_options()
-			("host", po::value<std::string>(), "The host name related to this service object");
-	}
+		("import", po::value<std::vector<std::string> >(), "Import the defined template(s) into the object. Must be defined and included separately in Icinga 2");
 }
 
 std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
@@ -147,53 +139,47 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
  */
 int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (ap.empty()) {
-		Log(LogCritical, "cli")
-		    << "No object name given. Bailing out.";
+
+	Dictionary::Ptr attrs = RepositoryUtility::GetArgumentAttributes(ap);
+
+	if (!attrs->Contains("name")) {
+		Log(LogCritical, "cli", "Object requires a name (Hint: 'name=<objectname>')!");
 		return 1;
 	}
 
-	String name = ap[0];
+	String name = attrs->Get("name");
 
-        std::vector<String> tokens;
-	Dictionary::Ptr attr = make_shared<Dictionary>();
-
-	std::vector<std::string> attrs = ap;
-	attrs.erase(attrs.begin()); //remove name
-
-	BOOST_FOREACH(const String& kv, attrs) {
-		boost::algorithm::split(tokens, kv, boost::is_any_of("="));
-
-		if (tokens.size() == 2) {
-			attr->Set(tokens[0], tokens[1]);
-		} else
-			Log(LogWarning, "cli")
-			    << "Cannot parse passed attributes for object '" << name << "': " << boost::algorithm::join(tokens, "=");
+	if (m_Type == "Service") {
+		if (!attrs->Contains("host_name")) {
+			Log(LogCritical, "cli", "Service objects require the 'host_name' attribute.");
+			return 1;
+		}
 	}
 
-	if (vm.count("template")) {
-		Array::Ptr templates = make_shared<Array>();
+	if (vm.count("import")) {
+		Array::Ptr imports = make_shared<Array>();
 
-		BOOST_FOREACH(const String& tmpl, vm["template"].as<std::vector<std::string> >()) {
-			templates->Add(tmpl);
+		BOOST_FOREACH(const String& import, vm["import"].as<std::vector<std::string> >()) {
+			imports->Add(import);
 		}
 
-		if (templates->GetLength() > 0)
-			attr->Set("templates", templates);
+		//Update object attributes
+		if (imports->GetLength() > 0)
+			attrs->Set("import", imports);
 	}
 
 	if (m_Command == RepositoryCommandList) {
 		RepositoryUtility::PrintObjects(std::cout, m_Type);
 	}
 	else if (m_Command == RepositoryCommandAdd) {
-		RepositoryUtility::AddObject(name, m_Type, attr);
+		RepositoryUtility::AddObject(name, m_Type, attrs);
 	}
 	else if (m_Command == RepositoryCommandRemove) {
 		RepositoryUtility::RemoveObject(name, m_Type);
 	}
 	else if (m_Command == RepositoryCommandSet) {
 		Log(LogWarning, "cli")
-		    << "Not implemented yet.\n";
+		    << "Not supported yet. Please check the roadmap at https://dev.icinga.org\n";
 		return 1;
 	} else {
 		Log(LogCritical, "cli")
