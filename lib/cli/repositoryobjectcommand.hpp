@@ -47,6 +47,7 @@ public:
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
+	virtual int GetMaxArguments(void) const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const;
 	virtual std::vector<String> GetPositionalSuggestions(const String& word) const;

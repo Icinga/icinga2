@@ -41,6 +41,16 @@ std::vector<String> FeatureEnableCommand::GetPositionalSuggestions(const String&
 	return FeatureUtility::GetFieldCompletionSuggestions(word, true);
 }
 
+int FeatureEnableCommand::GetMinArguments(void) const
+{
+	return 1;
+}
+
+int FeatureEnableCommand::GetMaxArguments(void) const
+{
+	return -1;
+}
+
 /**
  * The entry point for the "feature enable" CLI command.
  *
@@ -48,12 +58,5 @@ std::vector<String> FeatureEnableCommand::GetPositionalSuggestions(const String&
  */
 int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (ap.empty()) {
-		Log(LogCritical, "cli", "Cannot enable feature(s). Name(s) are missing!");
-		return 0;
-	}
-
 	return FeatureUtility::EnableFeatures(ap);
-
-	return 0;
 }

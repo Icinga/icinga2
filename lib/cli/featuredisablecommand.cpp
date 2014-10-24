@@ -41,6 +41,16 @@ std::vector<String> FeatureDisableCommand::GetPositionalSuggestions(const String
 	return FeatureUtility::GetFieldCompletionSuggestions(word, false);
 }
 
+int FeatureDisableCommand::GetMinArguments(void) const
+{
+	return 1;
+}
+
+int FeatureDisableCommand::GetMaxArguments(void) const
+{
+	return -1;
+}
+
 /**
  * The entry point for the "feature disable" CLI command.
  *

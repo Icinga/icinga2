@@ -92,6 +92,16 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, cons
 	return result;
 }
 
+int CLICommand::GetMinArguments(void) const
+{
+	return 0;
+}
+
+int CLICommand::GetMaxArguments(void) const
+{
+	return GetMinArguments();
+}
+
 boost::mutex& CLICommand::GetRegistryMutex(void)
 {
 	static boost::mutex mtx;

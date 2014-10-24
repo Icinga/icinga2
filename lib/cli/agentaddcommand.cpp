@@ -43,6 +43,11 @@ String AgentAddCommand::GetShortDescription(void) const
 	return "add agent";
 }
 
+int AgentAddCommand::GetMinArguments(void) const
+{
+	return 1;
+}
+
 /**
  * The entry point for the "agent add" CLI command.
  *
@@ -50,11 +55,6 @@ String AgentAddCommand::GetShortDescription(void) const
  */
 int AgentAddCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (ap.empty()) {
-		Log(LogCritical, "cli", "No agent name provided.");
-		return 1;
-	}
-
 	if (!AgentUtility::AddAgent(ap[0])) {
 		Log(LogCritical, "cli")
 		    << "Cannot add agent '" << ap[0] << "'.";

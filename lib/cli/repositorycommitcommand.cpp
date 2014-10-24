@@ -65,11 +65,6 @@ void RepositoryCommitCommand::InitParameters(boost::program_options::options_des
  */
 int RepositoryCommitCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!ap.empty()) {
-		Log(LogWarning, "cli")
-		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
-	}
-
 	if (vm.count("simulate")) {
 		RepositoryUtility::PrintChangeLog(std::cout);
 		std::cout << "Simulation not yet implemented.\n";

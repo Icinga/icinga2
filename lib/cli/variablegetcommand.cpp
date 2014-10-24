@@ -58,6 +58,11 @@ void VariableGetCommand::InitParameters(boost::program_options::options_descript
 		("current", "Uses the current value (i.e. from the running process, rather than from the vars file)");
 }
 
+int VariableGetCommand::GetMinArguments(void) const
+{
+	return 1;
+}
+
 /**
  * The entry point for the "variable get" CLI command.
  *
@@ -65,11 +70,6 @@ void VariableGetCommand::InitParameters(boost::program_options::options_descript
  */
 int VariableGetCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (ap.size() != 1) {
-		Log(LogCritical, "cli", "Missing argument: variable name");
-		return 1;
-	}
-
 	if (vm.count("current")) {
 		std::cout << ScriptVariable::Get(ap[0], &Empty) << "\n";
 		return 0;

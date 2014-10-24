@@ -48,6 +48,11 @@ void AgentSetCommand::InitParameters(boost::program_options::options_description
 
 }
 
+int AgentSetCommand::GetMinArguments(void) const
+{
+	return 1;
+}
+
 /**
  * The entry point for the "agent set" CLI command.
  *
@@ -55,11 +60,6 @@ void AgentSetCommand::InitParameters(boost::program_options::options_description
  */
 int AgentSetCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (ap.empty()) {
-		Log(LogCritical, "cli", "No agent name provided.");
-		return 1;
-	}
-
 	Log(LogWarning, "cli", "TODO: Not implemented yet.");
 
 	return 0;

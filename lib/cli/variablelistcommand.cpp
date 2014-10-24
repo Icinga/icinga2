@@ -57,11 +57,6 @@ String VariableListCommand::GetShortDescription(void) const
  */
 int VariableListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!ap.empty()) {
-		Log(LogWarning, "cli")
-		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
-	}
-
 	String varsfile = Application::GetVarsPath();
 
 	if (!Utility::PathExists(varsfile)) {

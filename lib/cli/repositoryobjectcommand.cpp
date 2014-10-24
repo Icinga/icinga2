@@ -132,6 +132,11 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
 		return CLICommand::GetPositionalSuggestions(word);
 }
 
+int RepositoryObjectCommand::GetMaxArguments(void) const
+{
+	return -1;
+}
+
 /**
  * The entry point for the "repository <type> <add/remove/list>" CLI command.
  *
@@ -139,7 +144,6 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
  */
 int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-
 	Dictionary::Ptr attrs = RepositoryUtility::GetArgumentAttributes(ap);
 
 	if (!attrs->Contains("name")) {

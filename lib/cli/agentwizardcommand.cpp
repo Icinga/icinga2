@@ -49,11 +49,6 @@ String AgentWizardCommand::GetShortDescription(void) const
  */
 int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!ap.empty()) {
-		Log(LogWarning, "cli")
-		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
-	}
-
 	Log(LogWarning, "cli", "TODO: Not implemented yet.");
 
 	/*

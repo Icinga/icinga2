@@ -46,6 +46,8 @@ public:
 
 	virtual String GetDescription(void) const = 0;
 	virtual String GetShortDescription(void) const = 0;
+	virtual int GetMinArguments(void) const;
+	virtual int GetMaxArguments(void) const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const = 0;

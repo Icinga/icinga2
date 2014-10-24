@@ -48,6 +48,16 @@ std::vector<String> AgentRemoveCommand::GetPositionalSuggestions(const String& w
 	return AgentUtility::GetAgentCompletionSuggestions(word);
 }
 
+int AgentRemoveCommand::GetMinArguments(void) const
+{
+	return 1;
+}
+
+int AgentRemoveCommand::GetMaxArguments(void) const
+{
+	return -1;
+}
+
 /**
  * The entry point for the "agent remove" CLI command.
  *
@@ -55,11 +65,6 @@ std::vector<String> AgentRemoveCommand::GetPositionalSuggestions(const String& w
  */
 int AgentRemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (ap.empty()) {
-		Log(LogCritical, "cli", "No agent name provided.");
-		return 1;
-	}
-
 	bool failed = false;
 
 	BOOST_FOREACH(const String& agent, ap) {
