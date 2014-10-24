@@ -88,6 +88,9 @@ void AgentUtility::PrintAgents(std::ostream& fp)
 
 void AgentUtility::PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr& repository)
 {
+	if (!repository)
+		return;
+
 	ObjectLock olock(repository);
 	BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
 		fp << std::setw(4) << " "
