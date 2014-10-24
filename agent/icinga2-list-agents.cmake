@@ -25,10 +25,10 @@ repository = {}
 
 for root, dirs, files in os.walk(repository_dir):
     for file in files:
-        if len(file) != 64:
+        if len(file) != 69:
             continue
 
-        fp = open(root + file + ".repo", "r")
+        fp = open(root + file, "r")
         repository_info = json.load(fp)
         fp.close()
 
