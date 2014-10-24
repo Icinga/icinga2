@@ -88,7 +88,6 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 	fp.open(varsfile.CStr(), std::ios_base::in);
 
 	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
-	unsigned long variables_count = 0;
 
 	String message;
 
