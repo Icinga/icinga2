@@ -60,10 +60,17 @@ int AgentRemoveCommand::Run(const boost::program_options::variables_map& vm, con
 		return 1;
 	}
 
-	if (!AgentUtility::RemoveAgent(ap[0])) {
-		Log(LogCritical, "cli", "Cannot remove agent '" + ap[0] + "'.");
-		return 1;
+	bool failed = false;
+
+	BOOST_FOREACH(const String& agent, ap) {
+		if (!AgentUtility::RemoveAgent(agent)) {
+			Log(LogCritical, "cli", "Cannot remove agent '" + ap[0] + "'.");
+			failed = true;
+		}
 	}
 
-	return 0;
+	if (failed)
+		return 1;
+	else
+		return 0;
 }
