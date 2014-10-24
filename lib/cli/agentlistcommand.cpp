@@ -63,15 +63,10 @@ int AgentListCommand::Run(const boost::program_options::variables_map& vm, const
 		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
-	if (vm.count("batch")) {
+	if (vm.count("batch"))
 		AgentUtility::PrintAgentsJson(std::cout);
-		std::cout << "\n";
-		return 0;
-	}
-
-	std::cout << "Configured agents: \n";
-	AgentUtility::PrintAgents(std::cout);
-	std::cout << "\n";
+	else
+		AgentUtility::PrintAgents(std::cout);
 
 	return 0;
 }

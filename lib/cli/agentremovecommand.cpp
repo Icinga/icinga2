@@ -45,7 +45,7 @@ String AgentRemoveCommand::GetShortDescription(void) const
 
 std::vector<String> AgentRemoveCommand::GetPositionalSuggestions(const String& word) const
 {
-	return AgentUtility::GetFieldCompletionSuggestions(word);
+	return AgentUtility::GetAgentCompletionSuggestions(word);
 }
 
 /**

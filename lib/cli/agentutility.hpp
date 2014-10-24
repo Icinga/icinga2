@@ -39,7 +39,7 @@ public:
 	static String GetRepositoryPath(void);
 	static String GetAgentRepositoryFile(const String& name);
 	static String GetAgentSettingsFile(const String& name);
-	static std::vector<String> GetFieldCompletionSuggestions(const String& word);
+	static std::vector<String> GetAgentCompletionSuggestions(const String& word);
 
 	static void PrintAgents(std::ostream& fp);
 	static void PrintAgentsJson(std::ostream& fp);
@@ -52,7 +52,7 @@ public:
 	static bool WriteAgentToRepository(const String& filename, const Dictionary::Ptr& item);
 	static Dictionary::Ptr GetAgentFromRepository(const String& filename);
 
-	static bool GetAgents(std::vector<String>& agents);
+	static std::vector<Dictionary::Ptr> GetAgents(void);
 
 	static bool CreateBackupFile(const String& target);
 
@@ -67,7 +67,7 @@ public:
 private:
 	AgentUtility(void);
 	static bool RemoveAgentFile(const String& path);
-	static void CollectAgents(const String& agent_file, std::vector<String>& agents);
+	static void CollectAgents(const String& agent_file, std::vector<Dictionary::Ptr>& agents);
 
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
 	static void FormatValue(std::ostream& fp, const Value& val);

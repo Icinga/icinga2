@@ -54,18 +54,15 @@ String AgentUtility::GetAgentSettingsFile(const String& name)
 	return GetRepositoryPath() + "/" + SHA256(name) + ".settings";
 }
 
-std::vector<String> AgentUtility::GetFieldCompletionSuggestions(const String& word)
+std::vector<String> AgentUtility::GetAgentCompletionSuggestions(const String& word)
 {
-	std::vector<String> cache;
 	std::vector<String> suggestions;
 
-	GetAgents(cache);
+	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
+		String agent_name = agent->Get("endpoint");
 
-	std::sort(cache.begin(), cache.end());
-
-	BOOST_FOREACH(const String& suggestion, cache) {
-		if (suggestion.Find(word) == 0)
-			suggestions.push_back(suggestion);
+		if (agent_name.Find(word) == 0)
+			suggestions.push_back(agent_name);
 	}
 
 	return suggestions;
@@ -73,43 +70,46 @@ std::vector<String> AgentUtility::GetFieldCompletionSuggestions(const String& wo
 
 void AgentUtility::PrintAgents(std::ostream& fp)
 {
-	std::vector<String> agents;
-	GetAgents(agents);
+	bool first = false;
 
-	BOOST_FOREACH(const String& agent, agents) {
-		Dictionary::Ptr agent_obj = GetAgentFromRepository(GetAgentRepositoryFile(agent));
-		fp << "Agent Name: " << agent << "\n";
+	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
+		if (first)
+			first = false;
+		else
+			fp << "\n";
 
-		if (agent_obj) {
-			fp << "Endpoint: " << agent_obj->Get("endpoint") << "\n";
-			fp << "Zone: " << agent_obj->Get("zone") << "\n";
-			fp << "Repository: ";
-			fp << std::setw(4);
-			PrintAgentRepository(fp, agent_obj->Get("repository"));
-			fp << std::setw(0) << "\n";
-		}
+		fp << "Agent '"
+		   << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << agent->Get("endpoint") << ConsoleColorTag(Console_Normal)
+		   << "' (last seen: " << Utility::FormatDateTime("%c", agent->Get("seen")) << ")\n";
+
+		PrintAgentRepository(fp, agent->Get("repository"));
 	}
-
-	fp << "All agents: " << boost::algorithm::join(agents, " ") << "\n";
 }
 
 void AgentUtility::PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr& repository)
 {
-	//TODO better formatting
-	fp << JsonSerialize(repository);
+	ObjectLock olock(repository);
+	BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
+		fp << std::setw(4) << " "
+		   << "* Host '" << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << kv.first << ConsoleColorTag(Console_Normal) << "'\n";
+
+		Array::Ptr services = kv.second;
+		ObjectLock xlock(services);
+		BOOST_FOREACH(const String& service, services) {
+			fp << std::setw(8) << " " << "* Service '" << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << service << ConsoleColorTag(Console_Normal) << "'\n";
+		}
+	}
 }
 
 void AgentUtility::PrintAgentsJson(std::ostream& fp)
 {
-	std::vector<String> agents;
-	GetAgents(agents);
+	Dictionary::Ptr result = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const String& agent, agents) {
-		Dictionary::Ptr agent_obj = GetAgentFromRepository(GetAgentRepositoryFile(agent));
-		if (agent_obj) {
-			fp << JsonSerialize(agent_obj);
-		}
+	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
+		result->Set(agent->Get("endpoint"), agent);
 	}
+
+	fp << JsonSerialize(result);
 }
 
 bool AgentUtility::AddAgent(const String& name)
@@ -230,34 +230,27 @@ Dictionary::Ptr AgentUtility::GetAgentFromRepository(const String& filename)
 
 	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
 
-	std::cout << "Content: " << content << "\n";
-
 	fp.close();
 
 	return JsonDeserialize(content);
 }
 
-bool AgentUtility::GetAgents(std::vector<String>& agents)
+std::vector<Dictionary::Ptr> AgentUtility::GetAgents(void)
 {
-	String path = GetRepositoryPath();
+	std::vector<Dictionary::Ptr> agents;
 
-	if (!Utility::Glob(path + "/*.repo",
-	    boost::bind(&AgentUtility::CollectAgents, _1, boost::ref(agents)), GlobFile)) {
-		Log(LogCritical, "cli")
-		    << "Cannot access path '" << path << "'.";
-		return false;
-	}
+	Utility::Glob(GetRepositoryPath() + "/*.repo",
+	    boost::bind(&AgentUtility::CollectAgents, _1, boost::ref(agents)), GlobFile);
 
-	return true;
+	return agents;
 }
 
-void AgentUtility::CollectAgents(const String& agent_file, std::vector<String>& agents)
+void AgentUtility::CollectAgents(const String& agent_file, std::vector<Dictionary::Ptr>& agents)
 {
-	String agent = Utility::BaseName(agent_file);
-	boost::algorithm::replace_all(agent, ".repo", "");
+	Dictionary::Ptr agent = GetAgentFromRepository(agent_file);
 
-	Log(LogDebug, "cli")
-	    << "Adding agent: " << agent;
+	if (!agent)
+		return;
 
 	agents.push_back(agent);
 }
