@@ -695,7 +695,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 				if (pmessage->Get("timestamp") <= peer_ts)
 					continue;
 
-				Dictionary::Ptr secname = pmessage->Get("secname");
+				Dictionary::Ptr secname = pmessage->Get("secobj");
 				
 				if (secname) {
 					DynamicType::Ptr dtype = DynamicType::GetByName(secname->Get("type"));
