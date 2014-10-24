@@ -70,7 +70,7 @@ std::vector<String> AgentUtility::GetAgentCompletionSuggestions(const String& wo
 
 void AgentUtility::PrintAgents(std::ostream& fp)
 {
-	bool first = false;
+	bool first = true;
 
 	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
 		if (first)
