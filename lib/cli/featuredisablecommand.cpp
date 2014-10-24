@@ -51,6 +51,11 @@ int FeatureDisableCommand::GetMaxArguments(void) const
 	return -1;
 }
 
+ImpersonationLevel FeatureDisableCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateRoot;
+}
+
 /**
  * The entry point for the "feature disable" CLI command.
  *

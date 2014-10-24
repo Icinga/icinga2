@@ -32,6 +32,13 @@ namespace icinga
 std::vector<String> I2_CLI_API GetBashCompletionSuggestions(const String& type, const String& word);
 std::vector<String> I2_CLI_API GetFieldCompletionSuggestions(const Type *type, const String& word);
 
+enum ImpersonationLevel
+{
+	ImpersonateNone,
+	ImpersonateRoot,
+	ImpersonateIcinga
+};
+
 /**
  * A CLI command.
  *
@@ -50,6 +57,7 @@ public:
 	virtual int GetMaxArguments(void) const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const = 0;
 	virtual std::vector<String> GetArgumentSuggestions(const String& argument, const String& word) const;
 	virtual std::vector<String> GetPositionalSuggestions(const String& word) const;

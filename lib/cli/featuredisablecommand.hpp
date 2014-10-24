@@ -40,6 +40,7 @@ public:
 	virtual int GetMinArguments(void) const;
 	virtual int GetMaxArguments(void) const;
 	virtual std::vector<String> GetPositionalSuggestions(const String& word) const;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 };

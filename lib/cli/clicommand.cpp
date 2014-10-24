@@ -159,6 +159,11 @@ void CLICommand::InitParameters(boost::program_options::options_description& vis
     boost::program_options::options_description& hiddenDesc) const
 { }
 
+ImpersonationLevel CLICommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateIcinga;
+}
+
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
     po::options_description& hiddenDesc,
     po::positional_options_description& positionalDesc,

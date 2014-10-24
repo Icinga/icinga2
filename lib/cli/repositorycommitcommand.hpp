@@ -42,6 +42,7 @@ public:
         virtual String GetShortDescription(void) const;
         virtual void InitParameters(boost::program_options::options_description& visibleDesc,
             boost::program_options::options_description& hiddenDesc) const;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const;
         virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 };
 

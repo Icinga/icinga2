@@ -58,6 +58,11 @@ void RepositoryCommitCommand::InitParameters(boost::program_options::options_des
 		("simulate", "Simulate to-be-committed changes");
 }
 
+ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateRoot;
+}
+
 /**
  * The entry point for the "repository commit" CLI command.
  *

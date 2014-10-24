@@ -333,66 +333,73 @@ int Main(void)
 		rc = 0;
 	} else if (command) {
 #ifndef _WIN32
-		String group = Application::GetRunAsGroup();
-	
-		errno = 0;
-		struct group *gr = getgrnam(group.CStr());
-	
-		if (!gr) {
-			if (errno == 0) {
-				Log(LogCritical, "cli")
-				    << "Invalid group specified: " << group;
-				return EXIT_FAILURE;
-			} else {
-				Log(LogCritical, "cli")
-				    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				return EXIT_FAILURE;
+		if (command->GetImpersonationLevel() == ImpersonateRoot) {
+			if (getuid() != 0) {
+				Log(LogCritical, "cli", "This command must be run as root.");
+				return 0;
 			}
-		}
+		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
+			String group = Application::GetRunAsGroup();
 	
-		if (getgid() != gr->gr_gid) {
-			if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
-				Log(LogCritical, "cli")
-				    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				return EXIT_FAILURE;
-			}
+			errno = 0;
+			struct group *gr = getgrnam(group.CStr());
 	
-			if (setgid(gr->gr_gid) < 0) {
-				Log(LogCritical, "cli")
-				    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				return EXIT_FAILURE;
-			}
-		}
-	
-		String user = Application::GetRunAsUser();
-	
-		errno = 0;
-		struct passwd *pw = getpwnam(user.CStr());
-	
-		if (!pw) {
-			if (errno == 0) {
-				Log(LogCritical, "cli")
-				    << "Invalid user specified: " << user;
-				return EXIT_FAILURE;
-			} else {
-				Log(LogCritical, "cli")
-				    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				return EXIT_FAILURE;
-			}
-		}
-	
-		// also activate the additional groups the configured user is member of
-		if (getuid() != pw->pw_uid) {
-			if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
-				Log(LogCritical, "cli")
-				    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				return EXIT_FAILURE;
+			if (!gr) {
+				if (errno == 0) {
+					Log(LogCritical, "cli")
+					    << "Invalid group specified: " << group;
+					return EXIT_FAILURE;
+				} else {
+					Log(LogCritical, "cli")
+					    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					return EXIT_FAILURE;
+				}
 			}
 	
-			if (setuid(pw->pw_uid) < 0) {
-				Log(LogCritical, "cli")
-				    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-				return EXIT_FAILURE;
+			if (getgid() != gr->gr_gid) {
+				if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
+					Log(LogCritical, "cli")
+					    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					return EXIT_FAILURE;
+				}
+	
+				if (setgid(gr->gr_gid) < 0) {
+					Log(LogCritical, "cli")
+					    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					return EXIT_FAILURE;
+				}
+			}
+	
+			String user = Application::GetRunAsUser();
+	
+			errno = 0;
+			struct passwd *pw = getpwnam(user.CStr());
+	
+			if (!pw) {
+				if (errno == 0) {
+					Log(LogCritical, "cli")
+					    << "Invalid user specified: " << user;
+					return EXIT_FAILURE;
+				} else {
+					Log(LogCritical, "cli")
+					    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					return EXIT_FAILURE;
+				}
+			}
+	
+			// also activate the additional groups the configured user is member of
+			if (getuid() != pw->pw_uid) {
+				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+					Log(LogCritical, "cli")
+					    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					return EXIT_FAILURE;
+				}
+	
+				if (setuid(pw->pw_uid) < 0) {
+					Log(LogCritical, "cli")
+					    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					return EXIT_FAILURE;
+				}
 			}
 		}
 #endif /* _WIN32 */

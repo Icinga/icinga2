@@ -77,6 +77,11 @@ std::vector<String> AgentSetupCommand::GetArgumentSuggestions(const String& argu
 		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
+ImpersonationLevel AgentSetupCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateRoot;
+}
+
 /**
  * The entry point for the "agent setup" CLI command.
  *
