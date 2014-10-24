@@ -13,5 +13,5 @@ ALTER TABLE icinga_programstatus ADD COLUMN program_version TEXT default NULL;
 -- update dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.11.8');
+SELECT updatedbversion('1.12.0');
 

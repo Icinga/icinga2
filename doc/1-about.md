@@ -50,7 +50,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 #### Changes
 
-* DB IDO schema update to version `1.11.8`
+* DB IDO schema update to version `1.12.0`
     * schema files in `lib/db_ido_{mysql,pgsql}/schema`
 * New CLI commands #7245
     * `icinga2-{enable,disable}-feature` tool = cli command `icinga2 feature {enable,disable}` #7250

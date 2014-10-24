@@ -13,5 +13,5 @@ ALTER TABLE `icinga_programstatus` ADD COLUMN `program_version` varchar(64) char
 -- update dbversion
 -- -----------------------------------------
 
-INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.11.8', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.11.8', modify_time=NOW();
+INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.12.0', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.12.0', modify_time=NOW();
 
