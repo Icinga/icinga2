@@ -44,6 +44,8 @@ case "$1" in
 
         # explicitly set permissions on some files that are dependent
         # on the uid/gid of the nagios user, which is dynamically created.
+	setperm nagios nagios 0750 /etc/icinga2
+
         setperm nagios adm 2751 /var/log/icinga2
         setperm nagios adm 2751 /var/log/icinga2/compat
         setperm nagios adm 2755 /var/log/icinga2/compat/archives
