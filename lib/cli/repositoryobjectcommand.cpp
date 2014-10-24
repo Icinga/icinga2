@@ -27,6 +27,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <fstream>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
