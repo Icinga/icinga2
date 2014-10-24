@@ -272,11 +272,11 @@ int Main(void)
 			if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 				appName = appName.SubStr(3, appName.GetLength() - 3);
 
-			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon.";
+			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon (version: "
+			    << Application::GetVersion() << ")" << std::endl << std::endl;
 
 			if (!command || vm.count("help")) {
-				std::cout << std::endl << std::endl
-				    << "Usage:" << std::endl
+				std::cout << "Usage:" << std::endl
 				    << "  " << argv[0] << " ";
 
 				if (cmdname.IsEmpty())
@@ -284,20 +284,18 @@ int Main(void)
 				else
 					std::cout << cmdname;
 
-				std::cout << " [<arguments>]";
+				std::cout << " [<arguments>]" << std::endl;
 
 				if (command) {
-					std::cout << std::endl << std::endl
+					std::cout << std::endl
 						  << command->GetDescription();
 				}
 
-				std::cout << "\n";
+				std::cout << std::endl;
 			}
 
 			if (vm.count("version")) {
-				std::cout << " (Version: " << Application::GetVersion() << ")";
-				std::cout << std::endl
-					<< "Copyright (c) 2012-2014 Icinga Development Team (http://www.icinga.org)" << std::endl
+				std::cout << "Copyright (c) 2012-2014 Icinga Development Team (http://www.icinga.org)" << std::endl
 					<< "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
 					<< "This is free software: you are free to change and redistribute it." << std::endl
 					<< "There is NO WARRANTY, to the extent permitted by law.";
