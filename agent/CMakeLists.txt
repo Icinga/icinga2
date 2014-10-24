@@ -15,20 +15,6 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-if(UNIX OR CYGWIN)
-  configure_file(icinga2-discover-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-discover-agent @ONLY)
-  configure_file(icinga2-forget-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-forget-agent @ONLY)
-  configure_file(icinga2-list-agents.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-list-agents @ONLY)
-  configure_file(icinga2-setup-agent.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2-setup-agent @ONLY)
-
-  install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2-discover-agent ${CMAKE_CURRENT_BINARY_DIR}/icinga2-setup-agent
-          ${CMAKE_CURRENT_BINARY_DIR}/icinga2-forget-agent ${CMAKE_CURRENT_BINARY_DIR}/icinga2-list-agents
-    DESTINATION ${CMAKE_INSTALL_SBINDIR}
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-  )
-endif()
-
 if(MSVC)
   include_external_msproject(
     icinga2setupagent

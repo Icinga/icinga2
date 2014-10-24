@@ -452,10 +452,6 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %{_sbindir}/%{name}
-%{_sbindir}/%{name}-setup-agent
-%{_sbindir}/%{name}-discover-agent
-%{_sbindir}/%{name}-forget-agent
-%{_sbindir}/%{name}-list-agents
 %{_sbindir}/%{name}-prepare-dirs
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*

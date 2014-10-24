@@ -18,7 +18,7 @@
 
 import subprocess, json
 
-inventory_json = subprocess.check_output(["icinga2-list-agents", "--batch"])
+inventory_json = subprocess.check_output(["icinga2", "agent", "list", "--batch"])
 inventory = json.loads(inventory_json)
 
 for agent, agent_info in inventory.items():
