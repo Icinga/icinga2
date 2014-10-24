@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
+#include <iostream>
 
 using namespace icinga;
 
