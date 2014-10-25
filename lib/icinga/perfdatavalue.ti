@@ -22,7 +22,7 @@
 namespace icinga
 {
 
-safe class PerfdataValue
+class PerfdataValue
 {
 	[state] String label;
 	[state] double value;

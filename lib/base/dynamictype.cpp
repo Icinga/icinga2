@@ -131,7 +131,7 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 
 	Object::Ptr object = type->Instantiate();
 
-	Deserialize(object, serializedUpdate, false, FAConfig);
+	Deserialize(object, serializedUpdate, true, FAConfig);
 
 	return static_pointer_cast<DynamicObject>(object);
 }

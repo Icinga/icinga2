@@ -105,8 +105,7 @@ struct Field
 
 enum TypeAttribute
 {
-	TAAbstract = 1,
-	TASafe = 2
+	TAAbstract = 1
 };
 
 struct Klass

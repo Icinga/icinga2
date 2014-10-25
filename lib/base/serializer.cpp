@@ -149,6 +149,9 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 {
 	const Type *type;
 
+	if (!object && safe_mode)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Tried to instantiate object while safe mode is enabled."));
+
 	if (object)
 		type = object->GetReflectionType();
 	else
@@ -157,14 +160,12 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 	if (!type)
 		return object;
 
-	Object::Ptr instance = object;
-
-	if (!instance) {
-		if (safe_mode && !type->IsSafe())
-			BOOST_THROW_EXCEPTION(std::runtime_error("Tried to instantiate type '" + type->GetName() + "' which is not marked as safe."));
-
+	Object::Ptr instance;
+	
+	if (object)
+		instance = object;
+	else
 		instance = type->Instantiate();
-	}
 
 	ObjectLock olock(input);
 	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
@@ -232,8 +233,8 @@ Value icinga::Deserialize(const Object::Ptr& object, const Value& value, bool sa
 
 	ASSERT(dict != NULL);
 
-	if (!dict->Contains("type"))
+	if ((safe_mode && !object) || !dict->Contains("type"))
 		return DeserializeDictionary(dict, safe_mode, attributeTypes);
-
-	return DeserializeObject(object, dict, safe_mode, attributeTypes);
+	else
+		return DeserializeObject(object, dict, safe_mode, attributeTypes);
 }

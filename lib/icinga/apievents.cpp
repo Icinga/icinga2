@@ -131,9 +131,8 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	if (!params)
 		return Empty;
 
-	Value crv = params->Get("cr");
-
-	CheckResult::Ptr cr = Deserialize(crv, true);
+	CheckResult::Ptr cr = make_shared<CheckResult>();	
+	Deserialize(cr, params->Get("cr"), true);
 
 	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
 
@@ -1105,7 +1104,7 @@ Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin& origin, const Dictio
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(object))
 		return Empty;
 
-	Dictionary::Ptr vars = Deserialize(params->Get("vars"), true);
+	Dictionary::Ptr vars = params->Get("vars");
 
 	if (!vars)
 		return Empty;
@@ -1166,7 +1165,8 @@ Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dicti
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
 		return Empty;
 
-	Comment::Ptr comment = Deserialize(params->Get("comment"), true);
+	Comment::Ptr comment = make_shared<Comment>();
+	Deserialize(comment, params->Get("comment"), true);
 
 	checkable->AddComment(comment->GetEntryType(), comment->GetAuthor(),
 	    comment->GetText(), comment->GetExpireTime(), comment->GetId(), origin);
@@ -1281,7 +1281,8 @@ Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dict
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
 		return Empty;
 
-	Downtime::Ptr downtime = Deserialize(params->Get("downtime"), true);
+	Downtime::Ptr downtime = make_shared<Downtime>();
+	Deserialize(downtime, params->Get("downtime"), true);
 
 	checkable->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
 	    downtime->GetStartTime(), downtime->GetEndTime(),

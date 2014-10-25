@@ -43,8 +43,7 @@ struct Field
 
 enum TypeAttribute
 {
-	TAAbstract = 1,
-	TASafe = 2
+	TAAbstract = 1
 };
 
 class I2_BASE_API Type
@@ -64,7 +63,6 @@ public:
 	bool IsAssignableFrom(const Type *other) const;
 
 	bool IsAbstract(void) const;
-	bool IsSafe(void) const;
 
 	static void Register(const Type *type);
 	static const Type *GetByName(const String& name);
