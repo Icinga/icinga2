@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS icinga_contacts (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   contact_object_id bigint unsigned default 0,
-  alias varchar(64) character set latin1  default '',
+  alias TEXT character set latin1  default '',
   email_address varchar(255) character set latin1  default '',
   pager_address varchar(64) character set latin1  default '',
   host_timeperiod_object_id bigint unsigned default 0,
@@ -632,7 +632,7 @@ CREATE TABLE IF NOT EXISTS icinga_hosts (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   host_object_id bigint unsigned default 0,
-  alias varchar(64) character set latin1  default '',
+  alias TEXT character set latin1  default '',
   display_name varchar(255) character set latin1 collate latin1_general_cs  default '',
   address varchar(128) character set latin1  default '',
   address6 varchar(128) character set latin1  default '',
@@ -1407,7 +1407,6 @@ ALTER TABLE icinga_processevents ADD COLUMN endpoint_object_id bigint default NU
 ALTER TABLE icinga_servicechecks ADD COLUMN endpoint_object_id bigint default NULL;
 ALTER TABLE icinga_statehistory ADD COLUMN endpoint_object_id bigint default NULL;
 ALTER TABLE icinga_systemcommands ADD COLUMN endpoint_object_id bigint default NULL;
-
 
 -- -----------------------------------------
 -- add index (delete)
