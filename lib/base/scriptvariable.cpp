@@ -22,6 +22,7 @@
 #include "base/logger.hpp"
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
+#include "base/json.hpp"
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
@@ -124,7 +125,7 @@ void ScriptVariable::WriteVariablesFile(const String& filename)
 
 		persistentVariable->Set("value", value);
 
-		String json = JsonSerialize(persistentVariable);
+		String json = JsonEncode(persistentVariable);
 
 		NetString::WriteStringToStream(sfp, json);
 	}

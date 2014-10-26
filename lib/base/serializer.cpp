@@ -22,54 +22,8 @@
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
-#include <cJSON.h>
 
 using namespace icinga;
-
-/**
- * Serializes a Value into a JSON string.
- *
- * @returns A string representing the Value.
- */
-String icinga::JsonSerialize(const Value& value)
-{
-	cJSON *json = value.ToJson();
-
-	char *jsonString;
-
-#ifdef _DEBUG
-	jsonString = cJSON_Print(json);
-#else /* _DEBUG */
-	jsonString = cJSON_PrintUnformatted(json);
-#endif /* _DEBUG */
-
-	cJSON_Delete(json);
-
-	String result = jsonString;
-
-	free(jsonString);
-
-	return result;
-}
-
-/**
- * Deserializes the string representation of a Value.
- *
- * @param data A JSON string obtained from JsonSerialize
- * @returns The newly deserialized Value.
- */
-Value icinga::JsonDeserialize(const String& data)
-{
-	cJSON *json = cJSON_Parse(data.CStr());
-
-	if (!json)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid JSON String: " + data));
-
-	Value value = Value::FromJson(json);
-	cJSON_Delete(json);
-
-	return value;
-}
 
 static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
 {

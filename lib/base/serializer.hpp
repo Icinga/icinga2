@@ -21,19 +21,11 @@
 #define SERIALIZER_H
 
 #include "base/i2-base.hpp"
+#include "base/type.hpp"
 #include "base/value.hpp"
 
 namespace icinga
 {
-
-enum FieldAttribute
-{
-	FAConfig = 1,
-	FAState = 2
-};
-
-I2_BASE_API String JsonSerialize(const Value& value);
-I2_BASE_API Value JsonDeserialize(const String& data);
 
 I2_BASE_API Value Serialize(const Value& value, int attributeTypes = FAState);
 I2_BASE_API Value Deserialize(const Value& value, bool safe_mode = false, int attributeTypes = FAState);

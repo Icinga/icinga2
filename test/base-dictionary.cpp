@@ -19,7 +19,7 @@
 
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -172,9 +172,9 @@ BOOST_AUTO_TEST_CASE(json)
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
-	String json = JsonSerialize(dictionary);
+	String json = JsonEncode(dictionary);
 	BOOST_CHECK(json.GetLength() > 0);
-	Dictionary::Ptr deserialized = JsonDeserialize(json);
+	Dictionary::Ptr deserialized = JsonDecode(json);
 	BOOST_CHECK(deserialized->GetLength() == 2);
 	BOOST_CHECK(deserialized->Get("test1") == 7);
 	BOOST_CHECK(deserialized->Get("test2") == "hello world");

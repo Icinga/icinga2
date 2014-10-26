@@ -30,6 +30,12 @@
 namespace icinga
 {
 
+enum FieldAttribute
+{
+	FAConfig = 1,
+	FAState = 2
+}; 
+	
 struct Field
 {
 	int ID;

@@ -37,7 +37,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -382,7 +382,7 @@ void LivestatusQuery::PrintResultSet(std::ostream& fp, const Array::Ptr& rs) con
 			fp << m_Separators[0];
 		}
 	} else if (m_OutputFormat == "json") {
-		fp << JsonSerialize(rs);
+		fp << JsonEncode(rs);
 	} else if (m_OutputFormat == "python") {
 		PrintPythonArray(fp, rs);
 	}

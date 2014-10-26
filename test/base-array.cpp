@@ -19,7 +19,7 @@
 
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
 
@@ -133,10 +133,10 @@ BOOST_AUTO_TEST_CASE(json)
 	array->Add(2);
 	array->Add(5);
 
-	String json = JsonSerialize(array);
+	String json = JsonEncode(array);
 	BOOST_CHECK(json.GetLength() > 0);
 
-	Array::Ptr deserialized = JsonDeserialize(json);
+	Array::Ptr deserialized = JsonDecode(json);
 	BOOST_CHECK(deserialized);
 	BOOST_CHECK(deserialized->GetLength() == 3);
 	BOOST_CHECK(deserialized->Get(0) == 7);

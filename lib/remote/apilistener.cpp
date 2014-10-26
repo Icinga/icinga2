@@ -22,6 +22,7 @@
 #include "remote/endpoint.hpp"
 #include "base/convert.hpp"
 #include "base/netstring.hpp"
+#include "base/json.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
@@ -461,7 +462,7 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const DynamicOb
 	Dictionary::Ptr pmessage = make_shared<Dictionary>();
 	pmessage->Set("timestamp", ts);
 
-	pmessage->Set("message", JsonSerialize(message));
+	pmessage->Set("message", JsonEncode(message));
 	
 	Dictionary::Ptr secname = make_shared<Dictionary>();
 	secname->Set("type", secobj->GetType()->GetName());
@@ -470,7 +471,7 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const DynamicOb
 
 	boost::mutex::scoped_lock lock(m_LogLock);
 	if (m_LogFile) {
-		NetString::WriteStringToStream(m_LogFile, JsonSerialize(pmessage));
+		NetString::WriteStringToStream(m_LogFile, JsonEncode(pmessage));
 		m_LogMessageCount++;
 		SetLogMessageTimestamp(ts);
 
@@ -683,7 +684,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 					if (!NetString::ReadStringFromStream(logStream, &message))
 						break;
 
-					pmessage = JsonDeserialize(message);
+					pmessage = JsonDecode(message);
 				} catch (const std::exception&) {
 					Log(LogWarning, "ApiListener")
 					    << "Unexpected end-of-file for cluster log: " << path;

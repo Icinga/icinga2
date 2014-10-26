@@ -23,7 +23,7 @@
 #include "base/convert.hpp"
 #include "base/dynamicobject.hpp"
 #include "base/dynamictype.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
@@ -90,7 +90,7 @@ int VariableListCommand::Run(const boost::program_options::variables_map& vm, co
 
 void VariableListCommand::PrintVariable(std::ostream& fp, const String& message)
 {
-	Dictionary::Ptr variable = JsonDeserialize(message);
+	Dictionary::Ptr variable = JsonDecode(message);
 
 	std::cout << variable->Get("name") << " = " << variable->Get("value") << "\n";
 }

@@ -23,7 +23,7 @@
 #include "base/convert.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/logger.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
@@ -135,7 +135,7 @@ void ScriptUtils::Log(const std::vector<Value>& arguments)
 	if (message.IsString())
 		::Log(severity, facility, message);
 	else
-		::Log(severity, facility, JsonSerialize(message));
+		::Log(severity, facility, JsonEncode(message));
 }
 
 Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)

@@ -20,7 +20,6 @@
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
-#include <cJSON.h>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -212,47 +211,4 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
 	Dictionary::Ptr clone = make_shared<Dictionary>();
 	CopyTo(clone);
 	return clone;
-}
-
-/**
- * Converts a JSON object to a dictionary.
- *
- * @param json The JSON object.
- * @returns A dictionary that is equivalent to the JSON object.
- */
-Dictionary::Ptr Dictionary::FromJson(cJSON *json)
-{
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
-
-	ASSERT(json->type == cJSON_Object);
-
-	for (cJSON *i = json->child; i != NULL; i = i->next) {
-		dictionary->Set(i->string, Value::FromJson(i));
-	}
-
-	return dictionary;
-}
-
-/**
- * Converts this dictionary to a JSON object.
- *
- * @returns A JSON object that is equivalent to the dictionary. Values that
- *	    cannot be represented in JSON are omitted.
- */
-cJSON *Dictionary::ToJson(void) const
-{
-	cJSON *json = cJSON_CreateObject();
-
-	try {
-		ObjectLock olock(this);
-
-		BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
-			cJSON_AddItemToObject(json, kv.first.CStr(), kv.second.ToJson());
-		}
-	} catch (...) {
-		cJSON_Delete(json);
-		throw;
-	}
-
-	return json;
 }

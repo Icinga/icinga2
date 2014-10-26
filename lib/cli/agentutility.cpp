@@ -23,7 +23,7 @@
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
 #include "base/convert.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
@@ -112,7 +112,7 @@ void AgentUtility::PrintAgentsJson(std::ostream& fp)
 		result->Set(agent->Get("endpoint"), agent);
 	}
 
-	fp << JsonSerialize(result);
+	fp << JsonEncode(result);
 }
 
 bool AgentUtility::AddAgent(const String& name)
@@ -206,7 +206,7 @@ bool AgentUtility::WriteAgentToRepository(const String& filename, const Dictiona
 	String tempFilename = filename + ".tmp";
 
 	std::ofstream fp(tempFilename.CStr(), std::ofstream::out | std::ostream::trunc);
-	fp << JsonSerialize(item);
+	fp << JsonEncode(item);
 	fp.close();
 
 #ifdef _WIN32
@@ -235,7 +235,7 @@ Dictionary::Ptr AgentUtility::GetAgentFromRepository(const String& filename)
 
 	fp.close();
 
-	return JsonDeserialize(content);
+	return JsonDecode(content);
 }
 
 std::vector<Dictionary::Ptr> AgentUtility::GetAgents(void)

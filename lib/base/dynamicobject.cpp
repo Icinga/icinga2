@@ -21,6 +21,7 @@
 #include "base/dynamictype.hpp"
 #include "base/serializer.hpp"
 #include "base/netstring.hpp"
+#include "base/json.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
@@ -266,7 +267,7 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 
 			persistentObject->Set("update", update);
 
-			String json = JsonSerialize(persistentObject);
+			String json = JsonEncode(persistentObject);
 
 			NetString::WriteStringToStream(sfp, json);
 		}
@@ -290,7 +291,7 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 
 void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 {
-	Dictionary::Ptr persistentObject = JsonDeserialize(message);
+	Dictionary::Ptr persistentObject = JsonDecode(message);
 
 	String type = persistentObject->Get("type");
 

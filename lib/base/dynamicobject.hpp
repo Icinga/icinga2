@@ -23,7 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/dynamicobject.thpp"
 #include "base/object.hpp"
-#include "base/serializer.hpp"
+#include "base/type.hpp"
 #include "base/dictionary.hpp"
 #include "base/debuginfo.hpp"
 #include <boost/signals2.hpp>

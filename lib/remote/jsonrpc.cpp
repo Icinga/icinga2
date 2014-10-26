@@ -19,7 +19,7 @@
 
 #include "remote/jsonrpc.hpp"
 #include "base/netstring.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 //#include <iostream>
 
 using namespace icinga;
@@ -31,7 +31,7 @@ using namespace icinga;
  */
 void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
 {
-	String json = JsonSerialize(message);
+	String json = JsonEncode(message);
 	//std::cerr << ">> " << json << std::endl;
 	NetString::WriteStringToStream(stream, json);
 }
@@ -43,7 +43,7 @@ Dictionary::Ptr JsonRpc::ReadMessage(const Stream::Ptr& stream)
 		return Dictionary::Ptr();
 
 	//std::cerr << "<< " << jsonString << std::endl;
-	Value value = JsonDeserialize(jsonString);
+	Value value = JsonDecode(jsonString);
 
 	if (!value.IsObjectType<Dictionary>()) {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"

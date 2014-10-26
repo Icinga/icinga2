@@ -25,7 +25,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/debug.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -123,7 +123,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name)
 
 		return Service::GetByNamePair(dict->Get("host"), dict->Get("service"));
 	} else {
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid: " + JsonSerialize(name)));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Host/Service name pair is invalid: " + JsonEncode(name)));
 	}
 }
 

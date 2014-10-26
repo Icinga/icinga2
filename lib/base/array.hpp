@@ -65,9 +65,6 @@ public:
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone(void) const;
 
-	static Array::Ptr FromJson(cJSON *json);
-	cJSON *ToJson(void) const;
-
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };

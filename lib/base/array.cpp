@@ -20,7 +20,6 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
-#include <cJSON.h>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -197,47 +196,4 @@ Array::Ptr Array::ShallowClone(void) const
 	Array::Ptr clone = make_shared<Array>();
 	CopyTo(clone);
 	return clone;
-}
-
-/**
- * Converts a JSON object to an array.
- *
- * @param json The JSON object.
- * @returns An array that is equivalent to the JSON object.
- */
-Array::Ptr Array::FromJson(cJSON *json)
-{
-	Array::Ptr array = make_shared<Array>();
-
-	ASSERT(json->type == cJSON_Array);
-
-	for (cJSON *i = json->child; i != NULL; i = i->next) {
-		array->Add(Value::FromJson(i));
-	}
-
-	return array;
-}
-
-/**
- * Converts this array to a JSON object.
- *
- * @returns A JSON object that is equivalent to the array. Values that
- *	    cannot be represented in JSON are omitted.
- */
-cJSON *Array::ToJson(void) const
-{
-	cJSON *json = cJSON_CreateArray();
-
-	try {
-		ObjectLock olock(this);
-
-		BOOST_FOREACH(const Value& value, m_Data) {
-			cJSON_AddItemToArray(json, value.ToJson());
-		}
-	} catch (...) {
-		cJSON_Delete(json);
-		throw;
-	}
-
-	return json;
 }

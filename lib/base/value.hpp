@@ -126,9 +126,6 @@ public:
 		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)) != NULL);
 	}
 
-	static Value FromJson(cJSON *json);
-	cJSON *ToJson(void) const;
-
 	ValueType GetType(void) const;
 	String GetTypeName(void) const;
 

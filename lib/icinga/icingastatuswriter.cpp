@@ -24,6 +24,7 @@
 #include "base/exception.hpp"
 #include "base/application.hpp"
 #include "base/statsfunction.hpp"
+#include "base/json.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
@@ -151,7 +152,7 @@ void IcingaStatusWriter::StatusTimerHandler(void)
 
 	statusfp << std::fixed;
 
-	statusfp << JsonSerialize(GetStatusData());
+	statusfp << JsonEncode(GetStatusData());
 
 	statusfp.close();
 

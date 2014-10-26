@@ -23,7 +23,7 @@
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
 #include "base/array.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptvariable.hpp"
 #include "base/utility.hpp"
@@ -84,7 +84,7 @@ void Expression::DumpOperand(std::ostream& stream, const Value& operand, int ind
 		Expression::Ptr left = operand;
 		left->Dump(stream, indent);
 	} else {
-		stream << String(indent, ' ') << JsonSerialize(operand) << "\n";
+		stream << String(indent, ' ') << JsonEncode(operand) << "\n";
 	}
 }
 
@@ -215,7 +215,7 @@ Value Expression::OpIn(const Expression *expr, const Dictionary::Ptr& locals, De
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
-		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonSerialize(right)));
+		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
 	Value left = expr->EvaluateOperand1(locals);
 		

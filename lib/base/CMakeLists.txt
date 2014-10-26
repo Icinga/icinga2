@@ -25,7 +25,7 @@ mkclass_target(sysloglogger.ti sysloglogger.thpp)
 set(base_SOURCES
   application.cpp application.thpp array.cpp configerror.cpp console.cpp context.cpp
   convert.cpp debuginfo.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
-  exception.cpp fifo.cpp filelogger.cpp filelogger.thpp logger.cpp logger.thpp
+  exception.cpp fifo.cpp filelogger.cpp filelogger.thpp json.cpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp objectlock.cpp process.cpp
   ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp
   scriptutils.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
@@ -41,7 +41,7 @@ endif()
 
 add_library(base SHARED ${base_SOURCES})
 
-target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} cJSON mmatch)
+target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} mmatch yajl)
 
 if(HAVE_LIBEXECINFO)
     target_link_libraries(base execinfo)
@@ -55,6 +55,9 @@ link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
+
+include_directories(${icinga2_BINARY_DIR}/third-party/yajl/yajl/include)
+link_directories(${icinga2_BINARY_DIR}/third-party/yajl)
 
 if(UNIX OR CYGWIN)
   target_link_libraries(base execvpe)

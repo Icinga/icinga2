@@ -29,6 +29,8 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
+#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -1540,7 +1542,7 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	String repositoryTempFile = repositoryFile + ".tmp";
 
 	std::ofstream fp(repositoryTempFile.CStr(), std::ofstream::out | std::ostream::trunc);
-	fp << JsonSerialize(params);
+	fp << JsonEncode(params);
 	fp.close();
 
 #ifdef _WIN32

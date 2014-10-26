@@ -23,7 +23,7 @@
 #include "base/convert.hpp"
 #include "base/dynamicobject.hpp"
 #include "base/dynamictype.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
@@ -116,7 +116,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 
 void ObjectListCommand::PrintObject(std::ostream& fp, bool& first, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
 {
-	Dictionary::Ptr object = JsonDeserialize(message);
+	Dictionary::Ptr object = JsonDecode(message);
 
 	Dictionary::Ptr properties = object->Get("properties");
 

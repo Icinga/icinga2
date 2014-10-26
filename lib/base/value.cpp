@@ -21,7 +21,6 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
-#include <cJSON.h>
 
 using namespace icinga;
 
@@ -131,65 +130,6 @@ bool Value::ToBool(void) const
 
 		case ValueEmpty:
 			return false;
-
-		default:
-			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid variant type."));
-	}
-}
-
-
-/**
- * Converts a JSON object into a variant.
- *
- * @param json The JSON object.
- */
-Value Value::FromJson(cJSON *json)
-{
-	if (json->type == cJSON_Number)
-		return json->valuedouble;
-	else if (json->type == cJSON_String)
-		return String(json->valuestring);
-	else if (json->type == cJSON_True)
-		return 1;
-	else if (json->type == cJSON_False)
-		return 0;
-	else if (json->type == cJSON_Object)
-		return Dictionary::FromJson(json);
-	else if (json->type == cJSON_Array)
-		return Array::FromJson(json);
-	else if (json->type == cJSON_NULL)
-		return Value();
-	else
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Unsupported JSON type."));
-}
-
-/**
- * Serializes the variant.
- *
- * @returns A JSON object representing this variant.
- */
-cJSON *Value::ToJson(void) const
-{
-	switch (GetType()) {
-		case ValueNumber:
-			return cJSON_CreateNumber(boost::get<double>(m_Value));
-
-		case ValueString:
-			return cJSON_CreateString(boost::get<String>(m_Value).CStr());
-
-		case ValueObject:
-			if (IsObjectType<Dictionary>()) {
-				Dictionary::Ptr dictionary = *this;
-				return dictionary->ToJson();
-			} else if (IsObjectType<Array>()) {
-				Array::Ptr array = *this;
-				return array->ToJson();
-			} else {
-				return cJSON_CreateNull();
-			}
-
-		case ValueEmpty:
-			return cJSON_CreateNull();
 
 		default:
 			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid variant type."));

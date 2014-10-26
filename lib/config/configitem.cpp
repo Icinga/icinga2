@@ -32,6 +32,7 @@
 #include "base/exception.hpp"
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
+#include "base/json.hpp"
 #include "base/configerror.hpp"
 #include <sstream>
 #include <fstream>
@@ -310,7 +311,7 @@ void ConfigItem::WriteObjectsFile(const String& filename)
 		}
 		persistentItem->Set("debug_hints", item->GetDebugHints());
 
-		String json = JsonSerialize(persistentItem);
+		String json = JsonEncode(persistentItem);
 
 		NetString::WriteStringToStream(sfp, json);
 	}

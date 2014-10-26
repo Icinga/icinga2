@@ -22,7 +22,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
@@ -101,7 +101,7 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 
 		if (obj) {
 			fp << "Object Name: " << object << "\n";
-			fp << JsonSerialize(obj);
+			fp << JsonEncode(obj);
 		}
 	}
 }
@@ -157,7 +157,7 @@ void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 	std::cout << "Changes to be committed:\n";
 
 	BOOST_FOREACH(const Value& entry, changelog) {
-		std::cout << JsonSerialize(entry) << "\n"; //TODO better formatting
+		std::cout << JsonEncode(entry) << "\n"; //TODO better formatting
 	}
 }
 
@@ -267,7 +267,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 	String tempPath = path + ".tmp";
 
         std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
-        fp << JsonSerialize(item);
+        fp << JsonEncode(item);
         fp.close();
 
 #ifdef _WIN32
@@ -296,7 +296,7 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String
 
 	fp.close();
 
-	return JsonDeserialize(content);
+	return JsonDecode(content);
 }
 
 /*

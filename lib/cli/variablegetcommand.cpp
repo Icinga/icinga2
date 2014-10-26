@@ -23,7 +23,7 @@
 #include "base/convert.hpp"
 #include "base/dynamicobject.hpp"
 #include "base/dynamictype.hpp"
-#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
@@ -92,7 +92,7 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 	String message;
 
 	while (NetString::ReadStringFromStream(sfp, &message))  {
-		Dictionary::Ptr variable = JsonDeserialize(message);
+		Dictionary::Ptr variable = JsonDecode(message);
 
 		if (variable->Get("name") == ap[0]) {
 			std::cout << variable->Get("value") << "\n";
