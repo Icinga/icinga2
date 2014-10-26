@@ -28,7 +28,7 @@ SET (PUB_HDRS api/yajl_parse.h api/yajl_gen.h api/yajl_common.h api/yajl_tree.h)
 ADD_DEFINITIONS(-DYAJL_BUILD)
 
 # set up some paths
-SET (incDir ${CMAKE_CURRENT_BINARY_DIR}/../${YAJL_DIST_NAME}/include/yajl)
+SET (incDir ${CMAKE_CURRENT_BINARY_DIR}/../include/yajl)
 
 ADD_LIBRARY(yajl SHARED ${SRCS} ${HDRS} ${PUB_HDRS})
 
