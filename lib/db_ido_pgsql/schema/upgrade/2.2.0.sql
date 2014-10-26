@@ -9,13 +9,6 @@
 
 ALTER TABLE icinga_programstatus ADD COLUMN program_version TEXT default NULL;
 
-ALTER TABLE icinga_hostgroups DROP COLUMN action_url;
-ALTER TABLE icinga_hostgroups DROP COLUMN notes_url;
-ALTER TABLE icinga_hostgroups DROP COLUMN notes;
-ALTER TABLE icinga_servicegroups DROP COLUMN action_url;
-ALTER TABLE icinga_servicegroups DROP COLUMN notes_url;
-ALTER TABLE icinga_servicegroups DROP COLUMN notes;
-
 -- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
