@@ -50,12 +50,13 @@ public:
 
 	static void PrintChangeLog(std::ostream& fp);
 
-	static bool AddObject(const String& name, const String& type, const Dictionary::Ptr& attr);
-	static bool RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attr);
+	static bool AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs);
+	static bool RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs);
 
 	static bool SetObjectAttribute(const String& name, const String& type, const String& attr, const Value& val);
 
 	static bool CommitChangeLog(void);
+	static bool ClearChangeLog(void);
 
 	static std::vector<String> GetObjects(void);
 private:
@@ -63,10 +64,10 @@ private:
 
 	static bool RemoveObjectFileInternal(const String& path);
 
-	static bool AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr);
-	static bool RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr);
+	static bool AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs);
+	static bool RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs);
 	static bool SetObjectAttributeInternal(const String& name, const String& type, const String& key,
-	    const Value& val, const Dictionary::Ptr& attr);
+	    const Value& val, const Dictionary::Ptr& attrs);
 
 	/* repository.d */
 	static void CollectObjects(const String& object_file, std::vector<String>& objects);
@@ -81,6 +82,7 @@ private:
 	static bool GetChangeLog(const boost::function<void (const Dictionary::Ptr&, const String&)>& callback);
 	static void CollectChange(const Dictionary::Ptr& change, Array::Ptr& changes);
 	static void CommitChange(const Dictionary::Ptr& change, const String& path);
+	static void ClearChange(const Dictionary::Ptr& change, const String& path);
 
 	static void FormatChangelogEntry(std::ostream& fp, const Dictionary::Ptr& change);
 

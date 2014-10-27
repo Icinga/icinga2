@@ -24,6 +24,7 @@
 #include "base/convert.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
+#include "base/tlsutility.hpp"
 #include "base/stdiostream.hpp"
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
@@ -157,10 +158,10 @@ void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 }
 
 /* modify objects and write changelog */
-bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attr)
+bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
 	/* add a new changelog entry by timestamp */
-	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + ".change";
+	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + "-" + SHA256(name) + ".change";
 
 	Dictionary::Ptr change = make_shared<Dictionary>();
 
@@ -168,15 +169,15 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	change->Set("name", name);
 	change->Set("type", type);
 	change->Set("command", "add");
-	change->Set("attr", attr);
+	change->Set("attrs", attrs);
 
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
 
-bool RepositoryUtility::RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attr)
+bool RepositoryUtility::RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
 	/* add a new changelog entry by timestamp */
-	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + ".change";
+	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + "-" + SHA256(name) + ".change";
 
 	Dictionary::Ptr change = make_shared<Dictionary>();
 
@@ -184,7 +185,7 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 	change->Set("name", name);
 	change->Set("type", type);
 	change->Set("command", "remove");
-	change->Set("attr", attr); //required for service->host_name
+	change->Set("attrs", attrs); //required for service->host_name
 
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
@@ -192,6 +193,13 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 bool RepositoryUtility::SetObjectAttribute(const String& name, const String& type, const String& attr, const Value& val)
 {
 	//TODO: Implement modification commands
+	return true;
+}
+
+bool RepositoryUtility::ClearChangeLog(void)
+{
+	GetChangeLog(boost::bind(RepositoryUtility::ClearChange, _1, _2));
+
 	return true;
 }
 
@@ -246,16 +254,16 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String
 }
 
 /* internal implementation when changes are committed */
-bool RepositoryUtility::AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr)
+bool RepositoryUtility::AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
-	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
 
-	return WriteObjectToRepository(path, name, type, attr);
+	return WriteObjectToRepository(path, name, type, attrs);
 }
 
-bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attr)
+bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
-	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
 
 	return RemoveObjectFileInternal(path);
 }
@@ -276,10 +284,10 @@ bool RepositoryUtility::RemoveObjectFileInternal(const String& path)
 	return true;
 }
 
-bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const String& type, const String& key, const Value& val, const Dictionary::Ptr& attr)
+bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const String& type, const String& key, const Value& val, const Dictionary::Ptr& attrs)
 {
 	//Fixme
-	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
 
 	Dictionary::Ptr obj = GetObjectFromRepository(path); //TODO
 
@@ -305,7 +313,8 @@ bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const Str
 
 bool RepositoryUtility::WriteObjectToRepository(const String& path, const String& name, const String& type, const Dictionary::Ptr& item)
 {
-	Log(LogInformation, "cli", "Dumping config items to file '" + path + "'");
+	Log(LogInformation, "cli")
+	    << "Dumping config object '" << name << "' to file '" << path << "'";
 
 	Utility::MkDirP(Utility::DirName(path), 0755);
 
@@ -390,7 +399,9 @@ void RepositoryUtility::CollectChangeLog(const String& change_file, std::vector<
 	String file = Utility::BaseName(change_file);
 	boost::algorithm::replace_all(file, ".change", "");
 
-	Log(LogDebug, "cli", "Adding change file: " + file);
+	Log(LogDebug, "cli")
+	    << "Adding change file: '" << file << "'.";
+
 	changelog.push_back(file);
 }
 
@@ -400,7 +411,7 @@ void RepositoryUtility::CollectChange(const Dictionary::Ptr& change, Array::Ptr&
 }
 
 /*
- * Commit Changelog
+ * Commit Changelog entry
  */
 void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String& path)
 {
@@ -410,19 +421,19 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String
 	String name = change->Get("name");
 	String type = change->Get("type");
 	String command = change->Get("command");
-	Dictionary::Ptr attr;
+	Dictionary::Ptr attrs;
 
-	if (change->Contains("attr")) {
-		attr = change->Get("attr");
+	if (change->Contains("attrs")) {
+		attrs = change->Get("attrs");
 	}
 
 	bool success = false;
 
 	if (command == "add") {
-		success = AddObjectInternal(name, type, attr);
+		success = AddObjectInternal(name, type, attrs);
 	}
 	else if (command == "remove") {
-		success = RemoveObjectInternal(name, type, attr);
+		success = RemoveObjectInternal(name, type, attrs);
 	}
 
 	if (success) {
@@ -430,6 +441,20 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String
 		    << "Removing changelog file '" << path << "'.";
 		RemoveObjectFileInternal(path);
 	}
+}
+
+/*
+ * Clear Changelog entry
+ */
+void RepositoryUtility::ClearChange(const Dictionary::Ptr& change, const String& path)
+{
+	Log(LogDebug, "cli")
+	   << "Clearing change " << change->Get("name");
+
+	Log(LogInformation, "cli")
+	   << "Removing changelog file '" << path << "'.";
+
+	RemoveObjectFileInternal(path);
 }
 
 /*
@@ -447,7 +472,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 
 	String type = change->Get("type");
 	boost::algorithm::to_lower(type);
-	Dictionary::Ptr attrs = change->Get("attr");
+	Dictionary::Ptr attrs = change->Get("attrs");
 
 	fp << " " << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << type << ConsoleColorTag(Console_Normal) << " '";
 	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'";

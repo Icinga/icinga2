@@ -55,7 +55,8 @@ void RepositoryCommitCommand::InitParameters(boost::program_options::options_des
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-		("simulate", "Simulate to-be-committed changes");
+		("simulate", "Simulate to-be-committed changes")
+		("clear", "Clear all to-be-committed changes");
 }
 
 ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
@@ -76,6 +77,9 @@ int RepositoryCommitCommand::Run(const boost::program_options::variables_map& vm
 		std::cout << "Simulation not yet implemented (#)\n";
 		//TODO
 		return 1;
+	} else if (vm.count("clear")) {
+		std::cout << "Clearing all remaining changes\n";
+		RepositoryUtility::ClearChangeLog();
 	} else {
 		RepositoryUtility::PrintChangeLog(std::cout);
 		std::cout << "\n";
