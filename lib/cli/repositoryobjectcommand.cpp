@@ -21,6 +21,7 @@
 #include "cli/repositoryutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -125,6 +126,7 @@ void RepositoryObjectCommand::InitParameters(boost::program_options::options_des
 std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
 {
 	if (m_Command == RepositoryCommandAdd) {
+		Utility::LoadExtensionLibrary("icinga");
 		const Type *ptype = Type::GetByName(m_Type);
 		ASSERT(ptype);
 		return GetFieldCompletionSuggestions(ptype, word);

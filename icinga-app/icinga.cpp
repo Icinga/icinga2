@@ -243,9 +243,9 @@ int Main(void)
 		}
 	}
 
-	Logger::SetConsoleLogSeverity(logLevel);
-
 	if (!autocomplete) {
+		Logger::SetConsoleLogSeverity(logLevel);
+
 		if (vm.count("log-level")) {
 			String severity = vm["log-level"].as<std::string>();
 

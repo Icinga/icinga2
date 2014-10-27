@@ -34,7 +34,7 @@ endif()
 
 add_library(cli SHARED ${cli_SOURCES})
 
-target_link_libraries(cli ${Boost_LIBRARIES} base config remote icinga)
+target_link_libraries(cli ${Boost_LIBRARIES} base config remote)
 
 set_target_properties (
   cli PROPERTIES
