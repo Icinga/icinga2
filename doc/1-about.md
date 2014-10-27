@@ -56,6 +56,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * `icinga2-{enable,disable}-feature` tool = cli command `icinga2 feature {enable,disable}` #7250
     * `icinga2-list-objects` tool = cli command `icinga2 object list` #7251
     * `icinga2-build-{ca,key}` can be used with cli command `icinga2 pki` #7247
+* `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
 
 * `python-icinga2` package dropped in favor of cli commands #7245
 * GraphiteWriter: Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
