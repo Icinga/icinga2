@@ -22,6 +22,7 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/application.hpp"
+#include <fstream>
 
 namespace icinga
 {
@@ -369,13 +370,34 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
 {
 	X509 *cert = X509_new();
-	ASN1_INTEGER_set(X509_get_serialNumber(cert), 1);
 	X509_gmtime_adj(X509_get_notBefore(cert), 0);
 	X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 60 * 60 * 30);
 	X509_set_pubkey(cert, pubkey);
 
 	X509_set_subject_name(cert, subject);
 	X509_set_issuer_name(cert, issuer);
+
+	if (!serialfile.IsEmpty()) {
+		int serial = 0;
+
+		std::ifstream ifp;
+		ifp.open(serialfile.CStr());
+		ifp >> std::hex >> serial;
+		ifp.close();
+
+		if (ifp.fail())
+			BOOST_THROW_EXCEPTION(std::runtime_error("Could not read serial file."));
+
+		std::ofstream ofp;
+		ofp.open(serialfile.CStr());
+		ofp << std::hex << serial + 1;
+		ofp.close();
+
+		if (ofp.fail())
+			BOOST_THROW_EXCEPTION(std::runtime_error("Could not update serial file."));
+
+		ASN1_INTEGER_set(X509_get_serialNumber(cert), serial);
+	}
 
 	if (ca) {
 		X509_EXTENSION *ext;
