@@ -130,6 +130,20 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
 		const Type *ptype = Type::GetByName(m_Type);
 		ASSERT(ptype);
 		return GetFieldCompletionSuggestions(ptype, word);
+	} else if (m_Command == RepositoryCommandRemove) {
+		std::vector<String> suggestions;
+
+		String argName = "name=";
+		if (argName.Find(word) == 0)
+			suggestions.push_back(argName);
+
+		if (m_Type == "Service") {
+			String argHostName = "host_name=";
+			if (argHostName.Find(word) == 0)
+				suggestions.push_back(argHostName);
+		}
+
+		return suggestions;
 	} else
 		return CLICommand::GetPositionalSuggestions(word);
 }
