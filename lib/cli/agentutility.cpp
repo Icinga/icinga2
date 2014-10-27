@@ -23,6 +23,7 @@
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
 #include "base/convert.hpp"
+#include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
@@ -80,7 +81,22 @@ void AgentUtility::PrintAgents(std::ostream& fp)
 
 		fp << "Agent '"
 		   << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << agent->Get("endpoint") << ConsoleColorTag(Console_Normal)
-		   << "' (last seen: " << Utility::FormatDateTime("%c", agent->Get("seen")) << ")\n";
+		   << "' (";
+
+		Dictionary::Ptr settings = agent->Get("settings");
+
+		if (settings) {
+			String host = settings->Get("host");
+			String port = settings->Get("port");
+			double log_duration = settings->Get("log_duration");
+
+			if (!host.IsEmpty() && !port.IsEmpty())
+				fp << "host: " << host << ", port: " << port << ", ";
+
+			fp << "log duration: " << Utility::FormatDuration(log_duration) << ", ";
+		}
+
+		fp << "last seen: " << Utility::FormatDateTime("%c", agent->Get("seen")) << ")\n";
 
 		PrintAgentRepository(fp, agent->Get("repository"));
 	}
@@ -115,14 +131,13 @@ void AgentUtility::PrintAgentsJson(std::ostream& fp)
 	fp << JsonEncode(result);
 }
 
-bool AgentUtility::AddAgent(const String& name)
+void AgentUtility::AddAgent(const String& name)
 {
 	String path = GetAgentRepositoryFile(name);
 
 	if (Utility::PathExists(path) ) {
-		Log(LogCritical, "cli")
-		    << "Cannot add agent repo. '" << path << "' already exists.\n";
-		return false;
+		Log(LogInformation, "cli")
+		    << "Agent '" << name << "' exists already.";
 	}
 
 	Dictionary::Ptr agent = make_shared<Dictionary>();
@@ -132,110 +147,51 @@ bool AgentUtility::AddAgent(const String& name)
 	agent->Set("zone", name);
 	agent->Set("repository", Empty);
 
-	return WriteAgentToRepository(path, agent);
+	Utility::SaveJsonFile(path, agent);
 }
 
-bool AgentUtility::AddAgentSettings(const String& name, const String& host, const String& port)
+void AgentUtility::AddAgentSettings(const String& name, const String& host,
+    const String& port, double log_duration)
 {
-	String path = GetAgentSettingsFile(name);
+	Dictionary::Ptr settings = make_shared<Dictionary>();
 
-	Dictionary::Ptr peer = make_shared<Dictionary>();
+	settings->Set("host", host);
+	settings->Set("port", port);
+	settings->Set("log_duration", log_duration);
 
-	peer->Set("agent_host", host);
-	peer->Set("agent_port", port);
-
-	return WriteAgentToRepository(path, peer);
+	Utility::SaveJsonFile(GetAgentSettingsFile(name), settings);
 }
 
-bool AgentUtility::RemoveAgent(const String& name)
+void AgentUtility::RemoveAgent(const String& name)
 {
-	if (!RemoveAgentFile(GetAgentRepositoryFile(name))) {
+	String repoPath = GetAgentRepositoryFile(name);
+
+	if (!Utility::PathExists(repoPath))
+		return;
+
+	if (unlink(repoPath.CStr()) < 0) {
 		Log(LogCritical, "cli")
-		    << "Cannot remove agent repo. '" << GetAgentRepositoryFile(name) << "' does not exist.\n";
-		return false;
-	}
+		    << "Cannot remove file '" << repoPath
+		    << "'. Failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) + "\".";
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("unlink")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(repoPath));
+        }
 
-	if (Utility::PathExists(GetAgentSettingsFile(name))) {
-		if (!RemoveAgentFile(GetAgentSettingsFile(name))) {
-			Log(LogWarning, "cli")
-			    << "Cannot remove agent settings. '" << GetAgentSettingsFile(name) << "' does not exist.\n";
-			    return false;
+	String settingsPath = GetAgentSettingsFile(name);
+
+	if (Utility::PathExists(settingsPath)) {
+		if (unlink(settingsPath.CStr()) < 0) {
+			Log(LogCritical, "cli")
+			    << "Cannot remove file '" << settingsPath
+			    << "'. Failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) + "\".";
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("unlink")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(settingsPath));
 		}
 	}
-
-	return true;
-}
-
-bool AgentUtility::RemoveAgentFile(const String& path)
-{
-	if (!Utility::PathExists(path)) {
-		Log(LogCritical, "cli")
-		    << "Cannot remove '" << path << "'. Does not exist.";
-		return false;
-	}
-
-	if (unlink(path.CStr()) < 0) {
-		Log(LogCritical, "cli")
-		    << "Cannot remove file '" << path
-		    << "'. Failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) + "\".";
-		return false;
-	}
-
-	return true;
-}
-
-bool AgentUtility::SetAgentAttribute(const String& name, const String& attr, const Value& val)
-{
-	String repo_path = GetAgentRepositoryFile(name);
-	Dictionary::Ptr repo = GetAgentFromRepository(repo_path);
-
-	if (repo) {
-		repo->Set(attr, val);
-		WriteAgentToRepository(repo_path, repo);
-		return true;
-	}
-
-	return false;
-}
-
-bool AgentUtility::WriteAgentToRepository(const String& filename, const Dictionary::Ptr& item)
-{
-	Log(LogInformation, "cli")
-	    << "Dumping agent to file '" << filename << "'";
-
-	String tempFilename = filename + ".tmp";
-
-	std::ofstream fp(tempFilename.CStr(), std::ofstream::out | std::ostream::trunc);
-	fp << JsonEncode(item);
-	fp.close();
-
-#ifdef _WIN32
-	_unlink(filename.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
-
-	return true;
-}
-
-Dictionary::Ptr AgentUtility::GetAgentFromRepository(const String& filename)
-{
-	std::fstream fp;
-	fp.open(filename.CStr(), std::ifstream::in);
-
-	if (!fp)
-		return Dictionary::Ptr();
-
-	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-
-	fp.close();
-
-	return JsonDecode(content);
 }
 
 std::vector<Dictionary::Ptr> AgentUtility::GetAgents(void)
@@ -248,9 +204,26 @@ std::vector<Dictionary::Ptr> AgentUtility::GetAgents(void)
 	return agents;
 }
 
+Dictionary::Ptr AgentUtility::LoadAgentFile(const String& agent_file)
+{
+	Dictionary::Ptr agent = Utility::LoadJsonFile(agent_file);
+
+	if (!agent)
+		return Dictionary::Ptr();
+
+	String settingsFile = GetAgentSettingsFile(agent->Get("endpoint"));
+
+	if (Utility::PathExists(settingsFile))
+		agent->Set("settings", Utility::LoadJsonFile(settingsFile));
+	else
+		agent->Remove("settings");
+
+	return agent;
+}
+
 void AgentUtility::CollectAgents(const String& agent_file, std::vector<Dictionary::Ptr>& agents)
 {
-	Dictionary::Ptr agent = GetAgentFromRepository(agent_file);
+	Dictionary::Ptr agent = LoadAgentFile(agent_file);
 
 	if (!agent)
 		return;

@@ -24,6 +24,7 @@
 #include "base/exception.hpp"
 #include "base/socket.hpp"
 #include "base/utility.hpp"
+#include "base/json.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
@@ -1087,4 +1088,40 @@ bool Utility::PathExists(const String& path)
 	struct _stat statbuf;
 	return (_stat(path.CStr(), &statbuf) >= 0);
 #endif /* _WIN32 */
+}
+
+Value Utility::LoadJsonFile(const String& path)
+{
+	std::ifstream fp;
+	fp.open(path.CStr());
+
+	String json((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
+
+	fp.close();
+
+	if (fp.fail())
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not read JSON file '" + path + "'."));
+
+	return JsonDecode(json);
+}
+
+void Utility::SaveJsonFile(const String& path, const Value& value)
+{
+	String tempPath = path + ".tmp";
+
+	std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
+	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+	fp << JsonEncode(value);
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(path.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempPath.CStr(), path.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempPath));
+	}
 }

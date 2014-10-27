@@ -44,13 +44,9 @@ public:
 	static void PrintAgents(std::ostream& fp);
 	static void PrintAgentsJson(std::ostream& fp);
 	static void PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr& repository);
-	static bool AddAgent(const String& name);
-	static bool AddAgentSettings(const String& name, const String& host, const String& port);
-	static bool RemoveAgent(const String& name);
-	static bool SetAgentAttribute(const String& name, const String& attr, const Value& val);
-
-	static bool WriteAgentToRepository(const String& filename, const Dictionary::Ptr& item);
-	static Dictionary::Ptr GetAgentFromRepository(const String& filename);
+	static void AddAgent(const String& name);
+	static void AddAgentSettings(const String& name, const String& host, const String& port, double log_duration);
+	static void RemoveAgent(const String& name);
 
 	static std::vector<Dictionary::Ptr> GetAgents(void);
 
@@ -67,6 +63,7 @@ public:
 private:
 	AgentUtility(void);
 	static bool RemoveAgentFile(const String& path);
+	static Dictionary::Ptr LoadAgentFile(const String& agent_file);
 	static void CollectAgents(const String& agent_file, std::vector<Dictionary::Ptr>& agents);
 
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);

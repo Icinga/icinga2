@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "cli/agentsetcommand.hpp"
+#include "cli/agentutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
@@ -45,7 +46,10 @@ String AgentSetCommand::GetShortDescription(void) const
 void AgentSetCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
-
+	visibleDesc.add_options()
+		("host", po::value<std::string>(), "Icinga 2 host")
+		("port", po::value<std::string>(), "Icinga 2 port")
+		("log_duration", po::value<double>(), "Log duration (in seconds)");
 }
 
 int AgentSetCommand::GetMinArguments(void) const
@@ -60,7 +64,27 @@ int AgentSetCommand::GetMinArguments(void) const
  */
 int AgentSetCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	Log(LogWarning, "cli", "TODO: Not implemented yet.");
+	String repoFile = AgentUtility::GetAgentRepositoryFile(ap[0]);
+
+	if (!Utility::PathExists(repoFile)) {
+		Log(LogCritical, "cli")
+		    << "Agent '" << ap[0] << "' does not exist.";
+		return 1;
+	}
+
+	String host, port = "5665";
+	double log_duration = 24 * 60 * 60;
+
+	if (vm.count("host"))
+		host = vm["host"].as<std::string>();
+
+	if (vm.count("port"))
+		port = vm["port"].as<std::string>();
+
+	if (vm.count("log_duration"))
+		log_duration = vm["log_duration"].as<double>();
+
+	AgentUtility::AddAgentSettings(ap[0], host, port, log_duration);
 
 	return 0;
 }

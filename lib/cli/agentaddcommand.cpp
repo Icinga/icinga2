@@ -55,11 +55,7 @@ int AgentAddCommand::GetMinArguments(void) const
  */
 int AgentAddCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!AgentUtility::AddAgent(ap[0])) {
-		Log(LogCritical, "cli")
-		    << "Cannot add agent '" << ap[0] << "'.";
-		return 1;
-	}
+	AgentUtility::AddAgent(ap[0]);
 
 	return 0;
 }

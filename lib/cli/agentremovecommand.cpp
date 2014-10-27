@@ -65,17 +65,9 @@ int AgentRemoveCommand::GetMaxArguments(void) const
  */
 int AgentRemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	bool failed = false;
-
 	BOOST_FOREACH(const String& agent, ap) {
-		if (!AgentUtility::RemoveAgent(agent)) {
-			Log(LogCritical, "cli", "Cannot remove agent '" + ap[0] + "'.");
-			failed = true;
-		}
+		AgentUtility::RemoveAgent(agent);
 	}
 
-	if (failed)
-		return 1;
-	else
-		return 0;
+	return 0;
 }

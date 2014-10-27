@@ -139,6 +139,9 @@ public:
 
 	static bool CopyFile(const String& source, const String& target);
 
+	static Value LoadJsonFile(const String& path);
+	static void SaveJsonFile(const String& path, const Value& value);
+
 private:
 	Utility(void);
 
