@@ -18,8 +18,11 @@
  ******************************************************************************/
 
 #include "cli/agentupdateconfigcommand.hpp"
+#include "cli/agentutility.hpp"
+#include "cli/repositoryutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -42,14 +45,65 @@ String AgentUpdateConfigCommand::GetShortDescription(void) const
 	return "update agent config";
 }
 
+ImpersonationLevel AgentUpdateConfigCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateRoot;
+}
+
 /**
- * The entry point for the "agetn update-config" CLI command.
+ * The entry point for the "agent update-config" CLI command.
  *
  * @returns An exit status.
  */
 int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	Log(LogWarning, "cli", "TODO: Not implemented yet.");
+	Log(LogInformation, "cli")
+	    << "Updating agent configuration for ";
+
+	AgentUtility::PrintAgents(std::cout);
+
+	BOOST_FOREACH(const Dictionary::Ptr& agent, AgentUtility::GetAgents()) {
+		Dictionary::Ptr repository = agent->Get("repository");
+
+		ObjectLock olock(repository);
+		BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
+			String host = kv.first;
+
+			/* add a new host to the config repository */
+			Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+			host_attrs->Set("check_command", "dummy"); //TODO: add a repository-host template
+
+			if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
+				Log(LogCritical, "cli")
+				    << "Cannot add agent host '" << host << "' to the config repository!\n";
+				continue;
+			}
+
+			Array::Ptr services = kv.second;
+			ObjectLock xlock(services);
+			BOOST_FOREACH(const String& service, services) {
+
+				/* add a new service for this host to the config repository */
+				Dictionary::Ptr service_attrs = make_shared<Dictionary>();
+				service_attrs->Set("host_name", host); //Required for host-service relation
+				service_attrs->Set("check_command", "dummy"); //TODO: add a repository-service template
+
+				if (!RepositoryUtility::AddObject(service, "Service", service_attrs)) {
+					Log(LogCritical, "cli")
+					    << "Cannot add agent host '" << host << "' to the config repository!\n";
+					continue;
+				}
+			}
+		}
+	}
+
+	Log(LogInformation, "cli", "Committing agent configuration.");
+
+	RepositoryUtility::PrintChangeLog(std::cout);
+	std::cout << "\n";
+	RepositoryUtility::CommitChangeLog();
+
+	std::cout << "Make sure to reload Icinga 2 for these changes to take effect." << std::endl;
 
 	return 0;
 }
