@@ -177,7 +177,8 @@ public:
 
 	void ThrowException(void) const
 	{
-		boost::rethrow_exception(m_Exception);
+		if (m_Exception)
+			boost::rethrow_exception(m_Exception);
 	}
 
 private:
@@ -234,7 +235,7 @@ static int DecodeString(void *ctx, const unsigned char *str, size_t len)
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
 	try {
-		context->AddValue(String(reinterpret_cast<const char *>(str), reinterpret_cast<const char *>(str) + len));
+		context->AddValue(String(str, str + len));
 	} catch (...) {
 		context->SaveException();
 		return 0;
@@ -328,6 +329,9 @@ Value icinga::JsonDecode(const String& data)
 		yajl_free_error(handle, internal_err_str);
 
 		yajl_free(handle);
+
+		/* throw saved exception (if there is one) */
+		context.ThrowException();
 
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msg));
 	}
