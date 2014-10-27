@@ -42,20 +42,30 @@ using namespace icinga;
 
 Dictionary::Ptr RepositoryUtility::GetArgumentAttributes(const std::vector<std::string>& arguments)
 {
-	Dictionary::Ptr attr = make_shared<Dictionary>();
+	Dictionary::Ptr attrs = make_shared<Dictionary>();
 
 	BOOST_FOREACH(const String& kv, arguments) {
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, kv, boost::is_any_of("="));
 
-		if (tokens.size() == 2) {
-			attr->Set(tokens[0], tokens[1]);
-		} else
+		if (tokens.size() != 2) {
 			Log(LogWarning, "cli")
 			    << "Cannot parse passed attributes: " << boost::algorithm::join(tokens, "=");
+			continue;
+		}
+
+		Value value;
+
+		try {
+			value = Convert::ToDouble(tokens[1]);
+		} catch (...) {
+			value = tokens[1];
+		}
+
+		attrs->Set(tokens[0], value);
 	}
 
-	return attr;
+	return attrs;
 }
 
 String RepositoryUtility::GetRepositoryConfigPath(void)
