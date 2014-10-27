@@ -111,7 +111,7 @@ struct JsonElement
 {
 	String Key;
 	bool KeySet;
-	Value Value;
+	Value EValue;
 
 	JsonElement(void)
 		: KeySet(false)
@@ -124,7 +124,7 @@ public:
 	void Push(const Value& value)
 	{
 		JsonElement element;
-		element.Value = value;
+		element.EValue = value;
 
 		m_Stack.push(element);
 	}
@@ -140,24 +140,24 @@ public:
 	{
 		if (m_Stack.empty()) {
 			JsonElement element;
-			element.Value = value;
+			element.EValue = value;
 			m_Stack.push(element);
 			return;
 		}
 
 		JsonElement& element = m_Stack.top();
 
-		if (element.Value.IsObjectType<Dictionary>()) {
+		if (element.EValue.IsObjectType<Dictionary>()) {
 			if (!element.KeySet) {
 				element.Key = value;
 				element.KeySet = true;
 			} else {
-				Dictionary::Ptr dict = element.Value;
+				Dictionary::Ptr dict = element.EValue;
 				dict->Set(element.Key, value);
 				element.KeySet = false;
 			}
-		} else if (element.Value.IsObjectType<Array>()) {
-			Array::Ptr arr = element.Value;
+		} else if (element.EValue.IsObjectType<Array>()) {
+			Array::Ptr arr = element.EValue;
 			arr->Add(value);
 		} else {
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot add value to JSON element."));
@@ -167,7 +167,7 @@ public:
 	Value GetValue(void) const
 	{
 		ASSERT(m_Stack.size() == 1);
-		return m_Stack.top().Value;
+		return m_Stack.top().EValue;
 	}
 
 	void SaveException(void)
@@ -262,7 +262,7 @@ static int DecodeEndMap(void *ctx)
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
 	try {
-		context->AddValue(context->Pop().Value);
+		context->AddValue(context->Pop().EValue);
 	} catch (...) {
 		context->SaveException();
 		return 0;
@@ -290,7 +290,7 @@ static int DecodeEndArray(void *ctx)
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
 	try {
-		context->AddValue(context->Pop().Value);
+		context->AddValue(context->Pop().EValue);
 	} catch (...) {
 		context->SaveException();
 		return 0;
