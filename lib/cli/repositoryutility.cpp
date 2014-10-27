@@ -33,6 +33,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/regex.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -65,9 +66,8 @@ String RepositoryUtility::GetRepositoryObjectConfigPath(const String& type, cons
 {
 	String path = GetRepositoryConfigPath() + "/";
 
-	if (type == "Host") {
+	if (type == "Host")
 		path += "hosts";
-	}
 	else if (type == "Service")
 		path += "hosts/" + object->Get("host_name");
 	else if (type == "Zone")
@@ -76,6 +76,23 @@ String RepositoryUtility::GetRepositoryObjectConfigPath(const String& type, cons
 		path += "endpoints";
 
 	return path;
+}
+
+bool RepositoryUtility::FilterRepositoryObjects(const String& type, const String& path)
+{
+	if (type == "Host") {
+		boost::regex expr("hosts/[^/]*.conf", boost::regex::icase);
+		boost::smatch what;
+		return boost::regex_search(path.GetData(), what, expr);
+	}
+	else if (type == "Service")
+		return Utility::Match("*hosts/*/*.conf", path);
+	else if (type == "Zone")
+		return Utility::Match("*zones/*.conf", path);
+	else if (type == "Endpoints")
+		return Utility::Match("*endpoints/*.conf", path);
+
+	return false;
 }
 
 String RepositoryUtility::GetRepositoryObjectConfigFilePath(const String& type, const Dictionary::Ptr& object)
@@ -97,12 +114,18 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 	std::vector<String> objects = GetObjects(); //full path
 
 	BOOST_FOREACH(const String& object, objects) {
-		Dictionary::Ptr obj = GetObjectFromRepository(object);
-
-		if (obj) {
-			fp << "Object Name: " << object << "\n";
-			fp << JsonEncode(obj);
+		if (!FilterRepositoryObjects(type, object)) {
+			Log(LogDebug, "cli")
+			    << "Ignoring object '" << object << "'. Type '" << type << "' does not match.";
+			continue;
 		}
+
+		fp << "Object Path: " << object << "\n";
+
+		Dictionary::Ptr obj = GetObjectFromRepository(object); //TODO: config parser not implemented yet!
+
+		if (obj)
+			fp << JsonEncode(obj);
 	}
 }
 
@@ -203,7 +226,7 @@ bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const Str
 	//Fixme
 	String path = GetRepositoryObjectConfigPath(type, attr) + "/" + name + ".conf";
 
-	Dictionary::Ptr obj = GetObjectFromRepository(path);
+	Dictionary::Ptr obj = GetObjectFromRepository(path); //TODO
 
 	if (!obj) {
 		Log(LogCritical, "cli")
@@ -305,9 +328,9 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String
 std::vector<String> RepositoryUtility::GetObjects(void)
 {
 	std::vector<String> objects;
-	String path = GetRepositoryConfigPath() + "/";
+	String path = GetRepositoryConfigPath();
 
-	Utility::Glob(path + "/*.conf",
+	Utility::GlobRecursive(path, "*.conf",
 	    boost::bind(&RepositoryUtility::CollectObjects, _1, boost::ref(objects)), GlobFile);
 
 	return objects;

@@ -146,6 +146,12 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 {
 	Dictionary::Ptr attrs = RepositoryUtility::GetArgumentAttributes(ap);
 
+	/* shortcut for list command */
+	if (m_Command == RepositoryCommandList) {
+		RepositoryUtility::PrintObjects(std::cout, m_Type);
+		return 0;
+	}
+
 	if (!attrs->Contains("name")) {
 		Log(LogCritical, "cli", "Object requires a name (Hint: 'name=<objectname>')!");
 		return 1;
@@ -172,10 +178,8 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 			attrs->Set("import", imports);
 	}
 
-	if (m_Command == RepositoryCommandList) {
-		RepositoryUtility::PrintObjects(std::cout, m_Type);
-	}
-	else if (m_Command == RepositoryCommandAdd) {
+
+	if (m_Command == RepositoryCommandAdd) {
 		RepositoryUtility::AddObject(name, m_Type, attrs);
 	}
 	else if (m_Command == RepositoryCommandRemove) {

@@ -44,6 +44,8 @@ public:
 
 	static String GetRepositoryChangeLogPath(void);
 
+	static bool FilterRepositoryObjects(const String& type, const String& path);
+
 	static void PrintObjects(std::ostream& fp, const String& type);
 
 	static void PrintChangeLog(std::ostream& fp);
