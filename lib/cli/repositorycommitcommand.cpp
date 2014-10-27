@@ -72,11 +72,13 @@ int RepositoryCommitCommand::Run(const boost::program_options::variables_map& vm
 {
 	if (vm.count("simulate")) {
 		RepositoryUtility::PrintChangeLog(std::cout);
-		std::cout << "Simulation not yet implemented.\n";
+		std::cout << "\n";
+		std::cout << "Simulation not yet implemented (#)\n";
 		//TODO
 		return 1;
 	} else {
 		RepositoryUtility::PrintChangeLog(std::cout);
+		std::cout << "\n";
 		RepositoryUtility::CommitChangeLog();
 	}
 

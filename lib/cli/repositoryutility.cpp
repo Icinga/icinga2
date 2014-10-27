@@ -33,6 +33,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/regex.hpp>
 #include <fstream>
 #include <iostream>
@@ -109,6 +110,7 @@ String RepositoryUtility::GetRepositoryChangeLogPath(void)
 	return Application::GetLocalStateDir() + "/lib/icinga2/repository/changes";
 }
 
+/* printers */
 void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 {
 	std::vector<String> objects = GetObjects(); //full path
@@ -129,7 +131,22 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 	}
 }
 
-/* public interface, only logs changes */
+void RepositoryUtility::PrintChangeLog(std::ostream& fp)
+{
+	Array::Ptr changelog = make_shared<Array>();
+
+	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+
+	ObjectLock olock(changelog);
+
+	std::cout << "Changes to be committed:\n\n";
+
+	BOOST_FOREACH(const Value& entry, changelog) {
+		FormatChangelogEntry(std::cout, entry);
+	}
+}
+
+/* modify objects and write changelog */
 bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attr)
 {
 	/* add a new changelog entry by timestamp */
@@ -162,6 +179,13 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
 
+bool RepositoryUtility::SetObjectAttribute(const String& name, const String& type, const String& attr, const Value& val)
+{
+	//TODO: Implement modification commands
+	return true;
+}
+
+/* commit changelog */
 bool RepositoryUtility::CommitChangeLog(void)
 {
 	GetChangeLog(boost::bind(RepositoryUtility::CommitChange, _1, _2));
@@ -169,25 +193,46 @@ bool RepositoryUtility::CommitChangeLog(void)
 	return true;
 }
 
-void RepositoryUtility::PrintChangeLog(std::ostream& fp)
+/* write/read from changelog repository */
+bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, const Dictionary::Ptr& item)
 {
-	Array::Ptr changelog = make_shared<Array>();
+	Log(LogInformation, "cli", "Dumping changelog items to file '" + path + "'");
 
-	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+	Utility::MkDirP(Utility::DirName(path), 0750);
 
-	ObjectLock olock(changelog);
+	String tempPath = path + ".tmp";
 
-	std::cout << "Changes to be committed:\n";
+        std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
+        fp << JsonEncode(item);
+        fp.close();
 
-	BOOST_FOREACH(const Value& entry, changelog) {
-		std::cout << JsonEncode(entry) << "\n"; //TODO better formatting
+#ifdef _WIN32
+	_unlink(path.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempPath.CStr(), path.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempPath));
 	}
+
+	return true;
 }
 
-bool RepositoryUtility::SetObjectAttribute(const String& name, const String& type, const String& attr, const Value& val)
+Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String& filename)
 {
-	//TODO: Implement modification commands
-	return true;
+	std::fstream fp;
+	fp.open(filename.CStr(), std::ifstream::in);
+
+	if (!fp)
+		return Dictionary::Ptr();
+
+	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
+
+	fp.close();
+
+	return JsonDecode(content);
 }
 
 /* internal implementation when changes are committed */
@@ -281,46 +326,6 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepository(const String& filenam
 	return Dictionary::Ptr();
 }
 
-bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, const Dictionary::Ptr& item)
-{
-	Log(LogInformation, "cli", "Dumping changelog items to file '" + path + "'");
-
-	Utility::MkDirP(Utility::DirName(path), 0750);
-
-	String tempPath = path + ".tmp";
-
-        std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
-        fp << JsonEncode(item);
-        fp.close();
-
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempPath.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempPath));
-	}
-
-	return true;
-}
-
-Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String& filename)
-{
-	std::fstream fp;
-	fp.open(filename.CStr(), std::ifstream::in);
-
-	if (!fp)
-		return Dictionary::Ptr();
-
-	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-
-	fp.close();
-
-	return JsonDecode(content);
-}
 
 /*
  * collect functions
@@ -360,7 +365,7 @@ bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionar
 		String file = path + entry + ".change";
 		Dictionary::Ptr change = GetObjectFromRepositoryChangeLog(file);
 
-		Log(LogInformation, "cli")
+		Log(LogDebug, "cli")
 		    << "Collecting entry " << entry << "\n";
 
 		if (change)
@@ -379,9 +384,17 @@ void RepositoryUtility::CollectChangeLog(const String& change_file, std::vector<
 	changelog.push_back(file);
 }
 
+void RepositoryUtility::CollectChange(const Dictionary::Ptr& change, Array::Ptr& changes)
+{
+	changes->Add(change);
+}
+
+/*
+ * Commit Changelog
+ */
 void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String& path)
 {
-	Log(LogInformation, "cli")
+	Log(LogDebug, "cli")
 	   << "Got change " << change->Get("name");
 
 	String name = change->Get("name");
@@ -403,17 +416,49 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String
 	}
 
 	if (success) {
-		Log(LogInformation, "cli")
+		Log(LogNotice, "cli")
 		    << "Removing changelog file '" << path << "'.";
 		RemoveObjectFileInternal(path);
 	}
 }
 
-void RepositoryUtility::CollectChange(const Dictionary::Ptr& change, Array::Ptr& changes)
+/*
+ * Print Changelog helpers
+ */
+void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary::Ptr& change)
 {
-	changes->Add(change);
-}
+	if (!change)
+		return;
 
+	if (change->Get("command") == "add")
+		fp << "Adding";
+	if (change->Get("command") == "remove")
+		fp << "Removing";
+
+	String type = change->Get("type");
+	boost::algorithm::to_lower(type);
+	Dictionary::Ptr attrs = change->Get("attr");
+
+	fp << " " << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << type << ConsoleColorTag(Console_Normal) << " '";
+	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'";
+
+	if (!attrs || attrs->GetLength() == 0) {
+		fp << "\n";
+		return;
+	}
+
+	fp << " with attributes: \n";
+
+	BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+		/* skip the name */
+		if (kv.first == "name")
+			continue;
+
+		fp << std::setw(4) << " " << ConsoleColorTag(Console_ForegroundGreen) << kv.first << ConsoleColorTag(Console_Normal) << " = ";
+		FormatValue(fp, kv.second);
+		fp << "\n";
+	}
+}
 
 /*
  * print helpers for configuration

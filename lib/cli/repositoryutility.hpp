@@ -79,8 +79,10 @@ private:
 	static Dictionary::Ptr GetObjectFromRepositoryChangeLog(const String& filename);
 
 	static bool GetChangeLog(const boost::function<void (const Dictionary::Ptr&, const String&)>& callback);
-	static void CommitChange(const Dictionary::Ptr& change, const String& path);
 	static void CollectChange(const Dictionary::Ptr& change, Array::Ptr& changes);
+	static void CommitChange(const Dictionary::Ptr& change, const String& path);
+
+	static void FormatChangelogEntry(std::ostream& fp, const Dictionary::Ptr& change);
 
 	/* config print helpers */
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
