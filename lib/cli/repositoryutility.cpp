@@ -203,6 +203,14 @@ bool RepositoryUtility::ClearChangeLog(void)
 	return true;
 }
 
+bool RepositoryUtility::ChangeLogHasPendingChanges(void)
+{
+	Array::Ptr changelog = make_shared<Array>();
+	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+
+	return changelog->GetLength() > 0;
+}
+
 /* commit changelog */
 bool RepositoryUtility::CommitChangeLog(void)
 {
@@ -264,8 +272,28 @@ bool RepositoryUtility::AddObjectInternal(const String& name, const String& type
 bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
 	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
+	bool success = RemoveObjectFileInternal(path);
 
-	return RemoveObjectFileInternal(path);
+	/* special treatment for hosts -> remove the services too */
+	if (type == "Host") {
+		path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name;
+
+		std::vector<String> files;
+		Utility::GlobRecursive(path, "*.conf",
+		    boost::bind(&RepositoryUtility::CollectObjects, _1, boost::ref(files)), GlobFile);
+
+		BOOST_FOREACH(const String& file, files) {
+			RemoveObjectFileInternal(file);
+		}
+#ifndef _WIN32
+		rmdir(path.CStr());
+#else
+		_rmdir(path.CStr());
+#endif /* _WIN32 */
+
+	}
+
+	return success;
 }
 
 bool RepositoryUtility::RemoveObjectFileInternal(const String& path)
@@ -276,7 +304,7 @@ bool RepositoryUtility::RemoveObjectFileInternal(const String& path)
 	}
 
 	if (unlink(path.CStr()) < 0) {
-		Log(LogCritical, "cli", "Cannot remove file '" + path +
+		Log(LogCritical, "cli", "Cannot remove path '" + path +
 		    "'. Failed with error code " + Convert::ToString(errno) + ", \"" + Utility::FormatErrorNumber(errno) + "\".");
 		return false;
 	}

@@ -57,6 +57,7 @@ public:
 
 	static bool CommitChangeLog(void);
 	static bool ClearChangeLog(void);
+	static bool ChangeLogHasPendingChanges(void);
 
 	static std::vector<String> GetObjects(void);
 private:
