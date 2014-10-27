@@ -141,7 +141,7 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 
 bool RepositoryUtility::CommitChangeLog(void)
 {
-	GetChangeLog(boost::bind(RepositoryUtility::CommitChange, _1));
+	GetChangeLog(boost::bind(RepositoryUtility::CommitChange, _1, _2));
 
 	return true;
 }
@@ -322,7 +322,7 @@ void RepositoryUtility::CollectObjects(const String& object_file, std::vector<St
 }
 
 
-bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionary::Ptr&)>& callback)
+bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionary::Ptr&, const String&)>& callback)
 {
 	std::vector<String> changelog;
 	String path = GetRepositoryChangeLogPath() + "/";
@@ -334,13 +334,14 @@ bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionar
 	std::sort(changelog.begin(), changelog.end());
 
 	BOOST_FOREACH(const String& entry, changelog) {
-		Dictionary::Ptr change = GetObjectFromRepositoryChangeLog(path + entry + ".change");
+		String file = path + entry + ".change";
+		Dictionary::Ptr change = GetObjectFromRepositoryChangeLog(file);
 
 		Log(LogInformation, "cli")
 		    << "Collecting entry " << entry << "\n";
 
 		if (change)
-			callback(change);
+			callback(change, file);
 	}
 
 	return true;
@@ -355,7 +356,7 @@ void RepositoryUtility::CollectChangeLog(const String& change_file, std::vector<
 	changelog.push_back(file);
 }
 
-void RepositoryUtility::CommitChange(const Dictionary::Ptr& change)
+void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String& path)
 {
 	Log(LogInformation, "cli")
 	   << "Got change " << change->Get("name");
@@ -369,11 +370,19 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change)
 		attr = change->Get("attr");
 	}
 
+	bool success = false;
+
 	if (command == "add") {
-		AddObjectInternal(name, type, attr);
+		success = AddObjectInternal(name, type, attr);
 	}
 	else if (command == "remove") {
-		RemoveObjectInternal(name, type, attr);
+		success = RemoveObjectInternal(name, type, attr);
+	}
+
+	if (success) {
+		Log(LogInformation, "cli")
+		    << "Removing changelog file '" << path << "'.";
+		RemoveObjectFileInternal(path);
 	}
 }
 

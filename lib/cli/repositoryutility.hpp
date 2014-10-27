@@ -76,8 +76,8 @@ private:
 	static bool WriteObjectToRepositoryChangeLog(const String& path, const Dictionary::Ptr& item);
 	static Dictionary::Ptr GetObjectFromRepositoryChangeLog(const String& filename);
 
-	static bool GetChangeLog(const boost::function<void (const Dictionary::Ptr&)>& callback);
-	static void CommitChange(const Dictionary::Ptr& change);
+	static bool GetChangeLog(const boost::function<void (const Dictionary::Ptr&, const String&)>& callback);
+	static void CommitChange(const Dictionary::Ptr& change, const String& path);
 	static void CollectChange(const Dictionary::Ptr& change, Array::Ptr& changes);
 
 	/* config print helpers */
