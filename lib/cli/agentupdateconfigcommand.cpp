@@ -57,6 +57,15 @@ ImpersonationLevel AgentUpdateConfigCommand::GetImpersonationLevel(void) const
  */
 int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	//If there are changes pending, abort the current operation
+	if (RepositoryUtility::ChangeLogHasPendingChanges()) {
+		Log(LogWarning, "cli")
+		    << "There are pending changes for commit.\n"
+		    << "Please review and commit them using 'icinga2 repository commit [--simulate]\n"
+		    << "or drop them using 'icinga2 repository commit --clear' before proceeding.";
+		return 1;
+	}
+
 	Log(LogInformation, "cli")
 	    << "Updating agent configuration for ";
 
