@@ -332,7 +332,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *name = X509_REQ_get_subject_name(req);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 	
-		X509_REQ_sign(req, key, EVP_sha1());
+		X509_REQ_sign(req, key, NULL);
 	
 		Log(LogInformation, "base")
 		    << "Writing certificate signing request to '" << csrfile << "'.";
@@ -412,7 +412,7 @@ shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *iss
 		X509_EXTENSION_free(ext);
 	}
 
-	X509_sign(cert, cakey, EVP_sha1());
+	X509_sign(cert, cakey, NULL);
 
 	return shared_ptr<X509>(cert, X509_free);
 }
