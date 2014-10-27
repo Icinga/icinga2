@@ -27,18 +27,26 @@ is appreciated!
 
 Please get in touch with the Icinga team at https://www.icinga.org/community/.
 
-## <a id="development"></a> Icinga 2 Development
+### <a id="development"></a> Icinga 2 Development
 
 You can follow Icinga 2's development closely by checking
 out these resources:
 
-* [Development Bug Tracker](https://dev.icinga.org/projects/i2): [How to report a bug?](http://www.icinga.org/faq/how-to-report-a-bug/)
+* [Development Bug Tracker](https://dev.icinga.org/projects/i2): [How to report a bug?](https://www.icinga.org/icinga/faq/)
 * Git Repositories: [main mirror on icinga.org](https://git.icinga.org/?p=icinga2.git;a=summary) [release mirror at github.com](https://github.com/Icinga/icinga2)
 * [Git Checkins Mailinglist](https://lists.icinga.org/mailman/listinfo/icinga-checkins)
 * [Development](https://lists.icinga.org/mailman/listinfo/icinga-devel) and [Users](https://lists.icinga.org/mailman/listinfo/icinga-users) Mailinglists
 * [#icinga-devel on irc.freenode.net](http://webchat.freenode.net/?channels=icinga-devel) including a Git Commit Bot
 
 For general support questions, please refer to the [community support channels](https://support.icinga.org).
+
+### <a id="how-to-report-bug-feature-requests"></a> How to Report a Bug or Feature Request
+
+More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
+
+* [Register](https://exchange.icinga.org/authentication/register) an Icinga account.
+* Create a new issue at the [Icinga 2 Development Tracker](https://dev.icinga.org/projects/i2).
+* When reporting a bug, please include the details described in the [Troubleshooting](#troubleshooting-information-required) chapter (version, configs, logs, etc).
 
 ## <a id="demo-vm"></a> Demo VM
 
