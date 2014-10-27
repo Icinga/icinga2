@@ -133,12 +133,32 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 			continue;
 		}
 
-		fp << "Object Path: " << object << "\n";
+		String file = Utility::BaseName(object);
+		boost::algorithm::replace_all(file, ".conf", "");
 
+		fp << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal)
+		   << " '" << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << file << ConsoleColorTag(Console_Normal) << "'";
+
+		String prefix = Utility::DirName(object);
+
+		if (type == "Service") {
+			std::vector<String> tokens;
+			boost::algorithm::split(tokens, prefix, boost::is_any_of("/"));
+
+			String host_name = tokens[tokens.size()-1];
+			fp << " (on " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << "Host" << ConsoleColorTag(Console_Normal)
+			   << " '" << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << host_name << ConsoleColorTag(Console_Normal) << "')";
+
+		}
+
+		fp << "\n";
+
+		/*
 		Dictionary::Ptr obj = GetObjectFromRepository(object); //TODO: config parser not implemented yet!
 
 		if (obj)
 			fp << JsonEncode(obj);
+		*/
 	}
 }
 
