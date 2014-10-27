@@ -28,6 +28,7 @@ parentheses):
 * recommended: libexecinfo on FreeBSD
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian)
+* optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
 example from the repoforge buildtools repository.

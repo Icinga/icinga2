@@ -80,6 +80,14 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
+find_package(YAJL)
+
+if(NOT YAJL_FOUND)
+  include_directories(${icinga2_BINARY_DIR}/third-party/yajl/include)
+  link_directories(${icinga2_BINARY_DIR}/third-party/yajl)
+  set(YAJL_LIBRARIES "yajl")
+endif()
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib

@@ -19,6 +19,7 @@ Build-Depends: bison,
                libmysqlclient-dev,
                libpq-dev,
                libssl-dev,
+               libyajl-dev,
                make (>= 3.81),
                po-debconf
 Standards-Version: 3.9.5

@@ -41,7 +41,7 @@ endif()
 
 add_library(base SHARED ${base_SOURCES})
 
-target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} mmatch yajl)
+target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch)
 
 if(HAVE_LIBEXECINFO)
     target_link_libraries(base execinfo)
@@ -55,9 +55,6 @@ link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
-
-include_directories(${icinga2_BINARY_DIR}/third-party/yajl/include)
-link_directories(${icinga2_BINARY_DIR}/third-party/yajl)
 
 if(UNIX OR CYGWIN)
   target_link_libraries(base execvpe)
