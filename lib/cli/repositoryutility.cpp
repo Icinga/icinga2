@@ -344,6 +344,13 @@ bool RepositoryUtility::AddObjectInternal(const String& name, const String& type
 bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
 	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
+
+	if (!Utility::PathExists(path)) {
+		Log(LogCritical, "cli")
+		    << type << " '" << name << "' does not exist.";
+		return true;
+	}
+
 	bool success = RemoveObjectFileInternal(path);
 
 	/* special treatment for hosts -> remove the services too */
@@ -395,7 +402,7 @@ bool RepositoryUtility::RemoveObjectFileInternal(const String& path)
 
 bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const String& type, const String& key, const Value& val, const Dictionary::Ptr& attrs)
 {
-	//Fixme
+	//TODO
 	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
 
 	Dictionary::Ptr obj = GetObjectFromRepository(path); //TODO
@@ -595,7 +602,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
 		/* skip the name */
-		if (kv.first == "name")
+		if (kv.first == "name" || kv.first == "__name")
 			continue;
 
 		fp << std::setw(4) << " " << ConsoleColorTag(Console_ForegroundGreen) << kv.first << ConsoleColorTag(Console_Normal) << " = ";
