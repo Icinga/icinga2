@@ -20,7 +20,7 @@ Some specific migration steps will be still required to be done manually,
 especially if you want to preserve your existing file layout, or any other
 object specific policies.
 
-If you encounter a bug, please open an issue at https://dev.icinga.org
+If you encounter a bug, please open an issue at https://dev.icinga.org.
 
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
@@ -1257,7 +1257,7 @@ accordingly.
 
 ### <a id="differences-1x-2-groups"></a> Groups
 
-In Icinga 2 hosts, services and users are added to groups using the `groups`
+In Icinga 2 hosts, services, and users are added to groups using the `groups`
 attribute in the object. The old way of listing all group members in the group's
 `members` attribute is available through `assign where` and `ignore where`
 conditions.
@@ -1364,7 +1364,7 @@ All state and type filter use long names OR'd with a pipe together
     states = [ Warning, Unknown, Critical ]
     filters = [ Problem, Recovery, FlappingStart, FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
-Icinga 2 adds more fine-grained type filters for acknowledgements, downtime
+Icinga 2 adds more fine-grained type filters for acknowledgements, downtime,
 and flapping type (start, end, ...).
 
 ### <a id="differences-1x-2-dependencies-parents"></a> Dependencies and Parents
@@ -1438,7 +1438,7 @@ Unlike Icinga 1.x the Icinga 2 daemon reload happens asynchronously.
 * validation NOT ok: child process terminates, parent process continues with old configuration state
 (this is ESSENTIAL for the [cluster config synchronisation](#cluster-zone-config-sync))
 * validation ok: child process signals parent process to terminate and save its current state
-(all events til now) into the icinga2 state file
+(all events until now) into the icinga2 state file
 * parent process shuts down writing icinga2.state file
 * child process waits for parent process gone, reads the icinga2 state file and synchronizes all historical and status data
 * child becomes the new session leader
@@ -1487,7 +1487,7 @@ popular broker modules was implemented for Icinga 2:
 Icinga 1.x uses the native "obsess over host/service" method which requires the NSCA addon
 passing the slave's check results passively onto the master's external command pipe.
 While this method may be used for check load distribution, it does not provide any configuration
-distribution out-of-the-box. Furthermore comments, downtimes and other stateful runtime data is
+distribution out-of-the-box. Furthermore comments, downtimes, and other stateful runtime data is
 not synced between the master and slave nodes. There are addons available solving the check
 and configuration distribution problems Icinga 1.x distributed monitoring currently suffers from.
 

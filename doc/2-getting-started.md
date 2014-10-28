@@ -223,6 +223,8 @@ by trying to run it on the console using whichever user Icinga 2 is running as:
 
 Additional libraries may be required for some plugins. Please consult the plugin
 documentation and/or plugin provided README for installation instructions.
+Sometimes plugins contain hard-coded paths to other components. Instead of changing
+the plugin it might be easier to create logical links which is (more) update-safe.
 
 Each plugin requires a [CheckCommand](#objecttype-checkcommand) object in your
 configuration which can be used in the [Service](#objecttype-service) or
@@ -497,7 +499,7 @@ a valid `address` resp. `address6` attribute will be excluded.
 
 Each of these services has the custom attribute `sla` set to `24x7`. The
 notification apply rule in `notifications.conf` will automatically apply
-a service notification matchting this attribute pattern.
+a service notification matching this attribute pattern.
 
     apply Notification "mail-icingaadmin" to Service {
       import "mail-service-notification"
@@ -825,7 +827,9 @@ enable sending commands to Icinga 2 through your web interface:
     # usermod -G -a icingacmd www-data
 
 Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
-`nagios`. The webserver's user is different between distributions as well.
+`nagios`.
+The webserver's user is different between distributions so you might have to change `www-data` to
+`wwwrun`, `www`, or `apache`.
 
 Change "www-data" to the user you're using to run queries.
 
@@ -964,7 +968,7 @@ The Debian packages require additional packages which are provided by the
 [Debian Monitoring Project](http://www.debmon.org) (`DebMon`) repository.
 
 `libjs-jquery-ui` requires at least version `1.10.*` which is not available
-in Debian Wheezy and Ubuntu 12.04 LTS (Precise). Add the following repositories
+in Debian 7 (Wheezy) and Ubuntu 12.04 LTS (Precise). Add the following repositories
 to satisfy this dependency:
 
   Distribution  		| Package Repositories
@@ -1153,7 +1157,7 @@ blog updates and more.
 There are many visualization addons which can be used with Icinga 2.
 
 Some of the more popular ones are [PNP](#addons-graphing-pnp), [inGraph](#addons-graphing-pnp)
-graphing performance data), [Graphite](#addons-graphing-pnp), and
+(graphing performance data), [Graphite](#addons-graphing-pnp), and
 [NagVis](#addons-visualization-nagvis) (network maps).
 
 
@@ -1178,7 +1182,7 @@ These tools are in development and require feedback and tests:
 
 ## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
 
-Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano`editors.
+Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano` editors.
 The RHEL, SUSE and Debian package `icinga2-common` install these files into
 `/usr/share/*/icinga2-common/syntax`. Sources provide these files in `tools/syntax`.
 
@@ -1419,7 +1423,7 @@ or manually passing the `-C` argument:
 
 ### <a id="config-change-reload"></a> Reload on Configuration Changes
 
-Everytime you have changed your configuration you should first tell  Icinga 2
+Everytime you have changed your configuration you should first tell Icinga 2
 to [validate](#config-validation). If there are no validation errors you can
 safely reload the Icinga 2 daemon.
 

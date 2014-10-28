@@ -66,7 +66,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * `icinga2-build-{ca,key}` can be used with cli command `icinga2 pki` #7247
 * `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
 
-* `python-icinga2` package dropped in favor of cli commands #7245
+* `python-icinga2` package dropped in favour of cli commands #7245
 * GraphiteWriter: Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
 
 #### Issues
@@ -101,7 +101,7 @@ in its operation. Same goes for performance data writers and the external comman
 file writers on disk (`statusdata`).
 Unlike Icinga 1.x the [daemon reload](#differences-1x-2-real-reload) happens asynchronously.
 A child daemon validates the new configuration, the parent process is still doing checks, replicating cluster events, triggering alert notifications, etc. If the configuration validation is ok, all remaining events are synchronized and the child process continues as normal.
-The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. The configuration validation itself runs in paralell allowing fast verification checks.
+The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. The configuration validation itself runs in parallel allowing fast verification checks.
 That way you are not blind (anymore) during a configuration reload and benefit from a real scalable architecture.
 
 
@@ -182,7 +182,7 @@ All [Monitoring Plugins](#setting-up-check-plugins) can be integrated into Icing
 newly created check command configuration if not already provided.
 [Configuration migration](#configuration-migration) is possible through an external migration tool.
 
-Detailed [migration hints](#manual-config-migration-hints) explain migration the Icinga 1.x
+Detailed [migration hints](#manual-config-migration-hints) explain migration of the Icinga 1.x
 configuration objects into the native Icinga 2 configuration schema.
 Additional information on the differences is documented in the [migration](#differences-1x-2) chapter.
 

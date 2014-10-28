@@ -112,12 +112,16 @@ Examples:
 
 Verify the following configuration
 
-* Is the host/service the `enable_notifications` attribute set, and if, to which value?
+* Is the host/service `enable_notifications` attribute set, and if, to which value?
 * Do the notification attributes `states`, `types`, `period` match the notification conditions?
 * Do the user attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
 * Make sure the [notification](#features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
+
+If notifications are to be sent via mail make sure that the mail program specified exists.
+The name and location depends on the distribution so the preconfigured setting might have to be
+changed on your system.
 
 Examples:
 

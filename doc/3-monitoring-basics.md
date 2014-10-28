@@ -1963,7 +1963,7 @@ chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](#objecttype-idoPgsqlconnection)
 object configuration documentation.
-The DB IDO feature supports [High Availability](##high-availability-db-ido) in
+The DB IDO feature supports [High Availability](#high-availability-db-ido) in
 the Icinga 2 cluster.
 
 The following example query checks the health of the current Icinga 2 instance

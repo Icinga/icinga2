@@ -66,7 +66,7 @@ the following error:
     Config error: in /etc/icinga2/conf.d/hosts/localhost.conf: 15:8-15:14: syntax error, unexpected include (T_INCLUDE), expecting T_IDENTIFIER
     [2014-09-15 17:24:00 +0200] critical/config: 1 errors, 0 warnings.
 
-You can escape the `include` key with an additiona `@` character becoming `vars.@include`:
+You can escape the `include` key with an additional `@` character becoming `vars.@include`:
 
     object Host "localhost" {
       import "generic-host"
@@ -177,7 +177,7 @@ by an ASCII character in octal encoding.
 Strings spanning multiple lines can be specified by enclosing them in
 {{{ and }}}.
 
-Example.
+Example:
 
     {{{This
     is
@@ -1355,7 +1355,7 @@ Attributes:
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
   enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](#high-availability-db-ido). Must not be lower than 60s". Defaults to "60s".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -1444,7 +1444,7 @@ Attributes:
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
   enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](#high-availability-db-ido). Must not be lower than 60s". Defaults to "60s".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -1851,7 +1851,7 @@ cluster_zone | **Optional.** The zone name. Defaults to "$host.name$".
 ### <a id="plugin-check-command-overview"></a> Overview
 
 The Plugin Check Commands provides example configuration for plugin check commands
-provided by the the Monitoring Plugins project.
+provided by the Monitoring Plugins project.
 
 You can include the plugin check command definitions by using the `include`
 directive in your configuration file:
@@ -2029,7 +2029,7 @@ http_ignore_body         | **Optional.** Don't download the body, just the heade
 http_linespan            | **Optional.** Allow regex to span newline.
 http_expect_body_regex   | **Optional.** A regular expression which the body must match against. Incompatible with http_ignore_body.
 http_expect_body_eregi   | **Optional.** A case-insensitive expression which the body must match against. Incompatible with http_ignore_body.
-http_invertregex         | **Optional.** Changes behavior of http_expect_body_regex and http_expect_body_eregi to return CRITICAL if found, OK if not.
+http_invertregex         | **Optional.** Changes behaviour of http_expect_body_regex and http_expect_body_eregi to return CRITICAL if found, OK if not.
 http_warn_time           | **Optional.** The warning threshold.
 http_critical_time       | **Optional.** The critical threshold.
 http_expect              | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
@@ -2046,7 +2046,7 @@ http_useragent           | **Optional.** String to be sent in http header as Use
 http_header              | **Optional.** Any other tags to be sent in http header.
 http_extendedperfdata    | **Optional.** Print additional perfdata. Defaults to "false".
 http_onredirect          | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
-http_pagesize            | **Optional.** Minim page size required:Maximum page size required.
+http_pagesize            | **Optional.** Minimum page size required:Maximum page size required.
 http_timeout             | **Optional.** Seconds before connection times out.
 
 
@@ -2235,7 +2235,7 @@ snmp_oid            | **Required.** The SNMP OID.
 snmp_community      | **Optional.** The SNMP community. Defaults to "public".
 snmp_warn           | **Optional.** The warning threshold.
 snmp_crit           | **Optional.** The critical threshold.
-snmp_string         | **Optional.** Return OK state if the string exact match with the output value
+snmp_string         | **Optional.** Return OK state if the string matches exactly with the output value
 snmp_ereg           | **Optional.** Return OK state if extended regular expression REGEX matches with the output value
 snmp_eregi          | **Optional.** Return OK state if case-insensitive extended REGEX matches with the output value
 snmp_label          | **Optional.** Prefix label for output value
@@ -2280,7 +2280,7 @@ Custom Attributes:
 
 Name                 | Description
 ---------------------|--------------
-dns_lookup           | **Optional.** The hostname or IP to query the dns for. Defaults to $host_name$.
+dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to $host_name$.
 dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
 dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot.
 dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
@@ -2453,7 +2453,7 @@ snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. 
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
 snmp_crit               | **Optional.** The critical threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
-snmp_load_type          | **Optional.** Load type. Defaults to "stand". Check all available types int the [snmp load](http://nagios.manubulon.com/snmp_load.html) documentation.
+snmp_load_type          | **Optional.** Load type. Defaults to "stand". Check all available types in the [snmp load](http://nagios.manubulon.com/snmp_load.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
 
 #### <a id="plugin-check-command-snmp-memory"></a> snmp-memory
@@ -2497,7 +2497,7 @@ snmp_login              | **Optional.** SNMP version 3 username. Defaults to "sn
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
-snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default..
+snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.

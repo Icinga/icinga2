@@ -207,7 +207,7 @@ Example:
     }
 
 The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
-[Zone](objecttype-zone) object.
+[Zone](#objecttype-zone) object.
 
     object Endpoint "icinga2b" {
       host = "icinga2b.icinga.org"

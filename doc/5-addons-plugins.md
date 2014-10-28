@@ -45,7 +45,7 @@ number of community provided web interfaces too:
 ## <a id="plugins"></a> Plugins
 
 You can find plugins (additional to the ones at [Monitoring Plugins](https://www.monitoring-plugins.org)) over at
-[Monitoring Exchange](#https://www.monitoringexchange.org)
+[Monitoring Exchange](https://www.monitoringexchange.org)
 
 More details on the plugins can also be found on the Icinga Wiki at https://wiki.icinga.org
 
