@@ -189,7 +189,6 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 			attrs->Set("import", imports);
 	}
 
-
 	if (m_Command == RepositoryCommandAdd) {
 		Utility::LoadExtensionLibrary("icinga");
 		RepositoryUtility::AddObject(name, m_Type, attrs);

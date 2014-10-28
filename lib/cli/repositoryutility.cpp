@@ -219,6 +219,7 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 		Dictionary::Ptr vattrs = attrs->ShallowClone();
 		vattrs->Set("__name", vattrs->Get("name"));
 		vattrs->Remove("name");
+		vattrs->Remove("import");
 		vattrs->Set("type", type);
 
 		RepositoryTypeRuleUtilities utils;
