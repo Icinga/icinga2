@@ -73,6 +73,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 	BOOST_FOREACH(const Dictionary::Ptr& agent, AgentUtility::GetAgents()) {
 		Dictionary::Ptr repository = agent->Get("repository");
+		String zone = agent->Get("zone");
 
 		ObjectLock olock(repository);
 		BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
@@ -81,6 +82,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 			/* add a new host to the config repository */
 			Dictionary::Ptr host_attrs = make_shared<Dictionary>();
 			host_attrs->Set("check_command", "dummy"); //TODO: add a repository-host template
+			host_attrs->Set("zone", zone);
 
 			if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
 				Log(LogCritical, "cli")
@@ -96,6 +98,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				Dictionary::Ptr service_attrs = make_shared<Dictionary>();
 				service_attrs->Set("host_name", host); //Required for host-service relation
 				service_attrs->Set("check_command", "dummy"); //TODO: add a repository-service template
+				service_attrs->Set("zone", zone);
 
 				if (!RepositoryUtility::AddObject(service, "Service", service_attrs)) {
 					Log(LogCritical, "cli")
