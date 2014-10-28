@@ -175,13 +175,6 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 
 	String name = attrs->Get("name");
 
-	if (m_Type == "Service") {
-		if (!attrs->Contains("host_name")) {
-			Log(LogCritical, "cli", "Service objects require the 'host_name' attribute.");
-			return 1;
-		}
-	}
-
 	if (vm.count("import")) {
 		Array::Ptr imports = make_shared<Array>();
 
@@ -196,13 +189,12 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 
 
 	if (m_Command == RepositoryCommandAdd) {
+		Utility::LoadExtensionLibrary("icinga");
 		RepositoryUtility::AddObject(name, m_Type, attrs);
-	}
-	else if (m_Command == RepositoryCommandRemove) {
+	} else if (m_Command == RepositoryCommandRemove) {
 		/* pass attrs for service->host_name requirement */
 		RepositoryUtility::RemoveObject(name, m_Type, attrs);
-	}
-	else if (m_Command == RepositoryCommandSet) {
+	} else if (m_Command == RepositoryCommandSet) {
 		Log(LogWarning, "cli")
 		    << "Not supported yet. Please check the roadmap at https://dev.icinga.org\n";
 		return 1;

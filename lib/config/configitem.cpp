@@ -270,8 +270,10 @@ void ConfigItem::ValidateItem(void)
 		return;
 	}
 
+	TypeRuleUtilities utils;
+	
 	try {
-		ctype->ValidateItem(GetSelf());
+		ctype->ValidateItem(GetName(), GetProperties(), GetDebugInfo(), &utils);
 	} catch (const ConfigError& ex) {
 		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());

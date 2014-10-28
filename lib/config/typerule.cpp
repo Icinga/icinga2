@@ -42,7 +42,7 @@ bool TypeRule::MatchName(const String& name) const
 	return (Utility::Match(m_NamePattern, name));
 }
 
-bool TypeRule::MatchValue(const Value& value, String *hint) const
+bool TypeRule::MatchValue(const Value& value, String *hint, const TypeRuleUtilities *utils) const
 {
 	ConfigItem::Ptr item;
 
@@ -77,21 +77,26 @@ bool TypeRule::MatchValue(const Value& value, String *hint) const
 			if (!value.IsScalar())
 				return false;
 
-			item = ConfigItem::GetObject(m_NameType, value);
-
-			if (!item) {
-				*hint = "Object '" + value + "' of type '" + m_NameType + "' does not exist.";
-				return false;
-			}
-
-			if (item->IsAbstract()) {
-				*hint = "Object '" + value + "' of type '" + m_NameType + "' must not be a template.";
-				return false;
-			}
-
-			return true;
+			return utils->ValidateName(m_NameType, value, hint);
 
 		default:
 			return false;
 	}
+}
+
+bool TypeRuleUtilities::ValidateName(const String& type, const String& name, String *hint) const
+{
+	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
+
+	if (!item) {
+		*hint = "Object '" + name + "' of type '" + type + "' does not exist.";
+		return false;
+	}
+
+	if (item->IsAbstract()) {
+		*hint = "Object '" + name + "' of type '" + type + "' must not be a template.";
+		return false;
+	}
+
+	return true;
 }

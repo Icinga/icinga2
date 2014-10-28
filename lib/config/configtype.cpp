@@ -74,33 +74,21 @@ void ConfigType::AddParentRules(std::vector<TypeRuleList::Ptr>& ruleLists, const
 	}
 }
 
-void ConfigType::ValidateItem(const ConfigItem::Ptr& item)
+void ConfigType::ValidateItem(const String& name, const Dictionary::Ptr& attrs, const DebugInfo& debugInfo, const TypeRuleUtilities *utils)
 {
-	/* Don't validate abstract items. */
-	if (item->IsAbstract())
-		return;
+	String location = "Object '" + name + "' (Type: '" + GetName() + "')";
 
-	Dictionary::Ptr attrs;
-	DebugInfo debugInfo;
-	String type, name;
-
-	{
-		ObjectLock olock(item);
-
-		attrs = item->GetProperties();
-		debugInfo = item->GetDebugInfo();
-		type = item->GetType();
-		name = item->GetName();
-	}
-
+	if (!debugInfo.Path.IsEmpty())
+		location += " at " + debugInfo.Path + ":" + Convert::ToString(debugInfo.FirstLine);
+	
 	std::vector<String> locations;
-	locations.push_back("Object '" + name + "' (Type: '" + type + "') at " + debugInfo.Path + ":" + Convert::ToString(debugInfo.FirstLine));
+	locations.push_back(location);
 
 	std::vector<TypeRuleList::Ptr> ruleLists;
 	AddParentRules(ruleLists, GetSelf());
 	ruleLists.push_back(m_RuleList);
 
-	ValidateDictionary(attrs, ruleLists, locations);
+	ValidateDictionary(attrs, ruleLists, locations, utils);
 }
 
 String ConfigType::LocationToString(const std::vector<String>& locations)
@@ -120,7 +108,8 @@ String ConfigType::LocationToString(const std::vector<String>& locations)
 }
 
 void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
-    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations)
+    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations,
+    const TypeRuleUtilities *utils)
 {
 	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
@@ -163,7 +152,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 			TypeRuleList::Ptr subRuleList;
-			TypeValidationResult result = ruleList->ValidateAttribute(kv.first, kv.second, &subRuleList, &hint);
+			TypeValidationResult result = ruleList->ValidateAttribute(kv.first, kv.second, &subRuleList, &hint, utils);
 
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
@@ -192,16 +181,17 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 		}
 
 		if (!subRuleLists.empty() && kv.second.IsObjectType<Dictionary>())
-			ValidateDictionary(kv.second, subRuleLists, locations);
+			ValidateDictionary(kv.second, subRuleLists, locations, utils);
 		else if (!subRuleLists.empty() && kv.second.IsObjectType<Array>())
-			ValidateArray(kv.second, subRuleLists, locations);
+			ValidateArray(kv.second, subRuleLists, locations, utils);
 
 		locations.pop_back();
 	}
 }
 
 void ConfigType::ValidateArray(const Array::Ptr& array,
-    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations)
+    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations,
+    const TypeRuleUtilities *utils)
 {
 	BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
@@ -249,7 +239,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 		BOOST_FOREACH(const TypeRuleList::Ptr& ruleList, ruleLists) {
 			TypeRuleList::Ptr subRuleList;
-			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList, &hint);
+			TypeValidationResult result = ruleList->ValidateAttribute(key, value, &subRuleList, &hint, utils);
 
 			if (subRuleList)
 				subRuleLists.push_back(subRuleList);
@@ -267,7 +257,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 		}
 
 		if (overallResult == ValidationUnknownField)
-			ConfigCompilerContext::GetInstance()->AddMessage(false, "Unknown attribute: " + LocationToString(locations));
+			ConfigCompilerContext::GetInstance()->AddMessage(true, "Unknown attribute: " + LocationToString(locations));
 		else if (overallResult == ValidationInvalidType) {
 			String message = "Invalid value for array index: " + LocationToString(locations);
 
@@ -278,9 +268,9 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 		}
 
 		if (!subRuleLists.empty() && value.IsObjectType<Dictionary>())
-			ValidateDictionary(value, subRuleLists, locations);
+			ValidateDictionary(value, subRuleLists, locations, utils);
 		else if (!subRuleLists.empty() && value.IsObjectType<Array>())
-			ValidateArray(value, subRuleLists, locations);
+			ValidateArray(value, subRuleLists, locations, utils);
 
 		locations.pop_back();
 	}
@@ -310,4 +300,3 @@ ConfigTypeRegistry *ConfigTypeRegistry::GetInstance(void)
 {
 	return Singleton<ConfigTypeRegistry>::GetInstance();
 }
-

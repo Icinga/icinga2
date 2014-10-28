@@ -28,6 +28,17 @@ namespace icinga
 {
 
 /**
+ * Utilities for type rules.
+ *
+ * @ingroup config
+ */
+class TypeRuleUtilities
+{
+public:
+	virtual bool ValidateName(const String& type, const String& name, String *hint) const;
+};
+
+/**
  * The allowed type for a type rule.
  *
  * @ingroup config
@@ -58,7 +69,7 @@ public:
 	TypeRuleList::Ptr GetSubRules(void) const;
 
 	bool MatchName(const String& name) const;
-	bool MatchValue(const Value& value, String *hint) const;
+	bool MatchValue(const Value& value, String *hint, const TypeRuleUtilities *utils) const;
 
 private:
 	TypeSpecifier m_Type;

@@ -117,7 +117,8 @@ size_t TypeRuleList::GetLength(void) const
  * @returns The validation result.
  */
 TypeValidationResult TypeRuleList::ValidateAttribute(const String& name,
-    const Value& value, TypeRuleList::Ptr *subRules, String *hint) const
+    const Value& value, TypeRuleList::Ptr *subRules, String *hint,
+    const TypeRuleUtilities *utils) const
 {
 	bool foundField = false;
 	BOOST_FOREACH(const TypeRule& rule, m_Rules) {
@@ -126,7 +127,7 @@ TypeValidationResult TypeRuleList::ValidateAttribute(const String& name,
 
 		foundField = true;
 
-		if (rule.MatchValue(value, hint)) {
+		if (rule.MatchValue(value, hint, utils)) {
 			*subRules = rule.GetSubRules();
 			return ValidationOK;
 		}

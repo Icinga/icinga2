@@ -28,6 +28,7 @@ namespace icinga
 {
 
 struct TypeRule;
+class TypeRuleUtilities;
 
 /**
  * @ingroup config
@@ -59,7 +60,8 @@ public:
 	void AddRule(const TypeRule& rule);
 	void AddRules(const TypeRuleList::Ptr& ruleList);
 
-	TypeValidationResult ValidateAttribute(const String& name, const Value& value, TypeRuleList::Ptr *subRules, String *hint) const;
+	TypeValidationResult ValidateAttribute(const String& name, const Value& value,
+	    TypeRuleList::Ptr *subRules, String *hint, const TypeRuleUtilities *utils) const;
 
 	size_t GetLength(void) const;
 

@@ -19,6 +19,9 @@
 
 #include "cli/repositoryutility.hpp"
 #include "cli/clicommand.hpp"
+#include "config/configtype.hpp"
+#include "config/configcompilercontext.hpp"
+#include "config/configcompiler.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
@@ -177,6 +180,15 @@ void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 	}
 }
 
+class RepositoryTypeRuleUtilities : public TypeRuleUtilities
+{
+public:
+	virtual bool ValidateName(const String& type, const String& name, String *hint) const
+	{
+		return true;
+	}
+};
+
 /* modify objects and write changelog */
 bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
@@ -190,6 +202,45 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	change->Set("type", type);
 	change->Set("command", "add");
 	change->Set("attrs", attrs);
+
+	ConfigCompilerContext::GetInstance()->Reset();
+
+	String fname, fragment;
+	BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
+		ConfigCompiler::CompileText(fname, fragment);
+	}
+
+	ConfigType::Ptr ctype = ConfigType::GetByName(type);
+
+	if (!ctype)
+		Log(LogCritical, "cli")
+		    << "No validation type available for '" << type << "'.";
+	else {
+		Dictionary::Ptr vattrs = attrs->ShallowClone();
+		vattrs->Set("__name", vattrs->Get("name"));
+		vattrs->Remove("name");
+		vattrs->Set("type", type);
+
+		RepositoryTypeRuleUtilities utils;
+		ctype->ValidateItem(name, vattrs, DebugInfo(), &utils);
+
+		int warnings = 0, errors = 0;
+
+		BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
+			String logmsg = String("Config ") + (message.Error ? "error" : "warning") + ": " + message.Text;
+
+			if (message.Error) {
+				Log(LogCritical, "config", logmsg);
+				errors++;
+			} else {
+				Log(LogWarning, "config", logmsg);
+				warnings++;
+			}
+		}
+
+		if (errors > 0)
+			return false;
+	}
 
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
