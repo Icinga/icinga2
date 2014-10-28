@@ -64,6 +64,8 @@ case "$1" in
 
         # enable default features
         enable_default_features $@
+
+        /usr/share/icinga2/migrate-hosts
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

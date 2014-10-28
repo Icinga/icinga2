@@ -262,6 +262,8 @@ exit 0
 %endif
 %endif
 
+%post common
+/usr/share/icinga2/migrate-hosts
 
 # all restart/feature actions belong to icinga2-bin
 %post bin

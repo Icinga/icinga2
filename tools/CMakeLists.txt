@@ -18,3 +18,9 @@
 add_subdirectory(mkclass)
 add_subdirectory(mkembedconfig)
 add_subdirectory(mkunity)
+
+install(
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/migrate-hosts
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE
+)

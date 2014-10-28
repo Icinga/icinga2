@@ -1,0 +1,53 @@
+#!/bin/sh
+# Moves configuration files from /etc/icinga2/conf.d/hosts
+# to /etc/icinga2/repository.d
+
+sysconfdir=`icinga2 variable get --current SysconfDir`
+
+if [ -z "$sysconfdir" ]; then
+    echo "Could not determine SysconfDir"
+    exit 1
+fi
+
+if [ ! -d $sysconfdir/icinga2/conf.d/hosts ]; then
+    exit 0
+fi
+
+mkdir -p $sysconfdir/icinga2/repository.d/hosts
+
+for hostFile in $sysconfdir/icinga2/conf.d/hosts/*.conf; do
+    host=`basename $hostFile .conf`
+
+    if [ "x$host" = "xlocalhost" ]; then
+        target="`hostname --fqdn`"
+    else
+        target=$host
+    fi
+
+    mv $sysconfdir/icinga2/conf.d/hosts/$host.conf $sysconfdir/icinga2/repository.d/hosts/$target.conf
+    sed -i "s/localhost/$target/g" $sysconfdir/icinga2/repository.d/hosts/$target.conf
+
+    if [ -d $sysconfdir/icinga2/conf.d/hosts/$host ]; then
+      mv $sysconfdir/icinga2/conf.d/hosts/$host $sysconfdir/icinga2/repository.d/hosts/$target
+      sed -i "s/localhost/$target/g" $sysconfdir/icinga2/repository.d/hosts/$target/*.conf
+    fi
+done
+
+cat >$sysconfdir/icinga2/conf.d/hosts/README <<TEXT
+What happened to my configuration files?
+========================================
+
+Your host and service configuration files were moved to the $sysconfdir/icinga2/repository.d directory.
+
+This allows you to manipulate those files using the "icinga2 repository" CLI commands.
+
+Here are a few commands you might want to try:
+
+\$ icinga2 repository host list
+
+\$ icinga2 repository service list
+
+\$ icinga2 repository --help
+TEXT
+
+exit 0

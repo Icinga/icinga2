@@ -4,3 +4,4 @@ debian/tmp/etc/logrotate.d
 debian/tmp/etc/bash_completion.d
 tools/syntax/* 		      usr/share/icinga2-common/syntax
 usr/share/icinga2
+usr/lib/icinga2/bin
