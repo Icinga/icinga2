@@ -118,8 +118,12 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 			Dictionary::Ptr host_attrs = make_shared<Dictionary>();
 			host_attrs->Set("__name", host);
 			host_attrs->Set("name", host);
-			host_attrs->Set("check_command", "dummy"); //TODO: add a repository-host template
+			host_attrs->Set("check_command", "dummy");
 			host_attrs->Set("zone", zone);
+
+			Array::Ptr host_imports = make_shared<Array>();
+			host_imports->Add("agent-host"); //default host agent template
+			host_attrs->Set("import", host_imports);
 
 			if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
 				Log(LogCritical, "cli")
@@ -159,8 +163,12 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				service_attrs->Set("__name", long_name);
 				service_attrs->Set("name", service);
 				service_attrs->Set("host_name", host); //Required for host-service relation
-				service_attrs->Set("check_command", "dummy"); //TODO: add a repository-service template
+				service_attrs->Set("check_command", "dummy");
 				service_attrs->Set("zone", zone);
+
+				Array::Ptr service_imports = make_shared<Array>();
+				service_imports->Add("agent-service"); //default service agent template
+				service_attrs->Set("import", service_imports);
 
 				if (!RepositoryUtility::AddObject(service, "Service", service_attrs)) {
 					Log(LogCritical, "cli")

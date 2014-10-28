@@ -26,6 +26,7 @@ install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf ${CMAKE_INST
 install_if_not_exists(icinga2/icinga2.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 install_if_not_exists(icinga2/zones.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
+install_if_not_exists(icinga2/conf.d/agent.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/commands.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/downtimes.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/groups.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
