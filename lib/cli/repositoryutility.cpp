@@ -350,9 +350,18 @@ bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& t
 	if (type == "Host") {
 		path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name;
 
+		/* if path does not exist, this host does not have any services */
+		if (!Utility::PathExists(path)) {
+			Log(LogNotice, "cli")
+			    << type << " '" << name << "' does not have any services configured.";
+			return success;
+		}
+
 		std::vector<String> files;
+
 		Utility::GlobRecursive(path, "*.conf",
 		    boost::bind(&RepositoryUtility::CollectObjects, _1, boost::ref(files)), GlobFile);
+
 
 		BOOST_FOREACH(const String& file, files) {
 			RemoveObjectFileInternal(file);
