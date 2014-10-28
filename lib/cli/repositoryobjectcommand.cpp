@@ -119,8 +119,10 @@ String RepositoryObjectCommand::GetShortDescription(void) const
 void RepositoryObjectCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
-	visibleDesc.add_options()
-		("import", po::value<std::vector<std::string> >(), "Import the defined template(s) into the object. Must be defined and included separately in Icinga 2");
+	if (m_Command == RepositoryCommandAdd) {
+		visibleDesc.add_options()
+			("import", po::value<std::vector<std::string> >(), "Import the defined template(s) into the object. Must be defined and included separately in Icinga 2");
+	}
 }
 
 std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
