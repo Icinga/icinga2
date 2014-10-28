@@ -34,6 +34,12 @@ using namespace icinga;
 
 static void Encode(yajl_gen handle, const Value& value);
 
+#ifdef YAJL_MAJOR < 2
+typedef unsigned int yajl_size;
+#else /* YAJL_MAJOR */
+typedef size_t yajl_size;
+#endif /* YAJL_MAJOR */
+
 static void EncodeDictionary(yajl_gen handle, const Dictionary::Ptr& dict)
 {
 	yajl_gen_map_open(handle);
@@ -104,7 +110,8 @@ String icinga::JsonEncode(const Value& value)
 	Encode(handle, value);
 
 	const unsigned char *buf;
-	size_t len;
+	yajl_size len;
+
 	yajl_gen_get_buf(handle, &buf, &len);
 
 	String result = String(buf, buf + len);
@@ -222,7 +229,7 @@ static int DecodeBoolean(void *ctx, int value)
 	return 1;
 }
 
-static int DecodeNumber(void *ctx, const char *str, size_t len)
+static int DecodeNumber(void *ctx, const char *str, yajl_size len)
 {
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
@@ -237,7 +244,7 @@ static int DecodeNumber(void *ctx, const char *str, size_t len)
 	return 1;
 }
 
-static int DecodeString(void *ctx, const unsigned char *str, size_t len)
+static int DecodeString(void *ctx, const unsigned char *str, yajl_size len)
 {
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
