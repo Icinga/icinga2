@@ -34,7 +34,7 @@ using namespace icinga;
 
 static void Encode(yajl_gen handle, const Value& value);
 
-#ifdef YAJL_MAJOR < 2
+#if YAJL_MAJOR < 2
 typedef unsigned int yajl_size;
 #else /* YAJL_MAJOR */
 typedef size_t yajl_size;
