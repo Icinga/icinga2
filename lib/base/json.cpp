@@ -25,6 +25,7 @@
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
+#include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_parse.h>
 #include <stack>
@@ -93,7 +94,13 @@ static void Encode(yajl_gen handle, const Value& value)
 
 String icinga::JsonEncode(const Value& value)
 {
+#if YAJL_MAJOR < 2
+	yajl_gen_config conf = { 0, "" };
+	yajl_gen handle = yajl_gen_alloc(&conf, NULL);
+#else /* YAJL_MAJOR */
 	yajl_gen handle = yajl_gen_alloc(NULL);
+#endif /* YAJL_MAJOR */
+
 	Encode(handle, value);
 
 	const unsigned char *buf;
@@ -317,13 +324,24 @@ Value icinga::JsonDecode(const String& data)
 	};
 
 	yajl_handle handle;
+#if YAJL_MAJOR < 2
+	yajl_parser_config cfg = { 1, 0 };
+#endif /* YAJL_MAJOR */
 	JsonContext context;
 
+#if YAJL_MAJOR < 2
+	handle = yajl_alloc(&callbacks, &cfg, NULL, &context);
+#else /* YAJL_MAJOR */
 	handle = yajl_alloc(&callbacks, NULL, &context);
+#endif /* YAJL_MAJOR */
 
 	yajl_parse(handle, reinterpret_cast<const unsigned char *>(data.CStr()), data.GetLength());
 
+#if YAJL_MAJOR < 2
+	if (yajl_parse_complete(handle) != yajl_status_ok) {
+#else /* YAJL_MAJOR */
 	if (yajl_complete_parse(handle) != yajl_status_ok) {
+#endif /* YAJL_MAJOR */
 		unsigned char *internal_err_str = yajl_get_error(handle, 1, reinterpret_cast<const unsigned char *>(data.CStr()), data.GetLength());
 		String msg = reinterpret_cast<char *>(internal_err_str);
 		yajl_free_error(handle, internal_err_str);
