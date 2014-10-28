@@ -21,18 +21,7 @@
 #include "cli/repositoryutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/convert.hpp"
-#include "base/dynamicobject.hpp"
-#include "base/dynamictype.hpp"
-#include "base/serializer.hpp"
-#include "base/netstring.hpp"
-#include "base/stdiostream.hpp"
-#include "base/debug.hpp"
-#include "base/objectlock.hpp"
-#include "base/console.hpp"
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
+#include "base/utility.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -71,10 +60,13 @@ ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
  */
 int RepositoryCommitCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	/* create required repositories first, just in case */
+	Utility::MkDirP(RepositoryUtility::GetRepositoryChangeLogPath(), 0750);
+
 	if (vm.count("simulate")) {
 		RepositoryUtility::PrintChangeLog(std::cout);
 		std::cout << "\n";
-		std::cout << "Simulation not yet implemented (#)\n";
+		std::cout << "Simulation not yet implemented.\n";
 		//TODO
 		return 1;
 	} else if (vm.count("clear")) {

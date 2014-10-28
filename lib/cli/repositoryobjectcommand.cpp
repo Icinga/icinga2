@@ -155,6 +155,11 @@ int RepositoryObjectCommand::GetMaxArguments(void) const
 	return -1;
 }
 
+ImpersonationLevel RepositoryObjectCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateRoot;
+}
+
 /**
  * The entry point for the "repository <type> <add/remove/list>" CLI command.
  *

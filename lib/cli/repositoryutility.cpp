@@ -590,15 +590,10 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 	boost::algorithm::to_lower(type);
 	Dictionary::Ptr attrs = change->Get("attrs");
 
-	fp << " " << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << type << ConsoleColorTag(Console_Normal) << " '";
+	fp << " " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal) << " '";
 	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'";
 
-	if (!attrs || attrs->GetLength() == 0) {
-		fp << "\n";
-		return;
-	}
-
-	fp << " with attributes: \n";
+	fp << ": \n";
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
 		/* skip the name */
