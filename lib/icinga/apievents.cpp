@@ -19,6 +19,7 @@
 
 #include "icinga/apievents.hpp"
 #include "icinga/service.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
@@ -133,8 +134,29 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	if (!params)
 		return Empty;
 
-	CheckResult::Ptr cr = make_shared<CheckResult>();	
+	CheckResult::Ptr cr = make_shared<CheckResult>();
+
+	Dictionary::Ptr vcr = params->Get("cr");
+	Array::Ptr vperf = vcr->Get("performance_data");
+	vcr->Remove("performance_data");
+
 	Deserialize(cr, params->Get("cr"), true);
+
+	Array::Ptr rperf = make_shared<Array>();
+
+	ObjectLock olock(vperf);
+	BOOST_FOREACH(const Value& vp, vperf) {
+		Value p;
+
+		if (vp.IsObjectType<Dictionary>()) {
+			PerfdataValue::Ptr val = make_shared<PerfdataValue>();
+			Deserialize(val, vp, true);
+			rperf->Add(val);
+		} else
+			rperf->Add(vp);
+	}
+
+	cr->SetPerformanceData(rperf);
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
