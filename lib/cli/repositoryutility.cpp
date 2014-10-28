@@ -192,6 +192,22 @@ public:
 /* modify objects and write changelog */
 bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
+	std::vector<String> object_paths = GetObjects();
+	String pattern;
+
+	if (type == "Service")
+		pattern = attrs->Get("host_name") + "/" + name + ".conf";
+	else
+		pattern = name + ".conf";
+
+	BOOST_FOREACH(const String& object_path, object_paths) {
+		if (object_path.Contains(pattern)) {
+			Log(LogWarning, "cli")
+			    << type << " '" << name << "' already exists. Skipping creation.";
+			return false;
+		}
+	}
+
 	/* add a new changelog entry by timestamp */
 	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(Utility::GetTime()) + "-" + type + "-" + SHA256(name) + ".change";
 
