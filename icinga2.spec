@@ -463,6 +463,7 @@ exit 0
 %{_libdir}/%{name}
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
+%exclude %{_datadir}/%{name}/migrate-hosts
 %{_mandir}/man8/%{name}.8.gz
 %{_mandir}/man8/%{name}-prepare-dirs.8.gz
 
@@ -486,6 +487,7 @@ exit 0
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/include
 %{_datadir}/%{name}/include
+%{_datadir}/%{name}/migrate-hosts
 
 %files doc
 %defattr(-,root,root,-)
