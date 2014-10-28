@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup config
  */
-class TypeRuleUtilities
+class I2_CONFIG_API TypeRuleUtilities
 {
 public:
 	virtual bool ValidateName(const String& type, const String& name, String *hint) const;
