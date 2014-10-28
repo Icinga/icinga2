@@ -41,6 +41,8 @@ void Host::OnConfigLoaded(void)
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
+		groups = groups->ShallowClone();
+
 		ObjectLock olock(groups);
 
 		BOOST_FOREACH(const String& name, groups) {

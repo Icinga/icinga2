@@ -66,9 +66,6 @@ bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& r
 	/* assign host group membership */
 	group->ResolveGroupMembership(host, true);
 
-	/* update groups attribute for apply */
-	host->AddGroup(group_name);
-
 	return true;
 }
 
@@ -100,6 +97,8 @@ std::set<Host::Ptr> HostGroup::GetMembers(void) const
 
 void HostGroup::AddMember(const Host::Ptr& host)
 {
+	host->AddGroup(GetName());
+
 	boost::mutex::scoped_lock lock(m_HostGroupMutex);
 	m_Members.insert(host);
 }

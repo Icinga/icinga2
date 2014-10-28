@@ -66,9 +66,6 @@ bool UserGroup::EvaluateObjectRuleOne(const User::Ptr& user, const ObjectRule& r
 	/* assign user group membership */
 	group->ResolveGroupMembership(user, true);
 
-	/* update groups attribute for apply */
-	user->AddGroup(group_name);
-
 	return true;
 }
 
@@ -100,6 +97,8 @@ std::set<User::Ptr> UserGroup::GetMembers(void) const
 
 void UserGroup::AddMember(const User::Ptr& user)
 {
+	user->AddGroup(GetName());
+
 	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	m_Members.insert(user);
 }

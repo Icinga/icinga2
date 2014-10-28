@@ -69,9 +69,6 @@ bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr& service, const Obje
 	/* assign service group membership */
 	group->ResolveGroupMembership(service, true);
 
-	/* update groups attribute for apply */
-	service->AddGroup(group_name);
-
 	return true;
 }
 
@@ -103,6 +100,8 @@ std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
 
 void ServiceGroup::AddMember(const Service::Ptr& service)
 {
+	service->AddGroup(GetName());
+
 	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	m_Members.insert(service);
 }
