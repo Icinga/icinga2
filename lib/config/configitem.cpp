@@ -259,7 +259,7 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 
 void ConfigItem::ValidateItem(void)
 {
-	if (m_Validated)
+	if (m_Validated || IsAbstract())
 		return;
 
 	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
