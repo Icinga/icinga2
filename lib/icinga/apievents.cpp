@@ -1530,14 +1530,6 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	if (vrepository.IsEmpty() || !vrepository.IsObjectType<Dictionary>())
 		return Empty;
 
-	Dictionary::Ptr repository = vrepository;
-	Value hostInfo = repository->Get("localhost");
-
-	if (!hostInfo.IsEmpty() && origin.FromZone) {
-		repository->Remove("localhost");
-		repository->Set(origin.FromZone->GetName(), hostInfo);
-	}
-
 	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint")) + ".repo";
 	String repositoryTempFile = repositoryFile + ".tmp";
 
