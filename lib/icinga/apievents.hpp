@@ -112,8 +112,6 @@ public:
 	static String GetRepositoryDir(void);
 	static void RepositoryTimerHandler(void);
 	static Value UpdateRepositoryAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
-
-	static Host::Ptr FindHostByVirtualName(const String& hostName, const MessageOrigin& origin);
 };
 
 }

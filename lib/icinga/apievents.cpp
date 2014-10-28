@@ -136,7 +136,7 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	CheckResult::Ptr cr = make_shared<CheckResult>();	
 	Deserialize(cr, params->Get("cr"), true);
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -192,7 +192,7 @@ Value ApiEvents::NextCheckChangedAPIHandler(const MessageOrigin& origin, const D
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -288,7 +288,7 @@ Value ApiEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin& origin, co
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -344,7 +344,7 @@ Value ApiEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin& ori
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -400,7 +400,7 @@ Value ApiEvents::EnableActiveChecksChangedAPIHandler(const MessageOrigin& origin
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -456,7 +456,7 @@ Value ApiEvents::EnablePassiveChecksChangedAPIHandler(const MessageOrigin& origi
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -512,7 +512,7 @@ Value ApiEvents::EnableNotificationsChangedAPIHandler(const MessageOrigin& origi
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -568,7 +568,7 @@ Value ApiEvents::EnableFlappingChangedAPIHandler(const MessageOrigin& origin, co
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -624,7 +624,7 @@ Value ApiEvents::EnableEventHandlerChangedAPIHandler(const MessageOrigin& origin
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -680,7 +680,7 @@ Value ApiEvents::EnablePerfdataChangedAPIHandler(const MessageOrigin& origin, co
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -736,7 +736,7 @@ Value ApiEvents::CheckIntervalChangedAPIHandler(const MessageOrigin& origin, con
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -792,7 +792,7 @@ Value ApiEvents::RetryIntervalChangedAPIHandler(const MessageOrigin& origin, con
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -848,7 +848,7 @@ Value ApiEvents::MaxCheckAttemptsChangedAPIHandler(const MessageOrigin& origin, 
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -904,7 +904,7 @@ Value ApiEvents::EventCommandChangedAPIHandler(const MessageOrigin& origin, cons
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -965,7 +965,7 @@ Value ApiEvents::CheckCommandChangedAPIHandler(const MessageOrigin& origin, cons
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1026,7 +1026,7 @@ Value ApiEvents::CheckPeriodChangedAPIHandler(const MessageOrigin& origin, const
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1149,7 +1149,7 @@ Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dicti
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1209,7 +1209,7 @@ Value ApiEvents::CommentRemovedAPIHandler(const MessageOrigin& origin, const Dic
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1265,7 +1265,7 @@ Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dict
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1328,7 +1328,7 @@ Value ApiEvents::DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Di
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1389,7 +1389,7 @@ Value ApiEvents::AcknowledgementSetAPIHandler(const MessageOrigin& origin, const
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1446,7 +1446,7 @@ Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, c
 	if (!params)
 		return Empty;
 
-	Host::Ptr host = FindHostByVirtualName(params->Get("host"), origin);
+	Host::Ptr host = Host::GetByName(params->Get("host"));
 
 	if (!host)
 		return Empty;
@@ -1571,16 +1571,3 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	return Empty;
 }
 
-Host::Ptr ApiEvents::FindHostByVirtualName(const String& hostName, const MessageOrigin& origin)
-{
-	if (origin.FromZone) {
-		Zone::Ptr my_zone = Zone::GetLocalZone();
-
-		if (origin.FromZone->IsChildOf(my_zone) && hostName == "localhost")
-			return Host::GetByName(origin.FromZone->GetName());
-		else if (!origin.FromZone->IsChildOf(my_zone) && hostName == my_zone->GetName())
-			return Host::GetByName("localhost");
-	}
-
-	return Host::GetByName(hostName);
-}
