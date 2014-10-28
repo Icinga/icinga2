@@ -172,19 +172,56 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 	AgentUtility::GenerateAgentMasterIcingaConfig(cn);
 
-	/* enable the ApiListener config (verify its data) */
+	/* enable the ApiListener config */
 
-	Log(LogInformation, "cli", "Enabling the APIListener feature.");
-
-	String api_path = FeatureUtility::GetFeaturesEnabledPath() + "/api.conf";
-	//TODO: verify that the correct attributes are set on the ApiListener object
-	//by reading the configuration (CompileFile) and fetching the object
+	Log(LogInformation, "cli", "Updating the APIListener feature.");
 
 	std::vector<std::string> enable;
 	enable.push_back("api");
 	FeatureUtility::EnableFeatures(enable);
 
-	//TODO read --listen and set that as bind_host,port on ApiListener
+	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
+	AgentUtility::CreateBackupFile(apipath);
+
+	String apipathtmp = apipath + ".tmp";
+
+	std::ofstream fp;
+	fp.open(apipathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+
+	fp << "/**\n"
+	    << " * The API listener is used for distributed monitoring setups.\n"
+	    << " */\n"
+	    << "object ApiListener \"api\" {\n"
+	    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
+	    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
+	    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+
+	if (vm.count("listen")) {
+		std::vector<String> tokens;
+		boost::algorithm::split(tokens, vm["listen"].as<std::string>(), boost::is_any_of(","));
+
+		if (tokens.size() > 0)
+			fp << "  bind_host = \"" << tokens[0] << "\"\n";
+		if (tokens.size() > 1)
+			fp << "  bind_port = " << tokens[1] << "\n";
+	}
+
+	fp << "\n"
+	    << "  ticket_salt = TicketSalt\n"
+	    << "}\n";
+
+	fp.close();
+
+#ifdef _WIN32
+        _unlink(apipath.CStr());
+#endif /* _WIN32 */
+
+        if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+                BOOST_THROW_EXCEPTION(posix_error()
+                    << boost::errinfo_api_function("rename")
+                    << boost::errinfo_errno(errno)
+                    << boost::errinfo_file_name(apipathtmp));
+        }
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {
@@ -203,7 +240,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	AgentUtility::UpdateConstant("TicketSalt", salt);
 
 	Log(LogInformation, "cli")
-	    << "Edit the api feature config file '" << api_path << "' and set a secure 'ticket_salt' attribute.";
+	    << "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
 
 	/* tell the user to reload icinga2 */
 
@@ -298,30 +335,56 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 		return 1;
 	}
 
-	/* enable the ApiListener config (verify its data) */
+	/* enable the ApiListener config */
 
-	Log(LogInformation, "cli", "Enabling the APIListener feature.");
+	Log(LogInformation, "cli", "Updating the APIListener feature.");
 
 	std::vector<std::string> enable;
 	enable.push_back("api");
 	FeatureUtility::EnableFeatures(enable);
 
-	String api_path = FeatureUtility::GetFeaturesEnabledPath() + "/api.conf";
-	//TODO: verify that the correct attributes are set on the ApiListener object
-	//by reading the configuration (CompileFile) and fetching the object
+	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
+	AgentUtility::CreateBackupFile(apipath);
 
-	/*
-        ConfigCompilerContext::GetInstance()->Reset();
-        ConfigCompiler::CompileFile(api_path);
+	String apipathtmp = apipath + ".tmp";
 
-	DynamicType::Ptr dt = DynamicType::GetByName("ApiListener");
+	std::ofstream fp;
+	fp.open(apipathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
-		std::cout << JsonSerialize(object) << std::endl;
-	}*/
+	fp << "/**\n"
+	    << " * The API listener is used for distributed monitoring setups.\n"
+	    << " */\n"
+	    << "object ApiListener \"api\" {\n"
+	    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
+	    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
+	    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
 
+	if (vm.count("listen")) {
+		std::vector<String> tokens;
+		boost::algorithm::split(tokens, vm["listen"].as<std::string>(), boost::is_any_of(","));
 
-	//TODO read --listen and set that as bind_host,port on ApiListener
+		if (tokens.size() > 0)
+			fp << "  bind_host = \"" << tokens[0] << "\"\n";
+		if (tokens.size() > 1)
+			fp << "  bind_port = " << tokens[1] << "\n";
+	}
+
+	fp << "\n"
+	    << "  ticket_salt = TicketSalt\n"
+	    << "}\n";
+
+	fp.close();
+
+#ifdef _WIN32
+        _unlink(apipath.CStr());
+#endif /* _WIN32 */
+
+        if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+                BOOST_THROW_EXCEPTION(posix_error()
+                    << boost::errinfo_api_function("rename")
+                    << boost::errinfo_errno(errno)
+                    << boost::errinfo_file_name(apipathtmp));
+        }
 
 	/* generate local zones.conf with zone+endpoint */
 
