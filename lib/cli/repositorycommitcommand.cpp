@@ -60,8 +60,10 @@ ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
  */
 int RepositoryCommitCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	/* create required repositories first, just in case */
-	Utility::MkDirP(RepositoryUtility::GetRepositoryChangeLogPath(), 0750);
+	if (!Utility::PathExists(RepositoryUtility::GetRepositoryChangeLogPath())) {
+		std::cout << "Repository Changelog path '" << RepositoryUtility::GetRepositoryChangeLogPath() << "' does not exist. Add objects first!\n";
+		return 1;
+	}
 
 	if (vm.count("simulate")) {
 		RepositoryUtility::PrintChangeLog(std::cout);

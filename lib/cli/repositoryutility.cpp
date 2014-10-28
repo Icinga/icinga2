@@ -629,7 +629,7 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 	}
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
-		if (kv.first == "import" || kv.first == "name") {
+		if (kv.first == "import" || kv.first == "name" || kv.first == "__name") {
 			continue;
 		} else {
 			fp << "\t" << kv.first << " = ";

@@ -150,14 +150,14 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
 		return CLICommand::GetPositionalSuggestions(word);
 }
 
-int RepositoryObjectCommand::GetMaxArguments(void) const
-{
-	return -1;
-}
-
 ImpersonationLevel RepositoryObjectCommand::GetImpersonationLevel(void) const
 {
 	return ImpersonateRoot;
+}
+
+int RepositoryObjectCommand::GetMaxArguments(void) const
+{
+	return -1;
 }
 
 /**
