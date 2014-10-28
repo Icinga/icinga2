@@ -219,7 +219,6 @@ include				return T_INCLUDE;
 include_recursive		return T_INCLUDE_RECURSIVE;
 library				return T_LIBRARY;
 null				return T_NULL;
-partial				return T_PARTIAL;
 true				{ yylval->num = 1; return T_NUMBER; }
 false				{ yylval->num = 0; return T_NUMBER; }
 const				return T_CONST;

@@ -151,7 +151,6 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %token T_INCLUDE_RECURSIVE "include_recursive (T_INCLUDE_RECURSIVE)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_INHERITS "inherits (T_INHERITS)"
-%token T_PARTIAL "partial (T_PARTIAL)"
 %token T_APPLY "apply (T_APPLY)"
 %token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
@@ -172,7 +171,6 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %type <variant> typerulelist
 %type <op> lbinary_op
 %type <type> type
-%type <num> partial_specifier
 %type <variant> rterm
 %type <variant> rterm_array
 %type <variant> rterm_scope
@@ -325,42 +323,29 @@ identifier: T_IDENTIFIER
 	}
 	;
 
-type: partial_specifier T_TYPE identifier
+type: T_TYPE identifier
 	{
-		String name = String($3);
-		free($3);
+		String name = String($2);
+		free($2);
 
 		m_Type = ConfigType::GetByName(name);
 
 		if (!m_Type) {
-			if ($1)
-				BOOST_THROW_EXCEPTION(ConfigError("Partial type definition for unknown type '" + name + "'") << errinfo_debuginfo(DebugInfoRange(@1, @3)));
-
-			m_Type = make_shared<ConfigType>(name, DebugInfoRange(@1, @3));
+			m_Type = make_shared<ConfigType>(name, DebugInfoRange(@1, @2));
 			m_Type->Register();
 		}
 	}
 	type_inherits_specifier typerulelist sep
 	{
-		TypeRuleList::Ptr ruleList = *$6;
+		TypeRuleList::Ptr ruleList = *$5;
+		delete $5;
+
 		m_Type->GetRuleList()->AddRules(ruleList);
 		m_Type->GetRuleList()->AddRequires(ruleList);
 
 		String validator = ruleList->GetValidator();
 		if (!validator.IsEmpty())
 			m_Type->GetRuleList()->SetValidator(validator);
-
-		delete $6;
-	}
-	;
-
-partial_specifier: /* Empty */
-	{
-		$$ = 0;
-	}
-	| T_PARTIAL
-	{
-		$$ = 1;
 	}
 	;
 
