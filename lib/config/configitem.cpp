@@ -120,7 +120,9 @@ Expression::Ptr ConfigItem::GetExpressionList(void) const
 
 Dictionary::Ptr ConfigItem::GetProperties(void)
 {
-	ASSERT(OwnsLock());
+	ASSERT(!OwnsLock());
+
+	ObjectLock olock(this);
 
 	if (!m_Properties) {
 		DebugHint dhint;
@@ -186,15 +188,7 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 	if (IsAbstract())
 		return DynamicObject::Ptr();
 
-	Dictionary::Ptr properties;
-
-	{
-		ObjectLock olock(this);
-
-		properties = GetProperties();
-	}
-
-	DynamicObject::Ptr dobj = dtype->CreateObject(properties);
+	DynamicObject::Ptr dobj = dtype->CreateObject(GetProperties());
 	dobj->SetDebugInfo(m_DebugInfo);
 	dobj->Register();
 
@@ -307,10 +301,7 @@ void ConfigItem::WriteObjectsFile(const String& filename)
 		persistentItem->Set("type", item->GetType());
 		persistentItem->Set("name", item->GetName());
 		persistentItem->Set("abstract", item->IsAbstract());
-		{
-			ObjectLock olock(item);
-			persistentItem->Set("properties", item->GetProperties());
-		}
+		persistentItem->Set("properties", item->GetProperties());
 		persistentItem->Set("debug_hints", item->GetDebugHints());
 
 		String json = JsonEncode(persistentItem);
