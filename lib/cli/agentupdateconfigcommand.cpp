@@ -74,6 +74,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 	BOOST_FOREACH(const Dictionary::Ptr& agent, AgentUtility::GetAgents()) {
 		Dictionary::Ptr repository = agent->Get("repository");
 		String zone = agent->Get("zone");
+		String endpoint = agent->Get("endpoint");
 
 		ObjectLock olock(repository);
 		BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
@@ -106,6 +107,35 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 					continue;
 				}
 			}
+		}
+
+		/* write a new zone and endpoint for the agent */
+		Dictionary::Ptr endpoint_attrs = make_shared<Dictionary>();
+
+		Dictionary::Ptr settings = agent->Get("settings");
+
+		if (settings) {
+			if (settings->Contains("host"))
+				endpoint_attrs->Set("host", settings->Get("host"));
+			if (settings->Contains("port"))
+				endpoint_attrs->Set("port", settings->Get("port"));
+		}
+
+		if (!RepositoryUtility::AddObject(endpoint, "Endpoint", endpoint_attrs)) {
+			Log(LogCritical, "cli")
+			    << "Cannot add agent endpoint '" << endpoint << "' to the config repository!\n";
+		}
+
+		Dictionary::Ptr zone_attrs = make_shared<Dictionary>();
+		Array::Ptr zone_members = make_shared<Array>();
+
+		zone_members->Add(endpoint);
+		zone_attrs->Set("endpoints", zone_members);
+		zone_attrs->Set("parent", agent->Get("parent_zone"));
+
+		if (!RepositoryUtility::AddObject(zone, "Zone", zone_attrs)) {
+			Log(LogCritical, "cli")
+			    << "Cannot add agent zone '" << zone << "' to the config repository!\n";
 		}
 	}
 

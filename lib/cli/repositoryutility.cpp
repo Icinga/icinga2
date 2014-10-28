@@ -84,7 +84,7 @@ String RepositoryUtility::GetRepositoryObjectConfigPath(const String& type, cons
 		path += "hosts/" + object->Get("host_name");
 	else if (type == "Zone")
 		path += "zones";
-	else if (type == "Endpoints")
+	else if (type == "Endpoint")
 		path += "endpoints";
 
 	return path;
@@ -181,7 +181,7 @@ void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
 	/* add a new changelog entry by timestamp */
-	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + "-" + SHA256(name) + ".change";
+	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(Utility::GetTime()) + "-" + type + "-" + SHA256(name) + ".change";
 
 	Dictionary::Ptr change = make_shared<Dictionary>();
 
@@ -197,7 +197,7 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 bool RepositoryUtility::RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
 	/* add a new changelog entry by timestamp */
-	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(static_cast<long>(Utility::GetTime())) + "-" + SHA256(name) + ".change";
+	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(Utility::GetTime()) + "-" + type + "-" + SHA256(name) + ".change";
 
 	Dictionary::Ptr change = make_shared<Dictionary>();
 
