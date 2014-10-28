@@ -235,7 +235,7 @@ void CompatLogger::RemoveDowntimeHandler(const Checkable::Ptr& checkable, const 
  * @threadsafety Always.
  */
 void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
+    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
     const String& author, const String& comment_text, const String& command_name)
 {
 	Host::Ptr host;

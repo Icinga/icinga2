@@ -113,7 +113,7 @@ void ServiceGroup::RemoveMember(const Service::Ptr& service)
 	m_Members.erase(service);
 }
 
-bool ServiceGroup::ResolveGroupMembership(Service::Ptr const& service, bool add, int rstack) {
+bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add, int rstack) {
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "ServiceGroup")

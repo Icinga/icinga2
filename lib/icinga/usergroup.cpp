@@ -110,7 +110,7 @@ void UserGroup::RemoveMember(const User::Ptr& user)
 	m_Members.erase(user);
 }
 
-bool UserGroup::ResolveGroupMembership(User::Ptr const& user, bool add, int rstack) {
+bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rstack) {
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "UserGroup")

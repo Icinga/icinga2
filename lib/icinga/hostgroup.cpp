@@ -110,7 +110,7 @@ void HostGroup::RemoveMember(const Host::Ptr& host)
 	m_Members.erase(host);
 }
 
-bool HostGroup::ResolveGroupMembership(Host::Ptr const& host, bool add, int rstack) {
+bool HostGroup::ResolveGroupMembership(const Host::Ptr& host, bool add, int rstack) {
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "HostGroup")

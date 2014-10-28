@@ -52,7 +52,7 @@ private:
 
 	void CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
 	void NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& service,
-	    const User::Ptr& user, NotificationType const& notification_type, CheckResult::Ptr const& cr,
+	    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
 	    const String& author, const String& comment_text, const String& command_name);
 	void FlappingHandler(const Checkable::Ptr& service, FlappingState flapping_state);
 	void TriggerDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);

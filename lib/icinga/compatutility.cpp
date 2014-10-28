@@ -349,7 +349,7 @@ int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checka
 
 /* vars attr */
 
-bool CompatUtility::IsLegacyAttribute(CustomVarObject::Ptr const& object, const String& name)
+bool CompatUtility::IsLegacyAttribute(const CustomVarObject::Ptr& object, const String& name)
 {
 	if ((name == "address" ||
 	    name == "address6") &&
