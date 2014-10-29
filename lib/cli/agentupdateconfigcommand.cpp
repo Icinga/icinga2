@@ -62,7 +62,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 	if (RepositoryUtility::ChangeLogHasPendingChanges()) {
 		Log(LogWarning, "cli")
 		    << "There are pending changes for commit.\n"
-		    << "Please review and commit them using 'icinga2 repository commit [--simulate]\n"
+		    << "Please review and commit them using 'icinga2 repository commit [--simulate]'\n"
 		    << "or drop them using 'icinga2 repository commit --clear' before proceeding.";
 		return 1;
 	}
@@ -86,13 +86,12 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
 
 	BOOST_FOREACH(const Dictionary::Ptr& agent, AgentUtility::GetAgents()) {
-
-		/* store existing structure in index */
-		inventory->Set(agent->Get("endpoint"), agent);
-
 		Dictionary::Ptr repository = agent->Get("repository");
 		String zone = agent->Get("zone");
 		String endpoint = agent->Get("endpoint");
+
+		/* store existing structure in index */
+		inventory->Set(endpoint, agent);
 
 		Dictionary::Ptr host_services = make_shared<Dictionary>();
 
@@ -209,7 +208,17 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		zone_attrs->Set("__name", zone);
 		zone_attrs->Set("name", zone);
 		zone_attrs->Set("endpoints", zone_members);
-		zone_attrs->Set("parent", agent->Get("parent_zone"));
+
+		String parent_zone = "master"; //hardcode the name
+
+		if (!agent->Contains("parent_zone") || !agent->Get("parent_zone")) {
+			Log(LogWarning, "cli")
+			    << "Agent '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
+		} else {
+			parent_zone = agent->Get("parent_zone");
+		}
+
+		zone_attrs->Set("parent", parent_zone);
 
 		if (!RepositoryUtility::AddObject(zone, "Zone", zone_attrs)) {
 			Log(LogCritical, "cli")
@@ -240,7 +249,6 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
 			}
 
-			//TODO: Remove zone/endpoint information as well
 			String zone = old_agent->Get("zone");
 			String endpoint = old_agent->Get("endpoint");
 

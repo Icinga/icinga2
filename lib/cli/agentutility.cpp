@@ -242,6 +242,8 @@ int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endp
 	Dictionary::Ptr my_master_zone = make_shared<Dictionary>();
 	Array::Ptr my_master_zone_members = make_shared<Array>();
 
+	String master_zone_name = "master"; //TODO: Find a better name.
+
 	BOOST_FOREACH(const std::string& endpoint, endpoints) {
 
 		/* extract all --endpoint arguments and store host,port info */
@@ -265,9 +267,8 @@ int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endp
 		my_config->Add(my_master_endpoint);
 	}
 
-
 	/* add the master zone to the config */
-	my_master_zone->Set("__name", "master"); //hardcoded name
+	my_master_zone->Set("__name", master_zone_name);
 	my_master_zone->Set("__type", "Zone");
 	my_master_zone->Set("endpoints", my_master_zone_members);
 
@@ -285,6 +286,7 @@ int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endp
 
 	my_zone->Set("__name", nodename);
 	my_zone->Set("__type", "Zone");
+	my_zone->Set("parent", master_zone_name); //set the master zone as parent
 	my_zone->Set("//this is the local agent", nodename);
 	my_zone->Set("endpoints", my_zone_members);
 
