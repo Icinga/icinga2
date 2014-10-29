@@ -137,7 +137,7 @@ public:
 
 	static bool PathExists(const String& path);
 
-	static bool CopyFile(const String& source, const String& target);
+	static void CopyFile(const String& source, const String& target);
 
 	static Value LoadJsonFile(const String& path);
 	static void SaveJsonFile(const String& path, const Value& value);

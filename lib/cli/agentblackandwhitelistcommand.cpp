@@ -142,49 +142,20 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 			return 1;
 		}
 
-		Dictionary::Ptr host_service = make_shared<Dictionary>();
-
-		String agent_filter = vm["agent"].as<std::string>();
-		String host_filter = vm["host"].as<std::string>();
 		String service_filter;
 
-		host_service->Set("host_filter", host_filter);
-
-		if (vm.count("service")) {
+		if (vm.count("service"))
 			service_filter = vm["service"].as<std::string>();
-			host_service->Set("service_filter", service_filter);
-		}
 
-		if (lists->Contains(agent_filter)) {
-			Dictionary::Ptr stored_host_service = lists->Get(agent_filter);
-
-			if (stored_host_service->Get("host_filter") == host_filter && !vm.count("service")) {
-				Log(LogWarning, "cli")
-				    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "'. Bailing out.";
-				return 1;
-			} else if (stored_host_service->Get("host_filter") == host_filter && stored_host_service->Get("service_filter") == service_filter) {
-				Log(LogWarning, "cli")
-				    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "' and service filter '"
-				    << service_filter << "'. Bailing out.";
-				return 1;
-			}
-		}
-
-		lists->Set(agent_filter, host_service);
-
-		Utility::SaveJsonFile(list_path, lists);
-
+		return AgentUtility::UpdateBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
 	} else if (m_Command == BlackAndWhitelistCommandList) {
-		std::cout << "Listing all " << m_Type << " entries:\n";
 
-		ObjectLock olock(lists);
-		BOOST_FOREACH(const Dictionary::Pair& kv, lists) {
-			String agent_filter = kv.first;
-			Dictionary::Ptr host_service = kv.second;
-
-			std::cout << "Agent " << m_Type << ": '" << agent_filter << "' Host: '"
-			    << host_service->Get("host_filter") << "' Service: '" << host_service->Get("service_filter") << "'.\n";
+		if (vm.count("agent") || vm.count("host") || vm.count("service")) {
+			Log(LogCritical, "cli", "List command does not take any arguments!");
+			return 1;
 		}
+
+		return AgentUtility::PrintBlackAndWhiteList(std::cout, m_Type);
 	} else if (m_Command == BlackAndWhitelistCommandRemove) {
 		if (!vm.count("agent")) {
 			Log(LogCritical, "cli", "At least the agent name filter is required!");
@@ -203,29 +174,7 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 			service_filter = vm["service"].as<std::string>();
 		}
 
-		if (lists->Contains(agent_filter)) {
-
-			Dictionary::Ptr host_service = lists->Get(agent_filter);
-
-			if (host_service->Get("host_filter") == host_filter && !vm.count("service")) {
-				Log(LogInformation, "cli")
-				    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "'. Removing from " << m_Type << ".";
-				lists->Remove(agent_filter);
-			} else if (host_service->Get("host_filter") == host_filter && host_service->Get("service_filter") == service_filter) {
-				Log(LogInformation, "cli")
-				    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "' and service filter '"
-				    << service_filter << "'. Removing from " << m_Type << ".";
-				lists->Remove(agent_filter);
-			} else {
-				Log(LogCritical, "cli", "Cannot remove filter!");
-				return 1;
-			}
-		} else {
-			Log(LogCritical, "cli", "Cannot remove filter!");
-			return 1;
-		}
-
-		Utility::SaveJsonFile(list_path, lists);
+		return AgentUtility::RemoveBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
 	}
 
 

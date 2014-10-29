@@ -60,6 +60,13 @@ public:
 	static int GenerateAgentIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);
 	static int GenerateAgentMasterIcingaConfig(const String& nodename);
 
+	/* black/whitelist */
+	static int UpdateBlackAndWhiteList(const String& type, const String& agent_filter,
+	    const String& host_filter, const String& service_filter);
+	static int RemoveBlackAndWhiteList(const String& type, const String& agent_filter,
+	    const String& host_filter, const String& service_filter);
+	static int PrintBlackAndWhiteList(std::ostream& fp, const String& type);
+
 private:
 	AgentUtility(void);
 	static bool RemoveAgentFile(const String& path);

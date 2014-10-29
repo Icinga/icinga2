@@ -303,13 +303,13 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 			BOOST_FOREACH(const Dictionary::Pair& kv, old_agent_repository) {
 				String old_host = kv.first;
 
-				if (!new_agent_repository->Contains(old_host)) {
-					if (old_host == "localhost") {
-						Log(LogWarning, "cli")
-						    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your agent '" << old_agent << "'.";
-						continue;
-					}
+				if (old_host == "localhost") {
+					Log(LogWarning, "cli")
+					    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your agent '" << old_agent << "'.";
+					continue;
+				}
 
+				if (!new_agent_repository->Contains(old_host)) {
 					Log(LogInformation, "cli")
 					    << "Agent update found old host '" << old_host << "' on agent '" << old_agent_name << "'. Removing it.";
 

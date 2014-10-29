@@ -383,27 +383,128 @@ bool AgentUtility::WriteAgentConfigObjects(const String& filename, const Array::
 }
 
 /*
+ * Black/Whitelist helpers
+ */
+int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
+{
+	String list_path = AgentUtility::GetRepositoryPath() + "/" + type + ".list";
+
+	Dictionary::Ptr lists = make_shared<Dictionary>();
+
+	if (Utility::PathExists(list_path)) {
+		lists = Utility::LoadJsonFile(list_path);
+	}
+
+	Dictionary::Ptr host_service = make_shared<Dictionary>();
+
+	host_service->Set("host_filter", host_filter);
+
+	if (!service_filter.IsEmpty()) {
+		host_service->Set("service_filter", service_filter);
+	}
+
+	if (lists->Contains(agent_filter)) {
+		Dictionary::Ptr stored_host_service = lists->Get(agent_filter);
+
+		if (stored_host_service->Get("host_filter") == host_filter && service_filter.IsEmpty()) {
+			Log(LogWarning, "cli")
+			    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "'. Bailing out.";
+			return 1;
+		} else if (stored_host_service->Get("host_filter") == host_filter && stored_host_service->Get("service_filter") == service_filter) {
+			Log(LogWarning, "cli")
+			    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "' and service filter '"
+			    << service_filter << "'. Bailing out.";
+			return 1;
+		}
+	}
+
+	lists->Set(agent_filter, host_service);
+
+	Utility::SaveJsonFile(list_path, lists);
+
+	return 0;
+}
+
+int AgentUtility::RemoveBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
+{
+	String list_path = AgentUtility::GetRepositoryPath() + "/" + type + ".list";
+
+	Dictionary::Ptr lists = make_shared<Dictionary>();
+
+	if (Utility::PathExists(list_path)) {
+		lists = Utility::LoadJsonFile(list_path);
+	}
+
+	if (lists->Contains(agent_filter)) {
+		Dictionary::Ptr host_service = lists->Get(agent_filter);
+
+		if (host_service->Get("host_filter") == host_filter && service_filter.IsEmpty()) {
+			Log(LogInformation, "cli")
+			    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "'. Removing from " << type << ".";
+			lists->Remove(agent_filter);
+		} else if (host_service->Get("host_filter") == host_filter && host_service->Get("service_filter") == service_filter) {
+			Log(LogInformation, "cli")
+			    << "Found agent filter '" << agent_filter << "' with host filter '" << host_filter << "' and service filter '"
+			    << service_filter << "'. Removing from " << type << ".";
+			lists->Remove(agent_filter);
+		} else {
+			Log(LogCritical, "cli", "Cannot remove filter!");
+			return 1;
+		}
+	} else {
+		Log(LogCritical, "cli", "Cannot remove filter!");
+		return 1;
+	}
+
+	Utility::SaveJsonFile(list_path, lists);
+
+	return 0;
+}
+
+int AgentUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
+{
+	String list_path = AgentUtility::GetRepositoryPath() + "/" + type + ".list";
+
+	Dictionary::Ptr lists = make_shared<Dictionary>();
+
+	if (Utility::PathExists(list_path)) {
+		lists = Utility::LoadJsonFile(list_path);
+	}
+
+	fp << "Listing all " << type << " entries:\n";
+
+	ObjectLock olock(lists);
+	BOOST_FOREACH(const Dictionary::Pair& kv, lists) {
+		String agent_filter = kv.first;
+		Dictionary::Ptr host_service = kv.second;
+
+		fp << "Agent " << type << ": '" << agent_filter << "' Host: '"
+		    << host_service->Get("host_filter") << "' Service: '" << host_service->Get("service_filter") << "'.\n";
+	}
+
+	return 0;
+}
+
+/*
  * We generally don't overwrite files without backup before
  */
 bool AgentUtility::CreateBackupFile(const String& target)
 {
-	if (Utility::PathExists(target)) {
-		String backup = target + ".orig";
+	if (!Utility::PathExists(target))
+		return false;
 
-#ifdef _WIN32
-		_unlink(backup.CStr());
-#endif /* _WIN32 */
+	String backup = target + ".orig";
 
-		if (rename(target.CStr(), backup.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("rename")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(target));
-		}
-
-		Log(LogInformation, "cli")
-		    << "Created backup file '" << backup << "'.";
+	if (Utility::PathExists(backup)) {
+		Log(LogWarning, "cli")
+		    << "Backup file '" << backup << "' already exists. Skipping backup.";
+		return false;
 	}
+
+	Utility::CopyFile(target, backup);
+
+	Log(LogInformation, "cli")
+	    << "Created backup file '" << backup << "'.";
 
 	return true;
 }
@@ -471,6 +572,9 @@ void AgentUtility::UpdateConstant(const String& name, const String& value)
 	std::ofstream ofp(tempFile.CStr());
 
 	bool found = false;
+
+	Log(LogInformation, "cli")
+	    << "Updating constants file '" << constantsFile << "'.";
 
 	std::string line;
 	while (std::getline(ifp, line)) {

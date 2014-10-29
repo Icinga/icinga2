@@ -642,20 +642,12 @@ bool Utility::MkDirP(const String& path, int flags)
 	return ret;
 }
 
-bool Utility::CopyFile(const String& source, const String& target)
+void Utility::CopyFile(const String& source, const String& target)
 {
-	if (Utility::PathExists(target)) {
-		Log(LogWarning, "Utility")
-		    << "Target file '" << target << "' already exists.";
-		return false;
-	}
-
 	std::ifstream ifs(source.CStr(), std::ios::binary);
-	std::ofstream ofs(target.CStr(), std::ios::binary);
+	std::ofstream ofs(target.CStr(), std::ios::binary | std::ios::trunc);
 
 	ofs << ifs.rdbuf();
-
-	return true;
 }
 
 #ifndef _WIN32
