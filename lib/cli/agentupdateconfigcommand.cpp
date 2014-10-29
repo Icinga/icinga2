@@ -99,7 +99,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
 			String host = kv.first;
 			String host_pattern = host + ".conf";
-			bool skip = false;
+			bool skip_host = false;
 
 			if (host == "localhost") {
 				Log(LogWarning, "cli")
@@ -111,34 +111,32 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				if (object_path.Contains(host_pattern)) {
 					Log(LogWarning, "cli")
 					    << "Host '" << host << "' already existing. Skipping its creation.";
-					skip = true;
+					skip_host = true;
 					break;
 				}
 			}
 
-			if (skip)
-				continue;
+			if (!skip_host) {
+				/* add a new host to the config repository */
+				Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+				host_attrs->Set("__name", host);
+				host_attrs->Set("name", host);
 
-			/* add a new host to the config repository */
-			Dictionary::Ptr host_attrs = make_shared<Dictionary>();
-			host_attrs->Set("__name", host);
-			host_attrs->Set("name", host);
+				if (host == zone)
+					host_attrs->Set("check_command", "cluster-zone");
+				else {
+					host_attrs->Set("check_command", "dummy");
+					host_attrs->Set("zone", zone);
+				}
 
-			if (host == zone)
-				host_attrs->Set("check_command", "cluster-zone");
-			else {
-				host_attrs->Set("check_command", "dummy");
-				host_attrs->Set("zone", zone);
-			}
+				Array::Ptr host_imports = make_shared<Array>();
+				host_imports->Add("agent-host"); //default host agent template
+				host_attrs->Set("import", host_imports);
 
-			Array::Ptr host_imports = make_shared<Array>();
-			host_imports->Add("agent-host"); //default host agent template
-			host_attrs->Set("import", host_imports);
-
-			if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
-				Log(LogCritical, "cli")
-				    << "Cannot add agent host '" << host << "' to the config repository!\n";
-				continue;
+				if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
+					Log(LogCritical, "cli")
+					    << "Cannot add agent host '" << host << "' to the config repository!\n";
+				}
 			}
 
 			Array::Ptr services = kv.second;
@@ -151,20 +149,20 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 			ObjectLock xlock(services);
 			BOOST_FOREACH(const String& service, services) {
+				bool skip_service = false;
 
 				String service_pattern = host + "/" + service + ".conf";
-				bool skip = false;
 
 				BOOST_FOREACH(const String& object_path, object_paths) {
 					if (object_path.Contains(service_pattern)) {
 						Log(LogWarning, "cli")
 						    << "Service '" << service << "' on Host '" << host << "' already existing. Skipping its creation.";
-						skip = true;
+						skip_service = true;
 						break;
 					}
 				}
 
-				if (skip)
+				if (skip_service)
 					continue;
 
 				/* add a new service for this host to the config repository */
@@ -286,6 +284,12 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				String old_host = kv.first;
 
 				if (!new_agent_repository->Contains(old_host)) {
+					if (old_host == "localhost") {
+						Log(LogWarning, "cli")
+						    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your agent '" << old_agent << "'.";
+						continue;
+					}
+
 					Log(LogInformation, "cli")
 					    << "Agent update found old host '" << old_host << "' on agent '" << old_agent_name << "'. Removing it.";
 
