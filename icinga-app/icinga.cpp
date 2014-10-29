@@ -288,10 +288,8 @@ int Main(void)
 
 				if (command) {
 					std::cout << std::endl
-						  << command->GetDescription();
+						  << command->GetDescription() << std::endl;
 				}
-
-				std::cout << std::endl;
 			}
 
 			if (vm.count("version")) {
