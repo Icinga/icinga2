@@ -55,6 +55,7 @@ bool Dependency::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const App
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 	if (service)
 		locals->Set("service", service);
@@ -68,7 +69,7 @@ bool Dependency::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const App
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("Dependency");
 	builder->SetName(rule.GetName());
-	builder->SetScope(rule.GetScope());
+	builder->SetScope(locals);
 
 	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
 		make_shared<Expression>(&Expression::OpLiteral, "parent_host_name", di),

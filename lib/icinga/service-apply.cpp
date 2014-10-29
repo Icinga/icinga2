@@ -49,6 +49,7 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 	CONTEXT(msgbuf.str());
 
 	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 
 	if (!rule.EvaluateFilter(locals))
@@ -60,7 +61,7 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
 	builder->SetType("Service");
 	builder->SetName(rule.GetName());
-	builder->SetScope(rule.GetScope());
+	builder->SetScope(locals);
 
 	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
 	    make_shared<Expression>(&Expression::OpLiteral, "host_name", di), 
