@@ -89,30 +89,28 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		Dictionary::Ptr repository = agent->Get("repository");
 		String zone = agent->Get("zone");
 		String endpoint = agent->Get("endpoint");
+		String agent_name = endpoint;
 
 		/* store existing structure in index */
 		inventory->Set(endpoint, agent);
 
 		Dictionary::Ptr host_services = make_shared<Dictionary>();
 
-		/* if there is no health check host for this agent zone, create one */
-		if (!repository->Contains(zone)) {
-			Log(LogInformation, "cli")
-			    << "Repository for agent '" << endpoint << "' does not contain a health check host. Adding host '" << zone << "'.";
+		Log(LogInformation, "cli")
+		    << "Repository for agent '" << endpoint << "' does not contain a health check host. Adding host '" << zone << "'.";
 
-			Dictionary::Ptr host_attrs = make_shared<Dictionary>();
-			host_attrs->Set("__name", zone);
-			host_attrs->Set("name", zone);
-			host_attrs->Set("check_command", "cluster-zone");
-			host_attrs->Set("zone", zone);
-			Array::Ptr host_imports = make_shared<Array>();
-			host_imports->Add("agent-host"); //default host agent template
-			host_attrs->Set("import", host_imports);
+		Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+		host_attrs->Set("__name", zone);
+		host_attrs->Set("name", zone);
+		host_attrs->Set("check_command", "cluster-zone");
+		host_attrs->Set("zone", zone);
+		Array::Ptr host_imports = make_shared<Array>();
+		host_imports->Add("agent-host"); //default host agent template
+		host_attrs->Set("import", host_imports);
 
-			if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
-				Log(LogCritical, "cli")
-				    << "Cannot add agent host '" << zone << "' to the config repository!\n";
-			}
+		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
+			Log(LogCritical, "cli")
+			    << "Cannot add agent host '" << zone << "' to the config repository!\n";
 		}
 
 		ObjectLock olock(repository);
@@ -123,7 +121,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 			if (host == "localhost") {
 				Log(LogWarning, "cli")
-				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your agent '" << endpoint << "'.";
+				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your agent '" << agent_name << "'.";
 				continue;
 			}
 
@@ -134,6 +132,18 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 					skip_host = true;
 					break;
 				}
+			}
+
+			/* host has already been created above */
+			if (host == zone)
+				skip_host = true;
+
+			/* check against black/whitelist before trying to add host */
+			if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", agent_name, host, Empty) &&
+			    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", agent_name, host, Empty)) {
+				Log(LogWarning, "cli")
+				    << "Host '" << host << "' on agent '" << agent_name << "' is blacklisted, but not whitelisted. Skipping.";
+				skip_host = true;
 			}
 
 			if (!skip_host) {
@@ -180,6 +190,15 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 						skip_service = true;
 						break;
 					}
+				}
+
+				/* check against black/whitelist before trying to add service */
+				if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", endpoint, host, service) &&
+				    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", endpoint, host, service)) {
+					Log(LogWarning, "cli")
+					    << "Service '" << service << "' on host '" << host << "' on agent '"
+					    << agent_name << "' is blacklisted, but not whitelisted. Skipping.";
+					skip_service = true;
 				}
 
 				if (skip_service)
@@ -309,6 +328,14 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 					continue;
 				}
 
+				/* check against black/whitelist before trying to remove host */
+				if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, Empty) &&
+				    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, Empty)) {
+					Log(LogWarning, "cli")
+					    << "Host '" << old_agent << "' on agent '" << old_agent << "' is blacklisted, but not whitelisted. Skipping.";
+					continue;
+				}
+
 				if (!new_agent_repository->Contains(old_host)) {
 					Log(LogInformation, "cli")
 					    << "Agent update found old host '" << old_host << "' on agent '" << old_agent_name << "'. Removing it.";
@@ -323,6 +350,15 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 					ObjectLock ylock(old_services);
 					BOOST_FOREACH(const String& old_service, old_services) {
+						/* check against black/whitelist before trying to remove service */
+						if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, old_service) &&
+						    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, old_service)) {
+							Log(LogWarning, "cli")
+							    << "Service '" << old_service << "' on host '" << old_host << "' on agent '"
+							    << old_agent_name << "' is blacklisted, but not whitelisted. Skipping.";
+							skip_service = true;
+						}
+
 						if (!new_services->Contains(old_service)) {
 							Log(LogInformation, "cli")
 							    << "Agent update found old service '" << old_service << "' on host '" << old_host

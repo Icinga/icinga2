@@ -385,15 +385,27 @@ bool AgentUtility::WriteAgentConfigObjects(const String& filename, const Array::
 /*
  * Black/Whitelist helpers
  */
-int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
+String AgentUtility::GetBlackAndWhiteListPath(const String& type)
 {
-	String list_path = AgentUtility::GetRepositoryPath() + "/" + type + ".list";
+	return AgentUtility::GetRepositoryPath() + "/" + type + ".list";
+}
+
+Dictionary::Ptr AgentUtility::GetBlackAndWhiteList(const String& type)
+{
+	String list_path = GetBlackAndWhiteListPath(type);
 
 	Dictionary::Ptr lists = make_shared<Dictionary>();
 
 	if (Utility::PathExists(list_path)) {
 		lists = Utility::LoadJsonFile(list_path);
 	}
+
+	return lists;
+}
+
+int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
+{
+	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
 	Dictionary::Ptr host_service = make_shared<Dictionary>();
 
@@ -420,6 +432,7 @@ int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agen
 
 	lists->Set(agent_filter, host_service);
 
+	String list_path = GetBlackAndWhiteListPath(type);
 	Utility::SaveJsonFile(list_path, lists);
 
 	return 0;
@@ -427,13 +440,7 @@ int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agen
 
 int AgentUtility::RemoveBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
 {
-	String list_path = AgentUtility::GetRepositoryPath() + "/" + type + ".list";
-
-	Dictionary::Ptr lists = make_shared<Dictionary>();
-
-	if (Utility::PathExists(list_path)) {
-		lists = Utility::LoadJsonFile(list_path);
-	}
+	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
 	if (lists->Contains(agent_filter)) {
 		Dictionary::Ptr host_service = lists->Get(agent_filter);
@@ -456,6 +463,7 @@ int AgentUtility::RemoveBlackAndWhiteList(const String& type, const String& agen
 		return 1;
 	}
 
+	String list_path = GetBlackAndWhiteListPath(type);
 	Utility::SaveJsonFile(list_path, lists);
 
 	return 0;
@@ -463,13 +471,7 @@ int AgentUtility::RemoveBlackAndWhiteList(const String& type, const String& agen
 
 int AgentUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 {
-	String list_path = AgentUtility::GetRepositoryPath() + "/" + type + ".list";
-
-	Dictionary::Ptr lists = make_shared<Dictionary>();
-
-	if (Utility::PathExists(list_path)) {
-		lists = Utility::LoadJsonFile(list_path);
-	}
+	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
 	fp << "Listing all " << type << " entries:\n";
 
@@ -483,6 +485,53 @@ int AgentUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 	}
 
 	return 0;
+}
+
+bool AgentUtility::CheckAgainstBlackAndWhiteList(const String& type, const String& agent, const String& host, const String& service)
+{
+	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
+
+	Log(LogInformation, "cli")
+	    << "Checking object against " << type << ".";
+
+	ObjectLock olock(lists);
+	BOOST_FOREACH(const Dictionary::Pair& kv, lists) {
+		String agent_filter = kv.first;
+		Dictionary::Ptr host_service = kv.second;
+		String host_filter = host_service->Get("host_filter");
+		String service_filter;
+
+		if (host_service->Contains("service_filter"))
+			service_filter = host_service->Get("service_filter");
+
+		Log(LogInformation, "cli")
+		    << "Checking Agent '" << agent << "' =~ '" << agent_filter << "', host '" << host << "' =~ '" << host_filter
+		    << "', service '" << service << "' =~ '" << service_filter << "'.";
+
+		if (Utility::Match(agent_filter, agent)) {
+			Log(LogNotice, "cli")
+			    << "Agent '" << agent << "' matches filter '" << agent_filter << "'";
+
+			if (Utility::Match(host_filter, host)) {
+				Log(LogNotice, "cli")
+				    << "Host '" << host << "' matches filter '" << host_filter << "'";
+
+				/* no service filter means host match */
+				if (service_filter.IsEmpty())
+					return true;
+
+				if (Utility::Match(service_filter, service)) {
+					Log(LogNotice, "cli")
+					    << "Host '" << service << "' matches filter '" << service_filter << "'";
+					return true;
+				}
+			}
+
+
+		}
+	}
+
+	return false;
 }
 
 /*

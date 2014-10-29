@@ -61,11 +61,15 @@ public:
 	static int GenerateAgentMasterIcingaConfig(const String& nodename);
 
 	/* black/whitelist */
+	static String GetBlackAndWhiteListPath(const String& type);
+	static Dictionary::Ptr GetBlackAndWhiteList(const String& type);
 	static int UpdateBlackAndWhiteList(const String& type, const String& agent_filter,
 	    const String& host_filter, const String& service_filter);
 	static int RemoveBlackAndWhiteList(const String& type, const String& agent_filter,
 	    const String& host_filter, const String& service_filter);
 	static int PrintBlackAndWhiteList(std::ostream& fp, const String& type);
+
+	static bool CheckAgainstBlackAndWhiteList(const String& type, const String& agent, const String& host, const String& service);
 
 private:
 	AgentUtility(void);
