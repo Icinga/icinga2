@@ -1024,18 +1024,14 @@ String Utility::GetFQDN(void)
 	if (rc != 0)
 		result = NULL;
 
-	String canonicalName;
-
 	if (result) {
 		if (strcmp(result->ai_canonname, "localhost") != 0)
-			canonicalName = result->ai_canonname;
+			hostname = result->ai_canonname;
 
 		freeaddrinfo(result);
-	} else {
-		canonicalName = hostname;
 	}
 
-	return canonicalName;
+	return hostname;
 }
 
 int Utility::Random(void)
