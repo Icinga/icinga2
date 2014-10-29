@@ -95,6 +95,26 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 		Dictionary::Ptr host_services = make_shared<Dictionary>();
 
+		/* if there is no health check host for this agent zone, create one */
+		if (!repository->Contains(zone)) {
+			Log(LogInformation, "cli")
+			    << "Repository for agent '" << endpoint << "' does not contain a health check host. Adding host '" << zone << "'.";
+
+			Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+			host_attrs->Set("__name", zone);
+			host_attrs->Set("name", zone);
+			host_attrs->Set("check_command", "cluster-zone");
+			host_attrs->Set("zone", zone);
+			Array::Ptr host_imports = make_shared<Array>();
+			host_imports->Add("agent-host"); //default host agent template
+			host_attrs->Set("import", host_imports);
+
+			if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
+				Log(LogCritical, "cli")
+				    << "Cannot add agent host '" << zone << "' to the config repository!\n";
+			}
+		}
+
 		ObjectLock olock(repository);
 		BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
 			String host = kv.first;
