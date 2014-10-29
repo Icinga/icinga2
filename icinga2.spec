@@ -95,7 +95,6 @@ BuildRequires: make
 BuildRequires: boost141-devel
 %else
 BuildRequires: boost-devel >= 1.41
-BuildRequires: boost-static >= 1.41
 %endif
 
 %if 0%{?use_systemd}
@@ -184,6 +183,7 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DCMAKE_INSTALL_SYSCONFDIR=/etc \
          -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+         -DBoost_NO_BOOST_CMAKE=ON \
          -DICINGA2_RUNDIR=%{_rundir} \
          -DICINGA2_USER=%{icinga_user} \
          -DICINGA2_GROUP=%{icinga_group} \
@@ -266,8 +266,6 @@ exit 0
 %post common
 /usr/share/icinga2/migrate-hosts
 
-# all restart/feature actions belong to icinga2-bin
-%post bin
 # suse
 %if "%{_vendor}" == "suse"
 %if 0%{?suse_version} >= 1310
@@ -425,6 +423,31 @@ exit 0
 %files bin
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%{_sbindir}/%{name}
+%{_sbindir}/%{name}-prepare-dirs
+%exclude %{_libdir}/%{name}/libdb_ido_mysql*
+%exclude %{_libdir}/%{name}/libdb_ido_pgsql*
+%{_libdir}/%{name}
+%{_datadir}/%{name}
+%exclude %{_datadir}/%{name}/include
+%exclude %{_datadir}/%{name}/migrate-hosts
+%{_mandir}/man8/%{name}.8.gz
+
+%attr(0750,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/cache/%{name}
+%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}
+%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}/compat
+%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
+%attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
+
+%attr(0750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}
+%attr(2750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}/cmd
+
+%files common
+%defattr(-,root,root,-)
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog tools/syntax
+%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
+%{_sysconfdir}/bash_completion.d/%{name}
 %if 0%{?use_systemd}
 %attr(644,root,root) %{_unitdir}/%{name}.service
 %else
@@ -457,32 +480,8 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/repository.d/*
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
-%{_sbindir}/%{name}
 %{_sbindir}/%{name}-prepare-dirs
-%exclude %{_libdir}/%{name}/libdb_ido_mysql*
-%exclude %{_libdir}/%{name}/libdb_ido_pgsql*
-%{_libdir}/%{name}
-%{_datadir}/%{name}
-%exclude %{_datadir}/%{name}/include
-%exclude %{_datadir}/%{name}/migrate-hosts
-%{_mandir}/man8/%{name}.8.gz
 %{_mandir}/man8/%{name}-prepare-dirs.8.gz
-
-%attr(0750,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/cache/%{name}
-%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}
-%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}/compat
-%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
-%attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}
-
-%attr(0750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}
-%attr(2750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}/cmd
-
-%files common
-%defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog tools/syntax
-%attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
-%{_sysconfdir}/bash_completion.d/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
