@@ -109,7 +109,7 @@ std::set<Checkable::Ptr> Checkable::GetParents(void) const
 	BOOST_FOREACH(const Dependency::Ptr& dep, GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
-		if (parent)
+		if (parent && parent.get() != this)
 			parents.insert(parent);
 	}
 
@@ -123,7 +123,7 @@ std::set<Checkable::Ptr> Checkable::GetChildren(void) const
 	BOOST_FOREACH(const Dependency::Ptr& dep, GetReverseDependencies()) {
 		Checkable::Ptr service = dep->GetChild();
 
-		if (service)
+		if (service && service.get() != this)
 			parents.insert(service);
 	}
 
