@@ -95,6 +95,7 @@ BuildRequires: make
 BuildRequires: boost141-devel
 %else
 BuildRequires: boost-devel >= 1.41
+BuildRequires: boost-static >= 1.41
 %endif
 
 %if 0%{?use_systemd}
