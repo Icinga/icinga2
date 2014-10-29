@@ -101,6 +101,12 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 			String host_pattern = host + ".conf";
 			bool skip = false;
 
+			if (host == "localhost") {
+				Log(LogWarning, "cli")
+				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your agent '" << endpoint << "'.";
+				continue;
+			}
+
 			BOOST_FOREACH(const String& object_path, object_paths) {
 				if (object_path.Contains(host_pattern)) {
 					Log(LogWarning, "cli")
@@ -209,13 +215,21 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		zone_attrs->Set("name", zone);
 		zone_attrs->Set("endpoints", zone_members);
 
-		String parent_zone = "master"; //hardcode the name
+		String agent_parent_zone = "master"; //hardcode the name
+		String parent_zone;
 
-		if (!agent->Contains("parent_zone") || !agent->Get("parent_zone")) {
+		if (!agent->Contains("parent_zone")) {
 			Log(LogWarning, "cli")
 			    << "Agent '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
+			parent_zone = agent_parent_zone;
 		} else {
 			parent_zone = agent->Get("parent_zone");
+
+			if (parent_zone.IsEmpty()) {
+				Log(LogWarning, "cli")
+				    << "Agent '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
+				parent_zone = agent_parent_zone;
+			}
 		}
 
 		zone_attrs->Set("parent", parent_zone);
