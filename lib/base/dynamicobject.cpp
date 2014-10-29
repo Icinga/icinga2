@@ -315,6 +315,7 @@ void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 	Dictionary::Ptr update = persistentObject->Get("update");
 	Deserialize(object, update, false, attributeTypes);
 	object->OnStateLoaded();
+	object->SetStateLoaded(true);
 }
 
 void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
@@ -341,8 +342,21 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	upq.Join();
 
+	unsigned long no_state = 0;
+
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+			if (!object->GetStateLoaded()) {
+				object->OnStateLoaded();
+				object->SetStateLoaded(true);
+
+				no_state++;
+			}
+		}
+	}
+
 	Log(LogInformation, "DynamicObject")
-	    << "Restored " << restored << " objects";
+	    << "Restored " << restored << " objects. Loaded " << no_state << " new objects without state.";
 }
 
 void DynamicObject::StopObjects(void)
