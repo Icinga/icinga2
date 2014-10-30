@@ -18,14 +18,11 @@
  ******************************************************************************/
 
 #include "cli/variablelistcommand.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
 #include "base/dynamicobject.hpp"
-#include "base/dynamictype.hpp"
-#include "base/json.hpp"
-#include "base/netstring.hpp"
-#include "base/stdiostream.hpp"
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
@@ -66,31 +63,8 @@ int VariableListCommand::Run(const boost::program_options::variables_map& vm, co
 		return 1;
 	}
 
-	std::fstream fp;
-	fp.open(varsfile.CStr(), std::ios_base::in);
-
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
-	unsigned long variables_count = 0;
-
-	String message;
-
-	while (NetString::ReadStringFromStream(sfp, &message)) {
-		PrintVariable(std::cout, message);
-		variables_count++;
-	}
-
-	sfp->Close();
-	fp.close();
-
-	Log(LogNotice, "cli")
-	    << "Parsed " << variables_count << " variables.";
+	VariableUtility::PrintVariables(std::cout);
 
 	return 0;
 }
 
-void VariableListCommand::PrintVariable(std::ostream& fp, const String& message)
-{
-	Dictionary::Ptr variable = JsonDecode(message);
-
-	std::cout << variable->Get("name") << " = " << variable->Get("value") << "\n";
-}

@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "cli/variablegetcommand.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
@@ -84,24 +85,9 @@ int VariableGetCommand::Run(const boost::program_options::variables_map& vm, con
 		return 1;
 	}
 
-	std::fstream fp;
-	fp.open(varsfile.CStr(), std::ios_base::in);
+	Value value = VariableUtility::GetVariable(ap[0]);
 
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
-
-	String message;
-
-	while (NetString::ReadStringFromStream(sfp, &message))  {
-		Dictionary::Ptr variable = JsonDecode(message);
-
-		if (variable->Get("name") == ap[0]) {
-			std::cout << variable->Get("value") << "\n";
-			break;
-		}
-	}
-
-	sfp->Close();
-	fp.close();
+	std::cout << value << "\n";
 
 	return 0;
 }

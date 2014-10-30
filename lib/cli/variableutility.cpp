@@ -17,56 +17,61 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/pkiticketcommand.hpp"
-#include "cli/pkiutility.hpp"
 #include "cli/variableutility.hpp"
 #include "base/logger.hpp"
-#include <iostream>
+#include "base/application.hpp"
+#include "base/utility.hpp"
+#include "base/stdiostream.hpp"
+#include "base/netstring.hpp"
+#include "base/json.hpp"
+#include "remote/jsonrpc.hpp"
+#include <fstream>
 
 using namespace icinga;
-namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("pki/ticket", PKITicketCommand);
-
-String PKITicketCommand::GetDescription(void) const
+Value VariableUtility::GetVariable(const String& name)
 {
-	return "Generates an Icinga 2 ticket";
-}
+	String varsfile = Application::GetVarsPath();
 
-String PKITicketCommand::GetShortDescription(void) const
-{
-	return "generates a ticket";
-}
+	std::fstream fp;
+	fp.open(varsfile.CStr(), std::ios_base::in);
 
-void PKITicketCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
-{
-	visibleDesc.add_options()
-	    ("cn", po::value<std::string>(), "Certificate common name")
-	    ("salt", po::value<std::string>(), "Ticket salt");
-}
+	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
 
-/**
- * The entry point for the "pki ticket" CLI command.
- *
- * @returns An exit status.
- */
-int PKITicketCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
-{
-	if (!vm.count("cn")) {
-		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
-		return 1;
+	String message;
+
+	while (NetString::ReadStringFromStream(sfp, &message))  {
+		Dictionary::Ptr variable = JsonDecode(message);
+
+		if (variable->Get("name") == name) {
+			return variable->Get("value");
+		}
 	}
 
-	String salt = VariableUtility::GetVariable("TicketSalt");
+	return Empty;
+}
 
-	if (vm.count("salt"))
-		salt = vm["salt"].as<std::string>();
+void VariableUtility::PrintVariables(std::ostream& outfp)
+{
+	String varsfile = Application::GetVarsPath();
 
-	if (salt.IsEmpty()) {
-		Log(LogCritical, "cli", "Ticket salt (--salt) must be specified.");
-		return 1;
+	std::fstream fp;
+	fp.open(varsfile.CStr(), std::ios_base::in);
+
+	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+	unsigned long variables_count = 0;
+
+	String message;
+
+	while (NetString::ReadStringFromStream(sfp, &message)) {
+		Dictionary::Ptr variable = JsonDecode(message);
+		outfp << variable->Get("name") << " = " << variable->Get("value") << "\n";
+		variables_count++;
 	}
 
-	return PkiUtility::GenTicket(vm["cn"].as<std::string>(), salt, std::cout);
+	sfp->Close();
+	fp.close();
+
+	Log(LogNotice, "cli")
+	    << "Parsed " << variables_count << " variables.";
 }
