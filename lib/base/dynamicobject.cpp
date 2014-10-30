@@ -31,6 +31,7 @@
 #include "base/initialize.hpp"
 #include "base/scriptvariable.hpp"
 #include "base/workqueue.hpp"
+#include "base/context.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -125,6 +126,8 @@ void DynamicObject::Start(void)
 
 void DynamicObject::Activate(void)
 {
+	CONTEXT("Activating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
+
 	ASSERT(!OwnsLock());
 
 	Start();
@@ -152,6 +155,8 @@ void DynamicObject::Stop(void)
 
 void DynamicObject::Deactivate(void)
 {
+	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
+
 	ASSERT(!OwnsLock());
 
 	SetAuthority(false);

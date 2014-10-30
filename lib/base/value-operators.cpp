@@ -131,6 +131,12 @@ bool Value::operator!=(const String& rhs) const
 
 bool Value::operator==(const Value& rhs) const
 {
+	if ((IsNumber() || IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
+		return static_cast<double>(*this) == static_cast<double>(rhs);
+
+	if ((IsString() || IsEmpty()) && (rhs.IsString() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
+		return static_cast<String>(*this) == static_cast<String>(rhs);
+
 	if (IsEmpty() != rhs.IsEmpty())
 		return false;
 
@@ -161,12 +167,6 @@ bool Value::operator==(const Value& rhs) const
 
 		return static_cast<Object::Ptr>(*this) == static_cast<Object::Ptr>(rhs);
 	}
-
-	if ((IsNumber() || IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
-		return static_cast<double>(*this) == static_cast<double>(rhs);
-
-	if ((IsString() || IsEmpty()) && (rhs.IsString() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
-		return static_cast<String>(*this) == static_cast<String>(rhs);
 
 	return false;
 }
