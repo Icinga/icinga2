@@ -1124,7 +1124,7 @@ please check the official [Icinga 1.x user interface documentation](http://docs.
 
 ### <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
 
-Icinga Web 2 will support `status.dat`, `DB IDO`, or `Livestatus` as backends.
+Icinga Web 2 will support `DB IDO` or `Livestatus` as backends.
 
 Using DB IDO as backend, you need to install and configure the [DB IDO backend](#configuring-db-ido).
 Once finished, you can enable the feature for DB IDO MySQL:
@@ -1145,8 +1145,8 @@ backends, resources and instances.
 > **Note**
 >
 > Icinga Web 2 is still under heavy development. Rather than installing it
-> yourself you should consider testing it using the available Vagrant
-> demo VM in the [git repository](https://github.com/icinga/icingaweb2).
+> yourself you should consider testing it using the available
+> [Vagrant demo VM](https://github.com/icinga/icinga-vagrant).
 
 Check the [Icinga website](https://www.icinga.org) for release schedules,
 blog updates and more.
