@@ -241,8 +241,8 @@ wizard_master_host:
 		std::cout << "Stored trusted master certificate in '" << trusted_cert << "'.\n";
 
 wizard_ticket:
-		std::cout << "Please specify the request ticket generated on your Icinga 2 master.\n"
-		    << "(Hint: '# icinga2 pki ticket --cn <this-CN>'): ";
+		std::cout << "Please specify the request ticket generated on your Icinga 2 master."
+		    << " (Hint: '# icinga2 pki ticket --cn " << cn << "'):\n";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
