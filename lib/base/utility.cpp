@@ -43,6 +43,13 @@
 #	include <cxxabi.h>
 #endif /* HAVE_CXXABI_H */
 
+#ifndef _WIN32
+#       include <sys/types.h>
+#       include <pwd.h>
+#       include <grp.h>
+#endif /* _WIN32 */
+
+
 using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
@@ -648,6 +655,52 @@ void Utility::CopyFile(const String& source, const String& target)
 	std::ofstream ofs(target.CStr(), std::ios::binary | std::ios::trunc);
 
 	ofs << ifs.rdbuf();
+}
+
+/*
+ * Set file permissions
+ */
+bool Utility::SetFileOwnership(const String& file, const String& user, const String& group)
+{
+#ifndef _WIN32
+	errno = 0;
+	struct passwd *pw = getpwnam(user.CStr());
+
+	if (!pw) {
+		if (errno == 0) {
+			Log(LogCritical, "cli")
+			    << "Invalid user specified: " << user;
+			return false;
+		} else {
+			Log(LogCritical, "cli")
+			    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			return false;
+		}
+	}
+
+	errno = 0;
+	struct group *gr = getgrnam(group.CStr());
+
+	if (!gr) {
+		if (errno == 0) {
+			Log(LogCritical, "cli")
+			    << "Invalid group specified: " << group;
+			return false;
+		} else {
+			Log(LogCritical, "cli")
+			    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			return false;
+		}
+	}
+
+	if (chown(file.CStr(), pw->pw_uid, gr->gr_gid) < 0) {
+		Log(LogCritical, "cli")
+		    << "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		return false;
+	}
+#endif /* _WIN32 */
+
+	return true;
 }
 
 #ifndef _WIN32
