@@ -195,7 +195,7 @@ by the official Monitoring Plugins project.
 All existing Nagios or Icinga 1.x plugins work with Icinga 2. Here's a
 list of popular community sites which host check plugins:
 
-* [MonitoringExchange](https://www.monitoringexchange.org)
+* [Icinga Exchange](https://exchange.icinga.org)
 * [Icinga Wiki](https://wiki.icinga.org)
 
 The recommended way of setting up these plugins is to copy them to a common directory
