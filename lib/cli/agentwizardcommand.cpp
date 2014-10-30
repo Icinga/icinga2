@@ -21,6 +21,7 @@
 #include "cli/agentutility.hpp"
 #include "cli/pkiutility.hpp"
 #include "cli/featureutility.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -47,6 +48,16 @@ String AgentWizardCommand::GetDescription(void) const
 String AgentWizardCommand::GetShortDescription(void) const
 {
 	return "wizard for agent setup";
+}
+
+ImpersonationLevel AgentWizardCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateRoot;
+}
+
+int AgentWizardCommand::GetMaxArguments(void) const
+{
+	return -1;
 }
 
 /**
@@ -115,7 +126,6 @@ int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, con
 		String cn = answer;
 		cn.Trim();
 
-		//TODO: Ask for endpoint config instead, and use that for master_host/port
 		std::vector<std::string> endpoints;
 
 		String endpoint_buffer;
@@ -202,12 +212,27 @@ wizard_master_host:
 		String master_port = answer;
 		master_port.Trim();
 
-		/* workaround for fetching the master cert - TODO */
-		String agent_cert = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
-		String agent_key = PkiUtility::GetPkiPath() + "/" + cn + ".key";
+		/* workaround for fetching the master cert */
+		String pki_path = PkiUtility::GetPkiPath();
+		String agent_cert = pki_path + "/" + cn + ".crt";
+		String agent_key = pki_path + "/" + cn + ".key";
 
 		//new-ca, new-cert
 		PkiUtility::NewCa();
+
+		if (!Utility::MkDirP(pki_path, 0700)) {
+			Log(LogCritical, "cli")
+			    << "Could not create local pki directory '" << pki_path << "'.";
+			return 1;
+		}
+
+		String user = VariableUtility::GetVariable("RunAsUser");
+		String group = VariableUtility::GetVariable("RunAsUser");
+
+		if (!Utility::SetFileOwnership(pki_path, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+		}
 
 		if (PkiUtility::NewCert(cn, agent_key, Empty, agent_cert) > 0) {
 			Log(LogCritical, "cli")
@@ -216,13 +241,41 @@ wizard_master_host:
 		}
 
 		/* store ca in /etc/icinga2/pki */
-		//TODO FIX chown
-		String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
-		String pki_path = PkiUtility::GetPkiPath();
+		String ca_path = PkiUtility::GetLocalCaPath();
+		String ca_key = ca_path + "/ca.key";
+		String ca = ca_path + "/ca.crt";
+
+		/* fix permissions: root -> icinga daemon user */
+		if (!Utility::SetFileOwnership(ca_path, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_path << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(ca, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(ca_key, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(agent_cert, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << agent_cert << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(agent_key, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << agent_key << "'. Verify it yourself!";
+		}
 
 		String target_ca = pki_path + "/ca.crt";
 
 		Utility::CopyFile(ca, target_ca);
+
+		/* fix permissions: root -> icinga daemon user */
+		if (!Utility::SetFileOwnership(target_ca, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << target_ca << "'. Verify it yourself!";
+		}
 
 		//save-cert and store the master certificate somewhere
 
@@ -262,6 +315,12 @@ wizard_ticket:
 			    << "Failed to fetch signed certificate from master '" << master_host << ", "
 			    << master_port <<"'. Please try again.";
 			return 1;
+		}
+
+		/* fix permissions (again) when updating the signed certificate */
+		if (!Utility::SetFileOwnership(agent_cert, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << agent_cert << "'. Verify it yourself!";
 		}
 
 		/* apilistener config */
@@ -347,7 +406,7 @@ wizard_ticket:
 		std::cout << "Starting the Master setup routine...\n";
 
 		/* CN */
-		std::cout << "Please specifiy the common name (CN) (leave blank for default FQDN): ";
+		std::cout << "Please specifiy the common name (CN) [" << Utility::GetFQDN() << "]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -370,6 +429,14 @@ wizard_ticket:
 			return 1;
 		}
 
+		String user = VariableUtility::GetVariable("RunAsUser");
+		String group = VariableUtility::GetVariable("RunAsUser");
+
+		if (!Utility::SetFileOwnership(pki_path, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+		}
+
 		String key = pki_path + "/" + cn + ".key";
 		String csr = pki_path + "/" + cn + ".csr";
 
@@ -389,7 +456,9 @@ wizard_ticket:
 
 		/* Copy CA certificate to /etc/icinga2/pki */
 
-		String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
+		String ca_path = PkiUtility::GetLocalCaPath();
+		String ca = ca_path + "/ca.crt";
+		String ca_key = ca_path + "/ca.key";
 		String target_ca = pki_path + "/ca.crt";
 
 		Log(LogInformation, "cli")
@@ -398,7 +467,31 @@ wizard_ticket:
 		/* does not overwrite existing files! */
 		Utility::CopyFile(ca, target_ca);
 
-		//TODO: Fix permissions for CA dir (root -> icinga)
+		/* fix permissions: root -> icinga daemon user */
+		if (!Utility::SetFileOwnership(ca_path, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_path << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(ca, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(ca_key, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(target_ca, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << target_ca << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(key, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(csr, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << csr << "'. Verify it yourself!";
+		}
 
 		AgentUtility::GenerateAgentMasterIcingaConfig(cn);
 

@@ -21,6 +21,7 @@
 #include "cli/agentutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/pkiutility.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -132,6 +133,14 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 		return 1;
 	}
 
+	String user = VariableUtility::GetVariable("RunAsUser");
+	String group = VariableUtility::GetVariable("RunAsUser");
+
+	if (!Utility::SetFileOwnership(pki_path, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+	}
+
 	String cn = Utility::GetFQDN();
 
 	if (vm.count("cn"))
@@ -155,8 +164,9 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	}
 
 	/* Copy CA certificate to /etc/icinga2/pki */
-
-	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
+	String ca_path = PkiUtility::GetLocalCaPath();
+	String ca = ca_path + "/ca.crt";
+	String ca_key = ca_path + "/ca.key";
 	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
@@ -165,7 +175,31 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	/* does not overwrite existing files! */
 	Utility::CopyFile(ca, target_ca);
 
-	//TODO: Fix permissions for CA dir (root -> icinga)
+	/* fix permissions: root -> icinga daemon user */
+	if (!Utility::SetFileOwnership(ca_path, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_path << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(ca, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(ca_key, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(target_ca, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << target_ca << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(key, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(csr, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << csr << "'. Verify it yourself!";
+	}
 
 	/* read zones.conf and update with zone + endpoint information */
 
@@ -324,9 +358,38 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	String cert = pki_path + "/" + cn + ".crt";
 	String ca = pki_path + "/ca.crt";
 
+
+	if (!Utility::MkDirP(pki_path, 0700)) {
+		Log(LogCritical, "cli")
+		    << "Could not create local pki directory '" << pki_path << "'.";
+		return 1;
+	}
+
+	String user = VariableUtility::GetVariable("RunAsUser");
+	String group = VariableUtility::GetVariable("RunAsUser");
+
+	if (!Utility::SetFileOwnership(pki_path, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+	}
+
 	if (PkiUtility::NewCert(cn, key, String(), cert) != 0) {
 		Log(LogCritical, "cli", "Failed to generate new self-signed certificate.");
 		return 1;
+	}
+
+	/* fix permissions: root -> icinga daemon user */
+	if (!Utility::SetFileOwnership(ca, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(cert, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << cert << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(key, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
 	}
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
@@ -334,6 +397,12 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
 		Log(LogCritical, "cli", "Failed to request certificate from Icinga 2 master.");
 		return 1;
+	}
+
+	/* fix permissions (again) when updating the signed certificate */
+	if (!Utility::SetFileOwnership(cert, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << cert << "'. Verify it yourself!";
 	}
 
 	/* enable the ApiListener config */

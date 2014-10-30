@@ -37,7 +37,9 @@ public:
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
+	virtual int GetMaxArguments(void) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const;
 };
 
 }
