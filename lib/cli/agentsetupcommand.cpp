@@ -165,6 +165,8 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	/* does not overwrite existing files! */
 	Utility::CopyFile(ca, target_ca);
 
+	//TODO: Fix permissions for CA dir (root -> icinga)
+
 	/* read zones.conf and update with zone + endpoint information */
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");

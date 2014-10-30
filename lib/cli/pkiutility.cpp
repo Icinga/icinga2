@@ -245,6 +245,11 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		break;
 	}
 
+	if (!response->Contains("result")) {
+		Log(LogCritical, "cli", "Request certificate did not return a valid result. Check the master log for details!");
+		return 1;
+	}
+
 	Dictionary::Ptr result = response->Get("result");
 
 	if (result->Contains("error")) {
