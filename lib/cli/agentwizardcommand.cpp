@@ -94,9 +94,10 @@ int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, con
 
 	boost::algorithm::to_lower(answer);
 
-	if (Utility::Match("^n*", answer))
-		is_agent_setup = false;
+	String choice = answer;
 
+	if (choice.Contains("n"))
+		is_agent_setup = false;
 
 	if (is_agent_setup) {
 		/* agent setup part */
@@ -168,9 +169,10 @@ wizard_endpoint_loop_start:
 
 		boost::algorithm::to_lower(answer);
 
-		if (Utility::Match("^y*", answer))
-			goto wizard_endpoint_loop_start;
+		String choice = answer;
 
+		if (choice.Contains("y") || choice.Contains("j"))
+			goto wizard_endpoint_loop_start;
 
 		std::cout << "Please specify the master connection for auto-signing:\n";
 
