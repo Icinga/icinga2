@@ -279,7 +279,9 @@ exit 0
 %endif
 
 # initial installation, enable default features
-%{_sbindir}/icinga2 feature enable checker notification mainlog
+for feature in checker notification mainlog; do
+	ln -sf ../features-available/${feature}.conf %{_sysconfdir}/%{name}/features-enabled/${feature}.conf
+done
 
 exit 0
 
@@ -295,7 +297,9 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable default features
-	%{_sbindir}/icinga2 feature enable checker notification mainlog
+	for feature in checker notification mainlog; do
+		ln -sf ../features-available/${feature}.conf %{_sysconfdir}/%{name}/features-enabled/${feature}.conf
+	done
 fi
 
 exit 0
@@ -367,7 +371,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable ido-mysql feature
-	%{_sbindir}/icinga2 feature enable ido-mysql
+	ln -sf ../features-available/ido-mysql.conf %{_sysconfdir}/%{name}/features-enabled/ido-mysql.conf
 fi
 
 exit 0
@@ -375,7 +379,7 @@ exit 0
 %postun ido-mysql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable ido-mysql
+	rm -f %{_sysconfdir}/%{name}/features-enabled/ido-mysql.conf
 fi
 
 exit 0
@@ -384,7 +388,7 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
 	# initial installation, enable ido-pgsql feature
-	%{_sbindir}/icinga2 feature enable ido-pgsql
+	ln -sf ../features-available/ido-pgsql.conf %{_sysconfdir}/%{name}/features-enabled/ido-pgsql.conf
 fi
 
 exit 0
@@ -392,7 +396,7 @@ exit 0
 %postun ido-pgsql
 if [ "$1" = "0" ]; then
 	# deinstallation of the package - remove feature
-	test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable ido-pgsql
+	rm -f %{_sysconfdir}/%{name}/features-enabled/ido-pgsql.conf
 fi
 
 exit 0
@@ -401,7 +405,9 @@ exit 0
 if [ ${1:-0} -eq 1 ]
 then
         # initial installation, enable features
-        %{_sbindir}/icinga2 feature enable statusdata compatlog command
+	for feature in statusdata compatlog command; do
+		ln -sf ../features-available/${feature}.conf %{_sysconfdir}/%{name}/features-enabled/${feature}.conf
+	done
 fi
 
 exit 0
@@ -409,9 +415,9 @@ exit 0
 %postun classicui-config
 if [ "$1" = "0" ]; then
         # deinstallation of the package - remove feature
-        test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable statusdata
-        test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable compatlog
-        test -x %{_sbindir}/icinga2 && %{_sbindir}/icinga2 feature disable command
+	for feature in statusdata compatlog command; do
+		rm -f %{_sysconfdir}/%{name}/features-enabled/${feature}.conf
+	done
 fi
 
 exit 0
