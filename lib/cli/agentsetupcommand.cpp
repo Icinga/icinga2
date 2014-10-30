@@ -157,11 +157,10 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	/* Copy CA certificate to /etc/icinga2/pki */
 
 	String ca = PkiUtility::GetLocalCaPath() + "/ca.crt";
+	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
-	    << "Copying CA certificate to '" << ca << "'.";
-
-	String target_ca = pki_path + "/ca.crt";
+	    << "Copying CA certificate to '" << target_ca << "'.";
 
 	/* does not overwrite existing files! */
 	Utility::CopyFile(ca, target_ca);
