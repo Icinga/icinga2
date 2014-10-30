@@ -356,7 +356,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 							Log(LogWarning, "cli")
 							    << "Service '" << old_service << "' on host '" << old_host << "' on agent '"
 							    << old_agent_name << "' is blacklisted, but not whitelisted. Skipping.";
-							skip_service = true;
+							continue;
 						}
 
 						if (!new_services->Contains(old_service)) {
