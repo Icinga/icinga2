@@ -21,11 +21,11 @@
 #include "cli/agentutility.hpp"
 #include "cli/pkiutility.hpp"
 #include "cli/featureutility.hpp"
-#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
+#include "base/scriptvariable.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -226,8 +226,8 @@ wizard_master_host:
 			return 1;
 		}
 
-		String user = VariableUtility::GetVariable("RunAsUser");
-		String group = VariableUtility::GetVariable("RunAsUser");
+		String user = ScriptVariable::Get("RunAsUser");
+		String group = ScriptVariable::Get("RunAsGroup");
 
 		if (!Utility::SetFileOwnership(pki_path, user, group)) {
 			Log(LogWarning, "cli")
@@ -429,8 +429,8 @@ wizard_ticket:
 			return 1;
 		}
 
-		String user = VariableUtility::GetVariable("RunAsUser");
-		String group = VariableUtility::GetVariable("RunAsUser");
+		String user = ScriptVariable::Get("RunAsUser");
+		String group = ScriptVariable::Get("RunAsGroup");
 
 		if (!Utility::SetFileOwnership(pki_path, user, group)) {
 			Log(LogWarning, "cli")

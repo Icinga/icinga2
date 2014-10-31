@@ -21,11 +21,11 @@
 #include "cli/agentutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/pkiutility.hpp"
-#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
+#include "base/scriptvariable.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -133,8 +133,8 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 		return 1;
 	}
 
-	String user = VariableUtility::GetVariable("RunAsUser");
-	String group = VariableUtility::GetVariable("RunAsUser");
+	String user = ScriptVariable::Get("RunAsUser");
+	String group = ScriptVariable::Get("RunAsGroup");
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
@@ -365,8 +365,8 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 		return 1;
 	}
 
-	String user = VariableUtility::GetVariable("RunAsUser");
-	String group = VariableUtility::GetVariable("RunAsUser");
+	String user = ScriptVariable::Get("RunAsUser");
+	String group = ScriptVariable::Get("RunAsGroup");
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
