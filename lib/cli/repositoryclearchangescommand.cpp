@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/repositorycommitcommand.hpp"
+#include "cli/repositoryclearchangescommand.hpp"
 #include "cli/repositoryutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
@@ -28,53 +28,37 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("repository/commit", RepositoryCommitCommand);
+REGISTER_CLICOMMAND("repository/clear-changes", RepositoryClearChangesCommand);
 
-String RepositoryCommitCommand::GetDescription(void) const
+String RepositoryClearChangesCommand::GetDescription(void) const
 {
-	return "Commit Icinga 2 repository changes";
+	return "Clear uncommitted Icinga 2 repository changes";
 }
 
-String RepositoryCommitCommand::GetShortDescription(void) const
+String RepositoryClearChangesCommand::GetShortDescription(void) const
 {
-	return "commit repository changes";
+	return "clear uncommitted repository changes";
 }
 
-void RepositoryCommitCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
-{
-	visibleDesc.add_options()
-		("simulate", "Simulate to-be-committed changes");
-}
-
-ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
+ImpersonationLevel RepositoryClearChangesCommand::GetImpersonationLevel(void) const
 {
 	return ImpersonateRoot;
 }
 
 /**
- * The entry point for the "repository commit" CLI command.
+ * The entry point for the "repository clear-changes" CLI command.
  *
  * @returns An exit status.
  */
-int RepositoryCommitCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int RepositoryClearChangesCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	if (!Utility::PathExists(RepositoryUtility::GetRepositoryChangeLogPath())) {
 		std::cout << "Repository Changelog path '" << RepositoryUtility::GetRepositoryChangeLogPath() << "' does not exist. Add objects first!\n";
 		return 1;
 	}
 
-	if (vm.count("simulate")) {
-		RepositoryUtility::PrintChangeLog(std::cout);
-		std::cout << "\n";
-		std::cout << "Simulation not yet implemented.\n";
-		//TODO
-		return 1;
-	} else {
-		RepositoryUtility::PrintChangeLog(std::cout);
-		std::cout << "\n";
-		RepositoryUtility::CommitChangeLog();
-	}
+	std::cout << "Clearing all remaining changes\n";
+	RepositoryUtility::ClearChangeLog();
 
 	return 0;
 }
