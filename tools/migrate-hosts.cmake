@@ -20,6 +20,10 @@ host_count=0
 service_count=0
 
 for hostFile in $sysconfdir/icinga2/conf.d/hosts/*.conf; do
+    if [ ! -e $hostFile ]; then
+        continue
+    fi
+
     host_count=$(($host_count + 1))
 
     host=`basename $hostFile .conf`
@@ -44,6 +48,10 @@ for hostFile in $sysconfdir/icinga2/conf.d/hosts/*.conf; do
         if [ ! -e $sysconfdir/icinga2/repository.d/hosts/$target ]; then
             mv $sysconfdir/icinga2/conf.d/hosts/$host $sysconfdir/icinga2/repository.d/hosts/$target
             for file in $sysconfdir/icinga2/repository.d/hosts/$target/*.conf; do
+                if [ ! -e $file ]; then
+                    break
+                fi
+
                 sed "s/localhost/$target/g" $file > $file.tmp
                 mv $file.tmp $file
             done
