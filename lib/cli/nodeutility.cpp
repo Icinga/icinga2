@@ -483,7 +483,6 @@ int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& zone_
 		return 1;
 	}
 
-	ObjectLock xlock(lists);
 	BOOST_FOREACH(int remove, remove_filters) {
 		lists->Remove(remove);
 	}

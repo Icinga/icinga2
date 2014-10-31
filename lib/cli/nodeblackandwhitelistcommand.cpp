@@ -122,14 +122,6 @@ void BlackAndWhitelistCommand::InitParameters(boost::program_options::options_de
  */
 int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String list_path = NodeUtility::GetRepositoryPath() + "/" + m_Type + ".list";
-
-	Dictionary::Ptr lists = make_shared<Dictionary>();
-
-	if (Utility::PathExists(list_path)) {
-		lists = Utility::LoadJsonFile(list_path);
-	}
-
 	if (m_Command == BlackAndWhitelistCommandAdd) {
 		if (!vm.count("zone")) {
 			Log(LogCritical, "cli", "At least the zone name filter is required!");
