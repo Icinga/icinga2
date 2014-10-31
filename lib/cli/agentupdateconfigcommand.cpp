@@ -103,7 +103,6 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		host_attrs->Set("__name", zone);
 		host_attrs->Set("name", zone);
 		host_attrs->Set("check_command", "cluster-zone");
-		host_attrs->Set("zone", zone);
 		Array::Ptr host_imports = make_shared<Array>();
 		host_imports->Add("agent-host"); //default host agent template
 		host_attrs->Set("import", host_imports);
