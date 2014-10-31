@@ -291,12 +291,17 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	if (!vm.count("ticket")) {
 		Log(LogCritical, "cli")
 		    << "Please pass the ticket number generated on master\n"
-		    << "(Hint: 'icinga2 pki ticket --cn <masterhost> --salt <ticket_salt>').";
+		    << "(Hint: 'icinga2 pki ticket --cn " << Utility::GetFQDN() << "').";
 		return 1;
 	}
 
 	if (!vm.count("endpoint")) {
 		Log(LogCritical, "cli", "You need to specify at least one endpoint (--endpoint).");
+		return 1;
+	}
+
+	if (!vm.count("zone")) {
+		Log(LogCritical, "cli", "You need to specify the local zone (--zone).");
 		return 1;
 	}
 
@@ -460,7 +465,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn);
+	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn, vm["node"].as<std::string>());
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {

@@ -126,6 +126,17 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 		String cn = answer;
 		cn.Trim();
 
+		std::cout << "Please specifiy the local zone name [" << cn << "]: ";
+
+		std::getline(std::cin, answer);
+		boost::algorithm::to_lower(answer);
+
+		if (answer.empty())
+			answer = cn;
+
+		String local_zone = answer;
+		local_zone.Trim();
+
 		std::vector<std::string> endpoints;
 
 		String endpoint_buffer;
@@ -160,7 +171,7 @@ wizard_endpoint_loop_start:
 			master_endpoint_name = tmp; //store the endpoint name for later
 		}
 
-		std::cout << "Master endpoint port: ";
+		std::cout << "Master endpoint port (optional) []: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -170,7 +181,6 @@ wizard_endpoint_loop_start:
 			tmp.Trim();
 			endpoint_buffer += "," + answer;
 		}
-
 
 		endpoints.push_back(endpoint_buffer);
 
@@ -388,7 +398,7 @@ wizard_ticket:
 		/* apilistener config */
 		std::cout << "Generating local zones.conf.\n";
 
-		NodeUtility::GenerateNodeIcingaConfig(endpoints, cn);
+		NodeUtility::GenerateNodeIcingaConfig(endpoints, cn, local_zone);
 
 		if (cn != Utility::GetFQDN()) {
 			Log(LogWarning, "cli")

@@ -235,7 +235,7 @@ void NodeUtility::CollectNodes(const String& node_file, std::vector<Dictionary::
  * Node Setup helpers
  */
 
-int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename)
+int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename, const String& zonename)
 {
 	Array::Ptr my_config = make_shared<Array>();
 
