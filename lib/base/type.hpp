@@ -35,15 +35,18 @@ enum FieldAttribute
 	FAConfig = 1,
 	FAState = 2
 }; 
-	
+
+class Type;
+
 struct Field
 {
 	int ID;
+	const Type *FType;
 	const char *Name;
 	int Attributes;
 
-	Field(int id, const char *name, int attributes)
-		: ID(id), Name(name), Attributes(attributes)
+	Field(int id, const Type *type, const char *name, int attributes)
+		: ID(id), FType(type), Name(name), Attributes(attributes)
 	{ }
 };
 
@@ -105,14 +108,14 @@ struct FactoryHelper
 
 #define REGISTER_TYPE(type) \
 	namespace { namespace UNIQUE_NAME(rt) { \
-		void RegisterType(void) \
+		void RegisterType ## type(void) \
 		{ \
 			icinga::Type *t = new TypeImpl<type>(); \
 			t->SetFactory(FactoryHelper<type>().GetFactory()); \
 			icinga::Type::Register(t); \
 		} \
 		\
-		INITIALIZE_ONCE(RegisterType); \
+		INITIALIZE_ONCE(RegisterType ## type); \
 	} }
 
 }

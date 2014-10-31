@@ -253,8 +253,16 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		size_t num = 0;
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			std::string ftype = it->Type;
+
+			if (ftype.find("::Ptr") == ftype.size() - strlen("::Ptr"))
+				ftype = ftype.substr(0, ftype.size() - strlen("::Ptr"));
+
+			if (it->Attributes & FAEnum)
+				ftype = "int";
+
 			std::cout << "\t\t\t" << "case " << num << ":" << std::endl
-				<< "\t\t\t\t" << "return Field(" << num << ", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
+				<< "\t\t\t\t" << "return Field(" << num << ", Type::GetByName(\"" << ftype << "\"), \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
 			num++;
 		}
 

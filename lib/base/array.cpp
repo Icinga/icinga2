@@ -20,9 +20,12 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
+#include "base/primitivetype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
+
+REGISTER_PRIMITIVE_TYPE(Array);
 
 /**
  * Restrieves a value from an array.

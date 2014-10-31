@@ -20,9 +20,12 @@
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
+#include "base/primitivetype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
+
+REGISTER_PRIMITIVE_TYPE(Dictionary);
 
 /**
  * Compares dictionary keys using the less operator.

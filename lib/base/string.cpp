@@ -19,10 +19,13 @@
 
 #include "base/string.hpp"
 #include "base/value.hpp"
+#include "base/primitivetype.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <ostream>
 
 using namespace icinga;
+
+REGISTER_PRIMITIVE_TYPE(String);
 
 const String::SizeType String::NPos = std::string::npos;
 

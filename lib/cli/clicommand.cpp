@@ -78,6 +78,10 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, cons
 		if (!(field.Attributes & FAConfig))
 			continue;
 
+		if (field.FType != Type::GetByName("int") && field.FType != Type::GetByName("double")
+		    && field.FType != Type::GetByName("bool") && field.FType != Type::GetByName("String"))
+			continue;
+
 		String fname = field.Name;
 
 		if (fname == "__name" || fname == "templates" || fname == "type")
