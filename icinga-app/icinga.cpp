@@ -328,6 +328,7 @@ int Main(void)
 		    &GlobalArgumentCompletion, true, autoindex);
 		rc = 0;
 	} else if (command) {
+		Logger::DisableTimestamp(true);
 #ifndef _WIN32
 		if (command->GetImpersonationLevel() == ImpersonateRoot) {
 			if (getuid() != 0) {

@@ -36,6 +36,7 @@ INITIALIZE_ONCE(&Logger::StaticInitialize);
 std::set<Logger::Ptr> Logger::m_Loggers;
 boost::mutex Logger::m_Mutex;
 bool Logger::m_ConsoleLogEnabled = true;
+bool Logger::m_TimestampEnabled = true;
 LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 
 void Logger::StaticInitialize(void)
@@ -197,4 +198,14 @@ void Logger::SetConsoleLogSeverity(LogSeverity logSeverity)
 LogSeverity Logger::GetConsoleLogSeverity(void)
 {
 	return m_ConsoleLogSeverity;
+}
+
+void Logger::DisableTimestamp(bool disable)
+{
+	m_TimestampEnabled = !disable;
+}
+
+bool Logger::IsTimestampEnabled(void)
+{
+	return m_TimestampEnabled;
 }

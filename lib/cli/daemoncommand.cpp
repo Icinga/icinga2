@@ -312,6 +312,9 @@ std::vector<String> DaemonCommand::GetArgumentSuggestions(const String& argument
  */
 int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
+	if (!vm.count("validate"))
+		Logger::DisableTimestamp(false);
+
 	ScriptVariable::Set("UseVfork", true, false, true);
 
 	Application::MakeVariablesConstant();

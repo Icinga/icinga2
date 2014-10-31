@@ -83,6 +83,8 @@ public:
 
 	static void DisableConsoleLog(void);
 	static bool IsConsoleLogEnabled(void);
+	static void DisableTimestamp(bool);
+	static bool IsTimestampEnabled(void);
 
 	static void SetConsoleLogSeverity(LogSeverity logSeverity);
 	static LogSeverity GetConsoleLogSeverity(void);
@@ -97,6 +99,7 @@ private:
 	static boost::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
+	static bool m_TimestampEnabled;
 	static LogSeverity m_ConsoleLogSeverity;
 };
 

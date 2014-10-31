@@ -79,7 +79,7 @@ void StreamLogger::BindStream(std::ostream *stream, bool ownsStream)
 
 	m_Stream = stream;
 	m_OwnsStream = ownsStream;
-	
+
 	m_FlushLogTimer = make_shared<Timer>();
 	m_FlushLogTimer->SetInterval(1);
 	m_FlushLogTimer->OnTimerExpired.connect(boost::bind(&StreamLogger::FlushLogTimerHandler, this));
@@ -98,7 +98,8 @@ void StreamLogger::ProcessLogEntry(std::ostream& stream, const LogEntry& entry)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	stream << "[" << timestamp << "] ";
+	if (Logger::IsTimestampEnabled())
+		stream << "[" << timestamp << "] ";
 
 	int color;
 
@@ -137,4 +138,3 @@ void StreamLogger::ProcessLogEntry(const LogEntry& entry)
 {
 	ProcessLogEntry(*m_Stream, entry);
 }
-
