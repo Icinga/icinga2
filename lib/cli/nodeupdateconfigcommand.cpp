@@ -104,7 +104,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		host_attrs->Set("name", zone);
 		host_attrs->Set("check_command", "cluster-zone");
 		Array::Ptr host_imports = make_shared<Array>();
-		host_imports->Add("node-host"); //default host node template
+		host_imports->Add("satellite-host"); //default host node template
 		host_attrs->Set("import", host_imports);
 
 		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
@@ -159,7 +159,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				}
 
 				Array::Ptr host_imports = make_shared<Array>();
-				host_imports->Add("node-host"); //default host node template
+				host_imports->Add("satellite-host"); //default host node template
 				host_attrs->Set("import", host_imports);
 
 				if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
@@ -213,7 +213,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				service_attrs->Set("zone", zone);
 
 				Array::Ptr service_imports = make_shared<Array>();
-				service_imports->Add("node-service"); //default service node template
+				service_imports->Add("satellite-service"); //default service node template
 				service_attrs->Set("import", service_imports);
 
 				if (!RepositoryUtility::AddObject(service, "Service", service_attrs)) {
