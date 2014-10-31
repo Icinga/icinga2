@@ -56,26 +56,26 @@ public:
 
 	static void UpdateConstant(const String& name, const String& value);
 
-	/* agent setup helpers */
+	/* node setup helpers */
 	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);
 	static int GenerateNodeMasterIcingaConfig(const String& nodename);
 
 	/* black/whitelist */
 	static String GetBlackAndWhiteListPath(const String& type);
 	static Dictionary::Ptr GetBlackAndWhiteList(const String& type);
-	static int UpdateBlackAndWhiteList(const String& type, const String& agent_filter,
+	static int UpdateBlackAndWhiteList(const String& type, const String& node_filter,
 	    const String& host_filter, const String& service_filter);
-	static int RemoveBlackAndWhiteList(const String& type, const String& agent_filter,
+	static int RemoveBlackAndWhiteList(const String& type, const String& node_filter,
 	    const String& host_filter, const String& service_filter);
 	static int PrintBlackAndWhiteList(std::ostream& fp, const String& type);
 
-	static bool CheckAgainstBlackAndWhiteList(const String& type, const String& agent, const String& host, const String& service);
+	static bool CheckAgainstBlackAndWhiteList(const String& type, const String& node, const String& host, const String& service);
 
 private:
 	NodeUtility(void);
 	static bool RemoveNodeFile(const String& path);
-	static Dictionary::Ptr LoadNodeFile(const String& agent_file);
-	static void CollectNodes(const String& agent_file, std::vector<Dictionary::Ptr>& agents);
+	static Dictionary::Ptr LoadNodeFile(const String& node_file);
+	static void CollectNodes(const String& node_file, std::vector<Dictionary::Ptr>& nodes);
 
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
 	static void FormatValue(std::ostream& fp, const Value& val);

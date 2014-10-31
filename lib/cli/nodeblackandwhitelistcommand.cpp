@@ -107,18 +107,16 @@ String BlackAndWhitelistCommand::GetShortDescription(void) const
 void BlackAndWhitelistCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
-	visibleDesc.add_options()
-		("agent", po::value<std::string>(), "The name of the agent")
-		("host", po::value<std::string>(), "The name of the host")
-		("service", po::value<std::string>(), "The name of the service");
-
-	if (m_Command == BlackAndWhitelistCommandAdd) {
-		//TODO: call list functionality
+	if (m_Command == BlackAndWhitelistCommandAdd || m_Command == BlackAndWhitelistCommandRemove) {
+		visibleDesc.add_options()
+			("zone", po::value<std::string>(), "The name of the zone")
+			("host", po::value<std::string>(), "The name of the host")
+			("service", po::value<std::string>(), "The name of the service");
 	}
 }
 
 /**
- * The entry point for the "agent <whitelist/blacklist> <add/remove/list>" CLI command.
+ * The entry point for the "node <whitelist/blacklist> <add/remove/list>" CLI command.
  *
  * @returns An exit status.
  */
@@ -133,10 +131,11 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 	}
 
 	if (m_Command == BlackAndWhitelistCommandAdd) {
-		if (!vm.count("agent")) {
-			Log(LogCritical, "cli", "At least the agent name filter is required!");
+		if (!vm.count("zone")) {
+			Log(LogCritical, "cli", "At least the zone name filter is required!");
 			return 1;
 		}
+
 		if (!vm.count("host")) {
 			Log(LogCritical, "cli", "At least the host name filter is required!");
 			return 1;
@@ -147,26 +146,21 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 		if (vm.count("service"))
 			service_filter = vm["service"].as<std::string>();
 
-		return NodeUtility::UpdateBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
+		return NodeUtility::UpdateBlackAndWhiteList(m_Type, vm["zone"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
 	} else if (m_Command == BlackAndWhitelistCommandList) {
-
-		if (vm.count("agent") || vm.count("host") || vm.count("service")) {
-			Log(LogCritical, "cli", "List command does not take any arguments!");
-			return 1;
-		}
-
 		return NodeUtility::PrintBlackAndWhiteList(std::cout, m_Type);
 	} else if (m_Command == BlackAndWhitelistCommandRemove) {
-		if (!vm.count("agent")) {
-			Log(LogCritical, "cli", "At least the agent name filter is required!");
-			return 1;
-		}
-		if (!vm.count("host")) {
-			Log(LogCritical, "cli", "At least the host name filter is required!");
+		if (!vm.count("zone")) {
+			Log(LogCritical, "cli", "The zone name filter is required!");
 			return 1;
 		}
 
-		String agent_filter = vm["agent"].as<std::string>();
+		if (!vm.count("host")) {
+			Log(LogCritical, "cli", "The host name filter is required!");
+			return 1;
+		}
+
+		String zone_filter = vm["zone"].as<std::string>();
 		String host_filter = vm["host"].as<std::string>();
 		String service_filter;
 
@@ -174,7 +168,7 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 			service_filter = vm["service"].as<std::string>();
 		}
 
-		return NodeUtility::RemoveBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
+		return NodeUtility::RemoveBlackAndWhiteList(m_Type, vm["zone"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
 	}
 
 

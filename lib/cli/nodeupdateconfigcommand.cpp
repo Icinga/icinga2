@@ -38,12 +38,12 @@ REGISTER_CLICOMMAND("node/update-config", NodeUpdateConfigCommand);
 
 String NodeUpdateConfigCommand::GetDescription(void) const
 {
-	return "Update Icinga 2 agent config.";
+	return "Update Icinga 2 node config.";
 }
 
 String NodeUpdateConfigCommand::GetShortDescription(void) const
 {
-	return "update agent config";
+	return "update node config";
 }
 
 ImpersonationLevel NodeUpdateConfigCommand::GetImpersonationLevel(void) const
@@ -52,7 +52,7 @@ ImpersonationLevel NodeUpdateConfigCommand::GetImpersonationLevel(void) const
 }
 
 /**
- * The entry point for the "agent update-config" CLI command.
+ * The entry point for the "node update-config" CLI command.
  *
  * @returns An exit status.
  */
@@ -77,7 +77,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 	Dictionary::Ptr inventory = make_shared<Dictionary>();
 
 	Log(LogInformation, "cli")
-	    << "Updating agent configuration for ";
+	    << "Updating node configuration for ";
 
 	NodeUtility::PrintNodes(std::cout);
 
@@ -85,31 +85,31 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
 
-	BOOST_FOREACH(const Dictionary::Ptr& agent, NodeUtility::GetNodes()) {
-		Dictionary::Ptr repository = agent->Get("repository");
-		String zone = agent->Get("zone");
-		String endpoint = agent->Get("endpoint");
-		String agent_name = endpoint;
+	BOOST_FOREACH(const Dictionary::Ptr& node, NodeUtility::GetNodes()) {
+		Dictionary::Ptr repository = node->Get("repository");
+		String zone = node->Get("zone");
+		String endpoint = node->Get("endpoint");
+		String node_name = endpoint;
 
 		/* store existing structure in index */
-		inventory->Set(endpoint, agent);
+		inventory->Set(endpoint, node);
 
 		Dictionary::Ptr host_services = make_shared<Dictionary>();
 
 		Log(LogInformation, "cli")
-		    << "Repository for agent '" << endpoint << "' does not contain a health check host. Adding host '" << zone << "'.";
+		    << "Repository for node '" << endpoint << "' does not contain a health check host. Adding host '" << zone << "'.";
 
 		Dictionary::Ptr host_attrs = make_shared<Dictionary>();
 		host_attrs->Set("__name", zone);
 		host_attrs->Set("name", zone);
 		host_attrs->Set("check_command", "cluster-zone");
 		Array::Ptr host_imports = make_shared<Array>();
-		host_imports->Add("agent-host"); //default host agent template
+		host_imports->Add("node-host"); //default host node template
 		host_attrs->Set("import", host_imports);
 
 		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
 			Log(LogCritical, "cli")
-			    << "Cannot add agent host '" << zone << "' to the config repository!\n";
+			    << "Cannot add node host '" << zone << "' to the config repository!\n";
 		}
 
 		ObjectLock olock(repository);
@@ -120,7 +120,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 			if (host == "localhost") {
 				Log(LogWarning, "cli")
-				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your agent '" << agent_name << "'.";
+				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your node '" << node_name << "'.";
 				continue;
 			}
 
@@ -138,10 +138,10 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				skip_host = true;
 
 			/* check against black/whitelist before trying to add host */
-			if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", agent_name, host, Empty) &&
-			    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", agent_name, host, Empty)) {
+			if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", node_name, host, Empty) &&
+			    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", node_name, host, Empty)) {
 				Log(LogWarning, "cli")
-				    << "Host '" << host << "' on agent '" << agent_name << "' is blacklisted, but not whitelisted. Skipping.";
+				    << "Host '" << host << "' on node '" << node_name << "' is blacklisted, but not whitelisted. Skipping.";
 				skip_host = true;
 			}
 
@@ -159,12 +159,12 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				}
 
 				Array::Ptr host_imports = make_shared<Array>();
-				host_imports->Add("agent-host"); //default host agent template
+				host_imports->Add("node-host"); //default host node template
 				host_attrs->Set("import", host_imports);
 
 				if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
 					Log(LogCritical, "cli")
-					    << "Cannot add agent host '" << host << "' to the config repository!\n";
+					    << "Cannot add node host '" << host << "' to the config repository!\n";
 				}
 			}
 
@@ -195,8 +195,8 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", endpoint, host, service) &&
 				    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", endpoint, host, service)) {
 					Log(LogWarning, "cli")
-					    << "Service '" << service << "' on host '" << host << "' on agent '"
-					    << agent_name << "' is blacklisted, but not whitelisted. Skipping.";
+					    << "Service '" << service << "' on host '" << host << "' on node '"
+					    << node_name << "' is blacklisted, but not whitelisted. Skipping.";
 					skip_service = true;
 				}
 
@@ -213,23 +213,23 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				service_attrs->Set("zone", zone);
 
 				Array::Ptr service_imports = make_shared<Array>();
-				service_imports->Add("agent-service"); //default service agent template
+				service_imports->Add("node-service"); //default service node template
 				service_attrs->Set("import", service_imports);
 
 				if (!RepositoryUtility::AddObject(service, "Service", service_attrs)) {
 					Log(LogCritical, "cli")
-					    << "Cannot add agent host '" << host << "' to the config repository!\n";
+					    << "Cannot add node host '" << host << "' to the config repository!\n";
 					continue;
 				}
 			}
 		}
 
-		/* write a new zone and endpoint for the agent */
+		/* write a new zone and endpoint for the node */
 		Dictionary::Ptr endpoint_attrs = make_shared<Dictionary>();
 		endpoint_attrs->Set("__name", endpoint);
 		endpoint_attrs->Set("name", endpoint);
 
-		Dictionary::Ptr settings = agent->Get("settings");
+		Dictionary::Ptr settings = node->Get("settings");
 
 		if (settings) {
 			if (settings->Contains("host"))
@@ -240,7 +240,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 		if (!RepositoryUtility::AddObject(endpoint, "Endpoint", endpoint_attrs)) {
 			Log(LogCritical, "cli")
-			    << "Cannot add agent endpoint '" << endpoint << "' to the config repository!\n";
+			    << "Cannot add node endpoint '" << endpoint << "' to the config repository!\n";
 		}
 
 		Dictionary::Ptr zone_attrs = make_shared<Dictionary>();
@@ -251,20 +251,20 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		zone_attrs->Set("name", zone);
 		zone_attrs->Set("endpoints", zone_members);
 
-		String agent_parent_zone = "master"; //hardcode the name
+		String node_parent_zone = "master"; //hardcode the name
 		String parent_zone;
 
-		if (!agent->Contains("parent_zone")) {
+		if (!node->Contains("parent_zone")) {
 			Log(LogWarning, "cli")
 			    << "Node '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
-			parent_zone = agent_parent_zone;
+			parent_zone = node_parent_zone;
 		} else {
-			parent_zone = agent->Get("parent_zone");
+			parent_zone = node->Get("parent_zone");
 
 			if (parent_zone.IsEmpty()) {
 				Log(LogWarning, "cli")
 				    << "Node '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
-				parent_zone = agent_parent_zone;
+				parent_zone = node_parent_zone;
 			}
 		}
 
@@ -272,26 +272,26 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 		if (!RepositoryUtility::AddObject(zone, "Zone", zone_attrs)) {
 			Log(LogCritical, "cli")
-			    << "Cannot add agent zone '" << zone << "' to the config repository!\n";
+			    << "Cannot add node zone '" << zone << "' to the config repository!\n";
 		}
 	}
 
 	/* check if there are objects inside the old_inventory which do not exist anymore */
-	BOOST_FOREACH(const Dictionary::Pair& old_agent_objs, old_inventory) {
+	BOOST_FOREACH(const Dictionary::Pair& old_node_objs, old_inventory) {
 
-		String old_agent_name = old_agent_objs.first;
+		String old_node_name = old_node_objs.first;
 
-		/* check if the agent was dropped */
-		if (!inventory->Contains(old_agent_name)) {
+		/* check if the node was dropped */
+		if (!inventory->Contains(old_node_name)) {
 			Log(LogInformation, "cli")
-			    << "Node update found old agent '" << old_agent_name << "'. Removing it and all of its hosts/services.";
+			    << "Node update found old node '" << old_node_name << "'. Removing it and all of its hosts/services.";
 
-			//TODO Remove an agent and all of his hosts
-			Dictionary::Ptr old_agent = old_inventory->Get(old_agent_name);
-			Dictionary::Ptr old_agent_repository = old_agent->Get("repository");
+			//TODO Remove an node and all of his hosts
+			Dictionary::Ptr old_node = old_inventory->Get(old_node_name);
+			Dictionary::Ptr old_node_repository = old_node->Get("repository");
 
-			ObjectLock olock(old_agent_repository);
-			BOOST_FOREACH(const Dictionary::Pair& kv, old_agent_repository) {
+			ObjectLock olock(old_node_repository);
+			BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
 				String host = kv.first;
 
 				Dictionary::Ptr host_attrs = make_shared<Dictionary>();
@@ -299,8 +299,8 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
 			}
 
-			String zone = old_agent->Get("zone");
-			String endpoint = old_agent->Get("endpoint");
+			String zone = old_node->Get("zone");
+			String endpoint = old_node->Get("endpoint");
 
 			Dictionary::Ptr zone_attrs = make_shared<Dictionary>();
 			zone_attrs->Set("name", zone);
@@ -310,34 +310,34 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 			endpoint_attrs->Set("name", endpoint);
 			RepositoryUtility::RemoveObject(endpoint, "Endpoint", endpoint_attrs);
 		} else {
-			/* get the current agent */
-			Dictionary::Ptr new_agent = inventory->Get(old_agent_name);
-			Dictionary::Ptr new_agent_repository = new_agent->Get("repository");
+			/* get the current node */
+			Dictionary::Ptr new_node = inventory->Get(old_node_name);
+			Dictionary::Ptr new_node_repository = new_node->Get("repository");
 
-			Dictionary::Ptr old_agent = old_inventory->Get(old_agent_name);
-			Dictionary::Ptr old_agent_repository = old_agent->Get("repository");
+			Dictionary::Ptr old_node = old_inventory->Get(old_node_name);
+			Dictionary::Ptr old_node_repository = old_node->Get("repository");
 
-			ObjectLock xlock(old_agent_repository);
-			BOOST_FOREACH(const Dictionary::Pair& kv, old_agent_repository) {
+			ObjectLock xlock(old_node_repository);
+			BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
 				String old_host = kv.first;
 
 				if (old_host == "localhost") {
 					Log(LogWarning, "cli")
-					    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your agent '" << old_agent << "'.";
+					    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your node '" << old_node << "'.";
 					continue;
 				}
 
 				/* check against black/whitelist before trying to remove host */
-				if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, Empty) &&
-				    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, Empty)) {
+				if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, Empty) &&
+				    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, Empty)) {
 					Log(LogWarning, "cli")
-					    << "Host '" << old_agent << "' on agent '" << old_agent << "' is blacklisted, but not whitelisted. Skipping.";
+					    << "Host '" << old_node << "' on node '" << old_node << "' is blacklisted, but not whitelisted. Skipping.";
 					continue;
 				}
 
-				if (!new_agent_repository->Contains(old_host)) {
+				if (!new_node_repository->Contains(old_host)) {
 					Log(LogInformation, "cli")
-					    << "Node update found old host '" << old_host << "' on agent '" << old_agent_name << "'. Removing it.";
+					    << "Node update found old host '" << old_host << "' on node '" << old_node_name << "'. Removing it.";
 
 					Dictionary::Ptr host_attrs = make_shared<Dictionary>();
 					host_attrs->Set("name", old_host);
@@ -345,23 +345,23 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				} else {
 					/* host exists, now check all services for this host */
 					Array::Ptr old_services = kv.second;
-					Array::Ptr new_services = new_agent_repository->Get(old_host);
+					Array::Ptr new_services = new_node_repository->Get(old_host);
 
 					ObjectLock ylock(old_services);
 					BOOST_FOREACH(const String& old_service, old_services) {
 						/* check against black/whitelist before trying to remove service */
-						if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, old_service) &&
-						    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, old_service)) {
+						if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, old_service) &&
+						    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, old_service)) {
 							Log(LogWarning, "cli")
-							    << "Service '" << old_service << "' on host '" << old_host << "' on agent '"
-							    << old_agent_name << "' is blacklisted, but not whitelisted. Skipping.";
+							    << "Service '" << old_service << "' on host '" << old_host << "' on node '"
+							    << old_node_name << "' is blacklisted, but not whitelisted. Skipping.";
 							continue;
 						}
 
 						if (!new_services->Contains(old_service)) {
 							Log(LogInformation, "cli")
 							    << "Node update found old service '" << old_service << "' on host '" << old_host
-							    << "' on agent '" << old_agent_name << "'. Removing it.";
+							    << "' on node '" << old_node_name << "'. Removing it.";
 
 							Dictionary::Ptr service_attrs = make_shared<Dictionary>();
 							service_attrs->Set("name", old_service);
@@ -374,7 +374,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		}
 	}
 
-	Log(LogInformation, "cli", "Committing agent configuration.");
+	Log(LogInformation, "cli", "Committing node configuration.");
 
 	RepositoryUtility::PrintChangeLog(std::cout);
 	std::cout << "\n";

@@ -42,12 +42,12 @@ REGISTER_CLICOMMAND("node/wizard", NodeWizardCommand);
 
 String NodeWizardCommand::GetDescription(void) const
 {
-	return "Wizard for Icinga 2 agent setup.";
+	return "Wizard for Icinga 2 node setup.";
 }
 
 String NodeWizardCommand::GetShortDescription(void) const
 {
-	return "wizard for agent setup";
+	return "wizard for node setup";
 }
 
 ImpersonationLevel NodeWizardCommand::GetImpersonationLevel(void) const
@@ -61,7 +61,7 @@ int NodeWizardCommand::GetMaxArguments(void) const
 }
 
 /**
- * The entry point for the "agent wizard" CLI command.
+ * The entry point for the "node wizard" CLI command.
  *
  * @returns An exit status.
  */
@@ -82,7 +82,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	//TODO: Add sort of bash completion to path input?
 
-	/* 0. master or agent setup?
+	/* 0. master or node setup?
 	 * 1. Ticket
 	 * 2. Master information for autosigning
 	 * 3. Trusted cert location
@@ -98,9 +98,9 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 	 */
 
 	std::string answer;
-	bool is_agent_setup = true;
+	bool is_node_setup = true;
 
-	std::cout << "Please specify if this is an agent setup ('no' installs a master setup) [Y/n]: ";
+	std::cout << "Please specify if this is an node setup ('no' installs a master setup) [Y/n]: ";
 	std::getline (std::cin, answer);
 
 	boost::algorithm::to_lower(answer);
@@ -108,10 +108,10 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 	String choice = answer;
 
 	if (choice.Contains("n"))
-		is_agent_setup = false;
+		is_node_setup = false;
 
-	if (is_agent_setup) {
-		/* agent setup part */
+	if (is_node_setup) {
+		/* node setup part */
 		std::cout << "Starting the Node setup routine...\n";
 
 		/* CN */
@@ -130,7 +130,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 
 		String endpoint_buffer;
 
-		std::cout << "Please specify the master endpoint(s) this agent should connect to:\n";
+		std::cout << "Please specify the master endpoint(s) this node should connect to:\n";
 		String master_endpoint_name;
 
 wizard_endpoint_loop_start:
@@ -214,8 +214,8 @@ wizard_master_host:
 
 		/* workaround for fetching the master cert */
 		String pki_path = PkiUtility::GetPkiPath();
-		String agent_cert = pki_path + "/" + cn + ".crt";
-		String agent_key = pki_path + "/" + cn + ".key";
+		String node_cert = pki_path + "/" + cn + ".crt";
+		String node_key = pki_path + "/" + cn + ".key";
 
 		//new-ca, new-cert
 		PkiUtility::NewCa();
@@ -234,7 +234,7 @@ wizard_master_host:
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
 		}
 
-		if (PkiUtility::NewCert(cn, agent_key, Empty, agent_cert) > 0) {
+		if (PkiUtility::NewCert(cn, node_key, Empty, node_cert) > 0) {
 			Log(LogCritical, "cli")
 			    << "Failed to create new self-signed certificate for CN '" << cn << "'. Please try again.";
 			return 1;
@@ -258,13 +258,13 @@ wizard_master_host:
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
 		}
-		if (!Utility::SetFileOwnership(agent_cert, user, group)) {
+		if (!Utility::SetFileOwnership(node_cert, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << agent_cert << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_cert << "'. Verify it yourself!";
 		}
-		if (!Utility::SetFileOwnership(agent_key, user, group)) {
+		if (!Utility::SetFileOwnership(node_key, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << agent_key << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_key << "'. Verify it yourself!";
 		}
 
 		String target_ca = pki_path + "/ca.crt";
@@ -287,7 +287,7 @@ wizard_master_host:
 
 		String trusted_cert = PkiUtility::GetPkiPath() + "/trusted-master.crt";
 
-		if (PkiUtility::SaveCert(master_host, master_port, agent_key, agent_cert, trusted_cert) > 0) {
+		if (PkiUtility::SaveCert(master_host, master_port, node_key, node_cert, trusted_cert) > 0) {
 			Log(LogCritical, "cli")
 			    << "Failed to fetch trusted master certificate. Please try again.";
 			return 1;
@@ -310,7 +310,7 @@ wizard_ticket:
 
 		std::cout << "Processing self-signed certificate request. Ticket '" << ticket << "'.\n";
 
-		if (PkiUtility::RequestCertificate(master_host, master_port, agent_key, agent_cert, ca, trusted_cert, ticket) > 0) {
+		if (PkiUtility::RequestCertificate(master_host, master_port, node_key, node_cert, ca, trusted_cert, ticket) > 0) {
 			Log(LogCritical, "cli")
 			    << "Failed to fetch signed certificate from master '" << master_host << ", "
 			    << master_port <<"'. Please try again.";
@@ -318,9 +318,9 @@ wizard_ticket:
 		}
 
 		/* fix permissions (again) when updating the signed certificate */
-		if (!Utility::SetFileOwnership(agent_cert, user, group)) {
+		if (!Utility::SetFileOwnership(node_cert, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << agent_cert << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_cert << "'. Verify it yourself!";
 		}
 
 		/* apilistener config */
@@ -577,7 +577,7 @@ wizard_ticket:
 		    << "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
 	}
 
-	std::cout << "Now restart your Icinga 2 agent to finish the installation!\n";
+	std::cout << "Now restart your Icinga 2 to finish the installation!\n";
 
 	std::cout << "If you encounter problems or bugs, please do not hesitate to\n"
 	    << "get in touch with the community at https://support.icinga.org" << std::endl;

@@ -26,7 +26,7 @@ namespace icinga
 {
 
 /**
- * The "agent remove" command.
+ * The "node remove" command.
  *
  * @ingroup cli
  */

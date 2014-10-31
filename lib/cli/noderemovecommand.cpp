@@ -35,12 +35,12 @@ REGISTER_CLICOMMAND("node/remove", NodeRemoveCommand);
 
 String NodeRemoveCommand::GetDescription(void) const
 {
-	return "Removes Icinga 2 agent.";
+	return "Removes Icinga 2 node.";
 }
 
 String NodeRemoveCommand::GetShortDescription(void) const
 {
-	return "removes agent";
+	return "removes node";
 }
 
 std::vector<String> NodeRemoveCommand::GetPositionalSuggestions(const String& word) const
@@ -59,14 +59,14 @@ int NodeRemoveCommand::GetMaxArguments(void) const
 }
 
 /**
- * The entry point for the "agent remove" CLI command.
+ * The entry point for the "node remove" CLI command.
  *
  * @returns An exit status.
  */
 int NodeRemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	BOOST_FOREACH(const String& agent, ap) {
-		NodeUtility::RemoveNode(agent);
+	BOOST_FOREACH(const String& node, ap) {
+		NodeUtility::RemoveNode(node);
 	}
 
 	return 0;

@@ -26,7 +26,7 @@ namespace icinga
 {
 
 /**
- * The "agent list" command.
+ * The "node list" command.
  *
  * @ingroup cli
  */

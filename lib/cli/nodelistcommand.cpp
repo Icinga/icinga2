@@ -36,23 +36,23 @@ REGISTER_CLICOMMAND("node/list", NodeListCommand);
 
 String NodeListCommand::GetDescription(void) const
 {
-	return "Lists all Icinga 2 agents.";
+	return "Lists all Icinga 2 nodes.";
 }
 
 String NodeListCommand::GetShortDescription(void) const
 {
-	return "lists all agents";
+	return "lists all nodes";
 }
 
 void NodeListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-		("batch", "list agents in json");
+		("batch", "list nodes in json");
 }
 
 /**
- * The entry point for the "agent list" CLI command.
+ * The entry point for the "node list" CLI command.
  *
  * @returns An exit status.
  */

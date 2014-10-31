@@ -43,12 +43,12 @@ REGISTER_CLICOMMAND("node/setup", NodeSetupCommand);
 
 String NodeSetupCommand::GetDescription(void) const
 {
-	return "Sets up an Icinga 2 agent.";
+	return "Sets up an Icinga 2 node.";
 }
 
 String NodeSetupCommand::GetShortDescription(void) const
 {
-	return "set up agent";
+	return "set up node";
 }
 
 void NodeSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
@@ -84,7 +84,7 @@ ImpersonationLevel NodeSetupCommand::GetImpersonationLevel(void) const
 }
 
 /**
- * The entry point for the "agent setup" CLI command.
+ * The entry point for the "node setup" CLI command.
  *
  * @returns An exit status.
  */

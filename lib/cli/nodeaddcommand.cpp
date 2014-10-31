@@ -35,12 +35,12 @@ REGISTER_CLICOMMAND("node/add", NodeAddCommand);
 
 String NodeAddCommand::GetDescription(void) const
 {
-	return "Add Icinga 2 agent.";
+	return "Add Icinga 2 node.";
 }
 
 String NodeAddCommand::GetShortDescription(void) const
 {
-	return "add agent";
+	return "add node";
 }
 
 int NodeAddCommand::GetMinArguments(void) const
@@ -49,7 +49,7 @@ int NodeAddCommand::GetMinArguments(void) const
 }
 
 /**
- * The entry point for the "agent add" CLI command.
+ * The entry point for the "node add" CLI command.
  *
  * @returns An exit status.
  */

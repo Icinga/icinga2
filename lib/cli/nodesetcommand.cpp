@@ -35,12 +35,12 @@ REGISTER_CLICOMMAND("node/set", NodeSetCommand);
 
 String NodeSetCommand::GetDescription(void) const
 {
-	return "Set agent attribute(s).";
+	return "Set node attribute(s).";
 }
 
 String NodeSetCommand::GetShortDescription(void) const
 {
-	return "set agent attributes";
+	return "set node attributes";
 }
 
 void NodeSetCommand::InitParameters(boost::program_options::options_description& visibleDesc,
@@ -58,7 +58,7 @@ int NodeSetCommand::GetMinArguments(void) const
 }
 
 /**
- * The entry point for the "agent set" CLI command.
+ * The entry point for the "node set" CLI command.
  *
  * @returns An exit status.
  */
