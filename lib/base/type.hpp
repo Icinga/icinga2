@@ -33,7 +33,8 @@ namespace icinga
 enum FieldAttribute
 {
 	FAConfig = 1,
-	FAState = 2
+	FAState = 2,
+	FAInternal = 32
 }; 
 
 class Type;

@@ -60,7 +60,8 @@ enum FieldAttribute
 	FAState = 2,
 	FAEnum = 4,
 	FAGetProtected = 8,
-	FASetProtected = 16
+	FASetProtected = 16,
+	FAInternal = 32
 };
 
 struct Field

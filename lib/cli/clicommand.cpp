@@ -75,7 +75,7 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, cons
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
 
-		if (!(field.Attributes & FAConfig))
+		if (!(field.Attributes & FAConfig) || field.Attributes & FAInternal)
 			continue;
 
 		if (field.FType != Type::GetByName("int") && field.FType != Type::GetByName("double")
@@ -83,9 +83,6 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, cons
 			continue;
 
 		String fname = field.Name;
-
-		if (fname == "__name" || fname == "templates" || fname == "type")
-			continue;
 
 		String suggestion = fname + "=";
 

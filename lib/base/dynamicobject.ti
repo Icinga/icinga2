@@ -35,7 +35,7 @@ public:
 
 abstract class DynamicObject
 {
-	[config] String __name (Name);
+	[config, internal] String __name (Name);
 	[config] String name (ShortName) {
 		get {{{
 			if (m_ShortName.IsEmpty())
@@ -44,9 +44,9 @@ abstract class DynamicObject
 				return m_ShortName;
 		}}}
 	};
-	[config, get_protected] String type (TypeName);
+	[config, internal, get_protected] String type (TypeName);
 	[config] String zone;
-	[config, get_protected] Array::Ptr templates;
+	[config, internal, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
 	[config] Dictionary::Ptr vars (VarsRaw);
 	[get_protected] bool active;
