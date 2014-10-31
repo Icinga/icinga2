@@ -53,6 +53,8 @@ public:
 	static bool AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs);
 	static bool RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs);
 
+	static bool CheckChangeExists(const Dictionary::Ptr& change);
+
 	static bool SetObjectAttribute(const String& name, const String& type, const String& attr, const Value& val);
 
 	static bool CommitChangeLog(void);

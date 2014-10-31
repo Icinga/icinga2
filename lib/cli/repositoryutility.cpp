@@ -155,13 +155,6 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 		}
 
 		fp << "\n";
-
-		/*
-		Dictionary::Ptr obj = GetObjectFromRepository(object); //TODO: config parser not implemented yet!
-
-		if (obj)
-			fp << JsonEncode(obj);
-		*/
 	}
 }
 
@@ -259,6 +252,15 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 			return false;
 	}
 
+	if (CheckChangeExists(change)) {
+		Log(LogWarning, "cli")
+		    << "Change '" << change->Get("command") << "' for type '"
+		    << change->Get("type") << "' and name '" << change->Get("name")
+		    << "' already exists.";
+
+		return false;
+	}
+
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
 
@@ -275,6 +277,15 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 	change->Set("command", "remove");
 	change->Set("attrs", attrs); //required for service->host_name
 
+	if (CheckChangeExists(change)) {
+		Log(LogWarning, "cli")
+		    << "Change '" << change->Get("command") << "' for type '"
+		    << change->Get("type") << "' and name '" << change->Get("name")
+		    << "' already exists.";
+
+		return false;
+	}
+
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
 
@@ -282,6 +293,32 @@ bool RepositoryUtility::SetObjectAttribute(const String& name, const String& typ
 {
 	//TODO: Implement modification commands
 	return true;
+}
+
+bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change)
+{
+	Array::Ptr changelog = make_shared<Array>();
+
+	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+
+	ObjectLock olock(changelog);
+	BOOST_FOREACH(const Dictionary::Ptr& entry, changelog) {
+		if (entry->Get("type") != change->Get("type"))
+			continue;
+
+		if (entry->Get("name") != change->Get("name"))
+			continue;
+
+		if (entry->Get("command") != change->Get("command"))
+			continue;
+
+		/* only works for add/remove commands (no set) */
+		if (change->Get("command") == "add" || change->Get("command") == "remove") {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool RepositoryUtility::ClearChangeLog(void)
@@ -369,6 +406,10 @@ bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& t
 
 	bool success = RemoveObjectFileInternal(path);
 
+	if (success)
+		Log(LogInformation, "cli")
+		    << "Removing config object '" << name << "' in file '" << path << "'";
+
 	/* special treatment for hosts -> remove the services too */
 	if (type == "Host") {
 		path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name;
@@ -446,7 +487,7 @@ bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const Str
 bool RepositoryUtility::WriteObjectToRepository(const String& path, const String& name, const String& type, const Dictionary::Ptr& item)
 {
 	Log(LogInformation, "cli")
-	    << "Dumping config object '" << name << "' to file '" << path << "'";
+	    << "Writing config object '" << name << "' to file '" << path << "'";
 
 	Utility::MkDirP(Utility::DirName(path), 0755);
 
@@ -607,9 +648,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 	Dictionary::Ptr attrs = change->Get("attrs");
 
 	fp << " " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal) << " '";
-	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'";
-
-	fp << ": \n";
+	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'\n";
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
 		/* skip the name */
