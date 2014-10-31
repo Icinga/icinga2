@@ -17,31 +17,56 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTWIZARDCOMMAND_H
-#define AGENTWIZARDCOMMAND_H
+#include "cli/nodelistcommand.hpp"
+#include "cli/nodeutility.hpp"
+#include "base/logger.hpp"
+#include "base/application.hpp"
+#include "base/console.hpp"
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <iostream>
+#include <fstream>
+#include <vector>
 
-#include "cli/clicommand.hpp"
+using namespace icinga;
+namespace po = boost::program_options;
 
-namespace icinga
+REGISTER_CLICOMMAND("node/list", NodeListCommand);
+
+String NodeListCommand::GetDescription(void) const
 {
-
-/**
- * The "agent wizard" command.
- *
- * @ingroup cli
- */
-class AgentWizardCommand : public CLICommand
-{
-public:
-	DECLARE_PTR_TYPEDEFS(AgentWizardCommand);
-
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual int GetMaxArguments(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const;
-};
-
+	return "Lists all Icinga 2 agents.";
 }
 
-#endif /* AGENTWIZARDCOMMAND_H */
+String NodeListCommand::GetShortDescription(void) const
+{
+	return "lists all agents";
+}
+
+void NodeListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
+{
+	visibleDesc.add_options()
+		("batch", "list agents in json");
+}
+
+/**
+ * The entry point for the "agent list" CLI command.
+ *
+ * @returns An exit status.
+ */
+int NodeListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+{
+	if (!ap.empty()) {
+		Log(LogWarning, "cli")
+		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
+	}
+
+	if (vm.count("batch"))
+		NodeUtility::PrintNodesJson(std::cout);
+	else
+		NodeUtility::PrintNodes(std::cout);
+
+	return 0;
+}

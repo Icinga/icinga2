@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentwizardcommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/nodewizardcommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "cli/pkiutility.hpp"
 #include "cli/featureutility.hpp"
 #include "base/logger.hpp"
@@ -38,24 +38,24 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("agent/wizard", AgentWizardCommand);
+REGISTER_CLICOMMAND("node/wizard", NodeWizardCommand);
 
-String AgentWizardCommand::GetDescription(void) const
+String NodeWizardCommand::GetDescription(void) const
 {
 	return "Wizard for Icinga 2 agent setup.";
 }
 
-String AgentWizardCommand::GetShortDescription(void) const
+String NodeWizardCommand::GetShortDescription(void) const
 {
 	return "wizard for agent setup";
 }
 
-ImpersonationLevel AgentWizardCommand::GetImpersonationLevel(void) const
+ImpersonationLevel NodeWizardCommand::GetImpersonationLevel(void) const
 {
 	return ImpersonateRoot;
 }
 
-int AgentWizardCommand::GetMaxArguments(void) const
+int NodeWizardCommand::GetMaxArguments(void) const
 {
 	return -1;
 }
@@ -65,7 +65,7 @@ int AgentWizardCommand::GetMaxArguments(void) const
  *
  * @returns An exit status.
  */
-int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	/*
 	 * The wizard will get all information from the user,
@@ -112,7 +112,7 @@ int AgentWizardCommand::Run(const boost::program_options::variables_map& vm, con
 
 	if (is_agent_setup) {
 		/* agent setup part */
-		std::cout << "Starting the Agent setup routine...\n";
+		std::cout << "Starting the Node setup routine...\n";
 
 		/* CN */
 		std::cout << "Please specifiy the common name (CN) [" << Utility::GetFQDN() << "]: ";
@@ -348,7 +348,7 @@ wizard_ticket:
 		FeatureUtility::EnableFeatures(enable);
 
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
-		AgentUtility::CreateBackupFile(apipath);
+		NodeUtility::CreateBackupFile(apipath);
 
 		String apipathtmp = apipath + ".tmp";
 
@@ -388,7 +388,7 @@ wizard_ticket:
 		/* apilistener config */
 		std::cout << "Generating local zones.conf.\n";
 
-		AgentUtility::GenerateAgentIcingaConfig(endpoints, cn);
+		NodeUtility::GenerateNodeIcingaConfig(endpoints, cn);
 
 		if (cn != Utility::GetFQDN()) {
 			Log(LogWarning, "cli")
@@ -397,9 +397,9 @@ wizard_ticket:
 
 		std::cout << "Updating constants.conf\n";
 
-		AgentUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+		NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
-		AgentUtility::UpdateConstant("NodeName", cn);
+		NodeUtility::UpdateConstant("NodeName", cn);
 
 	} else {
 		/* master setup */
@@ -493,7 +493,7 @@ wizard_ticket:
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << csr << "'. Verify it yourself!";
 		}
 
-		AgentUtility::GenerateAgentMasterIcingaConfig(cn);
+		NodeUtility::GenerateNodeMasterIcingaConfig(cn);
 
 		/* apilistener config */
 		std::cout << "Please specify the API bind host/port (optional):\n";
@@ -520,7 +520,7 @@ wizard_ticket:
 		FeatureUtility::EnableFeatures(enable);
 
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
-		AgentUtility::CreateBackupFile(apipath);
+		NodeUtility::CreateBackupFile(apipath);
 
 		String apipathtmp = apipath + ".tmp";
 
@@ -565,13 +565,13 @@ wizard_ticket:
 
 		Log(LogInformation, "cli", "Updating constants.conf.");
 
-		AgentUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+		NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
-		AgentUtility::UpdateConstant("NodeName", cn);
+		NodeUtility::UpdateConstant("NodeName", cn);
 
 		String salt = RandomString(16);
 
-		AgentUtility::UpdateConstant("TicketSalt", salt);
+		NodeUtility::UpdateConstant("TicketSalt", salt);
 
 		Log(LogInformation, "cli")
 		    << "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";

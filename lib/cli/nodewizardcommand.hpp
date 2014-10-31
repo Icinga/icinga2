@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTSETCOMMAND_H
-#define AGENTSETCOMMAND_H
+#ifndef AGENTWIZARDCOMMAND_H
+#define AGENTWIZARDCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -26,23 +26,22 @@ namespace icinga
 {
 
 /**
- * The "agent set" command.
+ * The "agent wizard" command.
  *
  * @ingroup cli
  */
-class AgentSetCommand : public CLICommand
+class NodeWizardCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(AgentSetCommand);
+	DECLARE_PTR_TYPEDEFS(NodeWizardCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
-	virtual int GetMinArguments(void) const;
-	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
+	virtual int GetMaxArguments(void) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const;
 };
 
 }
 
-#endif /* AGENTSETCOMMAND_H */
+#endif /* AGENTWIZARDCOMMAND_H */

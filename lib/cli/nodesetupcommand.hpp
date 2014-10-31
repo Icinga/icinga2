@@ -30,10 +30,10 @@ namespace icinga
  *
  * @ingroup cli
  */
-class AgentSetupCommand : public CLICommand
+class NodeSetupCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(AgentSetupCommand);
+	DECLARE_PTR_TYPEDEFS(NodeSetupCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
@@ -45,7 +45,7 @@ public:
 
 private:
 	static int SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
-	static int SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
+	static int SetupNode(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
 };
 
 }

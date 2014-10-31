@@ -33,32 +33,32 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class AgentUtility
+class NodeUtility
 {
 public:
 	static String GetRepositoryPath(void);
-	static String GetAgentRepositoryFile(const String& name);
-	static String GetAgentSettingsFile(const String& name);
-	static std::vector<String> GetAgentCompletionSuggestions(const String& word);
+	static String GetNodeRepositoryFile(const String& name);
+	static String GetNodeSettingsFile(const String& name);
+	static std::vector<String> GetNodeCompletionSuggestions(const String& word);
 
-	static void PrintAgents(std::ostream& fp);
-	static void PrintAgentsJson(std::ostream& fp);
-	static void PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr& repository);
-	static void AddAgent(const String& name);
-	static void AddAgentSettings(const String& name, const String& host, const String& port, double log_duration);
-	static void RemoveAgent(const String& name);
+	static void PrintNodes(std::ostream& fp);
+	static void PrintNodesJson(std::ostream& fp);
+	static void PrintNodeRepository(std::ostream& fp, const Dictionary::Ptr& repository);
+	static void AddNode(const String& name);
+	static void AddNodeSettings(const String& name, const String& host, const String& port, double log_duration);
+	static void RemoveNode(const String& name);
 
-	static std::vector<Dictionary::Ptr> GetAgents(void);
+	static std::vector<Dictionary::Ptr> GetNodes(void);
 
 	static bool CreateBackupFile(const String& target);
 
-	static bool WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects);
+	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);
 
 	static void UpdateConstant(const String& name, const String& value);
 
 	/* agent setup helpers */
-	static int GenerateAgentIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);
-	static int GenerateAgentMasterIcingaConfig(const String& nodename);
+	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename);
+	static int GenerateNodeMasterIcingaConfig(const String& nodename);
 
 	/* black/whitelist */
 	static String GetBlackAndWhiteListPath(const String& type);
@@ -72,10 +72,10 @@ public:
 	static bool CheckAgainstBlackAndWhiteList(const String& type, const String& agent, const String& host, const String& service);
 
 private:
-	AgentUtility(void);
-	static bool RemoveAgentFile(const String& path);
-	static Dictionary::Ptr LoadAgentFile(const String& agent_file);
-	static void CollectAgents(const String& agent_file, std::vector<Dictionary::Ptr>& agents);
+	NodeUtility(void);
+	static bool RemoveNodeFile(const String& path);
+	static Dictionary::Ptr LoadNodeFile(const String& agent_file);
+	static void CollectNodes(const String& agent_file, std::vector<Dictionary::Ptr>& agents);
 
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
 	static void FormatValue(std::ostream& fp, const Value& val);

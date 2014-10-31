@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentsetcommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/nodesetcommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
@@ -31,19 +31,19 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("agent/set", AgentSetCommand);
+REGISTER_CLICOMMAND("node/set", NodeSetCommand);
 
-String AgentSetCommand::GetDescription(void) const
+String NodeSetCommand::GetDescription(void) const
 {
 	return "Set agent attribute(s).";
 }
 
-String AgentSetCommand::GetShortDescription(void) const
+String NodeSetCommand::GetShortDescription(void) const
 {
 	return "set agent attributes";
 }
 
-void AgentSetCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void NodeSetCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
@@ -52,7 +52,7 @@ void AgentSetCommand::InitParameters(boost::program_options::options_description
 		("log_duration", po::value<double>(), "Log duration (in seconds)");
 }
 
-int AgentSetCommand::GetMinArguments(void) const
+int NodeSetCommand::GetMinArguments(void) const
 {
 	return 1;
 }
@@ -62,13 +62,13 @@ int AgentSetCommand::GetMinArguments(void) const
  *
  * @returns An exit status.
  */
-int AgentSetCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeSetCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String repoFile = AgentUtility::GetAgentRepositoryFile(ap[0]);
+	String repoFile = NodeUtility::GetNodeRepositoryFile(ap[0]);
 
 	if (!Utility::PathExists(repoFile)) {
 		Log(LogCritical, "cli")
-		    << "Agent '" << ap[0] << "' does not exist.";
+		    << "Node '" << ap[0] << "' does not exist.";
 		return 1;
 	}
 
@@ -84,7 +84,7 @@ int AgentSetCommand::Run(const boost::program_options::variables_map& vm, const 
 	if (vm.count("log_duration"))
 		log_duration = vm["log_duration"].as<double>();
 
-	AgentUtility::AddAgentSettings(ap[0], host, port, log_duration);
+	NodeUtility::AddNodeSettings(ap[0], host, port, log_duration);
 
 	return 0;
 }

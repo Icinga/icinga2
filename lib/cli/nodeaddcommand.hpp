@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTREMOVECOMMAND_H
-#define AGENTREMOVECOMMAND_H
+#ifndef AGENTADDCOMMAND_H
+#define AGENTADDCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -26,23 +26,21 @@ namespace icinga
 {
 
 /**
- * The "agent remove" command.
+ * The "agent add" command.
  *
  * @ingroup cli
  */
-class AgentRemoveCommand : public CLICommand
+class NodeAddCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(AgentRemoveCommand);
+	DECLARE_PTR_TYPEDEFS(NodeAddCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
 	virtual int GetMinArguments(void) const;
-	virtual int GetMaxArguments(void) const;
-	virtual std::vector<String> GetPositionalSuggestions(const String& word) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 };
 
 }
 
-#endif /* AGENTREMOVECOMMAND_H */
+#endif /* AGENTADDCOMMAND_H */

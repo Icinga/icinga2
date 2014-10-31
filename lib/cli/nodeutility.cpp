@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentutility.hpp"
+#include "cli/nodeutility.hpp"
 #include "cli/clicommand.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
@@ -40,50 +40,50 @@
 
 using namespace icinga;
 
-String AgentUtility::GetRepositoryPath(void)
+String NodeUtility::GetRepositoryPath(void)
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/api/repository";
 }
 
-String AgentUtility::GetAgentRepositoryFile(const String& name)
+String NodeUtility::GetNodeRepositoryFile(const String& name)
 {
 	return GetRepositoryPath() + "/" + SHA256(name) + ".repo";
 }
 
-String AgentUtility::GetAgentSettingsFile(const String& name)
+String NodeUtility::GetNodeSettingsFile(const String& name)
 {
 	return GetRepositoryPath() + "/" + SHA256(name) + ".settings";
 }
 
-std::vector<String> AgentUtility::GetAgentCompletionSuggestions(const String& word)
+std::vector<String> NodeUtility::GetNodeCompletionSuggestions(const String& word)
 {
 	std::vector<String> suggestions;
 
-	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
-		String agent_name = agent->Get("endpoint");
+	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
+		String node_name = node->Get("endpoint");
 
-		if (agent_name.Find(word) == 0)
-			suggestions.push_back(agent_name);
+		if (node_name.Find(word) == 0)
+			suggestions.push_back(node_name);
 	}
 
 	return suggestions;
 }
 
-void AgentUtility::PrintAgents(std::ostream& fp)
+void NodeUtility::PrintNodes(std::ostream& fp)
 {
 	bool first = true;
 
-	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
+	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
 		if (first)
 			first = false;
 		else
 			fp << "\n";
 
-		fp << "Agent '"
-		   << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << agent->Get("endpoint") << ConsoleColorTag(Console_Normal)
+		fp << "Node '"
+		   << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << node->Get("endpoint") << ConsoleColorTag(Console_Normal)
 		   << "' (";
 
-		Dictionary::Ptr settings = agent->Get("settings");
+		Dictionary::Ptr settings = node->Get("settings");
 
 		if (settings) {
 			String host = settings->Get("host");
@@ -96,13 +96,13 @@ void AgentUtility::PrintAgents(std::ostream& fp)
 			fp << "log duration: " << Utility::FormatDuration(log_duration) << ", ";
 		}
 
-		fp << "last seen: " << Utility::FormatDateTime("%c", agent->Get("seen")) << ")\n";
+		fp << "last seen: " << Utility::FormatDateTime("%c", node->Get("seen")) << ")\n";
 
-		PrintAgentRepository(fp, agent->Get("repository"));
+		PrintNodeRepository(fp, node->Get("repository"));
 	}
 }
 
-void AgentUtility::PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr& repository)
+void NodeUtility::PrintNodeRepository(std::ostream& fp, const Dictionary::Ptr& repository)
 {
 	if (!repository)
 		return;
@@ -120,37 +120,37 @@ void AgentUtility::PrintAgentRepository(std::ostream& fp, const Dictionary::Ptr&
 	}
 }
 
-void AgentUtility::PrintAgentsJson(std::ostream& fp)
+void NodeUtility::PrintNodesJson(std::ostream& fp)
 {
 	Dictionary::Ptr result = make_shared<Dictionary>();
 
-	BOOST_FOREACH(const Dictionary::Ptr& agent, GetAgents()) {
-		result->Set(agent->Get("endpoint"), agent);
+	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
+		result->Set(node->Get("endpoint"), node);
 	}
 
 	fp << JsonEncode(result);
 }
 
-void AgentUtility::AddAgent(const String& name)
+void NodeUtility::AddNode(const String& name)
 {
-	String path = GetAgentRepositoryFile(name);
+	String path = GetNodeRepositoryFile(name);
 
 	if (Utility::PathExists(path) ) {
 		Log(LogInformation, "cli")
-		    << "Agent '" << name << "' exists already.";
+		    << "Node '" << name << "' exists already.";
 	}
 
-	Dictionary::Ptr agent = make_shared<Dictionary>();
+	Dictionary::Ptr node = make_shared<Dictionary>();
 
-	agent->Set("seen", Utility::GetTime());
-	agent->Set("endpoint", name);
-	agent->Set("zone", name);
-	agent->Set("repository", Empty);
+	node->Set("seen", Utility::GetTime());
+	node->Set("endpoint", name);
+	node->Set("zone", name);
+	node->Set("repository", Empty);
 
-	Utility::SaveJsonFile(path, agent);
+	Utility::SaveJsonFile(path, node);
 }
 
-void AgentUtility::AddAgentSettings(const String& name, const String& host,
+void NodeUtility::AddNodeSettings(const String& name, const String& host,
     const String& port, double log_duration)
 {
 	Dictionary::Ptr settings = make_shared<Dictionary>();
@@ -159,12 +159,12 @@ void AgentUtility::AddAgentSettings(const String& name, const String& host,
 	settings->Set("port", port);
 	settings->Set("log_duration", log_duration);
 
-	Utility::SaveJsonFile(GetAgentSettingsFile(name), settings);
+	Utility::SaveJsonFile(GetNodeSettingsFile(name), settings);
 }
 
-void AgentUtility::RemoveAgent(const String& name)
+void NodeUtility::RemoveNode(const String& name)
 {
-	String repoPath = GetAgentRepositoryFile(name);
+	String repoPath = GetNodeRepositoryFile(name);
 
 	if (!Utility::PathExists(repoPath))
 		return;
@@ -179,7 +179,7 @@ void AgentUtility::RemoveAgent(const String& name)
 		    << boost::errinfo_file_name(repoPath));
         }
 
-	String settingsPath = GetAgentSettingsFile(name);
+	String settingsPath = GetNodeSettingsFile(name);
 
 	if (Utility::PathExists(settingsPath)) {
 		if (unlink(settingsPath.CStr()) < 0) {
@@ -194,36 +194,36 @@ void AgentUtility::RemoveAgent(const String& name)
 	}
 }
 
-std::vector<Dictionary::Ptr> AgentUtility::GetAgents(void)
+std::vector<Dictionary::Ptr> NodeUtility::GetNodes(void)
 {
-	std::vector<Dictionary::Ptr> agents;
+	std::vector<Dictionary::Ptr> nodes;
 
 	Utility::Glob(GetRepositoryPath() + "/*.repo",
-	    boost::bind(&AgentUtility::CollectAgents, _1, boost::ref(agents)), GlobFile);
+	    boost::bind(&NodeUtility::CollectNodes, _1, boost::ref(nodes)), GlobFile);
 
-	return agents;
+	return nodes;
 }
 
-Dictionary::Ptr AgentUtility::LoadAgentFile(const String& agent_file)
+Dictionary::Ptr NodeUtility::LoadNodeFile(const String& node_file)
 {
-	Dictionary::Ptr agent = Utility::LoadJsonFile(agent_file);
+	Dictionary::Ptr node = Utility::LoadJsonFile(node_file);
 
-	if (!agent)
+	if (!node)
 		return Dictionary::Ptr();
 
-	String settingsFile = GetAgentSettingsFile(agent->Get("endpoint"));
+	String settingsFile = GetNodeSettingsFile(node->Get("endpoint"));
 
 	if (Utility::PathExists(settingsFile))
-		agent->Set("settings", Utility::LoadJsonFile(settingsFile));
+		node->Set("settings", Utility::LoadJsonFile(settingsFile));
 	else
-		agent->Remove("settings");
+		node->Remove("settings");
 
-	return agent;
+	return node;
 }
 
-void AgentUtility::CollectAgents(const String& agent_file, std::vector<Dictionary::Ptr>& agents)
+void NodeUtility::CollectNodes(const String& agent_file, std::vector<Dictionary::Ptr>& agents)
 {
-	Dictionary::Ptr agent = LoadAgentFile(agent_file);
+	Dictionary::Ptr agent = LoadNodeFile(agent_file);
 
 	if (!agent)
 		return;
@@ -232,10 +232,10 @@ void AgentUtility::CollectAgents(const String& agent_file, std::vector<Dictionar
 }
 
 /*
- * Agent Setup helpers
+ * Node Setup helpers
  */
 
-int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename)
+int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename)
 {
 	Array::Ptr my_config = make_shared<Array>();
 
@@ -305,12 +305,12 @@ int AgentUtility::GenerateAgentIcingaConfig(const std::vector<std::string>& endp
 	/* write the newly generated configuration */
 	String zones_path = Application::GetSysconfDir() + "/icinga2/zones.conf";
 
-	AgentUtility::WriteAgentConfigObjects(zones_path, my_config);
+	NodeUtility::WriteNodeConfigObjects(zones_path, my_config);
 
 	return 0;
 }
 
-int AgentUtility::GenerateAgentMasterIcingaConfig(const String& nodename)
+int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
 {
 	Array::Ptr my_config = make_shared<Array>();
 
@@ -336,7 +336,7 @@ int AgentUtility::GenerateAgentMasterIcingaConfig(const String& nodename)
 	/* write the newly generated configuration */
 	String zones_path = Application::GetSysconfDir() + "/icinga2/zones.conf";
 
-	AgentUtility::WriteAgentConfigObjects(zones_path, my_config);
+	NodeUtility::WriteNodeConfigObjects(zones_path, my_config);
 
 	return 0;
 }
@@ -345,7 +345,7 @@ int AgentUtility::GenerateAgentMasterIcingaConfig(const String& nodename)
  * This is ugly and requires refactoring into a generic config writer class.
  * TODO.
  */
-bool AgentUtility::WriteAgentConfigObjects(const String& filename, const Array::Ptr& objects)
+bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects)
 {
 	Log(LogInformation, "cli")
 	    << "Dumping config items to file '" << filename << "'.";
@@ -393,12 +393,12 @@ bool AgentUtility::WriteAgentConfigObjects(const String& filename, const Array::
 /*
  * Black/Whitelist helpers
  */
-String AgentUtility::GetBlackAndWhiteListPath(const String& type)
+String NodeUtility::GetBlackAndWhiteListPath(const String& type)
 {
-	return AgentUtility::GetRepositoryPath() + "/" + type + ".list";
+	return NodeUtility::GetRepositoryPath() + "/" + type + ".list";
 }
 
-Dictionary::Ptr AgentUtility::GetBlackAndWhiteList(const String& type)
+Dictionary::Ptr NodeUtility::GetBlackAndWhiteList(const String& type)
 {
 	String list_path = GetBlackAndWhiteListPath(type);
 
@@ -411,7 +411,7 @@ Dictionary::Ptr AgentUtility::GetBlackAndWhiteList(const String& type)
 	return lists;
 }
 
-int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
+int NodeUtility::UpdateBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
 {
 	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
@@ -446,7 +446,7 @@ int AgentUtility::UpdateBlackAndWhiteList(const String& type, const String& agen
 	return 0;
 }
 
-int AgentUtility::RemoveBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
+int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& agent_filter, const String& host_filter, const String& service_filter)
 {
 	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
@@ -477,7 +477,7 @@ int AgentUtility::RemoveBlackAndWhiteList(const String& type, const String& agen
 	return 0;
 }
 
-int AgentUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
+int NodeUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 {
 	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
@@ -488,14 +488,14 @@ int AgentUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 		String agent_filter = kv.first;
 		Dictionary::Ptr host_service = kv.second;
 
-		fp << "Agent " << type << ": '" << agent_filter << "' Host: '"
+		fp << "Node " << type << ": '" << agent_filter << "' Host: '"
 		    << host_service->Get("host_filter") << "' Service: '" << host_service->Get("service_filter") << "'.\n";
 	}
 
 	return 0;
 }
 
-bool AgentUtility::CheckAgainstBlackAndWhiteList(const String& type, const String& agent, const String& host, const String& service)
+bool NodeUtility::CheckAgainstBlackAndWhiteList(const String& type, const String& agent, const String& host, const String& service)
 {
 	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
 
@@ -513,12 +513,12 @@ bool AgentUtility::CheckAgainstBlackAndWhiteList(const String& type, const Strin
 			service_filter = host_service->Get("service_filter");
 
 		Log(LogInformation, "cli")
-		    << "Checking Agent '" << agent << "' =~ '" << agent_filter << "', host '" << host << "' =~ '" << host_filter
+		    << "Checking Node '" << agent << "' =~ '" << agent_filter << "', host '" << host << "' =~ '" << host_filter
 		    << "', service '" << service << "' =~ '" << service_filter << "'.";
 
 		if (Utility::Match(agent_filter, agent)) {
 			Log(LogNotice, "cli")
-			    << "Agent '" << agent << "' matches filter '" << agent_filter << "'";
+			    << "Node '" << agent << "' matches filter '" << agent_filter << "'";
 
 			if (Utility::Match(host_filter, host)) {
 				Log(LogNotice, "cli")
@@ -545,7 +545,7 @@ bool AgentUtility::CheckAgainstBlackAndWhiteList(const String& type, const Strin
 /*
  * We generally don't overwrite files without backup before
  */
-bool AgentUtility::CreateBackupFile(const String& target)
+bool NodeUtility::CreateBackupFile(const String& target)
 {
 	if (!Utility::PathExists(target))
 		return false;
@@ -566,7 +566,7 @@ bool AgentUtility::CreateBackupFile(const String& target)
 	return true;
 }
 
-void AgentUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
+void NodeUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
 {
         fp << "object " << type << " \"" << name << "\" {\n";
 	ObjectLock olock(object);
@@ -581,7 +581,7 @@ void AgentUtility::SerializeObject(std::ostream& fp, const String& name, const S
         fp << "}\n\n";
 }
 
-void AgentUtility::FormatValue(std::ostream& fp, const Value& val)
+void NodeUtility::FormatValue(std::ostream& fp, const Value& val)
 {
         if (val.IsObjectType<Array>()) {
                 FormatArray(fp, val);
@@ -596,7 +596,7 @@ void AgentUtility::FormatValue(std::ostream& fp, const Value& val)
         fp << Convert::ToString(val);
 }
 
-void AgentUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
+void NodeUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
 {
         bool first = true;
 
@@ -620,7 +620,7 @@ void AgentUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
         fp << "]";
 }
 
-void AgentUtility::UpdateConstant(const String& name, const String& value)
+void NodeUtility::UpdateConstant(const String& name, const String& value)
 {
 	String constantsFile = Application::GetSysconfDir() + "/icinga2/constants.conf";
 	String tempFile = constantsFile + ".tmp";

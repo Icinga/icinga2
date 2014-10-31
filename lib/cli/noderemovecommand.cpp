@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentremovecommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/noderemovecommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
@@ -31,29 +31,29 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("agent/remove", AgentRemoveCommand);
+REGISTER_CLICOMMAND("node/remove", NodeRemoveCommand);
 
-String AgentRemoveCommand::GetDescription(void) const
+String NodeRemoveCommand::GetDescription(void) const
 {
 	return "Removes Icinga 2 agent.";
 }
 
-String AgentRemoveCommand::GetShortDescription(void) const
+String NodeRemoveCommand::GetShortDescription(void) const
 {
 	return "removes agent";
 }
 
-std::vector<String> AgentRemoveCommand::GetPositionalSuggestions(const String& word) const
+std::vector<String> NodeRemoveCommand::GetPositionalSuggestions(const String& word) const
 {
-	return AgentUtility::GetAgentCompletionSuggestions(word);
+	return NodeUtility::GetNodeCompletionSuggestions(word);
 }
 
-int AgentRemoveCommand::GetMinArguments(void) const
+int NodeRemoveCommand::GetMinArguments(void) const
 {
 	return 1;
 }
 
-int AgentRemoveCommand::GetMaxArguments(void) const
+int NodeRemoveCommand::GetMaxArguments(void) const
 {
 	return -1;
 }
@@ -63,10 +63,10 @@ int AgentRemoveCommand::GetMaxArguments(void) const
  *
  * @returns An exit status.
  */
-int AgentRemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeRemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	BOOST_FOREACH(const String& agent, ap) {
-		AgentUtility::RemoveAgent(agent);
+		NodeUtility::RemoveNode(agent);
 	}
 
 	return 0;

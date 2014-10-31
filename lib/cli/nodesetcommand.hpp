@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTLISTCOMMAND_H
-#define AGENTLISTCOMMAND_H
+#ifndef AGENTSETCOMMAND_H
+#define AGENTSETCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -26,17 +26,18 @@ namespace icinga
 {
 
 /**
- * The "agent list" command.
+ * The "agent set" command.
  *
  * @ingroup cli
  */
-class AgentListCommand : public CLICommand
+class NodeSetCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(AgentListCommand);
+	DECLARE_PTR_TYPEDEFS(NodeSetCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
+	virtual int GetMinArguments(void) const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
@@ -44,4 +45,4 @@ public:
 
 }
 
-#endif /* AGENTLISTCOMMAND_H */
+#endif /* AGENTSETCOMMAND_H */

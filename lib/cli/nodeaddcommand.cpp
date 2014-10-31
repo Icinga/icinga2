@@ -17,11 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentlistcommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/nodeaddcommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/console.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -32,41 +31,31 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("agent/list", AgentListCommand);
+REGISTER_CLICOMMAND("node/add", NodeAddCommand);
 
-String AgentListCommand::GetDescription(void) const
+String NodeAddCommand::GetDescription(void) const
 {
-	return "Lists all Icinga 2 agents.";
+	return "Add Icinga 2 agent.";
 }
 
-String AgentListCommand::GetShortDescription(void) const
+String NodeAddCommand::GetShortDescription(void) const
 {
-	return "lists all agents";
+	return "add agent";
 }
 
-void AgentListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+int NodeAddCommand::GetMinArguments(void) const
 {
-	visibleDesc.add_options()
-		("batch", "list agents in json");
+	return 1;
 }
 
 /**
- * The entry point for the "agent list" CLI command.
+ * The entry point for the "agent add" CLI command.
  *
  * @returns An exit status.
  */
-int AgentListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeAddCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!ap.empty()) {
-		Log(LogWarning, "cli")
-		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
-	}
-
-	if (vm.count("batch"))
-		AgentUtility::PrintAgentsJson(std::cout);
-	else
-		AgentUtility::PrintAgents(std::cout);
+	NodeUtility::AddNode(ap[0]);
 
 	return 0;
 }

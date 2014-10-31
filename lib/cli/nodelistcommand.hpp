@@ -17,45 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentaddcommand.hpp"
-#include "cli/agentutility.hpp"
-#include "base/logger.hpp"
-#include "base/application.hpp"
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <iostream>
-#include <fstream>
-#include <vector>
+#ifndef AGENTLISTCOMMAND_H
+#define AGENTLISTCOMMAND_H
 
-using namespace icinga;
-namespace po = boost::program_options;
+#include "cli/clicommand.hpp"
 
-REGISTER_CLICOMMAND("agent/add", AgentAddCommand);
-
-String AgentAddCommand::GetDescription(void) const
+namespace icinga
 {
-	return "Add Icinga 2 agent.";
-}
-
-String AgentAddCommand::GetShortDescription(void) const
-{
-	return "add agent";
-}
-
-int AgentAddCommand::GetMinArguments(void) const
-{
-	return 1;
-}
 
 /**
- * The entry point for the "agent add" CLI command.
+ * The "agent list" command.
  *
- * @returns An exit status.
+ * @ingroup cli
  */
-int AgentAddCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+class NodeListCommand : public CLICommand
 {
-	AgentUtility::AddAgent(ap[0]);
+public:
+	DECLARE_PTR_TYPEDEFS(NodeListCommand);
 
-	return 0;
+	virtual String GetDescription(void) const;
+	virtual String GetShortDescription(void) const;
+	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+	    boost::program_options::options_description& hiddenDesc) const;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+};
+
 }
+
+#endif /* AGENTLISTCOMMAND_H */

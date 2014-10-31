@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentupdateconfigcommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/nodeupdateconfigcommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "cli/repositoryutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
@@ -34,19 +34,19 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("agent/update-config", AgentUpdateConfigCommand);
+REGISTER_CLICOMMAND("node/update-config", NodeUpdateConfigCommand);
 
-String AgentUpdateConfigCommand::GetDescription(void) const
+String NodeUpdateConfigCommand::GetDescription(void) const
 {
 	return "Update Icinga 2 agent config.";
 }
 
-String AgentUpdateConfigCommand::GetShortDescription(void) const
+String NodeUpdateConfigCommand::GetShortDescription(void) const
 {
 	return "update agent config";
 }
 
-ImpersonationLevel AgentUpdateConfigCommand::GetImpersonationLevel(void) const
+ImpersonationLevel NodeUpdateConfigCommand::GetImpersonationLevel(void) const
 {
 	return ImpersonateRoot;
 }
@@ -56,7 +56,7 @@ ImpersonationLevel AgentUpdateConfigCommand::GetImpersonationLevel(void) const
  *
  * @returns An exit status.
  */
-int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	//If there are changes pending, abort the current operation
 	if (RepositoryUtility::ChangeLogHasPendingChanges()) {
@@ -67,7 +67,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		return 1;
 	}
 
-	String inventory_path = AgentUtility::GetRepositoryPath() + "/inventory.index";
+	String inventory_path = NodeUtility::GetRepositoryPath() + "/inventory.index";
 
 	Dictionary::Ptr old_inventory = make_shared<Dictionary>();
 	if (Utility::PathExists(inventory_path)) {
@@ -79,13 +79,13 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 	Log(LogInformation, "cli")
 	    << "Updating agent configuration for ";
 
-	AgentUtility::PrintAgents(std::cout);
+	NodeUtility::PrintNodes(std::cout);
 
 	Utility::LoadExtensionLibrary("icinga");
 
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
 
-	BOOST_FOREACH(const Dictionary::Ptr& agent, AgentUtility::GetAgents()) {
+	BOOST_FOREACH(const Dictionary::Ptr& agent, NodeUtility::GetNodes()) {
 		Dictionary::Ptr repository = agent->Get("repository");
 		String zone = agent->Get("zone");
 		String endpoint = agent->Get("endpoint");
@@ -138,8 +138,8 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				skip_host = true;
 
 			/* check against black/whitelist before trying to add host */
-			if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", agent_name, host, Empty) &&
-			    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", agent_name, host, Empty)) {
+			if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", agent_name, host, Empty) &&
+			    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", agent_name, host, Empty)) {
 				Log(LogWarning, "cli")
 				    << "Host '" << host << "' on agent '" << agent_name << "' is blacklisted, but not whitelisted. Skipping.";
 				skip_host = true;
@@ -192,8 +192,8 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				}
 
 				/* check against black/whitelist before trying to add service */
-				if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", endpoint, host, service) &&
-				    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", endpoint, host, service)) {
+				if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", endpoint, host, service) &&
+				    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", endpoint, host, service)) {
 					Log(LogWarning, "cli")
 					    << "Service '" << service << "' on host '" << host << "' on agent '"
 					    << agent_name << "' is blacklisted, but not whitelisted. Skipping.";
@@ -256,14 +256,14 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 		if (!agent->Contains("parent_zone")) {
 			Log(LogWarning, "cli")
-			    << "Agent '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
+			    << "Node '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
 			parent_zone = agent_parent_zone;
 		} else {
 			parent_zone = agent->Get("parent_zone");
 
 			if (parent_zone.IsEmpty()) {
 				Log(LogWarning, "cli")
-				    << "Agent '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
+				    << "Node '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
 				parent_zone = agent_parent_zone;
 			}
 		}
@@ -284,7 +284,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 		/* check if the agent was dropped */
 		if (!inventory->Contains(old_agent_name)) {
 			Log(LogInformation, "cli")
-			    << "Agent update found old agent '" << old_agent_name << "'. Removing it and all of its hosts/services.";
+			    << "Node update found old agent '" << old_agent_name << "'. Removing it and all of its hosts/services.";
 
 			//TODO Remove an agent and all of his hosts
 			Dictionary::Ptr old_agent = old_inventory->Get(old_agent_name);
@@ -328,8 +328,8 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 				}
 
 				/* check against black/whitelist before trying to remove host */
-				if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, Empty) &&
-				    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, Empty)) {
+				if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, Empty) &&
+				    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, Empty)) {
 					Log(LogWarning, "cli")
 					    << "Host '" << old_agent << "' on agent '" << old_agent << "' is blacklisted, but not whitelisted. Skipping.";
 					continue;
@@ -337,7 +337,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 				if (!new_agent_repository->Contains(old_host)) {
 					Log(LogInformation, "cli")
-					    << "Agent update found old host '" << old_host << "' on agent '" << old_agent_name << "'. Removing it.";
+					    << "Node update found old host '" << old_host << "' on agent '" << old_agent_name << "'. Removing it.";
 
 					Dictionary::Ptr host_attrs = make_shared<Dictionary>();
 					host_attrs->Set("name", old_host);
@@ -350,8 +350,8 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 					ObjectLock ylock(old_services);
 					BOOST_FOREACH(const String& old_service, old_services) {
 						/* check against black/whitelist before trying to remove service */
-						if (AgentUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, old_service) &&
-						    !AgentUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, old_service)) {
+						if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_agent_name, old_host, old_service) &&
+						    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_agent_name, old_host, old_service)) {
 							Log(LogWarning, "cli")
 							    << "Service '" << old_service << "' on host '" << old_host << "' on agent '"
 							    << old_agent_name << "' is blacklisted, but not whitelisted. Skipping.";
@@ -360,7 +360,7 @@ int AgentUpdateConfigCommand::Run(const boost::program_options::variables_map& v
 
 						if (!new_services->Contains(old_service)) {
 							Log(LogInformation, "cli")
-							    << "Agent update found old service '" << old_service << "' on host '" << old_host
+							    << "Node update found old service '" << old_service << "' on host '" << old_host
 							    << "' on agent '" << old_agent_name << "'. Removing it.";
 
 							Dictionary::Ptr service_attrs = make_shared<Dictionary>();

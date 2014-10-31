@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentsetupcommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/nodesetupcommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
@@ -39,19 +39,19 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("agent/setup", AgentSetupCommand);
+REGISTER_CLICOMMAND("node/setup", NodeSetupCommand);
 
-String AgentSetupCommand::GetDescription(void) const
+String NodeSetupCommand::GetDescription(void) const
 {
 	return "Sets up an Icinga 2 agent.";
 }
 
-String AgentSetupCommand::GetShortDescription(void) const
+String NodeSetupCommand::GetShortDescription(void) const
 {
 	return "set up agent";
 }
 
-void AgentSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void NodeSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
@@ -66,7 +66,7 @@ void AgentSetupCommand::InitParameters(boost::program_options::options_descripti
 		("master", "Use setup for a master instance");
 }
 
-std::vector<String> AgentSetupCommand::GetArgumentSuggestions(const String& argument, const String& word) const
+std::vector<String> NodeSetupCommand::GetArgumentSuggestions(const String& argument, const String& word) const
 {
 	if (argument == "key" || argument == "cert" || argument == "trustedcert")
 		return GetBashCompletionSuggestions("file", word);
@@ -78,7 +78,7 @@ std::vector<String> AgentSetupCommand::GetArgumentSuggestions(const String& argu
 		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
-ImpersonationLevel AgentSetupCommand::GetImpersonationLevel(void) const
+ImpersonationLevel NodeSetupCommand::GetImpersonationLevel(void) const
 {
 	return ImpersonateRoot;
 }
@@ -88,7 +88,7 @@ ImpersonationLevel AgentSetupCommand::GetImpersonationLevel(void) const
  *
  * @returns An exit status.
  */
-int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	if (!ap.empty()) {
 		Log(LogWarning, "cli")
@@ -98,20 +98,20 @@ int AgentSetupCommand::Run(const boost::program_options::variables_map& vm, cons
 	if (vm.count("master"))
 		return SetupMaster(vm, ap);
 	else
-		return SetupAgent(vm, ap);
+		return SetupNode(vm, ap);
 }
 
-int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
+int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
 	/* Ignore not required parameters */
 	if (vm.count("ticket"))
-		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --ticket");
+		Log(LogWarning, "cli", "Master for Node setup: Ignoring --ticket");
 
 	if (vm.count("endpoint"))
-		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --endpoint");
+		Log(LogWarning, "cli", "Master for Node setup: Ignoring --endpoint");
 
 	if (vm.count("trustedcert"))
-		Log(LogWarning, "cli", "Master for Agent setup: Ignoring --trustedcert");
+		Log(LogWarning, "cli", "Master for Node setup: Ignoring --trustedcert");
 
 	/* Generate a new CA, if not already existing */
 
@@ -205,7 +205,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	AgentUtility::GenerateAgentMasterIcingaConfig(cn);
+	NodeUtility::GenerateNodeMasterIcingaConfig(cn);
 
 	/* enable the ApiListener config */
 
@@ -216,7 +216,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	FeatureUtility::EnableFeatures(enable);
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
-	AgentUtility::CreateBackupFile(apipath);
+	NodeUtility::CreateBackupFile(apipath);
 
 	String apipathtmp = apipath + ".tmp";
 
@@ -266,13 +266,13 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 
 	Log(LogInformation, "cli", "Updating constants.conf.");
 
-	AgentUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
-	AgentUtility::UpdateConstant("NodeName", cn);
+	NodeUtility::UpdateConstant("NodeName", cn);
 
 	String salt = RandomString(16);
 
-	AgentUtility::UpdateConstant("TicketSalt", salt);
+	NodeUtility::UpdateConstant("TicketSalt", salt);
 
 	Log(LogInformation, "cli")
 	    << "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
@@ -284,7 +284,7 @@ int AgentSetupCommand::SetupMaster(const boost::program_options::variables_map& 
 	return 0;
 }
 
-int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
+int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
 	/* require ticket number (generated on master) and at least one endpoint */
 
@@ -414,7 +414,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 	FeatureUtility::EnableFeatures(enable);
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
-	AgentUtility::CreateBackupFile(apipath);
+	NodeUtility::CreateBackupFile(apipath);
 
 	String apipathtmp = apipath + ".tmp";
 
@@ -460,7 +460,7 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	AgentUtility::GenerateAgentIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn);
+	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn);
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
@@ -470,9 +470,9 @@ int AgentSetupCommand::SetupAgent(const boost::program_options::variables_map& v
 
 	Log(LogInformation, "cli", "Updating constants.conf.");
 
-	AgentUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
-	AgentUtility::UpdateConstant("NodeName", cn);
+	NodeUtility::UpdateConstant("NodeName", cn);
 
 	/* tell the user to reload icinga2 */
 

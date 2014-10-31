@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/agentblackandwhitelistcommand.hpp"
-#include "cli/agentutility.hpp"
+#include "cli/nodeblackandwhitelistcommand.hpp"
+#include "cli/nodeutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
@@ -40,7 +40,7 @@ RegisterBlackAndWhitelistCLICommandHelper::RegisterBlackAndWhitelistCLICommandHe
 	boost::algorithm::to_lower(ltype);
 
 	std::vector<String> name;
-	name.push_back("agent");
+	name.push_back("node");
 	name.push_back(ltype);
 	name.push_back("add");
 	CLICommand::Register(name, make_shared<BlackAndWhitelistCommand>(type, BlackAndWhitelistCommandAdd));
@@ -124,7 +124,7 @@ void BlackAndWhitelistCommand::InitParameters(boost::program_options::options_de
  */
 int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String list_path = AgentUtility::GetRepositoryPath() + "/" + m_Type + ".list";
+	String list_path = NodeUtility::GetRepositoryPath() + "/" + m_Type + ".list";
 
 	Dictionary::Ptr lists = make_shared<Dictionary>();
 
@@ -147,7 +147,7 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 		if (vm.count("service"))
 			service_filter = vm["service"].as<std::string>();
 
-		return AgentUtility::UpdateBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
+		return NodeUtility::UpdateBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
 	} else if (m_Command == BlackAndWhitelistCommandList) {
 
 		if (vm.count("agent") || vm.count("host") || vm.count("service")) {
@@ -155,7 +155,7 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 			return 1;
 		}
 
-		return AgentUtility::PrintBlackAndWhiteList(std::cout, m_Type);
+		return NodeUtility::PrintBlackAndWhiteList(std::cout, m_Type);
 	} else if (m_Command == BlackAndWhitelistCommandRemove) {
 		if (!vm.count("agent")) {
 			Log(LogCritical, "cli", "At least the agent name filter is required!");
@@ -174,7 +174,7 @@ int BlackAndWhitelistCommand::Run(const boost::program_options::variables_map& v
 			service_filter = vm["service"].as<std::string>();
 		}
 
-		return AgentUtility::RemoveBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
+		return NodeUtility::RemoveBlackAndWhiteList(m_Type, vm["agent"].as<std::string>(), vm["host"].as<std::string>(), service_filter);
 	}
 
 
