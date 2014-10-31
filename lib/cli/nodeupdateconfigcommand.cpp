@@ -118,7 +118,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 			if (host == "localhost") {
 				Log(LogWarning, "cli")
-				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your node '" << node_name << "'.";
+				    << "Ignoring host '" << host << "'. Please make sure to configure a unique name on your node '" << endpoint << "'.";
 				continue;
 			}
 

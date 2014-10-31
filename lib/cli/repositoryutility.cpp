@@ -362,7 +362,7 @@ bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& t
 	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
 
 	if (!Utility::PathExists(path)) {
-		Log(LogCritical, "cli")
+		Log(LogWarning, "cli")
 		    << type << " '" << name << "' does not exist.";
 		return true;
 	}
