@@ -134,15 +134,9 @@ void ObjectListCommand::PrintObject(std::ostream& fp, bool& first, const String&
 	else
 		fp << "\n";
 
-	bool abstract = object->Get("abstract");
 	Dictionary::Ptr debug_hints = object->Get("debug_hints");
 
-	if (abstract)
-		fp << "Template '";
-	else
-		fp << "Object '";
-
-	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << internal_name << ConsoleColorTag(Console_Normal) << "'";
+	fp << "Object " << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << internal_name << ConsoleColorTag(Console_Normal) << "'";
 	fp << " of type '" << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal) << "':\n";
 
 	PrintProperties(fp, properties, debug_hints, 2);

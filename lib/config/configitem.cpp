@@ -121,6 +121,7 @@ Expression::Ptr ConfigItem::GetExpressionList(void) const
 Dictionary::Ptr ConfigItem::GetProperties(void)
 {
 	ASSERT(!OwnsLock());
+	VERIFY(!IsAbstract());
 
 	ObjectLock olock(this);
 
@@ -296,11 +297,13 @@ void ConfigItem::WriteObjectsFile(const String& filename)
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		ConfigItem::Ptr item = kv.second;
 
+		if (item->IsAbstract())
+			continue;
+
 		Dictionary::Ptr persistentItem = make_shared<Dictionary>();
 
 		persistentItem->Set("type", item->GetType());
 		persistentItem->Set("name", item->GetName());
-		persistentItem->Set("abstract", item->IsAbstract());
 		persistentItem->Set("properties", item->GetProperties());
 		persistentItem->Set("debug_hints", item->GetDebugHints());
 
