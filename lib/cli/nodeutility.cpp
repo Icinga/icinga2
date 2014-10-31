@@ -398,11 +398,11 @@ String NodeUtility::GetBlackAndWhiteListPath(const String& type)
 	return NodeUtility::GetRepositoryPath() + "/" + type + ".list";
 }
 
-Dictionary::Ptr NodeUtility::GetBlackAndWhiteList(const String& type)
+Array::Ptr NodeUtility::GetBlackAndWhiteList(const String& type)
 {
 	String list_path = GetBlackAndWhiteListPath(type);
 
-	Dictionary::Ptr lists = make_shared<Dictionary>();
+	Array::Ptr lists = make_shared<Array>();
 
 	if (Utility::PathExists(list_path)) {
 		lists = Utility::LoadJsonFile(list_path);
@@ -413,32 +413,35 @@ Dictionary::Ptr NodeUtility::GetBlackAndWhiteList(const String& type)
 
 int NodeUtility::UpdateBlackAndWhiteList(const String& type, const String& zone_filter, const String& host_filter, const String& service_filter)
 {
-	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
+	Array::Ptr lists = GetBlackAndWhiteList(type);
 
-	Dictionary::Ptr host_service = make_shared<Dictionary>();
+	{
+		ObjectLock olock(lists);
 
-	host_service->Set("host_filter", host_filter);
+		BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
 
-	if (!service_filter.IsEmpty()) {
-		host_service->Set("service_filter", service_filter);
-	}
-
-	if (lists->Contains(zone_filter)) {
-		Dictionary::Ptr stored_host_service = lists->Get(zone_filter);
-
-		if (stored_host_service->Get("host_filter") == host_filter && service_filter.IsEmpty()) {
-			Log(LogWarning, "cli")
-			    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "'. Bailing out.";
-			return 1;
-		} else if (stored_host_service->Get("host_filter") == host_filter && stored_host_service->Get("service_filter") == service_filter) {
-			Log(LogWarning, "cli")
-			    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "' and service filter '"
-			    << service_filter << "'. Bailing out.";
-			return 1;
+			if (filter->Get("zone") == zone_filter) {
+				if (filter->Get("host") == host_filter && service_filter.IsEmpty()) {
+					Log(LogWarning, "cli")
+					    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "'. Bailing out.";
+					return 1;
+				} else if (filter->Get("host") == host_filter && filter->Get("service") == service_filter) {
+					Log(LogWarning, "cli")
+					    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "' and service filter '"
+					    << service_filter << "'. Bailing out.";
+					return 1;
+				}
+			}
 		}
 	}
 
-	lists->Set(zone_filter, host_service);
+	Dictionary::Ptr new_filter = make_shared<Dictionary>();
+
+	new_filter->Set("zone", zone_filter);
+	new_filter->Set("host", host_filter);
+	new_filter->Set("service", service_filter);
+
+	lists->Add(new_filter);
 
 	String list_path = GetBlackAndWhiteListPath(type);
 	Utility::SaveJsonFile(list_path, lists);
@@ -448,27 +451,41 @@ int NodeUtility::UpdateBlackAndWhiteList(const String& type, const String& zone_
 
 int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& zone_filter, const String& host_filter, const String& service_filter)
 {
-	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
+	Array::Ptr lists = GetBlackAndWhiteList(type);
 
-	if (lists->Contains(zone_filter)) {
-		Dictionary::Ptr host_service = lists->Get(zone_filter);
+	std::vector<int> remove_filters;
+	int remove_idx = 0;
+	{
+		ObjectLock olock(lists);
 
-		if (host_service->Get("host_filter") == host_filter && service_filter.IsEmpty()) {
-			Log(LogInformation, "cli")
-			    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "'. Removing from " << type << ".";
-			lists->Remove(zone_filter);
-		} else if (host_service->Get("host_filter") == host_filter && host_service->Get("service_filter") == service_filter) {
-			Log(LogInformation, "cli")
-			    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "' and service filter '"
-			    << service_filter << "'. Removing from " << type << ".";
-			lists->Remove(zone_filter);
-		} else {
-			Log(LogCritical, "cli", "Cannot remove filter!");
-			return 1;
+		BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+
+			if (filter->Get("zone") == zone_filter) {
+				if (filter->Get("host") == host_filter && service_filter.IsEmpty()) {
+					Log(LogInformation, "cli")
+					    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "'. Removing from " << type << ".";
+					remove_filters.push_back(remove_idx);
+				} else if (filter->Get("host") == host_filter && filter->Get("service") == service_filter) {
+					Log(LogInformation, "cli")
+					    << "Found zone filter '" << zone_filter << "' with host filter '" << host_filter << "' and service filter '"
+					    << service_filter << "'. Removing from " << type << ".";
+					remove_filters.push_back(remove_idx);
+				}
+			}
+
+			remove_idx++;
 		}
-	} else {
+	}
+
+	/* if there are no matches for reomval, throw an error */
+	if (remove_filters.empty()) {
 		Log(LogCritical, "cli", "Cannot remove filter!");
 		return 1;
+	}
+
+	ObjectLock xlock(lists);
+	BOOST_FOREACH(int remove, remove_filters) {
+		lists->Remove(remove);
 	}
 
 	String list_path = GetBlackAndWhiteListPath(type);
@@ -479,17 +496,17 @@ int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& zone_
 
 int NodeUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 {
-	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
+	Array::Ptr lists = GetBlackAndWhiteList(type);
+
+	if (lists->GetLength() == 0)
+		return 0;
 
 	fp << "Listing all " << type << " entries:\n";
 
 	ObjectLock olock(lists);
-	BOOST_FOREACH(const Dictionary::Pair& kv, lists) {
-		String zone_filter = kv.first;
-		Dictionary::Ptr host_service = kv.second;
-
-		fp << "Node " << type << ": '" << zone_filter << "' Host: '"
-		    << host_service->Get("host_filter") << "' Service: '" << host_service->Get("service_filter") << "'.\n";
+	BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+		fp << type << " filter for Node: '" << filter->Get("zone") << "' Host: '"
+		    << filter->Get("host") << "' Service: '" << filter->Get("service") << "'.\n";
 	}
 
 	return 0;
@@ -497,22 +514,21 @@ int NodeUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 
 bool NodeUtility::CheckAgainstBlackAndWhiteList(const String& type, const String& zone, const String& host, const String& service)
 {
-	Dictionary::Ptr lists = GetBlackAndWhiteList(type);
+	Array::Ptr lists = GetBlackAndWhiteList(type);
 
 	Log(LogInformation, "cli")
 	    << "Checking object against " << type << ".";
 
 	ObjectLock olock(lists);
-	BOOST_FOREACH(const Dictionary::Pair& kv, lists) {
-		String zone_filter = kv.first;
-		Dictionary::Ptr host_service = kv.second;
-		String host_filter = host_service->Get("host_filter");
+	BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+		String zone_filter = filter->Get("zone");
+		String host_filter = filter->Get("host");
 		String service_filter;
 
-		if (host_service->Contains("service_filter"))
-			service_filter = host_service->Get("service_filter");
+		if (filter->Contains("service"))
+			service_filter = filter->Get("service");
 
-		Log(LogInformation, "cli")
+		Log(LogNotice, "cli")
 		    << "Checking Node '" << zone << "' =~ '" << zone_filter << "', host '" << host << "' =~ '" << host_filter
 		    << "', service '" << service << "' =~ '" << service_filter << "'.";
 
@@ -534,8 +550,6 @@ bool NodeUtility::CheckAgainstBlackAndWhiteList(const String& type, const String
 					return true;
 				}
 			}
-
-
 		}
 	}
 

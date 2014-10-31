@@ -137,12 +137,15 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 			if (host == zone)
 				skip_host = true;
 
+			bool host_was_blacklisted = false;
+
 			/* check against black/whitelist before trying to add host */
 			if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", node_name, host, Empty) &&
 			    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", node_name, host, Empty)) {
 				Log(LogWarning, "cli")
 				    << "Host '" << host << "' on node '" << node_name << "' is blacklisted, but not whitelisted. Skipping.";
 				skip_host = true;
+				host_was_blacklisted = true; //check this for services on this blacklisted host
 			}
 
 			if (!skip_host) {
@@ -166,6 +169,13 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					Log(LogCritical, "cli")
 					    << "Cannot add node host '" << host << "' to the config repository!\n";
 				}
+			}
+
+			/* special condition: what if the host was blacklisted before, but the services should be generated? */
+			if (host_was_blacklisted) {
+				Log(LogNotice, "cli")
+				    << "Host '" << host << "' was blacklisted. Won't generate any services.";
+				continue;
 			}
 
 			Array::Ptr services = kv.second;

@@ -62,7 +62,7 @@ public:
 
 	/* black/whitelist */
 	static String GetBlackAndWhiteListPath(const String& type);
-	static Dictionary::Ptr GetBlackAndWhiteList(const String& type);
+	static Array::Ptr GetBlackAndWhiteList(const String& type);
 	static int UpdateBlackAndWhiteList(const String& type, const String& node_filter,
 	    const String& host_filter, const String& service_filter);
 	static int RemoveBlackAndWhiteList(const String& type, const String& node_filter,
