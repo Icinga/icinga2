@@ -16,11 +16,11 @@ using System.Security.AccessControl;
 
 namespace Icinga
 {
-	public partial class AgentWizard : Form
+	public partial class SetupWizard : Form
 	{
 		private string _TrustedFile;
 
-		public AgentWizard()
+		public SetupWizard()
 		{
 			InitializeComponent();
 

@@ -13,7 +13,7 @@ namespace Icinga
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new AgentWizard());
+			Application.Run(new SetupWizard());
 		}
 	}
 }

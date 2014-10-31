@@ -1,6 +1,6 @@
 ﻿namespace Icinga
 {
-	partial class AgentWizard
+	partial class SetupWizard
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -28,7 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AgentWizard));
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SetupWizard));
 			this.btnBack = new System.Windows.Forms.Button();
 			this.btnNext = new System.Windows.Forms.Button();
 			this.btnCancel = new System.Windows.Forms.Button();
@@ -51,6 +51,7 @@
 			this.btnRemoveEndpoint = new System.Windows.Forms.Button();
 			this.btnAddEndpoint = new System.Windows.Forms.Button();
 			this.lvwEndpoints = new System.Windows.Forms.ListView();
+			this.colInstanceName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.colHost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.colPort = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.rdoNoMaster = new System.Windows.Forms.RadioButton();
@@ -74,7 +75,6 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.colInstanceName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -198,7 +198,7 @@
 			this.lblTicket.Name = "lblTicket";
 			this.lblTicket.Size = new System.Drawing.Size(71, 13);
 			this.lblTicket.TabIndex = 4;
-			this.lblTicket.Text = "Agent Ticket:";
+			this.lblTicket.Text = "Setup Ticket:";
 			// 
 			// txtInstanceName
 			// 
@@ -321,6 +321,11 @@
 			this.lvwEndpoints.View = System.Windows.Forms.View.Details;
 			this.lvwEndpoints.SelectedIndexChanged += new System.EventHandler(this.lvwEndpoints_SelectedIndexChanged);
 			// 
+			// colInstanceName
+			// 
+			this.colInstanceName.Text = "Instance Name";
+			this.colInstanceName.Width = 200;
+			// 
 			// colHost
 			// 
 			this.colHost.Text = "Host";
@@ -347,6 +352,7 @@
 			// rdoNewMaster
 			// 
 			this.rdoNewMaster.AutoSize = true;
+			this.rdoNewMaster.Enabled = false;
 			this.rdoNewMaster.Location = new System.Drawing.Point(11, 22);
 			this.rdoNewMaster.Name = "rdoNewMaster";
 			this.rdoNewMaster.Size = new System.Drawing.Size(167, 17);
@@ -548,12 +554,7 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
-			// colInstanceName
-			// 
-			this.colInstanceName.Text = "Instance Name";
-			this.colInstanceName.Width = 200;
-			// 
-			// AgentWizard
+			// SetupWizard
 			// 
 			this.AcceptButton = this.btnNext;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -568,8 +569,8 @@
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
-			this.Name = "AgentWizard";
-			this.Text = "Icinga 2 Agent Wizard";
+			this.Name = "SetupWizard";
+			this.Text = "Icinga 2 Setup Wizard";
 			this.Shown += new System.EventHandler(this.AgentWizard_Shown);
 			this.tabFinish.ResumeLayout(false);
 			this.tabFinish.PerformLayout();

@@ -80,11 +80,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentWizard.cs">
+    <Compile Include="SetupWizard.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="AgentWizard.Designer.cs">
-      <DependentUpon>AgentWizard.cs</DependentUpon>
+    <Compile Include="SetupWizard.Designer.cs">
+      <DependentUpon>SetupWizard.cs</DependentUpon>
     </Compile>
     <Compile Include="EndpointInputBox.cs">
       <SubType>Form</SubType>
@@ -94,8 +94,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="AgentWizard.resx">
-      <DependentUpon>AgentWizard.cs</DependentUpon>
+    <EmbeddedResource Include="SetupWizard.resx">
+      <DependentUpon>SetupWizard.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EndpointInputBox.resx">
       <DependentUpon>EndpointInputBox.cs</DependentUpon>
