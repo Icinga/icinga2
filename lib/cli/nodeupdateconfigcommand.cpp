@@ -97,7 +97,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		Dictionary::Ptr host_services = make_shared<Dictionary>();
 
 		Log(LogInformation, "cli")
-		    << "Repository for node '" << endpoint << "' does not contain a health check host. Adding host '" << zone << "'.";
+		    << "Adding host '" << zone << "' to the repository.";
 
 		Dictionary::Ptr host_attrs = make_shared<Dictionary>();
 		host_attrs->Set("__name", zone);
@@ -107,10 +107,8 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		host_imports->Add("satellite-host"); //default host node template
 		host_attrs->Set("import", host_imports);
 
-		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
-			Log(LogCritical, "cli")
-			    << "Cannot add node host '" << zone << "' to the config repository!\n";
-		}
+		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs))
+			continue;
 
 		ObjectLock olock(repository);
 		BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
@@ -165,10 +163,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				host_imports->Add("satellite-host"); //default host node template
 				host_attrs->Set("import", host_imports);
 
-				if (!RepositoryUtility::AddObject(host, "Host", host_attrs)) {
-					Log(LogCritical, "cli")
-					    << "Cannot add node host '" << host << "' to the config repository!\n";
-				}
+				RepositoryUtility::AddObject(host, "Host", host_attrs);
 			}
 
 			/* special condition: what if the host was blacklisted before, but the services should be generated? */
@@ -226,11 +221,8 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				service_imports->Add("satellite-service"); //default service node template
 				service_attrs->Set("import", service_imports);
 
-				if (!RepositoryUtility::AddObject(service, "Service", service_attrs)) {
-					Log(LogCritical, "cli")
-					    << "Cannot add node host '" << host << "' to the config repository!\n";
+				if (!RepositoryUtility::AddObject(service, "Service", service_attrs))
 					continue;
-				}
 			}
 		}
 
