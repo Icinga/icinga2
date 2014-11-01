@@ -54,20 +54,35 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
+## <a id="whats-new"></a> What's new
+
 ### What's New in Version 2.2.0
 
 #### Changes
 
 * DB IDO schema update to version `1.12.0`
-    * schema files in `lib/db_ido_{mysql,pgsql}/schema`
+    * schema files in `lib/db_ido_{mysql,pgsql}/schema` (source)
 * New CLI commands #7245
-    * `icinga2-{enable,disable}-feature` tool = cli command `icinga2 feature {enable,disable}` #7250
-    * `icinga2-list-objects` tool = cli command `icinga2 object list` #7251
-    * `icinga2-build-{ca,key}` can be used with cli command `icinga2 pki` #7247
-* `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
+    * `icinga2 feature {enable,disable}` replaces `icinga2-{enable,disable}-feature` script  #7250
+    * `icinga2 object list` replaces `icinga2-list-objects` script  #7251
+    * `icinga2 pki` replaces` icinga2-build-{ca,key}` scripts  #7247
+    * `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
+    * `icinga2 node` cli command provides node (master, satellite, agent) setup (wizard) and management functionality #7248
+    * bash auto-completion & terminal colors #7396
+* Cluster
+    * Add CSR Auto-Signing support using generated ticket #7244
+* Configuration
+    * Former `localhost` example host is now located in the repository using the FQDN #7398
+    * Updated downtimes configuration example #7472
+    * Support for object attribute 'zone' #7400
+    * Support setting object variables in apply rules #7479
+* Perfdata
+    * PerfdataWriter: Don't change perfdata, pass through from plugins #7268
+    * GraphiteWriter: Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
+* Packages
+    * `python-icinga2` package dropped in favor of integrated cli commands #7245
+    * Windows Installer for the agent parts #7243
 
-* `python-icinga2` package dropped in favour of cli commands #7245
-* GraphiteWriter: Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
 
 #### Issues
 
