@@ -212,7 +212,6 @@ static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
-static int m_StatementNum;
 
 static bool m_Apply;
 static bool m_ObjectAssign;
@@ -224,9 +223,6 @@ void ConfigCompiler::Compile(void)
 {
 	m_ModuleScope = make_shared<Dictionary>();
 	
-	int parentStatementNum = m_StatementNum;
-	m_StatementNum = 0;
-
 	try {
 		yyparse(this);
 	} catch (const ConfigError& ex) {
@@ -235,8 +231,6 @@ void ConfigCompiler::Compile(void)
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
-
-	m_StatementNum = parentStatementNum;
 }
 
 #define scanner (context->GetScanner())
@@ -249,9 +243,7 @@ statements: /* empty */
 	;
 
 statement: type | include | include_recursive | library | constant
-	{
-		m_StatementNum++;
-	}
+	{ }
 	| newlines
 	{ }
 	| lterm
@@ -259,8 +251,6 @@ statement: type | include | include_recursive | library | constant
 		Expression::Ptr aexpr = *$1;
 		aexpr->Evaluate(m_ModuleScope);
 		delete $1;
-
-		m_StatementNum++;
 	}
 	;
 
