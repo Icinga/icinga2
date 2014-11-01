@@ -206,23 +206,32 @@ void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
 
 int yyparse(ConfigCompiler *context);
 
-static bool m_Abstract;
+static std::stack<bool> m_Abstract;
 
 static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
 static Dictionary::Ptr m_ModuleScope;
 
-static bool m_Apply;
-static bool m_ObjectAssign;
-static bool m_SeenAssign;
-static Expression::Ptr m_Assign;
-static Expression::Ptr m_Ignore;
+static std::stack<bool> m_Apply;
+static std::stack<bool> m_ObjectAssign;
+static std::stack<bool> m_SeenAssign;
+static std::stack<Expression::Ptr> m_Assign;
+static std::stack<Expression::Ptr> m_Ignore;
 
 void ConfigCompiler::Compile(void)
 {
 	m_ModuleScope = make_shared<Dictionary>();
-	
+
+	m_Abstract = std::stack<bool>();
+	m_RuleLists = std::stack<TypeRuleList::Ptr>();
+	m_Type.reset();
+	m_Apply = std::stack<bool>();
+	m_ObjectAssign = std::stack<bool>();
+	m_SeenAssign = std::stack<bool>();
+	m_Assign = std::stack<Expression::Ptr>();
+	m_Ignore = std::stack<Expression::Ptr>();
+
 	try {
 		yyparse(this);
 	} catch (const ConfigError& ex) {
@@ -415,19 +424,20 @@ type: T_TYPE_DICTIONARY
 
 object:
 	{
-		m_Abstract = false;
-		m_ObjectAssign = true;
-		m_SeenAssign = false;
-		m_Assign = make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo());
-		m_Ignore = make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo());
+		m_Abstract.push(false);
+		m_ObjectAssign.push(true);
+		m_SeenAssign.push(false);
+		m_Assign.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
+		m_Ignore.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
 	}
 	object_declaration identifier rterm rterm_scope
 	{
-		m_ObjectAssign = false;
+		m_ObjectAssign.pop();
 
 		Array::Ptr args = make_shared<Array>();
 		
-		args->Add(m_Abstract);
+		args->Add(m_Abstract.top());
+		m_Abstract.pop();
 
 		String type = $3;
 		args->Add(type);
@@ -440,27 +450,29 @@ object:
 		delete $5;
 		exprl->MakeInline();
 
-		if (m_SeenAssign && !ObjectRule::IsValidSourceType(type))
+		if (m_SeenAssign.top() && !ObjectRule::IsValidSourceType(type))
 			BOOST_THROW_EXCEPTION(ConfigError("object rule 'assign' cannot be used for type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
 
-		Expression::Ptr rex = make_shared<Expression>(&Expression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
-		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
+		m_SeenAssign.pop();
+
+		Expression::Ptr rex = make_shared<Expression>(&Expression::OpLogicalNegate, m_Ignore.top(), DebugInfoRange(@2, @5));
+		m_Ignore.pop();
+
+		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
+		m_Assign.pop();
 
 		args->Add(filter);
 
 		args->Add(context->GetZone());
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
-
-		m_Assign.reset();
-		m_Ignore.reset();
 	}
 	;
 
 object_declaration: T_OBJECT
 	| T_TEMPLATE
 	{
-		m_Abstract = true;
+		m_Abstract.top() = true;
 	}
 
 identifier_items: identifier_items_inner
@@ -583,23 +595,22 @@ lterm: identifier lbinary_op rterm
 	}
 	| T_ASSIGN T_WHERE rterm
 	{
-		if (!(m_Apply || m_ObjectAssign))
+		if ((m_Apply.empty() || !m_Apply.top()) && (m_ObjectAssign.empty() || !m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
 
-		m_SeenAssign = true;
+		m_SeenAssign.top() = true;
 
-		m_Assign = make_shared<Expression>(&Expression::OpLogicalOr, m_Assign, *$3, DebugInfoRange(@1, @3));
+		m_Assign.top() = make_shared<Expression>(&Expression::OpLogicalOr, m_Assign.top(), *$3, DebugInfoRange(@1, @3));
 		delete $3;
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
 	}
 	| T_IGNORE T_WHERE rterm
 	{
-		if (!(m_Apply || m_ObjectAssign))
+		if ((m_Apply.empty() || !m_Apply.top()) && (m_ObjectAssign.empty() || !m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
 
-		m_Ignore = make_shared<Expression>(&Expression::OpLogicalOr, m_Ignore, *$3, DebugInfoRange(@1, @3));
-
+		m_Ignore.top() = make_shared<Expression>(&Expression::OpLogicalOr, m_Ignore.top(), *$3, DebugInfoRange(@1, @3));
 		delete $3;
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
@@ -827,14 +838,14 @@ target_type_specifier: /* empty */
 
 apply:
 	{
-		m_Apply = true;
-		m_SeenAssign = false;
-		m_Assign = make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo());
-		m_Ignore = make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo());
+		m_Apply.push(true);
+		m_SeenAssign.push(false);
+		m_Assign.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
+		m_Ignore.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
 	}
 	T_APPLY identifier rterm target_type_specifier rterm
 	{
-		m_Apply = false;
+		m_Apply.pop();
 
 		String type = $3;
 		free($3);
@@ -873,11 +884,16 @@ apply:
 		exprl->MakeInline();
 
 		// assign && !ignore
-		if (!m_SeenAssign)
+		if (!m_SeenAssign.top())
 			BOOST_THROW_EXCEPTION(ConfigError("'apply' is missing 'assign'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
 
-		Expression::Ptr rex = make_shared<Expression>(&Expression::OpLogicalNegate, m_Ignore, DebugInfoRange(@2, @5));
-		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign, rex, DebugInfoRange(@2, @5));
+		m_SeenAssign.pop();
+
+		Expression::Ptr rex = make_shared<Expression>(&Expression::OpLogicalNegate, m_Ignore.top(), DebugInfoRange(@2, @5));
+		m_Ignore.pop();
+
+		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
+		m_Assign.pop();
 
 		Array::Ptr args = make_shared<Array>();
 		args->Add(type);
@@ -886,9 +902,6 @@ apply:
 		args->Add(filter);
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpApply, args, exprl, DebugInfoRange(@2, @5)));
-
-		m_Assign.reset();
-		m_Ignore.reset();
 	}
 	;
 
