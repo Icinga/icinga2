@@ -126,12 +126,16 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 	ObjectLock olock(this);
 
 	if (!m_Properties) {
+		Dictionary::Ptr locals = make_shared<Dictionary>();
+		locals->Set("__parent", m_Scope);
+		locals->Set("name", m_Name);
+
 		DebugHint dhint;
 		m_Properties = make_shared<Dictionary>();
 		m_Properties->Set("type", m_Type);
 		if (!m_Zone.IsEmpty())
 			m_Properties->Set("zone", m_Zone);
-		m_Properties->Set("__parent", m_Scope);
+		m_Properties->Set("__parent", locals);
 		GetExpressionList()->Evaluate(m_Properties, &dhint);
 		m_Properties->Remove("__parent");
 		m_DebugHints = dhint.ToDictionary();
