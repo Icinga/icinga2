@@ -1395,16 +1395,21 @@ a hint on the file, the line number and the affected configuration line itself.
 The following example creates an apply rule without any `assign` condition.
 
     apply Service "5872-ping4" {
-      import "test-generic-service"
+      import "generic-service"
       check_command = "ping4"
       //assign where match("5872-*", host.name)
     }
 
-Validate the configuration with the init script option `checkconfig`
+Validate the configuration with the init script option `checkconfig`:
 
     # /etc/init.d/icinga2 checkconfig
 
-or manually passing the `-C` argument:
+> **Note**
+>
+> Using [Systemd](#systemd-service) you need to manually validate the configuration using
+> the cli command below.
+
+Or manually passing the `-C` argument:
 
     # /usr/sbin/icinga2 daemon -c /etc/icinga2/icinga2.conf -C
 
@@ -1419,6 +1424,46 @@ or manually passing the `-C` argument:
     Config error: 'apply' is missing 'assign'
     [2014-05-22 17:07:25 +0200] critical/ConfigItem: 1 errors, 0 warnings.
     Icinga 2 detected configuration errors.
+
+> **Tip**
+>
+> Icinga 2 will automatically detect the default path for `icinga2.conf`
+> in `SysconfDir + /icinga2/icinga2.conf` and you can safely omit this parameter.
+>
+> `# icinga2 daemon -C`
+
+If you encouter errors during configuration validation, please make sure
+to read the [troubleshooting](#troubleshooting) chapter.
+
+You can also use the cli command `icinga2 object list` after validation passes
+to analyze object attributes, inheritance or created objects by apply rules.
+Find more on troubleshooting with `object list` in [this chapter](#list-configuration-objects).
+
+Example filtered by `Service` objects with the name `ping*`:
+
+    # icinga2 object list --type Service --name *ping*
+    Object 'nbmif.int.netways.de!ping4' of type 'Service':
+      * __name = 'nbmif.int.netways.de!ping4'
+      * check_command = 'ping4'
+        % = modified in '/etc/icinga2/conf.d/services.conf', lines 17:3-17:25
+      * check_interval = 60
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 28:3-28:21
+      * host_name = 'nbmif.int.netways.de'
+        % = modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
+      * max_check_attempts = 3
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 27:3-27:24
+      * name = 'ping4'
+        % = modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
+      * retry_interval = 30
+        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 29:3-29:22
+      * templates = [ 'ping4', 'generic-service' ]
+        % += modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
+        % += modified in '/etc/icinga2/conf.d/templates.conf', lines 26:1-30:1
+      * type = 'Service'
+      * vars
+        % += modified in '/etc/icinga2/conf.d/services.conf', lines 18:3-18:19
+        * sla = '24x7'
+          % = modified in '/etc/icinga2/conf.d/services.conf', lines 18:3-18:19
 
 
 ### <a id="config-change-reload"></a> Reload on Configuration Changes

@@ -30,7 +30,9 @@ Additionally you can enable the debug log using
 ## <a id="list-configuration-objects"></a> List Configuration Objects
 
 The `icinga2 object list` cli command can be used to list all configuration objects and their
-attributes. The tool also shows where each of the attributes was modified:
+attributes. The tool also shows where each of the attributes was modified.
+
+That way you can also identify which objects have been created from your [apply rules](#apply).
 
     # icinga2 object list
 
@@ -82,12 +84,25 @@ You can filter by name or type too.
         % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
         * sla = '24x7'
           % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
-    
+
     Found 1 Service objects.
-    
+
     [2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
 
+## <a id="check-command-definitions"></a> Where are the check command definitions
 
+Icinga 2 ships additional [plugin check command definitions](#plugin-check-commands) which are
+included using
+
+    include <itl>
+    include <plugins>
+
+in [icinga2.conf](#icinga2-conf). These configurations will be overridden on upgrade, so please
+send modifications as proposed patches upstream. The default include path is set to
+`LocalStateDir + "/share/icinga2/includes"`.
+
+You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
+or similar.
 
 ## <a id="checks-not-executed"></a> Checks are not executed
 
@@ -146,22 +161,6 @@ encapsulated by `/* ... */`).
 Icinga 2 allows you to import templates using the [import](#import) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
-
-## <a id="check-command-definitions"></a> Where are the check command definitions
-
-Icinga 2 ships additional [plugin check command definitions](#plugin-check-commands) which are
-included using
-
-    include <itl>
-    include <plugins>
-
-in [icinga2.conf](#icinga2-conf). These configurations will be overridden on upgrade, so please
-send modifications as proposed patches upstream. The default include path is set to
-`LocalStateDir + "/share/icinga2/includes"`.
-
-You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
-or similar.
-
 
 ## <a id="troubleshooting-cluster"></a> Cluster Troubleshooting
 
