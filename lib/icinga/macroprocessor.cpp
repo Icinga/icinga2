@@ -89,7 +89,12 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 				Dictionary::Ptr vars = dobj->GetVars();
 
 				if (vars && vars->Contains(macro)) {
-					*result = vars->Get(macro);
+					Value value = vars->Get(macro);
+
+					if (value.IsObjectType<Array>())
+						value = Utility::Join(value, ';');
+
+					*result = value;
 					*recursive_macro = true;
 					return true;
 				}
@@ -141,6 +146,9 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			    tokens[0] == "notes_url" ||
 			    tokens[0] == "notes")
 				*recursive_macro = true;
+
+			if (ref.IsObjectType<Array>())
+				ref = Utility::Join(ref, ';');
 
 			*result = ref;
 			return true;
