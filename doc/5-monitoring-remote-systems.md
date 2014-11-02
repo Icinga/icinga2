@@ -299,6 +299,11 @@ The setup wizard will do the following:
 
 The setup wizard does not automatically restart Icinga 2.
 
+If you are getting an error when requesting the ticket number, please check the following:
+
+* Is the CN the same (from pki ticket on the master and setup node on the client)
+* Is the ticket expired
+
 
 ### <a id="icinga2-remote-monitoring-client-windows"></a> Windows Client Setup for Remote Monitoring
 
@@ -395,6 +400,12 @@ generating all required configuration.
     # icinga2 node update-config
 
 The generated configuration of all nodes is stored in the `repository.d/` directory.
+
+By default, the following additional configuration is generated:
+* add `Endpoint` and `Zone` objects for the newly added node
+* add `cluster-zone` health check for the master host detecting if the remote node died
+* use the default templates `satellite-host` and `satellite-service` defined in `/etc/icinga2/conf.d/satellite.conf`
+* apply a dependency for all other hosts on the remote satellite prevening failure checks/notifications
 
 > **Note**
 >
