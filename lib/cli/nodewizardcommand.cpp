@@ -100,7 +100,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 	std::string answer;
 	bool is_node_setup = true;
 
-	std::cout << "Please specify if this is an node setup ('no' installs a master setup) [Y/n]: ";
+	std::cout << "Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]: ";
 	std::getline (std::cin, answer);
 
 	boost::algorithm::to_lower(answer);
@@ -450,14 +450,19 @@ wizard_ticket:
 		String key = pki_path + "/" + cn + ".key";
 		String csr = pki_path + "/" + cn + ".csr";
 
+		Log(LogInformation, "cli")
+		    << "Generating new CSR in '" << csr << "'.";
+
 		if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
-			Log(LogCritical, "cli", "Failed to create self-signed certificate");
+			Log(LogCritical, "cli", "Failed to create certificate signing request.");
 			return 1;
 		}
 
 		/* Sign the CSR with the CA key */
-
 		String cert = pki_path + "/" + cn + ".crt";
+
+		Log(LogInformation, "cli")
+		    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
 
 		if (PkiUtility::SignCsr(csr, cert) != 0) {
 			Log(LogCritical, "cli", "Could not sign CSR.");
@@ -523,7 +528,7 @@ wizard_ticket:
 		String bind_port = answer;
 		bind_port.Trim();
 
-		std::cout << "Enabling the APIlistener feature.\n";
+		Log(LogInformation, "cli", "Enabling the APIlistener feature.");
 
 		std::vector<std::string> enable;
 		enable.push_back("api");
@@ -575,7 +580,9 @@ wizard_ticket:
 
 		Log(LogInformation, "cli", "Updating constants.conf.");
 
-		NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+		String constants_file = Application::GetSysconfDir() + "/icinga2/constants.conf";
+
+		NodeUtility::CreateBackupFile(constants_file);
 
 		NodeUtility::UpdateConstant("NodeName", cn);
 
@@ -584,10 +591,12 @@ wizard_ticket:
 		NodeUtility::UpdateConstant("TicketSalt", salt);
 
 		Log(LogInformation, "cli")
-		    << "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
+		    << "Edit the constants.conf file '" << constants_file << "' and set a secure 'TicketSalt' constant.";
 	}
 
-	std::cout << "Now restart your Icinga 2 to finish the installation!\n";
+	std::cout << "Done.\n\n";
+
+	std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
 
 	std::cout << "If you encounter problems or bugs, please do not hesitate to\n"
 	    << "get in touch with the community at https://support.icinga.org" << std::endl;
