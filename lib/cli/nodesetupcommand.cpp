@@ -414,9 +414,16 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << cert << "'. Verify it yourself!";
 	}
 
+	/* disable the notifications feature */
+	Log(LogInformation, "cli", "Disabling the Notification feature.");
+
+	std::vector<std::string> disable;
+	disable.push_back("notification");
+	FeatureUtility::DisableFeatures(disable);
+
 	/* enable the ApiListener config */
 
-	Log(LogInformation, "cli", "Updating the APIListener feature.");
+	Log(LogInformation, "cli", "Updating the ApiListener feature.");
 
 	std::vector<std::string> enable;
 	enable.push_back("api");
