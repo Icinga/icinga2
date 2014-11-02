@@ -76,7 +76,7 @@ Your master setup requires the following
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
 
-You can use the cli command `icinga2 node wizard` for setting up a new node
+You can use the [cli command](#cli-command-node) `node wizard` for setting up a new node
 on the master. The command must be run as root, all Icinga 2 specific files
 will be updated to the icinga user the daemon is running as (certificate files
 for example).
@@ -142,7 +142,7 @@ The setup wizard does not automatically restart Icinga 2.
 ## <a id="icinga2-remote-monitoring-client"></a> Client Setup for Remote Monitoring
 
 Icinga 2 can be installed on Linux/Unix and Windows. While
-[Linux/Unix](#icinga2-remote-monitoring-client-linux) will be using the CLI command
+[Linux/Unix](#icinga2-remote-monitoring-client-linux) will be using the [cli command](#cli-command-node)
 `node wizard` for a guided setup, you will need to use the
 graphical installer for Windows based client setup.
 
@@ -633,7 +633,7 @@ Before you start deploying, keep the following things in mind:
 
 ### <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
 
-Icinga 2 ships cli commands assisting with CA and node certificate creation
+Icinga 2 ships [cli commands](#cli-command-pki) assisting with CA and node certificate creation
 for your Icinga 2 distributed setup.
 
 > **Note**

@@ -639,6 +639,7 @@ Attributes:
   event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
+  zone		  |**Optional.** The zone this object is a member of.
   notes           |**Optional.** Notes for the host.
   notes_url       |**Optional.** Url for notes for the host (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the host (for example, an external graphing tool).
@@ -725,6 +726,7 @@ Attributes:
   event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
+  zone		  |**Optional.** The zone this object is a member of.
   notes           |**Optional.** Notes for the service.
   notes_url       |**Optional.** Url for notes for the service (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the service (for example, an external graphing tool).
@@ -811,6 +813,7 @@ Attributes:
   period          |**Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default.
   types           |**Optional.** A set of type filters when this notification should be triggered. By default everything is matched.
   states          |**Optional.** A set of state filters when this notification should be triggered. By default everything is matched.
+  zone		  |**Optional.** The zone this object is a member of.
 
 
 ### <a id="objecttype-usergroup"></a> UserGroup
@@ -833,6 +836,7 @@ Attributes:
   ----------------|----------------
   display_name    |**Optional.** A short description of the user group.
   groups          |**Optional.** An array of nested group names.
+  zone		  |**Optional.** The zone this object is a member of.
 
 
 
@@ -887,6 +891,7 @@ Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
+  zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
 
@@ -972,6 +977,7 @@ Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
+  zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for `CheckCommand` objects.
@@ -1043,6 +1049,7 @@ Attributes:
   command                   | **Required.** The name of the notification command which should be executed when the notification is triggered.
   interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](#disable-renotification) are disabled.
   period                    | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
+  zone		            |**Optional.** The zone this object is a member of.
   types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
   states                    | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
 
@@ -1098,6 +1105,7 @@ Attributes:
   ----------------|----------------
   display_name    |**Optional.** A short description of the time period.
   methods         |**Required.** The "update" script method takes care of updating the internal representation of the time period. In virtually all cases you should import the "legacy-timeperiod" template to take care of this setting.
+  zone		  |**Optional.** The zone this object is a member of.
   ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
 
 The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
@@ -1143,6 +1151,7 @@ Attributes:
   comment         |**Required.** A comment for the downtime.
   fixed           |**Optional.** Whether this is a fixed downtime. Defaults to true.
   duration        |**Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
+  zone		  |**Optional.** The zone this object is a member of.
   ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
 
 ScheduledDowntime objects have composite names, i.e. their names are based
@@ -1203,6 +1212,7 @@ Attributes:
   disable_checks        |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
   disable_notifications |**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
   period                |**Optional.** Time period during which this dependency is enabled.
+  zone		        |**Optional.** The zone this object is a member of.
   states    	        |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
 
 Available state filters:

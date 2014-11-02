@@ -117,18 +117,15 @@ Icinga 2 installation:
 
 * `checker` for executing checks
 * `notification` for sending notifications
-* `mainlog` for writing the `icinga2.log ` file
+* `mainlog` for writing the `icinga2.log` file
 
-Verify that by calling `icinga2 feature enable` without any additional parameters
-and enable the missing features, if any.
+You can verify that by calling `icinga2 feature list` [cli command](#cli-command-feature)
+to see which features are enabled and disabled.
 
-    # icinga2 feature enable
-    Syntax: icinga2 feature enable <features separated with whitespaces>
-      Example: icinga2 feature enable checker notification mainlog
-    Enables the specified feature(s).
-
-    Available features: api checker command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus mainlog notification perfdata statusdata syslog
+    # icinga2 feature list
+    Disabled features: api command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus notification perfdata statusdata syslog
     Enabled features: checker mainlog notification
+
 
 ### <a id="installation-paths"></a> Installation Paths
 
@@ -138,15 +135,14 @@ By default Icinga 2 uses the following files and directories:
   ------------------------------------|------------------------------------
   /etc/icinga2                        | Contains Icinga 2 configuration files.
   /etc/init.d/icinga2                 | The Icinga 2 init script.
-  /usr/bin/icinga2-*                  | Migration and certificate build scripts.
-  /usr/sbin/icinga2*                  | The Icinga 2 binary and feature enable/disable scripts.
+  /usr/sbin/icinga2*                  | The Icinga 2 binary.
   /usr/share/doc/icinga2              | Documentation files that come with Icinga 2.
   /usr/share/icinga2/include          | The Icinga Template Library and plugin command configuration.
   /var/run/icinga2                    | PID file.
   /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
-  /var/cache/icinga2                  | status.dat/objects.cache.
+  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files
   /var/spool/icinga2                  | Used for performance data spool files.
-  /var/lib/icinga2                    | Icinga 2 state file, cluster feature replay log and configuration files.
+  /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files.
   /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
 
 ## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
@@ -1290,48 +1286,124 @@ If you're stuck with configuration errors, you can manually invoke the [configur
     # systemctl restart icinga2
     Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
 
-### <a id="cmdline"></a> Command-line Options
 
-    $ icinga2 --help
-    icinga2 - The Icinga 2 network monitoring daemon.
 
-    Supported options:
-      --help                show this help message
-      -V [ --version ]      show version information
-      -l [ --library ] arg  load a library
-      -I [ --include ] arg  add include search directory
-      -D [ --define] args   define a constant
-      -c [ --config ] arg   parse a configuration file
-      -C [ --validate ]     exit after validating the configuration
-      -x [ --debug ] arg    enable debugging with severity level specified
-      -d [ --daemonize ]    detach from the controlling terminal
-      -e [ --errorlog ] arg log fatal errors to the specified log file (only works
-                            in combination with --daemonize)
-      -u [ --user ] arg     user to run Icinga as
-      -g [ --group ] arg    group to run Icinga as
+### <a id="cli-commands"></a> Icinga 2 CLI Commands
+
+Icinga 2 ships its own integrated cli commands supporting bash-autocompletion.
+
+These cli commands will allow you to use certain functionality
+provided by and around the Icinga 2 daemon.
+
+> **Note**
+>
+> The cli commands are available in Icinga 2 starting with *2.2*.
+
+Each cli command provides its own help and usage information, so please
+make sure to always run them withthe  `--help` parameter.
+
+Run `icinga2` without any arguments (or using `--help`) to get a list of
+all available global options.
+
+    # icinga2
+
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 <command> [<arguments>]
+
+    Supported commands:
+      * daemon (starts Icinga 2)
+      * feature disable (disables specified feature)
+      * feature enable (enables specified feature)
+      * feature list (lists all enabled features)
+      * node add (add node)
+      * node blacklist add (adds a new blacklist filter)
+      * node blacklist list (lists all blacklist filters)
+      * node blacklist remove (removes a blacklist filter)
+      * node list (lists all nodes)
+      * node remove (removes node)
+      * node set (set node attributes)
+      * node setup (set up node)
+      * node update-config (update node config)
+      * node whitelist add (adds a new whitelist filter)
+      * node whitelist list (lists all whitelist filters)
+      * node whitelist remove (removes a whitelist filter)
+      * node wizard (wizard for node setup)
+      * object list (lists all objects)
+      * pki new-ca (sets up a new CA)
+      * pki new-cert (creates a new CSR)
+      * pki request (requests a certificate)
+      * pki save-cert (saves another Icinga 2 instance's certificate)
+      * pki sign-csr (signs a CSR)
+      * pki ticket (generates a ticket)
+      * repository clear-changes (clear uncommitted repository changes)
+      * repository commit (commit repository changes)
+      * repository endpoint add (adds a new Endpoint object)
+      * repository endpoint list (lists all Endpoint objects)
+      * repository endpoint remove (removes a Endpoint object)
+      * repository host add (adds a new Host object)
+      * repository host list (lists all Host objects)
+      * repository host remove (removes a Host object)
+      * repository service add (adds a new Service object)
+      * repository service list (lists all Service objects)
+      * repository service remove (removes a Service object)
+      * repository zone add (adds a new Zone object)
+      * repository zone list (lists all Zone objects)
+      * repository zone remove (removes a Zone object)
+      * variable get (gets a variable)
+      * variable list (lists all variables)
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
 
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <http://www.icinga.org/>
 
 
-> **Note**
->
-> The cli command `repository` only supports basic configuration manipulation (add, remove). Future
-> versions will support more options (set, etc.). Please check the Icinga 2 development roadmap
-> for that.
+#### <a id="cli-commands-autocompletion"></a> Icinga 2 CLI Bash Autocompletion
 
+Bash Auto-Completion (pressing `<TAB>`) is provided only for the corresponding context.
 
+While `--config` will suggest and auto-complete files and directories on disk,
+`feature enable` will only suggest disabled features. `repository` will know
+about object specific attributes, and so on. Try it yourself.
 
-#### Libraries
+RPM and Debian packages install the bash completion files into
+`/etc/bash_completion.d/icinga2`.
+
+You will need to install the `bash-completion` package if not already installed.
+
+RHEL/CentOS/Fedora:
+    # yum install bash-completion
+
+SUSE:
+    # zypper install bash-completion
+
+Debian/Ubuntu:
+    # apt-get install bash-completion
+
+#### <a id="cli-commands-global-options"></a> Icinga 2 CLI Global Options
+
+##### Libraries
 
 Instead of loading libraries using the [`library` config directive](#library)
 you can also use the `--library` command-line option.
 
-#### Constants
+##### Constants
 
 [Global constants](#global-constants) can be set using the `--define` command-line option.
 
-#### Config Include Path
+##### Config Include Path
 
 When including files you can specify that the include search path should be
 checked. You can do this by putting your configuration file name in angle
@@ -1346,7 +1418,43 @@ is the only search directory.
 Using the `--include` command-line option additional search directories can be
 added.
 
-#### Config Files
+
+
+#### <a id="cli-command-daemon"></a> Cli command: Daemon
+
+The cli command `daemon` provides the functionality to start/stop Icinga 2.
+Furthermore it provides the [configuration validation](#config-validation).
+
+    # icinga2 daemon --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 daemon [<arguments>]
+
+    Starts Icinga 2.
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+      -c [ --config ] arg   parse a configuration file
+      -z [ --no-config ]    start without a configuration file
+      -C [ --validate ]     exit after validating the configuration
+      -e [ --errorlog ] arg log fatal errors to the specified log file (only works
+                            in combination with --daemonize)
+      -d [ --daemonize ]    detach from the controlling terminal
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <http://www.icinga.org/>
+
+##### Config Files
 
 Using the `--config` option you can specify one or more configuration files.
 Config files are processed in the order they're specified on the command-line.
@@ -1355,45 +1463,270 @@ When no configuration file is specified and the `--no-config` is not used
 Icinga 2 automatically falls back to using the configuration file
 `SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
 
-#### Config Validation
+##### Config Validation
 
 The `--validate` option can be used to check if your configuration files
 contain errors. If any errors are found the exit status is 1, otherwise 0
-is returned.
+is returned. More details in the [configuration validation](#config-validation) chapter.
+
+
+#### <a id="cli-command-feature"></a> Cli command: Feature
+
+The cli commands for `enable` and `disable` feature support bash auto-completion
+and will only suggest features for the corresponding context. Like disabling a
+feature will only bring up all enabled features.
+
+    # icinga2 feature disable <tab>
+    checker       --color       --define      --help        --include     --library     --log-level   mainlog       notification  --version
+
+    # icinga2 feature enable <tab>
+    api           command       debuglog      graphite      icingastatus  ido-pgsql     --library     --log-level   statusdata    --version
+    --color       compatlog     --define      --help        ido-mysql     --include     livestatus    perfdata      syslog
+
+#### <a id="cli-command-node"></a> Cli command: Node
+
+Provides the functionality to install and manage master and client
+nodes in a [remote monitoring ](#icinga2-remote-client-monitoring) or
+[distributed cluster](#distributed-monitoring-high-availability) scenario.
+
+
+    # icinga2 node --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 <command> [<arguments>]
+
+    Supported commands:
+      * node add (add node)
+      * node blacklist add (adds a new blacklist filter)
+      * node blacklist list (lists all blacklist filters)
+      * node blacklist remove (removes a blacklist filter)
+      * node list (lists all nodes)
+      * node remove (removes node)
+      * node set (set node attributes)
+      * node setup (set up node)
+      * node update-config (update node config)
+      * node whitelist add (adds a new whitelist filter)
+      * node whitelist list (lists all whitelist filters)
+      * node whitelist remove (removes a whitelist filter)
+      * node wizard (wizard for node setup)
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <http://www.icinga.org/>
+
+
+#### <a id="cli-command-object"></a> Cli command: Object
+
+The `object` cli command can be used to list all configuration objects and their
+attributes. The command also shows where each of the attributes was modified.
+That way you can also identify which objects have been created from your [apply rules](#apply).
+
+More information can be found in the [troubleshooting](#list-configuration-objects) section.
+
+    # icinga2 object --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 <command> [<arguments>]
+
+    Supported commands:
+      * object list (lists all objects)
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <http://www.icinga.org/>
+
+
+
+#### <a id="cli-command-pki"></a> Cli command: Pki
+
+Provides the cli commands to
+
+* generate a new local CA
+* generate a new CSR or self-signed certificate
+* sign a CSR and return a certificate
+* save a master certificate manually
+* request a signed certificate from the master
+* generate a new ticket for the client setup
+
+This functionality is used by the [node setup/wizard](#cli-command-pki) cli commands too.
+
+    # icinga2 pki --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 <command> [<arguments>]
+
+    Supported commands:
+      * pki new-ca (sets up a new CA)
+      * pki new-cert (creates a new CSR)
+      * pki request (requests a certificate)
+      * pki save-cert (saves another Icinga 2 instance's certificate)
+      * pki sign-csr (signs a CSR)
+      * pki ticket (generates a ticket)
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <http://www.icinga.org/>
+
+
+#### <a id="cli-command-repository"></a> Cli command: Repository
+
+Provides the functionality to manage the Icinga 2 configuration repository in
+`/etc/icinga2/repository.d`. All changes are logged and must be committed or
+cleared after review.
+
+
+> **Note**
+>
+> The cli command `repository` only supports basic configuration manipulation (add, remove)
+> and a limited set of objects required for the [remote client] integration. Future
+> versions will support more options (set, etc.).
+>
+> Please check the Icinga 2 development roadmap for updates.
+
+
+    # icinga2 repository --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 <command> [<arguments>]
+
+    Supported commands:
+      * repository clear-changes (clear uncommitted repository changes)
+      * repository commit (commit repository changes)
+      * repository endpoint add (adds a new Endpoint object)
+      * repository endpoint list (lists all Endpoint objects)
+      * repository endpoint remove (removes a Endpoint object)
+      * repository host add (adds a new Host object)
+      * repository host list (lists all Host objects)
+      * repository host remove (removes a Host object)
+      * repository service add (adds a new Service object)
+      * repository service list (lists all Service objects)
+      * repository service remove (removes a Service object)
+      * repository zone add (adds a new Zone object)
+      * repository zone list (lists all Zone objects)
+      * repository zone remove (removes a Zone object)
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <http://www.icinga.org/>
+
+
+
+#### <a id="cli-command-variable"></a> Cli command: Variable
+
+Lists all configured variables (constants) in a similar fasion like [object list](#cli-command-object).
+
+    # icinga2 variable --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
+
+    Usage:
+      icinga2 <command> [<arguments>]
+
+    Supported commands:
+      * variable get (gets a variable)
+      * variable list (lists all variables)
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]       show version information
+      --color                use VT100 color codes even when stdout is not a
+                             terminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <http://www.icinga.org/>
+
+
+
+
 
 ### <a id="features"></a> Enabling/Disabling Features
 
 Icinga 2 provides configuration files for some commonly used features. These
 are installed in the `/etc/icinga2/features-available` directory and can be
-enabled and disabled using the `icinga2 feature enable` and `icinga2 feature disable` tools,
-respectively.
+enabled and disabled using the `icinga2 feature enable` and `icinga2 feature disable`
+[cli commands](#cli-command-feature), respectively.
 
-The `icinga2 feature enable` tool creates symlinks in the `/etc/icinga2/features-enabled`
-directory which is included by default in the example configuration file.
+The `icinga2 feature enable` cli command creates symlinks in the
+`/etc/icinga2/features-enabled` directory which is included by default
+in the example configuration file.
 
-You can view a list of available feature configuration files:
+You can view a list of enabled and disabled features:
 
-    # icinga2 feature enable
-    Syntax: icinga2 feature enable <feature>
-    Enables the specified feature.
-
-    Available features: statusdata
+    # icinga2 feature list
+    Disabled features: api command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus notification perfdata statusdata syslog
+    Enabled features: checker mainlog notification
 
 Using the `icinga2 feature enable` command you can enable features:
 
-    # icinga2 feature enable statusdata
-    Module 'statusdata' was enabled.
-    Make sure to restart Icinga 2 for these changes to take effect.
+    # icinga2 feature enable graphite
+    Enabling feature graphite. Make sure to restart Icinga 2 for these changes to take effect.
+
 
 You can disable features using the `icinga2 feature disable` command:
 
-    # icinga2 feature disable statusdata
-    Module 'statusdata' was disabled.
-    Make sure to restart Icinga 2 for these changes to take effect.
+    # icinga2 feature disable ido-mysql livestatus
+    Disabling feature ido-mysql. Make sure to restart Icinga 2 for these changes to take effect.
+    Disabling feature livestatus. Make sure to restart Icinga 2 for these changes to take effect.
+
 
 The `icinga2 feature enable` and `icinga2 feature disable` commands do not
 restart Icinga 2. You will need to restart Icinga 2 using the init script
 after enabling or disabling features.
+
+
 
 ### <a id="config-validation"></a> Configuration Validation
 
@@ -1444,8 +1777,9 @@ Or manually passing the `-C` argument:
 If you encouter errors during configuration validation, please make sure
 to read the [troubleshooting](#troubleshooting) chapter.
 
-You can also use the cli command `icinga2 object list` after validation passes
-to analyze object attributes, inheritance or created objects by apply rules.
+You can also use the [cli command](#cli-command-object) `icinga2 object list`
+after validation passes to analyze object attributes, inheritance or created
+objects by apply rules.
 Find more on troubleshooting with `object list` in [this chapter](#list-configuration-objects).
 
 Example filtered by `Service` objects with the name `ping*`:
@@ -1473,6 +1807,7 @@ Example filtered by `Service` objects with the name `ping*`:
         % += modified in '/etc/icinga2/conf.d/services.conf', lines 18:3-18:19
         * sla = '24x7'
           % = modified in '/etc/icinga2/conf.d/services.conf', lines 18:3-18:19
+
 
 
 ### <a id="config-change-reload"></a> Reload on Configuration Changes
