@@ -24,6 +24,7 @@
 #include "base/tlsutility.hpp"
 #include "base/tlsstream.hpp"
 #include "base/tcpsocket.hpp"
+#include "base/json.hpp"
 #include "base/utility.hpp"
 #include "remote/jsonrpc.hpp"
 #include <fstream>
@@ -239,14 +240,23 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	for (;;) {
 		response = JsonRpc::ReadMessage(stream);
 
-		if (response->Get("id") != msgid)
+		if (response && response->Contains("error")) {
+			Log(LogCritical, "cli", "Could not fetch valid response. Please check the master log (notice or debug).");
+#ifdef _DEBUG
+			/* we shouldn't expose master errors to the user in production environments */
+			Log(LogCritical, "cli", response->Get("error"));
+#endif /* _DEBUG */
+			return 1;
+		}
+
+		if (response && (response->Get("id") != msgid))
 			continue;
 
 		break;
 	}
 
-	if (!response->Contains("result")) {
-		Log(LogCritical, "cli", "Request certificate did not return a valid result. Check the master log for details!");
+	if (!response) {
+		Log(LogCritical, "cli", "Could not fetch valid response. Please check the master log.");
 		return 1;
 	}
 

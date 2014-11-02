@@ -254,6 +254,7 @@ wizard_master_host:
 		String ca_path = PkiUtility::GetLocalCaPath();
 		String ca_key = ca_path + "/ca.key";
 		String ca = ca_path + "/ca.crt";
+		String serial = ca_path + "/serial.txt";
 
 		/* fix permissions: root -> icinga daemon user */
 		if (!Utility::SetFileOwnership(ca_path, user, group)) {
@@ -267,6 +268,10 @@ wizard_master_host:
 		if (!Utility::SetFileOwnership(ca_key, user, group)) {
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(serial, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << serial << "'. Verify it yourself!";
 		}
 		if (!Utility::SetFileOwnership(node_cert, user, group)) {
 			Log(LogWarning, "cli")
@@ -351,7 +356,7 @@ wizard_ticket:
 		String bind_port = answer;
 		bind_port.Trim();
 
-		std::cout << "Enabling the APIlistener feature.\n";
+		Log(LogInformation, "cli", "Enabling the Apilistener feature.");
 
 		std::vector<std::string> enable;
 		enable.push_back("api");
@@ -396,7 +401,7 @@ wizard_ticket:
 		}
 
 		/* apilistener config */
-		std::cout << "Generating local zones.conf.\n";
+		Log(LogInformation, "cli", "Generating local zones.conf.");
 
 		NodeUtility::GenerateNodeIcingaConfig(endpoints, cn, local_zone);
 
@@ -405,11 +410,16 @@ wizard_ticket:
 			    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 		}
 
-		std::cout << "Updating constants.conf\n";
+		Log(LogInformation, "cli", "Updating constants.conf.");
 
-		NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
+		String constants_file = Application::GetSysconfDir() + "/icinga2/constants.conf";
+
+		NodeUtility::CreateBackupFile(constants_file);
 
 		NodeUtility::UpdateConstant("NodeName", cn);
+
+		Log(LogInformation, "cli")
+		    << "Edit the constants.conf file '" << constants_file << "' and set a secure 'TicketSalt' constant.";
 
 	} else {
 		/* master setup */
@@ -474,6 +484,7 @@ wizard_ticket:
 		String ca_path = PkiUtility::GetLocalCaPath();
 		String ca = ca_path + "/ca.crt";
 		String ca_key = ca_path + "/ca.key";
+		String serial = ca_path + "/serial.txt";
 		String target_ca = pki_path + "/ca.crt";
 
 		Log(LogInformation, "cli")
@@ -494,6 +505,10 @@ wizard_ticket:
 		if (!Utility::SetFileOwnership(ca_key, user, group)) {
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
+		}
+		if (!Utility::SetFileOwnership(serial, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << serial << "'. Verify it yourself!";
 		}
 		if (!Utility::SetFileOwnership(target_ca, user, group)) {
 			Log(LogWarning, "cli")

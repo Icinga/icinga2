@@ -184,7 +184,14 @@ bool ApiClient::ProcessMessage(void)
 
 		resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
 	} catch (const std::exception& ex) {
+		//TODO: Add a user readable error message for the remote caller
 		resultMessage->Set("error", DiagnosticInformation(ex));
+		std::ostringstream info;
+		info << "Error while processing message for identity '" << m_Identity << "'";
+		Log(LogWarning, "ApiClient")
+		    << info.str();
+		Log(LogDebug, "ApiClient")
+		    << info.str() << "\n" << DiagnosticInformation(ex);
 	}
 
 	if (message->Contains("id")) {

@@ -167,6 +167,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	String ca_path = PkiUtility::GetLocalCaPath();
 	String ca = ca_path + "/ca.crt";
 	String ca_key = ca_path + "/ca.key";
+	String serial = ca_path + "/serial.txt";
 	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
@@ -187,6 +188,10 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (!Utility::SetFileOwnership(ca_key, user, group)) {
 		Log(LogWarning, "cli")
 		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
+	}
+	if (!Utility::SetFileOwnership(serial, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << serial << "'. Verify it yourself!";
 	}
 	if (!Utility::SetFileOwnership(target_ca, user, group)) {
 		Log(LogWarning, "cli")
@@ -362,7 +367,6 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	String key = pki_path + "/" + cn + ".key";
 	String cert = pki_path + "/" + cn + ".crt";
 	String ca = pki_path + "/ca.crt";
-
 
 	if (!Utility::MkDirP(pki_path, 0700)) {
 		Log(LogCritical, "cli")
