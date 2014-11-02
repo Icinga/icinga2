@@ -36,8 +36,8 @@ namespace icinga
 class ExternalCommandListener : public ObjectImpl<ExternalCommandListener>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ExternalCommandListener);
-	DECLARE_TYPENAME(ExternalCommandListener);
+	DECLARE_OBJECT(ExternalCommandListener);
+	DECLARE_OBJECTNAME(ExternalCommandListener);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

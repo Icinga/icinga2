@@ -23,6 +23,7 @@
 #include "cli/i2-cli.hpp"
 #include "base/value.hpp"
 #include "base/utility.hpp"
+#include "base/type.hpp"
 #include <vector>
 #include <boost/program_options.hpp>
 
@@ -30,7 +31,7 @@ namespace icinga
 {
 
 std::vector<String> I2_CLI_API GetBashCompletionSuggestions(const String& type, const String& word);
-std::vector<String> I2_CLI_API GetFieldCompletionSuggestions(const Type *type, const String& word);
+std::vector<String> I2_CLI_API GetFieldCompletionSuggestions(const Type::Ptr& type, const String& word);
 
 enum ImpersonationLevel
 {
@@ -47,7 +48,7 @@ enum ImpersonationLevel
 class I2_CLI_API CLICommand : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CLICommand);
+	DECLARE_OBJECT(CLICommand);
 
 	typedef std::vector<String>(*ArgumentCompletionCallback)(const String&, const String&);
 

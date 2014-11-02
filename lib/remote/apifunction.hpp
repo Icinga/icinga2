@@ -39,7 +39,7 @@ namespace icinga
 class I2_REMOTE_API ApiFunction : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ApiFunction);
+	DECLARE_OBJECT(ApiFunction);
 
 	typedef boost::function<Value(const MessageOrigin& origin, const Dictionary::Ptr&)> Callback;
 

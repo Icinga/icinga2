@@ -76,8 +76,8 @@ class ApplyRule;
 class I2_ICINGA_API Notification : public ObjectImpl<Notification>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Notification);
-	DECLARE_TYPENAME(Notification);
+	DECLARE_OBJECT(Notification);
+	DECLARE_OBJECTNAME(Notification);
 
 	static void StaticInitialize(void);
 

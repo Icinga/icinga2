@@ -36,8 +36,8 @@ namespace icinga
 class I2_ICINGA_API Service : public ObjectImpl<Service>, public MacroResolver
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Service);
-	DECLARE_TYPENAME(Service);
+	DECLARE_OBJECT(Service);
+	DECLARE_OBJECTNAME(Service);
 
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 

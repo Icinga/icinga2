@@ -36,8 +36,8 @@ namespace icinga
 class I2_ICINGA_API User : public ObjectImpl<User>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(User);
-	DECLARE_TYPENAME(User);
+	DECLARE_OBJECT(User);
+	DECLARE_OBJECTNAME(User);
 
 	void AddGroup(const String& name);
 

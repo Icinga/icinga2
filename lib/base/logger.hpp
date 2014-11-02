@@ -62,7 +62,7 @@ struct LogEntry {
 class I2_BASE_API Logger : public ObjectImpl<Logger>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Logger);
+	DECLARE_OBJECT(Logger);
 
 	static String SeverityToString(LogSeverity severity);
 	static LogSeverity StringToSeverity(const String& severity);

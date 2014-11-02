@@ -52,7 +52,7 @@ struct DebugHint
 class I2_CONFIG_API Expression : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Expression);
+	DECLARE_OBJECT(Expression);
 	
 	typedef Value (*OpCallback)(const Expression *, const Dictionary::Ptr&, DebugHint *dhint);
 

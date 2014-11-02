@@ -33,8 +33,8 @@ namespace icinga
 class Demo : public ObjectImpl<Demo>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Demo);
-	DECLARE_TYPENAME(Demo);
+	DECLARE_OBJECT(Demo);
+	DECLARE_OBJECTNAME(Demo);
 
 	virtual void Start(void);
 

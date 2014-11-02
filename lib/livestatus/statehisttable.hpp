@@ -35,7 +35,7 @@ namespace icinga
 class StateHistTable : public HistoryTable
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StateHistTable);
+	DECLARE_OBJECT(StateHistTable);
 
 	StateHistTable(const String& compat_log_path, time_t from, time_t until);
 

@@ -37,8 +37,8 @@ class ObjectRule;
 class I2_ICINGA_API UserGroup : public ObjectImpl<UserGroup>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(UserGroup);
-	DECLARE_TYPENAME(UserGroup);
+	DECLARE_OBJECT(UserGroup);
+	DECLARE_OBJECTNAME(UserGroup);
 
 	std::set<User::Ptr> GetMembers(void) const;
 	void AddMember(const User::Ptr& user);

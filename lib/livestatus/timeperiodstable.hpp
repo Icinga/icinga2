@@ -33,7 +33,7 @@ namespace icinga
 class TimePeriodsTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TimePeriodsTable);
+	DECLARE_OBJECT(TimePeriodsTable);
 
 	TimePeriodsTable(void);
 

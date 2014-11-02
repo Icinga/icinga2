@@ -68,7 +68,7 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 	return result;
 }
 
-std::vector<String> icinga::GetFieldCompletionSuggestions(const Type *type, const String& word)
+std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type, const String& word)
 {
 	std::vector<String> result;
 

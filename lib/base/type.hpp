@@ -42,11 +42,11 @@ class Type;
 struct Field
 {
 	int ID;
-	const Type *FType;
+	shared_ptr<Type> FType;
 	const char *Name;
 	int Attributes;
 
-	Field(int id, const Type *type, const char *name, int attributes)
+	Field(int id, const shared_ptr<Type>& type, const char *name, int attributes)
 		: ID(id), FType(type), Name(name), Attributes(attributes)
 	{ }
 };
@@ -56,13 +56,15 @@ enum TypeAttribute
 	TAAbstract = 1
 };
 
-class I2_BASE_API Type
+class I2_BASE_API Type : public Object
 {
 public:
+	DECLARE_OBJECT(Type);
+
 	typedef boost::function<Object::Ptr (void)> Factory;
 
 	virtual String GetName(void) const = 0;
-	virtual const Type *GetBaseType(void) const = 0;
+	virtual Type::Ptr GetBaseType(void) const = 0;
 	virtual int GetAttributes(void) const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
 	virtual Field GetFieldInfo(int id) const = 0;
@@ -70,17 +72,17 @@ public:
 
 	Object::Ptr Instantiate(void) const;
 
-	bool IsAssignableFrom(const Type *other) const;
+	bool IsAssignableFrom(const Type::Ptr& other) const;
 
 	bool IsAbstract(void) const;
 
-	static void Register(const Type *type);
-	static const Type *GetByName(const String& name);
+	static void Register(const Type::Ptr& type);
+	static Type::Ptr GetByName(const String& name);
 
 	void SetFactory(const Factory& factory);
 
 private:
-	typedef std::map<String, const Type *> TypeMap;
+	typedef std::map<String, Type::Ptr> TypeMap;
 
 	static TypeMap& GetTypes(void);
 
@@ -111,7 +113,7 @@ struct FactoryHelper
 	namespace { namespace UNIQUE_NAME(rt) { \
 		void RegisterType ## type(void) \
 		{ \
-			icinga::Type *t = new TypeImpl<type>(); \
+			icinga::Type::Ptr t = make_shared<TypeImpl<type> >(); \
 			t->SetFactory(FactoryHelper<type>().GetFactory()); \
 			icinga::Type::Register(t); \
 		} \

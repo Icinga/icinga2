@@ -34,8 +34,8 @@ namespace icinga
 class NotificationComponent : public ObjectImpl<NotificationComponent>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(NotificationComponent);
-	DECLARE_TYPENAME(NotificationComponent);
+	DECLARE_OBJECT(NotificationComponent);
+	DECLARE_OBJECTNAME(NotificationComponent);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

@@ -37,7 +37,7 @@ namespace icinga
 class I2_CONFIG_API ConfigItemBuilder : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ConfigItemBuilder);
+	DECLARE_OBJECT(ConfigItemBuilder);
 
 	ConfigItemBuilder(void);
 	explicit ConfigItemBuilder(const DebugInfo& debugInfo);

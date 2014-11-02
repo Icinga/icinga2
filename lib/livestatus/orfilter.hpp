@@ -33,7 +33,7 @@ namespace icinga
 class OrFilter : public CombinerFilter
 {
 public:
-	DECLARE_PTR_TYPEDEFS(OrFilter);
+	DECLARE_OBJECT(OrFilter);
 
 	OrFilter(void);
 

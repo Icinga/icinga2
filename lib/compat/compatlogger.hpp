@@ -36,8 +36,8 @@ namespace icinga
 class CompatLogger : public ObjectImpl<CompatLogger>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CompatLogger);
-	DECLARE_TYPENAME(CompatLogger);
+	DECLARE_OBJECT(CompatLogger);
+	DECLARE_OBJECTNAME(CompatLogger);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

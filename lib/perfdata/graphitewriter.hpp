@@ -38,8 +38,8 @@ namespace icinga
 class GraphiteWriter : public ObjectImpl<GraphiteWriter>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(GraphiteWriter);
-	DECLARE_TYPENAME(GraphiteWriter);
+	DECLARE_OBJECT(GraphiteWriter);
+	DECLARE_OBJECTNAME(GraphiteWriter);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

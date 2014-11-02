@@ -34,8 +34,8 @@ namespace icinga
 class I2_ICINGA_API TimePeriod : public ObjectImpl<TimePeriod>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TimePeriod);
-	DECLARE_TYPENAME(TimePeriod);
+	DECLARE_OBJECT(TimePeriod);
+	DECLARE_OBJECTNAME(TimePeriod);
 
 	static void StaticInitialize(void);
 

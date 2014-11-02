@@ -53,7 +53,19 @@ class Value;
 	typedef shared_ptr<klass> Ptr; \
 	typedef weak_ptr<klass> WeakPtr
 
+#define IMPL_TYPE_LOOKUP(klass) \
+	inline virtual shared_ptr<Type> GetReflectionType(void) const \
+	{ \
+		return LookupType(#klass); \
+	}
+
+#define DECLARE_OBJECT(klass) \
+	DECLARE_PTR_TYPEDEFS(klass); \
+	IMPL_TYPE_LOOKUP(klass);
+
 class Type;
+
+I2_BASE_API shared_ptr<Type> LookupType(const char *name);
 
 /**
  * Base class for all heap-allocated objects. At least one of its methods
@@ -64,12 +76,11 @@ class Type;
 class I2_BASE_API Object : public enable_shared_from_this<Object>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Object);
+	DECLARE_OBJECT(Object);
 
 	Object(void);
 	virtual ~Object(void);
 
-	virtual const Type *GetReflectionType(void) const;
 	virtual void SetField(int id, const Value& value);
 	virtual Value GetField(int id) const;
 

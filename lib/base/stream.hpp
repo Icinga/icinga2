@@ -54,7 +54,7 @@ struct ReadLineContext
 class I2_BASE_API Stream : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Stream);
+	DECLARE_OBJECT(Stream);
 
 	/**
 	 * Reads data from the stream.

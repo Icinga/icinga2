@@ -35,7 +35,7 @@ namespace icinga
 class ServiceDbObject : public DbObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ServiceDbObject);
+	DECLARE_OBJECT(ServiceDbObject);
 
 	ServiceDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 

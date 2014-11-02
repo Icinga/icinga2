@@ -61,7 +61,7 @@ enum DbObjectType
 class I2_DB_IDO_API DbObject : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(DbObject);
+	DECLARE_OBJECT(DbObject);
 
 	static void StaticInitialize(void);
 

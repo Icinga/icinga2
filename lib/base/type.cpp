@@ -28,21 +28,21 @@ Type::TypeMap& Type::GetTypes(void)
 	return types;
 }
 
-void Type::Register(const Type *type)
+void Type::Register(const Type::Ptr& type)
 {
 	VERIFY(GetByName(type->GetName()) == NULL);
 
 	GetTypes()[type->GetName()] = type;
 }
 
-const Type *Type::GetByName(const String& name)
+Type::Ptr Type::GetByName(const String& name)
 {
-	std::map<String, const Type *>::const_iterator it;
+	std::map<String, Type::Ptr>::const_iterator it;
 
 	it = GetTypes().find(name);
 
 	if (it == GetTypes().end())
-		return NULL;
+		return Type::Ptr();
 
 	return it->second;
 }
@@ -57,10 +57,10 @@ bool Type::IsAbstract(void) const
 	return ((GetAttributes() & TAAbstract) != 0);
 }
 
-bool Type::IsAssignableFrom(const Type *other) const
+bool Type::IsAssignableFrom(const Type::Ptr& other) const
 {
-	for (const Type *t = other; t; t = t->GetBaseType()) {
-		if (t == this)
+	for (Type::Ptr t = other; t; t = t->GetBaseType()) {
+		if (t.get() == this)
 			return true;
 	}
 

@@ -129,7 +129,7 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
 {
 	if (m_Command == RepositoryCommandAdd) {
 		Utility::LoadExtensionLibrary("icinga");
-		const Type *ptype = Type::GetByName(m_Type);
+		Type::Ptr ptype = Type::GetByName(m_Type);
 		ASSERT(ptype);
 		return GetFieldCompletionSuggestions(ptype, word);
 	} else if (m_Command == RepositoryCommandRemove) {

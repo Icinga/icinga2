@@ -37,8 +37,8 @@ namespace icinga
 class PerfdataWriter : public ObjectImpl<PerfdataWriter>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(PerfdataWriter);
-	DECLARE_TYPENAME(PerfdataWriter);
+	DECLARE_OBJECT(PerfdataWriter);
+	DECLARE_OBJECTNAME(PerfdataWriter);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

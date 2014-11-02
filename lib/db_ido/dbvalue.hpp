@@ -42,7 +42,7 @@ enum DbValueType
 struct I2_DB_IDO_API DbValue : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(DbValue);
+	DECLARE_OBJECT(DbValue);
 
 	DbValue(DbValueType type, const Value& value);
 

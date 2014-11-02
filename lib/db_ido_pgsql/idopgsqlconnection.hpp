@@ -39,8 +39,8 @@ typedef shared_ptr<PGresult> IdoPgsqlResult;
 class IdoPgsqlConnection : public ObjectImpl<IdoPgsqlConnection>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(IdoPgsqlConnection);
-	DECLARE_TYPENAME(IdoPgsqlConnection);
+	DECLARE_OBJECT(IdoPgsqlConnection);
+	DECLARE_OBJECTNAME(IdoPgsqlConnection);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

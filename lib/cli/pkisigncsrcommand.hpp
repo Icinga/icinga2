@@ -33,7 +33,7 @@ namespace icinga
 class PKISignCSRCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(PKISignCSRCommand);
+	DECLARE_OBJECT(PKISignCSRCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

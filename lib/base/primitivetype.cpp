@@ -34,9 +34,9 @@ String PrimitiveType::GetName(void) const
 	return m_Name;
 }
 
-const Type *PrimitiveType::GetBaseType(void) const
+Type::Ptr PrimitiveType::GetBaseType(void) const
 {
-	return NULL;
+	return Type::Ptr();
 }
 
 int PrimitiveType::GetAttributes(void) const

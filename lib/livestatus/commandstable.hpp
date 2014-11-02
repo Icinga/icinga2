@@ -33,7 +33,7 @@ namespace icinga
 class CommandsTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CommandsTable);
+	DECLARE_OBJECT(CommandsTable);
 
 	CommandsTable(void);
 

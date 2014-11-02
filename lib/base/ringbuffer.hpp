@@ -35,7 +35,7 @@ namespace icinga
 class I2_BASE_API RingBuffer : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(RingBuffer);
+	DECLARE_OBJECT(RingBuffer);
 
 	typedef std::vector<int>::size_type SizeType;
 

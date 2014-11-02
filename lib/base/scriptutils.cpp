@@ -40,6 +40,7 @@ REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
 REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
 REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
 REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
+REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
@@ -178,4 +179,20 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 void ScriptUtils::Exit(int code)
 {
 	exit(code);
+}
+
+Type::Ptr ScriptUtils::TypeOf(const Value& value)
+{
+	switch (value.GetType()) {
+		case ValueEmpty:
+			return Type::GetByName("Object");
+		case ValueNumber:
+			return Type::GetByName("double");
+		case ValueString:
+			return Type::GetByName("String");
+		case ValueObject:
+			return static_cast<Object::Ptr>(value)->GetReflectionType();
+		default:
+			VERIFY(!"Invalid value type.");
+	}
 }

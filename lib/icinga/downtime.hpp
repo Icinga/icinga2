@@ -34,7 +34,7 @@ namespace icinga
 class I2_ICINGA_API Downtime : public ObjectImpl<Downtime>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Downtime);
+	DECLARE_OBJECT(Downtime);
 
 	bool IsActive(void) const;
 	bool IsTriggered(void) const;

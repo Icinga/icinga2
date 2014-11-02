@@ -42,7 +42,7 @@ class DynamicType;
 class I2_BASE_API DynamicObject : public ObjectImpl<DynamicObject>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(DynamicObject);
+	DECLARE_OBJECT(DynamicObject);
 
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
@@ -101,7 +101,7 @@ private:
 	DebugInfo m_DebugInfo;
 };
 
-#define DECLARE_TYPENAME(klass)						\
+#define DECLARE_OBJECTNAME(klass)						\
 	inline static String GetTypeName(void)				\
 	{								\
 		return #klass;						\

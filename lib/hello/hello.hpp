@@ -33,8 +33,8 @@ namespace icinga
 class Hello : public ObjectImpl<Hello>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Hello);
-	DECLARE_TYPENAME(Hello);
+	DECLARE_OBJECT(Hello);
+	DECLARE_OBJECTNAME(Hello);
 
 	int Main(void);
 };

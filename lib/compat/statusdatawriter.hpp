@@ -41,8 +41,8 @@ namespace icinga
 class StatusDataWriter : public ObjectImpl<StatusDataWriter>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StatusDataWriter);
-	DECLARE_TYPENAME(StatusDataWriter);
+	DECLARE_OBJECT(StatusDataWriter);
+	DECLARE_OBJECTNAME(StatusDataWriter);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

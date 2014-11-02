@@ -37,7 +37,7 @@ namespace icinga
 class I2_DB_IDO_API DbConnection : public ObjectImpl<DbConnection>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(DbConnection);
+	DECLARE_OBJECT(DbConnection);
 
 	static void StaticInitialize(void);
 

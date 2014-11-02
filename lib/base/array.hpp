@@ -36,7 +36,7 @@ namespace icinga
 class I2_BASE_API Array : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Array);
+	DECLARE_OBJECT(Array);
 
 	/**
 	 * An iterator that can be used to iterate over array elements.

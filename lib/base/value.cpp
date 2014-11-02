@@ -148,7 +148,7 @@ ValueType Value::GetType(void) const
 
 String Value::GetTypeName(void) const
 {
-	const Type *t;
+	Type::Ptr t;
 
 	switch (GetType()) {
 		case ValueEmpty:

@@ -77,8 +77,8 @@ class Dependency;
 class I2_ICINGA_API Checkable : public ObjectImpl<Checkable>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Checkable);
-	DECLARE_TYPENAME(Checkable);
+	DECLARE_OBJECT(Checkable);
+	DECLARE_OBJECTNAME(Checkable);
 
 	Checkable(void);
 

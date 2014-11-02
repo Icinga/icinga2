@@ -35,8 +35,8 @@ namespace icinga
 class CheckResultReader : public ObjectImpl<CheckResultReader>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CheckResultReader);
-	DECLARE_TYPENAME(CheckResultReader);
+	DECLARE_OBJECT(CheckResultReader);
+	DECLARE_OBJECTNAME(CheckResultReader);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

@@ -34,7 +34,7 @@ namespace icinga
 class I2_ICINGA_API Comment : public ObjectImpl<Comment>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Comment);
+	DECLARE_OBJECT(Comment);
 
 	bool IsExpired(void) const;
 };

@@ -39,8 +39,8 @@ typedef shared_ptr<MYSQL_RES> IdoMysqlResult;
 class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(IdoMysqlConnection);
-	DECLARE_TYPENAME(IdoMysqlConnection);
+	DECLARE_OBJECT(IdoMysqlConnection);
+	DECLARE_OBJECTNAME(IdoMysqlConnection);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

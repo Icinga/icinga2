@@ -35,7 +35,7 @@ namespace icinga
 class HostGroupDbObject : public DbObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(HostGroupDbObject);
+	DECLARE_OBJECT(HostGroupDbObject);
 
 	HostGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 

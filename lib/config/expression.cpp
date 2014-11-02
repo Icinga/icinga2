@@ -480,7 +480,7 @@ Value Expression::OpIndexer(const Expression *expr, const Dictionary::Ptr& local
 		return arr->Get(index);
 	} else if (value.IsObjectType<Object>()) {
 		Object::Ptr object = value;
-		const Type *type = object->GetReflectionType();
+		Type::Ptr type = object->GetReflectionType();
 
 		if (!type)
 			BOOST_THROW_EXCEPTION(ConfigError("Dot operator applied to object which does not support reflection"));
@@ -578,7 +578,7 @@ Value Expression::OpObject(const Expression* expr, const Dictionary::Ptr& locals
 	String checkName = name;
 
 	if (!abstract) {
-		const NameComposer *nc = dynamic_cast<const NameComposer *>(Type::GetByName(type));
+		shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(type));
 
 		if (nc)
 			checkName = nc->MakeName(name, Dictionary::Ptr());

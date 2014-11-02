@@ -122,7 +122,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			} else if (ref.IsObject()) {
 				Object::Ptr object = ref;
 
-				const Type *type = object->GetReflectionType();
+				Type::Ptr type = object->GetReflectionType();
 
 				if (!type) {
 					valid = false;

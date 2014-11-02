@@ -57,8 +57,8 @@ struct CheckableNextCheckExtractor
 class CheckerComponent : public ObjectImpl<CheckerComponent>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CheckerComponent);
-	DECLARE_TYPENAME(CheckerComponent);
+	DECLARE_OBJECT(CheckerComponent);
+	DECLARE_OBJECTNAME(CheckerComponent);
 
 	typedef boost::multi_index_container<
 		Checkable::Ptr,

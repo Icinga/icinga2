@@ -36,7 +36,7 @@ namespace icinga
 class ObjectListCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ObjectListCommand);
+	DECLARE_OBJECT(ObjectListCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

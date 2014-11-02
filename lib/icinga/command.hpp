@@ -35,7 +35,7 @@ namespace icinga
 class I2_ICINGA_API Command : public ObjectImpl<Command>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Command);
+	DECLARE_OBJECT(Command);
 
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 

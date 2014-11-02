@@ -33,7 +33,7 @@ namespace icinga
 class ContactsTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ContactsTable);
+	DECLARE_OBJECT(ContactsTable);
 
 	ContactsTable(void);
 

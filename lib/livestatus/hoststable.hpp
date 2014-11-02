@@ -33,7 +33,7 @@ namespace icinga
 class HostsTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(HostsTable);
+	DECLARE_OBJECT(HostsTable);
 
 	HostsTable(void);
 

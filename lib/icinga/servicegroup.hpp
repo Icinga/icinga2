@@ -37,8 +37,8 @@ class ObjectRule;
 class I2_ICINGA_API ServiceGroup : public ObjectImpl<ServiceGroup>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ServiceGroup);
-	DECLARE_TYPENAME(ServiceGroup);
+	DECLARE_OBJECT(ServiceGroup);
+	DECLARE_OBJECTNAME(ServiceGroup);
 
 	std::set<Service::Ptr> GetMembers(void) const;
 	void AddMember(const Service::Ptr& service);

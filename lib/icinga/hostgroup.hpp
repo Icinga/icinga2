@@ -37,8 +37,8 @@ class ObjectRule;
 class I2_ICINGA_API HostGroup : public ObjectImpl<HostGroup>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(HostGroup);
-	DECLARE_TYPENAME(HostGroup);
+	DECLARE_OBJECT(HostGroup);
+	DECLARE_OBJECTNAME(HostGroup);
 
 	std::set<Host::Ptr> GetMembers(void) const;
 	void AddMember(const Host::Ptr& host);

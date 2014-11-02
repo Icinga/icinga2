@@ -22,6 +22,8 @@
 
 using namespace icinga;
 
+REGISTER_PRIMITIVE_TYPE(Object);
+
 #ifdef _DEBUG
 boost::mutex Object::m_DebugMutex;
 #endif /* _DEBUG */
@@ -70,11 +72,6 @@ Object::SharedPtrHolder::operator Value(void) const
 	return m_Object;
 }
 
-const Type *Object::GetReflectionType(void) const
-{
-	return NULL;
-}
-
 void Object::SetField(int, const Value&)
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
@@ -83,5 +80,10 @@ void Object::SetField(int, const Value&)
 Value Object::GetField(int) const
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
+}
+
+Type::Ptr icinga::LookupType(const char *name)
+{
+	return Type::GetByName(name);
 }
 

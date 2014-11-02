@@ -43,7 +43,7 @@ public:
 class I2_BASE_API ScriptVariable : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ScriptVariable);
+	DECLARE_OBJECT(ScriptVariable);
 
 	ScriptVariable(const Value& data);
 

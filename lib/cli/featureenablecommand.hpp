@@ -33,7 +33,7 @@ namespace icinga
 class FeatureEnableCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(FeatureEnableCommand);
+	DECLARE_OBJECT(FeatureEnableCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

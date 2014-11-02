@@ -35,8 +35,8 @@ namespace icinga
 class I2_ICINGA_API IcingaApplication : public ObjectImpl<IcingaApplication>, public MacroResolver
 {
 public:
-	DECLARE_PTR_TYPEDEFS(IcingaApplication);
-	DECLARE_TYPENAME(IcingaApplication);
+	DECLARE_OBJECT(IcingaApplication);
+	DECLARE_OBJECTNAME(IcingaApplication);
 
 	static void StaticInitialize(void);
 

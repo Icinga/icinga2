@@ -37,7 +37,7 @@ namespace icinga
 class I2_BASE_API ScriptFunction : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ScriptFunction);
+	DECLARE_OBJECT(ScriptFunction);
 
 	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
 

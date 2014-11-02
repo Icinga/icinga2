@@ -36,7 +36,7 @@ namespace icinga
 class RepositoryClearChangesCommand : public CLICommand
 {
 public:
-        DECLARE_PTR_TYPEDEFS(RepositoryClearChangesCommand);
+        DECLARE_OBJECT(RepositoryClearChangesCommand);
 
         virtual String GetDescription(void) const;
         virtual String GetShortDescription(void) const;

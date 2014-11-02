@@ -36,7 +36,7 @@ namespace icinga
 class I2_BASE_API StreamLogger : public ObjectImpl<StreamLogger>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StreamLogger);
+	DECLARE_OBJECT(StreamLogger);
 
 	virtual void Start(void);
 	virtual void Stop(void);

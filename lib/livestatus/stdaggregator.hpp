@@ -32,7 +32,7 @@ namespace icinga
 class StdAggregator : public Aggregator
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StdAggregator);
+	DECLARE_OBJECT(StdAggregator);
 
 	StdAggregator(const String& attr);
 

@@ -57,7 +57,7 @@ enum ModifiedAttributeType
 class I2_ICINGA_API CustomVarObject : public ObjectImpl<CustomVarObject>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CustomVarObject);
+	DECLARE_OBJECT(CustomVarObject);
 
 	static boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> OnVarsChanged;
 

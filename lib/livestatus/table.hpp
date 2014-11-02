@@ -38,7 +38,7 @@ class Filter;
 class Table : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Table);
+	DECLARE_OBJECT(Table);
 
 	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
 

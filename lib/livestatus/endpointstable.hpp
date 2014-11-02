@@ -33,7 +33,7 @@ namespace icinga
 class EndpointsTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(EndpointsTable);
+	DECLARE_OBJECT(EndpointsTable);
 
 	EndpointsTable(void);
 

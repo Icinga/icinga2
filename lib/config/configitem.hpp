@@ -35,7 +35,7 @@ namespace icinga
  */
 class I2_CONFIG_API ConfigItem : public Object {
 public:
-	DECLARE_PTR_TYPEDEFS(ConfigItem);
+	DECLARE_OBJECT(ConfigItem);
 
 	ConfigItem(const String& type, const String& name, bool abstract,
 	    const Expression::Ptr& exprl, const DebugInfo& debuginfo,

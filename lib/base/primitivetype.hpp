@@ -33,7 +33,7 @@ public:
 	PrimitiveType(const String& name);
 
 	virtual String GetName(void) const;
-	virtual const Type *GetBaseType(void) const;
+	virtual Type::Ptr GetBaseType(void) const;
 	virtual int GetAttributes(void) const;
 	virtual int GetFieldId(const String& name) const;
 	virtual Field GetFieldInfo(int id) const;
@@ -47,7 +47,7 @@ private:
 	namespace { namespace UNIQUE_NAME(prt) { \
 		void RegisterPrimitiveType ## type(void) \
 		{ \
-			icinga::Type *t = new PrimitiveType(#type); \
+			icinga::Type::Ptr t = make_shared<PrimitiveType>(#type); \
 			icinga::Type::Register(t); \
 		} \
 		\

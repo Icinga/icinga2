@@ -29,7 +29,7 @@ namespace icinga
 class I2_ICINGA_API PerfdataValue : public ObjectImpl<PerfdataValue>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(PerfdataValue);
+	DECLARE_OBJECT(PerfdataValue);
 
 	PerfdataValue(void);
 

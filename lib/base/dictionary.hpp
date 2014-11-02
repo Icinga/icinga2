@@ -37,7 +37,7 @@ namespace icinga
 class I2_BASE_API Dictionary : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Dictionary);
+	DECLARE_OBJECT(Dictionary);
 
 	/**
 	 * An iterator that can be used to iterate over dictionary elements.

@@ -34,7 +34,7 @@ namespace icinga
 class TimePeriodDbObject : public DbObject
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TimePeriodDbObject);
+	DECLARE_OBJECT(TimePeriodDbObject);
 
 	TimePeriodDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 

@@ -35,8 +35,8 @@ namespace icinga
 class I2_BASE_API SyslogLogger : public ObjectImpl<SyslogLogger>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(SyslogLogger);
-	DECLARE_TYPENAME(SyslogLogger);
+	DECLARE_OBJECT(SyslogLogger);
+	DECLARE_OBJECTNAME(SyslogLogger);
 
 	static Value StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
 

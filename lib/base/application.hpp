@@ -36,7 +36,7 @@ namespace icinga
  */
 class I2_BASE_API Application : public ObjectImpl<Application> {
 public:
-	DECLARE_PTR_TYPEDEFS(Application);
+	DECLARE_OBJECT(Application);
 
 	static boost::signals2::signal<void (void)> OnReopenLogs;
 

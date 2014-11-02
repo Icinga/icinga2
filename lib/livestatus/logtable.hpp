@@ -34,7 +34,7 @@ namespace icinga
 class LogTable : public HistoryTable
 {
 public:
-	DECLARE_PTR_TYPEDEFS(LogTable);
+	DECLARE_OBJECT(LogTable);
 
 	LogTable(const String& compat_log_path, time_t from, time_t until);
 

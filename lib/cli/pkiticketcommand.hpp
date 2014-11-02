@@ -33,7 +33,7 @@ namespace icinga
 class PKITicketCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(PKITicketCommand);
+	DECLARE_OBJECT(PKITicketCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

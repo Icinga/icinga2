@@ -36,7 +36,7 @@ namespace icinga
 class VariableListCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(VariableListCommand);
+	DECLARE_OBJECT(VariableListCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

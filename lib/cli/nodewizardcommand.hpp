@@ -33,7 +33,7 @@ namespace icinga
 class NodeWizardCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(NodeWizardCommand);
+	DECLARE_OBJECT(NodeWizardCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

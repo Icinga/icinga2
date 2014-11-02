@@ -38,8 +38,8 @@ class ApplyRule;
 class I2_ICINGA_API ScheduledDowntime : public ObjectImpl<ScheduledDowntime>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ScheduledDowntime);
-	DECLARE_TYPENAME(ScheduledDowntime);
+	DECLARE_OBJECT(ScheduledDowntime);
+	DECLARE_OBJECTNAME(ScheduledDowntime);
 
 	static void StaticInitialize(void);
 

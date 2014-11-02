@@ -37,7 +37,7 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(name);
 
 	if (tt == InternalGetTypeMap().end()) {
-		const Type *type = Type::GetByName(name);
+		Type::Ptr type = Type::GetByName(name);
 
 		if (!type || !Type::GetByName("DynamicObject")->IsAssignableFrom(type)
 		    || type->IsAbstract())
@@ -127,7 +127,7 @@ DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUp
 {
 	ASSERT(!OwnsLock());
 
-	const Type *type = Type::GetByName(m_Name);
+	Type::Ptr type = Type::GetByName(m_Name);
 
 	Object::Ptr object = type->Instantiate();
 

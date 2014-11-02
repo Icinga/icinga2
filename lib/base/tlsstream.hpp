@@ -36,7 +36,7 @@ namespace icinga
 class I2_BASE_API TlsStream : public Stream
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TlsStream);
+	DECLARE_OBJECT(TlsStream);
 
 	TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext);
 

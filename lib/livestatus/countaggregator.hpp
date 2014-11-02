@@ -32,7 +32,7 @@ namespace icinga
 class CountAggregator : public Aggregator
 {
 public:
-	DECLARE_PTR_TYPEDEFS(CountAggregator);
+	DECLARE_OBJECT(CountAggregator);
 
 	CountAggregator(void);
 

@@ -38,8 +38,8 @@ class Zone;
 class I2_REMOTE_API Endpoint : public ObjectImpl<Endpoint>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Endpoint);
-	DECLARE_TYPENAME(Endpoint);
+	DECLARE_OBJECT(Endpoint);
+	DECLARE_OBJECTNAME(Endpoint);
 
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const shared_ptr<ApiClient>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const shared_ptr<ApiClient>&)> OnDisconnected;

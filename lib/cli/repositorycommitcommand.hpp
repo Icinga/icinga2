@@ -36,7 +36,7 @@ namespace icinga
 class RepositoryCommitCommand : public CLICommand
 {
 public:
-        DECLARE_PTR_TYPEDEFS(RepositoryCommitCommand);
+        DECLARE_OBJECT(RepositoryCommitCommand);
 
         virtual String GetDescription(void) const;
         virtual String GetShortDescription(void) const;

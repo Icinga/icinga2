@@ -38,7 +38,7 @@ namespace icinga
 class I2_BASE_API Socket : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Socket);
+	DECLARE_OBJECT(Socket);
 
 	Socket(void);
 	Socket(SOCKET fd);

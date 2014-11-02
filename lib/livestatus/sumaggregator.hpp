@@ -32,7 +32,7 @@ namespace icinga
 class SumAggregator : public Aggregator
 {
 public:
-	DECLARE_PTR_TYPEDEFS(SumAggregator);
+	DECLARE_OBJECT(SumAggregator);
 
 	SumAggregator(const String& attr);
 

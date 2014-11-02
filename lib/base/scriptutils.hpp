@@ -40,6 +40,7 @@ public:
 	static void Log(const std::vector<Value>& arguments);
 	static Array::Ptr Range(const std::vector<Value>& arguments);
 	static void Exit(int code);
+	static Type::Ptr TypeOf(const Value& value);
 
 private:
 	ScriptUtils(void);

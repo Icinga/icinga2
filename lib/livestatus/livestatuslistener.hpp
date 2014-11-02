@@ -36,8 +36,8 @@ namespace icinga
 class LivestatusListener : public ObjectImpl<LivestatusListener>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(LivestatusListener);
-	DECLARE_TYPENAME(LivestatusListener);
+	DECLARE_OBJECT(LivestatusListener);
+	DECLARE_OBJECTNAME(LivestatusListener);
 
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 

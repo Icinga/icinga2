@@ -139,7 +139,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		  << "\t" << "}" << std::endl << std::endl;
 
 	/* GetBaseType */
-	std::cout << "\t" << "virtual const Type *GetBaseType(void) const" << std::endl
+	std::cout << "\t" << "virtual Type::Ptr GetBaseType(void) const" << std::endl
 		<< "\t" << "{" << std::endl;
 
 	std::cout << "\t\t" << "return ";
@@ -147,7 +147,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	if (!klass.Parent.empty())
 		std::cout << "Type::GetByName(\"" << klass.Parent << "\")";
 	else
-		std::cout << "NULL";
+		std::cout << "Type::Ptr()";
 
 	std::cout << ";" << std::endl
 			  << "\t" << "}" << std::endl << std::endl;
@@ -302,13 +302,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		  << " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
 		  << "{" << std::endl
 		  << "public:" << std::endl
-		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
-
-	/* GetReflectionType */
-	std::cout << "\t" << "virtual const Type *GetReflectionType(void) const" << std::endl
-			  << "\t" << "{" << std::endl
-			  << "\t\t" << "return Type::GetByName(\"" << klass.Name << "\");" << std::endl
-			  << "\t" << "}" << std::endl << std::endl;
+		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl
+		  << "\t" << "IMPL_TYPE_LOOKUP(" << klass.Name << ");" << std::endl << std::endl;
 
 	if (!klass.Fields.empty()) {
 		/* constructor */

@@ -42,8 +42,8 @@ class ApiClient;
 class I2_REMOTE_API ApiListener : public ObjectImpl<ApiListener>
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ApiListener);
-	DECLARE_TYPENAME(ApiListener);
+	DECLARE_OBJECT(ApiListener);
+	DECLARE_OBJECTNAME(ApiListener);
 
 	static boost::signals2::signal<void(bool)> OnMasterChanged;
 

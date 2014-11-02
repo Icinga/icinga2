@@ -29,7 +29,7 @@ namespace icinga {
 class I2_BASE_API StdioStream : public Stream
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StdioStream);
+	DECLARE_OBJECT(StdioStream);
 
 	StdioStream(std::iostream *innerStream, bool ownsStream);
 	~StdioStream(void);

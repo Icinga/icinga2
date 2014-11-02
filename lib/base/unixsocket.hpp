@@ -29,7 +29,7 @@ namespace icinga
 class I2_BASE_API UnixSocket : public Socket
 {
 public:
-	DECLARE_PTR_TYPEDEFS(UnixSocket);
+	DECLARE_OBJECT(UnixSocket);
 
 	UnixSocket(void);
 

@@ -143,7 +143,7 @@ Dictionary::Ptr ConfigItem::GetProperties(void)
 		String name = m_Name;
 
 		if (!m_Abstract) {
-			const NameComposer *nc = dynamic_cast<const NameComposer *>(Type::GetByName(m_Type));
+			shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
 
 			if (nc) {
 				name = nc->MakeName(m_Name, m_Properties);
@@ -212,7 +212,7 @@ void ConfigItem::Register(void)
 	/* If this is a non-abstract object we need to figure out
 	 * its real name now - or assign it a temporary name. */
 	if (!m_Abstract) {
-		const NameComposer *nc = dynamic_cast<const NameComposer *>(Type::GetByName(m_Type));
+		shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
 
 		if (nc) {
 			name = nc->MakeName(m_Name, Dictionary::Ptr());

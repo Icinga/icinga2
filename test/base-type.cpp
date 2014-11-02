@@ -32,15 +32,15 @@ BOOST_AUTO_TEST_SUITE(base_type)
 
 BOOST_AUTO_TEST_CASE(gettype)
 {
-	const Type *t = Type::GetByName("Application");
+	Type::Ptr t = Type::GetByName("Application");
 
 	BOOST_CHECK(t);
 }
 
 BOOST_AUTO_TEST_CASE(assign)
 {
-	const Type *t1 = Type::GetByName("Application");
-	const Type *t2 = Type::GetByName("DynamicObject");
+	Type::Ptr t1 = Type::GetByName("Application");
+	Type::Ptr t2 = Type::GetByName("DynamicObject");
 
 	BOOST_CHECK(t1->IsAssignableFrom(t1));
 	BOOST_CHECK(t2->IsAssignableFrom(t1));
@@ -49,14 +49,14 @@ BOOST_AUTO_TEST_CASE(assign)
 
 BOOST_AUTO_TEST_CASE(byname)
 {
-	const Type *t = Type::GetByName("Application");
+	Type::Ptr t = Type::GetByName("Application");
 
 	BOOST_CHECK(t);
 }
 
 BOOST_AUTO_TEST_CASE(instantiate)
 {
-	const Type *t = Type::GetByName("PerfdataValue");
+	Type::Ptr t = Type::GetByName("PerfdataValue");
 
 	Object::Ptr p = t->Instantiate();
 

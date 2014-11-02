@@ -32,7 +32,7 @@ namespace icinga
 class InvAvgAggregator : public Aggregator
 {
 public:
-	DECLARE_PTR_TYPEDEFS(InvAvgAggregator);
+	DECLARE_OBJECT(InvAvgAggregator);
 
 	InvAvgAggregator(const String& attr);
 
