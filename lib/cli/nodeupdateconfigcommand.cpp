@@ -63,7 +63,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		Log(LogWarning, "cli")
 		    << "There are pending changes for commit.\n"
 		    << "Please review and commit them using 'icinga2 repository commit [--simulate]'\n"
-		    << "or drop them using 'icinga2 repository commit --clear' before proceeding.";
+		    << "or drop them using 'icinga2 repository clear-changes' before proceeding.";
 		return 1;
 	}
 
