@@ -1,14 +1,466 @@
 # <a id="monitoring-remote-systems"></a> Monitoring Remote Systems
 
+There are multiple ways you can monitor remote clients. Be it using [agent-less](#agent-less-checks)
+or [agent-based](agent-based-checks-addons) using additional addons & tools.
+
+Icinga 2 uses its own unique and secure communitication protol amongst instances.
+Be it an High-Availability cluster setup, distributed load-balanced setup or just a single
+agent [monitoring a remote client](#icinga2-remote-client-monitoring).
+
+All communication is secured by SSL x509, and fully supports IPv4 and IPv6.
+
+If you are planning to use the native Icinga 2 cluster feature for distributed
+monitoring and high-availability, please continue reading in
+[this chapter](#distributed-monitoring-high-availability).
+
+> **Tip**
+>
+> Don't panic - there are CLI commands available, including setup wizards for easy installation
+> with SSL certificates.
+> If you prefer to use your own CA (for example Puppet) you can do that as well.
+
 ## <a id="agent-less-checks"></a> Agent-less Checks
 
 If the remote service is available using a network protocol and port,
 and a [check plugin](#setting-up-check-plugins) is available, you don't
 necessarily need a local client installed. Rather choose a plugin and
 configure all parameters and thresholds. The [Icinga 2 Template Library](#itl)
-already ships various examples.
+already ships various examples like
 
-## <a id="agent-based-checks"></a> Agent-based Checks
+* [ping4](#plugin-check-command-ping4), [ping6](#plugin-check-command-ping6),
+[fping4](#plugin-check-command-fping4), [fping6](#plugin-check-command-fping6), [hostalive](#plugin-check-command-hostalive)
+* [tcp](#plugin-check-command-tcp), [udp](#plugin-check-command-udp), [ssl](#plugin-check-command-ssl)
+* [http](#plugin-check-command-http), [ftp](#plugin-check-command-ftp)
+* [smtp](#plugin-check-command-smtp), [ssmtp](#plugin-check-command-ssmtp),
+[imap](#plugin-check-command-imap), [simap](#plugin-check-command-simap),
+[pop](#plugin-check-command-pop), [spop](#plugin-check-command-spop)
+* [ntp_time](#plugin-check-command-ntp_time)
+* [ssh](#plugin-check-command-ssh)
+* [dns](#plugin-check-command-dns), [dig](#plugin-check-command-dig), [dhcp](#plugin-check-command-dhcp)
+
+There are numerous check plugins contributed by community members available
+on the internet. If you found one for your requirements, [integrate them into Icinga 2](#command-plugin-integration).
+
+Start your search at
+
+* [Icinga Exchange](https://exchange.icinga.org)
+* [Icinga Wiki](https://wiki.icinga.org)
+*
+
+## <a id="icinga2-remote-client-monitoring"></a> Monitoring Icinga 2 Remote Clients
+
+First, you should decide which role the remote client has:
+
+* a single host with local checks
+* a remote satellite checking other hosts (for example in your DMZ)
+
+> **Note**
+>
+> If you are planning to build an Icinga 2 distributed setup using the cluster feature, please skip
+> the following instructions and jump directly to the
+> [cluster setup instructions](#distributed-monitoring-high-availability).
+
+> **Note**
+>
+> Remote instances are independent Icinga 2 instances which schedule
+> their checks and just synchronize them back to the defined master zone.
+
+## <a id="icinga2-remote-monitoring-master"></a> Master Setup for Remote Monitoring
+
+If you are planning to use the [remote Icinga 2 clients](#icinga2-remote-monitoring-client)
+you'll first need to update your master setup.
+
+Your master setup requires the following
+
+* SSL CA and signed certificate for the master
+* Enabled API feature, and a local Endpoint and Zone object configuration
+* Firewall ACLs for the communication port (default 5665)
+
+You can use the cli command `icinga2 node wizard` for setting up a new node
+on the master. The command must be run as root, all Icinga 2 specific files
+will be updated to the icinga user the daemon is running as (certificate files
+for example).
+
+Make sure to answer the first question with `n` (no).
+
+    # icinga2 node wizard
+
+    Welcome to the Icinga 2 Setup Wizard!
+
+    We'll guide you through all required configuration details.
+
+    If you have questions, please consult the documentation at http://docs.icinga.org
+    or join the community support channels at https://support.icinga.org
+
+
+    Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]: n
+    Starting the Master setup routine...
+    Please specifiy the common name (CN) [icinga2m]:
+    information/base: Writing private key to '/var/lib/icinga2/ca/ca.key'.
+    information/base: Writing X509 certificate to '/var/lib/icinga2/ca/ca.crt'.
+    information/cli: Initializing serial file in '/var/lib/icinga2/ca/serial.txt'.
+    information/cli: Generating new CSR in '/etc/icinga2/pki/icinga2m.csr'.
+    information/base: Writing private key to '/etc/icinga2/pki/icinga2m.key'.
+    information/base: Writing certificate signing request to '/etc/icinga2/pki/icinga2m.csr'.
+    information/cli: Signing CSR with CA and writing certificate to '/etc/icinga2/pki/icinga2m.crt'.
+    information/cli: Copying CA certificate to '/etc/icinga2/pki/ca.crt'.
+    information/cli: Dumping config items to file '/etc/icinga2/zones.conf'.
+    Please specify the API bind host/port (optional):
+    Bind Host []:
+    Bind Port []:
+    information/cli: Enabling the APIlistener feature.
+    information/cli: Updating constants.conf.
+    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
+    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
+    information/cli: Edit the constants.conf file '/etc/icinga2/constants.conf' and set a secure 'TicketSalt' constant.
+    Done.
+
+    Now restart your Icinga 2 daemon to finish the installation!
+
+    If you encounter problems or bugs, please do not hesitate to
+    get in touch with the community at https://support.icinga.org
+
+
+The setup wizard will do the following:
+
+* Generate a local CA in `/var/lib/icinga2/ca` or use the existing one
+* Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
+* Generate a local zone and endpoint configuration for this master based on FQDN
+* Enabling the API feature, and setting optional `bind_host` and `bind_port`
+* Setting the `NodeName` and `TicketSalt` constants in [constants.conf](#constants.conf)
+
+The setup wizard does not automatically restart Icinga 2.
+
+
+> **Note**
+>
+> This setup wizard will install a standalone master, HA cluster scenarios are currently
+> not supported.
+
+
+
+## <a id="icinga2-remote-monitoring-client"></a> Client Setup for Remote Monitoring
+
+Icinga 2 can be installed on Linux/Unix and Windows. While
+[Linux/Unix](#icinga2-remote-monitoring-client-linux) will be using the CLI command
+`node wizard` for a guided setup, you will need to use the
+graphical installer for Windows based client setup.
+
+Your client setup requires the following
+
+* SSL signed certificate for communication with the master (Use [CSR auto-signing](certifiates-csr-autosigning)).
+* Enabled API feature, and a local Endpoint and Zone object configuration
+* Firewall ACLs for the communication port (default 5665)
+
+
+
+### <a id="icinga2-remote-monitoring-client-linux"></a> Linux Client Setup for Remote Monitoring
+
+#### <a id="csr-autosigning-requirements"></a> Requirements for CSR Auto-Signing
+
+If your remote clients are capable of connecting to the central master, Icinga 2
+supports CSR auto-signing.
+
+First you'll need to define a secure ticket salt in the [constants.conf](#constants-conf).
+The [setup wizard for the master setup](#icinga2-remote-monitoring-master) will create
+one for you already.
+
+    # grep TicketSalt /etc/icinga2/constants.conf
+
+The client setup wizard will ask you to generate a valid ticket number using its CN.
+If you already know your remote client's Common Names (CNs) - usually the FQDN - you
+can generate all ticket numbers on-demand.
+
+This is also reasonable if you are not capable of installing the remote client, but
+a colleague of yours, or a customer.
+
+Example for a client notebook:
+
+    # icinga2 pki ticket --cn nbmif.int.netways.de
+
+> **Note**
+>
+> You can omit the `--salt` parameter using the `TicketSalt` constant from
+> [constants.conf](#constants-conf) if already defined and Icinga 2 was
+> reloaded after the master setup.
+
+#### <a id="certificates-manual-creation"></a> Manual SSL Certificate Generation
+
+This is described separately in the [cluster setup chapter](#manual-certificate-generation).
+
+> **Note**
+>
+> If you're using [CSR Auto-Signing](#csr-autosigning-requirements), skip this step.
+
+
+#### <a id="icinga2-remote-monitoring-client-linux-setup"></a> Linux Client Setup Wizard for Remote Monitoring
+
+Install Icinga 2 from your distribution's package repository as described in the
+general [installation instructions](#setting-up-icinga2).
+
+Please make sure that either [CSR Auto-Signing](#csr-autosigning-requirements) requirements
+are fulfilled, or that you're using [manual SSL certificate generation](#manual-certificate-generation).
+
+> **Note**
+>
+> You don't need any features (DB IDO, Livestatus) or user interfaces on the remote client.
+> Install them only if you're planning to use them.
+
+Once the package installation succeeded, use the `node wizard` cli command to install
+a new Icinga 2 node as client setup.
+
+You'll need the following configuration details:
+
+* The client common name (CN). Defaults to FQDN.
+* The client's local zone name. Defaults to FQDN.
+* The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
+* The master endpoint connection information. Your master's IP address and port (defaults to 5665)
+* The [request ticket number](#csr-autosigning-requirements) generated on your master
+for CSR Auto-Signing
+* Bind host/port for the Api feature (optional)
+
+The command must be run as root, all Icinga 2 specific files will be updated to the icinga
+user the daemon is running as (certificate files for example).
+
+Make sure to answer the first question with `n` (no).
+
+
+    # icinga2 node wizard
+
+    Welcome to the Icinga 2 Setup Wizard!
+
+    We'll guide you through all required configuration details.
+
+    If you have questions, please consult the documentation at http://docs.icinga.org
+    or join the community support channels at https://support.icinga.org
+
+
+    Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]:
+    Starting the Node setup routine...
+    Please specifiy the common name (CN) [nbmif.int.netways.de]:
+    Please specifiy the local zone name [nbmif.int.netways.de]:
+    Please specify the master endpoint(s) this node should connect to:
+    Master Common Name (CN from your master setup, defaults to FQDN): icinga2m
+    Please fill out the master connection information:
+    Master endpoint host (required, your master's IP address or FQDN): 192.168.33.100
+    Master endpoint port (optional) []:
+    Add more master endpoints? [y/N]
+    Please specify the master connection for CSR auto-signing (defaults to master endpoint host):
+    Host [192.168.33.100]:
+    Port [5665]:
+    information/base: Writing private key to '/var/lib/icinga2/ca/ca.key'.
+    information/base: Writing X509 certificate to '/var/lib/icinga2/ca/ca.crt'.
+    information/cli: Initializing serial file in '/var/lib/icinga2/ca/serial.txt'.
+    information/base: Writing private key to '/etc/icinga2/pki/nbmif.int.netways.de.key'.
+    information/base: Writing X509 certificate to '/etc/icinga2/pki/nbmif.int.netways.de.crt'.
+    information/cli: Generating self-signed certifiate:
+    information/cli: Fetching public certificate from master (192.168.33.100, 5665):
+
+    information/cli: Writing trusted certificate to file '/etc/icinga2/pki/trusted-master.crt'.
+    information/cli: Stored trusted master certificate in '/etc/icinga2/pki/trusted-master.crt'.
+
+    Please specify the request ticket generated on your Icinga 2 master.
+     (Hint: '# icinga2 pki ticket --cn nbmif.int.netways.de'):
+    2e070405fe28f311a455b53a61614afd718596a1
+    information/cli: Processing self-signed certificate request. Ticket '2e070405fe28f311a455b53a61614afd718596a1'.
+
+    information/cli: Writing signed certificate to file '/etc/icinga2/pki/nbmif.int.netways.de.crt'.
+    information/cli: Writing CA certificate to file '/var/lib/icinga2/ca/ca.crt'.
+    Please specify the API bind host/port (optional):
+    Bind Host []:
+    Bind Port []:
+    information/cli: Disabling the Notification feature.
+    Disabling feature notification. Make sure to restart Icinga 2 for these changes to take effect.
+    information/cli: Enabling the Apilistener feature.
+    information/cli: Generating local zones.conf.
+    information/cli: Dumping config items to file '/etc/icinga2/zones.conf'.
+    information/cli: Updating constants.conf.
+    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
+    Done.
+
+    Now restart your Icinga 2 daemon to finish the installation!
+
+    If you encounter problems or bugs, please do not hesitate to
+    get in touch with the community at https://support.icinga.org
+
+
+The setup wizard will do the following:
+
+* Generate a local CA in `/var/lib/icinga2/ca` or use the existing one
+* Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
+* Store the master's certificate as trusted certificate for requesting a new signed certificate
+(manual step when using `node setup`).
+* Request a new signed certificate from the master and store updated certificate and master CA in `/etc/icinga2/pki`
+* Generate a local zone and endpoint configuration for this client and the provided master information
+(based on FQDN)
+* Disabling the notification feature for this client
+* Enabling the API feature, and setting optional `bind_host` and `bind_port`
+* Setting the `NodeName` constant in [constants.conf](#constants.conf)
+
+The setup wizard does not automatically restart Icinga 2.
+
+
+### <a id="icinga2-remote-monitoring-client-windows"></a> Windows Client Setup for Remote Monitoring
+
+Download the MSI-Installer package from [http://packages.icinga.org/windows/](http://packages.icinga.org/windows/).
+
+Requirements:
+* [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639) if not already installed.
+
+The setup wizard will install Icinga 2 and then continue with SSL certificate generation,
+CSR-Autosigning and configuration setup.
+
+You'll need the following configuration details:
+
+* The client common name (CN). Defaults to FQDN.
+* The client's local zone name. Defaults to FQDN.
+* The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
+* The master endpoint connection information. Your master's IP address and port (defaults to 5665)
+* The [request ticket number](#csr-autosigning-requirements) generated on your master
+for CSR Auto-Signing
+* Bind host/port for the Api feature (optional)
+
+Once install is done, Icinga 2 is automatically started as a Windows service.
+
+
+
+
+### <a id="icinga2-remote-monitoring-client-configuration"></a> Client Configuration for Remote Monitoring
+
+There is no difference in the configuration syntax on clients to any other Icinga 2 installation.
+
+The following convention applies to remote clients:
+
+* The hostname in the default host object should be the same as the Common Name (CN) used for SSL setup
+* Add new services and check commands locally
+
+The default setup routine will install a new host based on your FQDN in `repository.d/hosts` with all
+services in separate configuration files a directory underneath.
+
+The repository can be managed using the cli command `repository`.
+
+> **Note**
+>
+> The cli command `repository` only supports basic configuration manipulation (add, remove). Future
+> versions will support more options (set, etc.). Please check the Icinga 2 development roadmap
+> for that.
+
+You can also use additional features like notifications directly on the remote client, if you are
+required to. Basically everything a single Icinga 2 instance provides by default.
+
+
+### <a id="icinga2-remote-monitoring-master-discovery"></a> Discover Client Services on the Master
+
+Icinga 2 clients will sync their locally defined objects to the defined master node. That way you can
+list, add, filter and remove nodes based on their `node`, `zone`, `host` or `service` name.
+
+List all discovered nodes (satellites, agents) and their hosts/services:
+
+    # icinga2 node list
+
+
+#### <a id="icinga2-remote-monitoring-master-discovery-manual"></a> Manually Discover Clients on the Master
+
+Add a to-be-discovered client to the master:
+
+    # icinga2 node add my-remote-client
+
+Set the connection details, and the Icinga 2 master will attempt to connect to this node and sync its
+object repository.
+
+    # icinga2 node set my-remote-client --host 192.168.33.101 --port 5665
+
+You can control that by calling the `node list` command:
+
+    # icinga2 node list
+    Node 'my-remote-client' (host: 192.168.33.101, port: 5665, log duration: 1 day, last seen: Sun Nov  2 17:46:29 2014)
+
+#### <a id="icinga2-remote-monitoring-master-discovery-remove"></a> Remove Discovered Clients
+
+If you don't require a connected agent, you can manually remove it and its discovered hosts and services
+using the following cli command:
+
+    # icinga2 node remove my-discovered-agent
+
+> **Note**
+>
+> Better use [blacklists and/or whitelists](#icinga2-remote-monitoring-master-discovery-blacklist-whitelist)
+> to control which clients and hosts/services are integrated into your master configuration repository.
+
+### <a id="icinga2-remote-monitoring-master-discovery-generate-config"></a> Generate Icinga 2 Configuration for Client Services on the Master
+
+There is a dedicated Icinga 2 CLI command for updating the client services on the master,
+generating all required configuration.
+
+    # icinga2 node update-config
+
+The generated configuration of all nodes is stored in the `repository.d/` directory.
+
+> **Note**
+>
+> If there are existing hosts/services defined or modified, the cli command will not overwrite these (modified)
+> configuration files.
+>
+> If hosts or services disappeared from the client discovery, it will remove the existing configuration objects
+> from the config repository.
+
+The `update-config` cli command will fail, if there are uncommitted changes for the
+configuration repository.
+Please review these changes manually, or clear the commit and try again. This is a
+safety hook to prevent unwanted manual changes to be committed by a updating the
+client discovered objects only.
+
+    # icinga2 repository commit --simulate
+
+    # icinga2 repository clear-changes
+
+    # icinga2 repository commit
+
+After updating the configuration repository, make sure to reload Icinga 2.
+
+    # service icinga2 reload
+
+Using Systemd:
+    # systemctl reload icinga2.service
+
+
+
+#### <a id="icinga2-remote-monitoring-master-discovery-blacklist-whitelist"></a> Blacklist/Whitelist for Clients on the Master
+
+It's sometimes necessary to `blacklist` an entire remote client, or specific hosts or services
+provided by this client. While it's reasonable for the local admin to configure for example an
+additional ping check, you're not interested in that on the master sending out notifications
+and presenting the dashboard to your support team.
+
+Blacklisting an entire set might not be sufficient for excluding several objects, be it a
+specific remote client with one ping servie you're interested in. Therefore you can `whitelist`
+clients, hosts, services in a similar manner
+
+Example for blacklisting all `ping*` services, but allowing only `probe` host with `ping4`:
+
+    # icinga2 node blacklist add --zone "*" --host "*" --service "ping*"
+    # icinga2 node whitelist add --zone "*" --host "probe" --service "ping*"
+
+You can `list` and `remove` existing blacklists:
+
+    # icinga2 node blacklist list
+    Listing all blacklist entries:
+    blacklist filter for Node: '*' Host: '*' Service: 'ping*'.
+
+    # icinga2 node whitelist list
+    Listing all whitelist entries:
+    whitelist filter for Node: '*' Host: 'probe' Service: 'ping*'.
+
+
+> **Note**
+>
+> The `--zone` and `--host` arguments are required. A zone is always where the remote client is in.
+> If you are unsure about it, set a wildcard (`*`) for them and filter only by host/services.
+
+
+
+
+### <a id="agent-based-checks-addon"></a> Agent-based Checks using additional Software
 
 If the remote services are not directly accessible through the network, a
 local agent installation exposing the results to check queries can
@@ -21,7 +473,7 @@ binaries. The [Monitoring Plugins package](#setting-up-check-plugins) ships
 the `check_snmp` plugin binary, but there are plenty of [existing plugins](#integrate-additional-plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
-The following example uses the [SNMP ITL](#itl-snmp) `CheckCommand` and just
+The following example uses the [SNMP ITL](#plugin-check-command-snmp) `CheckCommand` and just
 overrides the `snmp_oid` custom attribute. A service is created for all hosts which
 have the `snmp-community` custom attribute.
 
@@ -33,6 +485,8 @@ have the `snmp-community` custom attribute.
 
       assign where host.vars.snmp_community != ""
     }
+
+Additional SNMP plugins are available using the [Manubulon SNMP Plugins](#snmp-manubulon-plugin-check-commands).
 
 ### <a id="agent-based-checks-ssh"></a> SSH
 
@@ -113,20 +567,16 @@ Example:
 
 For details on the `NSClient++` configuration please refer to the [official documentation](http://www.nsclient.org/nscp/wiki/doc/configuration/0.4.x).
 
-### <a id="agent-based-checks-icinga2-agent"></a> Icinga 2 Agent
+### <a id="agent-based-checks-nsca-ng"></a> NSCA-NG
 
-A dedicated Icinga 2 agent supporting all platforms and using the native
-Icinga 2 communication protocol supported with SSL certificates, IPv4/IPv6
-support, etc. is on the [development roadmap](https://dev.icinga.org/projects/i2?jump=issues).
-Meanwhile remote checkers in a [cluster](#distributed-monitoring-high-availability) setup could act as
-immediate replacement, but without any local configuration - or pushing
-their standalone configuration back to the master node including their check
-result messages.
+[NSCA-ng](http://www.nsca-ng.org) provides a client-server pair that allows the
+remote sender to push check results into the Icinga 2 `ExternalCommandListener`
+feature.
 
 > **Note**
 >
-> Remote checker instances are independent Icinga 2 instances which schedule
-> their checks and just synchronize them back to the defined master zone.
+> This addon works in a similar fashion like the Icinga 1.x distributed model. If you
+> are looking for a real distributed architecture with Icinga 2, scroll down.
 
 ### <a id="agent-based-checks-snmp-traps"></a> Passive Check Results and SNMP Traps
 
@@ -138,16 +588,7 @@ passing the check results to Icinga 2.
 > The host and service object configuration must be available on the Icinga 2
 > server in order to process passive check results.
 
-### <a id="agent-based-checks-nsca-ng"></a> NSCA-NG
 
-[NSCA-ng](http://www.nsca-ng.org) provides a client-server pair that allows the
-remote sender to push check results into the Icinga 2 `ExternalCommandListener`
-feature.
-
-> **Note**
->
-> This addon works in a similar fashion like the Icinga 1.x distributed model. If you
-> are looking for a real distributed architecture with Icinga 2, scroll down.
 
 
 ## <a id="distributed-monitoring-high-availability"></a> Distributed Monitoring and High Availability
@@ -189,44 +630,11 @@ Before you start deploying, keep the following things in mind:
 > If you're looking for troubleshooting cluster problems, check the general
 > [troubleshooting](#troubleshooting-cluster) section.
 
-#### <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
-The SSL certificate common name (CN) will be used by the [ApiListener](#objecttype-apilistener)
-object to determine the local authority. This name must match the local [Endpoint](#objecttype-endpoint)
-object name.
+### <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
 
-Example:
-
-    # icinga2 pki new-cert --cn icinga2a --key icinga2a.key --csr icinga2a.csr
-    # icinga2 pki sign-csr --csr icinga2a.csr --cert icinga2a.crt
-
-    # vim cluster.conf
-
-    object Endpoint "icinga2a" {
-      host = "icinga2a.icinga.org"
-    }
-
-The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
-[Zone](#objecttype-zone) object.
-
-    object Endpoint "icinga2b" {
-      host = "icinga2b.icinga.org"
-    }
-
-    object Zone "config-ha-master" {
-      endpoints = [ "icinga2a", "icinga2b" ]
-    }
-
-Specifying the local node name using the [NodeName](#configure-nodename) variable requires
-the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
-
-    const NodeName = "icinga2a"
-
-
-### <a id="certificate-authority-certificates"></a> Certificate Authority and Certificates
-
-Icinga 2 ships two scripts assisting with CA and node certificate creation
-for your Icinga 2 cluster.
+Icinga 2 ships cli commands assisting with CA and node certificate creation
+for your Icinga 2 distributed setup.
 
 > **Note**
 >
@@ -263,6 +671,41 @@ the host's FQDN):
 * ca.crt
 * &lt;fqdn-nodename&gt;.crt
 * &lt;fqdn-nodename&gt;.key
+
+
+
+#### <a id="cluster-naming-convention"></a> Cluster Naming Convention
+
+The SSL certificate common name (CN) will be used by the [ApiListener](#objecttype-apilistener)
+object to determine the local authority. This name must match the local [Endpoint](#objecttype-endpoint)
+object name.
+
+Example:
+
+    # icinga2 pki new-cert --cn icinga2a --key icinga2a.key --csr icinga2a.csr
+    # icinga2 pki sign-csr --csr icinga2a.csr --cert icinga2a.crt
+
+    # vim zones.conf
+
+    object Endpoint "icinga2a" {
+      host = "icinga2a.icinga.org"
+    }
+
+The [Endpoint](#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
+[Zone](#objecttype-zone) object.
+
+    object Endpoint "icinga2b" {
+      host = "icinga2b.icinga.org"
+    }
+
+    object Zone "config-ha-master" {
+      endpoints = [ "icinga2a", "icinga2b" ]
+    }
+
+Specifying the local node name using the [NodeName](#configure-nodename) variable requires
+the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
+
+    const NodeName = "icinga2a"
 
 
 ### <a id="cluster-configuration"></a> Cluster Configuration

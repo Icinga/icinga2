@@ -1313,6 +1313,15 @@ If you're stuck with configuration errors, you can manually invoke the [configur
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <http://www.icinga.org/>
 
+
+> **Note**
+>
+> The cli command `repository` only supports basic configuration manipulation (add, remove). Future
+> versions will support more options (set, etc.). Please check the Icinga 2 development roadmap
+> for that.
+
+
+
 #### Libraries
 
 Instead of loading libraries using the [`library` config directive](#library)
