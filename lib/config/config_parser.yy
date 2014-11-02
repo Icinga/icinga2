@@ -218,6 +218,8 @@ static std::stack<bool> m_ObjectAssign;
 static std::stack<bool> m_SeenAssign;
 static std::stack<Expression::Ptr> m_Assign;
 static std::stack<Expression::Ptr> m_Ignore;
+static std::stack<String> m_FVar;
+static std::stack<Expression::Ptr> m_FTerm;
 
 void ConfigCompiler::Compile(void)
 {
@@ -231,6 +233,8 @@ void ConfigCompiler::Compile(void)
 	m_SeenAssign = std::stack<bool>();
 	m_Assign = std::stack<Expression::Ptr>();
 	m_Ignore = std::stack<Expression::Ptr>();
+	m_FVar = std::stack<String>();
+	m_FTerm = std::stack<Expression::Ptr>();
 
 	try {
 		yyparse(this);
@@ -836,14 +840,27 @@ target_type_specifier: /* empty */
 	}
 	;
 
+apply_for_specifier: /* empty */
+	| T_FOR '(' identifier T_IN rterm ')'
+	{
+		m_FVar.top() = $3;
+		free($3);
+
+		m_FTerm.top() = *$5;
+		delete $5;
+	}
+	;
+
 apply:
 	{
 		m_Apply.push(true);
 		m_SeenAssign.push(false);
 		m_Assign.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
 		m_Ignore.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
+		m_FVar.push("");
+		m_FTerm.push(Expression::Ptr());
 	}
-	T_APPLY identifier rterm target_type_specifier rterm
+	T_APPLY identifier rterm apply_for_specifier target_type_specifier rterm
 	{
 		m_Apply.pop();
 
@@ -851,8 +868,8 @@ apply:
 		free($3);
 		Expression::Ptr aname = *$4;
 		delete $4;
-		String target = $5;
-		free($5);
+		String target = $6;
+		free($6);
 
 		if (!ApplyRule::IsValidSourceType(type))
 			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
@@ -878,8 +895,8 @@ apply:
 				BOOST_THROW_EXCEPTION(ConfigError("'apply' target type '" + target + "' is invalid") << errinfo_debuginfo(DebugInfoRange(@2, @5)));
 		}
 
-		Expression::Ptr exprl = *$6;
-		delete $6;
+		Expression::Ptr exprl = *$7;
+		delete $7;
 
 		exprl->MakeInline();
 
@@ -895,11 +912,19 @@ apply:
 		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
 		m_Assign.pop();
 
+		String fvar = m_FVar.top();
+		m_FVar.pop();
+
+		Expression::Ptr fterm = m_FTerm.top();
+		m_FTerm.pop();
+
 		Array::Ptr args = make_shared<Array>();
 		args->Add(type);
 		args->Add(target);
 		args->Add(aname);
 		args->Add(filter);
+		args->Add(fvar);
+		args->Add(fterm);
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpApply, args, exprl, DebugInfoRange(@2, @5)));
 	}

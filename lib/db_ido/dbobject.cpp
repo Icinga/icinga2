@@ -167,28 +167,36 @@ void DbObject::SendVarsConfigUpdate(void)
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-			if (!kv.first.IsEmpty()) {
-				int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
+			if (kv.first.IsEmpty())
+				continue;
 
-				Log(LogDebug, "DbObject")
-				    << "object customvar key: '" << kv.first << "' value: '" << kv.second
-				    << "' overridden: " << overridden;
+			String value;
 
-				Dictionary::Ptr fields = make_shared<Dictionary>();
-				fields->Set("varname", Convert::ToString(kv.first));
-				fields->Set("varvalue", Convert::ToString(kv.second));
-				fields->Set("config_type", 1);
-				fields->Set("has_been_modified", overridden);
-				fields->Set("object_id", obj);
-				fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			if (kv.second.IsObjectType<Array>())
+				value = Utility::Join(kv.second, ';');
+			else
+				value = kv.second;
 
-				DbQuery query;
-				query.Table = "customvariables";
-				query.Type = DbQueryInsert;
-				query.Category = DbCatConfig;
-				query.Fields = fields;
-				OnQuery(query);
-			}
+			int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
+
+			Log(LogDebug, "DbObject")
+			    << "object customvar key: '" << kv.first << "' value: '" << kv.second
+			    << "' overridden: " << overridden;
+
+			Dictionary::Ptr fields = make_shared<Dictionary>();
+			fields->Set("varname", kv.first);
+			fields->Set("varvalue", value);
+			fields->Set("config_type", 1);
+			fields->Set("has_been_modified", overridden);
+			fields->Set("object_id", obj);
+			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+			DbQuery query;
+			query.Table = "customvariables";
+			query.Type = DbQueryInsert;
+			query.Category = DbCatConfig;
+			query.Fields = fields;
+			OnQuery(query);
 		}
 	}
 }
@@ -211,36 +219,36 @@ void DbObject::SendVarsStatusUpdate(void)
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-			if (!kv.first.IsEmpty()) {
-				int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
+			if (kv.first.IsEmpty() || kv.second.IsObject())
+				continue;
 
-				Log(LogDebug, "DbObject")
-				    << "object customvar key: '" << kv.first << "' value: '" << kv.second
-				    << "' overridden: " << overridden;
+			int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
 
-				Dictionary::Ptr fields = make_shared<Dictionary>();
-				fields->Set("varname", Convert::ToString(kv.first));
-				fields->Set("varvalue", Convert::ToString(kv.second));
-				fields->Set("has_been_modified", overridden);
-				fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-				fields->Set("object_id", obj);
-				fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			Log(LogDebug, "DbObject")
+			    << "object customvar key: '" << kv.first << "' value: '" << kv.second
+			    << "' overridden: " << overridden;
 
-				DbQuery query;
-				query.Table = "customvariablestatus";
-				query.Type = DbQueryInsert | DbQueryUpdate;
-				query.Category = DbCatState;
-				query.Fields = fields;
+			Dictionary::Ptr fields = make_shared<Dictionary>();
+			fields->Set("varname", Convert::ToString(kv.first));
+			fields->Set("varvalue", Convert::ToString(kv.second));
+			fields->Set("has_been_modified", overridden);
+			fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
+			fields->Set("object_id", obj);
+			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-				query.WhereCriteria = make_shared<Dictionary>();
-				query.WhereCriteria->Set("object_id", obj);
-				query.WhereCriteria->Set("varname", Convert::ToString(kv.first));
-				query.Object = GetSelf();
+			DbQuery query;
+			query.Table = "customvariablestatus";
+			query.Type = DbQueryInsert | DbQueryUpdate;
+			query.Category = DbCatState;
+			query.Fields = fields;
 
-				OnQuery(query);
-			}
+			query.WhereCriteria = make_shared<Dictionary>();
+			query.WhereCriteria->Set("object_id", obj);
+			query.WhereCriteria->Set("varname", Convert::ToString(kv.first));
+			query.Object = GetSelf();
+
+			OnQuery(query);
 		}
-
 	}
 }
 

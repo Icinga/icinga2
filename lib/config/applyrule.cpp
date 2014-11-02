@@ -28,8 +28,10 @@ ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::CallbackMap ApplyRule::m_Callbacks;
 
 ApplyRule::ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
-    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope)
-	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
+    const Expression::Ptr& filter, const String& fvar, const Expression::Ptr& fterm,
+    const DebugInfo& di, const Dictionary::Ptr& scope)
+	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_FVar(fvar),
+	  m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope)
 { }
 
 String ApplyRule::GetTargetType(void) const
@@ -52,6 +54,16 @@ Expression::Ptr ApplyRule::GetFilter(void) const
 	return m_Filter;
 }
 
+String ApplyRule::GetFVar(void) const
+{
+	return m_FVar;
+}
+
+Expression::Ptr ApplyRule::GetFTerm(void) const
+{
+	return m_FTerm;
+}
+
 DebugInfo ApplyRule::GetDebugInfo(void) const
 {
 	return m_DebugInfo;
@@ -63,10 +75,10 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 }
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
-    const Expression::Ptr& expression, const Expression::Ptr& filter,
-    const DebugInfo& di, const Dictionary::Ptr& scope)
+    const Expression::Ptr& expression, const Expression::Ptr& filter, const String& fvar,
+    const Expression::Ptr& fterm, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, di, scope));
+	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, fvar, fterm, di, scope));
 }
 
 bool ApplyRule::EvaluateFilter(const Dictionary::Ptr& scope) const

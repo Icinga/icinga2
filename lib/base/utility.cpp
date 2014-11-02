@@ -25,12 +25,14 @@
 #include "base/socket.hpp"
 #include "base/utility.hpp"
 #include "base/json.hpp"
+#include "base/objectlock.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
@@ -767,6 +769,35 @@ String Utility::NaturalJoin(const std::vector<String>& tokens)
 			else if (i == tokens.size() - 2)
 				result += " and ";
 		}
+	}
+
+	return result;
+}
+
+String Utility::Join(const Array::Ptr& tokens, char separator)
+{
+	String result;
+	bool first = true;
+
+	ObjectLock olock(tokens);
+	BOOST_FOREACH(const Value& vtoken, tokens) {
+		String token = Convert::ToString(vtoken);
+		boost::algorithm::replace_all(token, "\\", "\\\\");
+
+		char sep_before[2], sep_after[3];
+		sep_before[0] = separator;
+		sep_before[1] = '\0';
+		sep_after[0] = '\\';
+		sep_after[1] = separator;
+		sep_after[2] = '\0';
+		boost::algorithm::replace_all(token, sep_before, sep_after);
+
+		if (first)
+			first = false;
+		else
+			result += String(1, separator);
+
+		result += token;
 	}
 
 	return result;

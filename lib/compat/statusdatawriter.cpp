@@ -516,14 +516,22 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		if (!kv.first.IsEmpty()) {
-			fp << "\t";
+		if (kv.first.IsEmpty())
+			continue;
 
-			if (!CompatUtility::IsLegacyAttribute(object, kv.first))
-				fp << "_";
+		String value;
 
-			fp << kv.first << "\t" << kv.second << "\n";
-		}
+		if (kv.second.IsObjectType<Array>())
+			value = Utility::Join(kv.second, ';');
+		else
+			value = kv.second;
+
+		fp << "\t";
+
+		if (!CompatUtility::IsLegacyAttribute(object, kv.first))
+			fp << "_";
+
+		fp << kv.first << "\t" << value << "\n";
 	}
 }
 

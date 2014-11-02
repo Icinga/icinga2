@@ -551,10 +551,12 @@ Value Expression::OpApply(const Expression* expr, const Dictionary::Ptr& locals,
 	String target = left->Get(1);
 	Expression::Ptr aname = left->Get(2);
 	Expression::Ptr filter = left->Get(3);
+	String fvar = left->Get(4);
+	Expression::Ptr fterm = left->Get(5);
 
 	String name = aname->Evaluate(locals, dhint);
 
-	ApplyRule::AddRule(type, target, name, exprl, filter, expr->m_DebugInfo, locals);
+	ApplyRule::AddRule(type, target, name, exprl, filter, fvar, fterm, expr->m_DebugInfo, locals);
 
 	return Empty;
 }

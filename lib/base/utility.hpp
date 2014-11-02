@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
+#include "base/array.hpp"
 #include <typeinfo>
 #include <boost/function.hpp>
 #include <boost/thread/tss.hpp>
@@ -96,6 +97,7 @@ public:
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);
 
 	static String NaturalJoin(const std::vector<String>& tokens);
+	static String Join(const Array::Ptr& tokens, char separator);
 
 	static String FormatDuration(double duration);
 	static String FormatDateTime(const char *format, double ts);
