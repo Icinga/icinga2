@@ -223,7 +223,7 @@ void ObjectListCommand::PrintValue(std::ostream& fp, const Value& val)
 	}
 
 	if (val.IsString()) {
-		fp << "'" << Convert::ToString(val) << "'";
+		fp << "\"" << Convert::ToString(val) << "\"";
 		return;
 	}
 
