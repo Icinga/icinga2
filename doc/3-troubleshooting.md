@@ -223,6 +223,13 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 
 ## <a id="debug"></a> Debug Icinga 2
 
+> **Note**
+>
+> If you are planning to build your own development environment,
+> please consult the `INSTALL.md` file from the source tree.
+
+### <a id="debug-requirements"></a> Debug Requirements
+
 Make sure that the debug symbols are available for Icinga 2.
 The Icinga 2 packages provide a debug package which must be
 installed separately for all involved binaries, like `icinga2-bin`
@@ -233,17 +240,92 @@ or `icinga2-ido-mysql`.
     # zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
 
     # apt-get install icinga2-dbg
+    
+Furthermore, boost and gcc require their debug symbols installed as well.
 
 Compiled binaries require the `-DCMAKE_BUILD_TYPE=RelWithDebInfo` or
 `-DCMAKE_BUILD_TYPE=Debug` cmake build flags.
 
+
 ### <a id="development-debug-gdb"></a> GDB
+
+Install gdb:
+
+    # yum install gdb
+    
+    # zypper install gdb
+    
+    # apt-get install gdb
+    
+Install the `boost`, `python` and `icinga2` pretty printers. Absolute paths are required,
+so please make sure to update the installation paths accordingly (`pwd`).
+
+Boost Pretty Printers:
+
+    $ mkdir ~/.gdb_printers && cd ~/.gdb_printers
+    $ git clone https://github.com/ruediger/Boost-Pretty-Printer.git && cd Boost-Pretty-Printer
+    $ pwd
+    /home/michi/.gdb_printers/Boost-Pretty-Printer
+
+Python Pretty Printers:
+
+    $ cd ~/.gdb_printers
+    $ svn co svn://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python
+
+Icinga 2 Pretty Printers: 
+
+    $ mkdir -p ~/.gdb_printers/icinga2 && ~/.gdb_printers/icinga2
+    $ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/icingadbg.py
+    
+Now you'll need to modify/setup your `~/.gdbinit` configuration file.
+You can download the one from Icinga 2 and modify all paths.
+
+> **Note**
+>
+> The path to the `pthread` library varies on distributions. Use
+> `find /usr/lib* -type f -name '*libpthread.so*'` to get the proper
+> path.
+
+Example on Fedora 20 x64:
+
+    $ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/gdbinit -O ~/.gdbinit
+    $ vim ~/.gdbinit
+    
+    set env LD_PRELOAD /usr/lib64/libpthread.so
+    
+    python
+    import sys
+    sys.path.insert(0, '/home/michi/.gdb_printers/icinga2')
+    from icingadbg import register_icinga_printers
+    register_icinga_printers()
+    end
+    
+    python
+    import sys
+    sys.path.insert(0, '/home/michi/.gdb_printers/python')
+    from libstdcxx.v6.printers import register_libstdcxx_printers
+    register_libstdcxx_printers(None)
+    end
+    
+    python
+    import sys
+    sys.path.insert(0, '/home/michi/.gdb_printers/Boost-Pretty-Printer')
+    from boost.printers import register_printer_gen
+    register_printer_gen(None)
+    end
+
+    
+
+### <a id="development-debug-gdb-run"></a> GDB Run
 
 Call GDB with the binary and all arguments and run it in foreground.
 
-    # gdb --args /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -x
-
-### <a id="development-debug-gdb-run"></a> GDB Run
+    # gdb --args /usr/sbin/icinga2 daemon -x debug
+    
+> **Note**
+>
+> If gdb tells you it's missing debug symbols, quit gdb and install
+> them: `Missing separate debuginfos, use: debuginfo-install ...`
 
 Run the application.
 
@@ -301,3 +383,38 @@ afterwards.
 If you want to delete all breakpoints, use `d` and select `yes`.
 
     (gdb) d
+    
+> **Tip**
+>
+> When debugging exceptions, set your breakpoint like this: `b __cxa_throw`.
+
+Breakpoint Example:
+
+    (gdb) b __cxa_throw
+    (gdb) r
+    (gdb) up
+    ....
+    (gdb) up
+    #11 0x00007ffff7cbf9ff in icinga::Utility::GlobRecursive(icinga::String const&, icinga::String const&, boost::function<void (icinga::String const&)> const&, int) (path=..., pattern=..., callback=..., type=1)
+        at /home/michi/coding/icinga/icinga2/lib/base/utility.cpp:609
+    609			callback(cpath);
+    (gdb) l
+    604	
+    605	#endif /* _WIN32 */
+    606	
+    607		std::sort(files.begin(), files.end());
+    608		BOOST_FOREACH(const String& cpath, files) {
+    609			callback(cpath);
+    610		}
+    611	
+    612		std::sort(dirs.begin(), dirs.end());
+    613		BOOST_FOREACH(const String& cpath, dirs) {
+    (gdb) p files
+    $3 = std::vector of length 11, capacity 16 = {{static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/agent.conf"}, {static NPos = 18446744073709551615, 
+        m_Data = "/etc/icinga2/conf.d/commands.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/downtimes.conf"}, {static NPos = 18446744073709551615, 
+        m_Data = "/etc/icinga2/conf.d/groups.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/notifications.conf"}, {static NPos = 18446744073709551615, 
+        m_Data = "/etc/icinga2/conf.d/satellite.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/services.conf"}, {static NPos = 18446744073709551615, 
+        m_Data = "/etc/icinga2/conf.d/templates.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/test.conf"}, {static NPos = 18446744073709551615, 
+        m_Data = "/etc/icinga2/conf.d/timeperiods.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/users.conf"}}
+
+
