@@ -287,6 +287,7 @@ match(pattern, text)            | Returns true if the wildcard pattern matches t
 len(value)                      | Returns the length of the value, i.e. the number of elements for an array or dictionary, or the length of the string in bytes.
 union(array, array, ...)        | Returns an array containing all unique elements from the specified arrays.
 intersection(array, array, ...) | Returns an array containing all unique elements which are common to all specified arrays.
+keys(dict)                      | Returns an array containing the dictionary's keys.
 string(value)                   | Converts the value to a string.
 number(value)                   | Converts the value to a number.
 bool(value)                     | Converts the value to a bool.

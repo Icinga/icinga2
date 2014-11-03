@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
 #include "base/array.hpp"
+#include "base/dictionary.hpp"
 #include "base/type.hpp"
 
 namespace icinga
@@ -42,6 +43,7 @@ public:
 	static Array::Ptr Range(const std::vector<Value>& arguments);
 	static void Exit(int code);
 	static Type::Ptr TypeOf(const Value& value);
+	static Array::Ptr Keys(const Dictionary::Ptr& dict);
 
 private:
 	ScriptUtils(void);

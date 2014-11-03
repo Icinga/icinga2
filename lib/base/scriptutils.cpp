@@ -21,10 +21,9 @@
 #include "base/scriptfunction.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
-#include "base/array.hpp"
-#include "base/dictionary.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -41,6 +40,7 @@ REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
 REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
 REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
 REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
+REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
@@ -196,3 +196,16 @@ Type::Ptr ScriptUtils::TypeOf(const Value& value)
 			VERIFY(!"Invalid value type.");
 	}
 }
+
+Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
+{
+	Array::Ptr result = make_shared<Array>();
+
+	ObjectLock olock(dict);
+	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+		result->Add(kv.first);
+	}
+
+	return result;
+}
+
