@@ -19,6 +19,7 @@
 
 #include "base/object.hpp"
 #include "base/value.hpp"
+#include "base/primitivetype.hpp"
 
 using namespace icinga;
 

@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
 #include "base/array.hpp"
+#include "base/type.hpp"
 
 namespace icinga
 {
