@@ -291,6 +291,7 @@ keys(dict)                      | Returns an array containing the dictionary's k
 string(value)                   | Converts the value to a string.
 number(value)                   | Converts the value to a number.
 bool(value)                     | Converts the value to a bool.
+random()                        | Returns a random value between 0 and RAND_MAX (as defined in stdlib.h).
 log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
 exit(integer)                   | Terminates the application.

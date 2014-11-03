@@ -41,6 +41,7 @@ REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
 REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
 REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
+REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
