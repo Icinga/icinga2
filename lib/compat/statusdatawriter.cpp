@@ -30,6 +30,7 @@
 #include "icinga/dependency.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
+#include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -514,6 +515,8 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 	if (!vars)
 		return;
 
+	bool is_json = false;
+
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		if (kv.first.IsEmpty())
@@ -521,9 +524,10 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 
 		String value;
 
-		if (kv.second.IsObjectType<Array>())
-			value = Utility::Join(kv.second, ';');
-		else
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>()) {
+			value = JsonEncode(kv.second);
+			is_json = true;
+		} else
 			value = kv.second;
 
 		fp << "\t";
@@ -533,6 +537,9 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 
 		fp << kv.first << "\t" << value << "\n";
 	}
+
+	if (is_json)
+		fp << "\t" "_is_json" "\t" "1" "\n";
 }
 
 void StatusDataWriter::UpdateObjectsCache(void)

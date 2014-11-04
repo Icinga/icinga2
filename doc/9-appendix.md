@@ -147,6 +147,8 @@ Icinga 2 specific extensions:
 * host and service objects support 'check_source' (added in Classic UI 1.10.0)
 * command objects support custom variables (added in Classic UI 1.11.2)
 * host and service objects support 'is_reachable' (added in Classic UI 1.11.3)
+* 2.2 adds custom attributes with arrays and dictionaries. They are dumped as JSON encoded string and `_is_json`
+is set as additional custom variable in `objects.cache`.
 
 ### <a id="schema-db-ido"></a> DB IDO Schema
 
