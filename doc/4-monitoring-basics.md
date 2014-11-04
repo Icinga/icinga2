@@ -610,8 +610,6 @@ to the defined notifications. That way you'll save duplicated attributes in each
 
 The time period `24x7` is shipped as example configuration with Icinga 2.
 
-
-
 Use the `apply` keyword to create `Notification` objects for your services:
 
     apply Notification "notify-cust-xy-mysql" to Service {
@@ -627,6 +625,11 @@ Use the `apply` keyword to create `Notification` objects for your services:
 Instead of assigning users to notifications, you can also add the `user_groups`
 attribute with a list of user groups to the `Notification` object. Icinga 2 will
 send notifications to all group members.
+
+> **Note**
+>
+> Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
+> states for services, `Down` for hosts) will receive `Recovery` notifications.
 
 ### <a id="notification-escalations"></a> Notification Escalations
 

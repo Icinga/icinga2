@@ -97,6 +97,8 @@ public:
 
 	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force);
 
+	void ResetNotifiedUsers(void);
+
 	static String NotificationTypeToString(NotificationType type);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> OnNextNotificationChanged;
@@ -111,6 +113,8 @@ protected:
 	virtual void Stop(void);
 
 private:
+	std::set<String> m_NotifiedUsers;
+
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
 	static void EvaluateApplyRuleOneInstance(const intrusive_ptr<Checkable>& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
