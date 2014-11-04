@@ -58,7 +58,7 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	    di));
 
 	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("service_name")), OpSetLiteral),
+	    MakeArray(MakeArray(MakeLiteral("name")), OpSetLiteral),
 	    MakeLiteral(name),
 	    di));
 
