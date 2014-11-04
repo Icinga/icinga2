@@ -312,159 +312,83 @@ Value Expression::OpDict(const Expression *expr, const Dictionary::Ptr& locals, 
 
 Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
-	Value index = expr->EvaluateOperand1(locals);
+	Array::Ptr left = expr->m_Operand1;
+	Array::Ptr indexer = left->Get(0);
+	int csop = left->Get(1);
 
-	DebugHint *sdhint = NULL;
-	if (dhint)
-		sdhint = dhint->GetChild(index);
+	DebugHint *sdhint = dhint;
 
-	Value right = expr->EvaluateOperand2(locals, sdhint);
-	locals->Set(index, right);
+	Value parent, object;
+	String index;
+
+	for (Array::SizeType i = 0; i < indexer->GetLength(); i++) {
+		Expression::Ptr indexExpr = indexer->Get(i);
+		String tempindex = indexExpr->Evaluate(locals, dhint);
+
+		if (i == indexer->GetLength() - 1)
+			index = tempindex;
+
+		if (i == 0) {
+			parent = locals;
+			object = locals->Get(tempindex);
+		} else {
+			parent = object;
+
+			Expression::Ptr eparent = make_shared<Expression>(&Expression::OpLiteral, parent, expr->m_DebugInfo);
+			Expression::Ptr eindex = make_shared<Expression>(&Expression::OpLiteral, tempindex, expr->m_DebugInfo);
+
+			Expression::Ptr eip = make_shared<Expression>(&Expression::OpIndexer, eparent, eindex, expr->m_DebugInfo);
+			object = eip->Evaluate(locals, dhint);
+		}
+
+		if (sdhint)
+			sdhint = sdhint->GetChild(index);
+
+		if (i != indexer->GetLength() - 1 && object.IsEmpty()) {
+			object = make_shared<Dictionary>();
+
+			Dictionary::Ptr pdict = parent;
+			pdict->Set(tempindex, object);
+		}
+	}
+
+	Value right = expr->EvaluateOperand2(locals, dhint);
+
+	if (csop != OpSetLiteral) {
+		Expression::OpCallback op;
+
+		switch (csop) {
+			case OpSetAdd:
+				op = &Expression::OpAdd;
+				break;
+			case OpSetSubtract:
+				op = &Expression::OpSubtract;
+				break;
+			case OpSetMultiply:
+				op = &Expression::OpMultiply;
+				break;
+			case OpSetDivide:
+				op = &Expression::OpDivide;
+				break;
+			default:
+				VERIFY(!"Invalid opcode.");
+		}
+
+		Expression::Ptr ecp = make_shared<Expression>(op,
+		    make_shared<Expression>(&Expression::OpLiteral, object, expr->m_DebugInfo),
+		    make_shared<Expression>(&Expression::OpLiteral, right, expr->m_DebugInfo),
+		    expr->m_DebugInfo);
+
+		right = ecp->Evaluate(locals, dhint);
+	}
+
+	Dictionary::Ptr pdict = parent;
+	pdict->Set(index, right);
 
 	if (sdhint)
 		sdhint->AddMessage("=", expr->m_DebugInfo);
 
 	return right;
-}
-
-Value Expression::OpSetPlus(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
-{
-	Value index = expr->EvaluateOperand1(locals);
-	Value left = locals->Get(index);
-	Expression::Ptr exp_right = expr->m_Operand2;
-	Dictionary::Ptr xlocals = locals;
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		xlocals = left;
-
-		if (!xlocals)
-			xlocals = make_shared<Dictionary>();
-
-		xlocals->Set("__parent", locals);
-	}
-
-	DebugHint *sdhint = NULL;
-	if (dhint)
-		sdhint = dhint->GetChild(index);
-
-	Value result = left + expr->EvaluateOperand2(xlocals, sdhint);
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		Dictionary::Ptr dict = result;
-		dict->Remove("__parent");
-	}
-
-	locals->Set(index, result);
-
-	if (sdhint)
-		sdhint->AddMessage("+=", expr->m_DebugInfo);
-
-	return result;
-}
-
-Value Expression::OpSetMinus(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
-{
-	Value index = expr->EvaluateOperand1(locals);
-	Value left = locals->Get(index);
-	Expression::Ptr exp_right = expr->m_Operand2;
-	Dictionary::Ptr xlocals = locals;
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		xlocals = left;
-
-		if (!xlocals)
-			xlocals = make_shared<Dictionary>();
-
-		xlocals->Set("__parent", locals);
-	}
-
-	DebugHint *sdhint = NULL;
-	if (dhint)
-		sdhint = dhint->GetChild(index);
-
-	Value result = left - expr->EvaluateOperand2(xlocals, sdhint);
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		Dictionary::Ptr dict = result;
-		dict->Remove("__parent");
-	}
-
-	locals->Set(index, result);
-
-	if (sdhint)
-		sdhint->AddMessage("-=", expr->m_DebugInfo);
-
-	return result;
-}
-
-Value Expression::OpSetMultiply(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
-{
-	Value index = expr->EvaluateOperand1(locals);
-	Value left = locals->Get(index);
-	Expression::Ptr exp_right = expr->m_Operand2;
-	Dictionary::Ptr xlocals = locals;
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		xlocals = left;
-
-		if (!xlocals)
-			xlocals = make_shared<Dictionary>();
-
-		xlocals->Set("__parent", locals);
-	}
-
-	DebugHint *sdhint = NULL;
-	if (dhint)
-		sdhint = dhint->GetChild(index);
-
-	Value result = left * expr->EvaluateOperand2(xlocals, sdhint);
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		Dictionary::Ptr dict = result;
-		dict->Remove("__parent");
-	}
-
-	locals->Set(index, result);
-
-	if (sdhint)
-		sdhint->AddMessage("*=", expr->m_DebugInfo);
-
-	return result;
-}
-
-Value Expression::OpSetDivide(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
-{
-	Value index = expr->EvaluateOperand1(locals);
-	Value left = locals->Get(index);
-	Expression::Ptr exp_right = expr->m_Operand2;
-	Dictionary::Ptr xlocals = locals;
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		xlocals = left;
-
-		if (!xlocals)
-			xlocals = make_shared<Dictionary>();
-
-		xlocals->Set("__parent", locals);
-	}
-
-	DebugHint *sdhint = NULL;
-	if (dhint)
-		sdhint = dhint->GetChild(index);
-
-	Value result = left / expr->EvaluateOperand2(xlocals, sdhint);
-
-	if (exp_right->m_Operator == &Expression::OpDict) {
-		Dictionary::Ptr dict = result;
-		dict->Remove("__parent");
-	}
-
-	locals->Set(index, result);
-
-	if (sdhint)
-		sdhint->AddMessage("/=", expr->m_DebugInfo);
-
-	return result;
 }
 
 Value Expression::OpIndexer(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
@@ -692,3 +616,7 @@ Dictionary::Ptr DebugHint::ToDictionary(void) const
 	return result;
 }
 
+Expression::Ptr icinga::MakeLiteral(const Value& lit)
+{
+	return make_shared<Expression>(&Expression::OpLiteral, lit, DebugInfo());
+}

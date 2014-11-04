@@ -252,11 +252,11 @@ in				{ yylval->op = &Expression::OpIn; return T_IN; }
 -?[0-9]+(\.[0-9]+)?m		{ yylval->num = strtod(yytext, NULL) * 60; return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?s		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
 -?[0-9]+(\.[0-9]+)?		{ yylval->num = strtod(yytext, NULL); return T_NUMBER; }
-=				{ yylval->op = &Expression::OpSet; return T_SET; }
-\+=				{ yylval->op = &Expression::OpSetPlus; return T_SET_PLUS; }
--=				{ yylval->op = &Expression::OpSetMinus; return T_SET_MINUS; }
-\*=				{ yylval->op = &Expression::OpSetMultiply; return T_SET_MULTIPLY; }
-\/=				{ yylval->op = &Expression::OpSetDivide; return T_SET_DIVIDE; }
+=				{ yylval->csop = OpSetLiteral; return T_SET; }
+\+=				{ yylval->csop = OpSetAdd; return T_SET_ADD; }
+-=				{ yylval->csop = OpSetSubtract; return T_SET_SUBTRACT; }
+\*=				{ yylval->csop = OpSetMultiply; return T_SET_MULTIPLY; }
+\/=				{ yylval->csop = OpSetDivide; return T_SET_DIVIDE; }
 \+				{ yylval->op = &Expression::OpAdd; return T_PLUS; }
 \-				{ yylval->op = &Expression::OpSubtract; return T_MINUS; }
 \*				{ yylval->op = &Expression::OpMultiply; return T_MULTIPLY; }

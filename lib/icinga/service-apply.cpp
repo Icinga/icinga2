@@ -53,21 +53,21 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	builder->SetScope(locals);
 
 	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-	    make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
-	    make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
+	    MakeArray(MakeArray(MakeLiteral("host_name")), OpSetLiteral),
+	    MakeLiteral(host->GetName()),
 	    di));
 
 	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-	    make_shared<Expression>(&Expression::OpLiteral, "name", di),
-	    make_shared<Expression>(&Expression::OpLiteral, name, di),
+	    MakeArray(MakeArray(MakeLiteral("service_name")), OpSetLiteral),
+	    MakeLiteral(name),
 	    di));
 
 	String zone = host->GetZone();
 
 	if (!zone.IsEmpty()) {
 		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-		    make_shared<Expression>(&Expression::OpLiteral, "zone", di),
-		    make_shared<Expression>(&Expression::OpLiteral, zone, di),
+		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
+		    MakeLiteral(zone),
 		    di));
 	}
 

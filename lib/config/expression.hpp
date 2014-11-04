@@ -46,6 +46,15 @@ struct DebugHint
 	Dictionary::Ptr ToDictionary(void) const;
 };
 
+enum CombinedSetOp
+{
+	OpSetLiteral,
+	OpSetAdd,
+	OpSetSubtract,
+	OpSetMultiply,
+	OpSetDivide
+};
+
 /**
  * @ingroup config
  */
@@ -91,10 +100,6 @@ public:
 	static Value OpArray(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
 	static Value OpDict(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
 	static Value OpSet(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
-	static Value OpSetPlus(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
-	static Value OpSetMinus(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
-	static Value OpSetMultiply(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
-	static Value OpSetDivide(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
 	static Value OpIndexer(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
 	static Value OpImport(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint);
 	static Value OpFunction(const Expression* expr, const Dictionary::Ptr& locals, DebugHint *dhint);
@@ -116,6 +121,8 @@ private:
 	static Value FunctionWrapper(const std::vector<Value>& arguments, const Array::Ptr& funcargs,
 	    const Expression::Ptr& expr, const Dictionary::Ptr& scope);
 };
+
+I2_CONFIG_API Expression::Ptr MakeLiteral(const Value& lit = Value());
 
 }
 

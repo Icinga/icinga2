@@ -96,6 +96,7 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 	double num;
 	icinga::Value *variant;
 	icinga::Expression::OpCallback op;
+	CombinedSetOp csop;
 	icinga::TypeSpecifier type;
 	std::vector<String> *slist;
 	Array *array;
@@ -108,11 +109,11 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %token T_NULL
 %token <text> T_IDENTIFIER
 
-%token <op> T_SET "= (T_SET)"
-%token <op> T_SET_PLUS "+= (T_SET_PLUS)"
-%token <op> T_SET_MINUS "-= (T_SET_MINUS)"
-%token <op> T_SET_MULTIPLY "*= (T_SET_MULTIPLY)"
-%token <op> T_SET_DIVIDE "/= (T_SET_DIVIDE)"
+%token <csop> T_SET "= (T_SET)"
+%token <csop> T_SET_ADD "+= (T_SET_ADD)"
+%token <csop> T_SET_SUBTRACT "-= (T_SET_SUBTRACT)"
+%token <csop> T_SET_MULTIPLY "*= (T_SET_MULTIPLY)"
+%token <csop> T_SET_DIVIDE "/= (T_SET_DIVIDE)"
 
 %token <op> T_SHIFT_LEFT "<< (T_SHIFT_LEFT)"
 %token <op> T_SHIFT_RIGHT ">> (T_SHIFT_RIGHT)"
@@ -168,10 +169,13 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %type <array> rterm_items_inner
 %type <array> identifier_items
 %type <array> identifier_items_inner
+%type <array> indexer
+%type <array> indexer_items
+%type <variant> indexer_item
 %type <array> lterm_items
 %type <array> lterm_items_inner
 %type <variant> typerulelist
-%type <op> lbinary_op
+%type <csop> combined_set_op
 %type <type> type
 %type <variant> rterm
 %type <variant> rterm_array
@@ -436,8 +440,8 @@ object:
 		m_Abstract.push(false);
 		m_ObjectAssign.push(true);
 		m_SeenAssign.push(false);
-		m_Assign.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
-		m_Ignore.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
+		m_Assign.push(MakeLiteral(false));
+		m_Ignore.push(MakeLiteral(false));
 	}
 	object_declaration identifier rterm rterm_scope
 	{
@@ -516,9 +520,47 @@ identifier_items_inner: /* empty */
 	}
 	;
 
-lbinary_op: T_SET
-	| T_SET_PLUS
-	| T_SET_MINUS
+indexer: T_IDENTIFIER
+	{
+		$$ = new Array();
+		$$->Add(MakeLiteral($1));
+		free($1);
+	}
+	| T_IDENTIFIER indexer_items
+	{
+		$$ = $2;
+		$$->Insert(0, MakeLiteral($1));
+	}
+	;
+
+indexer_items: indexer_item
+	{
+		$$ = new Array();
+		$$->Add(*$1);
+		delete $1;
+	}
+	| indexer_items indexer_item
+	{
+		$$ = $1;
+		$$->Add(*$2);
+		delete $2;
+	}
+	;
+
+indexer_item: '.' T_IDENTIFIER
+	{
+		$$ = new Value(MakeLiteral($2));
+		free($2);
+	}
+	| '[' rterm ']'
+	{
+		$$ = $2;
+	}
+	;
+
+combined_set_op: T_SET
+	| T_SET_ADD
+	| T_SET_SUBTRACT
 	| T_SET_MULTIPLY
 	| T_SET_DIVIDE
 	{
@@ -557,44 +599,10 @@ lterm_items_inner: lterm
 	}
 	;
 
-lterm: identifier lbinary_op rterm
+lterm: indexer combined_set_op rterm
 	{
-		Expression::Ptr aindex = make_shared<Expression>(&Expression::OpLiteral, $1, @1);
-		free($1);
-
-		$$ = new Value(make_shared<Expression>($2, aindex, *$3, DebugInfoRange(@1, @3)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpSet, MakeArray(Array::Ptr($1), $2), *$3, DebugInfoRange(@1, @3)));
 		delete $3;
-	}
-	| identifier '[' rterm ']' lbinary_op rterm
-	{
-		Expression::Ptr subexpr = make_shared<Expression>($5, *$3, *$6, DebugInfoRange(@1, @6));
-		delete $3;
-		delete $6;
-
-		Array::Ptr subexprl = make_shared<Array>();
-		subexprl->Add(subexpr);
-		
-		Expression::Ptr aindex = make_shared<Expression>(&Expression::OpLiteral, $1, @1);
-		free($1);
-
-		Expression::Ptr expr = make_shared<Expression>(&Expression::OpDict, subexprl, DebugInfoRange(@1, @6));
-		$$ = new Value(make_shared<Expression>(&Expression::OpSetPlus, aindex, expr, DebugInfoRange(@1, @6)));
-	}
-	| identifier '.' T_IDENTIFIER lbinary_op rterm
-	{
-		Expression::Ptr aindex = make_shared<Expression>(&Expression::OpLiteral, $3, @3);
-		Expression::Ptr subexpr = make_shared<Expression>($4, aindex, *$5, DebugInfoRange(@1, @5));
-		free($3);
-		delete $5;
-
-		Array::Ptr subexprl = make_shared<Array>();
-		subexprl->Add(subexpr);
-
-		Expression::Ptr aindexl = make_shared<Expression>(&Expression::OpLiteral, $1, @1);
-		free($1);
-
-		Expression::Ptr expr = make_shared<Expression>(&Expression::OpDict, subexprl, DebugInfoRange(@1, @5));
-		$$ = new Value(make_shared<Expression>(&Expression::OpSetPlus, aindexl, expr, DebugInfoRange(@1, @5)));
 	}
 	| T_IMPORT rterm
 	{
@@ -612,7 +620,7 @@ lterm: identifier lbinary_op rterm
 		m_Assign.top() = make_shared<Expression>(&Expression::OpLogicalOr, m_Assign.top(), *$3, DebugInfoRange(@1, @3));
 		delete $3;
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
+		$$ = new Value(MakeLiteral());
 	}
 	| T_IGNORE T_WHERE rterm
 	{
@@ -622,12 +630,12 @@ lterm: identifier lbinary_op rterm
 		m_Ignore.top() = make_shared<Expression>(&Expression::OpLogicalOr, m_Ignore.top(), *$3, DebugInfoRange(@1, @3));
 		delete $3;
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, DebugInfoRange(@1, @3)));
+		$$ = new Value(MakeLiteral());
 	}
 	| T_RETURN rterm
 	{
-		Expression::Ptr aname = make_shared<Expression>(&Expression::OpLiteral, "__result", @1);
-		$$ = new Value(make_shared<Expression>(&Expression::OpSet, aname, *$2, DebugInfoRange(@1, @2)));
+		Expression::Ptr aname = MakeLiteral("__result");
+		$$ = new Value(make_shared<Expression>(&Expression::OpSet, MakeArray(MakeArray(MakeLiteral(aname)), OpSetLiteral), *$2, DebugInfoRange(@1, @2)));
 		delete $2;
 
 	}
@@ -711,27 +719,26 @@ rterm_scope: '{' newlines lterm_items newlines '}'
 
 rterm: T_STRING
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, $1, @1));
+		$$ = new Value(MakeLiteral($1));
 		free($1);
 	}
 	| T_NUMBER
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, $1, @1));
+		$$ = new Value(MakeLiteral($1));
 	}
 	| T_NULL
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, @1));
+		$$ = new Value(MakeLiteral());
 	}
 	| rterm '.' T_IDENTIFIER
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpIndexer, *$1, make_shared<Expression>(&Expression::OpLiteral, $3, @3), DebugInfoRange(@1, @3)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpIndexer, *$1, MakeLiteral($3), DebugInfoRange(@1, @3)));
 		delete $1;
 		free($3);
 	}
 	| rterm '(' rterm_items ')'
 	{
-		Array::Ptr arguments = Array::Ptr($3);
-		$$ = new Value(make_shared<Expression>(&Expression::OpFunctionCall, *$1, make_shared<Expression>(&Expression::OpLiteral, arguments, @3), DebugInfoRange(@1, @4)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpFunctionCall, *$1, MakeLiteral(Array::Ptr($3)), DebugInfoRange(@1, @4)));
 		delete $1;
 	}
 	| T_IDENTIFIER
@@ -792,67 +799,43 @@ rterm: T_STRING
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp(&$$, $2, $1, $3, @1, @3); }
 	| T_FUNCTION identifier '(' identifier_items ')' rterm_scope
 	{
-		Array::Ptr arr = make_shared<Array>();
-
-		arr->Add($2);
-		free($2);
-
 		Expression::Ptr aexpr = *$6;
 		delete $6;
 		aexpr->MakeInline();
-		arr->Add(aexpr);
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, arr, Array::Ptr($4), DebugInfoRange(@1, @6)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, MakeArray($2, aexpr), Array::Ptr($4), DebugInfoRange(@1, @6)));
+		free($2);
 	}
 	| T_FUNCTION '(' identifier_items ')' rterm_scope
 	{
-		Array::Ptr arr = make_shared<Array>();
-
-		arr->Add(Empty);
-
 		Expression::Ptr aexpr = *$5;
 		delete $5;
 		aexpr->MakeInline();
-		arr->Add(aexpr);
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, arr, Array::Ptr($3), DebugInfoRange(@1, @5)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, MakeArray(Empty, aexpr), Array::Ptr($3), DebugInfoRange(@1, @5)));
 	}
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
 	{
-		Array::Ptr arr = make_shared<Array>();
-
-		arr->Add($3);
-		free($3);
-
-		arr->Add($5);
-		free($5);
-
 		Expression::Ptr aexpr = *$7;
 		delete $7;
-		arr->Add(aexpr);
 
 		Expression::Ptr ascope = *$9;
 		delete $9;
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFor, arr, ascope, DebugInfoRange(@1, @9)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpFor, MakeArray($3, $5, aexpr), ascope, DebugInfoRange(@1, @9)));
+		free($3);
+		free($5);
 	}
 	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
 	{
-		Array::Ptr arr = make_shared<Array>();
-
-		arr->Add($3);
-		free($3);
-
-		arr->Add(Empty);
-
 		Expression::Ptr aexpr = *$5;
 		delete $5;
-		arr->Add(aexpr);
 
 		Expression::Ptr ascope = *$7;
 		delete $7;
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFor, arr, ascope, DebugInfoRange(@1, @7)));
+		$$ = new Value(make_shared<Expression>(&Expression::OpFor, MakeArray($3, Empty, aexpr), ascope, DebugInfoRange(@1, @7)));
+		free($3);
 	}
 	;
 
@@ -892,7 +875,7 @@ apply_for_specifier: /* empty */
 
 optional_rterm: /* empty */
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, DebugInfo()));
+		$$ = new Value(MakeLiteral(Empty));
 	}
 	| rterm
 	{
@@ -904,8 +887,8 @@ apply:
 	{
 		m_Apply.push(true);
 		m_SeenAssign.push(false);
-		m_Assign.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
-		m_Ignore.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
+		m_Assign.push(MakeLiteral(false));
+		m_Ignore.push(MakeLiteral(false));
 		m_FKVar.push("");
 		m_FVVar.push("");
 		m_FTerm.push(Expression::Ptr());

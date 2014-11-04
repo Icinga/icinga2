@@ -93,8 +93,8 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Array::Ptr templateArray = make_shared<Array>();
 	templateArray->Add(m_Name);
 
-	exprs->Add(make_shared<Expression>(&Expression::OpSetPlus,
-	    make_shared<Expression>(&Expression::OpLiteral, "templates", m_DebugInfo),
+	exprs->Add(make_shared<Expression>(&Expression::OpSet,
+	    MakeArray(MakeArray(MakeLiteral("templates")), OpSetLiteral),
 	    make_shared<Expression>(&Expression::OpLiteral, templateArray, m_DebugInfo),
 	    m_DebugInfo));
 

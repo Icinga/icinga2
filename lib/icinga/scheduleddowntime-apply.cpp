@@ -58,24 +58,24 @@ void ScheduledDowntime::EvaluateApplyRuleOneInstance(const Checkable::Ptr& check
 	tie(host, service) = GetHostService(checkable);
 
 	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-		make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
-		make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
-		di));
+	    MakeArray(MakeArray(MakeLiteral("host_name")), OpSetLiteral),
+	    MakeLiteral(host->GetName()),
+	    di));
 
 	if (service) {
 		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-			make_shared<Expression>(&Expression::OpLiteral, "service_name", di),
-			make_shared<Expression>(&Expression::OpLiteral, service->GetShortName(), di),
-			di));
+		    MakeArray(MakeArray(MakeLiteral("service_name")), OpSetLiteral),
+		    MakeLiteral(service->GetShortName()),
+		    di));
 	}
 
 	String zone = checkable->GetZone();
 
 	if (!zone.IsEmpty()) {
 		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-			make_shared<Expression>(&Expression::OpLiteral, "zone", di),
-			make_shared<Expression>(&Expression::OpLiteral, zone, di),
-			di));
+		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
+		    MakeLiteral(zone),
+		    di));
 	}
 
 	builder->AddExpression(rule.GetExpression());
