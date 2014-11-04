@@ -157,9 +157,11 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %token T_IMPORT "import (T_IMPORT)"
 %token T_ASSIGN "assign (T_ASSIGN)"
 %token T_IGNORE "ignore (T_IGNORE)"
+%token T_APPLY_FOR "for (T_APPLY_FOR)"
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_RETURN "return (T_RETURN)"
 %token T_FOR "for (T_FOR)"
+%token T_FOLLOWS "=> (T_FOLLOWS)"
 
 %type <text> identifier
 %type <array> rterm_items
@@ -177,6 +179,7 @@ static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *lef
 %type <variant> lterm
 %type <variant> object
 %type <variant> apply
+%type <variant> optional_rterm
 %type <text> target_type_specifier
 
 %left T_LOGICAL_OR
@@ -218,7 +221,8 @@ static std::stack<bool> m_ObjectAssign;
 static std::stack<bool> m_SeenAssign;
 static std::stack<Expression::Ptr> m_Assign;
 static std::stack<Expression::Ptr> m_Ignore;
-static std::stack<String> m_FVar;
+static std::stack<String> m_FKVar;
+static std::stack<String> m_FVVar;
 static std::stack<Expression::Ptr> m_FTerm;
 
 void ConfigCompiler::Compile(void)
@@ -233,7 +237,8 @@ void ConfigCompiler::Compile(void)
 	m_SeenAssign = std::stack<bool>();
 	m_Assign = std::stack<Expression::Ptr>();
 	m_Ignore = std::stack<Expression::Ptr>();
-	m_FVar = std::stack<String>();
+	m_FKVar = std::stack<String>();
+	m_FVVar = std::stack<String>();
 	m_FTerm = std::stack<Expression::Ptr>();
 
 	try {
@@ -812,12 +817,33 @@ rterm: T_STRING
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, arr, Array::Ptr($3), DebugInfoRange(@1, @5)));
 	}
+	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
+	{
+		Array::Ptr arr = make_shared<Array>();
+
+		arr->Add($3);
+		free($3);
+
+		arr->Add($5);
+		free($5);
+
+		Expression::Ptr aexpr = *$7;
+		delete $7;
+		arr->Add(aexpr);
+
+		Expression::Ptr ascope = *$9;
+		delete $9;
+
+		$$ = new Value(make_shared<Expression>(&Expression::OpFor, arr, ascope, DebugInfoRange(@1, @9)));
+	}
 	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
 	{
 		Array::Ptr arr = make_shared<Array>();
 
 		arr->Add($3);
 		free($3);
+
+		arr->Add(Empty);
 
 		Expression::Ptr aexpr = *$5;
 		delete $5;
@@ -841,13 +867,36 @@ target_type_specifier: /* empty */
 	;
 
 apply_for_specifier: /* empty */
-	| T_FOR '(' identifier T_IN rterm ')'
+	| T_APPLY_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
 	{
-		m_FVar.top() = $3;
+		m_FKVar.top() = $3;
 		free($3);
+
+		m_FVVar.top() = $5;
+		free($5);
+
+		m_FTerm.top() = *$7;
+		delete $7;
+	}
+	| T_APPLY_FOR '(' identifier T_IN rterm ')'
+	{
+		m_FKVar.top() = $3;
+		free($3);
+
+		m_FVVar.top() = "";
 
 		m_FTerm.top() = *$5;
 		delete $5;
+	}
+	;
+
+optional_rterm: /* empty */
+	{
+		$$ = new Value(make_shared<Expression>(&Expression::OpLiteral, Empty, DebugInfo()));
+	}
+	| rterm
+	{
+		$$ = $1;
 	}
 	;
 
@@ -857,10 +906,11 @@ apply:
 		m_SeenAssign.push(false);
 		m_Assign.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
 		m_Ignore.push(make_shared<Expression>(&Expression::OpLiteral, false, DebugInfo()));
-		m_FVar.push("");
+		m_FKVar.push("");
+		m_FVVar.push("");
 		m_FTerm.push(Expression::Ptr());
 	}
-	T_APPLY identifier rterm apply_for_specifier target_type_specifier rterm
+	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier rterm
 	{
 		m_Apply.pop();
 
@@ -912,8 +962,11 @@ apply:
 		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
 		m_Assign.pop();
 
-		String fvar = m_FVar.top();
-		m_FVar.pop();
+		String fkvar = m_FKVar.top();
+		m_FKVar.pop();
+
+		String fvvar = m_FVVar.top();
+		m_FVVar.pop();
 
 		Expression::Ptr fterm = m_FTerm.top();
 		m_FTerm.pop();
@@ -923,7 +976,8 @@ apply:
 		args->Add(target);
 		args->Add(aname);
 		args->Add(filter);
-		args->Add(fvar);
+		args->Add(fkvar);
+		args->Add(fvvar);
 		args->Add(fterm);
 
 		$$ = new Value(make_shared<Expression>(&Expression::OpApply, args, exprl, DebugInfoRange(@2, @5)));

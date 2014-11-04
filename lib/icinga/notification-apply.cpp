@@ -42,6 +42,52 @@ void Notification::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Notification", targets, &Notification::EvaluateApplyRules);
 }
 
+void Notification::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
+{
+	DebugInfo di = rule.GetDebugInfo();
+
+	Log(LogDebug, "Notification")
+	    << "Applying notification '" << name << "' to object '" << checkable->GetName() << "' for rule " << di;
+
+	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+	builder->SetType("Notification");
+	builder->SetName(name);
+	builder->SetScope(locals);
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
+		make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
+		di));
+
+	if (service) {
+		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+			make_shared<Expression>(&Expression::OpLiteral, "service_name", di),
+			make_shared<Expression>(&Expression::OpLiteral, service->GetShortName(), di),
+			di));
+	}
+
+	String zone = checkable->GetZone();
+
+	if (!zone.IsEmpty()) {
+		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+			make_shared<Expression>(&Expression::OpLiteral, "zone", di),
+			make_shared<Expression>(&Expression::OpLiteral, zone, di),
+			di));
+	}
+
+	builder->AddExpression(rule.GetExpression());
+
+	ConfigItem::Ptr notificationItem = builder->Compile();
+	notificationItem->Register();
+	DynamicObject::Ptr dobj = notificationItem->Commit();
+	dobj->OnConfigLoaded();
+	
+}
+
 bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
@@ -63,64 +109,46 @@ bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const A
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	Array::Ptr instances;
+	Value vinstances;
 
 	if (rule.GetFTerm()) {
-		Value vinstances = rule.GetFTerm()->Evaluate(locals);
-
-		if (!vinstances.IsObjectType<Array>())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("for expression must be an array"));
-
-		instances = vinstances;
+		vinstances = rule.GetFTerm()->Evaluate(locals);
 	} else {
-		instances = make_shared<Array>();
+		Array::Ptr instances = make_shared<Array>();
 		instances->Add("");
+		vinstances = instances;
 	}
 
-	ObjectLock olock(instances);
-	BOOST_FOREACH(const String& instance, instances) {
-		String objName = rule.GetName();
+	if (vinstances.IsObjectType<Array>()) {
+		if (!rule.GetFVVar().IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Array iterator requires value to be an array.") << errinfo_debuginfo(di));
 
-		if (!rule.GetFVar().IsEmpty()) {
-			locals->Set(rule.GetFVar(), instance);
-			objName += "-" + instance;
+		Array::Ptr arr = vinstances;
+
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const String& instance, arr) {
+			String name = rule.GetName();
+
+			if (!rule.GetFKVar().IsEmpty()) {
+				locals->Set(rule.GetFKVar(), instance);
+				name += instance;
+			}
+
+			EvaluateApplyRuleOneInstance(checkable, name, locals, rule);
 		}
+	} else if (vinstances.IsObjectType<Dictionary>()) {
+		if (rule.GetFVVar().IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Dictionary iterator requires value to be a dictionary.") << errinfo_debuginfo(di));
+	
+		Dictionary::Ptr dict = vinstances;
 
-		Log(LogDebug, "Notification")
-			<< "Applying notification '" << rule.GetName() << "' to object '" << checkable->GetName() << "' for rule " << di;
+		ObjectLock olock(dict);
+		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			locals->Set(rule.GetFKVar(), kv.first);
+			locals->Set(rule.GetFVVar(), kv.second);
 
-		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
-		builder->SetType("Notification");
-		builder->SetName(objName);
-		builder->SetScope(locals);
-
-		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-			make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
-			make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
-			di));
-
-		if (service) {
-			builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-				make_shared<Expression>(&Expression::OpLiteral, "service_name", di),
-				make_shared<Expression>(&Expression::OpLiteral, service->GetShortName(), di),
-				di));
+			EvaluateApplyRuleOneInstance(checkable, rule.GetName() + kv.first, locals, rule);
 		}
-
-		String zone = checkable->GetZone();
-
-		if (!zone.IsEmpty()) {
-			builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-				make_shared<Expression>(&Expression::OpLiteral, "zone", di),
-				make_shared<Expression>(&Expression::OpLiteral, zone, di),
-				di));
-		}
-
-		builder->AddExpression(rule.GetExpression());
-
-		ConfigItem::Ptr notificationItem = builder->Compile();
-		notificationItem->Register();
-		DynamicObject::Ptr dobj = notificationItem->Commit();
-		dobj->OnConfigLoaded();
 	}
 
 	return true;

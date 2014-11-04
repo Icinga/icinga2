@@ -551,12 +551,13 @@ Value Expression::OpApply(const Expression* expr, const Dictionary::Ptr& locals,
 	String target = left->Get(1);
 	Expression::Ptr aname = left->Get(2);
 	Expression::Ptr filter = left->Get(3);
-	String fvar = left->Get(4);
-	Expression::Ptr fterm = left->Get(5);
+	String fkvar = left->Get(4);
+	String fvvar = left->Get(5);
+	Expression::Ptr fterm = left->Get(6);
 
 	String name = aname->Evaluate(locals, dhint);
 
-	ApplyRule::AddRule(type, target, name, exprl, filter, fvar, fterm, expr->m_DebugInfo, locals);
+	ApplyRule::AddRule(type, target, name, exprl, filter, fkvar, fvvar, fterm, expr->m_DebugInfo, locals);
 
 	return Empty;
 }
@@ -618,20 +619,44 @@ Value Expression::OpObject(const Expression* expr, const Dictionary::Ptr& locals
 Value Expression::OpFor(const Expression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
-	String varname = left->Get(0);
-	Expression::Ptr aexpr = left->Get(1);
+	String kvar = left->Get(0);
+	String vvar = left->Get(1);
+	Expression::Ptr aexpr = left->Get(2);
 	Expression::Ptr ascope = expr->m_Operand2;
 
-	Array::Ptr arr = aexpr->Evaluate(locals, dhint);
+	Value value = aexpr->Evaluate(locals, dhint);
 
-	ObjectLock olock(arr);
-	BOOST_FOREACH(const Value& value, arr) {
-		Dictionary::Ptr xlocals = make_shared<Dictionary>();
-		xlocals->Set("__parent", locals);
-		xlocals->Set(varname, value);
+	if (value.IsObjectType<Array>()) {
+		if (!vvar.IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Cannot use dictionary iterator for array.") << errinfo_debuginfo(expr->m_DebugInfo));
 
-		ascope->Evaluate(xlocals, dhint);
-	}
+		Array::Ptr arr = value;
+
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const Value& value, arr) {
+			Dictionary::Ptr xlocals = make_shared<Dictionary>();
+			xlocals->Set("__parent", locals);
+			xlocals->Set(kvar, value);
+
+			ascope->Evaluate(xlocals, dhint);
+		}
+	} else if (value.IsObjectType<Dictionary>()) {
+		if (vvar.IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Cannot use array iterator for dictionary.") << errinfo_debuginfo(expr->m_DebugInfo));
+
+		Dictionary::Ptr dict = value;
+
+		ObjectLock olock(dict);
+		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			Dictionary::Ptr xlocals = make_shared<Dictionary>();
+			xlocals->Set("__parent", locals);
+			xlocals->Set(kvar, kv.first);
+			xlocals->Set(vvar, kv.second);
+
+			ascope->Evaluate(xlocals, dhint);
+		}
+	} else
+		BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(expr->m_DebugInfo));
 
 	return Empty;
 }

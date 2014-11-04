@@ -40,6 +40,45 @@ void Service::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Service", targets, &Service::EvaluateApplyRules);
 }
 
+void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
+{
+	DebugInfo di = rule.GetDebugInfo();
+
+	Log(LogDebug, "Service")
+	    << "Applying service '" << name << "' to host '" << host->GetName() << "' for rule " << di;
+
+	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+	builder->SetType("Service");
+	builder->SetName(name);
+	builder->SetScope(locals);
+
+	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	    make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
+	    make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
+	    di));
+
+	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	    make_shared<Expression>(&Expression::OpLiteral, "name", di),
+	    make_shared<Expression>(&Expression::OpLiteral, name, di),
+	    di));
+
+	String zone = host->GetZone();
+
+	if (!zone.IsEmpty()) {
+		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		    make_shared<Expression>(&Expression::OpLiteral, "zone", di),
+		    make_shared<Expression>(&Expression::OpLiteral, zone, di),
+		    di));
+	}
+
+	builder->AddExpression(rule.GetExpression());
+
+	ConfigItem::Ptr serviceItem = builder->Compile();
+	serviceItem->Register();
+	DynamicObject::Ptr dobj = serviceItem->Commit();
+	dobj->OnConfigLoaded();
+}
+
 bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
@@ -55,62 +94,46 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 	if (!rule.EvaluateFilter(locals))
 		return false;
 
-	Array::Ptr instances;
+	Value vinstances;
 
 	if (rule.GetFTerm()) {
-		Value vinstances = rule.GetFTerm()->Evaluate(locals);
-
-		if (!vinstances.IsObjectType<Array>())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("for expression must be an array"));
-
-		instances = vinstances;
+		vinstances = rule.GetFTerm()->Evaluate(locals);
 	} else {
-		instances = make_shared<Array>();
+		Array::Ptr instances = make_shared<Array>();
 		instances->Add("");
+		vinstances = instances;
 	}
 
-	ObjectLock olock(instances);
-	BOOST_FOREACH(const String& instance, instances) {
-		String objName = rule.GetName();
+	if (vinstances.IsObjectType<Array>()) {
+		if (!rule.GetFVVar().IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Array iterator requires value to be an array.") << errinfo_debuginfo(di));
 
-		if (!rule.GetFVar().IsEmpty()) {
-			locals->Set(rule.GetFVar(), instance);
-			objName += "-" + instance;
+		Array::Ptr arr = vinstances;
+
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const String& instance, arr) {
+			String name = rule.GetName();
+
+			if (!rule.GetFKVar().IsEmpty()) {
+				locals->Set(rule.GetFKVar(), instance);
+				name += instance;
+			}
+
+			EvaluateApplyRuleOneInstance(host, name, locals, rule);
 		}
+	} else if (vinstances.IsObjectType<Dictionary>()) {
+		if (rule.GetFVVar().IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Dictionary iterator requires value to be a dictionary.") << errinfo_debuginfo(di));
+	
+		Dictionary::Ptr dict = vinstances;
 
-		Log(LogDebug, "Service")
-		    << "Applying service '" << objName << "' to host '" << host->GetName() << "' for rule " << di;
+		ObjectLock olock(dict);
+		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			locals->Set(rule.GetFKVar(), kv.first);
+			locals->Set(rule.GetFVVar(), kv.second);
 
-		ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
-		builder->SetType("Service");
-		builder->SetName(objName);
-		builder->SetScope(locals);
-
-		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-		    make_shared<Expression>(&Expression::OpLiteral, "host_name", di),
-		    make_shared<Expression>(&Expression::OpLiteral, host->GetName(), di),
-		    di));
-
-		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-		    make_shared<Expression>(&Expression::OpLiteral, "name", di),
-		    make_shared<Expression>(&Expression::OpLiteral, objName, di),
-		    di));
-
-		String zone = host->GetZone();
-
-		if (!zone.IsEmpty()) {
-			builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
-			    make_shared<Expression>(&Expression::OpLiteral, "zone", di),
-			    make_shared<Expression>(&Expression::OpLiteral, zone, di),
-			    di));
+			EvaluateApplyRuleOneInstance(host, rule.GetName() + kv.first, locals, rule);
 		}
-
-		builder->AddExpression(rule.GetExpression());
-
-		ConfigItem::Ptr serviceItem = builder->Compile();
-		serviceItem->Register();
-		DynamicObject::Ptr dobj = serviceItem->Commit();
-		dobj->OnConfigLoaded();
 	}
 
 	return true;

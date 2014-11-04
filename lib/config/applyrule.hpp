@@ -42,7 +42,8 @@ public:
 	String GetName(void) const;
 	Expression::Ptr GetExpression(void) const;
 	Expression::Ptr GetFilter(void) const;
-	String GetFVar(void) const;
+	String GetFKVar(void) const;
+	String GetFVVar(void) const;
 	Expression::Ptr GetFTerm(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Dictionary::Ptr GetScope(void) const;
@@ -50,7 +51,7 @@ public:
 	bool EvaluateFilter(const Dictionary::Ptr& scope) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const String& fvar, const Expression::Ptr& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);
+	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
@@ -63,7 +64,8 @@ private:
 	String m_Name;
 	Expression::Ptr m_Expression;
 	Expression::Ptr m_Filter;
-	String m_FVar;
+	String m_FKVar;
+	String m_FVVar;
 	Expression::Ptr m_FTerm;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
@@ -72,7 +74,7 @@ private:
 	static RuleMap m_Rules;
 
 	ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const String& fvar, const Expression::Ptr& fterm,
+	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 	    const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 

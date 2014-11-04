@@ -228,9 +228,11 @@ where				return T_WHERE;
 import				return T_IMPORT;
 assign				return T_ASSIGN;
 ignore				return T_IGNORE;
+for				return T_APPLY_FOR;
 __function			return T_FUNCTION;
 __return			return T_RETURN;
 __for				return T_FOR;
+=\>				return T_FOLLOWS;
 \<\<				{ yylval->op = &Expression::OpShiftLeft; return T_SHIFT_LEFT; }
 \>\>				{ yylval->op = &Expression::OpShiftRight; return T_SHIFT_RIGHT; }
 \<=				{ yylval->op = &Expression::OpLessThanOrEqual; return T_LESS_THAN_OR_EQUAL; }
