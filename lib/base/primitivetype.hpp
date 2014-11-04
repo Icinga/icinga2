@@ -44,15 +44,15 @@ private:
 };
 
 #define REGISTER_PRIMITIVE_TYPE(type) \
-	namespace { namespace UNIQUE_NAME(prt) { \
-		void RegisterPrimitiveType ## type(void) \
+	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type { \
+		void RegisterPrimitiveType(void) \
 		{ \
 			icinga::Type::Ptr t = make_shared<PrimitiveType>(#type); \
 			icinga::Type::Register(t); \
 		} \
 		\
-		INITIALIZE_ONCE(RegisterPrimitiveType ## type); \
-	} }
+		INITIALIZE_ONCE(RegisterPrimitiveType); \
+	} } }
 
 }
 
