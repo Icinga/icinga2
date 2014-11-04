@@ -1,4 +1,4 @@
-GET hosts 
-Columns: custom_variable_names custom_variable_values custom_variables
+GET hosts
+Columns: name custom_variable_names custom_variable_values custom_variables cv_is_json
 ResponseHeader: fixed16
 

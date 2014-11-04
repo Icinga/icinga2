@@ -61,6 +61,7 @@ protected:
 	static Value CustomVariablesAccessor(const Value& row);
 	static Value ModifiedAttributesAccessor(const Value& row);
 	static Value ModifiedAttributesListAccessor(const Value& row);
+	static Value CVIsJsonAccessor(const Value& row);
 };
 
 }

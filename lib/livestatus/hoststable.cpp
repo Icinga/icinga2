@@ -28,6 +28,7 @@
 #include "icinga/compatutility.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
+#include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/classification.hpp>
@@ -160,6 +161,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "services_with_info", Column(&HostsTable::ServicesWithInfoAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_source", Column(&HostsTable::CheckSourceAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_reachable", Column(&HostsTable::IsReachableAccessor, objectAccessor));
+	table->AddColumn(prefix + "cv_is_json", Column(&HostsTable::CVIsJsonAccessor, objectAccessor));
 }
 
 String HostsTable::GetName(void) const
@@ -1058,10 +1060,9 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 
 	Array::Ptr cv = make_shared<Array>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(key);
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		cv->Add(kv.first);
 	}
 
 	return cv;
@@ -1086,10 +1087,12 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 
 	Array::Ptr cv = make_shared<Array>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(value);
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			cv->Add(JsonEncode(kv.second));
+		else
+			cv->Add(kv.second);
 	}
 
 	return cv;
@@ -1114,16 +1117,48 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 
 	Array::Ptr cv = make_shared<Array>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		Array::Ptr key_val = make_shared<Array>();
-		key_val->Add(key);
-		key_val->Add(value);
+		key_val->Add(kv.first);
+
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			key_val->Add(JsonEncode(kv.second));
+		else
+			key_val->Add(kv.second);
+
 		cv->Add(key_val);
 	}
 
 	return cv;
+}
+
+Value HostsTable::CVIsJsonAccessor(const Value& row)
+{
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(host);
+		vars = CompatUtility::GetCustomAttributeConfig(host);
+	}
+
+	if (!vars)
+		return Empty;
+
+	bool cv_is_json = false;
+
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			cv_is_json = true;
+	}
+
+	return cv_is_json;
 }
 
 Value HostsTable::ParentsAccessor(const Value& row)

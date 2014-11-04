@@ -23,6 +23,7 @@
 #include "icinga/compatutility.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
+#include "base/json.hpp"
 #include "base/utility.hpp"
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -53,6 +54,8 @@ void ContactsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "vars_variables", Column(&ContactsTable::CustomVariablesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&ContactsTable::ModifiedAttributesAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&ContactsTable::ModifiedAttributesListAccessor, objectAccessor));
+	table->AddColumn(prefix + "cv_is_json", Column(&ContactsTable::CVIsJsonAccessor, objectAccessor));
+
 }
 
 String ContactsTable::GetName(void) const
@@ -200,7 +203,12 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars = user->GetVars();
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(user);
+		vars = CompatUtility::GetCustomAttributeConfig(user);
+	}
 
 	if (!vars)
 		return Empty;
@@ -208,10 +216,8 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(vars);
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), vars) {
-		cv->Add(key);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		cv->Add(kv.first);
 	}
 
 	return cv;
@@ -224,7 +230,12 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars = user->GetVars();
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(user);
+		vars = CompatUtility::GetCustomAttributeConfig(user);
+	}
 
 	if (!vars)
 		return Empty;
@@ -232,10 +243,11 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(vars);
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), vars) {
-		cv->Add(value);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			cv->Add(JsonEncode(kv.second));
+		else
+			cv->Add(kv.second);
 	}
 
 	return cv;
@@ -248,7 +260,12 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars = user->GetVars();
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(user);
+		vars = CompatUtility::GetCustomAttributeConfig(user);
+	}
 
 	if (!vars)
 		return Empty;
@@ -256,16 +273,47 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(vars);
-	String key;
-	Value value;
-	BOOST_FOREACH(boost::tie(key, value), vars) {
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		Array::Ptr key_val = make_shared<Array>();
-		key_val->Add(key);
-		key_val->Add(value);
+		key_val->Add(kv.first);
+
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			key_val->Add(JsonEncode(kv.second));
+		else
+			key_val->Add(kv.second);
+
 		cv->Add(key_val);
 	}
 
 	return cv;
+}
+
+Value ContactsTable::CVIsJsonAccessor(const Value& row)
+{
+	User::Ptr user = static_cast<User::Ptr>(row);
+
+	if (!user)
+		return Empty;
+
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(user);
+		vars = CompatUtility::GetCustomAttributeConfig(user);
+	}
+
+	if (!vars)
+		return Empty;
+
+	bool cv_is_json = false;
+
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			cv_is_json = true;
+	}
+
+	return cv_is_json;
 }
 
 Value ContactsTable::ModifiedAttributesAccessor(const Value& row)

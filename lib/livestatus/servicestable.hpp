@@ -126,6 +126,7 @@ protected:
 	static Value ContactGroupsAccessor(const Value& row);
 	static Value CheckSourceAccessor(const Value& row);
 	static Value IsReachableAccessor(const Value& row);
+	static Value CVIsJsonAccessor(const Value& row);
 };
 
 }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NC=`which nc`
+LIVESTATUSSOCKET="/var/run/icinga2/cmd/livestatus"
 LIVESTATUSHOST="127.0.0.1"
 LIVESTATUSPORT="6558"
 LIVESTATUSQUERIES="./queries"
@@ -8,14 +10,14 @@ LIVESTATUSTABLE=$1
 
 if [ -n "$LIVESTATUSTABLE" ]; then
 	cat "$LIVESTATUSTABLE"
-	(cat "$LIVESTATUSTABLE"; sleep 1) | netcat $LIVESTATUSHOST $LIVESTATUSPORT
+	(cat "$LIVESTATUSTABLE"; sleep 1) | $NC -U $LIVESTATUSSOCKET
 else
 
 	echo -e "Looking into $LIVESTATUSQUERIES\n"
 	for q in $(find $LIVESTATUSQUERIES -type f)
 	do
 		cat $q
-		(cat $q; sleep 1) | netcat $LIVESTATUSHOST $LIVESTATUSPORT
+		(cat $q; sleep 1) | $NC -U $LIVESTATUSSOCKET
 		echo -e "================================\n\n"
 	done
 fi

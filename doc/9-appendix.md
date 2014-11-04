@@ -212,6 +212,9 @@ New columns:
   ----------|--------------
   hosts     | is_reachable
   services  | is_reachable
+  hosts	    | cv_is_json
+  services  | cv_is_json
+  contacts  | cv_is_json
   hosts     | check_source
   services  | check_source
   downtimes | triggers

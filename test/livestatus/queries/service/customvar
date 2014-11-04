@@ -1,4 +1,4 @@
 GET services
-Columns: custom_variable_names custom_variable_values custom_variables 
+Columns: host_name service_description custom_variables cv_is_json
 ResponseHeader: fixed16
 

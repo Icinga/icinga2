@@ -29,6 +29,7 @@
 #include "icinga/compatutility.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
+#include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include <boost/foreach.hpp>
@@ -129,6 +130,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "contact_groups", Column(&ServicesTable::ContactGroupsAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_source", Column(&ServicesTable::CheckSourceAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_reachable", Column(&ServicesTable::IsReachableAccessor, objectAccessor));
+	table->AddColumn(prefix + "cv_is_json", Column(&ServicesTable::CVIsJsonAccessor, objectAccessor));
 
 	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
 }
@@ -1063,8 +1065,8 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	Array::Ptr cv = make_shared<Array>();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair kv, vars) {
-		cv->Add(kv.second);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		cv->Add(kv.first);
 	}
 
 	return cv;
@@ -1091,7 +1093,10 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		cv->Add(kv.second);
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			cv->Add(JsonEncode(kv.second));
+		else
+			cv->Add(kv.second);
 	}
 
 	return cv;
@@ -1116,16 +1121,48 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 
 	Array::Ptr cv = make_shared<Array>();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
 		Array::Ptr key_val = make_shared<Array>();
-		key_val->Add(key);
-		key_val->Add(value);
+		key_val->Add(kv.first);
+
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			key_val->Add(JsonEncode(kv.second));
+		else
+			key_val->Add(kv.second);
+
 		cv->Add(key_val);
 	}
 
 	return cv;
+}
+
+Value ServicesTable::CVIsJsonAccessor(const Value& row)
+{
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (!service)
+		return Empty;
+
+	Dictionary::Ptr vars;
+
+	{
+		ObjectLock olock(service);
+		vars = CompatUtility::GetCustomAttributeConfig(service);
+	}
+
+	if (!vars)
+		return Empty;
+
+	bool cv_is_json = false;
+
+	ObjectLock olock(vars);
+	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
+			cv_is_json = true;
+	}
+
+	return cv_is_json;
 }
 
 Value ServicesTable::GroupsAccessor(const Value& row)
