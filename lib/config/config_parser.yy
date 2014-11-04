@@ -520,13 +520,13 @@ identifier_items_inner: /* empty */
 	}
 	;
 
-indexer: T_IDENTIFIER
+indexer: identifier
 	{
 		$$ = new Array();
 		$$->Add(MakeLiteral($1));
 		free($1);
 	}
-	| T_IDENTIFIER indexer_items
+	| identifier indexer_items
 	{
 		$$ = $2;
 		$$->Insert(0, MakeLiteral($1));
@@ -547,7 +547,7 @@ indexer_items: indexer_item
 	}
 	;
 
-indexer_item: '.' T_IDENTIFIER
+indexer_item: '.' identifier
 	{
 		$$ = new Value(MakeLiteral($2));
 		free($2);
