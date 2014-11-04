@@ -365,6 +365,7 @@ CREATE TABLE  icinga_customvariables (
   has_been_modified INTEGER  default 0,
   varname TEXT  default '',
   varvalue TEXT  default '',
+  is_json INTEGER  default 0,
   CONSTRAINT PK_customvariable_id PRIMARY KEY (customvariable_id) ,
   CONSTRAINT UQ_customvariables UNIQUE (object_id,config_type,varname)
 ) ;
@@ -384,6 +385,7 @@ CREATE TABLE  icinga_customvariablestatus (
   has_been_modified INTEGER  default 0,
   varname TEXT  default '',
   varvalue TEXT  default '',
+  is_json INTEGER  default 0,
   CONSTRAINT PK_customvariablestatus_id PRIMARY KEY (customvariablestatus_id) ,
   CONSTRAINT UQ_customvariablestatus UNIQUE (object_id,varname)
 ) ;

@@ -186,6 +186,7 @@ New columns:
   {host,service}group | notes                   | TEXT     | NULL    | -
   {host,service}group | notes_url               | TEXT     | NULL    | -
   {host,service}group | action_url              | TEXT     | NULL    | -
+  customvariable*     | is_json			| integer  | 0	     | Defines whether `varvalue` is a json encoded string from custom attributes, or not
 
 Additional command custom variables populated from 'vars' dictionary.
 Additional global custom variables populated from 'Vars' constant (object_id is NULL).
@@ -654,5 +655,3 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   current_host_         | join      | Prefix for attributes from implicit join with hosts table.
 
 Not supported: `debug_info`.
-
-

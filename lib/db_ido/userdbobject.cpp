@@ -93,10 +93,11 @@ void UserDbObject::OnConfigUpdate(void)
 	if (vars) { /* This is sparta. */
 		for (int i = 1; i <= 6; i++) {
 			String key = "address" + Convert::ToString(i);
-			String val = vars->Get(key);
 
-			if (val.IsEmpty())
+			if (!vars->Contains(key))
 				continue;
+
+			String val = vars->Get(key);
 
 			fields->Set("contact_id", DbValue::FromObjectInsertID(user));
 			fields->Set("address_number", i);

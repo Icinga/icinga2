@@ -26,6 +26,7 @@
 #include "remote/endpoint.hpp"
 #include "base/dynamicobject.hpp"
 #include "base/dynamictype.hpp"
+#include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -171,10 +172,12 @@ void DbObject::SendVarsConfigUpdate(void)
 				continue;
 
 			String value;
+			int is_json = 0;
 
-			if (kv.second.IsObjectType<Array>())
-				value = Utility::Join(kv.second, ';');
-			else
+			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>()) {
+				value = JsonEncode(kv.second);
+				is_json = 1;
+			} else
 				value = kv.second;
 
 			int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
@@ -186,6 +189,7 @@ void DbObject::SendVarsConfigUpdate(void)
 			Dictionary::Ptr fields = make_shared<Dictionary>();
 			fields->Set("varname", kv.first);
 			fields->Set("varvalue", value);
+			fields->Set("is_json", is_json);
 			fields->Set("config_type", 1);
 			fields->Set("has_been_modified", overridden);
 			fields->Set("object_id", obj);
@@ -219,8 +223,17 @@ void DbObject::SendVarsStatusUpdate(void)
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-			if (kv.first.IsEmpty() || kv.second.IsObject())
+			if (kv.first.IsEmpty())
 				continue;
+
+			String value;
+			int is_json = 0;
+
+			if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>()) {
+				value = JsonEncode(kv.second);
+				is_json = 1;
+			} else
+				value = kv.second;
 
 			int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
 
@@ -229,8 +242,9 @@ void DbObject::SendVarsStatusUpdate(void)
 			    << "' overridden: " << overridden;
 
 			Dictionary::Ptr fields = make_shared<Dictionary>();
-			fields->Set("varname", Convert::ToString(kv.first));
-			fields->Set("varvalue", Convert::ToString(kv.second));
+			fields->Set("varname", kv.first);
+			fields->Set("varvalue", value);
+			fields->Set("is_json", is_json);
 			fields->Set("has_been_modified", overridden);
 			fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 			fields->Set("object_id", obj);

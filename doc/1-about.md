@@ -62,6 +62,8 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 * DB IDO schema update to version `1.12.0`
     * schema files in `lib/db_ido_{mysql,pgsql}/schema` (source)
+    * Table `programstatus`: New column `program_version`
+    * Table `customvariables` and `customvariablestatus`: New column `is_json` (required for custom attribute array/dictionary support)
 * New CLI commands #7245
     * `icinga2 feature {enable,disable}` replaces `icinga2-{enable,disable}-feature` script  #7250
     * `icinga2 object list` replaces `icinga2-list-objects` script  #7251
