@@ -820,7 +820,7 @@ By default the command pipe file is owned by the group `icingacmd` with read/wri
 permissions. Add your webserver's user to the group `icingacmd` to
 enable sending commands to Icinga 2 through your web interface:
 
-    # usermod -G -a icingacmd www-data
+    # usermod -a -G icingacmd www-data
 
 Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
 `nagios`.
