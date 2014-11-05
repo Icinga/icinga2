@@ -530,6 +530,7 @@ indexer: identifier
 	{
 		$$ = $2;
 		$$->Insert(0, MakeLiteral($1));
+		free($1);
 	}
 	;
 
