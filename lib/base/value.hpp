@@ -99,12 +99,17 @@ public:
 		if (IsEmpty())
 			return shared_ptr<T>();
 
-		shared_ptr<T> object = dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
+		Object::Ptr object = boost::get<Object::Ptr>(m_Value);
 
 		if (!object)
+			return shared_ptr<T>();
+
+		shared_ptr<T> tobject = dynamic_pointer_cast<T>(object);
+
+		if (!tobject)
 			BOOST_THROW_EXCEPTION(std::bad_cast());
 
-		return object;
+		return tobject;
 	}
 
 	bool IsEmpty(void) const;
