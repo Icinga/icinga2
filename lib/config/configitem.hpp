@@ -49,7 +49,7 @@ public:
 
 	Expression::Ptr GetExpressionList(void) const;
 	Dictionary::Ptr GetProperties(void);
-	Dictionary::Ptr GetDebugHints(void) const;
+	const DebugHint& GetDebugHints(void) const;
 
 	DynamicObject::Ptr Commit(void);
 	void Register(void);
@@ -79,7 +79,7 @@ private:
 
 	Expression::Ptr m_ExpressionList;
 	Dictionary::Ptr m_Properties;
-	Dictionary::Ptr m_DebugHints;
+	DebugHint m_DebugHints;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
