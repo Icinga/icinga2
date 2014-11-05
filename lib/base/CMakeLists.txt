@@ -47,9 +47,6 @@ if(HAVE_LIBEXECINFO)
     target_link_libraries(base execinfo)
 endif()
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/cJSON)
-link_directories(${icinga2_BINARY_DIR}/third-party/cJSON)
-
 include_directories(${icinga2_SOURCE_DIR}/third-party/execvpe)
 link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
