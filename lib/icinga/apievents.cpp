@@ -144,16 +144,18 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 
 	Array::Ptr rperf = make_shared<Array>();
 
-	ObjectLock olock(vperf);
-	BOOST_FOREACH(const Value& vp, vperf) {
-		Value p;
+	if (vperf) {
+		ObjectLock olock(vperf);
+		BOOST_FOREACH(const Value& vp, vperf) {
+			Value p;
 
-		if (vp.IsObjectType<Dictionary>()) {
-			PerfdataValue::Ptr val = make_shared<PerfdataValue>();
-			Deserialize(val, vp, true);
-			rperf->Add(val);
-		} else
-			rperf->Add(vp);
+			if (vp.IsObjectType<Dictionary>()) {
+				PerfdataValue::Ptr val = make_shared<PerfdataValue>();
+				Deserialize(val, vp, true);
+				rperf->Add(val);
+			} else
+				rperf->Add(vp);
+		}
 	}
 
 	cr->SetPerformanceData(rperf);
