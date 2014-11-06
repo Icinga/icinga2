@@ -33,6 +33,7 @@
 #include "base/configerror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
 using namespace icinga;
@@ -45,7 +46,7 @@ Expression::Expression(OpCallback op, const Value& operand1, const Value& operan
 	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2), m_DebugInfo(di)
 { }
 
-Value Expression::Evaluate(const Dictionary::Ptr& locals, DebugHint *dhint) const
+Value Expression::Evaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
 	try {
 #ifdef _DEBUG
@@ -57,7 +58,7 @@ Value Expression::Evaluate(const Dictionary::Ptr& locals, DebugHint *dhint) cons
 		}
 #endif /* _DEBUG */
 
-		return m_Operator(this, locals, dhint);
+		return m_Operator(this, context, dhint);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
@@ -99,125 +100,125 @@ void Expression::Dump(std::ostream& stream, int indent) const
 	DumpOperand(stream, m_Operand2, indent + 1);
 }
 
-Value Expression::EvaluateOperand1(const Dictionary::Ptr& locals, DebugHint *dhint) const
+Value Expression::EvaluateOperand1(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return static_cast<Expression::Ptr>(m_Operand1)->Evaluate(locals, dhint);
+	return static_cast<Expression::Ptr>(m_Operand1)->Evaluate(context, dhint);
 }
 
-Value Expression::EvaluateOperand2(const Dictionary::Ptr& locals, DebugHint *dhint) const
+Value Expression::EvaluateOperand2(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return static_cast<Expression::Ptr>(m_Operand2)->Evaluate(locals, dhint);
+	return static_cast<Expression::Ptr>(m_Operand2)->Evaluate(context, dhint);
 }
 
-Value Expression::OpLiteral(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpLiteral(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	return expr->m_Operand1;
 }
 
-Value Expression::OpVariable(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpVariable(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	Dictionary::Ptr scope = locals;
+	Object::Ptr scope = context;
 
 	while (scope) {
-		if (scope->Contains(expr->m_Operand1))
-			return scope->Get(expr->m_Operand1);
+		if (HasField(scope, expr->m_Operand1))
+			return GetField(scope, expr->m_Operand1);
 
-		scope = scope->Get("__parent");
+		scope = GetField(scope, "__parent");
 	}
 
 	return ScriptVariable::Get(expr->m_Operand1);
 }
 
-Value Expression::OpNegate(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpNegate(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return ~(long)expr->EvaluateOperand1(locals);
+	return ~(long)expr->EvaluateOperand1(context);
 }
 
-Value Expression::OpLogicalNegate(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpLogicalNegate(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return !expr->EvaluateOperand1(locals).ToBool();
+	return !expr->EvaluateOperand1(context).ToBool();
 }
 
-Value Expression::OpAdd(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpAdd(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) + expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) + expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpSubtract(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpSubtract(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) - expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) - expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpMultiply(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpMultiply(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) * expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) * expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpDivide(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpDivide(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) / expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) / expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpBinaryAnd(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpBinaryAnd(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) & expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) & expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpBinaryOr(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpBinaryOr(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) | expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) | expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpShiftLeft(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpShiftLeft(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) << expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) << expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpShiftRight(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpShiftRight(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) >> expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) >> expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpEqual(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) == expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) == expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpNotEqual(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpNotEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) != expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) != expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpLessThan(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpLessThan(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) < expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) < expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpGreaterThan(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpGreaterThan(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) > expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) > expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpLessThanOrEqual(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpLessThanOrEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) <= expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) <= expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpGreaterThanOrEqual(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpGreaterThanOrEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals) >= expr->EvaluateOperand2(locals);
+	return expr->EvaluateOperand1(context) >= expr->EvaluateOperand2(context);
 }
 
-Value Expression::OpIn(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpIn(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	Value right = expr->EvaluateOperand2(locals);
+	Value right = expr->EvaluateOperand2(context);
 
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
-	Value left = expr->EvaluateOperand1(locals);
+	Value left = expr->EvaluateOperand1(context);
 		
 	Array::Ptr arr = right;
 	bool found = false;
@@ -232,24 +233,24 @@ Value Expression::OpIn(const Expression *expr, const Dictionary::Ptr& locals, De
 	return found;
 }
 
-Value Expression::OpNotIn(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpNotIn(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return !OpIn(expr, locals, dhint);
+	return !OpIn(expr, context, dhint);
 }
 
-Value Expression::OpLogicalAnd(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpLogicalAnd(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals).ToBool() && expr->EvaluateOperand2(locals).ToBool();
+	return expr->EvaluateOperand1(context).ToBool() && expr->EvaluateOperand2(context).ToBool();
 }
 
-Value Expression::OpLogicalOr(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpLogicalOr(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	return expr->EvaluateOperand1(locals).ToBool() || expr->EvaluateOperand2(locals).ToBool();
+	return expr->EvaluateOperand1(context).ToBool() || expr->EvaluateOperand2(context).ToBool();
 }
 
-Value Expression::OpFunctionCall(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpFunctionCall(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	Value funcName = expr->EvaluateOperand1(locals);
+	Value funcName = expr->EvaluateOperand1(context);
 
 	ScriptFunction::Ptr func;
 
@@ -261,17 +262,17 @@ Value Expression::OpFunctionCall(const Expression *expr, const Dictionary::Ptr& 
 	if (!func)
 		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
 
-	Array::Ptr arr = expr->EvaluateOperand2(locals);
+	Array::Ptr arr = expr->EvaluateOperand2(context);
 	std::vector<Value> arguments;
 	for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 		const Expression::Ptr& aexpr = arr->Get(index);
-		arguments.push_back(aexpr->Evaluate(locals));
+		arguments.push_back(aexpr->Evaluate(context));
 	}
 
 	return func->Invoke(arguments);
 }
 
-Value Expression::OpArray(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpArray(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr arr = expr->m_Operand1;
 	Array::Ptr result = make_shared<Array>();
@@ -279,28 +280,28 @@ Value Expression::OpArray(const Expression *expr, const Dictionary::Ptr& locals,
 	if (arr) {
 		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const Expression::Ptr& aexpr = arr->Get(index);
-			result->Add(aexpr->Evaluate(locals));
+			result->Add(aexpr->Evaluate(context));
 		}
 	}
 
 	return result;
 }
 
-Value Expression::OpDict(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpDict(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr arr = expr->m_Operand1;
 	bool in_place = expr->m_Operand2;
 	Dictionary::Ptr result = make_shared<Dictionary>();
 
-	result->Set("__parent", locals);
+	result->Set("__parent", context);
 
 	if (arr) {
 		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
 			const Expression::Ptr& aexpr = arr->Get(index);
-			Dictionary::Ptr alocals = in_place ? locals : result;
-			aexpr->Evaluate(alocals, dhint);
+			Object::Ptr acontext = in_place ? context : result;
+			aexpr->Evaluate(acontext, dhint);
 
-			if (alocals->Contains("__result"))
+			if (HasField(acontext, "__result"))
 				break;
 		}
 	}
@@ -310,7 +311,7 @@ Value Expression::OpDict(const Expression *expr, const Dictionary::Ptr& locals, 
 	return xresult;
 }
 
-Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpSet(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	Array::Ptr indexer = left->Get(0);
@@ -323,14 +324,14 @@ Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, D
 
 	for (Array::SizeType i = 0; i < indexer->GetLength(); i++) {
 		Expression::Ptr indexExpr = indexer->Get(i);
-		String tempindex = indexExpr->Evaluate(locals, dhint);
+		String tempindex = indexExpr->Evaluate(context, dhint);
 
 		if (i == indexer->GetLength() - 1)
 			index = tempindex;
 
 		if (i == 0) {
-			parent = locals;
-			object = locals->Get(tempindex);
+			parent = context;
+			object = GetField(context, tempindex);
 		} else {
 			parent = object;
 
@@ -338,7 +339,7 @@ Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, D
 			Expression::Ptr eindex = make_shared<Expression>(&Expression::OpLiteral, tempindex, expr->m_DebugInfo);
 
 			Expression::Ptr eip = make_shared<Expression>(&Expression::OpIndexer, eparent, eindex, expr->m_DebugInfo);
-			object = eip->Evaluate(locals, dhint);
+			object = eip->Evaluate(context, dhint);
 		}
 
 		if (sdhint)
@@ -347,12 +348,11 @@ Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, D
 		if (i != indexer->GetLength() - 1 && object.IsEmpty()) {
 			object = make_shared<Dictionary>();
 
-			Dictionary::Ptr pdict = parent;
-			pdict->Set(tempindex, object);
+			SetField(parent, tempindex, object);
 		}
 	}
 
-	Value right = expr->EvaluateOperand2(locals, dhint);
+	Value right = expr->EvaluateOperand2(context, dhint);
 
 	if (csop != OpSetLiteral) {
 		Expression::OpCallback op;
@@ -379,11 +379,10 @@ Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, D
 		    make_shared<Expression>(&Expression::OpLiteral, right, expr->m_DebugInfo),
 		    expr->m_DebugInfo);
 
-		right = ecp->Evaluate(locals, dhint);
+		right = ecp->Evaluate(context, dhint);
 	}
 
-	Dictionary::Ptr pdict = parent;
-	pdict->Set(index, right);
+	SetField(parent, index, right);
 
 	if (sdhint)
 		sdhint->AddMessage("=", expr->m_DebugInfo);
@@ -391,10 +390,10 @@ Value Expression::OpSet(const Expression *expr, const Dictionary::Ptr& locals, D
 	return right;
 }
 
-Value Expression::OpIndexer(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpIndexer(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	Value value = expr->EvaluateOperand1(locals);
-	Value index = expr->EvaluateOperand2(locals);
+	Value value = expr->EvaluateOperand1(context);
+	Value index = expr->EvaluateOperand2(context);
 
 	if (value.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = value;
@@ -422,44 +421,44 @@ Value Expression::OpIndexer(const Expression *expr, const Dictionary::Ptr& local
 	}
 }
 
-Value Expression::OpImport(const Expression *expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpImport(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
-	Value type = expr->EvaluateOperand1(locals);
-	Value name = expr->EvaluateOperand2(locals);
+	Value type = expr->EvaluateOperand1(context);
+	Value name = expr->EvaluateOperand2(context);
 
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item)
 		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
 
-	item->GetExpressionList()->Evaluate(locals, dhint);
+	item->GetExpressionList()->Evaluate(context, dhint);
 
 	return Empty;
 }
 
-Value Expression::FunctionWrapper(const std::vector<Value>& arguments, const Array::Ptr& funcargs, const Expression::Ptr& expr, const Dictionary::Ptr& scope)
+Value Expression::FunctionWrapper(const std::vector<Value>& arguments, const Array::Ptr& funcargs, const Expression::Ptr& expr, const Object::Ptr& scope)
 {
 	if (arguments.size() < funcargs->GetLength())
 		BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
 
-	Dictionary::Ptr locals = make_shared<Dictionary>();
-	locals->Set("__parent", scope);
+	Dictionary::Ptr context = make_shared<Dictionary>();
+	context->Set("__parent", scope);
 
 	for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
-		locals->Set(funcargs->Get(i), arguments[i]);
+		context->Set(funcargs->Get(i), arguments[i]);
 
-	expr->Evaluate(locals);
-	return locals->Get("__result");
+	expr->Evaluate(context);
+	return context->Get("__result");
 }
 
-Value Expression::OpFunction(const Expression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpFunction(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	Expression::Ptr aexpr = left->Get(1);
 	String name = left->Get(0);
 
 	Array::Ptr funcargs = expr->m_Operand2;
-	ScriptFunction::Ptr func = make_shared<ScriptFunction>(boost::bind(&Expression::FunctionWrapper, _1, funcargs, aexpr, locals));
+	ScriptFunction::Ptr func = make_shared<ScriptFunction>(boost::bind(&Expression::FunctionWrapper, _1, funcargs, aexpr, context));
 
 	if (!name.IsEmpty())
 		ScriptFunction::Register(name, func);
@@ -467,7 +466,7 @@ Value Expression::OpFunction(const Expression* expr, const Dictionary::Ptr& loca
 	return func;
 }
 
-Value Expression::OpApply(const Expression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpApply(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	Expression::Ptr exprl = expr->m_Operand2;
@@ -479,14 +478,14 @@ Value Expression::OpApply(const Expression* expr, const Dictionary::Ptr& locals,
 	String fvvar = left->Get(5);
 	Expression::Ptr fterm = left->Get(6);
 
-	String name = aname->Evaluate(locals, dhint);
+	String name = aname->Evaluate(context, dhint);
 
-	ApplyRule::AddRule(type, target, name, exprl, filter, fkvar, fvvar, fterm, expr->m_DebugInfo, locals);
+	ApplyRule::AddRule(type, target, name, exprl, filter, fkvar, fvvar, fterm, expr->m_DebugInfo, context);
 
 	return Empty;
 }
 
-Value Expression::OpObject(const Expression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpObject(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	Expression::Ptr exprl = expr->m_Operand2;
@@ -496,7 +495,7 @@ Value Expression::OpObject(const Expression* expr, const Dictionary::Ptr& locals
 	Expression::Ptr filter = left->Get(3);
 	String zone = left->Get(4);
 
-	String name = aname->Evaluate(locals, dhint);
+	String name = aname->Evaluate(context, dhint);
 
 	ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(expr->m_DebugInfo);
 
@@ -531,16 +530,16 @@ Value Expression::OpObject(const Expression* expr, const Dictionary::Ptr& locals
 
 	item->AddExpression(exprl);
 	item->SetAbstract(abstract);
-	item->SetScope(locals);
+	item->SetScope(context);
 	item->SetZone(zone);
 	item->Compile()->Register();
 
-	ObjectRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, locals);
+	ObjectRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, context);
 
 	return Empty;
 }
 
-Value Expression::OpFor(const Expression* expr, const Dictionary::Ptr& locals, DebugHint *dhint)
+Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr left = expr->m_Operand1;
 	String kvar = left->Get(0);
@@ -548,7 +547,7 @@ Value Expression::OpFor(const Expression* expr, const Dictionary::Ptr& locals, D
 	Expression::Ptr aexpr = left->Get(2);
 	Expression::Ptr ascope = expr->m_Operand2;
 
-	Value value = aexpr->Evaluate(locals, dhint);
+	Value value = aexpr->Evaluate(context, dhint);
 
 	if (value.IsObjectType<Array>()) {
 		if (!vvar.IsEmpty())
@@ -558,11 +557,11 @@ Value Expression::OpFor(const Expression* expr, const Dictionary::Ptr& locals, D
 
 		ObjectLock olock(arr);
 		BOOST_FOREACH(const Value& value, arr) {
-			Dictionary::Ptr xlocals = make_shared<Dictionary>();
-			xlocals->Set("__parent", locals);
-			xlocals->Set(kvar, value);
+			Dictionary::Ptr xcontext = make_shared<Dictionary>();
+			xcontext->Set("__parent", context);
+			xcontext->Set(kvar, value);
 
-			ascope->Evaluate(xlocals, dhint);
+			ascope->Evaluate(xcontext, dhint);
 		}
 	} else if (value.IsObjectType<Dictionary>()) {
 		if (vvar.IsEmpty())
@@ -572,12 +571,12 @@ Value Expression::OpFor(const Expression* expr, const Dictionary::Ptr& locals, D
 
 		ObjectLock olock(dict);
 		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			Dictionary::Ptr xlocals = make_shared<Dictionary>();
-			xlocals->Set("__parent", locals);
-			xlocals->Set(kvar, kv.first);
-			xlocals->Set(vvar, kv.second);
+			Dictionary::Ptr xcontext = make_shared<Dictionary>();
+			xcontext->Set("__parent", context);
+			xcontext->Set(kvar, kv.first);
+			xcontext->Set(vvar, kv.second);
 
-			ascope->Evaluate(xlocals, dhint);
+			ascope->Evaluate(xcontext, dhint);
 		}
 	} else
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(expr->m_DebugInfo));
@@ -620,3 +619,68 @@ Expression::Ptr icinga::MakeLiteral(const Value& lit)
 {
 	return make_shared<Expression>(&Expression::OpLiteral, lit, DebugInfo());
 }
+
+bool Expression::HasField(const Object::Ptr& context, const String& field)
+{
+	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
+
+	if (dict)
+		return dict->Contains(field);
+	else {
+		Type::Ptr type = context->GetReflectionType();
+
+		if (!type)
+			return false;
+
+		return type->GetFieldId(field) != -1;
+	}
+}
+
+Value Expression::GetField(const Object::Ptr& context, const String& field)
+{
+	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
+
+	if (dict)
+		return dict->Get(field);
+	else {
+		Type::Ptr type = context->GetReflectionType();
+
+		if (!type)
+			return Empty;
+
+		int fid = type->GetFieldId(field);
+
+		if (fid == -1)
+			return Empty;
+
+		return context->GetField(fid);
+	}
+}
+
+void Expression::SetField(const Object::Ptr& context, const String& field, const Value& value)
+{
+	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
+
+	if (dict)
+		dict->Set(field, value);
+	else {
+		Type::Ptr type = context->GetReflectionType();
+
+		if (!type)
+			BOOST_THROW_EXCEPTION(ConfigError("Cannot set field on object."));
+
+		int fid = type->GetFieldId(field);
+
+		if (fid == -1)
+			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' does not exist."));
+
+		try {
+			context->SetField(fid, value);
+		} catch (const boost::bad_lexical_cast&) {
+			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
+		} catch (const std::bad_cast&) {
+			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
+		}
+	}
+}
+

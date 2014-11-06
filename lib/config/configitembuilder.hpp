@@ -45,7 +45,7 @@ public:
 	void SetType(const String& type);
 	void SetName(const String& name);
 	void SetAbstract(bool abstract);
-	void SetScope(const Dictionary::Ptr& scope);
+	void SetScope(const Object::Ptr& scope);
 	void SetZone(const String& zone);
 
 	void AddExpression(const Expression::Ptr& expr);
@@ -58,7 +58,7 @@ private:
 	bool m_Abstract; /**< Whether the item is abstract. */
 	Array::Ptr m_Expressions; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
-	Dictionary::Ptr m_Scope; /**< variable scope. */
+	Object::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 };
 

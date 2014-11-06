@@ -46,12 +46,12 @@ public:
 	String GetFVVar(void) const;
 	Expression::Ptr GetFTerm(void) const;
 	DebugInfo GetDebugInfo(void) const;
-	Dictionary::Ptr GetScope(void) const;
+	Object::Ptr GetScope(void) const;
 
-	bool EvaluateFilter(const Dictionary::Ptr& scope) const;
+	bool EvaluateFilter(const Object::Ptr& scope) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);
+	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const DebugInfo& di, const Object::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
@@ -68,14 +68,14 @@ private:
 	String m_FVVar;
 	Expression::Ptr m_FTerm;
 	DebugInfo m_DebugInfo;
-	Dictionary::Ptr m_Scope;
+	Object::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
 	ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
 	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
-	    const DebugInfo& di, const Dictionary::Ptr& scope);
+	    const DebugInfo& di, const Object::Ptr& scope);
 };
 
 }

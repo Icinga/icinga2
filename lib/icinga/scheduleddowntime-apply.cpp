@@ -81,7 +81,6 @@ void ScheduledDowntime::EvaluateApplyRuleOneInstance(const Checkable::Ptr& check
 	builder->AddExpression(rule.GetExpression());
 
 	ConfigItem::Ptr downtimeItem = builder->Compile();
-	downtimeItem->Register();
 	DynamicObject::Ptr dobj = downtimeItem->Commit();
 	dobj->OnConfigLoaded();
 }

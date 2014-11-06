@@ -74,7 +74,6 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	builder->AddExpression(rule.GetExpression());
 
 	ConfigItem::Ptr serviceItem = builder->Compile();
-	serviceItem->Register();
 	DynamicObject::Ptr dobj = serviceItem->Commit();
 	dobj->OnConfigLoaded();
 }

@@ -32,6 +32,7 @@
 #include "base/exception.hpp"
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
+#include "base/serializer.hpp"
 #include "base/json.hpp"
 #include "base/configerror.hpp"
 #include <sstream>
@@ -55,9 +56,9 @@ ConfigItem::ItemMap ConfigItem::m_Items;
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const Expression::Ptr& exprl,
-    const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
+    const DebugInfo& debuginfo, const Object::Ptr& scope,
     const String& zone)
-	: m_Type(type), m_Name(name), m_Abstract(abstract), m_Validated(false),
+	: m_Type(type), m_Name(name), m_Abstract(abstract),
 	  m_ExpressionList(exprl), m_DebugInfo(debuginfo),
 	  m_Scope(scope), m_Zone(zone)
 {
@@ -103,7 +104,7 @@ DebugInfo ConfigItem::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-Dictionary::Ptr ConfigItem::GetScope(void) const
+Object::Ptr ConfigItem::GetScope(void) const
 {
 	return m_Scope;
 }
@@ -118,62 +119,13 @@ Expression::Ptr ConfigItem::GetExpressionList(void) const
 	return m_ExpressionList;
 }
 
-Dictionary::Ptr ConfigItem::GetProperties(void)
-{
-	ASSERT(!OwnsLock());
-	VERIFY(!IsAbstract());
-
-	ObjectLock olock(this);
-
-	if (!m_Properties) {
-		Dictionary::Ptr locals = make_shared<Dictionary>();
-		locals->Set("__parent", m_Scope);
-		locals->Set("name", m_Name);
-
-		m_Properties = make_shared<Dictionary>();
-		m_Properties->Set("type", m_Type);
-		if (!m_Zone.IsEmpty())
-			m_Properties->Set("zone", m_Zone);
-		m_Properties->Set("__parent", locals);
-		GetExpressionList()->Evaluate(m_Properties, &m_DebugHints);
-		m_Properties->Remove("__parent");
-
-		String name = m_Name;
-
-		if (!m_Abstract) {
-			shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
-
-			if (nc) {
-				name = nc->MakeName(m_Name, m_Properties);
-
-				if (name.IsEmpty())
-					BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine name for object"));
-			}
-		}
-
-		if (name != m_Name)
-			m_Properties->Set("name", m_Name);
-
-		m_Properties->Set("__name", name);
-
-		VERIFY(m_Properties->Get("type") == GetType());
-	}
-
-	return m_Properties;
-}
-
-const DebugHint& ConfigItem::GetDebugHints(void) const
-{
-	return m_DebugHints;
-}
-
 /**
  * Commits the configuration item by creating a DynamicObject
  * object.
  *
  * @returns The DynamicObject that was created/updated.
  */
-DynamicObject::Ptr ConfigItem::Commit(void)
+DynamicObject::Ptr ConfigItem::Commit(bool discard)
 {
 	ASSERT(!OwnsLock());
 
@@ -183,16 +135,88 @@ DynamicObject::Ptr ConfigItem::Commit(void)
 #endif /* _DEBUG */
 
 	/* Make sure the type is valid. */
-	DynamicType::Ptr dtype = DynamicType::GetByName(GetType());
+	Type::Ptr type = Type::GetByName(GetType());
 
-	if (!dtype)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Type '" + GetType() + "' does not exist."));
+	if (!type || !Type::GetByName("DynamicObject")->IsAssignableFrom(type))
+		BOOST_THROW_EXCEPTION(ConfigError("Type '" + GetType() + "' does not exist."));
 
 	if (IsAbstract())
 		return DynamicObject::Ptr();
 
-	DynamicObject::Ptr dobj = dtype->CreateObject(GetProperties());
+	DynamicObject::Ptr dobj = static_pointer_cast<DynamicObject>(type->Instantiate());
+
 	dobj->SetDebugInfo(m_DebugInfo);
+	dobj->SetTypeName(m_Type);
+	dobj->SetZone(m_Zone);
+
+	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("__parent", m_Scope);
+	m_Scope.reset();
+	locals->Set("name", m_Name);
+
+	dobj->SetParentScope(locals);
+
+	DebugHint debugHints;
+
+	try {
+		m_ExpressionList->Evaluate(dobj, &debugHints);
+	} catch (const ConfigError& ex) {
+		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+	} catch (const std::exception& ex) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
+	}
+
+	if (discard)
+		m_ExpressionList.reset();
+
+	dobj->SetParentScope(Dictionary::Ptr());
+
+	String name = m_Name;
+
+	shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(type);
+
+	if (nc) {
+		name = nc->MakeName(m_Name, dobj);
+
+		if (name.IsEmpty())
+			BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine name for object"));
+	}
+
+	if (name != m_Name)
+		dobj->SetShortName(m_Name);
+
+	dobj->SetName(name);
+
+	Dictionary::Ptr attrs = Serialize(dobj, FAConfig);
+
+	Dictionary::Ptr persistentItem = make_shared<Dictionary>();
+
+	persistentItem->Set("type", GetType());
+	persistentItem->Set("name", GetName());
+	persistentItem->Set("properties", attrs);
+	persistentItem->Set("debug_hints", debugHints.ToDictionary());
+
+	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
+
+	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
+
+	if (!ctype)
+		ConfigCompilerContext::GetInstance()->AddMessage(false, "No validation type found for object '" + GetName() + "' of type '" + GetType() + "'");
+	else {
+		TypeRuleUtilities utils;
+
+		try {
+			attrs->Remove("name");
+			ctype->ValidateItem(GetName(), attrs, GetDebugInfo(), &utils);
+		} catch (const ConfigError& ex) {
+			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+		} catch (const std::exception& ex) {
+			ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
+		}
+	}
+
 	dobj->Register();
 
 	m_Object = dobj;
@@ -207,20 +231,11 @@ void ConfigItem::Register(void)
 {
 	String name = m_Name;
 
-	/* If this is a non-abstract object we need to figure out
-	 * its real name now - or assign it a temporary name. */
-	if (!m_Abstract) {
-		shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
+	shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
 
-		if (nc) {
-			name = nc->MakeName(m_Name, Dictionary::Ptr());
-
-			ASSERT(name.IsEmpty() || name == m_Name);
-
-			if (name.IsEmpty())
-				name = Utility::NewUniqueID();
-		}
-	}
+	/* If this is a non-abstract object with a composite name we don't register it. */
+	if (!m_Abstract && nc)
+		return;
 
 	std::pair<String, String> key = std::make_pair(m_Type, name);
 	ConfigItem::Ptr self = GetSelf();
@@ -254,104 +269,17 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return ConfigItem::Ptr();
 }
 
-void ConfigItem::ValidateItem(void)
-{
-	if (m_Validated || IsAbstract())
-		return;
-
-	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
-
-	if (!ctype) {
-		ConfigCompilerContext::GetInstance()->AddMessage(false, "No validation type found for object '" + GetName() + "' of type '" + GetType() + "'");
-
-		return;
-	}
-
-	TypeRuleUtilities utils;
-	
-	try {
-		ctype->ValidateItem(GetName(), GetProperties(), GetDebugInfo(), &utils);
-	} catch (const ConfigError& ex) {
-		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
-	} catch (const std::exception& ex) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
-	}
-
-	m_Validated = true;
-}
-
-void ConfigItem::WriteObjectsFile(const String& filename)
-{
-	Log(LogInformation, "ConfigItem")
-	    << "Dumping config items to file '" << filename << "'";
-
-	String tempFilename = filename + ".tmp";
-
-	std::fstream fp;
-	fp.open(tempFilename.CStr(), std::ios_base::out);
-
-	if (!fp)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
-
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
-
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		ConfigItem::Ptr item = kv.second;
-
-		if (item->IsAbstract())
-			continue;
-
-		Dictionary::Ptr persistentItem = make_shared<Dictionary>();
-
-		persistentItem->Set("type", item->GetType());
-		persistentItem->Set("name", item->GetName());
-		persistentItem->Set("properties", item->GetProperties());
-		persistentItem->Set("debug_hints", item->GetDebugHints().ToDictionary());
-
-		String json = JsonEncode(persistentItem);
-
-		NetString::WriteStringToStream(sfp, json);
-	}
-
-	sfp->Close();
-
-	fp.close();
-
-#ifdef _WIN32
-	_unlink(filename.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
-}
-
-bool ConfigItem::ValidateItems(const String& objectsFile)
+bool ConfigItem::ValidateItems(void)
 {
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
 	ParallelWorkQueue upq;
 
-	Log(LogInformation, "ConfigItem", "Validating config items (step 1)...");
-
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
-	}
-
-	upq.Join();
-
-	if (ConfigCompilerContext::GetInstance()->HasErrors())
-		return false;
-
 	Log(LogInformation, "ConfigItem", "Committing config items");
 
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second));
+		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second, false));
 	}
 
 	upq.Join();
@@ -381,16 +309,7 @@ bool ConfigItem::ValidateItems(const String& objectsFile)
 	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 2)...");
 	ObjectRule::EvaluateRules(true);
 
-	Log(LogInformation, "ConfigItem", "Validating config items (step 2)...");
-
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		upq.Enqueue(boost::bind(&ConfigItem::ValidateItem, kv.second));
-	}
-
 	upq.Join();
-
-	if (!objectsFile.IsEmpty())
-		ConfigItem::WriteObjectsFile(objectsFile);
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();

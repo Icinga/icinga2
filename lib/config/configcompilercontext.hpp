@@ -22,6 +22,8 @@
 
 #include "config/i2-config.hpp"
 #include "base/debuginfo.hpp"
+#include "base/stdiostream.hpp"
+#include "base/dictionary.hpp"
 #include <boost/thread/mutex.hpp>
 #include <vector>
 
@@ -51,10 +53,16 @@ public:
 
 	void Reset(void);
 
+	void OpenObjectsFile(const String& filename);
+	void WriteObject(const Dictionary::Ptr& object);
+	void FinishObjectsFile(void);
+
 	static ConfigCompilerContext *GetInstance(void);
 
 private:
 	std::vector<ConfigCompilerMessage> m_Messages;
+	String m_ObjectsPath;
+	StdioStream::Ptr m_ObjectsFP;
 
 	mutable boost::mutex m_Mutex;
 };

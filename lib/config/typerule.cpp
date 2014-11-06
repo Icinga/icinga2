@@ -86,6 +86,9 @@ bool TypeRule::MatchValue(const Value& value, String *hint, const TypeRuleUtilit
 
 bool TypeRuleUtilities::ValidateName(const String& type, const String& name, String *hint) const
 {
+	if (name.IsEmpty())
+		return true;
+
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item) {

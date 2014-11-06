@@ -44,7 +44,6 @@ public:
 
 	static DynamicType::Ptr GetByName(const String& name);
 
-	DynamicObject::Ptr CreateObject(const Dictionary::Ptr& serializedUpdate);
 	DynamicObject::Ptr GetObject(const String& name) const;
 
 	void RegisterObject(const DynamicObject::Ptr& object);

@@ -30,11 +30,14 @@ using namespace icinga;
 
 REGISTER_TYPE(Service);
 
-String ServiceNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const {
-	if (!props)
+String ServiceNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
+{
+	Service::Ptr service = dynamic_pointer_cast<Service>(context);
+
+	if (!service)
 		return "";
 
-	return props->Get("host_name") + "!" + shortName;
+	return service->GetHostName() + "!" + shortName;
 }
 
 void Service::OnConfigLoaded(void)

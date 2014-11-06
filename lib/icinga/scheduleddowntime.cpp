@@ -39,15 +39,17 @@ INITIALIZE_ONCE(&ScheduledDowntime::StaticInitialize);
 
 static Timer::Ptr l_Timer;
 
-String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const
+String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
-	if (!props)
+	ScheduledDowntime::Ptr downtime = dynamic_pointer_cast<ScheduledDowntime>(context);
+
+	if (!downtime)
 		return "";
 
-	String name = props->Get("host_name");
+	String name = downtime->GetHostName();
 
-	if (props->Contains("service_name"))
-		name += "!" + props->Get("service_name");
+	if (!downtime->GetServiceName().IsEmpty())
+		name += "!" + downtime->GetServiceName();
 
 	name += "!" + shortName;
 

@@ -514,6 +514,12 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		}
 	}
 
+	if (klass.Name == "DynamicObject")
+		std::cout << "\t" << "friend class ConfigItem;" << std::endl;
+
+	if (!klass.TypeBase.empty())
+		std::cout << "\t" << "friend class " << klass.TypeBase << ";" << std::endl;
+
 	std::cout << "};" << std::endl << std::endl;
 }
 

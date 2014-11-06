@@ -39,15 +39,17 @@ INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> Notification::OnNextNotificationChanged;
 
-String NotificationNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const
+String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
-	if (!props)
+	Notification::Ptr notification = dynamic_pointer_cast<Notification>(context);
+
+	if (!notification)
 		return "";
 
-	String name = props->Get("host_name");
+	String name = notification->GetHostName();
 
-	if (props->Contains("service_name"))
-		name += "!" + props->Get("service_name");
+	if (!notification->GetServiceName().IsEmpty())
+		name += "!" + notification->GetServiceName();
 
 	name += "!" + shortName;
 
@@ -450,12 +452,12 @@ void Notification::ValidateFilters(const String& location, const Dictionary::Ptr
 {
 	int sfilter = FilterArrayToInt(attrs->Get("states"), 0);
 
-	if (!attrs->Contains("service_name") && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
+	if (attrs->Get("service_name") == Empty && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid.");
 	}
 
-	if (attrs->Contains("service_name") && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+	if (attrs->Get("service_name") != Empty && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid.");
 	}

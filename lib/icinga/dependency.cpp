@@ -29,15 +29,17 @@ using namespace icinga;
 REGISTER_TYPE(Dependency);
 REGISTER_SCRIPTFUNCTION(ValidateDependencyFilters, &Dependency::ValidateFilters);
 
-String DependencyNameComposer::MakeName(const String& shortName, const Dictionary::Ptr& props) const
+String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
-	if (!props)
+	Dependency::Ptr dependency = dynamic_pointer_cast<Dependency>(context);
+
+	if (!dependency)
 		return "";
 
-	String name = props->Get("child_host_name");
+	String name = dependency->GetChildHostName();
 
-	if (props->Contains("child_service_name"))
-		name += "!" + props->Get("child_service_name");
+	if (!dependency->GetChildServiceName().IsEmpty())
+		name += "!" + dependency->GetChildServiceName();
 
 	name += "!" + shortName;
 
@@ -205,12 +207,12 @@ void Dependency::ValidateFilters(const String& location, const Dictionary::Ptr& 
 {
 	int sfilter = FilterArrayToInt(attrs->Get("state_filter"), 0);
 
-	if (!attrs->Contains("parent_service_name") && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
+	if (attrs->Get("parent_service_name") == Empty && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid for host dependency.");
 	}
 
-	if (attrs->Contains("parent_service_name") && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+	if (attrs->Get("parent_service_name") != Empty && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid for service dependency.");
 	}

@@ -101,7 +101,7 @@ private:
 	DebugInfo m_DebugInfo;
 };
 
-#define DECLARE_OBJECTNAME(klass)						\
+#define DECLARE_OBJECTNAME(klass)					\
 	inline static String GetTypeName(void)				\
 	{								\
 		return #klass;						\

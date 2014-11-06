@@ -82,7 +82,6 @@ void Notification::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable,
 	builder->AddExpression(rule.GetExpression());
 
 	ConfigItem::Ptr notificationItem = builder->Compile();
-	notificationItem->Register();
 	DynamicObject::Ptr dobj = notificationItem->Commit();
 	dobj->OnConfigLoaded();
 	

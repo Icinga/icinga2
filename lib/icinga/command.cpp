@@ -46,7 +46,7 @@ void Command::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 
 void Command::ValidateAttributes(const String& location, const Dictionary::Ptr& attrs)
 {
-	if (attrs->Contains("arguments") && !attrs->Get("command").IsObjectType<Array>()) {
+	if (attrs->Get("arguments") != Empty && !attrs->Get("command").IsObjectType<Array>()) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": Attribute 'command' must be an array if the 'arguments' attribute is set.");
 	}

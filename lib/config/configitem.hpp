@@ -39,7 +39,7 @@ public:
 
 	ConfigItem(const String& type, const String& name, bool abstract,
 	    const Expression::Ptr& exprl, const DebugInfo& debuginfo,
-	    const Dictionary::Ptr& scope, const String& zone);
+	    const Object::Ptr& scope, const String& zone);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -48,42 +48,33 @@ public:
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
 	Expression::Ptr GetExpressionList(void) const;
-	Dictionary::Ptr GetProperties(void);
-	const DebugHint& GetDebugHints(void) const;
 
-	DynamicObject::Ptr Commit(void);
+	DynamicObject::Ptr Commit(bool discard = true);
 	void Register(void);
 
 	DebugInfo GetDebugInfo(void) const;
 
-	Dictionary::Ptr GetScope(void) const;
+	Object::Ptr GetScope(void) const;
 
 	String GetZone(void) const;
 
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
-	void ValidateItem(void);
-
-	static bool ValidateItems(const String& objectsFile = String());
+	static bool ValidateItems(void);
 	static bool ActivateItems(void);
 	static void DiscardItems(void);
-
-	static void WriteObjectsFile(const String& filename);
 
 private:
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
-	bool m_Validated; /** Whether this object has been validated. */
 
 	Expression::Ptr m_ExpressionList;
-	Dictionary::Ptr m_Properties;
-	DebugHint m_DebugHints;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
-	Dictionary::Ptr m_Scope; /**< variable scope. */
+	Object::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 
 	DynamicObject::Ptr m_Object;

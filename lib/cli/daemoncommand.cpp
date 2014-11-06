@@ -81,6 +81,9 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 {
 	ConfigCompilerContext::GetInstance()->Reset();
 
+	if (!objectsFile.IsEmpty())
+		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
+
 	if (vm.count("config") > 0) {
 		BOOST_FOREACH(const String& configPath, vm["config"].as<std::vector<std::string> >()) {
 			ConfigCompiler::CompileFile(configPath);
@@ -109,7 +112,7 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	bool result = ConfigItem::ValidateItems(objectsFile);
+	bool result = ConfigItem::ValidateItems();
 
 	int warnings = 0, errors = 0;
 
@@ -148,6 +151,8 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 
 	if (!result)
 		return false;
+
+	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
 
 	ScriptVariable::WriteVariablesFile(varsfile);
 

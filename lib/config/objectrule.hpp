@@ -42,12 +42,12 @@ public:
 	Expression::Ptr GetExpression(void) const;
 	Expression::Ptr GetFilter(void) const;
 	DebugInfo GetDebugInfo(void) const;
-	Dictionary::Ptr GetScope(void) const;
+	Object::Ptr GetScope(void) const;
 
-	bool EvaluateFilter(const Dictionary::Ptr& scope) const;
+	bool EvaluateFilter(const Object::Ptr& scope) const;
 
 	static void AddRule(const String& sourceType, const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
+	    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const ObjectRule::Callback& callback);
@@ -58,13 +58,13 @@ private:
 	Expression::Ptr m_Expression;
 	Expression::Ptr m_Filter;
 	DebugInfo m_DebugInfo;
-	Dictionary::Ptr m_Scope;
+	Object::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
 	ObjectRule(const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope);
+	    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope);
 };
 
 }

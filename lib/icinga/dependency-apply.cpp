@@ -87,7 +87,6 @@ void Dependency::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, c
 	builder->AddExpression(rule.GetExpression());
 
 	ConfigItem::Ptr dependencyItem = builder->Compile();
-	dependencyItem->Register();
 	DynamicObject::Ptr dobj = dependencyItem->Commit();
 	dobj->OnConfigLoaded();
 

@@ -54,7 +54,7 @@ void ConfigItemBuilder::SetAbstract(bool abstract)
 	m_Abstract = abstract;
 }
 
-void ConfigItemBuilder::SetScope(const Dictionary::Ptr& scope)
+void ConfigItemBuilder::SetScope(const Object::Ptr& scope)
 {
 	m_Scope = scope;
 }

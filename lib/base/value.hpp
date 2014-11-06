@@ -97,6 +97,9 @@ public:
 		if (IsEmpty())
 			return shared_ptr<T>();
 
+		if (!IsObject())
+			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value to object."));
+
 		Object::Ptr object = boost::get<Object::Ptr>(m_Value);
 
 		ASSERT(object);

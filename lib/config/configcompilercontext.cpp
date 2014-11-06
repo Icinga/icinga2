@@ -19,7 +19,10 @@
 
 #include "config/configcompilercontext.hpp"
 #include "base/singleton.hpp"
+#include "base/json.hpp"
+#include "base/netstring.hpp"
 #include <boost/foreach.hpp>
+#include <fstream>
 
 using namespace icinga;
 
@@ -59,5 +62,52 @@ void ConfigCompilerContext::Reset(void)
 ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 {
 	return Singleton<ConfigCompilerContext>::GetInstance();
+}
+
+void ConfigCompilerContext::OpenObjectsFile(const String& filename)
+{
+	m_ObjectsPath = filename;
+
+	String tempFilename = m_ObjectsPath + ".tmp";
+
+	std::fstream *fp = new std::fstream();
+	fp->open(tempFilename.CStr(), std::ios_base::out);
+
+	if (!*fp)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
+
+	m_ObjectsFP = make_shared<StdioStream>(fp, true);
+}
+
+void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
+{
+	if (!m_ObjectsFP)
+		return;
+
+	String json = JsonEncode(object);
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		NetString::WriteStringToStream(m_ObjectsFP, json);
+	}
+}
+
+void ConfigCompilerContext::FinishObjectsFile(void)
+{
+	m_ObjectsFP->Close();
+
+	String tempFilename = m_ObjectsPath + ".tmp";
+
+#ifdef _WIN32
+	_unlink(m_ObjectsPath.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempFilename.CStr(), m_ObjectsPath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempFilename));
+        }
+
 }
 

@@ -123,19 +123,6 @@ DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 	return nt->second;
 }
 
-DynamicObject::Ptr DynamicType::CreateObject(const Dictionary::Ptr& serializedUpdate)
-{
-	ASSERT(!OwnsLock());
-
-	Type::Ptr type = Type::GetByName(m_Name);
-
-	Object::Ptr object = type->Instantiate();
-
-	Deserialize(object, serializedUpdate, true, FAConfig);
-
-	return static_pointer_cast<DynamicObject>(object);
-}
-
 boost::mutex& DynamicType::GetStaticMutex(void)
 {
 	static boost::mutex mutex;

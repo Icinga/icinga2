@@ -27,7 +27,7 @@ ObjectRule::RuleMap ObjectRule::m_Rules;
 ObjectRule::CallbackMap ObjectRule::m_Callbacks;
 
 ObjectRule::ObjectRule(const String& name, const Expression::Ptr& expression,
-    const Expression::Ptr& filter, const DebugInfo& di, const Dictionary::Ptr& scope)
+    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope)
 	: m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
 { }
 
@@ -51,19 +51,19 @@ DebugInfo ObjectRule::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-Dictionary::Ptr ObjectRule::GetScope(void) const
+Object::Ptr ObjectRule::GetScope(void) const
 {
 	return m_Scope;
 }
 
 void ObjectRule::AddRule(const String& sourceType, const String& name,
     const Expression::Ptr& expression, const Expression::Ptr& filter,
-    const DebugInfo& di, const Dictionary::Ptr& scope)
+    const DebugInfo& di, const Object::Ptr& scope)
 {
 	m_Rules[sourceType].push_back(ObjectRule(name, expression, filter, di, scope));
 }
 
-bool ObjectRule::EvaluateFilter(const Dictionary::Ptr& scope) const
+bool ObjectRule::EvaluateFilter(const Object::Ptr& scope) const
 {
 	return m_Filter->Evaluate(scope);
 }
