@@ -2168,10 +2168,14 @@ Check command object for the `check_disk` plugin.
 
 Custom Attributes:
 
-Name            | Description
-----------------|--------------
-disk_wfree      | **Optional.** The free space warning threshold in %. Defaults to 20.
-disk_cfree      | **Optional.** The free space critical threshold in %. Defaults to 10.
+Name            	| Description
+------------------------|------------------------
+disk_wfree      	| **Optional.** The free space warning threshold in %. Defaults to 20.
+disk_cfree      	| **Optional.** The free space critical threshold in %. Defaults to 10.
+disk_inode_wfree 	| **Optional.** The free inode warning threshold.
+disk_inode_cfree 	| **Optional.** The free inode critical threshold.
+disk_partition         	| **Optional.** The partition.
+disk_partition_excluded | **Optional.** The excluded partition.
 
 #### <a id="plugin-check-command-users"></a> users
 
