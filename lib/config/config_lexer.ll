@@ -98,6 +98,7 @@ static char *lb_steal(lex_buf *lb)
 %option reentrant noyywrap yylineno
 %option bison-bridge bison-locations
 %option never-interactive nounistd
+%option noinput nounput
 
 %x C_COMMENT
 %x STRING
