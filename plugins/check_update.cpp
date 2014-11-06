@@ -1,3 +1,21 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 #include <windows.h>
 #include <Shlwapi.h>
 #include <iostream>
@@ -17,7 +35,8 @@ namespace po = boost::program_options;
 using std::wcout; using std::endl;
 using std::wstring; using std::cout;
 
-struct printInfoStruct {
+struct printInfoStruct 
+{
 	BOOL warn, crit;
 	LONG numUpdates;
 	BOOL important, reboot, careForCanRequest;
@@ -48,14 +67,18 @@ int printOutput(const printInfoStruct& printInfo)
 	state state = OK;
 	wstring output = L"UPDATE ";
 
+	if (!printInfo.warn && !printInfo.crit) {
+		wcout << L"UPDATE OK " << printInfo.numUpdates << endl;
+        return 0;
+	}
+
 	if (printInfo.important)
 		state = WARNING;
 
 	if (printInfo.reboot)
 		state = CRITICAL;
 
-	switch (state)
-	{
+	switch (state) {
 	case OK:
 		output.append(L"OK ");
 		break;
@@ -69,6 +92,7 @@ int printOutput(const printInfoStruct& printInfo)
 
 	wcout << output << printInfo.numUpdates << L"|update=" << printInfo.numUpdates << L";"
 		<< printInfo.warn << L";" << printInfo.crit << L";0" << endl;
+        
 	return state;
 }
 
@@ -101,9 +125,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			.run(),
 			vm);
 		vm.notify();
-	}
-
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
@@ -112,6 +134,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc << endl;
 		return 0;
 	} 
+    
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -125,15 +148,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"8\" is the number of important updates updates.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value.\n\n"
+			L"if applicable, the maximal value. Performance data will only be displayed when\n"
+			L"you set at least one threshold\n\n"
 			L"An update counts as important when it is part of the Security- or\n"
 			L"CriticalUpdates group.\n"
 			L"Consult the msdn on WSUS Classification GUIDs for more information.\n"
 			L"%s' exit codes denote the following:\n"
-			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"%s works different from other plugins in that you do not set thresholds\n"
 			L"but only activate them. Using \"-w\" triggers warning state if there are not\n"
 			L"installed and non-optional updates. \"-c\" triggers critical if there are\n"
@@ -205,8 +229,7 @@ int check_update(printInfoStruct& printInfo)
 	IInstallationBehavior *pIbehav;
 	InstallationRebootBehavior updateReboot;
 
-	for (LONG i = 0; i < updateSize; i++)
-	{
+	for (LONG i = 0; i < updateSize; i++) {
 		pCollection->get_Item(i, &pUpdate);
 		pUpdate->get_InstallationBehavior(&pIbehav);
 		pIbehav->get_RebootBehavior(&updateReboot);

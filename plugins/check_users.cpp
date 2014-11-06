@@ -1,3 +1,21 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <wtsapi32.h>
@@ -14,7 +32,8 @@ namespace po = boost::program_options;
 using std::endl; using std::wcout;
 using std::cout; using std::wstring;
 
-struct printInfoStruct {
+struct printInfoStruct 
+{
 	threshold warn, crit;
 	int users;
 };
@@ -23,7 +42,8 @@ static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&)
 static int printOutput(printInfoStruct&);
 static int check_users(printInfoStruct&);
 
-int wmain(int argc, wchar_t **argv) {
+int wmain(int argc, wchar_t **argv) 
+{
 	printInfoStruct printInfo = { };
 	po::variables_map vm;
 
@@ -38,7 +58,8 @@ int wmain(int argc, wchar_t **argv) {
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) {
+int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+{
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
 	wchar_t *progName = PathFindFileName(namePath);
@@ -65,9 +86,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			.run(),
 			vm);
 		vm.notify();
-	}
-
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
@@ -76,6 +95,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc << endl;
 		return 0;
 	}
+    
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -89,12 +109,13 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"48\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value.\n\n"
+			L"if applicable, the maximal value. Performance data will only be displayed when\n"
+			L"you set at least one threshold\n\n"
 			L"%s' exit codes denote the following:\n"
-			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
 			L"warn if threshold is broken, which means VALUE > THRESHOLD\n"
@@ -128,9 +149,15 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo) {
+int printOutput(printInfoStruct& printInfo) 
+{
 	state state = OK;
 	
+	if (!printInfo.warn.set && !printInfo.crit.set) {
+		wcout << L"USERS OK " << printInfo.users << endl;
+        return 0;
+	}
+
 	if (printInfo.warn.rend(printInfo.users))
 		state = WARNING;
 
@@ -155,7 +182,8 @@ int printOutput(printInfoStruct& printInfo) {
 	return state;
 }
 
-int check_users(printInfoStruct& printInfo) {
+int check_users(printInfoStruct& printInfo) 
+{
 	int users = 0;
 	WTS_SESSION_INFOW *pSessionInfo;
 	DWORD count;

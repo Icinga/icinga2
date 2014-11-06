@@ -1,3 +1,21 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 #include <Windows.h>
 #include <Pdh.h>
 #include <Shlwapi.h>
@@ -13,7 +31,8 @@ namespace po = boost::program_options;
 
 using std::endl; using std::vector; using std::wstring;
 using std::wcout; using std::cout;
-struct nInterface {
+struct nInterface 
+{
 	wstring name;
 	long BytesInSec, BytesOutSec;
 	nInterface(wstring p)
@@ -21,7 +40,8 @@ struct nInterface {
 	{}
 };
 
-struct printInfoStruct {
+struct printInfoStruct 
+{
 	threshold warn, crit;
 };
 
@@ -30,7 +50,8 @@ static int parseArguments(int, TCHAR **, po::variables_map&, printInfoStruct&);
 static int printOutput(printInfoStruct&, const vector<nInterface>&);
 static int check_network(vector<nInterface>&);
 
-int wmain(int argc, wchar_t **argv) {
+int wmain(int argc, wchar_t **argv) 
+{
 	vector<nInterface> vInterfaces;
 	printInfoStruct printInfo{ };
 	po::variables_map vm;
@@ -46,7 +67,8 @@ int wmain(int argc, wchar_t **argv) {
 	return 1;
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) {
+int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+{
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
 	wchar_t *progName = PathFindFileName(namePath);
@@ -73,9 +95,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			.run(),
 			vm);
 		vm.notify();
-	}
-
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
@@ -98,15 +118,15 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"1131B/s\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value. Performance data will onl be displayed when\n"
-			L"you set at least one threshold\n"
+			L"if applicable, the maximal value. Performance data will only be displayed when\n"
+			L"you set at least one threshold\n\n"
 			L"This program will also print out additional performance data interface\n"
 			L"by interface\n\n"
 			L"%s' exit codes denote the following:\n"
-			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
 			L"warn if threshold is broken, which means VALUE > THRESHOLD\n"
@@ -140,7 +160,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterfaces) {
+int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterfaces) 
+{
 	long tIn = 0, tOut = 0;
 	std::wstringstream tss;
 	state state = OK;
@@ -175,7 +196,8 @@ int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterface
 	return state;
 }
 
-int check_network(vector <nInterface>& vInterfaces) {
+int check_network(vector <nInterface>& vInterfaces) 
+{
 	const wchar_t *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
 	const wchar_t *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
 
@@ -187,6 +209,7 @@ int check_network(vector <nInterface>& vInterfaces) {
 	if (PdhOpenQuery(NULL, NULL, &phQuery) != ERROR_SUCCESS)
 		goto die;
 
+    //Totaly reasonable statement
 	if (PdhOpenQuery(NULL, NULL, &phQuery) == ERROR_SUCCESS) {
 		if (PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn) == ERROR_SUCCESS) {
 			if (PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut) == ERROR_SUCCESS) {
@@ -222,7 +245,8 @@ die:
 	return 3;
 }
 
-void die(DWORD err) {
+void die(DWORD err) 
+{
 	if (!err)
 		err = GetLastError();
 	LPWSTR mBuf = NULL;

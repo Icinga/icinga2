@@ -1,3 +1,21 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 #include <Windows.h>
 #include <set>
 #include <Shlwapi.h>
@@ -16,7 +34,8 @@ namespace po = boost::program_options;
 using std::cout; using std::endl; using std::set;
 using std::vector; using std::wstring; using std::wcout;
 
-struct drive {
+struct drive 
+{
 	wstring name;
 	double cap, free;
 	drive(wstring p)
@@ -24,7 +43,8 @@ struct drive {
 	{}
 };
 
-struct printInfoStruct {
+struct printInfoStruct 
+{
 	threshold warn, crit;
 	vector<wstring> drives;
 	Bunit unit;
@@ -58,9 +78,8 @@ int wmain(int argc, wchar_t **argv)
 		return ret;
 
 	for (vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); ++it) {
-		if (!getFreeAndCap(*it, printInfo.unit)) {
+		if (!getFreeAndCap(*it, printInfo.unit))
 			return 3;
-		}
 	}
 
 	return printOutput(printInfo, vDrives);
@@ -96,9 +115,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			.run(),
 			vm);
 		vm.notify();
-	}
-
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
@@ -116,14 +133,14 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"23.8304%%\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value. Performance data will onl be displayed when\n"
+			L"if applicable, the maximal value. Performance data will only be displayed when\n"
 			L"you set at least one threshold\n"
 			L"This program will also print out additional performance data disk by disk\n\n"
-			L"%s' exit codes denote the following:\n"
-			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L"%s' exit codes denote the following:\n\n"
+			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
 			L"warn if threshold is broken, which means VALUE > THRESHOLD\n"
@@ -163,11 +180,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	if (vm.count("drives")) 
 		printInfo.drives = vm["drives"].as<vector<wstring>>();
 
-	if (vm.count("unit"))
-		printInfo.unit = parseBUnit(vm["unit"].as<wstring>().c_str());
-	else {
+	if (vm.count("unit")) {
+		try {
+			printInfo.unit = parseBUnit(vm["unit"].as<wstring>().c_str());
+		} catch (std::invalid_argument) {
+			wcout << L"Unknown unit Type " << vm["unit"].as<wstring>() << endl;
+			return 3;
+		}
+	} else
 		printInfo.unit = BunitB;
-	}
+
 	return -1;
 }
 
@@ -185,6 +207,7 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 
 	if (!printInfo.warn.set && !printInfo.crit.set) {
 		wcout << L"DISK OK " << tFree << unit << endl;
+        return 0;
 	}
 
 	prePerf << L"|disk=" << tFree << unit << L";" << printInfo.warn.pString() << L";"
@@ -197,6 +220,7 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 		if (printInfo.warn.rend(tFree))
 			state = WARNING;
 	}
+
 	if (printInfo.crit.perc) {
 		if (printInfo.crit.rend((tFree / tCap) * 100.0))
 			state = CRITICAL;
@@ -204,8 +228,6 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 		if (printInfo.crit.rend(tFree))
 			state = CRITICAL;
 	}
-
-
 
 	switch (state) {
 	case OK:

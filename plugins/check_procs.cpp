@@ -1,3 +1,21 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <tlhelp32.h>
@@ -14,7 +32,8 @@ namespace po = boost::program_options;
 using std::endl; using std::wstring; using std::wcout;
 using std::cout;
 
-struct printInfoStruct {
+struct printInfoStruct 
+{
 	threshold warn, crit;
 	wstring user;
 };
@@ -24,12 +43,13 @@ static int countProcs(const wstring);
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
 static int printOutput(const int, printInfoStruct&);
 
-int wmain(int argc, wchar_t **argv) {
+int wmain(int argc, wchar_t **argv) 
+{
 	po::variables_map vm;
 	printInfoStruct printInfo = { };
 
-
 	int r = parseArguments(argc, argv, vm, printInfo);
+    
 	if (r != -1)
 		return r;
 
@@ -39,11 +59,13 @@ int wmain(int argc, wchar_t **argv) {
 	return printOutput(countProcs(), printInfo);
 }
 
-int printOutput(const int numProcs, printInfoStruct& printInfo) {
+int printOutput(const int numProcs, printInfoStruct& printInfo) 
+{
 	state state = OK;
 
 	if (!printInfo.warn.set && !printInfo.crit.set) {
 		wcout << L"PROCS OK " << numProcs << endl;
+        return 0;
 	}
 
 	if (printInfo.warn.rend(numProcs))
@@ -52,9 +74,8 @@ int printOutput(const int numProcs, printInfoStruct& printInfo) {
 	if (printInfo.crit.rend(numProcs))
 		state = CRITICAL;
 	
-	switch (state)
-	{
-	case OK:
+	switch (state) {
+    case OK:
 		wcout << L"PROCS OK " << numProcs << L"|procs=" << numProcs << L";" 
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
@@ -71,7 +92,8 @@ int printOutput(const int numProcs, printInfoStruct& printInfo) {
 	return state;
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) {
+int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+{
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
 	wchar_t *progName = PathFindFileName(namePath);
@@ -99,9 +121,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			.run(),
 			vm);
 		vm.notify();
-	}
-
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		std::cout << e.what() << endl << desc << endl;
 		return 3;
 	}
@@ -110,6 +130,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		std::cout << desc << endl;
 		return 0;
 	}
+    
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -123,14 +144,14 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"67\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value. Performance data will onl be displayed when\n"
-			L"you set at least one threshold\n"
+			L"if applicable, the maximal value. Performance data will only be displayed when\n"
+			L"you set at least one threshold\n\n"
 			L"For \"-user\" option keep in mind you need root to see other users processes\n\n"
 			L"%s' exit codes denote the following:\n"
-			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
 			L"warn if threshold is broken, which means VALUE > THRESHOLD\n"
@@ -151,6 +172,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << endl;
 		return 0;
 	}
+    
 	if (vm.count("version")) {
 		std::cout << "Version: " << VERSION << endl;
 		return 0;
@@ -168,7 +190,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int countProcs() {
+int countProcs() 
+{
 	HANDLE hProcessSnap;
 	PROCESSENTRY32 pe32;
 
@@ -193,7 +216,8 @@ int countProcs() {
 	return numProcs;
 }
 
-int countProcs(const wstring user) {
+int countProcs(const wstring user) 
+{
 	const wchar_t *wuser = user.c_str();
 	int numProcs = 0;
 
@@ -217,18 +241,18 @@ int countProcs(const wstring user) {
 	do {
 		//get ProcessToken
 		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pe32.th32ProcessID);
-		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
+		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) 
             //Won't count pid 0 (system idle) and 4/8 (Sytem)
 			continue;
-		}
+		
 
 
 		//Get dwReturnLength in first call
 		dwReturnLength = 1;
 		if (!GetTokenInformation(hToken, TokenUser, NULL, 0, &dwReturnLength)
-			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER) 
 			continue;
-		}
+		
 
 		pSIDTokenUser = (PTOKEN_USER)new BYTE[dwReturnLength];
 		memset(pSIDTokenUser, 0, dwReturnLength);
@@ -260,9 +284,9 @@ int countProcs(const wstring user) {
 			(LPDWORD)&dwAcctName, DomainName, (LPDWORD)&dwDomainName, &sidNameUse))
 			continue;
 
-		if (!wcscmp(AcctName, wuser)) {
+		if (!wcscmp(AcctName, wuser)) 
 			++numProcs;
-		}
+		
 
 	} while (Process32Next(hProcessSnap, &pe32));
 	

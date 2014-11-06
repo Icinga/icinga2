@@ -1,3 +1,21 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <iostream>
@@ -14,7 +32,8 @@ namespace po = boost::program_options;
 using std::cout; using std::endl;
 using std::wcout; using std::wstring;
 
-struct printInfoStruct {
+struct printInfoStruct 
+{
 	threshold warn, crit;
 	long long time;
 	Tunit unit;
@@ -39,7 +58,8 @@ int main(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) {
+int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+{
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
 	wchar_t *progName = PathFindFileName(namePath);
@@ -52,7 +72,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		("version,v", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold (Uses -unit)")
 		("critical,c", po::wvalue<wstring>(), "critical threshold (Uses -unit)")
-		("unit,u", po::wvalue<wstring>(), "desired unit of output\nh    - hours\nm    - minutes\ns    - seconds (default)\nms   - milliseconds")
+		("unit,u", po::wvalue<wstring>(), "desired unit of output\nh\t- hours\nm\t- minutes\ns\t- seconds (default)\nms\t- milliseconds")
 		;
 
 	po::basic_command_line_parser<wchar_t> parser(ac, av);
@@ -67,8 +87,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			.run(),
 			vm);
 		vm.notify();
-	}
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
@@ -91,14 +110,15 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"712h\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value.\n"
+			L"if applicable, the maximal value. Performance data will only be displayed when\n"
+			L"you set at least one threshold\n\n"
 			L"Note that the returned time ins always rounded down,\n"
 			L"4 hours and 44 minutes will show as 4h.\n\n"
 			L"%s' exit codes denote the following:\n"
-			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
 			L"warn if threshold is broken, which means VALUE > THRESHOLD\n"
@@ -132,15 +152,26 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		printInfo.crit = parse(vm["critical"].as<wstring>());
 
 	if (vm.count("unit")) {
-		printInfo.unit = parseTUnit(vm["unit"].as<wstring>().c_str());
-	} else {
+		try{
+			printInfo.unit = parseTUnit(vm["unit"].as<wstring>().c_str());
+		} catch (std::invalid_argument) {
+
+		} wcout << L"Unknown unit type " << vm["unit"].as<wstring>() << endl;
+	} else
 		printInfo.unit = TunitS;
-	}
+    
 	return -1;
 }
 
-static int printOutput(printInfoStruct& printInfo) {
+static int printOutput(printInfoStruct& printInfo) 
+{
 	state state = OK;
+
+	if (!printInfo.warn.set && !printInfo.crit.set) {
+		wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << endl;
+        return 0;
+	}
+
 	if (printInfo.warn.rend(printInfo.time))
 		state = WARNING;
 	if (printInfo.crit.rend(printInfo.time))
@@ -167,7 +198,8 @@ static int printOutput(printInfoStruct& printInfo) {
 	return state;
 }
 
-void getUptime(printInfoStruct& printInfo) {
+void getUptime(printInfoStruct& printInfo) 
+{
 	boost::chrono::milliseconds uptime = boost::chrono::milliseconds(GetTickCount64());
 	
 	switch (printInfo.unit) {
