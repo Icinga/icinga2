@@ -351,7 +351,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		return;
 
 complete_option:
-		BOOST_FOREACH(const shared_ptr<po::option_description>& odesc, visibleDesc->options()) {
+		BOOST_FOREACH(const boost::shared_ptr<po::option_description>& odesc, visibleDesc->options()) {
 			String cname = "--" + odesc->long_name();
 
 			if (cname.Find(aword) == 0)
