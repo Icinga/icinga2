@@ -30,11 +30,11 @@
 #include <boost/thread/recursive_mutex.hpp>
 #endif /* _DEBUG */
 
+#ifndef _MSC_VER
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/weak_ptr.hpp>
 #include <boost/smart_ptr/enable_shared_from_this.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-#include <boost/tuple/tuple.hpp>
 
 using boost::shared_ptr;
 using boost::weak_ptr;
@@ -42,6 +42,18 @@ using boost::enable_shared_from_this;
 using boost::dynamic_pointer_cast;
 using boost::static_pointer_cast;
 using boost::make_shared;
+#else /* _MSC_VER */
+#include <memory>
+
+using std::shared_ptr;
+using std::weak_ptr;
+using std::enable_shared_from_this;
+using std::dynamic_pointer_cast;
+using std::static_pointer_cast;
+using std::make_shared;
+#endif /* _MSC_VER */
+
+#include <boost/tuple/tuple.hpp>
 using boost::tie;
 
 namespace icinga
