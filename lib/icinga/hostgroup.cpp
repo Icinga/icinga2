@@ -46,6 +46,7 @@ bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& r
 	CONTEXT(msgbuf.str());
 
 	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 
 	if (!rule.EvaluateFilter(locals))

@@ -46,6 +46,7 @@ bool UserGroup::EvaluateObjectRuleOne(const User::Ptr& user, const ObjectRule& r
 	CONTEXT(msgbuf.str());
 
 	Dictionary::Ptr locals = make_shared<Dictionary>();
+	locals->Set("__parent", rule.GetScope());
 	locals->Set("user", user);
 
 	if (!rule.EvaluateFilter(locals))
