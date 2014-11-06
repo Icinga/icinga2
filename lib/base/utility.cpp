@@ -330,7 +330,7 @@ Utility::LoadExtensionLibrary(const String& library)
 		    << boost::errinfo_file_name(path));
 	}
 #else /* _WIN32 */
-	void *hModule = dlopen(path.CStr(), RTLD_NOW);
+	void *hModule = dlopen(path.CStr(), RTLD_NOW | RTLD_GLOBAL);
 
 	if (hModule == NULL) {
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not load library '" + path + "': " + dlerror()));

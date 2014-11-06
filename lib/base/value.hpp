@@ -99,8 +99,7 @@ public:
 
 		Object::Ptr object = boost::get<Object::Ptr>(m_Value);
 
-		if (!object)
-			return shared_ptr<T>();
+		ASSERT(object);
 
 		shared_ptr<T> tobject = dynamic_pointer_cast<T>(object);
 
