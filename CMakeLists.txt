@@ -171,6 +171,7 @@ add_subdirectory(itl)
 add_subdirectory(doc)
 add_subdirectory(test)
 add_subdirectory(agent)
+add_subdirectory(plugins)
 
 set(CPACK_PACKAGE_NAME "Icinga2")
 set(CPACK_PACKAGE_VENDOR "Icinga Development Team")

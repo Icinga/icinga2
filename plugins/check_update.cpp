@@ -1,0 +1,227 @@
+#include <windows.h>
+#include <Shlwapi.h>
+#include <iostream>
+#include <wuapi.h>
+#include <wuerror.h>
+
+#include "thresholds.h"
+
+#include "boost/program_options.hpp"
+
+#define VERSION 1.0
+
+#define CRITERIA L"(IsInstalled = 0 and CategoryIDs contains '0fa1201d-4330-4fa8-8ae9-b877473b6441') or (IsInstalled = 0 and CategoryIDs contains 'E6CF1350-C01B-414D-A61F-263D14D133B4')"
+
+namespace po = boost::program_options;
+
+using std::wcout; using std::endl;
+using std::wstring; using std::cout;
+
+struct printInfoStruct {
+	BOOL warn, crit;
+	LONG numUpdates;
+	BOOL important, reboot, careForCanRequest;
+};
+
+static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
+static int printOutput(const printInfoStruct&);
+static int check_update(printInfoStruct&);
+
+int main(int argc, wchar_t **argv) 
+{
+	po::variables_map vm;
+	printInfoStruct printInfo = { FALSE, FALSE, 0, FALSE, FALSE, FALSE };
+
+	int ret = parseArguments(argc, argv, vm, printInfo);
+	if (ret != -1)
+		return ret;
+	
+	ret = check_update(printInfo);
+	if (ret != -1)
+		return ret;
+
+	return printOutput(printInfo);
+}
+
+int printOutput(const printInfoStruct& printInfo) 
+{
+	state state = OK;
+	wstring output = L"UPDATE ";
+
+	if (printInfo.important)
+		state = WARNING;
+
+	if (printInfo.reboot)
+		state = CRITICAL;
+
+	switch (state)
+	{
+	case OK:
+		output.append(L"OK ");
+		break;
+	case WARNING:
+		output.append(L"WARNING ");
+		break;
+	case CRITICAL:
+		output.append(L"CRITICAL ");
+		break;
+	}
+
+	wcout << output << printInfo.numUpdates << L"|update=" << printInfo.numUpdates << L";"
+		<< printInfo.warn << L";" << printInfo.crit << L";0" << endl;
+	return state;
+}
+
+int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+{
+	wchar_t namePath[MAX_PATH];
+	GetModuleFileName(NULL, namePath, MAX_PATH);
+	wchar_t *progName = PathFindFileName(namePath);
+
+	po::options_description desc;
+
+	desc.add_options()
+		(",h", "print help message and exit")
+		("help", "print verbose help and exit")
+		("version,v", "print version and exit")
+		("warning,w", "warn if there are important updates available")
+		("critical,c", "critical if there are important updates that require a reboot")
+		("possible-reboot", "treat \"update may need to reboot\" as \"update needs to reboot\"")
+		;
+
+	po::basic_command_line_parser<wchar_t> parser(ac, av);
+
+	try {
+		po::store(
+			parser
+			.options(desc)
+			.style(
+			po::command_line_style::unix_style |
+			po::command_line_style::allow_long_disguise)
+			.run(),
+			vm);
+		vm.notify();
+	}
+
+	catch (std::exception& e) {
+		cout << e.what() << endl << desc << endl;
+		return 3;
+	}
+
+	if (vm.count("h")) {
+		cout << desc << endl;
+		return 0;
+	} 
+	if (vm.count("help")) {
+		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		wprintf(
+			L"%s is a simple program to check a machines required updates.\n"
+			L"You can use the following options to define its behaviour:\n\n", progName);
+		cout << desc;
+		wprintf(
+			L"\nAfter some time, it will then output a string like this one:\n\n"
+			L"\tUPDATE WARNING 8|updates=8;1;1;0\n\n"
+			L"\"UPDATE\" being the type of the check, \"WARNING\" the returned status\n"
+			L"and \"8\" is the number of important updates updates.\n"
+			L"The performance data is found behind the \"|\", in order:\n"
+			L"returned value, warning threshold, critical threshold, minimal value and,\n"
+			L"if applicable, the maximal value.\n\n"
+			L"An update counts as important when it is part of the Security- or\n"
+			L"CriticalUpdates group.\n"
+			L"Consult the msdn on WSUS Classification GUIDs for more information.\n"
+			L"%s' exit codes denote the following:\n"
+			L" 0\tOK,\n\tno Thresholds were broken or the programs check part was not executed\n"
+			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
+			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
+			L" 3\tUNKNOWN, \n\tThe programme experienced an internal or input error\n\n"
+			L"%s works different from other plugins in that you do not set thresholds\n"
+			L"but only activate them. Using \"-w\" triggers warning state if there are not\n"
+			L"installed and non-optional updates. \"-c\" triggers critical if there are\n"
+			L"non-optional updates that require a reboot.\n"
+			L"The \"possible-reboot\" option is not recommended since this true for nearly\n"
+			L"every update."
+			, progName, progName);
+		cout << endl;
+		return 0;
+	}  if (vm.count("version")) {
+		cout << "Version: " << VERSION << endl;
+		return 0;
+	}
+
+	if (vm.count("warning"))
+		printInfo.warn = TRUE;
+
+	if (vm.count("critical"))
+		printInfo.crit = TRUE;
+
+	if (vm.count("possible-reboot"))
+		printInfo.careForCanRequest = TRUE;
+
+	return -1;
+}
+
+int check_update(printInfoStruct& printInfo) 
+{
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+	ISearchResult *pResult;
+	IUpdateSession *pSession;
+	IUpdateSearcher *pSearcher;
+
+	CoCreateInstance(CLSID_UpdateSession, NULL, CLSCTX_INPROC_SERVER, IID_IUpdateSession, (LPVOID*)&pSession);
+	pSession->CreateUpdateSearcher(&pSearcher);
+
+
+	/*
+	 IsInstalled = 0: All updates, including languagepacks and features
+	 BrowseOnly = 0: No features or languagepacks, security and unnamed
+	 BrowseOnly = 1: Nothing, broken
+	 RebootRequired = 1: Reboot required
+	*/
+
+	BSTR criteria = SysAllocString(CRITERIA);
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx
+	// http://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
+
+	if (pSearcher->Search(criteria, &pResult) != S_OK)
+		goto die;
+	SysFreeString(criteria);
+
+	IUpdateCollection *pCollection;
+	IUpdate *pUpdate;
+
+	LONG updateSize;
+	pResult->get_Updates(&pCollection);
+	pCollection->get_Count(&updateSize);
+
+	if (updateSize == 0)
+		return -1;
+
+	printInfo.numUpdates = updateSize;
+	printInfo.important = printInfo.warn;
+
+	if (!printInfo.crit)
+		return -1;
+
+	IInstallationBehavior *pIbehav;
+	InstallationRebootBehavior updateReboot;
+
+	for (LONG i = 0; i < updateSize; i++)
+	{
+		pCollection->get_Item(i, &pUpdate);
+		pUpdate->get_InstallationBehavior(&pIbehav);
+		pIbehav->get_RebootBehavior(&updateReboot);
+		if (updateReboot == irbAlwaysRequiresReboot) {
+			printInfo.reboot = TRUE;
+			continue;
+		}
+		if (printInfo.careForCanRequest && updateReboot == irbCanRequestReboot)
+			printInfo.reboot = TRUE;
+	}
+
+	return 0;
+
+die:
+	if (criteria)
+		SysFreeString(criteria);
+	return 3;
+}
