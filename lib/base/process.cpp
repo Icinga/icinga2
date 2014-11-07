@@ -413,21 +413,30 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	if (!CreateProcess(NULL, args, NULL, NULL, TRUE,
 	    EXTENDED_STARTUPINFO_PRESENT, envp, NULL, &si.StartupInfo, &pi)) {
+		DWORD error = GetLastError();
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);
-		delete args;
 		free(envp);
 		DeleteProcThreadAttributeList(lpAttributeList);
 		delete [] reinterpret_cast<char *>(lpAttributeList);
-		BOOST_THROW_EXCEPTION(win32_error()
-			<< boost::errinfo_api_function("CreateProcess")
-			<< errinfo_win32_error(GetLastError()));
+
+		m_Result.PID = 0;
+		m_Result.ExecutionEnd = Utility::GetTime();
+		m_Result.ExitStatus = 127;
+		m_Result.Output = "Command " + String(args) + " failed to execute: " + Utility::FormatErrorNumber(error);
+
+		delete [] args;
+
+		if (callback)
+			Utility::QueueAsyncCallback(boost::bind(callback, m_Result));
+
+		return;
 	}
 
-	delete args;
+	delete [] args;
 	free(envp);
 	DeleteProcThreadAttributeList(lpAttributeList);
-	delete[] reinterpret_cast<char *>(lpAttributeList);
+	delete [] reinterpret_cast<char *>(lpAttributeList);
 
 	CloseHandle(outWritePipe);
 	CloseHandle(outWritePipeDup);
