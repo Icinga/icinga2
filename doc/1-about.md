@@ -74,8 +74,10 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 * Cluster
     * Add CSR Auto-Signing support using generated ticket #7244
 * Configuration
-    * Former `localhost` example host is now located in the repository using the FQDN #7398
-    * Updated downtimes configuration example #7472
+    * Former `localhost` example host is now defined in [hosts.conf](#hosts-conf) #7594
+    * All example services moved into advanced apply rules in [services.conf](#services-conf)
+    * Updated downtimes configuration example in [downtimes.conf](#downtimes-conf) #7472
+    * Updated notification apply example in [notifications.conf](#notifications-conf) #7594
     * Support for object attribute 'zone' #7400
     * Support setting object variables in apply rules #7479
 * Perfdata
@@ -85,6 +87,9 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * `python-icinga2` package dropped in favor of integrated cli commands #7245
     * Windows Installer for the agent parts #7243
 
+> **Note**
+>
+>  Please remove `conf.d/hosts/localhost*` after verifying your updated configuration!
 
 #### Issues
 
