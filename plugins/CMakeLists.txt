@@ -1,91 +1,57 @@
-if(WIN32)
+# Icinga 2
+# Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation
+# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+
+if (WIN32)
+
   add_definitions(-DUNICODE -D_UNICODE)
-
+  
   add_library(thresholds thresholds)
+    set_target_properties (
+    thresholds PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+    FOLDER Plugins
+  )
+  
+  list(APPEND check_SOURCES 
+    check_disk.cpp check_load.cpp check_network.cpp check_procs.cpp check_service.cpp 
+		check_swap.cpp check_update.cpp check_uptime.cpp check_users.cpp)
+  
+  foreach (source ${check_SOURCES}) 
+    string (REGEX REPLACE ".cpp\$" "" check_OUT "${source}")
+		
+    add_executable (${check_OUT} ${source})
+    target_link_libraries(${check_OUT} thresholds Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
+    
+    set_target_properties (
+      ${check_OUT} PROPERTIES
+      INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+      DEFINE_SYMBOL I2_PLUGINS_BUILD
+      FOLDER Plugins)
+  endforeach(source)
 
-  add_executable(check_disk check_disk.cpp)
-  target_link_libraries(check_disk thresholds Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_disk PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
+  target_link_libraries(check_load Pdh.lib)
+  target_link_libraries(check_network Pdh.lib)
+  target_link_libraries(check_procs Pdh.lib)
+  target_link_libraries(check_swap Pdh.lib)
+  target_link_libraries(check_uptime ${Boost_SYSTEM_LIBRARY})
+  target_link_libraries(check_users wtsapi32.lib)
 
-  add_executable(check_load check_load.cpp)
-  target_link_libraries(check_load thresholds Pdh.lib Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_load PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_network check_network.cpp)
-  target_link_libraries(check_network thresholds Pdh.lib Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_network PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_procs check_procs.cpp)
-  target_link_libraries(check_procs thresholds Pdh.lib Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_procs PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_service check_service.cpp)
-  target_link_libraries(check_service thresholds Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_service PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_swap check_swap.cpp)
-  target_link_libraries(check_swap thresholds Pdh.lib Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_swap PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_update check_update.cpp)
-  target_link_libraries(check_update thresholds Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_update PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_uptime check_uptime.cpp)
-  target_link_libraries(check_uptime thresholds ${Boost_SYSTEM_LIBRARY} Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  set_target_properties (
-    check_uptime PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-  add_executable(check_users check_users.cpp)
-  target_link_libraries(check_users thresholds wtsapi32.lib Shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
-	  set_target_properties (
-    check_users PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_PLUGINS_BUILD
-    FOLDER Plugins
-  )
-	
-	install(
+  install (
     TARGETS check_disk check_load check_network check_procs check_service check_swap check_update check_uptime check_users
-    RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  )	
+    RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
+    
 endif()
