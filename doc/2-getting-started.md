@@ -644,6 +644,7 @@ Once defined like this, the `apply` rule defined below will do the following:
 * adding the `config` dictionary items to `vars`. Simply said, there's now `vars.disk_partition` defined for the
 generated service
 
+Configuration example:
 
     apply Service for (disk => config in host.vars.disks) {
       import "generic-service"
