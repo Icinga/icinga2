@@ -33,7 +33,7 @@ namespace icinga
 class CommentsTable : public Table
 {
 public:
-	DECLARE_OBJECT(CommentsTable);
+	DECLARE_PTR_TYPEDEFS(CommentsTable);
 
 	CommentsTable(void);
 

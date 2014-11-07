@@ -39,7 +39,7 @@ class DbObject;
 class I2_DB_IDO_API DbType : public Object
 {
 public:
-	DECLARE_OBJECT(DbType);
+	DECLARE_PTR_TYPEDEFS(DbType);
 
 	typedef boost::function<shared_ptr<DbObject> (const shared_ptr<DbType>&, const String&, const String&)> ObjectFactory;
 	typedef std::map<String, DbType::Ptr> TypeMap;

@@ -33,7 +33,7 @@ namespace icinga
 class DowntimesTable : public Table
 {
 public:
-	DECLARE_OBJECT(DowntimesTable);
+	DECLARE_PTR_TYPEDEFS(DowntimesTable);
 
 	DowntimesTable(void);
 

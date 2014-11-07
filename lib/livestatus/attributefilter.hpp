@@ -33,7 +33,7 @@ namespace icinga
 class AttributeFilter : public Filter
 {
 public:
-	DECLARE_OBJECT(AttributeFilter);
+	DECLARE_PTR_TYPEDEFS(AttributeFilter);
 
 	AttributeFilter(const String& column, const String& op, const String& operand);
 

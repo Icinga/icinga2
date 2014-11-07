@@ -33,7 +33,7 @@ namespace icinga
 class StatusTable : public Table
 {
 public:
-	DECLARE_OBJECT(StatusTable);
+	DECLARE_PTR_TYPEDEFS(StatusTable);
 
 	StatusTable(void);
 

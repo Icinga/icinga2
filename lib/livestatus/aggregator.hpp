@@ -32,7 +32,7 @@ namespace icinga
 class Aggregator : public Object
 {
 public:
-	DECLARE_OBJECT(Aggregator);
+	DECLARE_PTR_TYPEDEFS(Aggregator);
 
 	virtual void Apply(const Table::Ptr& table, const Value& row) = 0;
 	virtual double GetResult(void) const = 0;

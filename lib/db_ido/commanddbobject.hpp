@@ -34,7 +34,7 @@ namespace icinga
 class CommandDbObject : public DbObject
 {
 public:
-	DECLARE_OBJECT(CommandDbObject);
+	DECLARE_PTR_TYPEDEFS(CommandDbObject);
 
 	CommandDbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2);
 

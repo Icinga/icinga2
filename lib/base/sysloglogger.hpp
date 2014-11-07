@@ -20,10 +20,10 @@
 #ifndef SYSLOGLOGGER_H
 #define SYSLOGLOGGER_H
 
+#ifndef _WIN32
 #include "base/i2-base.hpp"
 #include "base/sysloglogger.thpp"
 
-#ifndef _WIN32
 namespace icinga
 {
 

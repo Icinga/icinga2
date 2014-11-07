@@ -33,7 +33,7 @@ namespace icinga
 class CombinerFilter : public Filter
 {
 public:
-	DECLARE_OBJECT(CombinerFilter);
+	DECLARE_PTR_TYPEDEFS(CombinerFilter);
 
 	CombinerFilter(void);
 

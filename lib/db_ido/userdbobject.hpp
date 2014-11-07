@@ -34,7 +34,7 @@ namespace icinga
 class UserDbObject : public DbObject
 {
 public:
-	DECLARE_OBJECT(UserDbObject);
+	DECLARE_PTR_TYPEDEFS(UserDbObject);
 
 	UserDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 

@@ -34,7 +34,7 @@ namespace icinga
 class HostDbObject : public DbObject
 {
 public:
-	DECLARE_OBJECT(HostDbObject);
+	DECLARE_PTR_TYPEDEFS(HostDbObject);
 
 	HostDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 

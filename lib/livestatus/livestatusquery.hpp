@@ -45,7 +45,7 @@ enum LivestatusError
 class LivestatusQuery : public Object
 {
 public:
-	DECLARE_OBJECT(LivestatusQuery);
+	DECLARE_PTR_TYPEDEFS(LivestatusQuery);
 
 	LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path);
 

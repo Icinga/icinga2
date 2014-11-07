@@ -32,7 +32,7 @@ namespace icinga
 class MinAggregator : public Aggregator
 {
 public:
-	DECLARE_OBJECT(MinAggregator);
+	DECLARE_PTR_TYPEDEFS(MinAggregator);
 
 	MinAggregator(const String& attr);
 

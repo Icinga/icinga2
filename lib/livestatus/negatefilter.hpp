@@ -33,7 +33,7 @@ namespace icinga
 class NegateFilter : public Filter
 {
 public:
-	DECLARE_OBJECT(NegateFilter);
+	DECLARE_PTR_TYPEDEFS(NegateFilter);
 
 	NegateFilter(const Filter::Ptr& inner);
 

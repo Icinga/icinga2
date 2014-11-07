@@ -35,7 +35,7 @@ namespace icinga
 class ServiceGroupDbObject : public DbObject
 {
 public:
-	DECLARE_OBJECT(ServiceGroupDbObject);
+	DECLARE_PTR_TYPEDEFS(ServiceGroupDbObject);
 
 	ServiceGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 

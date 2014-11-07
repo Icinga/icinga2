@@ -33,7 +33,7 @@ namespace icinga
 class ServicesTable : public Table
 {
 public:
-	DECLARE_OBJECT(ServicesTable);
+	DECLARE_PTR_TYPEDEFS(ServicesTable);
 
 	ServicesTable(void);
 

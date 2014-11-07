@@ -32,7 +32,7 @@ namespace icinga
 class MaxAggregator : public Aggregator
 {
 public:
-	DECLARE_OBJECT(MaxAggregator);
+	DECLARE_PTR_TYPEDEFS(MaxAggregator);
 
 	MaxAggregator(const String& attr);
 

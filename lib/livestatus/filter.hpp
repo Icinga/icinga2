@@ -31,7 +31,7 @@ namespace icinga
 class Filter : public Object
 {
 public:
-	DECLARE_OBJECT(Filter);
+	DECLARE_PTR_TYPEDEFS(Filter);
 
 	virtual bool Apply(const Table::Ptr& table, const Value& row) = 0;
 
