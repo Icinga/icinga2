@@ -280,6 +280,13 @@ Functions can be called using the `()` operator:
       check_interval = len(MyGroups) * 1m
     }
 
+> **Tip**
+>
+> Use these functions in [apply](#using-apply) rule expressions.
+
+    assign where match("192.168.*", host.address)
+
+
 Function                        | Description
 --------------------------------|-----------------------
 regex(pattern, text)            | Returns true if the regex pattern matches the text, false otherwise.

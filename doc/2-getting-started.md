@@ -1219,7 +1219,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus Schema](#schema-livestatus) section.
+in the [Livestatus](#livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
