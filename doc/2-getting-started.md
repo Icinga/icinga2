@@ -367,6 +367,8 @@ This constant is required by the shipped
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
 
+Example:
+
     /* The directory which contains the plugins from the Monitoring Plugins project. */
     const PluginDir = "/usr/lib64/nagios/plugins"
 
