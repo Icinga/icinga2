@@ -61,7 +61,7 @@ enum CombinedSetOp
 class I2_CONFIG_API Expression : public Object
 {
 public:
-	DECLARE_OBJECT(Expression);
+	DECLARE_PTR_TYPEDEFS(Expression);
 	
 	typedef Value (*OpCallback)(const Expression *, const Dictionary::Ptr&, DebugHint *dhint);
 

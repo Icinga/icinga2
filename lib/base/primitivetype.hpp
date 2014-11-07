@@ -39,11 +39,14 @@ public:
 	virtual Field GetFieldInfo(int id) const;
 	virtual int GetFieldCount(void) const;
 
+protected:
+	virtual ObjectFactory GetFactory(void) const;
+
 private:
 	String m_Name;
 };
 
-#define REGISTER_PRIMITIVE_TYPE(type) \
+#define REGISTER_BUILTIN_TYPE(type) \
 	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type { \
 		void RegisterPrimitiveType(void) \
 		{ \
@@ -53,6 +56,10 @@ private:
 		\
 		INITIALIZE_ONCE(RegisterPrimitiveType); \
 	} } }
+
+#define REGISTER_PRIMITIVE_TYPE(type) \
+	REGISTER_BUILTIN_TYPE(type); \
+	DEFINE_TYPE_INSTANCE(type)
 
 }
 

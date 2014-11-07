@@ -43,7 +43,7 @@ enum ClientRole
 class I2_REMOTE_API ApiClient : public Object
 {
 public:
-	DECLARE_OBJECT(ApiClient);
+	DECLARE_PTR_TYPEDEFS(ApiClient);
 
 	ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role);
 

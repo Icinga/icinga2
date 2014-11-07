@@ -59,9 +59,7 @@ enum TypeAttribute
 class I2_BASE_API Type : public Object
 {
 public:
-	DECLARE_OBJECT(Type);
-
-	typedef boost::function<Object::Ptr (void)> Factory;
+	DECLARE_PTR_TYPEDEFS(Type);
 
 	virtual String GetName(void) const = 0;
 	virtual Type::Ptr GetBaseType(void) const = 0;
@@ -79,14 +77,13 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 
-	void SetFactory(const Factory& factory);
+protected:
+	virtual ObjectFactory GetFactory(void) const = 0;
 
 private:
 	typedef std::map<String, Type::Ptr> TypeMap;
 
 	static TypeMap& GetTypes(void);
-
-	Factory m_Factory;
 };
 
 template<typename T>
@@ -94,32 +91,21 @@ class TypeImpl
 {
 };
 
-template<typename T>
-shared_ptr<T> ObjectFactory(void)
-{
-	return make_shared<T>();
-}
-
-template<typename T>
-struct FactoryHelper
-{
-	Type::Factory GetFactory(void)
-	{
-		return ObjectFactory<T>;
-	}
-};
-
 #define REGISTER_TYPE(type) \
 	namespace { namespace UNIQUE_NAME(rt) { \
 		void RegisterType ## type(void) \
 		{ \
 			icinga::Type::Ptr t = make_shared<TypeImpl<type> >(); \
-			t->SetFactory(FactoryHelper<type>().GetFactory()); \
+			type::TypeInstance = t; \
 			icinga::Type::Register(t); \
 		} \
 		\
 		INITIALIZE_ONCE(RegisterType ## type); \
-	} }
+	} } \
+	DEFINE_TYPE_INSTANCE(type)
+
+#define DEFINE_TYPE_INSTANCE(type) \
+	Type::Ptr type::TypeInstance;
 
 }
 

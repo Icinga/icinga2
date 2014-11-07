@@ -48,7 +48,7 @@ enum TypeValidationResult
 class I2_CONFIG_API TypeRuleList : public Object
 {
 public:
-	DECLARE_OBJECT(TypeRuleList);
+	DECLARE_PTR_TYPEDEFS(TypeRuleList);
 
 	void SetValidator(const String& validator);
 	String GetValidator(void) const;

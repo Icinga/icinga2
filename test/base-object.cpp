@@ -26,7 +26,7 @@ using namespace icinga;
 class TestObject : public Object
 {
 public:
-	DECLARE_OBJECT(TestObject);
+	DECLARE_PTR_TYPEDEFS(TestObject);
 
 	TestObject::Ptr GetTestRef(void)
 	{

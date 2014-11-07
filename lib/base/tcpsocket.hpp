@@ -34,7 +34,7 @@ namespace icinga
 class I2_BASE_API TcpSocket : public Socket
 {
 public:
-	DECLARE_OBJECT(TcpSocket);
+	DECLARE_PTR_TYPEDEFS(TcpSocket);
 
 	void Bind(const String& service, int family);
 	void Bind(const String& node, const String& service, int family);

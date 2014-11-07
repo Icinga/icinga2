@@ -41,7 +41,7 @@ enum RepositoryCommandType
 class I2_CLI_API RepositoryObjectCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(RepositoryObjectCommand);
+	DECLARE_PTR_TYPEDEFS(RepositoryObjectCommand);
 
 	RepositoryObjectCommand(const String& type, RepositoryCommandType command);
 

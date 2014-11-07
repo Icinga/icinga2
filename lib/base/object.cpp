@@ -83,8 +83,3 @@ Value Object::GetField(int) const
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-Type::Ptr icinga::LookupType(const char *name)
-{
-	return Type::GetByName(name);
-}
-

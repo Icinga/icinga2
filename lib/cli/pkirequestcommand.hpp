@@ -33,7 +33,7 @@ namespace icinga
 class PKIRequestCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(PKIRequestCommand);
+	DECLARE_PTR_TYPEDEFS(PKIRequestCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

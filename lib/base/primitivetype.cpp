@@ -21,9 +21,9 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(int);
-REGISTER_PRIMITIVE_TYPE(double);
-REGISTER_PRIMITIVE_TYPE(bool);
+REGISTER_BUILTIN_TYPE(int);
+REGISTER_BUILTIN_TYPE(double);
+REGISTER_BUILTIN_TYPE(bool);
 
 PrimitiveType::PrimitiveType(const String& name)
 	: m_Name(name)
@@ -57,5 +57,10 @@ Field PrimitiveType::GetFieldInfo(int id) const
 int PrimitiveType::GetFieldCount(void) const
 {
 	return 0;
+}
+
+ObjectFactory PrimitiveType::GetFactory(void) const
+{
+	return NULL;
 }
 

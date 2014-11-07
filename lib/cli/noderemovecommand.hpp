@@ -33,7 +33,7 @@ namespace icinga
 class NodeRemoveCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(NodeRemoveCommand);
+	DECLARE_PTR_TYPEDEFS(NodeRemoveCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

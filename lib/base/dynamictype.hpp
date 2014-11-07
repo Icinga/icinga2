@@ -36,7 +36,7 @@ class DynamicTypeIterator;
 class I2_BASE_API DynamicType : public Object
 {
 public:
-	DECLARE_OBJECT(DynamicType);
+	DECLARE_PTR_TYPEDEFS(DynamicType);
 
 	DynamicType(const String& name);
 

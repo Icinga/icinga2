@@ -33,7 +33,7 @@ namespace icinga
 class DaemonCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(DaemonCommand);
+	DECLARE_PTR_TYPEDEFS(DaemonCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

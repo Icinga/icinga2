@@ -114,6 +114,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	if (klass.Name.find_first_of(':') == std::string::npos)
 		std::cout << "class " << klass.Name << ";" << std::endl << std::endl;
 
+	/* TypeHelper */
+	if (klass.Attributes & TAAbstract) {
+		std::cout << "template<>" << std::endl
+			  << "struct TypeHelper<" << klass.Name << ">" << std::endl
+			  << "{" << std::endl
+			  << "\t" << "static ObjectFactory GetFactory(void)" << std::endl
+			  << "\t" << "{" << std::endl
+			  << "\t\t" << "return NULL;" << std::endl
+			  << "\t" << "}" << std::endl
+			  << "};" << std::endl << std::endl;
+	}
+
 	/* TypeImpl */
 	std::cout << "template<>" << std::endl
 		<< "class TypeImpl<" << klass.Name << ">"
@@ -294,6 +306,12 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	std::cout << ";" << std::endl
 		<< "\t" << "}" << std::endl << std::endl;
 
+	/* GetFactory */
+	std::cout << "\t" << "virtual ObjectFactory GetFactory(void) const" << std::endl
+		  << "\t" << "{" << std::endl
+		  << "\t\t" << "return TypeHelper<" << klass.Name << ">::GetFactory();" << std::endl
+		  << "\t" << "}" << std::endl << std::endl;
+
 	std::cout << "};" << std::endl << std::endl;
 
 	/* ObjectImpl */
@@ -302,8 +320,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		  << " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
 		  << "{" << std::endl
 		  << "public:" << std::endl
-		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl
-		  << "\t" << "IMPL_TYPE_LOOKUP(" << klass.Name << ");" << std::endl << std::endl;
+		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl;
 
 	if (!klass.Fields.empty()) {
 		/* constructor */
@@ -466,18 +483,6 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	}
 
 	std::cout << "};" << std::endl << std::endl;
-
-	/* FactoryHelper */
-	if (klass.Attributes & TAAbstract) {
-		std::cout << "template<>" << std::endl
-			  << "struct FactoryHelper<" << klass.Name << ">" << std::endl
-			  << "{" << std::endl
-			  << "\t" << "Type::Factory GetFactory(void)" << std::endl
-			  << "\t" << "{" << std::endl
-			  << "\t\t" << "return Type::Factory();" << std::endl
-			  << "\t" << "}" << std::endl
-			  << "};" << std::endl << std::endl;
-	}
 }
 
 void ClassCompiler::CompileFile(const std::string& path)

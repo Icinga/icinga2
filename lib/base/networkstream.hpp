@@ -35,7 +35,7 @@ namespace icinga
 class I2_BASE_API NetworkStream : public Stream
 {
 public:
-	DECLARE_OBJECT(NetworkStream);
+	DECLARE_PTR_TYPEDEFS(NetworkStream);
 
 	NetworkStream(const Socket::Ptr& socket);
 

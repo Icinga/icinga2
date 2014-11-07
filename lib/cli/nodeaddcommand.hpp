@@ -33,7 +33,7 @@ namespace icinga
 class NodeAddCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(NodeAddCommand);
+	DECLARE_PTR_TYPEDEFS(NodeAddCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

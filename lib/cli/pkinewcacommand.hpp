@@ -33,7 +33,7 @@ namespace icinga
 class PKINewCACommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(PKINewCACommand);
+	DECLARE_PTR_TYPEDEFS(PKINewCACommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

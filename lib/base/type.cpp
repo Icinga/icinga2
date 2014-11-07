@@ -49,7 +49,12 @@ Type::Ptr Type::GetByName(const String& name)
 
 Object::Ptr Type::Instantiate(void) const
 {
-	return m_Factory();
+	ObjectFactory factory = GetFactory();
+
+	if (!factory)
+		return Object::Ptr();
+
+	return factory();
 }
 
 bool Type::IsAbstract(void) const
@@ -67,7 +72,3 @@ bool Type::IsAssignableFrom(const Type::Ptr& other) const
 	return false;
 }
 
-void Type::SetFactory(const Type::Factory& factory)
-{
-	m_Factory = factory;
-}

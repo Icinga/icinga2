@@ -37,7 +37,7 @@ namespace icinga
  */
 class I2_CONFIG_API ConfigType : public Object {
 public:
-	DECLARE_OBJECT(ConfigType);
+	DECLARE_PTR_TYPEDEFS(ConfigType);
 
 	ConfigType(const String& name, const DebugInfo& debuginfo);
 

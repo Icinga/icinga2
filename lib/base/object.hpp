@@ -60,24 +60,40 @@ namespace icinga
 {
 
 class Value;
+class Object;
+class Type;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef shared_ptr<klass> Ptr; \
 	typedef weak_ptr<klass> WeakPtr
 
 #define IMPL_TYPE_LOOKUP(klass) \
+	static shared_ptr<Type> TypeInstance; \
 	inline virtual shared_ptr<Type> GetReflectionType(void) const \
 	{ \
-		return LookupType(#klass); \
+		return TypeInstance; \
 	}
 
 #define DECLARE_OBJECT(klass) \
 	DECLARE_PTR_TYPEDEFS(klass); \
 	IMPL_TYPE_LOOKUP(klass);
 
-class Type;
+template<typename T>
+shared_ptr<Object> DefaultObjectFactory(void)
+{
+	return make_shared<T>();
+}
 
-I2_BASE_API shared_ptr<Type> LookupType(const char *name);
+typedef shared_ptr<Object> (*ObjectFactory)(void);
+
+template<typename T>
+struct TypeHelper
+{
+	static ObjectFactory GetFactory(void)
+	{
+		return DefaultObjectFactory<T>;
+	}
+};
 
 /**
  * Base class for all heap-allocated objects. At least one of its methods

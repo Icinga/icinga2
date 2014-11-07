@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(String);
+REGISTER_BUILTIN_TYPE(String);
 
 const String::SizeType String::NPos = std::string::npos;
 

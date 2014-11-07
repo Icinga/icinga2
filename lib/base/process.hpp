@@ -53,7 +53,7 @@ struct ProcessResult
 class I2_BASE_API Process : public Object
 {
 public:
-	DECLARE_OBJECT(Process);
+	DECLARE_PTR_TYPEDEFS(Process);
 
 #ifdef _WIN32
 	typedef String Arguments;

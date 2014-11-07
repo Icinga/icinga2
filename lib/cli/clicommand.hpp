@@ -48,7 +48,7 @@ enum ImpersonationLevel
 class I2_CLI_API CLICommand : public Object
 {
 public:
-	DECLARE_OBJECT(CLICommand);
+	DECLARE_PTR_TYPEDEFS(CLICommand);
 
 	typedef std::vector<String>(*ArgumentCompletionCallback)(const String&, const String&);
 

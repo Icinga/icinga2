@@ -34,7 +34,7 @@ namespace icinga
 class I2_BASE_API FIFO : public Stream
 {
 public:
-	DECLARE_OBJECT(FIFO);
+	DECLARE_PTR_TYPEDEFS(FIFO);
 
 	static const size_t BlockSize = 16 * 1024;
 

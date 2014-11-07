@@ -40,7 +40,7 @@ enum BlackAndWhitelistCommandType
 class I2_CLI_API BlackAndWhitelistCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(BlackAndWhitelistCommand);
+	DECLARE_PTR_TYPEDEFS(BlackAndWhitelistCommand);
 
 	BlackAndWhitelistCommand(const String& type, BlackAndWhitelistCommandType command);
 

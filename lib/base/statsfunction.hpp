@@ -38,7 +38,7 @@ namespace icinga
 class I2_BASE_API StatsFunction : public Object
 {
 public:
-	DECLARE_OBJECT(StatsFunction);
+	DECLARE_PTR_TYPEDEFS(StatsFunction);
 
 	typedef boost::function<Value (Dictionary::Ptr& status, Array::Ptr& perfdata)> Callback;
 

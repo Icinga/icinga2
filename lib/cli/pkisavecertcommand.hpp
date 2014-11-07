@@ -33,7 +33,7 @@ namespace icinga
 class PKISaveCertCommand : public CLICommand
 {
 public:
-	DECLARE_OBJECT(PKISaveCertCommand);
+	DECLARE_PTR_TYPEDEFS(PKISaveCertCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;

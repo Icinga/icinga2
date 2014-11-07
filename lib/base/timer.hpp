@@ -34,7 +34,7 @@ namespace icinga {
 class I2_BASE_API Timer : public Object
 {
 public:
-	DECLARE_OBJECT(Timer);
+	DECLARE_PTR_TYPEDEFS(Timer);
 
 	Timer(void);
 	~Timer(void);
