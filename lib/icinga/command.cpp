@@ -30,7 +30,7 @@ int Command::GetModifiedAttributes(void) const
 {
 	int attrs = 0;
 
-	if (!GetOverrideVars().IsEmpty())
+	if (GetOverrideVars())
 		attrs |= ModAttrCustomVariable;
 
 	return attrs;

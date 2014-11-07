@@ -26,7 +26,7 @@ abstract class CustomVarObject : DynamicObject
 {
 	[config] Dictionary::Ptr vars (VarsRaw);
 
-	[state] Value override_vars;
+	[state] Dictionary::Ptr override_vars;
 };
 
 }

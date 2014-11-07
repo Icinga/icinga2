@@ -48,7 +48,6 @@ abstract class DynamicObject
 	[config] String zone;
 	[config, internal, get_protected] Array::Ptr templates;
 	[config] Dictionary::Ptr methods;
-	[config] Dictionary::Ptr vars (VarsRaw);
 	[get_protected] bool active;
 	[get_protected] bool paused {
 		default {{{ return true; }}}
@@ -58,10 +57,7 @@ abstract class DynamicObject
 	[get_protected] bool pause_called;
 	[get_protected] bool resume_called;
 	[enum] HAMode ha_mode (HAMode);
-	Dictionary::Ptr authority_info;
 	[protected] Dictionary::Ptr extensions;
-
-	[state] Value override_vars;
 
 	[protected] bool state_loaded;
 };

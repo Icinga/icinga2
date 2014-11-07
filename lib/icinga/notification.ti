@@ -37,7 +37,6 @@ class Notification : CustomVarObject < NotificationNameComposer
 		default {{{ return 1800; }}}
 	};
 	[config] String period (PeriodRaw);
-	[config] Dictionary::Ptr macros;
 	[config, protected] Array::Ptr users (UsersRaw);
 	[config, protected] Array::Ptr user_groups (UserGroupsRaw);
 	[config] Dictionary::Ptr times;

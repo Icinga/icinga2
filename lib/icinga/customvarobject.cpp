@@ -28,7 +28,7 @@ boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr
 
 Dictionary::Ptr CustomVarObject::GetVars(void) const
 {
-	if (!GetOverrideVars().IsEmpty())
+	if (GetOverrideVars())
 		return GetOverrideVars();
 	else
 		return GetVarsRaw();
