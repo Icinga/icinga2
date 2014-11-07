@@ -469,6 +469,18 @@ You can `list` and `remove` existing blacklists:
 > If you are unsure about it, set a wildcard (`*`) for them and filter only by host/services.
 
 
+### <a id="icinga2-remote-monitoring-master-manual-add-endpoint-zone"></a> Manually add Client Endpoint and Zone Objects on the Master
+
+Define a [Zone](#objecttype-zone) with a new [Endpoint](#objecttype-endpoint) similar to the cluster setup.
+
+* [configure the node name](#configure-nodename)
+* [configure the ApiListener object](#configure-apilistener-object)
+* [configure cluster endpoints](#configure-cluster-endpoints)
+* [configure cluster zones](#configure-cluster-zones)
+
+on a per remote client basis. If you prefer to synchronize the configuration to remote
+clients, you can also use the cluster provided [configuration sync](#cluster-zone-config-sync)
+in `zones.d`.
 
 
 ### <a id="agent-based-checks-addon"></a> Agent-based Checks using additional Software
