@@ -106,6 +106,38 @@ unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::stri
         return hash;
 }
 
+static int TypePreference(const std::string& type)
+{
+	if (type == "Value")
+		return 0;
+	else if (type == "String")
+		return 1;
+	else if (type == "double")
+		return 2;
+	else if (type.find("::Ptr") != std::string::npos)
+		return 3;
+	else if (type == "int")
+		return 4;
+	else
+		return 5;
+}
+
+static bool FieldLayoutCmp(const Field& a, const Field& b)
+{
+	return TypePreference(a.Type) < TypePreference(b.Type);
+}
+
+static bool FieldTypeCmp(const Field& a, const Field& b)
+{
+	return a.Type < b.Type;
+}
+
+void ClassCompiler::OptimizeStructLayout(std::vector<Field>& fields)
+{
+	std::sort(fields.begin(), fields.end(), FieldTypeCmp);
+	std::stable_sort(fields.begin(), fields.end(), FieldLayoutCmp);
+}
+
 void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 {
 	std::vector<Field>::const_iterator it;

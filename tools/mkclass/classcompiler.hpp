@@ -145,6 +145,8 @@ public:
 	static void CompileFile(const std::string& path);
 	static void CompileStream(const std::string& path, std::istream *stream);
 
+	static void OptimizeStructLayout(std::vector<Field>& fields);
+
 private:
 	std::string m_Path;
 	std::istream *m_Input;

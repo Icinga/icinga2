@@ -194,6 +194,8 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 
 		$$->Fields = *$7;
 		delete $7;
+
+		ClassCompiler::OptimizeStructLayout($$->Fields);
 	}
 	;
 
