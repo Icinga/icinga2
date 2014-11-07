@@ -337,7 +337,7 @@ and all members of the user group `noc` will get notified.
 
 Detailed examples can be found in the [dependencies](#dependencies) chapter.
 
-### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
+#### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
 
 The sample confituration ships an example in [downtimes.conf](#downtimes-conf).
 
