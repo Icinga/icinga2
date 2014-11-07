@@ -346,7 +346,10 @@ Detailed examples can be found in the [recurring downtimes](#recurring-downtimes
 
 #### <a id="using-apply-for"></a> Using Apply For Rules
 
-Next to the standard way of using apply rules there is
+Next to the standard way of using apply rules there is the requirement of generating
+apply rules objects based on set (array or dictionary). That way you'll save quite
+of a lot of duplicated apply rules by combining them into one generic generating
+the object name with or without a prefix.
 
 The sample configuration already ships a detailed example in [hosts.conf](#hosts-conf)
 and [services.conf](#services-conf) for this use case.
