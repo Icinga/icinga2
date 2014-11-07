@@ -126,6 +126,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 		Dictionary::Ptr command_vars = command->GetVars();
 
 		if (command_vars) {
+			ObjectLock olock(command_vars);
 			BOOST_FOREACH(const Dictionary::Pair& kv, command_vars) {
 				String macro = "$" + kv.first + "$"; // this is too simple
 				if (command_line.Contains(macro))
@@ -137,6 +138,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 		Dictionary::Ptr host_vars = host->GetVars();
 
 		if (host_vars) {
+			ObjectLock olock(host_vars);
 			BOOST_FOREACH(const Dictionary::Pair& kv, host_vars) {
 				String macro = "$" + kv.first + "$"; // this is too simple
 				if (command_line.Contains(macro))
@@ -151,6 +153,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 			Dictionary::Ptr service_vars = service->GetVars();
 
 			if (service_vars) {
+				ObjectLock olock(service_vars);
 				BOOST_FOREACH(const Dictionary::Pair& kv, service_vars) {
 					String macro = "$" + kv.first + "$"; // this is too simple
 					if (command_line.Contains(macro))
@@ -163,6 +166,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 		}
 
 		String arg_string;
+		ObjectLock olock(args);
 		BOOST_FOREACH(const Dictionary::Pair& kv, args) {
 			arg_string += Convert::ToString(kv.first) + "=" + Convert::ToString(kv.second) + "!";
 		}
