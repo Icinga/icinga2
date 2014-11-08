@@ -96,10 +96,10 @@ Value ServiceGroupsTable::ActionUrlAccessor(const Value& row)
 
 Value ServiceGroupsTable::MembersAccessor(const Value& row)
 {
-	Array::Ptr members = make_shared<Array>();
+	Array::Ptr members = new Array();
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		Array::Ptr host_svc = make_shared<Array>();
+		Array::Ptr host_svc = new Array();
 		host_svc->Add(service->GetHost()->GetName());
 		host_svc->Add(service->GetShortName());
 		members->Add(host_svc);
@@ -110,10 +110,10 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 
 Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 {
-	Array::Ptr members = make_shared<Array>();
+	Array::Ptr members = new Array();
 
 	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
-		Array::Ptr host_svc = make_shared<Array>();
+		Array::Ptr host_svc = new Array();
 		host_svc->Add(service->GetHost()->GetName());
 		host_svc->Add(service->GetShortName());
 		host_svc->Add(service->GetHost()->GetState());

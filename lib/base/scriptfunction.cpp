@@ -54,6 +54,6 @@ void ScriptFunction::Unregister(const String& name)
 
 RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
 {
-	ScriptFunction::Register(name, make_shared<ScriptFunction>(function));
+	ScriptFunction::Register(name, new ScriptFunction(function));
 }
 

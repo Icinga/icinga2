@@ -38,7 +38,7 @@ void CustomVarObject::SetVars(const Dictionary::Ptr& vars, const MessageOrigin& 
 {
 	SetOverrideVars(vars);
 
-	OnVarsChanged(GetSelf(), vars, origin);
+	OnVarsChanged(this, vars, origin);
 }
 
 int CustomVarObject::GetModifiedAttributes(void) const

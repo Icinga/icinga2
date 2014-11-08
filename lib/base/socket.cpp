@@ -341,7 +341,7 @@ Socket::Ptr Socket::Accept(void)
 #endif /* _WIN32 */
 	}
 
-	return make_shared<Socket>(fd);
+	return new Socket(fd);
 }
 
 bool Socket::Poll(bool read, bool write)

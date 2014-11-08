@@ -81,7 +81,7 @@ Value ContactGroupsTable::MembersAccessor(const Value& row)
 	if(!user_group)
 		return Empty;
 
-	Array::Ptr members = make_shared<Array>();
+	Array::Ptr members = new Array();
 
 	BOOST_FOREACH(const User::Ptr& user, user_group->GetMembers()) {
 		members->Add(user->GetName());

@@ -32,15 +32,6 @@
 namespace icinga
 {
 
-#define TOKENPASTE(x, y) x ## y
-#define TOKENPASTE2(x, y) TOKENPASTE(x, y)
-
-#ifdef HAVE_COUNTER_MACRO
-#	define UNIQUE_NAME(prefix) TOKENPASTE2(prefix, __COUNTER__)
-#else /* HAVE_COUNTER_MACRO */
-#	define UNIQUE_NAME(prefix) prefix
-#endif /* HAVE_COUNTER_MACRO */
-
 #ifdef _WIN32
 #define MS_VC_EXCEPTION 0x406D1388
 

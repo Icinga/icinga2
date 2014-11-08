@@ -28,7 +28,7 @@
 using namespace icinga;
 
 ConfigType::ConfigType(const String& name, const DebugInfo& debuginfo)
-	: m_Name(name), m_RuleList(make_shared<TypeRuleList>()), m_DebugInfo(debuginfo)
+	: m_Name(name), m_RuleList(new TypeRuleList()), m_DebugInfo(debuginfo)
 { }
 
 String ConfigType::GetName(void) const
@@ -85,7 +85,7 @@ void ConfigType::ValidateItem(const String& name, const Dictionary::Ptr& attrs, 
 	locations.push_back(location);
 
 	std::vector<TypeRuleList::Ptr> ruleLists;
-	AddParentRules(ruleLists, GetSelf());
+	AddParentRules(ruleLists, this);
 	ruleLists.push_back(m_RuleList);
 
 	ValidateDictionary(attrs, ruleLists, locations, utils);
@@ -278,7 +278,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 void ConfigType::Register(void)
 {
-	ConfigTypeRegistry::GetInstance()->Register(GetName(), GetSelf());
+	ConfigTypeRegistry::GetInstance()->Register(GetName(), this);
 }
 
 ConfigType::Ptr ConfigType::GetByName(const String& name)

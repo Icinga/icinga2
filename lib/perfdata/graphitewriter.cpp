@@ -48,7 +48,7 @@ REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
 Value GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const GraphiteWriter::Ptr& graphitewriter, DynamicType::GetObjectsByType<GraphiteWriter>()) {
 		nodes->Set(graphitewriter->GetName(), 1); //add more stats
@@ -63,7 +63,7 @@ void GraphiteWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	m_ReconnectTimer = make_shared<Timer>();
+	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GraphiteWriter::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
@@ -77,7 +77,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 	if (m_Stream)
 		return;
 
-	TcpSocket::Ptr socket = make_shared<TcpSocket>();
+	TcpSocket::Ptr socket = new TcpSocket();
 
 	Log(LogNotice, "GraphiteWriter")
 	    << "Reconnecting to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
@@ -90,7 +90,7 @@ void GraphiteWriter::ReconnectTimerHandler(void)
 		return;
 	}
 
-	m_Stream = make_shared<NetworkStream>(socket);
+	m_Stream = new NetworkStream(socket);
 }
 
 void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)

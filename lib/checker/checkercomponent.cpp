@@ -39,21 +39,21 @@ REGISTER_STATSFUNCTION(CheckerComponentStats, &CheckerComponent::StatsFunc);
 
 Value CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const CheckerComponent::Ptr& checker, DynamicType::GetObjectsByType<CheckerComponent>()) {
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 
-		Dictionary::Ptr stats = make_shared<Dictionary>();
+		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("idle", idle);
 		stats->Set("pending", pending);
 
 		nodes->Set(checker->GetName(), stats);
 
 		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
-		perfdata->Add(make_shared<PerfdataValue>(perfdata_prefix + "idle", Convert::ToDouble(idle)));
-		perfdata->Add(make_shared<PerfdataValue>(perfdata_prefix + "pending", Convert::ToDouble(pending)));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "idle", Convert::ToDouble(idle)));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "pending", Convert::ToDouble(pending)));
 	}
 
 	status->Set("checkercomponent", nodes);
@@ -79,7 +79,7 @@ void CheckerComponent::Start(void)
 
 	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
-	m_ResultTimer = make_shared<Timer>();
+	m_ResultTimer = new Timer();
 	m_ResultTimer->SetInterval(5);
 	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
@@ -189,8 +189,7 @@ void CheckerComponent::CheckThreadProc(void)
 		Log(LogDebug, "CheckerComponent")
 		    << "Executing check for '" << checkable->GetName() << "'";
 
-		CheckerComponent::Ptr self = GetSelf();
-		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, self, checkable));
+		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
 
 		lock.lock();
 	}
@@ -201,7 +200,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 	try {
 		checkable->ExecuteCheck();
 	} catch (const std::exception& ex) {
-		CheckResult::Ptr cr = make_shared<CheckResult>();
+		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
 
 		String output = "Exception occured while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);

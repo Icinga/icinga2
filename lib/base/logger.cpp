@@ -56,13 +56,13 @@ void Logger::Start(void)
 	DynamicObject::Start();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Loggers.insert(GetSelf());
+	m_Loggers.insert(this);
 }
 
 void Logger::Stop(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Loggers.erase(GetSelf());
+	m_Loggers.erase(this);
 }
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)

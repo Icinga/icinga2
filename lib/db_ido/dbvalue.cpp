@@ -30,12 +30,12 @@ Value DbValue::FromTimestamp(const Value& ts)
 	if (ts.IsEmpty() || ts == 0)
 		return Empty;
 
-	return make_shared<DbValue>(DbValueTimestamp, ts);
+	return new DbValue(DbValueTimestamp, ts);
 }
 
 Value DbValue::FromTimestampNow(void)
 {
-	return make_shared<DbValue>(DbValueTimestampNow, Empty);
+	return new DbValue(DbValueTimestampNow, Empty);
 }
 
 Value DbValue::FromValue(const Value& value)
@@ -45,7 +45,7 @@ Value DbValue::FromValue(const Value& value)
 
 Value DbValue::FromObjectInsertID(const Value& value)
 {
-	return make_shared<DbValue>(DbValueObjectInsertID, value);
+	return new DbValue(DbValueObjectInsertID, value);
 }
 
 bool DbValue::IsTimestamp(const Value& value)

@@ -91,10 +91,8 @@ void Timer::Call(void)
 {
 	ASSERT(!OwnsLock());
 
-	Timer::Ptr self = GetSelf();
-
 	try {
-		OnTimerExpired(self);
+		OnTimerExpired(Timer::Ptr(this));
 	} catch (...) {
 		Reschedule();
 
@@ -272,11 +270,11 @@ void Timer::TimerThreadProc(void)
 			continue;
 		}
 
+		Timer::Ptr ptimer = timer;
+
 		/* Remove the timer from the list so it doesn't get called again
 		 * until the current call is completed. */
 		l_Timers.erase(timer);
-
-		Timer::Ptr ptimer = timer->GetSelf();
 
 		lock.unlock();
 

@@ -35,7 +35,7 @@ HostGroupDbObject::HostGroupDbObject(const DbType::Ptr& type, const String& name
 
 Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	HostGroup::Ptr group = static_pointer_cast<HostGroup>(GetObject());
 
 	fields->Set("alias", group->GetDisplayName());
@@ -60,7 +60,7 @@ void HostGroupDbObject::OnConfigUpdate(void)
 		query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
 		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
-		query1.Fields = make_shared<Dictionary>();
+		query1.Fields = new Dictionary();
 		query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 		query1.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
 		query1.Fields->Set("host_object_id", host);

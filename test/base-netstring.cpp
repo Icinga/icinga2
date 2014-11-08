@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_SUITE(base_netstring)
 
 BOOST_AUTO_TEST_CASE(netstring)
 {
-	FIFO::Ptr fifo = make_shared<FIFO>();
+	FIFO::Ptr fifo = new FIFO();
 
 	NetString::WriteStringToStream(fifo, "hello");
 

@@ -46,7 +46,7 @@ using namespace icinga;
 
 Dictionary::Ptr RepositoryUtility::GetArgumentAttributes(const std::vector<std::string>& arguments)
 {
-	Dictionary::Ptr attrs = make_shared<Dictionary>();
+	Dictionary::Ptr attrs = new Dictionary();
 
 	BOOST_FOREACH(const String& kv, arguments) {
 		std::vector<String> tokens;
@@ -160,7 +160,7 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 
 void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 {
-	Array::Ptr changelog = make_shared<Array>();
+	Array::Ptr changelog = new Array();
 
 	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
 
@@ -204,7 +204,7 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	/* add a new changelog entry by timestamp */
 	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(Utility::GetTime()) + "-" + type + "-" + SHA256(name) + ".change";
 
-	Dictionary::Ptr change = make_shared<Dictionary>();
+	Dictionary::Ptr change = new Dictionary();
 
 	change->Set("timestamp", Utility::GetTime());
 	change->Set("name", name);
@@ -269,7 +269,7 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 	/* add a new changelog entry by timestamp */
 	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(Utility::GetTime()) + "-" + type + "-" + SHA256(name) + ".change";
 
-	Dictionary::Ptr change = make_shared<Dictionary>();
+	Dictionary::Ptr change = new Dictionary();
 
 	change->Set("timestamp", Utility::GetTime());
 	change->Set("name", name);
@@ -299,7 +299,7 @@ bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change)
 {
 	Dictionary::Ptr attrs = change->Get("attrs");
 
-	Array::Ptr changelog = make_shared<Array>();
+	Array::Ptr changelog = new Array();
 
 	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
 
@@ -336,7 +336,7 @@ bool RepositoryUtility::ClearChangeLog(void)
 
 bool RepositoryUtility::ChangeLogHasPendingChanges(void)
 {
-	Array::Ptr changelog = make_shared<Array>();
+	Array::Ptr changelog = new Array();
 	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
 
 	return changelog->GetLength() > 0;

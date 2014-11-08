@@ -29,14 +29,14 @@ BOOST_AUTO_TEST_SUITE(base_array)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	BOOST_CHECK(array);
 	BOOST_CHECK(array->GetLength() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(getset)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(getset)
 
 BOOST_AUTO_TEST_CASE(insert)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 
 	array->Insert(0, 11);
 	array->Insert(1, 22);
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(insert)
 
 BOOST_AUTO_TEST_CASE(remove)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(remove)
 
 BOOST_AUTO_TEST_CASE(foreach)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 BOOST_AUTO_TEST_CASE(clone)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(clone)
 
 BOOST_AUTO_TEST_CASE(json)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	array->Add(7);
 	array->Add(2);
 	array->Add(5);

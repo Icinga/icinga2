@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE(base_fifo)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	FIFO::Ptr fifo = make_shared<FIFO>();
+	FIFO::Ptr fifo = new FIFO();
 	BOOST_CHECK(fifo);
 	BOOST_CHECK(fifo->GetAvailableBytes() == 0);
 
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(construct)
 
 BOOST_AUTO_TEST_CASE(io)
 {
-	FIFO::Ptr fifo = make_shared<FIFO>();
+	FIFO::Ptr fifo = new FIFO();
 
 	fifo->Write("hello", 5);
 	BOOST_CHECK(fifo->GetAvailableBytes() == 5);

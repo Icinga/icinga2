@@ -43,7 +43,7 @@ HostDbObject::HostDbObject(const DbType::Ptr& type, const String& name1, const S
 
 Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
 	fields->Set("alias", CompatUtility::GetHostAlias(host));
@@ -110,7 +110,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
 	CheckResult::Ptr cr = host->GetLastCheckResult();
@@ -188,7 +188,7 @@ void HostDbObject::OnConfigUpdate(void)
 		    << "host parents: " << parent->GetName();
 
 		/* parents: host_id, parent_host_object_id */
-		Dictionary::Ptr fields1 = make_shared<Dictionary>();
+		Dictionary::Ptr fields1 = new Dictionary();
 		fields1->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
 		fields1->Set("parent_host_object_id", parent);
 		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -219,7 +219,7 @@ void HostDbObject::OnConfigUpdate(void)
 		Log(LogDebug, "HostDbObject")
 		    << "parent host: " << parent->GetName();
 
-		Dictionary::Ptr fields2 = make_shared<Dictionary>();
+		Dictionary::Ptr fields2 = new Dictionary();
 		fields2->Set("host_object_id", parent);
 		fields2->Set("dependent_host_object_id", host);
 		fields2->Set("inherits_parent", 1);
@@ -243,7 +243,7 @@ void HostDbObject::OnConfigUpdate(void)
 		Log(LogDebug, "HostDbObject")
 		    << "host contacts: " << user->GetName();
 
-		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
+		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
 		fields_contact->Set("contact_object_id", user);
 		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -263,7 +263,7 @@ void HostDbObject::OnConfigUpdate(void)
 		Log(LogDebug, "HostDbObject")
 		    << "host contactgroups: " << usergroup->GetName();
 
-		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
+		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
 		fields_contact->Set("contactgroup_object_id", usergroup);
 		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */

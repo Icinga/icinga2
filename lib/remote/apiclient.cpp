@@ -43,7 +43,7 @@ ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream
 
 void ApiClient::Start(void)
 {
-	boost::thread thread(boost::bind(&ApiClient::MessageThreadProc, static_cast<ApiClient::Ptr>(GetSelf())));
+	boost::thread thread(boost::bind(&ApiClient::MessageThreadProc, ApiClient::Ptr(this)));
 	thread.detach();
 }
 
@@ -81,7 +81,7 @@ void ApiClient::SendMessage(const Dictionary::Ptr& message)
 		return;
 	}
 
-	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, static_cast<ApiClient::Ptr>(GetSelf()), message));
+	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, ApiClient::Ptr(this), message));
 }
 
 void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
@@ -107,7 +107,7 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
-	Utility::QueueAsyncCallback(boost::bind(&ApiClient::DisconnectSync, static_cast<ApiClient::Ptr>(GetSelf())));
+	Utility::QueueAsyncCallback(boost::bind(&ApiClient::DisconnectSync, ApiClient::Ptr(this)));
 }
 
 void ApiClient::DisconnectSync(void)
@@ -116,10 +116,10 @@ void ApiClient::DisconnectSync(void)
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
 	if (m_Endpoint)
-		m_Endpoint->RemoveClient(GetSelf());
+		m_Endpoint->RemoveClient(this);
 	else {
 		ApiListener::Ptr listener = ApiListener::GetInstance();
-		listener->RemoveAnonymousClient(GetSelf());
+		listener->RemoveAnonymousClient(this);
 	}
 
 	m_Stream->Close();
@@ -160,7 +160,7 @@ bool ApiClient::ProcessMessage(void)
 	}
 
 	MessageOrigin origin;
-	origin.FromClient = GetSelf();
+	origin.FromClient = this;
 
 	if (m_Endpoint) {
 		if (m_Endpoint->GetZone() != Zone::GetLocalZone())
@@ -174,7 +174,7 @@ bool ApiClient::ProcessMessage(void)
 	Log(LogNotice, "ApiClient")
 	    << "Received '" << method << "' message from '" << m_Identity << "'";
 
-	Dictionary::Ptr resultMessage = make_shared<Dictionary>();
+	Dictionary::Ptr resultMessage = new Dictionary();
 
 	try {
 		ApiFunction::Ptr afunc = ApiFunction::GetByName(method);
@@ -243,7 +243,7 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	String salt = listener->GetTicketSalt();
 
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	Dictionary::Ptr result = new Dictionary();
 
 	if (salt.IsEmpty()) {
 		result->Set("error", "Ticket salt is not configured.");
@@ -258,16 +258,16 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 		return result;
 	}
 
-	shared_ptr<X509> cert = origin.FromClient->GetStream()->GetPeerCertificate();
+	boost::shared_ptr<X509> cert = origin.FromClient->GetStream()->GetPeerCertificate();
 
 	EVP_PKEY *pubkey = X509_get_pubkey(cert.get());
 	X509_NAME *subject = X509_get_subject_name(cert.get());
 
-	shared_ptr<X509> newcert = CreateCertIcingaCA(pubkey, subject);
+	boost::shared_ptr<X509> newcert = CreateCertIcingaCA(pubkey, subject);
 	result->Set("cert", CertificateToString(newcert));
 
 	String cacertfile = GetIcingaCADir() + "/ca.crt";
-	shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
+	boost::shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
 	result->Set("ca", CertificateToString(cacert));
 
 	return result;

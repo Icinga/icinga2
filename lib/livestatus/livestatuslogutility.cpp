@@ -122,7 +122,7 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 
 Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 {
-	Dictionary::Ptr bag = make_shared<Dictionary>();
+	Dictionary::Ptr bag = new Dictionary();
 
 	/*
 	 * [1379025342] SERVICE NOTIFICATION: contactname;hostname;servicedesc;WARNING;true;foo output

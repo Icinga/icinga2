@@ -37,7 +37,7 @@ class EndpointDbObject : public DbObject
 public:
 	DECLARE_PTR_TYPEDEFS(EndpointDbObject);
 
-	EndpointDbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2);
+	EndpointDbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2);
 
 	static void StaticInitialize(void);
 

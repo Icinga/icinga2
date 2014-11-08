@@ -31,7 +31,7 @@ using namespace icinga;
 static int l_NextDowntimeID = 1;
 static boost::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
-static std::map<String, Checkable::WeakPtr> l_DowntimesCache;
+static std::map<String, Checkable::Ptr> l_DowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 
 boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> Checkable::OnDowntimeAdded;
@@ -59,7 +59,7 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 	else
 		uid = id;
 
-	Downtime::Ptr downtime = make_shared<Downtime>();
+	Downtime::Ptr downtime = new Downtime();
 	downtime->SetId(uid);
 	downtime->SetEntryTime(Utility::GetTime());
 	downtime->SetAuthor(author);
@@ -101,7 +101,7 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 	{
 		boost::mutex::scoped_lock lock(l_DowntimeMutex);
 		l_LegacyDowntimesCache[legacy_id] = uid;
-		l_DowntimesCache[uid] = GetSelf();
+		l_DowntimesCache[uid] = this;
 	}
 
 	Log(LogNotice, "Checkable")
@@ -109,7 +109,7 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 	    << "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
 	    << "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "'.";
 
-	OnDowntimeAdded(GetSelf(), downtime, origin);
+	OnDowntimeAdded(this, downtime, origin);
 
 	return uid;
 }
@@ -223,7 +223,7 @@ String Checkable::GetDowntimeIDFromLegacyID(int id)
 Checkable::Ptr Checkable::GetOwnerByDowntimeID(const String& id)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
-	return l_DowntimesCache[id].lock();
+	return l_DowntimesCache[id];
 }
 
 Downtime::Ptr Checkable::GetDowntimeByID(const String& id)
@@ -243,7 +243,7 @@ Downtime::Ptr Checkable::GetDowntimeByID(const String& id)
 
 void Checkable::StartDowntimesExpiredTimer(void)
 {
-	l_DowntimesExpireTimer = make_shared<Timer>();
+	l_DowntimesExpireTimer = new Timer();
 	l_DowntimesExpireTimer->SetInterval(60);
 	l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Checkable::DowntimesExpireTimerHandler));
 	l_DowntimesExpireTimer->Start();
@@ -270,7 +270,7 @@ void Checkable::AddDowntimesToCache(void)
 			l_NextDowntimeID = legacy_id + 1;
 
 		l_LegacyDowntimesCache[legacy_id] = kv.first;
-		l_DowntimesCache[kv.first] = GetSelf();
+		l_DowntimesCache[kv.first] = this;
 	}
 }
 

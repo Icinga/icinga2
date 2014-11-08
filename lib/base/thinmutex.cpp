@@ -43,7 +43,7 @@ void ThinMutex::DebugTimerHandler(void)
 
 static void InitThinMutex(void)
 {
-	l_Timer = make_shared<Timer>();
+	l_Timer = new Timer();
 	l_Timer->SetInterval(10);
 	l_Timer->OnTimerExpired.connect(boost::bind(&ThinMutex::DebugTimerHandler));
 	l_Timer->Start();

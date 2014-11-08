@@ -34,7 +34,7 @@ Value StatsFunction::Invoke(Dictionary::Ptr& status, Array::Ptr& perfdata)
 
 RegisterStatsFunctionHelper::RegisterStatsFunctionHelper(const String& name, const StatsFunction::Callback& function)
 {
-	StatsFunction::Ptr func = make_shared<StatsFunction>(function);
+	StatsFunction::Ptr func = new StatsFunction(function);
 	StatsFunctionRegistry::GetInstance()->Register(name, func);
 }
 

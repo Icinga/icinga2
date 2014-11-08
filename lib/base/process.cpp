@@ -586,7 +586,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	{
 		boost::mutex::scoped_lock lock(l_ProcessMutex[tid]);
-		l_Processes[tid][m_Process] = GetSelf();
+		l_Processes[tid][m_Process] = this;
 #ifndef _WIN32
 		l_FDs[tid][m_FD] = m_Process;
 #endif /* _WIN32 */

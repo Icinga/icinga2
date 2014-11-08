@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(scalar)
 
 BOOST_AUTO_TEST_CASE(array)
 {
-	Array::Ptr array = make_shared<Array>();
+	Array::Ptr array = new Array();
 	array->Add(7);
 	array->Add(7.3);
 	array->Add(Empty);
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(array)
 
 BOOST_AUTO_TEST_CASE(dictionary)
 {
-	Dictionary::Ptr dict = make_shared<Dictionary>();
+	Dictionary::Ptr dict = new Dictionary();
 	dict->Set("k1", 7);
 	dict->Set("k2", 7.3);
 	dict->Set("k3", Empty);
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(dictionary)
 
 BOOST_AUTO_TEST_CASE(object)
 {
-	PerfdataValue::Ptr pdv = make_shared<PerfdataValue>("size", 100, true, "bytes");
+	PerfdataValue::Ptr pdv = new PerfdataValue("size", 100, true, "bytes");
 
 	PerfdataValue::Ptr result = Deserialize(Serialize(pdv));
 

@@ -46,15 +46,15 @@ REGISTER_STATSFUNCTION(LivestatusListenerStats, &LivestatusListener::StatsFunc);
 
 Value LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, DynamicType::GetObjectsByType<LivestatusListener>()) {
-		Dictionary::Ptr stats = make_shared<Dictionary>();
+		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("connections", l_Connections);
 
 		nodes->Set(livestatuslistener->GetName(), stats);
 
-		perfdata->Add(make_shared<PerfdataValue>("livestatuslistener_" + livestatuslistener->GetName() + "_connections", l_Connections));
+		perfdata->Add(new PerfdataValue("livestatuslistener_" + livestatuslistener->GetName() + "_connections", l_Connections));
 	}
 
 	status->Set("livestatuslistener", nodes);
@@ -70,7 +70,7 @@ void LivestatusListener::Start(void)
 	DynamicObject::Start();
 
 	if (GetSocketType() == "tcp") {
-		TcpSocket::Ptr socket = make_shared<TcpSocket>();
+		TcpSocket::Ptr socket = new TcpSocket();
 		try {
 			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
 		} catch (std::exception&) {
@@ -86,7 +86,7 @@ void LivestatusListener::Start(void)
 	}
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
-		UnixSocket::Ptr socket = make_shared<UnixSocket>();
+		UnixSocket::Ptr socket = new UnixSocket();
 		try {
 			socket->Bind(GetSocketPath());
 		} catch (std::exception&) {
@@ -153,7 +153,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 		l_Connections++;
 	}
 
-	Stream::Ptr stream = make_shared<NetworkStream>(client);
+	Stream::Ptr stream = new NetworkStream(client);
 
 	for (;;) {
 		String line;
@@ -171,7 +171,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 		if (lines.empty())
 			break;
 
-		LivestatusQuery::Ptr query = make_shared<LivestatusQuery>(lines, GetCompatLogPath());
+		LivestatusQuery::Ptr query = new LivestatusQuery(lines, GetCompatLogPath());
 		if (!query->Execute(stream))
 			break;
 	}

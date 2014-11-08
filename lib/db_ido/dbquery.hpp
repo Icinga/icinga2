@@ -66,8 +66,8 @@ struct I2_DB_IDO_API DbQuery
 	String IdColumn;
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
-	shared_ptr<DbObject> Object;
-	shared_ptr<CustomVarObject> NotificationObject;
+	intrusive_ptr<DbObject> Object;
+	intrusive_ptr<CustomVarObject> NotificationObject;
 	bool ConfigUpdate;
 	bool StatusUpdate;
 
@@ -81,3 +81,5 @@ struct I2_DB_IDO_API DbQuery
 }
 
 #endif /* DBQUERY_H */
+
+#include "db_ido/dbobject.hpp"

@@ -37,7 +37,7 @@ UserDbObject::UserDbObject(const DbType::Ptr& type, const String& name1, const S
 
 Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	fields->Set("alias", user->GetDisplayName());
@@ -65,7 +65,7 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	fields->Set("host_notifications_enabled", user->GetEnableNotifications());
@@ -81,7 +81,7 @@ Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 
 void UserDbObject::OnConfigUpdate(void)
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	/* contact addresses */

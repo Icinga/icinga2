@@ -240,8 +240,8 @@ HostStatistics CIB::CalculateHostStats(void)
  */
 std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
 {
-	Dictionary::Ptr status = make_shared<Dictionary>();
-	Array::Ptr perfdata = make_shared<Array>();
+	Dictionary::Ptr status = new Dictionary();
+	Array::Ptr perfdata = new Array();
 
 	String name;
 	Value ret;

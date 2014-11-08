@@ -161,7 +161,7 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	Dictionary::Ptr envMacros = make_shared<Dictionary>();
+	Dictionary::Ptr envMacros = new Dictionary();
 
 	Dictionary::Ptr env = commandObj->GetEnv();
 

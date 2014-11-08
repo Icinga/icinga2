@@ -30,13 +30,13 @@ BOOST_AUTO_TEST_SUITE(base_dictionary)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
 	BOOST_CHECK(dictionary);
 }
 
 BOOST_AUTO_TEST_CASE(get1)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
@@ -58,8 +58,8 @@ BOOST_AUTO_TEST_CASE(get1)
 
 BOOST_AUTO_TEST_CASE(get2)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
-	Dictionary::Ptr other = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
+	Dictionary::Ptr other = new Dictionary();
 
 	dictionary->Set("test1", other);
 
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(get2)
 
 BOOST_AUTO_TEST_CASE(foreach)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
 
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 BOOST_AUTO_TEST_CASE(remove)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(remove)
 
 BOOST_AUTO_TEST_CASE(clone)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(clone)
 
 BOOST_AUTO_TEST_CASE(json)
 {
-	Dictionary::Ptr dictionary = make_shared<Dictionary>();
+	Dictionary::Ptr dictionary = new Dictionary();
 
 	dictionary->Set("test1", 7);
 	dictionary->Set("test2", "hello world");

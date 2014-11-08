@@ -52,7 +52,7 @@ public:
 
 	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
 
-	shared_ptr<DynamicType> GetType(void) const;
+	intrusive_ptr<DynamicType> GetType(void) const;
 
 	DebugInfo GetDebugInfo(void) const;
 	void SetDebugInfo(const DebugInfo& di);
@@ -80,7 +80,7 @@ public:
 	virtual void OnStateLoaded(void);
 
 	template<typename T>
-	static shared_ptr<T> GetObject(const String& name)
+	static intrusive_ptr<T> GetObject(const String& name)
 	{
 		DynamicObject::Ptr object = GetObject(T::GetTypeName(), name);
 
@@ -101,15 +101,15 @@ private:
 	DebugInfo m_DebugInfo;
 };
 
-#define DECLARE_OBJECTNAME(klass)					\
-	inline static String GetTypeName(void)				\
-	{								\
-		return #klass;						\
-	}								\
-									\
-	inline static shared_ptr<klass> GetByName(const String& name)	\
-	{								\
-		return DynamicObject::GetObject<klass>(name);		\
+#define DECLARE_OBJECTNAME(klass)						\
+	inline static String GetTypeName(void)					\
+	{									\
+		return #klass;							\
+	}									\
+										\
+	inline static intrusive_ptr<klass> GetByName(const String& name)	\
+	{									\
+		return DynamicObject::GetObject<klass>(name);			\
 	}
 
 }

@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(readline_stdio)
 	std::stringstream msgbuf;
 	msgbuf << "Hello\nWorld\n\n";
 
-	StdioStream::Ptr stdstream = make_shared<StdioStream>(&msgbuf, false);
+	StdioStream::Ptr stdstream = new StdioStream(&msgbuf, false);
 
 	ReadLineContext rlc;
 

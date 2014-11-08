@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "remote/zone.hpp"
+#include "remote/apiclient.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 
@@ -64,12 +65,12 @@ bool Zone::CanAccessObject(const DynamicObject::Ptr& object)
 	if (!object_zone)
 		object_zone = Zone::GetLocalZone();
 
-	return object_zone->IsChildOf(GetSelf());
+	return object_zone->IsChildOf(this);
 }
 
 bool Zone::IsChildOf(const Zone::Ptr& zone)
 {
-	Zone::Ptr azone = GetSelf();
+	Zone::Ptr azone = this;
 
 	while (azone) {
 		if (azone == zone)
@@ -81,7 +82,7 @@ bool Zone::IsChildOf(const Zone::Ptr& zone)
 	return false;
 }
 
-bool Zone::IsGlobal(void)
+bool Zone::IsGlobal(void) const
 {
 	return GetGlobal();
 }

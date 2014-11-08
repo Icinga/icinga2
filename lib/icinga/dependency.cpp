@@ -82,7 +82,7 @@ void Dependency::OnStateLoaded(void)
 		Log(LogWarning, "Dependency")
 		    << "Dependency '" << GetName() << "' references an invalid child object and will be ignored.";
 	else
-		m_Child->AddDependency(GetSelf());
+		m_Child->AddDependency(this);
 
 	Host::Ptr parentHost = Host::GetByName(GetParentHostName());
 
@@ -102,7 +102,7 @@ void Dependency::OnStateLoaded(void)
 		Log(LogWarning, "Dependency")
 		    << "Dependency '" << GetName() << "' references an invalid parent object and will always fail.";
 	else
-		m_Parent->AddReverseDependency(GetSelf());
+		m_Parent->AddReverseDependency(this);
 }
 
 void Dependency::Stop(void)
@@ -110,10 +110,10 @@ void Dependency::Stop(void)
 	DynamicObject::Stop();
 
 	if (GetChild())
-		GetChild()->RemoveDependency(GetSelf());
+		GetChild()->RemoveDependency(this);
 
 	if (GetParent())
-		GetParent()->RemoveReverseDependency(GetSelf());
+		GetParent()->RemoveReverseDependency(this);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const

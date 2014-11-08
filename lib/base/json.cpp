@@ -263,7 +263,7 @@ static int DecodeStartMap(void *ctx)
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
 	try {
-		context->Push(make_shared<Dictionary>());
+		context->Push(new Dictionary());
 	} catch (...) {
 		context->SaveException();
 		return 0;
@@ -291,7 +291,7 @@ static int DecodeStartArray(void *ctx)
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 	
 	try {
-		context->Push(make_shared<Array>());
+		context->Push(new Array());
 	} catch (...) {
 		context->SaveException();
 		return 0;

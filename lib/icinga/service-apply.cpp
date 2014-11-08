@@ -47,17 +47,17 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	Log(LogDebug, "Service")
 	    << "Applying service '" << name << "' to host '" << host->GetName() << "' for rule " << di;
 
-	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
 	builder->SetType("Service");
 	builder->SetName(name);
 	builder->SetScope(locals);
 
-	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	builder->AddExpression(new Expression(&Expression::OpSet,
 	    MakeArray(MakeArray(MakeLiteral("host_name")), OpSetLiteral),
 	    MakeLiteral(host->GetName()),
 	    di));
 
-	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	builder->AddExpression(new Expression(&Expression::OpSet,
 	    MakeArray(MakeArray(MakeLiteral("name")), OpSetLiteral),
 	    MakeLiteral(name),
 	    di));
@@ -65,7 +65,7 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	String zone = host->GetZone();
 
 	if (!zone.IsEmpty()) {
-		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		builder->AddExpression(new Expression(&Expression::OpSet,
 		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
 		    MakeLiteral(zone),
 		    di));
@@ -86,7 +86,7 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
 	CONTEXT(msgbuf.str());
 
-	Dictionary::Ptr locals = make_shared<Dictionary>();
+	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 
@@ -98,7 +98,7 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 	if (rule.GetFTerm()) {
 		vinstances = rule.GetFTerm()->Evaluate(locals);
 	} else {
-		Array::Ptr instances = make_shared<Array>();
+		Array::Ptr instances = new Array();
 		instances->Add("");
 		vinstances = instances;
 	}

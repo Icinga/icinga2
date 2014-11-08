@@ -84,7 +84,7 @@ void Notification::OnConfigLoaded(void)
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
-		obj->AddNotification(GetSelf());
+		obj->AddNotification(this);
 }
 
 void Notification::Start(void)
@@ -94,7 +94,7 @@ void Notification::Start(void)
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
-		obj->AddNotification(GetSelf());
+		obj->AddNotification(this);
 }
 
 void Notification::Stop(void)
@@ -104,7 +104,7 @@ void Notification::Stop(void)
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
-		obj->RemoveNotification(GetSelf());
+		obj->RemoveNotification(this);
 }
 
 Checkable::Ptr Notification::GetCheckable(void) const
@@ -184,7 +184,7 @@ void Notification::SetNextNotification(double time, const MessageOrigin& origin)
 {
 	SetNextNotificationRaw(time);
 
-	OnNextNotificationChanged(GetSelf(), time, origin);
+	OnNextNotificationChanged(this, time, origin);
 }
 
 void Notification::UpdateNotificationNumber(void)
@@ -304,7 +304,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
-	Service::OnNotificationSendStart(GetSelf(), checkable, allUsers, type, cr, author, text);
+	Service::OnNotificationSendStart(this, checkable, allUsers, type, cr, author, text);
 
 	std::set<User::Ptr> allNotifiedUsers;
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
@@ -321,7 +321,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	}
 
 	/* used in db_ido for notification history */
-	Service::OnNotificationSentToAllUsers(GetSelf(), checkable, allNotifiedUsers, type, cr, author, text);
+	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text);
 }
 
 bool Notification::CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force)
@@ -383,7 +383,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 			return;
 		}
 
-		command->Execute(GetSelf(), user, cr, type, author, text);
+		command->Execute(this, user, cr, type, author, text);
 
 		{
 			ObjectLock olock(this);
@@ -392,7 +392,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		}
 
 		/* required by compatlogger */
-		Service::OnNotificationSentToUser(GetSelf(), GetCheckable(), user, type, cr, author, text, command->GetName());
+		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName());
 
 		Log(LogInformation, "Notification")
 		    << "Completed sending notification for object '" << GetCheckable()->GetName() << "'";

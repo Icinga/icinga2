@@ -58,7 +58,7 @@ String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Ob
 
 void ScheduledDowntime::StaticInitialize(void)
 {
-	l_Timer = make_shared<Timer>();
+	l_Timer = new Timer();
 	l_Timer->SetInterval(60);
 	l_Timer->OnTimerExpired.connect(boost::bind(&ScheduledDowntime::TimerProc));
 	l_Timer->Start();
@@ -98,7 +98,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 	Dictionary::Ptr ranges = GetRanges();
 
-	Array::Ptr segments = make_shared<Array>();
+	Array::Ptr segments = new Array();
 
 	Dictionary::Ptr bestSegment;
 	double bestBegin;

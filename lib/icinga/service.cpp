@@ -53,14 +53,14 @@ void Service::OnConfigLoaded(void)
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			if (sg)
-				sg->ResolveGroupMembership(GetSelf(), true);
+				sg->ResolveGroupMembership(this, true);
 		}
 	}
 
 	m_Host = Host::GetByName(GetHostName());
 
 	if (m_Host)
-		m_Host->AddService(GetSelf());
+		m_Host->AddService(this);
 
 	SetSchedulingOffset(Utility::Random());
 

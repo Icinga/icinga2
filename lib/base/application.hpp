@@ -144,7 +144,7 @@ protected:
 	virtual void OnShutdown(void);
 
 private:
-	static Application *m_Instance; /**< The application instance. */
+	static Application::Ptr m_Instance; /**< The application instance. */
 
 	static bool m_ShuttingDown; /**< Whether the application is in the process of
 				  shutting down. */

@@ -65,10 +65,10 @@ REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
 
 Value IcingaApplication::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, DynamicType::GetObjectsByType<IcingaApplication>()) {
-		Dictionary::Ptr stats = make_shared<Dictionary>();
+		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("node_name", icingaapplication->GetNodeName());
 		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());
 		stats->Set("enable_event_handlers", icingaapplication->GetEnableEventHandlers());
@@ -98,7 +98,7 @@ int IcingaApplication::Main(void)
 	Log(LogDebug, "IcingaApplication", "In IcingaApplication::Main()");
 
 	/* periodically dump the program state */
-	l_RetentionTimer = make_shared<Timer>();
+	l_RetentionTimer = new Timer();
 	l_RetentionTimer->SetInterval(300);
 	l_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	l_RetentionTimer->Start();

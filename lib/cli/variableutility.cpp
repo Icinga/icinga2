@@ -36,7 +36,7 @@ Value VariableUtility::GetVariable(const String& name)
 	std::fstream fp;
 	fp.open(varsfile.CStr(), std::ios_base::in);
 
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	String message;
 
@@ -58,7 +58,7 @@ void VariableUtility::PrintVariables(std::ostream& outfp)
 	std::fstream fp;
 	fp.open(varsfile.CStr(), std::ios_base::in);
 
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 	unsigned long variables_count = 0;
 
 	String message;

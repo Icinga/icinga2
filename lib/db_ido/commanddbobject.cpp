@@ -38,7 +38,7 @@ CommandDbObject::CommandDbObject(const DbType::Ptr& type, const String& name1, c
 
 Dictionary::Ptr CommandDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Command::Ptr command = static_pointer_cast<Command>(GetObject());
 
 	fields->Set("command_line", CompatUtility::GetCommandLine(command));

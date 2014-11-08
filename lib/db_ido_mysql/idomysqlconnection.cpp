@@ -41,19 +41,19 @@ REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
 
 Value IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const IdoMysqlConnection::Ptr& idomysqlconnection, DynamicType::GetObjectsByType<IdoMysqlConnection>()) {
 		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
 
-		Dictionary::Ptr stats = make_shared<Dictionary>();
+		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("version", SCHEMA_VERSION);
 		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
 		nodes->Set(idomysqlconnection->GetName(), stats);
 
-		perfdata->Add(make_shared<PerfdataValue>("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", items));
+		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", items));
 	}
 
 	status->Set("idomysqlconnection", nodes);
@@ -69,12 +69,12 @@ void IdoMysqlConnection::Resume(void)
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
 
-	m_TxTimer = make_shared<Timer>();
+	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
-	m_ReconnectTimer = make_shared<Timer>();
+	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
@@ -444,7 +444,7 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
 	if (!lengths)
 		return Dictionary::Ptr();
 
-	Dictionary::Ptr dict = make_shared<Dictionary>();
+	Dictionary::Ptr dict = new Dictionary();
 
 	mysql_field_seek(result.get(), 0);
 	for (field = mysql_fetch_field(result.get()), i = 0; field; field = mysql_fetch_field(result.get()), i++)

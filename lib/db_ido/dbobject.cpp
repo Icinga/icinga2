@@ -40,7 +40,7 @@ boost::signals2::signal<void (const DbQuery&)> DbObject::OnQuery;
 
 INITIALIZE_ONCE(&DbObject::StaticInitialize);
 
-DbObject::DbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2)
+DbObject::DbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2)
 	: m_Name1(name1), m_Name2(name2), m_Type(type), m_LastConfigUpdate(0), m_LastStatusUpdate(0)
 { }
 
@@ -95,9 +95,9 @@ void DbObject::SendConfigUpdate(void)
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("config_type", 1);
-	query.WhereCriteria = make_shared<Dictionary>();
+	query.WhereCriteria = new Dictionary();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
-	query.Object = GetSelf();
+	query.Object = this;
 	query.ConfigUpdate = true;
 	OnQuery(query);
 
@@ -139,9 +139,9 @@ void DbObject::SendStatusUpdate(void)
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	query.WhereCriteria = make_shared<Dictionary>();
+	query.WhereCriteria = new Dictionary();
 	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
-	query.Object = GetSelf();
+	query.Object = this;
 	query.StatusUpdate = true;
 	OnQuery(query);
 
@@ -186,7 +186,7 @@ void DbObject::SendVarsConfigUpdate(void)
 			    << "object customvar key: '" << kv.first << "' value: '" << kv.second
 			    << "' overridden: " << overridden;
 
-			Dictionary::Ptr fields = make_shared<Dictionary>();
+			Dictionary::Ptr fields = new Dictionary();
 			fields->Set("varname", kv.first);
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
@@ -241,7 +241,7 @@ void DbObject::SendVarsStatusUpdate(void)
 			    << "object customvar key: '" << kv.first << "' value: '" << kv.second
 			    << "' overridden: " << overridden;
 
-			Dictionary::Ptr fields = make_shared<Dictionary>();
+			Dictionary::Ptr fields = new Dictionary();
 			fields->Set("varname", kv.first);
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
@@ -256,10 +256,10 @@ void DbObject::SendVarsStatusUpdate(void)
 			query.Category = DbCatState;
 			query.Fields = fields;
 
-			query.WhereCriteria = make_shared<Dictionary>();
+			query.WhereCriteria = new Dictionary();
 			query.WhereCriteria->Set("object_id", obj);
 			query.WhereCriteria->Set("varname", Convert::ToString(kv.first));
-			query.Object = GetSelf();
+			query.Object = this;
 
 			OnQuery(query);
 		}

@@ -81,7 +81,7 @@ private:
 };
 
 template<typename T>
-class DynamicTypeIterator : public boost::iterator_facade<DynamicTypeIterator<T>, const shared_ptr<T>, boost::forward_traversal_tag>
+class DynamicTypeIterator : public boost::iterator_facade<DynamicTypeIterator<T>, const intrusive_ptr<T>, boost::forward_traversal_tag>
 {
 public:
 	DynamicTypeIterator(const DynamicType::Ptr& type, int index)
@@ -93,7 +93,7 @@ private:
 
 	DynamicType::Ptr m_Type;
 	DynamicType::ObjectVector::size_type m_Index;
-	mutable shared_ptr<T> m_Current;
+	mutable intrusive_ptr<T> m_Current;
 
 	void increment(void)
 	{
@@ -125,7 +125,7 @@ private:
 		return (other.m_Index == m_Index);
 	}
 
-	const shared_ptr<T>& dereference(void) const
+	const intrusive_ptr<T>& dereference(void) const
 	{
 		ObjectLock olock(m_Type);
 		m_Current = static_pointer_cast<T>(*(m_Type->m_ObjectVector.begin() + m_Index));

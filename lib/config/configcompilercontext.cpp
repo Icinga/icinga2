@@ -76,7 +76,7 @@ void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 	if (!*fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
 
-	m_ObjectsFP = make_shared<StdioStream>(fp, true);
+	m_ObjectsFP = new StdioStream(fp, true);
 }
 
 void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)

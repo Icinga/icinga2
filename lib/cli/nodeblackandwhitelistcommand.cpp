@@ -43,13 +43,13 @@ RegisterBlackAndWhitelistCLICommandHelper::RegisterBlackAndWhitelistCLICommandHe
 	name.push_back("node");
 	name.push_back(ltype);
 	name.push_back("add");
-	CLICommand::Register(name, make_shared<BlackAndWhitelistCommand>(type, BlackAndWhitelistCommandAdd));
+	CLICommand::Register(name, new BlackAndWhitelistCommand(type, BlackAndWhitelistCommandAdd));
 
 	name[2] = "remove";
-	CLICommand::Register(name, make_shared<BlackAndWhitelistCommand>(type, BlackAndWhitelistCommandRemove));
+	CLICommand::Register(name, new BlackAndWhitelistCommand(type, BlackAndWhitelistCommandRemove));
 
 	name[2] = "list";
-	CLICommand::Register(name, make_shared<BlackAndWhitelistCommand>(type, BlackAndWhitelistCommandList));
+	CLICommand::Register(name, new BlackAndWhitelistCommand(type, BlackAndWhitelistCommandList));
 }
 
 BlackAndWhitelistCommand::BlackAndWhitelistCommand(const String& type, BlackAndWhitelistCommandType command)

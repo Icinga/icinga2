@@ -29,7 +29,7 @@ namespace icinga
 
 class ScriptVariable;
 
-class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, shared_ptr<ScriptVariable> >
+class I2_BASE_API ScriptVariableRegistry : public Registry<ScriptVariableRegistry, intrusive_ptr<ScriptVariable> >
 {
 public:
 	static ScriptVariableRegistry *GetInstance(void);

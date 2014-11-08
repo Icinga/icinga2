@@ -873,7 +873,7 @@ Value HostsTable::ContactsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr contact_names = make_shared<Array>();
+	Array::Ptr contact_names = new Array();
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(host)) {
 		contact_names->Add(user->GetName());
@@ -891,7 +891,7 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = host->GetDowntimes();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(downtimes);
 
@@ -920,7 +920,7 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = host->GetDowntimes();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(downtimes);
 
@@ -934,7 +934,7 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 		if (downtime->IsExpired())
 			continue;
 
-		Array::Ptr downtime_info = make_shared<Array>();
+		Array::Ptr downtime_info = new Array();
 		downtime_info->Add(downtime->GetLegacyId());
 		downtime_info->Add(downtime->GetAuthor());
 		downtime_info->Add(downtime->GetComment());
@@ -953,7 +953,7 @@ Value HostsTable::CommentsAccessor(const Value& row)
 
 	Dictionary::Ptr comments = host->GetComments();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(comments);
 
@@ -982,7 +982,7 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = host->GetComments();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(comments);
 
@@ -996,7 +996,7 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 		if (comment->IsExpired())
 			continue;
 
-		Array::Ptr comment_info = make_shared<Array>();
+		Array::Ptr comment_info = new Array();
 		comment_info->Add(comment->GetLegacyId());
 		comment_info->Add(comment->GetAuthor());
 		comment_info->Add(comment->GetText());
@@ -1015,7 +1015,7 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = host->GetComments();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(comments);
 
@@ -1029,7 +1029,7 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 		if (comment->IsExpired())
 			continue;
 
-		Array::Ptr comment_info = make_shared<Array>();
+		Array::Ptr comment_info = new Array();
 		comment_info->Add(comment->GetLegacyId());
 		comment_info->Add(comment->GetAuthor());
 		comment_info->Add(comment->GetText());
@@ -1058,7 +1058,7 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -1085,7 +1085,7 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -1115,11 +1115,11 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		Array::Ptr key_val = make_shared<Array>();
+		Array::Ptr key_val = new Array();
 		key_val->Add(kv.first);
 
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
@@ -1168,7 +1168,7 @@ Value HostsTable::ParentsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr parents = make_shared<Array>();
+	Array::Ptr parents = new Array();
 
 	BOOST_FOREACH(const Checkable::Ptr& parent, host->GetParents()) {
 		Host::Ptr parent_host = dynamic_pointer_cast<Host>(parent);
@@ -1189,7 +1189,7 @@ Value HostsTable::ChildsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr childs = make_shared<Array>();
+	Array::Ptr childs = new Array();
 
 	BOOST_FOREACH(const Checkable::Ptr& child, host->GetChildren()) {
 		Host::Ptr child_host = dynamic_pointer_cast<Host>(child);
@@ -1450,7 +1450,7 @@ Value HostsTable::ContactGroupsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr contactgroup_names = make_shared<Array>();
+	Array::Ptr contactgroup_names = new Array();
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		contactgroup_names->Add(usergroup->GetName());
@@ -1466,7 +1466,7 @@ Value HostsTable::ServicesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = make_shared<Array>();
+	Array::Ptr services = new Array();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		services->Add(service->GetShortName());
@@ -1482,10 +1482,10 @@ Value HostsTable::ServicesWithStateAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = make_shared<Array>();
+	Array::Ptr services = new Array();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Array::Ptr svc_add = make_shared<Array>();
+		Array::Ptr svc_add = new Array();
 
 		svc_add->Add(service->GetShortName());
 		svc_add->Add(service->GetState());
@@ -1503,10 +1503,10 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = make_shared<Array>();
+	Array::Ptr services = new Array();
 
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		Array::Ptr svc_add = make_shared<Array>();
+		Array::Ptr svc_add = new Array();
 
 		svc_add->Add(service->GetShortName());
 		svc_add->Add(service->GetState());

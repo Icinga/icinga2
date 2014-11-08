@@ -211,7 +211,7 @@ void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
  */
 Dictionary::Ptr Dictionary::ShallowClone(void) const
 {
-	Dictionary::Ptr clone = make_shared<Dictionary>();
+	Dictionary::Ptr clone = new Dictionary();
 	CopyTo(clone);
 	return clone;
 }

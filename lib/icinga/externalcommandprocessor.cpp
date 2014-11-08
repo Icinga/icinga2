@@ -91,7 +91,7 @@ static void RegisterCommand(const String& command, const ExternalCommandCallback
 	eci.MaxArgs = (maxArgs == UINT_MAX) ? minArgs : maxArgs;
 	GetCommands()[command] = eci;
 
-	ApiFunction::Ptr afunc = make_shared<ApiFunction>(boost::bind(&ExternalCommandAPIWrapper, command, _2));
+	ApiFunction::Ptr afunc = new ApiFunction(boost::bind(&ExternalCommandAPIWrapper, command, _2));
 	ApiFunction::Register("extcmd::" + command, afunc);
 }
 
@@ -303,7 +303,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[1]);
-	CheckResult::Ptr result = make_shared<CheckResult>();
+	CheckResult::Ptr result = new CheckResult();
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[2]);
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
@@ -351,7 +351,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
-	CheckResult::Ptr result = make_shared<CheckResult>();
+	CheckResult::Ptr result = new CheckResult();
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[3]);
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));

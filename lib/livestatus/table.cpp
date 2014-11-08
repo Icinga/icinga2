@@ -48,33 +48,33 @@ Table::Table(void)
 Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, const unsigned long& from, const unsigned long& until)
 {
 	if (name == "status")
-		return make_shared<StatusTable>();
+		return new StatusTable();
 	else if (name == "contactgroups")
-		return make_shared<ContactGroupsTable>();
+		return new ContactGroupsTable();
 	else if (name == "contacts")
-		return make_shared<ContactsTable>();
+		return new ContactsTable();
 	else if (name == "hostgroups")
-		return make_shared<HostGroupsTable>();
+		return new HostGroupsTable();
 	else if (name == "hosts")
-		return make_shared<HostsTable>();
+		return new HostsTable();
 	else if (name == "servicegroups")
-		return make_shared<ServiceGroupsTable>();
+		return new ServiceGroupsTable();
 	else if (name == "services")
-		return make_shared<ServicesTable>();
+		return new ServicesTable();
 	else if (name == "commands")
-		return make_shared<CommandsTable>();
+		return new CommandsTable();
 	else if (name == "comments")
-		return make_shared<CommentsTable>();
+		return new CommentsTable();
 	else if (name == "downtimes")
-		return make_shared<DowntimesTable>();
+		return new DowntimesTable();
 	else if (name == "timeperiods")
-		return make_shared<TimePeriodsTable>();
+		return new TimePeriodsTable();
 	else if (name == "log")
-		return make_shared<LogTable>(compat_log_path, from, until);
+		return new LogTable(compat_log_path, from, until);
 	else if (name == "statehist")
-		return make_shared<StateHistTable>(compat_log_path, from, until);
+		return new StateHistTable(compat_log_path, from, until);
 	else if (name == "endpoints")
-		return make_shared<EndpointsTable>();
+		return new EndpointsTable();
 
 	return Table::Ptr();
 }
@@ -128,7 +128,7 @@ std::vector<Value> Table::FilterRows(const Filter::Ptr& filter)
 
 void Table::FilteredAddRow(std::vector<Value>& rs, const Filter::Ptr& filter, const Value& row)
 {
-	if (!filter || filter->Apply(GetSelf(), row))
+	if (!filter || filter->Apply(this, row))
 		rs.push_back(row);
 }
 
@@ -149,10 +149,10 @@ Value Table::EmptyStringAccessor(const Value&)
 
 Value Table::EmptyArrayAccessor(const Value&)
 {
-	return make_shared<Array>();
+	return new Array();
 }
 
 Value Table::EmptyDictionaryAccessor(const Value&)
 {
-	return make_shared<Dictionary>();
+	return new Dictionary();
 }

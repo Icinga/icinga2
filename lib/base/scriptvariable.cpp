@@ -77,7 +77,7 @@ ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, 
 	ScriptVariable::Ptr sv = GetByName(name);
 
 	if (!sv) {
-		sv = make_shared<ScriptVariable>(value);
+		sv = new ScriptVariable(value);
 		ScriptVariableRegistry::GetInstance()->Register(name, sv);
 	} else if (overwrite) {
 		if (sv->IsConstant())
@@ -110,10 +110,10 @@ void ScriptVariable::WriteVariablesFile(const String& filename)
 	if (!fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
 
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	BOOST_FOREACH(const ScriptVariableRegistry::ItemMap::value_type& kv, ScriptVariableRegistry::GetInstance()->GetItems()) {
-		Dictionary::Ptr persistentVariable = make_shared<Dictionary>();
+		Dictionary::Ptr persistentVariable = new Dictionary();
 
 		persistentVariable->Set("name", kv.first);
 

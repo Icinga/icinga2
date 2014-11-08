@@ -34,7 +34,7 @@ ServiceGroupDbObject::ServiceGroupDbObject(const DbType::Ptr& type, const String
 
 Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	ServiceGroup::Ptr group = static_pointer_cast<ServiceGroup>(GetObject());
 
 	fields->Set("alias", group->GetDisplayName());
@@ -59,7 +59,7 @@ void ServiceGroupDbObject::OnConfigUpdate(void)
 		query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
 		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
-		query1.Fields = make_shared<Dictionary>();
+		query1.Fields = new Dictionary();
 		query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 		query1.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
 		query1.Fields->Set("service_object_id", service);

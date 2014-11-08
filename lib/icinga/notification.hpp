@@ -81,8 +81,8 @@ public:
 
 	static void StaticInitialize(void);
 
-	shared_ptr<Checkable> GetCheckable(void) const;
-	shared_ptr<NotificationCommand> GetCommand(void) const;
+	intrusive_ptr<Checkable> GetCheckable(void) const;
+	intrusive_ptr<NotificationCommand> GetCommand(void) const;
 	TimePeriod::Ptr GetPeriod(void) const;
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetUserGroups(void) const;
@@ -113,8 +113,8 @@ protected:
 private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
-	static void EvaluateApplyRuleOneInstance(const shared_ptr<Checkable>& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
-	static bool EvaluateApplyRuleOne(const shared_ptr<Checkable>& checkable, const ApplyRule& rule);
+	static void EvaluateApplyRuleOneInstance(const intrusive_ptr<Checkable>& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
+	static bool EvaluateApplyRuleOne(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule);
 	static void EvaluateApplyRule(const ApplyRule& rule);
 	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
 };

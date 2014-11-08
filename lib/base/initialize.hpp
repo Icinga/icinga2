@@ -21,22 +21,15 @@
 #define INITIALIZE_H
 
 #include "base/i2-base.hpp"
-#include "base/utility.hpp"
 
 namespace icinga
 {
 
-typedef void (*InitializeFunc)(void);
+I2_BASE_API bool InitializeOnceHelper(void (*func)(void));
 
-inline bool InitializeOnceHelper(InitializeFunc func)
-{
-	Utility::AddDeferredInitializer(func);
-	return true;
-}
-
-#define INITIALIZE_ONCE(func) \
-	namespace { namespace UNIQUE_NAME(io) { \
-		I2_EXPORT bool l_InitializeOnce(icinga::InitializeOnceHelper(func)); \
+#define INITIALIZE_ONCE(func)								\
+	namespace { namespace UNIQUE_NAME(io) {						\
+		I2_EXPORT bool l_InitializeOnce(icinga::InitializeOnceHelper(func));	\
 	} }
 
 }

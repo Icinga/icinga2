@@ -115,7 +115,7 @@ String StatusTable::GetPrefix(void) const
 
 void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Object::Ptr obj = make_shared<Object>();
+	Object::Ptr obj = new Object();
 
 	/* Return a fake row. */
 	addRowFn(obj);
@@ -237,7 +237,7 @@ Value StatusTable::CustomVariableNamesAccessor(const Value&)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	String key;
 	Value value;
@@ -255,7 +255,7 @@ Value StatusTable::CustomVariableValuesAccessor(const Value&)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	String key;
 	Value value;
@@ -273,12 +273,12 @@ Value StatusTable::CustomVariablesAccessor(const Value&)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	String key;
 	Value value;
 	BOOST_FOREACH(tie(key, value), vars) {
-		Array::Ptr key_val = make_shared<Array>();
+		Array::Ptr key_val = new Array();
 		key_val->Add(key);
 		key_val->Add(value);
 		cv->Add(key_val);

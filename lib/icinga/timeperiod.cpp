@@ -35,7 +35,7 @@ INITIALIZE_ONCE(&TimePeriod::StaticInitialize);
 
 void TimePeriod::StaticInitialize(void)
 {
-	l_UpdateTimer = make_shared<Timer>();
+	l_UpdateTimer = new Timer();
 	l_UpdateTimer->SetInterval(300);
 	l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
 	l_UpdateTimer->Start();
@@ -87,12 +87,12 @@ void TimePeriod::AddSegment(double begin, double end)
 	}
 
 	/* Create new segment if we weren't able to merge this into an existing segment. */
-	Dictionary::Ptr segment = make_shared<Dictionary>();
+	Dictionary::Ptr segment = new Dictionary();
 	segment->Set("begin", begin);
 	segment->Set("end", end);
 
 	if (!segments) {
-		segments = make_shared<Array>();
+		segments = new Array();
 		SetSegments(segments);
 	}
 
@@ -123,7 +123,7 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	if (!segments)
 		return;
 
-	Array::Ptr newSegments = make_shared<Array>();
+	Array::Ptr newSegments = new Array();
 
 	/* Try to split or adjust an existing segment. */
 	ObjectLock dlock(segments);
@@ -172,7 +172,7 @@ void TimePeriod::PurgeSegments(double end)
 	if (!segments)
 		return;
 
-	Array::Ptr newSegments = make_shared<Array>();
+	Array::Ptr newSegments = new Array();
 
 	/* Remove old segments. */
 	ObjectLock dlock(segments);
@@ -194,10 +194,8 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 			return;
 	}
 
-	TimePeriod::Ptr self = GetSelf();
-
 	std::vector<Value> arguments;
-	arguments.push_back(self);
+	arguments.push_back(this);
 	arguments.push_back(begin);
 	arguments.push_back(end);
 

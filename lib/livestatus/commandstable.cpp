@@ -105,7 +105,7 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	String key;
 	Value value;
@@ -133,7 +133,7 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	String key;
 	Value value;
@@ -161,12 +161,12 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	String key;
 	Value value;
 	BOOST_FOREACH(tie(key, value), vars) {
-		Array::Ptr key_val = make_shared<Array>();
+		Array::Ptr key_val = new Array();
 		key_val->Add(key);
 		key_val->Add(value);
 		cv->Add(key_val);

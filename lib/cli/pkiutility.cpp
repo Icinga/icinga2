@@ -108,7 +108,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	BIO_free(csrbio);
 
-	shared_ptr<X509> cert = CreateCertIcingaCA(X509_REQ_get_pubkey(req), X509_REQ_get_subject_name(req));
+	boost::shared_ptr<X509> cert = CreateCertIcingaCA(X509_REQ_get_pubkey(req), X509_REQ_get_subject_name(req));
 
 	X509_REQ_free(req);
 
@@ -129,13 +129,13 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 int PkiUtility::SaveCert(const String& host, const String& port, const String& keyfile, const String& certfile, const String& trustedfile)
 {
-	TcpSocket::Ptr client = make_shared<TcpSocket>();
+	TcpSocket::Ptr client = new TcpSocket();
 
 	client->Connect(host, port);
 
-	shared_ptr<SSL_CTX> sslContext = MakeSSLContext(certfile, keyfile);
+	boost::shared_ptr<SSL_CTX> sslContext = MakeSSLContext(certfile, keyfile);
 
-	TlsStream::Ptr stream = make_shared<TlsStream>(client, RoleClient, sslContext);
+	TlsStream::Ptr stream = new TlsStream(client, RoleClient, sslContext);
 
 	try {
 		stream->Handshake();
@@ -143,7 +143,7 @@ int PkiUtility::SaveCert(const String& host, const String& port, const String& k
 
 	}
 
-	shared_ptr<X509> cert = stream->GetPeerCertificate();
+	boost::shared_ptr<X509> cert = stream->GetPeerCertificate();
 
 	std::ofstream fpcert;
 	fpcert.open(trustedfile.CStr());
@@ -172,7 +172,7 @@ int PkiUtility::GenTicket(const String& cn, const String& salt, std::ostream& ti
 int PkiUtility::RequestCertificate(const String& host, const String& port, const String& keyfile,
     const String& certfile, const String& cafile, const String& trustedfile, const String& ticket)
 {
-	TcpSocket::Ptr client = make_shared<TcpSocket>();
+	TcpSocket::Ptr client = new TcpSocket();
 
 	try {
 		client->Connect(host, port);
@@ -184,7 +184,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	shared_ptr<SSL_CTX> sslContext;
+	boost::shared_ptr<SSL_CTX> sslContext;
 
 	try {
 		sslContext = MakeSSLContext(certfile, keyfile);
@@ -194,7 +194,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	TlsStream::Ptr stream = make_shared<TlsStream>(client, RoleClient, sslContext);
+	TlsStream::Ptr stream = new TlsStream(client, RoleClient, sslContext);
 
 	try {
 		stream->Handshake();
@@ -203,9 +203,9 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	shared_ptr<X509> peerCert = stream->GetPeerCertificate();
+	boost::shared_ptr<X509> peerCert = stream->GetPeerCertificate();
 
-	shared_ptr<X509> trustedCert;
+	boost::shared_ptr<X509> trustedCert;
 
 	try {
 		trustedCert = GetX509Certificate(trustedfile);
@@ -220,7 +220,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	Dictionary::Ptr request = make_shared<Dictionary>();
+	Dictionary::Ptr request = new Dictionary();
 
 	String msgid = Utility::NewUniqueID();
 
@@ -228,7 +228,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	request->Set("id", msgid);
 	request->Set("method", "pki::RequestCertificate");
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("ticket", String(ticket));
 
 	request->Set("params", params);

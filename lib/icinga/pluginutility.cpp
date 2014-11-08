@@ -61,7 +61,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	if (!raw_arguments || raw_command.IsObjectType<Array>())
 		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL, Utility::EscapeShellArg);
 	else {
-		Array::Ptr arr = make_shared<Array>();
+		Array::Ptr arr = new Array();
 		arr->Add(raw_command);
 		command = arr;
 	}
@@ -156,7 +156,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		}
 	}
 
-	Dictionary::Ptr envMacros = make_shared<Dictionary>();
+	Dictionary::Ptr envMacros = new Dictionary();
 
 	Dictionary::Ptr env = commandObj->GetEnv();
 
@@ -171,7 +171,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		}
 	}
 
-	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(command), envMacros);
+	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 	process->SetTimeout(commandObj->GetTimeout());
 	process->Run(boost::bind(callback, command, _1));
 }
@@ -223,7 +223,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 
 Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 {
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	size_t begin = 0;
 	String multi_prefix;

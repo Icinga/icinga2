@@ -52,7 +52,7 @@ void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path,
 
 Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
 {
-	Dictionary::Ptr config = make_shared<Dictionary>();
+	Dictionary::Ptr config = new Dictionary();
 	Utility::GlobRecursive(dir, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
 	return config;
 }
@@ -155,7 +155,7 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 	if (!azone->IsChildOf(lzone))
 		return;
 
-	Dictionary::Ptr configUpdate = make_shared<Dictionary>();
+	Dictionary::Ptr configUpdate = new Dictionary();
 
 	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 
@@ -180,10 +180,10 @@ void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
 		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
 	}
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("update", configUpdate);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "config::Update");
 	message->Set("params", params);

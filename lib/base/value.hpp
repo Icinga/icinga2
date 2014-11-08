@@ -58,8 +58,17 @@ public:
 	Value(const String& value);
 	Value(const char *value);
 
+	inline Value(Object *value)
+		: m_Value()
+	{
+		if (!value)
+			return;
+
+		m_Value = Object::Ptr(value);
+	}
+
 	template<typename T>
-	inline Value(const shared_ptr<T>& value)
+	inline Value(const intrusive_ptr<T>& value)
 		: m_Value()
 	{
 		if (!value)
@@ -92,10 +101,10 @@ public:
 	bool operator!=(const Value& rhs) const;
 
 	template<typename T>
-	operator shared_ptr<T>(void) const
+	operator intrusive_ptr<T>(void) const
 	{
 		if (IsEmpty())
-			return shared_ptr<T>();
+			return intrusive_ptr<T>();
 
 		if (!IsObject())
 			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value to object."));
@@ -104,7 +113,7 @@ public:
 
 		ASSERT(object);
 
-		shared_ptr<T> tobject = dynamic_pointer_cast<T>(object);
+		intrusive_ptr<T> tobject = dynamic_pointer_cast<T>(object);
 
 		if (!tobject)
 			BOOST_THROW_EXCEPTION(std::bad_cast());

@@ -49,7 +49,7 @@ void Dependency::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, c
 	Log(LogDebug, "Dependency")
 		<< "Applying dependency '" << name << "' to object '" << checkable->GetName() << "' for rule " << di;
 
-	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>(di);
+	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
 	builder->SetType("Dependency");
 	builder->SetName(name);
 	builder->SetScope(locals);
@@ -58,18 +58,18 @@ void Dependency::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, c
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	builder->AddExpression(new Expression(&Expression::OpSet,
 	    MakeArray(MakeArray(MakeLiteral("parent_host_name")), OpSetLiteral),
 	    MakeLiteral(host->GetName()),
 	    di));
 
-	builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+	builder->AddExpression(new Expression(&Expression::OpSet,
 	    MakeArray(MakeArray(MakeLiteral("child_host_name")), OpSetLiteral),
 	    MakeLiteral(host->GetName()),
 	    di));
 
 	if (service) {
-		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		builder->AddExpression(new Expression(&Expression::OpSet,
 		    MakeArray(MakeArray(MakeLiteral("child_service_name")), OpSetLiteral),
 		    MakeLiteral(service->GetShortName()),
 		    di));
@@ -78,7 +78,7 @@ void Dependency::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, c
 	String zone = checkable->GetZone();
 
 	if (!zone.IsEmpty()) {
-		builder->AddExpression(make_shared<Expression>(&Expression::OpSet,
+		builder->AddExpression(new Expression(&Expression::OpSet,
 		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
 		    MakeLiteral(zone),
 		    di));
@@ -104,7 +104,7 @@ bool Dependency::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const App
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr locals = make_shared<Dictionary>();
+	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 	if (service)
@@ -118,7 +118,7 @@ bool Dependency::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const App
 	if (rule.GetFTerm()) {
 		vinstances = rule.GetFTerm()->Evaluate(locals);
 	} else {
-		Array::Ptr instances = make_shared<Array>();
+		Array::Ptr instances = new Array();
 		instances->Add("");
 		vinstances = instances;
 	}

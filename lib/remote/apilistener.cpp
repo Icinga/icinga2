@@ -43,7 +43,7 @@ REGISTER_STATSFUNCTION(ApiListenerStats, &ApiListener::StatsFunc);
 void ApiListener::OnConfigLoaded(void)
 {
 	/* set up SSL context */
-	shared_ptr<X509> cert;
+	boost::shared_ptr<X509> cert;
 	try {
 		cert = GetX509Certificate(GetCertPath());
 	} catch (const std::exception&) {
@@ -115,7 +115,7 @@ void ApiListener::Start(void)
 		Application::Exit(EXIT_FAILURE);
 	}
 
-	m_Timer = make_shared<Timer>();
+	m_Timer = new Timer();
 	m_Timer->OnTimerExpired.connect(boost::bind(&ApiListener::ApiTimerHandler, this));
 	m_Timer->SetInterval(5);
 	m_Timer->Start();
@@ -132,7 +132,7 @@ ApiListener::Ptr ApiListener::GetInstance(void)
 	return ApiListener::Ptr();
 }
 
-shared_ptr<SSL_CTX> ApiListener::GetSSLContext(void) const
+boost::shared_ptr<SSL_CTX> ApiListener::GetSSLContext(void) const
 {
 	return m_SSLContext;
 }
@@ -175,7 +175,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 {
 	ObjectLock olock(this);
 
-	shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+	boost::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
@@ -185,7 +185,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 	    << "Adding new listener on port '" << service << "'";
 
-	TcpSocket::Ptr server = make_shared<TcpSocket>();
+	TcpSocket::Ptr server = new TcpSocket();
 
 	try {
 		server->Bind(node, service, AF_UNSPEC);
@@ -229,7 +229,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	{
 		ObjectLock olock(this);
 
-		shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+		boost::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 		if (!sslContext) {
 			Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
@@ -243,7 +243,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	Log(LogInformation, "ApiClient")
 	    << "Reconnecting to API endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
-	TcpSocket::Ptr client = make_shared<TcpSocket>();
+	TcpSocket::Ptr client = new TcpSocket();
 
 	try {
 		endpoint->SetConnecting(true);
@@ -276,7 +276,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	{
 		ObjectLock olock(this);
 		try {
-			tlsStream = make_shared<TlsStream>(client, role, m_SSLContext);
+			tlsStream = new TlsStream(client, role, m_SSLContext);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot create TLS stream from client connection.");
 			return;
@@ -290,7 +290,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 		return;
 	}
 
-	shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
+	boost::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity;
 
 	try {
@@ -316,7 +316,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	if (endpoint)
 		need_sync = !endpoint->IsConnected();
 
-	ApiClient::Ptr aclient = make_shared<ApiClient>(identity, verify_ok, tlsStream, role);
+	ApiClient::Ptr aclient = new ApiClient(identity, verify_ok, tlsStream, role);
 	aclient->Start();
 
 	if (endpoint) {
@@ -417,10 +417,10 @@ void ApiListener::ApiTimerHandler(void)
 		if (ts == 0)
 			continue;
 
-		Dictionary::Ptr lparams = make_shared<Dictionary>();
+		Dictionary::Ptr lparams = new Dictionary();
 		lparams->Set("log_position", ts);
 
-		Dictionary::Ptr lmessage = make_shared<Dictionary>();
+		Dictionary::Ptr lmessage = new Dictionary();
 		lmessage->Set("jsonrpc", "2.0");
 		lmessage->Set("method", "log::SetLogPosition");
 		lmessage->Set("params", lparams);
@@ -459,12 +459,12 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const DynamicOb
 
 	ASSERT(ts != 0);
 
-	Dictionary::Ptr pmessage = make_shared<Dictionary>();
+	Dictionary::Ptr pmessage = new Dictionary();
 	pmessage->Set("timestamp", ts);
 
 	pmessage->Set("message", JsonEncode(message));
 	
-	Dictionary::Ptr secname = make_shared<Dictionary>();
+	Dictionary::Ptr secname = new Dictionary();
 	secname->Set("type", secobj->GetType()->GetName());
 	secname->Set("name", secobj->GetName());
 	pmessage->Set("secobj", secname);
@@ -583,7 +583,7 @@ void ApiListener::OpenLogFile(void)
 		return;
 	}
 
-	m_LogFile = make_shared<StdioStream>(fp, true);
+	m_LogFile = new StdioStream(fp, true);
 	m_LogMessageCount = 0;
 	SetLogMessageTimestamp(Utility::GetTime());
 }
@@ -674,7 +674,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			    << "Replaying log: " << path;
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
-			StdioStream::Ptr logStream = make_shared<StdioStream>(fp, true);
+			StdioStream::Ptr logStream = new StdioStream(fp, true);
 
 			String message;
 			while (true) {
@@ -740,7 +740,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -760,15 +760,15 @@ Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 
 std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 {
-	Dictionary::Ptr status = make_shared<Dictionary>();
-	Dictionary::Ptr perfdata = make_shared<Dictionary>();
+	Dictionary::Ptr status = new Dictionary();
+	Dictionary::Ptr perfdata = new Dictionary();
 
 	/* cluster stats */
 	status->Set("identity", GetIdentity());
 
 	double count_endpoints = 0;
-	Array::Ptr not_connected_endpoints = make_shared<Array>();
-	Array::Ptr connected_endpoints = make_shared<Array>();
+	Array::Ptr not_connected_endpoints = new Array();
+	Array::Ptr connected_endpoints = new Array();
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		if (endpoint->GetName() == GetIdentity())

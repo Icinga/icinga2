@@ -24,7 +24,6 @@
 #include "base/string.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
-#include "base/utility.hpp"
 #include <boost/function.hpp>
 
 namespace icinga
@@ -42,11 +41,11 @@ class Type;
 struct Field
 {
 	int ID;
-	shared_ptr<Type> FType;
+	intrusive_ptr<Type> FType;
 	const char *Name;
 	int Attributes;
 
-	Field(int id, const shared_ptr<Type>& type, const char *name, int attributes)
+	Field(int id, const intrusive_ptr<Type>& type, const char *name, int attributes)
 		: ID(id), FType(type), Name(name), Attributes(attributes)
 	{ }
 };
@@ -95,7 +94,7 @@ class TypeImpl
 	namespace { namespace UNIQUE_NAME(rt) { \
 		void RegisterType ## type(void) \
 		{ \
-			icinga::Type::Ptr t = make_shared<TypeImpl<type> >(); \
+			icinga::Type::Ptr t = new TypeImpl<type>(); \
 			type::TypeInstance = t; \
 			icinga::Type::Register(t); \
 		} \
@@ -105,7 +104,7 @@ class TypeImpl
 	DEFINE_TYPE_INSTANCE(type)
 
 #define DEFINE_TYPE_INSTANCE(type) \
-	Type::Ptr type::TypeInstance;
+	Type::Ptr type::TypeInstance
 
 }
 

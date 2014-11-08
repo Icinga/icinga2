@@ -59,7 +59,6 @@ add_boost_test(base
         base_netstring/netstring
         base_object/construct
         base_object/getself
-        base_object/weak
         base_serialize/scalar
         base_serialize/array
         base_serialize/dictionary

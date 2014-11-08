@@ -43,19 +43,19 @@ REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
 
 Value IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const IdoPgsqlConnection::Ptr& idopgsqlconnection, DynamicType::GetObjectsByType<IdoPgsqlConnection>()) {
 		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
 
-		Dictionary::Ptr stats = make_shared<Dictionary>();
+		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("version", SCHEMA_VERSION);
 		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
 		nodes->Set(idopgsqlconnection->GetName(), stats);
 
-		perfdata->Add(make_shared<PerfdataValue>("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", items));
+		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", items));
 	}
 
 	status->Set("idopgsqlconnection", nodes);
@@ -71,12 +71,12 @@ void IdoPgsqlConnection::Resume(void)
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
 
-	m_TxTimer = make_shared<Timer>();
+	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
 	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoPgsqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
-	m_ReconnectTimer = make_shared<Timer>();
+	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&IdoPgsqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
@@ -443,7 +443,7 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 
 	int columns = PQnfields(result.get());
 
-	Dictionary::Ptr dict = make_shared<Dictionary>();
+	Dictionary::Ptr dict = new Dictionary();
 
 	for (int column = 0; column < columns; column++) {
 		Value value;

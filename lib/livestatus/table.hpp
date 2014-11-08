@@ -45,7 +45,7 @@ public:
 	virtual String GetName(void) const = 0;
 	virtual String GetPrefix(void) const = 0;
 
-	std::vector<Value> FilterRows(const shared_ptr<Filter>& filter);
+	std::vector<Value> FilterRows(const intrusive_ptr<Filter>& filter);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
@@ -65,9 +65,11 @@ protected:
 private:
 	std::map<String, Column> m_Columns;
 
-	void FilteredAddRow(std::vector<Value>& rs, const shared_ptr<Filter>& filter, const Value& row);
+	void FilteredAddRow(std::vector<Value>& rs, const intrusive_ptr<Filter>& filter, const Value& row);
 };
 
 }
 
 #endif /* TABLE_H */
+
+#include "livestatus/filter.hpp"

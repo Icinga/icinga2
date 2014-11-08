@@ -48,7 +48,7 @@ EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1,
 
 Dictionary::Ptr EndpointDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
 
 	fields->Set("identity", endpoint->GetName());
@@ -59,7 +59,7 @@ Dictionary::Ptr EndpointDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
 
 	Log(LogDebug, "EndpointDbObject")
@@ -83,12 +83,12 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 	query1.Table = "endpointstatus";
 	query1.Type = DbQueryUpdate;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("is_connected", (connected ? 1 : 0));
 	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("endpoint_object_id", endpoint);
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -115,7 +115,7 @@ void EndpointDbObject::OnConfigUpdate(void)
 	query1.Table = "endpointstatus";
 	query1.Type = DbQueryInsert;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("identity", endpoint->GetName());
 	fields1->Set("node", IcingaApplication::GetInstance()->GetNodeName());
 	fields1->Set("is_connected", EndpointIsConnected(endpoint));

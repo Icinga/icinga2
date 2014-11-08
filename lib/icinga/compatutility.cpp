@@ -115,7 +115,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 {
 	CheckCommand::Ptr command = checkable->GetCheckCommand();
 
-	Dictionary::Ptr args = make_shared<Dictionary>();
+	Dictionary::Ptr args = new Dictionary();
 
 	if (command) {
 		Host::Ptr host;
@@ -387,7 +387,7 @@ Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const CustomVarObject::P
 {
 	Dictionary::Ptr vars = object->GetVars();
 
-	Dictionary::Ptr varsvars = make_shared<Dictionary>();
+	Dictionary::Ptr varsvars = new Dictionary();
 
 	if (!vars)
 		return Dictionary::Ptr();
@@ -418,7 +418,7 @@ String CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& objec
 
 Array::Ptr CompatUtility::GetModifiedAttributesList(const CustomVarObject::Ptr& object)
 {
-	Array::Ptr mod_attr_list = make_shared<Array>();
+	Array::Ptr mod_attr_list = new Array();
 
 	if (object->GetType() != DynamicType::GetByName("Host") &&
 	    object->GetType() != DynamicType::GetByName("Service") &&

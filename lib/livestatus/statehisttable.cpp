@@ -87,8 +87,8 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 	if (m_CheckablesCache.find(checkable) == m_CheckablesCache.end()) {
 
 		/* create new values */
-		state_hist_service_states = make_shared<Array>();
-		state_hist_bag = make_shared<Dictionary>();
+		state_hist_service_states = new Array();
+		state_hist_bag = new Dictionary();
 
 		Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 		Host::Ptr host;
@@ -155,7 +155,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 					state_hist_bag->Set("until", time); /* add until record for duration calculation */
 
 					/* 2. add new state_hist_bag */
-					Dictionary::Ptr state_hist_bag_new = make_shared<Dictionary>();
+					Dictionary::Ptr state_hist_bag_new = new Dictionary();
 
 					state_hist_bag_new->Set("host_name", state_hist_bag->Get("host_name"));
 					state_hist_bag_new->Set("service_description", state_hist_bag->Get("service_description"));

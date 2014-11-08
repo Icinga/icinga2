@@ -97,7 +97,7 @@ public:
 
 #define REGISTER_CLICOMMAND(name, klass) \
 	namespace { namespace UNIQUE_NAME(cli) { \
-		I2_EXPORT icinga::RegisterCLICommandHelper l_RegisterCLICommand(name, make_shared<klass>()); \
+		I2_EXPORT icinga::RegisterCLICommandHelper l_RegisterCLICommand(name, new klass()); \
 	} }
 
 }

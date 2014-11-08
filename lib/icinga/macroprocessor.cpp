@@ -44,7 +44,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 	if (str.IsScalar()) {
 		result = InternalResolveMacros(str, resolvers, cr, missingMacro, escapeFn);
 	} else if (str.IsObjectType<Array>()) {
-		Array::Ptr resultArr = make_shared<Array>();
+		Array::Ptr resultArr = new Array();
 		Array::Ptr arr = str;
 
 		ObjectLock olock(arr);
@@ -101,7 +101,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			}
 		}
 
-		MacroResolver::Ptr mresolver = dynamic_pointer_cast<MacroResolver>(resolver.second);
+		MacroResolver *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
 
 		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
 			return true;

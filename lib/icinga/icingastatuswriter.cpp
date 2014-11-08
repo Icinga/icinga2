@@ -37,7 +37,7 @@ REGISTER_STATSFUNCTION(IcingaStatusWriterStats, &IcingaStatusWriter::StatsFunc);
 
 Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const IcingaStatusWriter::Ptr& icingastatuswriter, DynamicType::GetObjectsByType<IcingaStatusWriter>()) {
 		nodes->Set(icingastatuswriter->GetName(), 1); //add more stats
@@ -61,7 +61,7 @@ void IcingaStatusWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	m_StatusTimer = make_shared<Timer>();
+	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&IcingaStatusWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();
@@ -70,7 +70,7 @@ void IcingaStatusWriter::Start(void)
 
 Dictionary::Ptr IcingaStatusWriter::GetStatusData(void)
 {
-	Dictionary::Ptr bag = make_shared<Dictionary>();
+	Dictionary::Ptr bag = new Dictionary();
 
 	/* features */
 	std::pair<Dictionary::Ptr, Array::Ptr> stats = CIB::GetFeatureStats();
@@ -79,7 +79,7 @@ Dictionary::Ptr IcingaStatusWriter::GetStatusData(void)
 	bag->Set("feature_perfdata", stats.second);
 
 	/* icinga stats */
-	Dictionary::Ptr icinga_stats = make_shared<Dictionary>();
+	Dictionary::Ptr icinga_stats = new Dictionary();
 
 	double interval = Utility::GetTime() - Application::GetStartTime();
 

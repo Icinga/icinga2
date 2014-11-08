@@ -38,7 +38,7 @@ REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
 
 Value PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const PerfdataWriter::Ptr& perfdatawriter, DynamicType::GetObjectsByType<PerfdataWriter>()) {
 		nodes->Set(perfdatawriter->GetName(), 1); //add more stats
@@ -55,7 +55,7 @@ void PerfdataWriter::Start(void)
 
 	Checkable::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
-	m_RotationTimer = make_shared<Timer>();
+	m_RotationTimer = new Timer();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();

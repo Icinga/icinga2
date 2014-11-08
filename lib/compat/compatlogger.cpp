@@ -47,7 +47,7 @@ REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
 
 Value CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, DynamicType::GetObjectsByType<CompatLogger>()) {
 		nodes->Set(compat_logger->GetName(), 1); //add more stats
@@ -73,7 +73,7 @@ void CompatLogger::Start(void)
 	Checkable::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
-	m_RotationTimer = make_shared<Timer>();
+	m_RotationTimer = new Timer();
 	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLogger::RotationTimerHandler, this));
 	m_RotationTimer->Start();
 

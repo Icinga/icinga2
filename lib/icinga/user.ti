@@ -34,7 +34,7 @@ class User : CustomVarObject
 		}}}
 	};
 	[config] Array::Ptr groups {
-		default {{{ return make_shared<Array>(); }}}
+		default {{{ return new Array(); }}}
 	};
 	[config] String period (PeriodRaw);
 	[config] Array::Ptr types;

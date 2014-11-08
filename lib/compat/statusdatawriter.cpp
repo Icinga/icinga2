@@ -51,7 +51,7 @@ REGISTER_STATSFUNCTION(StatusDataWriterStats, &StatusDataWriter::StatsFunc);
 
 Value StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const StatusDataWriter::Ptr& statusdatawriter, DynamicType::GetObjectsByType<StatusDataWriter>()) {
 		nodes->Set(statusdatawriter->GetName(), 1); //add more stats
@@ -75,7 +75,7 @@ void StatusDataWriter::Start(void)
 {
 	DynamicObject::Start();
 
-	m_StatusTimer = make_shared<Timer>();
+	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&StatusDataWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();

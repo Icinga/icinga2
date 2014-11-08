@@ -35,7 +35,7 @@ UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name
 
 Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
 
 	fields->Set("alias", group->GetDisplayName());
@@ -56,7 +56,7 @@ void UserGroupDbObject::OnConfigUpdate(void)
 	query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatConfig;
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("instance_id", 0);
 	query1.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
 	OnQuery(query1);
@@ -66,7 +66,7 @@ void UserGroupDbObject::OnConfigUpdate(void)
 		query2.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
 		query2.Type = DbQueryInsert;
 		query2.Category = DbCatConfig;
-		query2.Fields = make_shared<Dictionary>();
+		query2.Fields = new Dictionary();
 		query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 		query2.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
 		query2.Fields->Set("contact_object_id", user);

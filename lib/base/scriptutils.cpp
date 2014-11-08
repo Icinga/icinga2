@@ -82,7 +82,7 @@ Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 		}
 	}
 
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 	BOOST_FOREACH(const Value& value, values) {
 		result->Add(value);
 	}
@@ -93,9 +93,9 @@ Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 {
 	if (arguments.size() == 0)
-		return make_shared<Array>();
+		return new Array();
 
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	Array::Ptr arr1 = static_cast<Array::Ptr>(arguments[0])->ShallowClone();
 
@@ -164,7 +164,7 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid number of arguments for range()"));
 	}
 
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	if ((start < end && increment <= 0) ||
 	    (start > end && increment >= 0))
@@ -200,7 +200,7 @@ Type::Ptr ScriptUtils::TypeOf(const Value& value)
 
 Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 {
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	ObjectLock olock(dict);
 	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {

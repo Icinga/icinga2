@@ -93,7 +93,7 @@ void ApiEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementSet.connect(&ApiEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ApiEvents::AcknowledgementClearedHandler);
 
-	l_RepositoryTimer = make_shared<Timer>();
+	l_RepositoryTimer = new Timer();
 	l_RepositoryTimer->SetInterval(30);
 	l_RepositoryTimer->OnTimerExpired.connect(boost::bind(&ApiEvents::RepositoryTimerHandler));
 	l_RepositoryTimer->Start();
@@ -107,7 +107,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	if (!listener)
 		return;
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::CheckResult");
 
@@ -115,7 +115,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
@@ -134,7 +134,7 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	if (!params)
 		return Empty;
 
-	CheckResult::Ptr cr = make_shared<CheckResult>();
+	CheckResult::Ptr cr = new CheckResult();
 
 	Dictionary::Ptr vcr = params->Get("cr");
 	Array::Ptr vperf = vcr->Get("performance_data");
@@ -142,7 +142,7 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 
 	Deserialize(cr, params->Get("cr"), true);
 
-	Array::Ptr rperf = make_shared<Array>();
+	Array::Ptr rperf = new Array();
 
 	if (vperf) {
 		ObjectLock olock(vperf);
@@ -150,7 +150,7 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 			Value p;
 
 			if (vp.IsObjectType<Dictionary>()) {
-				PerfdataValue::Ptr val = make_shared<PerfdataValue>();
+				PerfdataValue::Ptr val = new PerfdataValue();
 				Deserialize(val, vp, true);
 				rperf->Add(val);
 			} else
@@ -194,13 +194,13 @@ void ApiEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double 
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("next_check", nextCheck);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetNextCheck");
 	message->Set("params", params);
@@ -246,11 +246,11 @@ void ApiEvents::NextNotificationChangedHandler(const Notification::Ptr& notifica
 	if (!listener)
 		return;
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("notification", notification->GetName());
 	params->Set("next_notification", nextNotification);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetNextNotification");
 	message->Set("params", params);
@@ -290,13 +290,13 @@ void ApiEvents::ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, bo
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("forced", forced);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetForceNextCheck");
 	message->Set("params", params);
@@ -346,13 +346,13 @@ void ApiEvents::ForceNextNotificationChangedHandler(const Checkable::Ptr& checka
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("forced", forced);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetForceNextNotification");
 	message->Set("params", params);
@@ -402,13 +402,13 @@ void ApiEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEnableActiveChecks");
 	message->Set("params", params);
@@ -458,13 +458,13 @@ void ApiEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkabl
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEnablePassiveChecks");
 	message->Set("params", params);
@@ -514,13 +514,13 @@ void ApiEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkabl
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEnableNotifications");
 	message->Set("params", params);
@@ -570,13 +570,13 @@ void ApiEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bo
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEnableFlapping");
 	message->Set("params", params);
@@ -626,13 +626,13 @@ void ApiEvents::EnableEventHandlerChangedHandler(const Checkable::Ptr& checkable
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEnableEventHandler");
 	message->Set("params", params);
@@ -682,13 +682,13 @@ void ApiEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bo
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("enabled", enabled);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEnablePerfdata");
 	message->Set("params", params);
@@ -738,13 +738,13 @@ void ApiEvents::CheckIntervalChangedHandler(const Checkable::Ptr& checkable, dou
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("interval", interval);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetCheckInterval");
 	message->Set("params", params);
@@ -794,13 +794,13 @@ void ApiEvents::RetryIntervalChangedHandler(const Checkable::Ptr& checkable, dou
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("interval", interval);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetRetryInterval");
 	message->Set("params", params);
@@ -850,13 +850,13 @@ void ApiEvents::MaxCheckAttemptsChangedHandler(const Checkable::Ptr& checkable, 
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("attempts", attempts);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetMaxCheckAttempts");
 	message->Set("params", params);
@@ -906,13 +906,13 @@ void ApiEvents::EventCommandChangedHandler(const Checkable::Ptr& checkable, cons
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("command", command->GetName());
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetEventCommand");
 	message->Set("params", params);
@@ -967,13 +967,13 @@ void ApiEvents::CheckCommandChangedHandler(const Checkable::Ptr& checkable, cons
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("command", command->GetName());
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetCheckCommand");
 	message->Set("params", params);
@@ -1028,13 +1028,13 @@ void ApiEvents::CheckPeriodChangedHandler(const Checkable::Ptr& checkable, const
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("timeperiod", timeperiod->GetName());
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetCheckPeriod");
 	message->Set("params", params);
@@ -1085,11 +1085,11 @@ void ApiEvents::VarsChangedHandler(const CustomVarObject::Ptr& object, const Dic
 	if (!listener)
 		return;
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("object", object->GetName());
 	params->Set("vars", Serialize(vars));
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetVars");
 	message->Set("params", params);
@@ -1151,13 +1151,13 @@ void ApiEvents::CommentAddedHandler(const Checkable::Ptr& checkable, const Comme
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("comment", Serialize(comment));
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::AddComment");
 	message->Set("params", params);
@@ -1191,7 +1191,7 @@ Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dicti
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
 		return Empty;
 
-	Comment::Ptr comment = make_shared<Comment>();
+	Comment::Ptr comment = new Comment();
 	Deserialize(comment, params->Get("comment"), true);
 
 	checkable->AddComment(comment->GetEntryType(), comment->GetAuthor(),
@@ -1211,13 +1211,13 @@ void ApiEvents::CommentRemovedHandler(const Checkable::Ptr& checkable, const Com
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("id", comment->GetId());
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::RemoveComment");
 	message->Set("params", params);
@@ -1267,13 +1267,13 @@ void ApiEvents::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Down
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("downtime", Serialize(downtime));
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::AddDowntime");
 	message->Set("params", params);
@@ -1307,7 +1307,7 @@ Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dict
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
 		return Empty;
 
-	Downtime::Ptr downtime = make_shared<Downtime>();
+	Downtime::Ptr downtime = new Downtime();
 	Deserialize(downtime, params->Get("downtime"), true);
 
 	checkable->AddDowntime(downtime->GetAuthor(), downtime->GetComment(),
@@ -1330,13 +1330,13 @@ void ApiEvents::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Do
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("id", downtime->GetId());
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::RemoveDowntime");
 	message->Set("params", params);
@@ -1388,7 +1388,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
@@ -1397,7 +1397,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	params->Set("acktype", type);
 	params->Set("expiry", expiry);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::SetAcknowledgement");
 	message->Set("params", params);
@@ -1449,12 +1449,12 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::ClearAcknowledgement");
 	message->Set("params", params);
@@ -1500,10 +1500,10 @@ void ApiEvents::RepositoryTimerHandler(void)
 	if (!listener)
 		return;
 
-	Dictionary::Ptr repository = make_shared<Dictionary>();
+	Dictionary::Ptr repository = new Dictionary();
 
 	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
-		Array::Ptr services = make_shared<Array>();
+		Array::Ptr services = new Array();
 
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 			services->Add(service->GetShortName());
@@ -1521,7 +1521,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 
 	Zone::Ptr my_zone = my_endpoint->GetZone();
 
-	Dictionary::Ptr params = make_shared<Dictionary>();
+	Dictionary::Ptr params = new Dictionary();
 	params->Set("seen", Utility::GetTime());
 	params->Set("endpoint", my_endpoint->GetName());
 
@@ -1532,7 +1532,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 	params->Set("zone", my_zone->GetName());
 	params->Set("repository", repository);
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::UpdateRepository");
 	message->Set("params", params);
@@ -1577,7 +1577,7 @@ Value ApiEvents::UpdateRepositoryAPIHandler(const MessageOrigin& origin, const D
 	if (!listener)
 		return Empty;
 
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::UpdateRepository");
 	message->Set("params", params);

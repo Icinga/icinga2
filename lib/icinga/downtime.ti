@@ -35,7 +35,7 @@ class Downtime
 	[state] String triggered_by;
 	[state] String scheduled_by;
 	[state] Dictionary::Ptr triggers {
-		default {{{ return make_shared<Dictionary>(); }}}
+		default {{{ return new Dictionary(); }}}
 	};
 	[state] int legacy_id;
 	[state] bool was_cancelled;

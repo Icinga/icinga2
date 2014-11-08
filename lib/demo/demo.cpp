@@ -36,7 +36,7 @@ void Demo::Start(void)
 {
 	DynamicObject::Start();
 
-	m_DemoTimer = make_shared<Timer>();
+	m_DemoTimer = new Timer();
 	m_DemoTimer->SetInterval(5);
 	m_DemoTimer->OnTimerExpired.connect(boost::bind(&Demo::DemoTimerHandler, this));
 	m_DemoTimer->Start();
@@ -47,7 +47,7 @@ void Demo::Start(void)
  */
 void Demo::DemoTimerHandler(void)
 {
-	Dictionary::Ptr message = make_shared<Dictionary>();
+	Dictionary::Ptr message = new Dictionary();
 	message->Set("method", "demo::HelloWorld");
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();

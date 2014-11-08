@@ -48,7 +48,7 @@ ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, c
 
 Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 	Host::Ptr host = service->GetHost();
 
@@ -106,7 +106,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 {
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 	CheckResult::Ptr cr = service->GetLastCheckResult();
 
@@ -195,7 +195,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 		int state_filter = dep->GetStateFilter();
 
 		/* service dependencies */
-		Dictionary::Ptr fields1 = make_shared<Dictionary>();
+		Dictionary::Ptr fields1 = new Dictionary();
 		fields1->Set("service_object_id", parent);
 		fields1->Set("dependent_service_object_id", service);
 		fields1->Set("inherits_parent", 1);
@@ -222,7 +222,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 		Log(LogDebug, "ServiceDbObject")
 		    << "service contacts: " << user->GetName();
 
-		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
+		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
 		fields_contact->Set("contact_object_id", user);
 		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -242,7 +242,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 		Log(LogDebug, "ServiceDbObject")
 		    << "service contactgroups: " << usergroup->GetName();
 
-		Dictionary::Ptr fields_contact = make_shared<Dictionary>();
+		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
 		fields_contact->Set("contactgroup_object_id", usergroup);
 		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */

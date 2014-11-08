@@ -69,7 +69,7 @@ static void AuthorityTimerHandler(void)
 
 static void StaticInitialize(void)
 {
-	l_AuthorityTimer = make_shared<Timer>();
+	l_AuthorityTimer = new Timer();
 	l_AuthorityTimer->OnTimerExpired.connect(boost::bind(&AuthorityTimerHandler));
 	l_AuthorityTimer->SetInterval(30);
 	l_AuthorityTimer->Start();

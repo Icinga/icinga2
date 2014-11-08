@@ -49,7 +49,7 @@ void Host::OnConfigLoaded(void)
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
-				hg->ResolveGroupMembership(GetSelf(), true);
+				hg->ResolveGroupMembership(this, true);
 		}
 	}
 }
@@ -67,7 +67,7 @@ void Host::Stop(void)
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
-				hg->ResolveGroupMembership(GetSelf(), false);
+				hg->ResolveGroupMembership(this, false);
 		}
 	}
 

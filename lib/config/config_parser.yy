@@ -75,7 +75,7 @@ int ignore_newlines = 0;
 
 static void MakeRBinaryOp(Value** result, Expression::OpCallback& op, Value *left, Value *right, DebugInfo& diLeft, DebugInfo& diRight)
 {
-	*result = new Value(make_shared<Expression>(op, *left, *right, DebugInfoRange(diLeft, diRight)));
+	*result = new Value(new Expression(op, *left, *right, DebugInfoRange(diLeft, diRight)));
 	delete left;
 	delete right;
 }
@@ -231,7 +231,7 @@ static std::stack<Expression::Ptr> m_FTerm;
 
 void ConfigCompiler::Compile(void)
 {
-	m_ModuleScope = make_shared<Dictionary>();
+	m_ModuleScope = new Dictionary();
 
 	m_Abstract = std::stack<bool>();
 	m_RuleLists = std::stack<TypeRuleList::Ptr>();
@@ -343,7 +343,7 @@ type: T_TYPE identifier
 		m_Type = ConfigType::GetByName(name);
 
 		if (!m_Type) {
-			m_Type = make_shared<ConfigType>(name, DebugInfoRange(@1, @2));
+			m_Type = new ConfigType(name, DebugInfoRange(@1, @2));
 			m_Type->Register();
 		}
 	}
@@ -363,7 +363,7 @@ type: T_TYPE identifier
 
 typerulelist: '{'
 	{
-		m_RuleLists.push(make_shared<TypeRuleList>());
+		m_RuleLists.push(new TypeRuleList());
 	}
 	typerules
 	'}'
@@ -447,7 +447,7 @@ object:
 	{
 		m_ObjectAssign.pop();
 
-		Array::Ptr args = make_shared<Array>();
+		Array::Ptr args = new Array();
 		
 		args->Add(m_Abstract.top());
 		m_Abstract.pop();
@@ -468,17 +468,17 @@ object:
 
 		m_SeenAssign.pop();
 
-		Expression::Ptr rex = make_shared<Expression>(&Expression::OpLogicalNegate, m_Ignore.top(), DebugInfoRange(@2, @5));
+		Expression::Ptr rex = new Expression(&Expression::OpLogicalNegate, m_Ignore.top(), DebugInfoRange(@2, @5));
 		m_Ignore.pop();
 
-		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
+		Expression::Ptr filter = new Expression(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
 		m_Assign.pop();
 
 		args->Add(filter);
 
 		args->Add(context->GetZone());
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
+		$$ = new Value(new Expression(&Expression::OpObject, args, exprl, DebugInfoRange(@2, @5)));
 	}
 	;
 
@@ -602,13 +602,13 @@ lterm_items_inner: lterm
 
 lterm: indexer combined_set_op rterm
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpSet, MakeArray(Array::Ptr($1), $2), *$3, DebugInfoRange(@1, @3)));
+		$$ = new Value(new Expression(&Expression::OpSet, MakeArray(Array::Ptr($1), $2), *$3, DebugInfoRange(@1, @3)));
 		delete $3;
 	}
 	| T_IMPORT rterm
 	{
-		Expression::Ptr avar = make_shared<Expression>(&Expression::OpVariable, "type", DebugInfoRange(@1, @2));
-		$$ = new Value(make_shared<Expression>(&Expression::OpImport, avar, *$2, DebugInfoRange(@1, @2)));
+		Expression::Ptr avar = new Expression(&Expression::OpVariable, "type", DebugInfoRange(@1, @2));
+		$$ = new Value(new Expression(&Expression::OpImport, avar, *$2, DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| T_ASSIGN T_WHERE rterm
@@ -618,7 +618,7 @@ lterm: indexer combined_set_op rterm
 
 		m_SeenAssign.top() = true;
 
-		m_Assign.top() = make_shared<Expression>(&Expression::OpLogicalOr, m_Assign.top(), *$3, DebugInfoRange(@1, @3));
+		m_Assign.top() = new Expression(&Expression::OpLogicalOr, m_Assign.top(), *$3, DebugInfoRange(@1, @3));
 		delete $3;
 
 		$$ = new Value(MakeLiteral());
@@ -628,7 +628,7 @@ lterm: indexer combined_set_op rterm
 		if ((m_Apply.empty() || !m_Apply.top()) && (m_ObjectAssign.empty() || !m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
 
-		m_Ignore.top() = make_shared<Expression>(&Expression::OpLogicalOr, m_Ignore.top(), *$3, DebugInfoRange(@1, @3));
+		m_Ignore.top() = new Expression(&Expression::OpLogicalOr, m_Ignore.top(), *$3, DebugInfoRange(@1, @3));
 		delete $3;
 
 		$$ = new Value(MakeLiteral());
@@ -636,7 +636,7 @@ lterm: indexer combined_set_op rterm
 	| T_RETURN rterm
 	{
 		Expression::Ptr aname = MakeLiteral("__result");
-		$$ = new Value(make_shared<Expression>(&Expression::OpSet, MakeArray(MakeArray(MakeLiteral(aname)), OpSetLiteral), *$2, DebugInfoRange(@1, @2)));
+		$$ = new Value(new Expression(&Expression::OpSet, MakeArray(MakeArray(MakeLiteral(aname)), OpSetLiteral), *$2, DebugInfoRange(@1, @2)));
 		delete $2;
 
 	}
@@ -684,37 +684,37 @@ rterm_items_inner: rterm
 
 rterm_array: '[' newlines rterm_items newlines ']'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @5)));
+		$$ = new Value(new Expression(&Expression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @5)));
 	}
 	| '[' newlines rterm_items ']'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @4)));
+		$$ = new Value(new Expression(&Expression::OpArray, Array::Ptr($3), DebugInfoRange(@1, @4)));
 	}
 	| '[' rterm_items newlines ']'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @4)));
+		$$ = new Value(new Expression(&Expression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @4)));
 	}
 	| '[' rterm_items ']'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @3)));
+		$$ = new Value(new Expression(&Expression::OpArray, Array::Ptr($2), DebugInfoRange(@1, @3)));
 	}
 	;
 
 rterm_scope: '{' newlines lterm_items newlines '}'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpDict, Array::Ptr($3), DebugInfoRange(@1, @5)));
+		$$ = new Value(new Expression(&Expression::OpDict, Array::Ptr($3), DebugInfoRange(@1, @5)));
 	}
 	| '{' newlines lterm_items '}'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpDict, Array::Ptr($3), DebugInfoRange(@1, @4)));
+		$$ = new Value(new Expression(&Expression::OpDict, Array::Ptr($3), DebugInfoRange(@1, @4)));
 	}
 	| '{' lterm_items newlines '}'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @4)));
+		$$ = new Value(new Expression(&Expression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @4)));
 	}
 	| '{' lterm_items '}'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @3)));
+		$$ = new Value(new Expression(&Expression::OpDict, Array::Ptr($2), DebugInfoRange(@1, @3)));
 	}
 	;
 
@@ -733,33 +733,33 @@ rterm: T_STRING
 	}
 	| rterm '.' T_IDENTIFIER
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpIndexer, *$1, MakeLiteral($3), DebugInfoRange(@1, @3)));
+		$$ = new Value(new Expression(&Expression::OpIndexer, *$1, MakeLiteral($3), DebugInfoRange(@1, @3)));
 		delete $1;
 		free($3);
 	}
 	| rterm '(' rterm_items ')'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpFunctionCall, *$1, MakeLiteral(Array::Ptr($3)), DebugInfoRange(@1, @4)));
+		$$ = new Value(new Expression(&Expression::OpFunctionCall, *$1, MakeLiteral(Array::Ptr($3)), DebugInfoRange(@1, @4)));
 		delete $1;
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpVariable, $1, @1));
+		$$ = new Value(new Expression(&Expression::OpVariable, $1, @1));
 		free($1);
 	}
 	| '!' rterm
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpLogicalNegate, *$2, DebugInfoRange(@1, @2)));
+		$$ = new Value(new Expression(&Expression::OpLogicalNegate, *$2, DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| '~' rterm
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpNegate, *$2, DebugInfoRange(@1, @2)));
+		$$ = new Value(new Expression(&Expression::OpNegate, *$2, DebugInfoRange(@1, @2)));
 		delete $2;
 	}
 	| rterm '[' rterm ']'
 	{
-		$$ = new Value(make_shared<Expression>(&Expression::OpIndexer, *$1, *$3, DebugInfoRange(@1, @4)));
+		$$ = new Value(new Expression(&Expression::OpIndexer, *$1, *$3, DebugInfoRange(@1, @4)));
 		delete $1;
 		delete $3;
 	}
@@ -804,7 +804,7 @@ rterm: T_STRING
 		delete $6;
 		aexpr->MakeInline();
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, MakeArray($2, aexpr), Array::Ptr($4), DebugInfoRange(@1, @6)));
+		$$ = new Value(new Expression(&Expression::OpFunction, MakeArray($2, aexpr), Array::Ptr($4), DebugInfoRange(@1, @6)));
 		free($2);
 	}
 	| T_FUNCTION '(' identifier_items ')' rterm_scope
@@ -813,7 +813,7 @@ rterm: T_STRING
 		delete $5;
 		aexpr->MakeInline();
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFunction, MakeArray(Empty, aexpr), Array::Ptr($3), DebugInfoRange(@1, @5)));
+		$$ = new Value(new Expression(&Expression::OpFunction, MakeArray(Empty, aexpr), Array::Ptr($3), DebugInfoRange(@1, @5)));
 	}
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
 	{
@@ -823,7 +823,7 @@ rterm: T_STRING
 		Expression::Ptr ascope = *$9;
 		delete $9;
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFor, MakeArray($3, $5, aexpr), ascope, DebugInfoRange(@1, @9)));
+		$$ = new Value(new Expression(&Expression::OpFor, MakeArray($3, $5, aexpr), ascope, DebugInfoRange(@1, @9)));
 		free($3);
 		free($5);
 	}
@@ -835,7 +835,7 @@ rterm: T_STRING
 		Expression::Ptr ascope = *$7;
 		delete $7;
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpFor, MakeArray($3, Empty, aexpr), ascope, DebugInfoRange(@1, @7)));
+		$$ = new Value(new Expression(&Expression::OpFor, MakeArray($3, Empty, aexpr), ascope, DebugInfoRange(@1, @7)));
 		free($3);
 	}
 	;
@@ -940,10 +940,10 @@ apply:
 
 		m_SeenAssign.pop();
 
-		Expression::Ptr rex = make_shared<Expression>(&Expression::OpLogicalNegate, m_Ignore.top(), DebugInfoRange(@2, @5));
+		Expression::Ptr rex = new Expression(&Expression::OpLogicalNegate, m_Ignore.top(), DebugInfoRange(@2, @5));
 		m_Ignore.pop();
 
-		Expression::Ptr filter = make_shared<Expression>(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
+		Expression::Ptr filter = new Expression(&Expression::OpLogicalAnd, m_Assign.top(), rex, DebugInfoRange(@2, @5));
 		m_Assign.pop();
 
 		String fkvar = m_FKVar.top();
@@ -955,7 +955,7 @@ apply:
 		Expression::Ptr fterm = m_FTerm.top();
 		m_FTerm.pop();
 
-		Array::Ptr args = make_shared<Array>();
+		Array::Ptr args = new Array();
 		args->Add(type);
 		args->Add(target);
 		args->Add(aname);
@@ -964,7 +964,7 @@ apply:
 		args->Add(fvvar);
 		args->Add(fterm);
 
-		$$ = new Value(make_shared<Expression>(&Expression::OpApply, args, exprl, DebugInfoRange(@2, @5)));
+		$$ = new Value(new Expression(&Expression::OpApply, args, exprl, DebugInfoRange(@2, @5)));
 	}
 	;
 

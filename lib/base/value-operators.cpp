@@ -203,14 +203,14 @@ Value icinga::operator+(const Value& lhs, const Value& rhs)
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
-		Array::Ptr result = make_shared<Array>();
+		Array::Ptr result = new Array();
 		if (!lhs.IsEmpty())
 			static_cast<Array::Ptr>(lhs)->CopyTo(result);
 		if (!rhs.IsEmpty())
 			static_cast<Array::Ptr>(rhs)->CopyTo(result);
 		return result;
 	} else if ((lhs.IsObjectType<Dictionary>() || lhs.IsEmpty()) && (rhs.IsObjectType<Dictionary>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
-		Dictionary::Ptr result = make_shared<Dictionary>();
+		Dictionary::Ptr result = new Dictionary();
 		if (!lhs.IsEmpty())
 			static_cast<Dictionary::Ptr>(lhs)->CopyTo(result);
 		if (!rhs.IsEmpty())
@@ -247,9 +247,9 @@ Value icinga::operator-(const Value& lhs, const Value& rhs)
 		return static_cast<double>(lhs) - static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		if (lhs.IsEmpty())
-			return make_shared<Array>();
+			return new Array();
 
-		Array::Ptr result = make_shared<Array>();
+		Array::Ptr result = new Array();
 		Array::Ptr left = lhs;
 		Array::Ptr right = rhs;
 

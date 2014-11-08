@@ -25,7 +25,7 @@
 using namespace icinga;
 
 ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false), m_Expressions(make_shared<Array>())
+	: m_Abstract(false), m_Expressions(new Array())
 {
 	m_DebugInfo.FirstLine = 0;
 	m_DebugInfo.FirstColumn = 0;
@@ -34,7 +34,7 @@ ConfigItemBuilder::ConfigItemBuilder(void)
 }
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
-	: m_Abstract(false), m_Expressions(make_shared<Array>())
+	: m_Abstract(false), m_Expressions(new Array())
 {
 	m_DebugInfo = debugInfo;
 }
@@ -89,19 +89,19 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
-	Array::Ptr exprs = make_shared<Array>();
-	Array::Ptr templateArray = make_shared<Array>();
+	Array::Ptr exprs = new Array();
+	Array::Ptr templateArray = new Array();
 	templateArray->Add(m_Name);
 
-	exprs->Add(make_shared<Expression>(&Expression::OpSet,
+	exprs->Add(new Expression(&Expression::OpSet,
 	    MakeArray(MakeArray(MakeLiteral("templates")), OpSetAdd),
-	    make_shared<Expression>(&Expression::OpLiteral, templateArray, m_DebugInfo),
+	    new Expression(&Expression::OpLiteral, templateArray, m_DebugInfo),
 	    m_DebugInfo));
 
-	exprs->Add(make_shared<Expression>(&Expression::OpDict, m_Expressions, true, m_DebugInfo));
+	exprs->Add(new Expression(&Expression::OpDict, m_Expressions, true, m_DebugInfo));
 	
-	Expression::Ptr exprl = make_shared<Expression>(&Expression::OpDict, exprs, true, m_DebugInfo);
+	Expression::Ptr exprl = new Expression(&Expression::OpDict, exprs, true, m_DebugInfo);
 
-	return make_shared<ConfigItem>(m_Type, m_Name, m_Abstract, exprl,
+	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl,
 	    m_DebugInfo, m_Scope, m_Zone);
 }

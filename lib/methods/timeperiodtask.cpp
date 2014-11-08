@@ -27,17 +27,17 @@ REGISTER_SCRIPTFUNCTION(EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimeP
 
 Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
 {
-	Array::Ptr segments = make_shared<Array>();
+	Array::Ptr segments = new Array();
 	return segments;
 }
 
 Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
 {
-	Array::Ptr segments = make_shared<Array>();
+	Array::Ptr segments = new Array();
 
 	for (long t = begin / 60 - 1; t * 60 < end; t++) {
 		if ((t % 2) == 0) {
-			Dictionary::Ptr segment = make_shared<Dictionary>();
+			Dictionary::Ptr segment = new Dictionary();
 			segment->Set("begin", t * 60);
 			segment->Set("end", (t + 1) * 60);
 

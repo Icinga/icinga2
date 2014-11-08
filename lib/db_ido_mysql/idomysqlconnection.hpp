@@ -29,7 +29,7 @@
 namespace icinga
 {
 
-typedef shared_ptr<MYSQL_RES> IdoMysqlResult;
+typedef boost::shared_ptr<MYSQL_RES> IdoMysqlResult;
 
 /**
  * An IDO MySQL database connection.

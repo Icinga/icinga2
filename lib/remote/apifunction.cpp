@@ -33,7 +33,7 @@ Value ApiFunction::Invoke(const MessageOrigin& origin, const Dictionary::Ptr& ar
 
 RegisterApiFunctionHelper::RegisterApiFunctionHelper(const String& name, const ApiFunction::Callback& function)
 {
-	ApiFunction::Ptr func = make_shared<ApiFunction>(function);
+	ApiFunction::Ptr func = new ApiFunction(function);
 	ApiFunctionRegistry::GetInstance()->Register(name, func);
 }
 

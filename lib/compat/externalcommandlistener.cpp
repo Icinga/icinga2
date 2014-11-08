@@ -33,7 +33,7 @@ REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::S
 
 Value ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, DynamicType::GetObjectsByType<ExternalCommandListener>()) {
 		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats

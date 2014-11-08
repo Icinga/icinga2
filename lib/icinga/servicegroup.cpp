@@ -47,7 +47,7 @@ bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr& service, const Obje
 
 	Host::Ptr host = service->GetHost();
 
-	Dictionary::Ptr locals = make_shared<Dictionary>();
+	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 	locals->Set("service", service);

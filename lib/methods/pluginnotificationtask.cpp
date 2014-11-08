@@ -44,7 +44,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 
 	Checkable::Ptr checkable = notification->GetCheckable();
 
-	Dictionary::Ptr notificationExtra = make_shared<Dictionary>();
+	Dictionary::Ptr notificationExtra = new Dictionary();
 	notificationExtra->Set("type", Notification::NotificationTypeToString(type));
 	notificationExtra->Set("author", author);
 	notificationExtra->Set("comment", comment);

@@ -43,7 +43,7 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 		    || type->IsAbstract())
 			return DynamicType::Ptr();
 
-		DynamicType::Ptr dtype = make_shared<DynamicType>(name);
+		DynamicType::Ptr dtype = new DynamicType(name);
 
 		InternalGetTypeMap()[type->GetName()] = dtype;
 		InternalGetTypeVector().push_back(dtype);
@@ -78,8 +78,8 @@ DynamicType::TypeVector DynamicType::GetTypes(void)
 std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > DynamicType::GetObjects(void)
 {
 	return std::make_pair(
-	    DynamicTypeIterator<DynamicObject>(GetSelf(), 0),
-	    DynamicTypeIterator<DynamicObject>(GetSelf(), -1)
+	    DynamicTypeIterator<DynamicObject>(this, 0),
+	    DynamicTypeIterator<DynamicObject>(this, -1)
 	);
 }
 

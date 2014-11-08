@@ -27,7 +27,7 @@ using namespace icinga;
 
 static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
 {
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	ObjectLock olock(input);
 
@@ -40,7 +40,7 @@ static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
 
 static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int attributeTypes)
 {
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	Dictionary::Ptr result = new Dictionary();
 
 	ObjectLock olock(input);
 
@@ -57,7 +57,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 
 	VERIFY(type);
 
-	Dictionary::Ptr fields = make_shared<Dictionary>();
+	Dictionary::Ptr fields = new Dictionary();
 
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
@@ -75,7 +75,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 
 static Array::Ptr DeserializeArray(const Array::Ptr& input, bool safe_mode, int attributeTypes)
 {
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	ObjectLock olock(input);
 
@@ -88,7 +88,7 @@ static Array::Ptr DeserializeArray(const Array::Ptr& input, bool safe_mode, int 
 
 static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, bool safe_mode, int attributeTypes)
 {
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	Dictionary::Ptr result = new Dictionary();
 
 	ObjectLock olock(input);
 

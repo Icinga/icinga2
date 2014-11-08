@@ -75,14 +75,14 @@ void InitializeOpenSSL(void)
  * @param cakey CA certificate chain file.
  * @returns An SSL context.
  */
-shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
+boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
 {
 	std::ostringstream msgbuf;
 	char errbuf[120];
 
 	InitializeOpenSSL();
 
-	shared_ptr<SSL_CTX> sslContext = shared_ptr<SSL_CTX>(SSL_CTX_new(TLSv1_method()), SSL_CTX_free);
+	boost::shared_ptr<SSL_CTX> sslContext = boost::shared_ptr<SSL_CTX>(SSL_CTX_new(TLSv1_method()), SSL_CTX_free);
 
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
@@ -146,7 +146,7 @@ shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, 
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
-void AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPath)
+void AddCRLToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& crlPath)
 {
 	char errbuf[120];
 	X509_STORE *x509_store = SSL_CTX_get_cert_store(context.get());
@@ -183,7 +183,7 @@ void AddCRLToSSLContext(const shared_ptr<SSL_CTX>& context, const String& crlPat
  * @param certificate The X509 certificate.
  * @returns The common name.
  */
-String GetCertificateCN(const shared_ptr<X509>& certificate)
+String GetCertificateCN(const boost::shared_ptr<X509>& certificate)
 {
 	char errbuf[120];
 	char buffer[256];
@@ -208,7 +208,7 @@ String GetCertificateCN(const shared_ptr<X509>& certificate)
  * @param pemfile The filename.
  * @returns An X509 certificate.
  */
-shared_ptr<X509> GetX509Certificate(const String& pemfile)
+boost::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 {
 	char errbuf[120];
 	X509 *cert;
@@ -243,7 +243,7 @@ shared_ptr<X509> GetX509Certificate(const String& pemfile)
 
 	BIO_free(fpcert);
 
-	return shared_ptr<X509>(cert, X509_free);
+	return boost::shared_ptr<X509>(cert, X509_free);
 }
 
 int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
@@ -290,7 +290,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 
-		shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca);
+		boost::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca);
 
 		X509_NAME_free(subject);
 
@@ -367,7 +367,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	return 1;
 }
 
-shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
+boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
 {
 	X509 *cert = X509_new();
 	X509_gmtime_adj(X509_get_notBefore(cert), 0);
@@ -414,7 +414,7 @@ shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *iss
 
 	X509_sign(cert, cakey, NULL);
 
-	return shared_ptr<X509>(cert, X509_free);
+	return boost::shared_ptr<X509>(cert, X509_free);
 }
 
 String GetIcingaCADir(void)
@@ -422,7 +422,7 @@ String GetIcingaCADir(void)
 	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
 }
 
-shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
+boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 {
 	char errbuf[120];
 
@@ -437,7 +437,7 @@ shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	if (!cakeybio) {
 		Log(LogCritical, "SSL")
 		    << "Could not open CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		return shared_ptr<X509>();
+		return boost::shared_ptr<X509>();
 	}
 
 	rsa = PEM_read_bio_RSAPrivateKey(cakeybio, NULL, NULL, NULL);
@@ -445,14 +445,14 @@ shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	if (!rsa) {
 		Log(LogCritical, "SSL")
 		    << "Could not read RSA key from CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		return shared_ptr<X509>();
+		return boost::shared_ptr<X509>();
 	}
 
 	BIO_free(cakeybio);
 
 	String cacertfile = cadir + "/ca.crt";
 
-	shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
+	boost::shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
 
 	EVP_PKEY *privkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(privkey, rsa);
@@ -460,7 +460,7 @@ shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false, cadir + "/serial.txt");
 }
 
-String CertificateToString(const shared_ptr<X509>& cert)
+String CertificateToString(const boost::shared_ptr<X509>& cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());
 	PEM_write_bio_X509(mem, cert.get());

@@ -365,7 +365,7 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 {
 	tm begin, end;
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
-	Dictionary::Ptr segment = make_shared<Dictionary>();
+	Dictionary::Ptr segment = new Dictionary();
 	segment->Set("begin", (long)mktime(&begin));
 	segment->Set("end", (long)mktime(&end));
 	return segment;
@@ -407,7 +407,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 
 		do {
 			if (IsInTimeRange(&begin, &end, stride, &iter)) {
-				Array::Ptr segments = make_shared<Array>();
+				Array::Ptr segments = new Array();
 				ProcessTimeRanges(timeranges, &iter, segments);
 
 				Dictionary::Ptr bestSegment;
@@ -443,7 +443,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 
 Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin, double end)
 {
-	Array::Ptr segments = make_shared<Array>();
+	Array::Ptr segments = new Array();
 
 	Dictionary::Ptr ranges = tp->GetRanges();
 

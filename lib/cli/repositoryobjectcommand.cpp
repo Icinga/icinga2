@@ -45,13 +45,13 @@ RegisterRepositoryCLICommandHelper::RegisterRepositoryCLICommandHelper(const Str
 	name.push_back("repository");
 	name.push_back(ltype);
 	name.push_back("add");
-	CLICommand::Register(name, make_shared<RepositoryObjectCommand>(type, RepositoryCommandAdd));
+	CLICommand::Register(name, new RepositoryObjectCommand(type, RepositoryCommandAdd));
 
 	name[2] = "remove";
-	CLICommand::Register(name, make_shared<RepositoryObjectCommand>(type, RepositoryCommandRemove));
+	CLICommand::Register(name, new RepositoryObjectCommand(type, RepositoryCommandRemove));
 
 	name[2] = "list";
-	CLICommand::Register(name, make_shared<RepositoryObjectCommand>(type, RepositoryCommandList));
+	CLICommand::Register(name, new RepositoryObjectCommand(type, RepositoryCommandList));
 }
 
 RepositoryObjectCommand::RepositoryObjectCommand(const String& type, RepositoryCommandType command)
@@ -183,7 +183,7 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 	String name = attrs->Get("name");
 
 	if (vm.count("import")) {
-		Array::Ptr imports = make_shared<Array>();
+		Array::Ptr imports = new Array();
 
 		BOOST_FOREACH(const String& import, vm["import"].as<std::vector<std::string> >()) {
 			imports->Add(import);

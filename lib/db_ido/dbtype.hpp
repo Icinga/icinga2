@@ -41,9 +41,9 @@ class I2_DB_IDO_API DbType : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);
 
-	typedef boost::function<shared_ptr<DbObject> (const shared_ptr<DbType>&, const String&, const String&)> ObjectFactory;
+	typedef boost::function<intrusive_ptr<DbObject> (const intrusive_ptr<DbType>&, const String&, const String&)> ObjectFactory;
 	typedef std::map<String, DbType::Ptr> TypeMap;
-	typedef std::map<std::pair<String, String>, shared_ptr<DbObject> > ObjectMap;
+	typedef std::map<std::pair<String, String>, intrusive_ptr<DbObject> > ObjectMap;
 
 	DbType(const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 
@@ -57,7 +57,7 @@ public:
 	static DbType::Ptr GetByName(const String& name);
 	static DbType::Ptr GetByID(long tid);
 
-	shared_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
+	intrusive_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
 
 	static std::set<DbType::Ptr> GetAllTypes(void);
 
@@ -100,7 +100,7 @@ public:
 		dbtype = DbType::GetByID(tid);
 
 		if (!dbtype)
-			dbtype = make_shared<DbType>(table, tid, idcolumn, factory);
+			dbtype = new DbType(table, tid, idcolumn, factory);
 
 		DbType::RegisterType(name, dbtype);
 	}
@@ -112,9 +112,9 @@ public:
  * @ingroup ido
  */
 template<typename T>
-shared_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, const String& name2)
+intrusive_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, const String& name2)
 {
-	return make_shared<T>(type, name1, name2);
+	return new T(type, name1, name2);
 }
 
 #define REGISTER_DBTYPE(name, table, tid, idcolumn, type) \

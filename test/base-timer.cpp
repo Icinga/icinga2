@@ -42,13 +42,13 @@ BOOST_FIXTURE_TEST_SUITE(base_timer, TimerFixture)
 
 BOOST_AUTO_TEST_CASE(construct)
 {
-	Timer::Ptr timer = make_shared<Timer>();
+	Timer::Ptr timer = new Timer();
 	BOOST_CHECK(timer);
 }
 
 BOOST_AUTO_TEST_CASE(interval)
 {
-	Timer::Ptr timer = make_shared<Timer>();
+	Timer::Ptr timer = new Timer();
 	timer->SetInterval(1.5);
 	BOOST_CHECK(timer->GetInterval() == 1.5);
 }
@@ -61,7 +61,7 @@ static void Callback(int *counter)
 BOOST_AUTO_TEST_CASE(invoke)
 {
 	int counter;
-	Timer::Ptr timer = make_shared<Timer>();
+	Timer::Ptr timer = new Timer();
 	timer->OnTimerExpired.connect(boost::bind(&Callback, &counter));
 	timer->SetInterval(1);
 
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(invoke)
 BOOST_AUTO_TEST_CASE(scope)
 {
 	int counter;
-	Timer::Ptr timer = make_shared<Timer>();
+	Timer::Ptr timer = new Timer();
 	timer->OnTimerExpired.connect(boost::bind(&Callback, &counter));
 	timer->SetInterval(1);
 

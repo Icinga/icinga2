@@ -40,8 +40,8 @@ public:
 	DECLARE_OBJECT(Dependency);
 	DECLARE_OBJECTNAME(Dependency);
 
-	shared_ptr<Checkable> GetParent(void) const;
-	shared_ptr<Checkable> GetChild(void) const;
+	intrusive_ptr<Checkable> GetParent(void) const;
+	intrusive_ptr<Checkable> GetChild(void) const;
 
 	TimePeriod::Ptr GetPeriod(void) const;
 

@@ -275,7 +275,7 @@ Value Expression::OpFunctionCall(const Expression *expr, const Object::Ptr& cont
 Value Expression::OpArray(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
 {
 	Array::Ptr arr = expr->m_Operand1;
-	Array::Ptr result = make_shared<Array>();
+	Array::Ptr result = new Array();
 
 	if (arr) {
 		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
@@ -291,7 +291,7 @@ Value Expression::OpDict(const Expression *expr, const Object::Ptr& context, Deb
 {
 	Array::Ptr arr = expr->m_Operand1;
 	bool in_place = expr->m_Operand2;
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	Dictionary::Ptr result = new Dictionary();
 
 	result->Set("__parent", context);
 
@@ -335,10 +335,10 @@ Value Expression::OpSet(const Expression *expr, const Object::Ptr& context, Debu
 		} else {
 			parent = object;
 
-			Expression::Ptr eparent = make_shared<Expression>(&Expression::OpLiteral, parent, expr->m_DebugInfo);
-			Expression::Ptr eindex = make_shared<Expression>(&Expression::OpLiteral, tempindex, expr->m_DebugInfo);
+			Expression::Ptr eparent = new Expression(&Expression::OpLiteral, parent, expr->m_DebugInfo);
+			Expression::Ptr eindex = new Expression(&Expression::OpLiteral, tempindex, expr->m_DebugInfo);
 
-			Expression::Ptr eip = make_shared<Expression>(&Expression::OpIndexer, eparent, eindex, expr->m_DebugInfo);
+			Expression::Ptr eip = new Expression(&Expression::OpIndexer, eparent, eindex, expr->m_DebugInfo);
 			object = eip->Evaluate(context, dhint);
 		}
 
@@ -346,7 +346,7 @@ Value Expression::OpSet(const Expression *expr, const Object::Ptr& context, Debu
 			sdhint = sdhint->GetChild(index);
 
 		if (i != indexer->GetLength() - 1 && object.IsEmpty()) {
-			object = make_shared<Dictionary>();
+			object = new Dictionary();
 
 			SetField(parent, tempindex, object);
 		}
@@ -374,9 +374,9 @@ Value Expression::OpSet(const Expression *expr, const Object::Ptr& context, Debu
 				VERIFY(!"Invalid opcode.");
 		}
 
-		Expression::Ptr ecp = make_shared<Expression>(op,
-		    make_shared<Expression>(&Expression::OpLiteral, object, expr->m_DebugInfo),
-		    make_shared<Expression>(&Expression::OpLiteral, right, expr->m_DebugInfo),
+		Expression::Ptr ecp = new Expression(op,
+		    new Expression(&Expression::OpLiteral, object, expr->m_DebugInfo),
+		    new Expression(&Expression::OpLiteral, right, expr->m_DebugInfo),
 		    expr->m_DebugInfo);
 
 		right = ecp->Evaluate(context, dhint);
@@ -441,7 +441,7 @@ Value Expression::FunctionWrapper(const std::vector<Value>& arguments, const Arr
 	if (arguments.size() < funcargs->GetLength())
 		BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
 
-	Dictionary::Ptr context = make_shared<Dictionary>();
+	Dictionary::Ptr context = new Dictionary();
 	context->Set("__parent", scope);
 
 	for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
@@ -458,7 +458,7 @@ Value Expression::OpFunction(const Expression* expr, const Object::Ptr& context,
 	String name = left->Get(0);
 
 	Array::Ptr funcargs = expr->m_Operand2;
-	ScriptFunction::Ptr func = make_shared<ScriptFunction>(boost::bind(&Expression::FunctionWrapper, _1, funcargs, aexpr, context));
+	ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&Expression::FunctionWrapper, _1, funcargs, aexpr, context));
 
 	if (!name.IsEmpty())
 		ScriptFunction::Register(name, func);
@@ -497,12 +497,14 @@ Value Expression::OpObject(const Expression* expr, const Object::Ptr& context, D
 
 	String name = aname->Evaluate(context, dhint);
 
-	ConfigItemBuilder::Ptr item = make_shared<ConfigItemBuilder>(expr->m_DebugInfo);
+	ConfigItemBuilder::Ptr item = new ConfigItemBuilder(expr->m_DebugInfo);
 
 	String checkName = name;
 
 	if (!abstract) {
-		shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(type));
+		Type::Ptr ptype = Type::GetByName(type);
+
+		NameComposer *nc = dynamic_cast<NameComposer *>(ptype.get());
 
 		if (nc)
 			checkName = nc->MakeName(name, Dictionary::Ptr());
@@ -557,7 +559,7 @@ Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, Debu
 
 		ObjectLock olock(arr);
 		BOOST_FOREACH(const Value& value, arr) {
-			Dictionary::Ptr xcontext = make_shared<Dictionary>();
+			Dictionary::Ptr xcontext = new Dictionary();
 			xcontext->Set("__parent", context);
 			xcontext->Set(kvar, value);
 
@@ -571,7 +573,7 @@ Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, Debu
 
 		ObjectLock olock(dict);
 		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			Dictionary::Ptr xcontext = make_shared<Dictionary>();
+			Dictionary::Ptr xcontext = new Dictionary();
 			xcontext->Set("__parent", context);
 			xcontext->Set(kvar, kv.first);
 			xcontext->Set(vvar, kv.second);
@@ -586,12 +588,12 @@ Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, Debu
 
 Dictionary::Ptr DebugHint::ToDictionary(void) const
 {
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	Dictionary::Ptr result = new Dictionary();
 
-	Array::Ptr messages = make_shared<Array>();
+	Array::Ptr messages = new Array();
 	typedef std::pair<String, DebugInfo> MessageType;
 	BOOST_FOREACH(const MessageType& message, Messages) {
-		Array::Ptr amsg = make_shared<Array>();
+		Array::Ptr amsg = new Array();
 		amsg->Add(message.first);
 		amsg->Add(message.second.Path);
 		amsg->Add(message.second.FirstLine);
@@ -603,7 +605,7 @@ Dictionary::Ptr DebugHint::ToDictionary(void) const
 
 	result->Set("messages", messages);
 
-	Dictionary::Ptr properties = make_shared<Dictionary>();
+	Dictionary::Ptr properties = new Dictionary();
 
 	typedef std::map<String, DebugHint>::value_type ChildType;
 	BOOST_FOREACH(const ChildType& kv, Children) {
@@ -617,7 +619,7 @@ Dictionary::Ptr DebugHint::ToDictionary(void) const
 
 Expression::Ptr icinga::MakeLiteral(const Value& lit)
 {
-	return make_shared<Expression>(&Expression::OpLiteral, lit, DebugInfo());
+	return new Expression(&Expression::OpLiteral, lit, DebugInfo());
 }
 
 bool Expression::HasField(const Object::Ptr& context, const String& field)

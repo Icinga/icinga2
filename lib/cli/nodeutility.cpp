@@ -122,7 +122,7 @@ void NodeUtility::PrintNodeRepository(std::ostream& fp, const Dictionary::Ptr& r
 
 void NodeUtility::PrintNodesJson(std::ostream& fp)
 {
-	Dictionary::Ptr result = make_shared<Dictionary>();
+	Dictionary::Ptr result = new Dictionary();
 
 	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
 		result->Set(node->Get("endpoint"), node);
@@ -140,7 +140,7 @@ void NodeUtility::AddNode(const String& name)
 		    << "Node '" << name << "' exists already.";
 	}
 
-	Dictionary::Ptr node = make_shared<Dictionary>();
+	Dictionary::Ptr node = new Dictionary();
 
 	node->Set("seen", Utility::GetTime());
 	node->Set("endpoint", name);
@@ -153,7 +153,7 @@ void NodeUtility::AddNode(const String& name)
 void NodeUtility::AddNodeSettings(const String& name, const String& host,
     const String& port, double log_duration)
 {
-	Dictionary::Ptr settings = make_shared<Dictionary>();
+	Dictionary::Ptr settings = new Dictionary();
 
 	settings->Set("host", host);
 	settings->Set("port", port);
@@ -237,10 +237,10 @@ void NodeUtility::CollectNodes(const String& node_file, std::vector<Dictionary::
 
 int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename, const String& zonename)
 {
-	Array::Ptr my_config = make_shared<Array>();
+	Array::Ptr my_config = new Array();
 
-	Dictionary::Ptr my_master_zone = make_shared<Dictionary>();
-	Array::Ptr my_master_zone_members = make_shared<Array>();
+	Dictionary::Ptr my_master_zone = new Dictionary();
+	Array::Ptr my_master_zone_members = new Array();
 
 	String master_zone_name = "master"; //TODO: Find a better name.
 
@@ -250,7 +250,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, endpoint, boost::is_any_of(","));
 
-		Dictionary::Ptr my_master_endpoint = make_shared<Dictionary>();
+		Dictionary::Ptr my_master_endpoint = new Dictionary();
 
 		if (tokens.size() > 1) {
 			String host = tokens[1];
@@ -283,13 +283,13 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	my_config->Add(my_master_zone);
 
 	/* store the local generated node configuration */
-	Dictionary::Ptr my_endpoint = make_shared<Dictionary>();
-	Dictionary::Ptr my_zone = make_shared<Dictionary>();
+	Dictionary::Ptr my_endpoint = new Dictionary();
+	Dictionary::Ptr my_zone = new Dictionary();
 
 	my_endpoint->Set("__name", nodename);
 	my_endpoint->Set("__type", "Endpoint");
 
-	Array::Ptr my_zone_members = make_shared<Array>();
+	Array::Ptr my_zone_members = new Array();
 	my_zone_members->Add(nodename);
 
 	my_zone->Set("__name", nodename);
@@ -312,12 +312,12 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 
 int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
 {
-	Array::Ptr my_config = make_shared<Array>();
+	Array::Ptr my_config = new Array();
 
 	/* store the local generated node master configuration */
-	Dictionary::Ptr my_master_endpoint = make_shared<Dictionary>();
-	Dictionary::Ptr my_master_zone = make_shared<Dictionary>();
-	Array::Ptr my_master_zone_members = make_shared<Array>();
+	Dictionary::Ptr my_master_endpoint = new Dictionary();
+	Dictionary::Ptr my_master_zone = new Dictionary();
+	Array::Ptr my_master_zone_members = new Array();
 
 	my_master_endpoint->Set("__name", nodename);
 	my_master_endpoint->Set("__type", "Endpoint");
@@ -402,7 +402,7 @@ Array::Ptr NodeUtility::GetBlackAndWhiteList(const String& type)
 {
 	String list_path = GetBlackAndWhiteListPath(type);
 
-	Array::Ptr lists = make_shared<Array>();
+	Array::Ptr lists = new Array();
 
 	if (Utility::PathExists(list_path)) {
 		lists = Utility::LoadJsonFile(list_path);
@@ -435,7 +435,7 @@ int NodeUtility::UpdateBlackAndWhiteList(const String& type, const String& zone_
 		}
 	}
 
-	Dictionary::Ptr new_filter = make_shared<Dictionary>();
+	Dictionary::Ptr new_filter = new Dictionary();
 
 	new_filter->Set("zone", zone_filter);
 	new_filter->Set("host", host_filter);

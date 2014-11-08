@@ -106,7 +106,7 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 		ConfigCompiler::CompileText(name, fragment);
 	}
 
-	ConfigItemBuilder::Ptr builder = make_shared<ConfigItemBuilder>();
+	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
 	builder->SetType(appType);
 	builder->SetName("application");
 	ConfigItem::Ptr item = builder->Compile();

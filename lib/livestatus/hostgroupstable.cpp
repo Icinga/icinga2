@@ -105,7 +105,7 @@ Value HostGroupsTable::ActionUrlAccessor(const Value& row)
 
 Value HostGroupsTable::MembersAccessor(const Value& row)
 {
-	Array::Ptr members = make_shared<Array>();
+	Array::Ptr members = new Array();
 
 	BOOST_FOREACH(const Host::Ptr& host, static_cast<HostGroup::Ptr>(row)->GetMembers()) {
 		members->Add(host->GetName());
@@ -116,10 +116,10 @@ Value HostGroupsTable::MembersAccessor(const Value& row)
 
 Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
 {
-	Array::Ptr members = make_shared<Array>();
+	Array::Ptr members = new Array();
 
 	BOOST_FOREACH(const Host::Ptr& host, static_cast<HostGroup::Ptr>(row)->GetMembers()) {
-		Array::Ptr member_state = make_shared<Array>();
+		Array::Ptr member_state = new Array();
 		member_state->Add(host->GetName());
 		member_state->Add(host->GetState());
 		members->Add(member_state);

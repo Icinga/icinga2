@@ -69,12 +69,12 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 	String inventory_path = NodeUtility::GetRepositoryPath() + "/inventory.index";
 
-	Dictionary::Ptr old_inventory = make_shared<Dictionary>();
+	Dictionary::Ptr old_inventory = new Dictionary();
 	if (Utility::PathExists(inventory_path)) {
 		old_inventory = Utility::LoadJsonFile(inventory_path);
 	}
 
-	Dictionary::Ptr inventory = make_shared<Dictionary>();
+	Dictionary::Ptr inventory = new Dictionary();
 
 	Log(LogInformation, "cli")
 	    << "Updating node configuration for ";
@@ -94,16 +94,16 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		/* store existing structure in index */
 		inventory->Set(endpoint, node);
 
-		Dictionary::Ptr host_services = make_shared<Dictionary>();
+		Dictionary::Ptr host_services = new Dictionary();
 
 		Log(LogInformation, "cli")
 		    << "Adding host '" << zone << "' to the repository.";
 
-		Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+		Dictionary::Ptr host_attrs = new Dictionary();
 		host_attrs->Set("__name", zone);
 		host_attrs->Set("name", zone);
 		host_attrs->Set("check_command", "cluster-zone");
-		Array::Ptr host_imports = make_shared<Array>();
+		Array::Ptr host_imports = new Array();
 		host_imports->Add("satellite-host"); //default host node template
 		host_attrs->Set("import", host_imports);
 
@@ -148,7 +148,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 			if (!skip_host) {
 				/* add a new host to the config repository */
-				Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+				Dictionary::Ptr host_attrs = new Dictionary();
 				host_attrs->Set("__name", host);
 				host_attrs->Set("name", host);
 
@@ -159,7 +159,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					host_attrs->Set("zone", zone);
 				}
 
-				Array::Ptr host_imports = make_shared<Array>();
+				Array::Ptr host_imports = new Array();
 				host_imports->Add("satellite-host"); //default host node template
 				host_attrs->Set("import", host_imports);
 
@@ -209,7 +209,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					continue;
 
 				/* add a new service for this host to the config repository */
-				Dictionary::Ptr service_attrs = make_shared<Dictionary>();
+				Dictionary::Ptr service_attrs = new Dictionary();
 				String long_name = host + "!" + service; //use NameComposer?
 				service_attrs->Set("__name", long_name);
 				service_attrs->Set("name", service);
@@ -217,7 +217,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				service_attrs->Set("check_command", "dummy");
 				service_attrs->Set("zone", zone);
 
-				Array::Ptr service_imports = make_shared<Array>();
+				Array::Ptr service_imports = new Array();
 				service_imports->Add("satellite-service"); //default service node template
 				service_attrs->Set("import", service_imports);
 
@@ -227,7 +227,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		}
 
 		/* write a new zone and endpoint for the node */
-		Dictionary::Ptr endpoint_attrs = make_shared<Dictionary>();
+		Dictionary::Ptr endpoint_attrs = new Dictionary();
 		endpoint_attrs->Set("__name", endpoint);
 		endpoint_attrs->Set("name", endpoint);
 
@@ -245,8 +245,8 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 			    << "Cannot add node endpoint '" << endpoint << "' to the config repository!\n";
 		}
 
-		Dictionary::Ptr zone_attrs = make_shared<Dictionary>();
-		Array::Ptr zone_members = make_shared<Array>();
+		Dictionary::Ptr zone_attrs = new Dictionary();
+		Array::Ptr zone_members = new Array();
 
 		zone_members->Add(endpoint);
 		zone_attrs->Set("__name", zone);
@@ -296,7 +296,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 			BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
 				String host = kv.first;
 
-				Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+				Dictionary::Ptr host_attrs = new Dictionary();
 				host_attrs->Set("name", host);
 				RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
 			}
@@ -304,11 +304,11 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 			String zone = old_node->Get("zone");
 			String endpoint = old_node->Get("endpoint");
 
-			Dictionary::Ptr zone_attrs = make_shared<Dictionary>();
+			Dictionary::Ptr zone_attrs = new Dictionary();
 			zone_attrs->Set("name", zone);
 			RepositoryUtility::RemoveObject(zone, "Zone", zone_attrs);
 
-			Dictionary::Ptr endpoint_attrs = make_shared<Dictionary>();
+			Dictionary::Ptr endpoint_attrs = new Dictionary();
 			endpoint_attrs->Set("name", endpoint);
 			RepositoryUtility::RemoveObject(endpoint, "Endpoint", endpoint_attrs);
 		} else {
@@ -341,7 +341,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					Log(LogInformation, "cli")
 					    << "Node update found old host '" << old_host << "' on node '" << old_node_name << "'. Removing it.";
 
-					Dictionary::Ptr host_attrs = make_shared<Dictionary>();
+					Dictionary::Ptr host_attrs = new Dictionary();
 					host_attrs->Set("name", old_host);
 					RepositoryUtility::RemoveObject(old_host, "Host", host_attrs); //this will remove all services for this host too
 				} else {
@@ -365,7 +365,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 							    << "Node update found old service '" << old_service << "' on host '" << old_host
 							    << "' on node '" << old_node_name << "'. Removing it.";
 
-							Dictionary::Ptr service_attrs = make_shared<Dictionary>();
+							Dictionary::Ptr service_attrs = new Dictionary();
 							service_attrs->Set("name", old_service);
 							service_attrs->Set("host_name", old_host);
 							RepositoryUtility::RemoveObject(old_service, "Service", service_attrs);

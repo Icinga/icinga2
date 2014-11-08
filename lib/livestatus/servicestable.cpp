@@ -877,7 +877,7 @@ Value ServicesTable::ContactsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Array::Ptr contact_names = make_shared<Array>();
+	Array::Ptr contact_names = new Array();
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
 		contact_names->Add(user->GetName());
@@ -895,7 +895,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = service->GetDowntimes();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(downtimes);
 
@@ -924,7 +924,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr downtimes = service->GetDowntimes();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(downtimes);
 
@@ -938,7 +938,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 		if (downtime->IsExpired())
 			continue;
 
-		Array::Ptr downtime_info = make_shared<Array>();
+		Array::Ptr downtime_info = new Array();
 		downtime_info->Add(downtime->GetLegacyId());
 		downtime_info->Add(downtime->GetAuthor());
 		downtime_info->Add(downtime->GetComment());
@@ -957,7 +957,7 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 
 	Dictionary::Ptr comments = service->GetComments();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(comments);
 
@@ -986,7 +986,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = service->GetComments();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(comments);
 
@@ -1000,7 +1000,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 		if (comment->IsExpired())
 			continue;
 
-		Array::Ptr comment_info = make_shared<Array>();
+		Array::Ptr comment_info = new Array();
 		comment_info->Add(comment->GetLegacyId());
 		comment_info->Add(comment->GetAuthor());
 		comment_info->Add(comment->GetText());
@@ -1019,7 +1019,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	Dictionary::Ptr comments = service->GetComments();
 
-	Array::Ptr ids = make_shared<Array>();
+	Array::Ptr ids = new Array();
 
 	ObjectLock olock(comments);
 
@@ -1033,7 +1033,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 		if (comment->IsExpired())
 			continue;
 
-		Array::Ptr comment_info = make_shared<Array>();
+		Array::Ptr comment_info = new Array();
 		comment_info->Add(comment->GetLegacyId());
 		comment_info->Add(comment->GetAuthor());
 		comment_info->Add(comment->GetText());
@@ -1062,7 +1062,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -1089,7 +1089,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -1119,11 +1119,11 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		Array::Ptr key_val = make_shared<Array>();
+		Array::Ptr key_val = new Array();
 		key_val->Add(kv.first);
 
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
@@ -1187,7 +1187,7 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Array::Ptr contactgroup_names = make_shared<Array>();
+	Array::Ptr contactgroup_names = new Array();
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		contactgroup_names->Add(usergroup->GetName());

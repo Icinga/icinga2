@@ -41,7 +41,7 @@ void Checkable::SetEnableEventHandler(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableEventHandler(enabled);
 
-	OnEnableEventHandlerChanged(GetSelf(), enabled, origin);
+	OnEnableEventHandlerChanged(this, enabled, origin);
 }
 
 EventCommand::Ptr Checkable::GetEventCommand(void) const
@@ -60,7 +60,7 @@ void Checkable::SetEventCommand(const EventCommand::Ptr& command, const MessageO
 {
 	SetOverrideEventCommand(command->GetName());
 
-	OnEventCommandChanged(GetSelf(), command, origin);
+	OnEventCommandChanged(this, command, origin);
 }
 
 void Checkable::ExecuteEventHandler(void)
@@ -78,7 +78,7 @@ void Checkable::ExecuteEventHandler(void)
 	Log(LogNotice, "Checkable")
 	    << "Executing event handler '" << ec->GetName() << "' for service '" << GetName() << "'";
 
-	ec->Execute(GetSelf());
+	ec->Execute(this);
 
-	OnEventCommandExecuted(GetSelf());
+	OnEventCommandExecuted(this);
 }

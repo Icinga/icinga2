@@ -99,12 +99,12 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double n
 
 	query1.Type = DbQueryUpdate;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("next_check", DbValue::FromTimestamp(nextCheck));
 
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	if (service)
 		query1.WhereCriteria->Set("service_object_id", service);
 	else
@@ -129,13 +129,13 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingS
 
 	query1.Type = DbQueryUpdate;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(checkable));
 	fields1->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(checkable));
 
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	if (service)
 		query1.WhereCriteria->Set("service_object_id", service);
 	else
@@ -164,14 +164,14 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 
 	query1.Type = DbQueryUpdate;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("last_notification", DbValue::FromTimestamp(now_bag.first));
 	fields1->Set("next_notification", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("current_notification_number", notification->GetNotificationNumber());
 
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	if (service)
 		query1.WhereCriteria->Set("service_object_id", service);
 	else
@@ -222,7 +222,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, boo
 
 	query1.Type = DbQueryUpdate;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 
 	if (type == EnableActiveChecks) {
 		fields1->Set("active_checks_enabled", enabled ? 1 : 0);
@@ -238,7 +238,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, boo
 
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	if (service)
 		query1.WhereCriteria->Set("service_object_id", service);
 	else
@@ -294,7 +294,7 @@ void DbEvents::AddCommentByType(const DynamicObject::Ptr& object, const Comment:
 	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
 	unsigned long entry_time_usec = (comment->GetEntryTime() - entry_time) * 1000 * 1000;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	fields1->Set("entry_time_usec", entry_time_usec);
 	fields1->Set("entry_type", comment->GetEntryType());
@@ -348,7 +348,7 @@ void DbEvents::RemoveComments(const Checkable::Ptr& checkable)
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatComment;
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	DbObject::OnQuery(query1);
 }
@@ -368,7 +368,7 @@ void DbEvents::RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatComment;
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
 	DbObject::OnQuery(query1);
@@ -384,12 +384,12 @@ void DbEvents::RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr
 	query2.Type = DbQueryUpdate;
 	query2.Category = DbCatComment;
 
-	Dictionary::Ptr fields2 = make_shared<Dictionary>();
+	Dictionary::Ptr fields2 = new Dictionary();
 	fields2->Set("deletion_time", DbValue::FromTimestamp(time_bag.first));
 	fields2->Set("deletion_time_usec", time_bag.second);
 	query2.Fields = fields2;
 
-	query2.WhereCriteria = make_shared<Dictionary>();
+	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
 	query2.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
 	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -438,7 +438,7 @@ void DbEvents::AddDowntimeInternal(const Checkable::Ptr& checkable, const Downti
 
 void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical)
 {
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	fields1->Set("object_id", checkable);
 
@@ -496,7 +496,7 @@ void DbEvents::RemoveDowntimes(const Checkable::Ptr& checkable)
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatDowntime;
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	DbObject::OnQuery(query1);
 }
@@ -516,7 +516,7 @@ void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::P
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatDowntime;
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	DbObject::OnQuery(query1);
@@ -530,13 +530,13 @@ void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::P
 	query3.Type = DbQueryUpdate;
 	query3.Category = DbCatDowntime;
 
-	Dictionary::Ptr fields3 = make_shared<Dictionary>();
+	Dictionary::Ptr fields3 = new Dictionary();
 	fields3->Set("was_cancelled", downtime->GetWasCancelled() ? 1 : 0);
 	fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
 	fields3->Set("actual_end_time_usec", time_bag.second);
 	query3.Fields = fields3;
 
-	query3.WhereCriteria = make_shared<Dictionary>();
+	query3.WhereCriteria = new Dictionary();
 	query3.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
@@ -565,7 +565,7 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatDowntime;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("was_started", 1);
 	fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("actual_start_time_usec", time_bag.second);
@@ -573,7 +573,7 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 
@@ -586,7 +586,7 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 	query3.Type = DbQueryUpdate;
 	query3.Category = DbCatDowntime;
 
-	Dictionary::Ptr fields3 = make_shared<Dictionary>();
+	Dictionary::Ptr fields3 = new Dictionary();
 	fields3->Set("was_started", 1);
 	fields3->Set("is_in_effect", 1);
 	fields3->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
@@ -594,7 +594,7 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 	fields3->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	query3.Fields = fields3;
 
-	query3.WhereCriteria = make_shared<Dictionary>();
+	query3.WhereCriteria = new Dictionary();
 	query3.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
@@ -616,12 +616,12 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 
 	query4.Type = DbQueryUpdate;
 
-	Dictionary::Ptr fields4 = make_shared<Dictionary>();
+	Dictionary::Ptr fields4 = new Dictionary();
 	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
 
 	query4.Fields = fields4;
 
-	query4.WhereCriteria = make_shared<Dictionary>();
+	query4.WhereCriteria = new Dictionary();
 	if (service)
 		query4.WhereCriteria->Set("service_object_id", service);
 	else
@@ -653,7 +653,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("entry_time_usec", time_bag.second);
 	fields1->Set("acknowledgement_type", type);
@@ -706,12 +706,12 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatAcknowledgement;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("problem_has_been_acknowledged", add ? 1 : 0);
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = make_shared<Dictionary>();
+	query1.WhereCriteria = new Dictionary();
 	if (service)
 		query1.WhereCriteria->Set("service_object_id", service);
 	else
@@ -744,7 +744,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("notification_type", 1); /* service */
 	fields1->Set("notification_reason", CompatUtility::MapNotificationReasonType(type));
 	fields1->Set("object_id", checkable);
@@ -782,7 +782,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		Log(LogDebug, "DbEvents")
 		    << "add contact notification history for service '" << checkable->GetName() << "' and user '" << user->GetName() << "'.";
 
-		Dictionary::Ptr fields2 = make_shared<Dictionary>();
+		Dictionary::Ptr fields2 = new Dictionary();
 		fields2->Set("contact_object_id", user);
 		fields2->Set("start_time", DbValue::FromTimestamp(time_bag.first));
 		fields2->Set("start_time_usec", time_bag.second);
@@ -815,7 +815,7 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("state_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("state_time_usec", time_bag.second);
 	fields1->Set("object_id", checkable);
@@ -1133,7 +1133,7 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, String buffer, Log
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatLog;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("logentry_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("entry_time_usec", time_bag.second);
@@ -1167,7 +1167,7 @@ void DbEvents::AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatFlapping;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 
 	fields1->Set("event_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("event_time_usec", time_bag.second);
@@ -1232,7 +1232,7 @@ void DbEvents::AddServiceCheckHistory(const Checkable::Ptr& checkable, const Che
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatCheck;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 	double execution_time = Service::CalculateExecutionTime(cr);
 
 	fields1->Set("check_type", CompatUtility::GetCheckableCheckType(checkable));
@@ -1294,7 +1294,7 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatEventHandler;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1333,7 +1333,7 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatExternalCommand;
 
-	Dictionary::Ptr fields1 = make_shared<Dictionary>();
+	Dictionary::Ptr fields1 = new Dictionary();
 
 	fields1->Set("entry_time", DbValue::FromTimestamp(static_cast<long>(time)));
 	fields1->Set("command_type", CompatUtility::MapExternalCommandType(command));

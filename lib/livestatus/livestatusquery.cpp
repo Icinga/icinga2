@@ -168,19 +168,19 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			Filter::Ptr filter;
 
 			if (aggregate_arg == "sum") {
-				aggregator = make_shared<SumAggregator>(aggregate_attr);
+				aggregator = new SumAggregator(aggregate_attr);
 			} else if (aggregate_arg == "min") {
-				aggregator = make_shared<MinAggregator>(aggregate_attr);
+				aggregator = new MinAggregator(aggregate_attr);
 			} else if (aggregate_arg == "max") {
-				aggregator = make_shared<MaxAggregator>(aggregate_attr);
+				aggregator = new MaxAggregator(aggregate_attr);
 			} else if (aggregate_arg == "avg") {
-				aggregator = make_shared<AvgAggregator>(aggregate_attr);
+				aggregator = new AvgAggregator(aggregate_attr);
 			} else if (aggregate_arg == "std") {
-				aggregator = make_shared<StdAggregator>(aggregate_attr);
+				aggregator = new StdAggregator(aggregate_attr);
 			} else if (aggregate_arg == "suminv") {
-				aggregator = make_shared<InvSumAggregator>(aggregate_attr);
+				aggregator = new InvSumAggregator(aggregate_attr);
 			} else if (aggregate_arg == "avginv") {
-				aggregator = make_shared<InvAvgAggregator>(aggregate_attr);
+				aggregator = new InvAvgAggregator(aggregate_attr);
 			} else {
 				filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -191,7 +191,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 					return;
 				}
 
-				aggregator = make_shared<CountAggregator>();
+				aggregator = new CountAggregator();
 			}
 
 			aggregator->SetFilter(filter);
@@ -205,11 +205,11 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			CombinerFilter::Ptr filter;
 
 			if (header == "Or" || header == "StatsOr") {
-				filter = make_shared<OrFilter>();
+				filter = new OrFilter();
 				Log(LogDebug, "LivestatusQuery")
 				    << "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
 			} else {
-				filter = make_shared<AndFilter>();
+				filter = new AndFilter();
 				Log(LogDebug, "LivestatusQuery")
 				    << "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
 			}
@@ -232,7 +232,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 			deq.push_back(filter);
 			if (&deq == &stats) {
-				Aggregator::Ptr aggregator = make_shared<CountAggregator>();
+				Aggregator::Ptr aggregator = new CountAggregator();
 				aggregator->SetFilter(filter);
 				aggregators.push_back(aggregator);
 			}
@@ -256,7 +256,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 				return;
 			}
 
-			deq.push_back(make_shared<NegateFilter>(filter));
+			deq.push_back(new NegateFilter(filter));
 
 			if (deq == stats) {
 				Aggregator::Ptr aggregator = aggregators.back();
@@ -266,7 +266,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	}
 
 	/* Combine all top-level filters into a single filter. */
-	AndFilter::Ptr top_filter = make_shared<AndFilter>();
+	AndFilter::Ptr top_filter = new AndFilter();
 
 	BOOST_FOREACH(const Filter::Ptr& filter, filters) {
 		top_filter->AddSubFilter(filter);
@@ -338,10 +338,10 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 		negate = true;
 	}
 
-	Filter::Ptr filter = make_shared<AttributeFilter>(attr, op, val);
+	Filter::Ptr filter = new AttributeFilter(attr, op, val);
 
 	if (negate)
-		filter = make_shared<NegateFilter>(filter);
+		filter = new NegateFilter(filter);
 
 	/* pre-filter log time duration */
 	if (attr == "time") {
@@ -456,13 +456,13 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	else
 		columns = table->GetColumnNames();
 
-	Array::Ptr rs = make_shared<Array>();
+	Array::Ptr rs = new Array();
 
 	if (m_Aggregators.empty()) {
-		Array::Ptr header = make_shared<Array>();
+		Array::Ptr header = new Array();
 
 		BOOST_FOREACH(const Value& object, objects) {
-			Array::Ptr row = make_shared<Array>();
+			Array::Ptr row = new Array();
 
 			BOOST_FOREACH(const String& columnName, columns) {
 				Column column = table->GetColumn(columnName);
@@ -496,7 +496,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 		/* add column headers both for raw and aggregated data */
 		if (m_ColumnHeaders) {
-			Array::Ptr header = make_shared<Array>();
+			Array::Ptr header = new Array();
 
 			BOOST_FOREACH(const String& columnName, m_Columns) {
 				header->Add(columnName);
@@ -509,7 +509,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			rs->Add(header);
 		}
 
-		Array::Ptr row = make_shared<Array>();
+		Array::Ptr row = new Array();
 
 		/*
 		 * add selected columns next to stats

@@ -49,7 +49,7 @@ public:
 
 	static ApiListener::Ptr GetInstance(void);
 
-	shared_ptr<SSL_CTX> GetSSLContext(void) const;
+	boost::shared_ptr<SSL_CTX> GetSSLContext(void) const;
 
 	Endpoint::Ptr GetMaster(void) const;
 	bool IsMaster(void) const;
@@ -72,7 +72,7 @@ protected:
 	virtual void Start(void);
 
 private:
-	shared_ptr<SSL_CTX> m_SSLContext;
+	boost::shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;
 	std::set<ApiClient::Ptr> m_AnonymousClients;
 	Timer::Ptr m_Timer;

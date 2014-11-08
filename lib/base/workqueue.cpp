@@ -32,7 +32,7 @@ WorkQueue::WorkQueue(size_t maxItems)
 	: m_ID(m_NextID++), m_MaxItems(maxItems), m_Stopped(false),
 	  m_Processing(false), m_ExceptionCallback(WorkQueue::DefaultExceptionCallback)
 {
-	m_StatusTimer = make_shared<Timer>();
+	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(10);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&WorkQueue::StatusTimerHandler, this));
 	m_StatusTimer->Start();

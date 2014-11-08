@@ -45,7 +45,7 @@ bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& r
 	msgbuf << "Evaluating 'object' rule (" << di << ")";
 	CONTEXT(msgbuf.str());
 
-	Dictionary::Ptr locals = make_shared<Dictionary>();
+	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", rule.GetScope());
 	locals->Set("host", host);
 

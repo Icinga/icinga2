@@ -213,7 +213,7 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -240,7 +240,7 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -270,11 +270,11 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	if (!vars)
 		return Empty;
 
-	Array::Ptr cv = make_shared<Array>();
+	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
 	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		Array::Ptr key_val = make_shared<Array>();
+		Array::Ptr key_val = new Array();
 		key_val->Add(kv.first);
 
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())

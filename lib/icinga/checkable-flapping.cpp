@@ -46,8 +46,8 @@ void Checkable::SetEnableFlapping(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableFlapping(enabled);
 
-	OnFlappingChanged(GetSelf(), enabled ? FlappingEnabled : FlappingDisabled);
-	OnEnableFlappingChanged(GetSelf(), enabled, origin);
+	OnFlappingChanged(this, enabled ? FlappingEnabled : FlappingDisabled);
+	OnEnableFlappingChanged(this, enabled, origin);
 }
 
 void Checkable::UpdateFlappingStatus(bool stateChange)

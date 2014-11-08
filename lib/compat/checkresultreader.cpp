@@ -40,7 +40,7 @@ REGISTER_STATSFUNCTION(CheckResultReaderStats, &CheckResultReader::StatsFunc);
 
 Value CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, DynamicType::GetObjectsByType<CheckResultReader>()) {
 		nodes->Set(checkresultreader->GetName(), 1); //add more stats
@@ -56,7 +56,7 @@ Value CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::P
  */
 void CheckResultReader::Start(void)
 {
-	m_ReadTimer = make_shared<Timer>();
+	m_ReadTimer = new Timer();
 	m_ReadTimer->OnTimerExpired.connect(boost::bind(&CheckResultReader::ReadTimerHandler, this));
 	m_ReadTimer->SetInterval(5);
 	m_ReadTimer->Start();
@@ -134,7 +134,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 		return;
 	}
 
-	CheckResult::Ptr result = make_shared<CheckResult>();
+	CheckResult::Ptr result = new CheckResult();
 	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(attrs["output"]);
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));

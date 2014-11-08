@@ -48,7 +48,7 @@ void User::OnConfigLoaded(void)
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
-				ug->ResolveGroupMembership(GetSelf(), true);
+				ug->ResolveGroupMembership(this, true);
 		}
 	}
 }
@@ -66,7 +66,7 @@ void User::Stop(void)
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
-				ug->ResolveGroupMembership(GetSelf(), false);
+				ug->ResolveGroupMembership(this, false);
 		}
 	}
 }
@@ -81,7 +81,7 @@ void User::AddGroup(const String& name)
 		return;
 
 	if (!groups)
-		groups = make_shared<Array>();
+		groups = new Array();
 
 	groups->Add(name);
 }
@@ -124,7 +124,7 @@ void User::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 {
 	if ((flags & ModAttrCustomVariable) == 0) {
 		SetOverrideVars(Empty);
-		OnVarsChanged(GetSelf(), GetVars(), origin);
+		OnVarsChanged(this, GetVars(), origin);
 	}
 }
 
@@ -140,6 +140,6 @@ void User::SetEnableNotifications(bool enabled, const MessageOrigin& origin)
 {
 	SetOverrideEnableNotifications(enabled);
 
-	OnEnableNotificationsChanged(GetSelf(), enabled, origin);
+	OnEnableNotificationsChanged(this, enabled, origin);
 }
 

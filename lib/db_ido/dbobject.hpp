@@ -70,7 +70,7 @@ public:
 
 	String GetName1(void) const;
 	String GetName2(void) const;
-	shared_ptr<DbType> GetType(void) const;
+	intrusive_ptr<DbType> GetType(void) const;
 
 	virtual Dictionary::Ptr GetConfigFields(void) const = 0;
 	virtual Dictionary::Ptr GetStatusFields(void) const = 0;
@@ -88,7 +88,7 @@ public:
 	double GetLastStatusUpdate(void) const;
 
 protected:
-	DbObject(const shared_ptr<DbType>& type, const String& name1, const String& name2);
+	DbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2);
 
 	virtual bool IsStatusAttribute(const String& attribute) const;
 
@@ -98,7 +98,7 @@ protected:
 private:
 	String m_Name1;
 	String m_Name2;
-	shared_ptr<DbType> m_Type;
+	intrusive_ptr<DbType> m_Type;
 	DynamicObject::Ptr m_Object;
 	double m_LastConfigUpdate;
 	double m_LastStatusUpdate;

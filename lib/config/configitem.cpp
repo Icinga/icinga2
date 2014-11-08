@@ -150,7 +150,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	dobj->SetTypeName(m_Type);
 	dobj->SetZone(m_Zone);
 
-	Dictionary::Ptr locals = make_shared<Dictionary>();
+	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", m_Scope);
 	m_Scope.reset();
 	locals->Set("name", m_Name);
@@ -175,7 +175,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	String name = m_Name;
 
-	shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(type);
+	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 
 	if (nc) {
 		name = nc->MakeName(m_Name, dobj);
@@ -191,7 +191,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	Dictionary::Ptr attrs = Serialize(dobj, FAConfig);
 
-	Dictionary::Ptr persistentItem = make_shared<Dictionary>();
+	Dictionary::Ptr persistentItem = new Dictionary();
 
 	persistentItem->Set("type", GetType());
 	persistentItem->Set("name", GetName());
@@ -230,18 +230,18 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
  */
 void ConfigItem::Register(void)
 {
-	ConfigItem::Ptr self = GetSelf();
+	Type::Ptr type = Type::GetByName(m_Type);
 
 	/* If this is a non-abstract object with a composite name
 	 * we register it in m_UnnamedItems instead of m_Items. */
-	if (!m_Abstract && dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type))) {
+	if (!m_Abstract && dynamic_cast<NameComposer *>(type.get())) {
 		boost::mutex::scoped_lock lock(m_Mutex);
-		m_UnnamedItems.push_back(self);
+		m_UnnamedItems.push_back(this);
 	} else {
 		std::pair<String, String> key = std::make_pair(m_Type, m_Name);
 
 		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Items[key] = self;
+		m_Items[key] = this;
 	}
 }
 

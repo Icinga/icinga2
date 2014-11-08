@@ -44,7 +44,7 @@ using namespace icinga;
 REGISTER_TYPE(Application);
 
 boost::signals2::signal<void (void)> Application::OnReopenLogs;
-Application *Application::m_Instance = NULL;
+Application::Ptr Application::m_Instance = NULL;
 bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
 bool Application::m_RequestReopenLogs = false;
@@ -153,10 +153,7 @@ void Application::InitializeBase(void)
  */
 Application::Ptr Application::GetInstance(void)
 {
-	if (!m_Instance)
-		return Application::Ptr();
-
-	return m_Instance->GetSelf();
+	return m_Instance;
 }
 
 void Application::SetResourceLimits(void)
@@ -341,7 +338,7 @@ pid_t Application::StartReloadProcess(void)
 	Log(LogInformation, "Application", "Got reload command: Starting new instance.");
 
 	// prepare arguments
-	Array::Ptr args = make_shared<Array>();
+	Array::Ptr args = new Array();
 	args->Add(GetExePath(m_ArgV[0]));
 
 	for (int i=1; i < Application::GetArgC(); i++) {
@@ -353,7 +350,7 @@ pid_t Application::StartReloadProcess(void)
 	args->Add("--reload-internal");
 	args->Add(Convert::ToString(Utility::GetPid()));
 
-	Process::Ptr process = make_shared<Process>(Process::PrepareCommand(args));
+	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
 	process->Run(&ReloadProcessCallback);
 

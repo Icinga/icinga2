@@ -36,7 +36,7 @@ REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::Stats
 
 Value NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = make_shared<Dictionary>();
+	Dictionary::Ptr nodes = new Dictionary();
 
 	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, DynamicType::GetObjectsByType<NotificationComponent>()) {
 		nodes->Set(notification_component->GetName(), 1); //add more stats
@@ -57,7 +57,7 @@ void NotificationComponent::Start(void)
 	Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));
 
-	m_NotificationTimer = make_shared<Timer>();
+	m_NotificationTimer = new Timer();
 	m_NotificationTimer->SetInterval(5);
 	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
 	m_NotificationTimer->Start();

@@ -78,7 +78,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	std::fstream fp;
 	fp.open(objectfile.CStr(), std::ios_base::in);
 
-	StdioStream::Ptr sfp = make_shared<StdioStream>(&fp, false);
+	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 	unsigned long objects_count = 0;
 	std::map<String, int> type_count;
 

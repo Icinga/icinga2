@@ -33,8 +33,9 @@ boost::mutex Object::m_DebugMutex;
  * Default constructor for the Object class.
  */
 Object::Object(void)
+	: m_References(0)
 #ifdef _DEBUG
-	: m_Locked(false)
+	, m_Locked(false)
 #endif /* _DEBUG */
 { }
 
@@ -43,16 +44,6 @@ Object::Object(void)
  */
 Object::~Object(void)
 { }
-
-/**
- * Returns a reference-counted pointer to this object.
- *
- * @returns A shared_ptr object that points to this object
- */
-Object::SharedPtrHolder Object::GetSelf(void)
-{
-	return Object::SharedPtrHolder(shared_from_this());
-}
 
 #ifdef _DEBUG
 /**
@@ -67,11 +58,6 @@ bool Object::OwnsLock(void) const
 	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
 }
 #endif /* _DEBUG */
-
-Object::SharedPtrHolder::operator Value(void) const
-{
-	return m_Object;
-}
 
 void Object::SetField(int, const Value&)
 {

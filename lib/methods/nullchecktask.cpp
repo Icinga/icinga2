@@ -36,8 +36,8 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 	String output = "Hello from ";
 	output += Utility::GetFQDN();
 
-	Array::Ptr perfdata = make_shared<Array>();
-	perfdata->Add(make_shared<PerfdataValue>("time", Convert::ToDouble(Utility::GetTime())));
+	Array::Ptr perfdata = new Array();
+	perfdata->Add(new PerfdataValue("time", Convert::ToDouble(Utility::GetTime())));
 
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);

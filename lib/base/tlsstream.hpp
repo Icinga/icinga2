@@ -38,10 +38,10 @@ class I2_BASE_API TlsStream : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
-	TlsStream(const Socket::Ptr& socket, ConnectionRole role, const shared_ptr<SSL_CTX>& sslContext);
+	TlsStream(const Socket::Ptr& socket, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext);
 
-	shared_ptr<X509> GetClientCertificate(void) const;
-	shared_ptr<X509> GetPeerCertificate(void) const;
+	boost::shared_ptr<X509> GetClientCertificate(void) const;
+	boost::shared_ptr<X509> GetPeerCertificate(void) const;
 
 	void Handshake(void);
 
@@ -55,7 +55,7 @@ public:
 	bool IsVerifyOK(void) const;
 
 private:
-	shared_ptr<SSL> m_SSL;
+	boost::shared_ptr<SSL> m_SSL;
 	bool m_Eof;
 	mutable boost::mutex m_SSLLock;
 	mutable boost::mutex m_IOActionLock;

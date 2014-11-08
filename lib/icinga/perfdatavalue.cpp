@@ -139,7 +139,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	if (!max.IsEmpty())
 		max = max * base;
 
-	return make_shared<PerfdataValue>(label, value, counter, unit, warn, crit, min, max);
+	return new PerfdataValue(label, value, counter, unit, warn, crit, min, max);
 }
 
 String PerfdataValue::Format(void) const

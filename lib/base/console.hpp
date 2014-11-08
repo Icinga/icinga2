@@ -75,6 +75,8 @@ private:
 	int m_Color;
 };
 
+I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
+
 /**
  * Console utilities.
  *
