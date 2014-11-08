@@ -297,6 +297,8 @@ bool RepositoryUtility::SetObjectAttribute(const String& name, const String& typ
 
 bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change)
 {
+	Dictionary::Ptr attrs = change->Get("attrs");
+
 	Array::Ptr changelog = make_shared<Array>();
 
 	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
@@ -309,13 +311,17 @@ bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change)
 		if (entry->Get("name") != change->Get("name"))
 			continue;
 
+		Dictionary::Ptr their_attrs = entry->Get("attrs");
+
+		if (entry->Get("type") == "Service" && attrs->Get("host_name") != their_attrs->Get("host_name"))
+			continue;
+
 		if (entry->Get("command") != change->Get("command"))
 			continue;
 
 		/* only works for add/remove commands (no set) */
-		if (change->Get("command") == "add" || change->Get("command") == "remove") {
+		if (change->Get("command") == "add" || change->Get("command") == "remove")
 			return true;
-		}
 	}
 
 	return false;
