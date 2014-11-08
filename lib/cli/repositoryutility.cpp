@@ -162,7 +162,7 @@ void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 {
 	Array::Ptr changelog = make_shared<Array>();
 
-	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
 
 	ObjectLock olock(changelog);
 
@@ -299,7 +299,7 @@ bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change)
 {
 	Array::Ptr changelog = make_shared<Array>();
 
-	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
 
 	ObjectLock olock(changelog);
 	BOOST_FOREACH(const Dictionary::Ptr& entry, changelog) {
@@ -331,7 +331,7 @@ bool RepositoryUtility::ClearChangeLog(void)
 bool RepositoryUtility::ChangeLogHasPendingChanges(void)
 {
 	Array::Ptr changelog = make_shared<Array>();
-	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, boost::ref(changelog)));
+	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
 
 	return changelog->GetLength() > 0;
 }
