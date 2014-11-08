@@ -1405,6 +1405,76 @@ be suppressed. This is achieved by setting the `disable_checks` attribute to `tr
       assign where host.name != "dsl-router"
     }
 
+### <a id="dependencies-apply-custom-attributes"></a> Apply Dependencies based on Custom Attributes
+
+You can use [apply rules](#using-apply) to set parent or
+child attributes e.g. `parent_host_name`to other object's
+attributes.
+
+A common example are virtual machines hosted on a master. The object
+name of that master is auto-generated from your CMDB or VMWare inventory
+into the host's custom attributes (or a generic template for your
+cloud).
+
+Define your master host object:
+
+    /* your master */
+    object Host "master.example.com" {
+      import "generic-host"
+    }
+
+Add a generic template defining all common host attributes:
+
+    /* generic template for your virtual machines */
+    template Host "generic-vm" {
+      import "generic-host"
+    }
+
+Add a template for all hosts on your example.com cloud setting
+custom attribute `vm_parent` to `master.example.com`:
+
+    template Host "generic-vm-example.com" {
+      import "generic-vm"
+      vars.vm_parent = "master.example.com"
+    }
+
+Define your guest hosts:
+
+    object Host "www.example1.com" {
+      import "generic-vm-master.example.com"
+    }
+
+    object Host "www.example2.com" {
+      import "generic-vm-master.example.com"
+    }
+
+Apply the host dependency to all child hosts importing the
+`generic-vm` template and set the `parent_host_name`
+to the previously defined custom attribute `host.vars.vm_parent`.
+
+    apply Dependency "vm-host-to-parent-master" to Host {
+      parent_host_name = host.vars.vm_parent
+      assign where "generic-vm" in host.templates
+    }
+
+You can extend this example, and make your services depend on the
+`master.example.com` host too. Their local scope allows you to use
+`host.vars.vm_parent` similar to the example above.
+
+    apply Dependency "vm-service-to-parent-master" to Service {
+      parent_host_name = host.vars.vm_parent
+      assign where "generic-vm" in host.templates
+    }
+
+That way you don't need to wait for your guest hosts becoming
+unreachable when the master host goes down. Instead the services
+will detect their reachability immediately when executing checks.
+
+> **Note**
+>
+> This method with setting locally scoped variables only works in
+> apply rules, but not in object definitions.
+
 
 ### <a id="dependencies-agent-checks"></a> Dependencies for Agent Checks
 

@@ -205,6 +205,8 @@ same way as "mixed" dependencies from a service to a parent host and vice versa.
 depending on an upstream link port (as service) are not a problem anymore.
 No more additional parents settings - host dependencies already define the host parent relationship
 required for network reachability calculations.
+Set parent host/services based on [host/service custom attributes](#dependencies-apply-custom-attributes)
+generated from your cloud inventory or CMDB and make your dependency rules simple and short.
 
 * [Recurring Downtimes](#recurring-downtimes)
 
