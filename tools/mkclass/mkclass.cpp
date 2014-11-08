@@ -24,7 +24,7 @@ using namespace icinga;
 
 int main(int argc, char **argv)
 {
-	if (argc < 1) {
+	if (argc < 2) {
 		std::cerr << "Syntax: " << argv[0] << " <file>" << std::endl;
 		return 1;
 	}
