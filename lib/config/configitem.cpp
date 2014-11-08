@@ -231,11 +231,20 @@ void ConfigItem::Register(void)
 {
 	String name = m_Name;
 
-	shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
+	/* If this is a non-abstract object we need to figure out
+	 * its real name now - or assign it a temporary name. */
+	if (!m_Abstract) {
+		shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
 
-	/* If this is a non-abstract object with a composite name we don't register it. */
-	if (!m_Abstract && nc)
-		return;
+		if (nc) {
+			name = nc->MakeName(m_Name, Dictionary::Ptr());
+
+			ASSERT(name.IsEmpty() || name == m_Name);
+
+			if (name.IsEmpty())
+				name = Utility::NewUniqueID();
+		}
+	}
 
 	std::pair<String, String> key = std::make_pair(m_Type, name);
 	ConfigItem::Ptr self = GetSelf();
