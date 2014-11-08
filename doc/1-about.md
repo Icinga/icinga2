@@ -54,8 +54,6 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
-## <a id="whats-new"></a> What's new
-
 ### What's New in Version 2.2.0
 
 #### Changes
@@ -71,8 +69,6 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
     * `icinga2 node` cli command provides node (master, satellite, agent) setup (wizard) and management functionality #7248
     * bash auto-completion & terminal colors #7396
-* Cluster
-    * Add CSR Auto-Signing support using generated ticket #7244
 * Configuration
     * Former `localhost` example host is now defined in [hosts.conf](#hosts-conf) #7594
     * All example services moved into advanced apply rules in [services.conf](#services-conf)
@@ -80,6 +76,10 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * Updated notification apply example in [notifications.conf](#notifications-conf) #7594
     * Support for object attribute 'zone' #7400
     * Support setting object variables in apply rules #7479
+    * Support arrays and dictionaries in custom attributes #6544 #7560
+    * Add [apply for rules](#using-apply-for) for advanced dynamic object generation #7561
+* Cluster
+    * Add CSR Auto-Signing support using generated ticket #7244
 * Perfdata
     * PerfdataWriter: Don't change perfdata, pass through from plugins #7268
     * GraphiteWriter: Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
@@ -114,6 +114,14 @@ synchronisation between zones is available, but not mandatory (for example when 
 tools such as Puppet are used). Secured by SSL x509 certificates, supporting IPv4 and IPv6.
 High Availability for DB IDO: Only active on the current zone master, failover happens automatically.
 
+* Monitoring Remote Clients
+
+Built on proven [cluster](#distributed-monitoring-high-availability) stack, [Icinga 2 clients](#icinga2-remote-client-monitoring)
+can be installed acting as remote satellite or agent. Secured communication by SSL x509 certificates,
+install them with [cli commands](#cli-commands), and configure them either locally with
+discovery on the master, or use them for executing checks and event handlers remotely.
+
+
 * High Performance
 
 Multithreaded and scalable for small embedded systems as well as large scale environments.
@@ -126,12 +134,23 @@ A child daemon validates the new configuration, the parent process is still doin
 The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. The configuration validation itself runs in parallel allowing fast verification checks.
 That way you are not blind (anymore) during a configuration reload and benefit from a real scalable architecture.
 
+* Integrated CLI with Bash Auto-Completion
+
+Enable only the [features](#cli-command-feature) which are currently disabled,
+[list objects](#cli-command-object) generated from [apply rules](#using-apply) or
+[generate SSL x509 certificates](#cli-command-pki) for remote clients or cluster setup.
+Start/stop the Icinga 2 [daemon](#cli-command-daemon) or validate your configuration,
+[manage and install](#cli-command-node) remote clients and service discovery helped
+with black- and whitelists.
 
 * Modular & flexible [features](#features)
 
 Enable only the features you require. Want to use Icinga Web 2 with DB IDO but no status data?
 No problem! Just enable ido-mysql and disable statusdata. Another example: Graphite should be enabled
 on a dedicated cluster node. Enable it over there and point it to the carbon cache socket.
+
+Combine Icinga 2 Core with web user interfaces: Use [Icinga Web 2](#setting-up-icingaweb2), but also
+Web 1.x or Classic UI or your own preferred addon.
 
 * Native support for the [Livestatus protocol](#setting-up-livestatus)
 
@@ -146,10 +165,13 @@ monitoring graphs.
 * Dynamic configuration language
 
 Simple [apply](#using-apply) and [assign](#group-assign) rules for creating configuration object
-relationships based on patterns. Supported with [duration literals](#duration-literals) for interval
+relationships based on patterns. More advanced features for dynamic object generation using
+[apply for rules](#using-apply-for) helped with arrays and dictionaries for
+[custom attributes](#custom-attributes-apply).
+Supported with [duration literals](#duration-literals) for interval
 attributes, [expression operators](#expression-operators), [function calls](#function-calls) for
 pattern and regex matching and (global) [constants](#constants).
-Sample configuration for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](#itl).
+[Check command configuration](#plugin-check-commands) for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](#itl).
 
 * Revamped Commands
 
