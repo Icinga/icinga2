@@ -58,33 +58,18 @@ void Dependency::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, c
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	builder->AddExpression(new Expression(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("parent_host_name")), OpSetLiteral),
-	    MakeLiteral(host->GetName()),
-	    di));
+	builder->AddExpression(new SetExpression(MakeIndexer("parent_host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
+	builder->AddExpression(new SetExpression(MakeIndexer("child_host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
 
-	builder->AddExpression(new Expression(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("child_host_name")), OpSetLiteral),
-	    MakeLiteral(host->GetName()),
-	    di));
-
-	if (service) {
-		builder->AddExpression(new Expression(&Expression::OpSet,
-		    MakeArray(MakeArray(MakeLiteral("child_service_name")), OpSetLiteral),
-		    MakeLiteral(service->GetShortName()),
-		    di));
-	}
+	if (service)
+		builder->AddExpression(new SetExpression(MakeIndexer("child_service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
 	String zone = checkable->GetZone();
 
-	if (!zone.IsEmpty()) {
-		builder->AddExpression(new Expression(&Expression::OpSet,
-		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
-		    MakeLiteral(zone),
-		    di));
-	}
+	if (!zone.IsEmpty())
+		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), di));
 
-	builder->AddExpression(rule.GetExpression());
+	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr dependencyItem = builder->Compile();
 	DynamicObject::Ptr dobj = dependencyItem->Commit();

@@ -58,28 +58,17 @@ void Notification::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable,
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	builder->AddExpression(new Expression(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("host_name")), OpSetLiteral),
-	    MakeLiteral(host->GetName()),
-	    di));
+	builder->AddExpression(new SetExpression(MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
 
-	if (service) {
-		builder->AddExpression(new Expression(&Expression::OpSet,
-		    MakeArray(MakeArray(MakeLiteral("service_name")), OpSetLiteral),
-		    MakeLiteral(service->GetShortName()),
-		    di));
-	}
+	if (service)
+		builder->AddExpression(new SetExpression(MakeIndexer("service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
 	String zone = checkable->GetZone();
 
-	if (!zone.IsEmpty()) {
-		builder->AddExpression(new Expression(&Expression::OpSet,
-		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
-		    MakeLiteral(zone),
-		    di));
-	}
+	if (!zone.IsEmpty())
+		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), di));
 
-	builder->AddExpression(rule.GetExpression());
+	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr notificationItem = builder->Compile();
 	DynamicObject::Ptr dobj = notificationItem->Commit();

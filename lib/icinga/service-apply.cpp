@@ -52,26 +52,16 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	builder->SetName(name);
 	builder->SetScope(locals);
 
-	builder->AddExpression(new Expression(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("host_name")), OpSetLiteral),
-	    MakeLiteral(host->GetName()),
-	    di));
+	builder->AddExpression(new SetExpression(MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
 
-	builder->AddExpression(new Expression(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("name")), OpSetLiteral),
-	    MakeLiteral(name),
-	    di));
+	builder->AddExpression(new SetExpression(MakeIndexer("name"), OpSetLiteral, MakeLiteral(name), di));
 
 	String zone = host->GetZone();
 
-	if (!zone.IsEmpty()) {
-		builder->AddExpression(new Expression(&Expression::OpSet,
-		    MakeArray(MakeArray(MakeLiteral("zone")), OpSetLiteral),
-		    MakeLiteral(zone),
-		    di));
-	}
+	if (!zone.IsEmpty())
+		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), di));
 
-	builder->AddExpression(rule.GetExpression());
+	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr serviceItem = builder->Compile();
 	DynamicObject::Ptr dobj = serviceItem->Commit();

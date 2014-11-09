@@ -26,7 +26,7 @@ using namespace icinga;
 ObjectRule::RuleMap ObjectRule::m_Rules;
 ObjectRule::CallbackMap ObjectRule::m_Callbacks;
 
-ObjectRule::ObjectRule(const String& name, const Expression::Ptr& filter,
+ObjectRule::ObjectRule(const String& name, const boost::shared_ptr<Expression>& filter,
     const DebugInfo& di, const Object::Ptr& scope)
 	: m_Name(name), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
 { }
@@ -36,7 +36,7 @@ String ObjectRule::GetName(void) const
 	return m_Name;
 }
 
-Expression::Ptr ObjectRule::GetFilter(void) const
+boost::shared_ptr<Expression> ObjectRule::GetFilter(void) const
 {
 	return m_Filter;
 }
@@ -52,7 +52,7 @@ Object::Ptr ObjectRule::GetScope(void) const
 }
 
 void ObjectRule::AddRule(const String& sourceType, const String& name,
-    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope)
+    const boost::shared_ptr<Expression>& filter, const DebugInfo& di, const Object::Ptr& scope)
 {
 	m_Rules[sourceType].push_back(ObjectRule(name, filter, di, scope));
 }

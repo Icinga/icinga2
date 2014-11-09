@@ -38,7 +38,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const String& type, const String& name, bool abstract,
-	    const Expression::Ptr& exprl, const DebugInfo& debuginfo,
+	    const boost::shared_ptr<Expression>& exprl, const DebugInfo& debuginfo,
 	    const Object::Ptr& scope, const String& zone);
 
 	String GetType(void) const;
@@ -47,7 +47,7 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	Expression::Ptr GetExpressionList(void) const;
+	boost::shared_ptr<Expression> GetExpression(void) const;
 
 	DynamicObject::Ptr Commit(bool discard = true);
 	void Register(void);
@@ -70,7 +70,7 @@ private:
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
 
-	Expression::Ptr m_ExpressionList;
+	boost::shared_ptr<Expression> m_Expression;
 	std::vector<String> m_ParentNames; /**< The names of parent configuration
 				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */

@@ -25,7 +25,7 @@
 using namespace icinga;
 
 ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false), m_Expressions(new Array())
+	: m_Abstract(false)
 {
 	m_DebugInfo.FirstLine = 0;
 	m_DebugInfo.FirstColumn = 0;
@@ -34,7 +34,7 @@ ConfigItemBuilder::ConfigItemBuilder(void)
 }
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
-	: m_Abstract(false), m_Expressions(new Array())
+	: m_Abstract(false)
 {
 	m_DebugInfo = debugInfo;
 }
@@ -64,9 +64,9 @@ void ConfigItemBuilder::SetZone(const String& zone)
 	m_Zone = zone;
 }
 
-void ConfigItemBuilder::AddExpression(const Expression::Ptr& expr)
+void ConfigItemBuilder::AddExpression(Expression *expr)
 {
-	m_Expressions->Add(expr);
+	m_Expressions.push_back(expr);
 }
 
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
@@ -89,19 +89,25 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
-	Array::Ptr exprs = new Array();
+	std::vector<Expression *> exprs;
+
 	Array::Ptr templateArray = new Array();
 	templateArray->Add(m_Name);
 
-	exprs->Add(new Expression(&Expression::OpSet,
-	    MakeArray(MakeArray(MakeLiteral("templates")), OpSetAdd),
-	    new Expression(&Expression::OpLiteral, templateArray, m_DebugInfo),
-	    m_DebugInfo));
+	std::vector<Expression *> indexer;
+	indexer.push_back(new LiteralExpression("templates"));
 
-	exprs->Add(new Expression(&Expression::OpDict, m_Expressions, true, m_DebugInfo));
-	
-	Expression::Ptr exprl = new Expression(&Expression::OpDict, exprs, true, m_DebugInfo);
+	exprs.push_back(new SetExpression(indexer, OpSetAdd,
+	    new LiteralExpression(templateArray), m_DebugInfo));
 
-	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl,
+	DictExpression *dexpr = new DictExpression(m_Expressions, m_DebugInfo);
+	dexpr->MakeInline();
+	exprs.push_back(dexpr);
+
+	DictExpression *exprl = new DictExpression(exprs, m_DebugInfo);
+	exprl->MakeInline();
+
+	return new ConfigItem(m_Type, m_Name, m_Abstract, boost::shared_ptr<Expression>(exprl),
 	    m_DebugInfo, m_Scope, m_Zone);
 }
+

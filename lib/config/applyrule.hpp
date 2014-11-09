@@ -40,18 +40,18 @@ public:
 
 	String GetTargetType(void) const;
 	String GetName(void) const;
-	Expression::Ptr GetExpression(void) const;
-	Expression::Ptr GetFilter(void) const;
+	boost::shared_ptr<Expression> GetExpression(void) const;
+	boost::shared_ptr<Expression> GetFilter(void) const;
 	String GetFKVar(void) const;
 	String GetFVVar(void) const;
-	Expression::Ptr GetFTerm(void) const;
+	boost::shared_ptr<Expression> GetFTerm(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Object::Ptr GetScope(void) const;
 
 	bool EvaluateFilter(const Object::Ptr& scope) const;
 
-	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const DebugInfo& di, const Object::Ptr& scope);
+	static void AddRule(const String& sourceType, const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
+	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Object::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
@@ -62,19 +62,19 @@ public:
 private:
 	String m_TargetType;
 	String m_Name;
-	Expression::Ptr m_Expression;
-	Expression::Ptr m_Filter;
+	boost::shared_ptr<Expression> m_Expression;
+	boost::shared_ptr<Expression> m_Filter;
 	String m_FKVar;
 	String m_FVVar;
-	Expression::Ptr m_FTerm;
+	boost::shared_ptr<Expression> m_FTerm;
 	DebugInfo m_DebugInfo;
 	Object::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
+	ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
+	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
 	    const DebugInfo& di, const Object::Ptr& scope);
 };
 

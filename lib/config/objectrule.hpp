@@ -39,14 +39,14 @@ public:
 	typedef std::map<String, std::vector<ObjectRule> > RuleMap;
 
 	String GetName(void) const;
-	Expression::Ptr GetFilter(void) const;
+	boost::shared_ptr<Expression> GetFilter(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Object::Ptr GetScope(void) const;
 
 	bool EvaluateFilter(const Object::Ptr& scope) const;
 
 	static void AddRule(const String& sourceType, const String& name,
-	    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope);
+	    const boost::shared_ptr<Expression>& filter, const DebugInfo& di, const Object::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
 	static void RegisterType(const String& sourceType, const ObjectRule::Callback& callback);
@@ -54,15 +54,14 @@ public:
 
 private:
 	String m_Name;
-	Expression::Ptr m_Filter;
+	boost::shared_ptr<Expression> m_Filter;
 	DebugInfo m_DebugInfo;
 	Object::Ptr m_Scope;
 
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ObjectRule(const String& name, const Expression::Ptr& filter,
-	    const DebugInfo& di, const Object::Ptr& scope);
+	ObjectRule(const String& name, const boost::shared_ptr<Expression>& filter, const DebugInfo& di, const Object::Ptr& scope);
 };
 
 }

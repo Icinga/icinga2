@@ -48,7 +48,7 @@ public:
 	void SetScope(const Object::Ptr& scope);
 	void SetZone(const String& zone);
 
-	void AddExpression(const Expression::Ptr& expr);
+	void AddExpression(Expression *expr);
 
 	ConfigItem::Ptr Compile(void);
 
@@ -56,7 +56,7 @@ private:
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether the item is abstract. */
-	Array::Ptr m_Expressions; /**< Expressions for this item. */
+	std::vector<Expression *> m_Expressions; /**< Expressions for this item. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Object::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */

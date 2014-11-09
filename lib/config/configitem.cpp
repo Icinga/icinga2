@@ -56,11 +56,11 @@ ConfigItem::ItemList ConfigItem::m_UnnamedItems;
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
-    bool abstract, const Expression::Ptr& exprl,
+    bool abstract, const boost::shared_ptr<Expression>& exprl,
     const DebugInfo& debuginfo, const Object::Ptr& scope,
     const String& zone)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	  m_ExpressionList(exprl), m_DebugInfo(debuginfo),
+	  m_Expression(exprl), m_DebugInfo(debuginfo),
 	  m_Scope(scope), m_Zone(zone)
 {
 }
@@ -115,9 +115,9 @@ Object::Ptr ConfigItem::GetScope(void) const
  *
  * @returns The expression list.
  */
-Expression::Ptr ConfigItem::GetExpressionList(void) const
+boost::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 {
-	return m_ExpressionList;
+	return m_Expression;
 }
 
 /**
@@ -160,7 +160,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	DebugHint debugHints;
 
 	try {
-		m_ExpressionList->Evaluate(dobj, &debugHints);
+		m_Expression->Evaluate(dobj, &debugHints);
 	} catch (const ConfigError& ex) {
 		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
@@ -169,7 +169,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	}
 
 	if (discard)
-		m_ExpressionList.reset();
+		m_Expression.reset();
 
 	dobj->SetParentScope(Dictionary::Ptr());
 

@@ -27,8 +27,8 @@ using namespace icinga;
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::CallbackMap ApplyRule::m_Callbacks;
 
-ApplyRule::ApplyRule(const String& targetType, const String& name, const Expression::Ptr& expression,
-    const Expression::Ptr& filter, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
+ApplyRule::ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
+    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
     const DebugInfo& di, const Object::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_FKVar(fkvar),
 	  m_FVVar(fvvar), m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope)
@@ -44,12 +44,12 @@ String ApplyRule::GetName(void) const
 	return m_Name;
 }
 
-Expression::Ptr ApplyRule::GetExpression(void) const
+boost::shared_ptr<Expression> ApplyRule::GetExpression(void) const
 {
 	return m_Expression;
 }
 
-Expression::Ptr ApplyRule::GetFilter(void) const
+boost::shared_ptr<Expression> ApplyRule::GetFilter(void) const
 {
 	return m_Filter;
 }
@@ -64,7 +64,7 @@ String ApplyRule::GetFVVar(void) const
 	return m_FVVar;
 }
 
-Expression::Ptr ApplyRule::GetFTerm(void) const
+boost::shared_ptr<Expression> ApplyRule::GetFTerm(void) const
 {
 	return m_FTerm;
 }
@@ -80,8 +80,8 @@ Object::Ptr ApplyRule::GetScope(void) const
 }
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
-    const Expression::Ptr& expression, const Expression::Ptr& filter, const String& fkvar,
-    const String& fvvar, const Expression::Ptr& fterm, const DebugInfo& di, const Object::Ptr& scope)
+    const boost::shared_ptr<Expression>& expression, const boost::shared_ptr<Expression>& filter, const String& fkvar,
+    const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Object::Ptr& scope)
 {
 	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, fkvar, fvvar, fterm, di, scope));
 }

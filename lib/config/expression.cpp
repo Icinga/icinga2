@@ -38,219 +38,212 @@
 
 using namespace icinga;
 
-Expression::Expression(OpCallback op, const Value& operand1, const DebugInfo& di)
-	: m_Operator(op), m_Operand1(operand1), m_Operand2(), m_DebugInfo(di)
-{ }
-
-Expression::Expression(OpCallback op, const Value& operand1, const Value& operand2, const DebugInfo& di)
-	: m_Operator(op), m_Operand1(operand1), m_Operand2(operand2), m_DebugInfo(di)
+Expression::~Expression(void)
 { }
 
 Value Expression::Evaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
 	try {
 #ifdef _DEBUG
-		if (m_Operator != &Expression::OpLiteral) {
-			std::ostringstream msgbuf;
-			ShowCodeFragment(msgbuf, m_DebugInfo, false);
-			Log(LogDebug, "Expression")
-			    << "Executing:\n" << msgbuf.str();
-		}
+		std::ostringstream msgbuf;
+		ShowCodeFragment(msgbuf, GetDebugInfo(), false);
+		Log(LogDebug, "Expression")
+			<< "Executing:\n" << msgbuf.str();
 #endif /* _DEBUG */
 
-		return m_Operator(this, context, dhint);
+		return DoEvaluate(context, dhint);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
 		else
-			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression: " + String(ex.what())) << boost::errinfo_nested_exception(boost::current_exception()) << errinfo_debuginfo(m_DebugInfo));
+			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression: " + String(ex.what()))
+			    << boost::errinfo_nested_exception(boost::current_exception())
+			    << errinfo_debuginfo(GetDebugInfo()));
 	}
 }
 
-void Expression::MakeInline(void)
+const DebugInfo& Expression::GetDebugInfo(void) const
 {
-	if (m_Operator == &Expression::OpDict)
-		m_Operand2 = true;
+	static DebugInfo debugInfo;
+	return debugInfo;
 }
 
-void Expression::DumpOperand(std::ostream& stream, const Value& operand, int indent) {
-	if (operand.IsObjectType<Array>()) {
-		Array::Ptr arr = operand;
-		stream << String(indent, ' ') << "Array:\n";
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& elem, arr) {
-			DumpOperand(stream, elem, indent + 1);
-		}
-	} else if (operand.IsObjectType<Expression>()) {
-		Expression::Ptr left = operand;
-		left->Dump(stream, indent);
-	} else {
-		stream << String(indent, ' ') << JsonEncode(operand) << "\n";
-	}
-}
-
-void Expression::Dump(std::ostream& stream, int indent) const
+std::vector<Expression *> icinga::MakeIndexer(const String& index1)
 {
-	String sym = Utility::GetSymbolName(reinterpret_cast<const void *>(m_Operator));
-	stream << String(indent, ' ') << "op: " << Utility::DemangleSymbolName(sym) << "\n";
-	stream << String(indent, ' ') << "left:\n";
-	DumpOperand(stream, m_Operand1, indent + 1);
-	
-	stream << String(indent, ' ') << "right:\n";
-	DumpOperand(stream, m_Operand2, indent + 1);
+	std::vector<Expression *> result;
+	result.push_back(MakeLiteral(index1));
+	return result;
 }
 
-Value Expression::EvaluateOperand1(const Object::Ptr& context, DebugHint *dhint) const
+void DictExpression::MakeInline(void)
 {
-	return static_cast<Expression::Ptr>(m_Operand1)->Evaluate(context, dhint);
+	m_Inline = true;
 }
 
-Value Expression::EvaluateOperand2(const Object::Ptr& context, DebugHint *dhint) const
+LiteralExpression::LiteralExpression(const Value& value)
+	: m_Value(value)
+{ }
+
+Value LiteralExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return static_cast<Expression::Ptr>(m_Operand2)->Evaluate(context, dhint);
+	return m_Value;
 }
 
-Value Expression::OpLiteral(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 {
-	return expr->m_Operand1;
+	return m_DebugInfo;
 }
 
-Value Expression::OpVariable(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value VariableExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
 	Object::Ptr scope = context;
 
 	while (scope) {
-		if (HasField(scope, expr->m_Operand1))
-			return GetField(scope, expr->m_Operand1);
+		if (HasField(scope, m_Variable))
+			return GetField(scope, m_Variable);
 
 		scope = GetField(scope, "__parent");
 	}
 
-	return ScriptVariable::Get(expr->m_Operand1);
+	return ScriptVariable::Get(m_Variable);
 }
 
-Value Expression::OpNegate(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value NegateExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return ~(long)expr->EvaluateOperand1(context);
+	return ~(long)m_Operand->Evaluate(context);
 }
 
-Value Expression::OpLogicalNegate(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value LogicalNegateExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return !expr->EvaluateOperand1(context).ToBool();
+	return !m_Operand->Evaluate(context).ToBool();
 }
 
-Value Expression::OpAdd(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value AddExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) + expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) + m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpSubtract(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value SubtractExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) - expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) - m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpMultiply(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value MultiplyExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) * expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) * m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpDivide(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value DivideExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) / expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) / m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpBinaryAnd(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value BinaryAndExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) & expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) & m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpBinaryOr(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value BinaryOrExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) | expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) | m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpShiftLeft(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value ShiftLeftExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) << expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) << m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpShiftRight(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value ShiftRightExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) >> expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) >> m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value EqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) == expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) == m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpNotEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value NotEqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) != expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) != m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpLessThan(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value LessThanExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) < expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) < m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpGreaterThan(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value GreaterThanExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) > expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) > m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpLessThanOrEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value LessThanOrEqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) <= expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) <= m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpGreaterThanOrEqual(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value GreaterThanOrEqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context) >= expr->EvaluateOperand2(context);
+	return m_Operand1->Evaluate(context) >= m_Operand2->Evaluate(context);
 }
 
-Value Expression::OpIn(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value InExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Value right = expr->EvaluateOperand2(context);
+	Value right = m_Operand2->Evaluate(context);
 
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
-	Value left = expr->EvaluateOperand1(context);
+	Value left = m_Operand1->Evaluate(context);
 		
 	Array::Ptr arr = right;
-	bool found = false;
 	ObjectLock olock(arr);
 	BOOST_FOREACH(const Value& value, arr) {
 		if (value == left) {
-			found = true;
-			break;
+			return true;
 		}
 	}
 
-	return found;
+	return false;
 }
 
-Value Expression::OpNotIn(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value NotInExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return !OpIn(expr, context, dhint);
+	Value right = m_Operand2->Evaluate(context);
+
+	if (right.IsEmpty())
+		return false;
+	else if (!right.IsObjectType<Array>())
+		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
+
+	Value left = m_Operand1->Evaluate(context);
+
+	Array::Ptr arr = right;
+	ObjectLock olock(arr);
+	BOOST_FOREACH(const Value& value, arr) {
+		if (value == left)
+			return false;
+	}
+
+	return true;
 }
 
-Value Expression::OpLogicalAnd(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value LogicalAndExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context).ToBool() && expr->EvaluateOperand2(context).ToBool();
+	return m_Operand1->Evaluate(context).ToBool() && m_Operand2->Evaluate(context).ToBool();
 }
 
-Value Expression::OpLogicalOr(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value LogicalOrExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	return expr->EvaluateOperand1(context).ToBool() || expr->EvaluateOperand2(context).ToBool();
+	return m_Operand1->Evaluate(context).ToBool() || m_Operand2->Evaluate(context).ToBool();
 }
 
-Value Expression::OpFunctionCall(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value FunctionCallExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Value funcName = expr->EvaluateOperand1(context);
+	Value funcName = m_FName->Evaluate(context);
 
 	ScriptFunction::Ptr func;
 
@@ -262,48 +255,37 @@ Value Expression::OpFunctionCall(const Expression *expr, const Object::Ptr& cont
 	if (!func)
 		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
 
-	Array::Ptr arr = expr->EvaluateOperand2(context);
 	std::vector<Value> arguments;
-	for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
-		const Expression::Ptr& aexpr = arr->Get(index);
-		arguments.push_back(aexpr->Evaluate(context));
+	BOOST_FOREACH(Expression *arg, m_Args) {
+		arguments.push_back(arg->Evaluate(context));
 	}
 
 	return func->Invoke(arguments);
 }
 
-Value Expression::OpArray(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value ArrayExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr arr = expr->m_Operand1;
 	Array::Ptr result = new Array();
 
-	if (arr) {
-		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
-			const Expression::Ptr& aexpr = arr->Get(index);
-			result->Add(aexpr->Evaluate(context));
-		}
+	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
+		result->Add(aexpr->Evaluate(context));
 	}
 
 	return result;
 }
 
-Value Expression::OpDict(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value DictExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr arr = expr->m_Operand1;
-	bool in_place = expr->m_Operand2;
 	Dictionary::Ptr result = new Dictionary();
 
 	result->Set("__parent", context);
 
-	if (arr) {
-		for (Array::SizeType index = 0; index < arr->GetLength(); index++) {
-			const Expression::Ptr& aexpr = arr->Get(index);
-			Object::Ptr acontext = in_place ? context : result;
-			aexpr->Evaluate(acontext, dhint);
+	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
+		Object::Ptr acontext = m_Inline ? context : result;
+		aexpr->Evaluate(acontext, dhint);
 
-			if (HasField(acontext, "__result"))
-				break;
-		}
+		if (HasField(acontext, "__result"))
+			break;
 	}
 
 	Dictionary::Ptr xresult = result->ShallowClone();
@@ -311,22 +293,18 @@ Value Expression::OpDict(const Expression *expr, const Object::Ptr& context, Deb
 	return xresult;
 }
 
-Value Expression::OpSet(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr left = expr->m_Operand1;
-	Array::Ptr indexer = left->Get(0);
-	int csop = left->Get(1);
-
 	DebugHint *sdhint = dhint;
 
 	Value parent, object;
 	String index;
 
-	for (Array::SizeType i = 0; i < indexer->GetLength(); i++) {
-		Expression::Ptr indexExpr = indexer->Get(i);
+	for (Array::SizeType i = 0; i < m_Indexer.size(); i++) {
+		Expression *indexExpr = m_Indexer[i];
 		String tempindex = indexExpr->Evaluate(context, dhint);
 
-		if (i == indexer->GetLength() - 1)
+		if (i == m_Indexer.size() - 1)
 			index = tempindex;
 
 		if (i == 0) {
@@ -335,65 +313,59 @@ Value Expression::OpSet(const Expression *expr, const Object::Ptr& context, Debu
 		} else {
 			parent = object;
 
-			Expression::Ptr eparent = new Expression(&Expression::OpLiteral, parent, expr->m_DebugInfo);
-			Expression::Ptr eindex = new Expression(&Expression::OpLiteral, tempindex, expr->m_DebugInfo);
+			LiteralExpression *eparent = MakeLiteral(parent);
+			LiteralExpression *eindex = MakeLiteral(tempindex);
 
-			Expression::Ptr eip = new Expression(&Expression::OpIndexer, eparent, eindex, expr->m_DebugInfo);
-			object = eip->Evaluate(context, dhint);
+			IndexerExpression eip(eparent, eindex, m_DebugInfo);
+			object = eip.Evaluate(context, dhint);
 		}
 
 		if (sdhint)
 			sdhint = sdhint->GetChild(index);
 
-		if (i != indexer->GetLength() - 1 && object.IsEmpty()) {
+		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
 
 			SetField(parent, tempindex, object);
 		}
 	}
 
-	Value right = expr->EvaluateOperand2(context, dhint);
+	Value right = m_Operand2->Evaluate(context, dhint);
 
-	if (csop != OpSetLiteral) {
-		Expression::OpCallback op;
+	if (m_Op != OpSetLiteral) {
+		Expression *lhs = MakeLiteral(object);
+		Expression *rhs = MakeLiteral(right);
 
-		switch (csop) {
+		switch (m_Op) {
 			case OpSetAdd:
-				op = &Expression::OpAdd;
+				right = AddExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
 				break;
 			case OpSetSubtract:
-				op = &Expression::OpSubtract;
+				right = SubtractExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
 				break;
 			case OpSetMultiply:
-				op = &Expression::OpMultiply;
+				right = MultiplyExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
 				break;
 			case OpSetDivide:
-				op = &Expression::OpDivide;
+				right = DivideExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
 				break;
 			default:
 				VERIFY(!"Invalid opcode.");
 		}
-
-		Expression::Ptr ecp = new Expression(op,
-		    new Expression(&Expression::OpLiteral, object, expr->m_DebugInfo),
-		    new Expression(&Expression::OpLiteral, right, expr->m_DebugInfo),
-		    expr->m_DebugInfo);
-
-		right = ecp->Evaluate(context, dhint);
 	}
 
 	SetField(parent, index, right);
 
 	if (sdhint)
-		sdhint->AddMessage("=", expr->m_DebugInfo);
+		sdhint->AddMessage("=", m_DebugInfo);
 
 	return right;
 }
 
-Value Expression::OpIndexer(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value IndexerExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Value value = expr->EvaluateOperand1(context);
-	Value index = expr->EvaluateOperand2(context);
+	Value value = m_Operand1->Evaluate(context);
+	Value index = m_Operand2->Evaluate(context);
 
 	if (value.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = value;
@@ -421,88 +393,69 @@ Value Expression::OpIndexer(const Expression *expr, const Object::Ptr& context, 
 	}
 }
 
-Value Expression::OpImport(const Expression *expr, const Object::Ptr& context, DebugHint *dhint)
+Value ImportExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Value type = expr->EvaluateOperand1(context);
-	Value name = expr->EvaluateOperand2(context);
+	Value type = m_Type->Evaluate(context);
+	Value name = m_Name->Evaluate(context);
 
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item)
 		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
 
-	item->GetExpressionList()->Evaluate(context, dhint);
+	item->GetExpression()->Evaluate(context, dhint);
 
 	return Empty;
 }
 
-Value Expression::FunctionWrapper(const std::vector<Value>& arguments, const Array::Ptr& funcargs, const Expression::Ptr& expr, const Object::Ptr& scope)
+Value Expression::FunctionWrapper(const std::vector<Value>& arguments,
+    const std::vector<String>& funcargs, const boost::shared_ptr<Expression>& expr, const Object::Ptr& scope)
 {
-	if (arguments.size() < funcargs->GetLength())
+	if (arguments.size() < funcargs.size())
 		BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
 
 	Dictionary::Ptr context = new Dictionary();
 	context->Set("__parent", scope);
 
-	for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs->GetLength()); i++)
-		context->Set(funcargs->Get(i), arguments[i]);
+	for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
+		context->Set(funcargs[i], arguments[i]);
 
 	expr->Evaluate(context);
 	return context->Get("__result");
 }
 
-Value Expression::OpFunction(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
+Value FunctionExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr left = expr->m_Operand1;
-	Expression::Ptr aexpr = left->Get(1);
-	String name = left->Get(0);
+	ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&Expression::FunctionWrapper, _1, m_Args, m_Expression, context));
 
-	Array::Ptr funcargs = expr->m_Operand2;
-	ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&Expression::FunctionWrapper, _1, funcargs, aexpr, context));
-
-	if (!name.IsEmpty())
-		ScriptFunction::Register(name, func);
+	if (!m_Name.IsEmpty())
+		ScriptFunction::Register(m_Name, func);
 
 	return func;
 }
 
-Value Expression::OpApply(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
+Value ApplyExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr left = expr->m_Operand1;
-	Expression::Ptr exprl = expr->m_Operand2;
-	String type = left->Get(0);
-	String target = left->Get(1);
-	Expression::Ptr aname = left->Get(2);
-	Expression::Ptr filter = left->Get(3);
-	String fkvar = left->Get(4);
-	String fvvar = left->Get(5);
-	Expression::Ptr fterm = left->Get(6);
+	String name = m_Name->Evaluate(context, dhint);
 
-	String name = aname->Evaluate(context, dhint);
-
-	ApplyRule::AddRule(type, target, name, exprl, filter, fkvar, fvvar, fterm, expr->m_DebugInfo, context);
+	ApplyRule::AddRule(m_Type, m_Target, name, m_Expression, m_Filter, m_FKVar, m_FVVar, m_FTerm, m_DebugInfo, context);
 
 	return Empty;
 }
 
-Value Expression::OpObject(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
+Value ObjectExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr left = expr->m_Operand1;
-	Expression::Ptr exprl = expr->m_Operand2;
-	bool abstract = left->Get(0);
-	String type = left->Get(1);
-	Expression::Ptr aname = left->Get(2);
-	Expression::Ptr filter = left->Get(3);
-	String zone = left->Get(4);
+	String name;
 
-	String name = aname->Evaluate(context, dhint);
+	if (m_Name)
+		name = m_Name->Evaluate(context, dhint);
 
-	ConfigItemBuilder::Ptr item = new ConfigItemBuilder(expr->m_DebugInfo);
+	ConfigItemBuilder::Ptr item = new ConfigItemBuilder(m_DebugInfo);
 
 	String checkName = name;
 
-	if (!abstract) {
-		Type::Ptr ptype = Type::GetByName(type);
+	if (!m_Abstract) {
+		Type::Ptr ptype = Type::GetByName(m_Type);
 
 		NameComposer *nc = dynamic_cast<NameComposer *>(ptype.get());
 
@@ -511,50 +464,44 @@ Value Expression::OpObject(const Expression* expr, const Object::Ptr& context, D
 	}
 
 	if (!checkName.IsEmpty()) {
-		ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, checkName);
+		ConfigItem::Ptr oldItem = ConfigItem::GetObject(m_Type, checkName);
 
 		if (oldItem) {
 			std::ostringstream msgbuf;
-			msgbuf << "Object '" << name << "' of type '" << type << "' re-defined: " << expr->m_DebugInfo << "; previous definition: " << oldItem->GetDebugInfo();
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(expr->m_DebugInfo));
+			msgbuf << "Object '" << name << "' of type '" << m_Type << "' re-defined: " << m_DebugInfo << "; previous definition: " << oldItem->GetDebugInfo();
+			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(m_DebugInfo));
 		}
 	}
 
-	item->SetType(type);
+	item->SetType(m_Type);
 
 	if (name.FindFirstOf("!") != String::NPos) {
 		std::ostringstream msgbuf;
-		msgbuf << "Name for object '" << name << "' of type '" << type << "' is invalid: Object names may not contain '!'";
-		BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(expr->m_DebugInfo));
+		msgbuf << "Name for object '" << name << "' of type '" << m_Type << "' is invalid: Object names may not contain '!'";
+		BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(m_DebugInfo));
 	}
 
 	item->SetName(name);
 
-	item->AddExpression(exprl);
-	item->SetAbstract(abstract);
+	item->AddExpression(new OwnedExpression(m_Expression));
+	item->SetAbstract(m_Abstract);
 	item->SetScope(context);
-	item->SetZone(zone);
+	item->SetZone(m_Zone);
 	item->Compile()->Register();
 
-	if (ObjectRule::IsValidSourceType(type))
-		ObjectRule::AddRule(type, name, filter, expr->m_DebugInfo, context);
+	if (ObjectRule::IsValidSourceType(m_Type))
+		ObjectRule::AddRule(m_Type, name, m_Filter, m_DebugInfo, context);
 
 	return Empty;
 }
 
-Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, DebugHint *dhint)
+Value ForExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Array::Ptr left = expr->m_Operand1;
-	String kvar = left->Get(0);
-	String vvar = left->Get(1);
-	Expression::Ptr aexpr = left->Get(2);
-	Expression::Ptr ascope = expr->m_Operand2;
-
-	Value value = aexpr->Evaluate(context, dhint);
+	Value value = m_Value->Evaluate(context, dhint);
 
 	if (value.IsObjectType<Array>()) {
-		if (!vvar.IsEmpty())
-			BOOST_THROW_EXCEPTION(ConfigError("Cannot use dictionary iterator for array.") << errinfo_debuginfo(expr->m_DebugInfo));
+		if (!m_FVVar.IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Cannot use dictionary iterator for array.") << errinfo_debuginfo(m_DebugInfo));
 
 		Array::Ptr arr = value;
 
@@ -562,13 +509,13 @@ Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, Debu
 		BOOST_FOREACH(const Value& value, arr) {
 			Dictionary::Ptr xcontext = new Dictionary();
 			xcontext->Set("__parent", context);
-			xcontext->Set(kvar, value);
+			xcontext->Set(m_FKVar, value);
 
-			ascope->Evaluate(xcontext, dhint);
+			m_Expression->Evaluate(xcontext, dhint);
 		}
 	} else if (value.IsObjectType<Dictionary>()) {
-		if (vvar.IsEmpty())
-			BOOST_THROW_EXCEPTION(ConfigError("Cannot use array iterator for dictionary.") << errinfo_debuginfo(expr->m_DebugInfo));
+		if (m_FVVar.IsEmpty())
+			BOOST_THROW_EXCEPTION(ConfigError("Cannot use array iterator for dictionary.") << errinfo_debuginfo(m_DebugInfo));
 
 		Dictionary::Ptr dict = value;
 
@@ -576,13 +523,13 @@ Value Expression::OpFor(const Expression* expr, const Object::Ptr& context, Debu
 		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
 			Dictionary::Ptr xcontext = new Dictionary();
 			xcontext->Set("__parent", context);
-			xcontext->Set(kvar, kv.first);
-			xcontext->Set(vvar, kv.second);
+			xcontext->Set(m_FKVar, kv.first);
+			xcontext->Set(m_FVVar, kv.second);
 
-			ascope->Evaluate(xcontext, dhint);
+			m_Expression->Evaluate(xcontext, dhint);
 		}
 	} else
-		BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(expr->m_DebugInfo));
+		BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(m_DebugInfo));
 
 	return Empty;
 }
@@ -616,11 +563,6 @@ Dictionary::Ptr DebugHint::ToDictionary(void) const
 	result->Set("properties", properties);
 
 	return result;
-}
-
-Expression::Ptr icinga::MakeLiteral(const Value& lit)
-{
-	return new Expression(&Expression::OpLiteral, lit, DebugInfo());
 }
 
 bool Expression::HasField(const Object::Ptr& context, const String& field)
