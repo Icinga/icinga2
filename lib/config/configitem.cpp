@@ -43,6 +43,7 @@ using namespace icinga;
 
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::ItemMap ConfigItem::m_Items;
+ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 
 /**
  * Constructor for the ConfigItem class.
@@ -229,29 +230,19 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
  */
 void ConfigItem::Register(void)
 {
-	String name = m_Name;
-
-	/* If this is a non-abstract object we need to figure out
-	 * its real name now - or assign it a temporary name. */
-	if (!m_Abstract) {
-		shared_ptr<NameComposer> nc = dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type));
-
-		if (nc) {
-			name = nc->MakeName(m_Name, Dictionary::Ptr());
-
-			ASSERT(name.IsEmpty() || name == m_Name);
-
-			if (name.IsEmpty())
-				name = Utility::NewUniqueID();
-		}
-	}
-
-	std::pair<String, String> key = std::make_pair(m_Type, name);
 	ConfigItem::Ptr self = GetSelf();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	/* If this is a non-abstract object with a composite name
+	 * we register it in m_UnnamedItems instead of m_Items. */
+	if (!m_Abstract && dynamic_pointer_cast<NameComposer>(Type::GetByName(m_Type))) {
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_UnnamedItems.push_back(self);
+	} else {
+		std::pair<String, String> key = std::make_pair(m_Type, m_Name);
 
-	m_Items[key] = self;
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Items[key] = self;
+	}
 }
 
 /**
@@ -291,6 +282,10 @@ bool ConfigItem::ValidateItems(void)
 		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second, false));
 	}
 
+	BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
+		upq.Enqueue(boost::bind(&ConfigItem::Commit, item, true));
+	}
+
 	upq.Join();
 
 	std::vector<DynamicObject::Ptr> objects;
@@ -300,6 +295,15 @@ bool ConfigItem::ValidateItems(void)
 		if (object)
 			objects.push_back(object);
 	}
+
+	BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
+		DynamicObject::Ptr object = item->m_Object;
+
+		if (object)
+			objects.push_back(object);
+	}
+
+	m_UnnamedItems.clear();
 
 	Log(LogInformation, "ConfigItem", "Triggering OnConfigLoaded signal for config items");
 

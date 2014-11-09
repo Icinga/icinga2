@@ -84,6 +84,9 @@ private:
 	typedef std::map<std::pair<String, String>, ConfigItem::Ptr> ItemMap;
 	static ItemMap m_Items; /**< All registered configuration items. */
 
+	typedef std::vector<ConfigItem::Ptr> ItemList;
+	static ItemList m_UnnamedItems;
+
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);
 };
