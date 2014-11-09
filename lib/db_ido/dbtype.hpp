@@ -82,10 +82,7 @@ private:
 class I2_DB_IDO_API DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
 {
 public:
-	static inline DbTypeRegistry *GetInstance(void)
-	{
-		return Singleton<DbTypeRegistry>::GetInstance();
-	}
+	static DbTypeRegistry *GetInstance(void);
 };
 
 /**

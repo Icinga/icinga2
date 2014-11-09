@@ -125,3 +125,9 @@ std::set<DbType::Ptr> DbType::GetAllTypes(void)
 
 	return result;
 }
+
+DbTypeRegistry *DbTypeRegistry::GetInstance(void)
+{
+	return Singleton<DbTypeRegistry>::GetInstance();
+}
+
