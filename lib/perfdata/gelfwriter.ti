@@ -30,12 +30,6 @@ class GelfWriter : DynamicObject
 	[config] String port {
 		default {{{ return "12201"; }}}
 	};
-	[config] String host_name_template {
-		default {{{ return "icinga.$host.name$"; }}}
-	};
-	[config] String service_name_template {
-		default {{{ return "icinga.$host.name$.$service.name$"; }}}
-	};
 };
 
 }
