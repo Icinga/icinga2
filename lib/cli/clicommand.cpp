@@ -78,8 +78,8 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type,
 		if (!(field.Attributes & FAConfig) || field.Attributes & FAInternal)
 			continue;
 
-		if (field.FType != Type::GetByName("int") && field.FType != Type::GetByName("double")
-		    && field.FType != Type::GetByName("bool") && field.FType != Type::GetByName("String"))
+		if (strcmp(field.TypeName, "int") != 0 && strcmp(field.TypeName, "double") != 0
+		    && strcmp(field.TypeName, "bool") != 0 && strcmp(field.TypeName, "String") != 0)
 			continue;
 
 		String fname = field.Name;

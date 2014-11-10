@@ -41,12 +41,12 @@ class Type;
 struct Field
 {
 	int ID;
-	intrusive_ptr<Type> FType;
+	const char *TypeName;
 	const char *Name;
 	int Attributes;
 
-	Field(int id, const intrusive_ptr<Type>& type, const char *name, int attributes)
-		: ID(id), FType(type), Name(name), Attributes(attributes)
+	Field(int id, const char *type, const char *name, int attributes)
+		: ID(id), TypeName(type), Name(name), Attributes(attributes)
 	{ }
 };
 

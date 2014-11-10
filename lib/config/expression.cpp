@@ -373,7 +373,7 @@ Value IndexerExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint
 	} else if (value.IsObjectType<Array>()) {
 		Array::Ptr arr = value;
 		return arr->Get(index);
-	} else if (value.IsObjectType<Object>()) {
+	} else if (value.IsObject()) {
 		Object::Ptr object = value;
 		Type::Ptr type = object->GetReflectionType();
 
