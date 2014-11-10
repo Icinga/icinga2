@@ -59,7 +59,7 @@ void ObjectRule::AddRule(const String& sourceType, const String& name,
 
 bool ObjectRule::EvaluateFilter(const Object::Ptr& scope) const
 {
-	return m_Filter->Evaluate(scope);
+	return m_Filter->Evaluate(scope).ToBool();
 }
 
 void ObjectRule::EvaluateRules(bool clear)

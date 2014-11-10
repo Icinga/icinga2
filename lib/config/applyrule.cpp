@@ -88,7 +88,7 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 
 bool ApplyRule::EvaluateFilter(const Object::Ptr& scope) const
 {
-	return m_Filter->Evaluate(scope);
+	return m_Filter->Evaluate(scope).ToBool();
 }
 
 void ApplyRule::EvaluateRules(bool clear)

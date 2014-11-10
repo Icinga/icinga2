@@ -427,8 +427,8 @@ object:
 		m_Abstract.push(false);
 		m_ObjectAssign.push(true);
 		m_SeenAssign.push(false);
-		m_Assign.push(MakeLiteral(false));
-		m_Ignore.push(MakeLiteral(false));
+		m_Assign.push(NULL);
+		m_Ignore.push(NULL);
 	}
 	object_declaration identifier rterm rterm_scope
 	{
@@ -443,16 +443,28 @@ object:
 		DictExpression *exprl = dynamic_cast<DictExpression *>($5);
 		exprl->MakeInline();
 
-		if (m_SeenAssign.top() && !ObjectRule::IsValidSourceType(type))
-			BOOST_THROW_EXCEPTION(ConfigError("object rule 'assign' cannot be used for type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
-
+		bool seen_assign = m_SeenAssign.top();
 		m_SeenAssign.pop();
 
-		Expression *rex = new LogicalNegateExpression(m_Ignore.top(), DebugInfoRange(@2, @5));
+		Expression *ignore = m_Ignore.top();
 		m_Ignore.pop();
 
-		Expression *filter = new LogicalAndExpression(m_Assign.top(), rex, DebugInfoRange(@2, @5));
+		Expression *assign = m_Assign.top();
 		m_Assign.pop();
+
+		Expression *filter = NULL;
+
+		if (seen_assign) {
+			if (!ObjectRule::IsValidSourceType(type))
+				BOOST_THROW_EXCEPTION(ConfigError("object rule 'assign' cannot be used for type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+
+			if (ignore) {
+				Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
+
+				filter = new LogicalAndExpression(assign, rex, DebugInfoRange(@2, @5));
+			} else
+				filter = assign;
+		}
 
 		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), exprl, DebugInfoRange(@2, @5));
 	}
@@ -589,7 +601,10 @@ lterm: indexer combined_set_op rterm
 
 		m_SeenAssign.top() = true;
 
-		m_Assign.top() = new LogicalOrExpression(m_Assign.top(), $3, DebugInfoRange(@1, @3));
+		if (m_Assign.top())
+			m_Assign.top() = new LogicalOrExpression(m_Assign.top(), $3, DebugInfoRange(@1, @3));
+		else
+			m_Assign.top() = $3;
 
 		$$ = MakeLiteral();
 	}
@@ -598,7 +613,10 @@ lterm: indexer combined_set_op rterm
 		if ((m_Apply.empty() || !m_Apply.top()) && (m_ObjectAssign.empty() || !m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
 
-		m_Ignore.top() = new LogicalOrExpression(m_Ignore.top(), $3, DebugInfoRange(@1, @3));
+		if (m_Ignore.top())
+			m_Ignore.top() = new LogicalOrExpression(m_Ignore.top(), $3, DebugInfoRange(@1, @3));
+		else
+			m_Ignore.top() = $3;
 
 		$$ = MakeLiteral();
 	}
@@ -843,8 +861,8 @@ apply:
 	{
 		m_Apply.push(true);
 		m_SeenAssign.push(false);
-		m_Assign.push(MakeLiteral(false));
-		m_Ignore.push(MakeLiteral(false));
+		m_Assign.push(NULL);
+		m_Ignore.push(NULL);
 		m_FKVar.push("");
 		m_FVVar.push("");
 		m_FTerm.push(NULL);
@@ -891,11 +909,20 @@ apply:
 
 		m_SeenAssign.pop();
 
-		Expression *rex = new LogicalNegateExpression(m_Ignore.top(), DebugInfoRange(@2, @5));
+		Expression *ignore = m_Ignore.top();
 		m_Ignore.pop();
 
-		Expression *filter = new LogicalAndExpression(m_Assign.top(), rex, DebugInfoRange(@2, @5));
+		Expression *assign = m_Assign.top();
 		m_Assign.pop();
+
+		Expression *filter;
+
+		if (ignore) {
+			Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
+
+			filter = new LogicalAndExpression(assign, rex, DebugInfoRange(@2, @5));
+		} else
+			filter = assign;
 
 		String fkvar = m_FKVar.top();
 		m_FKVar.pop();

@@ -489,7 +489,7 @@ Value ObjectExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint)
 	item->SetZone(m_Zone);
 	item->Compile()->Register();
 
-	if (ObjectRule::IsValidSourceType(m_Type))
+	if (m_Filter)
 		ObjectRule::AddRule(m_Type, name, m_Filter, m_DebugInfo, context);
 
 	return Empty;
