@@ -67,11 +67,6 @@ int printOutput(const printInfoStruct& printInfo)
 	state state = OK;
 	wstring output = L"UPDATE ";
 
-	if (!printInfo.warn && !printInfo.crit) {
-		wcout << L"UPDATE OK " << printInfo.numUpdates << endl;
-        return 0;
-	}
-
 	if (printInfo.important)
 		state = WARNING;
 

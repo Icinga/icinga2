@@ -140,11 +140,22 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	if (vm.count("version"))
 		wcout << L"Version: " << VERSION << endl;
 
-	if (vm.count("warning")) 
-		printInfo.warn = parse(vm["warning"].as<wstring>());
-
-	if (vm.count("critical")) 
-		printInfo.crit = parse(vm["critical"].as<wstring>());
+	if (vm.count("warning")) {
+		try {
+			printInfo.warn = parse(vm["warning"].as<wstring>());
+		} catch (std::invalid_argument& e) {
+			cout << e.what() << endl;
+			return 3;
+		}
+	}
+	if (vm.count("critical")) {
+		try {
+			printInfo.crit = parse(vm["critical"].as<wstring>());
+		} catch (std::invalid_argument& e) {
+			cout << e.what() << endl;
+			return 3;
+		}
+	}
 
 	return -1;
 }
@@ -152,11 +163,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 int printOutput(printInfoStruct& printInfo) 
 {
 	state state = OK;
-	
-	if (!printInfo.warn.set && !printInfo.crit.set) {
-		wcout << L"USERS OK " << printInfo.users << endl;
-        return 0;
-	}
 
 	if (printInfo.warn.rend(printInfo.users))
 		state = WARNING;
@@ -166,15 +172,15 @@ int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"USERS OK " << printInfo.users << L"|users=" << printInfo.users << L";" 
+		wcout << L"USERS OK " << printInfo.users << L"User|users=" << printInfo.users << L";" 
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
 	case WARNING:
-		wcout << L"USERS WARNING " << printInfo.users << L"|users=" << printInfo.users << L";"
+		wcout << L"USERS WARNING " << printInfo.users << L"User|users=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"USERS CRITICAL " << printInfo.users << L"|users=" << printInfo.users << L";"
+		wcout << L"USERS CRITICAL " << printInfo.users << L"User|users=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
 	}

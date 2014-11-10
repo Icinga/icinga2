@@ -104,7 +104,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tSERVICE CRITICAL NOT_RUNNING\n\n"
+			L"\tSERVICE CRITICAL NOT_RUNNING|service=4;!4;!4;1;7\n\n"
 			L"\"SERVICE\" being the type of the check, \"CRITICAL\" the returned status\n"
 			L"and \"1\" is the returned value.\n"
 			L"A service is either running (Code 0x04) or not running (any other).\n"
@@ -150,13 +150,13 @@ int printOutput(const printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"SERVICE OK RUNNING" << endl;
+		wcout << L"SERVICE OK RUNNING|service=4;!4;!4;1;7" << endl;
 		break;
 	case WARNING:
-		wcout << L"SERVICE WARNING NOT_RUNNING" << endl;
+		wcout << L"SERVICE WARNING NOT_RUNNING|service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"SERVICE CRITICAL NOT_RUNNING" << endl;
+		wcout << L"SERVICE CRITICAL NOT_RUNNING|service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		break;
 	}
     

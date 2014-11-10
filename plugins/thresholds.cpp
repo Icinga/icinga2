@@ -28,7 +28,7 @@ using std::wstring;
 threshold parse(const wstring& stri)
 {
 	if (stri.empty())
-		throw std::invalid_argument("thresholds must not be empty");
+		throw std::invalid_argument("Threshold must not be empty");
 
 	wstring str = stri;
 
@@ -43,7 +43,7 @@ threshold parse(const wstring& stri)
 		std::vector<wstring> svec;
 		boost::split(svec, str, boost::is_any_of(L"-"));
 		if (svec.size() != 2)
-			throw std::invalid_argument("threshold range requires two arguments");
+			throw std::invalid_argument("Threshold range requires two arguments");
 		wstring str1 = svec.at(0), str2 = svec.at(1);
 
 		if (str1.at(str1.length() - 1) == L'%' && str2.at(str2.length() - 1) == L'%') {
@@ -57,7 +57,7 @@ threshold parse(const wstring& stri)
 			double d2 = boost::lexical_cast<double>(str2);
 			return threshold(d1, d2, !low, perc);
 		} catch (const boost::bad_lexical_cast&) {
-			throw std::invalid_argument("threshold must be a number");
+			throw std::invalid_argument("Unknown Threshold type");
 		}
 	} else { //not range
 		if (str.at(str.length() - 1) == L'%') {
@@ -69,7 +69,7 @@ threshold parse(const wstring& stri)
 			return threshold(d, d, !low, perc);
 
 		} catch (const boost::bad_lexical_cast&) {
-			throw std::invalid_argument("threshold must be a number");
+			throw std::invalid_argument("Unknown Threshold type");
 		}
 	}
 }

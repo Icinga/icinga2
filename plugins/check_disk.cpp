@@ -170,12 +170,22 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	if (vm.count("version"))
 		cout << "Version: " << VERSION << endl;
 
-	if (vm.count("warning")) 
-		printInfo.warn = parse(vm["warning"].as<wstring>());
-	
-
-	if (vm.count("critical")) 
-		printInfo.crit = parse(vm["critical"].as<wstring>());
+	if (vm.count("warning")) {
+		try {
+			printInfo.warn = parse(vm["warning"].as<wstring>());
+		} catch (std::invalid_argument& e) {
+			cout << e.what() << endl;
+			return 3;
+		}
+	}
+	if (vm.count("critical")) {
+		try {
+			printInfo.crit = parse(vm["critical"].as<wstring>());
+		} catch (std::invalid_argument& e) {
+			cout << e.what() << endl;
+			return 3;
+		}
+	}
 	
 	if (vm.count("drives")) 
 		printInfo.drives = vm["drives"].as<vector<wstring>>();
@@ -203,11 +213,6 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 	for (vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); ++it) {
 		tCap += it->cap; tFree += it->free;
 		perf << L" drive=\"" << it->name << L"\";cap=" << it->cap << unit << L";free=" << it->free << unit;
-	}
-
-	if (!printInfo.warn.set && !printInfo.crit.set) {
-		wcout << L"DISK OK " << tFree << unit << endl;
-        return 0;
 	}
 
 	prePerf << L"|disk=" << tFree << unit << L";" << printInfo.warn.pString() << L";"

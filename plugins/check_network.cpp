@@ -151,11 +151,22 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	if (vm.count("version"))
 		cout << "Version: " << VERSION << endl;
 
-	if (vm.count("warning"))
-		printInfo.warn = parse(vm["warning"].as<wstring>());
-
-	if (vm.count("critical")) 
-		printInfo.crit = parse(vm["critical"].as<wstring>());
+	if (vm.count("warning")) {
+		try {
+			printInfo.warn = parse(vm["warning"].as<wstring>());
+		} catch (std::invalid_argument& e) {
+			cout << e.what() << endl;
+			return 3;
+		}
+	}
+	if (vm.count("critical")) {
+		try {
+			printInfo.crit = parse(vm["critical"].as<wstring>());
+		} catch (std::invalid_argument& e) {
+			cout << e.what() << endl;
+			return 3;
+		}
+	}
 	
 	return -1;
 }
@@ -170,10 +181,6 @@ int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterface
 		tIn += it->BytesInSec;
 		tOut += it->BytesOutSec;
 		tss << L"netI=\"" << it->name << L"\";in=" << it->BytesInSec << L"B/s;out=" << it->BytesOutSec << L"B/s ";
-	}
-
-	if (!printInfo.warn.set && !printInfo.crit.set) {
-		wcout << L"NETWORK OK " << tIn+tOut << endl;
 	}
 
 	if (printInfo.warn.rend(tIn + tOut))
