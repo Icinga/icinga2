@@ -40,61 +40,61 @@ void GelfWriter::Start(void)
 {
 	DynamicObject::Start();
 
-  m_ReconnectTimer = make_shared<Timer>();
-  m_ReconnectTimer->SetInterval(10);
-  m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GelfWriter::ReconnectTimerHandler, this));
-  m_ReconnectTimer->Start();
-  m_ReconnectTimer->Reschedule(0);
+	m_ReconnectTimer = new Timer();
+	m_ReconnectTimer->SetInterval(10);
+	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GelfWriter::ReconnectTimerHandler, this));
+	m_ReconnectTimer->Start();
+	m_ReconnectTimer->Reschedule(0);
 
-  // Send check results
+	// Send check results
 	Service::OnNewCheckResult.connect(boost::bind(&GelfWriter::CheckResultHandler, this, _1, _2));
-  // Send notifications
-  Service::OnNotificationSentToUser.connect(boost::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-  // Send state change
-  Service::OnStateChange.connect(boost::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
+	// Send notifications
+	Service::OnNotificationSentToUser.connect(boost::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
+	// Send state change
+	Service::OnStateChange.connect(boost::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
 }
 
 void GelfWriter::ReconnectTimerHandler(void)
 {
-  if (m_Stream)
-    return;
+	if (m_Stream)
+		return;
 
-  TcpSocket::Ptr socket = make_shared<TcpSocket>();
+	TcpSocket::Ptr socket = new TcpSocket();
 
-  Log(LogNotice, "GelfWriter")
-      << "Reconnecting to GELF endpoint '" << GetHost() << "' port '" << GetPort() << "'.";
+	Log(LogNotice, "GelfWriter")
+	    << "Reconnecting to GELF endpoint '" << GetHost() << "' port '" << GetPort() << "'.";
 
-  try {
-    socket->Connect(GetHost(), GetPort());
-  } catch (std::exception&) {
-    Log(LogCritical, "GelfWriter")
-        << "Can't connect to GELF endpoint '" << GetHost() << "' port '" << GetPort() << "'.";
-    return;
-  }
+	try {
+		socket->Connect(GetHost(), GetPort());
+	} catch (std::exception&) {
+		Log(LogCritical, "GelfWriter")
+		    << "Can't connect to GELF endpoint '" << GetHost() << "' port '" << GetPort() << "'.";
+		return;
+	}
 
-  m_Stream = make_shared<NetworkStream>(socket);
+	m_Stream = new NetworkStream(socket);
 }
 
 void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	CONTEXT("GELF Processing check result for '" + checkable->GetName() + "'");
 
-  Dictionary::Ptr fields = make_shared<Dictionary>();
-  Service::Ptr service   = dynamic_pointer_cast<Service>(checkable);
-  Host::Ptr host;
+	Dictionary::Ptr fields = new Dictionary();
+	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
+	Host::Ptr host;
 
-  if (service) {
-    host = service->GetHost();
-    fields->Set("_service_name", service->GetShortName());
-    fields->Set("_service_state", Service::StateToString(service->GetState()));
-  } else {
-    host = static_pointer_cast<Host>(checkable);
-  }
-  fields->Set("_hostname", host->GetName());
-  fields->Set("short_message", cr->GetOutput());
-  fields->Set("_type", "CHECK RESULT");
+	if (service) {
+		host = service->GetHost();
+		fields->Set("_service_name", service->GetShortName());
+		fields->Set("_service_state", Service::StateToString(service->GetState()));
+	} else {
+		host = static_pointer_cast<Host>(checkable);
+	}
+	fields->Set("_hostname", host->GetName());
+	fields->Set("short_message", cr->GetOutput());
+	fields->Set("_type", "CHECK RESULT");
 
-  SendLogMessage(ComposeGelfMessage(fields, "icinga"));
+	SendLogMessage(ComposeGelfMessage(fields, "icinga"));
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
@@ -102,100 +102,100 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
     const String& author, const String& comment_text, const String& command_name)
 {
   CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
-  
-  Host::Ptr host;
-  Service::Ptr service;
-  tie(host, service) = GetHostService(checkable);
 
-  String notification_type_str = Notification::NotificationTypeToString(notification_type);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
-  String author_comment = "";
-  if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
-    author_comment = author + ";" + comment_text;
-  }
+	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
-  String output;
-  if (cr)
-    output = CompatUtility::GetCheckResultOutput(cr);
+	String author_comment = "";
+	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
+		author_comment = author + ";" + comment_text;
+	}
 
-  Dictionary::Ptr fields = make_shared<Dictionary>();
-  if (service) {
-    host = service->GetHost();
-    fields->Set("_type", "SERVICE NOTIFICATION");
-    fields->Set("_service", service->GetShortName());
-    fields->Set("short_message", output);
-  } else {
-    host = static_pointer_cast<Host>(checkable);
-    fields->Set("_type", "HOST NOTIFICATION");
-    fields->Set("short_message", "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ")");
-  }
-  fields->Set("_hostname", host->GetName());
-  fields->Set("_command", command_name);
-  fields->Set("_state", notification_type_str);
-  fields->Set("_comment", author_comment);
+	String output;
+	if (cr)
+		output = CompatUtility::GetCheckResultOutput(cr);
 
-  SendLogMessage(ComposeGelfMessage(fields, "icinga"));
+	Dictionary::Ptr fields = new Dictionary();
+	if (service) {
+		host = service->GetHost();
+		fields->Set("_type", "SERVICE NOTIFICATION");
+		fields->Set("_service", service->GetShortName());
+		fields->Set("short_message", output);
+	} else {
+		host = static_pointer_cast<Host>(checkable);
+		fields->Set("_type", "HOST NOTIFICATION");
+		fields->Set("short_message", "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ")");
+	}
+	fields->Set("_hostname", host->GetName());
+	fields->Set("_command", command_name);
+	fields->Set("_state", notification_type_str);
+	fields->Set("_comment", author_comment);
+
+	SendLogMessage(ComposeGelfMessage(fields, "icinga"));
 }
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
-  CONTEXT("GELF Processing state change '" + checkable->GetName() + "'");
+	CONTEXT("GELF Processing state change '" + checkable->GetName() + "'");
 
-  Host::Ptr host;
-  Service::Ptr service;
-  tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
-  Dictionary::Ptr fields = make_shared<Dictionary>();
-  fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
-  fields->Set("_type", "STATE CHANGE");
-  fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
-  fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
+	Dictionary::Ptr fields = new Dictionary();
+	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+	fields->Set("_type", "STATE CHANGE");
+	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
+	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
 
-  if (service) {
-    fields->Set("_last_state", service->GetLastState());
-    fields->Set("_last_hard_state", service->GetLastHardState());
-  } else {
-    fields->Set("_last_state", host->GetLastState());
-    fields->Set("_last_hard_state", host->GetLastHardState());
-  }
+	if (service) {
+		fields->Set("_last_state", service->GetLastState());
+		fields->Set("_last_hard_state", service->GetLastHardState());
+	} else {
+		fields->Set("_last_state", host->GetLastState());
+		fields->Set("_last_hard_state", host->GetLastHardState());
+	}
 
-  if (cr) {
-    fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-    fields->Set("full_message", CompatUtility::GetCheckResultLongOutput(cr));
-    fields->Set("_check_source", cr->GetCheckSource());
-  }
+	if (cr) {
+		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+		fields->Set("full_message", CompatUtility::GetCheckResultLongOutput(cr));
+		fields->Set("_check_source", cr->GetCheckSource());
+	}
 
-  SendLogMessage(ComposeGelfMessage(fields, "icinga"));
+	SendLogMessage(ComposeGelfMessage(fields, "icinga"));
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source)
 {
-  fields->Set("version", "1.1");
-  fields->Set("host", source);
-  fields->Set("timestamp", Utility::GetTime());
+	fields->Set("version", "1.1");
+	fields->Set("host", source);
+	fields->Set("timestamp", Utility::GetTime());
 
-  return JsonEncode(fields);
+	return JsonEncode(fields);
 }
 
 void GelfWriter::SendLogMessage(const String& gelf)
 {
-  std::ostringstream msgbuf;
-  msgbuf << gelf;
-  msgbuf << '\0';
+	std::ostringstream msgbuf;
+	msgbuf << gelf;
+	msgbuf << '\0';
 
-  String log = msgbuf.str();
+	String log = msgbuf.str();
 
-  ObjectLock olock(this);
+	ObjectLock olock(this);
 
-  if (!m_Stream)
-    return;
+	if (!m_Stream)
+		return;
 
-  try {
-    m_Stream->Write(log.CStr(), log.GetLength());
-  } catch (const std::exception& ex) {
-    Log(LogCritical, "GelfWriter")
-        << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+	try {
+		m_Stream->Write(log.CStr(), log.GetLength());
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "GelfWriter")
+		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-    m_Stream.reset();
-  }
+		m_Stream.reset();
+	}
 }
