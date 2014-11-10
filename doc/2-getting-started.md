@@ -1038,6 +1038,8 @@ There is a new upgrade file called `2.1.0.sql` which must be applied to your IDO
 The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
 database credentials in this file.
+All available attributes are listed in the
+[IdoMysqlConnection object][#objecttype-idomysqlconnection] configuration details.
 
 You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
@@ -1149,6 +1151,8 @@ There is a new upgrade file called `2.1.0.sql` which must be applied to your IDO
 The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
 database credentials in this file.
+All available attributes are listed in the
+[IdoPgsqlConnection object][#objecttype-idopgsqlconnection] configuration details.
 
 You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
