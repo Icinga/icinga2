@@ -82,6 +82,7 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 	DbQuery query1;
 	query1.Table = "endpointstatus";
 	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatState;
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("is_connected", (connected ? 1 : 0));
@@ -114,6 +115,7 @@ void EndpointDbObject::OnConfigUpdate(void)
 	DbQuery query1;
 	query1.Table = "endpointstatus";
 	query1.Type = DbQueryInsert;
+	query1.Category = DbCatConfig;
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("identity", endpoint->GetName());

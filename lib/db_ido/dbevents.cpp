@@ -98,6 +98,7 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double n
 		query1.Table = "hoststatus";
 
 	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatState;
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("next_check", DbValue::FromTimestamp(nextCheck));
@@ -128,6 +129,7 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingS
 		query1.Table = "hoststatus";
 
 	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatState;
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(checkable));
@@ -163,6 +165,7 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 		query1.Table = "hoststatus";
 
 	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatState;
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("last_notification", DbValue::FromTimestamp(now_bag.first));
@@ -221,6 +224,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, boo
 		query1.Table = "hoststatus";
 
 	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatState;
 
 	Dictionary::Ptr fields1 = new Dictionary();
 
