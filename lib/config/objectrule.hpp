@@ -39,14 +39,13 @@ public:
 	typedef std::map<String, std::vector<ObjectRule> > RuleMap;
 
 	String GetName(void) const;
-	Expression::Ptr GetExpression(void) const;
 	Expression::Ptr GetFilter(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Object::Ptr GetScope(void) const;
 
 	bool EvaluateFilter(const Object::Ptr& scope) const;
 
-	static void AddRule(const String& sourceType, const String& name, const Expression::Ptr& expression,
+	static void AddRule(const String& sourceType, const String& name,
 	    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope);
 	static void EvaluateRules(bool clear);
 
@@ -55,7 +54,6 @@ public:
 
 private:
 	String m_Name;
-	Expression::Ptr m_Expression;
 	Expression::Ptr m_Filter;
 	DebugInfo m_DebugInfo;
 	Object::Ptr m_Scope;
@@ -63,8 +61,8 @@ private:
 	static CallbackMap m_Callbacks;
 	static RuleMap m_Rules;
 
-	ObjectRule(const String& name, const Expression::Ptr& expression,
-	    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope);
+	ObjectRule(const String& name, const Expression::Ptr& filter,
+	    const DebugInfo& di, const Object::Ptr& scope);
 };
 
 }

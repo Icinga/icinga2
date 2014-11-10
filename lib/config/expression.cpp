@@ -536,7 +536,8 @@ Value Expression::OpObject(const Expression* expr, const Object::Ptr& context, D
 	item->SetZone(zone);
 	item->Compile()->Register();
 
-	ObjectRule::AddRule(type, name, exprl, filter, expr->m_DebugInfo, context);
+	if (ObjectRule::IsValidSourceType(type))
+		ObjectRule::AddRule(type, name, filter, expr->m_DebugInfo, context);
 
 	return Empty;
 }

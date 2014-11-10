@@ -26,19 +26,14 @@ using namespace icinga;
 ObjectRule::RuleMap ObjectRule::m_Rules;
 ObjectRule::CallbackMap ObjectRule::m_Callbacks;
 
-ObjectRule::ObjectRule(const String& name, const Expression::Ptr& expression,
-    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope)
-	: m_Name(name), m_Expression(expression), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
+ObjectRule::ObjectRule(const String& name, const Expression::Ptr& filter,
+    const DebugInfo& di, const Object::Ptr& scope)
+	: m_Name(name), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
 { }
 
 String ObjectRule::GetName(void) const
 {
 	return m_Name;
-}
-
-Expression::Ptr ObjectRule::GetExpression(void) const
-{
-	return m_Expression;
 }
 
 Expression::Ptr ObjectRule::GetFilter(void) const
@@ -57,10 +52,9 @@ Object::Ptr ObjectRule::GetScope(void) const
 }
 
 void ObjectRule::AddRule(const String& sourceType, const String& name,
-    const Expression::Ptr& expression, const Expression::Ptr& filter,
-    const DebugInfo& di, const Object::Ptr& scope)
+    const Expression::Ptr& filter, const DebugInfo& di, const Object::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ObjectRule(name, expression, filter, di, scope));
+	m_Rules[sourceType].push_back(ObjectRule(name, filter, di, scope));
 }
 
 bool ObjectRule::EvaluateFilter(const Object::Ptr& scope) const
