@@ -79,6 +79,9 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 {
 	CONTEXT("GELF Processing check result for '" + checkable->GetName() + "'");
 
+	Log(LogDebug, "GelfWriter")
+	    << "GELF Processing check result for '" << checkable->GetName() << "'";
+
 	Dictionary::Ptr fields = new Dictionary();
 	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 	Host::Ptr host;
@@ -94,7 +97,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	fields->Set("short_message", cr->GetOutput());
 	fields->Set("_type", "CHECK RESULT");
 
-	SendLogMessage(ComposeGelfMessage(fields, "icinga"));
+	SendLogMessage(ComposeGelfMessage(fields, GetSource()));
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
@@ -134,7 +137,7 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 	fields->Set("_state", notification_type_str);
 	fields->Set("_comment", author_comment);
 
-	SendLogMessage(ComposeGelfMessage(fields, "icinga"));
+	SendLogMessage(ComposeGelfMessage(fields, GetSource()));
 }
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
@@ -165,7 +168,7 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 		fields->Set("_check_source", cr->GetCheckSource());
 	}
 
-	SendLogMessage(ComposeGelfMessage(fields, "icinga"));
+	SendLogMessage(ComposeGelfMessage(fields, GetSource()));
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source)
