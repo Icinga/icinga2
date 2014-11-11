@@ -2,3 +2,6 @@
 *.komodoproject
 .*.swp
 .*.swo
+build/
+build-debug/
+build-release/
