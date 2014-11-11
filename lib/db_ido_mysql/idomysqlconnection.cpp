@@ -628,8 +628,6 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			hasid = GetConfigUpdate(query.Object);
 		else if (query.StatusUpdate)
 			hasid = GetStatusUpdate(query.Object);
-		else
-			ASSERT(!"Invalid query flags.");
 
 		if (!hasid)
 			upsert = true;
@@ -703,14 +701,12 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		return;
 	}
 
-	if (query.Object) {
-		if (query.ConfigUpdate)
-			SetConfigUpdate(query.Object, true);
-		else if (query.StatusUpdate)
-			SetStatusUpdate(query.Object, true);
-
-		if (type == DbQueryInsert && query.ConfigUpdate)
+	if (type == DbQueryInsert && query.Object) {
+		if (query.ConfigUpdate) {
 			SetInsertID(query.Object, GetLastInsertID());
+			SetConfigUpdate(query.Object, true);
+		} else if (query.StatusUpdate)
+			SetStatusUpdate(query.Object, true);
 	}
 
 	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name

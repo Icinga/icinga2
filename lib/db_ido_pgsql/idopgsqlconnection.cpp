@@ -698,20 +698,18 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		return;
 	}
 
-	if (query.Object) {
-		if (query.ConfigUpdate)
-			SetConfigUpdate(query.Object, true);
-		else if (query.StatusUpdate)
-			SetStatusUpdate(query.Object, true);
-
-		if (type == DbQueryInsert && query.ConfigUpdate) {
+	if (type == DbQueryInsert && query.Object) {
+		if (query.ConfigUpdate) {
 			String idField = query.IdColumn;
 
 			if (idField.IsEmpty())
 				idField = query.Table.SubStr(0, query.Table.GetLength() - 1) + "_id";
 
 			SetInsertID(query.Object, GetSequenceValue(GetTablePrefix() + query.Table, idField));
-		}
+
+			SetConfigUpdate(query.Object, true);
+		} else if (query.StatusUpdate)
+			SetStatusUpdate(query.Object, true);
 	}
 
 	if (type == DbQueryInsert && query.Table == "notifications" && query.NotificationObject) { // FIXME remove hardcoded table name

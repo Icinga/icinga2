@@ -97,8 +97,10 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double n
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryUpdate;
+	query1.Type = DbQueryInsert | DbQueryUpdate;
 	query1.Category = DbCatState;
+	query1.StatusUpdate = true;
+	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("next_check", DbValue::FromTimestamp(nextCheck));
@@ -128,8 +130,10 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingS
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryUpdate;
+	query1.Type = DbQueryInsert | DbQueryUpdate;
 	query1.Category = DbCatState;
+	query1.StatusUpdate = true;
+	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(checkable));
@@ -164,8 +168,10 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryUpdate;
+	query1.Type = DbQueryInsert | DbQueryUpdate;
 	query1.Category = DbCatState;
+	query1.StatusUpdate = true;
+	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("last_notification", DbValue::FromTimestamp(now_bag.first));
@@ -223,8 +229,10 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, boo
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryUpdate;
+	query1.Type = DbQueryInsert | DbQueryUpdate;
 	query1.Category = DbCatState;
+	query1.StatusUpdate = true;
+	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
 
@@ -618,7 +626,10 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 	else
 		query4.Table = "hoststatus";
 
-	query4.Type = DbQueryUpdate;
+	query4.Type = DbQueryInsert | DbQueryUpdate;
+	query4.Category = DbCatState;
+	query4.StatusUpdate = true;
+	query4.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields4 = new Dictionary();
 	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
@@ -707,8 +718,10 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryUpdate;
-	query1.Category = DbCatAcknowledgement;
+	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Category = DbCatState;
+	query1.StatusUpdate = true;
+	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("acknowledgement_type", type);
