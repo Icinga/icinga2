@@ -17,26 +17,49 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-%type PerfdataWriter {
-	%attribute %string "host_perfdata_path",
-	%attribute %string "service_perfdata_path",
-	%attribute %string "host_temp_path",
-	%attribute %string "service_temp_path",
-	%attribute %string "host_format_template",
-	%attribute %string "service_format_template",
-	%attribute %number "rotation_interval"
+#ifndef GELFWRITER_H
+#define GELFWRITER_H
+
+#include "perfdata/gelfwriter.thpp"
+#include "icinga/service.hpp"
+#include "base/dynamicobject.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/timer.hpp"
+#include <fstream>
+
+namespace icinga
+{
+
+/**
+ * An Icinga gelf writer.
+ *
+ * @ingroup perfdata
+ */
+class GelfWriter : public ObjectImpl<GelfWriter>
+{
+public:
+	DECLARE_OBJECT(GelfWriter);
+	DECLARE_OBJECTNAME(GelfWriter);
+
+protected:
+	virtual void Start(void);
+
+private:
+	Stream::Ptr m_Stream;
+	
+	Timer::Ptr m_ReconnectTimer;
+
+	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+  void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
+    const String& author, const String& comment_text, const String& command_name);
+  String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source);
+  void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+  void SendLogMessage(const String& gelf);
+
+	void ReconnectTimerHandler(void);
+};
+
 }
 
-%type GraphiteWriter {
-	%attribute %string "host",
-	%attribute %string "port",
-	%attribute %string "host_name_template",
-	%attribute %string "service_name_template"
-}
-
-%type GelfWriter {
-        %attribute %string "host",
-        %attribute %string "port",
-        %attribute %string "source"
-}
-
+#endif /* GELFWRITER_H */

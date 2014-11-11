@@ -62,6 +62,8 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * schema files in `lib/db_ido_{mysql,pgsql}/schema` (source)
     * Table `programstatus`: New column `program_version`
     * Table `customvariables` and `customvariablestatus`: New column `is_json` (required for custom attribute array/dictionary support)
+* New features
+    * [GelfWriter](#gelfwriter): Logging check results, state changes, notifications to GELF (graylog2, logstash) #7619
 * New CLI commands #7245
     * `icinga2 feature {enable,disable}` replaces `icinga2-{enable,disable}-feature` script  #7250
     * `icinga2 object list` replaces `icinga2-list-objects` script  #7251
@@ -161,6 +163,12 @@ In Icinga2, the 'Livestatus' protocol is available for use as either a UNIX, or 
 Icinga 2 still supports writing performance data files for graphing addons, but also adds the
 capability of writing performance data directly into a Graphite TCP socket simplifying realtime
 monitoring graphs.
+
+* Native support for writing log events to [GELF](#gelf-writer) receivers (graylog2, Logstash)
+
+Icinga 2 will write all check result, state change and notification event logs into a defined
+[GELF](#gelfwriter) input receiver. Natively provided by [graylog2](http://www.graylog2.org),
+and as additional input type provided by [Logstash](http://logstash.net).
 
 * Dynamic configuration language
 

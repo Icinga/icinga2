@@ -17,26 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-%type PerfdataWriter {
-	%attribute %string "host_perfdata_path",
-	%attribute %string "service_perfdata_path",
-	%attribute %string "host_temp_path",
-	%attribute %string "service_temp_path",
-	%attribute %string "host_format_template",
-	%attribute %string "service_format_template",
-	%attribute %number "rotation_interval"
-}
+#include "base/dynamicobject.hpp"
 
-%type GraphiteWriter {
-	%attribute %string "host",
-	%attribute %string "port",
-	%attribute %string "host_name_template",
-	%attribute %string "service_name_template"
-}
+namespace icinga
+{
 
-%type GelfWriter {
-        %attribute %string "host",
-        %attribute %string "port",
-        %attribute %string "source"
-}
+class GelfWriter : DynamicObject
+{
+	[config] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config] String port {
+		default {{{ return "12201"; }}}
+	};
+	[config] String source {
+		default {{{ return "icinga2"; }}}
+	};
+};
 
+}

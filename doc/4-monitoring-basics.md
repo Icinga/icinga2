@@ -2171,7 +2171,7 @@ You can enable the feature using
     # icinga2 feature enable graphite
 
 By default the `GraphiteWriter` object expects the Graphite Carbon Cache to listen at
-`127.0.0.1` on port `2003`.
+`127.0.0.1` on TCP port `2003`.
 
 The current naming schema is
 
@@ -2227,6 +2227,29 @@ Cache. Please make sure that the order is correct because the first match wins.
     # intervals like PNP4Nagios uses them per default
     pattern = ^icinga\.
     retentions = 1m:2d,5m:10d,30m:90d,360m:4y
+
+### <a id="gelfwriter"></a> GELF Writer
+
+The `Graylog Extended Log Format` (short: [GELF](http://www.graylog2.org/resources/gelf))
+can be used to send application logs directly to a TCP socket.
+
+While it has been specified by the [graylog2](http://www.graylog2.org/) project as their
+[input resource standard](http://www.graylog2.org/resources/gelf), other tools such as
+[Logstash](http://www.logstash.net) also support `GELF` as
+[input type](http://logstash.net/docs/latest/inputs/gelf).
+
+You can enable the feature using
+
+    # icinga2 feature enable gelf
+
+By default the `GelfWriter` object expects the GELF receiver to listen at `127.0.0.1` on TCP port `12201`.
+The default `source`  attribute is set to `icinga2`. You can customize that for your needs if required.
+
+Currently these events are processed:
+* Check results
+* State changes
+* Notifications
+
 
 ## <a id="status-data"></a> Status Data
 

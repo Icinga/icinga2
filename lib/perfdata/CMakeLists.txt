@@ -15,13 +15,14 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
+mkclass_target(gelfwriter.ti gelfwriter.thpp)
 mkclass_target(graphitewriter.ti graphitewriter.thpp)
 mkclass_target(perfdatawriter.ti perfdatawriter.thpp)
 
 mkembedconfig_target(perfdata-type.conf perfdata-type.cpp)
 
 set(perfdata_SOURCES
-  graphitewriter.cpp graphitewriter.thpp perfdatawriter.cpp perfdatawriter.thpp perfdata-type.cpp
+  gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp perfdatawriter.cpp perfdatawriter.thpp perfdata-type.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
