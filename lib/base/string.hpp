@@ -161,37 +161,37 @@ public:
 		return m_Data;
 	}
 
-	inline SizeType Find(const String& str, SizeType pos) const
+	inline SizeType Find(const String& str, SizeType pos = 0) const
 	{
 		return m_Data.find(str, pos);
 	}
 
-	inline SizeType RFind(const String& str, SizeType pos) const
+	inline SizeType RFind(const String& str, SizeType pos = NPos) const
 	{
 		return m_Data.rfind(str, pos);
 	}
 
-	inline SizeType FindFirstOf(const char *s, SizeType pos) const
+	inline SizeType FindFirstOf(const char *s, SizeType pos = 0) const
 	{
 		return m_Data.find_first_of(s, pos);
 	}
 
-	inline SizeType FindFirstOf(char ch, SizeType pos) const
+	inline SizeType FindFirstOf(char ch, SizeType pos = 0) const
 	{
 		return m_Data.find_first_of(ch, pos);
 	}
 
-	inline SizeType FindFirstNotOf(const char *s, SizeType pos) const
+	inline SizeType FindFirstNotOf(const char *s, SizeType pos = 0) const
 	{
 		return m_Data.find_first_not_of(s, pos);
 	}
 
-	inline SizeType FindFirstNotOf(char ch, SizeType pos) const
+	inline SizeType FindFirstNotOf(char ch, SizeType pos = 0) const
 	{
 		return m_Data.find_first_not_of(ch, pos);
 	}
 
-	inline String SubStr(SizeType first, SizeType len) const
+	inline String SubStr(SizeType first, SizeType len = NPos) const
 	{
 		return m_Data.substr(first, len);
 	}
