@@ -133,7 +133,6 @@ private:
 #endif /* SPIN_PAUSE */
 		else {
 #ifdef _WIN32
-			DebugBreak();
 			Sleep(0);
 #else /* _WIN32 */
 			sched_yield();
