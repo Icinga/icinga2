@@ -56,11 +56,11 @@
 #	pragma warning(disable:4251)
 #	pragma warning(disable:4275)
 #	pragma warning(disable:4345)
+#else /* _MSC_VER */
+#	ifndef NDEBUG
+#		define _DEBUG
+#	endif /* NDEBUG */
 #endif /* _MSC_VER */
-
-#ifndef NDEBUG
-#	define _DEBUG
-#endif /* NDEBUG */
 
 #include "config.h"
 
