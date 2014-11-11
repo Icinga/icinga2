@@ -49,14 +49,37 @@ enum ValueType
 class I2_BASE_API Value
 {
 public:
-	Value(void);
-	Value(int value);
-	Value(unsigned int value);
-	Value(long value);
-	Value(unsigned long value);
-	Value(double value);
-	Value(const String& value);
-	Value(const char *value);
+	inline Value(void)
+		: m_Value()
+	{ }
+
+	inline Value(int value)
+		: m_Value(double(value))
+	{ }
+
+	inline Value(unsigned int value)
+		: m_Value(double(value))
+	{ }
+
+	inline Value(long value)
+		: m_Value(double(value))
+	{ }
+
+	inline Value(unsigned long value)
+		: m_Value(double(value))
+	{ }
+
+	inline Value(double value)
+		: m_Value(value)
+	{ }
+
+	inline Value(const String& value)
+		: m_Value(value)
+	{ }
+
+	inline Value(const char *value)
+		: m_Value(String(value))
+	{ }
 
 	inline Value(Object *value)
 		: m_Value()
@@ -121,11 +144,55 @@ public:
 		return tobject;
 	}
 
-	bool IsEmpty(void) const;
-	bool IsScalar(void) const;
-	bool IsNumber(void) const;
-	bool IsString(void) const;
-	bool IsObject(void) const;
+	/**
+	* Checks whether the variant is empty.
+	*
+	* @returns true if the variant is empty, false otherwise.
+	*/
+	inline bool IsEmpty(void) const
+	{
+		return (GetType() == ValueEmpty);
+	}
+
+	/**
+	* Checks whether the variant is scalar (i.e. not an object and not empty).
+	*
+	* @returns true if the variant is scalar, false otherwise.
+	*/
+	inline bool IsScalar(void) const
+	{
+		return !IsEmpty() && !IsObject();
+	}
+
+	/**
+	* Checks whether the variant is a number.
+	*
+	* @returns true if the variant is a number.
+	*/
+	inline bool IsNumber(void) const
+	{
+		return (GetType() == ValueNumber);
+	}
+
+	/**
+	* Checks whether the variant is a string.
+	*
+	* @returns true if the variant is a string.
+	*/
+	inline bool IsString(void) const
+	{
+		return (GetType() == ValueString);
+	}
+
+	/**
+	* Checks whether the variant is a non-null object.
+	*
+	* @returns true if the variant is a non-null object, false otherwise.
+	*/
+	inline bool IsObject(void) const
+	{
+		return !IsEmpty() && (GetType() == ValueObject);
+	}
 
 	template<typename T>
 	bool IsObjectType(void) const
@@ -136,11 +203,26 @@ public:
 		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)) != NULL);
 	}
 
-	ValueType GetType(void) const;
+	/**
+	* Returns the type of the value.
+	*
+	* @returns The type.
+	*/
+	ValueType GetType(void) const
+	{
+		return static_cast<ValueType>(m_Value.which());
+	}
+
 	String GetTypeName(void) const;
 
 private:
 	boost::variant<boost::blank, double, String, Object::Ptr> m_Value;
+
+	template<typename T>
+	const T& Get(void) const
+	{
+		return boost::get<T>(m_Value);
+	}
 };
 
 static Value Empty;

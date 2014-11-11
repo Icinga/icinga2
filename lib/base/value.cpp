@@ -26,88 +26,6 @@ using namespace icinga;
 
 Value Empty;
 
-Value::Value(void)
-    : m_Value()
-{ }
-
-Value::Value(int value)
-    : m_Value(double(value))
-{ }
-
-Value::Value(unsigned int value)
-    : m_Value(double(value))
-{ }
-
-Value::Value(long value)
-    : m_Value(double(value))
-{ }
-
-Value::Value(unsigned long value)
-    : m_Value(double(value))
-{ }
-
-Value::Value(double value)
-    : m_Value(value)
-{ }
-
-Value::Value(const String& value)
-    : m_Value(value)
-{ }
-
-Value::Value(const char *value)
-    : m_Value(String(value))
-{ }
-
-/**
- * Checks whether the variant is empty.
- *
- * @returns true if the variant is empty, false otherwise.
- */
-bool Value::IsEmpty(void) const
-{
-	return (GetType() == ValueEmpty);
-}
-
-/**
- * Checks whether the variant is scalar (i.e. not an object and not empty).
- *
- * @returns true if the variant is scalar, false otherwise.
- */
-bool Value::IsScalar(void) const
-{
-	return !IsEmpty() && !IsObject();
-}
-
-/**
- * Checks whether the variant is a number.
- *
- * @returns true if the variant is a number.
- */
-bool Value::IsNumber(void) const
-{
-	return (GetType() == ValueNumber);
-}
-
-/**
- * Checks whether the variant is a string.
- *
- * @returns true if the variant is a string.
- */
-bool Value::IsString(void) const
-{
-	return (GetType() == ValueString);
-}
-
-/**
- * Checks whether the variant is a non-null object.
- *
- * @returns true if the variant is a non-null object, false otherwise.
- */
-bool Value::IsObject(void) const
-{
-	return !IsEmpty() && (GetType() == ValueObject);
-}
-
 bool Value::ToBool(void) const
 {
 	switch (GetType()) {
@@ -134,16 +52,6 @@ bool Value::ToBool(void) const
 		default:
 			BOOST_THROW_EXCEPTION(std::runtime_error("Invalid variant type."));
 	}
-}
-
-/**
- * Returns the type of the value.
- *
- * @returns The type.
- */
-ValueType Value::GetType(void) const
-{
-	return static_cast<ValueType>(m_Value.which());
 }
 
 String Value::GetTypeName(void) const
