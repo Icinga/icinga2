@@ -254,6 +254,7 @@ void DbObject::SendVarsStatusUpdate(void)
 			query.Table = "customvariablestatus";
 			query.Type = DbQueryInsert | DbQueryUpdate;
 			query.Category = DbCatState;
+			query.StatusUpdate = true;
 			query.Fields = fields;
 
 			query.WhereCriteria = new Dictionary();

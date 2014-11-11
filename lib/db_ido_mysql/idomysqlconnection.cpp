@@ -39,6 +39,10 @@ using namespace icinga;
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
 
+IdoMysqlConnection::IdoMysqlConnection(void) 
+	: m_Connected(false) 
+{ }
+
 Value IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();

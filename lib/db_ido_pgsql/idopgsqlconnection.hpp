@@ -42,6 +42,8 @@ public:
 	DECLARE_OBJECT(IdoPgsqlConnection);
 	DECLARE_OBJECTNAME(IdoPgsqlConnection);
 
+    IdoPgsqlConnection(void);
+    
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:

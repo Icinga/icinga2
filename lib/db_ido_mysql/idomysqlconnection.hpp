@@ -42,6 +42,8 @@ public:
 	DECLARE_OBJECT(IdoMysqlConnection);
 	DECLARE_OBJECTNAME(IdoMysqlConnection);
 
+	IdoMysqlConnection(void);
+
 	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:

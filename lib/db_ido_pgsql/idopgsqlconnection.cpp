@@ -41,6 +41,10 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
 
+IdoPgsqlConnection::IdoPgsqlConnection(void) 
+	: m_Connection(NULL)
+{ }
+
 Value IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
