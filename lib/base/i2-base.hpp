@@ -58,6 +58,10 @@
 #	pragma warning(disable:4345)
 #endif /* _MSC_VER */
 
+#ifndef NDEBUG
+#	define _DEBUG
+#endif /* NDEBUG */
+
 #include "config.h"
 
 #ifdef _WIN32
