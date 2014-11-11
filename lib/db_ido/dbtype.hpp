@@ -86,27 +86,6 @@ public:
 };
 
 /**
- * Helper class for registering DynamicObject implementation classes.
- *
- * @ingroup ido
- */
-class RegisterDbTypeHelper
-{
-public:
-	RegisterDbTypeHelper(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
-	{
-		DbType::Ptr dbtype;
-
-		dbtype = DbType::GetByID(tid);
-
-		if (!dbtype)
-			dbtype = new DbType(table, tid, idcolumn, factory);
-
-		DbType::RegisterType(name, dbtype);
-	}
-};
-
-/**
  * Factory function for DbObject-based classes.
  *
  * @ingroup ido
@@ -118,7 +97,14 @@ intrusive_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, c
 }
 
 #define REGISTER_DBTYPE(name, table, tid, idcolumn, type) \
-	I2_EXPORT icinga::RegisterDbTypeHelper g_RegisterDBT_ ## name(#name, table, tid, idcolumn, DbObjectFactory<type>);
+	namespace { namespace UNIQUE_NAME(ido) { namespace ido ## name { \
+		void RegisterDbType(void) \
+		{ \
+			DbType::Ptr dbtype = new DbType(table, tid, idcolumn, DbObjectFactory<type>); \
+			DbType::RegisterType(#name, dbtype); \
+		} \
+		INITIALIZE_ONCE(RegisterDbType); \
+	} } }
 
 }
 

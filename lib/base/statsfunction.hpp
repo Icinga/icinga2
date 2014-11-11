@@ -61,19 +61,15 @@ public:
 	static StatsFunctionRegistry *GetInstance(void);
 };
 
-/**
- * Helper class for registering StatsFunction implementation classes.
- *
- * @ingroup base
- */
-class I2_BASE_API RegisterStatsFunctionHelper
-{
-public:
-	RegisterStatsFunctionHelper(const String& name, const StatsFunction::Callback& function);
-};
-
 #define REGISTER_STATSFUNCTION(name, callback) \
-	I2_EXPORT icinga::RegisterStatsFunctionHelper g_RegisterStF_ ## name(#name, callback)
+	namespace { namespace UNIQUE_NAME(stf) { namespace stf ## name { \
+		void RegisterStatsFunction(void) \
+		{ \
+			StatsFunction::Ptr stf = new StatsFunction(callback); \
+			StatsFunctionRegistry::GetInstance()->Register(#name, stf); \
+		} \
+		INITIALIZE_ONCE(RegisterStatsFunction); \
+	} } }
 
 }
 

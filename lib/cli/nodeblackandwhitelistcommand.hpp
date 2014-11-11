@@ -21,6 +21,7 @@
 #define BLACKANDWHITELISTCOMMAND_H
 
 #include "cli/clicommand.hpp"
+#include <boost/algorithm/string/case_conv.hpp>
 
 namespace icinga
 {
@@ -55,21 +56,27 @@ private:
 	BlackAndWhitelistCommandType m_Command;
 };
 
-/**
- * Helper class for registering repository CLICommand implementation classes.
- *
- * @ingroup cli
- */
-class I2_CLI_API RegisterBlackAndWhitelistCLICommandHelper
-{
-public:
-	RegisterBlackAndWhitelistCLICommandHelper(const String& type);
-};
-
 #define REGISTER_BLACKANDWHITELIST_CLICOMMAND(type) \
-	namespace { namespace UNIQUE_NAME(blackandwhitelist) { \
-		I2_EXPORT icinga::RegisterBlackAndWhitelistCLICommandHelper l_RegisterBlackAndWhitelistCLICommand_ ## type(#type); \
-	} }
+	namespace { namespace UNIQUE_NAME(blackandwhitelist) { namespace blackandwhitelist ## type { \
+		void RegisterCommand(void) \
+		{ \
+			String ltype = #type; \
+			boost::algorithm::to_lower(ltype); \
+\
+			std::vector<String> name; \
+			name.push_back("node"); \
+			name.push_back(ltype); \
+			name.push_back("add"); \
+			CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandAdd)); \
+\
+			name[2] = "remove"; \
+			CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandRemove)); \
+\
+			name[2] = "list"; \
+			CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandList)); \
+		} \
+		INITIALIZE_ONCE(RegisterCommand); \
+	} } }
 
 }
 

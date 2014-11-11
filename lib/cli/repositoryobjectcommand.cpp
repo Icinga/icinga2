@@ -23,8 +23,6 @@
 #include "base/application.hpp"
 #include "base/utility.hpp"
 #include <boost/foreach.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -35,24 +33,6 @@ REGISTER_REPOSITORY_CLICOMMAND(Host);
 REGISTER_REPOSITORY_CLICOMMAND(Service);
 REGISTER_REPOSITORY_CLICOMMAND(Zone);
 REGISTER_REPOSITORY_CLICOMMAND(Endpoint);
-
-RegisterRepositoryCLICommandHelper::RegisterRepositoryCLICommandHelper(const String& type)
-{
-	String ltype = type;
-	boost::algorithm::to_lower(ltype);
-
-	std::vector<String> name;
-	name.push_back("repository");
-	name.push_back(ltype);
-	name.push_back("add");
-	CLICommand::Register(name, new RepositoryObjectCommand(type, RepositoryCommandAdd));
-
-	name[2] = "remove";
-	CLICommand::Register(name, new RepositoryObjectCommand(type, RepositoryCommandRemove));
-
-	name[2] = "list";
-	CLICommand::Register(name, new RepositoryObjectCommand(type, RepositoryCommandList));
-}
 
 RepositoryObjectCommand::RepositoryObjectCommand(const String& type, RepositoryCommandType command)
 	: m_Type(type), m_Command(command)

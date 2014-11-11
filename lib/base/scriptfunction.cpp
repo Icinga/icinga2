@@ -52,8 +52,4 @@ void ScriptFunction::Unregister(const String& name)
 	ScriptVariable::Unregister(name);
 }
 
-RegisterFunctionHelper::RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function)
-{
-	ScriptFunction::Register(name, new ScriptFunction(function));
-}
 

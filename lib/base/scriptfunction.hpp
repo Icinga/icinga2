@@ -53,19 +53,14 @@ private:
 	Callback m_Callback;
 };
 
-/**
- * Helper class for registering ScriptFunction implementation classes.
- *
- * @ingroup base
- */
-class I2_BASE_API RegisterFunctionHelper
-{
-public:
-	RegisterFunctionHelper(const String& name, const ScriptFunction::Callback& function);
-};
-
 #define REGISTER_SCRIPTFUNCTION(name, callback) \
-	I2_EXPORT icinga::RegisterFunctionHelper g_RegisterSF_ ## name(#name, WrapScriptFunction(callback))
+	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## name { \
+		void RegisterFunction(void) { \
+			ScriptFunction::Ptr sf = new icinga::ScriptFunction(WrapScriptFunction(callback)); \
+			ScriptFunction::Register(#name, sf); \
+		} \
+		INITIALIZE_ONCE(RegisterFunction); \
+	} } }
 
 }
 

@@ -78,7 +78,14 @@ public:
 };
 
 #define REGISTER_APIFUNCTION(name, ns, callback) \
-	I2_EXPORT icinga::RegisterApiFunctionHelper g_RegisterAF_ ## name(#ns "::" #name, callback)
+	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
+		void RegisterFunction(void) \
+		{ \
+			ApiFunction::Ptr func = new ApiFunction(callback); \
+			ApiFunctionRegistry::GetInstance()->Register(#ns "::" #name, func); \
+		} \
+		INITIALIZE_ONCE(RegisterFunction); \
+	} } }
 
 }
 

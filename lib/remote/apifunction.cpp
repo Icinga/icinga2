@@ -31,12 +31,6 @@ Value ApiFunction::Invoke(const MessageOrigin& origin, const Dictionary::Ptr& ar
 	return m_Callback(origin, arguments);
 }
 
-RegisterApiFunctionHelper::RegisterApiFunctionHelper(const String& name, const ApiFunction::Callback& function)
-{
-	ApiFunction::Ptr func = new ApiFunction(function);
-	ApiFunctionRegistry::GetInstance()->Register(name, func);
-}
-
 ApiFunction::Ptr ApiFunction::GetByName(const String& name)
 {
 	return ApiFunctionRegistry::GetInstance()->GetItem(name);

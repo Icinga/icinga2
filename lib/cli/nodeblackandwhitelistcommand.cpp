@@ -24,7 +24,6 @@
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/foreach.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -33,24 +32,6 @@ namespace po = boost::program_options;
 
 REGISTER_BLACKANDWHITELIST_CLICOMMAND(whitelist);
 REGISTER_BLACKANDWHITELIST_CLICOMMAND(blacklist);
-
-RegisterBlackAndWhitelistCLICommandHelper::RegisterBlackAndWhitelistCLICommandHelper(const String& type)
-{
-	String ltype = type;
-	boost::algorithm::to_lower(ltype);
-
-	std::vector<String> name;
-	name.push_back("node");
-	name.push_back(ltype);
-	name.push_back("add");
-	CLICommand::Register(name, new BlackAndWhitelistCommand(type, BlackAndWhitelistCommandAdd));
-
-	name[2] = "remove";
-	CLICommand::Register(name, new BlackAndWhitelistCommand(type, BlackAndWhitelistCommandRemove));
-
-	name[2] = "list";
-	CLICommand::Register(name, new BlackAndWhitelistCommand(type, BlackAndWhitelistCommandList));
-}
 
 BlackAndWhitelistCommand::BlackAndWhitelistCommand(const String& type, BlackAndWhitelistCommandType command)
 	: m_Type(type), m_Command(command)

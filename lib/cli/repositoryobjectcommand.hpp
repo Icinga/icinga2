@@ -21,6 +21,7 @@
 #define REPOSITORYOBJECTCOMMAND_H
 
 #include "cli/clicommand.hpp"
+#include <boost/algorithm/string/case_conv.hpp>
 
 namespace icinga
 {
@@ -59,21 +60,27 @@ private:
 	RepositoryCommandType m_Command;
 };
 
-/**
- * Helper class for registering repository CLICommand implementation classes.
- *
- * @ingroup cli
- */
-class I2_CLI_API RegisterRepositoryCLICommandHelper
-{
-public:
-	RegisterRepositoryCLICommandHelper(const String& type);
-};
-
 #define REGISTER_REPOSITORY_CLICOMMAND(type) \
-	namespace { namespace UNIQUE_NAME(repositoryobject) { \
-		I2_EXPORT icinga::RegisterRepositoryCLICommandHelper l_RegisterRepositoryCLICommand_ ## type(#type); \
-	} }
+	namespace { namespace UNIQUE_NAME(repositoryobject) { namespace repositoryobject ## type { \
+		void RegisterCommand(void) \
+		{ \
+			String ltype = #type; \
+			boost::algorithm::to_lower(ltype); \
+\
+			std::vector<String> name; \
+			name.push_back("repository"); \
+			name.push_back(ltype); \
+			name.push_back("add"); \
+			CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandAdd)); \
+\
+			name[2] = "remove"; \
+			CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandRemove)); \
+\
+			name[2] = "list"; \
+			CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandList)); \
+		} \
+		INITIALIZE_ONCE(RegisterCommand); \
+	} } }
 
 }
 

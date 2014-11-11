@@ -26,6 +26,8 @@
 #include "base/type.hpp"
 #include <vector>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 namespace icinga
 {
@@ -84,20 +86,15 @@ private:
 	static std::map<std::vector<String>, CLICommand::Ptr>& GetRegistry(void);
 };
 
-/**
- * Helper class for registering CLICommand implementation classes.
- *
- * @ingroup base
- */
-class I2_CLI_API RegisterCLICommandHelper
-{
-public:
-	RegisterCLICommandHelper(const String& name, const CLICommand::Ptr& command);
-};
-
 #define REGISTER_CLICOMMAND(name, klass) \
 	namespace { namespace UNIQUE_NAME(cli) { \
-		I2_EXPORT icinga::RegisterCLICommandHelper l_RegisterCLICommand(name, new klass()); \
+		void RegisterCommand(void) \
+		{ \
+			std::vector<String> vname; \
+			boost::algorithm::split(vname, name, boost::is_any_of("/")); \
+			CLICommand::Register(vname, new klass()); \
+		} \
+		INITIALIZE_ONCE(RegisterCommand); \
 	} }
 
 }

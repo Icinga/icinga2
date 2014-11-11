@@ -21,10 +21,8 @@
 #include "base/logger.hpp"
 #include "base/type.hpp"
 #include "base/serializer.hpp"
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 #include <algorithm>
@@ -137,13 +135,6 @@ void CLICommand::Unregister(const std::vector<String>& name)
 {
 	boost::mutex::scoped_lock lock(GetRegistryMutex());
 	GetRegistry().erase(name);
-}
-
-RegisterCLICommandHelper::RegisterCLICommandHelper(const String& name, const CLICommand::Ptr& command)
-{
-	std::vector<String> vname;
-	boost::algorithm::split(vname, name, boost::is_any_of("/"));
-	CLICommand::Register(vname, command);
 }
 
 std::vector<String> CLICommand::GetArgumentSuggestions(const String& argument, const String& word) const
