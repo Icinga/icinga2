@@ -71,8 +71,6 @@ private:
 	bool m_Abstract; /**< Whether this is a template. */
 
 	boost::shared_ptr<Expression> m_Expression;
-	std::vector<String> m_ParentNames; /**< The names of parent configuration
-				       items. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Object::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */

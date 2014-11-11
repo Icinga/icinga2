@@ -59,6 +59,11 @@ bool Object::OwnsLock(void) const
 }
 #endif /* _DEBUG */
 
+void Object::InflateMutex(void)
+{
+	m_Mutex.Inflate();
+}
+
 void Object::SetField(int, const Value&)
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));

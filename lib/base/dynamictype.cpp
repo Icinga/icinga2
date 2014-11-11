@@ -28,7 +28,9 @@ using namespace icinga;
 
 DynamicType::DynamicType(const String& name)
 	: m_Name(name)
-{ }
+{
+	InflateMutex();
+}
 
 DynamicType::Ptr DynamicType::GetByName(const String& name)
 {

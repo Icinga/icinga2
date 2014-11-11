@@ -68,8 +68,6 @@ void ConfigType::AddParentRules(std::vector<TypeRuleList::Ptr>& ruleLists, const
 
 	if (parent) {
 		AddParentRules(ruleLists, parent);
-
-		ObjectLock plock(parent);
 		ruleLists.push_back(parent->m_RuleList);
 	}
 }

@@ -67,26 +67,7 @@ public:
 #endif /* _DEBUG */
 	}
 
-	inline void Spin(unsigned int it)
-	{
-		if (it < 8) {
-			/* Do nothing. */
-		}
-#ifdef SPIN_PAUSE
-		else if (it < 16) {
-			SPIN_PAUSE();
-		}
-#endif /* SPIN_PAUSE */
-		else {
-#ifdef _WIN32
-			Sleep(0);
-#else /* _WIN32 */
-			sched_yield();
-#endif /* _WIN32 */
-		}
-	}
-
-	inline void Lock(void)
+	inline void Lock(bool make_native = false)
 	{
 		bool contended = false;
 		unsigned int it = 0;
@@ -111,15 +92,9 @@ public:
 			it++;
 		}
 
-		if (contended)
+		if (contended || make_native)
 			MakeNative();
 	}
-
-	void MakeNative(void);
-	void DestroyNative(void);
-
-	void LockNative(void);
-	void UnlockNative(void);
 
 	inline void Unlock(void)
 	{
@@ -135,9 +110,42 @@ public:
 			UnlockNative();
 	}
 
+	inline void Inflate(void)
+	{
+		Lock(true);
+		Unlock();
+	}
+
 #ifdef _DEBUG
 	static void DebugTimerHandler(void);
 #endif /* _DEBUG */
+
+private:
+	inline void Spin(unsigned int it)
+	{
+		if (it < 8) {
+			/* Do nothing. */
+		}
+#ifdef SPIN_PAUSE
+		else if (it < 16) {
+			SPIN_PAUSE();
+		}
+#endif /* SPIN_PAUSE */
+		else {
+#ifdef _WIN32
+			DebugBreak();
+			Sleep(0);
+#else /* _WIN32 */
+			sched_yield();
+#endif /* _WIN32 */
+		}
+	}
+
+	void MakeNative(void);
+	void DestroyNative(void);
+
+	void LockNative(void);
+	void UnlockNative(void);
 
 private:
 #ifdef _WIN32

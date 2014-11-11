@@ -99,6 +99,8 @@ public:
 	bool OwnsLock(void) const;
 #endif /* _DEBUG */
 
+	void InflateMutex(void);
+
 private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);

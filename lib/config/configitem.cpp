@@ -137,9 +137,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	/* Make sure the type is valid. */
 	Type::Ptr type = Type::GetByName(GetType());
-
-	if (!type || !Type::GetByName("DynamicObject")->IsAssignableFrom(type))
-		BOOST_THROW_EXCEPTION(ConfigError("Type '" + GetType() + "' does not exist."));
+	ASSERT(type && Type::GetByName("DynamicObject")->IsAssignableFrom(type));
 
 	if (IsAbstract())
 		return DynamicObject::Ptr();
@@ -156,6 +154,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	locals->Set("name", m_Name);
 
 	dobj->SetParentScope(locals);
+	locals.reset();
 
 	DebugHint debugHints;
 
@@ -171,7 +170,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	if (discard)
 		m_Expression.reset();
 
-	dobj->SetParentScope(Dictionary::Ptr());
+	dobj->SetParentScope(Object::Ptr());
 
 	String name = m_Name;
 
@@ -199,6 +198,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	persistentItem->Set("debug_hints", debugHints.ToDictionary());
 
 	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
+	persistentItem.reset();
 
 	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
 
