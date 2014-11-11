@@ -81,6 +81,10 @@ public:
 		: m_Value(String(value))
 	{ }
 
+	inline Value(const Value& other)
+		: m_Value(other.m_Value)
+	{ }
+
 	inline Value(Object *value)
 		: m_Value()
 	{
