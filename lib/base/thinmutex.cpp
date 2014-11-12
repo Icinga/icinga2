@@ -52,6 +52,39 @@ static void InitThinMutex(void)
 INITIALIZE_ONCE(&InitThinMutex);
 #endif /* _DEBUG */
 
+void ThinMutex::LockSlowPath(void)
+{
+	LockSlowPath(false);
+}
+
+void ThinMutex::LockSlowPath(bool make_native)
+{
+	unsigned int it = 0;
+
+#ifdef _WIN32
+#	ifdef _WIN64
+	while (InterlockedCompareExchange64(&m_Data, THINLOCK_LOCKED, THINLOCK_UNLOCKED) != THINLOCK_UNLOCKED) {
+#	else /* _WIN64 */
+	while (InterlockedCompareExchange(&m_Data, THINLOCK_LOCKED, THINLOCK_UNLOCKED) != THINLOCK_UNLOCKED) {
+#	endif /* _WIN64 */
+#else /* _WIN32 */
+	while (!__sync_bool_compare_and_swap(&m_Data, THINLOCK_UNLOCKED, THINLOCK_LOCKED)) {
+#endif /* _WIN32 */
+		if (m_Data > THINLOCK_LOCKED) {
+			LockNative();
+			return;
+		}
+
+		make_native = true;
+
+		Spin(it);
+		it++;
+	}
+
+	if (make_native)
+		MakeNative();
+}
+
 void ThinMutex::MakeNative(void)
 {
 	boost::mutex *mtx = new boost::mutex();
