@@ -150,6 +150,9 @@ void Timer::Stop(void)
 {
 	ASSERT(!OwnsLock());
 
+	if (l_StopThread)
+		return;
+
 	boost::mutex::scoped_lock lock(l_Mutex);
 
 	m_Started = false;

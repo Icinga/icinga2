@@ -109,11 +109,19 @@ void Application::Exit(int rc)
 		logger->Flush();
 	}
 
+	UninitializeBase();
+
+#ifdef _DEBUG
+	exit(rc);
+#else /* _DEBUG */
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
+#endif /* _DEBUG */
 }
 
 void Application::InitializeBase(void)
 {
+	Timer::Initialize();
+
 #ifndef _WIN32
 	rlimit rl;
 	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
@@ -144,6 +152,11 @@ void Application::InitializeBase(void)
 #endif /* _WIN32 */
 
 	Utility::ExecuteDeferredInitializers();
+}
+
+void Application::UninitializeBase(void)
+{
+	Timer::Uninitialize();
 }
 
 /**

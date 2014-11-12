@@ -43,6 +43,7 @@ public:
 	~Application(void);
 
 	static void InitializeBase(void);
+	static void UninitializeBase(void);
 
 	static Application::Ptr GetInstance(void);
 

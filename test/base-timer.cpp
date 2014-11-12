@@ -25,20 +25,7 @@
 
 using namespace icinga;
 
-struct TimerFixture
-{
-	TimerFixture(void)
-	{
-		Timer::Initialize();
-	}
-
-	~TimerFixture(void)
-	{
-		Timer::Uninitialize();
-	}
-};
-
-BOOST_FIXTURE_TEST_SUITE(base_timer, TimerFixture)
+BOOST_AUTO_TEST_SUITE(base_timer)
 
 BOOST_AUTO_TEST_CASE(construct)
 {

@@ -31,6 +31,11 @@ struct InitLibBase
 	{
 		Application::InitializeBase();
 	}
+
+	~InitLibBase(void)
+	{
+		Application::UninitializeBase();
+	}
 };
 
 BOOST_GLOBAL_FIXTURE(InitLibBase);

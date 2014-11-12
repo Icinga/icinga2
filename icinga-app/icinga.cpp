@@ -422,10 +422,6 @@ int Main(void)
 		rc = command->Run(vm, args);
 	}
 
-#ifndef _DEBUG
-	Application::Exit(rc);
-#endif /* _DEBUG */
-
 	return rc;
 }
 
@@ -581,6 +577,8 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 	int rc = Main();
 
 	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, rc);
+
+	Application::Exit(rc);
 }
 #endif /* _WIN32 */
 
