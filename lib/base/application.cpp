@@ -223,7 +223,7 @@ void Application::SetResourceLimits(void)
 
 		if (!new_argv) {
 			perror("malloc");
-			exit(1);
+			Exit(EXIT_FAILURE);
 		}
 
 		new_argv[0] = argv[0];
@@ -242,7 +242,7 @@ void Application::SetResourceLimits(void)
 		if (execvp(new_argv[0], new_argv) < 0)
 			perror("execvp");
 
-		exit(1);
+		Exit(EXIT_FAILURE);
 	}
 #	else /* RLIMIT_STACK */
 	Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
