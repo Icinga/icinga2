@@ -138,6 +138,11 @@ if(NOT HAVE_COUNTER_MACRO AND ICINGA2_UNITY_BUILD)
   set(ICINGA2_UNITY_BUILD FALSE)
 endif()
 
+if(NOT MSVC)
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+endif()
+
 check_function_exists(vfork HAVE_VFORK)
 check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)

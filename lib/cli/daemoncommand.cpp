@@ -325,7 +325,11 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	Application::MakeVariablesConstant();
 
 	Log(LogInformation, "cli")
-	    << "Icinga application loader (version: " << Application::GetVersion() << ")";
+	    << "Icinga application loader (version: " << Application::GetVersion()
+#ifdef _DEBUG
+	    << "; debug"
+#endif /* _DEBUG */
+	    << ")";
 
 	String appType = LoadAppType(Application::GetApplicationType());
 

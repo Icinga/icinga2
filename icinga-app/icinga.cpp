@@ -273,7 +273,11 @@ int Main(void)
 				appName = appName.SubStr(3, appName.GetLength() - 3);
 
 			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon (version: "
-			    << Application::GetVersion() << ")" << std::endl << std::endl;
+			    << Application::GetVersion()
+#ifdef _DEBUG
+			    << "; debug"
+#endif /* _DEBUG */
+			    << ")" << std::endl << std::endl;
 
 			if (!command || vm.count("help")) {
 				std::cout << "Usage:" << std::endl
