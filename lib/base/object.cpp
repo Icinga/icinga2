@@ -25,10 +25,6 @@ using namespace icinga;
 
 REGISTER_PRIMITIVE_TYPE(Object);
 
-#ifdef _DEBUG
-boost::mutex Object::m_DebugMutex;
-#endif /* _DEBUG */
-
 /**
  * Default constructor for the Object class.
  */
@@ -53,8 +49,7 @@ Object::~Object(void)
  */
 bool Object::OwnsLock(void) const
 {
-	boost::mutex::scoped_lock lock(m_DebugMutex);
-
+	// TODO: barrier before reading m_Locked
 	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
 }
 #endif /* _DEBUG */

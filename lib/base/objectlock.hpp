@@ -30,13 +30,56 @@ namespace icinga
  */
 struct I2_BASE_API ObjectLock {
 public:
-	ObjectLock(void);
-	ObjectLock(const Object::Ptr& object);
-	ObjectLock(const Object *object);
-	~ObjectLock(void);
+	inline ObjectLock(void)
+		: m_Object(NULL), m_Locked(false)
+	{ }
 
-	void Lock(void);
-	void Unlock(void);
+	inline ~ObjectLock(void)
+	{
+		Unlock();
+	}
+
+	inline ObjectLock(const Object::Ptr& object)
+		: m_Object(object.get()), m_Locked(false)
+	{
+		if (m_Object)
+			Lock();
+	}
+
+	inline ObjectLock(const Object *object)
+		: m_Object(object), m_Locked(false)
+	{
+		if (m_Object)
+			Lock();
+	}
+
+	inline void Lock(void)
+	{
+		ASSERT(!m_Locked && m_Object != NULL);
+		ASSERT(!m_Object->OwnsLock());
+
+		m_Object->m_Mutex.Lock();
+		m_Locked = true;
+
+#ifdef _DEBUG
+		m_Object->m_Locked = true;
+		// TODO: barrier after writing m_Locked
+		m_Object->m_LockOwner = boost::this_thread::get_id();
+#endif /* _DEBUG */
+	}
+
+	inline void Unlock(void)
+	{
+	#ifdef _DEBUG
+		if (m_Locked)
+			m_Object->m_Locked = false;
+	#endif /* _DEBUG */
+
+		if (m_Locked) {
+			m_Object->m_Mutex.Unlock();
+			m_Locked = false;
+		}
+	}
 
 private:
 	const Object *m_Object;

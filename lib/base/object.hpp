@@ -109,7 +109,6 @@ private:
 	mutable ThinMutex m_Mutex;
 
 #ifdef _DEBUG
-	static boost::mutex m_DebugMutex;
 	mutable bool m_Locked;
 	mutable boost::thread::id m_LockOwner;
 #endif /* _DEBUG */
