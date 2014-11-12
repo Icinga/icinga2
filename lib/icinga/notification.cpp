@@ -319,6 +319,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	Service::OnNotificationSendStart(this, checkable, allUsers, type, cr, author, text);
 
 	std::set<User::Ptr> allNotifiedUsers;
+	Array::Ptr notifiedUsers = GetNotifiedUsers();
 
 	BOOST_FOREACH(const User::Ptr& user, allUsers) {
 		String userName = user->GetName();
@@ -337,7 +338,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* on recovery, check if user was notified before */
 		if (type == NotificationRecovery) {
-			if (m_NotifiedUsers.find(userName) == m_NotifiedUsers.end()) {
+			if (!notifiedUsers->Contains(userName)) {
 				Log(LogNotice, "Notification")
 				    << "We did not notify user '" << userName << "' before. Not sending recovery notification.";
 				continue;
@@ -353,12 +354,13 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		allNotifiedUsers.insert(user);
 
 		/* store all notified users for later recovery checks */
-		m_NotifiedUsers.insert(userName);
+		if (!notifiedUsers->Contains(userName))
+			notifiedUsers->Add(userName);
 	}
 
 	/* if this was a recovery notification, reset all notified users */
 	if (type == NotificationRecovery)
-		ResetNotifiedUsers();
+		notifiedUsers->Clear();
 
 	/* used in db_ido for notification history */
 	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text);
@@ -444,11 +446,6 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		    << "Exception occured during notification for object '"
 		    << GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
 	}
-}
-
-void Notification::ResetNotifiedUsers(void)
-{
-	m_NotifiedUsers.clear();
 }
 
 int icinga::ServiceStateToFilter(ServiceState state)

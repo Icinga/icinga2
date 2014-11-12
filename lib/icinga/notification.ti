@@ -47,6 +47,10 @@ class Notification : CustomVarObject < NotificationNameComposer
 	[config, protected] String host_name;
 	[config, protected] String service_name;
 
+	[state] Array::Ptr notified_users {
+		default {{{ return new Array(); }}}
+	};
+
 	[state] double last_notification;
 	[state, set_protected] double next_notification (NextNotificationRaw);
 	[state, set_protected] Value notification_number;
