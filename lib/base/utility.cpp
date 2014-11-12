@@ -56,8 +56,6 @@ using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
 boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
-boost::thread_specific_ptr<bool> Utility::m_LoadingLibrary;
-boost::thread_specific_ptr<std::vector<boost::function<void(void)> > > Utility::m_DeferredInitializers;
 
 /**
  * Demangles a symbol name.
@@ -343,23 +341,29 @@ Utility::LoadExtensionLibrary(const String& library)
 	return hModule;
 }
 
+boost::thread_specific_ptr<std::vector<boost::function<void(void)> > >& Utility::GetDeferredInitializers(void)
+{
+	static boost::thread_specific_ptr<std::vector<boost::function<void(void)> > > initializers;
+	return initializers;
+}
+
 void Utility::ExecuteDeferredInitializers(void)
 {
-	if (!m_DeferredInitializers.get())
+	if (!GetDeferredInitializers().get())
 		return;
 
-	BOOST_FOREACH(const boost::function<void(void)>& callback, *m_DeferredInitializers.get())
+	BOOST_FOREACH(const boost::function<void(void)>& callback, *GetDeferredInitializers().get())
 		callback();
 
-	m_DeferredInitializers.reset();
+	GetDeferredInitializers().reset();
 }
 
 void Utility::AddDeferredInitializer(const boost::function<void(void)>& callback)
 {
-	if (!m_DeferredInitializers.get())
-		m_DeferredInitializers.reset(new std::vector<boost::function<void(void)> >());
+	if (!GetDeferredInitializers().get())
+		GetDeferredInitializers().reset(new std::vector<boost::function<void(void)> >());
 
-	m_DeferredInitializers.get()->push_back(callback);
+	GetDeferredInitializers().get()->push_back(callback);
 }
 
 /**

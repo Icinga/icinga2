@@ -141,8 +141,9 @@ private:
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
-	static boost::thread_specific_ptr<bool> m_LoadingLibrary;
-	static boost::thread_specific_ptr<std::vector<boost::function<void(void)> > > m_DeferredInitializers;
+
+	static boost::thread_specific_ptr<std::vector<boost::function<void(void)> > >& GetDeferredInitializers(void);
+
 };
 
 }
