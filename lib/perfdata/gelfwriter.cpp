@@ -100,7 +100,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 
 	fields->Set("_hostname", host->GetName());
 	fields->Set("_type", "CHECK RESULT");
-	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+	fields->Set("_state", service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));
 
 	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
 	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
@@ -151,7 +151,7 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 		fields->Set("short_message", "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ")");
 	}
 
-	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+	fields->Set("_state", service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));
 
 	fields->Set("_hostname", host->GetName());
 	fields->Set("_command", command_name);
@@ -174,7 +174,7 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 
 	Dictionary::Ptr fields = new Dictionary();
 
-	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+	fields->Set("_state", service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));
 	fields->Set("_type", "STATE CHANGE");
 	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
 	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
