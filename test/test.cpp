@@ -21,6 +21,7 @@
 #define BOOST_TEST_MODULE icinga2_test
 
 #include "base/application.hpp"
+#include "base/timer.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
@@ -30,11 +31,12 @@ struct InitLibBase
 	InitLibBase(void)
 	{
 		Application::InitializeBase();
+		Timer::Initialize();
 	}
 
 	~InitLibBase(void)
 	{
-		Application::UninitializeBase();
+		Timer::Uninitialize();
 	}
 };
 

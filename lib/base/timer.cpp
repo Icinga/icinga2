@@ -81,7 +81,8 @@ void Timer::Uninitialize(void)
 		l_CV.notify_all();
 	}
 
-	l_Thread.join();
+	if (l_Thread.joinable())
+		l_Thread.join();
 }
 
 /**
