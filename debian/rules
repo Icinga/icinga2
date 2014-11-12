@@ -5,6 +5,9 @@
 %:
 	dh $@
 
+override_dh_auto_build:
+	dh_auto_build --parallel
+
 override_dh_auto_clean:
 ifeq ($(shell test -d .git && echo "git"),git) # verify we are in a GIT repo
 	# ensure icinga-version.h.force to be present
