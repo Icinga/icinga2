@@ -25,6 +25,7 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
+#include "base/dynamicobject.hpp"
 
 namespace icinga
 {
@@ -44,6 +45,7 @@ public:
 	static void Exit(int code);
 	static Type::Ptr TypeOf(const Value& value);
 	static Array::Ptr Keys(const Dictionary::Ptr& dict);
+	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 
 private:
 	ScriptUtils(void);

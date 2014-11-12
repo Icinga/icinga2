@@ -24,6 +24,7 @@
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
+#include "base/dynamictype.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -42,6 +43,7 @@ REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
 REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
+REGISTER_SCRIPTFUNCTION(__get_object, &ScriptUtils::GetObject);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
@@ -208,5 +210,15 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 	}
 
 	return result;
+}
+
+DynamicObject::Ptr ScriptUtils::GetObject(const String& type, const String& name)
+{
+	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+
+	if (!dtype)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
+
+	return dtype->GetObject(name);
 }
 
