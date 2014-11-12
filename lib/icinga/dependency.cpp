@@ -205,7 +205,7 @@ TimePeriod::Ptr Dependency::GetPeriod(void) const
 
 void Dependency::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
 {
-	int sfilter = FilterArrayToInt(attrs->Get("state_filter"), 0);
+	int sfilter = FilterArrayToInt(attrs->Get("states"), 0);
 
 	if (attrs->Get("parent_service_name") == Empty && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
