@@ -75,7 +75,7 @@ public:
 #ifdef _DEBUG
 		if (m_Locked) {
 #	ifdef _WIN32
-			InterlockedExchange(&m_Object->m_Locked, 0);
+			InterlockedExchange(&m_Object->m_LockOwner, 0);
 #	else /* _WIN32 */
 			__sync_lock_test_and_set(&m_Object->m_LockOwner, 0);
 #	endif /* _WIN32 */
