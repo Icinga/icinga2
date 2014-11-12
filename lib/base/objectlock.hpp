@@ -62,18 +62,25 @@ public:
 		m_Locked = true;
 
 #ifdef _DEBUG
-		m_Object->m_Locked = true;
-		// TODO: barrier after writing m_Locked
-		m_Object->m_LockOwner = boost::this_thread::get_id();
+#	ifdef _WIN32
+		InterlockedExchange(&m_Object->m_LockOwner, GetCurrentThreadId());
+#	else /* _WIN32 */
+		__sync_lock_test_and_set(&m_Object->m_LockOwner, pthread_self());
+#	endif /* _WIN32 */
 #endif /* _DEBUG */
 	}
 
 	inline void Unlock(void)
 	{
-	#ifdef _DEBUG
-		if (m_Locked)
-			m_Object->m_Locked = false;
-	#endif /* _DEBUG */
+#ifdef _DEBUG
+		if (m_Locked) {
+#	ifdef _WIN32
+			InterlockedExchange(&m_Object->m_Locked, 0);
+#	else /* _WIN32 */
+			__sync_lock_test_and_set(&m_Object->m_LockOwner, 0);
+#	endif /* _WIN32 */
+		}
+#endif /* _DEBUG */
 
 		if (m_Locked) {
 			m_Object->m_Mutex.Unlock();

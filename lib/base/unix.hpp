@@ -36,7 +36,6 @@
 #include <sys/wait.h>
 #include <glob.h>
 #include <dlfcn.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <sys/time.h>

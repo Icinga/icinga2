@@ -31,7 +31,7 @@ REGISTER_PRIMITIVE_TYPE(Object);
 Object::Object(void)
 	: m_References(0)
 #ifdef _DEBUG
-	, m_Locked(false)
+	, m_LockOwner(0)
 #endif /* _DEBUG */
 { }
 
@@ -49,8 +49,15 @@ Object::~Object(void)
  */
 bool Object::OwnsLock(void) const
 {
-	// TODO: barrier before reading m_Locked
-	return (m_Locked && m_LockOwner == boost::this_thread::get_id());
+#ifdef _WIN32
+	DWORD tid = InterlockedExchangeAdd(&m_LockOwner, 0);
+
+	return (tid == GetCurrentThreadId());
+#else /* _WIN32 */
+	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, 0);
+
+	return (tid == pthread_self());
+#endif /* _WIN32 */
 }
 #endif /* _DEBUG */
 

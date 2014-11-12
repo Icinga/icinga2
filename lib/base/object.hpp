@@ -109,8 +109,11 @@ private:
 	mutable ThinMutex m_Mutex;
 
 #ifdef _DEBUG
-	mutable bool m_Locked;
-	mutable boost::thread::id m_LockOwner;
+#	ifndef _WIN32
+	mutable pthread_t m_LockOwner;
+#	else /* _WIN32 */
+	mutable DWORD m_LockOwner;
+#	endif /* _WIN32 */
 #endif /* _DEBUG */
 
 	friend struct ObjectLock;
