@@ -82,20 +82,34 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	Log(LogDebug, "GelfWriter")
 	    << "GELF Processing check result for '" << checkable->GetName() << "'";
 
-	Dictionary::Ptr fields = new Dictionary();
-	Service::Ptr service = dynamic_pointer_cast<Service>(checkable);
 	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr fields = new Dictionary();
 
 	if (service) {
-		host = service->GetHost();
 		fields->Set("_service_name", service->GetShortName());
 		fields->Set("_service_state", Service::StateToString(service->GetState()));
+		fields->Set("_last_state", service->GetLastState());
+		fields->Set("_last_hard_state", service->GetLastHardState());
 	} else {
-		host = static_pointer_cast<Host>(checkable);
+		fields->Set("_last_state", host->GetLastState());
+		fields->Set("_last_hard_state", host->GetLastHardState());
 	}
+
 	fields->Set("_hostname", host->GetName());
-	fields->Set("short_message", cr->GetOutput());
 	fields->Set("_type", "CHECK RESULT");
+	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+
+	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
+	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
+
+	if (cr) {
+		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+		fields->Set("full_message", CompatUtility::GetCheckResultLongOutput(cr));
+		fields->Set("_check_source", cr->GetCheckSource());
+	}
 
 	SendLogMessage(ComposeGelfMessage(fields, GetSource()));
 }
@@ -104,7 +118,10 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
     const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
     const String& author, const String& comment_text, const String& command_name)
 {
-  CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
+  	CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
+
+	Log(LogDebug, "GelfWriter")
+	    << "GELF Processing notification for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -113,28 +130,32 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 	String notification_type_str = Notification::NotificationTypeToString(notification_type);
 
 	String author_comment = "";
+
 	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
 		author_comment = author + ";" + comment_text;
 	}
 
 	String output;
+
 	if (cr)
 		output = CompatUtility::GetCheckResultOutput(cr);
 
 	Dictionary::Ptr fields = new Dictionary();
+
 	if (service) {
-		host = service->GetHost();
 		fields->Set("_type", "SERVICE NOTIFICATION");
 		fields->Set("_service", service->GetShortName());
 		fields->Set("short_message", output);
 	} else {
-		host = static_pointer_cast<Host>(checkable);
 		fields->Set("_type", "HOST NOTIFICATION");
 		fields->Set("short_message", "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ")");
 	}
+
+	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+
 	fields->Set("_hostname", host->GetName());
 	fields->Set("_command", command_name);
-	fields->Set("_state", notification_type_str);
+	fields->Set("_notification_type", notification_type_str);
 	fields->Set("_comment", author_comment);
 
 	SendLogMessage(ComposeGelfMessage(fields, GetSource()));
@@ -144,17 +165,24 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 {
 	CONTEXT("GELF Processing state change '" + checkable->GetName() + "'");
 
+	Log(LogDebug, "GelfWriter")
+	    << "GELF Processing state change for '" << checkable->GetName() << "'";
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields = new Dictionary();
+
 	fields->Set("_state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields->Set("_type", "STATE CHANGE");
 	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
 	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
+	fields->Set("_hostname", host->GetName());
 
 	if (service) {
+		fields->Set("_service_name", service->GetShortName());
+		fields->Set("_service_state", Service::StateToString(service->GetState()));
 		fields->Set("_last_state", service->GetLastState());
 		fields->Set("_last_hard_state", service->GetLastHardState());
 	} else {
@@ -194,6 +222,9 @@ void GelfWriter::SendLogMessage(const String& gelf)
 		return;
 
 	try {
+		//TODO remove
+		Log(LogDebug, "GelfWriter")
+		    << "Sending '" << log << "'.";
 		m_Stream->Write(log.CStr(), log.GetLength());
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GelfWriter")
