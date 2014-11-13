@@ -674,11 +674,22 @@ bool Process::DoEvents(void)
 		Log(LogNotice, "Process")
 		    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 	} else if (WIFSIGNALED(status)) {
+		int signum = WTERMSIG(status);
+		char *zsigname = strsignal(signum);
+
+		String signame = Convert::ToString(signum);
+
+		if (zsigname) {
+			signame += " (";
+			signame += zsigname;
+			signame += ")";
+		}
+
 		Log(LogWarning, "Process")
-		    << "PID " << m_PID << " was terminated by signal " << WTERMSIG(status);
+		    << "PID " << m_PID << " was terminated by signal " << signame;
 
 		std::ostringstream outputbuf;
-		outputbuf << "<Terminated by signal " << WTERMSIG(status) << ".>";
+		outputbuf << "<Terminated by signal " << signame << ".>";
 		output = output + outputbuf.str();
 		exitcode = 128;
 	} else {
