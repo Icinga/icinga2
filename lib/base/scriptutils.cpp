@@ -25,6 +25,7 @@
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/dynamictype.hpp"
+#include "base/application.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -39,7 +40,7 @@ REGISTER_SCRIPTFUNCTION(union, &ScriptUtils::Union);
 REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
 REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
 REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
-REGISTER_SCRIPTFUNCTION(exit, &ScriptUtils::Exit);
+REGISTER_SCRIPTFUNCTION(exit, &Application::Exit);
 REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
@@ -177,11 +178,6 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 	}
 
 	return result;
-}
-
-void ScriptUtils::Exit(int code)
-{
-	exit(code);
 }
 
 Type::Ptr ScriptUtils::TypeOf(const Value& value)
