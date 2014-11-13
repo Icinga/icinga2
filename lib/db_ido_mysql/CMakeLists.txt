@@ -58,4 +58,6 @@ if(MYSQL_FOUND)
       DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2-ido-mysql/schema
       FILES_MATCHING PATTERN "*.sql"
     )
+else()
+    message( FATAL_ERROR "You have selected MySQL support, but MySQL could not be found." )
 endif()
