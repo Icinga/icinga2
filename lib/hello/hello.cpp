@@ -18,13 +18,7 @@
  ******************************************************************************/
 
 #include "hello/hello.hpp"
-#include "icinga/host.hpp"
-#include "icinga/checkcommand.hpp"
-#include "base/dynamictype.hpp"
 #include "base/logger.hpp"
-#include "base/json.hpp"
-#include "base/serializer.hpp"
-#include <iostream>
 
 using namespace icinga;
 
