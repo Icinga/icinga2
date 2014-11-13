@@ -146,6 +146,8 @@ abstract class Checkable : CustomVarObject
 	[state] Value override_check_command;
 	[state] Value override_max_check_attempts;
 	[state] Value override_check_period;
+
+	[config] String command_endpoint (CommandEndpointRaw);
 };
 
 }

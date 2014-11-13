@@ -76,7 +76,7 @@ bool DynamicObject::IsPaused(void) const
 	return GetPaused();
 }
 
-void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
+void DynamicObject::SetExtension(const String& key, const Value& value)
 {
 	Dictionary::Ptr extensions = GetExtensions();
 
@@ -85,15 +85,15 @@ void DynamicObject::SetExtension(const String& key, const Object::Ptr& object)
 		SetExtensions(extensions);
 	}
 
-	extensions->Set(key, object);
+	extensions->Set(key, value);
 }
 
-Object::Ptr DynamicObject::GetExtension(const String& key)
+Value DynamicObject::GetExtension(const String& key)
 {
 	Dictionary::Ptr extensions = GetExtensions();
 
 	if (!extensions)
-		return Object::Ptr();
+		return Empty;
 
 	return extensions->Get(key);
 }

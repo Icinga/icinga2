@@ -23,7 +23,9 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
+#include "icinga/apievents.hpp"
 #include "remote/messageorigin.hpp"
+#include "remote/apilistener.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
@@ -255,6 +257,19 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (origin.IsLocal())
 		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
+	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
+
+	if (command_endpoint && GetExtension("agent_check")) {
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+
+		if (listener) {
+			Dictionary::Ptr message = ApiEvents::MakeCheckResultMessage(this, cr);
+			listener->SyncSendMessage(command_endpoint, message);
+		}
+
+		return;
+	}
+
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
 
@@ -470,7 +485,7 @@ bool Checkable::IsCheckPending(void) const
 	return m_CheckRunning;
 }
 
-void Checkable::ExecuteCheck(void)
+void Checkable::ExecuteCheck(const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	CONTEXT("Executing check for object '" + GetName() + "'");
 
@@ -503,7 +518,52 @@ void Checkable::ExecuteCheck(void)
 	result->SetScheduleStart(scheduled_start);
 	result->SetExecutionStart(before_check);
 
-	GetCheckCommand()->Execute(this, result);
+	Dictionary::Ptr macros;
+	Endpoint::Ptr endpoint = GetCommandEndpoint();
+
+	if (endpoint && !useResolvedMacros)
+		macros = new Dictionary();
+	else
+		macros = resolvedMacros;
+
+	GetCheckCommand()->Execute(this, result, macros, useResolvedMacros);
+
+	if (endpoint && !useResolvedMacros) {
+		if (endpoint->IsConnected()) {
+			Dictionary::Ptr message = new Dictionary();
+			message->Set("jsonrpc", "2.0");
+			message->Set("method", "event::ExecuteCommand");
+
+			Host::Ptr host;
+			Service::Ptr service;
+			tie(host, service) = GetHostService(this);
+
+			Dictionary::Ptr params = new Dictionary();
+			message->Set("params", params);
+			params->Set("command_type", "check_command");
+			params->Set("command", GetCheckCommand()->GetName());
+			params->Set("host", host->GetName());
+
+			if (service)
+				params->Set("service", service->GetShortName());
+
+			params->Set("macros", macros);
+
+			ApiListener::Ptr listener = ApiListener::GetInstance();
+
+			if (listener)
+				listener->SyncSendMessage(endpoint, message);
+		} else if (Application::GetInstance()->GetStartTime() < Utility::GetTime() - 30) {
+			result->SetState(ServiceUnknown);
+			result->SetOutput("Remote Icinga instance '" + endpoint->GetName() + "' is not connected.");
+			ProcessCheckResult(result);
+		}
+
+		{
+			ObjectLock olock(this);
+			m_CheckRunning = false;
+		}
+	}
 }
 
 void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)

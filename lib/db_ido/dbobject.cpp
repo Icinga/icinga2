@@ -293,7 +293,7 @@ void DbObject::OnStatusUpdate(void)
 
 DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 {
-	DbObject::Ptr dbobj = static_pointer_cast<DbObject>(object->GetExtension("DbObject"));
+	DbObject::Ptr dbobj = object->GetExtension("DbObject");
 
 	if (dbobj)
 		return dbobj;

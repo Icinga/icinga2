@@ -304,7 +304,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	bool verify_ok = tlsStream->IsVerifyOK();
 
 	Log(LogInformation, "ApiListener")
-	    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated");
+	    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated)");
 
 	Endpoint::Ptr endpoint;
 
@@ -483,6 +483,20 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const DynamicOb
 	}
 }
 
+void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message)
+{
+	ObjectLock olock(endpoint);
+
+	if (!endpoint->GetSyncing()) {
+		Log(LogNotice, "ApiListener")
+		    << "Sending message to '" << endpoint->GetName() << "'";
+
+		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
+			client->SendMessage(message);
+	}
+}
+
+
 void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {
 	double ts = Utility::GetTime();
@@ -548,17 +562,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 
 		finishedZones.insert(target_zone);
 
-		{
-			ObjectLock olock(endpoint);
-
-			if (!endpoint->GetSyncing()) {
-				Log(LogNotice, "ApiListener")
-				    << "Sending message to '" << endpoint->GetName() << "'";
-
-				BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
-					client->SendMessage(message);
-			}
-		}
+		SyncSendMessage(endpoint, message);
 	}
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, skippedEndpoints)
@@ -750,6 +754,7 @@ Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 
 	stats = listener->GetStatus();
 
+	ObjectLock olock(stats.second);
 	BOOST_FOREACH(const Dictionary::Pair& kv, stats.second)
 		perfdata->Add("'api_" + kv.first + "'=" + Convert::ToString(kv.second));
 

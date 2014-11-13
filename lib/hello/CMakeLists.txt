@@ -29,7 +29,7 @@ endif()
 
 add_library(hello SHARED ${hello_SOURCES})
 
-target_link_libraries(hello ${Boost_LIBRARIES} base config)
+target_link_libraries(hello ${Boost_LIBRARIES} base config icinga)
 
 set_target_properties (
   hello PROPERTIES
@@ -42,5 +42,3 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
-
-

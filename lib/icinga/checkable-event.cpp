@@ -20,6 +20,8 @@
 #include "icinga/checkable.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/service.hpp"
+#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/context.hpp"
 
@@ -63,7 +65,7 @@ void Checkable::SetEventCommand(const EventCommand::Ptr& command, const MessageO
 	OnEventCommandChanged(this, command, origin);
 }
 
-void Checkable::ExecuteEventHandler(void)
+void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	CONTEXT("Executing event handler for object '" + GetName() + "'");
 
@@ -78,7 +80,43 @@ void Checkable::ExecuteEventHandler(void)
 	Log(LogNotice, "Checkable")
 	    << "Executing event handler '" << ec->GetName() << "' for service '" << GetName() << "'";
 
-	ec->Execute(this);
+	Dictionary::Ptr macros;
+	Endpoint::Ptr endpoint = GetCommandEndpoint();
+
+	if (endpoint && !useResolvedMacros)
+		macros = new Dictionary();
+	else
+		macros = resolvedMacros;
+
+	ec->Execute(this, macros, useResolvedMacros);
+
+	if (endpoint) {
+		Dictionary::Ptr message = new Dictionary();
+		message->Set("jsonrpc", "2.0");
+		message->Set("method", "event::ExecuteCommand");
+
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(this);
+
+		Dictionary::Ptr params = new Dictionary();
+		message->Set("params", params);
+		params->Set("command_type", "event_command");
+		params->Set("command", GetEventCommand()->GetName());
+		params->Set("host", host->GetName());
+
+		if (service)
+			params->Set("service", service->GetShortName());
+
+		params->Set("macros", macros);
+
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+
+		if (listener)
+			listener->SyncSendMessage(endpoint, message);
+
+		return;
+	}
 
 	OnEventCommandExecuted(this);
 }

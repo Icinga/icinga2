@@ -258,3 +258,8 @@ void Checkable::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 		OnVarsChanged(this, GetVars(), origin);
 	}
 }
+
+Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
+{
+	return Endpoint::GetByName(GetCommandEndpointRaw());
+}

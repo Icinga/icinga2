@@ -24,8 +24,9 @@ using namespace icinga;
 REGISTER_TYPE(NotificationCommand);
 
 Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notification,
-	const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
-    const String& author, const String& comment)
+    const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
+    const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
+    bool useResolvedMacros)
 {
 	std::vector<Value> arguments;
 	arguments.push_back(notification);
@@ -34,5 +35,7 @@ Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notificati
 	arguments.push_back(type);
 	arguments.push_back(author);
 	arguments.push_back(comment);
+	arguments.push_back(resolvedMacros);
+	arguments.push_back(useResolvedMacros);
 	return InvokeMethod("execute", arguments);
 }

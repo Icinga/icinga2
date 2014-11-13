@@ -30,7 +30,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc);
 
-void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -92,4 +93,3 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	checkable->ProcessCheckResult(cr);
 }
-

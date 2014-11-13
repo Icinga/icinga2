@@ -43,7 +43,9 @@ public:
 
 	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,
 	    const CheckResult::Ptr& cr = CheckResult::Ptr(), String *missingMacro = NULL,
-	    const EscapeCallback& escapeFn = EscapeCallback());
+	    const EscapeCallback& escapeFn = EscapeCallback(),
+	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
+	    bool useResolvedMacros = false);
 
 private:
 	MacroProcessor(void);
@@ -53,6 +55,7 @@ private:
 	static String InternalResolveMacros(const String& str,
 	    const ResolverList& resolvers, const CheckResult::Ptr& cr,
 	    String *missingMacro, const EscapeCallback& escapeFn,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
 	    int recursionLevel = 0);
 };
 

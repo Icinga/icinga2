@@ -60,8 +60,8 @@ public:
 	bool IsActive(void) const;
 	bool IsPaused(void) const;
 
-	void SetExtension(const String& key, const Object::Ptr& object);
-	Object::Ptr GetExtension(const String& key);
+	void SetExtension(const String& key, const Value& value);
+	Value GetExtension(const String& key);
 	void ClearExtension(const String& key);
 
 	void Register(void);

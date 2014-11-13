@@ -56,6 +56,7 @@ public:
 
 	static String GetApiDir(void);
 
+	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
 	void RelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 
 	static Value StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);

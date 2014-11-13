@@ -35,7 +35,8 @@ namespace icinga
 class I2_METHODS_API NullCheckTask
 {
 public:
-	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	NullCheckTask(void);

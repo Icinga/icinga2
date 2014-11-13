@@ -37,7 +37,9 @@ public:
 	DECLARE_OBJECT(EventCommand);
 	DECLARE_OBJECTNAME(EventCommand);
 
-	virtual void Execute(const Checkable::Ptr& checkable);
+	virtual void Execute(const Checkable::Ptr& checkable,
+	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
+	    bool useResolvedMacros = false);
 };
 
 }

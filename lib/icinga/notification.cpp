@@ -519,3 +519,9 @@ void Notification::ValidateFilters(const String& location, const Dictionary::Ptr
 		    location + ": Type filter is invalid.");
 	}
 }
+
+Endpoint::Ptr Notification::GetCommandEndpoint(void) const
+{
+	return Endpoint::GetByName(GetCommandEndpointRaw());
+}
+

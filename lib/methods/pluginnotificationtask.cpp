@@ -35,8 +35,10 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginNotification, &PluginNotificationTask::ScriptFunc);
 
-void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
-    const String& author, const String& comment)
+void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
+    const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
+    const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
+    bool useResolvedMacros)
 {
 	NotificationCommand::Ptr commandObj = notification->GetCommand();
 
@@ -63,7 +65,9 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification, c
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers, boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
+	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
+	    resolvedMacros, useResolvedMacros,
+	    boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

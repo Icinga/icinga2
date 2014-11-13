@@ -52,6 +52,7 @@ struct CommandArgument
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
     const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
     const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
@@ -59,7 +60,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	Value command;
 	if (!raw_arguments || raw_command.IsObjectType<Array>())
-		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL, Utility::EscapeShellArg);
+		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL,
+		    Utility::EscapeShellArg, resolvedMacros, useResolvedMacros);
 	else {
 		Array::Ptr arr = new Array();
 		arr->Add(raw_command);
@@ -92,7 +94,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 				if (!set_if.IsEmpty()) {
 					String missingMacro;
 					String set_if_resolved = MacroProcessor::ResolveMacros(set_if, macroResolvers,
-						cr, &missingMacro);
+					    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
+					    useResolvedMacros);
 
 					if (!missingMacro.IsEmpty())
 						continue;
@@ -116,7 +119,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 			String missingMacro;
 			arg.Value = MacroProcessor::ResolveMacros(argval, macroResolvers,
-			    cr, &missingMacro);
+			    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
+			    useResolvedMacros);
 
 			if (!missingMacro.IsEmpty()) {
 				if (required) {
@@ -165,11 +169,16 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 
-			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr);
+			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
+			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros,
+			    useResolvedMacros);
 
 			envMacros->Set(kv.first, value);
 		}
 	}
+
+	if (resolvedMacros && !useResolvedMacros)
+		return;
 
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
 	process->SetTimeout(commandObj->GetTimeout());

@@ -34,7 +34,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(PluginEvent, &PluginEventTask::ScriptFunc);
 
-void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
+void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	EventCommand::Ptr commandObj = checkable->GetEventCommand();
 
@@ -49,7 +50,9 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable)
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(), resolvers, boost::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
+	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
+	    resolvers, resolvedMacros, useResolvedMacros,
+	    boost::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

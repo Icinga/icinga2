@@ -25,5 +25,5 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullEvent, &NullEventTask::ScriptFunc);
 
-void NullEventTask::ScriptFunc(const Checkable::Ptr&)
+void NullEventTask::ScriptFunc(const Checkable::Ptr&, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 { }

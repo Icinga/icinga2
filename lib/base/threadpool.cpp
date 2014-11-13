@@ -48,7 +48,7 @@ void ThreadPool::Start(void)
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
 		m_Queues[i].SpawnWorker(m_ThreadGroup);
 
-	m_MgmtThread = boost::move(boost::thread(boost::bind(&ThreadPool::ManagerThreadProc, this)));
+	m_MgmtThread = boost::thread(boost::bind(&ThreadPool::ManagerThreadProc, this));
 }
 
 void ThreadPool::Stop(void)

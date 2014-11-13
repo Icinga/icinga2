@@ -37,7 +37,9 @@ public:
 	DECLARE_OBJECT(CheckCommand);
 	DECLARE_OBJECTNAME(CheckCommand);
 
-	virtual void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	virtual void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
+	    bool useResolvedMacros = false);
 };
 
 }

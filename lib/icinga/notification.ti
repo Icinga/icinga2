@@ -51,6 +51,8 @@ class Notification : CustomVarObject < NotificationNameComposer
 	[state, set_protected] double next_notification (NextNotificationRaw);
 	[state, set_protected] Value notification_number;
 	[state] double last_problem_notification;
+
+	[config] String command_endpoint (CommandEndpointRaw);
 };
 
 }

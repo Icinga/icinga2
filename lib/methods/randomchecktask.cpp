@@ -31,7 +31,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 
-void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
+void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	String output = "Hello from ";
 	output += Utility::GetFQDN();
@@ -45,4 +46,3 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 
 	service->ProcessCheckResult(cr);
 }
-

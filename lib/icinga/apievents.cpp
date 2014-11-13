@@ -63,6 +63,7 @@ REGISTER_APIFUNCTION(RemoveDowntime, event, &ApiEvents::DowntimeRemovedAPIHandle
 REGISTER_APIFUNCTION(SetAcknowledgement, event, &ApiEvents::AcknowledgementSetAPIHandler);
 REGISTER_APIFUNCTION(ClearAcknowledgement, event, &ApiEvents::AcknowledgementClearedAPIHandler);
 REGISTER_APIFUNCTION(UpdateRepository, event, &ApiEvents::UpdateRepositoryAPIHandler);
+REGISTER_APIFUNCTION(ExecuteCommand, event, &ApiEvents::ExecuteCommandAPIHandler);
 
 static Timer::Ptr l_RepositoryTimer;
 
@@ -100,13 +101,8 @@ void ApiEvents::StaticInitialize(void)
 	l_RepositoryTimer->Reschedule(0);
 }
 
-void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin& origin)
+Dictionary::Ptr ApiEvents::MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	if (!listener)
-		return;
-
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "event::CheckResult");
@@ -119,16 +115,35 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	params->Set("host", host->GetName());
 	if (service)
 		params->Set("service", service->GetShortName());
+	else {
+		Value agent_service_name = checkable->GetExtension("agent_service_name");
+
+		if (!agent_service_name.IsEmpty())
+			params->Set("service", agent_service_name);
+	}
 	params->Set("cr", Serialize(cr));
 
 	message->Set("params", params);
 
+	return message;
+}
+
+void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Dictionary::Ptr message = MakeCheckResultMessage(checkable, cr);
 	listener->RelayMessage(origin, checkable, message, true);
 }
 
 Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint)
 		return Empty;
 
 	if (!params)
@@ -175,7 +190,7 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable) && endpoint != checkable->GetCommandEndpoint())
 		return Empty;
 
 	checkable->ProcessCheckResult(cr, origin);
@@ -1489,6 +1504,73 @@ Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, c
 		return Empty;
 
 	checkable->ClearAcknowledgement(origin);
+
+	return Empty;
+}
+
+Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
+		return Empty;
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptCommands()) {
+		Log(LogWarning, "ApiListener")
+		    << "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
+		return Empty;
+	}
+
+	Host::Ptr host = new Host();
+	Dictionary::Ptr attrs = new Dictionary();
+
+	attrs->Set("__name", params->Get("host"));
+	attrs->Set("type", "Host");
+
+	String command = params->Get("command");
+	String command_type = params->Get("command_type");
+
+	if (command_type == "check_command") {
+		if (!CheckCommand::GetByName(command)) {
+			CheckResult::Ptr cr = new CheckResult();
+			cr->SetState(ServiceUnknown);
+			cr->SetOutput("Check command '" + command + "' does not exist.");
+			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+			listener->SyncSendMessage(endpoint, message);
+			return Empty;
+		}
+	} else if (command_type == "event_command") {
+		if (!EventCommand::GetByName(command))
+			return Empty;
+	} else
+		return Empty;
+
+	attrs->Set(command_type, params->Get("command"));
+	attrs->Set("command_endpoint", endpoint->GetName());
+
+	Deserialize(host, attrs, false, FAConfig);
+
+	if (params->Contains("service"))
+		host->SetExtension("agent_service_name", params->Get("service"));
+
+	host->SetExtension("agent_check", true);
+
+	static_pointer_cast<DynamicObject>(host)->OnStateLoaded();
+	static_pointer_cast<DynamicObject>(host)->OnConfigLoaded();
+
+	Dictionary::Ptr macros = params->Get("macros");
+
+	if (command_type == "check_command")
+		host->ExecuteCheck(macros, true);
+	else if (command_type == "event_command")
+		host->ExecuteEventHandler(macros, true);
 
 	return Empty;
 }

@@ -24,10 +24,13 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckCommand);
 
-void CheckCommand::Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+void CheckCommand::Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	std::vector<Value> arguments;
 	arguments.push_back(checkable);
 	arguments.push_back(cr);
+	arguments.push_back(resolvedMacros);
+	arguments.push_back(useResolvedMacros);
 	InvokeMethod("execute", arguments);
 }

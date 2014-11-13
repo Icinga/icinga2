@@ -31,7 +31,8 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 
-void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr)
+void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	String output = "Hello from ";
 	output += Utility::GetFQDN();
@@ -45,4 +46,3 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 
 	service->ProcessCheckResult(cr);
 }
-

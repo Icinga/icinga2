@@ -109,9 +109,13 @@ public:
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin& origin);
 	static Value AcknowledgementClearedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
+	static Value ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
 	static String GetRepositoryDir(void);
 	static void RepositoryTimerHandler(void);
 	static Value UpdateRepositoryAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
+	static Dictionary::Ptr MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 };
 
 }

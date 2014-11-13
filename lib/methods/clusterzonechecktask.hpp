@@ -33,7 +33,8 @@ namespace icinga
 class ClusterZoneCheckTask
 {
 public:
-	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	ClusterZoneCheckTask(void);

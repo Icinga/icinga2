@@ -26,6 +26,7 @@
 #include "icinga/usergroup.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/checkresult.hpp"
+#include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/array.hpp"
 
@@ -98,6 +99,7 @@ public:
 	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force);
 
 	void ResetNotifiedUsers(void);
+	Endpoint::Ptr GetCommandEndpoint(void) const;
 
 	static String NotificationTypeToString(NotificationType type);
 

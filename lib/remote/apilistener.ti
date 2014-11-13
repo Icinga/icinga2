@@ -36,6 +36,7 @@ class ApiListener : DynamicObject
 	};
 
 	[config] bool accept_config;
+	[config] bool accept_commands;
 
 	[config] String ticket_salt;
 

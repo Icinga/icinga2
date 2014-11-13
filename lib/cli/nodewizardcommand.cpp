@@ -76,8 +76,6 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 	    << "\n"
 	    << "We'll guide you through all required configuration details.\n"
 	    << "\n"
-	    << "If you have questions, please consult the documentation at http://docs.icinga.org\n"
-	    << "or join the community support channels at https://support.icinga.org\n"
 	    << "\n\n" << ConsoleColorTag(Console_Normal);
 
 	//TODO: Add sort of bash completion to path input?
@@ -315,7 +313,7 @@ wizard_master_host:
 
 wizard_ticket:
 		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the request ticket generated on your Icinga 2 master." << ConsoleColorTag(Console_Normal) << "\n"
-		    << " (Hint: '# icinga2 pki ticket --cn " << cn << "'):\n";
+		    << " (Hint: '# icinga2 pki ticket --cn '" << cn << "'): ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -620,9 +618,6 @@ wizard_ticket:
 	std::cout << "Done.\n\n";
 
 	std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
-
-	std::cout << "If you encounter problems or bugs, please do not hesitate to\n"
-	    << "get in touch with the community at https://support.icinga.org" << std::endl;
 
 	return 0;
 }
