@@ -20,7 +20,10 @@ include(InstallConfig)
 configure_file(icinga/icinga-classic-apache.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga/icinga-classic-apache.conf @ONLY)
 configure_file(icinga2/init.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf @ONLY)
 configure_file(icinga2/constants.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf @ONLY)
-configure_file(logrotate.d/icinga2.cmake ${CMAKE_CURRENT_BINARY_DIR}/logrotate.d/icinga2 @ONLY)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  configure_file(logrotate.d/icinga2.cmake ${CMAKE_CURRENT_BINARY_DIR}/logrotate.d/icinga2 @ONLY)
+endif()
 
 install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 install_if_not_exists(icinga2/icinga2.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
@@ -79,6 +82,8 @@ else()
   )
 endif()
 
-add_subdirectory(initsystem)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  add_subdirectory(initsystem)
+endif()
 
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)
