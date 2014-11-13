@@ -29,6 +29,10 @@ REGISTER_TYPE(StreamLogger);
 
 boost::mutex StreamLogger::m_Mutex;
 
+StreamLogger::StreamLogger(void)
+	: m_Stream(NULL), m_OwnsStream(false)
+{ }
+
 /**
  * Constructor for the StreamLogger class.
  */

@@ -38,6 +38,8 @@ class I2_BASE_API StreamLogger : public ObjectImpl<StreamLogger>
 public:
 	DECLARE_OBJECT(StreamLogger);
 
+	StreamLogger(void);
+
 	virtual void Start(void);
 	virtual void Stop(void);
 	~StreamLogger(void);
