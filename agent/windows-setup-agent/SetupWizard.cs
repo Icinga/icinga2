@@ -83,10 +83,16 @@ namespace Icinga
 
 		private void EnableFeature(string feature)
 		{
-			using (FileStream fp = File.Open(Icinga2InstallDir + String.Format("\\etc\\icinga2\\features-enabled\\{0}.conf", feature), FileMode.Create)) {
+			FileStream fp = null;
+			try {
+				fp = File.Open(Icinga2InstallDir + String.Format("\\etc\\icinga2\\features-enabled\\{0}.conf", feature), FileMode.Create);
 				using (StreamWriter sw = new StreamWriter(fp, Encoding.ASCII)) {
+					fp = null;
 					sw.Write(String.Format("include \"../features-available/{0}.conf\"\n", feature));
 				}
+			} finally {
+				if (fp != null)
+					fp.Dispose();
 			}
 		}
 
@@ -164,8 +170,8 @@ namespace Icinga
 
 			if (!File.Exists(pathPrefix + ".crt")) {
 				if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				    "pki new-cert --cn \"" + txtInstanceName.Text + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\"",
-				    out output)) {
+					"pki new-cert --cn \"" + txtInstanceName.Text + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\"",
+					out output)) {
 					ShowErrorText(output);
 					return;
 				}
@@ -176,8 +182,8 @@ namespace Icinga
 			_TrustedFile = Path.GetTempFileName();
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-			    "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"",
-			    out output)) {
+				"pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"",
+				out output)) {
 				ShowErrorText(output);
 				return;
 			}
@@ -221,8 +227,8 @@ namespace Icinga
 			args += " --cn " + txtInstanceName.Text;
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-			    "agent setup" + args,
-			    out output)) {
+				"agent setup" + args,
+				out output)) {
 				ShowErrorText(output);
 				return;
 			}
@@ -231,27 +237,27 @@ namespace Icinga
 			DirectoryInfo di = new DirectoryInfo(Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
 			FileSystemAccessRule rule = new FileSystemAccessRule("NT AUTHORITY\\NetworkService",
-			    FileSystemRights.ReadAndExecute | FileSystemRights.Write | FileSystemRights.ListDirectory,
-			    InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
+				FileSystemRights.ReadAndExecute | FileSystemRights.Write | FileSystemRights.ListDirectory,
+				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
 			ds.AddAccessRule(rule);
 			di.SetAccessControl(ds);
 
 			SetConfigureStatus(75, "Installing the Icinga 2 service...");
 
 			RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-			    "--scm-uninstall",
-			    out output);
+				"--scm-uninstall",
+				out output);
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-			    "daemon --validate",
-			    out output)) {
+				"daemon --validate",
+				out output)) {
 				ShowErrorText(output);
 				return;
 			}
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-			    "--scm-install daemon",
-			    out output)) {
+				"--scm-install daemon",
+				out output)) {
 				ShowErrorText(output);
 				return;
 			}
@@ -372,7 +378,7 @@ namespace Icinga
 			}
 
 			/*if (tbcPages.SelectedTab == tabParameters &&
-			    !File.Exists(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.crt")) {
+				!File.Exists(Icinga2InstallDir + "\\etc\\icinga2\\pki\\agent\\agent.crt")) {
 				byte[] bytes = Convert.FromBase64String(txtBundle.Text);
 				MemoryStream ms = new MemoryStream(bytes);
 				GZipStream gz = new GZipStream(ms, CompressionMode.Decompress);
