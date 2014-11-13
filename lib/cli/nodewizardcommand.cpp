@@ -247,33 +247,7 @@ wizard_master_host:
 			return 1;
 		}
 
-		/* store ca in /etc/icinga2/pki */
-		String ca_path = PkiUtility::GetLocalCaPath();
-		String ca_key = ca_path + "/ca.key";
-		String ca = ca_path + "/ca.crt";
-		String serial = ca_path + "/serial.txt";
-
 		/* fix permissions: root -> icinga daemon user */
-		if (!Utility::SetFileOwnership(ca_path, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_path << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(ca, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(ca_key, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(serial, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << serial << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(node_cert, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_cert << "'. Verify it yourself!";
-		}
 		if (!Utility::SetFileOwnership(node_key, user, group)) {
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_key << "'. Verify it yourself!";
