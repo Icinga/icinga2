@@ -123,7 +123,7 @@ inline LiteralExpression *MakeLiteral(const Value& literal = Value())
 class I2_CONFIG_API DebuggableExpression : public Expression
 {
 public:
-	DebuggableExpression(const DebugInfo& debugInfo)
+	DebuggableExpression(const DebugInfo& debugInfo = DebugInfo())
 		: m_DebugInfo(debugInfo)
 	{ }
 
@@ -136,7 +136,7 @@ protected:
 class I2_CONFIG_API UnaryExpression : public DebuggableExpression
 {
 public:
-	UnaryExpression(Expression *operand, const DebugInfo& debugInfo)
+	UnaryExpression(Expression *operand, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Operand(operand)
 	{ }
 
@@ -152,7 +152,7 @@ protected:
 class I2_CONFIG_API BinaryExpression : public DebuggableExpression
 {
 public:
-	BinaryExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	BinaryExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Operand1(operand1), m_Operand2(operand2)
 	{ }
 	
@@ -171,7 +171,7 @@ protected:
 class I2_CONFIG_API VariableExpression : public DebuggableExpression
 {
 public:
-	VariableExpression(const String& variable, const DebugInfo& debugInfo)
+	VariableExpression(const String& variable, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Variable(variable)
 	{ }
 
@@ -185,7 +185,7 @@ private:
 class I2_CONFIG_API NegateExpression : public UnaryExpression
 {
 public:
-	NegateExpression(Expression *operand, const DebugInfo& debugInfo)
+	NegateExpression(Expression *operand, const DebugInfo& debugInfo = DebugInfo())
 		: UnaryExpression(operand, debugInfo)
 	{ }
 
@@ -196,7 +196,7 @@ protected:
 class I2_CONFIG_API LogicalNegateExpression : public UnaryExpression
 {
 public:
-	LogicalNegateExpression(Expression *operand, const DebugInfo& debugInfo)
+	LogicalNegateExpression(Expression *operand, const DebugInfo& debugInfo = DebugInfo())
 		: UnaryExpression(operand, debugInfo)
 	{ }
 
@@ -207,7 +207,7 @@ protected:
 class I2_CONFIG_API AddExpression : public BinaryExpression
 {
 public:
-	AddExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	AddExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -218,7 +218,7 @@ protected:
 class I2_CONFIG_API SubtractExpression : public BinaryExpression
 {
 public:
-	SubtractExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	SubtractExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -229,7 +229,7 @@ protected:
 class I2_CONFIG_API MultiplyExpression : public BinaryExpression
 {
 public:
-	MultiplyExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	MultiplyExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -240,7 +240,7 @@ protected:
 class I2_CONFIG_API DivideExpression : public BinaryExpression
 {
 public:
-	DivideExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	DivideExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -251,7 +251,7 @@ protected:
 class I2_CONFIG_API BinaryAndExpression : public BinaryExpression
 {
 public:
-	BinaryAndExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	BinaryAndExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -262,7 +262,7 @@ protected:
 class I2_CONFIG_API BinaryOrExpression : public BinaryExpression
 {
 public:
-	BinaryOrExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	BinaryOrExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -273,7 +273,7 @@ protected:
 class I2_CONFIG_API ShiftLeftExpression : public BinaryExpression
 {
 public:
-	ShiftLeftExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	ShiftLeftExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -284,7 +284,7 @@ protected:
 class I2_CONFIG_API ShiftRightExpression : public BinaryExpression
 {
 public:
-	ShiftRightExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	ShiftRightExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -295,7 +295,7 @@ protected:
 class I2_CONFIG_API EqualExpression : public BinaryExpression
 {
 public:
-	EqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	EqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -306,7 +306,7 @@ protected:
 class I2_CONFIG_API NotEqualExpression : public BinaryExpression
 {
 public:
-	NotEqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	NotEqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -317,7 +317,7 @@ protected:
 class I2_CONFIG_API LessThanExpression : public BinaryExpression
 {
 public:
-	LessThanExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	LessThanExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -328,7 +328,7 @@ protected:
 class I2_CONFIG_API GreaterThanExpression : public BinaryExpression
 {
 public:
-	GreaterThanExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	GreaterThanExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -339,7 +339,7 @@ protected:
 class I2_CONFIG_API LessThanOrEqualExpression : public BinaryExpression
 {
 public:
-	LessThanOrEqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	LessThanOrEqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -350,7 +350,7 @@ protected:
 class I2_CONFIG_API GreaterThanOrEqualExpression : public BinaryExpression
 {
 public:
-	GreaterThanOrEqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	GreaterThanOrEqualExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -361,7 +361,7 @@ protected:
 class I2_CONFIG_API InExpression : public BinaryExpression
 {
 public:
-	InExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	InExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -372,7 +372,7 @@ protected:
 class I2_CONFIG_API NotInExpression : public BinaryExpression
 {
 public:
-	NotInExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	NotInExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -383,7 +383,7 @@ protected:
 class I2_CONFIG_API LogicalAndExpression : public BinaryExpression
 {
 public:
-	LogicalAndExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	LogicalAndExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -394,7 +394,7 @@ protected:
 class I2_CONFIG_API LogicalOrExpression : public BinaryExpression
 {
 public:
-	LogicalOrExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	LogicalOrExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -405,7 +405,7 @@ protected:
 class I2_CONFIG_API FunctionCallExpression : public DebuggableExpression
 {
 public:
-	FunctionCallExpression(Expression *fname, const std::vector<Expression *>& args, const DebugInfo& debugInfo)
+	FunctionCallExpression(Expression *fname, const std::vector<Expression *>& args, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_FName(fname), m_Args(args)
 	{ }
 
@@ -428,7 +428,7 @@ public:
 class I2_CONFIG_API ArrayExpression : public DebuggableExpression
 {
 public:
-	ArrayExpression(const std::vector<Expression *>& expressions, const DebugInfo& debugInfo)
+	ArrayExpression(const std::vector<Expression *>& expressions, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Expressions(expressions)
 	{ }
 
@@ -448,7 +448,7 @@ private:
 class I2_CONFIG_API DictExpression : public DebuggableExpression
 {
 public:
-	DictExpression(const std::vector<Expression *>& expressions, const DebugInfo& debugInfo)
+	DictExpression(const std::vector<Expression *>& expressions, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Expressions(expressions), m_Inline(false)
 	{ }
 
@@ -471,7 +471,7 @@ private:
 class I2_CONFIG_API SetExpression : public DebuggableExpression
 {
 public:
-	SetExpression(const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, const DebugInfo& debugInfo)
+	SetExpression(const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Op(op), m_Indexer(indexer), m_Operand2(operand2)
 	{ }
 
@@ -496,7 +496,7 @@ private:
 class I2_CONFIG_API IndexerExpression : public BinaryExpression
 {
 public:
-	IndexerExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo)
+	IndexerExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
 		: BinaryExpression(operand1, operand2, debugInfo)
 	{ }
 
@@ -507,7 +507,7 @@ protected:
 class I2_CONFIG_API ImportExpression : public DebuggableExpression
 {
 public:
-	ImportExpression(Expression *type, Expression *name, const DebugInfo& debugInfo)
+	ImportExpression(Expression *type, Expression *name, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(type), m_Name(name)
 	{ }
 
@@ -528,7 +528,7 @@ private:
 class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
 public:
-	FunctionExpression(const String& name, const std::vector<String>& args, Expression *expression, const DebugInfo& debugInfo)
+	FunctionExpression(const String& name, const std::vector<String>& args, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_Expression(expression)
 	{ }
 
@@ -546,7 +546,7 @@ class I2_CONFIG_API ApplyExpression : public DebuggableExpression
 public:
 	ApplyExpression(const String& type, const String& target, Expression *name,
 	    Expression *filter, const String& fkvar, const String& fvvar,
-	    Expression *fterm, Expression *expression, const DebugInfo& debugInfo)
+	    Expression *fterm, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(type), m_Target(target),
 		    m_Name(name), m_Filter(filter), m_FKVar(fkvar), m_FVVar(fvvar),
 		    m_FTerm(fterm), m_Expression(expression)
@@ -574,7 +574,7 @@ private:
 class I2_CONFIG_API ObjectExpression : public DebuggableExpression
 {
 public:
-	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter, const String& zone, Expression *expression, const DebugInfo& debugInfo)
+	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter, const String& zone, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(type), m_Name(name), m_Filter(filter), m_Zone(zone), m_Expression(expression)
 	{ }
 
@@ -598,7 +598,7 @@ private:
 class I2_CONFIG_API ForExpression : public DebuggableExpression
 {
 public:
-	ForExpression(const String& fkvar, const String& fvvar, Expression *value, Expression *expression, const DebugInfo& debugInfo)
+	ForExpression(const String& fkvar, const String& fvvar, Expression *value, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_FKVar(fkvar), m_FVVar(fvvar), m_Value(value), m_Expression(expression)
 	{ }
 
