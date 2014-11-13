@@ -61,8 +61,12 @@ void Logger::Start(void)
 
 void Logger::Stop(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Loggers.erase(this);
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Loggers.erase(this);
+	}
+
+	DynamicObject::Stop();
 }
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)
