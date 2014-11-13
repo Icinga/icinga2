@@ -36,29 +36,11 @@ struct DebugInfo
 {
 	String Path;
 
-	union
-	{
-		int FirstLine;
-		int first_line;
-	};
+	int FirstLine;
+	int FirstColumn;
 
-	union
-	{
-		int FirstColumn;
-		int first_column;
-	};
-
-	union
-	{
-		int LastLine;
-		int last_line;
-	};
-
-	union
-	{
-		int LastColumn;
-		int last_column;
-	};
+	int LastLine;
+	int LastColumn;
 };
 
 I2_BASE_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
