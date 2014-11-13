@@ -18,39 +18,12 @@
  ******************************************************************************/
 
 #include "base/thinmutex.hpp"
-#include "base/initialize.hpp"
 #include "base/timer.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include <boost/thread.hpp>
 
 using namespace icinga;
-
-#ifdef _DEBUG
-uintptr_t ThinMutex::m_TotalMutexes;
-uintptr_t ThinMutex::m_InflatedMutexes;
-uintptr_t ThinMutex::m_DeadMutexes;
-
-static Timer::Ptr l_Timer;
-
-void ThinMutex::DebugTimerHandler(void)
-{
-	Log(LogNotice, "ThinMutex")
-	    << "Mutexes: " << ThinMutex::m_TotalMutexes - ThinMutex::m_DeadMutexes
-	    << ", Inflated Mutexes: " << ThinMutex::m_InflatedMutexes
-	    << ", Dead Mutexes: " << ThinMutex::m_DeadMutexes;
-}
-
-static void InitThinMutex(void)
-{
-	l_Timer = new Timer();
-	l_Timer->SetInterval(10);
-	l_Timer->OnTimerExpired.connect(boost::bind(&ThinMutex::DebugTimerHandler));
-	l_Timer->Start();
-}
-
-INITIALIZE_ONCE(&InitThinMutex);
-#endif /* _DEBUG */
 
 void ThinMutex::LockSlowPath(void)
 {
@@ -98,14 +71,6 @@ void ThinMutex::MakeNative(void)
 #else /* _WIN32 */
 	__sync_bool_compare_and_swap(&m_Data, THINLOCK_LOCKED, reinterpret_cast<uintptr_t>(mtx));
 #endif /* _WIN32 */
-
-#ifdef _DEBUG
-#	ifdef _WIN32
-	InterlockedIncrement(&m_InflatedMutexes);
-#	else /* _WIN32 */
-	__sync_fetch_and_add(&m_InflatedMutexes, 1);
-#	endif /* _WIN32 */
-#endif /* _DEBUG */
 }
 
 void ThinMutex::DestroyNative(void)

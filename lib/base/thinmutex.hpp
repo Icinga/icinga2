@@ -43,28 +43,12 @@ class I2_BASE_API ThinMutex
 public:
 	inline ThinMutex(void)
 		: m_Data(THINLOCK_UNLOCKED)
-	{
-#ifdef _DEBUG
-#	ifdef _WIN32
-		InterlockedIncrement(&m_TotalMutexes);
-#	else /* _WIN32 */
-		__sync_fetch_and_add(&m_TotalMutexes, 1);
-#	endif /* _WIN32 */
-#endif /* _DEBUG */
-	}
+	{ }
 
 	inline ~ThinMutex(void)
 	{
 		if (m_Data > THINLOCK_LOCKED)
 			DestroyNative();
-
-#ifdef _DEBUG
-#	ifdef _WIN32
-		InterlockedDecrement(&m_TotalMutexes);
-#	else /* _WIN32 */
-		__sync_fetch_and_add(&m_DeadMutexes, 1);
-#	endif /* _WIN32 */
-#endif /* _DEBUG */
 	}
 
 	inline void Lock(bool make_native = false)
@@ -105,10 +89,6 @@ public:
 		Unlock();
 	}
 
-#ifdef _DEBUG
-	static void DebugTimerHandler(void);
-#endif /* _DEBUG */
-
 private:
 	inline void Spin(unsigned int it)
 	{
@@ -145,12 +125,6 @@ private:
 #else /* _WIN32 */
 	uintptr_t m_Data;
 #endif /* _WIN32 */
-
-#ifdef _DEBUG
-	static uintptr_t m_TotalMutexes;
-	static uintptr_t m_InflatedMutexes;
-	static uintptr_t m_DeadMutexes;
-#endif /* _DEBUG */
 };
 
 }
