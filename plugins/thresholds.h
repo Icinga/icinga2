@@ -76,8 +76,8 @@ public:
 };
 
 threshold parse(const std::wstring&);
-Bunit parseBUnit(const wchar_t *);
+Bunit parseBUnit(const std::wstring&);
 std::wstring BunitStr(const Bunit&);
-Tunit parseTUnit(const wchar_t *);
+Tunit parseTUnit(const std::wstring&);
 std::wstring TunitStr(const Tunit&);
 #endif

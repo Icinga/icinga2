@@ -192,7 +192,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("unit")) {
 		try {
-			printInfo.unit = parseBUnit(vm["unit"].as<wstring>().c_str());
+			printInfo.unit = parseBUnit(vm["unit"].as<wstring>());
 		} catch (std::invalid_argument) {
 			wcout << L"Unknown unit Type " << vm["unit"].as<wstring>() << endl;
 			return 3;

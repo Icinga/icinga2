@@ -22,6 +22,8 @@
 
 #include "boost\algorithm\string.hpp"
 #include "boost\lexical_cast.hpp"
+ 
+using namespace boost::algorithm;
 
 using std::wstring;
 
@@ -31,6 +33,9 @@ threshold parse(const wstring& stri)
 		throw std::invalid_argument("Threshold must not be empty");
 
 	wstring str = stri;
+
+	//kill whitespace
+	str.erase((std::remove(str.begin(), str.end(), L" "), str.end()));
 
 	bool low = (str.at(0) == L'!');
 	if (low)
@@ -74,23 +79,26 @@ threshold parse(const wstring& stri)
 	}
 }
 
-Bunit parseBUnit(const wchar_t *str)
+Bunit parseBUnit(const wstring& str)
 {
-	if (!wcscmp(str, L"B"))
+	wstring wstr = to_upper_copy(str);
+
+	if (wstr == L"B")
 		return BunitB;
-	if (!wcscmp(str, L"kB"))
+	if (wstr == L"kB")
 		return BunitkB;
-	if (!wcscmp(str, L"MB"))
+	if (wstr == L"MB")
 		return BunitMB;
-	if (!wcscmp(str, L"GB"))
+	if (wstr == L"GB")
 		return BunitGB;
-	if (!wcscmp(str, L"TB"))
+	if (wstr == L"TB")
 		return BunitTB;
 
 	throw std::invalid_argument("Unknown unit type");
 }
 
-wstring BunitStr(const Bunit& unit) {
+wstring BunitStr(const Bunit& unit) 
+{
 	switch (unit) {
 	case BunitB:
 		return L"B";
@@ -106,20 +114,23 @@ wstring BunitStr(const Bunit& unit) {
 	return NULL;
 }
 
-Tunit parseTUnit(const wchar_t *str) {
-	if (!wcscmp(str, L"ms"))
+Tunit parseTUnit(const wstring& str) {
+	wstring wstr = to_lower_copy(str);
+
+	if (wstr == L"ms")
 		return TunitMS;
-	if (!wcscmp(str, L"s"))
+	if (wstr == L"s")
 		return TunitS;
-	if (!wcscmp(str, L"m"))
+	if (wstr == L"m")
 		return TunitM;
-	if (!wcscmp(str, L"h"))
+	if (wstr == L"h")
 		return TunitH;
 
 	throw std::invalid_argument("Unknown unit type");
 }
 
-wstring TunitStr(const Tunit& unit) {
+wstring TunitStr(const Tunit& unit) 
+{
 	switch (unit) {
 	case TunitMS:
 		return L"ms";
