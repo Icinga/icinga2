@@ -145,7 +145,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 
 wizard_endpoint_loop_start:
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Master Common Name" << ConsoleColorTag(Console_Normal) << " (CN from your master setup, defaults to FQDN): ";
+		std::cout << ConsoleColorTag(Console_Bold) << "Master Common Name" << ConsoleColorTag(Console_Normal) << " (CN from your master setup): ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -159,7 +159,7 @@ wizard_endpoint_loop_start:
 		endpoint_buffer.Trim();
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Please fill out the master connection information:" << ConsoleColorTag(Console_Normal) << "\n";
-		std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint host" << ConsoleColorTag(Console_Normal) << " (required, your master's IP address or FQDN): ";
+		std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint host" << ConsoleColorTag(Console_Normal) << " (optional, your master's IP address or FQDN): ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -227,9 +227,6 @@ wizard_master_host:
 		String node_cert = pki_path + "/" + cn + ".crt";
 		String node_key = pki_path + "/" + cn + ".key";
 
-		//new-ca, new-cert
-		PkiUtility::NewCa();
-
 		if (!Utility::MkDirP(pki_path, 0700)) {
 			Log(LogCritical, "cli")
 			    << "Could not create local pki directory '" << pki_path << "'.";
@@ -282,16 +279,6 @@ wizard_master_host:
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_key << "'. Verify it yourself!";
 		}
 
-		String target_ca = pki_path + "/ca.crt";
-
-		Utility::CopyFile(ca, target_ca);
-
-		/* fix permissions: root -> icinga daemon user */
-		if (!Utility::SetFileOwnership(target_ca, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << target_ca << "'. Verify it yourself!";
-		}
-
 		//save-cert and store the master certificate somewhere
 
 		Log(LogInformation, "cli", "Generating self-signed certifiate:");
@@ -327,7 +314,9 @@ wizard_ticket:
 		Log(LogInformation, "cli")
 		    << "Processing self-signed certificate request. Ticket '" << ticket << "'.\n";
 
-		if (PkiUtility::RequestCertificate(master_host, master_port, node_key, node_cert, ca, trusted_cert, ticket) > 0) {
+		String target_ca = pki_path + "/ca.crt";
+
+		if (PkiUtility::RequestCertificate(master_host, master_port, node_key, node_cert, target_ca, trusted_cert, ticket) > 0) {
 			Log(LogCritical, "cli")
 			    << "Failed to fetch signed certificate from master '" << master_host << ", "
 			    << master_port <<"'. Please try again.";
