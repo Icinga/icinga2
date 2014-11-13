@@ -28,6 +28,9 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif()
 
+option(ICINGA2_WITH_MYSQL "MySQL support" ON)
+option(ICINGA2_WITH_PGSQL "PostgreSQL support" ON)
+
 file(STRINGS icinga2.spec VERSION_LINE REGEX "^Version: ")
 string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
 
