@@ -35,7 +35,7 @@ threshold parse(const wstring& stri)
 	wstring str = stri;
 
 	//kill whitespace
-	str.erase((std::remove(str.begin(), str.end(), L" "), str.end()));
+	boost::algorithm::trim(str);
 
 	bool low = (str.at(0) == L'!');
 	if (low)
