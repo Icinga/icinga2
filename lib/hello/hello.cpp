@@ -39,35 +39,5 @@ int Hello::Main(void)
 {
 	Log(LogInformation, "Hello", "Hello World!");
 
-	Host::Ptr host = Host::GetByName("test");
-	CheckCommand::Ptr command = host->GetCheckCommand();
-
-	Dictionary::Ptr macros = new Dictionary();
-
-	command->Execute(host, CheckResult::Ptr(), macros);
-
-	std::cout << JsonEncode(macros) << std::endl;
-
-	Host::Ptr host2 = new Host();
-	Dictionary::Ptr attrs = new Dictionary();
-
-	attrs->Set("__name", "keks");
-	attrs->Set("type", "Host");
-	attrs->Set("check_command", "http");
-	attrs->Set("command_endpoint", "test");
-
-	Deserialize(host2, attrs, false, FAConfig);
-
-	host2->SetExtension("agent_service_name", "foobar");
-
-	static_pointer_cast<DynamicObject>(host2)->OnStateLoaded();
-	static_pointer_cast<DynamicObject>(host2)->OnConfigLoaded();
-
-	std::cout << host2->GetName() << std::endl;
-
-	host2->ExecuteCheck(macros, true);
-
-	Utility::Sleep(30);
-
 	return 0;
 }

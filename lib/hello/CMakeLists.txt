@@ -29,7 +29,7 @@ endif()
 
 add_library(hello SHARED ${hello_SOURCES})
 
-target_link_libraries(hello ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(hello ${Boost_LIBRARIES} base config)
 
 set_target_properties (
   hello PROPERTIES
