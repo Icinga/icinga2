@@ -53,7 +53,6 @@ public:
 
 	void Start(void);
 	void Stop(void);
-	void Join(bool wait_for_stop = false);
 
 	bool Post(const WorkFunction& callback, SchedulerPolicy policy = DefaultScheduler);
 
@@ -122,6 +121,7 @@ private:
 
 	boost::thread_group m_ThreadGroup;
 
+	boost::thread m_MgmtThread;
 	boost::mutex m_MgmtMutex;
 	boost::condition_variable m_MgmtCV;
 	bool m_Stopped;

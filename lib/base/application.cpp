@@ -321,8 +321,6 @@ mainloop:
 	GetTP().Stop();
 	m_ShuttingDown = false;
 
-	GetTP().Join(true);
-
 	Timer::Uninitialize();
 #endif /* _DEBUG */
 }

@@ -41,7 +41,6 @@ ThreadPool::ThreadPool(size_t max_threads)
 ThreadPool::~ThreadPool(void)
 {
 	Stop();
-	Join(true);
 }
 
 void ThreadPool::Start(void)
@@ -49,38 +48,26 @@ void ThreadPool::Start(void)
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
 		m_Queues[i].SpawnWorker(m_ThreadGroup);
 
-	m_ThreadGroup.create_thread(boost::bind(&ThreadPool::ManagerThreadProc, this));
+	m_MgmtThread = boost::move(boost::thread(boost::bind(&ThreadPool::ManagerThreadProc, this)));
 }
 
 void ThreadPool::Stop(void)
 {
+	{
+		boost::mutex::scoped_lock lock(m_MgmtMutex);
+		m_Stopped = true;
+		m_MgmtCV.notify_all();
+	}
+
+	m_MgmtThread.join();
+
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
 		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
 		m_Queues[i].Stopped = true;
 		m_Queues[i].CV.notify_all();
 	}
 
-	boost::mutex::scoped_lock lock(m_MgmtMutex);
-	m_Stopped = true;
-	m_MgmtCV.notify_all();
-}
-
-/**
- * Waits for all worker threads to finish.
- */
-void ThreadPool::Join(bool wait_for_stop)
-{
-	if (wait_for_stop) {
-		m_ThreadGroup.join_all();
-		return;
-	}
-
-	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
-		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
-
-		while (!m_Queues[i].Items.empty())
-			m_Queues[i].CVStarved.wait(lock);
-	}
+	m_ThreadGroup.join_all();
 }
 
 /**
