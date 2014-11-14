@@ -17,17 +17,59 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 #include <vector>
+#include <iostream>
 
 #include "thresholds.h"
 
-#include "boost\algorithm\string.hpp"
-#include "boost\lexical_cast.hpp"
+#include "boost/algorithm/string.hpp"
+#include "boost/lexical_cast.hpp"
  
 using namespace boost::algorithm;
 
 using std::wstring;
 
-threshold parse(const wstring& stri)
+threshold::threshold(bool l)
+	: set(false), legal(l)
+{}
+
+//return TRUE if the threshold is broken
+bool threshold::rend(const double b)
+{
+	if (!set)
+		return set;
+	if (lower == upper)
+		return b > upper == legal;
+	else
+		return (b < lower || upper < b) != legal;
+}
+
+//returns a printable string of the threshold
+std::wstring threshold::pString()
+{
+	if (!set)
+		return L"0";
+
+	std::wstring s;
+	if (!legal)
+		s.append(L"!");
+
+	if (lower != upper) {
+		if (perc)
+			s.append(L"[").append(std::to_wstring(lower)).append(L"%").append(L"-")
+			.append(std::to_wstring(upper)).append(L"%").append(L"]");
+		else
+			s.append(L"[").append(std::to_wstring(lower)).append(L"-")
+			.append(std::to_wstring(upper)).append(L"]");
+	} else {
+		if (perc)
+			s = std::to_wstring(lower).append(L"%");
+		else
+			s = std::to_wstring(lower);
+	}
+	return s;
+}
+
+threshold::threshold(const wstring& stri)
 {
 	if (stri.empty())
 		throw std::invalid_argument("Threshold must not be empty");
@@ -41,7 +83,7 @@ threshold parse(const wstring& stri)
 	if (low)
 		str = wstring(str.begin() + 1, str.end());
 
-	bool perc = false;
+	bool pc = false;
 
 	if (str.at(0) == L'[' && str.at(str.length() - 1) == L']') {//is range
 		str = wstring(str.begin() + 1, str.end() - 1);
@@ -60,7 +102,7 @@ threshold parse(const wstring& stri)
 		try {
 			double d1 = boost::lexical_cast<double>(str1);
 			double d2 = boost::lexical_cast<double>(str2);
-			return threshold(d1, d2, !low, perc);
+			lower = d1; upper = d2; legal = !low; perc = pc; set = true;
 		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
@@ -71,8 +113,7 @@ threshold parse(const wstring& stri)
 		}
 		try {
 			double d = boost::lexical_cast<double>(str);
-			return threshold(d, d, !low, perc);
-
+			lower = d; upper = d; legal = !low; perc = pc; set = true;
 		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
@@ -142,4 +183,14 @@ wstring TunitStr(const Tunit& unit)
 		return L"h";
 	}
 	return NULL;
+}
+
+void die(DWORD err)
+{
+	if (!err)
+		err = GetLastError();
+	LPWSTR mBuf = NULL;
+	size_t mS = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+							  NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL);
+	std::wcout << mBuf << std::endl;
 }

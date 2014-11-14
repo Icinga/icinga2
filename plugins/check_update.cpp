@@ -45,7 +45,6 @@ struct printInfoStruct
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
 static int printOutput(const printInfoStruct&);
 static int check_update(printInfoStruct&);
-static void die(DWORD err = 0);
 
 int main(int argc, wchar_t **argv) 
 {
@@ -242,18 +241,8 @@ int check_update(printInfoStruct& printInfo)
 	return 0;
 
 die:
+	die(err);
 	if (criteria)
 		SysFreeString(criteria);
-	die(err);
 	return 3;
-}
-
-void die(DWORD err)
-{
-	if (!err)
-		err = GetLastError();
-	LPWSTR mBuf = NULL;
-	size_t mS = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-							  NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL);
-	wcout << mBuf << endl;
 }

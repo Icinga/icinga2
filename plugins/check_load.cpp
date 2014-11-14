@@ -41,7 +41,6 @@ struct printInfoStruct
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
 static int printOutput(printInfoStruct&);
 static int check_load(printInfoStruct&);
-static void die(DWORD err = 0);
 
 int wmain(int argc, wchar_t **argv) 
 {
@@ -143,7 +142,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -151,7 +150,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -232,14 +231,4 @@ die:
 	if (phQuery)
 		PdhCloseQuery(phQuery);
 	return 3;
-}
-
-void die(DWORD err)
-{
-	if (!err)
-		err = GetLastError();
-	LPWSTR mBuf = NULL;
-	size_t mS = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-							  NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL);
-	wcout << mBuf << endl;
 }

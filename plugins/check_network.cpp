@@ -45,7 +45,6 @@ struct printInfoStruct
 	threshold warn, crit;
 };
 
-static void die(DWORD err = 0);
 static int parseArguments(int, TCHAR **, po::variables_map&, printInfoStruct&);
 static int printOutput(printInfoStruct&, const vector<nInterface>&);
 static int check_network(vector<nInterface>&);
@@ -153,7 +152,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -161,7 +160,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -277,14 +276,4 @@ die:
 	if (pDisplayValuesOut)
 		delete pDisplayValuesOut;
 	return 3;
-}
-
-void die(DWORD err) 
-{
-	if (!err)
-		err = GetLastError();
-	LPWSTR mBuf = NULL;
-	size_t mS = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL);
-	wcout << mBuf << endl;
 }

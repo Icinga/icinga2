@@ -55,7 +55,6 @@ static int printOutput(printInfoStruct&, vector<drive>&);
 static int check_drives(vector<drive>&);
 static int check_drives(vector<drive>&, printInfoStruct&);
 static bool getFreeAndCap(drive&, const Bunit&);
-static void die();
 
 int wmain(int argc, wchar_t **argv) 
 {
@@ -172,7 +171,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -180,7 +179,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -330,13 +329,4 @@ bool getFreeAndCap(drive& drive, const Bunit& unit)
 	drive.free = (tempFree.QuadPart / pow(1024.0, unit));
 
 	return TRUE;
-}
-
-void die() 
-{
-	DWORD err = GetLastError();
-	LPWSTR mBuf = NULL;
-	size_t mS = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-	    NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL);
-	wcout << mBuf << endl;
 }
