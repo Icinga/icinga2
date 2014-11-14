@@ -24,7 +24,7 @@
 
 #include "thresholds.h"
 
-#include "boost\program_options.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 namespace po = boost::program_options;
@@ -45,7 +45,7 @@ struct printInfoStruct
 	threshold warn, crit;
 };
 
-static void die(const DWORD err=NULL);
+static void die(const DWORD err);
 static int parseArguments(int, TCHAR **, po::variables_map&, printInfoStruct&);
 static int printOutput(printInfoStruct&, const vector<nInterface>&);
 static int check_network(vector<nInterface>&);
@@ -174,7 +174,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterfaces) 
 {
 	long tIn = 0, tOut = 0;
-	std::wstringstream tss;
+	std::wstringstream tss, perfDataFirst;
 	state state = OK;
 
 	for (vector<nInterface>::const_iterator it = vInterfaces.begin(); it != vInterfaces.end(); ++it) {
@@ -187,16 +187,18 @@ int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterface
 		state = WARNING;
 	if (printInfo.crit.rend(tIn + tOut))
 		state = CRITICAL;
+	
+	perfDataFirst << L"network=" << tIn + tOut << L"B/s;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0 ";
 
 	switch (state) {
 	case OK:
-		wcout << L"NETWORK OK " << tIn + tOut << L"B/s|" << tss.str() << endl;
+		wcout << L"NETWORK OK " << tIn + tOut << L"B/s|" << perfDataFirst.str() << tss.str() << endl;
 		break;
 	case WARNING:
-		wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s|" << tss.str() << endl;
+		wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s|" << perfDataFirst.str() << tss.str() << endl;
 		break;
 	case CRITICAL:
-		wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s|" << tss.str() << endl;
+		wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s|" << perfDataFirst.str() << tss.str() << endl;
 		break;
 	}
 
@@ -212,47 +214,72 @@ int check_network(vector <nInterface>& vInterfaces)
 	PDH_HCOUNTER phCounterIn, phCounterOut;
 	DWORD dwBufferSizeIn = 0, dwBufferSizeOut = 0, dwItemCount = 0;
 	PDH_FMT_COUNTERVALUE_ITEM *pDisplayValuesIn = NULL, *pDisplayValuesOut = NULL;
+	PDH_STATUS err;
 
-	if (PdhOpenQuery(NULL, NULL, &phQuery) != ERROR_SUCCESS)
+	err = PdhOpenQuery(NULL, NULL, &phQuery);
+	if (err != ERROR_SUCCESS)
 		goto die;
 
-    //Totaly reasonable statement
-	if (PdhOpenQuery(NULL, NULL, &phQuery) == ERROR_SUCCESS) {
-		if (PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn) == ERROR_SUCCESS) {
-			if (PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut) == ERROR_SUCCESS) {
-				if (PdhCollectQueryData(phQuery) == ERROR_SUCCESS) {
-					Sleep(1000);
-					if (PdhCollectQueryData(phQuery) == ERROR_SUCCESS) {
-						if (PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn) == PDH_MORE_DATA &&
-							PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut) == PDH_MORE_DATA) {
-							pDisplayValuesIn = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeIn];
-							pDisplayValuesOut = new  PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeOut];
-							if (PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn) == ERROR_SUCCESS &&
-								PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut) == ERROR_SUCCESS) {
-								for (DWORD i = 0; i < dwItemCount; i++) {
-									nInterface *iface = new nInterface(wstring(pDisplayValuesIn[i].szName));
-									iface->BytesInSec = pDisplayValuesIn[i].FmtValue.longValue;
-									iface->BytesOutSec = pDisplayValuesOut[i].FmtValue.longValue;
-									vInterfaces.push_back(*iface);
-								}
-								return -1;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
+	err = PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn);
+	if (err != ERROR_SUCCESS) 
+		goto die;
 	
+	err = PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut);
+	if (err != ERROR_SUCCESS) 
+		goto die;
+	
+	err = PdhCollectQueryData(phQuery);
+	if (err != ERROR_SUCCESS)
+		goto die;
+	
+	Sleep(1000);
+
+	err = PdhCollectQueryData(phQuery);
+	if (err != ERROR_SUCCESS)
+		goto die;
+
+	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
+	if (err == PDH_MORE_DATA || err == ERROR_SUCCESS)
+		pDisplayValuesIn = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeIn];
+	else
+		goto die;
+	
+	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
+	if (err == PDH_MORE_DATA || err == ERROR_SUCCESS)
+		pDisplayValuesOut = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeOut];
+	else
+		goto die;
+
+	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
+	if (err != ERROR_SUCCESS)
+		goto die;
+
+	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
+	if (err != ERROR_SUCCESS)
+		goto die;
+
+	for (DWORD i = 0; i < dwItemCount; i++) {
+		nInterface *iface = new nInterface(wstring(pDisplayValuesIn[i].szName));
+		iface->BytesInSec = pDisplayValuesIn[i].FmtValue.longValue;
+		iface->BytesOutSec = pDisplayValuesOut[i].FmtValue.longValue;
+		vInterfaces.push_back(*iface);
+	}
+		PdhCloseQuery(phQuery);
+		delete pDisplayValuesIn;
+		delete pDisplayValuesOut;
+		return -1;
 die:
-	die();
+	die(err);
 	if (phQuery)
 		PdhCloseQuery(phQuery);
+	if (pDisplayValuesIn)
+		delete pDisplayValuesIn;
+	if (pDisplayValuesOut)
+		delete pDisplayValuesOut;
 	return 3;
 }
 
-void die(DWORD err) 
+void die(DWORD err = 0) 
 {
 	if (!err)
 		err = GetLastError();
