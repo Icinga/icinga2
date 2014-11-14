@@ -178,7 +178,7 @@ int ServiceStatus(const printInfoStruct& printInfo)
 		&& GetLastError() != ERROR_MORE_DATA) 
 		goto die;
 
-	lpServices = new BYTE[*pcbBytesNeeded];
+	lpServices = reinterpret_cast<LPBYTE>(new BYTE[*pcbBytesNeeded]);
 	cbBufSize = *pcbBytesNeeded;
 
 	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
@@ -196,7 +196,7 @@ int ServiceStatus(const printInfoStruct& printInfo)
 
 die:
 	if (lpServices)
-		delete lpServices;
+		delete[] reinterpret_cast<LPBYTE>(lpServices);
 	wcout << L"Service " << printInfo.service << L" could not be found" << endl;
 	return -1;
 }

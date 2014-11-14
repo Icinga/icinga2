@@ -239,13 +239,13 @@ int check_network(vector <nInterface>& vInterfaces)
 
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
-		pDisplayValuesIn = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeIn];
+		pDisplayValuesIn = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
 	else
 		goto die;
 	
 	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
-		pDisplayValuesOut = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeOut];
+		pDisplayValuesOut = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
 	else
 		goto die;
 
@@ -272,8 +272,8 @@ die:
 	if (phQuery)
 		PdhCloseQuery(phQuery);
 	if (pDisplayValuesIn)
-		delete pDisplayValuesIn;
+		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesIn);
 	if (pDisplayValuesOut)
-		delete pDisplayValuesOut;
+		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
 	return 3;
 }

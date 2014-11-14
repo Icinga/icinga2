@@ -275,13 +275,13 @@ int check_drives(vector<drive>& vDrives)
 
 	while (GetLastError() != ERROR_NO_MORE_FILES) {
 		volumeNameEnd = wcslen(szVolumeName) - 1;
-		szVolumePathNames = (PWCHAR) new BYTE[dwVolumePathNamesLen * sizeof(wchar_t)];
+		szVolumePathNames = reinterpret_cast<wchar_t*>(new WCHAR[dwVolumePathNamesLen]);
 
 		while (!GetVolumePathNamesForVolumeName(szVolumeName, szVolumePathNames, dwVolumePathNamesLen, &dwVolumePathNamesLen)) {
 			if (GetLastError() != ERROR_MORE_DATA)
 				break;
-			delete[] szVolumePathNames;
-			szVolumePathNames = (PWCHAR) new BYTE[dwVolumePathNamesLen * sizeof(wchar_t)];
+			delete[] reinterpret_cast<wchar_t*>(szVolumePathNames);
+			szVolumePathNames = reinterpret_cast<wchar_t*>(new WCHAR[dwVolumePathNamesLen]);
 
 		}
 

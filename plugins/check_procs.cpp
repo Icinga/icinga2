@@ -256,7 +256,7 @@ int countProcs(const wstring user)
 			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER) 
 			continue;
 
-		pSIDTokenUser = (PTOKEN_USER)new BYTE[dwReturnLength];
+		pSIDTokenUser = reinterpret_cast<PTOKEN_USER>(new BYTE[dwReturnLength]);
 		memset(pSIDTokenUser, 0, dwReturnLength);
 
 		if (!pSIDTokenUser)
@@ -276,8 +276,8 @@ int countProcs(const wstring user)
 			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 			continue;
 		
-		AcctName = (LPWSTR) new wchar_t[dwAcctName];
-		DomainName = (LPWSTR) new wchar_t[dwDomainName];
+		AcctName = reinterpret_cast<LPWSTR>(new WCHAR[dwAcctName]);
+		DomainName = reinterpret_cast<LPWSTR>(new WCHAR[dwDomainName]);
 
 		if (!AcctName || !DomainName)
 			continue;
@@ -289,6 +289,8 @@ int countProcs(const wstring user)
 		if (!wcscmp(AcctName, wuser)) 
 			++numProcs;
 		
+		delete[] reinterpret_cast<LPWSTR>(AcctName);
+		delete[] reinterpret_cast<LPWSTR>(DomainName);
 
 	} while (Process32Next(hProcessSnap, &pe32));
 	
@@ -300,5 +302,7 @@ die:
 		CloseHandle(hProcess);
 	if (hToken)
 		CloseHandle(hToken);
+	if (pSIDTokenUser)
+		delete[] reinterpret_cast<PTOKEN_USER>(pSIDTokenUser);
 	return numProcs;
 }
