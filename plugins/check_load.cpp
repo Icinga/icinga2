@@ -23,7 +23,7 @@
 
 #include "thresholds.h"
 
-#include "boost\program_options.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -142,7 +142,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -150,7 +150,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -196,31 +196,38 @@ int check_load(printInfoStruct& printInfo)
 	DWORD dwBufferSize = 0;
 	DWORD CounterType;
 	PDH_FMT_COUNTERVALUE DisplayValue;
+	PDH_STATUS err;
 
 	LPCWSTR path = L"\\Processor(_Total)\\% Idle Time";
 
-	if (PdhOpenQuery(NULL, NULL, &phQuery) != ERROR_SUCCESS)
-		goto cleanup;
+	err = PdhOpenQuery(NULL, NULL, &phQuery);
+	if (!SUCCEEDED(err))
+		goto die;
 
-	if (PdhAddEnglishCounter(phQuery, path, NULL, &phCounter) != ERROR_SUCCESS)
-		goto cleanup;
+	err = PdhAddEnglishCounter(phQuery, path, NULL, &phCounter);
+	if (!SUCCEEDED(err))
+		goto die;
 
-	if (PdhCollectQueryData(phQuery) != ERROR_SUCCESS)
-		goto cleanup;
+	err = PdhCollectQueryData(phQuery);
+	if (!SUCCEEDED(err))
+		goto die;
 
 	Sleep(1000);
 
-	if (PdhCollectQueryData(phQuery) != ERROR_SUCCESS)
-		goto cleanup;
+	err = PdhCollectQueryData(phQuery);
+	if (!SUCCEEDED(err))
+		goto die;
 
-	if (PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue) == ERROR_SUCCESS) {
+	err = PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue);
+	if (SUCCEEDED(err)) {
 		if (DisplayValue.CStatus == PDH_CSTATUS_VALID_DATA)
 			printInfo.load = 100.0 - DisplayValue.doubleValue;
 		PdhCloseQuery(phQuery);
 		return -1;
 	}
 
-cleanup:
+die:
+	die();
 	if (phQuery)
 		PdhCloseQuery(phQuery);
 	return 3;

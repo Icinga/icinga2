@@ -22,8 +22,8 @@
 
 #include "thresholds.h"
 
-#include "boost\chrono.hpp"
-#include "boost\program_options.hpp"
+#include "boost/chrono.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -147,7 +147,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -155,7 +155,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;

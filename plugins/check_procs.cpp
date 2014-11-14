@@ -23,7 +23,7 @@
 
 #include "thresholds.h"
 
-#include "boost\program_options.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -70,7 +70,7 @@ int printOutput(const int numProcs, printInfoStruct& printInfo)
 		state = CRITICAL;
 	
 	switch (state) {
-    case OK:
+	case OK:
 		wcout << L"PROCS OK " << numProcs << L"|procs=" << numProcs << L";" 
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
@@ -175,7 +175,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -183,7 +183,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -240,27 +240,23 @@ int countProcs(const wstring user)
 
 	pe32.dwSize = sizeof(PROCESSENTRY32);
 
-	if (!Process32First(hProcessSnap, &pe32)) {
+	if (!Process32First(hProcessSnap, &pe32))
 		goto die;
-	}
 
 	do {
 		//get ProcessToken
 		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pe32.th32ProcessID);
 		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) 
-            //Won't count pid 0 (system idle) and 4/8 (Sytem)
+			//Won't count pid 0 (system idle) and 4/8 (Sytem)
 			continue;
-		
-
 
 		//Get dwReturnLength in first call
 		dwReturnLength = 1;
 		if (!GetTokenInformation(hToken, TokenUser, NULL, 0, &dwReturnLength)
 			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER) 
 			continue;
-		
 
-		pSIDTokenUser = (PTOKEN_USER)new BYTE[dwReturnLength];
+		pSIDTokenUser = reinterpret_cast<PTOKEN_USER>(new BYTE[dwReturnLength]);
 		memset(pSIDTokenUser, 0, dwReturnLength);
 
 		if (!pSIDTokenUser)
@@ -280,8 +276,8 @@ int countProcs(const wstring user)
 			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 			continue;
 		
-		AcctName = (LPWSTR) new wchar_t[dwAcctName];
-		DomainName = (LPWSTR) new wchar_t[dwDomainName];
+		AcctName = reinterpret_cast<LPWSTR>(new WCHAR[dwAcctName]);
+		DomainName = reinterpret_cast<LPWSTR>(new WCHAR[dwDomainName]);
 
 		if (!AcctName || !DomainName)
 			continue;
@@ -293,6 +289,8 @@ int countProcs(const wstring user)
 		if (!wcscmp(AcctName, wuser)) 
 			++numProcs;
 		
+		delete[] reinterpret_cast<LPWSTR>(AcctName);
+		delete[] reinterpret_cast<LPWSTR>(DomainName);
 
 	} while (Process32Next(hProcessSnap, &pe32));
 	
@@ -304,5 +302,7 @@ die:
 		CloseHandle(hProcess);
 	if (hToken)
 		CloseHandle(hToken);
+	if (pSIDTokenUser)
+		delete[] reinterpret_cast<PTOKEN_USER>(pSIDTokenUser);
 	return numProcs;
 }

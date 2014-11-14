@@ -31,6 +31,7 @@
 %define apachegroup apache
 %if 0%{?el5}%{?el6}
 %define use_systemd 0
+%define march_flag -march=i686
 %else
 # fedora and el>=7
 %define use_systemd 1
@@ -183,6 +184,7 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DCMAKE_INSTALL_SYSCONFDIR=/etc \
          -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+         -DCMAKE_VERBOSE_MAKEFILE=ON \
          -DBoost_NO_BOOST_CMAKE=ON \
          -DICINGA2_RUNDIR=%{_rundir} \
          -DICINGA2_USER=%{icinga_user} \
@@ -205,15 +207,14 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
 %if "%{_vendor}" != "suse"
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_libdir}/nagios/plugins"
 %else
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins \
- -DCMAKE_C_FLAGS='-march=i686' -DCMAKE_CXX_FLAGS='-march=i686'"
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
 %endif
 
 %if 0%{?use_systemd}
 CMAKE_OPTS="$CMAKE_OPTS -DUSE_SYSTEMD=ON"
 %endif
 
-cmake $CMAKE_OPTS .
+cmake $CMAKE_OPTS -DCMAKE_C_FLAGS:STRING="%{optflags} %{?march_flag}" -DCMAKE_CXX_FLAGS:STRING="%{optflags} %{?march_flag}" .
 
 make %{?_smp_mflags}
 

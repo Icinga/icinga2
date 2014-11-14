@@ -288,6 +288,9 @@ bool ConfigItem::ValidateItems(void)
 
 	upq.Join();
 
+	if (ConfigCompilerContext::GetInstance()->HasErrors())
+		return false;
+
 	std::vector<DynamicObject::Ptr> objects;
 	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
 		DynamicObject::Ptr object = kv.second->m_Object;

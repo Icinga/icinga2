@@ -23,7 +23,7 @@
 
 #include "thresholds.h"
 
-#include "boost\program_options.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -35,7 +35,7 @@ using std::cout; using std::wstring;
 struct printInfoStruct 
 {
 	threshold warn, crit;
-	int users;
+	double users;
 };
 
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
@@ -142,7 +142,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = parse(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -150,7 +150,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = parse(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<wstring>());
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -190,13 +190,15 @@ int printOutput(printInfoStruct& printInfo)
 
 int check_users(printInfoStruct& printInfo) 
 {
-	int users = 0;
-	WTS_SESSION_INFOW *pSessionInfo;
+	double users = 0;
+	WTS_SESSION_INFOW *pSessionInfo = NULL;
 	DWORD count;
 	DWORD index;
 
 	if (!WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfo, &count)) {
 		wcout << L"Failed to enumerate terminal sessions" << endl;
+		if (pSessionInfo)
+			WTSFreeMemory(pSessionInfo);
 		return 3;
 	}
 
@@ -206,7 +208,7 @@ int check_users(printInfoStruct& printInfo)
 		int len;
 
 		if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, pSessionInfo[index].SessionId,
-			WTSUserName, &name, &size))
+										WTSUserName, &name, &size))
 			continue;
 
 		len = lstrlenW(name);
@@ -223,5 +225,4 @@ int check_users(printInfoStruct& printInfo)
 	WTSFreeMemory(pSessionInfo);
 	printInfo.users = users;
 	return -1;
-
 }

@@ -186,9 +186,10 @@ int check_update(printInfoStruct& printInfo)
 	IUpdateSession *pSession;
 	IUpdateSearcher *pSearcher;
 
+	HRESULT err;
+
 	CoCreateInstance(CLSID_UpdateSession, NULL, CLSCTX_INPROC_SERVER, IID_IUpdateSession, (LPVOID*)&pSession);
 	pSession->CreateUpdateSearcher(&pSearcher);
-
 
 	/*
 	 IsInstalled = 0: All updates, including languagepacks and features
@@ -201,7 +202,8 @@ int check_update(printInfoStruct& printInfo)
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx
 	// http://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
 
-	if (pSearcher->Search(criteria, &pResult) != S_OK)
+	err = pSearcher->Search(criteria, &pResult);
+	if (!SUCCEEDED(err))
 		goto die;
 	SysFreeString(criteria);
 
@@ -239,6 +241,7 @@ int check_update(printInfoStruct& printInfo)
 	return 0;
 
 die:
+	die(err);
 	if (criteria)
 		SysFreeString(criteria);
 	return 3;
