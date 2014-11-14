@@ -60,4 +60,6 @@ if(PostgreSQL_FOUND)
       DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2-ido-pgsql/schema
       FILES_MATCHING PATTERN "*.sql"
     )
+else()
+    message( FATAL_ERROR "You have selected PostgreSQL support, but PostgreSQL could not be found." )
 endif()
