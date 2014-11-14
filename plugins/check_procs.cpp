@@ -23,7 +23,7 @@
 
 #include "thresholds.h"
 
-#include "boost\program_options.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -70,7 +70,7 @@ int printOutput(const int numProcs, printInfoStruct& printInfo)
 		state = CRITICAL;
 	
 	switch (state) {
-    case OK:
+	case OK:
 		wcout << L"PROCS OK " << numProcs << L"|procs=" << numProcs << L";" 
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
@@ -240,25 +240,21 @@ int countProcs(const wstring user)
 
 	pe32.dwSize = sizeof(PROCESSENTRY32);
 
-	if (!Process32First(hProcessSnap, &pe32)) {
+	if (!Process32First(hProcessSnap, &pe32))
 		goto die;
-	}
 
 	do {
 		//get ProcessToken
 		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pe32.th32ProcessID);
 		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) 
-            //Won't count pid 0 (system idle) and 4/8 (Sytem)
+			//Won't count pid 0 (system idle) and 4/8 (Sytem)
 			continue;
-		
-
 
 		//Get dwReturnLength in first call
 		dwReturnLength = 1;
 		if (!GetTokenInformation(hToken, TokenUser, NULL, 0, &dwReturnLength)
 			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER) 
 			continue;
-		
 
 		pSIDTokenUser = (PTOKEN_USER)new BYTE[dwReturnLength];
 		memset(pSIDTokenUser, 0, dwReturnLength);
