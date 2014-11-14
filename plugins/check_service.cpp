@@ -22,7 +22,7 @@
 
 #include "thresholds.h"
 
-#include "boost\program_options.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -117,7 +117,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"%s' thresholds work differently, since a service is either running or not\n"
 			L"all \"-w\" and \"-c\" do is say whether a not running service is a warning\n"
 			L"or critical state respectively.\n"
-			, progName);
+			, progName, progName);
 		cout << endl;
 		return 0;
 	}
@@ -169,20 +169,16 @@ int ServiceStatus(const printInfoStruct& printInfo)
 	if (service_api == NULL)
 		goto die;
 
-
 	LPBYTE lpServices = NULL;
 	DWORD cbBufSize = 0;
-	DWORD *pcbBytesNeeded = (LPDWORD)malloc(sizeof(DWORD));
-	DWORD *lpServicesReturned = (LPDWORD)malloc(sizeof(DWORD));
-	DWORD *lpResumeHandle = (LPDWORD)malloc(sizeof(DWORD));
-	*lpResumeHandle = 0;
+	DWORD *pcbBytesNeeded = NULL, *lpServicesReturned = NULL, *lpResumeHandle = NULL;
 
 	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
 		lpServices, cbBufSize, pcbBytesNeeded, lpServicesReturned, lpResumeHandle, NULL)
 		&& GetLastError() != ERROR_MORE_DATA) 
 		goto die;
 
-	lpServices = (LPBYTE)malloc(*pcbBytesNeeded);
+	lpServices = new BYTE[*pcbBytesNeeded];
 	cbBufSize = *pcbBytesNeeded;
 
 	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
@@ -192,11 +188,15 @@ int ServiceStatus(const printInfoStruct& printInfo)
 	LPENUM_SERVICE_STATUS_PROCESS pInfo = (LPENUM_SERVICE_STATUS_PROCESS)lpServices;
     
 	for (DWORD i = 0; i< *lpServicesReturned; i++) {
-		if (!wcscmp(printInfo.service.c_str(), pInfo[i].lpServiceName))
+		if (!wcscmp(printInfo.service.c_str(), pInfo[i].lpServiceName)) {
+			delete lpServices;
 			return pInfo[i].ServiceStatusProcess.dwCurrentState;
+		}
 	}
 
 die:
+	if (lpServices)
+		delete lpServices;
 	wcout << L"Service " << printInfo.service << L" could not be found" << endl;
 	return -1;
 }
