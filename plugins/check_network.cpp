@@ -45,7 +45,7 @@ struct printInfoStruct
 	threshold warn, crit;
 };
 
-static void die(const DWORD err);
+static void die(DWORD err = 0);
 static int parseArguments(int, TCHAR **, po::variables_map&, printInfoStruct&);
 static int printOutput(printInfoStruct&, const vector<nInterface>&);
 static int check_network(vector<nInterface>&);
@@ -217,45 +217,45 @@ int check_network(vector <nInterface>& vInterfaces)
 	PDH_STATUS err;
 
 	err = PdhOpenQuery(NULL, NULL, &phQuery);
-	if (err != ERROR_SUCCESS)
+	if (!SUCCEEDED(err))
 		goto die;
 
 	err = PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn);
-	if (err != ERROR_SUCCESS) 
+	if (!SUCCEEDED(err)) 
 		goto die;
 	
 	err = PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut);
-	if (err != ERROR_SUCCESS) 
+	if (!SUCCEEDED(err)) 
 		goto die;
 	
 	err = PdhCollectQueryData(phQuery);
-	if (err != ERROR_SUCCESS)
+	if (!SUCCEEDED(err))
 		goto die;
 	
 	Sleep(1000);
 
 	err = PdhCollectQueryData(phQuery);
-	if (err != ERROR_SUCCESS)
+	if (!SUCCEEDED(err))
 		goto die;
 
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
-	if (err == PDH_MORE_DATA || err == ERROR_SUCCESS)
+	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesIn = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeIn];
 	else
 		goto die;
 	
 	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
-	if (err == PDH_MORE_DATA || err == ERROR_SUCCESS)
+	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesOut = new PDH_FMT_COUNTERVALUE_ITEM[dwItemCount*dwBufferSizeOut];
 	else
 		goto die;
 
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
-	if (err != ERROR_SUCCESS)
+	if (!SUCCEEDED(err))
 		goto die;
 
 	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
-	if (err != ERROR_SUCCESS)
+	if (!SUCCEEDED(err))
 		goto die;
 
 	for (DWORD i = 0; i < dwItemCount; i++) {
@@ -279,7 +279,7 @@ die:
 	return 3;
 }
 
-void die(DWORD err = 0) 
+void die(DWORD err) 
 {
 	if (!err)
 		err = GetLastError();

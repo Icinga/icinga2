@@ -22,8 +22,8 @@
 
 #include "thresholds.h"
 
-#include "boost\chrono.hpp"
-#include "boost\program_options.hpp"
+#include "boost/chrono.hpp"
+#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
