@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-template=$(cat <<TEMPLATE
+#!/bin/sh
+template=`cat <<TEMPLATE
 ***** Icinga  *****
 
 Notification Type: $NOTIFICATIONTYPE
@@ -15,7 +15,7 @@ Additional Info: $SERVICEOUTPUT
 
 Comment: [$NOTIFICATIONAUTHORNAME] $NOTIFICATIONCOMMENT
 TEMPLATE
-)
+`
 
 /usr/bin/printf "%b" "$template" | mail -s "$NOTIFICATIONTYPE - $HOSTDISPLAYNAME - $SERVICEDISPLAYNAME is $SERVICESTATE" $USEREMAIL
 
