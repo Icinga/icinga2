@@ -25,9 +25,12 @@ parentheses):
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
-* recommended: libexecinfo on FreeBSD
-* optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian)
-* optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian)
+* recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
+               installed via port or package)
+* optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian) set CMake
+             variable `ICINGA2_WITH_MYSQL` to enable
+* optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian) set CMake
+            variable `ICINGA2_WITH_PGSQL` to enable
 * optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
