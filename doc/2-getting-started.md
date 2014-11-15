@@ -1263,21 +1263,25 @@ are expected to be in `/var/log/icinga2/compat`. A different path can be set usi
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 
-Icinga 2 is compatible with Icinga 1.x user interfaces by providing additional
-features required as backends.
+Icinga 2 can be used with [Icinga Web 2](#setting-up-icingaweb2), using
+DB IDO or Livestatus as preferred backend provider, next to the command pipe.
 
-Furthermore these interfaces can be used for the newly created `Icinga Web 2`
-user interface.
+Icinga 2 also is compatible with Icinga 1.x user interfaces
+[Classic UI 1.x](#installing-icinga-classic-ui) and [Icinga Web 1.x](#setting-up-icinga-web)
+by providing additional features required as backends.
 
-Some interface features will only work in a limited manner due to
+Some Icinga 1.x interface features will only work in a limited manner due to
 [compatibility reasons](#differences-1x-2), other features like the
 statusmap parents are available by dumping the host dependencies as parents.
 Special restrictions are noted specifically in the sections below.
 
+You can also use other user interface addons, if you prefer. Keep in mind
+that Icinga 2 core features might not be fully supported in these addons.
+
 > **Tip**
 >
-> Choose your preferred interface. There's no need to install [Classic UI](#setting-up-icinga-classic-ui)
-> if you prefer [Icinga Web](#setting-up-icinga-web) or [Icinga Web 2](#setting-up-icingaweb2) for example.
+> Choose your preferred interface. There's no need to install [Classic UI 1.x](#setting-up-icinga-classic-ui)
+> if you prefer [Icinga Web 1.x](#setting-up-icinga-web) or [Icinga Web 2](#setting-up-icingaweb2) for example.
 
 ### <a id="icinga2-user-interface-requirements"></a> Requirements
 
@@ -1317,14 +1321,46 @@ RHEL/CentOS 7 specific:
     # firewall-cmd --add-service=http
     # firewall-cmd --permanent --add-service=http
 
-### <a id="setting-up-icinga-classic-ui"></a> Setting up Icinga Classic UI
+### <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
+
+Icinga Web 2 supports `DB IDO` or `Livestatus` as backends.
+
+Using DB IDO as backend, you need to install and configure the
+[DB IDO backend](#configuring-db-ido).
+Once finished, you can enable the feature for DB IDO MySQL:
+
+    # icinga2 feature enable ido-mysql
+
+Furthermore [external commands](#external-commands) are supported through the external
+command pipe.
+
+    # icinga2 feature enable command
+
+In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
+
+[Icinga Web 2](https://github.com/Icinga/icingaweb2) ships its own
+web-based setup wizard which will guide you through the entire setup process.
+
+Generate the Webserver configuration and a setup token using its local cli
+and proceed with the web setup when accessing `/icingaweb` after reloading
+your webserver configuration.
+
+Please consult the installation documentation shipped with `Icinga Web 2` for
+further instructions on how to install Icinga Web 2 and to configure
+backends, resources and instances manually.
+
+Check the [Icinga website](http://www.icinga.org) for release announcements
+and packages.
+
+
+### <a id="setting-up-icinga-classic-ui"></a> Setting up Icinga Classic UI 1.x
 
 Icinga 2 can write `status.dat` and `objects.cache` files in the format that
 is supported by the Icinga 1.x Classic UI. [External commands](#external-commands)
 (a.k.a. the "command pipe") are also supported. It also supports writing Icinga 1.x
 log files which are required for the reporting functionality in the Classic UI.
 
-#### <a id="installing-icinga-classic-ui"></a> Installing Icinga Classic UI
+#### <a id="installing-icinga-classic-ui"></a> Installing Icinga Classic UI 1.x
 
 The Icinga package repository has both Debian and RPM packages. You can install
 the Classic UI using the following packages:
@@ -1357,7 +1393,7 @@ Enable these features and restart Icinga 2.
 
 In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
 
-#### <a id="setting-up-icinga-classic-ui-summary"></a> Setting Up Icinga Classic UI Summary
+#### <a id="setting-up-icinga-classic-ui-summary"></a> Setting Up Icinga Classic UI 1.x Summary
 
 Verify that your Icinga 1.x Classic UI works by browsing to your Classic
 UI installation URL:
@@ -1370,13 +1406,13 @@ UI installation URL:
 For further information on configuration, troubleshooting and interface documentation
 please check the official [Icinga 1.x user interface documentation](http://docs.icinga.org/latest/en/ch06.html).
 
-### <a id="setting-up-icinga-web"></a> Setting up Icinga Web
+### <a id="setting-up-icinga-web"></a> Setting up Icinga Web 1.x
 
 Icinga 2 can write to the same schema supplied by `Icinga IDOUtils 1.x` which
 is an explicit requirement to run `Icinga Web` next to the external command pipe.
 Therefore you need to setup the [DB IDO feature](#configuring-ido) remarked in the previous sections.
 
-#### <a id="installing-icinga-web"></a> Installing Icinga Web
+#### <a id="installing-icinga-web"></a> Installing Icinga Web 1.x
 
 The Icinga package repository has both Debian and RPM packages. You can install
 Icinga Web using the following packages (RPMs ship an additional configuration package):
@@ -1386,7 +1422,7 @@ Icinga Web using the following packages (RPMs ship an additional configuration p
   RHEL/SUSE     | icinga-web icinga-web-{mysql,pgsql}
   Debian        | icinga-web icinga-web-config-icinga2-ido-{mysql,pgsql}
 
-#### <a id="icinga-web-rpm-notes"></a> Icinga Web on RPM based systems
+#### <a id="icinga-web-rpm-notes"></a> Icinga Web 1.x on RPM based systems
 
 Additionally you need to setup the `icinga_web` database and import the database schema.
 Details can be found in the package `README` files, for example [README.RHEL](https://github.com/Icinga/icinga-web/blob/master/doc/README.RHEL)
@@ -1479,7 +1515,7 @@ When changing Icinga Web configuration files make sure to clear the config cache
 >
 > `apt-get install --no-install-recommends icinga-web`
 
-#### <a id="setting-up-icinga-web-summary"></a> Setting Up Icinga Web Summary
+#### <a id="setting-up-icinga-web-summary"></a> Setting Up Icinga Web 1.x Summary
 
 Verify that your Icinga 1.x Web works by browsing to your Web installation URL:
 
@@ -1490,36 +1526,6 @@ Verify that your Icinga 1.x Web works by browsing to your Web installation URL:
 
 For further information on configuration, troubleshooting and interface documentation
 please check the official [Icinga 1.x user interface documentation](http://docs.icinga.org/latest/en/ch06.html).
-
-
-### <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
-
-Icinga Web 2 will support `DB IDO` or `Livestatus` as backends.
-
-Using DB IDO as backend, you need to install and configure the [DB IDO backend](#configuring-db-ido).
-Once finished, you can enable the feature for DB IDO MySQL:
-
-    # icinga2 feature enable ido-mysql
-
-Furthermore [external commands](#external-commands) are supported through the external
-command pipe.
-
-    # icinga2 feature enable command
-
-In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
-
-Please consult the INSTALL documentation shipped with `Icinga Web 2` for
-further instructions on how to install Icinga Web 2 and to configure
-backends, resources and instances.
-
-> **Note**
->
-> Icinga Web 2 is still under heavy development. Rather than installing it
-> yourself you should consider testing it using the available
-> [Vagrant demo VM](https://github.com/icinga/icinga-vagrant).
-
-Check the [Icinga website](https://www.icinga.org) for release schedules,
-blog updates and more.
 
 
 ### <a id="additional-visualization"></a> Additional visualization
