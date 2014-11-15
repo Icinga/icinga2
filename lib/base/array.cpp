@@ -115,7 +115,7 @@ size_t Array::GetLength(void) const
  * @param value The value.
  * @returns true if the array contains the value, false otherwise.
  */
-bool Array::Contains(const String& value) const
+bool Array::Contains(const Value& value) const
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);

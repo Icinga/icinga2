@@ -200,14 +200,7 @@ Value InExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) con
 	Value left = m_Operand1->Evaluate(context);
 		
 	Array::Ptr arr = right;
-	ObjectLock olock(arr);
-	BOOST_FOREACH(const Value& value, arr) {
-		if (value == left) {
-			return true;
-		}
-	}
-
-	return false;
+	return arr->Contains(left);
 }
 
 Value NotInExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
@@ -222,13 +215,7 @@ Value NotInExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) 
 	Value left = m_Operand1->Evaluate(context);
 
 	Array::Ptr arr = right;
-	ObjectLock olock(arr);
-	BOOST_FOREACH(const Value& value, arr) {
-		if (value == left)
-			return false;
-	}
-
-	return true;
+	return !arr->Contains(left);
 }
 
 Value LogicalAndExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
