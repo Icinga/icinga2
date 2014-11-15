@@ -87,6 +87,8 @@ private:
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);
+
+	static bool CommitNewItems(void);
 };
 
 }

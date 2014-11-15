@@ -151,10 +151,11 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", m_Scope);
 	m_Scope.reset();
-	locals->Set("name", m_Name);
 
 	dobj->SetParentScope(locals);
 	locals.reset();
+
+	dobj->SetName(m_Name);
 
 	DebugHint debugHints;
 
@@ -269,52 +270,59 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return ConfigItem::Ptr();
 }
 
+bool ConfigItem::CommitNewItems(void)
+{
+	std::vector<ConfigItem::Ptr> items;
+
+	do {
+		ParallelWorkQueue upq;
+
+		items.clear();
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+
+			BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
+				if (!kv.second->m_Abstract && !kv.second->m_Object) {
+					upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second, false));
+					items.push_back(kv.second);
+				}
+			}
+
+			BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
+				if (!item->m_Abstract && !item->m_Object) {
+					upq.Enqueue(boost::bind(&ConfigItem::Commit, item, true));
+					items.push_back(item);
+				}
+			}
+
+			m_UnnamedItems.clear();
+		}
+
+		upq.Join();
+
+		if (ConfigCompilerContext::GetInstance()->HasErrors())
+			return false;
+
+		BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
+			upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, item->m_Object));
+		}
+
+		upq.Join();
+	} while (!items.empty());
+
+	return true;
+}
+
 bool ConfigItem::ValidateItems(void)
 {
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
-	ParallelWorkQueue upq;
-
 	Log(LogInformation, "ConfigItem", "Committing config items");
 
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second, false));
-	}
-
-	BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
-		upq.Enqueue(boost::bind(&ConfigItem::Commit, item, true));
-	}
-
-	upq.Join();
-
-	if (ConfigCompilerContext::GetInstance()->HasErrors())
+	if (!CommitNewItems())
 		return false;
-
-	std::vector<DynamicObject::Ptr> objects;
-	BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-		DynamicObject::Ptr object = kv.second->m_Object;
-
-		if (object)
-			objects.push_back(object);
-	}
-
-	BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
-		DynamicObject::Ptr object = item->m_Object;
-
-		if (object)
-			objects.push_back(object);
-	}
-
-	m_UnnamedItems.clear();
-
-	Log(LogInformation, "ConfigItem", "Triggering OnConfigLoaded signal for config items");
-
-	BOOST_FOREACH(const DynamicObject::Ptr& object, objects) {
-		upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, object));
-	}
-
-	upq.Join();
 
 	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 1)...");
 	ObjectRule::EvaluateRules(false);
@@ -322,10 +330,11 @@ bool ConfigItem::ValidateItems(void)
 	Log(LogInformation, "ConfigItem", "Evaluating 'apply' rules...");
 	ApplyRule::EvaluateRules(true);
 
+	if (!CommitNewItems())
+		return false;
+
 	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 2)...");
 	ObjectRule::EvaluateRules(true);
-
-	upq.Join();
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();

@@ -115,7 +115,7 @@ void ConfigType::ValidateDictionary(const Dictionary::Ptr& dictionary,
 
 			Value value = dictionary->Get(require);
 
-			if (value.IsEmpty()) {
+			if (value.IsEmpty() || (value.IsString() && static_cast<String>(value).IsEmpty())) {
 				ConfigCompilerContext::GetInstance()->AddMessage(true,
 				    "Required attribute is missing: " + LocationToString(locations));
 			}
