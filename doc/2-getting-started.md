@@ -353,6 +353,13 @@ directive makes sure that all of your own configuration files are included.
 > remove it entirely, or adapt the existing configuration structure with your
 > own object configuration.
 
+### <a id="init-conf"></a> init.conf
+
+This initialization configuration file is automatically included by Icinga 2. It
+defines the daemon user and group [constants](#global-constants) `RunAsUser` and
+`RunAsGroup`.
+
+
 
 ### <a id="constants-conf"></a> constants.conf
 
