@@ -45,14 +45,20 @@ Start your search at
 
 * [Icinga Exchange](https://exchange.icinga.org)
 * [Icinga Wiki](https://wiki.icinga.org)
-*
+
+An example is provided in the sample configuration in the getting started
+section shipped with Icinga 2 ([hosts.conf](#hosts-conf), [services.conf](#services-conf)).
 
 ## <a id="icinga2-remote-client-monitoring"></a> Monitoring Icinga 2 Remote Clients
 
 First, you should decide which role the remote client has:
 
-* a single host with local checks
+* a single host with local checks and configuration
 * a remote satellite checking other hosts (for example in your DMZ)
+* a remote command execution client (similar to NRPE, NSClient++, etc)
+
+Later on, you will be asked again and told how to proceed with these
+different [roles](#icinga2-remote-monitoring-client-roles).
 
 > **Note**
 >
@@ -286,8 +292,7 @@ Make sure to answer the first question with `n` (no).
 
 The setup wizard will do the following:
 
-* Generate a local CA in `/var/lib/icinga2/ca` or use the existing one
-* Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
+* Generate a new self-signed certificate and copy it into `/etc/icinga2/pki`
 * Store the master's certificate as trusted certificate for requesting a new signed certificate
 (manual step when using `node setup`).
 * Request a new signed certificate from the master and store updated certificate and master CA in `/etc/icinga2/pki`
@@ -327,10 +332,92 @@ for CSR Auto-Signing
 
 Once install is done, Icinga 2 is automatically started as a Windows service.
 
+### <a id="icinga2-remote-monitoring-client-roles"></a> Remote Monitoring Client Roles
+
+Icinga 2 allows you to use two separate ways of defining a client (or: `agent`) role:
+
+* execute commands remotely, but host/service configuration happens on the master.
+* schedule remote checks on remote satellites with their local configuration.
+
+Depending on your scenario, either one or both combined with a cluster setup
+could be build and put together.
 
 
+### <a id="icinga2-remote-monitoring-client-command-execution"></a> Remote Client for Command Execution
 
-### <a id="icinga2-remote-monitoring-client-configuration"></a> Client Configuration for Remote Monitoring
+This scenario allows you to configure the checkable objects (hosts, services) on
+your Icinga 2 master or satellite, and only send commands remotely.
+
+Requirements:
+* Exact same [CheckCommand](#objecttype-checkcommand) (and
+[EventCommand](#objecttype-eventcommand)) configuration objects
+on the master and the remote client(s).
+* Installed plugin scripts on the remote client (`PluginDir` constant can be locally modified)
+* `Zone` and `Endpoint` configuration for the client on the master
+* `command_endpoint` attribute configured for host/service objects pointing to the configured
+endpoint
+
+Example for communication configuration:
+
+object Endpoint "remote-client1" {
+  host = "192.168.33.20"
+}
+
+object Zone "remote-client1" {
+  endpoints = [ "remote-client1" ]
+  parent = "master"
+}
+
+Example for host and service object configuration running commands on the remote endpoint:
+
+object Host "host-remote" {
+  import "generic-host"
+
+  address = "127.0.0.1"
+  address6 = "::1"
+
+  vars.os = "Linux"
+
+  vars.remote_client = "remote-client1"
+
+  /* host specific check arguments */
+  vars.users_wgreater = 10
+  vars.users_wgreater = 20
+}
+
+apply Service "users-remote" {
+  import "generic-service"
+
+  check_command = "users"
+  command_endpoint = host.vars.remote_client
+
+  /* override (remote) command arguments with host settings */
+  vars.users_wgreater = host.vars.users_wgreater
+  vars.users_cgreater = host.vars.users_cgreater
+
+  /* assign where a remote client is set */
+  assign where host.vars.remote_client
+}
+
+
+That way you can also execute the `icinga` check remotely
+verifying the health of your remote client(s). As a bonus
+you'll also get the running Icinga 2 version and may
+schedule client updates in your management tool (e.g. Puppet).
+
+
+### <a id="icinga2-remote-monitoring-client-local-config"></a> Remote Client with Local Configuration
+
+This is considered as independant satellite using a local scheduler, configuration
+and the possibility to add Icinga 2 features on demand.
+
+Local configured checks are transferred to the central master and helped
+with discovery cli commands.
+
+Please follow the instructions closely in order to deploy your fully featured
+client, or `agent` as others might call it.
+
+#### <a id="icinga2-remote-monitoring-client-configuration"></a> Client Configuration for Remote Monitoring
 
 There is no difference in the configuration syntax on clients to any other Icinga 2 installation.
 
@@ -354,7 +441,7 @@ You can also use additional features like notifications directly on the remote c
 required to. Basically everything a single Icinga 2 instance provides by default.
 
 
-### <a id="icinga2-remote-monitoring-master-discovery"></a> Discover Client Services on the Master
+#### <a id="icinga2-remote-monitoring-master-discovery"></a> Discover Client Services on the Master
 
 Icinga 2 clients will sync their locally defined objects to the defined master node. That way you can
 list, add, filter and remove nodes based on their `node`, `zone`, `host` or `service` name.
@@ -541,6 +628,14 @@ requires the `check_by_ssh` check plugin which is available in the [Monitoring P
 the required plugins and command definitions.
 Icinga 2 calls the `check_nrpe` plugin binary in order to query the configured command on the
 remote client.
+
+> **Note**
+>
+> The NRPE protocol is considered insecure and has multiple flaws in its
+> design. Upstream is not willing to fix these issues.
+>
+> In order to stay safe, please use the native [Icinga 2 client](#icinga2-remote-monitoring-master)
+> instead.
 
 The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
 can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
