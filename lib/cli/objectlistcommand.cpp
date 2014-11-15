@@ -227,6 +227,11 @@ void ObjectListCommand::PrintValue(std::ostream& fp, const Value& val)
 		return;
 	}
 
+	if (val.IsEmpty()) {
+		fp << "null";
+		return;
+	}
+
 	fp << Convert::ToString(val);
 }
 
