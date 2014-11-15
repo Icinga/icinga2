@@ -227,8 +227,9 @@ static std::stack<Expression *> m_Ignore;
 static std::stack<String> m_FKVar;
 static std::stack<String> m_FVVar;
 static std::stack<Expression *> m_FTerm;
+static std::stack<std::vector<Expression *> > m_Expressions;
 
-void ConfigCompiler::Compile(void)
+Expression *ConfigCompiler::Compile(void)
 {
 	m_ModuleScope = new Dictionary();
 
@@ -243,15 +244,25 @@ void ConfigCompiler::Compile(void)
 	m_FKVar = std::stack<String>();
 	m_FVVar = std::stack<String>();
 	m_FTerm = std::stack<Expression *>();
+	m_Expressions.push(std::vector<Expression *>());
 
 	try {
 		yyparse(this);
+
+		DictExpression *expr = new DictExpression(m_Expressions.top());
+		m_Expressions.pop();
+		expr->MakeInline();
+		return expr;
 	} catch (const ConfigError& ex) {
 		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
+
+	m_Expressions.pop();
+
+	return NULL;
 }
 
 #define scanner (context->GetScanner())
@@ -263,39 +274,13 @@ statements: /* empty */
 	| statements statement
 	;
 
-statement: type | include | include_recursive | library | constant
+statement: type | library | constant
 	{ }
 	| newlines
 	{ }
 	| lterm
 	{
-		$1->Evaluate(m_ModuleScope);
-		delete $1;
-	}
-	;
-
-include: T_INCLUDE rterm sep
-	{
-		context->HandleInclude($2->Evaluate(m_ModuleScope), false, DebugInfoRange(@1, @2));
-		delete $2;
-	}
-	| T_INCLUDE T_STRING_ANGLE
-	{
-		context->HandleInclude($2, true, DebugInfoRange(@1, @2));
-		free($2);
-	}
-	;
-
-include_recursive: T_INCLUDE_RECURSIVE rterm
-	{
-		context->HandleIncludeRecursive($2->Evaluate(m_ModuleScope), "*.conf", DebugInfoRange(@1, @2));
-		delete $2;
-	}
-	| T_INCLUDE_RECURSIVE rterm ',' rterm
-	{
-		context->HandleIncludeRecursive($2->Evaluate(m_ModuleScope), $4->Evaluate(m_ModuleScope), DebugInfoRange(@1, @4));
-		delete $2;
-		delete $4;
+		m_Expressions.top().push_back($1);
 	}
 	;
 
@@ -589,6 +574,27 @@ lterm: indexer combined_set_op rterm
 	{
 		$$ = new SetExpression(*$1, $2, $3, DebugInfoRange(@1, @3));
 		delete $1;
+	}
+	| T_INCLUDE rterm sep
+	{
+		$$ = context->HandleInclude($2->Evaluate(m_ModuleScope), false, DebugInfoRange(@1, @2));
+		delete $2;
+	}
+	| T_INCLUDE T_STRING_ANGLE
+	{
+		$$ = context->HandleInclude($2, true, DebugInfoRange(@1, @2));
+		free($2);
+	}
+	| T_INCLUDE_RECURSIVE rterm
+	{
+		$$ = context->HandleIncludeRecursive($2->Evaluate(m_ModuleScope), "*.conf", DebugInfoRange(@1, @2));
+		delete $2;
+	}
+	| T_INCLUDE_RECURSIVE rterm ',' rterm
+	{
+		$$ = context->HandleIncludeRecursive($2->Evaluate(m_ModuleScope), $4->Evaluate(m_ModuleScope), DebugInfoRange(@1, @4));
+		delete $2;
+		delete $4;
 	}
 	| T_IMPORT rterm
 	{

@@ -21,6 +21,7 @@
 #define CONFIGCOMPILER_H
 
 #include "config/i2-config.hpp"
+#include "config/expression.hpp"
 #include "base/debuginfo.hpp"
 #include "base/registry.hpp"
 #include "base/initialize.hpp"
@@ -43,11 +44,11 @@ public:
 	explicit ConfigCompiler(const String& path, std::istream *input, const String& zone = String());
 	virtual ~ConfigCompiler(void);
 
-	void Compile(void);
+	Expression *Compile(void);
 
-	static void CompileStream(const String& path, std::istream *stream, const String& zone = String());
-	static void CompileFile(const String& path, const String& zone = String());
-	static void CompileText(const String& path, const String& text, const String& zone = String());
+	static Expression *CompileStream(const String& path, std::istream *stream, const String& zone = String());
+	static Expression *CompileFile(const String& path, const String& zone = String());
+	static Expression *CompileText(const String& path, const String& text, const String& zone = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
@@ -56,9 +57,11 @@ public:
 	void SetZone(const String& zone);
 	String GetZone(void) const;
 
+	static void CollectIncludes(std::vector<Expression *>& expressions, const String& file, const String& zone);
+
 	/* internally used methods */
-	void HandleInclude(const String& include, bool search, const DebugInfo& debuginfo);
-	void HandleIncludeRecursive(const String& include, const String& pattern, const DebugInfo& debuginfo);
+	Expression *HandleInclude(const String& include, bool search, const DebugInfo& debuginfo = DebugInfo());
+	Expression *HandleIncludeRecursive(const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
 	void HandleLibrary(const String& library);
 
 	size_t ReadInput(char *buffer, size_t max_bytes);

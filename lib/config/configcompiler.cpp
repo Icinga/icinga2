@@ -97,6 +97,11 @@ String ConfigCompiler::GetZone(void) const
 	return m_Zone;
 }
 
+void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions, const String& file, const String& zone)
+{
+	expressions.push_back(CompileFile(file, zone));
+}
+
 /**
  * Handles an include directive.
  *
@@ -104,7 +109,7 @@ String ConfigCompiler::GetZone(void) const
  * @param search Whether to search global include dirs.
  * @param debuginfo Debug information.
  */
-void ConfigCompiler::HandleInclude(const String& include, bool search, const DebugInfo& debuginfo)
+Expression *ConfigCompiler::HandleInclude(const String& include, bool search, const DebugInfo& debuginfo)
 {
 	String path;
 
@@ -126,32 +131,36 @@ void ConfigCompiler::HandleInclude(const String& include, bool search, const Deb
 		}
 	}
 
-	std::vector<ConfigItem::Ptr> items;
+	std::vector<Expression *> expressions;
 
-	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CompileFile, _1, m_Zone), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
 		msgbuf << "Include file '" + include + "' does not exist: " << debuginfo;
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
+
+	return new DictExpression(expressions);
 }
 
 /**
  * Handles recursive includes.
  *
- * @param include The directory path.
+ * @param path The directory path.
  * @param pattern The file pattern.
  * @param debuginfo Debug information.
  */
-void ConfigCompiler::HandleIncludeRecursive(const String& include, const String& pattern, const DebugInfo&)
+Expression *ConfigCompiler::HandleIncludeRecursive(const String& path, const String& pattern, const DebugInfo&)
 {
-	String path;
+	String ppath;
 
-	if (include.GetLength() > 0 && include[0] == '/')
-		path = include;
+	if (path.GetLength() > 0 && path[0] == '/')
+		ppath = path;
 	else
-		path = Utility::DirName(GetPath()) + "/" + include;
+		ppath = Utility::DirName(GetPath()) + "/" + path;
 
-	Utility::GlobRecursive(path, pattern, boost::bind(&ConfigCompiler::CompileFile, _1, m_Zone), GlobFile);
+	std::vector<Expression *> expressions;
+	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone), GlobFile);
+	return new DictExpression(expressions);
 }
 
 /**
@@ -171,14 +180,14 @@ void ConfigCompiler::HandleLibrary(const String& library)
  * @param stream The input stream.
  * @returns Configuration items.
  */
-void ConfigCompiler::CompileStream(const String& path, std::istream *stream, const String& zone)
+Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stream, const String& zone)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
 
 	stream->exceptions(std::istream::badbit);
 
 	ConfigCompiler ctx(path, stream, zone);
-	ctx.Compile();
+	return ctx.Compile();
 }
 
 /**
@@ -187,7 +196,7 @@ void ConfigCompiler::CompileStream(const String& path, std::istream *stream, con
  * @param path The path.
  * @returns Configuration items.
  */
-void ConfigCompiler::CompileFile(const String& path, const String& zone)
+Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
@@ -213,7 +222,7 @@ void ConfigCompiler::CompileFile(const String& path, const String& zone)
  * @param text The text.
  * @returns Configuration items.
  */
-void ConfigCompiler::CompileText(const String& path, const String& text, const String& zone)
+Expression *ConfigCompiler::CompileText(const String& path, const String& text, const String& zone)
 {
 	std::stringstream stream(text);
 	return CompileStream(path, &stream, zone);

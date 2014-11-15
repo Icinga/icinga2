@@ -65,7 +65,11 @@ static String LoadAppType(const String& typeSpec)
 static void IncludeZoneDirRecursive(const String& path)
 {
 	String zoneName = Utility::BaseName(path);
-	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CompileFile, _1, zoneName), GlobFile);
+
+	std::vector<Expression *> expressions;
+	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
+	Dictionary::Ptr context = new Dictionary();
+	DictExpression(expressions).Evaluate(context);
 }
 
 static void IncludeNonLocalZone(const String& zonePath)
@@ -88,10 +92,15 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 
 	if (vm.count("config") > 0) {
 		BOOST_FOREACH(const String& configPath, vm["config"].as<std::vector<std::string> >()) {
-			ConfigCompiler::CompileFile(configPath);
+			Expression *expression = ConfigCompiler::CompileFile(configPath);
+			Dictionary::Ptr context = new Dictionary();
+			expression->Evaluate(context);
 		}
-	} else if (!vm.count("no-config"))
-		ConfigCompiler::CompileFile(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
+	} else if (!vm.count("no-config")) {
+		Expression *expression = ConfigCompiler::CompileFile(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
+		Dictionary::Ptr context = new Dictionary();
+		expression->Evaluate(context);
+	}
 
 	/* Load cluster config files - this should probably be in libremote but
 	* unfortunately moving it there is somewhat non-trivial. */
@@ -105,7 +114,9 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 
 	String name, fragment;
 	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
-		ConfigCompiler::CompileText(name, fragment);
+		Expression *expression = ConfigCompiler::CompileText(name, fragment);
+		Dictionary::Ptr context = new Dictionary();
+		expression->Evaluate(context);
 	}
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();

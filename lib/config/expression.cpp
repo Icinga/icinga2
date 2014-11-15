@@ -19,22 +19,14 @@
 
 #include "config/expression.hpp"
 #include "config/configitem.hpp"
-#include "config/configitembuilder.hpp"
-#include "config/applyrule.hpp"
-#include "config/objectrule.hpp"
+#include "config/vmops.hpp"
 #include "base/array.hpp"
 #include "base/json.hpp"
-#include "base/scriptfunction.hpp"
-#include "base/scriptvariable.hpp"
-#include "base/scriptsignal.hpp"
-#include "base/utility.hpp"
-#include "base/objectlock.hpp"
 #include "base/object.hpp"
 #include "base/logger.hpp"
 #include "base/configerror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
 using namespace icinga;
@@ -97,16 +89,7 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 
 Value VariableExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Object::Ptr scope = context;
-
-	while (scope) {
-		if (HasField(scope, m_Variable))
-			return GetField(scope, m_Variable);
-
-		scope = GetField(scope, "__parent");
-	}
-
-	return ScriptVariable::Get(m_Variable);
+	return VMOps::Variable(context, m_Variable);
 }
 
 Value NegateExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
@@ -199,7 +182,7 @@ Value InExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) con
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
 	Value left = m_Operand1->Evaluate(context);
-		
+
 	Array::Ptr arr = right;
 	return arr->Contains(left);
 }
@@ -233,22 +216,12 @@ Value FunctionCallExpression::DoEvaluate(const Object::Ptr& context, DebugHint *
 {
 	Value funcName = m_FName->Evaluate(context);
 
-	ScriptFunction::Ptr func;
-
-	if (funcName.IsObjectType<ScriptFunction>())
-		func = funcName;
-	else
-		func = ScriptFunction::GetByName(funcName);
-
-	if (!func)
-		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
-
 	std::vector<Value> arguments;
 	BOOST_FOREACH(Expression *arg, m_Args) {
 		arguments.push_back(arg->Evaluate(context));
 	}
 
-	return func->Invoke(arguments);
+	return VMOps::FunctionCall(context, funcName, arguments);
 }
 
 Value ArrayExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
@@ -272,7 +245,7 @@ Value DictExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) c
 		Object::Ptr acontext = m_Inline ? context : result;
 		aexpr->Evaluate(acontext, dhint);
 
-		if (HasField(acontext, "__result"))
+		if (VMOps::HasField(acontext, "__result"))
 			break;
 	}
 
@@ -311,16 +284,12 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 				break;
 		}
 
-		LiteralExpression *eparent = MakeLiteral(parent);
-		LiteralExpression *eindex = MakeLiteral(tempindex);
-
-		IndexerExpression eip(eparent, eindex, m_DebugInfo);
-		object = eip.Evaluate(context, psdhint);
+		object = VMOps::Indexer(context, parent, tempindex);
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
 
-			SetField(parent, tempindex, object);
+			VMOps::SetField(parent, tempindex, object);
 		}
 	}
 
@@ -348,7 +317,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		}
 	}
 
-	SetField(parent, index, right);
+	VMOps::SetField(parent, index, right);
 
 	if (psdhint)
 		psdhint->AddMessage("=", m_DebugInfo);
@@ -358,33 +327,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 
 Value IndexerExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	Value value = m_Operand1->Evaluate(context);
-	Value index = m_Operand2->Evaluate(context);
-
-	if (value.IsObjectType<Dictionary>()) {
-		Dictionary::Ptr dict = value;
-		return dict->Get(index);
-	} else if (value.IsObjectType<Array>()) {
-		Array::Ptr arr = value;
-		return arr->Get(index);
-	} else if (value.IsObject()) {
-		Object::Ptr object = value;
-		Type::Ptr type = object->GetReflectionType();
-
-		if (!type)
-			BOOST_THROW_EXCEPTION(ConfigError("Dot operator applied to object which does not support reflection"));
-
-		int field = type->GetFieldId(index);
-
-		if (field == -1)
-			BOOST_THROW_EXCEPTION(ConfigError("Tried to access invalid property '" + index + "'"));
-
-		return object->GetField(field);
-	} else if (value.IsEmpty()) {
-		return Empty;
-	} else {
-		BOOST_THROW_EXCEPTION(ConfigError("Dot operator cannot be applied to type '" + value.GetTypeName() + "'"));
-	}
+	return VMOps::Indexer(context, m_Operand1->Evaluate(context), m_Operand2->Evaluate(context));
 }
 
 Value ImportExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
@@ -402,66 +345,19 @@ Value ImportExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint)
 	return Empty;
 }
 
-Value Expression::FunctionWrapper(const std::vector<Value>& arguments,
-    const std::vector<String>& funcargs, const boost::shared_ptr<Expression>& expr, const Object::Ptr& scope)
-{
-	if (arguments.size() < funcargs.size())
-		BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
-
-	Dictionary::Ptr context = new Dictionary();
-	context->Set("__parent", scope);
-
-	for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
-		context->Set(funcargs[i], arguments[i]);
-
-	expr->Evaluate(context);
-	return context->Get("__result");
-}
-
 Value FunctionExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&Expression::FunctionWrapper, _1, m_Args, m_Expression, context));
-
-	if (!m_Name.IsEmpty())
-		ScriptFunction::Register(m_Name, func);
-
-	return func;
-}
-
-static void InvokeSlot(const Value& funcName, const std::vector<Value>& arguments)
-{
-	ScriptFunction::Ptr func;
-
-	if (funcName.IsObjectType<ScriptFunction>())
-		func = funcName;
-	else
-		func = ScriptFunction::GetByName(funcName);
-
-	if (!func)
-		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
-
-	func->Invoke(arguments);
+	return VMOps::NewFunction(context, m_Name, m_Args, m_Expression);
 }
 
 Value SlotExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	ScriptSignal::Ptr sig = ScriptSignal::GetByName(m_Signal);
-
-	if (!sig)
-		BOOST_THROW_EXCEPTION(ConfigError("Signal '" + m_Signal + "' does not exist."));
-
-	sig->AddSlot(boost::bind(InvokeSlot, m_Slot->Evaluate(context), _1));
-
-	return Empty;
+	return VMOps::NewSlot(context, m_Signal, m_Slot->Evaluate(context));
 }
 
 Value ApplyExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	String name = m_Name->Evaluate(context, dhint);
-
-	ApplyRule::AddRule(m_Type, m_Target, name, m_Expression, m_Filter, m_FKVar, m_FVVar, m_FTerm, m_DebugInfo, context);
-
-	return Empty;
+	return VMOps::NewApply(context, m_Type, m_Target, m_Name->Evaluate(context), m_Filter, m_FKVar, m_FVVar, m_FTerm, m_Expression, m_DebugInfo);
 }
 
 Value ObjectExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
@@ -471,150 +367,14 @@ Value ObjectExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint)
 	if (m_Name)
 		name = m_Name->Evaluate(context, dhint);
 
-	ConfigItemBuilder::Ptr item = new ConfigItemBuilder(m_DebugInfo);
-
-	String checkName = name;
-
-	if (!m_Abstract) {
-		Type::Ptr ptype = Type::GetByName(m_Type);
-
-		NameComposer *nc = dynamic_cast<NameComposer *>(ptype.get());
-
-		if (nc)
-			checkName = nc->MakeName(name, Dictionary::Ptr());
-	}
-
-	if (!checkName.IsEmpty()) {
-		ConfigItem::Ptr oldItem = ConfigItem::GetObject(m_Type, checkName);
-
-		if (oldItem) {
-			std::ostringstream msgbuf;
-			msgbuf << "Object '" << name << "' of type '" << m_Type << "' re-defined: " << m_DebugInfo << "; previous definition: " << oldItem->GetDebugInfo();
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(m_DebugInfo));
-		}
-	}
-
-	item->SetType(m_Type);
-
-	if (name.FindFirstOf("!") != String::NPos) {
-		std::ostringstream msgbuf;
-		msgbuf << "Name for object '" << name << "' of type '" << m_Type << "' is invalid: Object names may not contain '!'";
-		BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(m_DebugInfo));
-	}
-
-	item->SetName(name);
-
-	item->AddExpression(new OwnedExpression(m_Expression));
-	item->SetAbstract(m_Abstract);
-	item->SetScope(context);
-	item->SetZone(m_Zone);
-	item->SetFilter(m_Filter);
-
-	item->Compile()->Register();
-
-	return Empty;
+	return VMOps::NewObject(context, m_Abstract, m_Type, name, m_Filter, m_Zone,
+	    m_Expression, m_DebugInfo);
 }
 
 Value ForExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
 	Value value = m_Value->Evaluate(context, dhint);
 
-	if (value.IsObjectType<Array>()) {
-		if (!m_FVVar.IsEmpty())
-			BOOST_THROW_EXCEPTION(ConfigError("Cannot use dictionary iterator for array.") << errinfo_debuginfo(m_DebugInfo));
-
-		Array::Ptr arr = value;
-
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& value, arr) {
-			Dictionary::Ptr xcontext = new Dictionary();
-			xcontext->Set("__parent", context);
-			xcontext->Set(m_FKVar, value);
-
-			m_Expression->Evaluate(xcontext, dhint);
-		}
-	} else if (value.IsObjectType<Dictionary>()) {
-		if (m_FVVar.IsEmpty())
-			BOOST_THROW_EXCEPTION(ConfigError("Cannot use array iterator for dictionary.") << errinfo_debuginfo(m_DebugInfo));
-
-		Dictionary::Ptr dict = value;
-
-		ObjectLock olock(dict);
-		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			Dictionary::Ptr xcontext = new Dictionary();
-			xcontext->Set("__parent", context);
-			xcontext->Set(m_FKVar, kv.first);
-			xcontext->Set(m_FVVar, kv.second);
-
-			m_Expression->Evaluate(xcontext, dhint);
-		}
-	} else
-		BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(m_DebugInfo));
-
-	return Empty;
-}
-
-bool Expression::HasField(const Object::Ptr& context, const String& field)
-{
-	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
-
-	if (dict)
-		return dict->Contains(field);
-	else {
-		Type::Ptr type = context->GetReflectionType();
-
-		if (!type)
-			return false;
-
-		return type->GetFieldId(field) != -1;
-	}
-}
-
-Value Expression::GetField(const Object::Ptr& context, const String& field)
-{
-	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
-
-	if (dict)
-		return dict->Get(field);
-	else {
-		Type::Ptr type = context->GetReflectionType();
-
-		if (!type)
-			return Empty;
-
-		int fid = type->GetFieldId(field);
-
-		if (fid == -1)
-			return Empty;
-
-		return context->GetField(fid);
-	}
-}
-
-void Expression::SetField(const Object::Ptr& context, const String& field, const Value& value)
-{
-	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
-
-	if (dict)
-		dict->Set(field, value);
-	else {
-		Type::Ptr type = context->GetReflectionType();
-
-		if (!type)
-			BOOST_THROW_EXCEPTION(ConfigError("Cannot set field on object."));
-
-		int fid = type->GetFieldId(field);
-
-		if (fid == -1)
-			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' does not exist."));
-
-		try {
-			context->SetField(fid, value);
-		} catch (const boost::bad_lexical_cast&) {
-			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
-		} catch (const std::bad_cast&) {
-			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
-		}
-	}
+	return VMOps::For(context, m_FKVar, m_FVVar, m_Value->Evaluate(context), m_Expression, m_DebugInfo);
 }
 

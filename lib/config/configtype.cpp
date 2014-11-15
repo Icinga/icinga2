@@ -19,7 +19,7 @@
 
 #include "config/configtype.hpp"
 #include "config/configcompilercontext.hpp"
-#include "config/expression.hpp"
+#include "config/vmops.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/singleton.hpp"
@@ -162,7 +162,7 @@ void ConfigType::ValidateObject(const Object::Ptr& object,
 		BOOST_FOREACH(const String& require, ruleList->GetRequires()) {
 			locations.push_back("Attribute '" + require + "'");
 
-			Value value = Expression::GetField(object, require);
+			Value value = VMOps::GetField(object, require);
 
 			if (value.IsEmpty() || (value.IsString() && static_cast<String>(value).IsEmpty())) {
 				ConfigCompilerContext::GetInstance()->AddMessage(true,
