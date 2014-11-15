@@ -1,8 +1,164 @@
 # Icinga 2.x CHANGELOG
 
-Please check doc/1-about.md.
+Please check [doc/1-about.md].
 
 ## What's New
+
+### What's New in Version 2.2.0
+
+#### Changes
+
+* DB IDO schema update to version `1.12.0`
+    * schema files in `lib/db_ido_{mysql,pgsql}/schema` (source)
+    * Table `programstatus`: New column `program_version`
+    * Table `customvariables` and `customvariablestatus`: New column `is_json` (required for custom attribute array/dictionary support)
+* New features
+    * [GelfWriter](#gelfwriter): Logging check results, state changes, notifications to GELF (graylog2, logstash) #7619
+    * Agent/Client/Node framework #7249
+    * Windows plugins for the client/agent parts #7242 #7243
+* New CLI commands #7245
+    * `icinga2 feature {enable,disable}` replaces `icinga2-{enable,disable}-feature` script  #7250
+    * `icinga2 object list` replaces `icinga2-list-objects` script  #7251
+    * `icinga2 pki` replaces` icinga2-build-{ca,key}` scripts  #7247
+    * `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
+    * `icinga2 node` cli command provides node (master, satellite, agent) setup (wizard) and management functionality #7248
+    * `icinga2 daemon` for existing daemon arguments (`-c`, `-C`). Removed `-u` and `-g` parameters in favor of [init.conf](#init-conf).
+    * bash auto-completion & terminal colors #7396
+* Configuration
+    * Former `localhost` example host is now defined in [hosts.conf](#hosts-conf) #7594
+    * All example services moved into advanced apply rules in [services.conf](#services-conf)
+    * Updated downtimes configuration example in [downtimes.conf](#downtimes-conf) #7472
+    * Updated notification apply example in [notifications.conf](#notifications-conf) #7594
+    * Support for object attribute 'zone' #7400
+    * Support setting [object variables in apply rules](#dependencies-apply-custom-attributes) #7479
+    * Support arrays and dictionaries in [custom attributes](#custom-attributes-apply) #6544 #7560
+    * Add [apply for rules](#using-apply-for) for advanced dynamic object generation #7561
+    * New attribute `accept_commands` for [ApiListener](#objecttype-apilistener) #7559
+    * New [init.conf](#init-conf) file included first containing new constants `RunAsUser` and `RunAsGroup`.
+* Cluster
+    * Add [CSR Auto-Signing support](#csr-autosigning-requirements) using generated ticket #7244
+    * Allow to [execute remote commands](#icinga2-remote-monitoring-client-command-execution) on endpoint clients #7559
+* Perfdata
+    * [PerfdataWriter](#writing-performance-data-files): Don't change perfdata, pass through from plugins #7268
+    * [GraphiteWriter](#graphite-carbon-cache-writer): Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
+* Packages
+    * `python-icinga2` package dropped in favor of integrated cli commands #7245
+    * Windows Installer for the agent parts #7243
+
+> **Note**
+>
+>  Please remove `conf.d/hosts/localhost*` after verifying your updated configuration!
+
+#### Issues
+
+Feature #6544: Support for array in custom variable.
+Feature #6946: Add downtime depth as statistic metric for GraphiteWriter
+Feature #7187: Document how to use multiple assign/ignore statements with logical "and" & "or"
+Feature #7199: Cli commands: add filter capability to 'object list'
+Feature #7241: Windows Wizard
+Feature #7242: Windows plugins
+Feature #7243: Windows installer
+Feature #7244: CSR auto-signing
+Feature #7245: Cli commands
+Feature #7246: Cli command framework
+Feature #7247: Cli command: pki
+Feature #7248: Cli command: Node
+Feature #7249: Node Repository
+Feature #7250: Cli command: Feature
+Feature #7251: Cli command: Object
+Feature #7252: Cli command: SCM
+Feature #7253: Cli Commands: Node Repository Blacklist & Whitelist
+Feature #7254: Documentation: Agent/Satellite Setup
+Feature #7255: Cli command: Repository
+Feature #7262: macro processor needs an array printer
+Feature #7319: Documentation: Add support for locally-scoped variables for host/service in applied Dependency
+Feature #7334: GraphiteWriter: Add support for customized metric prefix names
+Feature #7356: Documentation: Cli Commands
+Feature #7366: GraphiteWriter: Add warn/crit/min/max perfdata values if existing
+Feature #7370: CLI command: variable
+Feature #7391: Add program_version column to programstatus table
+Feature #7396: Implement generic color support for terminals
+Feature #7400: Remove zone keyword and allow to use object attribute 'zone'
+Feature #7415: CLI: List disabled features in feature list too
+Feature #7421: Add -h next to --help
+Feature #7423: Cli command: Node Setup
+Feature #7452: Replace cJSON with a better JSON parser
+Feature #7465: Cli command: Node Setup Wizard (for Satellites and Agents)
+Feature #7467: Remove virtual agent name feature for localhost
+Feature #7472: Update downtimes.conf example config
+Feature #7478: Documentation: Mention 'icinga2 object list' in config validation
+Feature #7479: Set host/service variable in apply rules
+Feature #7480: Documentation: Add host/services variables in apply rules
+Feature #7504: Documentation: Revamp getting started with 1 host and multiple (service) applies
+Feature #7514: Documentation: Move troubleshooting after the getting started chapter
+Feature #7524: Documentation: Explain how to manage agent config in central repository
+Feature #7543: Documentation for arrays & dictionaries in custom attributes and their usage in apply rules for
+Feature #7559: Execute remote commands on the agent w/o local objects by passing custom attributes
+Feature #7560: Support dictionaries in custom attributes
+Feature #7561: Generate objects using apply with foreach in arrays or dictionaries (key => value)
+Feature #7566: Implement support for arbitrarily complex indexers
+Feature #7594: Revamp sample configuration: add NodeName host, move services into apply rules schema
+Feature #7596: Plugin Check Commands: disk is missing '-p', 'x' parameter
+Feature #7619: Add GelfWriter for writing log events to graylog2/logstash
+Feature #7620: Documentation: Update Icinga Web 2 installation
+Feature #7622: Icinga 2 should use less RAM
+Feature #7680: Conditionally enable MySQL and PostgresSQL, add support for FreeBSD and DragonFlyBSD
+
+Bug #6547: delaying notifications with times.begin should postpone first notification into that window
+Bug #7257: default value for "disable_notifications" in service dependencies is set to "false"
+Bug #7268: Icinga2 changes perfdata order and removes maximum
+Bug #7272: icinga2 returns exponential perfdata format with check_nt
+Bug #7275: snmp-load checkcommand has wrong threshold syntax
+Bug #7276: SLES (Suse Linux Enterprise Server) 11 SP3 package dependency failure
+Bug #7302: ITL: check_procs and check_http are missing arguments
+Bug #7324: config parser crashes on unknown attribute in assign
+Bug #7327: Icinga2 docs: link supported operators from sections about apply rules
+Bug #7331: Error messages for invalid imports missing
+Bug #7338: Docs: Default command timeout is 60s not 5m
+Bug #7339: Importing a CheckCommand in a NotificationCommand results in an exception without stacktrace.
+Bug #7349: Documentation: Wrong check command for snmp-int(erface)
+Bug #7351: snmp-load checkcommand has a wrong "-T" param value
+Bug #7359: Setting snmp_v2 can cause snmp-manubulon-command derived checks to fail
+Bug #7365: Typo for "HTTP Checks" match in groups.conf
+Bug #7369: Fix reading perfdata in compat/checkresultreader
+Bug #7372: custom attribute name 'type' causes empty vars dictionary
+Bug #7373: Wrong usermod command for external command pipe setup
+Bug #7378: Commands are auto-completed when they shouldn't be
+Bug #7379: failed en/disable feature should return error
+Bug #7380: Debian package root permissions interfere with icinga2 cli commands as icinga user
+Bug #7392: Schema upgrade files are missing in /usr/share/icinga2-ido-{mysql,pgsql}
+Bug #7417: CMake warnings on OS X
+Bug #7428: Documentation: 1-about contribute links to non-existing report a bug howto
+Bug #7433: Unity build fails on RHEL 5
+Bug #7446: When replaying logs the secobj attribute is ignored
+Bug #7473: Performance data via API is broken
+Bug #7475: can't assign Service to Host in nested HostGroup
+Bug #7477: Fix typos and other small corrections in documentation
+Bug #7482: OnStateLoaded isn't called for objects which don't have any state
+Bug #7483: Hosts/services should not have themselves as parents
+Bug #7495: Utility::GetFQDN doesn't work on OS X
+Bug #7503: Icinga2 fails to start due to configuration errors
+Bug #7520: Use ScriptVariable::Get for RunAsUser/RunAsGroup
+Bug #7536: Object list dump erraneously evaluates template definitions
+Bug #7537: Nesting an object in a template causes the template to become non-abstract
+Bug #7538: There is no __name available to nested objects
+Bug #7573: link missing in documentation about livestatus
+Bug #7577: Invalid checkresult object causes Icinga 2 to crash
+Bug #7579: only notify users on recovery which have been notified before (not-ok state)
+Bug #7585: Nested templates do not work (anymore)
+Bug #7586: Exception when executing check
+Bug #7597: Compilation Error with boost 1.56 under Windows
+Bug #7599: Plugin execution on Windows does not work
+Bug #7617: mkclass crashes when called without arguments
+Bug #7623: Missing state filter 'OK' must not prevent recovery notifications being sent
+Bug #7624: Installation on Windows fails
+Bug #7625: IDO module crashes on Windows
+Bug #7646: Get rid of static boost::mutex variables
+Bug #7648: Unit tests fail to run
+Bug #7650: Wrong set of dependency state when a host depends on a service
+Bug #7681: CreateProcess fails on Windows 7
+Bug #7688: DebugInfo is missing for nested dictionaries
+
 
 ### What's New in Version 2.1.1
 
