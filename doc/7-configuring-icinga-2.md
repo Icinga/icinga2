@@ -649,11 +649,12 @@ Attributes:
   flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
   zone		  |**Optional.** The zone this object is a member of.
+  command\_endpoint|**Optional.** The endpoint where commands are executed on.
   notes           |**Optional.** Notes for the host.
-  notes_url       |**Optional.** Url for notes for the host (for example, in notification commands).
-  action_url      |**Optional.** Url for actions for the host (for example, an external graphing tool).
-  icon_image      |**Optional.** Icon image for the host. Used by external interfaces only.
-  icon_image_alt  |**Optional.** Icon image description for the host. Used by external interface only.
+  notes\_url      |**Optional.** Url for notes for the host (for example, in notification commands).
+  action\_url     |**Optional.** Url for actions for the host (for example, an external graphing tool).
+  icon\_image     |**Optional.** Icon image for the host. Used by external interfaces only.
+  icon\_image\_alt|**Optional.** Icon image description for the host. Used by external interface only.
 
 > **Best Practice**
 >
@@ -736,11 +737,12 @@ Attributes:
   flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.
   volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
   zone		  |**Optional.** The zone this object is a member of.
+  command\_endpoint|**Optional.** The endpoint where commands are executed on.
   notes           |**Optional.** Notes for the service.
-  notes_url       |**Optional.** Url for notes for the service (for example, in notification commands).
+  notes\_url      |**Optional.** Url for notes for the service (for example, in notification commands).
   action_url      |**Optional.** Url for actions for the service (for example, an external graphing tool).
-  icon_image      |**Optional.** Icon image for the service. Used by external interfaces only.
-  icon_image_alt  |**Optional.** Icon image description for the service. Used by external interface only.
+  icon\_image     |**Optional.** Icon image for the service. Used by external interfaces only.
+  icon\_image\_alt|**Optional.** Icon image description for the service. Used by external interface only.
 
 
 Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
@@ -1775,6 +1777,7 @@ Attributes:
   bind\_host                |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
   bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
   accept\_config            |**Optional.** Accept zone configuration. Defaults to `false`.
+  accept\_commands          |**Optional.** Accept remote commands. Defaults to `false`.
 
 
 ### <a id="objecttype-endpoint"></a> Endpoint

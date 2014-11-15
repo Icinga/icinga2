@@ -154,6 +154,7 @@ graphical installer for Windows based client setup.
 
 Your client setup requires the following
 
+* A ready configured and installed [master node](#icinga2-remote-monitoring-master)
 * SSL signed certificate for communication with the master (Use [CSR auto-signing](certifiates-csr-autosigning)).
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
@@ -357,54 +358,98 @@ on the master and the remote client(s).
 * `command_endpoint` attribute configured for host/service objects pointing to the configured
 endpoint
 
-Example for communication configuration:
+`CheckCommand` objects are already shipped with the Icinga 2 ITL
+as [plugin check commands](#plugin-check-commands). If you are
+using your own configuration definitions for example in
+[commands.conf](#commands-conf) make sure to copy/sync it
+on your remote client.
 
-object Endpoint "remote-client1" {
-  host = "192.168.33.20"
-}
+#### <a id="icinga2-remote-monitoring-client-command-execution-client"></a> Client Configuration Remote Client for Command Execution
 
-object Zone "remote-client1" {
-  endpoints = [ "remote-client1" ]
-  parent = "master"
-}
+> **Note**
+>
+> Remote clients must explicitely accept commands in a similar
+> fashion as cluster nodes [accept configuration]#i(cluster-zone-config-sync).
+> This is due to security reasons.
 
-Example for host and service object configuration running commands on the remote endpoint:
+Edit the `api` feature configuration in `/etc/icinga2/features-enabled/api.conf`
+and set `accept_commands` to `true`.
 
-object Host "host-remote" {
-  import "generic-host"
+    object ApiListener "api" {
+      cert_path = SysconfDir + "/icinga2/pki/" + NodeName + ".crt"
+      key_path = SysconfDir + "/icinga2/pki/" + NodeName + ".key"
+      ca_path = SysconfDir + "/icinga2/pki/ca.crt"
+      accept_commands = true
+    }
 
-  address = "127.0.0.1"
-  address6 = "::1"
+#### <a id="icinga2-remote-monitoring-client-command-execution-master"></a> Master Configuration Remote Client for Command Execution
 
-  vars.os = "Linux"
+Add an `Endpoint` and `Zone` configuration object for the remote client
+in [zones.conf](#zones-conf) and define a trusted master zone as `parent`.
 
-  vars.remote_client = "remote-client1"
+    object Endpoint "remote-client1" {
+      host = "192.168.33.20"
+    }
 
-  /* host specific check arguments */
-  vars.users_wgreater = 10
-  vars.users_wgreater = 20
-}
+    object Zone "remote-client1" {
+      endpoints = [ "remote-client1" ]
+      parent = "master"
+    }
 
-apply Service "users-remote" {
-  import "generic-service"
+More details here:
+* [configure endpoints](#configure-cluster-endpoints)
+* [configure zones](#configure-cluster-zones)
 
-  check_command = "users"
-  command_endpoint = host.vars.remote_client
 
-  /* override (remote) command arguments with host settings */
-  vars.users_wgreater = host.vars.users_wgreater
-  vars.users_cgreater = host.vars.users_cgreater
+Configuration example for host and service objects running commands on the remote endpoint `remote-client1`:
 
-  /* assign where a remote client is set */
-  assign where host.vars.remote_client
-}
+    object Host "host-remote" {
+      import "generic-host"
+
+      address = "127.0.0.1"
+      address6 = "::1"
+
+      vars.os = "Linux"
+
+      vars.remote_client = "remote-client1"
+
+      /* host specific check arguments */
+      vars.users_wgreater = 10
+      vars.users_wgreater = 20
+    }
+
+    apply Service "users-remote" {
+      import "generic-service"
+
+      check_command = "users"
+      command_endpoint = host.vars.remote_client
+
+      /* override (remote) command arguments with host settings */
+      vars.users_wgreater = host.vars.users_wgreater
+      vars.users_cgreater = host.vars.users_cgreater
+
+      /* assign where a remote client is set */
+      assign where host.vars.remote_client
+    }
 
 
 That way you can also execute the `icinga` check remotely
-verifying the health of your remote client(s). As a bonus
+thus verifying the health of your remote client(s). As a bonus
 you'll also get the running Icinga 2 version and may
 schedule client updates in your management tool (e.g. Puppet).
 
+> **Tip**
+>
+> [Event commands](#event-commands) are executed on the
+> remote command endpoint as well. You do not need
+> an additional transport layer such as SSH or similar.
+
+> **Note**
+> You cannot add any Icinga 2 features like DB IDO on the remote
+> clients. There are no local configured objects available.
+>
+> If you require this, please install a full-featured
+> [local client](#icinga2-remote-monitoring-client-local-config).
 
 ### <a id="icinga2-remote-monitoring-client-local-config"></a> Remote Client with Local Configuration
 

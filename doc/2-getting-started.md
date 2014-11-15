@@ -436,8 +436,10 @@ Available configuration files shipped by default:
 
 #### <a id="hosts-conf"></a> hosts.conf
 
-The `conf.d/hosts.conf` file contains an example host based on your
-`NodeName` setting in [constants.conf](#constants-conf).
+The `hosts.conf` file contains an example host based on your
+`NodeName` setting in [constants.conf](#constants-conf). You
+can use global constants for your object names instead of string
+values.
 
 The `import` keyword is used to import the `generic-host` template which
 takes care of setting up the host check command to `hostalive`. If you
@@ -885,7 +887,12 @@ Further details on the monitoring configuration can be found in the
 
 The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of exporting
 all configuration and status information into a database. The IDO database is used
-by a number of projects including Icinga Web 1.x, Reporting or Icinga Web 2.
+by a number of projects including [Icinga Web 2](#setting-up-icingaweb2),
+Icinga Reporting or Icinga Web 1.x.
+
+Icinga 2 does not read configuration or status data from the database backend
+so this interface is fully optional, if not required by your user interfaces
+or addons.
 
 There is a separate module for each database back-end. At present support for
 both MySQL and PostgreSQL is implemented.
@@ -1024,13 +1031,14 @@ The Icinga 2 DB IDO module will check for the required database schema version o
 and generate an error message if not satisfied.
 
 
-**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.1.0`. Look into
+**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.2.0`. Look into
 the *upgrade* directory:
 
     $ ls /usr/share/icinga2-ido-mysql/schema/upgrade/
-    2.0.2.sql  2.1.0.sql
+    2.0.2.sql  2.1.0.sql 2.2.0.sql
 
-There is a new upgrade file called `2.1.0.sql` which must be applied to your IDO database.
+There are two new upgrade files called `2.1.0.sql` and `2.2.0.sql`
+which must be applied incrementially to your IDO database.
 
 
 #### <a id="installing-ido-mysql"></a> Installing the IDO MySQL module
@@ -1141,9 +1149,10 @@ and generate an error message if not satisfied.
 the *upgrade* directory:
 
     $ ls /usr/share/icinga2-ido-pgsql/schema/upgrade/
-    2.0.2.sql  2.1.0.sql
+    2.0.2.sql  2.1.0.sql 2.2.0.sql
 
-There is a new upgrade file called `2.1.0.sql` which must be applied to your IDO database.
+There are two new upgrade files called `2.1.0.sql` and `2.2.0.sql`
+which must be applied incrementially to your IDO database.
 
 
 #### <a id="installing-ido-postgresql"></a> Installing the IDO PostgreSQL module
