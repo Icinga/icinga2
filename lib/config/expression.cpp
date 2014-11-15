@@ -291,24 +291,27 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		Expression *indexExpr = m_Indexer[i];
 		String tempindex = indexExpr->Evaluate(context, dhint);
 
-		if (i == m_Indexer.size() - 1)
-			index = tempindex;
+		if (sdhint)
+			sdhint = sdhint->GetChild(tempindex);
 
-		if (i == 0) {
+		if (i == 0)
 			parent = context;
-			object = GetField(context, tempindex);
-		} else {
+		else
 			parent = object;
 
-			LiteralExpression *eparent = MakeLiteral(parent);
-			LiteralExpression *eindex = MakeLiteral(tempindex);
+		if (i == m_Indexer.size() - 1) {
+			index = tempindex;
 
-			IndexerExpression eip(eparent, eindex, m_DebugInfo);
-			object = eip.Evaluate(context, dhint);
+			/* No need to look up the last indexer's value if this is a direct set */
+			if (m_Op == OpSetLiteral)
+				break;
 		}
 
-		if (sdhint)
-			sdhint = sdhint->GetChild(index);
+		LiteralExpression *eparent = MakeLiteral(parent);
+		LiteralExpression *eindex = MakeLiteral(tempindex);
+
+		IndexerExpression eip(eparent, eindex, m_DebugInfo);
+		object = eip.Evaluate(context, sdhint);
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
