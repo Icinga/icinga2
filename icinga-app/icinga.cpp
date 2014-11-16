@@ -156,6 +156,7 @@ int Main(void)
 	Application::DeclareApplicationType("icinga/IcingaApplication");
 	Application::DeclareRunAsUser(ICINGA_USER);
 	Application::DeclareRunAsGroup(ICINGA_GROUP);
+	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
 
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);

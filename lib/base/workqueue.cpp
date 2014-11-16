@@ -21,6 +21,7 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
+#include "base/application.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 
@@ -177,7 +178,7 @@ void WorkQueue::WorkerThreadProc(void)
 }
 
 ParallelWorkQueue::ParallelWorkQueue(void)
-	: m_QueueCount(boost::thread::hardware_concurrency()),
+	: m_QueueCount(Application::GetConcurrency()),
 	  m_Queues(new WorkQueue[m_QueueCount]),
 	  m_Index(0)
 { }

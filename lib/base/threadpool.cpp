@@ -22,6 +22,7 @@
 #include "base/debug.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include "base/application.hpp"
 #include <boost/bind.hpp>
 #include <iostream>
 
@@ -260,7 +261,7 @@ void ThreadPool::ManagerThreadProc(void)
 				int tthreads = wthreads - alive;
 
 				/* Make sure there is at least one thread per CPU */
-				int ncput = std::max(boost::thread::hardware_concurrency() / QUEUECOUNT, 4U);
+				int ncput = std::max(static_cast<unsigned int>(Application::GetConcurrency()) / QUEUECOUNT, 4U);
 				if (alive + tthreads < ncput)
 					tthreads = ncput - alive;
 

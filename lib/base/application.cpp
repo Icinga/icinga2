@@ -1093,6 +1093,7 @@ void Application::DeclareRunAsUser(const String& user)
 {
 	ScriptVariable::Set("RunAsUser", user, false);
 }
+
 /**
  * Retrieves the name of the group.
  *
@@ -1101,6 +1102,27 @@ void Application::DeclareRunAsUser(const String& user)
 String Application::GetRunAsGroup(void)
 {
 	return ScriptVariable::Get("RunAsGroup");
+}
+
+/**
+ * Sets the concurrency level.
+ *
+ * @param path The new concurrency level.
+ */
+void Application::DeclareConcurrency(int ncpus)
+{
+	ScriptVariable::Set("Concurrency", ncpus, false);
+}
+
+/**
+ * Retrieves the concurrency level.
+ *
+ * @returns The concurrency level.
+ */
+int Application::GetConcurrency(void)
+{
+	Value defaultConcurrency = boost::thread::hardware_concurrency();
+	return ScriptVariable::Get("Concurrency", &defaultConcurrency);
 }
 
 /**

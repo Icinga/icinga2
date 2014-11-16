@@ -122,6 +122,9 @@ public:
 	static String GetRunAsGroup(void);
 	static void DeclareRunAsGroup(const String& group);
 
+	static int GetConcurrency(void);
+	static void DeclareConcurrency(int ncpus);
+
 	static void MakeVariablesConstant(void);
 
 	static ThreadPool& GetTP(void);
