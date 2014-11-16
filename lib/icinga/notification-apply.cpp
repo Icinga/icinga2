@@ -39,10 +39,10 @@ void Notification::RegisterApplyRuleHandler(void)
 	std::vector<String> targets;
 	targets.push_back("Host");
 	targets.push_back("Service");
-	ApplyRule::RegisterType("Notification", targets, &Notification::EvaluateApplyRules);
+	ApplyRule::RegisterType("Notification", targets);
 }
 
-void Notification::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
+void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -76,7 +76,7 @@ void Notification::EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable,
 	
 }
 
-bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const ApplyRule& rule)
+bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -122,7 +122,7 @@ bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const A
 				name += instance;
 			}
 
-			EvaluateApplyRuleOneInstance(checkable, name, locals, rule);
+			EvaluateApplyRuleInstance(checkable, name, locals, rule);
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
@@ -135,67 +135,47 @@ bool Notification::EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const A
 			locals->Set(rule.GetFKVar(), kv.first);
 			locals->Set(rule.GetFVVar(), kv.second);
 
-			EvaluateApplyRuleOneInstance(checkable, rule.GetName() + kv.first, locals, rule);
+			EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, locals, rule);
 		}
 	}
 
 	return true;
 }
 
-void Notification::EvaluateApplyRule(const ApplyRule& rule)
+void Notification::EvaluateApplyRules(const Host::Ptr& host)
 {
-	int apply_count = 0;
+	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	if (rule.GetTargetType() == "Host") {
-		apply_count = 0;
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Notification"))
+	{
+		if (rule.GetTargetType() != "Host")
+			continue;
 
-		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
-			CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
-
-			try {
-				if (EvaluateApplyRuleOne(host, rule))
-					apply_count++;
-			} catch (const ConfigError& ex) {
-				const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-				ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
-			}
+		try {
+			if (EvaluateApplyRule(host, rule))
+				rule.AddMatch();
+		} catch (const ConfigError& ex) {
+			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
 		}
-
-		if (apply_count == 0)
-			Log(LogWarning, "Notification")
-			    << "Apply rule '" << rule.GetName() << "' for host does not match anywhere!";
-
-	} else if (rule.GetTargetType() == "Service") {
-		apply_count = 0;
-
-		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
-			CONTEXT("Evaluating 'apply' rules for Service '" + service->GetName() + "'");
-
-			try {
-				if (EvaluateApplyRuleOne(service, rule))
-					apply_count++;
-			} catch (const ConfigError& ex) {
-				const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-				ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
-			}
-		}
-
-		if (apply_count == 0)
-			Log(LogWarning, "Notification")
-			    << "Apply rule '" << rule.GetName() << "' for service does not match anywhere!";
-
-	} else {
-		Log(LogWarning, "Notification")
-		    << "Wrong target type for apply rule '" << rule.GetName() << "'!";
 	}
 }
-void Notification::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
+
+void Notification::EvaluateApplyRules(const Service::Ptr& service)
 {
-	ParallelWorkQueue upq;
+	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(const ApplyRule& rule, rules) {
-		upq.Enqueue(boost::bind(&Notification::EvaluateApplyRule, boost::cref(rule)));
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Notification"))
+	{
+		if (rule.GetTargetType() != "Service")
+			continue;
+
+		try {
+			if (EvaluateApplyRule(service, rule))
+				rule.AddMatch();
+		} catch (const ConfigError& ex) {
+			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+		}
 	}
-
-	upq.Join();
 }

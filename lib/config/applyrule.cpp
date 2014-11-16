@@ -25,13 +25,13 @@
 using namespace icinga;
 
 ApplyRule::RuleMap ApplyRule::m_Rules;
-ApplyRule::CallbackMap ApplyRule::m_Callbacks;
+ApplyRule::TypeMap ApplyRule::m_Types;
 
 ApplyRule::ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
     const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
     const DebugInfo& di, const Object::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_FKVar(fkvar),
-	  m_FVVar(fvvar), m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope)
+	  m_FVVar(fvvar), m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
 { }
 
 String ApplyRule::GetTargetType(void) const
@@ -91,69 +91,27 @@ bool ApplyRule::EvaluateFilter(const Object::Ptr& scope) const
 	return m_Filter->Evaluate(scope).ToBool();
 }
 
-void ApplyRule::EvaluateRules(bool clear)
+void ApplyRule::RegisterType(const String& sourceType, const std::vector<String>& targetTypes)
 {
-	std::set<String> completedTypes;
-
-	while (completedTypes.size() < m_Callbacks.size()) {
-		std::pair<String, std::pair<Callback, std::vector<String> > > kv;
-		BOOST_FOREACH(kv, m_Callbacks) {
-			const String& sourceType = kv.first;
-
-			if (completedTypes.find(sourceType) != completedTypes.end())
-				continue;
-
-			const Callback& callback = kv.second.first;
-			const std::vector<String>& targetTypes = kv.second.second;
-
-			bool cont = false;
-
-			BOOST_FOREACH(const String& targetType, targetTypes) {
-				if (IsValidSourceType(targetType) && completedTypes.find(targetType) == completedTypes.end()) {
-					cont = true;
-					break;
-				}
-			}
-
-			if (cont)
-				continue;
-
-			completedTypes.insert(sourceType);
-
-			RuleMap::const_iterator it = m_Rules.find(kv.first);
-
-			if (it == m_Rules.end())
-				continue;
-
-			callback(it->second);
-		}
-	}
-
-	if (clear)
-		m_Rules.clear();
-}
-
-void ApplyRule::RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback)
-{
-	m_Callbacks[sourceType] = make_pair(callback, targetTypes);
+	m_Types[sourceType] = targetTypes;
 }
 
 bool ApplyRule::IsValidSourceType(const String& sourceType)
 {
-	return m_Callbacks.find(sourceType) != m_Callbacks.end();
+	return m_Types.find(sourceType) != m_Types.end();
 }
 
 bool ApplyRule::IsValidTargetType(const String& sourceType, const String& targetType)
 {
-	CallbackMap::const_iterator it = m_Callbacks.find(sourceType);
+	TypeMap::const_iterator it = m_Types.find(sourceType);
 
-	if (it == m_Callbacks.end())
+	if (it == m_Types.end())
 		return false;
 
-	if (it->second.second.size() == 1 && targetType == "")
+	if (it->second.size() == 1 && targetType == "")
 		return true;
 
-	BOOST_FOREACH(const String& type, it->second.second) {
+	BOOST_FOREACH(const String& type, it->second) {
 		if (type == targetType)
 			return true;
 	}
@@ -163,11 +121,47 @@ bool ApplyRule::IsValidTargetType(const String& sourceType, const String& target
 
 std::vector<String> ApplyRule::GetTargetTypes(const String& sourceType)
 {
-	CallbackMap::const_iterator it = m_Callbacks.find(sourceType);
+	TypeMap::const_iterator it = m_Types.find(sourceType);
 
-	if (it == m_Callbacks.end())
+	if (it == m_Types.end())
 		return std::vector<String>();
 
-	return it->second.second;
+	return it->second;
+}
+
+void ApplyRule::AddMatch(void)
+{
+	m_HasMatches = true;
+}
+
+bool ApplyRule::HasMatches(void) const
+{
+	return m_HasMatches;
+}
+
+std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
+{
+	RuleMap::iterator it = m_Rules.find(type);
+	if (it == m_Rules.end()) {
+		static std::vector<ApplyRule> emptyList;
+		return emptyList;
+	}
+	return it->second;
+}
+
+void ApplyRule::CheckMatches(void)
+{
+	BOOST_FOREACH(const RuleMap::value_type& kv, m_Rules) {
+		BOOST_FOREACH(const ApplyRule& rule, kv.second) {
+			if (!rule.HasMatches())
+				Log(LogWarning, "ApplyRule")
+				    << "Apply rule '" + rule.GetName() + "' for type '" + kv.first + "' does not match anywhere!";
+		}
+	}
+}
+
+void ApplyRule::DiscardRules(void)
+{
+	m_Rules.clear();
 }
 

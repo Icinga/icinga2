@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/user.hpp"
+#include "icinga/usergroup.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/usergroup.hpp"
 #include "config/configcompilercontext.hpp"
@@ -51,6 +52,8 @@ void User::OnConfigLoaded(void)
 				ug->ResolveGroupMembership(this, true);
 		}
 	}
+
+	UserGroup::EvaluateObjectRules(this);
 }
 
 void User::Stop(void)

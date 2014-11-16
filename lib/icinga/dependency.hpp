@@ -28,6 +28,8 @@ namespace icinga
 {
 
 class ApplyRule;
+class Host;
+class Service;
 
 /**
  * A service dependency..
@@ -51,6 +53,9 @@ public:
 
 	static void ValidateFilters(const String& location, const Dependency::Ptr& object);
 
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void OnStateLoaded(void);
@@ -60,10 +65,8 @@ private:
 	Checkable::Ptr m_Parent;
 	Checkable::Ptr m_Child;
 
-	static void EvaluateApplyRuleOneInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
-	static bool EvaluateApplyRuleOne(const Checkable::Ptr& checkable, const ApplyRule& rule);
-	static void EvaluateApplyRule(const ApplyRule& rule);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
+	static void EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
+	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
 };
 
 }

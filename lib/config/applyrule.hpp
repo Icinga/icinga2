@@ -34,8 +34,7 @@ namespace icinga
 class I2_CONFIG_API ApplyRule
 {
 public:
-	typedef boost::function<void (const std::vector<ApplyRule>& rules)> Callback;
-	typedef std::map<String, std::pair<Callback, std::vector<String> > > CallbackMap;
+	typedef std::map<String, std::vector<String> > TypeMap;
 	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
 
 	String GetTargetType(void) const;
@@ -47,17 +46,22 @@ public:
 	boost::shared_ptr<Expression> GetFTerm(void) const;
 	DebugInfo GetDebugInfo(void) const;
 	Object::Ptr GetScope(void) const;
+	void AddMatch(void);
+	bool HasMatches(void) const;
 
 	bool EvaluateFilter(const Object::Ptr& scope) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
 	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Object::Ptr& scope);
-	static void EvaluateRules(bool clear);
+	static std::vector<ApplyRule>& GetRules(const String& type);
 
-	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes, const ApplyRule::Callback& callback);
+	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
 	static bool IsValidTargetType(const String& sourceType, const String& targetType);
 	static std::vector<String> GetTargetTypes(const String& sourceType);
+
+	static void CheckMatches(void);
+	static void DiscardRules(void);
 
 private:
 	String m_TargetType;
@@ -69,8 +73,9 @@ private:
 	boost::shared_ptr<Expression> m_FTerm;
 	DebugInfo m_DebugInfo;
 	Object::Ptr m_Scope;
+	bool m_HasMatches;
 
-	static CallbackMap m_Callbacks;
+	static TypeMap m_Types;
 	static RuleMap m_Rules;
 
 	ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,

@@ -19,6 +19,7 @@
 
 #include "icinga/servicegroup.hpp"
 #include "config/objectrule.hpp"
+#include "config/configitem.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
@@ -34,63 +35,53 @@ INITIALIZE_ONCE(&ServiceGroup::RegisterObjectRuleHandler);
 
 void ServiceGroup::RegisterObjectRuleHandler(void)
 {
-	ObjectRule::RegisterType("ServiceGroup", &ServiceGroup::EvaluateObjectRules);
+	ObjectRule::RegisterType("ServiceGroup");
 }
 
-bool ServiceGroup::EvaluateObjectRuleOne(const Service::Ptr& service, const ObjectRule& rule)
+bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigItem::Ptr& group)
 {
-	DebugInfo di = rule.GetDebugInfo();
+	String group_name = group->GetName();
 
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating 'object' rule (" << di << ")";
-	CONTEXT(msgbuf.str());
+	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
 	Host::Ptr host = service->GetHost();
 
 	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", rule.GetScope());
+	locals->Set("__parent", group->GetScope());
 	locals->Set("host", host);
 	locals->Set("service", service);
 
-	if (!rule.EvaluateFilter(locals))
+	if (!group->GetFilter()->Evaluate(locals))
 		return false;
 
 	Log(LogDebug, "ServiceGroup")
-	    << "Assigning membership for group '" << rule.GetName() << "' to service '" << service->GetName() << "' for rule " << di;
+	    << "Assigning membership for group '" << group_name << "' to service '" << service->GetName() << "'";
 
-	String group_name = rule.GetName();
-	ServiceGroup::Ptr group = ServiceGroup::GetByName(group_name);
+	ServiceGroup::Ptr groupObject = ServiceGroup::GetByName(group_name);
 
-	if (!group) {
+	if (!groupObject) {
 		Log(LogCritical, "ServiceGroup")
 		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
 		return false;
 	}
 
 	/* assign service group membership */
-	group->ResolveGroupMembership(service, true);
+	groupObject->ResolveGroupMembership(service, true);
 
 	return true;
 }
 
-void ServiceGroup::EvaluateObjectRule(const ObjectRule& rule)
+void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 {
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
-		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for service '" + service->GetName() + "'");
+	CONTEXT("Evaluating group membership for service '" + service->GetName() + "'");
 
-		EvaluateObjectRuleOne(service, rule);
+	BOOST_FOREACH(const ConfigItem::Ptr& group, ConfigItem::GetItems("ServiceGroup"))
+	{
+		if (!group->GetFilter())
+			continue;
+
+		EvaluateObjectRule(service, group);
 	}
-}
-
-void ServiceGroup::EvaluateObjectRules(const std::vector<ObjectRule>& rules)
-{
-	ParallelWorkQueue upq;
-
-	BOOST_FOREACH(const ObjectRule& rule, rules) {
-		upq.Enqueue(boost::bind(ServiceGroup::EvaluateObjectRule, boost::cref(rule)));
-	}
-
-	upq.Join();
 }
 
 std::set<Service::Ptr> ServiceGroup::GetMembers(void) const

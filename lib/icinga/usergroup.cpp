@@ -19,6 +19,7 @@
 
 #include "icinga/usergroup.hpp"
 #include "config/objectrule.hpp"
+#include "config/configitem.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
@@ -34,60 +35,50 @@ INITIALIZE_ONCE(&UserGroup::RegisterObjectRuleHandler);
 
 void UserGroup::RegisterObjectRuleHandler(void)
 {
-	ObjectRule::RegisterType("UserGroup", &UserGroup::EvaluateObjectRules);
+	ObjectRule::RegisterType("UserGroup");
 }
 
-bool UserGroup::EvaluateObjectRuleOne(const User::Ptr& user, const ObjectRule& rule)
+bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr& group)
 {
-	DebugInfo di = rule.GetDebugInfo();
+	String group_name = group->GetName();
 
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating 'object' rule (" << di << ")";
-	CONTEXT(msgbuf.str());
+	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
 	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", rule.GetScope());
+	locals->Set("__parent", group->GetScope());
 	locals->Set("user", user);
 
-	if (!rule.EvaluateFilter(locals))
+	if (!group->GetFilter()->Evaluate(locals))
 		return false;
 
 	Log(LogDebug, "UserGroup")
-	    << "Assigning membership for group '" << rule.GetName() << "' to user '" << user->GetName() << "' for rule " << di;
+	    << "Assigning membership for group '" << group_name << "' to user '" << user->GetName() << "'";
 
-	String group_name = rule.GetName();
-	UserGroup::Ptr group = UserGroup::GetByName(group_name);
+	UserGroup::Ptr groupObject = UserGroup::GetByName(group_name);
 
-	if (!group) {
+	if (!groupObject) {
 		Log(LogCritical, "UserGroup")
 		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
 		return false;
 	}
 
 	/* assign user group membership */
-	group->ResolveGroupMembership(user, true);
+	groupObject->ResolveGroupMembership(user, true);
 
 	return true;
 }
 
-void UserGroup::EvaluateObjectRule(const ObjectRule& rule)
+void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 {
-	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjectsByType<User>()) {
-		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for user '" + user->GetName() + "'");
+	CONTEXT("Evaluating group membership for user '" + user->GetName() + "'");
 
-		EvaluateObjectRuleOne(user, rule);
+	BOOST_FOREACH(const ConfigItem::Ptr& group, ConfigItem::GetItems("UserGroup"))
+	{
+		if (!group->GetFilter())
+			continue;
+
+		EvaluateObjectRule(user, group);
 	}
-}
-
-void UserGroup::EvaluateObjectRules(const std::vector<ObjectRule>& rules)
-{
-	ParallelWorkQueue upq;
-
-	BOOST_FOREACH(const ObjectRule& rule, rules) {
-		upq.Enqueue(boost::bind(UserGroup::EvaluateObjectRule, boost::cref(rule)));
-	}
-
-	upq.Join();
 }
 
 std::set<User::Ptr> UserGroup::GetMembers(void) const

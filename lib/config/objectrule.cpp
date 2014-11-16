@@ -23,70 +23,14 @@
 
 using namespace icinga;
 
-ObjectRule::RuleMap ObjectRule::m_Rules;
-ObjectRule::CallbackMap ObjectRule::m_Callbacks;
+ObjectRule::TypeSet ObjectRule::m_Types;
 
-ObjectRule::ObjectRule(const String& name, const boost::shared_ptr<Expression>& filter,
-    const DebugInfo& di, const Object::Ptr& scope)
-	: m_Name(name), m_Filter(filter), m_DebugInfo(di), m_Scope(scope)
-{ }
-
-String ObjectRule::GetName(void) const
+void ObjectRule::RegisterType(const String& sourceType)
 {
-	return m_Name;
-}
-
-boost::shared_ptr<Expression> ObjectRule::GetFilter(void) const
-{
-	return m_Filter;
-}
-
-DebugInfo ObjectRule::GetDebugInfo(void) const
-{
-	return m_DebugInfo;
-}
-
-Object::Ptr ObjectRule::GetScope(void) const
-{
-	return m_Scope;
-}
-
-void ObjectRule::AddRule(const String& sourceType, const String& name,
-    const boost::shared_ptr<Expression>& filter, const DebugInfo& di, const Object::Ptr& scope)
-{
-	m_Rules[sourceType].push_back(ObjectRule(name, filter, di, scope));
-}
-
-bool ObjectRule::EvaluateFilter(const Object::Ptr& scope) const
-{
-	return m_Filter->Evaluate(scope).ToBool();
-}
-
-void ObjectRule::EvaluateRules(bool clear)
-{
-	std::pair<String, Callback> kv;
-	BOOST_FOREACH(kv, m_Callbacks) {
-		const Callback& callback = kv.second;
-
-		RuleMap::const_iterator it = m_Rules.find(kv.first);
-
-		if (it == m_Rules.end())
-			continue;
-
-		callback(it->second);
-	}
-
-	if (clear)
-		m_Rules.clear();
-}
-
-void ObjectRule::RegisterType(const String& sourceType, const ObjectRule::Callback& callback)
-{
-	m_Callbacks[sourceType] = callback;
+	m_Types.insert(sourceType);
 }
 
 bool ObjectRule::IsValidSourceType(const String& sourceType)
 {
-	return m_Callbacks.find(sourceType) != m_Callbacks.end();
+	return m_Types.find(sourceType) != m_Types.end();
 }
-

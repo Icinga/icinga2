@@ -46,10 +46,10 @@ Value Expression::Evaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
 	try {
 #ifdef _DEBUG
-		std::ostringstream msgbuf;
+/*		std::ostringstream msgbuf;
 		ShowCodeFragment(msgbuf, GetDebugInfo(), false);
 		Log(LogDebug, "Expression")
-			<< "Executing:\n" << msgbuf.str();
+			<< "Executing:\n" << msgbuf.str();*/
 #endif /* _DEBUG */
 
 		return DoEvaluate(context, dhint);
@@ -508,10 +508,9 @@ Value ObjectExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint)
 	item->SetAbstract(m_Abstract);
 	item->SetScope(context);
 	item->SetZone(m_Zone);
-	item->Compile()->Register();
+	item->SetFilter(m_Filter);
 
-	if (m_Filter)
-		ObjectRule::AddRule(m_Type, name, m_Filter, m_DebugInfo, context);
+	item->Compile()->Register();
 
 	return Empty;
 }

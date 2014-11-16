@@ -53,16 +53,16 @@ public:
 
 	static void RegisterApplyRuleHandler(void);
 
+	static void EvaluateApplyRules(const Host::Ptr& host);
+
 protected:
 	virtual void OnConfigLoaded(void);
 
 private:
 	Host::Ptr m_Host;
 
-	static void EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
-	static bool EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule);
-	static void EvaluateApplyRule(const ApplyRule& rule);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
+	static void EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
+	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
 };
 
 I2_ICINGA_API boost::tuple<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);

@@ -23,7 +23,7 @@
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
 #include "base/debuginfo.hpp"
-#include "base/dynamictype.hpp"
+#include <set>
 
 namespace icinga
 {
@@ -34,34 +34,15 @@ namespace icinga
 class I2_CONFIG_API ObjectRule
 {
 public:
-	typedef boost::function<void (const std::vector<ObjectRule>& rules)> Callback;
-	typedef std::map<String, Callback> CallbackMap;
-	typedef std::map<String, std::vector<ObjectRule> > RuleMap;
+	typedef std::set<String> TypeSet;
 
-	String GetName(void) const;
-	boost::shared_ptr<Expression> GetFilter(void) const;
-	DebugInfo GetDebugInfo(void) const;
-	Object::Ptr GetScope(void) const;
-
-	bool EvaluateFilter(const Object::Ptr& scope) const;
-
-	static void AddRule(const String& sourceType, const String& name,
-	    const boost::shared_ptr<Expression>& filter, const DebugInfo& di, const Object::Ptr& scope);
-	static void EvaluateRules(bool clear);
-
-	static void RegisterType(const String& sourceType, const ObjectRule::Callback& callback);
+	static void RegisterType(const String& sourceType);
 	static bool IsValidSourceType(const String& sourceType);
 
 private:
-	String m_Name;
-	boost::shared_ptr<Expression> m_Filter;
-	DebugInfo m_DebugInfo;
-	Object::Ptr m_Scope;
+	ObjectRule(void);
 
-	static CallbackMap m_Callbacks;
-	static RuleMap m_Rules;
-
-	ObjectRule(const String& name, const boost::shared_ptr<Expression>& filter, const DebugInfo& di, const Object::Ptr& scope);
+	static TypeSet m_Types;
 };
 
 }

@@ -37,10 +37,10 @@ void Service::RegisterApplyRuleHandler(void)
 {
 	std::vector<String> targets;
 	targets.push_back("Host");
-	ApplyRule::RegisterType("Service", targets, &Service::EvaluateApplyRules);
+	ApplyRule::RegisterType("Service", targets);
 }
 
-void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
+void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -68,7 +68,7 @@ void Service::EvaluateApplyRuleOneInstance(const Host::Ptr& host, const String& 
 	dobj->OnConfigLoaded();
 }
 
-bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
+bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -108,7 +108,7 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 				name += instance;
 			}
 
-			EvaluateApplyRuleOneInstance(host, name, locals, rule);
+			EvaluateApplyRuleInstance(host, name, locals, rule);
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
@@ -121,41 +121,24 @@ bool Service::EvaluateApplyRuleOne(const Host::Ptr& host, const ApplyRule& rule)
 			locals->Set(rule.GetFKVar(), kv.first);
 			locals->Set(rule.GetFVVar(), kv.second);
 
-			EvaluateApplyRuleOneInstance(host, rule.GetName() + kv.first, locals, rule);
+			EvaluateApplyRuleInstance(host, rule.GetName() + kv.first, locals, rule);
 		}
 	}
 
 	return true;
 }
 
-void Service::EvaluateApplyRule(const ApplyRule& rule)
+void Service::EvaluateApplyRules(const Host::Ptr& host)
 {
-	int apply_count = 0;
-
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Service")) {
 		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 		try {
-			if (EvaluateApplyRuleOne(host, rule))
-				apply_count++;
+			if (EvaluateApplyRule(host, rule))
+				rule.AddMatch();
 		} catch (const ConfigError& ex) {
 			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
 		}
 	}
-
-	if (apply_count == 0)
-		Log(LogWarning, "Service")
-		    << "Apply rule '" << rule.GetName() << "' for host does not match anywhere!";
-}
-
-void Service::EvaluateApplyRules(const std::vector<ApplyRule>& rules)
-{
-	ParallelWorkQueue upq;
-
-	BOOST_FOREACH(const ApplyRule& rule, rules) {
-		upq.Enqueue(boost::bind(&Service::EvaluateApplyRule, boost::cref(rule)));
-	}
-
-	upq.Join();
 }

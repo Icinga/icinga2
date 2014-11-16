@@ -21,6 +21,7 @@
 #include "base/dynamictype.hpp"
 #include <sstream>
 #include <boost/foreach.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -69,6 +70,11 @@ void ConfigItemBuilder::AddExpression(Expression *expr)
 	m_Expressions.push_back(expr);
 }
 
+void ConfigItemBuilder::SetFilter(const boost::shared_ptr<Expression>& filter)
+{
+	m_Filter = filter;
+}
+
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
 	if (m_Type.IsEmpty()) {
@@ -104,10 +110,10 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	dexpr->MakeInline();
 	exprs.push_back(dexpr);
 
-	DictExpression *exprl = new DictExpression(exprs, m_DebugInfo);
+	boost::shared_ptr<DictExpression> exprl = boost::make_shared<DictExpression>(exprs, m_DebugInfo);
 	exprl->MakeInline();
 
-	return new ConfigItem(m_Type, m_Name, m_Abstract, boost::shared_ptr<Expression>(exprl),
+	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
 	    m_DebugInfo, m_Scope, m_Zone);
 }
 

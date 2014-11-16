@@ -42,7 +42,7 @@
 using namespace icinga;
 
 boost::mutex ConfigItem::m_Mutex;
-ConfigItem::ItemMap ConfigItem::m_Items;
+ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 
 /**
@@ -57,11 +57,12 @@ ConfigItem::ItemList ConfigItem::m_UnnamedItems;
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const boost::shared_ptr<Expression>& exprl,
+    const boost::shared_ptr<Expression>& filter,
     const DebugInfo& debuginfo, const Object::Ptr& scope,
     const String& zone)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	  m_Expression(exprl), m_DebugInfo(debuginfo),
-	  m_Scope(scope), m_Zone(zone)
+	  m_Expression(exprl), m_Filter(filter),
+	  m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone)
 {
 }
 
@@ -121,6 +122,16 @@ boost::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 }
 
 /**
+* Retrieves the object filter for the configuration item.
+*
+* @returns The filter expression.
+*/
+boost::shared_ptr<Expression> ConfigItem::GetFilter(void) const
+{
+	return m_Filter;
+}
+
+/**
  * Commits the configuration item by creating a DynamicObject
  * object.
  *
@@ -150,7 +161,6 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	Dictionary::Ptr locals = new Dictionary();
 	locals->Set("__parent", m_Scope);
-	m_Scope.reset();
 
 	dobj->SetParentScope(locals);
 	locals.reset();
@@ -238,10 +248,8 @@ void ConfigItem::Register(void)
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_UnnamedItems.push_back(this);
 	} else {
-		std::pair<String, String> key = std::make_pair(m_Type, m_Name);
-
 		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Items[key] = this;
+		m_Items[m_Type][m_Name] = this;
 	}
 }
 
@@ -254,48 +262,52 @@ void ConfigItem::Register(void)
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	std::pair<String, String> key = std::make_pair(type, name);
-	ConfigItem::ItemMap::iterator it;
-
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		it = m_Items.find(key);
+		ConfigItem::TypeMap::const_iterator it = m_Items.find(type);
+
+		if (it == m_Items.end())
+			return ConfigItem::Ptr();
+
+		ConfigItem::ItemMap::const_iterator it2 = it->second.find(name);
+
+		if (it2 == it->second.end())
+			return ConfigItem::Ptr();
+
+		return it2->second;
 	}
-
-	if (it != m_Items.end())
-		return it->second;
-
-	return ConfigItem::Ptr();
 }
 
-bool ConfigItem::CommitNewItems(void)
+bool ConfigItem::CommitNewItems(ParallelWorkQueue& upq)
 {
-	std::vector<ConfigItem::Ptr> items;
+	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
+	std::vector<ItemPair> items;
 
 	do {
-		ParallelWorkQueue upq;
-
 		items.clear();
 
 		{
 			boost::mutex::scoped_lock lock(m_Mutex);
 
-			BOOST_FOREACH(const ItemMap::value_type& kv, m_Items) {
-				if (!kv.second->m_Abstract && !kv.second->m_Object) {
-					upq.Enqueue(boost::bind(&ConfigItem::Commit, kv.second, false));
-					items.push_back(kv.second);
+			BOOST_FOREACH(const TypeMap::value_type& kv, m_Items) {
+				BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second)
+				{
+					if (!kv2.second->m_Abstract && !kv2.second->m_Object)
+						items.push_back(std::make_pair(kv2.second, false));
 				}
 			}
 
 			BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
-				if (!item->m_Abstract && !item->m_Object) {
-					upq.Enqueue(boost::bind(&ConfigItem::Commit, item, true));
-					items.push_back(item);
-				}
+				if (!item->m_Abstract && !item->m_Object)
+					items.push_back(std::make_pair(item, true));
 			}
 
 			m_UnnamedItems.clear();
+		}
+
+		BOOST_FOREACH(const ItemPair& ip, items) {
+			upq.Enqueue(boost::bind(&ConfigItem::Commit, ip.first, ip.second));
 		}
 
 		upq.Join();
@@ -303,8 +315,8 @@ bool ConfigItem::CommitNewItems(void)
 		if (ConfigCompilerContext::GetInstance()->HasErrors())
 			return false;
 
-		BOOST_FOREACH(const ConfigItem::Ptr& item, items) {
-			upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, item->m_Object));
+		BOOST_FOREACH(const ItemPair& ip, items) {
+			upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, ip.first->m_Object));
 		}
 
 		upq.Join();
@@ -315,25 +327,18 @@ bool ConfigItem::CommitNewItems(void)
 
 bool ConfigItem::ValidateItems(void)
 {
+	ParallelWorkQueue upq;
+
 	if (ConfigCompilerContext::GetInstance()->HasErrors())
 		return false;
 
 	Log(LogInformation, "ConfigItem", "Committing config items");
 
-	if (!CommitNewItems())
+	if (!CommitNewItems(upq))
 		return false;
 
-	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 1)...");
-	ObjectRule::EvaluateRules(false);
-
-	Log(LogInformation, "ConfigItem", "Evaluating 'apply' rules...");
-	ApplyRule::EvaluateRules(true);
-
-	if (!CommitNewItems())
-		return false;
-
-	Log(LogInformation, "ConfigItem", "Evaluating 'object' rules (step 2)...");
-	ObjectRule::EvaluateRules(true);
+	ApplyRule::CheckMatches();
+	ApplyRule::DiscardRules();
 
 	ConfigItem::DiscardItems();
 	ConfigType::DiscardTypes();
@@ -399,4 +404,23 @@ void ConfigItem::DiscardItems(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	m_Items.clear();
+}
+
+std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
+{
+	std::vector<ConfigItem::Ptr> items;
+
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	TypeMap::const_iterator it = m_Items.find(type);
+
+	if (it == m_Items.end())
+		return items;
+
+	BOOST_FOREACH(const ItemMap::value_type& kv, it->second)
+	{
+		items.push_back(kv.second);
+	}
+
+	return items;
 }

@@ -19,6 +19,7 @@
 
 #include "icinga/hostgroup.hpp"
 #include "config/objectrule.hpp"
+#include "config/configitem.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
@@ -34,60 +35,50 @@ INITIALIZE_ONCE(&HostGroup::RegisterObjectRuleHandler);
 
 void HostGroup::RegisterObjectRuleHandler(void)
 {
-	ObjectRule::RegisterType("HostGroup", &HostGroup::EvaluateObjectRules);
+	ObjectRule::RegisterType("HostGroup");
 }
 
-bool HostGroup::EvaluateObjectRuleOne(const Host::Ptr& host, const ObjectRule& rule)
+bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr& group)
 {
-	DebugInfo di = rule.GetDebugInfo();
+	String group_name = group->GetName();
 
-	std::ostringstream msgbuf;
-	msgbuf << "Evaluating 'object' rule (" << di << ")";
-	CONTEXT(msgbuf.str());
+	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
 	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", rule.GetScope());
+	locals->Set("__parent", group->GetScope());
 	locals->Set("host", host);
 
-	if (!rule.EvaluateFilter(locals))
+	if (!group->GetFilter()->Evaluate(locals))
 		return false;
 
 	Log(LogDebug, "HostGroup")
-	    << "Assigning membership for group '" << rule.GetName() << "' to host '" << host->GetName() << "' for rule " << di;
+	    << "Assigning membership for group '" << group_name << "' to host '" << host->GetName() << "'";
 
-	String group_name = rule.GetName();
-	HostGroup::Ptr group = HostGroup::GetByName(group_name);
+	HostGroup::Ptr groupObject = HostGroup::GetByName(group_name);
 
-	if (!group) {
+	if (!groupObject) {
 		Log(LogCritical, "HostGroup")
 		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
 		return false;
 	}
 
 	/* assign host group membership */
-	group->ResolveGroupMembership(host, true);
+	groupObject->ResolveGroupMembership(host, true);
 
 	return true;
 }
 
-void HostGroup::EvaluateObjectRule(const ObjectRule& rule)
+void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
-		CONTEXT("Evaluating group membership in '" + rule.GetName() + "' for host '" + host->GetName() + "'");
+	CONTEXT("Evaluating group memberships for host '" + host->GetName() + "'");
 
-		EvaluateObjectRuleOne(host, rule);
+	BOOST_FOREACH(const ConfigItem::Ptr& group, ConfigItem::GetItems("HostGroup"))
+	{
+		if (!group->GetFilter())
+			continue;
+
+		EvaluateObjectRule(host, group);
 	}
-}
-
-void HostGroup::EvaluateObjectRules(const std::vector<ObjectRule>& rules)
-{
-	ParallelWorkQueue upq;
-
-	BOOST_FOREACH(const ObjectRule& rule, rules) {
-		upq.Enqueue(boost::bind(HostGroup::EvaluateObjectRule, boost::cref(rule)));
-	}
-
-	upq.Join();
 }
 
 std::set<Host::Ptr> HostGroup::GetMembers(void) const

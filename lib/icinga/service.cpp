@@ -19,6 +19,7 @@
 
 #include "icinga/service.hpp"
 #include "icinga/servicegroup.hpp"
+#include "icinga/scheduleddowntime.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -65,6 +66,11 @@ void Service::OnConfigLoaded(void)
 	SetSchedulingOffset(Utility::Random());
 
 	Checkable::OnConfigLoaded();
+
+	ServiceGroup::EvaluateObjectRules(this);
+	ScheduledDowntime::EvaluateApplyRules(this);
+	Notification::EvaluateApplyRules(this);
+	Dependency::EvaluateApplyRules(this);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)

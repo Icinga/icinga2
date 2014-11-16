@@ -21,6 +21,9 @@
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/pluginutility.hpp"
+#include "icinga/scheduleddowntime.hpp"
+#include "config/configcompilercontext.hpp"
+#include "base/configerror.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
@@ -52,6 +55,12 @@ void Host::OnConfigLoaded(void)
 				hg->ResolveGroupMembership(this, true);
 		}
 	}
+
+	HostGroup::EvaluateObjectRules(this);
+	ScheduledDowntime::EvaluateApplyRules(this);
+	Notification::EvaluateApplyRules(this);
+	Dependency::EvaluateApplyRules(this);
+	Service::EvaluateApplyRules(this);
 }
 
 void Host::Stop(void)

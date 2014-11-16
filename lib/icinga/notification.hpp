@@ -68,6 +68,8 @@ enum NotificationType
 class NotificationCommand;
 class Checkable;
 class ApplyRule;
+class Host;
+class Service;
 
 /**
  * An Icinga notification specification.
@@ -108,6 +110,9 @@ public:
 
 	static void ValidateFilters(const String& location, const Notification::Ptr& object);
 
+	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
+	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
+
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void Start(void);
@@ -116,10 +121,8 @@ protected:
 private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
-	static void EvaluateApplyRuleOneInstance(const intrusive_ptr<Checkable>& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
-	static bool EvaluateApplyRuleOne(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule);
-	static void EvaluateApplyRule(const ApplyRule& rule);
-	static void EvaluateApplyRules(const std::vector<ApplyRule>& rules);
+	static void EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
+	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule);
 };
 
 I2_ICINGA_API int ServiceStateToFilter(ServiceState state);
