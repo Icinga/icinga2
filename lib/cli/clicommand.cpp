@@ -101,6 +101,11 @@ int CLICommand::GetMaxArguments(void) const
 	return GetMinArguments();
 }
 
+bool CLICommand::IsHidden(void) const
+{
+	return false;
+}
+
 boost::mutex& CLICommand::GetRegistryMutex(void)
 {
 	static boost::mutex mtx;
@@ -271,7 +276,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
-		if (vname.size() < best_match.size())
+		if (vname.size() < best_match.size() || kv.second->IsHidden())
 			continue;
 
 		bool match = true;
