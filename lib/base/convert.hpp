@@ -59,6 +59,11 @@ public:
 		}
 	}
 
+	static inline double ToDouble(const Value& val)
+	{
+		return val;
+	}
+
 	static bool ToBool(const String& val);
 
 	template<typename T>
