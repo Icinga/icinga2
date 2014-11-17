@@ -19,9 +19,9 @@ icolor brightgreen 		"apply[ \t]+(Service|Dependency|Notification|ScheduledDownt
 
 ## objects attributes
 
-icolor red 		"(^|^\s+)(accept_config|action_url|address|address6|arguments|author|bind_host)"
+icolor red 		"(^|^\s+)(accept_commands|accept_config|action_url|address|address6|arguments|author|bind_host)"
 icolor red 		"(^|^\s+)(bind_port|ca_path|categories|cert_path|check_command|check_interval)"
-icolor red 		"(^|^\s+)(check_period|child_host_name|child_service_name|cleanup|command|command_path)"
+icolor red 		"(^|^\s+)(check_period|child_host_name|child_service_name|cleanup|command|command_endpoint|command_path)"
 icolor red 		"(^|^\s+)(comment|compat_log_path|crl_path|database|disable_checks|disable_notifications)"
 icolor red 		"(^|^\s+)(display_name|duration|email|enable_active_checks|enable_event_handler)"
 icolor red 		"(^|^\s+)(enable_flapping|enable_ha|enable_notifications|enable_passive_checks|enable_perfdata)"
@@ -33,7 +33,7 @@ icolor red 		"(^|^\s+)(pager|parent|parent_host_name|parent_service_name|passwor
 icolor red 		"(^|^\s+)(port|ranges|retry_interval|rotation_interval|rotation_method)"
 icolor red 		"(^|^\s+)(service_format_template|service_name|service_name_template|service_perfdata_path|service_temp_path)"
 icolor red 		"(^|^\s+)(severity|socket_path|socket_type|spool_dir|states|status_path|table_prefix)"
-icolor red 		"(^|^\s+)(timeout|times|types|update_interval|user|user_groups|users|volatile)"
+icolor red 		"(^|^\s+)(timeout|times|types|update_interval|user|user_groups|users|volatile|zone)"
 icolor red 		"(^|^\s+)(vars\.\w+)"
 
 
@@ -53,7 +53,7 @@ icolor white 	"(regex|match|len|union|intersection|string|number|bool|log|exit)"
 ## global constats
 icolor yellow  	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|PkgDataDir|RunDir|StatePath|PidPath)"
 icolor yellow  	"(NodeName|ApplicationType|EnableNotifications|EnableEventHandlers)"
-icolor yellow  	"(EnableFlapping|EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork)"
+icolor yellow  	"(EnableFlapping|EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup)"
 icolor yellow  	"(Vars\s+)"
 
 
