@@ -31,7 +31,9 @@
 %define apachegroup apache
 %if 0%{?el5}%{?el6}
 %define use_systemd 0
+%if %(uname -m) != "x86_64"
 %define march_flag -march=i686
+%endif
 %else
 # fedora and el>=7
 %define use_systemd 1
