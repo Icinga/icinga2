@@ -282,7 +282,8 @@ Value DictExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) c
 
 Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
 {
-	DebugHint *sdhint = dhint;
+	DebugHint *psdhint = dhint;
+	DebugHint sdhint;
 
 	Value parent, object;
 	String index;
@@ -291,8 +292,10 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		Expression *indexExpr = m_Indexer[i];
 		String tempindex = indexExpr->Evaluate(context, dhint);
 
-		if (sdhint)
-			sdhint = sdhint->GetChild(tempindex);
+		if (psdhint) {
+			sdhint = psdhint->GetChild(tempindex);
+			psdhint = &sdhint;
+		}
 
 		if (i == 0)
 			parent = context;
@@ -311,7 +314,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		LiteralExpression *eindex = MakeLiteral(tempindex);
 
 		IndexerExpression eip(eparent, eindex, m_DebugInfo);
-		object = eip.Evaluate(context, sdhint);
+		object = eip.Evaluate(context, psdhint);
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
@@ -346,8 +349,8 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 
 	SetField(parent, index, right);
 
-	if (sdhint)
-		sdhint->AddMessage("=", m_DebugInfo);
+	if (psdhint)
+		psdhint->AddMessage("=", m_DebugInfo);
 
 	return right;
 }
@@ -522,37 +525,6 @@ Value ForExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(m_DebugInfo));
 
 	return Empty;
-}
-
-Dictionary::Ptr DebugHint::ToDictionary(void) const
-{
-	Dictionary::Ptr result = new Dictionary();
-
-	Array::Ptr messages = new Array();
-	typedef std::pair<String, DebugInfo> MessageType;
-	BOOST_FOREACH(const MessageType& message, Messages) {
-		Array::Ptr amsg = new Array();
-		amsg->Add(message.first);
-		amsg->Add(message.second.Path);
-		amsg->Add(message.second.FirstLine);
-		amsg->Add(message.second.FirstColumn);
-		amsg->Add(message.second.LastLine);
-		amsg->Add(message.second.LastColumn);
-		messages->Add(amsg);
-	}
-
-	result->Set("messages", messages);
-
-	Dictionary::Ptr properties = new Dictionary();
-
-	typedef std::map<String, DebugHint>::value_type ChildType;
-	BOOST_FOREACH(const ChildType& kv, Children) {
-		properties->Set(kv.first, kv.second.ToDictionary());
-	}
-
-	result->Set("properties", properties);
-
-	return result;
 }
 
 bool Expression::HasField(const Object::Ptr& context, const String& field)

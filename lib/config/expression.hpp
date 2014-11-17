@@ -31,20 +31,60 @@ namespace icinga
 
 struct DebugHint
 {
-	std::vector<std::pair<String, DebugInfo> > Messages;
-	std::map<String, DebugHint> Children;
+public:
+	DebugHint(const Dictionary::Ptr& hints = Dictionary::Ptr())
+		: m_Hints(hints)
+	{ }
 
 	inline void AddMessage(const String& message, const DebugInfo& di)
 	{
-		Messages.push_back(std::make_pair(message, di));
+		if (!m_Hints)
+			m_Hints = new Dictionary();
+
+		if (!m_Messages) {
+			m_Messages = new Array();
+			m_Hints->Set("messages", m_Messages);
+		}
+
+		Array::Ptr amsg = new Array();
+		amsg->Add(message);
+		amsg->Add(di.Path);
+		amsg->Add(di.FirstLine);
+		amsg->Add(di.FirstColumn);
+		amsg->Add(di.LastLine);
+		amsg->Add(di.LastColumn);
+		m_Messages->Add(amsg);
 	}
 
-	inline DebugHint *GetChild(const String& name)
+	inline DebugHint GetChild(const String& name)
 	{
-		return &Children[name];
+		if (!m_Hints)
+			m_Hints = new Dictionary();
+
+		if (!m_Children) {
+			m_Children = new Dictionary;
+			m_Hints->Set("properties", m_Children);
+		}
+
+		Dictionary::Ptr child = m_Children->Get(name);
+
+		if (!child) {
+			child = new Dictionary();
+			m_Children->Set(name, child);
+		}
+
+		return DebugHint(child);
 	}
 
-	Dictionary::Ptr ToDictionary(void) const;
+	Dictionary::Ptr ToDictionary(void) const
+	{
+		return m_Hints;
+	}
+
+private:
+	Dictionary::Ptr m_Hints;
+	Array::Ptr m_Messages;
+	Dictionary::Ptr m_Children;
 };
 
 enum CombinedSetOp

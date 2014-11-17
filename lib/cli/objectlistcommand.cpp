@@ -188,10 +188,12 @@ void ObjectListCommand::PrintHints(std::ostream& fp, const Dictionary::Ptr& debu
 
 	Array::Ptr messages = debug_hints->Get("messages");
 
-	ObjectLock olock(messages);
+	if (messages) {
+		ObjectLock olock(messages);
 
-	BOOST_FOREACH(const Value& msg, messages) {
-		PrintHint(fp, msg, indent);
+		BOOST_FOREACH(const Value& msg, messages) {
+			PrintHint(fp, msg, indent);
+		}
 	}
 }
 
