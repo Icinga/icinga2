@@ -319,7 +319,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 			<< boost::errinfo_api_function("DuplicateHandle")
 			<< errinfo_win32_error(GetLastError()));
 
-	LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList;
+/*	LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList;
 	SIZE_T cbSize;
 
 	if (!InitializeProcThreadAttributeList(NULL, 1, 0, &cbSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
@@ -344,6 +344,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("UpdateProcThreadAttribute")
 			<< errinfo_win32_error(GetLastError()));
+*/
 
 	STARTUPINFOEX si = {};
 	si.StartupInfo.cb = sizeof(si);
@@ -351,7 +352,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	si.StartupInfo.hStdOutput = outWritePipeDup;
 	si.StartupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 	si.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-	si.lpAttributeList = lpAttributeList;
+//	si.lpAttributeList = lpAttributeList;
 
 	PROCESS_INFORMATION pi;
 
@@ -412,13 +413,13 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	envp[offset] = '\0';
 
 	if (!CreateProcess(NULL, args, NULL, NULL, TRUE,
-	    EXTENDED_STARTUPINFO_PRESENT, envp, NULL, &si.StartupInfo, &pi)) {
+	    0 /*EXTENDED_STARTUPINFO_PRESENT*/, envp, NULL, &si.StartupInfo, &pi)) {
 		DWORD error = GetLastError();
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);
 		free(envp);
-		DeleteProcThreadAttributeList(lpAttributeList);
-		delete [] reinterpret_cast<char *>(lpAttributeList);
+/*		DeleteProcThreadAttributeList(lpAttributeList);
+		delete [] reinterpret_cast<char *>(lpAttributeList); */
 
 		m_Result.PID = 0;
 		m_Result.ExecutionEnd = Utility::GetTime();
@@ -435,8 +436,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 
 	delete [] args;
 	free(envp);
-	DeleteProcThreadAttributeList(lpAttributeList);
-	delete [] reinterpret_cast<char *>(lpAttributeList);
+/*	DeleteProcThreadAttributeList(lpAttributeList);
+	delete [] reinterpret_cast<char *>(lpAttributeList); */
 
 	CloseHandle(outWritePipe);
 	CloseHandle(outWritePipeDup);
