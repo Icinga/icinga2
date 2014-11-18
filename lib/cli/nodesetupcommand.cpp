@@ -476,7 +476,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn, vm["node"].as<std::string>());
+	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn, vm["zone"].as<std::string>());
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
