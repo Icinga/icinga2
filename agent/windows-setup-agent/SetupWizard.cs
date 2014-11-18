@@ -227,7 +227,7 @@ namespace Icinga
 			args += " --cn " + txtInstanceName.Text;
 
 			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"agent setup" + args,
+				"node setup" + args,
 				out output)) {
 				ShowErrorText(output);
 				return;
