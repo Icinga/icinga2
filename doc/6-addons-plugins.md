@@ -11,13 +11,13 @@
 hence Icinga 2's [PerfdataWriter](#performance-data) acts as npcdmod. NPCD will collect
 the rotated performance data files.
 
-#### <a id="addons-graphing-pnp"></a> inGraph
+#### <a id="addons-graphing-ingraph"></a> inGraph
 
 [inGraph](https://www.netways.org/projects/ingraph/wiki) requires the ingraph-collector addon
 to be configured to point at the perfdata files. Icinga 2's [PerfdataWriter](#performance-data) will
 write to the performance data spool directory.
 
-#### <a id="addons-graphing-pnp"></a> Graphite
+#### <a id="addons-graphing-graphite"></a> Graphite
 
 There are Graphite addons available for collecting the performance data files as well. But
 natively you can use the [GraphiteWriter](#graphite-carbon-cache-writer) feature.
