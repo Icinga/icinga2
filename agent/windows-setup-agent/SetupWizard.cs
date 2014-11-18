@@ -238,7 +238,7 @@ namespace Icinga
 			DirectoryInfo di = new DirectoryInfo(Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
 			FileSystemAccessRule rule = new FileSystemAccessRule("NT AUTHORITY\\NetworkService",
-				FileSystemRights.ReadAndExecute | FileSystemRights.Write | FileSystemRights.ListDirectory,
+				FileSystemRights.Modify,
 				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
 			ds.AddAccessRule(rule);
 			di.SetAccessControl(ds);
@@ -290,8 +290,8 @@ namespace Icinga
 			Directory.CreateDirectory(installDir + "\\var\\cache\\icinga2");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\pki");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\agent\\inventory");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\cluster\\config");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\cluster\\log");
+			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\config");
+			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\log");
 			Directory.CreateDirectory(installDir + "\\var\\log\\icinga2\\compat\\archive");
 			Directory.CreateDirectory(installDir + "\\var\\run\\icinga2\\cmd");
 			Directory.CreateDirectory(installDir + "\\var\\spool\\icinga2\\perfdata");
