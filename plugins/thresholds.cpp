@@ -16,14 +16,13 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
+
+#include "thresholds.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <vector>
 #include <iostream>
 
-#include "thresholds.h"
-
-#include "boost/algorithm/string.hpp"
-#include "boost/lexical_cast.hpp"
- 
 using namespace boost::algorithm;
 
 using std::wstring;
@@ -100,9 +99,11 @@ threshold::threshold(const wstring& stri)
 		}
 			
 		try {
-			double d1 = boost::lexical_cast<double>(str1);
-			double d2 = boost::lexical_cast<double>(str2);
-			lower = d1; upper = d2; legal = !low; perc = pc; set = true;
+			boost::algorithm::trim(str1);
+			lower = boost::lexical_cast<double>(str1);
+			boost::algorithm::trim(str2);
+			upper = boost::lexical_cast<double>(str2);
+			legal = !low; perc = pc; set = true;
 		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
@@ -112,8 +113,9 @@ threshold::threshold(const wstring& stri)
 			str = wstring(str.begin(), str.end() - 1);
 		}
 		try {
-			double d = boost::lexical_cast<double>(str);
-			lower = d; upper = d; legal = !low; perc = pc; set = true;
+			boost::algorithm::trim(str);
+			lower = upper = boost::lexical_cast<double>(str);
+			legal = !low; perc = pc; set = true;
 		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}

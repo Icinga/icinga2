@@ -16,14 +16,15 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
+
+#include "thresholds.h"
+#include <boost/program_options.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <Pdh.h>
 #include <Shlwapi.h>
 #include <pdhmsg.h>
 #include <iostream>
-
-#include "thresholds.h"
-
-#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
@@ -142,7 +143,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = threshold(vm["warning"].as<wstring>());
+			std::wstring wthreshold = vm["warning"].as<wstring>();
+			std::vector<std::wstring> tokens;
+			boost::algorithm::split(tokens, wthreshold, boost::algorithm::is_any_of(","));
+			printInfo.warn = threshold(tokens[0]);
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
@@ -150,7 +154,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = threshold(vm["critical"].as<wstring>());
+			std::wstring cthreshold = vm["critical"].as<wstring>();
+			std::vector<std::wstring> tokens;
+			boost::algorithm::split(tokens, cthreshold, boost::algorithm::is_any_of(","));
+			printInfo.crit = threshold(tokens[0]);
 		} catch (std::invalid_argument& e) {
 			cout << e.what() << endl;
 			return 3;
