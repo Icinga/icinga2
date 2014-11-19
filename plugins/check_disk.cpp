@@ -98,7 +98,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		("version,v", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold")
 		("critical,c", po::wvalue<wstring>(), "critical threshold")
-		("drives,d", po::wvalue<vector<std::wstring>>()->multitoken(), "declare explicitly which drives to check (default checks all)")
+		("path,p", po::wvalue<vector<std::wstring>>()->multitoken(), "declare explicitly which drives to check (default checks all)")
 		("unit,u", po::wvalue<wstring>(), "assign unit possible are: B, kB, MB, GB, TB")
 		;
 
@@ -186,8 +186,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		}
 	}
 	
-	if (vm.count("drives")) 
-		printInfo.drives = vm["drives"].as<vector<wstring>>();
+	if (vm.count("path")) 
+		printInfo.drives = vm["path"].as<vector<wstring>>();
 
 	if (vm.count("unit")) {
 		try {

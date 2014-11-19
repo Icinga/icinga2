@@ -172,15 +172,15 @@ int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"USERS OK " << printInfo.users << L"User|users=" << printInfo.users << L";" 
+		wcout << L"USERS OK " << printInfo.users << L" User(s)|users=" << printInfo.users << L";" 
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
 	case WARNING:
-		wcout << L"USERS WARNING " << printInfo.users << L"User|users=" << printInfo.users << L";"
+		wcout << L"USERS WARNING " << printInfo.users << L" User(s)|users=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"USERS CRITICAL " << printInfo.users << L"User|users=" << printInfo.users << L";"
+		wcout << L"USERS CRITICAL " << printInfo.users << L" User(s)|users=" << printInfo.users << L";"
 			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
 		break;
 	}
