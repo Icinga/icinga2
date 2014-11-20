@@ -203,16 +203,16 @@ TimePeriod::Ptr Dependency::GetPeriod(void) const
 	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
-void Dependency::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
+void Dependency::ValidateFilters(const String& location, const Dependency::Ptr& object)
 {
-	int sfilter = FilterArrayToInt(attrs->Get("states"), 0);
+	int sfilter = FilterArrayToInt(object->GetStates(), 0);
 
-	if (attrs->Get("parent_service_name") == Empty && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
+	if (object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid for host dependency.");
 	}
 
-	if (attrs->Get("parent_service_name") != Empty && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+	if (!object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid for service dependency.");
 	}

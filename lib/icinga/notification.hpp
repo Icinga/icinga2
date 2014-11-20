@@ -106,7 +106,7 @@ public:
 
 	static void RegisterApplyRuleHandler(void);
 
-	static void ValidateFilters(const String& location, const Dictionary::Ptr& attrs);
+	static void ValidateFilters(const String& location, const Notification::Ptr& object);
 
 protected:
 	virtual void OnConfigLoaded(void);

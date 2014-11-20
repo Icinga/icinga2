@@ -209,8 +209,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 		TypeRuleUtilities utils;
 
 		try {
-			attrs->Remove("name");
-			ctype->ValidateItem(GetName(), attrs, GetDebugInfo(), &utils);
+			ctype->ValidateItem(GetName(), dobj, GetDebugInfo(), &utils);
 		} catch (const ConfigError& ex) {
 			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());

@@ -563,11 +563,11 @@ void CompatLogger::RotationTimerHandler(void)
 	ScheduleNextRotation();
 }
 
-void CompatLogger::ValidateRotationMethod(const String& location, const Dictionary::Ptr& attrs)
+void CompatLogger::ValidateRotationMethod(const String& location, const CompatLogger::Ptr& object)
 {
-	Value rotation_method = attrs->Get("rotation_method");
+	String rotation_method = object->GetRotationMethod();
 
-	if (!rotation_method.IsEmpty() && rotation_method != "HOURLY" && rotation_method != "DAILY" &&
+	if (rotation_method != "HOURLY" && rotation_method != "DAILY" &&
 	    rotation_method != "WEEKLY" && rotation_method != "MONTHLY" && rotation_method != "NONE") {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": Rotation method '" + rotation_method + "' is invalid.");

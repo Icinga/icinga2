@@ -421,12 +421,9 @@ void DbConnection::PrepareDatabase(void)
 	}
 }
 
-void DbConnection::ValidateFailoverTimeout(const String& location, const Dictionary::Ptr& attrs)
+void DbConnection::ValidateFailoverTimeout(const String& location, const DbConnection::Ptr& object)
 {
-	if (!attrs->Contains("failover_timeout"))
-		return;
-
-	if (attrs->Get("failover_timeout") < 60) {
+	if (object->GetFailoverTimeout() < 60) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": Failover timeout minimum is 60s.");
 	}

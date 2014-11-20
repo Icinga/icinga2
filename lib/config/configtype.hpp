@@ -50,7 +50,7 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 
-	void ValidateItem(const String& name, const Dictionary::Ptr& attrs,
+	void ValidateItem(const String& name, const Object::Ptr& object,
 	    const DebugInfo& debugInfo, const TypeRuleUtilities *utils);
 
 	void Register(void);
@@ -65,7 +65,10 @@ private:
 	TypeRuleList::Ptr m_RuleList;
 	DebugInfo m_DebugInfo; /**< Debug information. */
 
-	static void ValidateDictionary(const Dictionary::Ptr& dictionary,
+	static void ValidateAttribute(const String& key, const Value& value,
+	    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations,
+	    const TypeRuleUtilities *utils);
+	static void ValidateObject(const Object::Ptr& object,
 	    const std::vector<TypeRuleList::Ptr>& ruleLists, std::vector<String>& locations,
 	    const TypeRuleUtilities *utils);
 	static void ValidateArray(const Array::Ptr& array,

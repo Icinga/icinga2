@@ -183,11 +183,11 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 }
 
 
-void LivestatusListener::ValidateSocketType(const String& location, const Dictionary::Ptr& attrs)
+void LivestatusListener::ValidateSocketType(const String& location, const LivestatusListener::Ptr& object)
 {
-	Value socket_type = attrs->Get("socket_type");
+	String socket_type = object->GetSocketType();
 
-	if (!socket_type.IsEmpty() && socket_type != "unix" && socket_type != "tcp") {
+	if (socket_type != "unix" && socket_type != "tcp") {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": Socket type '" + socket_type + "' is invalid.");
 	}

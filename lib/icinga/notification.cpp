@@ -493,21 +493,21 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
 	return resultTypeFilter;
 }
 
-void Notification::ValidateFilters(const String& location, const Dictionary::Ptr& attrs)
+void Notification::ValidateFilters(const String& location, const Notification::Ptr& object)
 {
-	int sfilter = FilterArrayToInt(attrs->Get("states"), 0);
+	int sfilter = FilterArrayToInt(object->GetStates(), 0);
 
-	if (attrs->Get("service_name") == Empty && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
+	if (object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid.");
 	}
 
-	if (attrs->Get("service_name") != Empty && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+	if (!object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": State filter is invalid.");
 	}
 
-	int tfilter = FilterArrayToInt(attrs->Get("types"), 0);
+	int tfilter = FilterArrayToInt(object->GetTypes(), 0);
 
 	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
 	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |

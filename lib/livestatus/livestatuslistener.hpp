@@ -44,7 +44,7 @@ public:
 	static int GetClientsConnected(void);
 	static int GetConnections(void);
 
-	static void ValidateSocketType(const String& location, const Dictionary::Ptr& attrs);
+	static void ValidateSocketType(const String& location, const LivestatusListener::Ptr& object);
 
 protected:
 	virtual void Start(void);
