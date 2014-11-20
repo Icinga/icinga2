@@ -23,7 +23,7 @@ mkclass_target(streamlogger.ti streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.thpp)
 
 set(base_SOURCES
-  application.cpp application.thpp array.cpp configerror.cpp console.cpp context.cpp
+  application.cpp application-version.cpp application.thpp array.cpp configerror.cpp console.cpp context.cpp
   convert.cpp debuginfo.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp primitivetype.cpp process.cpp
@@ -34,6 +34,8 @@ set(base_SOURCES
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
   value-operators.cpp workqueue.cpp
 )
+
+set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)
     mkunity_target(base base_SOURCES)

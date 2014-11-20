@@ -29,7 +29,6 @@
 #include "base/convert.hpp"
 #include "base/scriptvariable.hpp"
 #include "base/process.hpp"
-#include "icinga-version.h"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
@@ -1159,11 +1158,6 @@ ThreadPool& Application::GetTP(void)
 {
 	static ThreadPool tp;
 	return tp;
-}
-
-String Application::GetVersion(void)
-{
-	return VERSION;
 }
 
 double Application::GetStartTime(void)
