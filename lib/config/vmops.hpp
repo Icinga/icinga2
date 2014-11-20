@@ -33,6 +33,7 @@
 #include "base/scriptvariable.hpp"
 #include "base/configerror.hpp"
 #include "base/convert.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 #include <map>
 #include <vector>
@@ -171,10 +172,8 @@ public:
 		item->SetAbstract(abstract);
 		item->SetScope(context);
 		item->SetZone(zone);
+		item->SetFilter(filter);
 		item->Compile()->Register();
-
-		if (filter)
-			ObjectRule::AddRule(type, name, filter, debugInfo, context);
 
 		return Empty;
 	}
