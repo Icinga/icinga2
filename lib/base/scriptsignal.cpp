@@ -27,7 +27,7 @@ void ScriptSignal::AddSlot(const Callback& slot)
 	m_Slots.push_back(slot);
 }
 
-Value ScriptSignal::Invoke(const std::vector<Value>& arguments)
+void ScriptSignal::Invoke(const std::vector<Value>& arguments)
 {
 	BOOST_FOREACH(const Callback& slot, m_Slots)
 		slot(arguments);

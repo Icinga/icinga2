@@ -41,7 +41,7 @@ public:
 	typedef boost::function<void (const std::vector<Value>& arguments)> Callback;
 
 	void AddSlot(const Callback& slot);
-	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
+	void Invoke(const std::vector<Value>& arguments = std::vector<Value>());
 
 	static ScriptSignal::Ptr GetByName(const String& name);
 	static void Register(const String& name, const ScriptSignal::Ptr& signal);
