@@ -17,40 +17,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTUTILS_H
-#define SCRIPTUTILS_H
+#include "base/scriptsignal.hpp"
+#include "base/scriptvariable.hpp"
 
-#include "base/i2-base.hpp"
-#include "base/string.hpp"
-#include "base/array.hpp"
-#include "base/dictionary.hpp"
-#include "base/type.hpp"
-#include "base/dynamicobject.hpp"
+using namespace icinga;
 
-namespace icinga
+void ScriptSignal::AddSlot(const Callback& slot)
 {
-
-/**
- * @ingroup base
- */
-class I2_BASE_API ScriptUtils
-{
-public:
-	static bool Regex(const String& pattern, const String& text);
-	static int Len(const Value& value);
-	static Array::Ptr Union(const std::vector<Value>& arguments);
-	static Array::Ptr Intersection(const std::vector<Value>& arguments);
-	static void Log(const std::vector<Value>& arguments);
-	static Array::Ptr Range(const std::vector<Value>& arguments);
-	static Type::Ptr TypeOf(const Value& value);
-	static Array::Ptr Keys(const Dictionary::Ptr& dict);
-	static DynamicObject::Ptr GetObject(const String& type, const String& name);
-	static void Assert(const Value& arg);
-
-private:
-	ScriptUtils(void);
-};
-
+	m_Slots.push_back(slot);
 }
 
-#endif /* SCRIPTUTILS_H */
+Value ScriptSignal::Invoke(const std::vector<Value>& arguments)
+{
+	BOOST_FOREACH(const Callback& slot, m_Slots)
+		slot(arguments);
+}
+
+ScriptSignal::Ptr ScriptSignal::GetByName(const String& name)
+{
+	ScriptVariable::Ptr sv = ScriptVariable::GetByName(name);
+
+	if (!sv)
+		return ScriptSignal::Ptr();
+
+	return sv->GetData();
+}
+
+void ScriptSignal::Register(const String& name, const ScriptSignal::Ptr& function)
+{
+	ScriptVariable::Ptr sv = ScriptVariable::Set(name, function);
+	sv->SetConstant(true);
+}
+
+void ScriptSignal::Unregister(const String& name)
+{
+	ScriptVariable::Unregister(name);
+}
+

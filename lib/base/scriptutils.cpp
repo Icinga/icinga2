@@ -26,6 +26,7 @@
 #include "base/objectlock.hpp"
 #include "base/dynamictype.hpp"
 #include "base/application.hpp"
+#include "base/configerror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -45,6 +46,7 @@ REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
 REGISTER_SCRIPTFUNCTION(__get_object, &ScriptUtils::GetObject);
+REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
 
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
@@ -216,5 +218,11 @@ DynamicObject::Ptr ScriptUtils::GetObject(const String& type, const String& name
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
 
 	return dtype->GetObject(name);
+}
+
+void ScriptUtils::Assert(const Value& arg)
+{
+	if (!arg.ToBool())
+		BOOST_THROW_EXCEPTION(ConfigError("Assertion failed"));
 }
 

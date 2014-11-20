@@ -581,6 +581,21 @@ private:
 	boost::shared_ptr<Expression> m_Expression;
 };
 
+class I2_CONFIG_API SlotExpression : public DebuggableExpression
+{
+public:
+	SlotExpression(const String& signal, Expression *slot, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Signal(signal), m_Slot(slot)
+	{ }
+
+protected:
+	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+
+private:
+	String m_Signal;
+	Expression *m_Slot;
+};
+
 class I2_CONFIG_API ApplyExpression : public DebuggableExpression
 {
 public:

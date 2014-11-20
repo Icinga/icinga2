@@ -248,6 +248,7 @@ for				return T_APPLY_FOR;
 __function			return T_FUNCTION;
 __return			return T_RETURN;
 __for				return T_FOR;
+__signal			return T_SIGNAL;
 =\>				return T_FOLLOWS;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;

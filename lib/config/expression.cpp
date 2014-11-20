@@ -26,6 +26,7 @@
 #include "base/json.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptvariable.hpp"
+#include "base/scriptsignal.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/object.hpp"
@@ -425,6 +426,33 @@ Value FunctionExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhin
 		ScriptFunction::Register(m_Name, func);
 
 	return func;
+}
+
+static void InvokeSlot(const Value& funcName, const std::vector<Value>& arguments)
+{
+	ScriptFunction::Ptr func;
+
+	if (funcName.IsObjectType<ScriptFunction>())
+		func = funcName;
+	else
+		func = ScriptFunction::GetByName(funcName);
+
+	if (!func)
+		BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
+
+	func->Invoke(arguments);
+}
+
+Value SlotExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+{
+	ScriptSignal::Ptr sig = ScriptSignal::GetByName(m_Signal);
+
+	if (!sig)
+		BOOST_THROW_EXCEPTION(ConfigError("Signal '" + m_Signal + "' does not exist."));
+
+	sig->AddSlot(boost::bind(InvokeSlot, m_Slot->Evaluate(context), _1));
+
+	return Empty;
 }
 
 Value ApplyExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const

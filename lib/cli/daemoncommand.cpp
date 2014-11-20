@@ -30,6 +30,7 @@
 #include "base/convert.hpp"
 #include "base/scriptvariable.hpp"
 #include "base/context.hpp"
+#include "base/scriptsignal.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -42,6 +43,7 @@ namespace po = boost::program_options;
 static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
+REGISTER_SCRIPTSIGNAL(onload);
 
 static String LoadAppType(const String& typeSpec)
 {
@@ -155,6 +157,9 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
 
 	ScriptVariable::WriteVariablesFile(varsfile);
+
+	ScriptSignal::Ptr loadSignal = ScriptSignal::GetByName("onload");
+	loadSignal->Invoke();
 
 	return true;
 }

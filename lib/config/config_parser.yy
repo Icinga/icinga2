@@ -160,6 +160,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_RETURN "return (T_RETURN)"
 %token T_FOR "for (T_FOR)"
+%token T_SIGNAL "signal (T_SIGNAL)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
 
 %type <text> identifier
@@ -801,6 +802,11 @@ rterm: T_STRING
 
 		$$ = new FunctionExpression("", *$3, aexpr, DebugInfoRange(@1, @5));
 		delete $3;
+	}
+	| T_SIGNAL identifier T_SET_ADD rterm
+	{
+		$$ = new SlotExpression($2, $4, DebugInfoRange(@1, @4));
+		free($2);
 	}
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
 	{
