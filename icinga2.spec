@@ -255,19 +255,17 @@ mv "%{buildroot}%{_sysconfdir}/sysconfig/%{name}" "%{buildroot}%{_localstatedir}
 getent group %{icinga_group} >/dev/null || %{_sbindir}/groupadd -r %{icinga_group}
 getent group %{icingacmd_group} >/dev/null || %{_sbindir}/groupadd -r %{icingacmd_group}
 getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /sbin/nologin -r -d %{_localstatedir}/spool/%{name} -G %{icingacmd_group} -g %{icinga_group} %{icinga_user}
+
+%if "%{_vendor}" == "suse"
+%if 0%{?use_systemd}
+  %service_add_pre %{name}.service
+%endif
+%endif
 exit 0
 
 %if "%{_vendor}" == "suse"
 %verifyscript bin
 %verify_permissions -e %{_rundir}/%{name}/cmd
-%endif
-
-
-%if "%{_vendor}" == "suse"
-%if 0%{?use_systemd}
-%pre bin
-  %service_add_pre %{name}.service
-%endif
 %endif
 
 %post common
@@ -312,7 +310,7 @@ exit 0
 %endif
 # suse/rhel
 
-%postun bin
+%postun common
 # suse
 %if "%{_vendor}" == "suse"
 %if 0%{?using_systemd}
@@ -343,7 +341,7 @@ fi
 
 exit 0
 
-%preun bin
+%preun common
 # suse
 %if "%{_vendor}" == "suse"
 
