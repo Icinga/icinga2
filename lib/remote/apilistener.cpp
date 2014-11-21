@@ -80,14 +80,15 @@ void ApiListener::OnConfigLoaded(void)
 			Application::Exit(EXIT_FAILURE);
 		}
 	}
+}
 
+void ApiListener::OnAllConfigLoaded(void)
+{
 	if (!Endpoint::GetByName(GetIdentity())) {
 		Log(LogCritical, "ApiListener")
 		    << "Endpoint object for '" << GetIdentity() << "' is missing.";
 		Application::Exit(EXIT_FAILURE);
 	}
-
-	SyncZoneDirs();
 }
 
 /**
@@ -95,6 +96,8 @@ void ApiListener::OnConfigLoaded(void)
  */
 void ApiListener::Start(void)
 {
+	SyncZoneDirs();
+
 	if (std::distance(DynamicType::GetObjectsByType<ApiListener>().first, DynamicType::GetObjectsByType<ApiListener>().second) > 1) {
 		Log(LogCritical, "ApiListener", "Only one ApiListener object is allowed.");
 		return;
