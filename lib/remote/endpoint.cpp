@@ -34,7 +34,7 @@ REGISTER_TYPE(Endpoint);
 boost::signals2::signal<void(const Endpoint::Ptr&, const ApiClient::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void(const Endpoint::Ptr&, const ApiClient::Ptr&)> Endpoint::OnDisconnected;
 
-void Endpoint::OnConfigLoaded(void)
+void Endpoint::OnAllConfigLoaded(void)
 {
 	DynamicObject::OnConfigLoaded();
 

@@ -55,7 +55,7 @@ public:
 	static Endpoint::Ptr GetLocalEndpoint(void);
 
 protected:
-	virtual void OnConfigLoaded(void);
+	virtual void OnAllConfigLoaded(void);
 
 private:
 	mutable boost::mutex m_ClientsLock;
