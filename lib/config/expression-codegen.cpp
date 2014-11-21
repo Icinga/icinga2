@@ -201,18 +201,18 @@ void NotInExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp)
 
 void LogicalAndExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp) const
 {
-	fp << "(";
+	fp << "Value(";
 	m_Operand1->GenerateCode(definitions, fp);
-	fp << ").ToBool() && (";
+	fp << ").ToBool() && Value(";
 	m_Operand2->GenerateCode(definitions, fp);
 	fp << ").ToBool()";
 }
 
 void LogicalOrExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp) const
 {
-	fp << "(";
+	fp << "Value(";
 	m_Operand1->GenerateCode(definitions, fp);
-	fp << ").ToBool() || (";
+	fp << ").ToBool() || Value(";
 	m_Operand2->GenerateCode(definitions, fp);
 	fp << ").ToBool()";
 }
@@ -282,7 +282,7 @@ void DictExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp) 
 		   << "  result->Set(\"__parent\", ucontext);" << "\n"
 		   << "  Object::Ptr context = result;" << "\n";
 	} else
-		df << "Object::Ptr context = ucontext;" << "\n";
+		df << "  Object::Ptr context = ucontext;" << "\n";
 
 	df << "  do {" << "\n";
 
@@ -290,7 +290,7 @@ void DictExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp) 
 		df << "    ";
 		expression->GenerateCode(definitions, df);
 		df << ";" << "\n"
-		   << "    if (Expression::HasField(context, \"__result\"))" << "\n"
+		   << "    if (VMOps::HasField(context, \"__result\"))" << "\n"
 		   << "      break;" << "\n";
 	}
 
@@ -346,7 +346,7 @@ void SetExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp) c
 		if (i != m_Indexer.size() - 1) {
 			df << "  if (object.IsEmpty()) {" << "\n"
 			   << "    object = new Dictionary();" << "\n"
-			   << "    Expression::SetField(parent, tempindex, object);" << "\n"
+			   << "    VMOps::SetField(parent, tempindex, object);" << "\n"
 			   << "  }" << "\n";
 		}
 	}
@@ -378,7 +378,7 @@ void SetExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp) c
 		df << "  right = object " << opcode << " right;" << "\n";
 	}
 
-	df << "  Expression::SetField(parent, index, right);" << "\n"
+	df << "  VMOps::SetField(parent, index, right);" << "\n"
 	   << "  return right;" << "\n"
 	   << "}" << "\n";
 
