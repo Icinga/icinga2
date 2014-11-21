@@ -77,6 +77,7 @@ public:
 	virtual void Resume(void);
 
 	virtual void OnConfigLoaded(void);
+	virtual void OnAllConfigLoaded(void);
 	virtual void OnStateLoaded(void);
 
 	template<typename T>

@@ -35,11 +35,11 @@ using namespace icinga;
 
 REGISTER_TYPE(Host);
 
-void Host::OnConfigLoaded(void)
+void Host::OnAllConfigLoaded(void)
 {
-	Checkable::OnConfigLoaded();
+	Checkable::OnAllConfigLoaded();
 
-	ASSERT(!OwnsLock());
+	HostGroup::EvaluateObjectRules(this);
 
 	Array::Ptr groups = GetGroups();
 
@@ -56,7 +56,6 @@ void Host::OnConfigLoaded(void)
 		}
 	}
 
-	HostGroup::EvaluateObjectRules(this);
 	ScheduledDowntime::EvaluateApplyRules(this);
 	Notification::EvaluateApplyRules(this);
 	Dependency::EvaluateApplyRules(this);

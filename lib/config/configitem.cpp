@@ -44,6 +44,7 @@ using namespace icinga;
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
+ConfigItem::ItemList ConfigItem::m_CommittedItems;
 
 /**
  * Constructor for the ConfigItem class.
@@ -198,6 +199,13 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 		dobj->SetShortName(m_Name);
 
 	dobj->SetName(name);
+	dobj->OnConfigLoaded();
+
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_CommittedItems.push_back(this);
+	}
 
 	Dictionary::Ptr attrs = Serialize(dobj, FAConfig);
 
@@ -315,8 +323,15 @@ bool ConfigItem::CommitNewItems(ParallelWorkQueue& upq)
 		if (ConfigCompilerContext::GetInstance()->HasErrors())
 			return false;
 
-		BOOST_FOREACH(const ItemPair& ip, items) {
-			upq.Enqueue(boost::bind(&DynamicObject::OnConfigLoaded, ip.first->m_Object));
+		std::vector<ConfigItem::Ptr> new_items;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			new_items.swap(m_CommittedItems);
+		}
+
+		BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+			upq.Enqueue(boost::bind(&DynamicObject::OnAllConfigLoaded, item->m_Object));
 		}
 
 		upq.Join();

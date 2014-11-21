@@ -41,8 +41,17 @@ String ServiceNameComposer::MakeName(const String& shortName, const Object::Ptr&
 	return service->GetHostName() + "!" + shortName;
 }
 
-void Service::OnConfigLoaded(void)
+void Service::OnAllConfigLoaded(void)
 {
+	Checkable::OnAllConfigLoaded();
+
+	m_Host = Host::GetByName(GetHostName());
+
+	if (m_Host)
+		m_Host->AddService(this);
+
+	ServiceGroup::EvaluateObjectRules(this);
+
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
@@ -58,16 +67,6 @@ void Service::OnConfigLoaded(void)
 		}
 	}
 
-	m_Host = Host::GetByName(GetHostName());
-
-	if (m_Host)
-		m_Host->AddService(this);
-
-	SetSchedulingOffset(Utility::Random());
-
-	Checkable::OnConfigLoaded();
-
-	ServiceGroup::EvaluateObjectRules(this);
 	ScheduledDowntime::EvaluateApplyRules(this);
 	Notification::EvaluateApplyRules(this);
 	Dependency::EvaluateApplyRules(this);

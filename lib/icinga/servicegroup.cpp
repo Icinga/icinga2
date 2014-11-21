@@ -57,16 +57,8 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 	Log(LogDebug, "ServiceGroup")
 	    << "Assigning membership for group '" << group_name << "' to service '" << service->GetName() << "'";
 
-	ServiceGroup::Ptr groupObject = ServiceGroup::GetByName(group_name);
-
-	if (!groupObject) {
-		Log(LogCritical, "ServiceGroup")
-		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
-		return false;
-	}
-
-	/* assign service group membership */
-	groupObject->ResolveGroupMembership(service, true);
+	Array::Ptr groups = service->GetGroups();
+	groups->Add(group_name);
 
 	return true;
 }

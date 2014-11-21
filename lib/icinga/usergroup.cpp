@@ -54,16 +54,8 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 	Log(LogDebug, "UserGroup")
 	    << "Assigning membership for group '" << group_name << "' to user '" << user->GetName() << "'";
 
-	UserGroup::Ptr groupObject = UserGroup::GetByName(group_name);
-
-	if (!groupObject) {
-		Log(LogCritical, "UserGroup")
-		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
-		return false;
-	}
-
-	/* assign user group membership */
-	groupObject->ResolveGroupMembership(user, true);
+	Array::Ptr groups = user->GetGroups();
+	groups->Add(group_name);
 
 	return true;
 }

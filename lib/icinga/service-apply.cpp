@@ -64,8 +64,7 @@ void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr serviceItem = builder->Compile();
-	DynamicObject::Ptr dobj = serviceItem->Commit();
-	dobj->OnConfigLoaded();
+	serviceItem->Commit();
 }
 
 bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)

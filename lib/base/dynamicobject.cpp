@@ -182,6 +182,11 @@ void DynamicObject::OnConfigLoaded(void)
 	/* Nothing to do here. */
 }
 
+void DynamicObject::OnAllConfigLoaded(void)
+{
+	/* Nothing to do here. */
+}
+
 void DynamicObject::OnStateLoaded(void)
 {
 	/* Nothing to do here. */

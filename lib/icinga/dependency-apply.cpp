@@ -72,9 +72,7 @@ void Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr dependencyItem = builder->Compile();
-	DynamicObject::Ptr dobj = dependencyItem->Commit();
-	dobj->OnConfigLoaded();
-
+	dependencyItem->Commit();
 }
 
 bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)

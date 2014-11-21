@@ -56,7 +56,7 @@ public:
 	static void EvaluateApplyRules(const Host::Ptr& host);
 
 protected:
-	virtual void OnConfigLoaded(void);
+	virtual void OnAllConfigLoaded(void);
 
 private:
 	Host::Ptr m_Host;

@@ -1564,6 +1564,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 
 	static_pointer_cast<DynamicObject>(host)->OnStateLoaded();
 	static_pointer_cast<DynamicObject>(host)->OnConfigLoaded();
+	static_pointer_cast<DynamicObject>(host)->OnAllConfigLoaded();
 
 	Dictionary::Ptr macros = params->Get("macros");
 

@@ -35,8 +35,17 @@ boost::signals2::signal<void (const User::Ptr&, bool, const MessageOrigin&)> Use
 
 void User::OnConfigLoaded(void)
 {
+	DynamicObject::OnConfigLoaded();
+
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
 	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
+}
+
+void User::OnAllConfigLoaded(void)
+{
+	DynamicObject::OnAllConfigLoaded();
+
+	UserGroup::EvaluateObjectRules(this);
 
 	Array::Ptr groups = GetGroups();
 
@@ -52,8 +61,6 @@ void User::OnConfigLoaded(void)
 				ug->ResolveGroupMembership(this, true);
 		}
 	}
-
-	UserGroup::EvaluateObjectRules(this);
 }
 
 void User::Stop(void)

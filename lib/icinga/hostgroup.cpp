@@ -54,16 +54,8 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 	Log(LogDebug, "HostGroup")
 	    << "Assigning membership for group '" << group_name << "' to host '" << host->GetName() << "'";
 
-	HostGroup::Ptr groupObject = HostGroup::GetByName(group_name);
-
-	if (!groupObject) {
-		Log(LogCritical, "HostGroup")
-		    << "Invalid membership assignment. Group '" << group_name << "' does not exist.";
-		return false;
-	}
-
-	/* assign host group membership */
-	groupObject->ResolveGroupMembership(host, true);
+	Array::Ptr groups = host->GetGroups();
+	groups->Add(group_name);
 
 	return true;
 }

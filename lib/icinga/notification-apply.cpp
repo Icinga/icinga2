@@ -71,9 +71,7 @@ void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr notificationItem = builder->Compile();
-	DynamicObject::Ptr dobj = notificationItem->Commit();
-	dobj->OnConfigLoaded();
-	
+	notificationItem->Commit();
 }
 
 bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
