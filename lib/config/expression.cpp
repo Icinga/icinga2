@@ -46,7 +46,7 @@ Value Expression::Evaluate(const Object::Ptr& context, DebugHint *dhint) const
 
 		return DoEvaluate(context, dhint);
 	} catch (const std::exception& ex) {
-		if (dynamic_cast<const ConfigError *>(&ex) || boost::get_error_info<boost::errinfo_nested_exception>(ex))
+		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
 		else
 			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression: " + String(ex.what()))
