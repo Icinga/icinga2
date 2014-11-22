@@ -114,7 +114,6 @@ public:
 	Value Evaluate(VMFrame& frame, DebugHint *dhint = NULL) const;
 
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const = 0;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const = 0;
 	virtual const DebugInfo& GetDebugInfo(void) const;
 };
 
@@ -133,11 +132,6 @@ protected:
 		return m_Expression->DoEvaluate(frame, dhint);
 	}
 
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const
-	{
-		return m_Expression->GenerateCode(definitions, fp);
-	}
-
 	virtual const DebugInfo& GetDebugInfo(void) const
 	{
 		return m_Expression->GetDebugInfo();
@@ -147,30 +141,6 @@ private:
 	boost::shared_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API NativeExpression : public Expression
-{
-public:
-	typedef Value (*Callback)(VMFrame& frame);
-
-	NativeExpression(Callback callback)
-		: m_Callback(callback)
-	{ }
-
-protected:
-	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const
-	{
-		return m_Callback(frame);
-	}
-
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const
-	{
-		throw std::runtime_error("Native expression does not support codegen.");
-	}
-
-private:
-	Callback m_Callback;
-};
-
 class I2_CONFIG_API LiteralExpression : public Expression
 {
 public:
@@ -178,7 +148,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const;
 
 private:
 	Value m_Value;
@@ -246,7 +215,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	String m_Variable;
@@ -261,7 +229,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API LogicalNegateExpression : public UnaryExpression
@@ -273,7 +240,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 
 class I2_CONFIG_API AddExpression : public BinaryExpression
@@ -285,7 +251,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API SubtractExpression : public BinaryExpression
@@ -297,7 +262,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API MultiplyExpression : public BinaryExpression
@@ -309,7 +273,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API DivideExpression : public BinaryExpression
@@ -321,7 +284,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API BinaryAndExpression : public BinaryExpression
@@ -333,7 +295,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API BinaryOrExpression : public BinaryExpression
@@ -345,7 +306,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API ShiftLeftExpression : public BinaryExpression
@@ -357,7 +317,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API ShiftRightExpression : public BinaryExpression
@@ -369,7 +328,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API EqualExpression : public BinaryExpression
@@ -381,7 +339,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API NotEqualExpression : public BinaryExpression
@@ -393,7 +350,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API LessThanExpression : public BinaryExpression
@@ -405,7 +361,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API GreaterThanExpression : public BinaryExpression
@@ -417,7 +372,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API LessThanOrEqualExpression : public BinaryExpression
@@ -429,7 +383,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API GreaterThanOrEqualExpression : public BinaryExpression
@@ -441,7 +394,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API InExpression : public BinaryExpression
@@ -453,7 +405,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API NotInExpression : public BinaryExpression
@@ -465,7 +416,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API LogicalAndExpression : public BinaryExpression
@@ -477,7 +427,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API LogicalOrExpression : public BinaryExpression
@@ -489,7 +438,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
 class I2_CONFIG_API FunctionCallExpression : public DebuggableExpression
@@ -509,7 +457,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 public:
 	Expression *m_FName;
@@ -531,7 +478,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	std::vector<Expression *> m_Expressions;
@@ -554,7 +500,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	std::vector<Expression *> m_Expressions;
@@ -578,7 +523,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	CombinedSetOp m_Op;
@@ -597,7 +541,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 
 class I2_CONFIG_API ImportExpression : public DebuggableExpression
@@ -614,13 +557,10 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	Expression *m_Name;
 };
-
-I2_CONFIG_API String CodeGenExpression(DefinitionMap& definitions, Expression *expression);
 
 class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
@@ -632,7 +572,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	String m_Name;
@@ -650,7 +589,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	String m_Signal;
@@ -676,7 +614,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	String m_Type;
@@ -707,7 +644,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	bool m_Abstract;
@@ -734,7 +670,6 @@ public:
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
-	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	String m_FKVar;
