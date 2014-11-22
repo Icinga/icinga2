@@ -192,20 +192,25 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <cvlist> use_specifier_items
 %type <cvitem> use_specifier_item
 
+%right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
+%right T_FUNCTION T_SIGNAL T_FOR
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
+%left T_LOCAL T_RETURN
+%left T_IDENTIFIER
+%left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE
 %left T_BINARY_OR
 %left T_BINARY_AND
-%left T_IN
-%left T_NOT_IN
-%left T_EQUAL T_NOT_EQUAL
-%left T_LESS_THAN T_LESS_THAN_OR_EQUAL T_GREATER_THAN T_GREATER_THAN_OR_EQUAL
+%left T_IN T_NOT_IN
+%nonassoc T_EQUAL T_NOT_EQUAL
+%nonassoc T_LESS_THAN T_LESS_THAN_OR_EQUAL T_GREATER_THAN T_GREATER_THAN_OR_EQUAL
 %left T_SHIFT_LEFT T_SHIFT_RIGHT
 %left T_PLUS T_MINUS
 %left T_MULTIPLY T_DIVIDE_OP
 %right '!' '~'
 %left '.' '(' '['
-%right ':'
+%right ';' ','
+%right T_NEWLINE
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -924,7 +929,7 @@ apply:
 		m_FVVar.push("");
 		m_FTerm.push(NULL);
 	}
-	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm
+	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm_scope
 	{
 		m_Apply.pop();
 
@@ -995,7 +1000,7 @@ apply:
 	;
 
 newlines: T_NEWLINE
-	| newlines T_NEWLINE
+	| T_NEWLINE newlines
 	;
 
 /* required separator */
