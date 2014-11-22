@@ -41,7 +41,7 @@ void ScheduledDowntime::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("ScheduledDowntime", targets);
 }
 
-void ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
+void ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, VMFrame& frame, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -51,22 +51,21 @@ void ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
 	builder->SetType("ScheduledDowntime");
 	builder->SetName(name);
-	builder->SetScope(locals);
+	builder->SetScope(frame.Locals);
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	builder->AddExpression(new SetExpression(MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
+	builder->AddExpression(new SetExpression(MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), false, di));
 
 	if (service)
-		builder->AddExpression(new SetExpression(MakeIndexer("service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
+		builder->AddExpression(new SetExpression(MakeIndexer("service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), false, di));
 
 	String zone = checkable->GetZone();
 
-	if (!zone.IsEmpty()) {
-		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), di));
-	}
+	if (!zone.IsEmpty())
+		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), false, di));
 
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
@@ -86,19 +85,20 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", rule.GetScope());
-	locals->Set("host", host);
+	VMFrame frame;
+	if (rule.GetScope())
+		rule.GetScope()->CopyTo(frame.Locals);
+	frame.Locals->Set("host", host);
 	if (service)
-		locals->Set("service", service);
+		frame.Locals->Set("service", service);
 
-	if (!rule.EvaluateFilter(locals))
+	if (!rule.EvaluateFilter(frame))
 		return false;
 
 	Value vinstances;
 
 	if (rule.GetFTerm()) {
-		vinstances = rule.GetFTerm()->Evaluate(locals);
+		vinstances = rule.GetFTerm()->Evaluate(frame);
 	} else {
 		Array::Ptr instances = new Array();
 		instances->Add("");
@@ -116,11 +116,11 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
-				locals->Set(rule.GetFKVar(), instance);
+				frame.Locals->Set(rule.GetFKVar(), instance);
 				name += instance;
 			}
 
-			EvaluateApplyRuleInstance(checkable, name, locals, rule);
+			EvaluateApplyRuleInstance(checkable, name, frame, rule);
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
@@ -130,10 +130,10 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 
 		ObjectLock olock(dict);
 		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			locals->Set(rule.GetFKVar(), kv.first);
-			locals->Set(rule.GetFVVar(), kv.second);
+			frame.Locals->Set(rule.GetFKVar(), kv.first);
+			frame.Locals->Set(rule.GetFVVar(), kv.second);
 
-			EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, locals, rule);
+			EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, frame, rule);
 		}
 	}
 

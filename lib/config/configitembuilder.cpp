@@ -55,7 +55,7 @@ void ConfigItemBuilder::SetAbstract(bool abstract)
 	m_Abstract = abstract;
 }
 
-void ConfigItemBuilder::SetScope(const Object::Ptr& scope)
+void ConfigItemBuilder::SetScope(const Dictionary::Ptr& scope)
 {
 	m_Scope = scope;
 }
@@ -104,7 +104,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	indexer.push_back(new LiteralExpression("templates"));
 
 	exprs.push_back(new SetExpression(indexer, OpSetAdd,
-	    new LiteralExpression(templateArray), m_DebugInfo));
+	    new LiteralExpression(templateArray), false, m_DebugInfo));
 
 	DictExpression *dexpr = new DictExpression(m_Expressions, m_DebugInfo);
 	dexpr->MakeInline();

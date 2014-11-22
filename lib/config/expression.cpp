@@ -34,7 +34,7 @@ using namespace icinga;
 Expression::~Expression(void)
 { }
 
-Value Expression::Evaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value Expression::Evaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	try {
 #ifdef _DEBUG
@@ -44,7 +44,7 @@ Value Expression::Evaluate(const Object::Ptr& context, DebugHint *dhint) const
 			<< "Executing:\n" << msgbuf.str();*/
 #endif /* _DEBUG */
 
-		return DoEvaluate(context, dhint);
+		return DoEvaluate(frame, dhint);
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
@@ -77,7 +77,7 @@ LiteralExpression::LiteralExpression(const Value& value)
 	: m_Value(value)
 { }
 
-Value LiteralExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value LiteralExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	return m_Value;
 }
@@ -87,174 +87,175 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-Value VariableExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value VariableExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Variable(context, m_Variable);
+	return VMOps::Variable(frame, m_Variable);
 }
 
-Value NegateExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value NegateExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return ~(long)m_Operand->Evaluate(context);
+	return ~(long)m_Operand->Evaluate(frame);
 }
 
-Value LogicalNegateExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value LogicalNegateExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return !m_Operand->Evaluate(context).ToBool();
+	return !m_Operand->Evaluate(frame).ToBool();
 }
 
-Value AddExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value AddExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) + m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) + m_Operand2->Evaluate(frame);
 }
 
-Value SubtractExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value SubtractExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) - m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) - m_Operand2->Evaluate(frame);
 }
 
-Value MultiplyExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value MultiplyExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) * m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) * m_Operand2->Evaluate(frame);
 }
 
-Value DivideExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value DivideExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) / m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) / m_Operand2->Evaluate(frame);
 }
 
-Value BinaryAndExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value BinaryAndExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) & m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) & m_Operand2->Evaluate(frame);
 }
 
-Value BinaryOrExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value BinaryOrExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) | m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) | m_Operand2->Evaluate(frame);
 }
 
-Value ShiftLeftExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ShiftLeftExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) << m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) << m_Operand2->Evaluate(frame);
 }
 
-Value ShiftRightExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ShiftRightExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) >> m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) >> m_Operand2->Evaluate(frame);
 }
 
-Value EqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value EqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) == m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) == m_Operand2->Evaluate(frame);
 }
 
-Value NotEqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value NotEqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) != m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) != m_Operand2->Evaluate(frame);
 }
 
-Value LessThanExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value LessThanExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) < m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) < m_Operand2->Evaluate(frame);
 }
 
-Value GreaterThanExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value GreaterThanExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) > m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) > m_Operand2->Evaluate(frame);
 }
 
-Value LessThanOrEqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value LessThanOrEqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) <= m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) <= m_Operand2->Evaluate(frame);
 }
 
-Value GreaterThanOrEqualExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value GreaterThanOrEqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context) >= m_Operand2->Evaluate(context);
+	return m_Operand1->Evaluate(frame) >= m_Operand2->Evaluate(frame);
 }
 
-Value InExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value InExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Value right = m_Operand2->Evaluate(context);
+	Value right = m_Operand2->Evaluate(frame);
 
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
-	Value left = m_Operand1->Evaluate(context);
+	Value left = m_Operand1->Evaluate(frame);
 
 	Array::Ptr arr = right;
 	return arr->Contains(left);
 }
 
-Value NotInExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value NotInExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Value right = m_Operand2->Evaluate(context);
+	Value right = m_Operand2->Evaluate(frame);
 
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
-	Value left = m_Operand1->Evaluate(context);
+	Value left = m_Operand1->Evaluate(frame);
 
 	Array::Ptr arr = right;
 	return !arr->Contains(left);
 }
 
-Value LogicalAndExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value LogicalAndExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context).ToBool() && m_Operand2->Evaluate(context).ToBool();
+	return m_Operand1->Evaluate(frame).ToBool() && m_Operand2->Evaluate(frame).ToBool();
 }
 
-Value LogicalOrExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value LogicalOrExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(context).ToBool() || m_Operand2->Evaluate(context).ToBool();
+	return m_Operand1->Evaluate(frame).ToBool() || m_Operand2->Evaluate(frame).ToBool();
 }
 
-Value FunctionCallExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Value funcName = m_FName->Evaluate(context);
+	Value funcName = m_FName->Evaluate(frame);
 
 	std::vector<Value> arguments;
 	BOOST_FOREACH(Expression *arg, m_Args) {
-		arguments.push_back(arg->Evaluate(context));
+		arguments.push_back(arg->Evaluate(frame));
 	}
 
-	return VMOps::FunctionCall(context, funcName, arguments);
+	return VMOps::FunctionCall(frame, funcName, arguments);
 }
 
-Value ArrayExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ArrayExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	Array::Ptr result = new Array();
 
 	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
-		result->Add(aexpr->Evaluate(context));
+		result->Add(aexpr->Evaluate(frame));
 	}
 
 	return result;
 }
 
-Value DictExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value DictExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Dictionary::Ptr result = new Dictionary();
+	VMFrame *dframe;
+	VMFrame rframe;
 
-	result->Set("__parent", context);
-
-	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
-		Object::Ptr acontext = m_Inline ? context : result;
-		aexpr->Evaluate(acontext, dhint);
-
-		if (VMOps::HasField(acontext, "__result"))
-			break;
+	if (!m_Inline) {
+		dframe = &rframe;
+		rframe.Locals = frame.Locals;
+		rframe.Self = new Dictionary();
+	} else {
+		dframe = &frame;
 	}
 
-	Dictionary::Ptr xresult = result->ShallowClone();
-	xresult->Remove("__parent");
-	return xresult;
+	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
+		aexpr->Evaluate(*dframe, dhint);
+	}
+
+	return dframe->Self;
 }
 
-Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	DebugHint *psdhint = dhint;
 	DebugHint sdhint;
@@ -264,7 +265,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 
 	for (Array::SizeType i = 0; i < m_Indexer.size(); i++) {
 		Expression *indexExpr = m_Indexer[i];
-		String tempindex = indexExpr->Evaluate(context, dhint);
+		String tempindex = indexExpr->Evaluate(frame, dhint);
 
 		if (psdhint) {
 			sdhint = psdhint->GetChild(tempindex);
@@ -272,7 +273,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		}
 
 		if (i == 0)
-			parent = context;
+			parent = m_Local ? frame.Locals : frame.Self;
 		else
 			parent = object;
 
@@ -284,7 +285,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 				break;
 		}
 
-		object = VMOps::Indexer(context, parent, tempindex);
+		object = VMOps::Indexer(frame, parent, tempindex);
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
@@ -293,7 +294,7 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 		}
 	}
 
-	Value right = m_Operand2->Evaluate(context, dhint);
+	Value right = m_Operand2->Evaluate(frame, dhint);
 
 	if (m_Op != OpSetLiteral) {
 		Expression *lhs = MakeLiteral(object);
@@ -301,16 +302,16 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 
 		switch (m_Op) {
 			case OpSetAdd:
-				right = AddExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
+				right = AddExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
 				break;
 			case OpSetSubtract:
-				right = SubtractExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
+				right = SubtractExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
 				break;
 			case OpSetMultiply:
-				right = MultiplyExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
+				right = MultiplyExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
 				break;
 			case OpSetDivide:
-				right = DivideExpression(lhs, rhs, m_DebugInfo).Evaluate(context, dhint);
+				right = DivideExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
 				break;
 			default:
 				VERIFY(!"Invalid opcode.");
@@ -325,56 +326,57 @@ Value SetExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) co
 	return right;
 }
 
-Value IndexerExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value IndexerExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Indexer(context, m_Operand1->Evaluate(context), m_Operand2->Evaluate(context));
+	return VMOps::Indexer(frame, m_Operand1->Evaluate(frame), m_Operand2->Evaluate(frame));
 }
 
-Value ImportExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Value type = m_Type->Evaluate(context);
-	Value name = m_Name->Evaluate(context);
+	String type = VMOps::GetField(frame.Self, "type");
+	Value name = m_Name->Evaluate(frame);
 
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item)
 		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
 
-	item->GetExpression()->Evaluate(context, dhint);
+	item->GetExpression()->Evaluate(frame, dhint);
 
 	return Empty;
 }
 
-Value FunctionExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value FunctionExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::NewFunction(context, m_Name, m_Args, m_Expression);
+	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
 }
 
-Value SlotExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value SlotExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::NewSlot(context, m_Signal, m_Slot->Evaluate(context));
+	return VMOps::NewSlot(frame, m_Signal, m_Slot->Evaluate(frame));
 }
 
-Value ApplyExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ApplyExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::NewApply(context, m_Type, m_Target, m_Name->Evaluate(context), m_Filter, m_FKVar, m_FVVar, m_FTerm, m_Expression, m_DebugInfo);
+	return VMOps::NewApply(frame, m_Type, m_Target, m_Name->Evaluate(frame), m_Filter,
+	    m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
-Value ObjectExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ObjectExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	String name;
 
 	if (m_Name)
-		name = m_Name->Evaluate(context, dhint);
+		name = m_Name->Evaluate(frame, dhint);
 
-	return VMOps::NewObject(context, m_Abstract, m_Type, name, m_Filter, m_Zone,
-	    m_Expression, m_DebugInfo);
+	return VMOps::NewObject(frame, m_Abstract, m_Type, name, m_Filter, m_Zone,
+	    m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
-Value ForExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+Value ForExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Value value = m_Value->Evaluate(context, dhint);
+	Value value = m_Value->Evaluate(frame, dhint);
 
-	return VMOps::For(context, m_FKVar, m_FVVar, m_Value->Evaluate(context), m_Expression, m_DebugInfo);
+	return VMOps::For(frame, m_FKVar, m_FVVar, m_Value->Evaluate(frame), m_Expression, m_DebugInfo);
 }
 

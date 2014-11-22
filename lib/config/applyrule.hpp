@@ -45,14 +45,14 @@ public:
 	String GetFVVar(void) const;
 	boost::shared_ptr<Expression> GetFTerm(void) const;
 	DebugInfo GetDebugInfo(void) const;
-	Object::Ptr GetScope(void) const;
+	Dictionary::Ptr GetScope(void) const;
 	void AddMatch(void);
 	bool HasMatches(void) const;
 
-	bool EvaluateFilter(const Object::Ptr& scope) const;
+	bool EvaluateFilter(VMFrame& frame) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
-	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Object::Ptr& scope);
+	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static std::vector<ApplyRule>& GetRules(const String& type);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
@@ -72,7 +72,7 @@ private:
 	String m_FVVar;
 	boost::shared_ptr<Expression> m_FTerm;
 	DebugInfo m_DebugInfo;
-	Object::Ptr m_Scope;
+	Dictionary::Ptr m_Scope;
 	bool m_HasMatches;
 
 	static TypeMap m_Types;
@@ -80,7 +80,7 @@ private:
 
 	ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
 	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
-	    const DebugInfo& di, const Object::Ptr& scope);
+	    const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 
 }

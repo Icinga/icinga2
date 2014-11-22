@@ -98,6 +98,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	icinga::TypeSpecifier type;
 	std::vector<String> *slist;
 	std::vector<Expression *> *elist;
+	std::pair<String, Expression *> *cvitem;
+	std::map<String, Expression *> *cvlist;
 }
 
 %token T_NEWLINE "new-line"
@@ -133,6 +135,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_GREATER_THAN "> (T_GREATER_THAN)"
 
 %token T_CONST "const (T_CONST)"
+%token T_LOCAL "local (T_LOCAL)"
+%token T_USE "use (T_USE)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
 %token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
@@ -184,6 +188,9 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> apply
 %type <expr> optional_rterm
 %type <text> target_type_specifier
+%type <cvlist> use_specifier
+%type <cvlist> use_specifier_items
+%type <cvitem> use_specifier_item
 
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
@@ -217,8 +224,6 @@ static std::stack<bool> m_Abstract;
 static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
-static Dictionary::Ptr m_ModuleScope;
-
 static std::stack<bool> m_Apply;
 static std::stack<bool> m_ObjectAssign;
 static std::stack<bool> m_SeenAssign;
@@ -231,8 +236,6 @@ static std::stack<std::vector<Expression *> > m_Expressions;
 
 Expression *ConfigCompiler::Compile(void)
 {
-	m_ModuleScope = new Dictionary();
-
 	m_Abstract = std::stack<bool>();
 	m_RuleLists = std::stack<TypeRuleList::Ptr>();
 	m_Type.reset();
@@ -293,7 +296,8 @@ library: T_LIBRARY T_STRING sep
 
 constant: T_CONST identifier T_SET rterm sep
 	{
-		ScriptVariable::Ptr sv = ScriptVariable::Set($2, $4->Evaluate(m_ModuleScope));
+		VMFrame frame;
+		ScriptVariable::Ptr sv = ScriptVariable::Set($2, $4->Evaluate(frame));
 		free($2);
 		delete $4;
 
@@ -416,7 +420,7 @@ object:
 		m_Assign.push(NULL);
 		m_Ignore.push(NULL);
 	}
-	object_declaration identifier rterm rterm_scope
+	object_declaration identifier rterm use_specifier rterm_scope
 	{
 		m_ObjectAssign.pop();
 
@@ -426,7 +430,7 @@ object:
 		String type = $3;
 		free($3);
 
-		DictExpression *exprl = dynamic_cast<DictExpression *>($5);
+		DictExpression *exprl = dynamic_cast<DictExpression *>($6);
 		exprl->MakeInline();
 
 		bool seen_assign = m_SeenAssign.top();
@@ -452,7 +456,7 @@ object:
 				filter = assign;
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), exprl, DebugInfoRange(@2, @5));
+		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), $5, exprl, DebugInfoRange(@2, @5));
 	}
 	;
 
@@ -570,14 +574,20 @@ lterm_items_inner: lterm
 	}
 	;
 
-lterm: indexer combined_set_op rterm
+lterm: T_LOCAL indexer combined_set_op rterm
 	{
-		$$ = new SetExpression(*$1, $2, $3, DebugInfoRange(@1, @3));
+		$$ = new SetExpression(*$2, $3, $4, true, DebugInfoRange(@1, @4));
+		delete $2;
+	}
+	| indexer combined_set_op rterm
+	{
+		$$ = new SetExpression(*$1, $2, $3, false, DebugInfoRange(@1, @3));
 		delete $1;
 	}
 	| T_INCLUDE rterm sep
 	{
-		$$ = context->HandleInclude($2->Evaluate(m_ModuleScope), false, DebugInfoRange(@1, @2));
+		VMFrame frame;
+		$$ = context->HandleInclude($2->Evaluate(frame), false, DebugInfoRange(@1, @2));
 		delete $2;
 	}
 	| T_INCLUDE T_STRING_ANGLE
@@ -587,19 +597,20 @@ lterm: indexer combined_set_op rterm
 	}
 	| T_INCLUDE_RECURSIVE rterm
 	{
-		$$ = context->HandleIncludeRecursive($2->Evaluate(m_ModuleScope), "*.conf", DebugInfoRange(@1, @2));
+		VMFrame frame;
+		$$ = context->HandleIncludeRecursive($2->Evaluate(frame), "*.conf", DebugInfoRange(@1, @2));
 		delete $2;
 	}
 	| T_INCLUDE_RECURSIVE rterm ',' rterm
 	{
-		$$ = context->HandleIncludeRecursive($2->Evaluate(m_ModuleScope), $4->Evaluate(m_ModuleScope), DebugInfoRange(@1, @4));
+		VMFrame frame;
+		$$ = context->HandleIncludeRecursive($2->Evaluate(frame), $4->Evaluate(frame), DebugInfoRange(@1, @4));
 		delete $2;
 		delete $4;
 	}
 	| T_IMPORT rterm
 	{
-		Expression *avar = new VariableExpression("type", DebugInfoRange(@1, @2));
-		$$ = new ImportExpression(avar, $2, DebugInfoRange(@1, @2));
+		$$ = new ImportExpression($2, DebugInfoRange(@1, @2));
 	}
 	| T_ASSIGN T_WHERE rterm
 	{
@@ -631,7 +642,7 @@ lterm: indexer combined_set_op rterm
 	{
 		std::vector<Expression *> vname;
 		vname.push_back(MakeLiteral("__result"));
-		$$ = new SetExpression(vname, OpSetLiteral, $2, DebugInfoRange(@1, @2));
+		$$ = new SetExpression(vname, OpSetLiteral, $2, false, DebugInfoRange(@1, @2));
 	}
 	| apply
 	{
@@ -792,21 +803,21 @@ rterm: T_STRING
 	| rterm T_MINUS rterm { MakeRBinaryOp<SubtractExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_MULTIPLY rterm { MakeRBinaryOp<MultiplyExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp<DivideExpression>(&$$, $1, $3, @1, @3); }
-	| T_FUNCTION identifier '(' identifier_items ')' rterm_scope
+	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
+		aexpr->MakeInline();
+
+		$$ = new FunctionExpression($2, *$4, $6, aexpr, DebugInfoRange(@1, @6));
+		free($2);
+		delete $4;
+	}
+	| T_FUNCTION '(' identifier_items ')' use_specifier rterm_scope
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($6);
 		aexpr->MakeInline();
 
-		$$ = new FunctionExpression($2, *$4, aexpr, DebugInfoRange(@1, @6));
-		free($2);
-		delete $4;
-	}
-	| T_FUNCTION '(' identifier_items ')' rterm_scope
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
-		aexpr->MakeInline();
-
-		$$ = new FunctionExpression("", *$3, aexpr, DebugInfoRange(@1, @5));
+		$$ = new FunctionExpression("", *$3, $5, aexpr, DebugInfoRange(@1, @5));
 		delete $3;
 	}
 	| T_SIGNAL identifier T_SET_ADD rterm
@@ -834,6 +845,40 @@ target_type_specifier: /* empty */
 	| T_TO identifier
 	{
 		$$ = $2;
+	}
+	;
+
+use_specifier: /* empty */
+	{
+		$$ = NULL;
+	}
+	| T_USE '(' use_specifier_items ')'
+	{
+		$$ = $3;
+	}
+	;
+
+use_specifier_items: use_specifier_item
+	{
+		$$ = new std::map<String, Expression *>();
+		$$->insert(*$1);
+		delete $1;
+	}
+	| use_specifier_items ',' use_specifier_item
+	{
+		$$ = $1;
+		$$->insert(*$3);
+		delete $3;
+	}
+	;
+
+use_specifier_item: identifier
+	{
+		$$ = new std::pair<String, Expression *>($1, new VariableExpression($1, @1));
+	}
+	| identifier T_SET rterm
+	{
+		$$ = new std::pair<String, Expression *>($1, $3);
 	}
 	;
 
@@ -879,7 +924,7 @@ apply:
 		m_FVVar.push("");
 		m_FTerm.push(NULL);
 	}
-	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier rterm
+	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm
 	{
 		m_Apply.pop();
 
@@ -912,7 +957,7 @@ apply:
 				BOOST_THROW_EXCEPTION(ConfigError("'apply' target type '" + target + "' is invalid") << errinfo_debuginfo(DebugInfoRange(@2, @5)));
 		}
 
-		DictExpression *exprl = dynamic_cast<DictExpression *>($7);
+		DictExpression *exprl = dynamic_cast<DictExpression *>($8);
 		exprl->MakeInline();
 
 		// assign && !ignore
@@ -945,7 +990,7 @@ apply:
 		Expression *fterm = m_FTerm.top();
 		m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, exprl, DebugInfoRange(@2, @5));
+		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, DebugInfoRange(@2, @7));
 	}
 	;
 

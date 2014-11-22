@@ -44,11 +44,12 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 
 	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
-	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", group->GetScope());
-	locals->Set("host", host);
+	VMFrame frame;
+	if (group->GetScope())
+		group->GetScope()->CopyTo(frame.Locals);
+	frame.Locals->Set("host", host);
 
-	if (!group->GetFilter()->Evaluate(locals))
+	if (!group->GetFilter()->Evaluate(frame))
 		return false;
 
 	Log(LogDebug, "HostGroup")

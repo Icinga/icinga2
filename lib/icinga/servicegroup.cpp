@@ -46,12 +46,13 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 
 	Host::Ptr host = service->GetHost();
 
-	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", group->GetScope());
-	locals->Set("host", host);
-	locals->Set("service", service);
+	VMFrame frame;
+	if (group->GetScope())
+		group->GetScope()->CopyTo(frame.Locals);
+	frame.Locals->Set("host", host);
+	frame.Locals->Set("service", service);
 
-	if (!group->GetFilter()->Evaluate(locals))
+	if (!group->GetFilter()->Evaluate(frame))
 		return false;
 
 	Log(LogDebug, "ServiceGroup")

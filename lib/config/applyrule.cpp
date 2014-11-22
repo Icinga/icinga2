@@ -29,7 +29,7 @@ ApplyRule::TypeMap ApplyRule::m_Types;
 
 ApplyRule::ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
     const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
-    const DebugInfo& di, const Object::Ptr& scope)
+    const DebugInfo& di, const Dictionary::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_FKVar(fkvar),
 	  m_FVVar(fvvar), m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
 { }
@@ -74,21 +74,21 @@ DebugInfo ApplyRule::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-Object::Ptr ApplyRule::GetScope(void) const
+Dictionary::Ptr ApplyRule::GetScope(void) const
 {
 	return m_Scope;
 }
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
     const boost::shared_ptr<Expression>& expression, const boost::shared_ptr<Expression>& filter, const String& fkvar,
-    const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Object::Ptr& scope)
+    const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
 	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, fkvar, fvvar, fterm, di, scope));
 }
 
-bool ApplyRule::EvaluateFilter(const Object::Ptr& scope) const
+bool ApplyRule::EvaluateFilter(VMFrame& frame) const
 {
-	return m_Filter->Evaluate(scope).ToBool();
+	return m_Filter->Evaluate(frame).ToBool();
 }
 
 void ApplyRule::RegisterType(const String& sourceType, const std::vector<String>& targetTypes)

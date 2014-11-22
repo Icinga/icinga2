@@ -418,9 +418,7 @@ void ImportExpression::GenerateCode(DefinitionMap& definitions, std::ostream& fp
 	   << "  String name = (";
 	m_Name->GenerateCode(definitions, df);
 	df << ");" << "\n"
-	   << "  String type = (";
-	m_Type->GenerateCode(definitions, df);
-	df << ");" << "\n"
+	   << "  String type = VMOps::GetField(context, \"type\");" << "\n"
 	   << "\n"
 	   << "  ConfigItem::Ptr item = ConfigItem::GetObject(type, name);" << "\n"
 	   << "\n"

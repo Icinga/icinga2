@@ -64,10 +64,9 @@ static String LoadAppType(const String& typeSpec)
 
 static void ExecuteExpression(Expression *expression)
 {
-	Dictionary::Ptr context = new Dictionary();
-
 	try {
-		expression->Evaluate(context);
+		VMFrame frame;
+		expression->Evaluate(frame);
 	} catch (const ConfigError& ex) {
 		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());

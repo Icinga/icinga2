@@ -238,6 +238,8 @@ null				return T_NULL;
 true				{ yylval->num = 1; return T_NUMBER; }
 false				{ yylval->num = 0; return T_NUMBER; }
 const				return T_CONST;
+local				return T_LOCAL;
+use				return T_USE;
 apply				return T_APPLY;
 to				return T_TO;
 where				return T_WHERE;

@@ -45,7 +45,7 @@ public:
 	void SetType(const String& type);
 	void SetName(const String& name);
 	void SetAbstract(bool abstract);
-	void SetScope(const Object::Ptr& scope);
+	void SetScope(const Dictionary::Ptr& scope);
 	void SetZone(const String& zone);
 
 	void AddExpression(Expression *expr);
@@ -60,7 +60,7 @@ private:
 	std::vector<Expression *> m_Expressions; /**< Expressions for this item. */
 	boost::shared_ptr<Expression> m_Filter; /**< Filter expression. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
-	Object::Ptr m_Scope; /**< variable scope. */
+	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 };
 

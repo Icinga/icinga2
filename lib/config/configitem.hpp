@@ -42,7 +42,7 @@ public:
 	    const boost::shared_ptr<Expression>& exprl,
 	    const boost::shared_ptr<Expression>& filter,
 	    const DebugInfo& debuginfo,
-	    const Object::Ptr& scope, const String& zone);
+	    const Dictionary::Ptr& scope, const String& zone);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -57,7 +57,7 @@ public:
 	void Register(void);
 
 	DebugInfo GetDebugInfo(void) const;
-	Object::Ptr GetScope(void) const;
+	Dictionary::Ptr GetScope(void) const;
 
 	String GetZone(void) const;
 
@@ -78,7 +78,7 @@ private:
 	boost::shared_ptr<Expression> m_Expression;
 	boost::shared_ptr<Expression> m_Filter;
 	DebugInfo m_DebugInfo; /**< Debug information. */
-	Object::Ptr m_Scope; /**< variable scope. */
+	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 
 	DynamicObject::Ptr m_Object;

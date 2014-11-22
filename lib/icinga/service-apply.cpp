@@ -40,7 +40,7 @@ void Service::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Service", targets);
 }
 
-void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule)
+void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, VMFrame& frame, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -50,16 +50,16 @@ void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
 	builder->SetType("Service");
 	builder->SetName(name);
-	builder->SetScope(locals);
+	builder->SetScope(frame.Locals);
 
-	builder->AddExpression(new SetExpression(MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
+	builder->AddExpression(new SetExpression(MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), false, di));
 
-	builder->AddExpression(new SetExpression(MakeIndexer("name"), OpSetLiteral, MakeLiteral(name), di));
+	builder->AddExpression(new SetExpression(MakeIndexer("name"), OpSetLiteral, MakeLiteral(name), false, di));
 
 	String zone = host->GetZone();
 
 	if (!zone.IsEmpty())
-		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), di));
+		builder->AddExpression(new SetExpression(MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), false, di));
 
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
@@ -75,17 +75,18 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
 	CONTEXT(msgbuf.str());
 
-	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", rule.GetScope());
-	locals->Set("host", host);
+	VMFrame frame;
+	if (rule.GetScope())
+		rule.GetScope()->CopyTo(frame.Locals);
+	frame.Locals->Set("host", host);
 
-	if (!rule.EvaluateFilter(locals))
+	if (!rule.EvaluateFilter(frame))
 		return false;
 
 	Value vinstances;
 
 	if (rule.GetFTerm()) {
-		vinstances = rule.GetFTerm()->Evaluate(locals);
+		vinstances = rule.GetFTerm()->Evaluate(frame);
 	} else {
 		Array::Ptr instances = new Array();
 		instances->Add("");
@@ -103,11 +104,11 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
-				locals->Set(rule.GetFKVar(), instance);
+				frame.Locals->Set(rule.GetFKVar(), instance);
 				name += instance;
 			}
 
-			EvaluateApplyRuleInstance(host, name, locals, rule);
+			EvaluateApplyRuleInstance(host, name, frame, rule);
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
@@ -117,10 +118,10 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 
 		ObjectLock olock(dict);
 		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			locals->Set(rule.GetFKVar(), kv.first);
-			locals->Set(rule.GetFVVar(), kv.second);
+			frame.Locals->Set(rule.GetFKVar(), kv.first);
+			frame.Locals->Set(rule.GetFVVar(), kv.second);
 
-			EvaluateApplyRuleInstance(host, rule.GetName() + kv.first, locals, rule);
+			EvaluateApplyRuleInstance(host, rule.GetName() + kv.first, frame, rule);
 		}
 	}
 

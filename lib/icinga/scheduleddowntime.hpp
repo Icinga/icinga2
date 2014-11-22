@@ -29,6 +29,7 @@ namespace icinga
 {
 
 class ApplyRule;
+class VMFrame;
 class Host;
 class Service;
 
@@ -61,7 +62,7 @@ private:
 	std::pair<double, double> FindNextSegment(void);
 	void CreateNextDowntime(void);
 
-	static void EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, const Dictionary::Ptr& locals, const ApplyRule& rule);
+	static void EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, VMFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
 };
 

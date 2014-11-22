@@ -44,21 +44,20 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline Value Variable(const Object::Ptr& context, const String& name)
+	static inline Value Variable(VMFrame& frame, const String& name)
 	{
-		Object::Ptr scope = context;
+		if (name == "this")
+			return frame.Self;
 
-		while (scope) {
-			if (HasField(scope, name))
-				return GetField(scope, name);
-
-			scope = GetField(scope, "__parent");
-		}
-
-		return ScriptVariable::Get(name);
+		if (frame.Locals && frame.Locals->Contains(name))
+			return frame.Locals->Get(name);
+		else if (frame.Locals != frame.Self && HasField(frame.Self, name))
+			return GetField(frame.Self, name);
+		else
+			return ScriptVariable::Get(name);
 	}
 
-	static inline Value FunctionCall(const Object::Ptr& context, const Value& funcName, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(VMFrame& frame, const Value& funcName, const std::vector<Value>& arguments)
 	{
 		ScriptFunction::Ptr func;
 
@@ -73,7 +72,7 @@ public:
 		return func->Invoke(arguments);
 	}
 
-	static inline Value Indexer(const Object::Ptr& context, const Value& value, const String& index)
+	static inline Value Indexer(VMFrame& frame, const Value& value, const String& index)
 	{
 		if (value.IsObjectType<Dictionary>()) {
 			Dictionary::Ptr dict = value;
@@ -101,9 +100,11 @@ public:
 		}
 	}
 
-	static inline Value NewFunction(const Object::Ptr& context, const String& name, const std::vector<String>& args, const boost::shared_ptr<Expression>& expression)
+	static inline Value NewFunction(VMFrame& frame, const String& name, const std::vector<String>& args,
+	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
-		ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&FunctionWrapper, _1, args, expression, context));
+		ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&FunctionWrapper, _1, args,
+		    EvaluateClosedVars(frame, closedVars), expression));
 
 		if (!name.IsEmpty())
 			ScriptFunction::Register(name, func);
@@ -111,7 +112,7 @@ public:
 		return func;
 	}
 
-	static inline Value NewSlot(const Object::Ptr& context, const String& signal, const Value& slot)
+	static inline Value NewSlot(VMFrame& frame, const String& signal, const Value& slot)
 	{
 		ScriptSignal::Ptr sig = ScriptSignal::GetByName(signal);
 
@@ -123,17 +124,18 @@ public:
 		return Empty;
 	}
 
-	static inline Value NewApply(const Object::Ptr& context, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
+	static inline Value NewApply(VMFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
+		const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
 		const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
-		ApplyRule::AddRule(type, target, name, expression, filter, fkvar, fvvar, fterm, debugInfo, context);
+		ApplyRule::AddRule(type, target, name, expression, filter, fkvar,
+		    fvvar, fterm, debugInfo, EvaluateClosedVars(frame, closedVars));
 
 		return Empty;
 	}
 
-	static inline Value NewObject(const Object::Ptr& context, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& zone, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value NewObject(VMFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
+		const String& zone, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
 
@@ -170,7 +172,7 @@ public:
 
 		item->AddExpression(new OwnedExpression(expression));
 		item->SetAbstract(abstract);
-		item->SetScope(context);
+		item->SetScope(EvaluateClosedVars(frame, closedVars));
 		item->SetZone(zone);
 		item->SetFilter(filter);
 		item->Compile()->Register();
@@ -178,7 +180,7 @@ public:
 		return Empty;
 	}
 
-	static inline Value For(const Object::Ptr& context, const String& fkvar, const String& fvvar, const Value& value, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value For(VMFrame& frame, const String& fkvar, const String& fvvar, const Value& value, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (value.IsObjectType<Array>()) {
 			if (!fvvar.IsEmpty())
@@ -188,14 +190,10 @@ public:
 
 			ObjectLock olock(arr);
 			BOOST_FOREACH(const Value& value, arr) {
-				Dictionary::Ptr xcontext = new Dictionary();
-				xcontext->Set("__parent", context);
-				xcontext->Set(fkvar, value);
-
-				expression->Evaluate(xcontext);
+				frame.Locals->Set(fkvar, value);
+				expression->Evaluate(frame);
 			}
-		}
-		else if (value.IsObjectType<Dictionary>()) {
+		} else if (value.IsObjectType<Dictionary>()) {
 			if (fvvar.IsEmpty())
 				BOOST_THROW_EXCEPTION(ConfigError("Cannot use array iterator for dictionary.") << errinfo_debuginfo(debugInfo));
 
@@ -203,12 +201,9 @@ public:
 
 			ObjectLock olock(dict);
 			BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-				Dictionary::Ptr xcontext = new Dictionary();
-				xcontext->Set("__parent", context);
-				xcontext->Set(fkvar, kv.first);
-				xcontext->Set(fvvar, kv.second);
-
-				expression->Evaluate(xcontext);
+				frame.Locals->Set(fkvar, kv.first);
+				frame.Locals->Set(fvvar, kv.second);
+				expression->Evaluate(frame);
 			}
 		}
 		else
@@ -283,22 +278,24 @@ public:
 
 private:
 	static inline Value FunctionWrapper(const std::vector<Value>& arguments,
-	    const std::vector<String>& funcargs, const boost::shared_ptr<Expression>& expr, const Object::Ptr& scope)
+	    const std::vector<String>& funcargs, const Dictionary::Ptr& closedVars, const boost::shared_ptr<Expression>& expr)
 	{
 		if (arguments.size() < funcargs.size())
 			BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
 
-		Dictionary::Ptr context = new Dictionary();
-		context->Set("__parent", scope);
+		VMFrame frame;
+
+		if (closedVars)
+			closedVars->CopyTo(frame.Locals);
 
 		for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
-			context->Set(funcargs[i], arguments[i]);
+			frame.Locals->Set(funcargs[i], arguments[i]);
 
-		expr->Evaluate(context);
-		return context->Get("__result");
+		expr->Evaluate(frame);
+		return frame.Result;
 	}
 
-	static void SlotWrapper(const Value& funcName, const std::vector<Value>& arguments)
+	static inline void SlotWrapper(const Value& funcName, const std::vector<Value>& arguments)
 	{
 		ScriptFunction::Ptr func;
 
@@ -311,6 +308,22 @@ private:
 			BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
 
 		func->Invoke(arguments);
+	}
+
+	static inline Dictionary::Ptr EvaluateClosedVars(VMFrame& frame, std::map<String, Expression *> *closedVars)
+	{
+		Dictionary::Ptr locals;
+
+		if (closedVars) {
+			locals = new Dictionary();
+
+			typedef std::pair<String, Expression *> ClosedVar;
+			BOOST_FOREACH(const ClosedVar& cvar, *closedVars) {
+				locals->Set(cvar.first, cvar.second->Evaluate(frame));
+			}
+		}
+
+		return locals;
 	}
 };
 

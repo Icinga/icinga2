@@ -59,7 +59,7 @@ ConfigItem::ItemList ConfigItem::m_CommittedItems;
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const boost::shared_ptr<Expression>& exprl,
     const boost::shared_ptr<Expression>& filter,
-    const DebugInfo& debuginfo, const Object::Ptr& scope,
+    const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
     const String& zone)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
 	  m_Expression(exprl), m_Filter(filter),
@@ -107,7 +107,7 @@ DebugInfo ConfigItem::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-Object::Ptr ConfigItem::GetScope(void) const
+Dictionary::Ptr ConfigItem::GetScope(void) const
 {
 	return m_Scope;
 }
@@ -159,19 +159,14 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	dobj->SetDebugInfo(m_DebugInfo);
 	dobj->SetTypeName(m_Type);
 	dobj->SetZone(m_Zone);
-
-	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", m_Scope);
-
-	dobj->SetParentScope(locals);
-	locals.reset();
-
 	dobj->SetName(m_Name);
 
 	DebugHint debugHints;
 
 	try {
-		m_Expression->Evaluate(dobj, &debugHints);
+		VMFrame frame(dobj);
+		frame.Locals = m_Scope;
+		m_Expression->Evaluate(frame, &debugHints);
 	} catch (const ConfigError& ex) {
 		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());

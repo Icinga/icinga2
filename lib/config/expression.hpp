@@ -21,6 +21,7 @@
 #define EXPRESSION_H
 
 #include "config/i2-config.hpp"
+#include "config/vmframe.hpp"
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
@@ -110,9 +111,9 @@ class I2_CONFIG_API Expression
 public:
 	virtual ~Expression(void);
 
-	Value Evaluate(const Object::Ptr& context, DebugHint *dhint = NULL) const;
+	Value Evaluate(VMFrame& frame, DebugHint *dhint = NULL) const;
 
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const = 0;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const = 0;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const = 0;
 	virtual const DebugInfo& GetDebugInfo(void) const;
 };
@@ -127,9 +128,9 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	{
-		return m_Expression->DoEvaluate(context, dhint);
+		return m_Expression->DoEvaluate(frame, dhint);
 	}
 
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const
@@ -149,16 +150,16 @@ private:
 class I2_CONFIG_API NativeExpression : public Expression
 {
 public:
-	typedef Value (*Callback)(const Object::Ptr& context);
+	typedef Value (*Callback)(VMFrame& frame);
 
 	NativeExpression(Callback callback)
 		: m_Callback(callback)
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	{
-		return m_Callback(context);
+		return m_Callback(frame);
 	}
 
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const
@@ -176,7 +177,7 @@ public:
 	LiteralExpression(const Value& value = Value());
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fp) const;
 
 private:
@@ -244,7 +245,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
@@ -259,7 +260,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -271,7 +272,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 
@@ -283,7 +284,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -295,7 +296,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -307,7 +308,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -319,7 +320,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -331,7 +332,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -343,7 +344,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -355,7 +356,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -367,7 +368,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -379,7 +380,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -391,7 +392,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -403,7 +404,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -415,7 +416,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -427,7 +428,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -439,7 +440,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -451,7 +452,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -463,7 +464,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -475,7 +476,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -487,7 +488,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 	
@@ -507,7 +508,7 @@ public:
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 public:
@@ -529,7 +530,7 @@ public:
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
@@ -552,7 +553,7 @@ public:
 	void MakeInline(void);
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
@@ -563,8 +564,8 @@ private:
 class I2_CONFIG_API SetExpression : public DebuggableExpression
 {
 public:
-	SetExpression(const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Op(op), m_Indexer(indexer), m_Operand2(operand2)
+	SetExpression(const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, bool local, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Op(op), m_Indexer(indexer), m_Operand2(operand2), m_Local(local)
 	{ }
 
 	~SetExpression(void)
@@ -576,13 +577,14 @@ public:
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	CombinedSetOp m_Op;
 	std::vector<Expression *> m_Indexer;
 	Expression *m_Operand2;
+	bool m_Local;
 
 };
 
@@ -594,29 +596,27 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 };
 
 class I2_CONFIG_API ImportExpression : public DebuggableExpression
 {
 public:
-	ImportExpression(Expression *type, Expression *name, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Type(type), m_Name(name)
+	ImportExpression(Expression *name, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Name(name)
 	{ }
 
 	~ImportExpression(void)
 	{
-		delete m_Type;
 		delete m_Name;
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
-	Expression *m_Type;
 	Expression *m_Name;
 };
 
@@ -625,17 +625,19 @@ I2_CONFIG_API String CodeGenExpression(DefinitionMap& definitions, Expression *e
 class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
 public:
-	FunctionExpression(const String& name, const std::vector<String>& args, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_Expression(expression)
+	FunctionExpression(const String& name, const std::vector<String>& args,
+	    std::map<String, Expression *> *closedVars, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
 	String m_Name;
 	std::vector<String> m_Args;
+	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;
 };
 
@@ -647,7 +649,7 @@ public:
 	{ }
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
@@ -660,10 +662,11 @@ class I2_CONFIG_API ApplyExpression : public DebuggableExpression
 public:
 	ApplyExpression(const String& type, const String& target, Expression *name,
 	    Expression *filter, const String& fkvar, const String& fvvar,
-	    Expression *fterm, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+	    Expression *fterm, std::map<String, Expression *> *closedVars,
+	    Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(type), m_Target(target),
 		    m_Name(name), m_Filter(filter), m_FKVar(fkvar), m_FVVar(fvvar),
-		    m_FTerm(fterm), m_Expression(expression)
+		    m_FTerm(fterm), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
 	~ApplyExpression(void)
@@ -672,7 +675,7 @@ public:
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
@@ -683,14 +686,18 @@ private:
 	String m_FKVar;
 	String m_FVVar;
 	boost::shared_ptr<Expression> m_FTerm;
+	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;
 };
-	
+
 class I2_CONFIG_API ObjectExpression : public DebuggableExpression
 {
 public:
-	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter, const String& zone, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(type), m_Name(name), m_Filter(filter), m_Zone(zone), m_Expression(expression)
+	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter,
+	    const String& zone, std::map<String, Expression *> *closedVars,
+	    Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(type),
+		  m_Name(name), m_Filter(filter), m_Zone(zone), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
 	~ObjectExpression(void)
@@ -699,7 +706,7 @@ public:
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:
@@ -708,6 +715,7 @@ private:
 	Expression *m_Name;
 	boost::shared_ptr<Expression> m_Filter;
 	String m_Zone;
+	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;
 };
 	
@@ -725,7 +733,7 @@ public:
 	}
 
 protected:
-	virtual Value DoEvaluate(const Object::Ptr& context, DebugHint *dhint) const;
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 	virtual void GenerateCode(DefinitionMap& definitions, std::ostream& fpg) const;
 
 private:

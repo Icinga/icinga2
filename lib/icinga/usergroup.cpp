@@ -44,11 +44,12 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 
 	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
-	Dictionary::Ptr locals = new Dictionary();
-	locals->Set("__parent", group->GetScope());
-	locals->Set("user", user);
+	VMFrame frame;
+	if (group->GetScope())
+		group->GetScope()->CopyTo(frame.Locals);
+	frame.Locals->Set("user", user);
 
-	if (!group->GetFilter()->Evaluate(locals))
+	if (!group->GetFilter()->Evaluate(frame))
 		return false;
 
 	Log(LogDebug, "UserGroup")
