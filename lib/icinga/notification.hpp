@@ -115,6 +115,7 @@ public:
 
 protected:
 	virtual void OnConfigLoaded(void);
+	virtual void OnAllConfigLoaded(void);
 	virtual void Start(void);
 	virtual void Stop(void);
 

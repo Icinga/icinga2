@@ -80,7 +80,10 @@ void Notification::OnConfigLoaded(void)
 {
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
 	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
+}
 
+void Notification::OnAllConfigLoaded(void)
+{
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
