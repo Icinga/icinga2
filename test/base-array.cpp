@@ -53,6 +53,15 @@ BOOST_AUTO_TEST_CASE(getset)
 	BOOST_CHECK(array->Get(1) == 5);
 }
 
+BOOST_AUTO_TEST_CASE(resize)
+{
+	Array::Ptr array = new Array();
+	array->Resize(2);
+	BOOST_CHECK(array->GetLength() == 2);
+	BOOST_CHECK(array->Get(0) == Empty);
+	BOOST_CHECK(array->Get(1) == Empty);
+}
+
 BOOST_AUTO_TEST_CASE(insert)
 {
 	Array::Ptr array = new Array();
@@ -89,6 +98,9 @@ BOOST_AUTO_TEST_CASE(remove)
 
 	BOOST_CHECK(array->GetLength() == 2);
 	BOOST_CHECK(array->Get(0) == 2);
+
+	array->Clear();
+	BOOST_CHECK(array->GetLength() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(foreach)
