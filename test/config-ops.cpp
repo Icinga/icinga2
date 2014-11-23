@@ -98,6 +98,18 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(expr->Evaluate(frame) == 20);
 	delete expr;
 
+	expr = ConfigCompiler::CompileText("<test>", "2 * - 3");
+	BOOST_CHECK(expr->Evaluate(frame) == -6);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "-(2 + 3)");
+	BOOST_CHECK(expr->Evaluate(frame) == -5);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "- 2 * 2 - 2 * 3 - 4 * - 5");
+	BOOST_CHECK(expr->Evaluate(frame) == 10);
+	delete expr;
+
 	expr = ConfigCompiler::CompileText("<test>", "!0 == true");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;

@@ -208,6 +208,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left T_SHIFT_LEFT T_SHIFT_RIGHT
 %left T_PLUS T_MINUS
 %left T_MULTIPLY T_DIVIDE_OP
+%left UNARY_MINUS
 %right '!' '~'
 %left '.' '(' '['
 %right ';' ','
@@ -780,6 +781,10 @@ rterm_without_indexer: T_STRING
 	| '~' rterm
 	{
 		$$ = new NegateExpression($2, DebugInfoRange(@1, @2));
+	}
+	| T_MINUS rterm %prec UNARY_MINUS
+	{
+		$$ = new SubtractExpression(MakeLiteral(0), $2, DebugInfoRange(@1, @2));
 	}
 	| rterm_array
 	{
