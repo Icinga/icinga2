@@ -21,6 +21,7 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "base/json.hpp"
+#include "base/console.hpp"
 #include <iostream>
 
 using namespace icinga;
@@ -58,7 +59,9 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 	VMFrame frame;
 
 	while (std::cin.good()) {
-		std::cout << "=> ";
+		std::cout << ConsoleColorTag(Console_ForegroundRed)
+		    << "=> "
+		    << ConsoleColorTag(Console_Normal);
 
 		std::string line;
 		std::getline(std::cin, line);
@@ -76,10 +79,12 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 
 			if (expr) {
 				Value result = expr->Evaluate(frame);
+				std::cout << ConsoleColorTag(Console_ForegroundCyan);
 				if (!result.IsObject() || result.IsObjectType<Array>() || result.IsObjectType<Dictionary>())
-					std::cout << JsonEncode(result) << "\n";
+					std::cout << JsonEncode(result);
 				else
-					std::cout << result << "\n";
+					std::cout << result;
+				std::cout << ConsoleColorTag(Console_Normal) << "\n";
 			}
 		} catch (const ConfigError& ex) {
 			std::cout << ex.what() << "\n";
