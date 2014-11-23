@@ -94,4 +94,6 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 
 		delete expr;
 	}
+
+	return 0;
 }
