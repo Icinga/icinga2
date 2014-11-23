@@ -208,7 +208,7 @@ Value NotInExpression::DoEvaluate(const Object::Ptr& context, DebugHint *dhint) 
 	Value right = m_Operand2->Evaluate(context);
 
 	if (right.IsEmpty())
-		return false;
+		return true;
 	else if (!right.IsObjectType<Array>())
 		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
 
