@@ -287,7 +287,6 @@ statement: type | library | constant
 	{ }
 	| lterm
 	{
-		printf("lterm!\n");
 		m_Expressions.top().push_back($1);
 	}
 	;
