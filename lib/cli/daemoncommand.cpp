@@ -106,12 +106,14 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 	if (vm.count("config") > 0) {
 		BOOST_FOREACH(const String& configPath, vm["config"].as<std::vector<std::string> >()) {
 			Expression *expression = ConfigCompiler::CompileFile(configPath);
-			ExecuteExpression(expression);
+			if (expression)
+				ExecuteExpression(expression);
 			delete expression;
 		}
 	} else if (!vm.count("no-config")) {
 		Expression *expression = ConfigCompiler::CompileFile(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
-		ExecuteExpression(expression);
+		if (expression)
+			ExecuteExpression(expression);
 		delete expression;
 	}
 
@@ -128,7 +130,8 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 	String name, fragment;
 	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		Expression *expression = ConfigCompiler::CompileText(name, fragment);
-		ExecuteExpression(expression);
+		if (expression)
+			ExecuteExpression(expression);
 		delete expression;
 	}
 

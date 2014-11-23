@@ -85,6 +85,7 @@ add_boost_test(base
         base_value/convert
         base_value/format
 	config_ops/simple
+	config_ops/advanced
 	icinga_perfdata/simple
 	icinga_perfdata/multiple
 	icinga_perfdata/uom

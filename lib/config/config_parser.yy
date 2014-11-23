@@ -255,8 +255,10 @@ Expression *ConfigCompiler::Compile(void)
 	m_Expressions.push(std::vector<Expression *>());
 
 	try {
-		if (yyparse(this) != 0)
-			BOOST_THROW_EXCEPTION(ConfigError("Syntax error"));
+		if (yyparse(this) != 0) {
+			m_Expressions.pop();
+			return NULL;
+		}
 
 		DictExpression *expr = new DictExpression(m_Expressions.top());
 		m_Expressions.pop();
@@ -279,7 +281,8 @@ Expression *ConfigCompiler::Compile(void)
 %}
 
 %%
-statements: statement sep
+statements: newlines
+	| statement sep
 	| statements statement sep
 	;
 

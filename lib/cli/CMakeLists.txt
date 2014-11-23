@@ -24,6 +24,7 @@ set(cli_SOURCES
   objectlistcommand.cpp
   pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkisavecertcommand.cpp pkiticketcommand.cpp
   pkiutility.cpp
+  replcommand.cpp
   repositoryclearchangescommand.cpp repositorycommitcommand.cpp repositoryobjectcommand.cpp repositoryutility.cpp
   variablegetcommand.cpp variablelistcommand.cpp variableutility.cpp
 )

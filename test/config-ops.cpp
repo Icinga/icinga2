@@ -30,6 +30,18 @@ BOOST_AUTO_TEST_CASE(simple)
 	Expression *expr;
 	Dictionary::Ptr dict;
 
+	expr = ConfigCompiler::CompileText("<test>", "");
+	BOOST_CHECK(expr->Evaluate(frame) == Empty);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\n3");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "{ 3\n\n5 }");
+	BOOST_CHECK(expr->Evaluate(frame) != Empty);
+	delete expr;
+
 	expr = ConfigCompiler::CompileText("<test>", "1 + 3");
 	BOOST_CHECK(expr->Evaluate(frame) == 4);
 	delete expr;
@@ -90,8 +102,8 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "!0 == true");
-	BOOST_CHECK(expr->Evaluate(frame));
+	expr = ConfigCompiler::CompileText("<test>", "~0");
+	BOOST_CHECK(expr->Evaluate(frame) == (double)~(long)0);
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "4 << 8");
@@ -156,6 +168,53 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(dict->GetLength() == 1);
 	BOOST_CHECK(dict->Get("a") == 3);
 
+	expr = ConfigCompiler::CompileText("<test>", "test");
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	delete expr;
+}
+
+BOOST_AUTO_TEST_CASE(advanced)
+{
+	VMFrame frame;
+	Expression *expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "regex(\"^Hello\", \"Hello World\")");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"regex\"(\"^Hello\", \"Hello World\")");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "__boost_test()");
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	delete expr;
+
+	Object::Ptr self = new Object();
+	VMFrame frame2(self);
+	expr = ConfigCompiler::CompileText("<test>", "this");
+	BOOST_CHECK(expr->Evaluate(frame2) == Value(self));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "local v = 7; v");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "{ a = 3 }.a");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "[ 2, 3 ][1]");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	/* Uncomment this once #7800 is fixed
+	expr = ConfigCompiler::CompileText("<test>", "local v = { a = 3}; v.a");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;*/
+
+	expr = ConfigCompiler::CompileText("<test>", "a = 3 b = 3");
+	BOOST_CHECK(expr == NULL);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
