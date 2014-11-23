@@ -1,0 +1,161 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#include "config/configcompiler.hpp"
+#include <boost/test/unit_test.hpp>
+
+using namespace icinga;
+
+BOOST_AUTO_TEST_SUITE(config_ops)
+
+BOOST_AUTO_TEST_CASE(simple)
+{
+	VMFrame frame;
+	Expression *expr;
+	Dictionary::Ptr dict;
+
+	expr = ConfigCompiler::CompileText("<test>", "1 + 3");
+	BOOST_CHECK(expr->Evaluate(frame) == 4);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "3 - 1");
+	BOOST_CHECK(expr->Evaluate(frame) == 2);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "5m * 10");
+	BOOST_CHECK(expr->Evaluate(frame) == 3000);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "5m / 5");
+	BOOST_CHECK(expr->Evaluate(frame) == 60);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 & 3");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "2 | 3");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "true && false");
+	BOOST_CHECK(!expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "true || false");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "3 < 5");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "3 > 5");
+	BOOST_CHECK(!expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "3 <= 3");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "3 >= 3");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "2 + 3 * 4");
+	BOOST_CHECK(expr->Evaluate(frame) == 14);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "(2 + 3) * 4");
+	BOOST_CHECK(expr->Evaluate(frame) == 20);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "!0 == true");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "!0 == true");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "4 << 8");
+	BOOST_CHECK(expr->Evaluate(frame) == 1024);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "1024 >> 4");
+	BOOST_CHECK(expr->Evaluate(frame) == 64);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "2 << 3 << 4");
+	BOOST_CHECK(expr->Evaluate(frame) == 256);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "256 >> 4 >> 3");
+	BOOST_CHECK(expr->Evaluate(frame) == 2);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"hello\" == \"hello\"");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"hello\" != \"hello\"");
+	BOOST_CHECK(!expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in [ \"foo\", \"bar\" ]");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in [ \"bar\", \"baz\" ]");
+	BOOST_CHECK(!expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in null");
+	BOOST_CHECK(!expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in \"bar\"");
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"bar\", \"baz\" ]");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"foo\", \"bar\" ]");
+	BOOST_CHECK(!expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in null");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in \"bar\"");
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "{ a += 3 }");
+	dict = expr->Evaluate(frame);
+	delete expr;
+	BOOST_CHECK(dict->GetLength() == 1);
+	BOOST_CHECK(dict->Get("a") == 3);
+
+}
+
+BOOST_AUTO_TEST_SUITE_END()

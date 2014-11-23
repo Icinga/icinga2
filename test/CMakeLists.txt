@@ -22,7 +22,7 @@ set(base_test_SOURCES
   base-json.cpp base-match.cpp base-netstring.cpp base-object.cpp
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
-  base-value.cpp icinga-perfdata.cpp test.cpp
+  base-value.cpp config-ops.cpp icinga-perfdata.cpp test.cpp
 )
 
 set_property(SOURCE test.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
@@ -84,6 +84,7 @@ add_boost_test(base
         base_value/scalar
         base_value/convert
         base_value/format
+	config_ops/simple
 	icinga_perfdata/simple
 	icinga_perfdata/multiple
 	icinga_perfdata/uom

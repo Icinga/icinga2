@@ -248,11 +248,16 @@ Value DictExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 		dframe = &frame;
 	}
 
+	Value result;
+
 	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
-		aexpr->Evaluate(*dframe, dhint);
+		result = aexpr->Evaluate(*dframe, dhint);
 	}
 
-	return dframe->Self;
+	if (m_Inline)
+		return result;
+	else
+		return dframe->Self;
 }
 
 Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
