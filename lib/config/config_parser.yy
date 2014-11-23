@@ -1,5 +1,5 @@
 %{
- #define YYDEBUG 1
+#define YYDEBUG 1
  
 /******************************************************************************
  * Icinga 2                                                                   *
@@ -255,7 +255,8 @@ Expression *ConfigCompiler::Compile(void)
 	m_Expressions.push(std::vector<Expression *>());
 
 	try {
-		yyparse(this);
+		if (yyparse(this) != 0)
+			BOOST_THROW_EXCEPTION(ConfigError("Syntax error"));
 
 		DictExpression *expr = new DictExpression(m_Expressions.top());
 		m_Expressions.pop();
@@ -278,28 +279,27 @@ Expression *ConfigCompiler::Compile(void)
 %}
 
 %%
-statements: /* empty */
-	| statements statement
+statements: statement sep
+	| statements statement sep
 	;
 
 statement: type | library | constant
 	{ }
-	| newlines
-	{ }
 	| lterm
 	{
+		printf("lterm!\n");
 		m_Expressions.top().push_back($1);
 	}
 	;
 
-library: T_LIBRARY T_STRING sep
+library: T_LIBRARY T_STRING
 	{
 		context->HandleLibrary($2);
 		free($2);
 	}
 	;
 
-constant: T_CONST identifier T_SET rterm sep
+constant: T_CONST identifier T_SET rterm
 	{
 		VMFrame frame;
 		ScriptVariable::Ptr sv = ScriptVariable::Set($2, $4->Evaluate(frame));
@@ -329,7 +329,7 @@ type: T_TYPE identifier
 			m_Type->Register();
 		}
 	}
-	type_inherits_specifier typerulelist sep
+	type_inherits_specifier typerulelist
 	{
 		TypeRuleList::Ptr ruleList = *$5;
 		delete $5;
@@ -589,7 +589,7 @@ lterm: T_LOCAL indexer combined_set_op rterm
 		$$ = new SetExpression(*$1, $2, $3, false, DebugInfoRange(@1, @3));
 		delete $1;
 	}
-	| T_INCLUDE rterm sep
+	| T_INCLUDE rterm
 	{
 		VMFrame frame;
 		$$ = context->HandleInclude($2->Evaluate(frame), false, DebugInfoRange(@1, @2));

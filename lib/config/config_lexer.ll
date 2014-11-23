@@ -287,6 +287,7 @@ in				return T_IN;
 }
 
 [\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!ignore_newlines) return T_NEWLINE; }
+<<EOF>>				{ if (!yyextra->m_Eof) { yyextra->m_Eof = true; return T_NEWLINE; } else { yyterminate(); } }
 .				return yytext[0];
 
 %%

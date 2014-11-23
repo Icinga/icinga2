@@ -29,6 +29,11 @@
 #include <iostream>
 #include <boost/function.hpp>
 
+typedef union YYSTYPE YYSTYPE;
+typedef void *yyscan_t;
+
+int yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
+
 namespace icinga
 {
 
@@ -73,11 +78,14 @@ private:
 	String m_Zone;
 
 	void *m_Scanner;
+	bool m_Eof;
 
 	static std::vector<String> m_IncludeSearchDirs;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
+
+	friend int ::yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
 };
 
 class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>

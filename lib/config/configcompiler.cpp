@@ -41,7 +41,7 @@ std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
  * @param zone The zone.
  */
 ConfigCompiler::ConfigCompiler(const String& path, std::istream *input, const String& zone)
-	: m_Path(path), m_Input(input), m_Zone(zone)
+	: m_Path(path), m_Input(input), m_Zone(zone), m_Eof(false)
 {
 	InitializeScanner();
 }
