@@ -30,7 +30,6 @@ struct VMFrame
 {
 	Dictionary::Ptr Locals;
 	Object::Ptr Self;
-	Value Result;
 
 	VMFrame(void)
 		: Locals(new Dictionary()), Self(Locals)

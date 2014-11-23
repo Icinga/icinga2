@@ -652,9 +652,7 @@ lterm: T_LOCAL indexer combined_set_op rterm
 	}
 	| T_RETURN rterm
 	{
-		std::vector<Expression *> vname;
-		vname.push_back(MakeLiteral("__result"));
-		$$ = new SetExpression(vname, OpSetLiteral, $2, false, DebugInfoRange(@1, @2));
+		$$ = new ReturnExpression($2, DebugInfoRange(@1, @2));
 	}
 	| apply
 	{

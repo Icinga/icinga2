@@ -295,8 +295,14 @@ private:
 		for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
 			frame.Locals->Set(funcargs[i], arguments[i]);
 
-		expr->Evaluate(frame);
-		return frame.Result;
+		Value result;
+		try {
+			result = expr->Evaluate(frame);
+		} catch (const InterruptExecutionError& iee) {
+			result = iee.GetResult();
+		}
+
+		return result;
 	}
 
 	static inline void SlotWrapper(const Value& funcName, const std::vector<Value>& arguments)

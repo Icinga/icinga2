@@ -45,6 +45,8 @@ Value Expression::Evaluate(VMFrame& frame, DebugHint *dhint) const
 #endif /* _DEBUG */
 
 		return DoEvaluate(frame, dhint);
+	} catch (const InterruptExecutionError&) {
+		throw;
 	} catch (const std::exception& ex) {
 		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
 			throw;
@@ -342,6 +344,11 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 		psdhint->AddMessage("=", m_DebugInfo);
 
 	return right;
+}
+
+Value ReturnExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+{
+	BOOST_THROW_EXCEPTION(InterruptExecutionError(m_Operand->Evaluate(frame)));
 }
 
 Value IndexerExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const

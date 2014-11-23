@@ -101,6 +101,25 @@ enum CombinedSetOp
 	OpSetDivide
 };
 
+class InterruptExecutionError : virtual public std::exception, virtual public boost::exception
+{
+public:
+	InterruptExecutionError(const Value& result)
+		: m_Result(result)
+	{ }
+
+	~InterruptExecutionError(void) throw()
+	{ }
+
+	Value GetResult(void) const
+	{
+		return m_Result;
+	}
+
+private:
+	Value m_Result;
+};
+
 typedef std::map<String, String> DefinitionMap;
 
 /**
@@ -535,6 +554,17 @@ private:
 	Expression *m_Operand2;
 	bool m_Local;
 
+};
+
+class I2_CONFIG_API ReturnExpression : public UnaryExpression
+{
+public:
+	ReturnExpression(Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(expression, debugInfo)
+	{ }
+
+protected:
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 };
 
 class I2_CONFIG_API IndexerExpression : public DebuggableExpression

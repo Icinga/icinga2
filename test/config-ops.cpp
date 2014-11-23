@@ -226,6 +226,14 @@ BOOST_AUTO_TEST_CASE(advanced)
 
 	expr = ConfigCompiler::CompileText("<test>", "a = 3 b = 3");
 	BOOST_CHECK(expr == NULL);
+
+	expr = ConfigCompiler::CompileText("<test>", "__function() { 3 }()");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "__function() { __return 3, 5 }()");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
