@@ -840,13 +840,19 @@ rterm_without_indexer: T_STRING
 	}
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
 	{
-		$$ = new ForExpression($3, $5, $7, $9, DebugInfoRange(@1, @9));
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
+		aexpr->MakeInline();
+
+		$$ = new ForExpression($3, $5, $7, aexpr, DebugInfoRange(@1, @9));
 		free($3);
 		free($5);
 	}
 	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
 	{
-		$$ = new ForExpression($3, "", $5, $7, DebugInfoRange(@1, @7));
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
+		aexpr->MakeInline();
+
+		$$ = new ForExpression($3, "", $5, aexpr, DebugInfoRange(@1, @7));
 		free($3);
 	}
 	;
