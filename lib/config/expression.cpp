@@ -64,7 +64,7 @@ const DebugInfo& Expression::GetDebugInfo(void) const
 std::vector<Expression *> icinga::MakeIndexer(const String& index1)
 {
 	std::vector<Expression *> result;
-	result.push_back(MakeLiteral(index1));
+	result.push_back(new VariableExpression(index1));
 	return result;
 }
 
@@ -270,7 +270,20 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 	for (Array::SizeType i = 0; i < m_Indexer.size(); i++) {
 		Expression *indexExpr = m_Indexer[i];
-		String tempindex = indexExpr->Evaluate(frame, dhint);
+
+		String tempindex;
+
+		if (i == 0) {
+			VariableExpression *vexpr = dynamic_cast<VariableExpression *>(indexExpr);
+
+			if (!vexpr) {
+				object = indexExpr->Evaluate(frame, dhint);
+				continue;
+			}
+
+			tempindex = vexpr->GetVariable();
+		} else
+			tempindex = indexExpr->Evaluate(frame, dhint);
 
 		if (psdhint) {
 			sdhint = psdhint->GetChild(tempindex);
@@ -290,7 +303,7 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 				break;
 		}
 
-		object = VMOps::Indexer(frame, parent, tempindex);
+		object = VMOps::GetField(parent, tempindex);
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
@@ -333,7 +346,7 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 Value IndexerExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Indexer(frame, m_Operand1->Evaluate(frame), m_Operand2->Evaluate(frame));
+	return VMOps::Indexer(frame, m_Indexer);
 }
 
 Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const

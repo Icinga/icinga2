@@ -181,6 +181,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <csop> combined_set_op
 %type <type> type
 %type <expr> rterm
+%type <expr> rterm_without_indexer
 %type <expr> rterm_array
 %type <expr> rterm_scope
 %type <expr> lterm
@@ -505,17 +506,10 @@ identifier_items_inner: /* empty */
 	}
 	;
 
-indexer: identifier
-	{
-		$$ = new std::vector<Expression *>();
-		$$->push_back(MakeLiteral($1));
-		free($1);
-	}
-	| identifier indexer_items
+indexer: rterm_without_indexer indexer_items
 	{
 		$$ = $2;
-		$$->insert($$->begin(), MakeLiteral($1));
-		free($1);
+		$$->insert($$->begin(), $1);
 	}
 	;
 
@@ -590,6 +584,16 @@ lterm: T_LOCAL indexer combined_set_op rterm
 	{
 		$$ = new SetExpression(*$1, $2, $3, false, DebugInfoRange(@1, @3));
 		delete $1;
+	}
+	| T_LOCAL identifier combined_set_op rterm
+	{
+		$$ = new SetExpression(MakeIndexer($2), $3, $4, true, DebugInfoRange(@1, @4));
+		free($2);
+	}
+	| identifier combined_set_op rterm
+	{
+		$$ = new SetExpression(MakeIndexer($1), $2, $3, false, DebugInfoRange(@1, @3));
+		free($1);
 	}
 	| T_INCLUDE rterm
 	{
@@ -735,7 +739,18 @@ rterm_scope: '{' newlines lterm_items newlines '}'
 	}
 	;
 
-rterm: T_STRING
+rterm: rterm_without_indexer
+	{
+		$$ = $1;
+	}
+	| indexer
+	{
+		$$ = new IndexerExpression(*$1, @1);
+		delete $1;
+	}
+	;
+
+rterm_without_indexer: T_STRING
 	{
 		$$ = MakeLiteral($1);
 		free($1);
@@ -747,11 +762,6 @@ rterm: T_STRING
 	| T_NULL
 	{
 		$$ = MakeLiteral();
-	}
-	| rterm '.' T_IDENTIFIER
-	{
-		$$ = new IndexerExpression($1, MakeLiteral($3), DebugInfoRange(@1, @3));
-		free($3);
 	}
 	| rterm '(' rterm_items ')'
 	{
@@ -770,10 +780,6 @@ rterm: T_STRING
 	| '~' rterm
 	{
 		$$ = new NegateExpression($2, DebugInfoRange(@1, @2));
-	}
-	| rterm '[' rterm ']'
-	{
-		$$ = new IndexerExpression($1, $3, DebugInfoRange(@1, @4));
 	}
 	| rterm_array
 	{

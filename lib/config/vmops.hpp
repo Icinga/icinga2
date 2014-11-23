@@ -72,32 +72,19 @@ public:
 		return func->Invoke(arguments);
 	}
 
-	static inline Value Indexer(VMFrame& frame, const Value& value, const String& index)
+	static inline Value Indexer(VMFrame& frame, const std::vector<Expression *>& indexer)
 	{
-		if (value.IsObjectType<Dictionary>()) {
-			Dictionary::Ptr dict = value;
-			return dict->Get(index);
-		} else if (value.IsObjectType<Array>()) {
-			Array::Ptr arr = value;
-			return arr->Get(Convert::ToLong(index));
-		} else if (value.IsObject()) {
-			Object::Ptr object = value;
-			Type::Ptr type = object->GetReflectionType();
+		Value result = indexer[0]->Evaluate(frame);
 
-			if (!type)
-				BOOST_THROW_EXCEPTION(ConfigError("Dot operator applied to object which does not support reflection"));
+		for (int i = 1; i < indexer.size(); i++) {
+			if (result.IsEmpty())
+				return Empty;
 
-			int field = type->GetFieldId(index);
-
-			if (field == -1)
-				BOOST_THROW_EXCEPTION(ConfigError("Tried to access invalid property '" + index + "'"));
-
-			return object->GetField(field);
-		} else if (value.IsEmpty()) {
-			return Empty;
-		} else {
-			BOOST_THROW_EXCEPTION(ConfigError("Dot operator cannot be applied to type '" + value.GetTypeName() + "'"));
+			Value index = indexer[i]->Evaluate(frame);
+			result = GetField(result, index);
 		}
+
+		return result;
 	}
 
 	static inline Value NewFunction(VMFrame& frame, const String& name, const std::vector<String>& args,
@@ -234,45 +221,62 @@ public:
 
 		if (dict)
 			return dict->Get(field);
-		else {
-			Type::Ptr type = context->GetReflectionType();
 
-			if (!type)
-				return Empty;
+		Array::Ptr arr = dynamic_pointer_cast<Array>(context);
 
-			int fid = type->GetFieldId(field);
-
-			if (fid == -1)
-				return Empty;
-
-			return context->GetField(fid);
+		if (arr) {
+			int index = Convert::ToLong(field);
+			return arr->Get(index);
 		}
+
+		Type::Ptr type = context->GetReflectionType();
+
+		if (!type)
+			return Empty;
+
+		int fid = type->GetFieldId(field);
+
+		if (fid == -1)
+			return Empty;
+
+		return context->GetField(fid);
 	}
 
 	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value)
 	{
 		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
 
-		if (dict)
+		if (dict) {
 			dict->Set(field, value);
-		else {
-			Type::Ptr type = context->GetReflectionType();
+			return;
+		}
 
-			if (!type)
-				BOOST_THROW_EXCEPTION(ConfigError("Cannot set field on object."));
+		Array::Ptr arr = dynamic_pointer_cast<Array>(context);
 
-			int fid = type->GetFieldId(field);
+		if (arr) {
+			int index = Convert::ToLong(field);
+			if (index >= arr->GetLength())
+				arr->Resize(index + 1);
+			arr->Set(index, value);
+			return;
+		}
 
-			if (fid == -1)
-				BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' does not exist."));
+		Type::Ptr type = context->GetReflectionType();
 
-			try {
-				context->SetField(fid, value);
-			} catch (const boost::bad_lexical_cast&) {
-				BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
-			} catch (const std::bad_cast&) {
-				BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
-			}
+		if (!type)
+			BOOST_THROW_EXCEPTION(ConfigError("Cannot set field on object."));
+
+		int fid = type->GetFieldId(field);
+
+		if (fid == -1)
+			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' does not exist."));
+
+		try {
+			context->SetField(fid, value);
+		} catch (const boost::bad_lexical_cast&) {
+			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
+		} catch (const std::bad_cast&) {
+			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
 		}
 	}
 

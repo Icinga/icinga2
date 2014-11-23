@@ -100,10 +100,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Array::Ptr templateArray = new Array();
 	templateArray->Add(m_Name);
 
-	std::vector<Expression *> indexer;
-	indexer.push_back(new LiteralExpression("templates"));
-
-	exprs.push_back(new SetExpression(indexer, OpSetAdd,
+	exprs.push_back(new SetExpression(MakeIndexer("templates"), OpSetAdd,
 	    new LiteralExpression(templateArray), false, m_DebugInfo));
 
 	DictExpression *dexpr = new DictExpression(m_Expressions, m_DebugInfo);

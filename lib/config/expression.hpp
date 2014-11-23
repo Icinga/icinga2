@@ -213,6 +213,11 @@ public:
 		: DebuggableExpression(debugInfo), m_Variable(variable)
 	{ }
 
+	String GetVariable(void) const
+	{
+		return m_Variable;
+	}
+
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 
@@ -532,15 +537,18 @@ private:
 
 };
 
-class I2_CONFIG_API IndexerExpression : public BinaryExpression
+class I2_CONFIG_API IndexerExpression : public DebuggableExpression
 {
 public:
-	IndexerExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
-		: BinaryExpression(operand1, operand2, debugInfo)
+	IndexerExpression(const std::vector<Expression *>& indexer, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Indexer(indexer)
 	{ }
 
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
+
+private:
+	std::vector<Expression *> m_Indexer;
 };
 
 class I2_CONFIG_API ImportExpression : public DebuggableExpression

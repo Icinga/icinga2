@@ -208,10 +208,9 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
 	delete expr;
 
-	/* Uncomment this once #7800 is fixed
 	expr = ConfigCompiler::CompileText("<test>", "local v = { a = 3}; v.a");
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
-	delete expr;*/
+	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "a = 3 b = 3");
 	BOOST_CHECK(expr == NULL);
