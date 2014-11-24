@@ -90,10 +90,13 @@ add_boost_test(base
         base_value/format
 	config_ops/simple
 	config_ops/advanced
+	icinga_perfdata/empty
 	icinga_perfdata/simple
+	icinga_perfdata/quotes
 	icinga_perfdata/multiple
 	icinga_perfdata/uom
 	icinga_perfdata/warncritminmax
 	icinga_perfdata/invalid
+	icinga_perfdata/multi
 )
 
