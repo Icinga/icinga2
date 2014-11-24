@@ -36,6 +36,9 @@ namespace icinga
 class I2_BASE_API ScriptUtils
 {
 public:
+	static String CastString(const Value& value);
+	static double CastNumber(const Value& value);
+	static bool CastBool(const Value& value);
 	static bool Regex(const String& pattern, const String& text);
 	static int Len(const Value& value);
 	static Array::Ptr Union(const std::vector<Value>& arguments);

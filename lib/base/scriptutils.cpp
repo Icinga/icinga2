@@ -47,7 +47,24 @@ REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
 REGISTER_SCRIPTFUNCTION(__get_object, &ScriptUtils::GetObject);
 REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
+REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
+REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
+REGISTER_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
 
+String ScriptUtils::CastString(const Value& value)
+{
+	return value;
+}
+
+double ScriptUtils::CastNumber(const Value& value)
+{
+	return value;
+}
+
+bool ScriptUtils::CastBool(const Value& value)
+{
+	return value.ToBool();
+}
 bool ScriptUtils::Regex(const String& pattern, const String& text)
 {
 	bool res = false;
