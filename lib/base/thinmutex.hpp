@@ -52,7 +52,7 @@ public:
 			delete reinterpret_cast<boost::mutex *>(m_Data);
 	}
 
-	inline void Lock(bool make_native = false)
+	inline void Lock(void)
 	{
 #ifdef _WIN32
 #	ifdef _WIN64
