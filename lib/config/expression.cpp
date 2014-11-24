@@ -280,6 +280,10 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 			if (!vexpr) {
 				object = indexExpr->Evaluate(frame, dhint);
+
+				if (!object)
+					BOOST_THROW_EXCEPTION(ConfigError("Left-hand side argument must not be null."));
+
 				continue;
 			}
 
