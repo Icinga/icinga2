@@ -346,6 +346,14 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return right;
 }
 
+Value ConditionalExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+{
+	if (m_Condition->Evaluate(frame, dhint))
+		return m_TrueBranch->Evaluate(frame, dhint);
+	else if (m_FalseBranch)
+		return m_FalseBranch->Evaluate(frame, dhint);
+}
+
 Value ReturnExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	BOOST_THROW_EXCEPTION(InterruptExecutionError(m_Operand->Evaluate(frame)));

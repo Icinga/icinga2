@@ -165,6 +165,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_RETURN "return (T_RETURN)"
 %token T_FOR "for (T_FOR)"
 %token T_SIGNAL "signal (T_SIGNAL)"
+%token T_IF "if (T_IF)"
+%token T_ELSE "else (T_ELSE)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
 
 %type <text> identifier
@@ -854,6 +856,23 @@ rterm_without_indexer: T_STRING
 
 		$$ = new ForExpression($3, "", $5, aexpr, DebugInfoRange(@1, @7));
 		free($3);
+	}
+	| T_IF '(' rterm ')' rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
+	}
+	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
+		afalse->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
 	}
 	;
 

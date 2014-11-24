@@ -556,6 +556,29 @@ private:
 
 };
 
+class I2_CONFIG_API ConditionalExpression : public DebuggableExpression
+{
+public:
+	ConditionalExpression(Expression *condition, Expression *true_branch, Expression *false_branch, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Condition(condition), m_TrueBranch(true_branch), m_FalseBranch(false_branch)
+	{ }
+
+	~ConditionalExpression(void)
+	{
+		delete m_Condition;
+		delete m_TrueBranch;
+		delete m_FalseBranch; 
+	}
+
+protected:
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
+
+private:
+	Expression *m_Condition;
+	Expression *m_TrueBranch;
+	Expression *m_FalseBranch;
+};
+
 class I2_CONFIG_API ReturnExpression : public UnaryExpression
 {
 public:

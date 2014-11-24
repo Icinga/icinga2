@@ -251,6 +251,8 @@ __function			return T_FUNCTION;
 __return			return T_RETURN;
 __for				return T_FOR;
 __signal			return T_SIGNAL;
+__if				return T_IF;
+__else				return T_ELSE;
 =\>				return T_FOLLOWS;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;
