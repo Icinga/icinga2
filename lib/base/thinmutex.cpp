@@ -21,16 +21,13 @@
 #include "base/timer.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
-#include <boost/thread.hpp>
 
 using namespace icinga;
 
+/**
+ * Locks the mutex and inflates the lock.
+ */
 void ThinMutex::LockSlowPath(void)
-{
-	LockSlowPath(false);
-}
-
-void ThinMutex::LockSlowPath(bool make_native)
 {
 	unsigned int it = 0;
 
@@ -44,22 +41,16 @@ void ThinMutex::LockSlowPath(bool make_native)
 	while (!__sync_bool_compare_and_swap(&m_Data, THINLOCK_UNLOCKED, THINLOCK_LOCKED)) {
 #endif /* _WIN32 */
 		if (m_Data > THINLOCK_LOCKED) {
-			LockNative();
+			boost::mutex *mtx = reinterpret_cast<boost::mutex *>(m_Data);
+			mtx->lock();
+
 			return;
 		}
-
-		make_native = true;
 
 		Spin(it);
 		it++;
 	}
 
-	if (make_native)
-		MakeNative();
-}
-
-void ThinMutex::MakeNative(void)
-{
 	boost::mutex *mtx = new boost::mutex();
 	mtx->lock();
 #ifdef _WIN32
@@ -71,22 +62,5 @@ void ThinMutex::MakeNative(void)
 #else /* _WIN32 */
 	__sync_bool_compare_and_swap(&m_Data, THINLOCK_LOCKED, reinterpret_cast<uintptr_t>(mtx));
 #endif /* _WIN32 */
-}
-
-void ThinMutex::DestroyNative(void)
-{
-	delete reinterpret_cast<boost::mutex *>(m_Data);
-}
-
-void ThinMutex::LockNative(void)
-{
-	boost::mutex *mtx = reinterpret_cast<boost::mutex *>(m_Data);
-	mtx->lock();
-}
-
-void ThinMutex::UnlockNative(void)
-{
-	boost::mutex *mtx = reinterpret_cast<boost::mutex *>(m_Data);
-	mtx->unlock();
 }
 

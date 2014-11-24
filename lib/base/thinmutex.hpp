@@ -21,6 +21,7 @@
 #define THINMUTEX_H
 
 #include "base/i2-base.hpp"
+#include <boost/thread/mutex.hpp>
 #ifndef _WIN32
 #include <sched.h>
 #endif /* _WIN32 */
@@ -48,7 +49,7 @@ public:
 	inline ~ThinMutex(void)
 	{
 		if (m_Data > THINLOCK_LOCKED)
-			DestroyNative();
+			delete reinterpret_cast<boost::mutex *>(m_Data);
 	}
 
 	inline void Lock(bool make_native = false)
@@ -66,26 +67,25 @@ public:
 		}
 	}
 
-	void LockSlowPath(void);
-	void LockSlowPath(bool make_native);
-
 	inline void Unlock(void)
 	{
 #ifdef _WIN32
 #	ifdef _WIN64
-		if (InterlockedCompareExchange64(&m_Data, THINLOCK_UNLOCKED, THINLOCK_LOCKED) != THINLOCK_LOCKED)
+		if (InterlockedCompareExchange64(&m_Data, THINLOCK_UNLOCKED, THINLOCK_LOCKED) != THINLOCK_LOCKED) {
 #	else /* _WIN64 */
-		if (InterlockedCompareExchange(&m_Data, THINLOCK_UNLOCKED, THINLOCK_LOCKED) != THINLOCK_LOCKED)
+		if (InterlockedCompareExchange(&m_Data, THINLOCK_UNLOCKED, THINLOCK_LOCKED) != THINLOCK_LOCKED) {
 #	endif /* _WIN64 */
 #else /* _WIN32 */
-		if (!__sync_bool_compare_and_swap(&m_Data, THINLOCK_LOCKED, THINLOCK_UNLOCKED))
+		if (!__sync_bool_compare_and_swap(&m_Data, THINLOCK_LOCKED, THINLOCK_UNLOCKED)) {
 #endif /* _WIN32 */
-			UnlockNative();
+			boost::mutex *mtx = reinterpret_cast<boost::mutex *>(m_Data);
+			mtx->unlock();
+		}
 	}
 
 	inline void Inflate(void)
 	{
-		LockSlowPath(true);
+		LockSlowPath();
 		Unlock();
 	}
 
@@ -109,12 +109,6 @@ private:
 		}
 	}
 
-	void MakeNative(void);
-	void DestroyNative(void);
-
-	void LockNative(void);
-	void UnlockNative(void);
-
 private:
 #ifdef _WIN32
 #	ifdef _WIN64
@@ -125,6 +119,8 @@ private:
 #else /* _WIN32 */
 	uintptr_t m_Data;
 #endif /* _WIN32 */
+
+	void LockSlowPath(void);
 };
 
 }
