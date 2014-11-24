@@ -596,29 +596,26 @@ lterm: T_LOCAL indexer combined_set_op rterm
 		$$ = new SetExpression(MakeIndexer($1), $2, $3, false, DebugInfoRange(@1, @3));
 		free($1);
 	}
-	| T_INCLUDE rterm
+	| T_INCLUDE T_STRING
 	{
-		VMFrame frame;
-		$$ = context->HandleInclude($2->Evaluate(frame), false, DebugInfoRange(@1, @2));
-		delete $2;
+		$$ = context->HandleInclude($2, false, DebugInfoRange(@1, @2));
+		free($2);
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
 		$$ = context->HandleInclude($2, true, DebugInfoRange(@1, @2));
 		free($2);
 	}
-	| T_INCLUDE_RECURSIVE rterm
+	| T_INCLUDE_RECURSIVE T_STRING
 	{
-		VMFrame frame;
-		$$ = context->HandleIncludeRecursive($2->Evaluate(frame), "*.conf", DebugInfoRange(@1, @2));
-		delete $2;
+		$$ = context->HandleIncludeRecursive($2, "*.conf", DebugInfoRange(@1, @2));
+		free($2);
 	}
-	| T_INCLUDE_RECURSIVE rterm ',' rterm
+	| T_INCLUDE_RECURSIVE T_STRING ',' T_STRING
 	{
-		VMFrame frame;
-		$$ = context->HandleIncludeRecursive($2->Evaluate(frame), $4->Evaluate(frame), DebugInfoRange(@1, @4));
-		delete $2;
-		delete $4;
+		$$ = context->HandleIncludeRecursive($2, $4, DebugInfoRange(@1, @4));
+		free($2);
+		free($4);
 	}
 	| T_IMPORT rterm
 	{
