@@ -156,7 +156,7 @@ void ScriptUtils::Log(const std::vector<Value>& arguments)
 		message = arguments[2];
 	}
 
-	if (message.IsString() || !message.IsObjectType<Array>() && !message.IsObjectType<Dictionary>())
+	if (message.IsString() || (!message.IsObjectType<Array>() && !message.IsObjectType<Dictionary>()))
 		::Log(severity, facility, message);
 	else
 		::Log(severity, facility, JsonEncode(message));

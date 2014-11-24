@@ -352,6 +352,8 @@ Value ConditionalExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 		return m_TrueBranch->Evaluate(frame, dhint);
 	else if (m_FalseBranch)
 		return m_FalseBranch->Evaluate(frame, dhint);
+
+	return Empty;
 }
 
 Value ReturnExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const

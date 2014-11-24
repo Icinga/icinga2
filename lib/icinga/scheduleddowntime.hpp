@@ -29,7 +29,7 @@ namespace icinga
 {
 
 class ApplyRule;
-class VMFrame;
+struct VMFrame;
 class Host;
 class Service;
 

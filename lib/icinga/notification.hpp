@@ -68,7 +68,7 @@ enum NotificationType
 class NotificationCommand;
 class Checkable;
 class ApplyRule;
-class VMFrame;
+struct VMFrame;
 class Host;
 class Service;
 
