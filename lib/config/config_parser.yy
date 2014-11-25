@@ -114,6 +114,10 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token <csop> T_SET_SUBTRACT "-= (T_SET_SUBTRACT)"
 %token <csop> T_SET_MULTIPLY "*= (T_SET_MULTIPLY)"
 %token <csop> T_SET_DIVIDE "/= (T_SET_DIVIDE)"
+%token <csop> T_SET_MODULO "%= (T_SET_MODULO)"
+%token <csop> T_SET_XOR "^= (T_SET_XOR)"
+%token <csop> T_SET_BINARY_AND "&= (T_SET_BINARY_AND)"
+%token <csop> T_SET_BINARY_OR "|= (T_SET_BINARY_OR)"
 
 %token T_SHIFT_LEFT "<< (T_SHIFT_LEFT)"
 %token T_SHIFT_RIGHT ">> (T_SHIFT_RIGHT)"
@@ -129,6 +133,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_MINUS "- (T_MINUS)"
 %token T_MULTIPLY "* (T_MULTIPLY)"
 %token T_DIVIDE_OP "/ (T_DIVIDE_OP)"
+%token T_MODULO "% (T_MODULO)"
+%token T_XOR "^ (T_XOR)"
 %token T_BINARY_AND "& (T_BINARY_AND)"
 %token T_BINARY_OR "| (T_BINARY_OR)"
 %token T_LESS_THAN "< (T_LESS_THAN)"
@@ -203,8 +209,9 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left T_LOGICAL_AND
 %left T_LOCAL T_RETURN
 %left T_IDENTIFIER
-%left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE
+%left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %left T_BINARY_OR
+%left T_XOR T_MODULO
 %left T_BINARY_AND
 %left T_IN T_NOT_IN
 %nonassoc T_EQUAL T_NOT_EQUAL
@@ -560,6 +567,10 @@ combined_set_op: T_SET
 	| T_SET_SUBTRACT
 	| T_SET_MULTIPLY
 	| T_SET_DIVIDE
+	| T_SET_MODULO
+	| T_SET_XOR
+	| T_SET_BINARY_AND
+	| T_SET_BINARY_OR
 	{
 		$$ = $1;
 	}
@@ -802,6 +813,8 @@ rterm_without_indexer: T_STRING
 	| rterm T_MINUS rterm { MakeRBinaryOp<SubtractExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_MULTIPLY rterm { MakeRBinaryOp<MultiplyExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp<DivideExpression>(&$$, $1, $3, @1, @3); }
+	| rterm T_MODULO rterm { MakeRBinaryOp<ModuloExpression>(&$$, $1, $3, @1, @3); }
+	| rterm T_XOR rterm { MakeRBinaryOp<XorExpression>(&$$, $1, $3, @1, @3); }
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);

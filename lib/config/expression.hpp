@@ -98,7 +98,11 @@ enum CombinedSetOp
 	OpSetAdd,
 	OpSetSubtract,
 	OpSetMultiply,
-	OpSetDivide
+	OpSetDivide,
+	OpSetModulo,
+	OpSetXor,
+	OpSetBinaryAnd,
+	OpSetBinaryOr
 };
 
 class InterruptExecutionError : virtual public std::exception, virtual public boost::exception
@@ -309,7 +313,29 @@ public:
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 };
-	
+
+class I2_CONFIG_API ModuloExpression : public BinaryExpression
+{
+public:
+	ModuloExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
+		: BinaryExpression(operand1, operand2, debugInfo)
+	{ }
+
+protected:
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
+};
+
+class I2_CONFIG_API XorExpression : public BinaryExpression
+{
+public:
+	XorExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
+		: BinaryExpression(operand1, operand2, debugInfo)
+	{ }
+
+protected:
+	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
+};
+
 class I2_CONFIG_API BinaryAndExpression : public BinaryExpression
 {
 public:

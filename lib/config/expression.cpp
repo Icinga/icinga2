@@ -124,6 +124,16 @@ Value DivideExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return m_Operand1->Evaluate(frame) / m_Operand2->Evaluate(frame);
 }
 
+Value ModuloExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+{
+	return (long)m_Operand1->Evaluate(frame) % (long)m_Operand2->Evaluate(frame);
+}
+
+Value XorExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+{
+	return (long)m_Operand1->Evaluate(frame) ^ (long)m_Operand2->Evaluate(frame);
+}
+
 Value BinaryAndExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) & m_Operand2->Evaluate(frame);
@@ -336,6 +346,18 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 				break;
 			case OpSetDivide:
 				right = DivideExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
+				break;
+			case OpSetModulo:
+				right = ModuloExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
+				break;
+			case OpSetXor:
+				right = XorExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
+				break;
+			case OpSetBinaryAnd:
+				right = BinaryAndExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
+				break;
+			case OpSetBinaryOr:
+				right = BinaryOrExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
 				break;
 			default:
 				VERIFY(!"Invalid opcode.");

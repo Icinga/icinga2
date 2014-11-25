@@ -278,10 +278,16 @@ in				return T_IN;
 -=				{ yylval->csop = OpSetSubtract; return T_SET_SUBTRACT; }
 \*=				{ yylval->csop = OpSetMultiply; return T_SET_MULTIPLY; }
 \/=				{ yylval->csop = OpSetDivide; return T_SET_DIVIDE; }
+\%=				{ yylval->csop = OpSetModulo; return T_SET_MODULO; }
+\^=				{ yylval->csop = OpSetXor; return T_SET_XOR; }
+\&=				{ yylval->csop = OpSetBinaryAnd; return T_SET_BINARY_AND; }
+\|=				{ yylval->csop = OpSetBinaryOr; return T_SET_BINARY_OR; }
 \+				return T_PLUS;
 \-				return T_MINUS;
 \*				return T_MULTIPLY;
 \/				return T_DIVIDE_OP;
+\%				return T_MODULO;
+\^				return T_XOR;
 \&				return T_BINARY_AND;
 \|				return T_BINARY_OR;
 \<				return T_LESS_THAN;
