@@ -183,6 +183,18 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "test");
 	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "null + 3");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "3 + null");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"test\" + 3");
+	BOOST_CHECK(expr->Evaluate(frame) == "test3");
+	delete expr;
 }
 
 BOOST_AUTO_TEST_CASE(advanced)
