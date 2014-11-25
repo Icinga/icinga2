@@ -182,7 +182,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <csop> combined_set_op
 %type <type> type
 %type <elist> statements
-%type <expr> statement
+%type <elist> lterm_items
+%type <elist> lterm_items_inner
 %type <expr> rterm
 %type <expr> rterm_without_indexer
 %type <expr> rterm_array
@@ -195,6 +196,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <cvlist> use_specifier
 %type <cvlist> use_specifier_items
 %type <cvitem> use_specifier_item
+%type <num> object_declaration
 
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
 %right T_FUNCTION T_SIGNAL T_FOR
@@ -229,8 +231,6 @@ void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const
 
 int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
 
-static std::stack<bool> m_Abstract;
-
 static std::stack<TypeRuleList::Ptr> m_RuleLists;
 static ConfigType::Ptr m_Type;
 
@@ -245,7 +245,6 @@ static std::stack<Expression *> m_FTerm;
 
 Expression *ConfigCompiler::Compile(void)
 {
-	m_Abstract = std::stack<bool>();
 	m_RuleLists = std::stack<TypeRuleList::Ptr>();
 	m_Type.reset();
 	m_Apply = std::stack<bool>();
@@ -288,27 +287,52 @@ script: statements
 	}
 	;
 
-statements: statement
+statements: newlines lterm_items newlines
 	{
-		$$ = new std::vector<Expression *>();
-		if ($1)
-			$$->push_back($1);
+		$$ = $2;
 	}
-	| statements statement
+	| newlines lterm_items
+	{
+		$$ = $2;
+	}
+	| lterm_items newlines
 	{
 		$$ = $1;
-		if ($2)
-			$$->push_back($2);
+	}
+	| lterm_items
+	{
+		$$ = $1;
 	}
 	;
 
-statement: newlines
+lterm_items: /* empty */
 	{
-		$$ = NULL;
+		$$ = new std::vector<Expression *>();
 	}
-	| lterm sep
+	| lterm_items_inner
 	{
 		$$ = $1;
+	}
+	| lterm_items_inner sep
+	{
+		$$ = $1;
+	}
+	;
+
+lterm_items_inner: lterm
+	{
+		$$ = new std::vector<Expression *>();
+		$$->push_back($1);
+	}
+	| lterm_items_inner sep lterm
+	{
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new std::vector<Expression *>();
+
+		if ($3)
+			$$->push_back($3);
 	}
 	;
 
@@ -439,7 +463,6 @@ type: T_TYPE_DICTIONARY
 
 object:
 	{
-		m_Abstract.push(false);
 		m_ObjectAssign.push(true);
 		m_SeenAssign.push(false);
 		m_Assign.push(NULL);
@@ -449,8 +472,7 @@ object:
 	{
 		m_ObjectAssign.pop();
 
-		bool abstract = m_Abstract.top();
-		m_Abstract.pop();
+		bool abstract = $2;
 
 		String type = $3;
 		free($3);
@@ -486,10 +508,14 @@ object:
 	;
 
 object_declaration: T_OBJECT
+	{
+		$$ = false;
+	}
 	| T_TEMPLATE
 	{
-		m_Abstract.top() = true;
+		$$ = true;
 	}
+	;
 
 identifier_items: identifier_items_inner
 	{
