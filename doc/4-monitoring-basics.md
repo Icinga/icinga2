@@ -200,6 +200,23 @@ Objects as well as templates themselves can import an arbitrary number of
 templates. Attributes inherited from a template can be overridden in the
 object if necessary.
 
+You can import existing non-template objects into objects which
+requires you to use unique names for templates and objects sharing
+the same namespace.
+
+Example for importing objects:
+
+    object CheckCommand "snmp-simple" {
+      ...
+      vars.snmp_defaults = ...
+    }
+
+    object CheckCommand "snmp-advanced" {
+      import "snmp-simple"
+      ...
+      vars.snmp_advanced = ...
+    }
+
 ### <a id="using-apply"></a> Apply objects based on rules
 
 Instead of assigning each object ([Service](#objecttype-service),
