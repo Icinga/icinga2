@@ -22,17 +22,25 @@
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
+#include "config/configtype.hpp"
 #include "base/debuginfo.hpp"
 #include "base/registry.hpp"
 #include "base/initialize.hpp"
 #include "base/singleton.hpp"
-#include <iostream>
 #include <boost/function.hpp>
+#include <iostream>
+#include <stack>
 
 typedef union YYSTYPE YYSTYPE;
 typedef void *yyscan_t;
 
+namespace icinga
+{
+	class ConfigCompiler;
+}
+
 int yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
+int yyparse(std::vector<icinga::Expression *> *elist, icinga::ConfigCompiler *context);
 
 namespace icinga
 {
@@ -80,12 +88,25 @@ private:
 	void *m_Scanner;
 	bool m_Eof;
 
+	std::stack<TypeRuleList::Ptr> m_RuleLists;
+	ConfigType::Ptr m_Type;
+
+	std::stack<bool> m_Apply;
+	std::stack<bool> m_ObjectAssign;
+	std::stack<bool> m_SeenAssign;
+	std::stack<Expression *> m_Assign;
+	std::stack<Expression *> m_Ignore;
+	std::stack<String> m_FKVar;
+	std::stack<String> m_FVVar;
+	std::stack<Expression *> m_FTerm;
+
 	static std::vector<String> m_IncludeSearchDirs;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 
 	friend int ::yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
+	friend int ::yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
 };
 
 class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>

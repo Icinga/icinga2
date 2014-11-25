@@ -22,7 +22,6 @@
 
 #include "config/i2-config.hpp"
 #include "config/configitembuilder.hpp"
-#include "config/configtype.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/typerule.hpp"
@@ -231,31 +230,8 @@ void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const
 
 int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
 
-static std::stack<TypeRuleList::Ptr> m_RuleLists;
-static ConfigType::Ptr m_Type;
-
-static std::stack<bool> m_Apply;
-static std::stack<bool> m_ObjectAssign;
-static std::stack<bool> m_SeenAssign;
-static std::stack<Expression *> m_Assign;
-static std::stack<Expression *> m_Ignore;
-static std::stack<String> m_FKVar;
-static std::stack<String> m_FVVar;
-static std::stack<Expression *> m_FTerm;
-
 Expression *ConfigCompiler::Compile(void)
 {
-	m_RuleLists = std::stack<TypeRuleList::Ptr>();
-	m_Type.reset();
-	m_Apply = std::stack<bool>();
-	m_ObjectAssign = std::stack<bool>();
-	m_SeenAssign = std::stack<bool>();
-	m_Assign = std::stack<Expression *>();
-	m_Ignore = std::stack<Expression *>();
-	m_FKVar = std::stack<String>();
-	m_FVVar = std::stack<String>();
-	m_FTerm = std::stack<Expression *>();
-
 	try {
 		std::vector<Expression *> elist;
 
@@ -366,11 +342,11 @@ type: T_TYPE identifier
 		String name = String($2);
 		free($2);
 
-		m_Type = ConfigType::GetByName(name);
+		context->m_Type = ConfigType::GetByName(name);
 
-		if (!m_Type) {
-			m_Type = new ConfigType(name, DebugInfoRange(@1, @2));
-			m_Type->Register();
+		if (!context->m_Type) {
+			context->m_Type = new ConfigType(name, DebugInfoRange(@1, @2));
+			context->m_Type->Register();
 		}
 	}
 	type_inherits_specifier typerulelist
@@ -378,24 +354,24 @@ type: T_TYPE identifier
 		TypeRuleList::Ptr ruleList = *$5;
 		delete $5;
 
-		m_Type->GetRuleList()->AddRules(ruleList);
-		m_Type->GetRuleList()->AddRequires(ruleList);
+		context->m_Type->GetRuleList()->AddRules(ruleList);
+		context->m_Type->GetRuleList()->AddRequires(ruleList);
 
 		String validator = ruleList->GetValidator();
 		if (!validator.IsEmpty())
-			m_Type->GetRuleList()->SetValidator(validator);
+			context->m_Type->GetRuleList()->SetValidator(validator);
 	}
 	;
 
 typerulelist: '{'
 	{
-		m_RuleLists.push(new TypeRuleList());
+		context->m_RuleLists.push(new TypeRuleList());
 	}
 	typerules
 	'}'
 	{
-		$$ = new Value(m_RuleLists.top());
-		m_RuleLists.pop();
+		$$ = new Value(context->m_RuleLists.top());
+		context->m_RuleLists.pop();
 	}
 	;
 
@@ -409,12 +385,12 @@ typerules_inner: /* empty */
 
 typerule: T_REQUIRE T_STRING
 	{
-		m_RuleLists.top()->AddRequire($2);
+		context->m_RuleLists.top()->AddRequire($2);
 		free($2);
 	}
 	| T_VALIDATOR T_STRING
 	{
-		m_RuleLists.top()->SetValidator($2);
+		context->m_RuleLists.top()->SetValidator($2);
 		free($2);
 	}
 	| T_ATTRIBUTE type T_STRING
@@ -422,7 +398,7 @@ typerule: T_REQUIRE T_STRING
 		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), DebugInfoRange(@1, @3));
 		free($3);
 
-		m_RuleLists.top()->AddRule(rule);
+		context->m_RuleLists.top()->AddRule(rule);
 	}
 	| T_ATTRIBUTE T_TYPE_NAME '(' identifier ')' T_STRING
 	{
@@ -430,21 +406,21 @@ typerule: T_REQUIRE T_STRING
 		free($4);
 		free($6);
 
-		m_RuleLists.top()->AddRule(rule);
+		context->m_RuleLists.top()->AddRule(rule);
 	}
 	| T_ATTRIBUTE type T_STRING typerulelist
 	{
 		TypeRule rule($2, String(), $3, *$4, DebugInfoRange(@1, @4));
 		free($3);
 		delete $4;
-		m_RuleLists.top()->AddRule(rule);
+		context->m_RuleLists.top()->AddRule(rule);
 	}
 	;
 
 type_inherits_specifier: /* empty */
 	| T_INHERITS identifier
 	{
-		m_Type->SetParent($2);
+		context->m_Type->SetParent($2);
 		free($2);
 	}
 	;
@@ -463,14 +439,14 @@ type: T_TYPE_DICTIONARY
 
 object:
 	{
-		m_ObjectAssign.push(true);
-		m_SeenAssign.push(false);
-		m_Assign.push(NULL);
-		m_Ignore.push(NULL);
+		context->m_ObjectAssign.push(true);
+		context->m_SeenAssign.push(false);
+		context->m_Assign.push(NULL);
+		context->m_Ignore.push(NULL);
 	}
 	object_declaration identifier rterm use_specifier rterm_scope
 	{
-		m_ObjectAssign.pop();
+		context->m_ObjectAssign.pop();
 
 		bool abstract = $2;
 
@@ -480,14 +456,14 @@ object:
 		DictExpression *exprl = dynamic_cast<DictExpression *>($6);
 		exprl->MakeInline();
 
-		bool seen_assign = m_SeenAssign.top();
-		m_SeenAssign.pop();
+		bool seen_assign = context->m_SeenAssign.top();
+		context->m_SeenAssign.pop();
 
-		Expression *ignore = m_Ignore.top();
-		m_Ignore.pop();
+		Expression *ignore = context->m_Ignore.top();
+		context->m_Ignore.pop();
 
-		Expression *assign = m_Assign.top();
-		m_Assign.pop();
+		Expression *assign = context->m_Assign.top();
+		context->m_Assign.pop();
 
 		Expression *filter = NULL;
 
@@ -648,27 +624,27 @@ lterm: type
 	}
 	| T_ASSIGN T_WHERE rterm
 	{
-		if ((m_Apply.empty() || !m_Apply.top()) && (m_ObjectAssign.empty() || !m_ObjectAssign.top()))
+		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
 
-		m_SeenAssign.top() = true;
+		context->m_SeenAssign.top() = true;
 
-		if (m_Assign.top())
-			m_Assign.top() = new LogicalOrExpression(m_Assign.top(), $3, DebugInfoRange(@1, @3));
+		if (context->m_Assign.top())
+			context->m_Assign.top() = new LogicalOrExpression(context->m_Assign.top(), $3, DebugInfoRange(@1, @3));
 		else
-			m_Assign.top() = $3;
+			context->m_Assign.top() = $3;
 
 		$$ = MakeLiteral();
 	}
 	| T_IGNORE T_WHERE rterm
 	{
-		if ((m_Apply.empty() || !m_Apply.top()) && (m_ObjectAssign.empty() || !m_ObjectAssign.top()))
+		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
 
-		if (m_Ignore.top())
-			m_Ignore.top() = new LogicalOrExpression(m_Ignore.top(), $3, DebugInfoRange(@1, @3));
+		if (context->m_Ignore.top())
+			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $3, DebugInfoRange(@1, @3));
 		else
-			m_Ignore.top() = $3;
+			context->m_Ignore.top() = $3;
 
 		$$ = MakeLiteral();
 	}
@@ -931,22 +907,22 @@ use_specifier_item: identifier
 apply_for_specifier: /* empty */
 	| T_APPLY_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
 	{
-		m_FKVar.top() = $3;
+		context->m_FKVar.top() = $3;
 		free($3);
 
-		m_FVVar.top() = $5;
+		context->m_FVVar.top() = $5;
 		free($5);
 
-		m_FTerm.top() = $7;
+		context->m_FTerm.top() = $7;
 	}
 	| T_APPLY_FOR '(' identifier T_IN rterm ')'
 	{
-		m_FKVar.top() = $3;
+		context->m_FKVar.top() = $3;
 		free($3);
 
-		m_FVVar.top() = "";
+		context->m_FVVar.top() = "";
 
-		m_FTerm.top() = $5;
+		context->m_FTerm.top() = $5;
 	}
 	;
 
@@ -962,17 +938,17 @@ optional_rterm: /* empty */
 
 apply:
 	{
-		m_Apply.push(true);
-		m_SeenAssign.push(false);
-		m_Assign.push(NULL);
-		m_Ignore.push(NULL);
-		m_FKVar.push("");
-		m_FVVar.push("");
-		m_FTerm.push(NULL);
+		context->m_Apply.push(true);
+		context->m_SeenAssign.push(false);
+		context->m_Assign.push(NULL);
+		context->m_Ignore.push(NULL);
+		context->m_FKVar.push("");
+		context->m_FVVar.push("");
+		context->m_FTerm.push(NULL);
 	}
 	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm_scope
 	{
-		m_Apply.pop();
+		context->m_Apply.pop();
 
 		String type = $3;
 		free($3);
@@ -1007,16 +983,16 @@ apply:
 		exprl->MakeInline();
 
 		// assign && !ignore
-		if (!m_SeenAssign.top())
+		if (!context->m_SeenAssign.top())
 			BOOST_THROW_EXCEPTION(ConfigError("'apply' is missing 'assign'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
 
-		m_SeenAssign.pop();
+		context->m_SeenAssign.pop();
 
-		Expression *ignore = m_Ignore.top();
-		m_Ignore.pop();
+		Expression *ignore = context->m_Ignore.top();
+		context->m_Ignore.pop();
 
-		Expression *assign = m_Assign.top();
-		m_Assign.pop();
+		Expression *assign = context->m_Assign.top();
+		context->m_Assign.pop();
 
 		Expression *filter;
 
@@ -1027,14 +1003,14 @@ apply:
 		} else
 			filter = assign;
 
-		String fkvar = m_FKVar.top();
-		m_FKVar.pop();
+		String fkvar = context->m_FKVar.top();
+		context->m_FKVar.pop();
 
-		String fvvar = m_FVVar.top();
-		m_FVVar.pop();
+		String fvvar = context->m_FVVar.top();
+		context->m_FVVar.pop();
 
-		Expression *fterm = m_FTerm.top();
-		m_FTerm.pop();
+		Expression *fterm = context->m_FTerm.top();
+		context->m_FTerm.pop();
 
 		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, DebugInfoRange(@2, @7));
 	}
