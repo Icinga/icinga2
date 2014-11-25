@@ -565,15 +565,15 @@ combined_set_op: T_SET
 
 lterm: type
 	{
-		$$ = new LiteralExpression(); // ASTify this
+		$$ = MakeLiteral(); // ASTify this
 	}
 	| library
 	{
-		$$ = new LiteralExpression(); // ASTify this
+		$$ = MakeLiteral(); // ASTify this
 	}
 	| constant
 	{
-		$$ = new LiteralExpression(); // ASTify this
+		$$ = MakeLiteral(); // ASTify this
 	}
 	| T_LOCAL indexer combined_set_op rterm
 	{
