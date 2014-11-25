@@ -510,7 +510,7 @@ private:
 class I2_CONFIG_API DictExpression : public DebuggableExpression
 {
 public:
-	DictExpression(const std::vector<Expression *>& expressions, const DebugInfo& debugInfo = DebugInfo())
+	DictExpression(const std::vector<Expression *>& expressions = std::vector<Expression *>(), const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Expressions(expressions), m_Inline(false)
 	{ }
 

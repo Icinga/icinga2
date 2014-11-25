@@ -86,6 +86,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %defines
 %error-verbose
 
+%parse-param { std::vector<Expression *> *elist }
 %parse-param { ConfigCompiler *context }
 %lex-param { void *scanner }
 
@@ -177,11 +178,11 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <elist> indexer
 %type <elist> indexer_items
 %type <expr> indexer_item
-%type <elist> lterm_items
-%type <elist> lterm_items_inner
 %type <variant> typerulelist
 %type <csop> combined_set_op
 %type <type> type
+%type <elist> statements
+%type <expr> statement
 %type <expr> rterm
 %type <expr> rterm_without_indexer
 %type <expr> rterm_array
@@ -219,14 +220,14 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
-void yyerror(YYLTYPE *locp, ConfigCompiler *, const char *err)
+void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
 {
 	std::ostringstream message;
 	message << *locp << ": " << err;
 	ConfigCompilerContext::GetInstance()->AddMessage(true, message.str(), *locp);
 }
 
-int yyparse(ConfigCompiler *context);
+int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
 
 static std::stack<bool> m_Abstract;
 
@@ -241,7 +242,6 @@ static std::stack<Expression *> m_Ignore;
 static std::stack<String> m_FKVar;
 static std::stack<String> m_FVVar;
 static std::stack<Expression *> m_FTerm;
-static std::stack<std::vector<Expression *> > m_Expressions;
 
 Expression *ConfigCompiler::Compile(void)
 {
@@ -256,16 +256,14 @@ Expression *ConfigCompiler::Compile(void)
 	m_FKVar = std::stack<String>();
 	m_FVVar = std::stack<String>();
 	m_FTerm = std::stack<Expression *>();
-	m_Expressions.push(std::vector<Expression *>());
 
 	try {
-		if (yyparse(this) != 0) {
-			m_Expressions.pop();
-			return NULL;
-		}
+		std::vector<Expression *> elist;
 
-		DictExpression *expr = new DictExpression(m_Expressions.top());
-		m_Expressions.pop();
+		if (yyparse(&elist, this) != 0)
+			return NULL;
+
+		DictExpression *expr = new DictExpression(elist);
 		expr->MakeInline();
 		return expr;
 	} catch (const ConfigError& ex) {
@@ -275,8 +273,6 @@ Expression *ConfigCompiler::Compile(void)
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
 
-	m_Expressions.pop();
-
 	return NULL;
 }
 
@@ -285,16 +281,34 @@ Expression *ConfigCompiler::Compile(void)
 %}
 
 %%
-statements: newlines
-	| statement sep
-	| statements statement sep
+script: statements
+	{
+		elist->swap(*$1);
+		delete $1;
+	}
 	;
 
-statement: type | library | constant
-	{ }
-	| lterm
+statements: statement
 	{
-		m_Expressions.top().push_back($1);
+		$$ = new std::vector<Expression *>();
+		if ($1)
+			$$->push_back($1);
+	}
+	| statements statement
+	{
+		$$ = $1;
+		if ($2)
+			$$->push_back($2);
+	}
+	;
+
+statement: newlines
+	{
+		$$ = NULL;
+	}
+	| lterm sep
+	{
+		$$ = $1;
 	}
 	;
 
@@ -549,36 +563,19 @@ combined_set_op: T_SET
 	}
 	;
 
-lterm_items: /* empty */
+lterm: type
 	{
-		$$ = new std::vector<Expression *>();
+		$$ = new LiteralExpression(); // ASTify this
 	}
-	| lterm_items_inner
+	| library
 	{
-		$$ = $1;
+		$$ = new LiteralExpression(); // ASTify this
 	}
-	| lterm_items_inner sep
+	| constant
 	{
-		$$ = $1;
+		$$ = new LiteralExpression(); // ASTify this
 	}
-
-lterm_items_inner: lterm
-	{
-		$$ = new std::vector<Expression *>();
-		$$->push_back($1);
-	}
-	| lterm_items_inner sep lterm
-	{
-		if ($1)
-			$$ = $1;
-		else
-			$$ = new std::vector<Expression *>();
-
-		$$->push_back($3);
-	}
-	;
-
-lterm: T_LOCAL indexer combined_set_op rterm
+	| T_LOCAL indexer combined_set_op rterm
 	{
 		$$ = new SetExpression(*$2, $3, $4, true, DebugInfoRange(@1, @4));
 		delete $2;
@@ -715,22 +712,7 @@ rterm_array: '[' newlines rterm_items newlines ']'
 	}
 	;
 
-rterm_scope: '{' newlines lterm_items newlines '}'
-	{
-		$$ = new DictExpression(*$3, DebugInfoRange(@1, @5));
-		delete $3;
-	}
-	| '{' newlines lterm_items '}'
-	{
-		$$ = new DictExpression(*$3, DebugInfoRange(@1, @4));
-		delete $3;
-	}
-	| '{' lterm_items newlines '}'
-	{
-		$$ = new DictExpression(*$2, DebugInfoRange(@1, @4));
-		delete $2;
-	}
-	| '{' lterm_items '}'
+rterm_scope: '{' statements '}'
 	{
 		$$ = new DictExpression(*$2, DebugInfoRange(@1, @3));
 		delete $2;
