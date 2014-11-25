@@ -106,7 +106,7 @@ private:
 	void DestroyScanner(void);
 
 	friend int ::yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
-	friend int ::yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
+	friend int ::yyparse(std::vector<icinga::Expression *> *elist, ConfigCompiler *context);
 };
 
 class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>
