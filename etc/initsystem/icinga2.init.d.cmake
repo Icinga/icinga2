@@ -26,13 +26,24 @@ fi
 
 test -x $DAEMON || exit 5
 
-ICINGA2_USER=`$DAEMON variable get --current RunAsUser`
-ICINGA2_GROUP=`$DAEMON variable get --current RunAsGroup`
-
 if [ ! -e $ICINGA2_CONFIG_FILE ]; then
-        echo "Config file '$ICINGA2_CONFIG_FILE' does not exist."
+	echo "Config file '$ICINGA2_CONFIG_FILE' does not exist."
+	exit 6
+fi
+
+ICINGA2_USER=`$DAEMON variable get --current RunAsUser`
+if [ $? != 0 ]; then
+        echo "Could not fetch RunAsUser variable. Error '$ICINGA2_USER'. Exiting."
         exit 6
 fi
+
+ICINGA2_GROUP=`$DAEMON variable get --current RunAsGroup`
+if [ $? != 0 ]; then
+        echo "Could not fetch RunAsGroup variable. Error '$ICINGA2_GROUP'. Exiting."
+        exit 6
+fi
+
+getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || echo "Command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6
 
 # Get function from functions library
 if [ -f /etc/rc.d/init.d/functions ]; then

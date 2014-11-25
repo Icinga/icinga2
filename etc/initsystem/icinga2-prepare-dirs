@@ -12,8 +12,20 @@ else
 	exit 1
 fi
 
+
 ICINGA2_USER=`$DAEMON variable get --current RunAsUser`
+if [ $? != 0 ]; then
+        echo "Could not fetch RunAsUser variable. Error '$ICINGA2_USER'. Exiting."
+        exit 6
+fi
+
 ICINGA2_GROUP=`$DAEMON variable get --current RunAsGroup`
+if [ $? != 0 ]; then
+        echo "Could not fetch RunAsGroup variable. Error '$ICINGA2_GROUP'. Exiting."
+        exit 6
+fi
+
+getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || echo "Command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6
 
 mkdir -p $(dirname -- $ICINGA2_PID_FILE)
 chown $ICINGA2_USER:$ICINGA2_GROUP $(dirname -- $ICINGA2_PID_FILE)
