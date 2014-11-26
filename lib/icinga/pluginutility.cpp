@@ -36,12 +36,13 @@ struct CommandArgument
 {
 	int Order;
 	bool SkipKey;
+	bool RepeatKey;
 	bool SkipValue;
 	String Key;
-	String Value;
+	Value AValue;
 
 	CommandArgument(void)
-		: Order(0), SkipKey(false), SkipValue(false)
+		: Order(0), SkipKey(false), RepeatKey(true), SkipValue(false)
 	{ }
 
 	bool operator<(const CommandArgument& rhs) const
@@ -49,6 +50,35 @@ struct CommandArgument
 		return Order < rhs.Order;
 	}
 };
+
+void PluginUtility::AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value, bool add_key, bool add_value)
+{
+	if (add_key)
+		args->Add(key);
+
+	if (add_value)
+		args->Add(value);
+}
+
+Value PluginUtility::EscapeMacroShellArg(const Value& value)
+{
+	String result;
+
+	if (value.IsObjectType<Array>()) {
+		Array::Ptr arr = value;
+
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const Value& arg, arr) {
+			if (result.GetLength() > 0)
+				result += " ";
+
+			result += Utility::EscapeShellArg(arg);
+		}	
+	} else
+		result = Utility::EscapeShellArg(value);
+
+	return result;
+}
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
     const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
@@ -61,7 +91,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	Value command;
 	if (!raw_arguments || raw_command.IsObjectType<Array>())
 		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL,
-		    Utility::EscapeShellArg, resolvedMacros, useResolvedMacros);
+		    PluginUtility::EscapeMacroShellArg, resolvedMacros, useResolvedMacros);
 	else {
 		Array::Ptr arr = new Array();
 		arr->Add(raw_command);
@@ -83,10 +113,14 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 			if (arginfo.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr argdict = arginfo;
+				if (argdict->Contains("key"))
+					arg.Key = argdict->Get("key");
 				argval = argdict->Get("value");
 				if (argdict->Contains("required"))
 					required = argdict->Get("required");
 				arg.SkipKey = argdict->Get("skip_key");
+				if (argdict->Contains("repeat_key"))
+					arg.RepeatKey = argdict->Get("repeat_key");
 				arg.Order = argdict->Get("order");
 
 				String set_if = argdict->Get("set_if");
@@ -118,7 +152,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 				arg.SkipValue = true;
 
 			String missingMacro;
-			arg.Value = MacroProcessor::ResolveMacros(argval, macroResolvers,
+			arg.AValue = MacroProcessor::ResolveMacros(argval, macroResolvers,
 			    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
 			    useResolvedMacros);
 
@@ -152,11 +186,32 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 		Array::Ptr command_arr = command;
 		BOOST_FOREACH(const CommandArgument& arg, args) {
-			if (!arg.SkipKey)
-				command_arr->Add(arg.Key);
+			Array::Ptr arr;
 
-			if (!arg.SkipValue)
-				command_arr->Add(arg.Value);
+			if (arg.AValue.IsString())
+				AddArgumentHelper(command_arr, arg.Key, arg.AValue, !arg.SkipKey, !arg.SkipValue);
+			else if (arg.AValue.IsObjectType<Array>())
+				arr = static_cast<Array::Ptr>(arg.AValue);
+			else
+				continue;
+
+			if (arr) {
+				bool first = true;
+
+				ObjectLock olock(arr);
+				BOOST_FOREACH(const Value& value, arr) {
+					bool add_key;
+
+					if (first) {
+						first = false;
+						add_key = !arg.SkipKey;
+					} else
+						add_key = !arg.SkipKey && arg.RepeatKey;
+						
+
+					AddArgumentHelper(command_arr, arg.Key, value, add_key, !arg.SkipValue);
+				}
+			}
 		}
 	}
 
@@ -172,6 +227,9 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
 			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros,
 			    useResolvedMacros);
+
+			if (value.IsObjectType<Array>())
+				value = Utility::Join(value, ';');
 
 			envMacros->Set(kv.first, value);
 		}

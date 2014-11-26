@@ -63,7 +63,7 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const;
 
 protected:
 	virtual void Stop(void);

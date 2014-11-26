@@ -117,11 +117,11 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	String prefix;
 
 	if (service) {
-		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, &GraphiteWriter::EscapeMetric);
+		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, &GraphiteWriter::EscapeMacroMetric);
 
 		SendMetric(prefix, "state", service->GetState());
 	} else {
-		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, NULL, &GraphiteWriter::EscapeMetric);
+		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, NULL, &GraphiteWriter::EscapeMacroMetric);
 
 		SendMetric(prefix, "state", host->GetState());
 	}
@@ -213,4 +213,20 @@ String GraphiteWriter::EscapeMetric(const String& str)
 	boost::replace_all(result, "/", "_");
 
 	return result;
+}
+
+Value GraphiteWriter::EscapeMacroMetric(const Value& value)
+{
+	if (value.IsObjectType<Array>()) {
+		Array::Ptr arr = value;
+		Array::Ptr result = new Array();
+
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const Value& arg, arr) {
+			result->Add(EscapeMetric(arg));
+		}
+
+		return Utility::Join(result, '.');
+	} else
+		return EscapeMetric(value);
 }

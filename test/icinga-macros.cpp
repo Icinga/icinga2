@@ -17,48 +17,39 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef MACROPROCESSOR_H
-#define MACROPROCESSOR_H
+#include "icinga/macroprocessor.hpp"
+#include <boost/test/unit_test.hpp>
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/checkable.hpp"
-#include "base/value.hpp"
-#include <boost/function.hpp>
-#include <vector>
+using namespace icinga;
 
-namespace icinga
+BOOST_AUTO_TEST_SUITE(icinga_macros)
+
+BOOST_AUTO_TEST_CASE(simple)
 {
+	Dictionary::Ptr macrosA = new Dictionary();
+	macrosA->Set("testA", 7);
+	macrosA->Set("testB", "hello");
 
-/**
- * Resolves macros.
- *
- * @ingroup icinga
- */
-class I2_ICINGA_API MacroProcessor
-{
-public:
-	typedef boost::function<Value (const Value&)> EscapeCallback;
-	typedef std::pair<String, Object::Ptr> ResolverSpec;
-	typedef std::vector<ResolverSpec> ResolverList;
+	Dictionary::Ptr macrosB = new Dictionary();
+	macrosB->Set("testA", 3);
+	macrosB->Set("testC", "world");
 
-	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,
-	    const CheckResult::Ptr& cr = CheckResult::Ptr(), String *missingMacro = NULL,
-	    const EscapeCallback& escapeFn = EscapeCallback(),
-	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
-	    bool useResolvedMacros = false);
+	Array::Ptr testD = new Array();
+	testD->Add(3);
+	testD->Add("test");
 
-private:
-	MacroProcessor(void);
+	macrosB->Set("testD", testD);
 
-	static bool ResolveMacro(const String& macro, const ResolverList& resolvers,
-		const CheckResult::Ptr& cr, Value *result, bool *recursive_macro);
-	static Value InternalResolveMacros(const String& str,
-	    const ResolverList& resolvers, const CheckResult::Ptr& cr,
-	    String *missingMacro, const EscapeCallback& escapeFn,
-	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
-	    int recursionLevel = 0);
-};
+	MacroProcessor::ResolverList resolvers;
+	resolvers.push_back(std::make_pair("macrosA", macrosA));
+	resolvers.push_back(std::make_pair("macrosB", macrosB));
+
+	BOOST_CHECK(MacroProcessor::ResolveMacros("$macrosA.testB$ $macrosB.testC$", resolvers) == "hello world");
+	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$", resolvers) == "7");
+
+	Array::Ptr result = MacroProcessor::ResolveMacros("$testD$", resolvers);
+	BOOST_CHECK(result->GetLength() == 2);
 
 }
 
-#endif /* MACROPROCESSOR_H */
+BOOST_AUTO_TEST_SUITE_END()

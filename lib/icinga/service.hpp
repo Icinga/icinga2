@@ -43,7 +43,7 @@ public:
 
 	Host::Ptr GetHost(void) const;
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const;
 
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);

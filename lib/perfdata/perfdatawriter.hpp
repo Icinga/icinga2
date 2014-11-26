@@ -47,6 +47,7 @@ protected:
 
 private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	static Value EscapeMacroMetric(const Value& value);
 
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler(void);

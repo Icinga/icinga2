@@ -66,7 +66,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 }
 
 bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, String *result, bool *recursive_macro)
+    const CheckResult::Ptr& cr, Value *result, bool *recursive_macro)
 {
 	CONTEXT("Resolving macro '" + macro + "'");
 
@@ -92,12 +92,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 				Dictionary::Ptr vars = dobj->GetVars();
 
 				if (vars && vars->Contains(macro)) {
-					Value value = vars->Get(macro);
-
-					if (value.IsObjectType<Array>())
-						value = Utility::Join(value, ';');
-
-					*result = value;
+					*result = vars->Get(macro);
 					*recursive_macro = true;
 					return true;
 				}
@@ -150,9 +145,6 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			    tokens[0] == "notes")
 				*recursive_macro = true;
 
-			if (ref.IsObjectType<Array>())
-				ref = Utility::Join(ref, ';');
-
 			*result = ref;
 			return true;
 		}
@@ -161,7 +153,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 	return false;
 }
 
-String MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
+Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
     const CheckResult::Ptr& cr, String *missingMacro,
     const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
     bool useResolvedMacros, int recursionLevel)
@@ -183,7 +175,7 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 
 		String name = result.SubStr(pos_first + 1, pos_second - pos_first - 1);
 
-		String resolved_macro;
+		Value resolved_macro;
 		bool recursive_macro;
 		bool found;
 
@@ -211,10 +203,24 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 		}
 
 		/* recursively resolve macros in the macro if it was a user macro */
-		if (recursive_macro)
-			resolved_macro = InternalResolveMacros(resolved_macro,
-			    resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
-			    false, recursionLevel + 1);
+		if (recursive_macro) {
+			if (resolved_macro.IsObjectType<Array>()) {
+				Array::Ptr arr = resolved_macro;
+				Array::Ptr result = new Array();
+
+				ObjectLock olock(arr);
+				BOOST_FOREACH(Value& value, arr) {
+					result->Add(InternalResolveMacros(value,
+						resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+						false, recursionLevel + 1));
+				}
+
+				resolved_macro = result;
+			} else
+				resolved_macro = InternalResolveMacros(resolved_macro,
+					resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+					false, recursionLevel + 1);
+		}
 
 		if (!useResolvedMacros && found && resolvedMacros)
 			resolvedMacros->Set(name, resolved_macro);
@@ -222,8 +228,19 @@ String MacroProcessor::InternalResolveMacros(const String& str, const ResolverLi
 		if (escapeFn)
 			resolved_macro = escapeFn(resolved_macro);
 
+		/* we're done if the value is an array */
+		if (resolved_macro.IsObjectType<Array>()) {
+			/* don't allow mixing strings and arrays in macro strings */
+			if (pos_first != 0 || pos_second != str.GetLength() - 1)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Mixing both strings and non-strings in macros is not allowed."));
+
+			return resolved_macro;
+		}
+
+		String resolved_macro_str = resolved_macro;
+
 		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro);
-		offset = pos_first + resolved_macro.GetLength() + 1;
+		offset = pos_first + resolved_macro_str.GetLength() + 1;
 	}
 
 	return result;

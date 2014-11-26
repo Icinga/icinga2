@@ -55,6 +55,7 @@ private:
 	void SendMetric(const String& prefix, const String& name, double value);
 	void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr);
 	static String EscapeMetric(const String& str);
+	static Value EscapeMacroMetric(const Value& value);
 
 	void ReconnectTimerHandler(void);
 };
