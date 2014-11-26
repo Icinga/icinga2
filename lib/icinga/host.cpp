@@ -204,7 +204,7 @@ String Host::StateTypeToString(StateType type)
 		return "HARD";
 }
 
-bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
+bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *result) const
 {
 	if (macro == "state") {
 		*result = StateToString(GetState());

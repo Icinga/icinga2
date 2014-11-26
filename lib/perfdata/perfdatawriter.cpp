@@ -64,6 +64,14 @@ void PerfdataWriter::Start(void)
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
+Value PerfdataWriter::EscapeMacroMetric(const Value& value)
+{
+	if (value.IsObjectType<Array>())
+		return Utility::Join(value, ';');
+	else
+		return value;
+}
+
 void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	CONTEXT("Writing performance data for object '" + checkable->GetName() + "'");
@@ -86,7 +94,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
 	if (service) {
-		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr);
+		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, NULL, &PerfdataWriter::EscapeMacroMetric);
 
 		{
 			ObjectLock olock(this);
@@ -96,7 +104,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			m_ServiceOutputFile << line << "\n";
 		}
 	} else {
-		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr);
+		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, NULL, &PerfdataWriter::EscapeMacroMetric);
 
 		{
 			ObjectLock olock(this);

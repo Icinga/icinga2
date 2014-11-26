@@ -50,7 +50,7 @@ public:
 	Dictionary::Ptr GetVars(void) const;
 	String GetNodeName(void) const;
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const;
 
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);

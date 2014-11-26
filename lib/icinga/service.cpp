@@ -129,7 +129,7 @@ String Service::StateTypeToString(StateType type)
 		return "HARD";
 }
 
-bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, String *result) const
+bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const
 {
 	if (macro == "state") {
 		*result = StateToString(GetState());

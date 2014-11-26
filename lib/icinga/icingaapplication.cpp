@@ -147,7 +147,7 @@ String IcingaApplication::GetNodeName(void) const
 	return ScriptVariable::Get("NodeName");
 }
 
-bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, String *result) const
+bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *result) const
 {
 	double now = Utility::GetTime();
 
