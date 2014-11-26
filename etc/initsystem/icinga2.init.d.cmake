@@ -43,7 +43,9 @@ if [ $? != 0 ]; then
         exit 6
 fi
 
-getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || echo "Command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6
+getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER' does not exist. Exiting." && exit 6)
+getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
+getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
 
 # Get function from functions library
 if [ -f /etc/rc.d/init.d/functions ]; then
