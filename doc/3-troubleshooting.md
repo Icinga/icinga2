@@ -19,7 +19,7 @@ For a more verbose output of the Icinga 2 daemon increase the
 Run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
-    # /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -x notice
+    # /usr/sbin/icinga2 daemon -c /etc/icinga2/icinga2.conf -x notice
 
 Additionally you can enable the debug log using
 
