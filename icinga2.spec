@@ -84,6 +84,9 @@ Group:        Applications/System
 PreReq:        permissions
 Provides:      monitoring_daemon
 Recommends:    monitoring-plugins
+%if 0%{?suse_version} >= 1310
+BuildRequires: libyajl-devel
+%endif
 %endif
 BuildRequires: openssl-devel
 BuildRequires: gcc-c++
@@ -98,6 +101,10 @@ BuildRequires: make
 BuildRequires: boost141-devel
 %else
 BuildRequires: boost-devel >= 1.41
+%endif
+
+%if 0%{?el6}
+BuildRequires: yajl-devel
 %endif
 
 %if 0%{?use_systemd}
