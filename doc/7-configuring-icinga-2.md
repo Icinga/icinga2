@@ -2309,6 +2309,7 @@ snmpv3_priv_key   | **Required.** The encryption key.
 snmpv3_oid        | **Required.** The SNMP OID.
 snmpv3_warn       | **Optional.** The warning threshold.
 snmpv3_crit       | **Optional.** The critical threshold.
+snmpv3_label      | **Optional.** Prefix label for output value.
 
 #### <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
 
@@ -2576,6 +2577,7 @@ snmp_warn                   | **Optional.** The warning threshold.
 snmp_crit                   | **Optional.** The critical threshold.
 snmp_interface              | **Optional.** Network interface name. Default to regex "eth0".
 snmp_interface_perf         | **Optional.** Check the input/ouput bandwidth of the interface. Defaults to "true".
+snmp_interface_label        | **Optional.** Add label before speed in output: in=, out=, errors-out=, etc...
 snmp_interface_bits_bytes   | **Optional.** Output performance data in bits/s or Bytes/s. **Depends** on snmp_interface_kbits set to "true". Defaults to "true".
 snmp_interface_percent      | **Optional.** Output performance data in % of max speed. Defaults to "false".
 snmp_interface_kbits        | **Optional.** Make the warning and critical levels in KBits/s. Defaults to "true".
