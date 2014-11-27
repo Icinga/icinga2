@@ -69,8 +69,6 @@ do {							\
 
 using namespace icinga;
 
-int ignore_newlines = 0;
-
 template<typename T>
 static void MakeRBinaryOp(Expression** result, Expression *left, Expression *right, DebugInfo& diLeft, DebugInfo& diRight)
 {
@@ -230,32 +228,21 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
 {
-	std::ostringstream message;
-	message << *locp << ": " << err;
-	ConfigCompilerContext::GetInstance()->AddMessage(true, message.str(), *locp);
+	BOOST_THROW_EXCEPTION(ConfigError(err) << errinfo_debuginfo(*locp));
 }
 
 int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
 
 Expression *ConfigCompiler::Compile(void)
 {
-	try {
-		std::vector<Expression *> elist;
+	std::vector<Expression *> elist;
 
-		if (yyparse(&elist, this) != 0)
-			return NULL;
+	if (yyparse(&elist, this) != 0)
+		return NULL;
 
-		DictExpression *expr = new DictExpression(elist);
-		expr->MakeInline();
-		return expr;
-	} catch (const ConfigError& ex) {
-		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
-	} catch (const std::exception& ex) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
-	}
-
-	return NULL;
+	DictExpression *expr = new DictExpression(elist);
+	expr->MakeInline();
+	return expr;
 }
 
 #define scanner (context->GetScanner())
@@ -788,11 +775,11 @@ rterm_without_indexer: T_STRING
 	}
 	| '('
 	{
-		ignore_newlines++;
+		context->m_IgnoreNewlines++;
 	}
 	rterm ')'
 	{
-		ignore_newlines--;
+		context->m_IgnoreNewlines--;
 		$$ = $3;
 	}
 	| rterm T_LOGICAL_OR rterm { MakeRBinaryOp<LogicalOrExpression>(&$$, $1, $3, @1, @3); }

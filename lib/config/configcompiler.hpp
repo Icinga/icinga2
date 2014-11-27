@@ -81,12 +81,17 @@ public:
 	void *GetScanner(void) const;
 
 private:
+	boost::promise<boost::shared_ptr<Expression> > m_Promise;
+
 	String m_Path;
 	std::istream *m_Input;
 	String m_Zone;
 
 	void *m_Scanner;
 	bool m_Eof;
+
+	int m_IgnoreNewlines;
+	std::ostringstream m_LexBuffer;
 
 	std::stack<TypeRuleList::Ptr> m_RuleLists;
 	ConfigType::Ptr m_Type;
@@ -104,6 +109,8 @@ private:
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
+
+	void CompileHelper(void);
 
 	friend int ::yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
 	friend int ::yyparse(std::vector<icinga::Expression *> *elist, ConfigCompiler *context);

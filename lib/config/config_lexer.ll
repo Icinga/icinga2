@@ -60,54 +60,6 @@ do {							\
 do {							\
 	result = yyextra->ReadInput(buf, max_size);	\
 } while (0)
-
-extern int ignore_newlines;
-
-struct lex_buf {
-	char *buf;
-	size_t size;
-};
-
-static void lb_init(lex_buf *lb)
-{
-	lb->buf = NULL;
-	lb->size = 0;
-}
-
-/*static void lb_cleanup(lex_buf *lb)
-{
-	free(lb->buf);
-}*/
-
-static void lb_append_char(lex_buf *lb, char new_char)
-{
-	const size_t block_size = 64;
-
-	size_t old_blocks = (lb->size + (block_size - 1)) / block_size;
-	size_t new_blocks = ((lb->size + 1) + (block_size - 1)) / block_size;
-
-	if (old_blocks != new_blocks) {
-		char *new_buf = (char *)realloc(lb->buf, new_blocks * block_size);
-
-		if (new_buf == NULL && new_blocks > 0)
-			throw std::bad_alloc();
-
-		lb->buf = new_buf;
-	}
-
-	lb->size++;
-	lb->buf[lb->size - 1] = new_char;
-}
-
-static char *lb_steal(lex_buf *lb)
-{
-	lb_append_char(lb, '\0');
-
-	char *buf = lb->buf;
-	lb->buf = NULL;
-	lb->size = 0;
-	return buf;
-}
 %}
 
 %option reentrant noyywrap yylineno
@@ -120,25 +72,19 @@ static char *lb_steal(lex_buf *lb)
 %x HEREDOC
 
 %%
-	lex_buf string_buf;
-
-\"				{ lb_init(&string_buf); BEGIN(STRING); }
+\"				{ yyextra->m_LexBuffer.str(""); yyextra->m_LexBuffer.clear(); BEGIN(STRING); }
 
 <STRING>\"			{
 	BEGIN(INITIAL);
 
-	lb_append_char(&string_buf, '\0');
-
-	yylval->text = lb_steal(&string_buf);
+	std::string str = yyextra->m_LexBuffer.str();
+	yylval->text = strdup(str.c_str());
 
 	return T_STRING;
 				}
 
 <STRING>\n			{
-	std::ostringstream msgbuf;
-	msgbuf << "Unterminated string found: " << *yylloc;
-	ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
-	BEGIN(INITIAL);
+	BOOST_THROW_EXCEPTION(ConfigError("Unterminated string literal") << errinfo_debuginfo(*yylloc));
 				}
 
 <STRING>\\[0-7]{1,3}		{
@@ -149,50 +95,45 @@ static char *lb_steal(lex_buf *lb)
 
 	if (result > 0xff) {
 		/* error, constant is out-of-bounds */
-		std::ostringstream msgbuf;
-		msgbuf << "Constant is out-of-bounds: " << yytext << " " << *yylloc;
-		ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
+		BOOST_THROW_EXCEPTION(ConfigError("Constant is out of bounds: " + String(yytext)) << errinfo_debuginfo(*yylloc));
 	}
 
-	lb_append_char(&string_buf, result);
+	yyextra->m_LexBuffer << static_cast<char>(result);
 				}
 
 <STRING>\\[0-9]+		{
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
-	std::ostringstream msgbuf;
-	msgbuf << "Bad escape sequence found: " << yytext << " " << *yylloc;
-	ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
+	BOOST_THROW_EXCEPTION(ConfigError("Bad escape sequence found: " + String(yytext)) << errinfo_debuginfo(*yylloc));
 				}
 
-<STRING>\\n			{ lb_append_char(&string_buf, '\n'); }
-<STRING>\\t			{ lb_append_char(&string_buf, '\t'); }
-<STRING>\\r			{ lb_append_char(&string_buf, '\r'); }
-<STRING>\\b			{ lb_append_char(&string_buf, '\b'); }
-<STRING>\\f			{ lb_append_char(&string_buf, '\f'); }
-<STRING>\\(.|\n)		{ lb_append_char(&string_buf, yytext[1]); }
+<STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
+<STRING>\\t			{ yyextra->m_LexBuffer << "\t"; }
+<STRING>\\r			{ yyextra->m_LexBuffer << "\r"; }
+<STRING>\\b			{ yyextra->m_LexBuffer << "\b"; }
+<STRING>\\f			{ yyextra->m_LexBuffer << "\f"; }
+<STRING>\\(.|\n)		{ yyextra->m_LexBuffer << yytext[1]; }
 
 <STRING>[^\\\n\"]+		{
 	char *yptr = yytext;
 
 	while (*yptr)
-		lb_append_char(&string_buf, *yptr++);
+		yyextra->m_LexBuffer << *yptr++;
 		       	       }
 
-\{\{\{				{ lb_init(&string_buf); BEGIN(HEREDOC); }
+\{\{\{				{ yyextra->m_LexBuffer.str(""); yyextra->m_LexBuffer.clear(); BEGIN(HEREDOC); }
 
 <HEREDOC>\}\}\}			{
 	BEGIN(INITIAL);
 
-	lb_append_char(&string_buf, '\0');
-
-	yylval->text = lb_steal(&string_buf);
+	std::string str = yyextra->m_LexBuffer.str();
+	yylval->text = strdup(str.c_str());
 
 	return T_STRING;
 				}
 
-<HEREDOC>(.|\n)			{ lb_append_char(&string_buf, yytext[0]); }
+<HEREDOC>(.|\n)			{ yyextra->m_LexBuffer << yytext[0]; }
 
 <INITIAL>{
 "/*"				BEGIN(C_COMMENT);
@@ -205,10 +146,7 @@ static char *lb_steal(lex_buf *lb)
 }
 
 <C_COMMENT><<EOF>>              {
-		std::ostringstream msgbuf;
-		msgbuf << "End-of-file while in comment: " << yytext << " " << *yylloc;
-		ConfigCompilerContext::GetInstance()->AddMessage(true, msgbuf.str());
-		yyterminate();
+		BOOST_THROW_EXCEPTION(ConfigError("End-of-file while in comment") << errinfo_debuginfo(*yylloc));
 		       	        }
 
 
@@ -294,7 +232,7 @@ in				return T_IN;
 \>				return T_GREATER_THAN;
 }
 
-[\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!ignore_newlines) return T_NEWLINE; }
+[\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!yyextra->m_IgnoreNewlines) return T_NEWLINE; }
 <<EOF>>				{ if (!yyextra->m_Eof) { yyextra->m_Eof = true; return T_NEWLINE; } else { yyterminate(); } }
 .				return yytext[0];
 

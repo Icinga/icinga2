@@ -69,6 +69,8 @@ void ThreadPool::Stop(void)
 	}
 
 	m_ThreadGroup.join_all();
+
+	m_Stopped = false;
 }
 
 /**
