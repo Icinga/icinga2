@@ -19,7 +19,7 @@ file(GLOB DOCSRCS "*.md")
 
 if(UNIX OR CYGWIN)
   install(
-    FILES icinga2.8 icinga2-prepare-dirs.8
+    FILES icinga2.8
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man8
   )
 endif()
