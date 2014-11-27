@@ -24,6 +24,7 @@
 #include "base/tlsutility.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
+#include "base/scriptvariable.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/stdiostream.hpp"
@@ -53,6 +54,20 @@ String NodeUtility::GetNodeRepositoryFile(const String& name)
 String NodeUtility::GetNodeSettingsFile(const String& name)
 {
 	return GetRepositoryPath() + "/" + SHA256(name) + ".settings";
+}
+
+void NodeUtility::CreateRepositoryPath(void)
+{
+	if (!Utility::PathExists(GetRepositoryPath()))
+		Utility::MkDirP(GetRepositoryPath(), 0750);
+
+	String user = ScriptVariable::Get("RunAsUser");
+        String group = ScriptVariable::Get("RunAsGroup");
+
+        if (!Utility::SetFileOwnership(GetRepositoryPath(), user, group)) {
+                Log(LogWarning, "cli")
+                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << GetRepositoryPath() << "'. Verify it yourself!";
+	}
 }
 
 std::vector<String> NodeUtility::GetNodeCompletionSuggestions(const String& word)
@@ -147,6 +162,7 @@ void NodeUtility::AddNode(const String& name)
 	node->Set("zone", name);
 	node->Set("repository", Empty);
 
+	CreateRepositoryPath();
 	Utility::SaveJsonFile(path, node);
 }
 
@@ -159,6 +175,7 @@ void NodeUtility::AddNodeSettings(const String& name, const String& host,
 	settings->Set("port", port);
 	settings->Set("log_duration", log_duration);
 
+	CreateRepositoryPath();
 	Utility::SaveJsonFile(GetNodeSettingsFile(name), settings);
 }
 
@@ -444,6 +461,7 @@ int NodeUtility::UpdateBlackAndWhiteList(const String& type, const String& zone_
 	lists->Add(new_filter);
 
 	String list_path = GetBlackAndWhiteListPath(type);
+	CreateRepositoryPath();
 	Utility::SaveJsonFile(list_path, lists);
 
 	return 0;
@@ -488,6 +506,7 @@ int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& zone_
 	}
 
 	String list_path = GetBlackAndWhiteListPath(type);
+	CreateRepositoryPath();
 	Utility::SaveJsonFile(list_path, lists);
 
 	return 0;
