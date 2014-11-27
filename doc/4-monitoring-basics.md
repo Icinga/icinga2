@@ -943,8 +943,8 @@ definition based on these required parameters and/or default values.
 
 #### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
 
-Unlike Icinga 1.x check command parameters are defined as custom attributes
-which can be accessed as runtime macros by the executed check command.
+Check command parameters are defined as custom attributes which can be accessed as runtime macros
+by the executed check command.
 
 Define the default check command custom attribute `disk_wfree` and `disk_cfree`
 (freely definable naming schema) and their default threshold values. You can
@@ -961,7 +961,6 @@ The default custom attributes can be overridden by the custom attributes
 defined in the service using the check command `my-disk`. The custom attributes
 can also be inherited from a parent template using additive inheritance (`+=`).
 
-
     object CheckCommand "my-disk" {
       import "plugin-check-command"
 
@@ -970,33 +969,54 @@ can also be inherited from a parent template using additive inheritance (`+=`).
       arguments = {
         "-w" = "$disk_wfree$%"
         "-c" = "$disk_cfree$%"
+        "-W" = "$disk_inode_wfree$%"
+        "-K" = "$disk_inode_cfree$%"
+        "-p" = "$disk_partitions$"
+        "-x" = "$disk_partitions_excluded$"
       }
 
       vars.disk_wfree = 20
       vars.disk_cfree = 10
     }
 
+> **Note**
+>
+> A proper example for the `check_disk` plugin is already shipped with Icinga 2
+> ready to use with the [plugin check commands](#plugin-check-command-disk).
 
-The host `localhost` with the service `my-disk` checks all disks with modified
-custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
+The host `localhost` with the applied service `basic-partitions` checks a basic set of disk partitions
+with modified custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
 free disk space).
 
-    object Host "localhost" {
-      import "generic-host"
+The custom attribute `disk_partition` can either hold a single string or an array of
+string values for passing multiple partitions to the `check_disk` check plugin.
 
+    object Host "my-server" {
+      import "generic-host"
       address = "127.0.0.1"
       address6 = "::1"
+
+      vars.local_disks["basic-partitions"] = {
+        disk_partitions = [ "/", "/tmp", "/var", "/home" ]
+      }
     }
 
-    object Service "my-disk" {
+    apply Service for (disk => config in host.vars.local_disks) {
       import "generic-service"
-
-      host_name = "localhost"
       check_command = "my-disk"
+
+      vars += config
 
       vars.disk_wfree = 10
       vars.disk_cfree = 5
+
+      assign where host.vars.local_disks
     }
+
+
+More details on using arrays in custom attributes can be found in
+[this chapter](#runtime-custom-attributes).
+
 
 #### <a id="command-arguments"></a> Command Arguments
 
@@ -1049,6 +1069,10 @@ line.
 If the `vars.http_ssl` custom attribute is set in the service, host or command
 object definition, Icinga 2 will add the `-S` argument based on the `set_if`
 numeric value to the command line. String values are not supported.
+
+If the macro value cannot be resolved, Icinga 2 will not add the defined argument
+to the final command argument array. Empty strings for macro values won't omit
+the argument.
 
 That way you can use the `check_http` command definition for both, with and
 without SSL enabled checks saving you duplicated command definitions.
@@ -1701,52 +1725,100 @@ it is escaped like this: `entry1;ent\;ry2;entry3`.
 Custom attributes may be used in command definitions to dynamically change how the command
 is executed.
 
-Additionally there are Icinga 2 features such as the `PerfDataWriter` type
+Additionally there are Icinga 2 features such as the [PerfDataWriter](#performance-data) feature
 which use custom runtime attributes to format their output.
 
 > **Tip**
 >
-> Custom attributes are identified by the 'vars' dictionary attribute as short name.
-> Accessing the different attribute keys is possible using the '.' accessor.
+> Custom attributes are identified by the `vars` dictionary attribute as short name.
+> Accessing the different attribute keys is possible using the [index accessor](#indexer) `.`.
 
 Custom attributes in command definitions or performance data templates are evaluated at
-runtime when executing a command. These custom attributes cannot be used elsewhere
-(e.g. in other configuration attributes).
+runtime when executing a command. These custom attributes cannot be used somewhere else
+for example in other configuration attributes.
 
-Custom attribute values must be either a string, a number or a boolean value. Arrays
-and dictionaries cannot be used.
+Custom attribute values must be either a string, a number, a boolean value or an array.
+Dictionaries cannot be used at the time of writing.
 
-Here is an example of a command definition which uses user-defined custom attributes:
+Arrays can be used to pass multiple arguments with or without repeating the key string.
+This helps passing multiple parameters to check plugins requiring them. Prominent
+plugin examples are:
 
-    object CheckCommand "my-ping" {
+* [check_disk -p](#plugin-check-command-disk)
+* [check_nrpe -a](#plugin-check-command-nrpe)
+* [check_nscp -l](#plugin-check-command-nscp)
+* [check_dns -a](#plugin-check-command-dns)
+
+More details on how to use `repeat_key` and other command argument options can be
+found in [this section](#objecttype-checkcommand-arguments).
+
+> **Note**
+>
+> If a macro value cannot be resolved, be it a single macro, or a recursive macro
+> containing an array of macros, the entire command argument is skipped.
+
+This is an example of a command definition which uses user-defined custom attributes:
+
+    object CheckCommand "my-icmp" {
       import "plugin-check-command"
-
-      command = [
-        PluginDir + "/check_ping", "-4"
-      ]
+      command = [ "/bin/sudo", PluginDir + "/check_icmp" ]
 
       arguments = {
-        "-H" = "$ping_address$"
-        "-w" = "$ping_wrta$,$ping_wpl$%"
-        "-c" = "$ping_crta$,$ping_cpl$%"
-        "-p" = "$ping_packets$"
-        "-t" = "$ping_timeout$"
+        "-H" = {
+          value = "$icmp_targets$"
+          repeat_key = false
+          order = 1
+        }
+        "-w" = "$icmp_wrta$,$icmp_wpl$%"
+        "-c" = "$icmp_crta$,$icmp_cpl$%"
+        "-s" = "$icmp_source$"
+        "-n" = "$icmp_packets$"
+        "-i" = "$icmp_packet_interval$"
+        "-I" = "$icmp_target_interval$"
+        "-m" = "$icmp_hosts_alive$"
+        "-b" = "$icmp_data_bytes$"
+        "-t" = "$icmp_timeout$"
       }
 
-      vars.ping_address = "$address$"
-      vars.ping_wrta = 100
-      vars.ping_wpl = 5
-      vars.ping_crta = 200
-      vars.ping_cpl = 15
-      vars.ping_packets = 5
-      vars.ping_timeout = 0
+      vars.icmp_wrta = 200.00
+      vars.icmp_wpl = 40
+      vars.icmp_crta = 500.00
+      vars.icmp_cpl = 80
+
+      vars.notes = "Requires setuid root or sudo."
     }
 
-Custom attribute names used at runtime must be enclosed in two `$` signs, e.g.
-`$address$`. When using the `$` sign as single character, you need to escape
-it with an additional dollar sign (`$$`). This example also makes use of the
-[command arguments](#command-arguments) passed to the command line. `-4` must
-be added as additional array key.
+Custom attribute names used at runtime must be enclosed in two `$` signs,
+for example `$address$`.
+
+> **Note**
+>
+> When using the `$` sign as single character, you need to escape it with an
+> additional dollar sign (`$$`).
+
+This example also makes use of the [command arguments](#command-arguments) passed
+to the command line.
+
+You can integrate the above example `CheckCommand` definition
+[passing command argument parameters](#command-passing-parameters) like this:
+
+    object Host "my-icmp-host" {
+      import "generic-host"
+      address = "192.168.1.10"
+      vars.address_mgmt = "192.168.2.10"
+      vars.address_web = "192.168.10.10"
+      vars.icmp_targets = [ "$address$", "$host.vars.address_mgmt$", "$host.vars.address_web$" ]
+    }
+
+    apply Service "my-icmp" {
+      check_command = "icmp"
+      check_interval = 1m
+      retry_interval = 30s
+
+      vars.icmp_targets = host.vars.icmp_targets
+
+      assign where host.vars.icmp_targets
+    }
 
 ### <a id="runtime-custom-attributes-evaluation-order"></a> Runtime Custom Attributes Evaluation Order
 

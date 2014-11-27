@@ -516,7 +516,7 @@ check.
         /* No parameters. */
       }
       vars.disks["disk /"] = {
-        disk_partition = "/"
+        disk_partitions = "/"
       }
 
       /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
