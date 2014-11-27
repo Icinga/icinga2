@@ -1,59 +1,55 @@
-.TH ICINGA2 "8" "June 2014" "icinga2 - The Icinga 2 network monitoring daemon." "System Administration Utilities"
-
+.TH ICINGA2 "1" "November 2014" "icinga2 - The Icinga 2 network monitoring daemon" "System Administration Utilities"
 .SH NAME
-icinga2 \- The Icinga 2 networking monitoring daemon.
-
+icinga2 \- manual page for icinga2 - The Icinga 2 network monitoring daemon
 .SH DESCRIPTION
-icinga2 \- The Icinga 2 network monitoring daemon.
-
-.SH OPTIONS
+icinga2 \- The Icinga 2 network monitoring daemon
+.SS "Usage:"
+.IP
+icinga2 daemon [<arguments>]
+.PP
+Starts Icinga 2.
+.SS "Global options:"
 .TP
-\fB\-\-help\fR
+\fB\-h\fR [ \fB\-\-help\fR ]
 show this help message
 .TP
 \fB\-V\fR [ \fB\-\-version\fR ]
 show version information
+.TP
+\fB\-\-color\fR
+use VT100 color codes even when stdout is not a terminal
+.TP
+\fB\-D\fR [ \fB\-\-define\fR ] arg
+define a constant
 .TP
 \fB\-l\fR [ \fB\-\-library\fR ] arg
 load a library
 .TP
 \fB\-I\fR [ \fB\-\-include\fR ] arg
 add include search directory
+.HP
+\fB\-x\fR [ \fB\-\-log\-level\fR ] arg
+specify the log level for the console log
+.SS "Command options:"
 .TP
 \fB\-c\fR [ \fB\-\-config\fR ] arg
 parse a configuration file
 .TP
+\fB\-z\fR [ \fB\-\-no\-config\fR ]
+start without a configuration file
+.TP
 \fB\-C\fR [ \fB\-\-validate\fR ]
 exit after validating the configuration
-.TP
-\fB\-x\fR [ \fB\-\-log-level\fR ]
-set logging level. available levels: 'debug', 'notice', 'information', 'warning', 'critical'
-.TP
-\fB\-d\fR [ \fB\-\-daemonize\fR ]
-detach from the controlling terminal
 .TP
 \fB\-e\fR [ \fB\-\-errorlog\fR ] arg log fatal errors to the specified log file (only works
 in combination with \fB\-\-daemonize\fR)
 .TP
-\fB\-u\fR [ \fB\-\-user\fR ] arg
-user to run Icinga as
-.TP
-\fB\-g\fR [ \fB\-\-group\fR ] arg
-group to run Icinga as
-
-.SH FILES
-.TP
-.IP /etc/icinga2
-Default configuration directory for Icinga2
-
-.SH AUTHOR
-Icinga2 is maintained by the Icinga Project <info@icinga.org>.
-
+\fB\-d\fR [ \fB\-\-daemonize\fR ]
+detach from the controlling terminal
 .SH "REPORTING BUGS"
 Report bugs at <https://dev.icinga.org/>
 .br
 Icinga home page: <http://www.icinga.org/>
-
 .SH COPYRIGHT
 Copyright \(co 2012\-2014 Icinga Development Team (http://www.icinga.org)
 License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>
