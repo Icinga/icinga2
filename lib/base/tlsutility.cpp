@@ -412,7 +412,7 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 		X509_EXTENSION_free(ext);
 	}
 
-	X509_sign(cert, cakey, NULL);
+	X509_sign(cert, cakey, EVP_sha256());
 
 	return boost::shared_ptr<X509>(cert, X509_free);
 }
