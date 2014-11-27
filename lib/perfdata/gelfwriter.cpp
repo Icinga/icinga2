@@ -148,7 +148,7 @@ void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification
 		fields->Set("short_message", output);
 	} else {
 		fields->Set("_type", "HOST NOTIFICATION");
-		fields->Set("short_message", "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ")");
+		fields->Set("short_message", "(" + (host->IsReachable() ? Host::StateToString(host->GetState()) : String("UNREACHABLE")) + ")");
 	}
 
 	fields->Set("_state", service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));
