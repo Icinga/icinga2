@@ -908,6 +908,8 @@ Attributes:
   arguments       |**Optional.** A dictionary of command arguments.
 
 
+#### <a id="objecttype-checkcommand-arguments"></a> CheckCommand Arguments
+
 Command arguments can be defined as key-value-pairs in the `arguments`
 dictionary. If the argument requires additional configuration for example
 a `description` attribute or an optional condition, the value can be defined
@@ -923,11 +925,13 @@ CheckCommand:
     arguments = {
       "-X" = {
         value = "$x_val$"
+	key = "-Xnew"	    /* optional, set a new key identifier */
         description = "My plugin requires this argument for doing X."
         required = false    /* optional, no error if not set */
         skip_key = false    /* always use "-X <value>" */
         set_if = "$have_x$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
         order = -1          /* first position */
+	repeat_key = true   /* if `value` is an array, repeat the key as parameter: ... 'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]' ... */
       }
       "-Y" = {
         value = "$y_val$"
@@ -936,20 +940,32 @@ CheckCommand:
         skip_key = true     /* don't prefix "-Y" only use "<value>" */
         set_if = "$have_y$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
         order = 0           /* second position */
+	repeat_key = false  /* if `value` is an array, do not repeat the key as parameter: ... 'key' 'value[0]' 'value[1]' 'value[2]' ... */
       }
     }
 
   Option      | Description
   ------------|--------------
   value       | Optional argument value.
+  key 	      | Optional argument key overriding the key identifier.
   description | Optional argument description.
   required    | Required argument. Execution error if not set. Defaults to false (optional).
   skip_key    | Use the value as argument and skip the key.
   set_if      | Argument is added if the macro resolves to a defined numeric value. String values are not supported.
   order       | Set if multiple arguments require a defined argument order.
+  repeat_key  | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat).
 
 Argument order:
+
     `..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...`
+
+Argument array `repeat_key = true`:
+
+    `'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]'`
+
+Argument array `repeat_key = false`:
+
+    `'key' 'value[0]' 'value[1]' 'value[2]'`
 
 
 ### <a id="objecttype-notificationcommand"></a> NotificationCommand
@@ -993,7 +1009,7 @@ Attributes:
   zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for `CheckCommand` objects.
+Command arguments can be used the same way as for [CheckCommand objects](#objecttype-checkcommand-arguments).
 
 
 ### <a id="objecttype-eventcommand"></a> EventCommand
@@ -1020,7 +1036,7 @@ Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for `CheckCommand` objects.
+Command arguments can be used the same way as for [CheckCommand objects](#objecttype-checkcommand-arguments).
 
 
 ### <a id="objecttype-notification"></a> Notification
@@ -2104,7 +2120,7 @@ Custom Attributes:
 
 Name               | Description
 -------------------|--------------
-ftp_address        | **Optional.** The host's address. Defaults to "$address".
+ftp_address        | **Optional.** The host's address. Defaults to "$address$".
 
 #### <a id="plugin-check-command-smtp"></a> smtp
 
@@ -2208,8 +2224,10 @@ disk_wfree      	| **Optional.** The free space warning threshold in %. Defaults
 disk_cfree      	| **Optional.** The free space critical threshold in %. Defaults to 10.
 disk_inode_wfree 	| **Optional.** The free inode warning threshold.
 disk_inode_cfree 	| **Optional.** The free inode critical threshold.
-disk_partition         	| **Optional.** The partition.
-disk_partition_excluded | **Optional.** The excluded partition.
+disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
+disk_partition_excluded | **Optional.** The excluded partition. **Deprecated in 2.3.**
+disk_partitions        	| **Optional.** The partition(s). Multiple partitions must be defined as array.
+disk_partitions_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
 
 #### <a id="plugin-check-command-users"></a> users
 
@@ -2332,7 +2350,8 @@ Name                 | Description
 ---------------------|--------------
 dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to $host_name$.
 dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
-dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot.
+dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot. **Deprecated in 2.3.**
+dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Multiple answers must be defined as array.
 dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
 
 #### <a id="plugin-check-command-dig"></a> dig
@@ -2373,7 +2392,7 @@ nscp_address    | **Optional.** The host's address. Defaults to "$address$".
 nscp_port       | **Optional.** The NSClient++ port. Defaults to 12489.
 nscp_password   | **Optional.** The NSClient++ password.
 nscp_variable   | **Required.** The variable that should be checked.
-nscp_params     | **Optional.** Parameters for the query.
+nscp_params     | **Optional.** Parameters for the query. Multiple parameters must be defined as array.
 nscp_warn       | **Optional.** The warning threshold.
 nscp_crit       | **Optional.** The critical threshold.
 nscp_timeout    | **Optional.** The query timeout in seconds.
@@ -2422,6 +2441,7 @@ nrpe_command    | **Optional.** The command that should be executed.
 nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `false`.
 nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
 nrpe_timeout    | **Optional.** The timeout in seconds.
+nrpe_arguments	| **Optional.** Arguments that should be passed to the command. Multiple arguments must be defined as array.
 
 #### <a id="plugin-check-command-apt"></a> apt
 

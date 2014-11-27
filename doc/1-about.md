@@ -54,6 +54,21 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
+### What's New in Version 2.2.1
+
+> **Note**
+>
+> To-be-released.
+
+#### Changes
+
+* Support arrays in [command argument macros](#command-passing-parameters) #6709
+    * Allows to define multiple parameters for [nrpe -a](#plugin-check-command-nrpe), [nscp -l](#plugin-check-command-nscp), [disk -p](#plugin-check-command-disk), [dns -a](#plugin-check-command-dns).
+
+#### Issues
+
+
+
 ### What's New in Version 2.2.0
 
 #### Changes
