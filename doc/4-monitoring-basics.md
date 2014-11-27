@@ -1811,7 +1811,7 @@ You can integrate the above example `CheckCommand` definition
     }
 
     apply Service "my-icmp" {
-      check_command = "icmp"
+      check_command = "my-icmp"
       check_interval = 1m
       retry_interval = 30s
 
