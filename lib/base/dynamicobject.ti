@@ -35,8 +35,6 @@ public:
 
 abstract class DynamicObject
 {
-	[protected] Object::Ptr __parent (ParentScope);
-
 	[config, internal] String __name (Name);
 	[config] String name (ShortName) {
 		get {{{

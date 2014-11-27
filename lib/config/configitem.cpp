@@ -177,8 +177,6 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	if (discard)
 		m_Expression.reset();
 
-	dobj->SetParentScope(Object::Ptr());
-
 	String name = m_Name;
 
 	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
