@@ -103,10 +103,6 @@ BuildRequires: boost141-devel
 BuildRequires: boost-devel >= 1.41
 %endif
 
-%if 0%{?el6}
-BuildRequires: yajl-devel
-%endif
-
 %if 0%{?use_systemd}
 BuildRequires: systemd
 Requires: systemd
