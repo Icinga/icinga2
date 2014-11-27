@@ -485,8 +485,7 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/repository.d/*
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
-%{_sbindir}/%{name}-prepare-dirs
-%{_mandir}/man8/%{name}-prepare-dirs.8.gz
+/usr/lib/icinga2/prepare-dirs
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
