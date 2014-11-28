@@ -122,6 +122,8 @@ do {							\
 		yyextra->m_LexBuffer << *yptr++;
 		       	       }
 
+<STRING><<EOF>>			{ BOOST_THROW_EXCEPTION(ConfigError("End-of-file while in string literal") << errinfo_debuginfo(*yylloc)); }
+
 \{\{\{				{ yyextra->m_LexBuffer.str(""); yyextra->m_LexBuffer.clear(); BEGIN(HEREDOC); }
 
 <HEREDOC>\}\}\}			{
