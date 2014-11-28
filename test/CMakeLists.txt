@@ -83,13 +83,8 @@ add_boost_test(base
         base_value/scalar
         base_value/convert
         base_value/format
-<<<<<<< HEAD
-=======
-	config_ops/simple
-	config_ops/advanced
 	icinga_macros/simple
 	icinga_perfdata/empty
->>>>>>> 9dfa3d2... Implement support for arrays in command arguments
 	icinga_perfdata/simple
 	icinga_perfdata/multiple
 	icinga_perfdata/uom
