@@ -70,6 +70,9 @@ void ThreadPool::Stop(void)
 
 	m_ThreadGroup.join_all();
 
+	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
+		m_Queues[i].Stopped = false;
+
 	m_Stopped = false;
 }
 
