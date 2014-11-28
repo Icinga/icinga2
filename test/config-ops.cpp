@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "a = 3 b = 3");
-	BOOST_CHECK(expr == NULL);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
 
 	expr = ConfigCompiler::CompileText("<test>", "__function() { 3 }()");
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
