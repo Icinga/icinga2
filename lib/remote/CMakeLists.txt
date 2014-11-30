@@ -19,12 +19,10 @@ mkclass_target(apilistener.ti apilistener.thpp)
 mkclass_target(endpoint.ti endpoint.thpp)
 mkclass_target(zone.ti zone.thpp)
 
-mkembedconfig_target(remote-type.conf remote-type.cpp)
-
 set(remote_SOURCES
   apiclient.cpp apiclient-heartbeat.cpp apifunction.cpp apilistener.cpp apilistener-sync.cpp
   apilistener.thpp authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
-  messageorigin.cpp remote-type.cpp zone.cpp zone.thpp
+  messageorigin.cpp zone.cpp zone.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

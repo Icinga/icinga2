@@ -27,14 +27,11 @@
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/function.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Notification);
-REGISTER_SCRIPTFUNCTION(ValidateNotificationFilters, &Notification::ValidateFilters);
-REGISTER_SCRIPTFUNCTION(ValidateNotificationUsers, &Notification::ValidateUsers);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> Notification::OnNextNotificationChanged;
@@ -256,8 +253,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 				    << "Not sending notifications for notification object '" << GetName() << "': before escalation range";
 
 				/* we need to adjust the next notification time
- 				 * to now + begin delaying the first notification
- 				 */
+				 * to now + begin delaying the first notification
+				 */
 				double nextProposedNotification = now + times->Get("begin") + 1.0;
 				if (GetNextNotification() > nextProposedNotification)
 					SetNextNotification(nextProposedNotification);
@@ -628,43 +625,46 @@ String Notification::NotificationHostStateToString(HostState state)
 	}
 }
 
-void Notification::ValidateUsers(const String& location, const Notification::Ptr& object)
+void Notification::Validate(int types, const ValidationUtils& utils)
 {
-	Array::Ptr users = object->GetUsersRaw();
-	Array::Ptr groups = object->GetUserGroupsRaw();
+	ObjectImpl<Notification>::Validate(types, utils);
 
-	if ((!users || users->GetLength() == 0) && (!groups || groups->GetLength() == 0)) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": No users/user_groups specified.", object->GetDebugInfo()));
-	}
+	if (!(types & FAConfig))
+		return;
+
+	Array::Ptr users = GetUsersRaw();
+	Array::Ptr groups = GetUserGroupsRaw();
+
+	if ((!users || users->GetLength() == 0) && (!groups || groups->GetLength() == 0))
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: No users/user_groups specified."));
 }
 
-void Notification::ValidateFilters(const String& location, const Notification::Ptr& object)
+void Notification::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
 {
-	int sfilter = FilterArrayToInt(object->GetStates(), 0);
+	ObjectImpl<Notification>::ValidateStates(value, utils);
 
-	if (object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid.", object->GetDebugInfo()));
-	}
+	int sfilter = FilterArrayToInt(value, 0);
 
-	if (!object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid.", object->GetDebugInfo()));
-	}
+	if (GetServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
 
-	int tfilter = FilterArrayToInt(object->GetTypes(), 0);
+	if (!GetServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "State filter is invalid."));
+}
+
+void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
+{
+	ObjectImpl<Notification>::ValidateTypes(value, utils);
+
+	int tfilter = FilterArrayToInt(value, 0);
 
 	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
 	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
-	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Type filter is invalid.", object->GetDebugInfo()));
-	}
+	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "Type filter is invalid."));
 }
 
 Endpoint::Ptr Notification::GetCommandEndpoint(void) const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
-

@@ -17,10 +17,8 @@
 
 mkclass_target(checkercomponent.ti checkercomponent.thpp)
 
-mkembedconfig_target(checker-type.conf checker-type.cpp)
-
 set(checker_SOURCES
-  checkercomponent.cpp checkercomponent.thpp checker-type.cpp
+  checkercomponent.cpp checkercomponent.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

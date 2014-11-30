@@ -20,7 +20,6 @@
 #include "icinga/checkable.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
-#include "base/function.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
@@ -28,7 +27,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(Checkable);
-REGISTER_SCRIPTFUNCTION(ValidateCheckableCheckInterval, &Checkable::ValidateCheckInterval);
 
 boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnablePerfdataChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, double, const MessageOrigin&)> Checkable::OnAcknowledgementSet;
@@ -263,10 +261,10 @@ Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
-void Checkable::ValidateCheckInterval(const String& location, const Checkable::Ptr& object)
+void Checkable::ValidateCheckIntervalRaw(double value, const ValidationUtils& utils)
 {
-	if (object->GetCheckInterval() <= 0) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": check_interval must be greater than 0.", object->GetDebugInfo()));
-	}
+	ObjectImpl<Checkable>::ValidateCheckIntervalRaw(value, utils);
+
+	if (value <= 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("check_interval"), "Interval must be greater than 0."));
 }

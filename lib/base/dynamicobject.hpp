@@ -52,9 +52,6 @@ public:
 
 	intrusive_ptr<DynamicType> GetType(void) const;
 
-	DebugInfo GetDebugInfo(void) const;
-	void SetDebugInfo(const DebugInfo& di);
-
 	bool IsActive(void) const;
 	bool IsPaused(void) const;
 
@@ -97,8 +94,6 @@ protected:
 private:
 	static DynamicObject::Ptr GetObject(const String& type, const String& name);
 	static void RestoreObject(const String& message, int attributeTypes);
-
-	DebugInfo m_DebugInfo;
 };
 
 #define DECLARE_OBJECTNAME(klass)						\

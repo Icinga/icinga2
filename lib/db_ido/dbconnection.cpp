@@ -27,14 +27,12 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
-#include "base/function.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(DbConnection);
-REGISTER_SCRIPTFUNCTION(ValidateFailoverTimeout, &DbConnection::ValidateFailoverTimeout);
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
@@ -440,12 +438,12 @@ void DbConnection::PrepareDatabase(void)
 	}
 }
 
-void DbConnection::ValidateFailoverTimeout(const String& location, const DbConnection::Ptr& object)
+void DbConnection::ValidateFailoverTimeout(double value, const ValidationUtils& utils)
 {
-	if (object->GetFailoverTimeout() < 60) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Failover timeout minimum is 60s.", object->GetDebugInfo()));
-	}
+	ObjectImpl<DbConnection>::ValidateFailoverTimeout(value, utils);
+
+	if (value < 60)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("failover_timeout"), "Failover timeout minimum is 60s."));
 }
 
 void DbConnection::IncreaseQueryCount(void)

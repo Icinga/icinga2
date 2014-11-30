@@ -24,6 +24,7 @@
 #include <istream>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 namespace icinga
 {
@@ -66,13 +67,38 @@ enum FieldAttribute
 	FASetProtected = 32,
 	FAInternal = 64,
 	FANoStorage = 128,
-	FALoadDependency = 256
+	FALoadDependency = 256,
+	FARequired = 512
+};
+
+struct FieldType
+{
+	bool IsName;
+	std::string TypeName;
+
+	inline std::string GetRealType(void) const
+	{
+		if (IsName)
+			return "String";
+		else
+			return TypeName;
+	}
+
+	inline std::string GetArgumentType(void) const
+	{
+		std::string realType = GetRealType();
+
+		if (realType == "bool" || realType == "double" || realType == "int")
+			return realType;
+		else
+			return "const " + realType + "&";
+	}
 };
 
 struct Field
 {
 	int Attributes;
-	std::string Type;
+	FieldType Type;
 	std::string Name;
 	std::string AlternativeName;
 	std::string GetAccessor;
@@ -85,7 +111,7 @@ struct Field
 		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false)
 	{ }
 
-	std::string GetFriendlyName(void) const
+	inline std::string GetFriendlyName(void) const
 	{
 		if (!AlternativeName.empty())
 			return AlternativeName;
@@ -130,6 +156,27 @@ struct Klass
 	std::vector<std::string> LoadDependencies;
 };
 
+enum RuleAttribute
+{
+	RARequired = 1
+};
+
+struct Rule
+{
+	int Attributes;
+	bool IsName;
+	std::string Type;
+	std::string Pattern;
+
+	std::vector<Rule> Rules;
+};
+
+struct Validator
+{
+	std::string Name;
+	std::vector<Rule> Rules;
+};
+
 class ClassCompiler
 {
 public:
@@ -150,9 +197,11 @@ public:
 	void HandleInclude(const std::string& path, const ClassDebugInfo& locp);
 	void HandleAngleInclude(const std::string& path, const ClassDebugInfo& locp);
 	void HandleClass(const Klass& klass, const ClassDebugInfo& locp);
+	void HandleValidator(const Validator& validator, const ClassDebugInfo& locp);
 	void HandleNamespaceBegin(const std::string& name, const ClassDebugInfo& locp);
 	void HandleNamespaceEnd(const ClassDebugInfo& locp);
 	void HandleCode(const std::string& code, const ClassDebugInfo& locp);
+	void HandleMissingValidators(void);
 
 	static void CompileFile(const std::string& path);
 	static void CompileStream(const std::string& path, std::istream *stream);
@@ -163,6 +212,8 @@ private:
 	std::string m_Path;
 	std::istream *m_Input;
 	void *m_Scanner;
+
+	std::map<std::pair<std::string, std::string>, Field> m_MissingValidators;
 
 	static unsigned long SDBM(const std::string& str, size_t len);
 	static std::string BaseName(const std::string& path);

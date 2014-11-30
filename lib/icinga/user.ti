@@ -36,7 +36,7 @@ class User : CustomVarObject
 	[config] Array::Ptr groups {
 		default {{{ return new Array(); }}}
 	};
-	[config] String period (PeriodRaw);
+	[config] name(TimePeriod) period (PeriodRaw);
 	[config] Array::Ptr types;
 	int type_filter_real (TypeFilter);
 	[config] Array::Ptr states;
@@ -51,6 +51,20 @@ class User : CustomVarObject
 
 	[state] Value override_enable_notifications;
 	[state] double last_notification;
+};
+
+validator User {
+	Array groups {
+		name(UserGroup) "*";
+	};
+
+	Array types {
+		Number "*";
+	};
+
+	Array states {
+		Number "*";
+	};
 };
 
 }

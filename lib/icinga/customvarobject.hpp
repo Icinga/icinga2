@@ -61,7 +61,7 @@ public:
 
 	static boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> OnVarsChanged;
 
-	static void ValidateCustomAttributes(const String& location, const CustomVarObject::Ptr& object);
+	virtual void ValidateVarsRaw(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 	Dictionary::Ptr GetVars(void) const;
 	void SetVars(const Dictionary::Ptr& vars, const MessageOrigin& origin = MessageOrigin());

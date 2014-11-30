@@ -48,7 +48,7 @@ public:
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
-	static void ValidateRanges(const String& location, const TimePeriod::Ptr& object);
+	virtual void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 private:
 	void AddSegment(double s, double end);

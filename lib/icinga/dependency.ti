@@ -36,13 +36,13 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	load_after Host;
 	load_after Service;
 
-	[config] String child_host_name;
+	[config, required] name(Host) child_host_name;
 	[config] String child_service_name;
 
-	[config] String parent_host_name;
+	[config, required] name(Host) parent_host_name;
 	[config] String parent_service_name;
 
-	[config] String period (PeriodRaw);
+	[config] name(TimePeriod) period (PeriodRaw);
 
 	[config] Array::Ptr states;
 	int state_filter_real (StateFilter);
@@ -54,6 +54,12 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	[config] bool disable_checks;
 	[config] bool disable_notifications {
 		default {{{ return true; }}}
+	};
+};
+
+validator Dependency {
+	Array states {
+		Number "*";
 	};
 };
 

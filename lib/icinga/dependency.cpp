@@ -20,14 +20,12 @@
 #include "icinga/dependency.hpp"
 #include "icinga/service.hpp"
 #include "base/logger.hpp"
-#include "base/function.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Dependency);
-REGISTER_SCRIPTFUNCTION(ValidateDependencyFilters, &Dependency::ValidateFilters);
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -198,17 +196,15 @@ TimePeriod::Ptr Dependency::GetPeriod(void) const
 	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
-void Dependency::ValidateFilters(const String& location, const Dependency::Ptr& object)
+void Dependency::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
 {
-	int sfilter = FilterArrayToInt(object->GetStates(), 0);
+	ObjectImpl<Dependency>::ValidateStates(value, utils);
 
-	if (object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid for host dependency.", object->GetDebugInfo()));
-	}
+	int sfilter = FilterArrayToInt(value, 0);
 
-	if (!object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid for service dependency.", object->GetDebugInfo()));
-	}
+	if (GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid for host dependency."));
+
+	if (!GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid for service dependency."));
 }

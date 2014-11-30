@@ -44,7 +44,8 @@ public:
 	/* Notifications */
 	TimePeriod::Ptr GetPeriod(void) const;
 
-	static void ValidateFilters(const String& location, const User::Ptr& attrs);
+	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
+	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled, const MessageOrigin& origin = MessageOrigin());

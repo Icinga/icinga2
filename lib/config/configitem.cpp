@@ -21,7 +21,6 @@
 #include "config/configcompilercontext.hpp"
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
-#include "config/configtype.hpp"
 #include "base/application.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
@@ -135,6 +134,15 @@ boost::shared_ptr<Expression> ConfigItem::GetFilter(void) const
 	return m_Filter;
 }
 
+class DefaultValidationUtils : public ValidationUtils
+{
+public:
+	virtual bool ValidateName(const String& type, const String& name) const override
+	{
+		return ConfigItem::GetObject(type, name) != ConfigItem::Ptr();
+	}
+};
+
 /**
  * Commits the configuration item by creating a DynamicObject
  * object.
@@ -210,7 +218,9 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	persistentItem->Set("type", GetType());
 	persistentItem->Set("name", GetName());
 	persistentItem->Set("properties", Serialize(dobj, FAConfig));
-	persistentItem->Set("debug_hints", debugHints.ToDictionary());
+
+	Dictionary::Ptr dhint = debugHints.ToDictionary();
+	persistentItem->Set("debug_hints", dhint);
 
 	Array::Ptr di = new Array();
 	di->Add(m_DebugInfo.Path);
@@ -223,12 +233,15 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
 	persistentItem.reset();
 
-	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
-
-	if (ctype) {
-		TypeRuleUtilities utils;
-		ctype->ValidateItem(GetName(), dobj, GetDebugInfo(), &utils);
+	try {
+		DefaultValidationUtils utils;
+		dobj->Validate(FAConfig, utils);
+	} catch (ValidationError& ex) {
+		ex.SetDebugHint(dhint);
+		throw;
 	}
+
+	dhint.reset();
 
 	dobj->Register();
 

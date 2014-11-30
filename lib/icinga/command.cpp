@@ -19,7 +19,6 @@
 
 #include "icinga/command.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "base/function.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
@@ -27,9 +26,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(Command);
-REGISTER_SCRIPTFUNCTION(ValidateCommandAttributes, &Command::ValidateAttributes);
-REGISTER_SCRIPTFUNCTION(ValidateCommandArguments, &Command::ValidateArguments);
-REGISTER_SCRIPTFUNCTION(ValidateEnvironmentVariables, &Command::ValidateEnvironmentVariables);
 
 int Command::GetModifiedAttributes(void) const
 {
@@ -49,81 +45,68 @@ void Command::SetModifiedAttributes(int flags, const MessageOrigin& origin)
 	}
 }
 
-void Command::ValidateAttributes(const String& location, const Command::Ptr& object)
+void Command::Validate(int types, const ValidationUtils& utils)
 {
-	if (object->GetArguments() != Empty && !object->GetCommandLine().IsObjectType<Array>()) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Attribute 'command' must be an array if the 'arguments' attribute is set.", object->GetDebugInfo()));
-	}
-}
+	ObjectImpl<Command>::Validate(types, utils);
 
-void Command::ValidateArguments(const String& location, const Command::Ptr& object)
-{
-	Dictionary::Ptr arguments = object->GetArguments();
+	Dictionary::Ptr arguments = GetArguments();
 
-	if (!arguments)
+	if (!(types & FAConfig))
 		return;
 
-	ObjectLock olock(arguments);
-	BOOST_FOREACH(const Dictionary::Pair& kv, arguments) {
-		const Value& arginfo = kv.second;
-		Value argval;
+	if (arguments) {
+		if (!GetCommandLine().IsObjectType<Array>())
+			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("command"), "Attribute 'command' must be an array if the 'arguments' attribute is set."));
 
-		if (arginfo.IsObjectType<Dictionary>()) {
-			Dictionary::Ptr argdict = arginfo;
+		ObjectLock olock(arguments);
+		BOOST_FOREACH(const Dictionary::Pair& kv, arguments) {
+			const Value& arginfo = kv.second;
+			Value argval;
 
-			if (argdict->Contains("value")) {
-				String argvalue = argdict->Get("value");
+			if (arginfo.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr argdict = arginfo;
 
-				if (!MacroProcessor::ValidateMacroString(argvalue)) {
-					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-					    location + ": Closing $ not found in macro format string '" + argvalue + "'.", object->GetDebugInfo()));
+				if (argdict->Contains("value")) {
+					String argvalue = argdict->Get("value");
+
+					if (!MacroProcessor::ValidateMacroString(argvalue))
+						BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first)("value"), "Validation failed: Closing $ not found in macro format string '" + argvalue + "'."));
 				}
-			}
 
-			if (argdict->Contains("set_if")) {
-				String argsetif = argdict->Get("set_if");
+				if (argdict->Contains("set_if")) {
+					String argsetif = argdict->Get("set_if");
 
-				if (!MacroProcessor::ValidateMacroString(argsetif)) {
-					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-					    location + ": Closing $ not found in macro format string '" + argsetif + "'.", object->GetDebugInfo()));
+					if (!MacroProcessor::ValidateMacroString(argsetif))
+						BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first)("set_if"), "Closing $ not found in macro format string '" + argsetif + "'."));
 				}
-			}
-		} else if (arginfo.IsObjectType<Function>()) {
-			continue; /* we cannot evaluate macros in functions */
-		} else {
-			argval = arginfo;
+			} else if (arginfo.IsObjectType<Function>()) {
+				continue; /* we cannot evaluate macros in functions */
+			} else {
+				argval = arginfo;
 
-			if (argval.IsEmpty())
-				continue;
+				if (argval.IsEmpty())
+					continue;
 
-			String argstr = argval;
+				String argstr = argval;
 
-			if (!MacroProcessor::ValidateMacroString(argstr)) {
-				BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-				    location + ": Closing $ not found in macro format string '" + argstr + "'.", object->GetDebugInfo()));
+				if (!MacroProcessor::ValidateMacroString(argstr))
+					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first), "Closing $ not found in macro format string '" + argstr + "'."));
 			}
 		}
 	}
-}
 
-void Command::ValidateEnvironmentVariables(const String& location, const Command::Ptr& object)
-{
-	Dictionary::Ptr env = object->GetEnv();
+	Dictionary::Ptr env = GetEnv();
 
-	if (!env)
-		return;
+	if (env) {
+		ObjectLock olock(env);
+		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
+			const Value& envval = kv.second;
 
-	ObjectLock olock(env);
-	BOOST_FOREACH(const Dictionary::Pair& kv, env) {
-		const Value& envval = kv.second;
+			if (!envval.IsString() || envval.IsEmpty())
+				continue;
 
-		if (!envval.IsString() || envval.IsEmpty())
-			continue;
-
-		if (!MacroProcessor::ValidateMacroString(envval)) {
-			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-			    location + ": Closing $ not found in macro format string '" + envval + "'.", object->GetDebugInfo()));
+			if (!MacroProcessor::ValidateMacroString(envval))
+				BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("env")(kv.first), "Closing $ not found in macro format string '" + envval + "'."));
 		}
 	}
 }

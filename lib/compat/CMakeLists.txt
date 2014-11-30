@@ -20,12 +20,10 @@ mkclass_target(compatlogger.ti compatlogger.thpp)
 mkclass_target(externalcommandlistener.ti externalcommandlistener.thpp)
 mkclass_target(statusdatawriter.ti statusdatawriter.thpp)
 
-mkembedconfig_target(compat-type.conf compat-type.cpp)
-
 set(compat_SOURCES
   checkresultreader.cpp checkresultreader.thpp compatlogger.cpp
   compatlogger.thpp externalcommandlistener.cpp externalcommandlistener.thpp
-  statusdatawriter.cpp statusdatawriter.thpp compat-type.cpp
+  statusdatawriter.cpp statusdatawriter.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

@@ -20,13 +20,11 @@ find_package(PostgreSQL)
 if(PostgreSQL_FOUND)
   mkclass_target(idopgsqlconnection.ti idopgsqlconnection.thpp)
 
-  mkembedconfig_target(db_ido_pgsql-type.conf db_ido_pgsql-type.cpp)
-
   link_directories(${PostgreSQL_LIBRARY_DIRS})
   include_directories(${PostgreSQL_INCLUDE_DIRS})
 
   set(db_ido_pgsql_SOURCES
-    idopgsqlconnection.cpp idopgsqlconnection.thpp db_ido_pgsql-type.cpp
+    idopgsqlconnection.cpp idopgsqlconnection.thpp
   )
 
   if(ICINGA2_UNITY_BUILD)

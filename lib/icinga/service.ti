@@ -45,7 +45,7 @@ class Service : Checkable < ServiceNameComposer
 				return m_DisplayName;
 		}}}
 	};
-	[config] String host_name;
+	[config, required] name(Host) host_name;
 	[enum, no_storage] ServiceState "state" {
 		get {{{
 			return GetStateRaw();
@@ -60,6 +60,12 @@ class Service : Checkable < ServiceNameComposer
 		get {{{
 			return GetLastHardStateRaw();
 		}}}
+	};
+};
+
+validator Service {
+	Array groups {
+		name(ServiceGroup) "*";
 	};
 };
 

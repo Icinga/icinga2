@@ -45,11 +45,15 @@ using namespace icinga;
 %union {
 	char *text;
 	int num;
+	FieldType *type;
 	Field *field;
 	std::vector<Field> *fields;
 	Klass *klass;
 	FieldAccessor *fieldaccessor;
 	std::vector<FieldAccessor> *fieldaccessors;
+	Rule *rule;
+	std::vector<Rule> *rules;
+	Validator *validator;
 }
 
 %token T_INCLUDE "include (T_INCLUDE)"
@@ -57,6 +61,9 @@ using namespace icinga;
 %token T_CODE "code (T_CODE)"
 %token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
+%token T_VALIDATOR "validator (T_VALIDATOR)"
+%token T_REQUIRED "required (T_REQUIRED)"
+%token T_NAME "name (T_NAME)"
 %token T_STRING "string (T_STRING)"
 %token T_ANGLE_STRING "angle_string (T_ANGLE_STRING)"
 %token T_FIELD_ATTRIBUTE "field_attribute (T_FIELD_ATTRIBUTE)"
@@ -77,17 +84,22 @@ using namespace icinga;
 %type <text> angle_include
 %type <text> code
 %type <num> T_FIELD_ATTRIBUTE
+%type <num> field_attribute
 %type <num> field_attributes
 %type <num> field_attribute_list
 %type <num> T_FIELD_ACCESSOR_TYPE
 %type <num> T_CLASS_ATTRIBUTE
 %type <num> class_attribute_list
+%type <type> field_type
 %type <field> class_field
 %type <fields> class_fields
 %type <klass> class
 %type <fieldaccessors> field_accessor_list
 %type <fieldaccessors> field_accessors
 %type <fieldaccessor> field_accessor
+%type <rule> validator_rule
+%type <rules> validator_rules
+%type <validator> validator
 
 %{
 
@@ -110,6 +122,8 @@ void ClassCompiler::Compile(void)
 	} catch (const std::exception& ex) {
 		std::cerr << "Exception: " << ex.what();
 	}
+
+	HandleMissingValidators();
 }
 
 #define scanner (context->GetScanner())
@@ -135,6 +149,11 @@ statement: include
 	| class
 	{
 		context->HandleClass(*$1, yylloc);
+		delete $1;
+	}
+	| validator
+	{
+		context->HandleValidator(*$1, yylloc);
 		delete $1;
 	}
 	| namespace
@@ -250,7 +269,23 @@ class_fields: /* empty */
 	}
 	;
 
-class_field: field_attribute_list identifier identifier alternative_name_specifier field_accessor_list ';'
+field_type: identifier
+	{
+		$$ = new FieldType();
+		$$->IsName = false;
+		$$->TypeName = $1;
+		free($1);
+	}
+	| T_NAME '(' identifier ')'
+	{
+		$$ = new FieldType();
+		$$->IsName = true;
+		$$->TypeName = $3;
+		free($3);
+	}
+	;
+
+class_field: field_attribute_list field_type identifier alternative_name_specifier field_accessor_list ';'
 	{
 		Field *field = new Field();
 
@@ -259,8 +294,8 @@ class_field: field_attribute_list identifier identifier alternative_name_specifi
 		if ((field->Attributes & (FAConfig | FAState)) == 0)
 			field->Attributes |= FAEphemeral;
 
-		field->Type = $2;
-		std::free($2);
+		field->Type = *$2;
+		delete $2;
 
 		field->Name = $3;
 		std::free($3);
@@ -321,15 +356,25 @@ field_attribute_list: /* empty */
 	}
 	;
 
+field_attribute: T_FIELD_ATTRIBUTE
+	{
+		$$ = $1;
+	}
+	| T_REQUIRED
+	{
+		$$ = FARequired;
+	}
+	;
+
 field_attributes: /* empty */
 	{
 		$$ = 0;
 	}
-	| field_attributes ',' T_FIELD_ATTRIBUTE
+	| field_attributes ',' field_attribute
 	{
 		$$ = $1 | $3;
 	}
-	| T_FIELD_ATTRIBUTE
+	| field_attribute
 	{
 		$$ = $1;
 	}
@@ -365,6 +410,84 @@ field_accessor: T_FIELD_ACCESSOR_TYPE T_STRING
 	| T_FIELD_ACCESSOR_TYPE ';'
 	{
 		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), "", true);
+	}
+	;
+
+validator_rules: /* empty */
+	{
+		$$ = new std::vector<Rule>();
+	}
+	| validator_rules validator_rule
+	{
+		$$->push_back(*$2);
+		delete $2;
+	}
+	;
+
+validator_rule: T_NAME '(' T_IDENTIFIER ')' identifier ';'
+	{
+		$$ = new Rule();
+		$$->Attributes = 0;
+		$$->IsName = true;
+		$$->Type = $3;
+		std::free($3);
+		$$->Pattern = $5;
+		std::free($5);
+	}
+	| T_IDENTIFIER identifier ';'
+	{
+		$$ = new Rule();
+		$$->Attributes = 0;
+		$$->IsName = false;
+		$$->Type = $1;
+		std::free($1);
+		$$->Pattern = $2;
+		std::free($2);
+	}
+	| T_NAME '(' T_IDENTIFIER ')' identifier '{' validator_rules '}' ';'
+	{
+		$$ = new Rule();
+		$$->Attributes = 0;
+		$$->IsName = true;
+		$$->Type = $3;
+		std::free($3);
+		$$->Pattern = $5;
+		std::free($5);
+		$$->Rules = *$7;
+		delete $7;
+	}
+	| T_IDENTIFIER identifier '{' validator_rules '}' ';'
+	{
+		$$ = new Rule();
+		$$->Attributes = 0;
+		$$->IsName = false;
+		$$->Type = $1;
+		std::free($1);
+		$$->Pattern = $2;
+		std::free($2);
+		$$->Rules = *$4;
+		delete $4;
+	}
+	| T_REQUIRED identifier ';'
+	{
+		$$ = new Rule();
+		$$->Attributes = RARequired;
+		$$->IsName = false;
+		$$->Type = "";
+		$$->Pattern = $2;
+		std::free($2);
+	}
+	;
+
+validator: T_VALIDATOR T_IDENTIFIER '{' validator_rules '}' ';'
+	{
+		$$ = new Validator();
+
+		$$->Name = $2;
+		std::free($2);
+
+		$$->Rules = *$4;
+		delete $4;
 	}
 	;
 

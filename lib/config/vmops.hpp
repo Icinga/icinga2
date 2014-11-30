@@ -317,9 +317,13 @@ public:
 		try {
 			context->SetField(fid, value);
 		} catch (const boost::bad_lexical_cast&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'", debugInfo));
+			Field fieldInfo = type->GetFieldInfo(fid);
+			Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
+			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
 		} catch (const std::bad_cast&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'", debugInfo));
+			Field fieldInfo = type->GetFieldInfo(fid);
+			Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
+			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
 		}
 	}
 

@@ -42,7 +42,8 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	static void ValidateFormatTemplates(const String& location, const PerfdataWriter::Ptr& object);
+	virtual void ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils) override;
+	virtual void ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
 	virtual void Start(void);

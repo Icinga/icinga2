@@ -39,4 +39,10 @@ class ServiceGroup : CustomVarObject
 	[config] String action_url;
 };
 
+validator ServiceGroup {
+	Array groups {
+		name(ServiceGroup) "*";
+	};
+};
+
 }

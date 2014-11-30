@@ -39,4 +39,10 @@ class HostGroup : CustomVarObject
 	[config] String action_url;
 };
 
+validator HostGroup {
+	Array groups {
+		name(HostGroup) "*";
+	};
+};
+
 }

@@ -49,4 +49,10 @@ class Host : Checkable
 
 };
 
+validator Host {
+	Array groups {
+		name(HostGroup) "*";
+	};
+};
+
 }

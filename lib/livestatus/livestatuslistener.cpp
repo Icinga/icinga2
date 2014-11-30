@@ -35,7 +35,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(LivestatusListener);
-REGISTER_SCRIPTFUNCTION(ValidateSocketType, &LivestatusListener::ValidateSocketType);
 
 static int l_ClientsConnected = 0;
 static int l_Connections = 0;
@@ -213,12 +212,10 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 }
 
 
-void LivestatusListener::ValidateSocketType(const String& location, const LivestatusListener::Ptr& object)
+void LivestatusListener::ValidateSocketType(const String& value, const ValidationUtils& utils)
 {
-	String socket_type = object->GetSocketType();
+	ObjectImpl<LivestatusListener>::ValidateSocketType(value, utils);
 
-	if (socket_type != "unix" && socket_type != "tcp") {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Socket type '" + socket_type + "' is invalid.", object->GetDebugInfo()));
-	}
+	if (value != "unix" && value != "tcp")
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("socket_type"), "Socket type '" + value + "' is invalid."));
 }

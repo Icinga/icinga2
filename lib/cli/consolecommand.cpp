@@ -26,6 +26,7 @@
 #include "base/unixsocket.hpp"
 #include "base/utility.hpp"
 #include "base/networkstream.hpp"
+#include "base/exception.hpp"
 #include <iostream>
 #ifdef HAVE_EDITLINE
 #include "cli/editline.hpp"

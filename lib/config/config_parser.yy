@@ -23,8 +23,6 @@
 #include "config/i2-config.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/configcompiler.hpp"
-#include "config/typerule.hpp"
-#include "config/typerulelist.hpp"
 #include "config/expression.hpp"
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
@@ -92,9 +90,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	bool boolean;
 	icinga::Expression *expr;
 	icinga::DictExpression *dexpr;
-	icinga::Value *variant;
 	CombinedSetOp csop;
-	icinga::TypeSpecifier type;
 	std::vector<String> *slist;
 	std::vector<std::pair<Expression *, EItemInfo> > *llist;
 	std::vector<Expression *> *elist;
@@ -149,18 +145,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_LOCALS "locals (T_LOCALS)"
 %token T_CONST "const (T_CONST)"
 %token T_USE "use (T_USE)"
-%token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
-%token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
-%token <type> T_TYPE_NUMBER "number (T_TYPE_NUMBER)"
-%token <type> T_TYPE_STRING "string (T_TYPE_STRING)"
-%token <type> T_TYPE_SCALAR "scalar (T_TYPE_SCALAR)"
-%token <type> T_TYPE_ANY "any (T_TYPE_ANY)"
-%token <type> T_TYPE_FUNCTION "function (T_TYPE_FUNCTION)"
-%token <type> T_TYPE_NAME "name (T_TYPE_NAME)"
-%token T_VALIDATOR "%validator (T_VALIDATOR)"
-%token T_REQUIRE "%require (T_REQUIRE)"
-%token T_ATTRIBUTE "%attribute (T_ATTRIBUTE)"
-%token T_TYPE "type (T_TYPE)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
@@ -190,9 +174,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <elist> rterm_items_inner
 %type <slist> identifier_items
 %type <slist> identifier_items_inner
-%type <variant> typerulelist
 %type <csop> combined_set_op
-%type <type> type
 %type <llist> statements
 %type <llist> lterm_items
 %type <llist> lterm_items_inner
@@ -352,106 +334,6 @@ identifier: T_IDENTIFIER
 	| T_STRING
 	;
 
-type: T_TYPE identifier
-	{
-		String name = String($2);
-		free($2);
-
-		context->m_Type = ConfigType::GetByName(name);
-
-		if (!context->m_Type) {
-			context->m_Type = new ConfigType(name, @$);
-			context->m_Type->Register();
-		}
-	}
-	type_inherits_specifier typerulelist
-	{
-		TypeRuleList::Ptr ruleList = *$5;
-		delete $5;
-
-		context->m_Type->GetRuleList()->AddRules(ruleList);
-		context->m_Type->GetRuleList()->AddRequires(ruleList);
-
-		BOOST_FOREACH(const String& validator, ruleList->GetValidators()) {
-			context->m_Type->GetRuleList()->AddValidator(validator);
-		}
-	}
-	;
-
-typerulelist: '{'
-	{
-		context->m_OpenBraces++;
-		context->m_RuleLists.push(new TypeRuleList());
-	}
-	typerules
-	'}'
-	{
-		context->m_OpenBraces--;
-		$$ = new Value(context->m_RuleLists.top());
-		context->m_RuleLists.pop();
-	}
-	;
-
-typerules: typerules_inner
-	| typerules_inner sep
-
-typerules_inner: /* empty */
-	| typerule
-	| typerules_inner sep typerule
-	;
-
-typerule: T_REQUIRE T_STRING
-	{
-		context->m_RuleLists.top()->AddRequire($2);
-		free($2);
-	}
-	| T_VALIDATOR T_STRING
-	{
-		context->m_RuleLists.top()->AddValidator($2);
-		free($2);
-	}
-	| T_ATTRIBUTE type T_STRING
-	{
-		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), @$);
-		free($3);
-
-		context->m_RuleLists.top()->AddRule(rule);
-	}
-	| T_ATTRIBUTE T_TYPE_NAME '(' identifier ')' T_STRING
-	{
-		TypeRule rule($2, $4, $6, TypeRuleList::Ptr(), @$);
-		free($4);
-		free($6);
-
-		context->m_RuleLists.top()->AddRule(rule);
-	}
-	| T_ATTRIBUTE type T_STRING typerulelist
-	{
-		TypeRule rule($2, String(), $3, *$4, @$);
-		free($3);
-		delete $4;
-		context->m_RuleLists.top()->AddRule(rule);
-	}
-	;
-
-type_inherits_specifier: /* empty */
-	| T_INHERITS identifier
-	{
-		context->m_Type->SetParent($2);
-		free($2);
-	}
-	;
-
-type: T_TYPE_DICTIONARY
-	| T_TYPE_ARRAY
-	| T_TYPE_NUMBER
-	| T_TYPE_STRING
-	| T_TYPE_SCALAR
-	| T_TYPE_ANY
-	| T_TYPE_FUNCTION
-	| T_TYPE_NAME
-	;
-
 object:
 	{
 		context->m_ObjectAssign.push(true);
@@ -483,7 +365,7 @@ object:
 
 		if (seen_assign) {
 			if (!ObjectRule::IsValidSourceType(type))
-				BOOST_THROW_EXCEPTION(ScriptError("object rule 'assign' cannot be used for type '" + type + "'", DebugInfoRange(@2, @3)));
+				BOOST_THROW_EXCEPTION(ScriptError("object rule 'assign' cannot be used for type '" + type + "'", DebugInfoRange(@2, @4)));
 
 			if (ignore) {
 				Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
@@ -544,11 +426,7 @@ combined_set_op: T_SET
 	| T_SET_BINARY_OR
 	;
 
-lterm: type
-	{
-		$$ = MakeLiteral(); // ASTify this
-	}
-	| library
+lterm: library
 	{
 		$$ = MakeLiteral(); // ASTify this
 	}

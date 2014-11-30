@@ -41,7 +41,7 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	static void ValidateRotationMethod(const String& location, const CompatLogger::Ptr& object);
+	virtual void ValidateRotationMethod(const String& value, const ValidationUtils& utils) override;
 
 protected:
 	virtual void Start(void);

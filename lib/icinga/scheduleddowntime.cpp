@@ -34,7 +34,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(ScheduledDowntime);
-REGISTER_SCRIPTFUNCTION(ValidateScheduledDowntimeRanges, &ScheduledDowntime::ValidateRanges);
 
 INITIALIZE_ONCE(&ScheduledDowntime::StaticInitialize);
 
@@ -181,11 +180,9 @@ void ScheduledDowntime::CreateNextDowntime(void)
 	downtime->SetConfigOwner(GetName());
 }
 
-void ScheduledDowntime::ValidateRanges(const String& location, const ScheduledDowntime::Ptr& object)
+void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
-	Dictionary::Ptr ranges = object->GetRanges();
-
-	if (!ranges)
+	if (!value)
 		return;
 
 	/* create a fake time environment to validate the definitions */
@@ -193,22 +190,20 @@ void ScheduledDowntime::ValidateRanges(const String& location, const ScheduledDo
 	tm reference = Utility::LocalTime(refts);
 	Array::Ptr segments = new Array();
 
-	ObjectLock olock(ranges);
-	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+	ObjectLock olock(value);
+	BOOST_FOREACH(const Dictionary::Pair& kv, value) {
 		try {
 			tm begin_tm, end_tm;
 			int stride;
 			LegacyTimePeriod::ParseTimeRange(kv.first, &begin_tm, &end_tm, &stride, &reference);
 		} catch (std::exception&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-			    location + ": Invalid time specification.", object->GetDebugInfo()));
+			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("ranges"), "Invalid time specification: " + kv.first));
 		}
 
 		try {
 			LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);
 		} catch (std::exception&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-			    location + ": Invalid time range definition.", object->GetDebugInfo()));
+			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("ranges"), "Invalid time range definition: " + kv.first));
 		}
 	}
 }

@@ -20,10 +20,8 @@ find_package(MySQL)
 if(MYSQL_FOUND)
   mkclass_target(idomysqlconnection.ti idomysqlconnection.thpp)
 
-  mkembedconfig_target(db_ido_mysql-type.conf db_ido_mysql-type.cpp)
-
   set(db_ido_mysql_SOURCES
-    idomysqlconnection.cpp idomysqlconnection.thpp db_ido_mysql-type.cpp
+    idomysqlconnection.cpp idomysqlconnection.thpp
   )
 
   if(ICINGA2_UNITY_BUILD)

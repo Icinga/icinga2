@@ -18,20 +18,15 @@
  ******************************************************************************/
 
 #include "livestatus/livestatusquery.hpp"
-#include "config/configtype.hpp"
 #include "config/configcompiler.hpp"
+#include "config/configitem.hpp"
 #include "base/application.hpp"
-#include "base/debug.hpp"
-#include "base/objectlock.hpp"
-#include "base/console.hpp"
-#include "base/serializer.hpp"
 #include "base/stdiostream.hpp"
 #include "base/json.hpp"
 #include "base/loader.hpp"
 #include "cli/daemonutility.hpp"
 #include <boost/test/unit_test.hpp>
 #include <fstream>
-
 
 using namespace icinga;
 

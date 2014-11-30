@@ -43,7 +43,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(GraphiteWriter);
-REGISTER_SCRIPTFUNCTION(ValidateNameTemplates, &GraphiteWriter::ValidateNameTemplates);
 
 REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
@@ -232,15 +231,18 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value)
 		return EscapeMetric(value);
 }
 
-void GraphiteWriter::ValidateNameTemplates(const String& location, const GraphiteWriter::Ptr& object)
+void GraphiteWriter::ValidateHostNameTemplate(const String& value, const ValidationUtils& utils)
 {
-	if (!MacroProcessor::ValidateMacroString(object->GetHostNameTemplate())) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Closing $ not found in macro format string '" + object->GetHostNameTemplate() + "'.", object->GetDebugInfo()));
-	}
+	ObjectImpl<GraphiteWriter>::ValidateHostNameTemplate(value, utils);
 
-	if (!MacroProcessor::ValidateMacroString(object->GetServiceNameTemplate())) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Closing $ not found in macro format string '" + object->GetServiceNameTemplate() + "'.", object->GetDebugInfo()));
-	}
+	if (!MacroProcessor::ValidateMacroString(value))
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("host_name_template"), "Closing $ not found in macro format string '" + value + "'."));
+}
+
+void GraphiteWriter::ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils)
+{
+	ObjectImpl<GraphiteWriter>::ValidateServiceNameTemplate(value, utils);
+
+	if (!MacroProcessor::ValidateMacroString(value))
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("service_name_template"), "Closing $ not found in macro format string '" + value + "'."));
 }

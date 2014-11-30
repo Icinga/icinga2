@@ -43,18 +43,18 @@ abstract class Checkable : CustomVarObject
 	[config] Array::Ptr groups {
 		default {{{ return new Array(); }}}
 	};
-	[config, protected] String check_command (CheckCommandRaw);
+	[config, protected, required] name(CheckCommand) check_command (CheckCommandRaw);
 	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
 		default {{{ return 3; }}}
 	};
-	[config, protected] String check_period (CheckPeriodRaw);
+	[config, protected] name(TimePeriod) check_period (CheckPeriodRaw);
 	[config] double check_interval (CheckIntervalRaw) {
 		default {{{ return 5 * 60; }}}
 	};
 	[config] double retry_interval (RetryIntervalRaw) {
 		default {{{ return 60; }}}
 	};
-	[config] String event_command (EventCommandRaw);
+	[config] name(EventCommand) event_command (EventCommandRaw);
 	[config] bool volatile;
 	[config] double flapping_threshold {
 		default {{{ return 30; }}}
@@ -147,7 +147,7 @@ abstract class Checkable : CustomVarObject
 	[state] Value override_max_check_attempts;
 	[state] Value override_check_period;
 
-	[config] String command_endpoint (CommandEndpointRaw);
+	[config] name(Endpoint) command_endpoint (CommandEndpointRaw);
 };
 
 }

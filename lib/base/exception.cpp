@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/exception.hpp"
+#include "base/dynamicobject.hpp"
 #include <boost/thread/tss.hpp>
 
 #ifdef HAVE_CXXABI_H
@@ -136,6 +137,8 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 
 	String message = ex.what();
 
+	const ValidationError *vex = dynamic_cast<const ValidationError *>(&ex);
+
 	if (message.IsEmpty())
 		result << boost::diagnostic_information(ex);
 	else
@@ -146,6 +149,46 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	if (dex && !dex->GetDebugInfo().Path.IsEmpty()) {
 		result << "\nLocation:\n";
 		ShowCodeFragment(result, dex->GetDebugInfo());
+	}
+
+	if (vex) {
+		DebugInfo di;
+
+		DynamicObject::Ptr dobj = dynamic_pointer_cast<DynamicObject>(vex->GetObject());
+		if (dobj)
+			di = dobj->GetDebugInfo();
+
+		Dictionary::Ptr currentHint = vex->GetDebugHint();
+		Array::Ptr messages;
+
+		BOOST_FOREACH(const String& attr, vex->GetAttributePath()) {
+			Dictionary::Ptr props = currentHint->Get("properties");
+
+			if (!props)
+				break;
+
+			currentHint = props->Get(attr);
+
+			if (!currentHint)
+				break;
+
+			messages = currentHint->Get("messages");
+		}
+
+		if (messages && messages->GetLength() > 0) {
+			Array::Ptr message = messages->Get(messages->GetLength() - 1);
+
+			di.Path = message->Get(1);
+			di.FirstLine = message->Get(2);
+			di.FirstColumn = message->Get(3);
+			di.LastLine = message->Get(4);
+			di.LastColumn = message->Get(5);
+		}
+
+		if (!di.Path.IsEmpty()) {
+			result << "\nLocation:\n";
+			ShowCodeFragment(result, di);
+		}
 	}
 
 	const user_error *uex = dynamic_cast<const user_error *>(&ex);
@@ -268,5 +311,59 @@ const char *posix_error::what(void) const throw()
 	}
 
 	return m_Message;
+}
+
+ValidationError::ValidationError(const intrusive_ptr<ObjectImpl<DynamicObject> >& object, const std::vector<String>& attributePath, const String& message)
+	: m_Object(object), m_AttributePath(attributePath), m_Message(message)
+{
+	String path;
+
+	BOOST_FOREACH(const String& attribute, attributePath) {
+		if (!path.IsEmpty())
+			path += " -> ";
+
+		path += "'" + attribute + "'";
+	}
+
+	Type::Ptr type = object->GetReflectionType();
+	m_What = "Validation failed for object '" + object->GetName() + "' of type '" + type->GetName() + "'";
+
+	if (!path.IsEmpty())
+		m_What += "; Attribute " + path;
+
+	m_What += ": " + message;
+}
+
+ValidationError::~ValidationError(void) throw()
+{ }
+
+const char *ValidationError::what(void) const throw()
+{
+	return m_What.CStr();
+}
+
+intrusive_ptr<ObjectImpl<DynamicObject> > ValidationError::GetObject(void) const
+{
+	return m_Object;
+}
+
+std::vector<String> ValidationError::GetAttributePath(void) const
+{
+	return m_AttributePath;
+}
+
+String ValidationError::GetMessage(void) const
+{
+	return m_Message;
+}
+
+void ValidationError::SetDebugHint(const Dictionary::Ptr& dhint)
+{
+	m_DebugHint = dhint;
+}
+
+Dictionary::Ptr ValidationError::GetDebugHint(void) const
+{
+	return m_DebugHint;
 }
 

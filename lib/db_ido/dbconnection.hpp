@@ -74,7 +74,7 @@ public:
 	int GetQueryCount(RingBuffer::SizeType span) const;
 	virtual int GetPendingQueryCount(void) const = 0;
 
-	static void ValidateFailoverTimeout(const String& location, const DbConnection::Ptr& object);
+	virtual void ValidateFailoverTimeout(double value, const ValidationUtils& utils) override;
 
 protected:
 	virtual void OnConfigLoaded(void);

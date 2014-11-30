@@ -17,8 +17,6 @@
 
 mkclass_target(livestatuslistener.ti livestatuslistener.thpp)
 
-mkembedconfig_target(livestatus-type.conf livestatus-type.cpp)
-
 set(livestatus_SOURCES
   aggregator.cpp andfilter.cpp attributefilter.cpp
   avgaggregator.cpp column.cpp combinerfilter.cpp commandstable.cpp
@@ -30,7 +28,7 @@ set(livestatus_SOURCES
   minaggregator.cpp negatefilter.cpp orfilter.cpp
   servicegroupstable.cpp servicestable.cpp statehisttable.cpp
   statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp
-  timeperiodstable.cpp livestatus-type.cpp
+  timeperiodstable.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

@@ -32,7 +32,6 @@
 #include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"
-#include "base/function.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
@@ -40,7 +39,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(CompatLogger);
-REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationMethod);
 
 REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
 
@@ -561,14 +559,12 @@ void CompatLogger::RotationTimerHandler(void)
 	ScheduleNextRotation();
 }
 
-void CompatLogger::ValidateRotationMethod(const String& location, const CompatLogger::Ptr& object)
+void CompatLogger::ValidateRotationMethod(const String& value, const ValidationUtils& utils)
 {
-	String rotation_method = object->GetRotationMethod();
+	ObjectImpl<CompatLogger>::ValidateRotationMethod(value, utils);
 
-	if (rotation_method != "HOURLY" && rotation_method != "DAILY" &&
-	    rotation_method != "WEEKLY" && rotation_method != "MONTHLY" && rotation_method != "NONE") {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Rotation method '" + rotation_method + "' is invalid.", object->GetDebugInfo()));
+	if (value != "HOURLY" && value != "DAILY" &&
+	    value != "WEEKLY" && value != "MONTHLY" && value != "NONE") {
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("rotation_method"), "Rotation method '" + value + "' is invalid."));
 	}
 }
-

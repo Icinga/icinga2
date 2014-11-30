@@ -17,10 +17,8 @@
 
 mkclass_target(demo.ti demo.thpp)
 
-mkembedconfig_target(demo-type.conf demo-type.cpp)
-
 set(demo_SOURCES
-  demo.cpp demo.thpp demo-type.cpp
+  demo.cpp demo.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

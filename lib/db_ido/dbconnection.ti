@@ -56,4 +56,25 @@ abstract class DbConnection : DynamicObject
 	};
 };
 
+
+validator DbConnection {
+	Dictionary cleanup {
+		Number acknowledgements_age;
+		Number commenthistory_age;
+		Number contactnotifications_age;
+		Number contactnotificationmethods_age;
+		Number downtimehistory_age;
+		Number eventhandlers_age;
+		Number externalcommands_age;
+		Number flappinghistory_age;
+		Number hostchecks_age;
+		Number logentries_age;
+		Number notifications_age;
+		Number processevents_age;
+		Number statehistory_age;
+		Number servicechecks_age;
+		Number systemcommands_age;
+	};
+};
+
 }

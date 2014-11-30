@@ -17,11 +17,10 @@
 
 mkclass_target(hello.ti hello.thpp)
 
-mkembedconfig_target(hello-type.conf hello-type.cpp)
 mkembedconfig_target(hello-app.conf hello-app.cpp)
 
 set(hello_SOURCES
-  hello.cpp hello.thpp hello-type.cpp hello-app.cpp
+  hello.cpp hello.thpp hello-app.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

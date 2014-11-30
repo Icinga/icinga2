@@ -17,10 +17,8 @@
 
 mkclass_target(notificationcomponent.ti notificationcomponent.thpp)
 
-mkembedconfig_target(notification-type.conf notification-type.cpp)
-
 set(notification_SOURCES
-  notificationcomponent.cpp notificationcomponent.thpp notification-type.cpp
+  notificationcomponent.cpp notificationcomponent.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

@@ -35,18 +35,24 @@ class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 	load_after Host;
 	load_after Service;
 
-	[config, protected] String host_name;
+	[config, protected, required] name(Host) host_name;
 	[config, protected] String service_name;
 
-	[config] String author;
-	[config] String comment;
+	[config, required] String author;
+	[config, required] String comment;
 
 	[config] double duration;
 	[config] bool fixed {
 		default {{{ return true; }}}
 	};
 
-	[config] Dictionary::Ptr ranges;
+	[config, required] Dictionary::Ptr ranges;
+};
+
+validator ScheduledDowntime {
+	Dictionary ranges {
+		String "*";
+	};
 };
 
 }

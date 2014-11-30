@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "config/configcompiler.hpp"
+#include "base/exception.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace icinga;

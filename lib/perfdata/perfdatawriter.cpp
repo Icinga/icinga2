@@ -34,7 +34,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataWriter);
-REGISTER_SCRIPTFUNCTION(ValidateFormatTemplates, &PerfdataWriter::ValidateFormatTemplates);
 
 REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
 
@@ -140,15 +139,18 @@ void PerfdataWriter::RotationTimerHandler(void)
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
-void PerfdataWriter::ValidateFormatTemplates(const String& location, const PerfdataWriter::Ptr& object)
+void PerfdataWriter::ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils)
 {
-	if (!MacroProcessor::ValidateMacroString(object->GetHostFormatTemplate())) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Closing $ not found in macro format string '" + object->GetHostFormatTemplate() + "'.", object->GetDebugInfo()));
-	}
+	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(value, utils);
 
-	if (!MacroProcessor::ValidateMacroString(object->GetServiceFormatTemplate())) {
-		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Closing $ not found in macro format string '" + object->GetHostFormatTemplate() + "'.", object->GetDebugInfo()));
-	}
+	if (!MacroProcessor::ValidateMacroString(value))
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("host_format_template"), "Closing $ not found in macro format string '" + value + "'."));
+}
+
+void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils)
+{
+	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(value, utils);
+
+	if (!MacroProcessor::ValidateMacroString(value))
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("service_format_template"), "Closing $ not found in macro format string '" + value + "'."));
 }

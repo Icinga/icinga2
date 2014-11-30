@@ -19,8 +19,8 @@
  ******************************************************************************/
 
 #include "config/configcompiler.hpp"
-#include "config/typerule.hpp"
 #include "config/expression.hpp"
+#include "base/exception.hpp"
 
 using namespace icinga;
 
@@ -167,19 +167,6 @@ do {							\
 [ \t]				/* ignore whitespace */
 
 <INITIAL>{
-%type				return T_TYPE;
-%dictionary			{ yylval->type = TypeDictionary; return T_TYPE_DICTIONARY; }
-%array				{ yylval->type = TypeArray; return T_TYPE_ARRAY; }
-%number				{ yylval->type = TypeNumber; return T_TYPE_NUMBER; }
-%string				{ yylval->type = TypeString; return T_TYPE_STRING; }
-%scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }
-%any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
-%function			{ yylval->type = TypeFunction; return T_TYPE_FUNCTION; }
-%name				{ yylval->type = TypeName; return T_TYPE_NAME; }
-%validator			{ return T_VALIDATOR; }
-%require			{ return T_REQUIRE; }
-%attribute			{ return T_ATTRIBUTE; }
-%inherits			return T_INHERITS;
 object				return T_OBJECT;
 template			return T_TEMPLATE;
 include				return T_INCLUDE;

@@ -110,8 +110,10 @@ public:
 
 	static void RegisterApplyRuleHandler(void);
 
-	static void ValidateUsers(const String& location, const Notification::Ptr& object);
-	static void ValidateFilters(const String& location, const Notification::Ptr& object);
+	virtual void Validate(int types, const ValidationUtils& utils) override;
+
+	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
+	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);

@@ -24,9 +24,15 @@ namespace icinga
 
 class Zone : DynamicObject
 {
-	[config] String parent (ParentRaw);
+	[config] name(Zone) parent (ParentRaw);
 	[config] Array::Ptr endpoints (EndpointsRaw);
 	[config] bool global;
+};
+
+validator Zone {
+	Array endpoints {
+		name(Endpoint) "*";
+	};
 };
 
 }

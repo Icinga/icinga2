@@ -24,7 +24,7 @@ namespace icinga
 
 class FileLogger : StreamLogger
 {
-	[config] String path;
+	[config, required] String path;
 };
 
 }

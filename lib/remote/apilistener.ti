@@ -25,9 +25,9 @@ namespace icinga
 
 class ApiListener : DynamicObject
 {
-	[config] String cert_path;
-	[config] String key_path;
-	[config] String ca_path;
+	[config, required] String cert_path;
+	[config, required] String key_path;
+	[config, required] String ca_path;
 	[config] String crl_path;
 
 	[config] String bind_host;

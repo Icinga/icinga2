@@ -28,7 +28,6 @@
 using namespace icinga;
 
 REGISTER_TYPE(CustomVarObject);
-REGISTER_SCRIPTFUNCTION(ValidateCustomAttributes, &CustomVarObject::ValidateCustomAttributes);
 
 boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> CustomVarObject::OnVarsChanged;
 
@@ -68,16 +67,14 @@ bool CustomVarObject::IsVarOverridden(const String& name) const
 	return vars_override->Contains(name);
 }
 
-void CustomVarObject::ValidateCustomAttributes(const String& location, const CustomVarObject::Ptr& object)
+void CustomVarObject::ValidateVarsRaw(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
-	Dictionary::Ptr vars = object->GetVars();
-
-	if (!vars)
+	if (!value)
 		return;
 
 	/* string, array, dictionary */
-	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	ObjectLock olock(value);
+	BOOST_FOREACH(const Dictionary::Pair& kv, value) {
 		const Value& varval = kv.second;
 
 		if (varval.IsObjectType<Dictionary>()) {
@@ -89,10 +86,8 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 				if (kv_var.second.IsEmpty())
 					continue;
 
-				if (!MacroProcessor::ValidateMacroString(kv_var.second)) {
-					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-					    location + ": Closing $ not found in macro format string '" + kv_var.second + "'.", object->GetDebugInfo()));
-				}
+				if (!MacroProcessor::ValidateMacroString(kv_var.second))
+					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("vars")(kv.first)(kv_var.first), "Closing $ not found in macro format string '" + kv_var.second + "'."));
 			}
 		} else if (varval.IsObjectType<Array>()) {
 			/* check all array entries */
@@ -104,8 +99,7 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 					continue;
 
 				if (!MacroProcessor::ValidateMacroString(arrval)) {
-					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-					    location + ": Closing $ not found in macro format string '" + arrval + "'.", object->GetDebugInfo()));
+					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + arrval + "'."));
 				}
 			}
 		} else {
@@ -114,10 +108,8 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 
 			String varstr = varval;
 
-			if (!MacroProcessor::ValidateMacroString(varstr)) {
-				BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-				    location + ": Closing $ not found in macro format string '" + varstr + "'.", object->GetDebugInfo()));
-			}
+			if (!MacroProcessor::ValidateMacroString(varstr))
+				BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + varstr + "'."));
 		}
 	}
 }

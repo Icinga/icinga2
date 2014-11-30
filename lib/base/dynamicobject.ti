@@ -33,10 +33,32 @@ public:
 };
 }}}
 
-abstract class DynamicObject
+abstract class DynamicObjectBase
+{ };
+
+code {{{
+class I2_BASE_API DynamicObjectBase : public ObjectImpl<DynamicObjectBase>
+{
+public:
+	inline DebugInfo GetDebugInfo(void) const
+	{
+		return m_DebugInfo;
+	}
+
+	void SetDebugInfo(const DebugInfo& di)
+	{
+		m_DebugInfo = di;
+	}
+
+private:
+	DebugInfo m_DebugInfo;
+};
+}}}
+
+abstract class DynamicObject : DynamicObjectBase
 {
 	[config, internal] String __name (Name);
-	[config] String name (ShortName) {
+	[config] String "name" (ShortName) {
 		get {{{
 			if (m_ShortName.IsEmpty())
 				return GetName();
@@ -45,7 +67,7 @@ abstract class DynamicObject
 		}}}
 	};
 	[config, internal, get_protected] String type (TypeNameV);
-	[config] String zone (ZoneName);
+	[config] name(Zone) zone (ZoneName);
 	[config, internal, get_protected] Array::Ptr templates;
 	[get_protected] bool active;
 	[get_protected] bool paused {

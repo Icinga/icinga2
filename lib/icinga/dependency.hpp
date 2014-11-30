@@ -51,7 +51,7 @@ public:
 
 	static void RegisterApplyRuleHandler(void);
 
-	static void ValidateFilters(const String& location, const Dependency::Ptr& object);
+	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);

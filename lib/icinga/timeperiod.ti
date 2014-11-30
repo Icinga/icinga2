@@ -34,12 +34,18 @@ class TimePeriod : CustomVarObject
 		}}}
 	};
 	[config] Dictionary::Ptr ranges;
-	[config] Function::Ptr update;
+	[config, required] Function::Ptr update;
 	[state] Value valid_begin;
 	[state] Value valid_end;
 	[state] Array::Ptr segments;
 	[no_storage] bool is_inside {
 		get;
+	};
+};
+
+validator TimePeriod {
+	Dictionary ranges {
+		String "*";
 	};
 };
 

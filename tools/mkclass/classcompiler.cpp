@@ -19,9 +19,11 @@
 
 #include "classcompiler.hpp"
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <stdexcept>
 #include <map>
+#include <set>
 #include <vector>
 #include <cstring>
 #ifndef _WIN32
@@ -77,6 +79,8 @@ void ClassCompiler::HandleNamespaceBegin(const std::string& name, const ClassDeb
 
 void ClassCompiler::HandleNamespaceEnd(const ClassDebugInfo&)
 {
+	HandleMissingValidators();
+
 	std::cout << "}" << std::endl;
 }
 
@@ -94,16 +98,16 @@ unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::stri
 
 	for (it = str.begin(); it != str.end(); it++) {
 		if (current >= len)
-                        break;
+			break;
 
 		char c = *it;
 
-                hash = c + (hash << 6) + (hash << 16) - hash;
+		hash = c + (hash << 6) + (hash << 16) - hash;
 
-                current++;
-        }
+		current++;
+	}
 
-        return hash;
+	return hash;
 }
 
 static int TypePreference(const std::string& type)
@@ -124,12 +128,12 @@ static int TypePreference(const std::string& type)
 
 static bool FieldLayoutCmp(const Field& a, const Field& b)
 {
-	return TypePreference(a.Type) < TypePreference(b.Type);
+	return TypePreference(a.Type.GetRealType()) < TypePreference(b.Type.GetRealType());
 }
 
 static bool FieldTypeCmp(const Field& a, const Field& b)
 {
-	return a.Type < b.Type;
+	return a.Type.GetRealType() < b.Type.GetRealType();
 }
 
 void ClassCompiler::OptimizeStructLayout(std::vector<Field>& fields)
@@ -297,7 +301,10 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		size_t num = 0;
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			std::string ftype = it->Type;
+			std::string ftype = it->Type.GetRealType();
+
+			if (ftype == "bool" || ftype == "int" || ftype == "double")
+				ftype = "Number";
 
 			if (ftype == "int" || ftype == "double")
 				ftype = "Number";
@@ -310,8 +317,15 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (it->Attributes & FAEnum)
 				ftype = "Number";
 
+			std::string nameref;
+
+			if (it->Type.IsName)
+				nameref = "\"" + it->Type.TypeName + "\"";
+			else
+				nameref = "NULL";
+
 			std::cout << "\t\t\t" << "case " << num << ":" << std::endl
-				<< "\t\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << it->Name << "\", " << it->Attributes << ");" << std::endl;
+				<< "\t\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << it->Name << "\", " << nameref << ", " << it->Attributes << ");" << std::endl;
 			num++;
 		}
 
@@ -362,13 +376,56 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	std::cout << "};" << std::endl << std::endl;
 
+	std::cout << std::endl;
+
 	/* ObjectImpl */
 	std::cout << "template<>" << std::endl
 		  << "class ObjectImpl<" << klass.Name << ">"
 		  << " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
 		  << "{" << std::endl
 		  << "public:" << std::endl
-		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl;
+		  << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
+
+	/* Validate */
+	std::cout << "\t" << "virtual void Validate(int types, const ValidationUtils& utils)" << std::endl
+		<< "\t" << "{" << std::endl;
+
+	if (!klass.Parent.empty())
+		std::cout << "\t\t" << klass.Parent << "::Validate(types, utils);" << std::endl << std::endl;
+
+	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		std::cout << "\t\t" << "if (" << (it->Attributes & (FAEphemeral|FAConfig|FAState)) << " & types)" << std::endl
+			  << "\t\t\t" << "Validate" << it->GetFriendlyName() << "(Get" << it->GetFriendlyName() << "(), utils);" << std::endl;
+	}
+
+	std::cout << "\t" << "}" << std::endl << std::endl;
+
+	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		std::cout << "\t" << "inline void SimpleValidate" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+			  << "\t" << "{" << std::endl;
+
+		const Field& field = *it;
+
+		if ((field.Attributes & (FARequired)) || field.Type.IsName) {
+			if (field.Attributes & FARequired) {
+				if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
+					std::cout << "\t\t" << "if (!value)" << std::endl;
+				else
+					std::cout << "\t\t" << "if (value.IsEmpty())" << std::endl;
+
+				std::cout << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
+			}
+
+			if (field.Type.IsName) {
+				std::cout << "\t\t" << "String ref = value;" << std::endl
+					  << "\t\t" << "if (!ref.IsEmpty() && !utils.ValidateName(\"" << field.Type.TypeName << "\", ref))" << std::endl
+					  << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + ref + \"' of type '" << field.Type.TypeName
+					  << "' does not exist.\"));" << std::endl;
+			}
+		}
+
+		std::cout << "\t" << "}" << std::endl << std::endl;
+	}
 
 	if (!klass.Fields.empty()) {
 		/* constructor */
@@ -389,7 +446,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		if (!klass.Parent.empty())
 			std::cout << "\t\t" << "int real_id = id - TypeImpl<" << klass.Parent << ">::StaticGetFieldCount(); " << std::endl
-			          << "\t\t" << "if (real_id < 0) { " << klass.Parent << "::SetField(id, value); return; }" << std::endl;
+				  << "\t\t" << "if (real_id < 0) { " << klass.Parent << "::SetField(id, value); return; }" << std::endl;
 
 		std::cout << "\t\t" << "switch (";
 
@@ -406,7 +463,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					  << "\t\t\t\t" << "Set" << it->GetFriendlyName() << "(";
 			
 			if (it->Attributes & FAEnum)
-				std::cout << "static_cast<" << it->Type << ">(static_cast<int>(";
+				std::cout << "static_cast<" << it->Type.GetRealType() << ">(static_cast<int>(";
 
 			std::cout << "value";
 			
@@ -465,7 +522,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			std::cout << prot << ":" << std::endl
-			    << "\t" << "virtual " << it->Type << " Get" << it->GetFriendlyName() << "(void) const";
+			    << "\t" << "virtual " << it->Type.GetRealType() << " Get" << it->GetFriendlyName() << "(void) const";
 
 			if (it->PureGetAccessor) {
 				std::cout << " = 0;" << std::endl;
@@ -494,14 +551,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			std::cout << prot << ":" << std::endl
-					  << "\t" << "virtual void Set" << it->GetFriendlyName() << "(";
-
-			if (it->Type == "bool" || it->Type == "double" || it->Type == "int")
-				std::cout << it->Type;
-			else
-				std::cout << "const " << it->Type << "&";
-
-			std::cout << " value)" << std::endl;
+				  << "\t" << "virtual void Set" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value)" << std::endl;
 
 			if (it->PureSetAccessor) {
 				std::cout << " = 0;" << std::endl;
@@ -519,18 +569,24 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* default */
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			std::string prot;
+			std::string realType = it->Type.GetRealType();
 
 			std::cout << "private:" << std::endl
-					  << "\t" << it->Type << " GetDefault" << it->GetFriendlyName() << "(void) const" << std::endl
+					  << "\t" << realType << " GetDefault" << it->GetFriendlyName() << "(void) const" << std::endl
 					  << "\t" << "{" << std::endl;
 
 			if (it->DefaultAccessor.empty())
-				std::cout << "\t\t" << "return " << it->Type << "();" << std::endl;
+				std::cout << "\t\t" << "return " << realType << "();" << std::endl;
 			else
 				std::cout << it->DefaultAccessor << std::endl;
 
 			std::cout << "\t" << "}" << std::endl;
+		}
+
+		/* validators */
+		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			std::cout << "protected:" << std::endl
+				  << "\t" << "virtual void Validate" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, const ValidationUtils& utils);" << std::endl;
 		}
 
 		/* instance variables */
@@ -538,7 +594,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 			if (!(it->Attributes & FANoStorage))
-				std::cout << "\t" << it->Type << " m_" << it->GetFriendlyName() << ";" << std::endl;
+				std::cout << "\t" << it->Type.GetRealType() << " m_" << it->GetFriendlyName() << ";" << std::endl;
 		}
 	}
 
@@ -549,6 +605,286 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		std::cout << "\t" << "friend class " << klass.TypeBase << ";" << std::endl;
 
 	std::cout << "};" << std::endl << std::endl;
+
+	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		m_MissingValidators[std::make_pair(klass.Name, it->GetFriendlyName())] = *it;
+	}
+}
+
+enum ValidatorType
+{
+	ValidatorField,
+	ValidatorArray,
+	ValidatorDictionary
+};
+
+static void CodeGenValidator(const std::string& name, const std::string& klass, const std::vector<Rule>& rules, const std::string& field, const FieldType& fieldType, ValidatorType validatorType)
+{
+	std::cout << "inline void TIValidate" << name << "(const intrusive_ptr<ObjectImpl<" << klass << "> >& object, ";
+
+	if (validatorType != ValidatorField)
+		std::cout << "const String& key, ";
+
+	bool static_known_attribute = false;
+
+	std::cout << fieldType.GetArgumentType() << " value, std::vector<String>& location, const ValidationUtils& utils)" << std::endl
+		  << "{" << std::endl;
+
+	if (validatorType == ValidatorField) {
+		static_known_attribute = true;
+
+		bool required = false;
+
+		for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
+			const Rule& rule = rules[i];
+
+			if ((rule.Attributes & RARequired) && rule.Pattern == field) {
+				required = true;
+				break;
+			}
+		}
+
+		if (fieldType.GetRealType() != "int" && fieldType.GetRealType() != "double") {
+			if (fieldType.GetRealType() == "Value" || fieldType.GetRealType() == "String")
+				std::cout << "\t" << "if (value.IsEmpty())" << std::endl;
+			else
+				std::cout << "\t" << "if (!value)" << std::endl;
+
+			if (required)
+				std::cout << "BOOST_THROW_EXCEPTION(ValidationError(this, location, \"This attribute must not be empty.\"));" << std::endl;
+			else
+				std::cout << "\t\t" << "return;" << std::endl;
+
+			std::cout << std::endl;
+		}
+	}
+
+	if (!static_known_attribute)
+		std::cout << "\t" << "bool known_attribute = false;" << std::endl;
+
+	bool type_check = false;
+
+	for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
+		const Rule& rule = rules[i];
+
+		if (rule.Attributes & RARequired)
+			continue;
+
+		if (validatorType == ValidatorField && rule.Pattern != field)
+			continue;
+
+		std::cout << "\t" << "do {" << std::endl;
+
+		if (validatorType != ValidatorField) {
+			if (rule.Pattern != "*") {
+				if (rule.Pattern.find_first_of("*?") != std::string::npos)
+					std::cout << "\t\t" << "if (!Utility::Match(\"" << rule.Pattern << "\", key))" << std::endl;
+				else
+					std::cout << "\t\t" << "if (key != \"" << rule.Pattern << "\")" << std::endl;
+
+				std::cout << "\t\t\t" << "break;" << std::endl;
+			} else
+				static_known_attribute = true;
+
+			if (!static_known_attribute)
+				std::cout << "\t\t" << "known_attribute = true;" << std::endl;
+		}
+
+		if (rule.IsName) {
+			std::cout << "\t\t" << "if (value.IsScalar()) {" << std::endl
+				  << "\t\t\t" << "if (utils.ValidateName(\"" << rule.Type << "\", value))" << std::endl
+				  << "\t\t\t\t" << "return;" << std::endl
+				  << "\t\t\t" << "else" << std::endl
+				  << "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(object, location, \"Object '\" + value + \"' of type '" << rule.Type << "' does not exist.\"));" << std::endl
+				  << "\t\t" << "}" << std::endl;
+		}
+
+		if (fieldType.GetRealType() == "Value") {
+			if (rule.Type == "String")
+				std::cout << "\t\t" << "if (value.IsScalar())" << std::endl
+					  << "\t\t\t" << "return;" << std::endl;
+			else if (rule.Type == "Number") {
+				std::cout << "\t\t" << "try {" << std::endl
+					  << "\t\t\t" << "Convert::ToDouble(value);" << std::endl
+					  << "\t\t\t" << "return;" << std::endl
+					  << "\t\t" << "} catch (...) { }" << std::endl;
+			}
+		}
+
+		if (rule.Type == "Dictionary" || rule.Type == "Array" || rule.Type == "Function") {
+			if (fieldType.GetRealType() == "Value") {
+				std::cout << "\t\t" << "if (value.IsObjectType<" << rule.Type << ">()) {" << std::endl;
+				type_check = true;
+			} else if (fieldType.GetRealType() != rule.Type + "::Ptr") {
+				std::cout << "\t\t" << "if (dynamic_pointer_cast<" << rule.Type << ">(value)) {" << std::endl;
+				type_check = true;
+			}
+
+			if (!rule.Rules.empty()) {
+				bool indent = false;
+
+				if (rule.Type == "Dictionary") {
+					if (type_check)
+						std::cout << "\t\t\t" << "Dictionary::Ptr dict = value;" << std::endl;
+					else
+						std::cout << "\t\t" << "const Dictionary::Ptr& dict = value;" << std::endl;
+
+					std::cout << (type_check ? "\t" : "") << "\t\t" << "ObjectLock olock(dict);" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t" << "BOOST_FOREACH(const Dictionary::Pair& kv, dict) {" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t\t" << "const String& akey = kv.first;" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t\t" << "const Value& avalue = kv.second;" << std::endl;
+					indent = true;
+				} else if (rule.Type == "Array") {
+					if (type_check)
+						std::cout << "\t\t\t" << "Array::Ptr arr = value;" << std::endl;
+					else
+						std::cout << "\t\t" << "const Array::Ptr& arr = value;" << std::endl;
+
+					std::cout << (type_check ? "\t" : "") << "\t\t" << "Array::SizeType anum = 0;" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t" << "ObjectLock olock(arr);" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t" << "BOOST_FOREACH(const Value& avalue, arr) {" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t\t" << "String akey = Convert::ToString(anum);" << std::endl;
+					indent = true;
+				} else {
+					std::cout << (type_check ? "\t" : "") << "\t\t" << "String akey = \"\";" << std::endl
+						  << (type_check ? "\t" : "") << "\t\t" << "const Value& avalue = value;" << std::endl;
+				}
+
+				std::string subvalidator_prefix;
+
+				if (validatorType == ValidatorField)
+					subvalidator_prefix = klass;
+				else
+					subvalidator_prefix = name;
+
+				std::cout << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.push_back(akey);" << std::endl
+					  << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl;
+
+				if (rule.Type == "Array")
+					std::cout << (type_check ? "\t" : "") << "\t\t\t" << "anum++;" << std::endl;
+
+				if (rule.Type == "Dictionary" || rule.Type == "Array")
+					std::cout << (type_check ? "\t" : "") << "\t\t" << "}" << std::endl;
+
+				for (std::vector<Rule>::size_type i = 0; i < rule.Rules.size(); i++) {
+					const Rule& srule = rule.Rules[i];
+
+					if ((srule.Attributes & RARequired) == 0)
+						continue;
+
+					if (rule.Type == "Dictionary") {
+						std::cout << (type_check ? "\t" : "") << "\t\t" << "if (dict.Get(\"" << srule.Pattern << "\").IsEmpty())" << std::endl
+							  << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(this, location, \"Required dictionary item '" << srule.Pattern << "' is not set.\"));" << std::endl;
+					} else if (rule.Type == "Array") {
+						int index = -1;
+						std::stringstream idxbuf;
+						idxbuf << srule.Pattern;
+						idxbuf >> index;
+
+						if (index == -1) {
+							std::cerr << "Invalid index for 'required' keyword: " << srule.Pattern;
+							std::exit(1);
+						}
+
+						std::cout << (type_check ? "\t" : "") << "\t\t" << "if (arr.GetLength() < " << (index + 1) << ")" << std::endl
+							  << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(this, location, \"Required index '" << index << "' is not set.\"));" << std::endl;
+					}
+				}
+
+				std::cout << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
+			}
+
+			std::cout << (type_check ? "\t" : "") << "\t\t" << "return;" << std::endl;
+
+			if (fieldType.GetRealType() == "Value" || fieldType.GetRealType() != rule.Type + "::Ptr")
+				std::cout << "\t\t" << "}" << std::endl;
+		}
+
+		std::cout << "\t" << "} while (0);" << std::endl << std::endl;
+	}
+
+	if (type_check || validatorType != ValidatorField) {
+		if (!static_known_attribute)
+			std::cout << "\t" << "if (!known_attribute)" << std::endl
+				  << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(object, location, \"Invalid attribute: \" + key));" << std::endl
+				  << "\t" << "else" << std::endl;
+
+		std::cout << (!static_known_attribute ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(object, boost::assign::list_of(";
+
+		if (validatorType == ValidatorField)
+			std::cout << "\"" << field << "\"";
+		else
+			std::cout << "key";
+
+		std::cout << "), \"Invalid type.\"));" << std::endl;
+	}
+
+	std::cout << "}" << std::endl << std::endl;
+}
+
+static void CodeGenValidatorSubrules(const std::string& name, const std::string& klass, const std::vector<Rule>& rules)
+{
+	for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
+		const Rule& rule = rules[i];
+
+		if (rule.Attributes & RARequired)
+			continue;
+
+		if (!rule.Rules.empty()) {
+			ValidatorType subtype;
+
+			if (rule.Type == "Array")
+				subtype = ValidatorArray;
+			else if (rule.Type == "Dictionary")
+				subtype = ValidatorDictionary;
+			else {
+				std::cerr << "Invalid sub-validator type: " << rule.Type << std::endl;
+				std::exit(EXIT_FAILURE);
+			}
+
+			std::ostringstream namebuf;
+			namebuf << name << "_" << i;
+
+			CodeGenValidatorSubrules(namebuf.str(), klass, rule.Rules);
+
+			FieldType ftype;
+			ftype.IsName = false;
+			ftype.TypeName = "Value";
+			CodeGenValidator(namebuf.str(), klass, rule.Rules, rule.Pattern, ftype, subtype);
+		}
+	}
+}
+
+void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebugInfo&)
+{
+	CodeGenValidatorSubrules(validator.Name, validator.Name, validator.Rules);
+
+	for (std::map<std::pair<std::string, std::string>, Field>::const_iterator it = m_MissingValidators.begin(); it != m_MissingValidators.end(); it++)
+		CodeGenValidator(it->first.first + it->first.second, it->first.first, validator.Rules, it->second.Name, it->second.Type, ValidatorField);
+
+	for (std::map<std::pair<std::string, std::string>, Field>::const_iterator it = m_MissingValidators.begin(); it != m_MissingValidators.end(); it++) {
+		std::cout << "inline void ObjectImpl<" << it->first.first << ">::Validate" << it->first.second << "(" << it->second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+			  << "{" << std::endl
+			  << "\t" << "SimpleValidate" << it->first.second << "(value, utils);" << std::endl
+			  << "\t" << "std::vector<String> location;" << std::endl
+			  << "\t" << "location.push_back(\"" << it->second.Name << "\");" << std::endl
+			  << "\t" << "TIValidate" << it->first.first << it->first.second << "(this, value, location, utils);" << std::endl
+			  << "}" << std::endl << std::endl;
+	}
+
+	m_MissingValidators.clear();
+}
+
+void ClassCompiler::HandleMissingValidators(void)
+{
+	for (std::map<std::pair<std::string, std::string>, Field>::const_iterator it = m_MissingValidators.begin(); it != m_MissingValidators.end(); it++) {
+		std::cout << "inline void ObjectImpl<" << it->first.first << ">::Validate" << it->first.second << "(" << it->second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+			  << "{" << std::endl
+			  << "\t" << "SimpleValidate" << it->first.second << "(value, utils);" << std::endl
+			  << "}" << std::endl << std::endl;
+	}
+
+	m_MissingValidators.clear();
 }
 
 void ClassCompiler::CompileFile(const std::string& path)
@@ -562,7 +898,7 @@ void ClassCompiler::CompileFile(const std::string& path)
 	return CompileStream(path, &stream);
 }
 
-std::string ClassCompiler::BaseName(const  std::string& path)
+std::string ClassCompiler::BaseName(const std::string& path)
 {
 	char *dir = strdup(path.c_str());
 	std::string result;
@@ -610,7 +946,12 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream *stream)
 			  << "#include \"base/value.hpp\"" << std::endl
 			  << "#include \"base/array.hpp\"" << std::endl
 			  << "#include \"base/dictionary.hpp\"" << std::endl
+			  << "#include \"base/convert.hpp\"" << std::endl
+			  << "#include \"base/exception.hpp\"" << std::endl
+			  << "#include \"base/objectlock.hpp\"" << std::endl
 			  << "#include \"base/utility.hpp\"" << std::endl << std::endl
+			  << "#include <boost/foreach.hpp>" << std::endl
+			  << "#include <boost/assign/list_of.hpp>" << std::endl
 			  << "#ifdef _MSC_VER" << std::endl
 			  << "#pragma warning( push )" << std::endl
 			  << "#pragma warning( disable : 4244 )" << std::endl
