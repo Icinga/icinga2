@@ -24,6 +24,8 @@
 %define _rundir %{_localstatedir}/run
 %endif
 
+%define _libexecdir %{_prefix}/lib/
+
 %if "%{_vendor}" == "redhat"
 %define apachename httpd
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
@@ -483,7 +485,7 @@ exit 0
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/repository.d/*
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.d/*
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
-/usr/lib/icinga2/prepare-dirs
+%{_libexecdir}/%{name}/prepare-dirs
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
