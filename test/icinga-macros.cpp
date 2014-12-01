@@ -46,6 +46,7 @@ BOOST_AUTO_TEST_CASE(simple)
 
 	BOOST_CHECK(MacroProcessor::ResolveMacros("$macrosA.testB$ $macrosB.testC$", resolvers) == "hello world");
 	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$", resolvers) == "7");
+	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$$testB$", resolvers) == "7hello");
 
 	Array::Ptr result = MacroProcessor::ResolveMacros("$testD$", resolvers);
 	BOOST_CHECK(result->GetLength() == 2);
