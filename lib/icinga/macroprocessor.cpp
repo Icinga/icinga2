@@ -239,8 +239,8 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 
 		String resolved_macro_str = resolved_macro;
 
-		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro);
-		offset = pos_first + resolved_macro_str.GetLength() + 1;
+		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro_str);
+		offset = pos_first + resolved_macro_str.GetLength();
 	}
 
 	return result;
