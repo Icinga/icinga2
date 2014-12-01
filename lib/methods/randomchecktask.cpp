@@ -34,6 +34,9 @@ REGISTER_SCRIPTFUNCTION(RandomCheck, &RandomCheckTask::ScriptFunc);
 void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	if (resolvedMacros && !useResolvedMacros)
+		return;
+
 	String output = "Hello from ";
 	output += Utility::GetFQDN();
 

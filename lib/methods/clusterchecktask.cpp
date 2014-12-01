@@ -39,6 +39,9 @@ REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
 void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	if (resolvedMacros && !useResolvedMacros)
+		return;
+
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener) {

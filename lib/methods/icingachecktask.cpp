@@ -35,6 +35,9 @@ REGISTER_SCRIPTFUNCTION(IcingaCheck, &IcingaCheckTask::ScriptFunc);
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	if (resolvedMacros && !useResolvedMacros)
+		return;
+
 	double interval = Utility::GetTime() - Application::GetStartTime();
 
 	if (interval > 60)
