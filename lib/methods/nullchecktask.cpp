@@ -34,6 +34,9 @@ REGISTER_SCRIPTFUNCTION(NullCheck, &NullCheckTask::ScriptFunc);
 void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	if (resolvedMacros && !useResolvedMacros)
+		return;
+
 	String output = "Hello from ";
 	output += Utility::GetFQDN();
 

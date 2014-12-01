@@ -171,7 +171,8 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
 			String name = kv.second;
 
-			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult());
+			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(),
+			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 			envMacros->Set(kv.first, value);
 		}
@@ -187,8 +188,13 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		if (it != l_Objects.end()) {
 			vtObject = it->second;
 		} else {
-			String clr_assembly = MacroProcessor::ResolveMacros("$clr_assembly$", resolvers, checkable->GetLastCheckResult());
-			String clr_type = MacroProcessor::ResolveMacros("$clr_type$", resolvers, checkable->GetLastCheckResult());
+			String clr_assembly = MacroProcessor::ResolveMacros("$clr_assembly$", resolvers, checkable->GetLastCheckResult(),
+			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+			String clr_type = MacroProcessor::ResolveMacros("$clr_type$", resolvers, checkable->GetLastCheckResult(),
+			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
+			if (resolvedMacros && !useResolvedMacros)
+				return;
 
 			vtObject = CreateClrType(clr_assembly, clr_type);
 			l_Objects[checkable] = vtObject;
