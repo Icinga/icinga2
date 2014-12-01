@@ -12,10 +12,15 @@ ScriptAlias /icinga/cgi-bin "@CMAKE_INSTALL_FULL_LIBDIR@/icinga/cgi"
    Options ExecCGI
    AllowOverride None
    Order allow,deny
-   Allow from all
-#  Order deny,allow
-#  Deny from all
-#  Allow from 127.0.0.1
+   <IfVersion < 2.3>
+      Allow from all
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
+   </IfVersion>
+   <IfVersion >= 2.3>
+      Require all granted
+   </IfVersion>
    AuthName "Icinga Access"
    AuthType Basic
    AuthUserFile @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga/passwd
@@ -28,11 +33,16 @@ Alias /icinga "@CMAKE_INSTALL_FULL_DATADIR@/icinga/"
 #  SSLRequireSSL
    Options None
    AllowOverride All
-   Order allow,deny
-   Allow from all
-#  Order deny,allow
-#  Deny from all
-#  Allow from 127.0.0.1
+   <IfVersion < 2.3>
+      Order allow,deny
+      Allow from all
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
+   </IfVersion>
+   <IfVersion >= 2.3>
+      Require all granted
+   </IfVersion>
    AuthName "Icinga Access"
    AuthType Basic
    AuthUserFile @CMAKE_INSTALL_FULL_SYSCONFDIR@/icinga/passwd
