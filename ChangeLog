@@ -4,6 +4,45 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.2.1
+
+#### Changes
+
+* Support arrays in command argument macros
+* Bug fixes
+
+#### Issues
+
+Feature #6709: Support for arrays in macros
+Feature #7463: Update spec file to use yajl-devel
+Feature #7739: The classicui Apache conf doesn't support Apache 2.4
+Feature #7747: Increase default timeout for NRPE checks
+Feature #7867: Document how arrays in macros work
+
+Bug #7173: service icinga2 status gives wrong information when run as unprivileged user
+Bug #7602: livestatus large amount of submitting unix socket command results in broken pipes
+Bug #7613: icinga2 checkconfig should fail if group given for command files does not exist
+Bug #7671: object and template with the same name generate duplicate object error
+Bug #7708: Built-in commands shouldn't be run on the master instance in remote command execution mode
+Bug #7725: Windows wizard uses incorrect CLI command
+Bug #7726: Windows wizard is missing --zone argument
+Bug #7730: Restart Icinga - Error Restoring program state from file '/var/lib/icinga2/icinga2.state'
+Bug #7735: 2.2.0 has out-of-date icinga2 man page
+Bug #7738: Systemd rpm scripts are run in wrong package
+Bug #7740: /usr/sbin/icinga-prepare-dirs conflicts in the bin and common package
+Bug #7741: Icinga 2.2 misses the build requirement libyajl-devel for SUSE distributions
+Bug #7743: Icinga2 node add failed with unhandled exception
+Bug #7754: Incorrect error message for localhost
+Bug #7770: Objects created with node update-config can't be seen in Classic UI
+Bug #7786: Move the icinga2-prepare-dirs script elsewhere
+Bug #7806: !in operator returns incorrect result
+Bug #7828: Verify if master radio box is disabled in the Windows wizard
+Bug #7847: Wrong information in section "Linux Client Setup Wizard for Remote Monitoring"
+Bug #7862: Segfault in CA handling
+Bug #7868: Documentation: Explain how unresolved macros are handled
+Bug #7890: Wrong permission in run directory after restart
+Bug #7896: Fix Apache config in the Debian package
+
 ### What's New in Version 2.2.0
 
 #### Changes
