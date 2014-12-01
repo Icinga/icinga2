@@ -268,14 +268,16 @@ exit 0
 %if "%{_vendor}" == "suse"
 %verifyscript bin
 %verify_permissions -e %{_rundir}/%{name}/cmd
+
+%if 0%{?suse_version} >= 1310
+%post bin
+%set_permissions %{_rundir}/%{name}/cmd
+%endif
 %endif
 
 %post common
 # suse
 %if "%{_vendor}" == "suse"
-%if 0%{?suse_version} >= 1310
-%set_permissions %{_rundir}/%{name}/cmd
-%endif
 %if 0%{?use_systemd}
 %fillup_only  %{name}
 %service_add_post %{name}.service
