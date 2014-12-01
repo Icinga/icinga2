@@ -40,6 +40,11 @@ struct ReadLineContext
 	ReadLineContext(void) : Buffer(NULL), Size(0), Eof(false), MustRead(true)
 	{ }
 
+	~ReadLineContext(void)
+	{
+		free(Buffer);
+	}
+
 	char *Buffer;
 	size_t Size;
 	bool Eof;
