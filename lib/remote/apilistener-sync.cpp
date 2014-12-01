@@ -213,6 +213,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 
 	bool configChange = false;
 
+	ObjectLock olock(update);
 	BOOST_FOREACH(const Dictionary::Pair& kv, update) {
 		Zone::Ptr zone = Zone::GetByName(kv.first);
 
