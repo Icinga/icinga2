@@ -179,17 +179,19 @@ void IdoMysqlConnection::Reconnect(void)
 
 		ClearIDCache();
 
-		String ihost, iuser, ipasswd, idb;
-		const char *host, *user , *passwd, *db;
+		String ihost, isocket_path, iuser, ipasswd, idb;
+		const char *host, *socket_path, *user , *passwd, *db;
 		long port;
 
 		ihost = GetHost();
+		isocket_path = GetSocketPath();
 		iuser = GetUser();
 		ipasswd = GetPassword();
 		idb = GetDatabase();
 
 		host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
 		port = GetPort();
+		socket_path = (!isocket_path.IsEmpty()) ? isocket_path.CStr() : NULL;
 		user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
 		passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 		db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
@@ -202,7 +204,7 @@ void IdoMysqlConnection::Reconnect(void)
 			BOOST_THROW_EXCEPTION(std::bad_alloc());
 		}
 
-		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, NULL, CLIENT_FOUND_ROWS)) {
+		if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS)) {
 			Log(LogCritical, "IdoMysqlConnection")
 			    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
 			    << "' failed: \"" << mysql_error(&m_Connection) << "\"";

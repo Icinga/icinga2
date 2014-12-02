@@ -30,6 +30,7 @@ class IdoMysqlConnection : DbConnection
 	[config] int port {
 		default {{{ return 3306; }}}
 	};
+	[config] String socket_path;
 	[config] String user {
 		default {{{ return "icinga"; }}}
 	};

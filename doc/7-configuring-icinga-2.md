@@ -1409,6 +1409,7 @@ Attributes:
   ----------------|----------------
   host            |**Optional.** MySQL database host address. Defaults to "localhost".
   port            |**Optional.** MySQL database port. Defaults to 3306.
+  socket_path     |**Optional.** MySQL socket path.
   user            |**Optional.** MySQL database user with read/write permission to the icinga database. Defaults to "icinga".
   password        |**Optional.** MySQL database user's password. Defaults to "icinga".
   database        |**Optional.** MySQL database name. Defaults to "icinga".
