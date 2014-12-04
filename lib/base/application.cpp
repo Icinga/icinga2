@@ -108,7 +108,7 @@ void Application::Exit(int rc)
 		logger->Flush();
 	}
 
-	Timer::Uninitialize();
+	UninitializeBase();
 
 #ifdef _DEBUG
 	exit(rc);
@@ -149,6 +149,18 @@ void Application::InitializeBase(void)
 #endif /* _WIN32 */
 
 	Utility::ExecuteDeferredInitializers();
+
+	/* make sure the thread pool gets initialized */
+	GetTP();
+
+	Timer::Initialize();
+}
+
+void Application::UninitializeBase(void)
+{
+	Timer::Uninitialize();
+
+	GetTP().Stop();
 }
 
 /**
@@ -316,12 +328,7 @@ mainloop:
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
-#ifdef _DEBUG
-	GetTP().Stop();
-	m_ShuttingDown = false;
-
-	Timer::Uninitialize();
-#endif /* _DEBUG */
+	UninitializeBase();
 }
 
 void Application::OnShutdown(void)
