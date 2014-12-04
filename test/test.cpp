@@ -31,12 +31,11 @@ struct InitLibBase
 	InitLibBase(void)
 	{
 		Application::InitializeBase();
-		Timer::Initialize();
 	}
 
 	~InitLibBase(void)
 	{
-		Timer::Uninitialize();
+		Application::UninitializeBase();
 	}
 };
 

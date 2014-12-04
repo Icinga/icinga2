@@ -52,9 +52,6 @@ public:
 
 	boost::signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
-	static void Initialize(void);
-	static void Uninitialize(void);
-
 	class Holder {
 	public:
 		Holder(Timer *timer)
@@ -88,6 +85,11 @@ private:
 	void Call();
 
 	static void TimerThreadProc(void);
+
+	static void Initialize(void);
+	static void Uninitialize(void);
+
+	friend class Application;
 };
 
 }
