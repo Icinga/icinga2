@@ -25,6 +25,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
+#include "base/scriptvariable.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/tlsutility.hpp"
@@ -122,6 +123,20 @@ String RepositoryUtility::GetRepositoryObjectConfigFilePath(const String& type, 
 String RepositoryUtility::GetRepositoryChangeLogPath(void)
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/repository/changes";
+}
+
+void RepositoryUtility::CreateRepositoryPath(const String& path)
+{
+	if (!Utility::PathExists(path))
+		Utility::MkDirP(path, 0750);
+
+	String user = ScriptVariable::Get("RunAsUser");
+        String group = ScriptVariable::Get("RunAsGroup");
+
+        if (!Utility::SetFileOwnership(path, user, group)) {
+                Log(LogWarning, "cli")
+                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
+	}
 }
 
 /* printers */
@@ -355,7 +370,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 {
 	Log(LogInformation, "cli", "Dumping changelog items to file '" + path + "'");
 
-	Utility::MkDirP(Utility::DirName(path), 0750);
+	CreateRepositoryPath(Utility::DirName(path));
 
 	String tempPath = path + ".tmp";
 
@@ -495,7 +510,7 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 	Log(LogInformation, "cli")
 	    << "Writing config object '" << name << "' to file '" << path << "'";
 
-	Utility::MkDirP(Utility::DirName(path), 0755);
+	CreateRepositoryPath(Utility::DirName(path));
 
 	String tempPath = path + ".tmp";
 
@@ -656,6 +671,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 	fp << " " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal) << " '";
 	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'\n";
 
+	ObjectLock olock(attrs);
 	BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
 		/* skip the name */
 		if (kv.first == "name" || kv.first == "__name")
@@ -689,6 +705,7 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 		}
 	}
 
+	ObjectLock xlock(object);
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
 		if (kv.first == "import" || kv.first == "name" || kv.first == "__name") {
 			continue;

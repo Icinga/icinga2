@@ -154,7 +154,6 @@ void ObjectListCommand::PrintProperties(std::ostream& fp, const Dictionary::Ptr&
 	int offset = 2;
 
 	ObjectLock olock(props);
-
 	BOOST_FOREACH(const Dictionary::Pair& kv, props) {
 		String key = kv.first;
 		Value val = kv.second;

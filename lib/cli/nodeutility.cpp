@@ -56,17 +56,17 @@ String NodeUtility::GetNodeSettingsFile(const String& name)
 	return GetRepositoryPath() + "/" + SHA256(name) + ".settings";
 }
 
-void NodeUtility::CreateRepositoryPath(void)
+void NodeUtility::CreateRepositoryPath(const String& path)
 {
-	if (!Utility::PathExists(GetRepositoryPath()))
-		Utility::MkDirP(GetRepositoryPath(), 0750);
+	if (!Utility::PathExists(path))
+		Utility::MkDirP(path, 0750);
 
 	String user = ScriptVariable::Get("RunAsUser");
         String group = ScriptVariable::Get("RunAsGroup");
 
-        if (!Utility::SetFileOwnership(GetRepositoryPath(), user, group)) {
+        if (!Utility::SetFileOwnership(path, user, group)) {
                 Log(LogWarning, "cli")
-                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << GetRepositoryPath() << "'. Verify it yourself!";
+                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
 	}
 }
 
@@ -370,7 +370,21 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	/* create a backup first */
 	CreateBackupFile(filename);
 
-	Utility::MkDirP(Utility::DirName(filename), 0755);
+	String path = Utility::DirName(filename);
+
+	Utility::MkDirP(path, 0755);
+
+	String user = ScriptVariable::Get("RunAsUser");
+        String group = ScriptVariable::Get("RunAsGroup");
+
+        if (!Utility::SetFileOwnership(path, user, group)) {
+                Log(LogWarning, "cli")
+                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
+	}
+        if (!Utility::SetFileOwnership(filename, user, group)) {
+                Log(LogWarning, "cli")
+                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
+	}
 
 	String tempPath = filename + ".tmp";
 
@@ -382,7 +396,6 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << " */\n\n";
 
 	ObjectLock olock(objects);
-
 	BOOST_FOREACH(const Dictionary::Ptr& object, objects) {
 		String name = object->Get("__name");
 		String type = object->Get("__type");
