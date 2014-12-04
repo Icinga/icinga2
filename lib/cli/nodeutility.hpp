@@ -39,7 +39,7 @@ public:
 	static String GetRepositoryPath(void);
 	static String GetNodeRepositoryFile(const String& name);
 	static String GetNodeSettingsFile(const String& name);
-	static void CreateRepositoryPath(void);
+	static void CreateRepositoryPath(const String& path = GetRepositoryPath());
 	static std::vector<String> GetNodeCompletionSuggestions(const String& word);
 
 	static void PrintNodes(std::ostream& fp);
