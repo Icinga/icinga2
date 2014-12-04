@@ -46,7 +46,9 @@ if(ICINGA2_UNITY_BUILD)
         add_custom_command(
             OUTPUT ${UnityOutput}
             COMMAND mkunity
-            ARGS ${Prefix} ${UnitySources} >${UnityOutput}
+            ARGS ${Prefix} ${UnitySources} > ${UnityOutput}.tmp
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy ${UnityOutput}.tmp ${UnityOutput}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             DEPENDS mkunity ${UnityInput}
         )
