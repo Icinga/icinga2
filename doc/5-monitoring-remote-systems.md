@@ -701,6 +701,51 @@ nrpe.cfg:
 
     command[check_users]=/usr/local/icinga/libexec/check_users -w 5 -c 10
 
+If you are planning to pass arguments to NRPE using the `-a`
+command line parameter, make sure that your NRPE daemon has them
+supported and enabled.
+
+> **Note**
+>
+> Enabling command arguments in NRPE is considered harmful
+> and exposes a security risk allowing attackers to execute
+> commands remotely. Details at [seclists.org](http://seclists.org/fulldisclosure/2014/Apr/240).
+
+The plugin check command `nrpe` provides the `nrpe_arguments` custom
+attribute which expects either a single value or an array of values.
+
+Example:
+
+    object Service "nrpe-disk-/" {
+      import "generic-service"
+
+      host_name = "remote-nrpe-host"
+
+      check_command = "nrpe"
+      vars.nrpe_command = "check_disk"
+      vars.nrpe_arguments = [ "20%", "10%", "/" ]
+    }
+
+Icinga 2 will execute the nrpe plugin like this:
+
+    /usr/lib/nagios/plugins/check_nrpe -H <remote-nrpe-host> -c 'check_disk' -a '20%' '10%' '/'
+
+NRPE expects all additional arguments in an ordered fashion
+and interprets the first value as `$ARG1$` macro, the second
+value as `$ARG2$`, and so on.
+
+nrpe.cfg:
+
+    command[check_disk]=/usr/local/icinga/libexec/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$
+
+Using the above example with `nrpe_arguments` the command
+executed by the NRPE daemon looks similar to that:
+
+    /usr/local/icinga/libexec/check_disk -w 20% -c 10% -p /
+
+You can pass arguments in a similar manner to [NSClient++](#agent-based-checks-nsclient)
+when using its NRPE supported check method.
+
 ### <a id="agent-based-checks-nsclient"></a> NSClient++
 
 [NSClient++](http://nsclient.org) works on both Windows and Linux platforms and is well
