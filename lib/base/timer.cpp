@@ -39,10 +39,10 @@ typedef boost::multi_index_container<
 	>
 > TimerSet;
 
-static boost::mutex l_Mutex;
-static boost::condition_variable l_CV;
-static boost::thread l_Thread;
-static bool l_StopThread;
+static boost::mutex l_TimerMutex;
+static boost::condition_variable l_TimerCV;
+static boost::thread l_TimerThread;
+static bool l_StopTimerThread;
 static TimerSet l_Timers;
 
 /**
@@ -65,9 +65,9 @@ Timer::~Timer(void)
  */
 void Timer::Initialize(void)
 {
-	boost::mutex::scoped_lock lock(l_Mutex);
-	l_StopThread = false;
-	l_Thread = boost::thread(&Timer::TimerThreadProc);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
+	l_StopTimerThread = false;
+	l_TimerThread = boost::thread(&Timer::TimerThreadProc);
 }
 
 /**
@@ -76,13 +76,13 @@ void Timer::Initialize(void)
 void Timer::Uninitialize(void)
 {
 	{
-		boost::mutex::scoped_lock lock(l_Mutex);
-		l_StopThread = true;
-		l_CV.notify_all();
+		boost::mutex::scoped_lock lock(l_TimerMutex);
+		l_StopTimerThread = true;
+		l_TimerCV.notify_all();
 	}
 
-	if (l_Thread.joinable())
-		l_Thread.join();
+	if (l_TimerThread.joinable())
+		l_TimerThread.join();
 }
 
 /**
@@ -112,7 +112,7 @@ void Timer::SetInterval(double interval)
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 	m_Interval = interval;
 }
 
@@ -125,7 +125,7 @@ double Timer::GetInterval(void) const
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Interval;
 }
 
@@ -137,7 +137,7 @@ void Timer::Start(void)
 	ASSERT(!OwnsLock());
 
 	{
-		boost::mutex::scoped_lock lock(l_Mutex);
+		boost::mutex::scoped_lock lock(l_TimerMutex);
 		m_Started = true;
 	}
 
@@ -151,16 +151,16 @@ void Timer::Stop(void)
 {
 	ASSERT(!OwnsLock());
 
-	if (l_StopThread)
+	if (l_StopTimerThread)
 		return;
 
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 
 	m_Started = false;
 	l_Timers.erase(this);
 
 	/* Notify the worker thread that we've disabled a timer. */
-	l_CV.notify_all();
+	l_TimerCV.notify_all();
 }
 
 /**
@@ -173,7 +173,7 @@ void Timer::Reschedule(double next)
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 
 	if (next < 0) {
 		/* Don't schedule the next call if this is not a periodic timer. */
@@ -191,7 +191,7 @@ void Timer::Reschedule(double next)
 		l_Timers.insert(this);
 
 		/* Notify the worker that we've rescheduled a timer. */
-		l_CV.notify_all();
+		l_TimerCV.notify_all();
 	}
 }
 
@@ -204,7 +204,7 @@ double Timer::GetNext(void) const
 {
 	ASSERT(!OwnsLock());
 
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Next;
 }
 
@@ -216,7 +216,7 @@ double Timer::GetNext(void) const
  */
 void Timer::AdjustTimers(double adjustment)
 {
-	boost::mutex::scoped_lock lock(l_Mutex);
+	boost::mutex::scoped_lock lock(l_TimerMutex);
 
 	double now = Utility::GetTime();
 
@@ -239,7 +239,7 @@ void Timer::AdjustTimers(double adjustment)
 	}
 
 	/* Notify the worker that we've rescheduled some timers. */
-	l_CV.notify_all();
+	l_TimerCV.notify_all();
 }
 
 /**
@@ -250,16 +250,16 @@ void Timer::TimerThreadProc(void)
 	Utility::SetThreadName("Timer Thread");
 
 	for (;;) {
-		boost::mutex::scoped_lock lock(l_Mutex);
+		boost::mutex::scoped_lock lock(l_TimerMutex);
 
 		typedef boost::multi_index::nth_index<TimerSet, 1>::type NextTimerView;
 		NextTimerView& idx = boost::get<1>(l_Timers);
 
 		/* Wait until there is at least one timer. */
-		while (idx.empty() && !l_StopThread)
-			l_CV.wait(lock);
+		while (idx.empty() && !l_StopTimerThread)
+			l_TimerCV.wait(lock);
 
-		if (l_StopThread)
+		if (l_StopTimerThread)
 			break;
 
 		NextTimerView::iterator it = idx.begin();
@@ -269,7 +269,7 @@ void Timer::TimerThreadProc(void)
 
 		if (wait > 0.01) {
 			/* Wait for the next timer. */
-			l_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
+			l_TimerCV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
 			continue;
 		}
