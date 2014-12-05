@@ -99,8 +99,10 @@ Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 	BOOST_FOREACH(const Value& varr, arguments) {
 		Array::Ptr arr = varr;
 
-		BOOST_FOREACH(const Value& value, arr) {
-			values.insert(value);
+		if (arr) {
+			BOOST_FOREACH(const Value& value, arr) {
+				values.insert(value);
+			}
 		}
 	}
 
@@ -119,12 +121,22 @@ Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 
 	Array::Ptr result = new Array();
 
-	Array::Ptr arr1 = static_cast<Array::Ptr>(arguments[0])->ShallowClone();
+	Array::Ptr arg1 = arguments[0];
+
+	if (!arg1)
+		return result;
+
+	Array::Ptr arr1 = arg1->ShallowClone();
 
 	for (std::vector<Value>::size_type i = 1; i < arguments.size(); i++) {
 		std::sort(arr1->Begin(), arr1->End());
 
-		Array::Ptr arr2 = static_cast<Array::Ptr>(arguments[i])->ShallowClone();
+		Array::Ptr arg2 = arguments[i];
+
+		if (!arg2)
+			return result;
+
+		Array::Ptr arr2 = arg2->ShallowClone();
 		std::sort(arr2->Begin(), arr2->End());
 
 		result->Resize(std::max(arr1->GetLength(), arr2->GetLength()));
@@ -219,9 +231,11 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 {
 	Array::Ptr result = new Array();
 
-	ObjectLock olock(dict);
-	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-		result->Add(kv.first);
+	if (dict) {
+		ObjectLock olock(dict);
+		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			result->Add(kv.first);
+		}
 	}
 
 	return result;
