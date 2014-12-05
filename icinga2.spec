@@ -99,8 +99,8 @@ BuildRequires: bison
 BuildRequires: make
 
 %if "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
-# el5 requires EPEL
-BuildRequires: boost141-devel
+# el5 requires packages.icinga.org
+BuildRequires: boost153-devel
 %else
 BuildRequires: boost-devel >= 1.41
 %endif
@@ -202,9 +202,9 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
 # details in https://dev.icinga.org/issues/5033
-CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost141 \
- -DBOOST_INCLUDEDIR=/usr/include/boost141 \
- -DBoost_ADDITIONAL_VERSIONS='1.41;1.41.0' \
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib \
+ -DBOOST_INCLUDEDIR=/usr/include \
+ -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0' \
  -DBoost_NO_SYSTEM_PATHS=TRUE \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
