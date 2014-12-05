@@ -47,6 +47,7 @@ protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 private:
+	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 	static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 
 	static Value AuthorAccessor(const Value& row);

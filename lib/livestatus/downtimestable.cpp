@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/downtimestable.hpp"
+#include "livestatus/hoststable.hpp"
 #include "livestatus/servicestable.hpp"
 #include "icinga/service.hpp"
 #include "base/dynamictype.hpp"
@@ -47,7 +48,9 @@ void DowntimesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "duration", Column(&DowntimesTable::DurationAccessor, objectAccessor));
 	table->AddColumn(prefix + "triggered_by", Column(&DowntimesTable::TriggeredByAccessor, objectAccessor));
 
+	/* order is important - host w/o services must not be empty */
 	ServicesTable::AddColumns(table, "service_", boost::bind(&DowntimesTable::ServiceAccessor, _1, objectAccessor));
+	HostsTable::AddColumns(table, "host_", boost::bind(&DowntimesTable::HostAccessor, _1, objectAccessor));
 }
 
 String DowntimesTable::GetName(void) const
@@ -62,6 +65,19 @@ String DowntimesTable::GetPrefix(void) const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
+	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+		Dictionary::Ptr downtimes = host->GetDowntimes();
+
+		ObjectLock olock(downtimes);
+
+		String id;
+		Downtime::Ptr downtime;
+		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
+			if (Host::GetOwnerByDowntimeID(id) == host)
+				addRowFn(downtime);
+		}
+	}
+
 	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
 		Dictionary::Ptr downtimes = service->GetDowntimes();
 
@@ -76,10 +92,30 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 	}
 }
 
+Object::Ptr DowntimesTable::HostAccessor(const Value& row, const Column::ObjectAccessor&)
+{
+	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
+
+	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
+
+        Host::Ptr host;
+        Service::Ptr service;
+        tie(host, service) = GetHostService(checkable);
+
+	return host;
+}
+
 Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
-	return Service::GetOwnerByDowntimeID(downtime->GetId());
+
+	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
+
+        Host::Ptr host;
+        Service::Ptr service;
+        tie(host, service) = GetHostService(checkable);
+
+	return service;
 }
 
 Value DowntimesTable::AuthorAccessor(const Value& row)
