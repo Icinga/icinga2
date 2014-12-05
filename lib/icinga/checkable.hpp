@@ -276,6 +276,8 @@ public:
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
 	std::set<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
 
+	static void ValidateCheckInterval(const String& location, const Checkable::Ptr& object);
+
 protected:
 	virtual void Start(void);
 
