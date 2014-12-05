@@ -259,7 +259,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 
-	if (command_endpoint && GetExtension("agent_check")) {
+	if (command_endpoint && (Endpoint::GetLocalEndpoint() != command_endpoint) && GetExtension("agent_check")) {
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 
 		if (listener) {
