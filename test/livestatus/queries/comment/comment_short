@@ -1,0 +1,4 @@
+GET comments
+Columns: id type is_service host_name service_description author comment 
+ResponseHeader: fixed16
+

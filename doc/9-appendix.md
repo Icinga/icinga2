@@ -571,7 +571,8 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   entry_type            | int       | .
   expires               | int       | .
   expire_time           | string    | Seconds.
-  service_              | join      | Prefix for attributes from implicit join with services table (and implicit host table).
+  service_              | join      | Prefix for attributes from implicit join with services table.
+  host_                 | join      | Prefix for attributes from implicit join with hosts table.
 
 
 #### <a id="schema-livestatus-downtimes-table-attributes"></a> Livestatus Downtimes Table Attributes
@@ -582,7 +583,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   comment               | string    | .
   id                    | int       | legacy_id.
   entry_time            | string    | Seconds.
-  type                  | int       | 1=host, 2=service.
+  type                  | int       | 1=active, 0=pending.
   is_service            | int       | .
   start_time            | string    | Seconds.
   end_time              | string    | Seconds.
@@ -591,7 +592,8 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   triggered_by          | int       | legacy_id.
   triggers              | int       | NEW in Icinga 2.
   trigger_time          | string    | NEW in Icinga 2.
-  service_              | join      | Prefix for attributes from implicit join with services table (and implicit host table).
+  service_              | join      | Prefix for attributes from implicit join with services table.
+  host_                 | join      | Prefix for attributes from implicit join with hosts table.
 
 
 #### <a id="schema-livestatus-timeperiod-table-attributes"></a> Livestatus Timeperiod Table Attributes

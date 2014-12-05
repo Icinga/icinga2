@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "livestatus/commentstable.hpp"
+#include "livestatus/hoststable.hpp"
 #include "livestatus/servicestable.hpp"
 #include "icinga/service.hpp"
 #include "base/dynamictype.hpp"
@@ -47,7 +48,9 @@ void CommentsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "expires", Column(&CommentsTable::ExpiresAccessor, objectAccessor));
 	table->AddColumn(prefix + "expire_time", Column(&CommentsTable::ExpireTimeAccessor, objectAccessor));
 
+	/* order is important - host w/o services must not be empty */
 	ServicesTable::AddColumns(table, "service_", boost::bind(&CommentsTable::ServiceAccessor, _1, objectAccessor));
+	HostsTable::AddColumns(table, "host_", boost::bind(&CommentsTable::HostAccessor, _1, objectAccessor));
 }
 
 String CommentsTable::GetName(void) const
@@ -70,7 +73,8 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 		String id;
 		Comment::Ptr comment;
 		BOOST_FOREACH(tie(id, comment), comments) {
-			addRowFn(comment);
+			if (Host::GetOwnerByCommentID(id) == host)
+				addRowFn(comment);
 		}
 	}
 
@@ -82,15 +86,36 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 		String id;
 		Comment::Ptr comment;
 		BOOST_FOREACH(tie(id, comment), comments) {
-			addRowFn(comment);
+			if (Service::GetOwnerByCommentID(id) == service)
+				addRowFn(comment);
 		}
 	}
+}
+
+Object::Ptr CommentsTable::HostAccessor(const Value& row, const Column::ObjectAccessor&)
+{
+	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
+
+	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
+
+        Host::Ptr host;
+        Service::Ptr service;
+        tie(host, service) = GetHostService(checkable);
+
+	return host;
 }
 
 Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::ObjectAccessor&)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
-	return Checkable::GetOwnerByCommentID(comment->GetId()); // XXX: this might return a Host object
+
+	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
+
+        Host::Ptr host;
+        Service::Ptr service;
+        tie(host, service) = GetHostService(checkable);
+
+	return service;
 }
 
 Value CommentsTable::AuthorAccessor(const Value& row)
