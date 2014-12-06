@@ -646,6 +646,12 @@ public:
 		: DebuggableExpression(debugInfo), m_Indexer(indexer)
 	{ }
 
+	~IndexerExpression(void)
+	{
+		BOOST_FOREACH(Expression *expr, m_Indexer)
+			delete expr;
+	}
+
 protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 
