@@ -30,7 +30,7 @@
 namespace icinga
 {
 
-#define QUEUECOUNT 4
+#define QUEUECOUNT 4U
 
 enum SchedulerPolicy
 {

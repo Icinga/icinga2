@@ -265,18 +265,17 @@ void ThreadPool::ManagerThreadProc(void)
 
 				int tthreads = wthreads - alive;
 
-				/* Make sure there is at least one thread per CPU */
-				int ncput = std::max(static_cast<unsigned int>(Application::GetConcurrency()) / QUEUECOUNT, 4U);
-				if (alive + tthreads < ncput)
-					tthreads = ncput - alive;
+				/* Make sure there is at least one thread per queue */
+				if (alive + tthreads < 1)
+					tthreads = 1 - alive;
 
-				/* Don't kill more than 8 threads at once. */
-				if (tthreads < -8)
-					tthreads = -8;
+				/* Don't kill more than 2 threads at once. */
+				if (tthreads < -2)
+					tthreads = -2;
 
 				/* Spawn more workers if there are outstanding work items. */
 				if (tthreads > 0 && pending > 0)
-					tthreads = 8;
+					tthreads = 2;
 
 				if (m_MaxThreads != UINT_MAX && (alive + tthreads) * (sizeof(m_Queues) / sizeof(m_Queues[0])) > m_MaxThreads)
 					tthreads = m_MaxThreads / (sizeof(m_Queues) / sizeof(m_Queues[0])) - alive;
