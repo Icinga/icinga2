@@ -203,7 +203,7 @@ include(InstallRequiredSystemLibraries)
 if(WIN32)
   install(
     PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-      C:\\\\openssl\\\\bin\\\\libeay32.dll C:\\\\openssl\\\\bin\\\\ssleay32.dll
+      ${OPENSSL_INCLUDE_DIR}/../libeay32.dll ${OPENSSL_INCLUDE_DIR}/../ssleay32.dll
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
 endif()
