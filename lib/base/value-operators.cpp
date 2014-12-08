@@ -59,7 +59,7 @@ Value::operator String(void) const
 			return boost::get<String>(m_Value);
 		case ValueObject:
 			object = boost::get<Object::Ptr>(m_Value).get();
-			return "Object of type '" + Utility::GetTypeName(typeid(*object)) + "'";
+			return object->ToString();
 		default:
 			BOOST_THROW_EXCEPTION(std::runtime_error("Unknown value type."));
 	}

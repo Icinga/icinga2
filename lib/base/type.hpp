@@ -60,6 +60,8 @@ class I2_BASE_API Type : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Type);
 
+	virtual String ToString(void) const;
+
 	virtual String GetName(void) const = 0;
 	virtual Type::Ptr GetBaseType(void) const = 0;
 	virtual int GetAttributes(void) const = 0;

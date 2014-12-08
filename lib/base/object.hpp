@@ -46,6 +46,7 @@ namespace icinga
 class Value;
 class Object;
 class Type;
+class String;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
@@ -91,6 +92,8 @@ public:
 
 	Object(void);
 	virtual ~Object(void);
+
+	virtual String ToString(void) const;
 
 	virtual void SetField(int id, const Value& value);
 	virtual Value GetField(int id) const;

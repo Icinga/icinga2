@@ -22,6 +22,11 @@
 
 using namespace icinga;
 
+String Type::ToString(void) const
+{
+	return "type '" + GetName() + "'";
+}
+
 void Type::Register(const Type::Ptr& type)
 {
 	VERIFY(GetByName(type->GetName()) == NULL);

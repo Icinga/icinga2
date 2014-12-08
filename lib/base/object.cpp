@@ -20,6 +20,7 @@
 #include "base/object.hpp"
 #include "base/value.hpp"
 #include "base/primitivetype.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 
@@ -40,6 +41,14 @@ Object::Object(void)
  */
 Object::~Object(void)
 { }
+
+/**
+ * Returns a string representation for the object.
+ */
+String Object::ToString(void) const
+{
+	return "Object of type '" + Utility::GetTypeName(typeid(*this)) + "'";
+}
 
 #ifdef _DEBUG
 /**
