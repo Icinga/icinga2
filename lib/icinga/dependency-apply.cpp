@@ -146,8 +146,7 @@ void Dependency::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Dependency"))
-	{
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Dependency")) {
 		if (rule.GetTargetType() != "Host")
 			continue;
 
@@ -165,8 +164,7 @@ void Dependency::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Dependency"))
-	{
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Dependency")) {
 		if (rule.GetTargetType() != "Service")
 			continue;
 

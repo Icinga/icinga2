@@ -164,8 +164,7 @@ void Notification::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Notification"))
-	{
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Notification")) {
 		if (rule.GetTargetType() != "Service")
 			continue;
 

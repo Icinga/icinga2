@@ -144,8 +144,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("ScheduledDowntime"))
-	{
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("ScheduledDowntime")) {
 		if (rule.GetTargetType() != "Host")
 			continue;
 
@@ -163,8 +162,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("ScheduledDowntime"))
-	{
+	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("ScheduledDowntime")) {
 		if (rule.GetTargetType() != "Service")
 			continue;
 
