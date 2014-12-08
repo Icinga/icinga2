@@ -246,6 +246,14 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "__function() { __return 3, 5 }()");
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "typeof([]) == Array");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "typeof({}) == Dictionary");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
