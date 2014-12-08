@@ -361,6 +361,7 @@ void CompatLogger::ExternalCommandHandler(const String& command, const std::vect
 	{
 		ObjectLock oLock(this);
 		WriteLine(msgbuf.str());
+		Flush();
 	}
 }
 
