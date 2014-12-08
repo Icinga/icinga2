@@ -48,16 +48,24 @@ private:
 
 #define REGISTER_BUILTIN_TYPE(type)						\
 	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterPrimitiveType(void)				\
+		void RegisterBuiltinType(void)					\
 		{								\
 			icinga::Type::Ptr t = new PrimitiveType(#type);		\
 			icinga::Type::Register(t);				\
 		}								\
-		INITIALIZE_ONCE(RegisterPrimitiveType);				\
+		INITIALIZE_ONCE(RegisterBuiltinType);				\
 	} } }
 
-#define REGISTER_PRIMITIVE_TYPE(type) \
-	REGISTER_BUILTIN_TYPE(type); \
+#define REGISTER_PRIMITIVE_TYPE(type)						\
+	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
+		void RegisterPrimitiveType(void)				\
+		{								\
+			icinga::Type::Ptr t = new PrimitiveType(#type);		\
+			icinga::Type::Register(t);				\
+			type::TypeInstance = t;					\
+		}								\
+		INITIALIZE_ONCE(RegisterPrimitiveType);				\
+	} } }									\
 	DEFINE_TYPE_INSTANCE(type)
 
 }

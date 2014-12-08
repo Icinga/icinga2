@@ -21,9 +21,7 @@
 
 using namespace icinga;
 
-REGISTER_BUILTIN_TYPE(int);
-REGISTER_BUILTIN_TYPE(double);
-REGISTER_BUILTIN_TYPE(bool);
+REGISTER_BUILTIN_TYPE(Number);
 
 PrimitiveType::PrimitiveType(const String& name)
 	: m_Name(name)
