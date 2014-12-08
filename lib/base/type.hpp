@@ -78,11 +78,6 @@ public:
 
 protected:
 	virtual ObjectFactory GetFactory(void) const = 0;
-
-private:
-	typedef std::map<String, Type::Ptr> TypeMap;
-
-	static TypeMap& GetTypes(void);
 };
 
 template<typename T>

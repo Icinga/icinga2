@@ -18,33 +18,30 @@
  ******************************************************************************/
 
 #include "base/type.hpp"
+#include "base/scriptvariable.hpp"
 
 using namespace icinga;
-
-Type::TypeMap& Type::GetTypes(void)
-{
-	static TypeMap types;
-
-	return types;
-}
 
 void Type::Register(const Type::Ptr& type)
 {
 	VERIFY(GetByName(type->GetName()) == NULL);
 
-	GetTypes()[type->GetName()] = type;
+	ScriptVariable::Set(type->GetName(), type, true, true);
 }
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	std::map<String, Type::Ptr>::const_iterator it;
+	ScriptVariable::Ptr svtype = ScriptVariable::GetByName(name);
 
-	it = GetTypes().find(name);
-
-	if (it == GetTypes().end())
+	if (!svtype)
 		return Type::Ptr();
 
-	return it->second;
+	Value ptype = svtype->GetData();
+
+	if (!ptype.IsObjectType<Type>())
+		return Type::Ptr();
+
+	return ptype;
 }
 
 Object::Ptr Type::Instantiate(void) const
