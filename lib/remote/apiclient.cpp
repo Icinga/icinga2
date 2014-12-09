@@ -35,7 +35,8 @@ static Value RequestCertificateHandler(const MessageOrigin& origin, const Dictio
 REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
 ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
-	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime())
+	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
+	  m_NextHeartbeat(0)
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
