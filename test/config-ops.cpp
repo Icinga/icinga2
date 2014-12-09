@@ -262,6 +262,46 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "typeof(\"test\") == String");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 | 8 == 15");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 ^ 8 == 15");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 & 15 == 7");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 in [7] == true");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 !in [7] == false");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 | 8 > 14");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 ^ 8 > 14");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 & 15 > 6");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 in [7] > 0");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "7 !in [7] > -1");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
