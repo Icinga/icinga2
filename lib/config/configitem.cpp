@@ -177,23 +177,31 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	if (discard)
 		m_Expression.reset();
 
-	String name = m_Name;
+	String item_name;
+	String short_name = dobj->GetShortName();
+
+	if (!short_name.IsEmpty()) {
+		item_name = short_name;
+		dobj->SetName(short_name);
+	} else
+		item_name = m_Name;
+
+	String name = item_name;
 
 	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 
 	if (nc) {
-		name = nc->MakeName(m_Name, dobj);
+		name = nc->MakeName(name, dobj);
 
 		if (name.IsEmpty())
 			BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine name for object"));
 	}
 
-	if (name != m_Name)
-		dobj->SetShortName(m_Name);
+	if (name != item_name)
+		dobj->SetShortName(item_name);
 
 	dobj->SetName(name);
 	dobj->OnConfigLoaded();
-
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
