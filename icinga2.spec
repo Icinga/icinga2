@@ -152,7 +152,7 @@ Requires: %{name} = %{version}-%{release}
 
 %description ido-mysql
 Icinga 2 IDO mysql database backend. Compatible with Icinga 1.x
-IDOUtils schema >= 1.10
+IDOUtils schema >= 1.12
 
 
 %package ido-pgsql
@@ -163,7 +163,7 @@ Requires: %{name} = %{version}-%{release}
 
 %description ido-pgsql
 Icinga 2 IDO PostgreSQL database backend. Compatible with Icinga 1.x
-IDOUtils schema >= 1.10
+IDOUtils schema >= 1.12
 
 
 %package classicui-config
