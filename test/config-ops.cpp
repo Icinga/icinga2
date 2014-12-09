@@ -254,6 +254,14 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "typeof({}) == Dictionary");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "typeof(3) == Number");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "typeof(\"test\") == String");
+	BOOST_CHECK(expr->Evaluate(frame));
+	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
