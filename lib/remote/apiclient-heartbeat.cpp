@@ -69,5 +69,7 @@ Value ApiClient::HeartbeatAPIHandler(const MessageOrigin& origin, const Dictiona
 
 	if (!vtimeout.IsEmpty())
 		origin.FromClient->m_NextHeartbeat = Utility::GetTime() + vtimeout;
+
+	return Empty;
 }
 

@@ -35,7 +35,7 @@ enum ClientRole
 	ClientOutbound
 };
 
-class MessageOrigin;
+struct MessageOrigin;
 
 /**
  * An API client connection.
