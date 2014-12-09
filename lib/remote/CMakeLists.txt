@@ -22,7 +22,7 @@ mkclass_target(zone.ti zone.thpp)
 mkembedconfig_target(remote-type.conf remote-type.cpp)
 
 set(remote_SOURCES
-  apiclient.cpp apifunction.cpp apilistener.cpp apilistener-sync.cpp
+  apiclient.cpp apiclient-heartbeat.cpp apifunction.cpp apilistener.cpp apilistener-sync.cpp
   apilistener.thpp authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
   messageorigin.cpp remote-type.cpp zone.cpp zone.thpp
 )

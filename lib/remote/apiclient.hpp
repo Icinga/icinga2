@@ -35,6 +35,8 @@ enum ClientRole
 	ClientOutbound
 };
 
+class MessageOrigin;
+
 /**
  * An API client connection.
  *
@@ -60,6 +62,9 @@ public:
 
 	void SendMessage(const Dictionary::Ptr& request);
 
+	static void HeartbeatTimerHandler(void);
+	static Value HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
 private:
 	String m_Identity;
 	bool m_Authenticated;
@@ -67,6 +72,7 @@ private:
 	TlsStream::Ptr m_Stream;
 	ConnectionRole m_Role;
 	double m_Seen;
+	double m_NextHeartbeat;
 
 	WorkQueue m_WriteQueue;
 
