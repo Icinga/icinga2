@@ -56,8 +56,7 @@ int wmain(int argc, wchar_t **argv)
 	if (ret != -1)
 		return ret;
 
-	printOutput(printInfo);
-	return 1;
+	return printOutput(printInfo);
 }
 
 int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) {
@@ -110,8 +109,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"67%%\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value. Performance data will only be displayed when\n"
-			L"you set at least one threshold\n\n"
+			L"if applicable, the maximal value.\n\n"
 			L"%s' exit codes denote the following:\n"
 			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
