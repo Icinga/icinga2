@@ -33,6 +33,7 @@
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
+#include "base/serializer.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -246,8 +247,13 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 		vattrs->Remove("import");
 		vattrs->Set("type", type);
 
+		Type::Ptr dtype = Type::GetByName(type);
+
+		Object::Ptr object = dtype->Instantiate();
+		Deserialize(object, vattrs, false, FAConfig);
+
 		RepositoryTypeRuleUtilities utils;
-		ctype->ValidateItem(name, vattrs, DebugInfo(), &utils);
+		ctype->ValidateItem(name, object, DebugInfo(), &utils);
 
 		int warnings = 0, errors = 0;
 
