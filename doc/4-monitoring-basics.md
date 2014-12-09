@@ -2486,8 +2486,8 @@ object configuration.
 > **Note**
 >
 > All Livestatus queries require an additional empty line as query end identifier.
-> The `unixcat` tool is either available by the MK Livestatus project or as separate
-> binary.
+> The `nc` tool (`netcat`) provides the `-U` parameter to communicate using
+> a unix socket.
 
 There also is a Perl module available in CPAN for accessing the Livestatus socket
 programmatically: [Monitoring::Livestatus](http://search.cpan.org/~nierlein/Monitoring-Livestatus-0.74/)
@@ -2495,7 +2495,7 @@ programmatically: [Monitoring::Livestatus](http://search.cpan.org/~nierlein/Moni
 
 Example using the unix socket:
 
-    # echo -e "GET services\n" | unixcat /var/run/icinga2/cmd/livestatus
+    # echo -e "GET services\n" | /usr/bin/nc -U /var/run/icinga2/cmd/livestatus
 
 Example using the tcp socket listening on port `6558`:
 
