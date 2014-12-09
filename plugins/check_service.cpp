@@ -171,32 +171,36 @@ int ServiceStatus(const printInfoStruct& printInfo)
 
 	LPBYTE lpServices = NULL;
 	DWORD cbBufSize = 0;
-	DWORD *pcbBytesNeeded = NULL, *lpServicesReturned = NULL, *lpResumeHandle = NULL;
+	DWORD pcbBytesNeeded = NULL, ServicesReturned = NULL, ResumeHandle = NULL;
 
 	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
-		lpServices, cbBufSize, pcbBytesNeeded, lpServicesReturned, lpResumeHandle, NULL)
+		lpServices, cbBufSize, &pcbBytesNeeded, &ServicesReturned, &ResumeHandle, NULL)
 		&& GetLastError() != ERROR_MORE_DATA) 
 		goto die;
 
-	lpServices = reinterpret_cast<LPBYTE>(new BYTE[*pcbBytesNeeded]);
-	cbBufSize = *pcbBytesNeeded;
+	lpServices = reinterpret_cast<LPBYTE>(new BYTE[pcbBytesNeeded]);
+	cbBufSize = pcbBytesNeeded;
 
 	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
-		lpServices, cbBufSize, pcbBytesNeeded, lpServicesReturned, lpResumeHandle, NULL))
+		lpServices, cbBufSize, &pcbBytesNeeded, &ServicesReturned, &ResumeHandle, NULL))
 		goto die;
 
 	LPENUM_SERVICE_STATUS_PROCESS pInfo = (LPENUM_SERVICE_STATUS_PROCESS)lpServices;
     
-	for (DWORD i = 0; i< *lpServicesReturned; i++) {
+	for (DWORD i = 0; i < ServicesReturned; i++) {
 		if (!wcscmp(printInfo.service.c_str(), pInfo[i].lpServiceName)) {
+			int state = pInfo[i].ServiceStatusProcess.dwCurrentState;
 			delete lpServices;
-			return pInfo[i].ServiceStatusProcess.dwCurrentState;
+			return state;
 		}
 	}
+	wcout << L"Service " << printInfo.service << L" could not be found\n";
+	delete[] reinterpret_cast<LPBYTE>(lpServices);
+	return -1;
 
 die:
+	die();
 	if (lpServices)
 		delete[] reinterpret_cast<LPBYTE>(lpServices);
-	wcout << L"Service " << printInfo.service << L" could not be found" << endl;
 	return -1;
 }
