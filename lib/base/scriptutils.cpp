@@ -198,7 +198,7 @@ Type::Ptr ScriptUtils::TypeOf(const Value& value)
 		case ValueEmpty:
 			return Type::GetByName("Object");
 		case ValueNumber:
-			return Type::GetByName("double");
+			return Type::GetByName("Number");
 		case ValueString:
 			return Type::GetByName("String");
 		case ValueObject:
