@@ -26,6 +26,7 @@
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
+#include "base/scriptfunction.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
@@ -56,6 +57,9 @@ using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
 boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
+
+REGISTER_SCRIPTFUNCTION(escape, &Utility::EscapeString);
+REGISTER_SCRIPTFUNCTION(unescape, &Utility::UnescapeString);
 
 /**
  * Demangles a symbol name.
@@ -1200,4 +1204,59 @@ void Utility::SaveJsonFile(const String& path, const Value& value)
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(tempPath));
 	}
+}
+
+static void HexEncode(char ch, std::ostream& os)
+{
+	const char *hex_chars = "0123456789ABCDEF";
+
+	os << hex_chars[ch >> 4 & 0x0f];
+	os << hex_chars[ch & 0x0f];
+}
+
+static int HexDecode(char hc)
+{
+	if (hc >= '0' && hc <= '9')
+		return hc - '0';
+	else if (hc >= 'a' && hc <= 'f')
+		return hc - 'a' + 10;
+	else if (hc >= 'A' && hc <= 'F')
+		return hc - 'A' + 10;
+	else
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex character."));
+}
+
+String Utility::EscapeString(const String& s, const String& chars)
+{
+	std::ostringstream result;
+
+	BOOST_FOREACH(char ch, s) {
+		if (chars.FindFirstOf(ch) != String::NPos || ch == '%') {
+			result << '%';
+			HexEncode(ch, result);
+		} else
+			result << ch;
+	}
+
+	return result.str();
+}
+
+String Utility::UnescapeString(const String& s)
+{
+	std::ostringstream result;
+
+	for (String::SizeType i = 0; i < s.GetLength(); i++) {
+		if (s[i] == '%') {
+			if (i + 2 > s.GetLength() - 1)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid escape sequence."));
+
+			char ch = HexDecode(s[i + 1]) * 16 + HexDecode(s[i + 2]);
+			result << ch;
+
+			i += 2;
+		} else
+			result << s[i];
+	}
+
+	return result.str();
 }

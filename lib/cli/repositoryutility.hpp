@@ -95,6 +95,9 @@ private:
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
 	static void FormatValue(std::ostream& fp, const Value& val);
 	static void FormatArray(std::ostream& fp, const Array::Ptr& arr);
+
+	static String EscapeName(const String& name);
+	static String UnescapeName(const String& name);
 };
 
 }

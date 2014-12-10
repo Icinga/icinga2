@@ -85,7 +85,7 @@ String RepositoryUtility::GetRepositoryObjectConfigPath(const String& type, cons
 	if (type == "Host")
 		path += "hosts";
 	else if (type == "Service")
-		path += "hosts/" + object->Get("host_name");
+		path += "hosts/" + EscapeName(object->Get("host_name"));
 	else if (type == "Zone")
 		path += "zones";
 	else if (type == "Endpoint")
@@ -115,7 +115,7 @@ String RepositoryUtility::GetRepositoryObjectConfigFilePath(const String& type, 
 {
 	String path = GetRepositoryObjectConfigPath(type, object);
 
-	path += "/" + object->Get("name") + ".conf";
+	path += "/" + EscapeName(object->Get("name")) + ".conf";
 
 	return path;
 }
@@ -153,6 +153,7 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 
 		String file = Utility::BaseName(object);
 		boost::algorithm::replace_all(file, ".conf", "");
+		file = UnescapeName(file);
 
 		fp << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal)
 		   << " '" << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << file << ConsoleColorTag(Console_Normal) << "'";
@@ -163,7 +164,7 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 			std::vector<String> tokens;
 			boost::algorithm::split(tokens, prefix, boost::is_any_of("/"));
 
-			String host_name = tokens[tokens.size()-1];
+			String host_name = UnescapeName(tokens[tokens.size()-1]);
 			fp << " (on " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << "Host" << ConsoleColorTag(Console_Normal)
 			   << " '" << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << host_name << ConsoleColorTag(Console_Normal) << "')";
 
@@ -204,9 +205,9 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	String pattern;
 
 	if (type == "Service")
-		pattern = attrs->Get("host_name") + "/" + name + ".conf";
+		pattern = EscapeName(attrs->Get("host_name")) + "/" + EscapeName(name) + ".conf";
 	else
-		pattern = name + ".conf";
+		pattern = EscapeName(name) + ".conf";
 
 	BOOST_FOREACH(const String& object_path, object_paths) {
 		if (object_path.Contains(pattern)) {
@@ -410,14 +411,14 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepositoryChangeLog(const String
 /* internal implementation when changes are committed */
 bool RepositoryUtility::AddObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
-	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + EscapeName(name) + ".conf";
 
 	return WriteObjectToRepository(path, name, type, attrs);
 }
 
 bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& type, const Dictionary::Ptr& attrs)
 {
-	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + EscapeName(name) + ".conf";
 
 	if (!Utility::PathExists(path)) {
 		Log(LogWarning, "cli")
@@ -481,7 +482,7 @@ bool RepositoryUtility::RemoveObjectFileInternal(const String& path)
 bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const String& type, const String& key, const Value& val, const Dictionary::Ptr& attrs)
 {
 	//TODO
-	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + name + ".conf";
+	String path = GetRepositoryObjectConfigPath(type, attrs) + "/" + EscapeName(name) + ".conf";
 
 	Dictionary::Ptr obj = GetObjectFromRepository(path); //TODO
 
@@ -539,6 +540,15 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepository(const String& filenam
 	return Dictionary::Ptr();
 }
 
+String RepositoryUtility::EscapeName(const String& name)
+{
+	return Utility::EscapeString(name, "<>:\"/\\|?*");
+}
+
+String RepositoryUtility::UnescapeName(const String& name)
+{
+	return Utility::UnescapeString(name);
+}
 
 /*
  * collect functions
