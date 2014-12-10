@@ -22,6 +22,7 @@
 #include "remote/apifunction.hpp"
 #include "base/initialize.hpp"
 #include "base/dynamictype.hpp"
+#include "base/logger.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -45,6 +46,10 @@ void ApiClient::HeartbeatTimerHandler(void)
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
 			if (client->m_NextHeartbeat != 0 && client->m_NextHeartbeat < Utility::GetTime()) {
+				Log(LogWarning, "ApiClient")
+				    << "Client for endpoint '" << endpoint->GetName() << "' has requested "
+				    << "heartbeat message but hasn't responded in time. Closing connection.";
+
 				client->Disconnect();
 				continue;
 			}
