@@ -232,7 +232,12 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 
 	String fname, fragment;
 	BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
-		ConfigCompiler::CompileText(fname, fragment);
+		Expression *expression = ConfigCompiler::CompileText(fname, fragment);
+		if (expression) {
+			VMFrame frame;
+			expression->Evaluate(frame);
+			delete expression;
+		}
 	}
 
 	ConfigType::Ptr ctype = ConfigType::GetByName(type);
