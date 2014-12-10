@@ -267,9 +267,9 @@ Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
-void Checkable::ValidateCheckInterval(const String& location, const Checkable::Ptr& object)
+void Checkable::ValidateCheckInterval(const String& location, const Dictionary::Ptr& attrs)
 {
-	if (object->GetCheckInterval() <= 0) {
+	if (attrs->Get("check_interval") <= 0) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
 		    location + ": check_interval must be greater than 0.");
 	}
