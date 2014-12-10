@@ -88,7 +88,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
 
-	bool creation_error = false;
+	/* first make sure that all nodes are valid and should not be removed */
 	BOOST_FOREACH(const Dictionary::Ptr& node, NodeUtility::GetNodes()) {
 		Dictionary::Ptr repository = node->Get("repository");
 		String zone = node->Get("zone");
@@ -97,107 +97,115 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 		/* store existing structure in index */
 		inventory->Set(endpoint, node);
+	}
 
-		if (old_inventory) {
-			/* check if there are objects inside the old_inventory which do not exist anymore */
-			ObjectLock ulock(old_inventory);
-			BOOST_FOREACH(const Dictionary::Pair& old_node_objs, old_inventory) {
+	if (old_inventory) {
+		/* check if there are objects inside the old_inventory which do not exist anymore */
+		ObjectLock ulock(old_inventory);
+		BOOST_FOREACH(const Dictionary::Pair& old_node_objs, old_inventory) {
 
-				String old_node_name = old_node_objs.first;
+			String old_node_name = old_node_objs.first;
 
-				/* check if the node was dropped */
-				if (!inventory->Contains(old_node_name)) {
-					Log(LogInformation, "cli")
-					    << "Node update found old node '" << old_node_name << "'. Removing it and all of its hosts/services.";
+			/* check if the node was dropped */
+			if (!inventory->Contains(old_node_name)) {
+				Log(LogInformation, "cli")
+				    << "Node update found old node '" << old_node_name << "'. Removing it and all of its hosts/services.";
 
-					//TODO Remove an node and all of his hosts
-					Dictionary::Ptr old_node = old_node_objs.second;
-					Dictionary::Ptr old_node_repository = old_node->Get("repository");
+				//TODO Remove an node and all of his hosts
+				Dictionary::Ptr old_node = old_node_objs.second;
+				Dictionary::Ptr old_node_repository = old_node->Get("repository");
 
-					ObjectLock olock(old_node_repository);
-					BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
-						String host = kv.first;
+				ObjectLock olock(old_node_repository);
+				BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
+					String host = kv.first;
 
-						Dictionary::Ptr host_attrs = new Dictionary();
-						host_attrs->Set("name", host);
-						RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
+					Dictionary::Ptr host_attrs = new Dictionary();
+					host_attrs->Set("name", host);
+					RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
+				}
+
+				String zone = old_node->Get("zone");
+				String endpoint = old_node->Get("endpoint");
+
+				Dictionary::Ptr zone_attrs = new Dictionary();
+				zone_attrs->Set("name", zone);
+				RepositoryUtility::RemoveObject(zone, "Zone", zone_attrs);
+
+				Dictionary::Ptr endpoint_attrs = new Dictionary();
+				endpoint_attrs->Set("name", endpoint);
+				RepositoryUtility::RemoveObject(endpoint, "Endpoint", endpoint_attrs);
+			} else {
+				/* get the current node */
+				Dictionary::Ptr new_node = inventory->Get(old_node_name);
+				Dictionary::Ptr new_node_repository = new_node->Get("repository");
+
+				Dictionary::Ptr old_node = old_node_objs.second;
+				Dictionary::Ptr old_node_repository = old_node->Get("repository");
+
+				ObjectLock xlock(old_node_repository);
+				BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
+					String old_host = kv.first;
+
+					if (old_host == "localhost") {
+						Log(LogWarning, "cli")
+						    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your node '" << old_node_name << "'.";
+						continue;
 					}
 
-					String zone = old_node->Get("zone");
-					String endpoint = old_node->Get("endpoint");
+					/* check against black/whitelist before trying to remove host */
+					if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, Empty) &&
+					    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, Empty)) {
+						Log(LogWarning, "cli")
+						    << "Host '" << old_node << "' on node '" << old_node << "' is blacklisted, but not whitelisted. Skipping.";
+						continue;
+					}
 
-					Dictionary::Ptr zone_attrs = new Dictionary();
-					zone_attrs->Set("name", zone);
-					RepositoryUtility::RemoveObject(zone, "Zone", zone_attrs);
+					if (!new_node_repository->Contains(old_host)) {
+						Log(LogInformation, "cli")
+						    << "Node update found old host '" << old_host << "' on node '" << old_node_name << "'. Removing it.";
 
-					Dictionary::Ptr endpoint_attrs = new Dictionary();
-					endpoint_attrs->Set("name", endpoint);
-					RepositoryUtility::RemoveObject(endpoint, "Endpoint", endpoint_attrs);
-				} else {
-					/* get the current node */
-					Dictionary::Ptr new_node = inventory->Get(old_node_name);
-					Dictionary::Ptr new_node_repository = new_node->Get("repository");
+						Dictionary::Ptr host_attrs = new Dictionary();
+						host_attrs->Set("name", old_host);
+						RepositoryUtility::RemoveObject(old_host, "Host", host_attrs); //this will remove all services for this host too
+					} else {
+						/* host exists, now check all services for this host */
+						Array::Ptr old_services = kv.second;
+						Array::Ptr new_services = new_node_repository->Get(old_host);
 
-					Dictionary::Ptr old_node = old_node_objs.second;
-					Dictionary::Ptr old_node_repository = old_node->Get("repository");
+						ObjectLock ylock(old_services);
+						BOOST_FOREACH(const String& old_service, old_services) {
+							/* check against black/whitelist before trying to remove service */
+							if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, old_service) &&
+							    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, old_service)) {
+								Log(LogWarning, "cli")
+								    << "Service '" << old_service << "' on host '" << old_host << "' on node '"
+								    << old_node_name << "' is blacklisted, but not whitelisted. Skipping.";
+								continue;
+							}
 
-					ObjectLock xlock(old_node_repository);
-					BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
-						String old_host = kv.first;
+							if (!new_services->Contains(old_service)) {
+								Log(LogInformation, "cli")
+								    << "Node update found old service '" << old_service << "' on host '" << old_host
+								    << "' on node '" << old_node_name << "'. Removing it.";
 
-						if (old_host == "localhost") {
-							Log(LogWarning, "cli")
-							    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your node '" << old_node_name << "'.";
-							continue;
-						}
-
-						/* check against black/whitelist before trying to remove host */
-						if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, Empty) &&
-						    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, Empty)) {
-							Log(LogWarning, "cli")
-							    << "Host '" << old_node << "' on node '" << old_node << "' is blacklisted, but not whitelisted. Skipping.";
-							continue;
-						}
-
-						if (!new_node_repository->Contains(old_host)) {
-							Log(LogInformation, "cli")
-							    << "Node update found old host '" << old_host << "' on node '" << old_node_name << "'. Removing it.";
-
-							Dictionary::Ptr host_attrs = new Dictionary();
-							host_attrs->Set("name", old_host);
-							RepositoryUtility::RemoveObject(old_host, "Host", host_attrs); //this will remove all services for this host too
-						} else {
-							/* host exists, now check all services for this host */
-							Array::Ptr old_services = kv.second;
-							Array::Ptr new_services = new_node_repository->Get(old_host);
-
-							ObjectLock ylock(old_services);
-							BOOST_FOREACH(const String& old_service, old_services) {
-								/* check against black/whitelist before trying to remove service */
-								if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, old_service) &&
-								    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, old_service)) {
-									Log(LogWarning, "cli")
-									    << "Service '" << old_service << "' on host '" << old_host << "' on node '"
-									    << old_node_name << "' is blacklisted, but not whitelisted. Skipping.";
-									continue;
-								}
-
-								if (!new_services->Contains(old_service)) {
-									Log(LogInformation, "cli")
-									    << "Node update found old service '" << old_service << "' on host '" << old_host
-									    << "' on node '" << old_node_name << "'. Removing it.";
-
-									Dictionary::Ptr service_attrs = new Dictionary();
-									service_attrs->Set("name", old_service);
-									service_attrs->Set("host_name", old_host);
-									RepositoryUtility::RemoveObject(old_service, "Service", service_attrs);
-								}
+								Dictionary::Ptr service_attrs = new Dictionary();
+								service_attrs->Set("name", old_service);
+								service_attrs->Set("host_name", old_host);
+								RepositoryUtility::RemoveObject(old_service, "Service", service_attrs);
 							}
 						}
 					}
 				}
 			}
 		}
+	}
+
+	/* next iterate over all nodes and add hosts/services */
+	BOOST_FOREACH(const Dictionary::Ptr& node, NodeUtility::GetNodes()) {
+		Dictionary::Ptr repository = node->Get("repository");
+		String zone = node->Get("zone");
+		String endpoint = node->Get("endpoint");
+		String node_name = endpoint;
 
 		Dictionary::Ptr host_services = new Dictionary();
 
@@ -215,7 +223,6 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node host '" << zone << "' to the config repository!\n";
-			creation_error = true;
 		}
 
 		if (repository) {
@@ -356,7 +363,6 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		if (!RepositoryUtility::AddObject(endpoint, "Endpoint", endpoint_attrs)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node endpoint '" << endpoint << "' to the config repository!\n";
-			creation_error = true;
 		}
 
 		Dictionary::Ptr zone_attrs = new Dictionary();
@@ -392,7 +398,6 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		if (!RepositoryUtility::AddObject(zone, "Zone", zone_attrs)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node zone '" << zone << "' to the config repository!\n";
-			creation_error = true;
 		}
 	}
 
