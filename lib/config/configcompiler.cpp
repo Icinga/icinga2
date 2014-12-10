@@ -140,7 +140,9 @@ Expression *ConfigCompiler::HandleInclude(const String& include, bool search, co
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
-	return new DictExpression(expressions);
+	DictExpression *expr = new DictExpression(expressions);
+	expr->MakeInline();
+	return expr;
 }
 
 /**
