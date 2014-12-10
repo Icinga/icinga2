@@ -134,15 +134,25 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 					if (!missingMacro.IsEmpty())
 						continue;
 
-					try {
-						if (!Convert::ToLong(set_if_resolved))
+					int value;
+
+					if (set_if_resolved == "true")
+						value = 1;
+					else if (set_if_resolved == "false")
+						value = 0;
+					else {
+						try {
+							value = Convert::ToLong(set_if_resolved);
+						} catch (const std::exception& ex) {
+							/* tried to convert a string */
+							Log(LogWarning, "PluginUtility")
+							    << "Error evaluating set_if value '" << set_if_resolved << "': " << ex.what();
 							continue;
-					} catch (const std::exception& ex) {
-						/* tried to convert a string */
-						Log(LogWarning, "PluginUtility")
-						    << "Error evaluating set_if value '" << set_if_resolved << "': " << ex.what();
-						continue;
+						}
 					}
+
+					if (!value)
+						continue;
 				}
 			}
 			else
