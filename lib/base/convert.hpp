@@ -64,7 +64,10 @@ public:
 		return val;
 	}
 
-	static bool ToBool(const String& val);
+	static inline bool ToBool(const Value& val)
+	{
+		return val.ToBool();
+	}
 
 	template<typename T>
 	static String ToString(const T& val)

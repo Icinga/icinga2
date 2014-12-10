@@ -60,10 +60,12 @@ BOOST_AUTO_TEST_CASE(tostring)
 
 BOOST_AUTO_TEST_CASE(tobool)
 {
-	BOOST_CHECK_THROW(Convert::ToBool("a"), boost::exception);
-	BOOST_CHECK(Convert::ToBool("0") == false);
+	BOOST_CHECK(Convert::ToBool("a") == true);
+	BOOST_CHECK(Convert::ToBool("0") == true);
 	BOOST_CHECK(Convert::ToBool("1") == true);
 	BOOST_CHECK(Convert::ToBool("2") == true);
+	BOOST_CHECK(Convert::ToBool(1) == true);
+	BOOST_CHECK(Convert::ToBool(0) == false);
 	BOOST_CHECK(Convert::ToBool(Value(true)) == true);
 	BOOST_CHECK(Convert::ToBool(Value(false)) == false);
 }
