@@ -299,8 +299,10 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 			std::string ftype = it->Type;
 
-			if (ftype == "bool" || ftype == "int" || ftype == "double")
+			if (ftype == "int" || ftype == "double")
 				ftype = "Number";
+			else if (ftype == "bool")
+				ftype = "Boolean";
 
 			if (ftype.find("::Ptr") != std::string::npos)
 				ftype = ftype.substr(0, ftype.size() - strlen("::Ptr"));

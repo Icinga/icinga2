@@ -55,6 +55,11 @@ Value::operator String(void) const
 				return boost::lexical_cast<std::string>(m_Value);
 			else
 				return boost::lexical_cast<std::string>((long)integral);
+		case ValueBoolean:
+			if (boost::get<bool>(m_Value))
+				return "true";
+			else
+				return "false";
 		case ValueString:
 			return boost::get<String>(m_Value);
 		case ValueObject:
@@ -133,7 +138,7 @@ bool Value::operator==(const Value& rhs) const
 {
 	if (IsNumber() && rhs.IsNumber())
 		return Get<double>() == rhs.Get<double>();
-	else if ((IsNumber() || IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
+	else if ((IsBoolean() || IsNumber() || IsEmpty()) && (rhs.IsBoolean() || rhs.IsNumber() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(*this) == static_cast<double>(rhs);
 
 	if (IsString() && rhs.IsString())

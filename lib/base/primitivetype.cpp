@@ -22,6 +22,7 @@
 using namespace icinga;
 
 REGISTER_BUILTIN_TYPE(Number);
+REGISTER_BUILTIN_TYPE(Boolean);
 
 PrimitiveType::PrimitiveType(const String& name)
 	: m_Name(name)

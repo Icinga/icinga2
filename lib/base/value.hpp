@@ -37,8 +37,9 @@ enum ValueType
 {
 	ValueEmpty = 0,
 	ValueNumber = 1,
-	ValueString = 2,
-	ValueObject = 3
+	ValueBoolean = 2,
+	ValueString = 3,
+	ValueObject = 4
 };
 
 /**
@@ -70,6 +71,10 @@ public:
 	{ }
 
 	inline Value(double value)
+		: m_Value(value)
+	{ }
+
+	inline Value(bool value)
 		: m_Value(value)
 	{ }
 
@@ -179,6 +184,16 @@ public:
 	}
 
 	/**
+	 * Checks whether the variant is a boolean.
+	 *
+	 * @returns true if the variant is a boolean.
+	 */
+	inline bool IsBoolean(void) const
+	{
+		return (GetType() == ValueBoolean);
+	}
+
+	/**
 	* Checks whether the variant is a string.
 	*
 	* @returns true if the variant is a string.
@@ -220,7 +235,7 @@ public:
 	String GetTypeName(void) const;
 
 private:
-	boost::variant<boost::blank, double, String, Object::Ptr> m_Value;
+	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 
 	template<typename T>
 	const T& Get(void) const

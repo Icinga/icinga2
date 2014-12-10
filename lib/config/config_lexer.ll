@@ -175,8 +175,8 @@ include				return T_INCLUDE;
 include_recursive		return T_INCLUDE_RECURSIVE;
 library				return T_LIBRARY;
 null				return T_NULL;
-true				{ yylval->num = 1; return T_NUMBER; }
-false				{ yylval->num = 0; return T_NUMBER; }
+true				{ yylval->boolean = 1; return T_BOOLEAN; }
+false				{ yylval->boolean = 0; return T_BOOLEAN; }
 const				return T_CONST;
 local				return T_LOCAL;
 use				return T_USE;

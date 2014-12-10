@@ -218,6 +218,8 @@ Type::Ptr ScriptUtils::TypeOf(const Value& value)
 			return Type::GetByName("Object");
 		case ValueNumber:
 			return Type::GetByName("Number");
+		case ValueBoolean:
+			return Type::GetByName("Boolean");
 		case ValueString:
 			return Type::GetByName("String");
 		case ValueObject:

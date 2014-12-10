@@ -57,7 +57,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 		}
 	} else {
 		if (m_Operator == "=") {
-			if (value.GetType() == ValueNumber)
+			if (value.GetType() == ValueNumber || value.GetType() == ValueBoolean)
 				return (static_cast<double>(value) == Convert::ToDouble(m_Operand));
 			else
 				return (static_cast<String>(value) == m_Operand);

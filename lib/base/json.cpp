@@ -75,6 +75,10 @@ static void Encode(yajl_gen handle, const Value& value)
 				yajl_gen_double(handle, 0);
 
 			break;
+		case ValueBoolean:
+			yajl_gen_bool(handle, value.ToBool());
+
+			break;
 		case ValueString:
 			str = value;
 			yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(str.CStr()), str.GetLength());
@@ -220,7 +224,7 @@ static int DecodeBoolean(void *ctx, int value)
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
 	try {
-		context->AddValue(value);
+		context->AddValue(static_cast<bool>(value));
 	} catch (...) {
 		context->SaveException();
 		return 0;

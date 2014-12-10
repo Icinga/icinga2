@@ -90,6 +90,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %union {
 	char *text;
 	double num;
+	bool boolean;
 	icinga::Expression *expr;
 	icinga::Value *variant;
 	CombinedSetOp csop;
@@ -104,6 +105,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token <text> T_STRING
 %token <text> T_STRING_ANGLE
 %token <num> T_NUMBER
+%token <boolean> T_BOOLEAN
 %token T_NULL
 %token <text> T_IDENTIFIER
 
@@ -736,6 +738,10 @@ rterm_without_indexer: T_STRING
 		free($1);
 	}
 	| T_NUMBER
+	{
+		$$ = MakeLiteral($1);
+	}
+	| T_BOOLEAN
 	{
 		$$ = MakeLiteral($1);
 	}
