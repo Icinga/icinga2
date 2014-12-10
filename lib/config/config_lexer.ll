@@ -84,7 +84,7 @@ do {							\
 				}
 
 <STRING>\n			{
-	BOOST_THROW_EXCEPTION(ConfigError("Unterminated string literal") << errinfo_debuginfo(*yylloc));
+	BOOST_THROW_EXCEPTION(ScriptError("Unterminated string literal", *yylloc));
 				}
 
 <STRING>\\[0-7]{1,3}		{
@@ -95,7 +95,7 @@ do {							\
 
 	if (result > 0xff) {
 		/* error, constant is out-of-bounds */
-		BOOST_THROW_EXCEPTION(ConfigError("Constant is out of bounds: " + String(yytext)) << errinfo_debuginfo(*yylloc));
+		BOOST_THROW_EXCEPTION(ScriptError("Constant is out of bounds: " + String(yytext), *yylloc));
 	}
 
 	yyextra->m_LexBuffer << static_cast<char>(result);
@@ -105,7 +105,7 @@ do {							\
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
-	BOOST_THROW_EXCEPTION(ConfigError("Bad escape sequence found: " + String(yytext)) << errinfo_debuginfo(*yylloc));
+	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
 
 <STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
@@ -122,7 +122,7 @@ do {							\
 		yyextra->m_LexBuffer << *yptr++;
 		       	       }
 
-<STRING><<EOF>>			{ BOOST_THROW_EXCEPTION(ConfigError("End-of-file while in string literal") << errinfo_debuginfo(*yylloc)); }
+<STRING><<EOF>>			{ BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", *yylloc)); }
 
 \{\{\{				{ yyextra->m_LexBuffer.str(""); yyextra->m_LexBuffer.clear(); BEGIN(HEREDOC); }
 
@@ -148,7 +148,7 @@ do {							\
 }
 
 <C_COMMENT><<EOF>>              {
-		BOOST_THROW_EXCEPTION(ConfigError("End-of-file while in comment") << errinfo_debuginfo(*yylloc));
+		BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in comment", *yylloc));
 		       	        }
 
 

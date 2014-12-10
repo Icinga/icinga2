@@ -23,11 +23,11 @@ mkclass_target(streamlogger.ti streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.thpp)
 
 set(base_SOURCES
-  application.cpp application-version.cpp application.thpp array.cpp configerror.cpp console.cpp context.cpp
+  application.cpp application-version.cpp application.thpp array.cpp console.cpp context.cpp
   convert.cpp debuginfo.cpp dictionary.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp object.cpp primitivetype.cpp process.cpp
-  ringbuffer.cpp scriptfunction.cpp scriptfunctionwrapper.cpp scriptsignal.cpp
+  ringbuffer.cpp scripterror.cpp scriptfunction.cpp scriptfunctionwrapper.cpp scriptsignal.cpp
   scriptutils.cpp scriptvariable.cpp serializer.cpp socket.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp 
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp thinmutex.cpp threadpool.cpp timer.cpp

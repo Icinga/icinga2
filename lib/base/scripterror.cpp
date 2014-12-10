@@ -17,19 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include <sstream>
 
 using namespace icinga;
 
-ConfigError::ConfigError(const String& message)
+ScriptError::ScriptError(const String& message)
 	: m_Message(message)
 { }
 
-ConfigError::~ConfigError(void) throw()
+ScriptError::ScriptError(const String& message, const DebugInfo& di)
+	: m_Message(message), m_DebugInfo(di)
 { }
 
-const char *ConfigError::what(void) const throw()
+ScriptError::~ScriptError(void) throw()
+{ }
+
+const char *ScriptError::what(void) const throw()
 {
 	return m_Message.CStr();
 }
+
+DebugInfo ScriptError::GetDebugInfo(void) const
+{
+	return m_DebugInfo;
+}
+

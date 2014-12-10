@@ -49,11 +49,6 @@ I2_BASE_API DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& en
 
 I2_BASE_API void ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbose);
 
-struct errinfo_debuginfo_;
-typedef boost::error_info<struct errinfo_debuginfo_, DebugInfo> errinfo_debuginfo;
-
-I2_BASE_API std::string to_string(const errinfo_debuginfo& e);
-
 }
 
 #endif /* DEBUGINFO_H */

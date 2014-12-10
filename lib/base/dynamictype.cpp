@@ -22,7 +22,7 @@
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 
 using namespace icinga;
 
@@ -103,9 +103,9 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 			if (it->second == object)
 				return;
 
-			BOOST_THROW_EXCEPTION(ConfigError("An object with type '" + m_Name + "' and name '" + name + "' already exists (" +
-			    Convert::ToString(it->second->GetDebugInfo()) + "), new declaration: " + Convert::ToString(object->GetDebugInfo()))
-			    << errinfo_debuginfo(object->GetDebugInfo()));
+			BOOST_THROW_EXCEPTION(ScriptError("An object with type '" + m_Name + "' and name '" + name + "' already exists (" +
+			    Convert::ToString(it->second->GetDebugInfo()) + "), new declaration: " + Convert::ToString(object->GetDebugInfo()),
+			    object->GetDebugInfo()));
 		}
 
 		m_ObjectMap[name] = object;

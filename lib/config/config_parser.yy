@@ -34,7 +34,7 @@
 #include "base/scriptvariable.hpp"
 #include "base/exception.hpp"
 #include "base/dynamictype.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include <sstream>
 #include <stack>
 #include <boost/foreach.hpp>
@@ -230,7 +230,7 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
 {
-	BOOST_THROW_EXCEPTION(ConfigError(err) << errinfo_debuginfo(*locp));
+	BOOST_THROW_EXCEPTION(ScriptError(err, *locp));
 }
 
 int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
@@ -465,7 +465,7 @@ object:
 
 		if (seen_assign) {
 			if (!ObjectRule::IsValidSourceType(type))
-				BOOST_THROW_EXCEPTION(ConfigError("object rule 'assign' cannot be used for type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+				BOOST_THROW_EXCEPTION(ScriptError("object rule 'assign' cannot be used for type '" + type + "'", DebugInfoRange(@2, @3)));
 
 			if (ignore) {
 				Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
@@ -625,7 +625,7 @@ lterm: type
 	| T_ASSIGN T_WHERE rterm
 	{
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
-			BOOST_THROW_EXCEPTION(ConfigError("'assign' keyword not valid in this context."));
+			BOOST_THROW_EXCEPTION(ScriptError("'assign' keyword not valid in this context.", DebugInfoRange(@1, @3)));
 
 		context->m_SeenAssign.top() = true;
 
@@ -639,7 +639,7 @@ lterm: type
 	| T_IGNORE T_WHERE rterm
 	{
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
-			BOOST_THROW_EXCEPTION(ConfigError("'ignore' keyword not valid in this context."));
+			BOOST_THROW_EXCEPTION(ScriptError("'ignore' keyword not valid in this context.", DebugInfoRange(@1, @3)));
 
 		if (context->m_Ignore.top())
 			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $3, DebugInfoRange(@1, @3));
@@ -962,7 +962,7 @@ apply:
 		free($6);
 
 		if (!ApplyRule::IsValidSourceType(type))
-			BOOST_THROW_EXCEPTION(ConfigError("'apply' cannot be used with type '" + type + "'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+			BOOST_THROW_EXCEPTION(ScriptError("'apply' cannot be used with type '" + type + "'", DebugInfoRange(@2, @3)));
 
 		if (!ApplyRule::IsValidTargetType(type, target)) {
 			if (target == "") {
@@ -980,9 +980,9 @@ apply:
 					typeNames += "'" + types[i] + "'";
 				}
 
-				BOOST_THROW_EXCEPTION(ConfigError("'apply' target type is ambiguous (can be one of " + typeNames + "): use 'to' to specify a type") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type is ambiguous (can be one of " + typeNames + "): use 'to' to specify a type", DebugInfoRange(@2, @3)));
 			} else
-				BOOST_THROW_EXCEPTION(ConfigError("'apply' target type '" + target + "' is invalid") << errinfo_debuginfo(DebugInfoRange(@2, @5)));
+				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", DebugInfoRange(@2, @5)));
 		}
 
 		DictExpression *exprl = dynamic_cast<DictExpression *>($8);
@@ -990,7 +990,7 @@ apply:
 
 		// assign && !ignore
 		if (!context->m_SeenAssign.top())
-			BOOST_THROW_EXCEPTION(ConfigError("'apply' is missing 'assign'") << errinfo_debuginfo(DebugInfoRange(@2, @3)));
+			BOOST_THROW_EXCEPTION(ScriptError("'apply' is missing 'assign'", DebugInfoRange(@2, @3)));
 
 		context->m_SeenAssign.pop();
 

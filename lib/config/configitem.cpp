@@ -34,7 +34,7 @@
 #include "base/netstring.hpp"
 #include "base/serializer.hpp"
 #include "base/json.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
@@ -167,9 +167,8 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 		VMFrame frame(dobj);
 		frame.Locals = m_Scope;
 		m_Expression->Evaluate(frame, &debugHints);
-	} catch (const ConfigError& ex) {
-		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+	} catch (const ScriptError& ex) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
@@ -229,9 +228,8 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 		try {
 			ctype->ValidateItem(GetName(), dobj, GetDebugInfo(), &utils);
-		} catch (const ConfigError& ex) {
-			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+		} catch (const ScriptError& ex) {
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
 		} catch (const std::exception& ex) {
 			ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 		}

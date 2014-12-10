@@ -26,7 +26,7 @@
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/context.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -107,7 +107,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 
 	if (vinstances.IsObjectType<Array>()) {
 		if (!rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ConfigError("Array iterator requires value to be an array.") << errinfo_debuginfo(di));
+			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
 		Array::Ptr arr = vinstances;
 
@@ -124,7 +124,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ConfigError("Dictionary iterator requires value to be a dictionary.") << errinfo_debuginfo(di));
+			BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 	
 		Dictionary::Ptr dict = vinstances;
 
@@ -151,9 +151,8 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 		try {
 			if (EvaluateApplyRule(host, rule))
 				rule.AddMatch();
-		} catch (const ConfigError& ex) {
-			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+		} catch (const ScriptError& ex) {
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
 		}
 	}
 }
@@ -169,9 +168,8 @@ void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 		try {
 			if (EvaluateApplyRule(service, rule))
 				rule.AddMatch();
-		} catch (const ConfigError& ex) {
-			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+		} catch (const ScriptError& ex) {
+			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
 		}
 	}
 }

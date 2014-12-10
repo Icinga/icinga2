@@ -31,7 +31,7 @@
 #include "base/scriptfunction.hpp"
 #include "base/scriptsignal.hpp"
 #include "base/scriptvariable.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
@@ -67,7 +67,7 @@ public:
 			func = ScriptFunction::GetByName(funcName);
 
 		if (!func)
-			BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
+			BOOST_THROW_EXCEPTION(ScriptError("Function '" + funcName + "' does not exist."));
 
 		return func->Invoke(arguments);
 	}
@@ -104,7 +104,7 @@ public:
 		ScriptSignal::Ptr sig = ScriptSignal::GetByName(signal);
 
 		if (!sig)
-			BOOST_THROW_EXCEPTION(ConfigError("Signal '" + signal + "' does not exist."));
+			BOOST_THROW_EXCEPTION(ScriptError("Signal '" + signal + "' does not exist."));
 
 		sig->AddSlot(boost::bind(SlotWrapper, slot, _1));
 
@@ -143,7 +143,7 @@ public:
 			if (oldItem) {
 				std::ostringstream msgbuf;
 				msgbuf << "Object '" << name << "' of type '" << type << "' re-defined: " << debugInfo << "; previous definition: " << oldItem->GetDebugInfo();
-				BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(debugInfo));
+				BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
 			}
 		}
 
@@ -152,7 +152,7 @@ public:
 		if (name.FindFirstOf("!") != String::NPos) {
 			std::ostringstream msgbuf;
 			msgbuf << "Name for object '" << name << "' of type '" << type << "' is invalid: Object names may not contain '!'";
-			BOOST_THROW_EXCEPTION(ConfigError(msgbuf.str()) << errinfo_debuginfo(debugInfo));
+			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
 		}
 
 		item->SetName(name);
@@ -171,7 +171,7 @@ public:
 	{
 		if (value.IsObjectType<Array>()) {
 			if (!fvvar.IsEmpty())
-				BOOST_THROW_EXCEPTION(ConfigError("Cannot use dictionary iterator for array.") << errinfo_debuginfo(debugInfo));
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use dictionary iterator for array.", debugInfo));
 
 			Array::Ptr arr = value;
 
@@ -182,7 +182,7 @@ public:
 			}
 		} else if (value.IsObjectType<Dictionary>()) {
 			if (fvvar.IsEmpty())
-				BOOST_THROW_EXCEPTION(ConfigError("Cannot use array iterator for dictionary.") << errinfo_debuginfo(debugInfo));
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use array iterator for dictionary.", debugInfo));
 
 			Dictionary::Ptr dict = value;
 
@@ -194,7 +194,7 @@ public:
 			}
 		}
 		else
-			BOOST_THROW_EXCEPTION(ConfigError("Invalid type in __for expression: " + value.GetTypeName()) << errinfo_debuginfo(debugInfo));
+			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in __for expression: " + value.GetTypeName(), debugInfo));
 
 		return Empty;
 	}
@@ -242,7 +242,7 @@ public:
 		return context->GetField(fid);
 	}
 
-	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value)
+	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
 
@@ -264,19 +264,19 @@ public:
 		Type::Ptr type = context->GetReflectionType();
 
 		if (!type)
-			BOOST_THROW_EXCEPTION(ConfigError("Cannot set field on object."));
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field on object.", debugInfo));
 
 		int fid = type->GetFieldId(field);
 
 		if (fid == -1)
-			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' does not exist."));
+			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' does not exist.", debugInfo));
 
 		try {
 			context->SetField(fid, value);
 		} catch (const boost::bad_lexical_cast&) {
-			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
+			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'", debugInfo));
 		} catch (const std::bad_cast&) {
-			BOOST_THROW_EXCEPTION(ConfigError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'"));
+			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "'", debugInfo));
 		}
 	}
 
@@ -285,7 +285,7 @@ private:
 	    const std::vector<String>& funcargs, const Dictionary::Ptr& closedVars, const boost::shared_ptr<Expression>& expr)
 	{
 		if (arguments.size() < funcargs.size())
-			BOOST_THROW_EXCEPTION(ConfigError("Too few arguments for function"));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
 		VMFrame frame;
 
@@ -315,7 +315,7 @@ private:
 			func = ScriptFunction::GetByName(funcName);
 
 		if (!func)
-			BOOST_THROW_EXCEPTION(ConfigError("Function '" + funcName + "' does not exist."));
+			BOOST_THROW_EXCEPTION(ScriptError("Function '" + funcName + "' does not exist."));
 
 		func->Invoke(arguments);
 	}

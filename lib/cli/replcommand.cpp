@@ -91,14 +91,12 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 					std::cout << result;
 				std::cout << ConsoleColorTag(Console_Normal) << "\n";
 			}
-		} catch (const ConfigError& ex) {
-			const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
+		} catch (const ScriptError& ex) {
+			DebugInfo di = ex.GetDebugInfo();
 
-			if (di) {
-				std::cout << String(3 + di->FirstColumn, ' ');
-				std::cout << String(di->LastColumn - di->FirstColumn + 1, '^');
-				std::cout << "\n";
-			}
+			std::cout << String(3 + di.FirstColumn, ' ');
+			std::cout << String(di.LastColumn - di.FirstColumn + 1, '^');
+			std::cout << "\n";
 
 			std::cout << ex.what() << "\n";
 		} catch (const std::exception& ex) {

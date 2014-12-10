@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGERROR_H
-#define CONFIGERROR_H
+#ifndef SCRIPTERROR_H
+#define SCRIPTERROR_H
 
 #include "base/i2-base.hpp"
 #include "base/debuginfo.hpp"
@@ -30,18 +30,22 @@ namespace icinga
 /*
  * @ingroup base
  */
-class I2_BASE_API ConfigError : virtual public user_error
+class I2_BASE_API ScriptError : virtual public user_error
 {
 public:
-	ConfigError(const String& message);
-	~ConfigError(void) throw();
+	ScriptError(const String& message);
+	ScriptError(const String& message, const DebugInfo& di);
+	~ScriptError(void) throw();
 
 	virtual const char *what(void) const throw();
 
+	DebugInfo GetDebugInfo(void) const;
+
 private:
 	String m_Message;
+	DebugInfo m_DebugInfo;
 };
 
 }
 
-#endif /* CONFIGERROR_H */
+#endif /* SCRIPTERROR_H */

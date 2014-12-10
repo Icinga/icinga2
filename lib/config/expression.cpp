@@ -24,7 +24,7 @@
 #include "base/json.hpp"
 #include "base/object.hpp"
 #include "base/logger.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -47,13 +47,11 @@ Value Expression::Evaluate(VMFrame& frame, DebugHint *dhint) const
 		return DoEvaluate(frame, dhint);
 	} catch (const InterruptExecutionError&) {
 		throw;
+	} catch (const ScriptError& ex) {
+		throw;
 	} catch (const std::exception& ex) {
-		if (boost::get_error_info<boost::errinfo_nested_exception>(ex))
-			throw;
-		else
-			BOOST_THROW_EXCEPTION(ConfigError("Error while evaluating expression: " + String(ex.what()))
-			    << boost::errinfo_nested_exception(boost::current_exception())
-			    << errinfo_debuginfo(GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo())
+		    << boost::errinfo_nested_exception(boost::current_exception()));
 	}
 }
 
@@ -191,7 +189,7 @@ Value InExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
-		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(right), GetDebugInfo()));
 
 	Value left = m_Operand1->Evaluate(frame);
 
@@ -206,7 +204,7 @@ Value NotInExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	if (right.IsEmpty())
 		return true;
 	else if (!right.IsObjectType<Array>())
-		BOOST_THROW_EXCEPTION(ConfigError("Invalid right side argument for 'in' operator: " + JsonEncode(right)));
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(right), GetDebugInfo()));
 
 	Value left = m_Operand1->Evaluate(frame);
 
@@ -292,7 +290,7 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 				object = indexExpr->Evaluate(frame, dhint);
 
 				if (!object)
-					BOOST_THROW_EXCEPTION(ConfigError("Left-hand side argument must not be null."));
+					BOOST_THROW_EXCEPTION(ScriptError("Left-hand side argument must not be null.", GetDebugInfo()));
 
 				continue;
 			}
@@ -400,7 +398,7 @@ Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item)
-		BOOST_THROW_EXCEPTION(ConfigError("Import references unknown template: '" + name + "'"));
+		BOOST_THROW_EXCEPTION(ScriptError("Import references unknown template: '" + name + "'", GetDebugInfo()));
 
 	item->GetExpression()->Evaluate(frame, dhint);
 

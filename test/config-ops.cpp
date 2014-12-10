@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in \"bar\"");
-	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"bar\", \"baz\" ]");
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in \"bar\"");
-	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "{ a += 3 }");
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK(dict->Get("a") == 3);
 
 	expr = ConfigCompiler::CompileText("<test>", "test");
-	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "null + 3");
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "__boost_test()");
-	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 
 	Object::Ptr self = new Object();
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "a = 3 b = 3");
-	BOOST_CHECK_THROW(expr->Evaluate(frame), ConfigError);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 
 	expr = ConfigCompiler::CompileText("<test>", "__function() { 3 }()");
 	BOOST_CHECK(expr->Evaluate(frame) == 3);

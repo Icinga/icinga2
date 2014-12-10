@@ -26,7 +26,7 @@
 #include "base/objectlock.hpp"
 #include "base/dynamictype.hpp"
 #include "base/application.hpp"
-#include "base/configerror.hpp"
+#include "base/scripterror.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -256,6 +256,6 @@ DynamicObject::Ptr ScriptUtils::GetObject(const String& type, const String& name
 void ScriptUtils::Assert(const Value& arg)
 {
 	if (!arg.ToBool())
-		BOOST_THROW_EXCEPTION(ConfigError("Assertion failed"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Assertion failed"));
 }
 

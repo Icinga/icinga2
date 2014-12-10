@@ -67,9 +67,8 @@ static void ExecuteExpression(Expression *expression)
 	try {
 		VMFrame frame;
 		expression->Evaluate(frame);
-	} catch (const ConfigError& ex) {
-		const DebugInfo *di = boost::get_error_info<errinfo_debuginfo>(ex);
-		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), di ? *di : DebugInfo());
+	} catch (const ScriptError& ex) {
+		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
 	} catch (const std::exception& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
 	}
