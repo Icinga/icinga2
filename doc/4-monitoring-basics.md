@@ -1418,10 +1418,12 @@ further checks for the `ping4` service on host `google-dns` service should
 be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
 
     object Host "dsl-router" {
+      import "generic-host"
       address = "192.168.1.1"
     }
 
     object Host "google-dns" {
+      import "generic-host"
       address = "8.8.8.8"
     }
 
