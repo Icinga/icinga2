@@ -194,7 +194,7 @@ public:
 			}
 		}
 		else
-			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in __for expression: " + value.GetTypeName(), debugInfo));
+			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in for expression: " + value.GetTypeName(), debugInfo));
 
 		return Empty;
 	}
