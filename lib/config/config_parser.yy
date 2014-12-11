@@ -166,7 +166,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_IMPORT "import (T_IMPORT)"
 %token T_ASSIGN "assign (T_ASSIGN)"
 %token T_IGNORE "ignore (T_IGNORE)"
-%token T_APPLY_FOR "for (T_APPLY_FOR)"
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_RETURN "return (T_RETURN)"
 %token T_FOR "for (T_FOR)"
@@ -660,6 +659,45 @@ lterm: type
 	{
 		$$ = $1;
 	}
+	| T_SIGNAL identifier T_SET_ADD rterm
+	{
+		$$ = new SlotExpression($2, $4, DebugInfoRange(@1, @4));
+		free($2);
+	}
+	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
+		aexpr->MakeInline();
+
+		$$ = new ForExpression($3, $5, $7, aexpr, DebugInfoRange(@1, @9));
+		free($3);
+		free($5);
+	}
+	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
+		aexpr->MakeInline();
+
+		$$ = new ForExpression($3, "", $5, aexpr, DebugInfoRange(@1, @7));
+		free($3);
+	}
+	| T_IF '(' rterm ')' rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
+	}
+	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
+		afalse->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
+	}
 	| rterm
 	{
 		$$ = $1;
@@ -825,45 +863,6 @@ rterm_without_indexer: T_STRING
 		$$ = new FunctionExpression("", *$3, $5, aexpr, DebugInfoRange(@1, @5));
 		delete $3;
 	}
-	| T_SIGNAL identifier T_SET_ADD rterm
-	{
-		$$ = new SlotExpression($2, $4, DebugInfoRange(@1, @4));
-		free($2);
-	}
-	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
-		aexpr->MakeInline();
-
-		$$ = new ForExpression($3, $5, $7, aexpr, DebugInfoRange(@1, @9));
-		free($3);
-		free($5);
-	}
-	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
-		aexpr->MakeInline();
-
-		$$ = new ForExpression($3, "", $5, aexpr, DebugInfoRange(@1, @7));
-		free($3);
-	}
-	| T_IF '(' rterm ')' rterm_scope
-	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
-
-		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
-	}
-	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
-	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
-
-		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
-		afalse->MakeInline();
-
-		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
-	}
 	;
 
 target_type_specifier: /* empty */
@@ -911,7 +910,7 @@ use_specifier_item: identifier
 	;
 
 apply_for_specifier: /* empty */
-	| T_APPLY_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
+	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
 	{
 		context->m_FKVar.top() = $3;
 		free($3);
@@ -921,7 +920,7 @@ apply_for_specifier: /* empty */
 
 		context->m_FTerm.top() = $7;
 	}
-	| T_APPLY_FOR '(' identifier T_IN rterm ')'
+	| T_FOR '(' identifier T_IN rterm ')'
 	{
 		context->m_FKVar.top() = $3;
 		free($3);
