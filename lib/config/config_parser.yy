@@ -787,9 +787,15 @@ rterm_without_indexer: T_STRING
 	{
 		$$ = MakeLiteral();
 	}
+	| indexer '(' rterm_items ')'
+	{
+		$$ = new FunctionCallExpression(*$1, NULL, *$3, DebugInfoRange(@1, @4));
+		delete $1;
+		delete $3;
+	}
 	| rterm '(' rterm_items ')'
 	{
-		$$ = new FunctionCallExpression($1, *$3, DebugInfoRange(@1, @4));
+		$$ = new FunctionCallExpression(MakeIndexer("this"), $1, *$3, DebugInfoRange(@1, @4));
 		delete $3;
 	}
 	| T_IDENTIFIER

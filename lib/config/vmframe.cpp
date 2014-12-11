@@ -17,61 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef VMFRAME_H
-#define VMFRAME_H
+#include "config/vmframe.hpp"
 
-#include "config/i2-config.hpp"
-#include "base/dictionary.hpp"
-#include <boost/thread/tss.hpp>
+using namespace icinga;
 
-namespace icinga
-{
-
-struct VMFrame
-{
-	Dictionary::Ptr Locals;
-	Object::Ptr Self;
-	VMFrame *NextFrame;
-
-	VMFrame(void)
-		: Locals(new Dictionary()), Self(Locals)
-	{
-		NextFrame = GetCurrentFrame();
-		SetCurrentFrame(this);
-	}
-
-	VMFrame(const Object::Ptr& self)
-		: Locals(new Dictionary()), Self(self)
-	{
-		NextFrame = GetCurrentFrame();
-		SetCurrentFrame(this);
-	}
-
-	~VMFrame(void)
-	{
-		ASSERT(GetCurrentFrame() == this);
-		SetCurrentFrame(NextFrame);
-	}
-
-	static inline VMFrame *GetCurrentFrame(void)
-	{
-		VMFrame **pframe = m_CurrentFrame.get();
-
-		if (pframe)
-			return *pframe;
-		else
-			return NULL;
-	}
-
-private:
-	static boost::thread_specific_ptr<VMFrame *> m_CurrentFrame;
-
-	static inline void SetCurrentFrame(VMFrame *frame)
-	{
-		m_CurrentFrame.reset(new VMFrame *(frame));
-	}
-};
-
-}
-
-#endif /* VMOPS_H */
+boost::thread_specific_ptr<VMFrame *> VMFrame::m_CurrentFrame;

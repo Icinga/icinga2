@@ -35,6 +35,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 #include <map>
 #include <vector>
 
@@ -57,7 +58,7 @@ public:
 			return ScriptVariable::Get(name);
 	}
 
-	static inline Value FunctionCall(VMFrame& frame, const Value& funcName, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(VMFrame& frame, const Object::Ptr& self, const Value& funcName, const std::vector<Value>& arguments)
 	{
 		ScriptFunction::Ptr func;
 
@@ -68,6 +69,13 @@ public:
 
 		if (!func)
 			BOOST_THROW_EXCEPTION(ScriptError("Function '" + funcName + "' does not exist."));
+
+		boost::shared_ptr<VMFrame> vframe;
+
+		if (self)
+			vframe = boost::make_shared<VMFrame>(self); /* passes self to the callee using a TLS variable */
+		else
+			vframe = boost::make_shared<VMFrame>();
 
 		return func->Invoke(arguments);
 	}
@@ -287,7 +295,8 @@ private:
 		if (arguments.size() < funcargs.size())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
-		VMFrame frame;
+		VMFrame *vframe = VMFrame::GetCurrentFrame();
+		VMFrame frame(vframe->Self);
 
 		if (closedVars)
 			closedVars->CopyTo(frame.Locals);

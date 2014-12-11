@@ -26,7 +26,6 @@
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
-#include "base/scriptfunction.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
@@ -57,9 +56,6 @@ using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
 boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
-
-REGISTER_SCRIPTFUNCTION(escape, &Utility::EscapeString);
-REGISTER_SCRIPTFUNCTION(unescape, &Utility::UnescapeString);
 
 /**
  * Demangles a symbol name.

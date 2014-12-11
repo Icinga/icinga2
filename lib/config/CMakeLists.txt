@@ -35,6 +35,7 @@ set(config_SOURCES
   configcompilercontext.cpp configcompiler.cpp configitembuilder.cpp
   configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
   configtype.cpp expression.cpp objectrule.cpp typerule.cpp typerulelist.cpp
+  vmframe.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

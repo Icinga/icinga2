@@ -224,14 +224,46 @@ Value LogicalOrExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Value funcName = m_FName->Evaluate(frame);
+	Object::Ptr self;
+	Value funcName;
+
+	if (!m_IName.empty()) {
+		Value result = m_IName[0]->Evaluate(frame);
+
+		if (m_IName.size() == 2) {
+			if (!result.IsObject())
+				BOOST_THROW_EXCEPTION(ScriptError("Tried to invoke method on something that is not an Object.", GetDebugInfo()));
+
+			self = result;
+		}
+
+		for (int i = 1; i < m_IName.size(); i++) {
+			if (result.IsEmpty())
+				return Empty;
+
+			Value index = m_IName[i]->Evaluate(frame);
+			result = VMOps::GetField(result, index);
+
+			if (i == m_IName.size() - 2) {
+				if (!result.IsObject())
+					BOOST_THROW_EXCEPTION(ScriptError("Tried to invoke method on something that is not an Object.", GetDebugInfo()));
+
+				self = result;
+			}
+		}
+
+		funcName = result;
+	}
+
+	if (m_FName)
+		funcName = m_FName->Evaluate(frame);
 
 	std::vector<Value> arguments;
 	BOOST_FOREACH(Expression *arg, m_Args) {
 		arguments.push_back(arg->Evaluate(frame));
 	}
 
-	return VMOps::FunctionCall(frame, funcName, arguments);
+	return VMOps::FunctionCall(frame, self, funcName, arguments);
 }
 
 Value ArrayExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const

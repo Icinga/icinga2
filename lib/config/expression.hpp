@@ -516,12 +516,15 @@ protected:
 class I2_CONFIG_API FunctionCallExpression : public DebuggableExpression
 {
 public:
-	FunctionCallExpression(Expression *fname, const std::vector<Expression *>& args, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_FName(fname), m_Args(args)
+	FunctionCallExpression(const std::vector<Expression *> iname, Expression *fname, const std::vector<Expression *>& args, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_IName(iname), m_FName(fname), m_Args(args)
 	{ }
 
 	~FunctionCallExpression(void)
 	{
+		BOOST_FOREACH(Expression *expr, m_IName)
+			delete expr;
+
 		delete m_FName;
 
 		BOOST_FOREACH(Expression *expr, m_Args)
@@ -532,6 +535,7 @@ protected:
 	virtual Value DoEvaluate(VMFrame& frame, DebugHint *dhint) const;
 
 public:
+	std::vector<Expression *> m_IName;
 	Expression *m_FName;
 	std::vector<Expression *> m_Args;
 };
