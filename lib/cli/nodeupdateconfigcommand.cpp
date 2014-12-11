@@ -87,9 +87,10 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 	Utility::LoadExtensionLibrary("icinga");
 
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
+	std::vector<Dictionary::Ptr> nodes = NodeUtility::GetNodes();
 
 	/* first make sure that all nodes are valid and should not be removed */
-	BOOST_FOREACH(const Dictionary::Ptr& node, NodeUtility::GetNodes()) {
+	BOOST_FOREACH(const Dictionary::Ptr& node, nodes) {
 		Dictionary::Ptr repository = node->Get("repository");
 		String zone = node->Get("zone");
 		String endpoint = node->Get("endpoint");
@@ -201,7 +202,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 	}
 
 	/* next iterate over all nodes and add hosts/services */
-	BOOST_FOREACH(const Dictionary::Ptr& node, NodeUtility::GetNodes()) {
+	BOOST_FOREACH(const Dictionary::Ptr& node, nodes) {
 		Dictionary::Ptr repository = node->Get("repository");
 		String zone = node->Get("zone");
 		String endpoint = node->Get("endpoint");
