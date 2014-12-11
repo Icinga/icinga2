@@ -27,10 +27,10 @@ parentheses):
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
                installed via port or package)
-* optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian) set CMake
-             variable `ICINGA2_WITH_MYSQL` to enable
-* optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian) set CMake
-            variable `ICINGA2_WITH_PGSQL` to enable
+* optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian); set CMake
+             variable `ICINGA2_WITH_MYSQL` to disable this module
+* optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian); set CMake
+            variable `ICINGA2_WITH_PGSQL` to disable this module
 * optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
@@ -153,6 +153,8 @@ defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
 and the SysV initscript in parallel, regardless of how `USE_SYSTEMD` is set. 
 Only use this for special packaging purposes and if you know what you are doing.
 Defaults to `OFF`.
+- `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
+- `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
 
 ### Building Icinga 2 RPMs
 

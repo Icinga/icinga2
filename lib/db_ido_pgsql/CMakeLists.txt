@@ -61,5 +61,5 @@ if(PostgreSQL_FOUND)
       FILES_MATCHING PATTERN "*.sql"
     )
 else()
-    message( FATAL_ERROR "You have selected PostgreSQL support, but PostgreSQL could not be found." )
+    message(FATAL_ERROR "You have selected PostgreSQL support, but PostgreSQL could not be found. You can disable the PostgreSQL IDO module using -DICINGA2_WITH_PGSQL=OFF.")
 endif()

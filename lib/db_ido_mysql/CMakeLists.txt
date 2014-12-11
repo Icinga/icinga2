@@ -59,5 +59,5 @@ if(MYSQL_FOUND)
       FILES_MATCHING PATTERN "*.sql"
     )
 else()
-    message( FATAL_ERROR "You have selected MySQL support, but MySQL could not be found." )
+    message(FATAL_ERROR "You have selected MySQL support, but MySQL could not be found. You can disable the MySQL IDO module using -DICINGA2_WITH_MYSQL=OFF.")
 endif()
