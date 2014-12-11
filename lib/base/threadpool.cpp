@@ -70,6 +70,8 @@ void ThreadPool::Stop(void)
 	}
 
 	m_ThreadGroup.join_all();
+	m_ThreadGroup.~thread_group();
+	new (&m_ThreadGroup) boost::thread_group();
 
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
 		m_Queues[i].Stopped = false;
