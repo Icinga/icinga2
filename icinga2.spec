@@ -489,6 +489,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/%{name}/scripts/*
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/prepare-dirs
+%{_libexecdir}/%{name}/safe-reload
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp

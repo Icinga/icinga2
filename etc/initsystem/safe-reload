@@ -1,0 +1,40 @@
+#!/bin/sh
+# load system specific defines
+SYSCONFIGFILE=$1
+if [ -f "$SYSCONFIGFILE" ]; then
+	. $SYSCONFIGFILE
+else
+	echo "Error: You need to supply the path to the Icinga2 sysconfig file as parameter."
+	exit 1
+fi
+
+printf "Validating config files: "
+
+OUTPUTFILE=`mktemp`
+
+if ! $DAEMON daemon --validate --color > $OUTPUTFILE; then
+	echo "Failed"
+
+	cat $OUTPUTFILE
+	rm -f $OUTPUTFILE
+	exit 1
+fi
+
+echo "Done"
+rm -f $OUTPUTFILE
+
+printf "Reloading Icinga 2: "
+
+if [ ! -e $ICINGA2_PID_FILE ]; then
+	exit 7
+fi
+
+pid=`cat $ICINGA2_PID_FILE`
+if kill -HUP $pid >/dev/null 2>&1; then
+	echo "Done"
+else
+	echo "Error: Icinga not running"
+	exit 7
+fi
+
+exit 0
