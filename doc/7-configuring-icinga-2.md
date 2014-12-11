@@ -2306,6 +2306,7 @@ snmp_eregi          | **Optional.** Return OK state if case-insensitive extended
 snmp_label          | **Optional.** Prefix label for output value
 snmp_invert_search  | **Optional.** Invert search result and return CRITICAL state if found
 snmp_units          | **Optional.** Units label(s) for output value (e.g., 'sec.').
+snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
 
 #### <a id="plugin-check-command-snmp"></a> snmpv3
 
@@ -2522,6 +2523,7 @@ snmp_warn               | **Optional.** The warning threshold. Change the `snmp_
 snmp_crit               | **Optional.** The critical threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
 snmp_load_type          | **Optional.** Load type. Defaults to "stand". Check all available types in the [snmp load](http://nagios.manubulon.com/snmp_load.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 #### <a id="plugin-check-command-snmp-memory"></a> snmp-memory
 
@@ -2545,6 +2547,7 @@ snmp_privpass           | **Required.** SNMP version 3 priv password. No value d
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 #### <a id="plugin-check-command-snmp-storage"></a> snmp-storage
 
@@ -2569,6 +2572,7 @@ snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 #### <a id="plugin-check-command-snmp-interface"></a> snmp-interface
 
@@ -2596,6 +2600,7 @@ snmp_interface_perf     | **Optional.** Check the input/ouput bandwidth of the i
 snmp_interface_bits     | **Optional.** Make the warning and critical levels in KBits/s. Defaults to "true".
 snmp_interface_64bit    | **Optional.** Use 64 bits counters instead of the standard counters when checking bandwidth & performance data for interface >= 1Gbps. Defaults to "false".
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_timeout                | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 #### <a id="plugin-check-command-snmp-process"></a> snmp-process
 
@@ -2620,3 +2625,4 @@ snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_process_name       | **Optional.** Name of the process (regexp). No trailing slash!. Defaults to ".*".
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
