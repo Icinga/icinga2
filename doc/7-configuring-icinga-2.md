@@ -217,9 +217,6 @@ with certain characters (e.g. digits). If you want to use a dictionary
 key that is not a valid identifier you can enclose the key in double
 quotes.
 
-Setting a dictionary key to null causes the key and its value to be
-removed from the dictionary.
-
 #### <a id="array"></a> Array
 
 An ordered list of values.
