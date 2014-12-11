@@ -60,7 +60,8 @@ void ThreadPool::Stop(void)
 		m_MgmtCV.notify_all();
 	}
 
-	m_MgmtThread.join();
+	if (m_MgmtThread.joinable())
+		m_MgmtThread.join();
 
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
 		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
