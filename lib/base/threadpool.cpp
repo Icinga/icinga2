@@ -70,6 +70,8 @@ void ThreadPool::Stop(void)
 	}
 
 	m_ThreadGroup.join_all();
+	m_ThreadGroup.~thread_group();
+	new (&m_ThreadGroup) boost::thread_group();
 }
 
 /**
