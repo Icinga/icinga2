@@ -404,7 +404,7 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 Value ConditionalExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	if (m_Condition->Evaluate(frame, dhint))
+	if (m_Condition->Evaluate(frame, dhint).ToBool())
 		return m_TrueBranch->Evaluate(frame, dhint);
 	else if (m_FalseBranch)
 		return m_FalseBranch->Evaluate(frame, dhint);
