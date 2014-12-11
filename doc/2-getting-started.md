@@ -710,7 +710,9 @@ nested dictionary attribute `notification.mail` is set.
 
 Please note that the `to` keyword is important in [notification apply rules](#using-apply-notifications)
 defining whether these notifications are applies to hosts or services.
-The `import` keyword imports the specific mail templates defined in [templates.conf](templates-conf)
+The `import` keyword imports the specific mail templates defined in [templates.conf](#templates-conf).
+
+The `interval` attribute is not explicitly set - it [defaults to 30 minutes](#objecttype-notification).
 
 By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](#hosts-conf) attribute we'll
