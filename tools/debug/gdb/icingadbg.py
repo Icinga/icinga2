@@ -20,8 +20,10 @@ class IcingaValuePrinter:
         elif which == 1:
             return self.val['m_Value']['storage_']['data_']['buf'].cast(gdb.lookup_type('double').pointer()).dereference()
         elif which == 2:
-            return self.val['m_Value']['storage_']['data_']['buf'].cast(gdb.lookup_type('icinga::String').pointer()).dereference()
+            return self.val['m_Value']['storage_']['data_']['buf'].cast(gdb.lookup_type('bool').pointer()).dereference()
         elif which == 3:
+            return self.val['m_Value']['storage_']['data_']['buf'].cast(gdb.lookup_type('icinga::String').pointer()).dereference()
+        elif which == 4:
             return self.val['m_Value']['storage_']['data_']['buf'].cast(gdb.lookup_type('icinga::Object').pointer()).dereference()
         else:
             return '<INVALID>'
