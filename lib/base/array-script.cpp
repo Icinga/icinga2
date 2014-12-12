@@ -66,11 +66,11 @@ static void ArrayClear(void)
 	self->Clear();
 }
 
-static void ArrayClone(void)
+static Array::Ptr ArrayClone(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
-	self->ShallowClone();
+	return self->ShallowClone();
 }
 
 Object::Ptr Array::GetPrototype(void)

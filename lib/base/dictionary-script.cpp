@@ -52,11 +52,11 @@ static bool DictionaryContains(const String& key)
 	return self->Contains(key);
 }
 
-static void DictionaryClone(void)
+static Dictionary::Ptr DictionaryClone(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	self->ShallowClone();
+	return self->ShallowClone();
 }
 
 Object::Ptr Dictionary::GetPrototype(void)
