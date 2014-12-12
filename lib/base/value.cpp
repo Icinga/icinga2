@@ -85,3 +85,22 @@ String Value::GetTypeName(void) const
 			return "Invalid";
 	}
 }
+
+Type::Ptr Value::GetReflectionType(void) const
+{
+	switch (GetType()) {
+		case ValueEmpty:
+			return Type::GetByName("Object");
+		case ValueNumber:
+			return Type::GetByName("Number");
+		case ValueBoolean:
+			return Type::GetByName("Boolean");
+		case ValueString:
+			return Type::GetByName("String");
+		case ValueObject:
+			return static_cast<Object::Ptr>(*this)->GetReflectionType();
+		default:
+			return Type::Ptr();
+	}
+}
+

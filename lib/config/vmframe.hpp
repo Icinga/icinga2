@@ -30,7 +30,7 @@ namespace icinga
 struct VMFrame
 {
 	Dictionary::Ptr Locals;
-	Object::Ptr Self;
+	Value Self;
 	VMFrame *NextFrame;
 
 	VMFrame(void)
@@ -40,7 +40,7 @@ struct VMFrame
 		SetCurrentFrame(this);
 	}
 
-	VMFrame(const Object::Ptr& self)
+	VMFrame(const Value& self)
 		: Locals(new Dictionary()), Self(self)
 	{
 		NextFrame = GetCurrentFrame();

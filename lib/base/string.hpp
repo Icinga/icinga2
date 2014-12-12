@@ -21,6 +21,7 @@
 #define STRING_H
 
 #include "base/i2-base.hpp"
+#include "base/object.hpp"
 #include <boost/range/iterator.hpp>
 #include <string.h>
 #include <functional>
@@ -245,6 +246,8 @@ public:
 	}
 
 	static const SizeType NPos;
+
+	static Object::Ptr GetPrototype(void);
 
 private:
 	std::string m_Data;

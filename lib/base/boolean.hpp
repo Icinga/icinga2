@@ -17,59 +17,28 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PRIMITIVETYPE_H
-#define PRIMITIVETYPE_H
+#ifndef BOOLEAN_H
+#define BOOLEAN_H
 
 #include "base/i2-base.hpp"
-#include "base/type.hpp"
-#include "base/initialize.hpp"
+#include "base/object.hpp"
 
-namespace icinga
-{
+namespace icinga {
 
-class I2_BASE_API PrimitiveType : public Type
+class Value;
+
+/**
+ * Boolean class.
+ */
+class I2_BASE_API Boolean
 {
 public:
-	PrimitiveType(const String& name);
-
-	virtual String GetName(void) const;
-	virtual Type::Ptr GetBaseType(void) const;
-	virtual int GetAttributes(void) const;
-	virtual int GetFieldId(const String& name) const;
-	virtual Field GetFieldInfo(int id) const;
-	virtual int GetFieldCount(void) const;
-
-protected:
-	virtual ObjectFactory GetFactory(void) const;
+	static Object::Ptr GetPrototype(void);
 
 private:
-	String m_Name;
+	Boolean(void);
 };
-
-#define REGISTER_BUILTIN_TYPE(type, prototype)					\
-	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterBuiltinType(void)					\
-		{								\
-			icinga::Type::Ptr t = new PrimitiveType(#type);		\
-			t->SetPrototype(prototype);				\
-			icinga::Type::Register(t);				\
-		}								\
-		INITIALIZE_ONCE(RegisterBuiltinType);				\
-	} } }
-
-#define REGISTER_PRIMITIVE_TYPE(type, prototype)				\
-	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterPrimitiveType(void)				\
-		{								\
-			icinga::Type::Ptr t = new PrimitiveType(#type);		\
-			t->SetPrototype(prototype);				\
-			icinga::Type::Register(t);				\
-			type::TypeInstance = t;					\
-		}								\
-		INITIALIZE_ONCE(RegisterPrimitiveType);				\
-	} } }									\
-	DEFINE_TYPE_INSTANCE(type)
 
 }
 
-#endif /* PRIMITIVETYPE_H */
+#endif /* BOOLEAN_H */

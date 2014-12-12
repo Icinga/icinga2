@@ -21,11 +21,12 @@
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
+#include "base/dictionary.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Array);
+REGISTER_PRIMITIVE_TYPE(Array, Array::GetPrototype());
 
 /**
  * Restrieves a value from an array.

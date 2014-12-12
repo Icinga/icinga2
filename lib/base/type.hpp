@@ -75,11 +75,17 @@ public:
 
 	bool IsAbstract(void) const;
 
+	Object::Ptr GetPrototype(void) const;
+	void SetPrototype(const Object::Ptr& object);
+
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 
 protected:
 	virtual ObjectFactory GetFactory(void) const = 0;
+
+private:
+	Object::Ptr m_Prototype;
 };
 
 template<typename T>

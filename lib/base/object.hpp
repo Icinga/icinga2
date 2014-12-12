@@ -104,6 +104,8 @@ public:
 
 	void InflateMutex(void);
 
+	static Object::Ptr GetPrototype(void);
+
 private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);

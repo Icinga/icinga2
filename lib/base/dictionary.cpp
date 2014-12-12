@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Dictionary);
+REGISTER_PRIMITIVE_TYPE(Dictionary, Dictionary::GetPrototype());
 
 /**
  * Compares dictionary keys using the less operator.

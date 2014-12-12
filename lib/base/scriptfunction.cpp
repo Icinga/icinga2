@@ -20,10 +20,22 @@
 #include "base/scriptfunction.hpp"
 #include "base/scriptvariable.hpp"
 #include "base/primitivetype.hpp"
+#include "base/dictionary.hpp"
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(ScriptFunction);
+static Object::Ptr GetScriptFunctionPrototype(void)
+{
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+	}
+
+	return prototype;
+}
+
+REGISTER_PRIMITIVE_TYPE(ScriptFunction, GetScriptFunctionPrototype());
 
 ScriptFunction::ScriptFunction(const Callback& function)
 	: m_Callback(function)

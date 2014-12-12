@@ -64,6 +64,8 @@ public:
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone(void) const;
 
+	static Object::Ptr GetPrototype(void);
+
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 };

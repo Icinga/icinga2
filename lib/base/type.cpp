@@ -74,3 +74,13 @@ bool Type::IsAssignableFrom(const Type::Ptr& other) const
 	return false;
 }
 
+Object::Ptr Type::GetPrototype(void) const
+{
+	return m_Prototype;
+}
+
+void Type::SetPrototype(const Object::Ptr& object)
+{
+	m_Prototype = object;
+}
+

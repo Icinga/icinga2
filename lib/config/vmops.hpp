@@ -52,13 +52,13 @@ public:
 
 		if (frame.Locals && frame.Locals->Contains(name))
 			return frame.Locals->Get(name);
-		else if (frame.Locals != frame.Self && HasField(frame.Self, name))
+		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && HasField(frame.Self, name))
 			return GetField(frame.Self, name, debugInfo);
 		else
 			return ScriptVariable::Get(name);
 	}
 
-	static inline Value FunctionCall(VMFrame& frame, const Object::Ptr& self, const Value& funcName, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(VMFrame& frame, const Value& self, const Value& funcName, const std::vector<Value>& arguments)
 	{
 		ScriptFunction::Ptr func;
 
@@ -72,7 +72,7 @@ public:
 
 		boost::shared_ptr<VMFrame> vframe;
 
-		if (self)
+		if (!self.IsEmpty())
 			vframe = boost::make_shared<VMFrame>(self); /* passes self to the callee using a TLS variable */
 		else
 			vframe = boost::make_shared<VMFrame>();
@@ -232,30 +232,49 @@ public:
 		}
 	}
 
+	static inline Value GetPrototypeField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
+	{
+		Type::Ptr type = context.GetReflectionType();
+
+		do {
+			Object::Ptr object = type->GetPrototype();
+
+			if (HasField(object, field))
+				return GetField(object, field);
+
+			type = type->GetBaseType();
+		} while (type);
+
+		return Empty;
+	}
+
 	static inline Value GetField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (context.IsString()) {
-			String str = context;
-			int index = Convert::ToLong(field);
-			if (index < 0 || index >= str.GetLength())
-				BOOST_THROW_EXCEPTION(ScriptError("Index is out of bounds", debugInfo));
-			return String(1, str[index]);
-		}
-
 		if (!context.IsObject())
-			BOOST_THROW_EXCEPTION(ScriptError("Tried to access invalid field '" + field + "' on object of type '" + context.GetTypeName() + "'", debugInfo));
+			return GetPrototypeField(context, field);
 
 		Object::Ptr object = context;
 
 		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(object);
 
-		if (dict)
-			return dict->Get(field);
+		if (dict) {
+			if (dict->Contains(field))
+				return dict->Get(field);
+			else
+				return GetPrototypeField(context, field);
+		}
 
 		Array::Ptr arr = dynamic_pointer_cast<Array>(object);
 
 		if (arr) {
-			int index = Convert::ToLong(field);
+			int index;
+
+			try {
+				index = Convert::ToLong(field);
+			} catch (...) {
+				return GetPrototypeField(context, field);
+			}
+
 			return arr->Get(index);
 		}
 
@@ -267,7 +286,7 @@ public:
 		int fid = type->GetFieldId(field);
 
 		if (fid == -1)
-			return Empty;
+			return GetPrototypeField(context, field);
 
 		return object->GetField(fid);
 	}

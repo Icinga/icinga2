@@ -17,59 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef PRIMITIVETYPE_H
-#define PRIMITIVETYPE_H
+#include "base/object.hpp"
+#include "base/dictionary.hpp"
+#include "base/scriptfunction.hpp"
+#include "base/scriptfunctionwrapper.hpp"
+#include "config/vmframe.hpp"
 
-#include "base/i2-base.hpp"
-#include "base/type.hpp"
-#include "base/initialize.hpp"
+using namespace icinga;
 
-namespace icinga
+static int StringLen(void)
 {
-
-class I2_BASE_API PrimitiveType : public Type
-{
-public:
-	PrimitiveType(const String& name);
-
-	virtual String GetName(void) const;
-	virtual Type::Ptr GetBaseType(void) const;
-	virtual int GetAttributes(void) const;
-	virtual int GetFieldId(const String& name) const;
-	virtual Field GetFieldInfo(int id) const;
-	virtual int GetFieldCount(void) const;
-
-protected:
-	virtual ObjectFactory GetFactory(void) const;
-
-private:
-	String m_Name;
-};
-
-#define REGISTER_BUILTIN_TYPE(type, prototype)					\
-	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterBuiltinType(void)					\
-		{								\
-			icinga::Type::Ptr t = new PrimitiveType(#type);		\
-			t->SetPrototype(prototype);				\
-			icinga::Type::Register(t);				\
-		}								\
-		INITIALIZE_ONCE(RegisterBuiltinType);				\
-	} } }
-
-#define REGISTER_PRIMITIVE_TYPE(type, prototype)				\
-	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterPrimitiveType(void)				\
-		{								\
-			icinga::Type::Ptr t = new PrimitiveType(#type);		\
-			t->SetPrototype(prototype);				\
-			icinga::Type::Register(t);				\
-			type::TypeInstance = t;					\
-		}								\
-		INITIALIZE_ONCE(RegisterPrimitiveType);				\
-	} } }									\
-	DEFINE_TYPE_INSTANCE(type)
-
+	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	return self.GetLength();
 }
 
-#endif /* PRIMITIVETYPE_H */
+static String StringToString(void)
+{
+	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	return vframe->Self;
+}
+
+Object::Ptr String::GetPrototype(void)
+{
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+		prototype->Set("len", new ScriptFunction(WrapScriptFunction(StringLen)));
+		prototype->Set("to_string", new ScriptFunction(WrapScriptFunction(StringToString)));
+	}
+
+	return prototype;
+}
+

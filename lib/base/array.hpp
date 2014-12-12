@@ -65,6 +65,8 @@ public:
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone(void) const;
 
+	static Object::Ptr GetPrototype(void);
+
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };

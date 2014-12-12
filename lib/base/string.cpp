@@ -20,12 +20,13 @@
 #include "base/string.hpp"
 #include "base/value.hpp"
 #include "base/primitivetype.hpp"
+#include "base/dictionary.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <ostream>
 
 using namespace icinga;
 
-REGISTER_BUILTIN_TYPE(String);
+REGISTER_BUILTIN_TYPE(String, String::GetPrototype());
 
 const String::SizeType String::NPos = std::string::npos;
 

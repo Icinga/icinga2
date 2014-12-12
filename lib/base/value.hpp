@@ -234,6 +234,8 @@ public:
 
 	String GetTypeName(void) const;
 
+	Type::Ptr GetReflectionType(void) const;
+
 private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 

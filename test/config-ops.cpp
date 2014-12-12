@@ -294,10 +294,6 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "7 & 15 > 6");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
-
-	expr = ConfigCompiler::CompileText("<test>", "s = \"test\"; s[2]");
-	BOOST_CHECK(expr->Evaluate(frame) == "s");
-	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

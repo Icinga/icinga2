@@ -224,18 +224,13 @@ Value LogicalOrExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	Object::Ptr self;
-	Value funcName;
+	Value self, funcName;
 
 	if (!m_IName.empty()) {
 		Value result = m_IName[0]->Evaluate(frame);
 
-		if (m_IName.size() == 2) {
-			if (!result.IsObject())
-				BOOST_THROW_EXCEPTION(ScriptError("Tried to invoke method on something that is not an Object.", GetDebugInfo()));
-
+		if (m_IName.size() == 2)
 			self = result;
-		}
 
 		for (int i = 1; i < m_IName.size(); i++) {
 			if (result.IsEmpty())
@@ -244,12 +239,8 @@ Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 			Value index = m_IName[i]->Evaluate(frame);
 			result = VMOps::GetField(result, index, GetDebugInfo());
 
-			if (i == m_IName.size() - 2) {
-				if (!result.IsObject())
-					BOOST_THROW_EXCEPTION(ScriptError("Tried to invoke method on something that is not an Object.", GetDebugInfo()));
-
+			if (i == m_IName.size() - 2)
 				self = result;
-			}
 		}
 
 		funcName = result;
@@ -336,9 +327,12 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 			psdhint = &sdhint;
 		}
 
-		if (i == 0)
-			parent = m_Local ? frame.Locals : frame.Self;
-		else
+		if (i == 0) {
+			if (m_Local)
+				parent = frame.Locals;
+			else
+				parent = frame.Self;
+		} else
 			parent = object;
 
 		if (i == m_Indexer.size() - 1) {

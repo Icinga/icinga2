@@ -19,12 +19,24 @@
 
 #include "base/object.hpp"
 #include "base/value.hpp"
+#include "base/dictionary.hpp"
 #include "base/primitivetype.hpp"
 #include "base/utility.hpp"
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Object);
+static Object::Ptr GetObjectPrototype(void)
+{
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+	}
+
+	return prototype;
+}
+
+REGISTER_PRIMITIVE_TYPE(Object, GetObjectPrototype());
 
 /**
  * Default constructor for the Object class.
