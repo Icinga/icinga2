@@ -89,7 +89,7 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 
 Value VariableExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Variable(frame, m_Variable);
+	return VMOps::Variable(frame, m_Variable, GetDebugInfo());
 }
 
 Value NegateExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
@@ -419,7 +419,7 @@ Value ReturnExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 Value IndexerExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Indexer(frame, m_Indexer);
+	return VMOps::Indexer(frame, m_Indexer, GetDebugInfo());
 }
 
 Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const

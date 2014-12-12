@@ -41,6 +41,10 @@ struct DebugInfo
 
 	int LastLine;
 	int LastColumn;
+
+	DebugInfo(void)
+		: FirstLine(0), FirstColumn(0), LastLine(0), LastColumn(0)
+	{ }
 };
 
 I2_BASE_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);

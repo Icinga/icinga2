@@ -45,7 +45,7 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline Value Variable(VMFrame& frame, const String& name)
+	static inline Value Variable(VMFrame& frame, const String& name, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (name == "this")
 			return frame.Self;
@@ -53,7 +53,7 @@ public:
 		if (frame.Locals && frame.Locals->Contains(name))
 			return frame.Locals->Get(name);
 		else if (frame.Locals != frame.Self && HasField(frame.Self, name))
-			return GetField(frame.Self, name);
+			return GetField(frame.Self, name, debugInfo);
 		else
 			return ScriptVariable::Get(name);
 	}
