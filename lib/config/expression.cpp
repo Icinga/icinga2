@@ -242,7 +242,7 @@ Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 				return Empty;
 
 			Value index = m_IName[i]->Evaluate(frame);
-			result = VMOps::GetField(result, index);
+			result = VMOps::GetField(result, index, GetDebugInfo());
 
 			if (i == m_IName.size() - 2) {
 				if (!result.IsObject())
@@ -349,7 +349,7 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 				break;
 		}
 
-		object = VMOps::GetField(parent, tempindex);
+		object = VMOps::GetField(parent, tempindex, GetDebugInfo());
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
@@ -424,7 +424,7 @@ Value IndexerExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 
 Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 {
-	String type = VMOps::GetField(frame.Self, "type");
+	String type = VMOps::GetField(frame.Self, "type", GetDebugInfo());
 	Value name = m_Name->Evaluate(frame);
 
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);

@@ -80,7 +80,7 @@ public:
 		return func->Invoke(arguments);
 	}
 
-	static inline Value Indexer(VMFrame& frame, const std::vector<Expression *>& indexer)
+	static inline Value Indexer(VMFrame& frame, const std::vector<Expression *>& indexer, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Value result = indexer[0]->Evaluate(frame);
 
@@ -89,7 +89,7 @@ public:
 				return Empty;
 
 			Value index = indexer[i]->Evaluate(frame);
-			result = GetField(result, index);
+			result = GetField(result, index, debugInfo);
 		}
 
 		return result;
@@ -188,6 +188,16 @@ public:
 				frame.Locals->Set(fkvar, value);
 				expression->Evaluate(frame);
 			}
+		} else if (value.IsString()) {
+			if (!fvvar.IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use dictionary iterator for string.", debugInfo));
+
+			String str = value;
+
+			BOOST_FOREACH(char ch, str) {
+				frame.Locals->Set(fkvar, String(1, ch));
+				expression->Evaluate(frame);
+			}
 		} else if (value.IsObjectType<Dictionary>()) {
 			if (fvvar.IsEmpty())
 				BOOST_THROW_EXCEPTION(ScriptError("Cannot use array iterator for dictionary.", debugInfo));
@@ -200,8 +210,7 @@ public:
 				frame.Locals->Set(fvvar, kv.second);
 				expression->Evaluate(frame);
 			}
-		}
-		else
+		} else
 			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in for expression: " + value.GetTypeName(), debugInfo));
 
 		return Empty;
@@ -223,21 +232,34 @@ public:
 		}
 	}
 
-	static inline Value GetField(const Object::Ptr& context, const String& field)
+	static inline Value GetField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
 	{
-		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
+		if (context.IsString()) {
+			String str = context;
+			int index = Convert::ToLong(field);
+			if (index < 0 || index >= str.GetLength())
+				BOOST_THROW_EXCEPTION(ScriptError("Index is out of bounds", debugInfo));
+			return String(1, str[index]);
+		}
+
+		if (!context.IsObject())
+			BOOST_THROW_EXCEPTION(ScriptError("Tried to access invalid field '" + field + "' on object of type '" + context.GetTypeName() + "'", debugInfo));
+
+		Object::Ptr object = context;
+
+		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(object);
 
 		if (dict)
 			return dict->Get(field);
 
-		Array::Ptr arr = dynamic_pointer_cast<Array>(context);
+		Array::Ptr arr = dynamic_pointer_cast<Array>(object);
 
 		if (arr) {
 			int index = Convert::ToLong(field);
 			return arr->Get(index);
 		}
 
-		Type::Ptr type = context->GetReflectionType();
+		Type::Ptr type = object->GetReflectionType();
 
 		if (!type)
 			return Empty;
@@ -247,7 +269,7 @@ public:
 		if (fid == -1)
 			return Empty;
 
-		return context->GetField(fid);
+		return object->GetField(fid);
 	}
 
 	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
