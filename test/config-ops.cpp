@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_SUITE(config_ops)
 
 BOOST_AUTO_TEST_CASE(simple)
 {
-	VMFrame frame;
+	ScriptFrame frame;
 	Expression *expr;
 	Dictionary::Ptr dict;
 
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(simple)
 
 BOOST_AUTO_TEST_CASE(advanced)
 {
-	VMFrame frame;
+	ScriptFrame frame;
 	Expression *expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "regex(\"^Hello\", \"Hello World\")");
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	delete expr;
 
 	Object::Ptr self = new Object();
-	VMFrame frame2(self);
+	ScriptFrame frame2(self);
 	expr = ConfigCompiler::CompileText("<test>", "this");
 	BOOST_CHECK(expr->Evaluate(frame2) == Value(self));
 	delete expr;
