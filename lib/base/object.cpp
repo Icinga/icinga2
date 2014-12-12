@@ -25,18 +25,7 @@
 
 using namespace icinga;
 
-static Object::Ptr GetObjectPrototype(void)
-{
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-	}
-
-	return prototype;
-}
-
-REGISTER_PRIMITIVE_TYPE(Object, GetObjectPrototype());
+REGISTER_PRIMITIVE_TYPE(Object, Object::GetPrototype());
 
 /**
  * Default constructor for the Object class.
