@@ -224,7 +224,7 @@ Value LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) cons
 
 Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	Value self, funcName;
+	Value self, vfunc;
 
 	if (!m_IName.empty()) {
 		Value result = m_IName[0]->Evaluate(frame);
@@ -243,18 +243,23 @@ Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) c
 				self = result;
 		}
 
-		funcName = result;
+		vfunc= result;
 	}
 
 	if (m_FName)
-		funcName = m_FName->Evaluate(frame);
+		vfunc = m_FName->Evaluate(frame);
+
+	if (!vfunc.IsObjectType<ScriptFunction>())
+		BOOST_THROW_EXCEPTION(ScriptError("Argument is not a callable object.", GetDebugInfo()));
+
+	ScriptFunction::Ptr func = vfunc;
 
 	std::vector<Value> arguments;
 	BOOST_FOREACH(Expression *arg, m_Args) {
 		arguments.push_back(arg->Evaluate(frame));
 	}
 
-	return VMOps::FunctionCall(frame, self, funcName, arguments);
+	return VMOps::FunctionCall(frame, self, func, arguments);
 }
 
 Value ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

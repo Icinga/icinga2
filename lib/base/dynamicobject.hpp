@@ -50,8 +50,6 @@ public:
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnResumed;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
 
-	Value InvokeMethod(const String& method, const std::vector<Value>& arguments);
-
 	intrusive_ptr<DynamicType> GetType(void) const;
 
 	DebugInfo GetDebugInfo(void) const;

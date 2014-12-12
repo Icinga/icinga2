@@ -219,35 +219,6 @@ void DynamicObject::SetAuthority(bool authority)
 	}
 }
 
-Value DynamicObject::InvokeMethod(const String& method,
-    const std::vector<Value>& arguments)
-{
-	Dictionary::Ptr methods;
-
-	methods = GetMethods();
-
-	if (!methods)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
-
-	Value funcName = methods->Get(method);
-
-	if (funcName.IsEmpty())
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Method '" + method + "' does not exist."));
-
-	ScriptFunction::Ptr func;
-
-	if (funcName.IsObjectType<ScriptFunction>()) {
-		func = funcName;
-	} else {
-		func = ScriptFunction::GetByName(funcName);
-
-		if (!func)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + String(funcName) + "' does not exist."));
-	}
-
-	return func->Invoke(arguments);
-}
-
 void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 {
 	Log(LogInformation, "DynamicObject")

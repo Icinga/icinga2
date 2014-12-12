@@ -47,7 +47,6 @@ abstract class DynamicObject
 	[config, internal, get_protected] String type (TypeName);
 	[config] String zone;
 	[config, internal, get_protected] Array::Ptr templates;
-	[config] Dictionary::Ptr methods;
 	[get_protected] bool active;
 	[get_protected] bool paused {
 		default {{{ return true; }}}

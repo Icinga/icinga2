@@ -199,7 +199,7 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 	arguments.push_back(begin);
 	arguments.push_back(end);
 
-	Array::Ptr segments = InvokeMethod("update", arguments);
+	Array::Ptr segments = GetUpdate()->Invoke(arguments);
 
 	{
 		ObjectLock olock(this);

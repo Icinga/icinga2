@@ -32,5 +32,5 @@ void CheckCommand::Execute(const Checkable::Ptr& checkable, const CheckResult::P
 	arguments.push_back(cr);
 	arguments.push_back(resolvedMacros);
 	arguments.push_back(useResolvedMacros);
-	InvokeMethod("execute", arguments);
+	GetExecute()->Invoke(arguments);
 }

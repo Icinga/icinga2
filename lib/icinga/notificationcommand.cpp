@@ -37,5 +37,5 @@ Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notificati
 	arguments.push_back(comment);
 	arguments.push_back(resolvedMacros);
 	arguments.push_back(useResolvedMacros);
-	return InvokeMethod("execute", arguments);
+	return GetExecute()->Invoke(arguments);
 }

@@ -58,18 +58,8 @@ public:
 			return ScriptVariable::Get(name);
 	}
 
-	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Value& funcName, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const ScriptFunction::Ptr& func, const std::vector<Value>& arguments)
 	{
-		ScriptFunction::Ptr func;
-
-		if (funcName.IsObjectType<ScriptFunction>())
-			func = funcName;
-		else
-			func = ScriptFunction::GetByName(funcName);
-
-		if (!func)
-			BOOST_THROW_EXCEPTION(ScriptError("Function '" + funcName + "' does not exist."));
-
 		boost::shared_ptr<ScriptFrame> vframe;
 
 		if (!self.IsEmpty())

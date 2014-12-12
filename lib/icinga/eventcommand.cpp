@@ -30,5 +30,5 @@ void EventCommand::Execute(const Checkable::Ptr& checkable,
 	arguments.push_back(checkable);
 	arguments.push_back(resolvedMacros);
 	arguments.push_back(useResolvedMacros);
-	InvokeMethod("execute", arguments);
+	GetExecute()->Invoke(arguments);
 }
