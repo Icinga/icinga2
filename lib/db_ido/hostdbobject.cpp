@@ -135,6 +135,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("check_type", CompatUtility::GetCheckableCheckType(host));
 	fields->Set("last_state_change", DbValue::FromTimestamp(host->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(host->GetLastHardStateChange()));
+	fields->Set("last_hard_state", host->GetLastHardState());
 	fields->Set("last_time_up", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateUp())));
 	fields->Set("last_time_down", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateDown())));
 	fields->Set("last_time_unreachable", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateUnreachable())));
