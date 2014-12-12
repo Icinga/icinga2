@@ -130,6 +130,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("check_type", CompatUtility::GetCheckableCheckType(service));
 	fields->Set("last_state_change", DbValue::FromTimestamp(service->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(service->GetLastHardStateChange()));
+	fields->Set("last_hard_state", service->GetLastHardState());
 	fields->Set("last_time_ok", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateOK())));
 	fields->Set("last_time_warning", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateWarning())));
 	fields->Set("last_time_critical", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateCritical())));
