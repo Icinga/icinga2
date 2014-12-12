@@ -42,7 +42,7 @@ void Notification::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Notification", targets);
 }
 
-void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, VMFrame& frame, const ApplyRule& rule)
+void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -86,7 +86,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	VMFrame frame;
+	ScriptFrame frame;
 	if (rule.GetScope())
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

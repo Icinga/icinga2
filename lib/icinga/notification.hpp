@@ -68,7 +68,7 @@ enum NotificationType
 class NotificationCommand;
 class Checkable;
 class ApplyRule;
-struct VMFrame;
+struct ScriptFrame;
 class Host;
 class Service;
 
@@ -123,7 +123,7 @@ protected:
 private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 
-	static void EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, VMFrame& frame, const ApplyRule& rule);
+	static void EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule);
 };
 

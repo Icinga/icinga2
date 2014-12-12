@@ -49,7 +49,7 @@ public:
 	void AddMatch(void);
 	bool HasMatches(void) const;
 
-	bool EvaluateFilter(VMFrame& frame) const;
+	bool EvaluateFilter(ScriptFrame& frame) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
 	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);

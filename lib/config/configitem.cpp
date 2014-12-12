@@ -164,7 +164,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	DebugHint debugHints;
 
 	try {
-		VMFrame frame(dobj);
+		ScriptFrame frame(dobj);
 		frame.Locals = m_Scope;
 		m_Expression->Evaluate(frame, &debugHints);
 	} catch (const ScriptError& ex) {

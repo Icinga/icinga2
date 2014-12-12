@@ -27,35 +27,35 @@
 namespace icinga
 {
 
-struct VMFrame
+struct I2_BASE_API ScriptFrame
 {
 	Dictionary::Ptr Locals;
 	Value Self;
-	VMFrame *NextFrame;
+	ScriptFrame *NextFrame;
 
-	VMFrame(void)
+	ScriptFrame(void)
 		: Locals(new Dictionary()), Self(Locals)
 	{
 		NextFrame = GetCurrentFrame();
 		SetCurrentFrame(this);
 	}
 
-	VMFrame(const Value& self)
+	ScriptFrame(const Value& self)
 		: Locals(new Dictionary()), Self(self)
 	{
 		NextFrame = GetCurrentFrame();
 		SetCurrentFrame(this);
 	}
 
-	~VMFrame(void)
+	~ScriptFrame(void)
 	{
 		ASSERT(GetCurrentFrame() == this);
 		SetCurrentFrame(NextFrame);
 	}
 
-	static inline VMFrame *GetCurrentFrame(void)
+	static inline ScriptFrame *GetCurrentFrame(void)
 	{
-		VMFrame **pframe = m_CurrentFrame.get();
+		ScriptFrame **pframe = m_CurrentFrame.get();
 
 		if (pframe)
 			return *pframe;
@@ -64,14 +64,14 @@ struct VMFrame
 	}
 
 private:
-	static boost::thread_specific_ptr<VMFrame *> m_CurrentFrame;
+	static boost::thread_specific_ptr<ScriptFrame *> m_CurrentFrame;
 
-	static inline void SetCurrentFrame(VMFrame *frame)
+	static inline void SetCurrentFrame(ScriptFrame *frame)
 	{
-		m_CurrentFrame.reset(new VMFrame *(frame));
+		m_CurrentFrame.reset(new ScriptFrame *(frame));
 	}
 };
 
 }
 
-#endif /* VMOPS_H */
+#endif /* SCRIPTFRAME_H */

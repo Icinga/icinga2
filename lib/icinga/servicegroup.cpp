@@ -46,7 +46,7 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 
 	Host::Ptr host = service->GetHost();
 
-	VMFrame frame;
+	ScriptFrame frame;
 	if (group->GetScope())
 		group->GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

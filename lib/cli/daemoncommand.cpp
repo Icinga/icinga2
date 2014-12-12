@@ -65,7 +65,7 @@ static String LoadAppType(const String& typeSpec)
 static void ExecuteExpression(Expression *expression)
 {
 	try {
-		VMFrame frame;
+		ScriptFrame frame;
 		expression->Evaluate(frame);
 	} catch (const ScriptError& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());

@@ -45,7 +45,7 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline Value Variable(VMFrame& frame, const String& name, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value Variable(ScriptFrame& frame, const String& name, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (name == "this")
 			return frame.Self;
@@ -58,7 +58,7 @@ public:
 			return ScriptVariable::Get(name);
 	}
 
-	static inline Value FunctionCall(VMFrame& frame, const Value& self, const Value& funcName, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Value& funcName, const std::vector<Value>& arguments)
 	{
 		ScriptFunction::Ptr func;
 
@@ -70,17 +70,17 @@ public:
 		if (!func)
 			BOOST_THROW_EXCEPTION(ScriptError("Function '" + funcName + "' does not exist."));
 
-		boost::shared_ptr<VMFrame> vframe;
+		boost::shared_ptr<ScriptFrame> vframe;
 
 		if (!self.IsEmpty())
-			vframe = boost::make_shared<VMFrame>(self); /* passes self to the callee using a TLS variable */
+			vframe = boost::make_shared<ScriptFrame>(self); /* passes self to the callee using a TLS variable */
 		else
-			vframe = boost::make_shared<VMFrame>();
+			vframe = boost::make_shared<ScriptFrame>();
 
 		return func->Invoke(arguments);
 	}
 
-	static inline Value Indexer(VMFrame& frame, const std::vector<Expression *>& indexer, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value Indexer(ScriptFrame& frame, const std::vector<Expression *>& indexer, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Value result = indexer[0]->Evaluate(frame);
 
@@ -95,7 +95,7 @@ public:
 		return result;
 	}
 
-	static inline Value NewFunction(VMFrame& frame, const String& name, const std::vector<String>& args,
+	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
 		ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&FunctionWrapper, _1, args,
@@ -107,7 +107,7 @@ public:
 		return func;
 	}
 
-	static inline Value NewSlot(VMFrame& frame, const String& signal, const Value& slot)
+	static inline Value NewSlot(ScriptFrame& frame, const String& signal, const Value& slot)
 	{
 		ScriptSignal::Ptr sig = ScriptSignal::GetByName(signal);
 
@@ -119,7 +119,7 @@ public:
 		return Empty;
 	}
 
-	static inline Value NewApply(VMFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
+	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
 		const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
 		const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
@@ -129,7 +129,7 @@ public:
 		return Empty;
 	}
 
-	static inline Value NewObject(VMFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
+	static inline Value NewObject(ScriptFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
 		const String& zone, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
@@ -175,7 +175,7 @@ public:
 		return Empty;
 	}
 
-	static inline Value For(VMFrame& frame, const String& fkvar, const String& fvvar, const Value& value, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value For(ScriptFrame& frame, const String& fkvar, const String& fvvar, const Value& value, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (value.IsObjectType<Array>()) {
 			if (!fvvar.IsEmpty())
@@ -336,8 +336,8 @@ private:
 		if (arguments.size() < funcargs.size())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
-		VMFrame *vframe = VMFrame::GetCurrentFrame();
-		VMFrame frame(vframe->Self);
+		ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+		ScriptFrame frame(vframe->Self);
 
 		if (closedVars)
 			closedVars->CopyTo(frame.Locals);
@@ -370,7 +370,7 @@ private:
 		func->Invoke(arguments);
 	}
 
-	static inline Dictionary::Ptr EvaluateClosedVars(VMFrame& frame, std::map<String, Expression *> *closedVars)
+	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, std::map<String, Expression *> *closedVars)
 	{
 		Dictionary::Ptr locals;
 

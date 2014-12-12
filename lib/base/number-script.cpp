@@ -21,13 +21,13 @@
 #include "base/convert.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
-#include "config/vmframe.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
 static String NumberToString(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	double self = vframe->Self;
 	return Convert::ToString(self);
 }

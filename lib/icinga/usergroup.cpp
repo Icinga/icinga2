@@ -44,7 +44,7 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 
 	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
-	VMFrame frame;
+	ScriptFrame frame;
 	if (group->GetScope())
 		group->GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("user", user);

@@ -21,13 +21,13 @@
 #include "base/dictionary.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
-#include "config/vmframe.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
 static String ObjectToString(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
 	return self->ToString();
 }

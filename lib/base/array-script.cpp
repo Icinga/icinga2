@@ -20,55 +20,55 @@
 #include "base/array.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
-#include "config/vmframe.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
 static double ArrayLen(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	return self->GetLength();
 }
 
 static void ArraySet(int index, const Value& value)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	self->Set(index, value);
 }
 
 static void ArrayAdd(const Value& value)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	self->Add(value);
 }
 
 static void ArrayRemove(int index)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	self->Remove(index);
 }
 
 static bool ArrayContains(const Value& value)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	return self->Contains(value);
 }
 
 static void ArrayClear(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	self->Clear();
 }
 
 static void ArrayClone(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	self->ShallowClone();
 }

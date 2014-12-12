@@ -56,7 +56,7 @@ void ReplCommand::InitParameters(boost::program_options::options_description& vi
  */
 int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	VMFrame frame;
+	ScriptFrame frame;
 
 	while (std::cin.good()) {
 		std::cout << ConsoleColorTag(Console_ForegroundRed)

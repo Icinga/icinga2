@@ -28,7 +28,7 @@ namespace icinga
 {
 
 class ApplyRule;
-struct VMFrame;
+struct ScriptFrame;
 class Host;
 class Service;
 
@@ -66,7 +66,7 @@ private:
 	Checkable::Ptr m_Parent;
 	Checkable::Ptr m_Child;
 
-	static void EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, VMFrame& frame, const ApplyRule& rule);
+	static void EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
 };
 

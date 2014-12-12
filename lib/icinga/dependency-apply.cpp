@@ -42,7 +42,7 @@ void Dependency::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Dependency", targets);
 }
 
-void Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, VMFrame& frame, const ApplyRule& rule)
+void Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -87,7 +87,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	VMFrame frame;
+	ScriptFrame frame;
 	if (rule.GetScope())
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

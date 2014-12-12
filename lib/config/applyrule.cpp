@@ -86,7 +86,7 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, fkvar, fvvar, fterm, di, scope));
 }
 
-bool ApplyRule::EvaluateFilter(VMFrame& frame) const
+bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const
 {
 	return m_Filter->Evaluate(frame).ToBool();
 }

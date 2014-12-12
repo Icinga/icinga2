@@ -316,7 +316,7 @@ library: T_LIBRARY T_STRING
 
 constant: T_CONST identifier T_SET rterm
 	{
-		VMFrame frame;
+		ScriptFrame frame;
 		ScriptVariable::Ptr sv = ScriptVariable::Set($2, $4->Evaluate(frame));
 		free($2);
 		delete $4;

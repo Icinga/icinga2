@@ -34,7 +34,7 @@ using namespace icinga;
 Expression::~Expression(void)
 { }
 
-Value Expression::Evaluate(VMFrame& frame, DebugHint *dhint) const
+Value Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	try {
 #ifdef _DEBUG
@@ -77,7 +77,7 @@ LiteralExpression::LiteralExpression(const Value& value)
 	: m_Value(value)
 { }
 
-Value LiteralExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value LiteralExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Value;
 }
@@ -87,102 +87,102 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 	return m_DebugInfo;
 }
 
-Value VariableExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::Variable(frame, m_Variable, GetDebugInfo());
 }
 
-Value NegateExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return ~(long)m_Operand->Evaluate(frame);
 }
 
-Value LogicalNegateExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value LogicalNegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return !m_Operand->Evaluate(frame).ToBool();
 }
 
-Value AddExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value AddExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) + m_Operand2->Evaluate(frame);
 }
 
-Value SubtractExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value SubtractExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) - m_Operand2->Evaluate(frame);
 }
 
-Value MultiplyExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value MultiplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) * m_Operand2->Evaluate(frame);
 }
 
-Value DivideExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value DivideExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) / m_Operand2->Evaluate(frame);
 }
 
-Value ModuloExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ModuloExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return (long)m_Operand1->Evaluate(frame) % (long)m_Operand2->Evaluate(frame);
 }
 
-Value XorExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value XorExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return (long)m_Operand1->Evaluate(frame) ^ (long)m_Operand2->Evaluate(frame);
 }
 
-Value BinaryAndExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value BinaryAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) & m_Operand2->Evaluate(frame);
 }
 
-Value BinaryOrExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value BinaryOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) | m_Operand2->Evaluate(frame);
 }
 
-Value ShiftLeftExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ShiftLeftExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) << m_Operand2->Evaluate(frame);
 }
 
-Value ShiftRightExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ShiftRightExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) >> m_Operand2->Evaluate(frame);
 }
 
-Value EqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value EqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) == m_Operand2->Evaluate(frame);
 }
 
-Value NotEqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value NotEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) != m_Operand2->Evaluate(frame);
 }
 
-Value LessThanExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value LessThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) < m_Operand2->Evaluate(frame);
 }
 
-Value GreaterThanExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value GreaterThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) > m_Operand2->Evaluate(frame);
 }
 
-Value LessThanOrEqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value LessThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) <= m_Operand2->Evaluate(frame);
 }
 
-Value GreaterThanOrEqualExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value GreaterThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame) >= m_Operand2->Evaluate(frame);
 }
 
-Value InExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value InExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value right = m_Operand2->Evaluate(frame);
 
@@ -197,7 +197,7 @@ Value InExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return arr->Contains(left);
 }
 
-Value NotInExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value right = m_Operand2->Evaluate(frame);
 
@@ -212,17 +212,17 @@ Value NotInExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return !arr->Contains(left);
 }
 
-Value LogicalAndExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value LogicalAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame).ToBool() && m_Operand2->Evaluate(frame).ToBool();
 }
 
-Value LogicalOrExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return m_Operand1->Evaluate(frame).ToBool() || m_Operand2->Evaluate(frame).ToBool();
 }
 
-Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value self, funcName;
 
@@ -257,7 +257,7 @@ Value FunctionCallExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return VMOps::FunctionCall(frame, self, funcName, arguments);
 }
 
-Value ArrayExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Array::Ptr result = new Array();
 
@@ -268,10 +268,10 @@ Value ArrayExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return result;
 }
 
-Value DictExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	VMFrame *dframe;
-	VMFrame rframe;
+	ScriptFrame *dframe;
+	ScriptFrame rframe;
 
 	if (!m_Inline) {
 		dframe = &rframe;
@@ -293,7 +293,7 @@ Value DictExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 		return dframe->Self;
 }
 
-Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	DebugHint *psdhint = dhint;
 	DebugHint sdhint;
@@ -396,7 +396,7 @@ Value SetExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return right;
 }
 
-Value ConditionalExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ConditionalExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	if (m_Condition->Evaluate(frame, dhint).ToBool())
 		return m_TrueBranch->Evaluate(frame, dhint);
@@ -406,17 +406,17 @@ Value ConditionalExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return Empty;
 }
 
-Value ReturnExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	BOOST_THROW_EXCEPTION(InterruptExecutionError(m_Operand->Evaluate(frame)));
 }
 
-Value IndexerExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::Indexer(frame, m_Indexer, GetDebugInfo());
 }
 
-Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	String type = VMOps::GetField(frame.Self, "type", GetDebugInfo());
 	Value name = m_Name->Evaluate(frame);
@@ -431,23 +431,23 @@ Value ImportExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	return Empty;
 }
 
-Value FunctionExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
 }
 
-Value SlotExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value SlotExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::NewSlot(frame, m_Signal, m_Slot->Evaluate(frame));
 }
 
-Value ApplyExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::NewApply(frame, m_Type, m_Target, m_Name->Evaluate(frame), m_Filter,
 	    m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
-Value ObjectExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	String name;
 
@@ -458,7 +458,7 @@ Value ObjectExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
 	    m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
-Value ForExpression::DoEvaluate(VMFrame& frame, DebugHint *dhint) const
+Value ForExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value value = m_Value->Evaluate(frame, dhint);
 

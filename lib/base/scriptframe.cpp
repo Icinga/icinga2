@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/vmframe.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
-boost::thread_specific_ptr<VMFrame *> VMFrame::m_CurrentFrame;
+boost::thread_specific_ptr<ScriptFrame *> ScriptFrame::m_CurrentFrame;

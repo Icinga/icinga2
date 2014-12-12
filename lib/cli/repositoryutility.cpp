@@ -235,7 +235,7 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		Expression *expression = ConfigCompiler::CompileText(fname, fragment);
 		if (expression) {
-			VMFrame frame;
+			ScriptFrame frame;
 			expression->Evaluate(frame);
 			delete expression;
 		}

@@ -41,7 +41,7 @@ void ScheduledDowntime::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("ScheduledDowntime", targets);
 }
 
-void ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, VMFrame& frame, const ApplyRule& rule)
+void ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -85,7 +85,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	VMFrame frame;
+	ScriptFrame frame;
 	if (rule.GetScope())
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

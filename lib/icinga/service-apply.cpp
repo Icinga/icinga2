@@ -40,7 +40,7 @@ void Service::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Service", targets);
 }
 
-void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, VMFrame& frame, const ApplyRule& rule)
+void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {
 	DebugInfo di = rule.GetDebugInfo();
 
@@ -75,7 +75,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
 	CONTEXT(msgbuf.str());
 
-	VMFrame frame;
+	ScriptFrame frame;
 	if (rule.GetScope())
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

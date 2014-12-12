@@ -20,41 +20,41 @@
 #include "base/dictionary.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
-#include "config/vmframe.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
 static double DictionaryLen(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	return self->GetLength();
 }
 
 static void DictionarySet(const String& key, const Value& value)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	self->Set(key, value);
 }
 
 static void DictionaryRemove(const String& key)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	self->Remove(key);
 }
 
 static bool DictionaryContains(const String& key)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	return self->Contains(key);
 }
 
 static void DictionaryClone(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	self->ShallowClone();
 }

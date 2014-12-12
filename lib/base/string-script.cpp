@@ -21,20 +21,20 @@
 #include "base/dictionary.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
-#include "config/vmframe.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
 static int StringLen(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
 	return self.GetLength();
 }
 
 static String StringToString(void)
 {
-	VMFrame *vframe = VMFrame::GetCurrentFrame();
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	return vframe->Self;
 }
 
