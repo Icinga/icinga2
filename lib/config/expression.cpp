@@ -89,7 +89,7 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 
 Value VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Variable(frame, m_Variable, GetDebugInfo());
+	return VMOps::Variable(frame, m_Variable, m_DebugInfo);
 }
 
 Value NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -189,7 +189,7 @@ Value InExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 	if (right.IsEmpty())
 		return false;
 	else if (!right.IsObjectType<Array>())
-		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(right), GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(right), m_DebugInfo));
 
 	Value left = m_Operand1->Evaluate(frame);
 
@@ -204,7 +204,7 @@ Value NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 	if (right.IsEmpty())
 		return true;
 	else if (!right.IsObjectType<Array>())
-		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(right), GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid right side argument for 'in' operator: " + JsonEncode(right), m_DebugInfo));
 
 	Value left = m_Operand1->Evaluate(frame);
 
@@ -237,7 +237,7 @@ Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) c
 				return Empty;
 
 			Value index = m_IName[i]->Evaluate(frame);
-			result = VMOps::GetField(result, index, GetDebugInfo());
+			result = VMOps::GetField(result, index, m_DebugInfo);
 
 			if (i == m_IName.size() - 2)
 				self = result;
@@ -250,7 +250,7 @@ Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) c
 		vfunc = m_FName->Evaluate(frame);
 
 	if (!vfunc.IsObjectType<ScriptFunction>())
-		BOOST_THROW_EXCEPTION(ScriptError("Argument is not a callable object.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Argument is not a callable object.", m_DebugInfo));
 
 	ScriptFunction::Ptr func = vfunc;
 
@@ -318,7 +318,7 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 				object = indexExpr->Evaluate(frame, dhint);
 
 				if (!object)
-					BOOST_THROW_EXCEPTION(ScriptError("Left-hand side argument must not be null.", GetDebugInfo()));
+					BOOST_THROW_EXCEPTION(ScriptError("Left-hand side argument must not be null.", m_DebugInfo));
 
 				continue;
 			}
@@ -348,12 +348,12 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 				break;
 		}
 
-		object = VMOps::GetField(parent, tempindex, GetDebugInfo());
+		object = VMOps::GetField(parent, tempindex, m_DebugInfo);
 
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
 
-			VMOps::SetField(parent, tempindex, object);
+			VMOps::SetField(parent, tempindex, object, m_DebugInfo);
 		}
 	}
 
@@ -393,7 +393,7 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 		}
 	}
 
-	VMOps::SetField(parent, index, right);
+	VMOps::SetField(parent, index, right, m_DebugInfo);
 
 	if (psdhint)
 		psdhint->AddMessage("=", m_DebugInfo);
@@ -418,18 +418,18 @@ Value ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 
 Value IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Indexer(frame, m_Indexer, GetDebugInfo());
+	return VMOps::Indexer(frame, m_Indexer, m_DebugInfo);
 }
 
 Value ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	String type = VMOps::GetField(frame.Self, "type", GetDebugInfo());
+	String type = VMOps::GetField(frame.Self, "type", m_DebugInfo);
 	Value name = m_Name->Evaluate(frame);
 
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item)
-		BOOST_THROW_EXCEPTION(ScriptError("Import references unknown template: '" + name + "'", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Import references unknown template: '" + name + "'", m_DebugInfo));
 
 	item->GetExpression()->Evaluate(frame, dhint);
 
