@@ -37,6 +37,7 @@ using namespace icinga;
 
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> Checkable::OnNewCheckResult;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> Checkable::OnStateChange;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationsRequested;
 boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnNextCheckChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnForceNextCheckChanged;
@@ -293,6 +294,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	long attempt = 1;
 
+	std::set<Checkable::Ptr> children = GetChildren();
+
 	if (!old_cr) {
 		SetStateType(StateTypeHard);
 	} else if (cr->GetState() == ServiceOK) {
@@ -306,6 +309,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		ResetNotificationNumbers();
 		SetLastStateOK(Utility::GetTime());
+
+		/* update reachability for child objects in OK state */
+		if (!children.empty())
+			OnReachabilityChanged(this, cr, children, origin);
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
@@ -330,6 +337,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 				SetLastStateUnknown(Utility::GetTime());
 				break;
 		}
+
+		/* update reachability for child objects in NOT-OK state */
+		if (!children.empty())
+			OnReachabilityChanged(this, cr, children, origin);
 	}
 
 	if (!reachable)

@@ -61,6 +61,8 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnEnablePerfdataChanged.connect(boost::bind(&DbEvents::EnablePerfdataChangedHandler, _1, _2));
 	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::EnableFlappingChangedHandler, _1, _2));
 
+	Checkable::OnReachabilityChanged.connect(boost::bind(&DbEvents::ReachabilityChangedHandler, _1, _2, _3));
+
 	/* History */
 	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
 	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1, _2));
@@ -189,6 +191,52 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
+}
+
+void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children)
+{
+	int is_reachable = 0;
+
+	if (cr->GetState() == ServiceOK)
+		is_reachable = 1;
+
+	Log(LogDebug, "DbEvents")
+	    << "Updating reachability for checkable '" << checkable->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable for " << children.size() << " children.";
+
+	BOOST_FOREACH(const Checkable::Ptr& child, children) {
+		Log(LogDebug, "DbEvents")
+		    << "Updating reachability for checkable '" << child->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable.";
+
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(child);
+
+		DbQuery query1;
+		if (service)
+			query1.Table = "servicestatus";
+		else
+			query1.Table = "hoststatus";
+
+		query1.Type = DbQueryInsert | DbQueryUpdate;
+		query1.Category = DbCatState;
+		query1.StatusUpdate = true;
+		query1.Object = DbObject::GetOrCreateByObject(child);
+
+		Dictionary::Ptr fields1 = new Dictionary();
+		fields1->Set("is_reachable", is_reachable);
+
+		query1.Fields = fields1;
+
+		query1.WhereCriteria = new Dictionary();
+		if (service)
+			query1.WhereCriteria->Set("service_object_id", service);
+		else
+			query1.WhereCriteria->Set("host_object_id", host);
+
+		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+		DbObject::OnQuery(query1);
+	}
 }
 
 /* enable changed events */
