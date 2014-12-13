@@ -55,7 +55,8 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 {
 	Type::Ptr type = input->GetReflectionType();
 
-	VERIFY(type);
+	if (!type)
+		return Object::Ptr();
 
 	Dictionary::Ptr fields = new Dictionary();
 
