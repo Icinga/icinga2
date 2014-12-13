@@ -206,10 +206,6 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "\"regex\"(\"^Hello\", \"Hello World\")");
-	BOOST_CHECK(expr->Evaluate(frame));
-	delete expr;
-
 	expr = ConfigCompiler::CompileText("<test>", "__boost_test()");
 	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
