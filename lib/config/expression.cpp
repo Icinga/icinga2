@@ -333,10 +333,20 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 		}
 
 		if (i == 0) {
-			if (m_Local)
+			if (m_ScopeSpec == ScopeLocal)
 				parent = frame.Locals;
-			else
+			else if (m_ScopeSpec == ScopeCurrent)
 				parent = frame.Self;
+			else if (m_ScopeSpec == ScopeGlobal) {
+				ScriptVariable::Ptr sv = ScriptVariable::GetByName(tempindex);
+
+				Dictionary::Ptr fglobals = new Dictionary();
+
+				if (sv)
+					fglobals->Set(tempindex, sv->GetData());
+
+				parent = fglobals;
+			}
 		} else
 			parent = object;
 
@@ -353,7 +363,10 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
 			object = new Dictionary();
 
-			VMOps::SetField(parent, tempindex, object, m_DebugInfo);
+			if (i == 0 && m_ScopeSpec == ScopeGlobal)
+				ScriptVariable::Set(tempindex, object);
+			else
+				VMOps::SetField(parent, tempindex, object, m_DebugInfo);
 		}
 	}
 
@@ -393,7 +406,10 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 		}
 	}
 
-	VMOps::SetField(parent, index, right, m_DebugInfo);
+	if (m_Indexer.size() == 1 && m_ScopeSpec == ScopeGlobal)
+		ScriptVariable::Set(index, right);
+	else
+		VMOps::SetField(parent, index, right, m_DebugInfo);
 
 	if (psdhint)
 		psdhint->AddMessage("=", m_DebugInfo);
@@ -438,7 +454,7 @@ Value ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 
 Value FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
+	return VMOps::NewFunction(frame, m_Args, m_ClosedVars, m_Expression);
 }
 
 Value SlotExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

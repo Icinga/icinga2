@@ -99,6 +99,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	std::vector<Expression *> *elist;
 	std::pair<String, Expression *> *cvitem;
 	std::map<String, Expression *> *cvlist;
+	icinga::ScopeSpecifier scope;
 }
 
 %token T_NEWLINE "new-line"
@@ -201,13 +202,14 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <cvlist> use_specifier_items
 %type <cvitem> use_specifier_item
 %type <num> object_declaration
+%type <scope> scope_specifier
 
 %right T_FOLLOWS
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
 %right T_FUNCTION T_SIGNAL T_FOR
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
-%left T_LOCAL T_RETURN
+%left T_GLOBAL T_LOCAL T_RETURN
 %left T_IDENTIFIER
 %left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %nonassoc T_EQUAL T_NOT_EQUAL
@@ -551,6 +553,16 @@ indexer_item: '.' identifier
 	}
 	;
 
+scope_specifier: T_LOCAL
+	{
+		$$ = ScopeLocal;
+	}
+	| T_GLOBAL
+	{
+		$$ = ScopeGlobal;
+	}
+	;
+
 combined_set_op: T_SET
 	| T_SET_ADD
 	| T_SET_SUBTRACT
@@ -577,25 +589,25 @@ lterm: type
 	{
 		$$ = MakeLiteral(); // ASTify this
 	}
-	| T_LOCAL indexer combined_set_op rterm
-	{
-		$$ = new SetExpression(*$2, $3, $4, true, DebugInfoRange(@1, @4));
-		delete $2;
-	}
 	| indexer combined_set_op rterm
 	{
-		$$ = new SetExpression(*$1, $2, $3, false, DebugInfoRange(@1, @3));
+		$$ = new SetExpression(ScopeCurrent, *$1, $2, $3, DebugInfoRange(@1, @3));
 		delete $1;
-	}
-	| T_LOCAL identifier combined_set_op rterm
-	{
-		$$ = new SetExpression(MakeIndexer($2), $3, $4, true, DebugInfoRange(@1, @4));
-		free($2);
 	}
 	| identifier combined_set_op rterm
 	{
-		$$ = new SetExpression(MakeIndexer($1), $2, $3, false, DebugInfoRange(@1, @3));
+		$$ = new SetExpression(ScopeCurrent, MakeIndexer($1), $2, $3, DebugInfoRange(@1, @3));
 		free($1);
+	}
+	| scope_specifier indexer combined_set_op rterm
+	{
+		$$ = new SetExpression($1, *$2, $3, $4, DebugInfoRange(@1, @4));
+		delete $2;
+	}
+	| scope_specifier identifier combined_set_op rterm
+	{
+		$$ = new SetExpression($1, MakeIndexer($2), $3, $4, DebugInfoRange(@1, @4));
+		free($2);
 	}
 	| T_INCLUDE T_STRING
 	{
@@ -698,6 +710,28 @@ lterm: type
 		afalse->MakeInline();
 
 		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
+	}
+	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
+		aexpr->MakeInline();
+
+		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, aexpr, DebugInfoRange(@1, @7));
+		delete $4;
+
+		$$ = new SetExpression(ScopeCurrent, MakeIndexer($2), OpSetLiteral, fexpr, DebugInfoRange(@1, @7));
+		free($2);
+	}
+	| scope_specifier T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($8);
+		aexpr->MakeInline();
+
+		FunctionExpression *fexpr = new FunctionExpression(*$5, $7, aexpr, DebugInfoRange(@1, @8));
+		delete $5;
+
+		$$ = new SetExpression($1, MakeIndexer($3), OpSetLiteral, fexpr, DebugInfoRange(@1, @8));
+		free($3);
 	}
 	| rterm
 	{
@@ -853,21 +887,12 @@ rterm_without_indexer: T_STRING
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp<DivideExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_MODULO rterm { MakeRBinaryOp<ModuloExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_XOR rterm { MakeRBinaryOp<XorExpression>(&$$, $1, $3, @1, @3); }
-	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
-		aexpr->MakeInline();
-
-		$$ = new FunctionExpression($2, *$4, $6, aexpr, DebugInfoRange(@1, @6));
-		free($2);
-		delete $4;
-	}
 	| T_FUNCTION '(' identifier_items ')' use_specifier rterm_scope
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($6);
 		aexpr->MakeInline();
 
-		$$ = new FunctionExpression("", *$3, $5, aexpr, DebugInfoRange(@1, @5));
+		$$ = new FunctionExpression(*$3, $5, aexpr, DebugInfoRange(@1, @5));
 		delete $3;
 	}
 	| identifier T_FOLLOWS rterm
@@ -880,7 +905,7 @@ rterm_without_indexer: T_STRING
 		args.push_back($1);
 		free($1);
 
-		$$ = new FunctionExpression("", args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
+		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
 	}
 	| T_BINARY_OR identifier_items T_BINARY_OR T_FOLLOWS rterm
 	{
@@ -888,7 +913,7 @@ rterm_without_indexer: T_STRING
 		if (aexpr)
 			aexpr->MakeInline();
 
-		$$ = new FunctionExpression("", *$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
+		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
 		delete $2;
 	}
 	;

@@ -106,6 +106,13 @@ enum CombinedSetOp
 	OpSetBinaryOr
 };
 
+enum ScopeSpecifier
+{
+	ScopeLocal,
+	ScopeCurrent,
+	ScopeGlobal
+};
+
 class InterruptExecutionError : virtual public std::exception, virtual public boost::exception
 {
 public:
@@ -586,8 +593,8 @@ private:
 class I2_CONFIG_API SetExpression : public DebuggableExpression
 {
 public:
-	SetExpression(const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, bool local, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Op(op), m_Indexer(indexer), m_Operand2(operand2), m_Local(local)
+	SetExpression(ScopeSpecifier scopeSpec, const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_ScopeSpec(scopeSpec), m_Op(op), m_Indexer(indexer), m_Operand2(operand2)
 	{ }
 
 	~SetExpression(void)
@@ -602,10 +609,10 @@ protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 
 private:
+	ScopeSpecifier m_ScopeSpec;
 	CombinedSetOp m_Op;
 	std::vector<Expression *> m_Indexer;
 	Expression *m_Operand2;
-	bool m_Local;
 
 };
 
@@ -685,16 +692,15 @@ private:
 class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
 public:
-	FunctionExpression(const String& name, const std::vector<String>& args,
+	FunctionExpression(const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_ClosedVars(closedVars), m_Expression(expression)
+		: DebuggableExpression(debugInfo), m_Args(args), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
 protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 
 private:
-	String m_Name;
 	std::vector<String> m_Args;
 	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;

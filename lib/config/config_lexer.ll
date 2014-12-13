@@ -179,6 +179,7 @@ true				{ yylval->boolean = 1; return T_BOOLEAN; }
 false				{ yylval->boolean = 0; return T_BOOLEAN; }
 const				return T_CONST;
 local				return T_LOCAL;
+global				return T_GLOBAL;
 use				return T_USE;
 apply				return T_APPLY;
 to				return T_TO;

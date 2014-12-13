@@ -85,16 +85,11 @@ public:
 		return result;
 	}
 
-	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& args,
+	static inline Value NewFunction(ScriptFrame& frame, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
-		ScriptFunction::Ptr func = new ScriptFunction(boost::bind(&FunctionWrapper, _1, args,
+		return new ScriptFunction(boost::bind(&FunctionWrapper, _1, args,
 		    EvaluateClosedVars(frame, closedVars), expression));
-
-		if (!name.IsEmpty())
-			ScriptFunction::Register(name, func);
-
-		return func;
 	}
 
 	static inline Value NewSlot(ScriptFrame& frame, const String& signal, const Value& slot)
