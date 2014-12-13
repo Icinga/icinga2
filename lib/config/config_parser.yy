@@ -202,6 +202,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <cvitem> use_specifier_item
 %type <num> object_declaration
 
+%right T_FOLLOWS
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
 %right T_FUNCTION T_SIGNAL T_FOR
 %left T_LOGICAL_OR
@@ -222,7 +223,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %right '!' '~'
 %left '.' '(' '['
 %right ';' ','
-%right T_NEWLINE T_FOLLOWS
+%right T_NEWLINE
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
