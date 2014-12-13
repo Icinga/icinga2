@@ -57,10 +57,15 @@ void ReplCommand::InitParameters(boost::program_options::options_description& vi
 int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	ScriptFrame frame;
+	std::map<String, String> lines;
+	int next_line = 1;
 
 	while (std::cin.good()) {
-		std::cout << ConsoleColorTag(Console_ForegroundRed)
-		    << "=> "
+		String fileName = "<" + Convert::ToString(next_line) + ">";
+		next_line++;
+
+		std::cout << ConsoleColorTag(Console_ForegroundCyan)
+		    << fileName << ConsoleColorTag(Console_ForegroundRed) << " => "
 		    << ConsoleColorTag(Console_Normal);
 
 		std::string line;
@@ -71,7 +76,9 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 		try {
 			ConfigCompilerContext::GetInstance()->Reset();
 
-			expr = ConfigCompiler::CompileText("<console>", line);
+			lines[fileName] = line;
+
+			expr = ConfigCompiler::CompileText(fileName, line);
 
 			bool has_errors = false;
 
@@ -94,9 +101,9 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 		} catch (const ScriptError& ex) {
 			DebugInfo di = ex.GetDebugInfo();
 
-			std::cout << String(3 + di.FirstColumn, ' ');
-			std::cout << String(di.LastColumn - di.FirstColumn + 1, '^');
-			std::cout << "\n";
+			std::cout << di.Path << ": " << lines[di.Path] << "\n";
+			std::cout << String(di.Path.GetLength() + 2, ' ');
+			std::cout << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n";
 
 			std::cout << ex.what() << "\n";
 		} catch (const std::exception& ex) {
