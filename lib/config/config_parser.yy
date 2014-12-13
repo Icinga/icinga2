@@ -222,7 +222,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %right '!' '~'
 %left '.' '(' '['
 %right ';' ','
-%right T_NEWLINE
+%right T_NEWLINE T_FOLLOWS
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
@@ -868,6 +868,27 @@ rterm_without_indexer: T_STRING
 
 		$$ = new FunctionExpression("", *$3, $5, aexpr, DebugInfoRange(@1, @5));
 		delete $3;
+	}
+	| identifier T_FOLLOWS rterm
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($3);
+		if (aexpr)
+			aexpr->MakeInline();
+
+		std::vector<String> args;
+		args.push_back($1);
+		free($1);
+
+		$$ = new FunctionExpression("", args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
+	}
+	| T_BINARY_OR identifier_items T_BINARY_OR T_FOLLOWS rterm
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
+		if (aexpr)
+			aexpr->MakeInline();
+
+		$$ = new FunctionExpression("", *$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
+		delete $2;
 	}
 	;
 
