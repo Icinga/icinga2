@@ -31,7 +31,6 @@
 #include "config/objectrule.hpp"
 #include "base/value.hpp"
 #include "base/utility.hpp"
-#include "base/scriptvariable.hpp"
 #include "base/exception.hpp"
 #include "base/dynamictype.hpp"
 #include "base/scripterror.hpp"
@@ -39,7 +38,7 @@
 #include <stack>
 #include <boost/foreach.hpp>
 
-#define YYLTYPE icinga::DebugInfo
+#define YYLTYPE icinga::CompilerDebugInfo
 #define YYERROR_VERBOSE
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)					\
@@ -70,7 +69,7 @@ do {							\
 using namespace icinga;
 
 template<typename T>
-static void MakeRBinaryOp(Expression** result, Expression *left, Expression *right, DebugInfo& diLeft, DebugInfo& diRight)
+static void MakeRBinaryOp(Expression** result, Expression *left, Expression *right, const DebugInfo& diLeft, const DebugInfo& diRight)
 {
 	*result = new T(left, right, DebugInfoRange(diLeft, diRight));
 }
@@ -82,6 +81,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %locations
 %defines
 %error-verbose
+%glr-parser
 
 %parse-param { std::vector<Expression *> *elist }
 %parse-param { ConfigCompiler *context }
@@ -170,7 +170,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_RETURN "return (T_RETURN)"
 %token T_FOR "for (T_FOR)"
-%token T_SIGNAL "signal (T_SIGNAL)"
 %token T_IF "if (T_IF)"
 %token T_ELSE "else (T_ELSE)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
@@ -180,9 +179,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <elist> rterm_items_inner
 %type <slist> identifier_items
 %type <slist> identifier_items_inner
-%type <elist> indexer
-%type <elist> indexer_items
-%type <expr> indexer_item
 %type <variant> typerulelist
 %type <csop> combined_set_op
 %type <type> type
@@ -190,7 +186,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <elist> lterm_items
 %type <elist> lterm_items_inner
 %type <expr> rterm
-%type <expr> rterm_without_indexer
 %type <expr> rterm_array
 %type <expr> rterm_scope
 %type <expr> lterm
@@ -206,10 +201,10 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 
 %right T_FOLLOWS
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
-%right T_FUNCTION T_SIGNAL T_FOR
+%right T_FUNCTION T_FOR
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
-%left T_GLOBAL T_LOCAL T_RETURN
+%left T_RETURN
 %left T_IDENTIFIER
 %left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %nonassoc T_EQUAL T_NOT_EQUAL
@@ -224,11 +219,14 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left UNARY_MINUS
 %right '!' '~'
 %left '.' '(' '['
+%left T_LOCAL T_GLOBAL T_THIS
 %right ';' ','
 %right T_NEWLINE
 %{
 
 int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
+
+extern int yydebug;
 
 void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
 {
@@ -240,6 +238,8 @@ int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
 Expression *ConfigCompiler::Compile(void)
 {
 	std::vector<Expression *> elist;
+
+	//yydebug = 1;
 
 	if (yyparse(&elist, this) != 0)
 		return NULL;
@@ -261,17 +261,9 @@ script: statements
 	}
 	;
 
-statements: newlines lterm_items newlines
+statements: newlines lterm_items
 	{
 		$$ = $2;
-	}
-	| newlines lterm_items
-	{
-		$$ = $2;
-	}
-	| lterm_items newlines
-	{
-		$$ = $1;
 	}
 	| lterm_items
 	{
@@ -287,7 +279,23 @@ lterm_items: /* empty */
 	{
 		$$ = $1;
 	}
-	| lterm_items_inner sep
+	| lterm_items_inner ','
+	{
+		$$ = $1;
+	}
+	| lterm_items_inner ',' newlines
+	{
+		$$ = $1;
+	}
+	| lterm_items_inner ';'
+	{
+		$$ = $1;
+	}
+	| lterm_items_inner ';' newlines
+	{
+		$$ = $1;
+	}
+	| lterm_items_inner newlines
 	{
 		$$ = $1;
 	}
@@ -314,17 +322,6 @@ library: T_LIBRARY T_STRING
 	{
 		context->HandleLibrary($2);
 		free($2);
-	}
-	;
-
-constant: T_CONST identifier T_SET rterm
-	{
-		ScriptFrame frame;
-		ScriptVariable::Ptr sv = ScriptVariable::Set($2, $4->Evaluate(frame));
-		free($2);
-		delete $4;
-
-		sv->SetConstant(true);
 	}
 	;
 
@@ -491,7 +488,11 @@ object_declaration: T_OBJECT
 	}
 	;
 
-identifier_items: identifier_items_inner
+identifier_items: /* empty */
+	{
+		$$ = new std::vector<String>();
+	}
+	| identifier_items_inner
 	{
 		$$ = $1;
 	}
@@ -501,11 +502,7 @@ identifier_items: identifier_items_inner
 	}
 	;
 
-identifier_items_inner: /* empty */
-	{
-		$$ = new std::vector<String>();
-	}
-	| identifier
+identifier_items_inner: identifier
 	{
 		$$ = new std::vector<String>();
 		$$->push_back($1);
@@ -523,46 +520,6 @@ identifier_items_inner: /* empty */
 	}
 	;
 
-indexer: rterm_without_indexer indexer_items
-	{
-		$$ = $2;
-		$$->insert($$->begin(), $1);
-	}
-	;
-
-indexer_items: indexer_item
-	{
-		$$ = new std::vector<Expression *>();
-		$$->push_back($1);
-	}
-	| indexer_items indexer_item
-	{
-		$$ = $1;
-		$$->push_back($2);
-	}
-	;
-
-indexer_item: '.' identifier
-	{
-		$$ = MakeLiteral($2);
-		free($2);
-	}
-	| '[' rterm ']'
-	{
-		$$ = $2;
-	}
-	;
-
-scope_specifier: T_LOCAL
-	{
-		$$ = ScopeLocal;
-	}
-	| T_GLOBAL
-	{
-		$$ = ScopeGlobal;
-	}
-	;
-
 combined_set_op: T_SET
 	| T_SET_ADD
 	| T_SET_SUBTRACT
@@ -577,6 +534,20 @@ combined_set_op: T_SET
 	}
 	;
 
+scope_specifier: T_LOCAL
+	{
+		$$ = ScopeLocal;
+	}
+	| T_GLOBAL
+	{
+		$$ = ScopeGlobal;
+	}
+	| T_THIS
+	{
+		$$ = ScopeThis;
+	}
+	;
+
 lterm: type
 	{
 		$$ = MakeLiteral(); // ASTify this
@@ -585,29 +556,11 @@ lterm: type
 	{
 		$$ = MakeLiteral(); // ASTify this
 	}
-	| constant
+	| rterm combined_set_op rterm
 	{
-		$$ = MakeLiteral(); // ASTify this
-	}
-	| indexer combined_set_op rterm
-	{
-		$$ = new SetExpression(ScopeCurrent, *$1, $2, $3, DebugInfoRange(@1, @3));
-		delete $1;
-	}
-	| identifier combined_set_op rterm
-	{
-		$$ = new SetExpression(ScopeCurrent, MakeIndexer($1), $2, $3, DebugInfoRange(@1, @3));
-		free($1);
-	}
-	| scope_specifier indexer combined_set_op rterm
-	{
-		$$ = new SetExpression($1, *$2, $3, $4, DebugInfoRange(@1, @4));
-		delete $2;
-	}
-	| scope_specifier identifier combined_set_op rterm
-	{
-		$$ = new SetExpression($1, MakeIndexer($2), $3, $4, DebugInfoRange(@1, @4));
-		free($2);
+		Expression *expr = $1;
+		BindToScope(expr, ScopeCurrent);
+		$$ = new SetExpression(expr, $2, $3, DebugInfoRange(@1, @3));
 	}
 	| T_INCLUDE T_STRING
 	{
@@ -672,11 +625,6 @@ lterm: type
 	{
 		$$ = $1;
 	}
-	| T_SIGNAL identifier T_SET_ADD rterm
-	{
-		$$ = new SlotExpression($2, $4, DebugInfoRange(@1, @4));
-		free($2);
-	}
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
@@ -719,7 +667,7 @@ lterm: type
 		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, aexpr, DebugInfoRange(@1, @7));
 		delete $4;
 
-		$$ = new SetExpression(ScopeCurrent, MakeIndexer($2), OpSetLiteral, fexpr, DebugInfoRange(@1, @7));
+		$$ = new SetExpression(MakeIndexer(ScopeCurrent, $2), OpSetLiteral, fexpr, DebugInfoRange(@1, @7));
 		free($2);
 	}
 	| scope_specifier T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
@@ -730,7 +678,7 @@ lterm: type
 		FunctionExpression *fexpr = new FunctionExpression(*$5, $7, aexpr, DebugInfoRange(@1, @8));
 		delete $5;
 
-		$$ = new SetExpression($1, MakeIndexer($3), OpSetLiteral, fexpr, DebugInfoRange(@1, @8));
+		$$ = new SetExpression(MakeIndexer($1, $3), OpSetLiteral, fexpr, DebugInfoRange(@1, @8));
 		free($3);
 	}
 	| rterm
@@ -747,7 +695,15 @@ rterm_items: /* empty */
 	{
 		$$ = $1;
 	}
-	| rterm_items_inner arraysep
+	| rterm_items_inner ','
+	{
+		$$ = $1;
+	}
+	| rterm_items_inner ',' newlines
+	{
+		$$ = $1;
+	}
+	| rterm_items_inner newlines
 	{
 		$$ = $1;
 	}
@@ -765,20 +721,10 @@ rterm_items_inner: rterm
 	}
 	;
 
-rterm_array: '[' newlines rterm_items newlines ']'
-	{
-		$$ = new ArrayExpression(*$3, DebugInfoRange(@1, @5));
-		delete $3;
-	}
-	| '[' newlines rterm_items ']'
+rterm_array: '[' newlines rterm_items ']'
 	{
 		$$ = new ArrayExpression(*$3, DebugInfoRange(@1, @4));
 		delete $3;
-	}
-	| '[' rterm_items newlines ']'
-	{
-		$$ = new ArrayExpression(*$2, DebugInfoRange(@1, @4));
-		delete $2;
 	}
 	| '[' rterm_items ']'
 	{
@@ -794,18 +740,7 @@ rterm_scope: '{' statements '}'
 	}
 	;
 
-rterm: rterm_without_indexer
-	{
-		$$ = $1;
-	}
-	| indexer
-	{
-		$$ = new IndexerExpression(*$1, @1);
-		delete $1;
-	}
-	;
-
-rterm_without_indexer: T_STRING
+rterm: T_STRING
 	{
 		$$ = MakeLiteral($1);
 		free($1);
@@ -822,16 +757,19 @@ rterm_without_indexer: T_STRING
 	{
 		$$ = MakeLiteral();
 	}
-	| indexer '(' rterm_items ')'
-	{
-		$$ = new FunctionCallExpression(*$1, NULL, *$3, DebugInfoRange(@1, @4));
-		delete $1;
-		delete $3;
-	}
 	| rterm '(' rterm_items ')'
 	{
-		$$ = new FunctionCallExpression(MakeIndexer("this"), $1, *$3, DebugInfoRange(@1, @4));
+		$$ = new FunctionCallExpression($1, *$3, DebugInfoRange(@1, @4));
 		delete $3;
+	}
+	| rterm '.' T_IDENTIFIER %dprec 2
+	{
+		$$ = new IndexerExpression($1, MakeLiteral($3), DebugInfoRange(@1, @3));
+		free($3);
+	}
+	| rterm '[' rterm ']'
+	{
+		$$ = new IndexerExpression($1, $3, DebugInfoRange(@1, @3));
 	}
 	| T_IDENTIFIER
 	{
@@ -849,6 +787,16 @@ rterm_without_indexer: T_STRING
 	| T_MINUS rterm %prec UNARY_MINUS
 	{
 		$$ = new SubtractExpression(MakeLiteral(0), $2, DebugInfoRange(@1, @2));
+	}
+	| scope_specifier
+	{
+		$$ = new GetScopeExpression($1);
+	}
+	| scope_specifier T_IDENTIFIER
+	{
+		Expression *scope = new GetScopeExpression($1);
+		$$ = new IndexerExpression(scope, MakeLiteral($2), DebugInfoRange(@1, @2));
+		free($2);
 	}
 	| rterm_array
 	{
@@ -907,7 +855,7 @@ rterm_without_indexer: T_STRING
 
 		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
 	}
-	| T_BINARY_OR identifier_items T_BINARY_OR T_FOLLOWS rterm
+	| '(' identifier_items ')' T_FOLLOWS rterm
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
 		if (aexpr)

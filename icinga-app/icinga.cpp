@@ -27,7 +27,7 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "base/console.hpp"
 #include "config.h"
@@ -227,7 +227,7 @@ int Main(void)
 				key = define;
 				value = "1";
 			}
-			ScriptVariable::Set(key, value);
+			ScriptGlobal::Set(key, value);
 		}
 	}
 

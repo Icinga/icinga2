@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
 #include "base/scriptfunctionwrapper.hpp"
+#include "base/scriptglobal.hpp"
 #include <vector>
 #include <boost/function.hpp>
 
@@ -45,10 +46,6 @@ public:
 
 	Value Invoke(const std::vector<Value>& arguments);
 
-	static ScriptFunction::Ptr GetByName(const String& name);
-	static void Register(const String& name, const ScriptFunction::Ptr& function);
-	static void Unregister(const String& name);
-
 private:
 	Callback m_Callback;
 };
@@ -57,7 +54,7 @@ private:
 	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## name { \
 		void RegisterFunction(void) { \
 			ScriptFunction::Ptr sf = new icinga::ScriptFunction(WrapScriptFunction(callback)); \
-			ScriptFunction::Register(#name, sf); \
+			ScriptGlobal::Set(#name, sf); \
 		} \
 		INITIALIZE_ONCE(RegisterFunction); \
 	} } }

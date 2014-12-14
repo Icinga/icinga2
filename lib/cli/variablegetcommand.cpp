@@ -30,7 +30,7 @@
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -72,7 +72,7 @@ int VariableGetCommand::GetMinArguments(void) const
 int VariableGetCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	if (vm.count("current")) {
-		std::cout << ScriptVariable::Get(ap[0], &Empty) << "\n";
+		std::cout << ScriptGlobal::Get(ap[0], &Empty) << "\n";
 		return 0;
 	}
 

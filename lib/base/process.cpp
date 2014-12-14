@@ -26,7 +26,7 @@
 #include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
@@ -510,7 +510,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	m_ExtraEnvironment.reset();
 
 #ifdef HAVE_VFORK
-	Value use_vfork = ScriptVariable::Get("UseVfork");
+	Value use_vfork = ScriptGlobal::Get("UseVfork");
 
 	if (use_vfork.IsEmpty() || static_cast<bool>(use_vfork))
 		m_Process = vfork();

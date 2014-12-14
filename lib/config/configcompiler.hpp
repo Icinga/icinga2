@@ -36,14 +36,28 @@ typedef void *yyscan_t;
 
 namespace icinga
 {
-	class ConfigCompiler;
-}
 
-int yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
-int yyparse(std::vector<icinga::Expression *> *elist, icinga::ConfigCompiler *context);
-
-namespace icinga
+struct CompilerDebugInfo
 {
+	const char *Path;
+
+	int FirstLine;
+	int FirstColumn;
+
+	int LastLine;
+	int LastColumn;
+
+	operator DebugInfo(void) const
+	{
+		DebugInfo di;
+		di.Path = Path;
+		di.FirstLine = FirstLine;
+		di.FirstColumn = FirstColumn;
+		di.LastLine = LastLine;
+		di.LastColumn = LastColumn;
+		return di;
+	}
+};
 
 /**
  * The configuration compiler can be used to compile a configuration file
@@ -65,7 +79,7 @@ public:
 
 	static void AddIncludeSearchDir(const String& dir);
 
-	String GetPath(void) const;
+	const char *GetPath(void) const;
 
 	void SetZone(const String& zone);
 	String GetZone(void) const;
@@ -88,6 +102,15 @@ private:
 	String m_Zone;
 
 	void *m_Scanner;
+
+	static std::vector<String> m_IncludeSearchDirs;
+
+	void InitializeScanner(void);
+	void DestroyScanner(void);
+
+	void CompileHelper(void);
+
+public:
 	bool m_Eof;
 
 	int m_IgnoreNewlines;
@@ -105,15 +128,7 @@ private:
 	std::stack<String> m_FVVar;
 	std::stack<Expression *> m_FTerm;
 
-	static std::vector<String> m_IncludeSearchDirs;
 
-	void InitializeScanner(void);
-	void DestroyScanner(void);
-
-	void CompileHelper(void);
-
-	friend int ::yylex(YYSTYPE *context, icinga::DebugInfo *di, yyscan_t scanner);
-	friend int ::yyparse(std::vector<icinga::Expression *> *elist, ConfigCompiler *context);
 };
 
 class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>

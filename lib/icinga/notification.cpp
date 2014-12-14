@@ -27,7 +27,7 @@
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
 
@@ -58,22 +58,22 @@ String NotificationNameComposer::MakeName(const String& shortName, const Object:
 
 void Notification::StaticInitialize(void)
 {
-	ScriptVariable::Set("OK", StateFilterOK, true, true);
-	ScriptVariable::Set("Warning", StateFilterWarning, true, true);
-	ScriptVariable::Set("Critical", StateFilterCritical, true, true);
-	ScriptVariable::Set("Unknown", StateFilterUnknown, true, true);
-	ScriptVariable::Set("Up", StateFilterUp, true, true);
-	ScriptVariable::Set("Down", StateFilterDown, true, true);
+	ScriptGlobal::Set("OK", StateFilterOK);
+	ScriptGlobal::Set("Warning", StateFilterWarning);
+	ScriptGlobal::Set("Critical", StateFilterCritical);
+	ScriptGlobal::Set("Unknown", StateFilterUnknown);
+	ScriptGlobal::Set("Up", StateFilterUp);
+	ScriptGlobal::Set("Down", StateFilterDown);
 
-	ScriptVariable::Set("DowntimeStart", 1 << NotificationDowntimeStart, true, true);
-	ScriptVariable::Set("DowntimeEnd", 1 << NotificationDowntimeEnd, true, true);
-	ScriptVariable::Set("DowntimeRemoved", 1 << NotificationDowntimeRemoved, true, true);
-	ScriptVariable::Set("Custom", 1 << NotificationCustom, true, true);
-	ScriptVariable::Set("Acknowledgement", 1 << NotificationAcknowledgement, true, true);
-	ScriptVariable::Set("Problem", 1 << NotificationProblem, true, true);
-	ScriptVariable::Set("Recovery", 1 << NotificationRecovery, true, true);
-	ScriptVariable::Set("FlappingStart", 1 << NotificationFlappingStart, true, true);
-	ScriptVariable::Set("FlappingEnd", 1 << NotificationFlappingEnd, true, true);
+	ScriptGlobal::Set("DowntimeStart", 1 << NotificationDowntimeStart);
+	ScriptGlobal::Set("DowntimeEnd", 1 << NotificationDowntimeEnd);
+	ScriptGlobal::Set("DowntimeRemoved", 1 << NotificationDowntimeRemoved);
+	ScriptGlobal::Set("Custom", 1 << NotificationCustom);
+	ScriptGlobal::Set("Acknowledgement", 1 << NotificationAcknowledgement);
+	ScriptGlobal::Set("Problem", 1 << NotificationProblem);
+	ScriptGlobal::Set("Recovery", 1 << NotificationRecovery);
+	ScriptGlobal::Set("FlappingStart", 1 << NotificationFlappingStart);
+	ScriptGlobal::Set("FlappingEnd", 1 << NotificationFlappingEnd);
 }
 
 void Notification::OnConfigLoaded(void)

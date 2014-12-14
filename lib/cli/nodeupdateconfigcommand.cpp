@@ -24,7 +24,6 @@
 #include "base/console.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
-#include "base/scriptvariable.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>

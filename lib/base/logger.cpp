@@ -24,7 +24,7 @@
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/context.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/foreach.hpp>
 #include <iostream>
 
@@ -41,11 +41,11 @@ LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 
 void Logger::StaticInitialize(void)
 {
-	ScriptVariable::Set("LogDebug", LogDebug, true, true);
-	ScriptVariable::Set("LogNotice", LogNotice, true, true);
-	ScriptVariable::Set("LogInformation", LogInformation, true, true);
-	ScriptVariable::Set("LogWarning", LogWarning, true, true);
-	ScriptVariable::Set("LogCritical", LogCritical, true, true);
+	ScriptGlobal::Set("LogDebug", LogDebug);
+	ScriptGlobal::Set("LogNotice", LogNotice);
+	ScriptGlobal::Set("LogInformation", LogInformation);
+	ScriptGlobal::Set("LogWarning", LogWarning);
+	ScriptGlobal::Set("LogCritical", LogCritical);
 }
 
 /**

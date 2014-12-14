@@ -17,89 +17,46 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/singleton.hpp"
 #include "base/logger.hpp"
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
+#include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
 
 using namespace icinga;
 
-ScriptVariable::ScriptVariable(const Value& data)
-	: m_Data(data), m_Constant(false)
-{ }
+Dictionary::Ptr ScriptGlobal::m_Globals = new Dictionary();
 
-ScriptVariable::Ptr ScriptVariable::GetByName(const String& name)
+Value ScriptGlobal::Get(const String& name, const Value *defaultValue)
 {
-	return ScriptVariableRegistry::GetInstance()->GetItem(name);
-}
-
-void ScriptVariable::SetConstant(bool constant)
-{
-	m_Constant = constant;
-}
-
-bool ScriptVariable::IsConstant(void) const
-{
-	return m_Constant;
-}
-
-void ScriptVariable::SetData(const Value& data)
-{
-	m_Data = data;
-}
-
-Value ScriptVariable::GetData(void) const
-{
-	return m_Data;
-}
-
-Value ScriptVariable::Get(const String& name, const Value *defaultValue)
-{
-	ScriptVariable::Ptr sv = GetByName(name);
-
-	if (!sv) {
+	if (!m_Globals->Contains(name)) {
 		if (defaultValue)
 			return *defaultValue;
 
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to access undefined script variable '" + name + "'"));
 	}
 
-	return sv->GetData();
+	return m_Globals->Get(name);
 }
 
-ScriptVariable::Ptr ScriptVariable::Set(const String& name, const Value& value, bool overwrite, bool make_const)
+void ScriptGlobal::Set(const String& name, const Value& value)
 {
-	ScriptVariable::Ptr sv = GetByName(name);
-
-	if (!sv) {
-		sv = new ScriptVariable(value);
-		ScriptVariableRegistry::GetInstance()->Register(name, sv);
-	} else if (overwrite) {
-		if (sv->IsConstant())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to modify read-only script variable '" + name + "'"));
-
-		sv->SetData(value);
-	}
-
-	if (make_const)
-		sv->SetConstant(true);
-
-	return sv;
+	m_Globals->Set(name, value);
 }
 
-void ScriptVariable::Unregister(const String& name)
+Dictionary::Ptr ScriptGlobal::GetGlobals(void)
 {
-	ScriptVariableRegistry::GetInstance()->Unregister(name);
+	return m_Globals;
 }
 
-void ScriptVariable::WriteVariablesFile(const String& filename)
+void ScriptGlobal::WriteToFile(const String& filename)
 {
-	Log(LogInformation, "ScriptVariable")
+	Log(LogInformation, "ScriptGlobal")
 		<< "Dumping variables to file '" << filename << "'";
 
 	String tempFilename = filename + ".tmp";
@@ -112,13 +69,13 @@ void ScriptVariable::WriteVariablesFile(const String& filename)
 
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
-	BOOST_FOREACH(const ScriptVariableRegistry::ItemMap::value_type& kv, ScriptVariableRegistry::GetInstance()->GetItems()) {
+	ObjectLock olock(m_Globals);
+	BOOST_FOREACH(const Dictionary::Pair& kv, m_Globals) {
 		Dictionary::Ptr persistentVariable = new Dictionary();
 
 		persistentVariable->Set("name", kv.first);
 
-		ScriptVariable::Ptr sv = kv.second;
-		Value value = sv->GetData();
+		Value value = kv.second;
 
 		if (value.IsObject())
 			value = Convert::ToString(value);
@@ -144,10 +101,5 @@ void ScriptVariable::WriteVariablesFile(const String& filename)
 			<< boost::errinfo_errno(errno)
 			<< boost::errinfo_file_name(tempFilename));
 	}
-}
-
-ScriptVariableRegistry *ScriptVariableRegistry::GetInstance(void)
-{
-	return Singleton<ScriptVariableRegistry>::GetInstance();
 }
 

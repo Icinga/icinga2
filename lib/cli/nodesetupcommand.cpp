@@ -25,7 +25,7 @@
 #include "base/console.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -133,8 +133,8 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		return 1;
 	}
 
-	String user = ScriptVariable::Get("RunAsUser");
-	String group = ScriptVariable::Get("RunAsGroup");
+	String user = ScriptGlobal::Get("RunAsUser");
+	String group = ScriptGlobal::Get("RunAsGroup");
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
@@ -374,8 +374,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		return 1;
 	}
 
-	String user = ScriptVariable::Get("RunAsUser");
-	String group = ScriptVariable::Get("RunAsGroup");
+	String user = ScriptGlobal::Get("RunAsUser");
+	String group = ScriptGlobal::Get("RunAsGroup");
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")

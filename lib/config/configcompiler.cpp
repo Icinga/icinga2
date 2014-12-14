@@ -83,9 +83,9 @@ void *ConfigCompiler::GetScanner(void) const
  *
  * @returns The path.
  */
-String ConfigCompiler::GetPath(void) const
+const char *ConfigCompiler::GetPath(void) const
 {
-	return m_Path;
+	return m_Path.CStr();
 }
 
 void ConfigCompiler::SetZone(const String& zone)

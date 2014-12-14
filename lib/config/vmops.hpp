@@ -29,8 +29,7 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/scriptfunction.hpp"
-#include "base/scriptsignal.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/scripterror.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
@@ -55,7 +54,7 @@ public:
 		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && HasField(frame.Self, name))
 			return GetField(frame.Self, name, debugInfo);
 		else
-			return ScriptVariable::Get(name);
+			return ScriptGlobal::Get(name);
 	}
 
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const ScriptFunction::Ptr& func, const std::vector<Value>& arguments)
@@ -70,38 +69,11 @@ public:
 		return func->Invoke(arguments);
 	}
 
-	static inline Value Indexer(ScriptFrame& frame, const std::vector<Expression *>& indexer, const DebugInfo& debugInfo = DebugInfo())
-	{
-		Value result = indexer[0]->Evaluate(frame);
-
-		for (int i = 1; i < indexer.size(); i++) {
-			if (result.IsEmpty())
-				return Empty;
-
-			Value index = indexer[i]->Evaluate(frame);
-			result = GetField(result, index, debugInfo);
-		}
-
-		return result;
-	}
-
 	static inline Value NewFunction(ScriptFrame& frame, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
 		return new ScriptFunction(boost::bind(&FunctionWrapper, _1, args,
 		    EvaluateClosedVars(frame, closedVars), expression));
-	}
-
-	static inline Value NewSlot(ScriptFrame& frame, const String& signal, const Value& slot)
-	{
-		ScriptSignal::Ptr sig = ScriptSignal::GetByName(signal);
-
-		if (!sig)
-			BOOST_THROW_EXCEPTION(ScriptError("Signal '" + signal + "' does not exist."));
-
-		sig->AddSlot(boost::bind(SlotWrapper, slot, _1));
-
-		return Empty;
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
@@ -338,21 +310,6 @@ private:
 		}
 
 		return result;
-	}
-
-	static inline void SlotWrapper(const Value& funcName, const std::vector<Value>& arguments)
-	{
-		ScriptFunction::Ptr func;
-
-		if (funcName.IsObjectType<ScriptFunction>())
-			func = funcName;
-		else
-			func = ScriptFunction::GetByName(funcName);
-
-		if (!func)
-			BOOST_THROW_EXCEPTION(ScriptError("Function '" + funcName + "' does not exist."));
-
-		func->Invoke(arguments);
 	}
 
 	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, std::map<String, Expression *> *closedVars)

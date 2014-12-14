@@ -58,15 +58,15 @@ void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	builder->AddExpression(new SetExpression(ScopeCurrent, MakeIndexer("host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
+	builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
 
 	if (service)
-		builder->AddExpression(new SetExpression(ScopeCurrent, MakeIndexer("service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
+		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
 	String zone = checkable->GetZone();
 
 	if (!zone.IsEmpty())
-		builder->AddExpression(new SetExpression(ScopeCurrent, MakeIndexer("zone"), OpSetLiteral, MakeLiteral(zone), di));
+		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "zone"), OpSetLiteral, MakeLiteral(zone), di));
 
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 

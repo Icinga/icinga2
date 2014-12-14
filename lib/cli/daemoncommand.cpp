@@ -28,9 +28,8 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/context.hpp"
-#include "base/scriptsignal.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -43,7 +42,6 @@ namespace po = boost::program_options;
 static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
-REGISTER_SCRIPTSIGNAL(onload);
 
 static String LoadAppType(const String& typeSpec)
 {
@@ -182,10 +180,7 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 
 	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
 
-	ScriptVariable::WriteVariablesFile(varsfile);
-
-	ScriptSignal::Ptr loadSignal = ScriptSignal::GetByName("onload");
-	loadSignal->Invoke();
+	ScriptGlobal::WriteToFile(varsfile);
 
 	return true;
 }
@@ -355,9 +350,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (!vm.count("validate"))
 		Logger::DisableTimestamp(false);
 
-	ScriptVariable::Set("UseVfork", true, false, true);
-
-	Application::MakeVariablesConstant();
+	ScriptGlobal::Set("UseVfork", true);
 
 	Log(LogInformation, "cli")
 	    << "Icinga application loader (version: " << Application::GetVersion()

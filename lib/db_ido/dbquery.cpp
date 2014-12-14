@@ -19,7 +19,7 @@
 
 #include "db_ido/dbquery.hpp"
 #include "base/initialize.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 
 using namespace icinga;
 
@@ -27,20 +27,20 @@ INITIALIZE_ONCE(&DbQuery::StaticInitialize);
 
 void DbQuery::StaticInitialize(void)
 {
-	ScriptVariable::Set("DbCatConfig", DbCatConfig, true, true);
-	ScriptVariable::Set("DbCatState", DbCatState, true, true);
-	ScriptVariable::Set("DbCatAcknowledgement", DbCatAcknowledgement, true, true);
-	ScriptVariable::Set("DbCatComment", DbCatComment, true, true);
-	ScriptVariable::Set("DbCatDowntime", DbCatDowntime, true, true);
-	ScriptVariable::Set("DbCatEventHandler", DbCatEventHandler, true, true);
-	ScriptVariable::Set("DbCatExternalCommand", DbCatExternalCommand, true, true);
-	ScriptVariable::Set("DbCatFlapping", DbCatFlapping, true, true);
-	ScriptVariable::Set("DbCatCheck", DbCatCheck, true, true);
-	ScriptVariable::Set("DbCatLog", DbCatLog, true, true);
-	ScriptVariable::Set("DbCatNotification", DbCatNotification, true, true);
-	ScriptVariable::Set("DbCatProgramStatus", DbCatProgramStatus, true, true);
-	ScriptVariable::Set("DbCatRetention", DbCatRetention, true, true);
-	ScriptVariable::Set("DbCatStateHistory", DbCatStateHistory, true, true);
+	ScriptGlobal::Set("DbCatConfig", DbCatConfig);
+	ScriptGlobal::Set("DbCatState", DbCatState);
+	ScriptGlobal::Set("DbCatAcknowledgement", DbCatAcknowledgement);
+	ScriptGlobal::Set("DbCatComment", DbCatComment);
+	ScriptGlobal::Set("DbCatDowntime", DbCatDowntime);
+	ScriptGlobal::Set("DbCatEventHandler", DbCatEventHandler);
+	ScriptGlobal::Set("DbCatExternalCommand", DbCatExternalCommand);
+	ScriptGlobal::Set("DbCatFlapping", DbCatFlapping);
+	ScriptGlobal::Set("DbCatCheck", DbCatCheck);
+	ScriptGlobal::Set("DbCatLog", DbCatLog);
+	ScriptGlobal::Set("DbCatNotification", DbCatNotification);
+	ScriptGlobal::Set("DbCatProgramStatus", DbCatProgramStatus);
+	ScriptGlobal::Set("DbCatRetention", DbCatRetention);
+	ScriptGlobal::Set("DbCatStateHistory", DbCatStateHistory);
 
-	ScriptVariable::Set("DbCatEverything", ~(unsigned int)0, true, true);
+	ScriptGlobal::Set("DbCatEverything", ~(unsigned int)0);
 }

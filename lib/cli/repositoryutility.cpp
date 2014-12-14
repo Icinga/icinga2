@@ -25,7 +25,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/tlsutility.hpp"
@@ -131,8 +131,8 @@ void RepositoryUtility::CreateRepositoryPath(const String& path)
 	if (!Utility::PathExists(path))
 		Utility::MkDirP(path, 0750);
 
-	String user = ScriptVariable::Get("RunAsUser");
-        String group = ScriptVariable::Get("RunAsGroup");
+	String user = ScriptGlobal::Get("RunAsUser");
+        String group = ScriptGlobal::Get("RunAsGroup");
 
         if (!Utility::SetFileOwnership(path, user, group)) {
                 Log(LogWarning, "cli")

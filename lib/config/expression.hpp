@@ -110,6 +110,7 @@ enum ScopeSpecifier
 {
 	ScopeLocal,
 	ScopeCurrent,
+	ScopeThis,
 	ScopeGlobal
 };
 
@@ -143,12 +144,13 @@ public:
 	virtual ~Expression(void);
 
 	Value Evaluate(ScriptFrame& frame, DebugHint *dhint = NULL) const;
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint = NULL) const;
+	virtual const DebugInfo& GetDebugInfo(void) const;
 
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const = 0;
-	virtual const DebugInfo& GetDebugInfo(void) const;
 };
 
-I2_CONFIG_API std::vector<Expression *> MakeIndexer(const String& index1);
+I2_CONFIG_API Expression *MakeIndexer(ScopeSpecifier scopeSpec, const String& index);
 
 class I2_CONFIG_API OwnedExpression : public Expression
 {
@@ -273,9 +275,12 @@ public:
 
 protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const;
 
 private:
 	String m_Variable;
+
+	friend void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 };
 	
 class I2_CONFIG_API NegateExpression : public UnaryExpression
@@ -523,15 +528,12 @@ protected:
 class I2_CONFIG_API FunctionCallExpression : public DebuggableExpression
 {
 public:
-	FunctionCallExpression(const std::vector<Expression *> iname, Expression *fname, const std::vector<Expression *>& args, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_IName(iname), m_FName(fname), m_Args(args)
+	FunctionCallExpression(Expression *fname, const std::vector<Expression *>& args, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_FName(fname), m_Args(args)
 	{ }
 
 	~FunctionCallExpression(void)
 	{
-		BOOST_FOREACH(Expression *expr, m_IName)
-			delete expr;
-
 		delete m_FName;
 
 		BOOST_FOREACH(Expression *expr, m_Args)
@@ -542,7 +544,6 @@ protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 
 public:
-	std::vector<Expression *> m_IName;
 	Expression *m_FName;
 	std::vector<Expression *> m_Args;
 };
@@ -590,30 +591,18 @@ private:
 	bool m_Inline;
 };
 	
-class I2_CONFIG_API SetExpression : public DebuggableExpression
+class I2_CONFIG_API SetExpression : public BinaryExpression
 {
 public:
-	SetExpression(ScopeSpecifier scopeSpec, const std::vector<Expression *>& indexer, CombinedSetOp op, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_ScopeSpec(scopeSpec), m_Op(op), m_Indexer(indexer), m_Operand2(operand2)
+	SetExpression(Expression *operand1, CombinedSetOp op, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
+		: BinaryExpression(operand1, operand2, debugInfo), m_Op(op)
 	{ }
-
-	~SetExpression(void)
-	{
-		BOOST_FOREACH(Expression *expr, m_Indexer)
-			delete expr;
-
-		delete m_Operand2;
-	}
 
 protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 
 private:
-	ScopeSpecifier m_ScopeSpec;
 	CombinedSetOp m_Op;
-	std::vector<Expression *> m_Indexer;
-	Expression *m_Operand2;
-
 };
 
 class I2_CONFIG_API ConditionalExpression : public DebuggableExpression
@@ -650,25 +639,35 @@ protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 };
 
-class I2_CONFIG_API IndexerExpression : public DebuggableExpression
+class I2_CONFIG_API GetScopeExpression : public Expression
 {
 public:
-	IndexerExpression(const std::vector<Expression *>& indexer, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Indexer(indexer)
+	GetScopeExpression(ScopeSpecifier scopeSpec)
+		: m_ScopeSpec(scopeSpec)
 	{ }
-
-	~IndexerExpression(void)
-	{
-		BOOST_FOREACH(Expression *expr, m_Indexer)
-			delete expr;
-	}
 
 protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 
 private:
-	std::vector<Expression *> m_Indexer;
+	ScopeSpecifier m_ScopeSpec;
 };
+
+class I2_CONFIG_API IndexerExpression : public BinaryExpression
+{
+public:
+	IndexerExpression(Expression *operand1, Expression *operand2, const DebugInfo& debugInfo = DebugInfo())
+		: BinaryExpression(operand1, operand2, debugInfo)
+	{ }
+
+protected:
+	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const;
+
+	friend void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
+};
+
+I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 
 class I2_CONFIG_API ImportExpression : public DebuggableExpression
 {
@@ -704,21 +703,6 @@ private:
 	std::vector<String> m_Args;
 	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;
-};
-
-class I2_CONFIG_API SlotExpression : public DebuggableExpression
-{
-public:
-	SlotExpression(const String& signal, Expression *slot, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Signal(signal), m_Slot(slot)
-	{ }
-
-protected:
-	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
-
-private:
-	String m_Signal;
-	Expression *m_Slot;
 };
 
 class I2_CONFIG_API ApplyExpression : public DebuggableExpression

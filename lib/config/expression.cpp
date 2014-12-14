@@ -25,6 +25,7 @@
 #include "base/object.hpp"
 #include "base/logger.hpp"
 #include "base/scripterror.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -55,17 +56,21 @@ Value Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) const
 	}
 }
 
+bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+{
+	return false;
+}
+
 const DebugInfo& Expression::GetDebugInfo(void) const
 {
 	static DebugInfo debugInfo;
 	return debugInfo;
 }
 
-std::vector<Expression *> icinga::MakeIndexer(const String& index1)
+Expression *icinga::MakeIndexer(ScopeSpecifier scopeSpec, const String& index)
 {
-	std::vector<Expression *> result;
-	result.push_back(new VariableExpression(index1));
-	return result;
+	Expression *scope = new GetScopeExpression(scopeSpec);
+	return new IndexerExpression(scope, MakeLiteral(index));
 }
 
 void DictExpression::MakeInline(void)
@@ -90,6 +95,11 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 Value VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::Variable(frame, m_Variable, m_DebugInfo);
+}
+
+bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+{
+	return false;
 }
 
 Value NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -225,28 +235,11 @@ Value LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) cons
 Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value self, vfunc;
+	String index;
 
-	if (!m_IName.empty()) {
-		Value result = m_IName[0]->Evaluate(frame);
-
-		if (m_IName.size() == 2)
-			self = result;
-
-		for (int i = 1; i < m_IName.size(); i++) {
-			if (result.IsEmpty())
-				return Empty;
-
-			Value index = m_IName[i]->Evaluate(frame);
-			result = VMOps::GetField(result, index, m_DebugInfo);
-
-			if (i == m_IName.size() - 2)
-				self = result;
-		}
-
-		vfunc= result;
-	}
-
-	if (m_FName)
+	if (m_FName->GetReference(frame, false, &self, &index))
+		vfunc = VMOps::GetField(self, index);
+	else
 		vfunc = m_FName->Evaluate(frame);
 
 	if (!vfunc.IsObjectType<ScriptFunction>())
@@ -298,81 +291,35 @@ Value DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 		return dframe->Self;
 }
 
+Value GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	if (m_ScopeSpec == ScopeLocal)
+		return frame.Locals;
+	else if (m_ScopeSpec == ScopeCurrent)
+		return frame.Self;
+	else if (m_ScopeSpec == ScopeThis)
+		return frame.Self;
+	else if (m_ScopeSpec == ScopeGlobal)
+		return ScriptGlobal::GetGlobals();
+	else
+		ASSERT(!"Invalid scope.");
+}
+
 Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	DebugHint *psdhint = dhint;
-	DebugHint sdhint;
 
-	Value parent, object;
+	Value parent;
 	String index;
 
-	for (Array::SizeType i = 0; i < m_Indexer.size(); i++) {
-		Expression *indexExpr = m_Indexer[i];
-
-		String tempindex;
-
-		if (i == 0) {
-			VariableExpression *vexpr = dynamic_cast<VariableExpression *>(indexExpr);
-
-			if (!vexpr) {
-				object = indexExpr->Evaluate(frame, dhint);
-
-				if (!object)
-					BOOST_THROW_EXCEPTION(ScriptError("Left-hand side argument must not be null.", m_DebugInfo));
-
-				continue;
-			}
-
-			tempindex = vexpr->GetVariable();
-		} else
-			tempindex = indexExpr->Evaluate(frame, dhint);
-
-		if (psdhint) {
-			sdhint = psdhint->GetChild(tempindex);
-			psdhint = &sdhint;
-		}
-
-		if (i == 0) {
-			if (m_ScopeSpec == ScopeLocal)
-				parent = frame.Locals;
-			else if (m_ScopeSpec == ScopeCurrent)
-				parent = frame.Self;
-			else if (m_ScopeSpec == ScopeGlobal) {
-				ScriptVariable::Ptr sv = ScriptVariable::GetByName(tempindex);
-
-				Dictionary::Ptr fglobals = new Dictionary();
-
-				if (sv)
-					fglobals->Set(tempindex, sv->GetData());
-
-				parent = fglobals;
-			}
-		} else
-			parent = object;
-
-		if (i == m_Indexer.size() - 1) {
-			index = tempindex;
-
-			/* No need to look up the last indexer's value if this is a direct set */
-			if (m_Op == OpSetLiteral)
-				break;
-		}
-
-		object = VMOps::GetField(parent, tempindex, m_DebugInfo);
-
-		if (i != m_Indexer.size() - 1 && object.IsEmpty()) {
-			object = new Dictionary();
-
-			if (i == 0 && m_ScopeSpec == ScopeGlobal)
-				ScriptVariable::Set(tempindex, object);
-			else
-				VMOps::SetField(parent, tempindex, object, m_DebugInfo);
-		}
-	}
+	if (!m_Operand1->GetReference(frame, true, &parent, &index, &psdhint))
+		BOOST_THROW_EXCEPTION(ScriptError("Expression cannot be assigned to.", m_DebugInfo));
 
 	Value right = m_Operand2->Evaluate(frame, dhint);
 
 	if (m_Op != OpSetLiteral) {
+		Value object = VMOps::GetField(parent, index);
+
 		Expression *lhs = MakeLiteral(object);
 		Expression *rhs = MakeLiteral(right);
 
@@ -406,13 +353,14 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 		}
 	}
 
-	if (m_Indexer.size() == 1 && m_ScopeSpec == ScopeGlobal)
-		ScriptVariable::Set(index, right);
-	else
-		VMOps::SetField(parent, index, right, m_DebugInfo);
+	VMOps::SetField(parent, index, right, m_DebugInfo);
 
-	if (psdhint)
+	if (psdhint) {
 		psdhint->AddMessage("=", m_DebugInfo);
+
+		if (psdhint != dhint)
+			delete psdhint;
+	}
 
 	return right;
 }
@@ -434,7 +382,56 @@ Value ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 
 Value IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Indexer(frame, m_Indexer, m_DebugInfo);
+	Value object = m_Operand1->Evaluate(frame, dhint);
+	String index = m_Operand2->Evaluate(frame, dhint);
+	return VMOps::GetField(object, index);
+}
+
+bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+{
+	Value vparent;
+	String vindex;
+
+	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, dhint)) {
+		if (init_dict && VMOps::GetField(vparent, vindex).IsEmpty())
+			VMOps::SetField(vparent, vindex, new Dictionary());
+
+		*parent = VMOps::GetField(vparent, vindex);
+	} else
+		*parent = m_Operand1->Evaluate(frame);
+
+	*index = m_Operand2->Evaluate(frame);
+
+	if (dhint && *dhint)
+		*dhint = new DebugHint((*dhint)->GetChild(*index));
+
+	return true;
+}
+
+void icinga::BindToScope(Expression *& expr, ScopeSpecifier scopeSpec)
+{
+	IndexerExpression *iexpr = dynamic_cast<IndexerExpression *>(expr);
+
+	if (iexpr) {
+		BindToScope(iexpr->m_Operand1, scopeSpec);
+		return;
+	}
+
+	LiteralExpression *lexpr = dynamic_cast<LiteralExpression *>(expr);
+
+	if (lexpr) {
+		Expression *scope = new GetScopeExpression(scopeSpec);
+		expr = new IndexerExpression(scope, lexpr, lexpr->GetDebugInfo());
+	}
+
+	VariableExpression *vexpr = dynamic_cast<VariableExpression *>(expr);
+
+	if (vexpr) {
+		Expression *scope = new GetScopeExpression(scopeSpec);
+		Expression *new_expr = new IndexerExpression(scope, MakeLiteral(vexpr->GetVariable()), vexpr->GetDebugInfo());
+		delete expr;
+		expr = new_expr;
+	}
 }
 
 Value ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -455,11 +452,6 @@ Value ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 Value FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::NewFunction(frame, m_Args, m_ClosedVars, m_Expression);
-}
-
-Value SlotExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
-{
-	return VMOps::NewSlot(frame, m_Signal, m_Slot->Evaluate(frame));
 }
 
 Value ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

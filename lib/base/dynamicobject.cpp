@@ -29,7 +29,6 @@
 #include "base/exception.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/initialize.hpp"
-#include "base/scriptvariable.hpp"
 #include "base/workqueue.hpp"
 #include "base/context.hpp"
 #include <fstream>

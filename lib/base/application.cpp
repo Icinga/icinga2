@@ -27,7 +27,7 @@
 #include "base/debug.hpp"
 #include "base/type.hpp"
 #include "base/convert.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 #include "base/process.hpp"
 #include <sstream>
 #include <boost/algorithm/string/classification.hpp>
@@ -846,7 +846,7 @@ pid_t Application::ReadPidFile(const String& filename)
  */
 String Application::GetPrefixDir(void)
 {
-	return ScriptVariable::Get("PrefixDir");
+	return ScriptGlobal::Get("PrefixDir");
 }
 
 /**
@@ -856,7 +856,7 @@ String Application::GetPrefixDir(void)
  */
 void Application::DeclarePrefixDir(const String& path)
 {
-	ScriptVariable::Set("PrefixDir", path, false);
+	ScriptGlobal::Set("PrefixDir", path);
 }
 
 /**
@@ -866,7 +866,7 @@ void Application::DeclarePrefixDir(const String& path)
  */
 String Application::GetSysconfDir(void)
 {
-	return ScriptVariable::Get("SysconfDir");
+	return ScriptGlobal::Get("SysconfDir");
 }
 
 /**
@@ -876,7 +876,7 @@ String Application::GetSysconfDir(void)
  */
 void Application::DeclareSysconfDir(const String& path)
 {
-	ScriptVariable::Set("SysconfDir", path, false);
+	ScriptGlobal::Set("SysconfDir", path);
 }
 
 /**
@@ -886,7 +886,7 @@ void Application::DeclareSysconfDir(const String& path)
  */
 String Application::GetRunDir(void)
 {
-	return ScriptVariable::Get("RunDir");
+	return ScriptGlobal::Get("RunDir");
 }
 
 /**
@@ -896,7 +896,7 @@ String Application::GetRunDir(void)
  */
 void Application::DeclareRunDir(const String& path)
 {
-	ScriptVariable::Set("RunDir", path, false);
+	ScriptGlobal::Set("RunDir", path);
 }
 
 /**
@@ -906,7 +906,7 @@ void Application::DeclareRunDir(const String& path)
  */
 String Application::GetLocalStateDir(void)
 {
-	return ScriptVariable::Get("LocalStateDir");
+	return ScriptGlobal::Get("LocalStateDir");
 }
 
 /**
@@ -916,7 +916,7 @@ String Application::GetLocalStateDir(void)
  */
 void Application::DeclareLocalStateDir(const String& path)
 {
-	ScriptVariable::Set("LocalStateDir", path, false);
+	ScriptGlobal::Set("LocalStateDir", path);
 }
 
 /**
@@ -926,7 +926,7 @@ void Application::DeclareLocalStateDir(const String& path)
  */
 String Application::GetZonesDir(void)
 {
-	return ScriptVariable::Get("ZonesDir", &Empty);
+	return ScriptGlobal::Get("ZonesDir", &Empty);
 }
 
 /**
@@ -936,7 +936,7 @@ String Application::GetZonesDir(void)
  */
 void Application::DeclareZonesDir(const String& path)
 {
-	ScriptVariable::Set("ZonesDir", path, false);
+	ScriptGlobal::Set("ZonesDir", path);
 }
 
 /**
@@ -947,7 +947,7 @@ void Application::DeclareZonesDir(const String& path)
 String Application::GetPkgDataDir(void)
 {
 	String defaultValue = "";
-	return ScriptVariable::Get("PkgDataDir", &Empty);
+	return ScriptGlobal::Get("PkgDataDir", &Empty);
 }
 
 /**
@@ -957,7 +957,7 @@ String Application::GetPkgDataDir(void)
  */
 void Application::DeclarePkgDataDir(const String& path)
 {
-	ScriptVariable::Set("PkgDataDir", path, false);
+	ScriptGlobal::Set("PkgDataDir", path);
 }
 
 /**
@@ -967,7 +967,7 @@ void Application::DeclarePkgDataDir(const String& path)
  */
 String Application::GetIncludeConfDir(void)
 {
-	return ScriptVariable::Get("IncludeConfDir", &Empty);
+	return ScriptGlobal::Get("IncludeConfDir", &Empty);
 }
 
 /**
@@ -977,7 +977,7 @@ String Application::GetIncludeConfDir(void)
  */
 void Application::DeclareIncludeConfDir(const String& path)
 {
-	ScriptVariable::Set("IncludeConfDir", path, false);
+	ScriptGlobal::Set("IncludeConfDir", path);
 }
 
 /**
@@ -987,7 +987,7 @@ void Application::DeclareIncludeConfDir(const String& path)
  */
 String Application::GetStatePath(void)
 {
-	return ScriptVariable::Get("StatePath", &Empty);
+	return ScriptGlobal::Get("StatePath", &Empty);
 }
 
 /**
@@ -997,7 +997,7 @@ String Application::GetStatePath(void)
  */
 void Application::DeclareStatePath(const String& path)
 {
-	ScriptVariable::Set("StatePath", path, false);
+	ScriptGlobal::Set("StatePath", path);
 }
 
 /**
@@ -1007,7 +1007,7 @@ void Application::DeclareStatePath(const String& path)
  */
 String Application::GetObjectsPath(void)
 {
-	return ScriptVariable::Get("ObjectsPath", &Empty);
+	return ScriptGlobal::Get("ObjectsPath", &Empty);
 }
 
 /**
@@ -1017,7 +1017,7 @@ String Application::GetObjectsPath(void)
  */
 void Application::DeclareObjectsPath(const String& path)
 {
-	ScriptVariable::Set("ObjectsPath", path, false);
+	ScriptGlobal::Set("ObjectsPath", path);
 }
 
 /**
@@ -1027,7 +1027,7 @@ void Application::DeclareObjectsPath(const String& path)
 */
 String Application::GetVarsPath(void)
 {
-	return ScriptVariable::Get("VarsPath", &Empty);
+	return ScriptGlobal::Get("VarsPath", &Empty);
 }
 
 /**
@@ -1037,7 +1037,7 @@ String Application::GetVarsPath(void)
 */
 void Application::DeclareVarsPath(const String& path)
 {
-	ScriptVariable::Set("VarsPath", path, false);
+	ScriptGlobal::Set("VarsPath", path);
 }
 
 /**
@@ -1047,7 +1047,7 @@ void Application::DeclareVarsPath(const String& path)
  */
 String Application::GetPidPath(void)
 {
-	return ScriptVariable::Get("PidPath", &Empty);
+	return ScriptGlobal::Get("PidPath", &Empty);
 }
 
 /**
@@ -1057,7 +1057,7 @@ String Application::GetPidPath(void)
  */
 void Application::DeclarePidPath(const String& path)
 {
-	ScriptVariable::Set("PidPath", path, false);
+	ScriptGlobal::Set("PidPath", path);
 }
 
 /**
@@ -1067,7 +1067,7 @@ void Application::DeclarePidPath(const String& path)
  */
 String Application::GetApplicationType(void)
 {
-	return ScriptVariable::Get("ApplicationType");
+	return ScriptGlobal::Get("ApplicationType");
 }
 
 /**
@@ -1077,7 +1077,7 @@ String Application::GetApplicationType(void)
  */
 void Application::DeclareApplicationType(const String& type)
 {
-	ScriptVariable::Set("ApplicationType", type, false);
+	ScriptGlobal::Set("ApplicationType", type);
 }
 
 /**
@@ -1087,7 +1087,7 @@ void Application::DeclareApplicationType(const String& type)
  */
 String Application::GetRunAsUser(void)
 {
-	return ScriptVariable::Get("RunAsUser");
+	return ScriptGlobal::Get("RunAsUser");
 }
 
 /**
@@ -1097,7 +1097,7 @@ String Application::GetRunAsUser(void)
  */
 void Application::DeclareRunAsUser(const String& user)
 {
-	ScriptVariable::Set("RunAsUser", user, false);
+	ScriptGlobal::Set("RunAsUser", user);
 }
 
 /**
@@ -1107,7 +1107,7 @@ void Application::DeclareRunAsUser(const String& user)
  */
 String Application::GetRunAsGroup(void)
 {
-	return ScriptVariable::Get("RunAsGroup");
+	return ScriptGlobal::Get("RunAsGroup");
 }
 
 /**
@@ -1117,7 +1117,7 @@ String Application::GetRunAsGroup(void)
  */
 void Application::DeclareConcurrency(int ncpus)
 {
-	ScriptVariable::Set("Concurrency", ncpus, false);
+	ScriptGlobal::Set("Concurrency", ncpus);
 }
 
 /**
@@ -1128,7 +1128,7 @@ void Application::DeclareConcurrency(int ncpus)
 int Application::GetConcurrency(void)
 {
 	Value defaultConcurrency = boost::thread::hardware_concurrency();
-	return ScriptVariable::Get("Concurrency", &defaultConcurrency);
+	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
 }
 
 /**
@@ -1138,22 +1138,7 @@ int Application::GetConcurrency(void)
  */
 void Application::DeclareRunAsGroup(const String& group)
 {
-	ScriptVariable::Set("RunAsGroup", group, false);
-}
-
-void Application::MakeVariablesConstant(void)
-{
-	ScriptVariable::GetByName("PrefixDir")->SetConstant(true);
-	ScriptVariable::GetByName("SysconfDir")->SetConstant(true);
-	ScriptVariable::GetByName("LocalStateDir")->SetConstant(true);
-	ScriptVariable::GetByName("RunDir")->SetConstant(true);
-	ScriptVariable::GetByName("PkgDataDir")->SetConstant(true);
-	ScriptVariable::GetByName("StatePath")->SetConstant(true);
-	ScriptVariable::GetByName("ObjectsPath")->SetConstant(true);
-	ScriptVariable::GetByName("PidPath")->SetConstant(true);
-	ScriptVariable::GetByName("ApplicationType")->SetConstant(true);
-	ScriptVariable::GetByName("RunAsUser")->SetConstant(true);
-	ScriptVariable::GetByName("RunAsGroup")->SetConstant(true);
+	ScriptGlobal::Set("RunAsGroup", group);
 }
 
 /**

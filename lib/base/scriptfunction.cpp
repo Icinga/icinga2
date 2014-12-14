@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/scriptfunction.hpp"
-#include "base/scriptvariable.hpp"
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
 
@@ -45,26 +44,4 @@ Value ScriptFunction::Invoke(const std::vector<Value>& arguments)
 {
 	return m_Callback(arguments);
 }
-
-ScriptFunction::Ptr ScriptFunction::GetByName(const String& name)
-{
-	ScriptVariable::Ptr sv = ScriptVariable::GetByName(name);
-
-	if (!sv)
-		return ScriptFunction::Ptr();
-
-	return sv->GetData();
-}
-
-void ScriptFunction::Register(const String& name, const ScriptFunction::Ptr& function)
-{
-	ScriptVariable::Ptr sv = ScriptVariable::Set(name, function);
-	sv->SetConstant(true);
-}
-
-void ScriptFunction::Unregister(const String& name)
-{
-	ScriptVariable::Unregister(name);
-}
-
 

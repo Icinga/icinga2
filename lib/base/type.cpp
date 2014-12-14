@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/type.hpp"
-#include "base/scriptvariable.hpp"
+#include "base/scriptglobal.hpp"
 
 using namespace icinga;
 
@@ -31,17 +31,12 @@ void Type::Register(const Type::Ptr& type)
 {
 	VERIFY(GetByName(type->GetName()) == NULL);
 
-	ScriptVariable::Set(type->GetName(), type, true, true);
+	ScriptGlobal::Set(type->GetName(), type);
 }
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	ScriptVariable::Ptr svtype = ScriptVariable::GetByName(name);
-
-	if (!svtype)
-		return Type::Ptr();
-
-	Value ptype = svtype->GetData();
+	Value ptype = ScriptGlobal::Get(name, &Empty);
 
 	if (!ptype.IsObjectType<Type>())
 		return Type::Ptr();

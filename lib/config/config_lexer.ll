@@ -28,7 +28,7 @@ using namespace icinga;
 #include "config/config_parser.hh"
 #include <sstream>
 
-#define YYLTYPE icinga::DebugInfo
+#define YYLTYPE icinga::CompilerDebugInfo
 
 #define YY_EXTRA_TYPE ConfigCompiler *
 #define YY_USER_ACTION 					\
@@ -177,8 +177,9 @@ library				return T_LIBRARY;
 null				return T_NULL;
 true				{ yylval->boolean = 1; return T_BOOLEAN; }
 false				{ yylval->boolean = 0; return T_BOOLEAN; }
-const				return T_CONST;
+const				return T_GLOBAL;
 local				return T_LOCAL;
+this				return T_THIS;
 global				return T_GLOBAL;
 use				return T_USE;
 apply				return T_APPLY;
@@ -190,7 +191,6 @@ ignore				return T_IGNORE;
 function			return T_FUNCTION;
 return				return T_RETURN;
 for				return T_FOR;
-signal				return T_SIGNAL;
 if				return T_IF;
 else				return T_ELSE;
 =\>				return T_FOLLOWS;

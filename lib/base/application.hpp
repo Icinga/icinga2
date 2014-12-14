@@ -126,8 +126,6 @@ public:
 	static int GetConcurrency(void);
 	static void DeclareConcurrency(int ncpus);
 
-	static void MakeVariablesConstant(void);
-
 	static ThreadPool& GetTP(void);
 
 	static String GetVersion(void);
