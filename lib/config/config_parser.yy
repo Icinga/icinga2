@@ -141,8 +141,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_LESS_THAN "< (T_LESS_THAN)"
 %token T_GREATER_THAN "> (T_GREATER_THAN)"
 
-%token T_CONST "const (T_CONST)"
 %token T_LOCAL "local (T_LOCAL)"
+%token T_GLOBAL "global (T_GLOBAL)"
 %token T_USE "use (T_USE)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
@@ -642,23 +642,6 @@ lterm: type
 		$$ = new ForExpression($3, "", $5, aexpr, DebugInfoRange(@1, @7));
 		free($3);
 	}
-	| T_IF '(' rterm ')' rterm_scope
-	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
-
-		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
-	}
-	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
-	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
-
-		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
-		afalse->MakeInline();
-
-		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
-	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
@@ -863,6 +846,23 @@ rterm: T_STRING
 
 		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
 		delete $2;
+	}
+	| T_IF '(' rterm ')' rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
+	}
+	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
+		afalse->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
 	}
 	;
 
