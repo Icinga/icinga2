@@ -559,7 +559,6 @@ lterm: type
 	| rterm combined_set_op rterm
 	{
 		Expression *expr = $1;
-		BindToScope(expr, ScopeCurrent);
 		$$ = new SetExpression(expr, $2, $3, DebugInfoRange(@1, @3));
 	}
 	| T_INCLUDE T_STRING
@@ -787,7 +786,9 @@ rterm: T_STRING
 	}
 	| rterm_scope
 	{
-		$$ = $1;
+		Expression *expr = $1;
+		BindToScope(expr, ScopeCurrent);
+		$$ = expr;
 	}
 	| '('
 	{

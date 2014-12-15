@@ -50,6 +50,11 @@ void ScriptGlobal::Set(const String& name, const Value& value)
 	m_Globals->Set(name, value);
 }
 
+bool ScriptGlobal::Exists(const String& name)
+{
+	return m_Globals->Contains(name);
+}
+
 Dictionary::Ptr ScriptGlobal::GetGlobals(void)
 {
 	return m_Globals;

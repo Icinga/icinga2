@@ -280,7 +280,7 @@ protected:
 private:
 	String m_Variable;
 
-	friend void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
+	friend I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 };
 	
 class I2_CONFIG_API NegateExpression : public UnaryExpression
@@ -589,6 +589,8 @@ protected:
 private:
 	std::vector<Expression *> m_Expressions;
 	bool m_Inline;
+
+	friend I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 };
 	
 class I2_CONFIG_API SetExpression : public BinaryExpression
@@ -603,6 +605,8 @@ protected:
 
 private:
 	CombinedSetOp m_Op;
+
+	friend I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 };
 
 class I2_CONFIG_API ConditionalExpression : public DebuggableExpression
@@ -664,7 +668,7 @@ protected:
 	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
 	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const;
 
-	friend void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
+	friend I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 };
 
 I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);

@@ -94,12 +94,37 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 
 Value VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::Variable(frame, m_Variable, m_DebugInfo);
+	if (frame.Locals && frame.Locals->Contains(m_Variable))
+		return frame.Locals->Get(m_Variable);
+	else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && VMOps::HasField(frame.Self, m_Variable))
+		return VMOps::GetField(frame.Self, m_Variable, m_DebugInfo);
+	else
+		return ScriptGlobal::Get(m_Variable);
 }
 
 bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
 {
-	return false;
+	*index = m_Variable;
+
+	if (frame.Locals && frame.Locals->Contains(m_Variable)) {
+		*parent = frame.Locals;
+
+		if (dhint)
+			*dhint = NULL;
+	} else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && VMOps::HasField(frame.Self, m_Variable)) {
+		*parent = frame.Self;
+
+		if (dhint && *dhint)
+			*dhint = new DebugHint((*dhint)->GetChild(m_Variable));
+	} else if (ScriptGlobal::Exists(m_Variable)) {
+		*parent = ScriptGlobal::GetGlobals();
+
+		if (dhint)
+			*dhint = NULL;
+	} else
+		*parent = frame.Locals;
+
+	return true;
 }
 
 Value NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -410,6 +435,23 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 void icinga::BindToScope(Expression *& expr, ScopeSpecifier scopeSpec)
 {
+	DictExpression *dexpr = dynamic_cast<DictExpression *>(expr);
+
+	if (dexpr) {
+		BOOST_FOREACH(Expression *& expr, dexpr->m_Expressions)
+			BindToScope(expr, scopeSpec);
+
+		return;
+	}
+
+	SetExpression *aexpr = dynamic_cast<SetExpression *>(expr);
+
+	if (aexpr) {
+		BindToScope(aexpr->m_Operand1, scopeSpec);
+
+		return;
+	}
+
 	IndexerExpression *iexpr = dynamic_cast<IndexerExpression *>(expr);
 
 	if (iexpr) {

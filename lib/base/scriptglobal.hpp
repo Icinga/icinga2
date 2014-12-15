@@ -36,6 +36,7 @@ class I2_BASE_API ScriptGlobal
 public:
 	static Value Get(const String& name, const Value *defaultValue = NULL);
 	static void Set(const String& name, const Value& value);
+	static bool Exists(const String& name);
 
 	static void WriteToFile(const String& filename);
 

@@ -46,9 +46,6 @@ class VMOps
 public:
 	static inline Value Variable(ScriptFrame& frame, const String& name, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (name == "this")
-			return frame.Self;
-
 		if (frame.Locals && frame.Locals->Contains(name))
 			return frame.Locals->Get(name);
 		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && HasField(frame.Self, name))
