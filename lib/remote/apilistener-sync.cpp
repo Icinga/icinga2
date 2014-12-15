@@ -22,6 +22,7 @@
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
 

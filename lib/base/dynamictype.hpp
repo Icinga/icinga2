@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/dynamicobject.hpp"
-#include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include <map>
 # include <boost/iterator/iterator_facade.hpp>

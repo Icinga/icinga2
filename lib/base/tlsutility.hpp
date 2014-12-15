@@ -23,7 +23,6 @@
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/string.hpp"
-#include "base/exception.hpp"
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -33,6 +32,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/exception/info.hpp>
 
 namespace icinga
 {

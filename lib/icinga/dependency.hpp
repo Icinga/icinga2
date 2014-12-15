@@ -22,7 +22,6 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency.thpp"
-#include "base/dictionary.hpp"
 
 namespace icinga
 {

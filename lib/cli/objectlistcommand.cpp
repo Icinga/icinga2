@@ -34,6 +34,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 using namespace icinga;
 namespace po = boost::program_options;

@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
-#include "base/string.hpp"
 
 namespace icinga
 {

@@ -31,6 +31,7 @@
 #include "base/stream.hpp"
 #include "base/networkstream.hpp"
 #include "base/json.hpp"
+#include "base/context.hpp"
 
 using namespace icinga;
 

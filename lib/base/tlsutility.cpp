@@ -22,6 +22,7 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/application.hpp"
+#include "base/exception.hpp"
 #include <fstream>
 
 namespace icinga

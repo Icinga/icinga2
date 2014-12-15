@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include "base/exception.hpp"
 
 namespace icinga
 {

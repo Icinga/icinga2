@@ -26,6 +26,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
+#include "base/exception.hpp"
 #include "remote/jsonrpc.hpp"
 #include <fstream>
 #include <iostream>

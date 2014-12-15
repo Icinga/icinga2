@@ -25,6 +25,7 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
 

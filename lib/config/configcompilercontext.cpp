@@ -21,6 +21,7 @@
 #include "base/singleton.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
 

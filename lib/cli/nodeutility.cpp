@@ -31,6 +31,7 @@
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>

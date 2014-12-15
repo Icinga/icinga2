@@ -30,6 +30,7 @@
 #include "base/application.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
+#include "base/exception.hpp"
 #include <fstream>
 
 using namespace icinga;
