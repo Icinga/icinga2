@@ -293,8 +293,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "\"a\" = 3");
-	BOOST_CHECK(expr->Evaluate(frame) == 3);
-	BOOST_CHECK(frame.Locals->Get("a") == 3);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "3 = 3");
