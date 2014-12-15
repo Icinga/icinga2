@@ -263,7 +263,7 @@ Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) c
 	String index;
 
 	if (m_FName->GetReference(frame, false, &self, &index))
-		vfunc = VMOps::GetField(self, index);
+		vfunc = VMOps::GetField(self, index, m_DebugInfo);
 	else
 		vfunc = m_FName->Evaluate(frame);
 
@@ -343,7 +343,7 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 	Value right = m_Operand2->Evaluate(frame, dhint);
 
 	if (m_Op != OpSetLiteral) {
-		Value object = VMOps::GetField(parent, index);
+		Value object = VMOps::GetField(parent, index, m_DebugInfo);
 
 		Expression *lhs = MakeLiteral(object);
 		Expression *rhs = MakeLiteral(right);
@@ -409,7 +409,7 @@ Value IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Value object = m_Operand1->Evaluate(frame, dhint);
 	String index = m_Operand2->Evaluate(frame, dhint);
-	return VMOps::GetField(object, index);
+	return VMOps::GetField(object, index, m_DebugInfo);
 }
 
 bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
@@ -421,7 +421,7 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 		if (init_dict && VMOps::GetField(vparent, vindex).IsEmpty())
 			VMOps::SetField(vparent, vindex, new Dictionary());
 
-		*parent = VMOps::GetField(vparent, vindex);
+		*parent = VMOps::GetField(vparent, vindex, m_DebugInfo);
 	} else
 		*parent = m_Operand1->Evaluate(frame);
 

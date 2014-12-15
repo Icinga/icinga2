@@ -186,7 +186,7 @@ public:
 		}
 	}
 
-	static inline Value GetPrototypeField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value GetPrototypeField(const Value& context, const String& field, bool not_found_error = true, const DebugInfo& debugInfo = DebugInfo())
 	{
 		Type::Ptr type = context.GetReflectionType();
 
@@ -194,18 +194,24 @@ public:
 			Object::Ptr object = type->GetPrototype();
 
 			if (HasField(object, field))
-				return GetField(object, field);
+				return GetField(object, field, debugInfo);
 
 			type = type->GetBaseType();
 		} while (type);
 
-		return Empty;
+		if (not_found_error)
+			BOOST_THROW_EXCEPTION(ScriptError("Invalid field name: '" + field + "'", debugInfo));
+		else
+			return Empty;
 	}
 
 	static inline Value GetField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
 	{
+		if (context.IsEmpty())
+			return Empty;
+
 		if (!context.IsObject())
-			return GetPrototypeField(context, field);
+			return GetPrototypeField(context, field, true, debugInfo);
 
 		Object::Ptr object = context;
 
@@ -215,7 +221,7 @@ public:
 			if (dict->Contains(field))
 				return dict->Get(field);
 			else
-				return GetPrototypeField(context, field);
+				return GetPrototypeField(context, field, false, debugInfo);
 		}
 
 		Array::Ptr arr = dynamic_pointer_cast<Array>(object);
@@ -226,7 +232,7 @@ public:
 			try {
 				index = Convert::ToLong(field);
 			} catch (...) {
-				return GetPrototypeField(context, field);
+				return GetPrototypeField(context, field, true, debugInfo);
 			}
 
 			return arr->Get(index);
@@ -240,7 +246,7 @@ public:
 		int fid = type->GetFieldId(field);
 
 		if (fid == -1)
-			return GetPrototypeField(context, field);
+			return GetPrototypeField(context, field, true, debugInfo);
 
 		return object->GetField(fid);
 	}

@@ -307,6 +307,10 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "var e = 3; e");
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "Array.x");
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
+	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
