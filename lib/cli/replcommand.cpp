@@ -44,6 +44,11 @@ bool ReplCommand::IsHidden(void) const
 	return true;
 }
 
+ImpersonationLevel ReplCommand::GetImpersonationLevel(void) const
+{
+	return ImpersonateNone;
+}
+
 void ReplCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
