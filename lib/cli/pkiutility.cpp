@@ -132,9 +132,27 @@ int PkiUtility::SaveCert(const String& host, const String& port, const String& k
 {
 	TcpSocket::Ptr client = new TcpSocket();
 
-	client->Connect(host, port);
+	try {
+		client->Connect(host, port);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+		    << "Cannot connect to host '" << host << "' on port '" << port << "'";
+		Log(LogDebug, "cli")
+		    << "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
+		return 1;
+	}
 
-	boost::shared_ptr<SSL_CTX> sslContext = MakeSSLContext(certfile, keyfile);
+	boost::shared_ptr<SSL_CTX> sslContext;
+
+	try {
+		sslContext = MakeSSLContext(certfile, keyfile);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "'.";
+		Log(LogDebug, "cli")
+                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "':\n"  << DiagnosticInformation(ex);
+		return 1;
+	}
 
 	TlsStream::Ptr stream = new TlsStream(client, RoleClient, sslContext);
 
@@ -192,6 +210,8 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
                     << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
+		Log(LogDebug, "cli")
+                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "':\n"  << DiagnosticInformation(ex);
 		return 1;
 	}
 
