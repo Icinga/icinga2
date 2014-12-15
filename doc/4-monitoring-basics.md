@@ -1378,8 +1378,6 @@ Remote Host Terminal:
 
 Icinga 2 uses host and service [Dependency](#objecttype-dependency) objects
 for determing their network reachability.
-The `parent_host_name` and `parent_service_name` attributes are mandatory for
-service dependencies, `parent_host_name` is required for host dependencies.
 
 A service can depend on a host, and vice versa. A service has an implicit
 dependency (parent) to its host. A host to host dependency acts implicitly
@@ -1387,7 +1385,33 @@ as host parent relation.
 When dependencies are calculated, not only the immediate parent is taken into
 account but all parents are inherited.
 
-Notifications are suppressed if a host or service becomes unreachable.
+The `parent_host_name` and `parent_service_name` attributes are mandatory for
+service dependencies, `parent_host_name` is required for host dependencies.
+[Apply rules](#using-apply) will allow you to
+[determine these attributes](#dependencies-apply-custom-attributes) in a more
+dynamic fashion if required.
+
+    parent_host_name = "core-router"
+    parent_service_name = "uplink-port"
+
+Notifications are suppressed by default if a host or service becomes unreachable.
+You can control that option by defining the `disable_notifications` attribute.
+
+    disable_notifications = false
+
+The dependency state filter must be defined based on the parent object being
+either a host (`Up`, `Down`) or a service (`OK`, `Warning`, `Critical`, `Unknown`).
+
+The following example will make the dependency fail and trigger it if the parent
+object is **not** in one of these states:
+
+    states = [ OK, Critical, Unknown ]
+
+Rephrased: If the parent service object changes into the `Warning` state, this
+dependency will fail and render all child objects (hosts or services) unreachable.
+
+You can determine the child's reachability by querying the `is_reachable` attribute
+in for example [DB IDO](#schema-db-ido-extensions).
 
 ### <a id="dependencies-implicit-host-service"></a> Implicit Dependencies for Services on Host
 
