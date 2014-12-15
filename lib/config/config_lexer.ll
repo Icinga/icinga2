@@ -162,10 +162,9 @@ library				return T_LIBRARY;
 null				return T_NULL;
 true				{ yylval->boolean = 1; return T_BOOLEAN; }
 false				{ yylval->boolean = 0; return T_BOOLEAN; }
-const				return T_GLOBAL;
-local				return T_LOCAL;
+const				return T_CONST;
+var				return T_VAR;
 this				return T_THIS;
-global				return T_GLOBAL;
 use				return T_USE;
 apply				return T_APPLY;
 to				return T_TO;

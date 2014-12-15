@@ -141,8 +141,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_LESS_THAN "< (T_LESS_THAN)"
 %token T_GREATER_THAN "> (T_GREATER_THAN)"
 
-%token T_LOCAL "local (T_LOCAL)"
-%token T_GLOBAL "global (T_GLOBAL)"
+%token T_VAR "var (T_VAR)"
+%token T_CONST "const (T_CONST)"
 %token T_USE "use (T_USE)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
 %token <type> T_TYPE_ARRAY "array (T_TYPE_ARRAY)"
@@ -197,7 +197,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <cvlist> use_specifier_items
 %type <cvitem> use_specifier_item
 %type <num> object_declaration
-%type <scope> scope_specifier
 
 %right T_FOLLOWS
 %right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
@@ -219,7 +218,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left UNARY_MINUS
 %right '!' '~'
 %left '.' '(' '['
-%left T_LOCAL T_GLOBAL T_THIS
+%left T_VAR T_THIS
 %right ';' ','
 %right T_NEWLINE
 %{
@@ -534,20 +533,6 @@ combined_set_op: T_SET
 	}
 	;
 
-scope_specifier: T_LOCAL
-	{
-		$$ = ScopeLocal;
-	}
-	| T_GLOBAL
-	{
-		$$ = ScopeGlobal;
-	}
-	| T_THIS
-	{
-		$$ = ScopeThis;
-	}
-	;
-
 lterm: type
 	{
 		$$ = MakeLiteral(); // ASTify this
@@ -558,8 +543,7 @@ lterm: type
 	}
 	| rterm combined_set_op rterm
 	{
-		Expression *expr = $1;
-		$$ = new SetExpression(expr, $2, $3, DebugInfoRange(@1, @3));
+		$$ = new SetExpression($1, $2, $3, DebugInfoRange(@1, @3));
 	}
 	| T_INCLUDE T_STRING
 	{
@@ -652,16 +636,10 @@ lterm: type
 		$$ = new SetExpression(MakeIndexer(ScopeCurrent, $2), OpSetLiteral, fexpr, DebugInfoRange(@1, @7));
 		free($2);
 	}
-	| scope_specifier T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
+	| T_CONST T_IDENTIFIER T_SET rterm
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($8);
-		aexpr->MakeInline();
-
-		FunctionExpression *fexpr = new FunctionExpression(*$5, $7, aexpr, DebugInfoRange(@1, @8));
-		delete $5;
-
-		$$ = new SetExpression(MakeIndexer($1, $3), OpSetLiteral, fexpr, DebugInfoRange(@1, @8));
-		free($3);
+		$$ = new SetExpression(MakeIndexer(ScopeGlobal, $2), OpSetLiteral, $4);
+		free($2);
 	}
 	| rterm
 	{
@@ -770,15 +748,21 @@ rterm: T_STRING
 	{
 		$$ = new SubtractExpression(MakeLiteral(0), $2, DebugInfoRange(@1, @2));
 	}
-	| scope_specifier
+	| T_THIS
 	{
-		$$ = new GetScopeExpression($1);
+		$$ = new GetScopeExpression(ScopeThis);
 	}
-	| scope_specifier T_IDENTIFIER
+	| T_VAR rterm
 	{
-		Expression *scope = new GetScopeExpression($1);
-		$$ = new IndexerExpression(scope, MakeLiteral($2), DebugInfoRange(@1, @2));
-		free($2);
+		Expression *expr = $2;
+		BindToScope(expr, ScopeLocal);
+		$$ = new SetExpression(expr, OpSetLiteral, MakeLiteral(), DebugInfoRange(@1, @2));
+	}
+	| T_VAR rterm combined_set_op rterm
+	{
+		Expression *expr = $2;
+		BindToScope(expr, ScopeLocal);
+		$$ = new SetExpression(expr, $3, $4, DebugInfoRange(@1, @4));
 	}
 	| rterm_array
 	{

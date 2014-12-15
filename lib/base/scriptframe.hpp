@@ -17,11 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef VMFRAME_H
-#define VMFRAME_H
+#ifndef SCRIPTFRAME_H
+#define SCRIPTFRAME_H
 
 #include "config/i2-config.hpp"
 #include "base/dictionary.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/thread/tss.hpp>
 
 namespace icinga
@@ -34,7 +35,7 @@ struct I2_BASE_API ScriptFrame
 	ScriptFrame *NextFrame;
 
 	ScriptFrame(void)
-		: Locals(new Dictionary()), Self(Locals)
+		: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals())
 	{
 		NextFrame = GetCurrentFrame();
 		SetCurrentFrame(this);
