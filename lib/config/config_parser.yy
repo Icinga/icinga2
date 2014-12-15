@@ -641,6 +641,18 @@ lterm: type
 		$$ = new SetExpression(MakeIndexer(ScopeGlobal, $2), OpSetLiteral, $4);
 		free($2);
 	}
+	| T_VAR rterm
+	{
+		Expression *expr = $2;
+		BindToScope(expr, ScopeLocal);
+		$$ = new SetExpression(expr, OpSetLiteral, MakeLiteral(), DebugInfoRange(@1, @2));
+	}
+	| T_VAR rterm combined_set_op rterm
+	{
+		Expression *expr = $2;
+		BindToScope(expr, ScopeLocal);
+		$$ = new SetExpression(expr, $3, $4, DebugInfoRange(@1, @4));
+	}
 	| rterm
 	{
 		$$ = $1;
@@ -751,18 +763,6 @@ rterm: T_STRING
 	| T_THIS
 	{
 		$$ = new GetScopeExpression(ScopeThis);
-	}
-	| T_VAR rterm
-	{
-		Expression *expr = $2;
-		BindToScope(expr, ScopeLocal);
-		$$ = new SetExpression(expr, OpSetLiteral, MakeLiteral(), DebugInfoRange(@1, @2));
-	}
-	| T_VAR rterm combined_set_op rterm
-	{
-		Expression *expr = $2;
-		BindToScope(expr, ScopeLocal);
-		$$ = new SetExpression(expr, $3, $4, DebugInfoRange(@1, @4));
 	}
 	| rterm_array
 	{

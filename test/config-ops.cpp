@@ -299,6 +299,14 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "3 = 3");
 	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "var e; e");
+	BOOST_CHECK(expr->Evaluate(frame).IsEmpty());
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "var e = 3; e");
+	BOOST_CHECK(expr->Evaluate(frame) == 3);
+	delete expr;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
