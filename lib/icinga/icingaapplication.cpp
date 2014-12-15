@@ -134,7 +134,7 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 
 Dictionary::Ptr IcingaApplication::GetVars(void) const
 {
-	return ScriptGlobal::Get("Vars");
+	return ScriptGlobal::Get("Vars", &Empty);
 }
 
 String IcingaApplication::GetNodeName(void) const
