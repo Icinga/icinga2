@@ -252,17 +252,17 @@ Compiled binaries require the `-DCMAKE_BUILD_TYPE=RelWithDebInfo` or
 Install gdb:
 
     # yum install gdb
-    
+
     # zypper install gdb
-    
+
     # apt-get install gdb
-    
+
 Install the `boost`, `python` and `icinga2` pretty printers. Absolute paths are required,
 so please make sure to update the installation paths accordingly (`pwd`).
 
 Boost Pretty Printers:
 
-    $ mkdir ~/.gdb_printers && cd ~/.gdb_printers
+    $ mkdir -p ~/.gdb_printers && cd ~/.gdb_printers
     $ git clone https://github.com/ruediger/Boost-Pretty-Printer.git && cd Boost-Pretty-Printer
     $ pwd
     /home/michi/.gdb_printers/Boost-Pretty-Printer
@@ -272,41 +272,35 @@ Python Pretty Printers:
     $ cd ~/.gdb_printers
     $ svn co svn://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python
 
-Icinga 2 Pretty Printers: 
+Icinga 2 Pretty Printers:
 
-    $ mkdir -p ~/.gdb_printers/icinga2 && ~/.gdb_printers/icinga2
+    $ mkdir -p ~/.gdb_printers/icinga2 && cd ~/.gdb_printers/icinga2
     $ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/icingadbg.py
-    
+
 Now you'll need to modify/setup your `~/.gdbinit` configuration file.
 You can download the one from Icinga 2 and modify all paths.
-
-> **Note**
->
-> The path to the `pthread` library varies on distributions. Use
-> `find /usr/lib* -type f -name '*libpthread.so*'` to get the proper
-> path.
 
 Example on Fedora 20 x64:
 
     $ wget https://raw.githubusercontent.com/Icinga/icinga2/master/tools/debug/gdb/gdbinit -O ~/.gdbinit
     $ vim ~/.gdbinit
-    
-    set env LD_PRELOAD /usr/lib64/libpthread.so
-    
+
+    set print pretty on
+
     python
     import sys
     sys.path.insert(0, '/home/michi/.gdb_printers/icinga2')
     from icingadbg import register_icinga_printers
     register_icinga_printers()
     end
-    
+
     python
     import sys
     sys.path.insert(0, '/home/michi/.gdb_printers/python')
     from libstdcxx.v6.printers import register_libstdcxx_printers
     register_libstdcxx_printers(None)
     end
-    
+
     python
     import sys
     sys.path.insert(0, '/home/michi/.gdb_printers/Boost-Pretty-Printer')
@@ -314,14 +308,18 @@ Example on Fedora 20 x64:
     register_printer_gen(None)
     end
 
-    
+If you are getting the following error when running gdb, the `libstdcxx`
+printers are already preloaded in your environment and you can remove
+the duplicate import in your `~/.gdbinit` file.
+
+    RuntimeError: pretty-printer already registered: libstdc++-v6
 
 ### <a id="development-debug-gdb-run"></a> GDB Run
 
 Call GDB with the binary and all arguments and run it in foreground.
 
     # gdb --args /usr/sbin/icinga2 daemon -x debug
-    
+
 > **Note**
 >
 > If gdb tells you it's missing debug symbols, quit gdb and install
