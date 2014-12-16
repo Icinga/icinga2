@@ -39,17 +39,23 @@ used as constants or custom attributes.
     include_recursive
     library
     null
-    partial
     true
     false
     const
+    var
+    this
+    use
     apply
     to
     where
     import
     assign
     ignore
-    zone
+    function
+    return
+    for
+    if
+    else
     in
 
 You can escape reserved keywords using the `@` character. The following example
