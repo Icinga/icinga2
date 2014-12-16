@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK(expr->Evaluate(frame2) == Value(self));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "local v = 7; v");
+	expr = ConfigCompiler::CompileText("<test>", "var v = 7; v");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "local v = { a = 3}; v.a");
+	expr = ConfigCompiler::CompileText("<test>", "var v = { a = 3}; v.a");
 	BOOST_CHECK(expr->Evaluate(frame) == 3);
 	delete expr;
 
