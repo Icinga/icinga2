@@ -65,7 +65,7 @@ static void ScriptFrameCleanupHandler(void)
 	typedef std::pair<String, LivestatusScriptFrame> KVPair;
 
 	BOOST_FOREACH(const KVPair& kv, l_LivestatusScriptFrames) {
-		if (kv.second.Seen < Utility::GetTime() - 60)
+		if (kv.second.Seen < Utility::GetTime() - 1800)
 			cleanup_keys.push_back(kv.first);
 	}
 
