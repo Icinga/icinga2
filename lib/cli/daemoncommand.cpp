@@ -169,6 +169,8 @@ static void SigHupHandler(int)
 static bool Daemonize(void)
 {
 #ifndef _WIN32
+	Application::GetTP().Stop();
+
 	pid_t pid = fork();
 	if (pid == -1) {
 		return false;
@@ -199,6 +201,8 @@ static bool Daemonize(void)
 
 		Application::Exit(0);
 	}
+
+	Application::GetTP().Start();
 #endif /* _WIN32 */
 
 	return true;
