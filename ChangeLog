@@ -4,6 +4,48 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.2.2
+
+#### Changes
+
+* Bugfixes
+
+#### Issues
+
+* Bug #7045: icinga2 init-script doesn't validate configuration on reload action
+* Bug #7064: Missing host downtimes/comments in Livestatus
+* Bug #7301: Docs: Better explaination of dependency state filters
+* Bug #7314: double macros in command arguments seems to lead to exception
+* Bug #7511: Feature `compatlog' should flush output buffer on every new line
+* Bug #7518: update-config fails to create hosts
+* Bug #7591: CPU usage at 100% when check_interval = 0 in host object definition
+* Bug #7618: Repository does not support services which have a slash in their name
+* Bug #7683: If a parent host goes down, the child host isn't marked as unrechable in the db ido
+* Bug #7707: "node wizard" shouldn't crash when SaveCert fails
+* Bug #7745: Cluster heartbeats need to be more aggressive
+* Bug #7769: The unit tests still crash sometimes
+* Bug #7863: execute checks locally if command_endpoint == local endpoint
+* Bug #7878: Segfault on issuing node update-config
+* Bug #7882: Improve error reporting when libmysqlclient or libpq are missing
+* Bug #7891: CLI `icinga2 node update-config` doesn't sync configs from remote clients as expected
+* Bug #7913: /usr/lib/icinga2 is not owned by a package
+* Bug #7914: SUSE packages %set_permissions post statement wasn't moved to common
+* Bug #7917: update_config not updating configuration
+* Bug #7920: Test Classic UI config file with Apache 2.4
+* Bug #7929: Apache 2.2 fails with new apache conf
+* Bug #8002: typeof() seems to return null for arrays and dictionaries
+* Bug #8003: SIGABRT while evaluating apply rules
+* Bug #8028: typeof does not work for numbers
+* Bug #8039: Livestatus: Replace unixcat with nc -U
+* Bug #8048: Wrong command in documentation for installing Icinga 2 pretty printers.
+* Bug #8050: exception during config check
+* Bug #8051: Update host examples in Dependencies for Network Reachability documentation
+* Bug #8058: DB IDO: Missing last_hard_state column update in {host,service}status tables
+* Bug #8059: Unit tests fail on FreeBSD
+* Bug #8066: Setting a dictionary key to null does not cause the key/value to be removed
+* Bug #8070: Documentation: Add note on default notification interval in getting started notifications.conf
+* Bug #8075: No option to specify timeout to check_snmp and snmp manubulon commands
+
 ### What's New in Version 2.2.1
 
 #### Changes
