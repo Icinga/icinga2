@@ -57,10 +57,20 @@ do {							\
 %x HEREDOC
 
 %%
-\"				{ yyextra->m_LexBuffer.str(""); yyextra->m_LexBuffer.clear(); BEGIN(STRING); }
+\"				{
+	yyextra->m_LexBuffer.str("");
+	yyextra->m_LexBuffer.clear();
+
+	yyextra->m_LocationBegin = *yylloc;
+
+	BEGIN(STRING);
+				}
 
 <STRING>\"			{
 	BEGIN(INITIAL);
+
+	yylloc->FirstLine = yyextra->m_LocationBegin.FirstLine;
+	yylloc->FirstColumn = yyextra->m_LocationBegin.FirstColumn;
 
 	std::string str = yyextra->m_LexBuffer.str();
 	yylval->text = strdup(str.c_str());
@@ -69,7 +79,7 @@ do {							\
 				}
 
 <STRING>\n			{
-	BOOST_THROW_EXCEPTION(ScriptError("Unterminated string literal", *yylloc));
+	BOOST_THROW_EXCEPTION(ScriptError("Unterminated string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
 				}
 
 <STRING>\\[0-7]{1,3}		{
@@ -80,7 +90,7 @@ do {							\
 
 	if (result > 0xff) {
 		/* error, constant is out-of-bounds */
-		BOOST_THROW_EXCEPTION(ScriptError("Constant is out of bounds: " + String(yytext), *yylloc));
+		BOOST_THROW_EXCEPTION(ScriptError("Constant is out of bounds: " + String(yytext), DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
 	}
 
 	yyextra->m_LexBuffer << static_cast<char>(result);
@@ -90,7 +100,7 @@ do {							\
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
-	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
+	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
 				}
 
 <STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
@@ -107,12 +117,24 @@ do {							\
 		yyextra->m_LexBuffer << *yptr++;
 		       	       }
 
-<STRING><<EOF>>			{ BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", *yylloc)); }
+<STRING><<EOF>>			{
+	BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
+				}
 
-\{\{\{				{ yyextra->m_LexBuffer.str(""); yyextra->m_LexBuffer.clear(); BEGIN(HEREDOC); }
+\{\{\{				{
+	yyextra->m_LexBuffer.str("");
+	yyextra->m_LexBuffer.clear();
+
+	yyextra->m_LocationBegin = *yylloc;
+
+	BEGIN(HEREDOC);
+				}
 
 <HEREDOC>\}\}\}			{
 	BEGIN(INITIAL);
+
+	yylloc->FirstLine = yyextra->m_LocationBegin.FirstLine;
+	yylloc->FirstColumn = yyextra->m_LocationBegin.FirstColumn;
 
 	std::string str = yyextra->m_LexBuffer.str();
 	yylval->text = strdup(str.c_str());

@@ -115,6 +115,7 @@ public:
 
 	int m_IgnoreNewlines;
 	std::ostringstream m_LexBuffer;
+	CompilerDebugInfo m_LocationBegin;
 
 	std::stack<TypeRuleList::Ptr> m_RuleLists;
 	ConfigType::Ptr m_Type;
@@ -127,8 +128,6 @@ public:
 	std::stack<String> m_FKVar;
 	std::stack<String> m_FVVar;
 	std::stack<Expression *> m_FTerm;
-
-
 };
 
 class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>
