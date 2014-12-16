@@ -25,6 +25,7 @@
 #include "base/object.hpp"
 #include "base/array.hpp"
 #include "base/stream.hpp"
+#include "base/scriptframe.hpp"
 #include <deque>
 
 using namespace icinga;
@@ -37,6 +38,18 @@ enum LivestatusError
 	LivestatusErrorOK = 200,
 	LivestatusErrorNotFound = 404,
 	LivestatusErrorQuery = 452
+};
+
+struct LivestatusScriptFrame
+{
+	double Seen;
+	int NextLine;
+	std::map<String, String> Lines;
+	Dictionary::Ptr Locals;
+
+	LivestatusScriptFrame(void)
+		: NextLine(1)
+	{ }
 };
 
 /**
@@ -71,8 +84,9 @@ private:
 
 	String m_ResponseHeader;
 
-	/* Parameters for COMMAND queries. */
+	/* Parameters for COMMAND/SCRIPT queries. */
 	String m_Command;
+	String m_Session;
 
 	/* Parameters for invalid queries. */
 	int m_ErrorCode;
@@ -89,6 +103,7 @@ private:
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);
 	void ExecuteCommandHelper(const Stream::Ptr& stream);
+	void ExecuteScriptHelper(const Stream::Ptr& stream);
 	void ExecuteErrorHelper(const Stream::Ptr& stream);
 
 	void SendResponse(const Stream::Ptr& stream, int code, const String& data);

@@ -350,7 +350,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (!vm.count("validate"))
 		Logger::DisableTimestamp(false);
 
-	ScriptGlobal::Set("UseVfork", true);
+	if (!ScriptGlobal::Exists("UseVfork"))
+		ScriptGlobal::Set("UseVfork", true);
 
 	Log(LogInformation, "cli")
 	    << "Icinga application loader (version: " << Application::GetVersion()

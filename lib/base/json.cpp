@@ -102,13 +102,15 @@ static void Encode(yajl_gen handle, const Value& value)
 	}
 }
 
-String icinga::JsonEncode(const Value& value)
+String icinga::JsonEncode(const Value& value, bool pretty_print)
 {
 #if YAJL_MAJOR < 2
-	yajl_gen_config conf = { 0, "" };
+	yajl_gen_config conf = { pretty_print, "" };
 	yajl_gen handle = yajl_gen_alloc(&conf, NULL);
 #else /* YAJL_MAJOR */
 	yajl_gen handle = yajl_gen_alloc(NULL);
+	if (pretty_print)
+		yajl_gen_config(handle, yajl_gen_beautify, 1);
 #endif /* YAJL_MAJOR */
 
 	Encode(handle, value);
