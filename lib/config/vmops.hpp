@@ -193,7 +193,7 @@ public:
 		do {
 			Object::Ptr object = type->GetPrototype();
 
-			if (HasField(object, field))
+			if (object && HasField(object, field))
 				return GetField(object, field, debugInfo);
 
 			type = type->GetBaseType();
