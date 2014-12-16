@@ -564,7 +564,14 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsTimestampNow(value)) {
 		*result = "NOW()";
 	} else {
-		*result = "E'" + Escape(rawvalue) + "'";
+		Value fvalue;
+
+		if (rawvalue.IsBoolean())
+			fvalue = Convert::ToLong(rawvalue);
+		else
+			fvalue = rawvalue;
+
+		*result = "E'" + Escape(fvalue) + "'";
 	}
 
 	return true;

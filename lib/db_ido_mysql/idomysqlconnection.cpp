@@ -570,7 +570,14 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsTimestampNow(value)) {
 		*result = "NOW()";
 	} else {
-		*result = "'" + Escape(rawvalue) + "'";
+		Value fvalue;
+
+		if (rawvalue.IsBoolean())
+			fvalue = Convert::ToLong(rawvalue);
+		else
+			fvalue = rawvalue;
+
+		*result = "'" + Escape(fvalue) + "'";
 	}
 
 	return true;
