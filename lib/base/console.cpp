@@ -28,13 +28,17 @@ INITIALIZE_ONCE(&Console::DetectType);
 static ConsoleType l_ConsoleType = Console_Dumb;
 
 ConsoleColorTag::ConsoleColorTag(int color)
-	: m_Color(color)
+	: m_Color(color), m_ConsoleType(-1)
+{ }
+
+ConsoleColorTag::ConsoleColorTag(int color, ConsoleType consoleType)
+	: m_Color(color), m_ConsoleType(consoleType)
 { }
 
 std::ostream& icinga::operator<<(std::ostream& fp, const ConsoleColorTag& cct)
 {
 #ifndef _WIN32
-	if (Console::GetType(fp) == Console_VT100)
+	if (cct.m_ConsoleType == Console_VT100 || Console::GetType(fp) == Console_VT100)
 		Console::PrintVT100ColorCode(fp, cct.m_Color);
 #else /* _WIN32 */
 	if (Console::GetType(fp) == Console_Windows) {

@@ -25,6 +25,13 @@
 #include "base/application.hpp"
 #include <iostream>
 
+#ifdef HAVE_LIBREADLINE
+extern "C" {
+#include <readline/readline.h>
+#include <readline/history.h>
+}
+#endif /* HAVE_LIBREADLINE */
+
 using namespace icinga;
 namespace po = boost::program_options;
 
@@ -72,12 +79,41 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 		String fileName = "<" + Convert::ToString(next_line) + ">";
 		next_line++;
 
-		std::cout << ConsoleColorTag(Console_ForegroundCyan)
-		    << fileName << ConsoleColorTag(Console_ForegroundRed) << " => "
-		    << ConsoleColorTag(Console_Normal);
+#ifdef HAVE_LIBREADLINE
+		ConsoleType type = Console::GetType(std::cout);
 
+		std::stringstream prompt_sbuf;
+
+		prompt_sbuf << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_ForegroundCyan, type)
+		    << RL_PROMPT_END_IGNORE << fileName
+		    << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_ForegroundRed, type)
+		    << RL_PROMPT_END_IGNORE << " => "
+		    << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_Normal, type);
+#else /* HAVE_LIBREADLINE */
+		std::cout << ConsoleColorTag(Console_ForegroundCyan)
+		    << fileName
+		    << ConsoleColorTag(Console_ForegroundRed)
+		    << " => "
+		    << ConsoleColorTag(Console_Normal);
+#endif /* HAVE_LIBREADLINE */
+
+#ifdef HAVE_LIBREADLINE
+		String prompt = prompt_sbuf.str();
+
+		char *rline = readline(prompt.CStr());
+
+		if (!rline)
+			break;
+
+		if (*rline)
+			add_history(rline);
+
+		String line = rline;
+		free(rline);
+#else /* HAVE_LIBREADLINE */
 		std::string line;
 		std::getline(std::cin, line);
+#endif /* HAVE_LIBREADLINE */
 
 		Expression *expr;
 

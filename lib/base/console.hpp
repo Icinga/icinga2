@@ -68,11 +68,13 @@ class I2_BASE_API ConsoleColorTag
 {
 public:
 	ConsoleColorTag(int color);
+	ConsoleColorTag(int color, ConsoleType consoleType);
 
 	friend I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
 
 private:
 	int m_Color;
+	int m_ConsoleType;
 };
 
 I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
