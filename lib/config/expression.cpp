@@ -159,12 +159,12 @@ Value DivideExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 
 Value ModuloExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return (long)m_Operand1->Evaluate(frame) % (long)m_Operand2->Evaluate(frame);
+	return m_Operand1->Evaluate(frame) % m_Operand2->Evaluate(frame);
 }
 
 Value XorExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return (long)m_Operand1->Evaluate(frame) ^ (long)m_Operand2->Evaluate(frame);
+	return m_Operand1->Evaluate(frame) ^ m_Operand2->Evaluate(frame);
 }
 
 Value BinaryAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

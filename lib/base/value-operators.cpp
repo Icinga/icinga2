@@ -336,11 +336,9 @@ Value icinga::operator*(int lhs, const Value& rhs)
 
 Value icinga::operator/(const Value& lhs, const Value& rhs)
 {
-	if (lhs.IsEmpty())
-		return 0;
-	else if (rhs.IsEmpty())
+	if (rhs.IsEmpty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Right-hand side argument for operator / is Empty."));
-	else if (lhs.IsNumber() && rhs.IsNumber()) {
+	else if ((lhs.IsEmpty() || lhs.IsNumber()) && rhs.IsNumber()) {
 		if (static_cast<double>(rhs) == 0)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Right-hand side argument for operator / is 0."));
 
@@ -367,6 +365,67 @@ Value icinga::operator/(const Value& lhs, int rhs)
 Value icinga::operator/(int lhs, const Value& rhs)
 {
 	return Value(lhs) / rhs;
+}
+
+Value icinga::operator%(const Value& lhs, const Value& rhs)
+{
+	if (rhs.IsEmpty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Right-hand side argument for operator % is Empty."));
+	else if ((rhs.IsNumber() || lhs.IsNumber()) && rhs.IsNumber()) {
+		if (static_cast<double>(rhs) == 0)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Right-hand side argument for operator % is 0."));
+
+		return static_cast<int>(lhs) % static_cast<int>(rhs);
+	} else
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator % cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
+}
+
+Value icinga::operator%(const Value& lhs, double rhs)
+{
+	return lhs % Value(rhs);
+}
+
+Value icinga::operator%(double lhs, const Value& rhs)
+{
+	return Value(lhs) % rhs;
+}
+
+Value icinga::operator%(const Value& lhs, int rhs)
+{
+	return lhs % Value(rhs);
+}
+
+Value icinga::operator%(int lhs, const Value& rhs)
+{
+	return Value(lhs) % rhs;
+}
+
+Value icinga::operator^(const Value& lhs, const Value& rhs)
+{
+	if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+		return static_cast<int>(lhs) ^ static_cast<int>(rhs);
+	else
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator & cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
+}
+
+Value icinga::operator^(const Value& lhs, double rhs)
+{
+	return lhs & Value(rhs);
+}
+
+Value icinga::operator^(double lhs, const Value& rhs)
+{
+	return Value(lhs) & rhs;
+}
+
+Value icinga::operator^(const Value& lhs, int rhs)
+{
+	return lhs & Value(rhs);
+}
+
+Value icinga::operator^(int lhs, const Value& rhs)
+{
+	return Value(lhs) & rhs;
 }
 
 Value icinga::operator&(const Value& lhs, const Value& rhs)
