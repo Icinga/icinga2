@@ -22,6 +22,7 @@
 #include "config/configcompilercontext.hpp"
 #include "base/json.hpp"
 #include "base/console.hpp"
+#include "base/application.hpp"
 #include <iostream>
 
 using namespace icinga;
@@ -64,6 +65,8 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 	ScriptFrame frame;
 	std::map<String, String> lines;
 	int next_line = 1;
+
+	std::cout << "Icinga (version: " << Application::GetVersion() << ")\n";
 
 	while (std::cin.good()) {
 		String fileName = "<" + Convert::ToString(next_line) + ">";
