@@ -172,14 +172,18 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 		} else {
 			Socket::Ptr socket;
 
+#ifndef _WIN32
 			if (addr[0] == '/') {
 				UnixSocket::Ptr usocket = new UnixSocket();
 				usocket->Connect(addr);
 				socket = usocket;
 			} else {
+#endif /* _WIN32 */
 				Log(LogCritical, "ReplCommand", "Sorry, TCP sockets aren't supported yet.");
 				return 1;
+#ifndef _WIN32
 			}
+#endif /* _WIN32 */
 
 			String query = "SCRIPT " + session + "\n" + line + "\n\n";
 
