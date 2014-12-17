@@ -34,6 +34,11 @@ Value::operator double(void) const
 	if (value)
 		return *value;
 
+	const bool *fvalue = boost::get<bool>(&m_Value);
+
+	if (fvalue)
+		return *fvalue;
+
 	if (IsEmpty())
 		return 0;
 
@@ -72,7 +77,11 @@ Value::operator String(void) const
 
 std::ostream& icinga::operator<<(std::ostream& stream, const Value& value)
 {
-	stream << static_cast<String>(value);
+	if (value.IsBoolean())
+		stream << static_cast<int>(value);
+	else
+		stream << static_cast<String>(value);
+
 	return stream;
 }
 

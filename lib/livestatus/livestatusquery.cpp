@@ -446,6 +446,8 @@ void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, i
 
 		if (value.IsObjectType<Array>())
 			PrintCsvArray(fp, value, level + 1);
+		else if (value.IsBoolean())
+			fp << Convert::ToLong(value);
 		else
 			fp << value;
 	}

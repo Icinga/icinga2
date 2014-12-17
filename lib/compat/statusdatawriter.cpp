@@ -522,7 +522,7 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 		if (kv.first.IsEmpty())
 			continue;
 
-		String value;
+		Value value;
 
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>()) {
 			value = JsonEncode(kv.second);

@@ -59,6 +59,11 @@ public:
 		}
 	}
 
+	static inline long ToLong(const Value& val)
+	{
+		return val;
+	}
+
 	static inline double ToDouble(const Value& val)
 	{
 		return val;

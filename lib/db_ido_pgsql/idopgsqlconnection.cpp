@@ -567,7 +567,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		Value fvalue;
 
 		if (rawvalue.IsBoolean())
-			fvalue = rawvalue.ToBool() ? 1 : 0;
+			fvalue = Convert::ToLong(rawvalue);
 		else
 			fvalue = rawvalue;
 
