@@ -97,12 +97,7 @@ BuildRequires: cmake
 BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: make
-
-%if "%{_vendor}" == "suse"
-BuildRequires: libreadline-devel
-%else
 BuildRequires: readline-devel
-%endif
 
 %if "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
 # el5 requires packages.icinga.org
