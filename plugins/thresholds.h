@@ -20,6 +20,7 @@
 #define THRESHOLDS_H
 #include <string>
 #include <Windows.h>
+#include <vector>
 
 enum Bunit { BunitB = 0, BunitkB = 1, BunitMB = 2, BunitGB = 3, BunitTB = 4 };
 enum Tunit { TunitMS, TunitS, TunitM, TunitH };
@@ -32,7 +33,7 @@ public:
 	//TRUE means everything BELOW upper/outside [lower-upper] is fine
 	bool legal, perc, set;
 
-	threshold(bool l = true);
+	threshold();
 
 	threshold(const double v, const double c, bool l = true, bool p = false);
 
@@ -45,6 +46,8 @@ public:
 	std::wstring pString();
 
 };
+std::wstring removeZero(double);
+std::vector<std::wstring> splitMultiOptions(std::wstring);
 
 Bunit parseBUnit(const std::wstring&);
 std::wstring BunitStr(const Bunit&);
