@@ -102,7 +102,12 @@ BuildRequires: make
 # el5 requires packages.icinga.org
 BuildRequires: boost153-devel
 %else
+%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
+# sles 11 sp3 requires packages.icinga.org
+BuildRequires: boost153-devel
+%else
 BuildRequires: boost-devel >= 1.41
+%endif
 %endif
 
 %if 0%{?use_systemd}
@@ -202,8 +207,8 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
 # details in https://dev.icinga.org/issues/5033
-CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib \
- -DBOOST_INCLUDEDIR=/usr/include \
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
+ -DBOOST_INCLUDEDIR=/usr/include/boost153 \
  -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0' \
  -DBoost_NO_SYSTEM_PATHS=TRUE \
  -DBUILD_TESTING=FALSE \
@@ -214,6 +219,14 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib \
 %if "%{_vendor}" != "suse"
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_libdir}/nagios/plugins"
 %else
+%if 0%{?suse_version} < 1310
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
+ -DBOOST_INCLUDEDIR=/usr/include/boost153 \
+ -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0' \
+ -DBoost_NO_SYSTEM_PATHS=TRUE \
+ -DBUILD_TESTING=FALSE \
+ -DBoost_NO_BOOST_CMAKE=TRUE"
+%endif
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
 %endif
 
