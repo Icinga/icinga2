@@ -35,7 +35,11 @@ endif()
 
 add_library(cli SHARED ${cli_SOURCES})
 
-target_link_libraries(cli ${Boost_LIBRARIES} readline base config remote)
+target_link_libraries(cli ${Boost_LIBRARIES} base config remote)
+
+if(HAVE_LIBREADLINE)
+  target_link_libraries(cli readline)
+endif()
 
 set_target_properties (
   cli PROPERTIES
