@@ -28,12 +28,12 @@
 #include "base/networkstream.hpp"
 #include <iostream>
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBNCURSES)
 extern "C" {
 #include <readline/readline.h>
 #include <readline/history.h>
 }
-#endif /* HAVE_LIBREADLINE */
+#endif /* HAVE_LIBREADLINE && HAVE_LIBNCURSES */
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -92,7 +92,7 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 		String fileName = "<" + Convert::ToString(next_line) + ">";
 		next_line++;
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBNCURSES)
 		ConsoleType type = Console::GetType(std::cout);
 
 		std::stringstream prompt_sbuf;
@@ -102,15 +102,15 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 		    << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_ForegroundRed, type)
 		    << RL_PROMPT_END_IGNORE << " => "
 		    << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_Normal, type);
-#else /* HAVE_LIBREADLINE */
+#else /* HAVE_LIBREADLINE && HAVE_LIBNCURSES */
 		std::cout << ConsoleColorTag(Console_ForegroundCyan)
 		    << fileName
 		    << ConsoleColorTag(Console_ForegroundRed)
 		    << " => "
 		    << ConsoleColorTag(Console_Normal);
-#endif /* HAVE_LIBREADLINE */
+#endif /* HAVE_LIBREADLINE && HAVE_LIBNCURSES */
 
-#ifdef HAVE_LIBREADLINE
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBNCURSES)
 		String prompt = prompt_sbuf.str();
 
 		char *rline = readline(prompt.CStr());

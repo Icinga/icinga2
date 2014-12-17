@@ -10,6 +10,7 @@
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_NICE
 #cmakedefine HAVE_LIBREADLINE
+#cmakedefine HAVE_LIBNCURSES
 
 #cmakedefine ICINGA2_UNITY_BUILD
 
