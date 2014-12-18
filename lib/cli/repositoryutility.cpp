@@ -20,7 +20,6 @@
 #include "cli/repositoryutility.hpp"
 #include "cli/clicommand.hpp"
 #include "config/configtype.hpp"
-#include "config/configcompilercontext.hpp"
 #include "config/configcompiler.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"

@@ -216,7 +216,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	ConfigType::Ptr ctype = ConfigType::GetByName(GetType());
 
-	if (ctype)
+	if (ctype) {
 		TypeRuleUtilities utils;
 		ctype->ValidateItem(GetName(), dobj, GetDebugInfo(), &utils);
 	}

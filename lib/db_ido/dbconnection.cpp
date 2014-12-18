@@ -22,7 +22,6 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/dynamictype.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
@@ -30,6 +29,7 @@
 #include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/scriptfunction.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -425,6 +425,6 @@ void DbConnection::ValidateFailoverTimeout(const String& location, const DbConne
 {
 	if (object->GetFailoverTimeout() < 60) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Failover timeout minimum is 60s.", GetDebugInfo()));
+		    location + ": Failover timeout minimum is 60s.", object->GetDebugInfo()));
 	}
 }

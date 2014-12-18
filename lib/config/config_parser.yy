@@ -23,7 +23,6 @@
 #include "config/i2-config.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/configcompiler.hpp"
-#include "config/configcompilercontext.hpp"
 #include "config/typerule.hpp"
 #include "config/typerulelist.hpp"
 #include "config/expression.hpp"

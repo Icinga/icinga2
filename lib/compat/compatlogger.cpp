@@ -25,7 +25,6 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
@@ -571,7 +570,7 @@ void CompatLogger::ValidateRotationMethod(const String& location, const CompatLo
 	if (rotation_method != "HOURLY" && rotation_method != "DAILY" &&
 	    rotation_method != "WEEKLY" && rotation_method != "MONTHLY" && rotation_method != "NONE") {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Rotation method '" + rotation_method + "' is invalid.", GetDebugInfo()));
+		    location + ": Rotation method '" + rotation_method + "' is invalid.", object->GetDebugInfo()));
 	}
 }
 

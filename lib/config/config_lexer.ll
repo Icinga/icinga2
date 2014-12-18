@@ -20,7 +20,6 @@
 
 #include "config/configcompiler.hpp"
 #include "config/typerule.hpp"
-#include "config/configcompilercontext.hpp"
 #include "config/expression.hpp"
 
 using namespace icinga;

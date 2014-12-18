@@ -21,25 +21,12 @@
 #define CONFIGCOMPILERCONTEXT_H
 
 #include "config/i2-config.hpp"
-#include "base/debuginfo.hpp"
 #include "base/stdiostream.hpp"
 #include "base/dictionary.hpp"
 #include <boost/thread/mutex.hpp>
-#include <vector>
 
 namespace icinga
 {
-
-struct I2_CONFIG_API ConfigCompilerMessage
-{
-	bool Error;
-	String Text;
-	DebugInfo Location;
-
-	ConfigCompilerMessage(bool error, const String& text, const DebugInfo& di)
-		: Error(error), Text(text), Location(di)
-	{ }
-};
 
 /*
  * @ingroup config

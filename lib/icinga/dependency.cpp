@@ -19,9 +19,9 @@
 
 #include "icinga/dependency.hpp"
 #include "icinga/service.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/logger.hpp"
 #include "base/scriptfunction.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -209,11 +209,11 @@ void Dependency::ValidateFilters(const String& location, const Dependency::Ptr& 
 
 	if (object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid for host dependency.", GetDebugInfo()));
+		    location + ": State filter is invalid for host dependency.", object->GetDebugInfo()));
 	}
 
 	if (!object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid for service dependency.", GetDebugInfo()));
+		    location + ": State filter is invalid for service dependency.", object->GetDebugInfo()));
 	}
 }

@@ -18,10 +18,10 @@
  ******************************************************************************/
 
 #include "icinga/checkable.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/scriptfunction.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
 
@@ -271,6 +271,6 @@ void Checkable::ValidateCheckInterval(const String& location, const Checkable::P
 {
 	if (object->GetCheckInterval() <= 0) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": check_interval must be greater than 0.", GetDebugInfo()));
+		    location + ": check_interval must be greater than 0.", object->GetDebugInfo()));
 	}
 }

@@ -19,7 +19,6 @@
 
 #include "livestatus/livestatuslistener.hpp"
 #include "icinga/perfdatavalue.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/dynamictype.hpp"
@@ -189,6 +188,6 @@ void LivestatusListener::ValidateSocketType(const String& location, const Livest
 
 	if (socket_type != "unix" && socket_type != "tcp") {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Socket type '" + socket_type + "' is invalid.", GetDebugInfo()));
+		    location + ": Socket type '" + socket_type + "' is invalid.", object->GetDebugInfo()));
 	}
 }

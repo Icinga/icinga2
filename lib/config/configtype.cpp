@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "config/configtype.hpp"
-#include "config/configcompilercontext.hpp"
 #include "config/vmops.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"

@@ -21,7 +21,6 @@
 #include "icinga/service.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/initialize.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"

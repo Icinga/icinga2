@@ -22,7 +22,6 @@
 #include "icinga/hostgroup.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/scheduleddowntime.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"

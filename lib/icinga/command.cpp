@@ -19,7 +19,7 @@
 
 #include "icinga/command.hpp"
 #include "base/scriptfunction.hpp"
-#include "config/configcompilercontext.hpp"
+#include "base/exception.hpp"
 
 using namespace icinga;
 
@@ -48,7 +48,7 @@ void Command::ValidateAttributes(const String& location, const Command::Ptr& obj
 {
 	if (object->GetArguments() != Empty && !object->GetCommandLine().IsObjectType<Array>()) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Attribute 'command' must be an array if the 'arguments' attribute is set.", GetDebugInfo()));
+		    location + ": Attribute 'command' must be an array if the 'arguments' attribute is set.", object->GetDebugInfo()));
 	}
 }
 

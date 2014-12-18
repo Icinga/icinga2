@@ -20,7 +20,6 @@
 #include "icinga/notification.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/service.hpp"
-#include "config/configcompilercontext.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
@@ -502,12 +501,12 @@ void Notification::ValidateFilters(const String& location, const Notification::P
 
 	if (object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid.", GetDebugInfo()));
+		    location + ": State filter is invalid.", object->GetDebugInfo()));
 	}
 
 	if (!object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": State filter is invalid.", GetDebugInfo()));
+		    location + ": State filter is invalid.", object->GetDebugInfo()));
 	}
 
 	int tfilter = FilterArrayToInt(object->GetTypes(), 0);
@@ -516,7 +515,7 @@ void Notification::ValidateFilters(const String& location, const Notification::P
 	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
 	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-		    location + ": Type filter is invalid.", GetDebugInfo()));
+		    location + ": Type filter is invalid.", object->GetDebugInfo()));
 	}
 }
 
