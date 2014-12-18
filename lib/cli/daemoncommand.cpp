@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "cli/daemoncommand.hpp"
-#include "config/configcompilercontext.hpp"
 #include "config/configcompiler.hpp"
+#include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
@@ -60,16 +60,20 @@ static String LoadAppType(const String& typeSpec)
 	return typeSpec.SubStr(index + 1);
 }
 
-static void ExecuteExpression(Expression *expression)
+static bool ExecuteExpression(Expression *expression)
 {
+	if (!expression)
+		return false;
+
 	try {
 		ScriptFrame frame;
 		expression->Evaluate(frame);
-	} catch (const ScriptError& ex) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
 	} catch (const std::exception& ex) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, DiagnosticInformation(ex));
+		Log(LogCritical, "config", DiagnosticInformation(ex));
+		Application::Exit(EXIT_FAILURE);
 	}
+
+	return true;
 }
 
 static void IncludeZoneDirRecursive(const String& path)
@@ -95,22 +99,18 @@ static void IncludeNonLocalZone(const String& zonePath)
 static bool LoadConfigFiles(const boost::program_options::variables_map& vm, const String& appType,
     const String& objectsFile = String(), const String& varsfile = String())
 {
-	ConfigCompilerContext::GetInstance()->Reset();
-
 	if (!objectsFile.IsEmpty())
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
 	if (vm.count("config") > 0) {
 		BOOST_FOREACH(const String& configPath, vm["config"].as<std::vector<std::string> >()) {
 			Expression *expression = ConfigCompiler::CompileFile(configPath);
-			if (expression)
-				ExecuteExpression(expression);
+			ExecuteExpression(expression);
 			delete expression;
 		}
 	} else if (!vm.count("no-config")) {
 		Expression *expression = ConfigCompiler::CompileFile(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
-		if (expression)
-			ExecuteExpression(expression);
+		ExecuteExpression(expression);
 		delete expression;
 	}
 
@@ -127,8 +127,7 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 	String name, fragment;
 	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		Expression *expression = ConfigCompiler::CompileText(name, fragment);
-		if (expression)
-			ExecuteExpression(expression);
+		ExecuteExpression(expression);
 		delete expression;
 	}
 
@@ -138,42 +137,7 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	bool result = ConfigItem::ValidateItems();
-
-	int warnings = 0, errors = 0;
-
-	BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
-		std::ostringstream locbuf;
-		ShowCodeFragment(locbuf, message.Location);
-		String location = locbuf.str();
-
-		String logmsg;
-
-		if (!location.IsEmpty())
-			logmsg = "Location:\n" + location;
-
-		logmsg += String("\nConfig ") + (message.Error ? "error" : "warning") + ": " + message.Text;
-
-		if (message.Error) {
-			Log(LogCritical, "config", logmsg);
-			errors++;
-		} else {
-			Log(LogWarning, "config", logmsg);
-			warnings++;
-		}
-	}
-
-	if (warnings > 0 || errors > 0) {
-		LogSeverity severity;
-
-		if (errors == 0)
-			severity = LogWarning;
-		else
-			severity = LogCritical;
-
-		Log(severity, "config")
-		    << errors << " errors, " << warnings << " warnings.";
-	}
+	bool result = ConfigItem::CommitItems();
 
 	if (!result)
 		return false;

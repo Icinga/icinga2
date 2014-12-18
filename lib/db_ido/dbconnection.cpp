@@ -424,7 +424,7 @@ void DbConnection::PrepareDatabase(void)
 void DbConnection::ValidateFailoverTimeout(const String& location, const DbConnection::Ptr& object)
 {
 	if (object->GetFailoverTimeout() < 60) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": Failover timeout minimum is 60s.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Failover timeout minimum is 60s.", GetDebugInfo()));
 	}
 }

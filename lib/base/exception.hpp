@@ -25,6 +25,7 @@
 #include "base/stacktrace.hpp"
 #include "base/context.hpp"
 #include "base/utility.hpp"
+#include "base/debuginfo.hpp"
 #include <sstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -42,6 +43,25 @@ namespace icinga
 class I2_BASE_API user_error : virtual public std::exception, virtual public boost::exception
 { };
 
+/*
+ * @ingroup base
+ */
+class I2_BASE_API ScriptError : virtual public user_error
+{
+public:
+	ScriptError(const String& message);
+	ScriptError(const String& message, const DebugInfo& di);
+	~ScriptError(void) throw();
+
+	virtual const char *what(void) const throw();
+
+	DebugInfo GetDebugInfo(void) const;
+
+private:
+	String m_Message;
+	DebugInfo m_DebugInfo;
+};
+
 I2_BASE_API StackTrace *GetLastExceptionStack(void);
 I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);
 
@@ -58,9 +78,23 @@ String DiagnosticInformation(const T& ex, StackTrace *stack = NULL, ContextTrace
 {
 	std::ostringstream result;
 
-	result << boost::diagnostic_information(ex);
+	const user_error *uex = dynamic_cast<const user_error *>(&ex);
 
-	if (dynamic_cast<const user_error *>(&ex) == NULL) {
+	String message = ex.what();
+
+	if (!uex || message.IsEmpty())
+		result << boost::diagnostic_information(ex);
+	else
+		result << "Error: " << message;
+
+	const ScriptError *dex = dynamic_cast<const ScriptError *>(&ex);
+
+	if (dex && !dex->GetDebugInfo().Path.IsEmpty()) {
+		result << "\nLocation:\n";
+		ShowCodeFragment(result, dex->GetDebugInfo());
+	}
+
+	if (!uex) {
 		if (boost::get_error_info<StackTraceErrorInfo>(ex) == NULL) {
 			result << std::endl;
 

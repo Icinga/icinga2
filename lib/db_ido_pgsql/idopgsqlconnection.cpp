@@ -116,7 +116,7 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 
 void IdoPgsqlConnection::AssertOnWorkQueue(void)
 {
-	ASSERT(boost::this_thread::get_id() == m_QueryQueue.GetThreadId());
+	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
 void IdoPgsqlConnection::Disconnect(void)

@@ -501,13 +501,13 @@ void Notification::ValidateFilters(const String& location, const Notification::P
 	int sfilter = FilterArrayToInt(object->GetStates(), 0);
 
 	if (object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": State filter is invalid.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": State filter is invalid.", GetDebugInfo()));
 	}
 
 	if (!object->GetServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": State filter is invalid.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": State filter is invalid.", GetDebugInfo()));
 	}
 
 	int tfilter = FilterArrayToInt(object->GetTypes(), 0);
@@ -515,8 +515,8 @@ void Notification::ValidateFilters(const String& location, const Notification::P
 	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
 	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
 	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": Type filter is invalid.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Type filter is invalid.", GetDebugInfo()));
 	}
 }
 

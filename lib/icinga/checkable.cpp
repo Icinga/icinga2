@@ -270,7 +270,7 @@ Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 void Checkable::ValidateCheckInterval(const String& location, const Checkable::Ptr& object)
 {
 	if (object->GetCheckInterval() <= 0) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": check_interval must be greater than 0.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": check_interval must be greater than 0.", GetDebugInfo()));
 	}
 }

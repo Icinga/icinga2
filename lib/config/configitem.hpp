@@ -64,9 +64,8 @@ public:
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
-	static bool ValidateItems(void);
+	static bool CommitItems(void);
 	static bool ActivateItems(void);
-	static void DiscardItems(void);
 
 	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
 
@@ -96,7 +95,7 @@ private:
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);
 
-	static bool CommitNewItems(ParallelWorkQueue& upq);
+	static bool CommitNewItems(WorkQueue& upq);
 };
 
 }

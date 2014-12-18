@@ -24,7 +24,7 @@
 #include "base/json.hpp"
 #include "base/object.hpp"
 #include "base/logger.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>

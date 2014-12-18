@@ -229,8 +229,6 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 	change->Set("command", "add");
 	change->Set("attrs", attrs);
 
-	ConfigCompilerContext::GetInstance()->Reset();
-
 	String fname, fragment;
 	BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		Expression *expression = ConfigCompiler::CompileText(fname, fragment);
@@ -258,25 +256,13 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 		Object::Ptr object = dtype->Instantiate();
 		Deserialize(object, vattrs, false, FAConfig);
 
-		RepositoryTypeRuleUtilities utils;
-		ctype->ValidateItem(name, object, DebugInfo(), &utils);
-
-		int warnings = 0, errors = 0;
-
-		BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
-			String logmsg = String("Config ") + (message.Error ? "error" : "warning") + ": " + message.Text;
-
-			if (message.Error) {
-				Log(LogCritical, "config", logmsg);
-				errors++;
-			} else {
-				Log(LogWarning, "config", logmsg);
-				warnings++;
-			}
-		}
-
-		if (errors > 0)
+		try {
+			RepositoryTypeRuleUtilities utils;
+			ctype->ValidateItem(name, object, DebugInfo(), &utils);
+		} catch (const ScriptError& ex) {
+			Log(LogCritical, "config", DiagnosticInformation(ex));
 			return false;
+		}
 	}
 
 	if (CheckChangeExists(change)) {

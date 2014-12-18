@@ -188,7 +188,7 @@ void LivestatusListener::ValidateSocketType(const String& location, const Livest
 	String socket_type = object->GetSocketType();
 
 	if (socket_type != "unix" && socket_type != "tcp") {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": Socket type '" + socket_type + "' is invalid.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Socket type '" + socket_type + "' is invalid.", GetDebugInfo()));
 	}
 }

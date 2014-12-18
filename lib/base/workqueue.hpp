@@ -32,13 +32,7 @@
 namespace icinga
 {
 
-typedef boost::function<void (void)> WorkCallback;
-
-struct WorkItem
-{
-	WorkCallback Callback;
-	bool AllowInterleaved;
-};
+typedef boost::function<void (void)> Task;
 
 /**
  * A workqueue.
@@ -50,53 +44,43 @@ class I2_BASE_API WorkQueue
 public:
 	typedef boost::function<void (boost::exception_ptr)> ExceptionCallback;
 
-	WorkQueue(size_t maxItems = 25000);
+	WorkQueue(size_t maxItems = 25000, int threadCount = 1);
 	~WorkQueue(void);
 
-	void Enqueue(const WorkCallback& callback, bool allowInterleaved = false);
+	void Enqueue(const Task& task, bool allowInterleaved = false);
 	void Join(bool stop = false);
 
-	boost::thread::id GetThreadId(void) const;
+	bool IsWorkerThread(void) const;
+
+	size_t GetLength(void);
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
-	size_t GetLength(void);
+	bool HasExceptions(void) const;
+	std::vector<boost::exception_ptr> GetExceptions(void) const;
+	void ReportExceptions(const String& facility) const;
 
 private:
 	int m_ID;
 	static int m_NextID;
+	int m_ThreadCount;
+	bool m_Spawned;
 
-	boost::mutex m_Mutex;
+	mutable boost::mutex m_Mutex;
 	boost::condition_variable m_CVEmpty;
 	boost::condition_variable m_CVFull;
 	boost::condition_variable m_CVStarved;
-	boost::thread m_Thread;
+	boost::thread_group m_Threads;
 	size_t m_MaxItems;
 	bool m_Stopped;
-	bool m_Processing;
-	std::deque<WorkItem> m_Items;
+	int m_Processing;
+	std::deque<Task> m_Tasks;
 	ExceptionCallback m_ExceptionCallback;
+	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
 
 	void WorkerThreadProc(void);
 	void StatusTimerHandler(void);
-
-	static void DefaultExceptionCallback(boost::exception_ptr exp);
-};
-
-class I2_BASE_API ParallelWorkQueue
-{
-public:
-	ParallelWorkQueue(void);
-	~ParallelWorkQueue(void);
-
-	void Enqueue(const boost::function<void(void)>& callback);
-	void Join(void);
-
-private:
-	unsigned int m_QueueCount;
-	WorkQueue *m_Queues;
-	unsigned int m_Index;
 };
 
 }

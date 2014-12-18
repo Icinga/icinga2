@@ -115,7 +115,7 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 
 void IdoMysqlConnection::AssertOnWorkQueue(void)
 {
-	ASSERT(boost::this_thread::get_id() == m_QueryQueue.GetThreadId());
+	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
 void IdoMysqlConnection::Disconnect(void)

@@ -22,7 +22,7 @@
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 
 using namespace icinga;
 

@@ -31,6 +31,7 @@
 #include "base/initialize.hpp"
 #include "base/workqueue.hpp"
 #include "base/context.hpp"
+#include "base/application.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -310,7 +311,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long restored = 0;
 
-	ParallelWorkQueue upq;
+	WorkQueue upq(25000, Application::GetConcurrency());
 
 	String message;
 	while (NetString::ReadStringFromStream(sfp, &message)) {

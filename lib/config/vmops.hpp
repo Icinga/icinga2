@@ -30,7 +30,7 @@
 #include "base/dictionary.hpp"
 #include "base/scriptfunction.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>

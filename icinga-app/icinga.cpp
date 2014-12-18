@@ -205,8 +205,9 @@ int Main(void)
 	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
 
 	if (Utility::PathExists(initconfig)) {
-		ConfigCompilerContext::GetInstance()->Reset();
-		ConfigCompiler::CompileFile(initconfig);
+		ScriptFrame frame;
+		Expression *expression = ConfigCompiler::CompileFile(initconfig);
+		expression->Evaluate(frame);
 	}
 
 #ifndef _WIN32

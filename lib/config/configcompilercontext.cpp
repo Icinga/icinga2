@@ -27,39 +27,6 @@
 
 using namespace icinga;
 
-void ConfigCompilerContext::AddMessage(bool error, const String& message, const DebugInfo& di)
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	m_Messages.push_back(ConfigCompilerMessage(error, message, di));
-}
-
-std::vector<ConfigCompilerMessage> ConfigCompilerContext::GetMessages(void) const
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	return m_Messages;
-}
-
-bool ConfigCompilerContext::HasErrors(void) const
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	BOOST_FOREACH(const ConfigCompilerMessage& message, m_Messages) {
-		if (message.Error)
-			return true;
-	}
-
-	return false;
-}
-
-void ConfigCompilerContext::Reset(void)
-{
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	m_Messages.clear();
-}
-
 ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 {
 	return Singleton<ConfigCompilerContext>::GetInstance();

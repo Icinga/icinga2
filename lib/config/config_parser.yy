@@ -33,7 +33,7 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/dynamictype.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 #include <sstream>
 #include <stack>
 #include <boost/foreach.hpp>

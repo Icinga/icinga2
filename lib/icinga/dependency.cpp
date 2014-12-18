@@ -208,12 +208,12 @@ void Dependency::ValidateFilters(const String& location, const Dependency::Ptr& 
 	int sfilter = FilterArrayToInt(object->GetStates(), 0);
 
 	if (object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": State filter is invalid for host dependency.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": State filter is invalid for host dependency.", GetDebugInfo()));
 	}
 
 	if (!object->GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Validation failed for " +
-		    location + ": State filter is invalid for service dependency.");
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": State filter is invalid for service dependency.", GetDebugInfo()));
 	}
 }

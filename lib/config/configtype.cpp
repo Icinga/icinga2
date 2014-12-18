@@ -136,14 +136,14 @@ void ConfigType::ValidateAttribute(const String& key, const Value& value,
 	}
 
 	if (overallResult == ValidationUnknownField)
-		ConfigCompilerContext::GetInstance()->AddMessage(true, "Unknown attribute: " + LocationToString(locations));
+		BOOST_THROW_EXCEPTION(ScriptError("Unknown attribute: " + LocationToString(locations)));
 	else if (overallResult == ValidationInvalidType) {
 		String message = "Invalid value: " + LocationToString(locations);
 
 		if (!hint.IsEmpty())
 			message += ": " + hint;
 
-		ConfigCompilerContext::GetInstance()->AddMessage(true, message);
+		BOOST_THROW_EXCEPTION(ScriptError(message));
 	}
 
 	if (!subRuleLists.empty() && value.IsObject() && !value.IsObjectType<Array>())
@@ -164,10 +164,8 @@ void ConfigType::ValidateObject(const Object::Ptr& object,
 
 			Value value = VMOps::GetField(object, require);
 
-			if (value.IsEmpty() || (value.IsString() && static_cast<String>(value).IsEmpty())) {
-				ConfigCompilerContext::GetInstance()->AddMessage(true,
-				    "Required attribute is missing: " + LocationToString(locations));
-			}
+			if (value.IsEmpty() || (value.IsString() && static_cast<String>(value).IsEmpty()))
+				BOOST_THROW_EXCEPTION(ScriptError("Required attribute is missing: " + LocationToString(locations)));
 
 			locations.pop_back();
 		}
@@ -223,10 +221,8 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 
 			locations.push_back("Attribute '" + require + "'");
 
-			if (array->GetLength() < index) {
-				ConfigCompilerContext::GetInstance()->AddMessage(true,
-				    "Required array index is missing: " + LocationToString(locations));
-			}
+			if (array->GetLength() < index)
+				BOOST_THROW_EXCEPTION(ScriptError("Required array index is missing: " + LocationToString(locations)));
 
 			locations.pop_back();
 		}

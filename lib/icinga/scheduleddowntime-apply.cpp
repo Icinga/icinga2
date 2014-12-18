@@ -26,7 +26,7 @@
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/context.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -148,12 +148,8 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 		if (rule.GetTargetType() != "Host")
 			continue;
 
-		try {
-			if (EvaluateApplyRule(host, rule))
-				rule.AddMatch();
-		} catch (const ScriptError& ex) {
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
-		}
+		if (EvaluateApplyRule(host, rule))
+			rule.AddMatch();
 	}
 }
 
@@ -165,11 +161,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 		if (rule.GetTargetType() != "Service")
 			continue;
 
-		try {
-			if (EvaluateApplyRule(service, rule))
-				rule.AddMatch();
-		} catch (const ScriptError& ex) {
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
-		}
+		if (EvaluateApplyRule(service, rule))
+			rule.AddMatch();
 	}
 }

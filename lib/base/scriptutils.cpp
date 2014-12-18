@@ -26,7 +26,7 @@
 #include "base/objectlock.hpp"
 #include "base/dynamictype.hpp"
 #include "base/application.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>

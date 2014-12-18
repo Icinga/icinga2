@@ -27,7 +27,7 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
-#include "base/scripterror.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -150,12 +150,8 @@ void Notification::EvaluateApplyRules(const Host::Ptr& host)
 		if (rule.GetTargetType() != "Host")
 			continue;
 
-		try {
-			if (EvaluateApplyRule(host, rule))
-				rule.AddMatch();
-		} catch (const ScriptError& ex) {
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
-		}
+		if (EvaluateApplyRule(host, rule))
+			rule.AddMatch();
 	}
 }
 
@@ -167,11 +163,7 @@ void Notification::EvaluateApplyRules(const Service::Ptr& service)
 		if (rule.GetTargetType() != "Service")
 			continue;
 
-		try {
-			if (EvaluateApplyRule(service, rule))
-				rule.AddMatch();
-		} catch (const ScriptError& ex) {
-			ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
-		}
+		if (EvaluateApplyRule(service, rule))
+			rule.AddMatch();
 	}
 }
