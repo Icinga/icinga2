@@ -122,7 +122,7 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 		if (dhint)
 			*dhint = NULL;
 	} else
-		*parent = frame.Locals;
+		*parent = frame.Self;
 
 	return true;
 }
@@ -418,8 +418,8 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 	String vindex;
 
 	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, dhint)) {
-		if (init_dict && VMOps::GetField(vparent, vindex).IsEmpty())
-			VMOps::SetField(vparent, vindex, new Dictionary());
+		if (init_dict && VMOps::GetField(vparent, vindex, m_Operand1->GetDebugInfo()).IsEmpty())
+			VMOps::SetField(vparent, vindex, new Dictionary(), m_Operand1->GetDebugInfo());
 
 		*parent = VMOps::GetField(vparent, vindex, m_DebugInfo);
 	} else

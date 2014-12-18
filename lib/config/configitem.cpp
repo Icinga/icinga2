@@ -165,7 +165,8 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	try {
 		ScriptFrame frame(dobj);
-		frame.Locals = m_Scope;
+		if (m_Scope)
+			m_Scope->CopyTo(frame.Locals);
 		m_Expression->Evaluate(frame, &debugHints);
 	} catch (const ScriptError& ex) {
 		ConfigCompilerContext::GetInstance()->AddMessage(true, ex.what(), ex.GetDebugInfo());
