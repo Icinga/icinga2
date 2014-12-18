@@ -45,6 +45,7 @@ Please check [doc/1-about.md].
 * Bug #8066: Setting a dictionary key to null does not cause the key/value to be removed
 * Bug #8070: Documentation: Add note on default notification interval in getting started notifications.conf
 * Bug #8075: No option to specify timeout to check_snmp and snmp manubulon commands
+* Bug #8105: StatusDataWriter: Wrong export of event_handler_enabled
 
 ### What's New in Version 2.2.1
 
