@@ -96,6 +96,7 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 void ConfigCompilerContext::FinishObjectsFile(void)
 {
 	m_ObjectsFP->Close();
+	m_ObjectsFP.reset();
 
 	String tempFilename = m_ObjectsPath + ".tmp";
 
