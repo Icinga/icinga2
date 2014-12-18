@@ -5,4 +5,3 @@ tools/syntax/* 		      usr/share/icinga2-common/syntax
 usr/share/icinga2
 debian/tmp/etc/bash_completion.d
 etc/sysconfig/icinga2 usr/lib/icinga2
-usr/lib/icinga2/prepare-dirs
