@@ -1,0 +1,137 @@
+# incinga2 po-debconf translation to Spanish
+# Copyright (C) 2014 Software in the Public Interest
+# This file is distributed under the same license as the icinga2 package.
+#
+# Changes:
+#   - Initial translation
+#       Matías A. Bellone <matiasbellone+debian@gmail.com>, 2014
+#
+# Traductores, si no conocen el formato PO, merece la pena leer la
+# documentación de gettext, especialmente las secciones dedicadas a este
+# formato, por ejemplo ejecutando:
+#       info -n '(gettext)PO Files'
+#       info -n '(gettext)Header Entry'
+#
+# Equipo de traducción al español, por favor lean antes de traducir
+# los siguientes documentos:
+#
+#   - El proyecto de traducción de Debian al español
+#     http://www.debian.org/intl/spanish/
+#     especialmente las notas y normas de traducción en
+#     http://www.debian.org/intl/spanish/notas
+#
+#   - La guía de traducción de po's de debconf:
+#     /usr/share/doc/po-debconf/README-trans
+#     o http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: icinga2\n"
+"Report-Msgid-Bugs-To: icinga2@packages.debian.org\n"
+"POT-Creation-Date: 2014-08-18 15:18+0200\n"
+"PO-Revision-Date: 2014-08-18 23:00-0300\n"
+"Last-Translator: Matías A. Bellone <matiasbellone+debian@gmail.com>\n"
+"Language-Team: Debian l10n Spanish <debian-l10n-spanish@lists.debian.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid "Icinga 2 ClassicUI administration password:"
+msgstr "Contraseña de administración para ClassicUI de Icinga 2:"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid ""
+"Please provide the password to be created with the \"icingaadmin\" user."
+msgstr ""
+"Introduzca la contraseña con la que se creará el usuario «icingaadmin»."
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid ""
+"This is the username and password to use when connecting to the Icinga "
+"server after completing the configuration. If you do not provide a password, "
+"you will have to configure access to Icinga manually later on."
+msgstr ""
+"Este es el nombre de usuario y la contraseña que se utilizarán para "
+"conectarse al servidor Icinga luego de completar la configuración. Si no "
+"provee una contraseña, deberá configurar el acceso a Icinga de forma manual "
+"luego."
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:3001
+msgid "Re-enter password to verify:"
+msgstr "Ingrese la contraseña nuevamente para verificar:"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:3001
+msgid ""
+"Please enter the same user password again to verify you have typed it "
+"correctly."
+msgstr ""
+"Ingrese la misma contraseña de usuario nuevamente para verificar que la "
+"ingresó correctamente."
+
+#. Type: error
+#. Description
+#: ../icinga2-classicui.templates:4001
+msgid "Password input error"
+msgstr "Error en el ingreso de la contraseña"
+
+#. Type: error
+#. Description
+#: ../icinga2-classicui.templates:4001
+msgid "The two passwords you entered were not the same. Please try again."
+msgstr "Las dos contraseñas ingresadas no coinciden. Inténtelo nuevamente."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid "Enable Icinga 2's ido-mysql feature?"
+msgstr "¿Desea activar la funcionalidad «ido-mysql» de Icinga 2?"
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid "Please specify whether Icinga 2 should use MySQL."
+msgstr "Indique si Icinga 2 debería utilizar MySQL."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid ""
+"You may later disable the feature by using the \"icinga2 feature disable ido-"
+"mysql\" command."
+msgstr ""
+"Podrá desactivar la funcionalidad más adelante ejecutando «icinga2-disable-"
+"feature ido-mysql»."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid "Enable Icinga 2's ido-pgsql feature?"
+msgstr "¿Desea activar la funcionalidad «ido-pgsql» de Icinga 2?"
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid "Please specify whether Icinga 2 should use PostgreSQL."
+msgstr "Indique si Icinga 2 debería utilizar PostgreSQL."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid ""
+"You may later disable the feature by using the \"icinga2 feature disable ido-"
+"pgsql\" command."
+msgstr ""
+"Podrá desactivar la funcionalidad más adelante ejecutando «icinga2-disable-"
+"feature ido-pgsql»."

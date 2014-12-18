@@ -1,0 +1,41 @@
+#!/bin/sh
+# postinst script for icinga2-bn
+
+set -e
+
+is_fresh_install()
+{
+    if [ -z "$2" ] ; then
+        return 0
+    fi
+    return 1
+}
+
+enable_default_features() {
+    FIX_VERSION="0.0.5+icingasnap201312070000"
+    if is_fresh_install $@ \
+       || dpkg --compare-versions "$2" lt "$FIX_VERSION"; then
+        echo "enabling default icinga2 features"
+        icinga2 feature enable checker notification mainlog
+    fi
+    # handle new default features here in the future
+}
+
+case "$1" in
+    configure)
+        # enable default features
+        enable_default_features $@
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

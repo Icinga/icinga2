@@ -1,0 +1,5 @@
+version=3
+# filenamemangle -> prepending icinga2 if only tag name
+# versionmangle  -> convert version addition to ~ version
+opts=filenamemangle=s/.+\/(?:icinga2-|v)([\d.]+(?:-.+)?).tar.gz/icinga2-$1.tar.gz/,versionmangle=s/^([\d.]+)-(.+)?/$1~$2/ \
+https://github.com/Icinga/icinga2/releases .*/(?:icinga2-|v)([\d.]+(?:-.+)?).tar.gz

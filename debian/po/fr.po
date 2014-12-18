@@ -1,0 +1,117 @@
+# Translation of icinga2 debconf template to French
+# Copyright (C) 2014
+# This file is distributed under the same license as the icinga2 package.
+# Steve Petruzzello <dlist@bluewin.ch>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: icinga2_2.1.0-1\n"
+"Report-Msgid-Bugs-To: icinga2@packages.debian.org\n"
+"POT-Creation-Date: 2014-08-18 15:18+0200\n"
+"PO-Revision-Date: 2014-09-05 20:37+0200\n"
+"Last-Translator: Steve Petruzzello <dlist@bluewin.ch>\n"
+"Language-Team: French <debian-l10n-french@lists.debian.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid "Icinga 2 ClassicUI administration password:"
+msgstr "Mot de passe pour l'administrateur d'Icinga 2 ClassicUI :"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid ""
+"Please provide the password to be created with the \"icingaadmin\" user."
+msgstr "Veuillez indiquer le mot de passe pour l'utilisateur « icingaadmin »."
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid ""
+"This is the username and password to use when connecting to the Icinga "
+"server after completing the configuration. If you do not provide a password, "
+"you will have to configure access to Icinga manually later on."
+msgstr ""
+"L'identifiant « icingaadmin » et le mot de passe entré ci-dessous sont à "
+"utiliser pour se connecter au serveur Icinga à la fin de la configuration. "
+"Si vous n'indiquez pas de mot de passe ici, vous devrez configurer l'accès à "
+"Icinga plus tard."
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:3001
+msgid "Re-enter password to verify:"
+msgstr "Confirmation du mot de passe :"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:3001
+msgid ""
+"Please enter the same user password again to verify you have typed it "
+"correctly."
+msgstr ""
+"Veuillez entrer à nouveau le mot de passe pour l'utilisateur afin de "
+"vérifier qu'il a été saisi correctement."
+
+#. Type: error
+#. Description
+#: ../icinga2-classicui.templates:4001
+msgid "Password input error"
+msgstr "Erreur de saisie du mot de passe"
+
+#. Type: error
+#. Description
+#: ../icinga2-classicui.templates:4001
+msgid "The two passwords you entered were not the same. Please try again."
+msgstr ""
+"Les deux mots de passe que vous avez indiqués sont différents. Veuillez "
+"recommencer."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid "Enable Icinga 2's ido-mysql feature?"
+msgstr "Faut-il activer la fonctionnalité ido-mysql pour Icinga 2 ?"
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid "Please specify whether Icinga 2 should use MySQL."
+msgstr "Veuillez indiquer si Icinga 2 doit utiliser MySQL."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid ""
+"You may later disable the feature by using the \"icinga2 feature disable ido-"
+"mysql\" command."
+msgstr ""
+"Vous pouvez à tout moment désactiver cette fonctionnalité en utilisant la "
+"commande « icinga2 feature disable ido-mysql »."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid "Enable Icinga 2's ido-pgsql feature?"
+msgstr "Faut-il activer la fonctionnalité ido-pgsql pour Icinga 2 ?"
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid "Please specify whether Icinga 2 should use PostgreSQL."
+msgstr "Veuillez indiquer si Icinga 2 doit utiliser PostgreSQL."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid ""
+"You may later disable the feature by using the \"icinga2 feature disable ido-"
+"pgsql\" command."
+msgstr ""
+"Vous pouvez à tout moment désactiver cette fonctionnalité en utilisant la "
+"commande « icinga2 feature disable ido-pgsql »."

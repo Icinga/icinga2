@@ -1,0 +1,7 @@
+icinga2 (2.2.0-1) unstable; urgency=medium
+
+  To protect sensitive configuration files of icinga2 
+  the configuration files for classicui were moved to
+  /etc/icinga2-classicui. 
+
+ -- Alexander Wirt <formorer@debian.org>  Thu, 20 Nov 2014 21:41:55 +0100

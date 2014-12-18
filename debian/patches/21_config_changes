@@ -1,0 +1,17 @@
+Description: Configuration changes for Debian
+    - change icingaadmin mail address to root@localhost
+Author: Markus Frosch <lazyfrosch@debian.org>
+Last-Update: 2014-08-29
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/etc/icinga2/conf.d/users.conf
++++ b/etc/icinga2/conf.d/users.conf
+@@ -9,7 +9,7 @@
+   display_name = "Icinga 2 Admin"
+   groups = [ "icingaadmins" ]
+ 
+-  email = "icinga@localhost"
++  email = "root@localhost"
+ }
+ 
+ object UserGroup "icingaadmins" {

@@ -1,0 +1,116 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the icinga2 package.
+#
+# Yuri Kozlov <yuray@komyakino.ru>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: icinga2 2.0.1-2\n"
+"Report-Msgid-Bugs-To: icinga2@packages.debian.org\n"
+"POT-Creation-Date: 2014-08-18 15:18+0200\n"
+"PO-Revision-Date: 2014-08-21 15:44+0400\n"
+"Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
+"Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 1.5\n"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid "Icinga 2 ClassicUI administration password:"
+msgstr "Пароль для администрирования Icinga 2 через ClassicUI:"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid ""
+"Please provide the password to be created with the \"icingaadmin\" user."
+msgstr "Введите пароль для создаваемой учётной записи «icingaadmin»."
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:2001
+msgid ""
+"This is the username and password to use when connecting to the Icinga "
+"server after completing the configuration. If you do not provide a password, "
+"you will have to configure access to Icinga manually later on."
+msgstr ""
+"Эта учётная запись и пароль будут использованы для доступа к серверу Icinga "
+"после завершения настройки. Если вы не укажите пароль, то вам нужно будет "
+"настроить доступ к Icinga самостоятельно."
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:3001
+msgid "Re-enter password to verify:"
+msgstr "Введите пароль ещё раз:"
+
+#. Type: password
+#. Description
+#: ../icinga2-classicui.templates:3001
+msgid ""
+"Please enter the same user password again to verify you have typed it "
+"correctly."
+msgstr ""
+"Проверка правильности ввода осуществляется путём повторного ввода пароля и "
+"сравнения результатов."
+
+#. Type: error
+#. Description
+#: ../icinga2-classicui.templates:4001
+msgid "Password input error"
+msgstr "Ошибка ввода пароля"
+
+#. Type: error
+#. Description
+#: ../icinga2-classicui.templates:4001
+msgid "The two passwords you entered were not the same. Please try again."
+msgstr "Два введённых пароля не одинаковы. Повторите ввод."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid "Enable Icinga 2's ido-mysql feature?"
+msgstr "Включить свойство ido-mysql в Icinga 2?"
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid "Please specify whether Icinga 2 should use MySQL."
+msgstr "Укажите, должна ли Icinga 2 использовать MySQL."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-mysql.templates:2001
+msgid ""
+"You may later disable the feature by using the \"icinga2 feature disable ido-"
+"mysql\" command."
+msgstr ""
+"Позднее вы можете выключить это свойство с помощью команды «icinga2-disable-"
+"feature ido-mysql»."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid "Enable Icinga 2's ido-pgsql feature?"
+msgstr "Включить свойство ido-pgsql в Icinga 2?"
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid "Please specify whether Icinga 2 should use PostgreSQL."
+msgstr "Укажите, должна ли Icinga 2 использовать PostgreSQL."
+
+#. Type: boolean
+#. Description
+#: ../icinga2-ido-pgsql.templates:2001
+msgid ""
+"You may later disable the feature by using the \"icinga2 feature disable ido-"
+"pgsql\" command."
+msgstr ""
+"Позднее вы можете выключить это свойство с помощью команды «icinga2-disable-"
+"feature ido-pgsql»."
