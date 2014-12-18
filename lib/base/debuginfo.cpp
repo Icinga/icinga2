@@ -23,6 +23,10 @@
 
 using namespace icinga;
 
+DebugInfo::DebugInfo(void)
+	: FirstLine(0), FirstColumn(0), LastLine(0), LastColumn(0)
+{ }
+
 /**
  * Outputs a DebugInfo struct to a stream.
  *

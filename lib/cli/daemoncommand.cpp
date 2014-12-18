@@ -144,7 +144,7 @@ static bool LoadConfigFiles(const boost::program_options::variables_map& vm, con
 
 	BOOST_FOREACH(const ConfigCompilerMessage& message, ConfigCompilerContext::GetInstance()->GetMessages()) {
 		std::ostringstream locbuf;
-		ShowCodeFragment(locbuf, message.Location, true);
+		ShowCodeFragment(locbuf, message.Location);
 		String location = locbuf.str();
 
 		String logmsg;
