@@ -131,11 +131,11 @@ void RepositoryUtility::CreateRepositoryPath(const String& path)
 		Utility::MkDirP(path, 0750);
 
 	String user = ScriptGlobal::Get("RunAsUser");
-        String group = ScriptGlobal::Get("RunAsGroup");
+	String group = ScriptGlobal::Get("RunAsGroup");
 
-        if (!Utility::SetFileOwnership(path, user, group)) {
-                Log(LogWarning, "cli")
-                    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
+	if (!Utility::SetFileOwnership(path, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
 	}
 }
 
@@ -371,9 +371,9 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 
 	String tempPath = path + ".tmp";
 
-        std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
-        fp << JsonEncode(item);
-        fp.close();
+	std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
+	fp << JsonEncode(item);
+	fp.close();
 
 #ifdef _WIN32
 	_unlink(path.CStr());
@@ -511,10 +511,10 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 
 	String tempPath = path + ".tmp";
 
-        std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
-        SerializeObject(fp, name, type, item);
+	std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
+	SerializeObject(fp, name, type, item);
 	fp << std::endl;
-        fp.close();
+	fp.close();
 
 #ifdef _WIN32
 	_unlink(path.CStr());
@@ -726,39 +726,39 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 
 void RepositoryUtility::FormatValue(std::ostream& fp, const Value& val)
 {
-        if (val.IsObjectType<Array>()) {
-                FormatArray(fp, val);
-                return;
-        }
+	if (val.IsObjectType<Array>()) {
+		FormatArray(fp, val);
+		return;
+	}
 
-        if (val.IsString()) {
-                fp << "\"" << Convert::ToString(val) << "\"";
-                return;
-        }
+	if (val.IsString()) {
+		fp << "\"" << Convert::ToString(val) << "\"";
+		return;
+	}
 
-        fp << Convert::ToString(val);
+	fp << Convert::ToString(val);
 }
 
 void RepositoryUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
 {
-        bool first = true;
+	bool first = true;
 
-        fp << "[ ";
+	fp << "[ ";
 
-        if (arr) {
-                ObjectLock olock(arr);
-                BOOST_FOREACH(const Value& value, arr) {
-                        if (first)
-                                first = false;
-                        else
-                                fp << ", ";
+	if (arr) {
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const Value& value, arr) {
+			if (first)
+				first = false;
+			else
+				fp << ", ";
 
-                        FormatValue(fp, value);
-                }
-        }
+			FormatValue(fp, value);
+		}
+	}
 
-        if (!first)
-                fp << " ";
+	if (!first)
+		fp << " ";
 
-        fp << "]";
+	fp << "]";
 }

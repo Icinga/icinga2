@@ -36,12 +36,12 @@ namespace icinga
 class RepositoryClearChangesCommand : public CLICommand
 {
 public:
-        DECLARE_PTR_TYPEDEFS(RepositoryClearChangesCommand);
+	DECLARE_PTR_TYPEDEFS(RepositoryClearChangesCommand);
 
-        virtual String GetDescription(void) const;
-        virtual String GetShortDescription(void) const;
+	virtual String GetDescription(void) const;
+	virtual String GetShortDescription(void) const;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const;
-        virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 };
 
 }

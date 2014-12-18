@@ -373,7 +373,7 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 
 		BOOST_THROW_EXCEPTION(
 		    database_error()
-		        << errinfo_message(mysql_error(&m_Connection))
+			<< errinfo_message(mysql_error(&m_Connection))
 			<< errinfo_database_query(query)
 		);
 	}

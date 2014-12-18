@@ -154,8 +154,8 @@ do {							\
 }
 
 <C_COMMENT><<EOF>>              {
-		BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in comment", *yylloc));
-		       	        }
+	BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in comment", *yylloc));
+				}
 
 
 \/\/[^\n]*			/* ignore C++-style comments */

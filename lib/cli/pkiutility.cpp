@@ -148,9 +148,9 @@ int PkiUtility::SaveCert(const String& host, const String& port, const String& k
 		sslContext = MakeSSLContext(certfile, keyfile);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
-                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "'.";
+		    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "'.";
 		Log(LogDebug, "cli")
-                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "':\n"  << DiagnosticInformation(ex);
+		    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "':\n"  << DiagnosticInformation(ex);
 		return 1;
 	}
 
@@ -209,9 +209,9 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		sslContext = MakeSSLContext(certfile, keyfile);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
-                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
+		    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
 		Log(LogDebug, "cli")
-                    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "':\n"  << DiagnosticInformation(ex);
+		    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "':\n"  << DiagnosticInformation(ex);
 		return 1;
 	}
 
@@ -232,7 +232,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		trustedCert = GetX509Certificate(trustedfile);
 	} catch (const std::exception&) {
 		Log(LogCritical, "cli")
-                    << "Cannot get trusted from cert path: '" << trustedfile << "'.";
+		    << "Cannot get trusted from cert path: '" << trustedfile << "'.";
 		return 1;
 	}
 

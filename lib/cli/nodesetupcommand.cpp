@@ -254,15 +254,15 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	fp.close();
 
 #ifdef _WIN32
-        _unlink(apipath.CStr());
+	_unlink(apipath.CStr());
 #endif /* _WIN32 */
 
-        if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
-                BOOST_THROW_EXCEPTION(posix_error()
-                    << boost::errinfo_api_function("rename")
-                    << boost::errinfo_errno(errno)
-                    << boost::errinfo_file_name(apipathtmp));
-        }
+	if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(apipathtmp));
+	}
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {
@@ -463,15 +463,15 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	fp.close();
 
 #ifdef _WIN32
-        _unlink(apipath.CStr());
+	_unlink(apipath.CStr());
 #endif /* _WIN32 */
 
-        if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
-                BOOST_THROW_EXCEPTION(posix_error()
-                    << boost::errinfo_api_function("rename")
-                    << boost::errinfo_errno(errno)
-                    << boost::errinfo_file_name(apipathtmp));
-        }
+	if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(apipathtmp));
+	}
 
 	/* generate local zones.conf with zone+endpoint */
 
