@@ -6,7 +6,7 @@ set -e
 . /usr/share/debconf/confmodule
 
 # shorthand
-en="/etc/icinga2/classicui"
+en="/etc/icinga2-classicui"
 
 # location of the default apache configuration for icinga
 apacheconf=$en/apache2.conf
@@ -49,6 +49,21 @@ case "$1" in
     configure)
         enable_features_for_classic $@
 
+        dpkg-maintscript-helper mv_conffile \
+            /etc/icinga2/classicui/apache2.conf \
+            /etc/icinga2-classicui/apache2.conf 2.2.0-1~ icinga2-classicui -- "$@"
+
+        dpkg-maintscript-helper mv_conffile /etc/icinga2/classicui/cgi.cfg \
+            /etc/icinga2-classicui/cgi.cfg 2.2.0-1~  icinga2-classicui -- "$@" 
+
+        if [ -f '/etc/icinga2/classicui/htpasswd.users' ] && [ ! -f '/etc/icinga2-classicui/htpasswd.users' ];
+        then
+            echo "Move classicui password file to new location"
+            mv -f /etc/icinga2/classicui/htpasswd.users \
+            /etc/icinga2-classicui/htpasswd.users
+            rmdir  /etc/icinga2/classicui || true
+        fi
+
         echo "enabling Apache2 config..."
         COMMON_STATE=$(dpkg-query -f '${Status}' -W 'apache2.2-common' 2>/dev/null | awk '{print $3}' || true)
 
@@ -63,12 +78,15 @@ case "$1" in
         elif [ "$COMMON_STATE" = "installed" ] || [ "$COMMON_STATE" = "unpacked" ] ; then
             a2enmod cgi
             # create symlink if not existing
-            [ -f /etc/apache2/conf.d/icinga2-classicui.conf ] || ln -vs ../../icinga2/classicui/apache2.conf /etc/apache2/conf.d/icinga2-classicui.conf
+            [ -e /etc/apache2/conf.d/icinga2-classicui.conf ] || ln -vs $en/apache2.conf /etc/apache2/conf.d/icinga2-classicui.conf
 
             # reload webserver
             [ -x $(which invoke-rc.d) ] && invoke-rc.d apache2 reload
         fi
 
+        # check for an old symlink to the stylesheets
+        test -L /etc/icinga2/classicui/stylesheets && rm \
+        /etc/icinga2/classicui/stylesheets && rmdir /etc/icinga2/classicui || true 
         ###
         # Admin password
         ###
@@ -84,8 +102,10 @@ case "$1" in
         if [ -n "$admpass" ]; then
             #unfortunatly that method only works with 2.4
             if htpasswd 2>&1 | grep -q ' -i'; then
+                echo "$admpass to $htpw"
                 echo "$admpass" | htpasswd -i "$htpw" icingaadmin
             else
+                echo "$admpass to $htpw"
                 htpasswd -b "$htpw" icingaadmin "$admpass"
             fi
         fi

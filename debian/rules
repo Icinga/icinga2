@@ -3,7 +3,10 @@
 #export DH_VERBOSE=1
 
 %:
-	dh $@
+	dh $@ --with systemd
+
+override_dh_systemd_enable:
+	dh_systemd_enable --name=icinga2
 
 override_dh_auto_build:
 	dh_auto_build --parallel
@@ -20,8 +23,12 @@ ifeq ($(shell test -d .git && echo "git"),git) # verify we are in a GIT repo
 endif
 	# now clean build dir
 	dh_auto_clean
+	test ! -f third-party/cmake/GNUInstallDirs.cmake.disabled || \
+		mv third-party/cmake/GNUInstallDirs.cmake.disabled third-party/cmake/GNUInstallDirs.cmake
 
 override_dh_auto_configure:
+	test -f third-party/cmake/GNUInstallDirs.cmake.disabled || \
+		mv third-party/cmake/GNUInstallDirs.cmake third-party/cmake/GNUInstallDirs.cmake.disabled
 	dh_auto_configure -- \
 		-DCMAKE_INSTALL_LOCALSTATEDIR=/var \
 		-DCMAKE_INSTALL_SYSCONFDIR=/etc \
@@ -29,8 +36,8 @@ override_dh_auto_configure:
 		-DICINGA2_USER=nagios \
 		-DICINGA2_GROUP=nagios \
 		-DICINGA2_COMMAND_GROUP=www-data \
-		-DICINGA2_PLUGINDIR=/usr/lib/nagios/plugins \
-		-DICINGA2_UNITY_BUILD=TRUE
+		-DICINGA2_UNITY_BUILD=TRUE \
+		-DICINGA2_PLUGINDIR=/usr/lib/nagios/plugins
 
 override_dh_auto_install:
 	dh_auto_install
@@ -39,6 +46,7 @@ override_dh_auto_install:
 
 override_dh_install:
 	dh_install
+	chmod +x debian/icinga2-common/usr/lib/icinga2/prepare-dirs
 	# remove ido files from other packages
 	if [ -d debian/icinga2-common/ ]; then rm debian/icinga2-common/etc/icinga2/features-available/ido-*; fi
 	rm debian/icinga2-bin/usr/lib/*/icinga2/libdb_ido_*
@@ -51,7 +59,6 @@ override_dh_install:
 		done; \
 	done
 
-
 override_dh_installinit:
 	dh_installinit --name=icinga2
 
@@ -59,4 +66,4 @@ override_dh_installinit:
 override_dh_strip:
 	dh_strip --dbg-package=icinga2-dbg
 
-# vi: noexpandtab :
+# vi: noexpandtab ts=4 sw=4 :

@@ -4,7 +4,7 @@
 set -e
 
 # shorthand
-en="/etc/icinga2/classicui"
+en="/etc/icinga2-classicui"
 
 . /usr/share/debconf/confmodule
 
@@ -31,6 +31,12 @@ case "$1" in
 
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         disable_apache2 "$@"
+        dpkg-maintscript-helper mv_conffile \
+            /etc/icinga2/classicui/apache2.conf \
+            /etc/icinga2-classicui/apache2.conf 2.2.0-1~ icinga2-classicui -- "$@"
+
+        dpkg-maintscript-helper mv_conffile /etc/icinga2/classicui/cgi.cfg \
+            /etc/icinga2-classicui/cgi.cfg 2.2.0-1~  icinga2-classicui -- "$@"
 
     ;;
 

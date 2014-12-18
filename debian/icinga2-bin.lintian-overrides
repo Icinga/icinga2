@@ -1,2 +1,2 @@
 # this is actually a defined word in the livestatus protocol...
-spelling-error-in-binary usr/lib/x86_64-linux-gnu/icinga2/liblivestatus-0.so.0.0.3 childs children
+spelling-error-in-binary usr/lib/*/icinga2/liblivestatus.so childs children

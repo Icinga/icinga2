@@ -1,5 +1,5 @@
-etc/icinga/stylesheets                    etc/icinga2/classicui/stylesheets
-etc/icinga2/classicui/apache2.conf        etc/apache2/conf-available/icinga2-classicui.conf
+etc/icinga/stylesheets                    etc/icinga2-classicui/stylesheets
+etc/icinga2-classicui/apache2.conf        etc/apache2/conf-available/icinga2-classicui.conf
 usr/lib/cgi-bin/icinga                    usr/lib/cgi-bin/icinga2-classicui
 #usr/share/icinga/htdocs/docs             usr/share/icinga2/classicui/docs
 usr/share/icinga/htdocs/images            usr/share/icinga2/classicui/images
