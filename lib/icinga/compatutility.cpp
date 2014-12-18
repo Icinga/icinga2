@@ -228,7 +228,7 @@ int CompatUtility::GetCheckableActiveChecksEnabled(const Checkable::Ptr& checkab
 
 int CompatUtility::GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable)
 {
-	return (checkable->GetEventCommand() ? 1 : 0);
+	return (checkable->GetEnableEventHandler() ? 1 : 0);
 }
 
 int CompatUtility::GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable)

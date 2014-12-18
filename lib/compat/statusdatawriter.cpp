@@ -279,7 +279,7 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 		fp << "\t" "check_command" "\t" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(host) << "\n";
 
 	EventCommand::Ptr eventcommand = host->GetEventCommand();
-	if (eventcommand)
+	if (eventcommand && host->GetEnableEventHandler())
 		fp << "\t" "event_handler" "\t" << CompatUtility::GetCommandName(eventcommand) << "\n";
 
 	fp << "\t" "check_period" "\t" << CompatUtility::GetCheckableCheckPeriod(host) << "\n";
@@ -341,7 +341,8 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	      "\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
 	      "\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
 	      "\t" "has_been_checked=" << CompatUtility::GetCheckableHasBeenChecked(checkable) << "\n"
-	      "\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n";
+	      "\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n"
+	      "\t" "event_handler_enabled=" << CompatUtility::GetCheckableEventHandlerEnabled(checkable) << "\n";
 
 	if (cr) {
 	   fp << "\t" << "check_execution_time=" << Convert::ToString(Service::CalculateExecutionTime(cr)) << "\n"
@@ -444,7 +445,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 			fp << "\t" "check_command" "\t" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(service)<< "\n";
 
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
-		if (eventcommand)
+		if (eventcommand && service->GetEnableEventHandler())
 			fp << "\t" "event_handler" "\t" << CompatUtility::GetCommandName(eventcommand) << "\n";
 
 		fp << "\t" "contacts" "\t";
