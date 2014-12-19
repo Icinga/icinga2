@@ -42,6 +42,7 @@ file(STRINGS icinga2.spec VERSION_LINE REGEX "^Version: ")
 string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
 
 include(GNUInstallDirs)
+include(InstallConfig)
 
 set(ICINGA2_USER "icinga" CACHE STRING "Icinga 2 user")
 set(ICINGA2_GROUP "icinga" CACHE STRING "Icinga 2 group")
