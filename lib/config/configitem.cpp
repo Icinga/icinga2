@@ -35,6 +35,7 @@
 #include "base/serializer.hpp"
 #include "base/json.hpp"
 #include "base/exception.hpp"
+#include "base/scriptfunction.hpp"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
@@ -45,6 +46,8 @@ boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::ItemList ConfigItem::m_CommittedItems;
+
+REGISTER_SCRIPTFUNCTION(__commit, &ConfigItem::ScriptCommit);
 
 /**
  * Constructor for the ConfigItem class.
@@ -388,6 +391,29 @@ bool ConfigItem::ActivateItems(void)
 #endif /* I2_DEBUG */
 
 	Log(LogInformation, "ConfigItem", "Activated all objects.");
+
+	return true;
+}
+
+bool ConfigItem::ScriptCommit(void)
+{
+	WorkQueue upq(25000, Application::GetConcurrency());
+
+	if (!CommitNewItems(upq))
+		return false;
+
+	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+			if (object->IsActive())
+				continue;
+
+#ifdef I2_DEBUG
+	Log(LogDebug, "ConfigItem")
+	    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
+#endif /* I2_DEBUG */
+		upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
+		}
+	}
 
 	return true;
 }

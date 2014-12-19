@@ -67,6 +67,8 @@ public:
 	static bool CommitItems(void);
 	static bool ActivateItems(void);
 
+	static bool ScriptCommit(void);
+
 	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
 
 private:
