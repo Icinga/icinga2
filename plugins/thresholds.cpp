@@ -137,6 +137,7 @@ std::wstring removeZero(double val)
 		}
 		pos--;
 	}
+	return L"0";
 }
 
 std::vector<std::wstring> splitMultiOptions(std::wstring str)
