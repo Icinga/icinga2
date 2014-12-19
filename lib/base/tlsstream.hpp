@@ -67,6 +67,8 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
+	void CloseUnlocked(void);
+
 	static int ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx);
 	static void NullCertificateDeleter(X509 *certificate);
 };

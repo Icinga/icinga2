@@ -139,7 +139,7 @@ void TlsStream::Handshake(void)
 				} catch (const std::exception&) {}
 				continue;
 			case SSL_ERROR_ZERO_RETURN:
-				Close();
+				CloseUnlocked();
 				return;
 			default:
 				msgbuf << "SSL_do_handshake() failed with code " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
@@ -197,7 +197,7 @@ size_t TlsStream::Read(void *buffer, size_t count)
 					} catch (const std::exception&) {}
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
-					Close();
+					CloseUnlocked();
 					return count - left;
 				default:
 					if (ERR_peek_error() != 0) {
@@ -251,7 +251,7 @@ void TlsStream::Write(const void *buffer, size_t count)
 					} catch (const std::exception&) {}
 					continue;
 				case SSL_ERROR_ZERO_RETURN:
-					Close();
+					CloseUnlocked();
 					return;
 				default:
 					if (ERR_peek_error() != 0) {
@@ -276,6 +276,11 @@ void TlsStream::Close(void)
 {
 	boost::mutex::scoped_lock alock(m_IOActionLock);
 
+	CloseUnlocked();
+}
+
+void TlsStream::CloseUnlocked(void)
+{
 	m_Eof = true;
 
 	for (int i = 0; i < 5; i++) {
