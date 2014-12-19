@@ -54,6 +54,7 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 protected:
+	virtual void OnAllConfigLoaded(void);
 	virtual void Start(void);
 
 private:

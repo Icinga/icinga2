@@ -64,6 +64,14 @@ void ScheduledDowntime::StaticInitialize(void)
 	l_Timer->Start();
 }
 
+void ScheduledDowntime::OnAllConfigLoaded(void)
+{
+	CustomVarObject::OnAllConfigLoaded();
+
+	if (!GetCheckable())
+		BOOST_THROW_EXCEPTION(ScriptError("ScheduledDowntime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
+}
+
 void ScheduledDowntime::Start(void)
 {
 	DynamicObject::Start();

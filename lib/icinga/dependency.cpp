@@ -58,11 +58,9 @@ void Dependency::OnConfigLoaded(void)
 	SetStateFilter(FilterArrayToInt(GetStates(), defaultFilter));
 }
 
-void Dependency::OnStateLoaded(void)
+void Dependency::OnAllConfigLoaded(void)
 {
-	DynamicObject::Start();
-
-	ASSERT(!OwnsLock());
+	DynamicObject::OnAllConfigLoaded();
 
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
@@ -79,10 +77,9 @@ void Dependency::OnStateLoaded(void)
 	}
 	
 	if (!m_Child)
-		Log(LogWarning, "Dependency")
-		    << "Dependency '" << GetName() << "' references an invalid child object and will be ignored.";
-	else
-		m_Child->AddDependency(this);
+		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" << GetName() << "' references a child host/service which doesn't exist.", GetDebugInfo()));
+
+	m_Child->AddDependency(this);
 
 	Host::Ptr parentHost = Host::GetByName(GetParentHostName());
 
@@ -99,29 +96,22 @@ void Dependency::OnStateLoaded(void)
 	}
 	
 	if (!m_Parent)
-		Log(LogWarning, "Dependency")
-		    << "Dependency '" << GetName() << "' references an invalid parent object and will always fail.";
-	else
-		m_Parent->AddReverseDependency(this);
+		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" << GetName() << "' references a parent host/service which doesn't exist.", GetDebugInfo()));
+
+	m_Parent->AddReverseDependency(this);
 }
 
 void Dependency::Stop(void)
 {
 	DynamicObject::Stop();
 
-	if (GetChild())
-		GetChild()->RemoveDependency(this);
-
-	if (GetParent())
-		GetParent()->RemoveReverseDependency(this);
+	GetChild()->RemoveDependency(this);
+	GetParent()->RemoveReverseDependency(this);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
 {
 	Checkable::Ptr parent = GetParent();
-
-	if (!parent)
-		return false;
 
 	Host::Ptr host;
 	Service::Ptr service;

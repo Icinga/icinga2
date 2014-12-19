@@ -58,7 +58,7 @@ public:
 
 protected:
 	virtual void OnConfigLoaded(void);
-	virtual void OnStateLoaded(void);
+	virtual void OnAllConfigLoaded(void);
 	virtual void Stop(void);
 
 private:
