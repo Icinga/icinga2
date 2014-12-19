@@ -315,7 +315,11 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Logger::DisableTimestamp(false);
 
 	if (!ScriptGlobal::Exists("UseVfork"))
+#ifdef __APPLE__
+		ScriptGlobal::Set("UseVfork", false);
+#else /* __APPLE__ */
 		ScriptGlobal::Set("UseVfork", true);
+#endif /* __APPLE__ */
 
 	Log(LogInformation, "cli")
 	    << "Icinga application loader (version: " << Application::GetVersion()
