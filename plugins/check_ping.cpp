@@ -125,11 +125,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		return 3;
 	}
 
-	if (vm.count("-4") && vm.count("-6")) {
-		cout << "Conflicting options \"4\" and \"6\"" << endl;
-		return 3;
-	}
-
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -176,6 +171,11 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		return 0;
 	}
 
+	if (vm.count("-4") && vm.count("-6")) {
+		cout << "Conflicting options \"4\" and \"6\"" << endl;
+		return 3;
+	}
+    
 	if (vm.count("warning")) {
 		std::vector<wstring> sVec = splitMultiOptions(vm["warning"].as<wstring>());
 		if (sVec.size() != 2) {
@@ -274,6 +274,11 @@ int check_ping4(const printInfoStruct& pi, response& response)
 	LPCWSTR term;
 
 	if (RtlIpv4StringToAddress(pi.host.c_str(), TRUE, &term, &ipDest4) == STATUS_INVALID_PARAMETER) {
+		std::wcout << pi.host << " is not a valid ip address" << std::endl;
+		return 3;
+	}
+
+	if (*term != L'\0') {
 		std::wcout << pi.host << " is not a valid ip address" << std::endl;
 		return 3;
 	}

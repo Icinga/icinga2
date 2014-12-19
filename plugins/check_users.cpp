@@ -67,9 +67,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 
 	desc.add_options()
-		(",h", "print help message and exit")
-		("help", "print verbose help and exit")
-		("version,v", "print version and exit")
+		("help,h", "print help message and exit")
+		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold")
 		("critical,c", po::wvalue<wstring>(), "critical threshold")
 		;
@@ -91,11 +90,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		return 3;
 	}
 
-	if (vm.count("h")) {
-		cout << desc << endl;
-		return 0;
-	}
-    
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -172,16 +166,16 @@ int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"USERS OK " << printInfo.users << L" User(s)|users=" << printInfo.users << L";" 
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
+		wcout << L"USERS OK " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
 		break;
 	case WARNING:
-		wcout << L"USERS WARNING " << printInfo.users << L" User(s)|users=" << printInfo.users << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
+		wcout << L"USERS WARNING " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"USERS CRITICAL " << printInfo.users << L" User(s)|users=" << printInfo.users << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
+		wcout << L"USERS CRITICAL " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
 		break;
 	}
 

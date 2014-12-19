@@ -69,18 +69,22 @@ int printOutput(const int numProcs, printInfoStruct& printInfo)
 	if (printInfo.crit.rend(numProcs))
 		state = CRITICAL;
 	
+	wstring user = L"";
+	if (!printInfo.user.empty())
+		user.append(L" processes of user ").append(printInfo.user);
+
 	switch (state) {
 	case OK:
-		wcout << L"PROCS OK " << numProcs << L"|procs=" << numProcs << L";" 
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
+		wcout << L"PROCS OK " << numProcs << user << L" | procs=" << numProcs << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
 		break;
 	case WARNING:
-		wcout << L"PROCS WARNING " << numProcs << L"|procs=" << numProcs << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
+		wcout << L"PROCS WARNING " << numProcs << user << L" | procs=" << numProcs << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"PROCS CRITICAL " << numProcs << L"|procs=" << numProcs << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0" << endl;
+		wcout << L"PROCS CRITICAL " << numProcs << user << L" | procs=" << numProcs << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
 		break;
 	}
 
@@ -96,9 +100,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 
 	desc.add_options()
-		("h", "print help message and exit")
-		("help", "print verbose help and exit")
-		("version,v", "print version and exit")
+		("help,h", "print help message and exit")
+		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold")
 		("critical,c", po::wvalue<wstring>(), "critical threshold")
 		("user,u", po::wvalue<wstring>(), "count only processes by user [arg]")
@@ -119,11 +122,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	} catch (std::exception& e) {
 		std::cout << e.what() << endl << desc << endl;
 		return 3;
-	}
-
-	if (vm.count("h")) {
-		std::cout << desc << endl;
-		return 0;
 	}
     
 	if (vm.count("help")) {

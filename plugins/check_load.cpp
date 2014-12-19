@@ -67,9 +67,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 
 	desc.add_options()
-		(",h", "print usage message and exit")
-		("help", "print help message and exit")
-		("version,v", "print version and exit")
+		("help,h", "print usage message and exit")
+		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning value (in percent)")
 		("critical,c", po::wvalue<wstring>(), "critical value (in percent)")
 		;
@@ -89,11 +88,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
-	}
-
-	if (vm.count("h")) {
-		cout << desc << endl;
-		return 0;
 	}
 
 	if (vm.count("help")) {
@@ -176,7 +170,7 @@ int printOutput(printInfoStruct& printInfo)
 		state = CRITICAL;
 
 	std::wstringstream perf;
-	perf << L"%|load=" << printInfo.load << L"%;" << printInfo.warn.pString() << L";" 
+	perf << L"% | load=" << printInfo.load << L"%;" << printInfo.warn.pString() << L";" 
 		<< printInfo.crit.pString() << L";0;100" << endl;
 
 	switch (state) {

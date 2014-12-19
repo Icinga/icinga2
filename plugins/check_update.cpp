@@ -85,8 +85,8 @@ int printOutput(const printInfoStruct& printInfo)
 		break;
 	}
 
-	wcout << output << printInfo.numUpdates << L"|update=" << printInfo.numUpdates << L";"
-		<< printInfo.warn << L";" << printInfo.crit << L";0" << endl;
+	wcout << output << printInfo.numUpdates << L" | update=" << printInfo.numUpdates << L";"
+		<< printInfo.warn << L";" << printInfo.crit << L";0;" << endl;
         
 	return state;
 }
@@ -100,9 +100,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 
 	desc.add_options()
-		(",h", "print help message and exit")
-		("help", "print verbose help and exit")
-		("version,v", "print version and exit")
+		("help,h", "print help message and exit")
+		("version,V", "print version and exit")
 		("warning,w", "warn if there are important updates available")
 		("critical,c", "critical if there are important updates that require a reboot")
 		("possible-reboot", "treat \"update may need to reboot\" as \"update needs to reboot\"")
@@ -124,11 +123,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
-
-	if (vm.count("h")) {
-		cout << desc << endl;
-		return 0;
-	} 
     
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;

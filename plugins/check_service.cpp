@@ -67,9 +67,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 
 	desc.add_options()
-		(",h", "print help message and exit")
-		("help", "print verbose help and exit")
-		("version,v", "print version and exit")
+		("help,h", "print help message and exit")
+		("version,V", "print version and exit")
 		("service,s", po::wvalue<wstring>(), "service to check (required)")
 		("warn,w", "return warning (1) instead of critical (2),\n when service is not running")
 		;
@@ -90,12 +89,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
-    
-	if (vm.count("h")) {
-		cout << desc << endl;
-		return 0;
-	} 
-    
+
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -145,18 +139,23 @@ int printOutput(const printInfoStruct& printInfo)
 	wstring perf;
 	state state = OK;
 
+	if (!printInfo.ServiceState) {
+		wcout << L"SERVICE CRITICAL NOT_FOUND | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		return 3;
+	}
+
 	if (printInfo.ServiceState != 0x04) 
 		printInfo.warn ? state = WARNING : state = CRITICAL;
 
 	switch (state) {
 	case OK:
-		wcout << L"SERVICE OK RUNNING|service=4;!4;!4;1;7" << endl;
+		wcout << L"SERVICE OK RUNNING | service=4;!4;!4;1;7" << endl;
 		break;
 	case WARNING:
-		wcout << L"SERVICE WARNING NOT_RUNNING|service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		wcout << L"SERVICE WARNING NOT_RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"SERVICE CRITICAL NOT_RUNNING|service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		wcout << L"SERVICE CRITICAL NOT_RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		break;
 	}
     
@@ -194,7 +193,7 @@ int ServiceStatus(const printInfoStruct& printInfo)
 			return state;
 		}
 	}
-	wcout << L"Service " << printInfo.service << L" could not be found\n";
+	return 0;
 	delete[] reinterpret_cast<LPBYTE>(lpServices);
 	return -1;
 

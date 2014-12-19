@@ -44,7 +44,7 @@ static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&)
 static int printOutput(printInfoStruct&);
 static void getUptime(printInfoStruct&);
 
-int main(int argc, wchar_t **argv)
+int wmain(int argc, wchar_t **argv)
 {
 	po::variables_map vm;
 	printInfoStruct printInfo = { };
@@ -67,9 +67,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 	
 	desc.add_options()
-		(",h", "print help message and exit")
-		("help", "print verbose help and exit")
-		("version,v", "print version and exit")
+		("help,h", "print help message and exit")
+		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold (Uses -unit)")
 		("critical,c", po::wvalue<wstring>(), "critical threshold (Uses -unit)")
 		("unit,u", po::wvalue<wstring>(), "desired unit of output\nh\t- hours\nm\t- minutes\ns\t- seconds (default)\nms\t- milliseconds")
@@ -90,11 +89,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
-	}
-
-	if (vm.count("h")) {
-		cout << desc << endl;
-		return 0;
 	}
 
 	if (vm.count("help")) {
@@ -185,19 +179,19 @@ static int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L"|uptime=" << printInfo.time 
-			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";" 
-			<< printInfo.crit.pString() << L";0" << endl;
+		wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
+			<< printInfo.crit.pString() << L";0;" << endl;
 		break;
 	case WARNING:
-		wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L"|uptime=" << printInfo.time
+		wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0" << endl;
+			<< printInfo.crit.pString() << L";0;" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L"|uptime=" << printInfo.time
+		wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0" << endl;
+			<< printInfo.crit.pString() << L";0;" << endl;
 		break;
 	}
 

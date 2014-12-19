@@ -75,9 +75,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc("Options");
 
 	desc.add_options()
-		(",h", "print usage and exit")
-		("help", "print help message and exit")
-		("version,v", "print version and exit")
+		("help,h", "print usage and exit")
+		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning value")
 		("critical,c", po::wvalue<wstring>(), "critical value")
 		;
@@ -97,11 +96,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	} catch (std::exception& e) {
 		cout << e.what() << endl << desc << endl;
 		return 3;
-	}
-
-	if (vm.count("h")) {
-		cout << desc << endl;
-		return 0;
 	}
 
 	if (vm.count("help")) {
@@ -187,17 +181,17 @@ int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterface
 	if (printInfo.crit.rend(tIn + tOut))
 		state = CRITICAL;
 	
-	perfDataFirst << L"network=" << tIn + tOut << L"B/s;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0 ";
+	perfDataFirst << L"network=" << tIn + tOut << L"B/s;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
 
 	switch (state) {
 	case OK:
-		wcout << L"NETWORK OK " << tIn + tOut << L"B/s|" << perfDataFirst.str() << tss.str() << endl;
+		wcout << L"NETWORK OK " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << endl;
 		break;
 	case WARNING:
-		wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s|" << perfDataFirst.str() << tss.str() << endl;
+		wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << endl;
 		break;
 	case CRITICAL:
-		wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s|" << perfDataFirst.str() << tss.str() << endl;
+		wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << endl;
 		break;
 	}
 

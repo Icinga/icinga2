@@ -59,7 +59,7 @@ static bool getFreeAndCap(drive&, const Bunit&);
 int wmain(int argc, wchar_t **argv) 
 {
 	vector<drive> vDrives;
-	printInfoStruct printInfo{ false, false};
+	printInfoStruct printInfo{ };
 	po::variables_map vm;
 
 	int ret;
@@ -67,6 +67,9 @@ int wmain(int argc, wchar_t **argv)
 	ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
+
+	printInfo.warn.legal = !printInfo.warn.legal;
+	printInfo.crit.legal = !printInfo.crit.legal;
 
 	if (printInfo.drives.empty())
 		ret = check_drives(vDrives);
@@ -77,8 +80,10 @@ int wmain(int argc, wchar_t **argv)
 		return ret;
 
 	for (vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); ++it) {
-		if (!getFreeAndCap(*it, printInfo.unit))
+		if (!getFreeAndCap(*it, printInfo.unit)) {
+			wcout << L"Failed to access drive at " << it->name << endl;
 			return 3;
+		}
 	}
 
 	return printOutput(printInfo, vDrives);
@@ -93,9 +98,8 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc("Options");
 
 	desc.add_options()
-		(",h", "print usage message and exit")
-		("help", "print help message and exit")
-		("version,v", "print version and exit")
+		("help,h", "print usage message and exit")
+		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold")
 		("critical,c", po::wvalue<wstring>(), "critical threshold")
 		("path,p", po::wvalue<vector<std::wstring>>()->multitoken(), "declare explicitly which drives to check (default checks all)")
@@ -132,8 +136,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"and \"23.8304%%\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
-			L"if applicable, the maximal value. Performance data will only be displayed when\n"
-			L"you set at least one threshold\n"
+			L"if applicable, the maximal value.\n"
 			L"This program will also print out additional performance data disk by disk\n\n"
 			L"%s' exit codes denote the following:\n\n"
 			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
@@ -142,10 +145,9 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
-			L"warn if threshold is broken, which means VALUE > THRESHOLD\n"
-			L"(unless stated differently)\n\n"
+			L"warn if threshold is broken, which means VALUE < THRESHOLD\n\n"
 			L"-w !THRESHOLD\n"
-			L"inverts threshold check, VALUE < THRESHOLD (analogous to above)\n\n"
+			L"inverts threshold check, VALUE > THRESHOLD (analogous to above)\n\n"
 			L"-w [THR1-THR2]\n"
 			L"warn is VALUE is inside the range spanned by THR1 and THR2\n\n"
 			L"-w ![THR1-THR2]\n"
@@ -158,11 +160,6 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
 		cout << endl;
-		return 0;
-	}
-
-	if (vm.count("h")) {
-		cout << desc << endl;
 		return 0;
 	}
 
@@ -211,11 +208,12 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 
 	for (vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); ++it) {
 		tCap += it->cap; tFree += it->free;
-		perf << L" drive=\"" << it->name << L"\";cap=" << it->cap << unit << L";free=" << it->free << unit;
+		perf << std::fixed << L" " << it->name << L"=" << removeZero(it->free) << unit << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << removeZero(tCap);
 	}
 
-	prePerf << L"|disk=" << tFree << unit << L";" << printInfo.warn.pString() << L";"
-		<< printInfo.crit.pString() << L";0;" << tCap;
+	prePerf << L" | disk=" << removeZero(tFree) << unit << L";" << printInfo.warn.pString() << L";"
+		<< printInfo.crit.pString() << L";0;" << removeZero(tCap);
 
 	if (printInfo.warn.perc) {
 		if (printInfo.warn.rend((tFree / tCap) * 100.0))
@@ -313,6 +311,10 @@ int check_drives(vector<drive>& vDrives, printInfoStruct& printInfo)
 		if (it->at(it->length() - 1) != *slash)
 			it->append(slash);
 
+		if (std::wstring::npos == it->find(L":\\")) {
+			wcout << "A \":\" is required after the drive name of " << *it << endl;
+			return 3;
+		}
 		vDrives.push_back(drive(*it));
 	}
 	return -1;
@@ -325,8 +327,8 @@ bool getFreeAndCap(drive& drive, const Bunit& unit)
 		return FALSE;
 	}
 
-	drive.cap = (tempTotal.QuadPart / pow(1024.0, unit));
-	drive.free = (tempFree.QuadPart / pow(1024.0, unit));
+	drive.cap = round((tempTotal.QuadPart / pow(1024.0, unit)));
+	drive.free = round((tempFree.QuadPart / pow(1024.0, unit)));
 
 	return TRUE;
 }
