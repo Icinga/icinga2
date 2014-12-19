@@ -38,12 +38,12 @@ Expression::~Expression(void)
 Value Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	try {
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 /*		std::ostringstream msgbuf;
 		ShowCodeFragment(msgbuf, GetDebugInfo(), false);
 		Log(LogDebug, "Expression")
 			<< "Executing:\n" << msgbuf.str();*/
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 		return DoEvaluate(frame, dhint);
 	} catch (const InterruptExecutionError&) {

@@ -110,11 +110,11 @@ void Application::Exit(int rc)
 
 	UninitializeBase();
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 	exit(rc);
-#else /* _DEBUG */
+#else /* I2_DEBUG */
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 }
 
 void Application::InitializeBase(void)
@@ -128,10 +128,10 @@ void Application::InitializeBase(void)
 			maxfds = 65536;
 
 		for (rlim_t i = 3; i < maxfds; i++) {
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 			if (close(i) >= 0)
 				std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 		}
 	}
 #endif /* _WIN32 */

@@ -22,11 +22,11 @@
 
 #include "i2-base.hpp"
 
-#ifndef _DEBUG
+#ifndef I2_DEBUG
 #	define ASSERT(expr) ((void)0)
-#else /* _DEBUG */
+#else /* I2_DEBUG */
 #	define ASSERT(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 #define VERIFY(expr) ((expr) ? 0 : icinga_assert_fail(#expr, __FILE__, __LINE__))
 

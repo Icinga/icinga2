@@ -452,25 +452,25 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 			time_t refts = begin + i * 24 * 60 * 60;
 			tm reference = Utility::LocalTime(refts);
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 			Log(LogDebug, "LegacyTimePeriod")
 			    << "Checking reference time " << refts;
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 			ObjectLock olock(ranges);
 			BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
 				if (!IsInDayDefinition(kv.first, &reference)) {
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 					Log(LogDebug, "LegacyTimePeriod")
 					    << "Not in day definition '" << kv.first << "'.";
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 					continue;
 				}
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 				Log(LogDebug, "LegacyTimePeriod")
 				    << "In day definition '" << kv.first << "'.";
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 				ProcessTimeRanges(kv.second, &reference, segments);
 			}

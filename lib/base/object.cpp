@@ -32,9 +32,9 @@ REGISTER_PRIMITIVE_TYPE(Object, Object::GetPrototype());
  */
 Object::Object(void)
 	: m_References(0)
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 	, m_LockOwner(0)
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 { }
 
 /**
@@ -51,7 +51,7 @@ String Object::ToString(void) const
 	return "Object of type '" + Utility::GetTypeName(typeid(*this)) + "'";
 }
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 /**
  * Checks if the calling thread owns the lock on this object.
  *
@@ -69,7 +69,7 @@ bool Object::OwnsLock(void) const
 	return (tid == pthread_self());
 #endif /* _WIN32 */
 }
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 void Object::InflateMutex(void)
 {

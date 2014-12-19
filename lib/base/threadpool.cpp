@@ -117,13 +117,13 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 
 		double st = Utility::GetTime();;
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 #	ifdef RUSAGE_THREAD
 		struct rusage usage_start, usage_end;
 
 		(void) getrusage(RUSAGE_THREAD, &usage_start);
 #	endif /* RUSAGE_THREAD */
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 		try {
 			if (wi.Callback)
@@ -147,7 +147,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 			queue.TaskCount++;
 		}
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 #	ifdef RUSAGE_THREAD
 		(void) getrusage(RUSAGE_THREAD, &usage_end);
 
@@ -173,7 +173,7 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 			    << "Event call took " << (et - st) << "s";
 #	endif /* RUSAGE_THREAD */
 		}
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 	}
 
 	boost::mutex::scoped_lock lock(queue.Mutex);

@@ -263,10 +263,10 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 		if (response && response->Contains("error")) {
 			Log(LogCritical, "cli", "Could not fetch valid response. Please check the master log (notice or debug).");
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 			/* we shouldn't expose master errors to the user in production environments */
 			Log(LogCritical, "cli", response->Get("error"));
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 			return 1;
 		}
 

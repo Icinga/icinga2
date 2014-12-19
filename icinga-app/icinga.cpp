@@ -277,9 +277,9 @@ int Main(void)
 			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon (version: "
 			    << ConsoleColorTag(vm.count("version") ? Console_ForegroundRed : Console_Normal)
 			    << Application::GetVersion()
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 			    << "; debug"
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 			    << ConsoleColorTag(Console_Normal)
 			    << ")" << std::endl << std::endl;
 

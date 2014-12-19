@@ -142,10 +142,10 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 {
 	ASSERT(!OwnsLock());
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 	Log(LogDebug, "ConfigItem")
 	    << "Commit called for ConfigItem Type=" << GetType() << ", Name=" << GetName();
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 	/* Make sure the type is valid. */
 	Type::Ptr type = Type::GetByName(GetType());
@@ -369,23 +369,23 @@ bool ConfigItem::ActivateItems(void)
 			if (object->IsActive())
 				continue;
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 			Log(LogDebug, "ConfigItem")
 			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
 		}
 	}
 
 	upq.Join();
 
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
 			ASSERT(object->IsActive());
 		}
 	}
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 	Log(LogInformation, "ConfigItem", "Activated all objects.");
 

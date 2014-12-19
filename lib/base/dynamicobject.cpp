@@ -289,10 +289,10 @@ void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 		return;
 
 	ASSERT(!object->IsActive());
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 	Log(LogDebug, "DynamicObject")
 	    << "Restoring object '" << name << "' of type '" << type << "'.";
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 	Dictionary::Ptr update = persistentObject->Get("update");
 	Deserialize(object, update, false, attributeTypes);
 	object->OnStateLoaded();

@@ -251,9 +251,9 @@ void Checkable::StartDowntimesExpiredTimer(void)
 
 void Checkable::AddDowntimesToCache(void)
 {
-#ifdef _DEBUG
+#ifdef I2_DEBUG
 	Log(LogDebug, "Checkable", "Updating Checkable downtimes cache.");
-#endif /* _DEBUG */
+#endif /* I2_DEBUG */
 
 	Dictionary::Ptr downtimes = GetDowntimes();
 
