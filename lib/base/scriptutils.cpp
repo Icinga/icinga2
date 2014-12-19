@@ -46,6 +46,7 @@ REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
 REGISTER_SCRIPTFUNCTION(__get_object, &ScriptUtils::GetObject);
+REGISTER_SCRIPTFUNCTION(__get_objects, &ScriptUtils::GetObjects);
 REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
 REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
 REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
@@ -251,6 +252,21 @@ DynamicObject::Ptr ScriptUtils::GetObject(const String& type, const String& name
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
 
 	return dtype->GetObject(name);
+}
+
+Array::Ptr ScriptUtils::GetObjects(const String& type)
+{
+	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+
+	if (!dtype)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
+
+	Array::Ptr result = new Array();
+
+	BOOST_FOREACH(const DynamicObject::Ptr& object, dtype->GetObjects())
+		result->Add(object);
+
+	return result;
 }
 
 void ScriptUtils::Assert(const Value& arg)
