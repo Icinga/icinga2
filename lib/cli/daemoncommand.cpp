@@ -324,7 +324,11 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (!vm.count("validate"))
 		Logger::DisableTimestamp(false);
 
+#ifdef __APPLE__
+	ScriptVariable::Set("UseVfork", false, false, true);
+#else /* __APPLE__ */
 	ScriptVariable::Set("UseVfork", true, false, true);
+#endif /* __APPLE__ */
 
 	Application::MakeVariablesConstant();
 
