@@ -161,7 +161,7 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 			Socket::Ptr socket;
 
 #ifndef _WIN32
-			if (addr[0] == '/') {
+			if (addr.FindFirstOf("/") != String::NPos) {
 				UnixSocket::Ptr usocket = new UnixSocket();
 				usocket->Connect(addr);
 				socket = usocket;
