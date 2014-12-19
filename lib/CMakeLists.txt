@@ -18,23 +18,46 @@
 add_subdirectory(base)
 add_subdirectory(cli)
 add_subdirectory(config)
-add_subdirectory(icinga)
-add_subdirectory(db_ido)
-add_subdirectory(methods)
-add_subdirectory(hello)
 add_subdirectory(remote)
-add_subdirectory(checker)
-add_subdirectory(compat)
+add_subdirectory(icinga)
+add_subdirectory(methods)
+
+if(ICINGA2_WITH_HELLO)
+  add_subdirectory(hello)
+endif()
+
+if(ICINGA2_WITH_CHECKER)
+  add_subdirectory(checker)
+endif()
+
+if(ICINGA2_WITH_COMPAT)
+  add_subdirectory(compat)
+endif()
+
+if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
+  add_subdirectory(db_ido)
+endif()
 
 if(ICINGA2_WITH_MYSQL)
-       add_subdirectory(db_ido_mysql)
+  add_subdirectory(db_ido_mysql)
 endif()
 
 if(ICINGA2_WITH_PGSQL)
-       add_subdirectory(db_ido_pgsql)
+  add_subdirectory(db_ido_pgsql)
 endif()
 
-add_subdirectory(demo)
-add_subdirectory(livestatus)
-add_subdirectory(notification)
-add_subdirectory(perfdata)
+if(ICINGA2_WITH_DEMO)
+  add_subdirectory(demo)
+endif()
+
+if(ICINGA2_WITH_LIVESTATUS)
+  add_subdirectory(livestatus)
+endif()
+
+if(ICINGA2_WITH_NOTIFICATION)
+  add_subdirectory(notification)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  add_subdirectory(perfdata)
+endif()

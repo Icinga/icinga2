@@ -55,20 +55,9 @@ install_if_not_exists(icinga2/conf.d/templates.conf ${CMAKE_INSTALL_SYSCONFDIR}/
 install_if_not_exists(icinga2/conf.d/timeperiods.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/users.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/features-available/api.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/checker.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/command.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/compatlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/debuglog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/gelf.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/graphite.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/icingastatus.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/ido-mysql.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/ido-pgsql.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/livestatus.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/mainlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/notification.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/perfdata.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/statusdata.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/syslog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/scripts/mail-host-notification.sh ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/scripts)
 install_if_not_exists(icinga2/scripts/mail-service-notification.sh ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/scripts)
@@ -84,8 +73,6 @@ install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDI
 
 if(NOT WIN32)
   install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled\")")
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/checker.conf \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled/checker.conf\")")
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/notification.conf \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled/notification.conf\")")
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/mainlog.conf \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled/mainlog.conf\")")
 
   install(
@@ -94,8 +81,7 @@ if(NOT WIN32)
   )
 else()
   install(
-    FILES icinga2/features-enabled/checker.conf icinga2/features-enabled/notification.conf
-          icinga2/features-enabled/mainlog.conf
+    FILES icinga2/features-enabled/mainlog.conf
     DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled
   )
 endif()

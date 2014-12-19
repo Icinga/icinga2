@@ -157,6 +157,13 @@ Only use this for special packaging purposes and if you know what you are doing.
 Defaults to `OFF`.
 - `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
 - `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
+- `ICINGA2_WITH_CHECKER`: Determines whether the checker module is built; defaults to `ON`
+- `ICINGA2_WITH_COMPAT`: Determines whether the compat module is built; defaults to `ON`
+- `ICINGA2_WITH_DEMO`: Determines whether the demo module is built; defaults to `OFF`
+- `ICINGA2_WITH_HELLO`: Determines whether the hello module is built; defaults to `OFF`
+- `ICINGA2_WITH_LIVESTATUS`: Determines whether the Livestatus module is built; defaults to `ON`
+- `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
+- `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
 
 ### Building Icinga 2 RPMs
 

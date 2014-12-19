@@ -70,6 +70,8 @@ set_target_properties (
   FOLDER Lib
 )
 
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/cache/icinga2\")")
+
 install(
   TARGETS base
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
