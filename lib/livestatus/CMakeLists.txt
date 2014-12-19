@@ -52,5 +52,7 @@ install_if_not_exists(
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
 )
 
+install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_RUNDIR}/icinga2/cmd\")")
+
 install(TARGETS livestatus RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2)
 
