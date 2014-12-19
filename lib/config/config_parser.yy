@@ -740,7 +740,7 @@ rterm: T_STRING
 	}
 	| rterm '[' rterm ']'
 	{
-		$$ = new IndexerExpression($1, $3, DebugInfoRange(@1, @3));
+		$$ = new IndexerExpression($1, $3, DebugInfoRange(@1, @4));
 	}
 	| T_IDENTIFIER
 	{
