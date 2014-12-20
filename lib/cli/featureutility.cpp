@@ -97,9 +97,11 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 
 #ifndef _WIN32
-		if (symlink(source.CStr(), target.CStr()) < 0) {
+		String relativeSource = "../features-available/" + feature + ".conf";
+
+		if (symlink(relativeSource.CStr(), target.CStr()) < 0) {
 			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Linking source '" << source << "' to target file '" << target
+			    << "Cannot enable feature '" << feature << "'. Linking source '" << relativeSource << "' to target file '" << target
 			    << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
 			continue;
