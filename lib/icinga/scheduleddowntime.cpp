@@ -106,10 +106,16 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 	ObjectLock olock(ranges);
 	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+		Log(LogDebug, "ScheduledDowntime")
+		    << "Evaluating segment: " << kv.first << ": " << kv.second << " at ";
+
 		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
 
 		if (!segment)
 			continue;
+
+		Log(LogDebug, "ScheduledDowntime")
+		    << "Considering segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " -> " << Utility::FormatDateTime("%c", segment->Get("end"));
 
 		double begin = segment->Get("begin");
 
