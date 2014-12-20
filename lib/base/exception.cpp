@@ -130,7 +130,59 @@ void icinga::SetLastExceptionContext(const ContextTrace& context)
 	l_LastExceptionContext.reset(new ContextTrace(context));
 }
 
-String icinga::DiagnosticInformation(boost::exception_ptr eptr)
+String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, StackTrace *stack, ContextTrace *context)
+{
+	std::ostringstream result;
+
+	const user_error *uex = dynamic_cast<const user_error *>(&ex);
+
+	String message = ex.what();
+
+	if (verbose)
+		result << boost::diagnostic_information(ex);
+	else
+		result << "Error: " << message;
+
+	const ScriptError *dex = dynamic_cast<const ScriptError *>(&ex);
+
+	if (dex && !dex->GetDebugInfo().Path.IsEmpty()) {
+		result << "\nLocation:\n";
+		ShowCodeFragment(result, dex->GetDebugInfo());
+	}
+
+	const posix_error *pex = dynamic_cast<const posix_error *>(&ex);
+
+	if (!uex && verbose) {
+		const StackTrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
+
+		if (st) {
+			result << *st;
+		} else {
+			result << std::endl;
+
+			if (!stack)
+				stack = GetLastExceptionStack();
+
+			if (stack)
+				result << *stack;
+
+		}
+
+		if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
+			result << std::endl;
+
+			if (!context)
+				context = GetLastExceptionContext();
+
+			if (context)
+				result << *context;
+		}
+	}
+
+	return result.str();
+}
+
+String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
 {
 	StackTrace *pt = GetLastExceptionStack();
 	StackTrace stack;
@@ -147,7 +199,7 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr)
 	try {
 		boost::rethrow_exception(eptr);
 	} catch (const std::exception& ex) {
-		return DiagnosticInformation(ex, pt ? &stack : NULL, pc ? &context : NULL);
+		return DiagnosticInformation(ex, verbose, pt ? &stack : NULL, pc ? &context : NULL);
 	}
 
 	return boost::diagnostic_information(eptr);
@@ -172,5 +224,45 @@ const char *ScriptError::what(void) const throw()
 DebugInfo ScriptError::GetDebugInfo(void) const
 {
 	return m_DebugInfo;
+}
+
+posix_error::posix_error(void)
+	: m_Message(NULL)
+{ }
+
+posix_error::~posix_error(void) throw()
+{
+	free(m_Message);
+}
+
+const char *posix_error::what(void) const throw()
+{
+	if (!m_Message) {
+		std::ostringstream msgbuf;
+
+		const char * const *func = boost::get_error_info<boost::errinfo_api_function>(*this);
+
+		if (func)
+			msgbuf << "Function call '" << *func << "'";
+		else
+			msgbuf << "Function call";
+
+		const std::string *fname = boost::get_error_info<boost::errinfo_file_name>(*this);
+
+		if (fname)
+			msgbuf << " for file '" << *fname << "'";
+
+		msgbuf << " failed";
+
+		const int *errnum = boost::get_error_info<boost::errinfo_errno>(*this);
+
+		if (errnum)
+			msgbuf << " with error code " << *errnum << ", '" << strerror(*errnum) << "'";
+
+		String str = msgbuf.str();
+		m_Message = strdup(str.CStr());
+	}
+
+	return m_Message;
 }
 

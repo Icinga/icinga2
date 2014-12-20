@@ -462,6 +462,7 @@ exit 0
 
 %attr(0750,%{icinga_user},%{icingacmd_group}) %{_localstatedir}/cache/%{name}
 %attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}
+%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/log/%{name}/crash
 %attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}/compat
 %attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}/compat/archives
 %attr(0750,%{icinga_user},%{icinga_group}) %{_localstatedir}/lib/%{name}

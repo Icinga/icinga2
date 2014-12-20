@@ -29,14 +29,15 @@
 #include "base/convert.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/process.hpp"
-#include <sstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
+#include <sstream>
 #include <iostream>
+#include <fstream>
 
 using namespace icinga;
 
@@ -474,35 +475,35 @@ String Application::GetExePath(const String& argv0)
 /**
  * Display version and path information.
  */
-void Application::DisplayInfoMessage(bool skipVersion)
+void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 {
-	std::cerr << "Application information:" << std::endl;
+	os << "Application information:" << "\n";
 
 	if (!skipVersion)
-		std::cerr << "  Application version: " << GetVersion() << std::endl;
+		os << "  Application version: " << GetVersion() << "\n";
 
-	std::cerr << "  Installation root: " << GetPrefixDir() << std::endl
-		  << "  Sysconf directory: " << GetSysconfDir() << std::endl
-		  << "  Run directory: " << GetRunDir() << std::endl
-		  << "  Local state directory: " << GetLocalStateDir() << std::endl
-		  << "  Package data directory: " << GetPkgDataDir() << std::endl
-		  << "  State path: " << GetStatePath() << std::endl
-		  << "  Objects path: " << GetObjectsPath() << std::endl
-		  << "  Vars path: " << GetVarsPath() << std::endl
-		  << "  PID path: " << GetPidPath() << std::endl
-		  << "  Application type: " << GetApplicationType() << std::endl;
+	os << "  Installation root: " << GetPrefixDir() << "\n"
+	   << "  Sysconf directory: " << GetSysconfDir() << "\n"
+	   << "  Run directory: " << GetRunDir() << "\n"
+	   << "  Local state directory: " << GetLocalStateDir() << "\n"
+	   << "  Package data directory: " << GetPkgDataDir() << "\n"
+	   << "  State path: " << GetStatePath() << "\n"
+	   << "  Objects path: " << GetObjectsPath() << "\n"
+	   << "  Vars path: " << GetVarsPath() << "\n"
+	   << "  PID path: " << GetPidPath() << "\n"
+	   << "  Application type: " << GetApplicationType() << "\n";
 }
 
 /**
  * Displays a message that tells users what to do when they encounter a bug.
  */
-void Application::DisplayBugMessage(void)
+void Application::DisplayBugMessage(std::ostream& os)
 {
-	std::cerr << "***" << std::endl
-		  << "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << std::endl
-		  << "* please submit a bug report at https://dev.icinga.org/ and include this stack trace as well as any other" << std::endl
-		  << "* information that might be useful in order to reproduce this problem." << std::endl
-		  << "***" << std::endl;
+	os << "***" << "\n"
+	   << "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << "\n"
+	   << "* please submit a bug report at https://dev.icinga.org/ and include this stack trace as well as any other" << "\n"
+	   << "* information that might be useful in order to reproduce this problem." << "\n"
+	   << "***" << "\n";
 }
 
 #ifndef _WIN32
@@ -538,6 +539,11 @@ void Application::SigUsr1Handler(int)
 	RequestReopenLogs();
 }
 
+String Application::GetCrashReportFilename(void)
+{
+	return GetLocalStateDir() + "/log/icinga2/crash/report." + Convert::ToString(Utility::GetTime());
+}
+
 /**
  * Signal handler for SIGABRT. Helps with debugging ASSERT()s.
  *
@@ -556,13 +562,22 @@ void Application::SigAbrtHandler(int)
 		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
 		  << std::endl;
 
-	DisplayInfoMessage();
+	String fname = GetCrashReportFilename();
+	std::ofstream ofs;
+	ofs.open(fname.CStr());
+
+	Log(LogCritical, "Application")
+	    << "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
+
+	DisplayInfoMessage(ofs);
 
 	StackTrace trace;
-	std::cerr << "Stacktrace:" << std::endl;
-	trace.Print(std::cerr, 1);
+	ofs << "Stacktrace:" << "\n";
+	trace.Print(ofs, 1);
 
-	DisplayBugMessage();
+	DisplayBugMessage(ofs);
+
+	ofs.close();
 }
 #else /* _WIN32 */
 /**
@@ -601,21 +616,32 @@ void Application::ExceptionHandler(void)
 	sigaction(SIGABRT, &sa, NULL);
 #endif /* _WIN32 */
 
-	std::cerr << "Caught unhandled exception." << std::endl
-		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
-		  << std::endl;
+	String fname = GetCrashReportFilename();
+	std::ofstream ofs;
+	ofs.open(fname.CStr());
 
-	DisplayInfoMessage();
+	ofs << "Caught unhandled exception." << "\n"
+	    << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
+	    << "\n";
+
+	DisplayInfoMessage(ofs);
 
 	try {
 		RethrowUncaughtException();
 	} catch (const std::exception& ex) {
-		std::cerr << std::endl
-			  << DiagnosticInformation(ex)
-			  << std::endl;
+		Log(LogCritical, "Application")
+		    << DiagnosticInformation(ex, false) << "\n"
+		    << "\n"
+		    << "Additional information is available in '" << fname << "'" << "\n";
+
+		ofs << "\n"
+		    << DiagnosticInformation(ex)
+		    << "\n";
 	}
 
-	DisplayBugMessage();
+	DisplayBugMessage(ofs);
+
+	ofs.close();
 
 	abort();
 }
@@ -628,17 +654,24 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 
 	l_InExceptionHandler = true;
 
-	DisplayInfoMessage();
+	String fname = GetCrashReportFilename();
+	std::ofstream ofs;
+	ofs.open(fname.CStr());
 
-	std::cerr << "Caught unhandled SEH exception." << std::endl
-		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
-		  << std::endl;
+	Log(LogCritical, "Application")
+	    << "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
+
+	DisplayInfoMessage(ofs);
+
+	ofs << "Caught unhandled SEH exception." << "\n"
+	    << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
+	    << "\n";
 
 	StackTrace trace(exi);
-	std::cerr << "Stacktrace:" << std::endl;
-	trace.Print(std::cerr, 1);
+	ofs << "Stacktrace:" << "\n";
+	trace.Print(ofs, 1);
 
-	DisplayBugMessage();
+	DisplayBugMessage(ofs);
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }

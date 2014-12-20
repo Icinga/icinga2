@@ -312,7 +312,7 @@ int Main(void)
 			if (vm.count("version")) {
 				std::cout << std::endl;
 
-				Application::DisplayInfoMessage(true);
+				Application::DisplayInfoMessage(std::cout, true);
 
 				return EXIT_SUCCESS;
 			}

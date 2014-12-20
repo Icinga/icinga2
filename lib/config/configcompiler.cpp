@@ -26,8 +26,6 @@
 #include <fstream>
 #include <boost/foreach.hpp>
 
-using std::ifstream;
-
 using namespace icinga;
 
 std::vector<String> ConfigCompiler::m_IncludeSearchDirs;

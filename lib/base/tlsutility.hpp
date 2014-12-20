@@ -68,7 +68,7 @@ inline std::string to_string(const errinfo_openssl_error& e)
 		message = "Unknown error.";
 
 	tmp << code << ", \"" << message << "\"";
-	return tmp.str();
+	return "[errinfo_openssl_error]" + tmp.str() + "\n";
 }
 
 }

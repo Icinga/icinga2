@@ -25,6 +25,7 @@
 #include "base/threadpool.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
+#include <ostream>
 
 namespace icinga
 {
@@ -133,7 +134,7 @@ public:
 	static double GetStartTime(void);
 	static void SetStartTime(double ts);
 
-	static void DisplayInfoMessage(bool skipVersion = false);
+	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
 protected:
 	virtual void OnConfigLoaded(void);
@@ -169,11 +170,13 @@ private:
 	static LONG WINAPI SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
-	static void DisplayBugMessage(void);
+	static void DisplayBugMessage(std::ostream& os);
 
 	static void SigAbrtHandler(int signum);
 	static void SigUsr1Handler(int signum);
 	static void ExceptionHandler(void);
+
+	static String GetCrashReportFilename(void);
 };
 
 }
