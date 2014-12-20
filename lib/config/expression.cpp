@@ -482,6 +482,9 @@ Value ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 	String type = VMOps::GetField(frame.Self, "type", m_DebugInfo);
 	Value name = m_Name->Evaluate(frame);
 
+	if (!name.IsString())
+		BOOST_THROW_EXCEPTION(ScriptError("Template/object name must be a string", m_DebugInfo));
+
 	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
 
 	if (!item)
