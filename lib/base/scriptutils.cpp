@@ -80,7 +80,7 @@ bool ScriptUtils::Regex(const String& pattern, const String& text)
 	return res;
 }
 
-int ScriptUtils::Len(const Value& value)
+double ScriptUtils::Len(const Value& value)
 {
 	if (value.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr dict = value;
@@ -88,8 +88,10 @@ int ScriptUtils::Len(const Value& value)
 	} else if (value.IsObjectType<Array>()) {
 		Array::Ptr array = value;
 		return array->GetLength();
-	} else {
+	} else if (value.IsString()) {
 		return Convert::ToString(value).GetLength();
+	} else {
+		return 0;
 	}
 }
 

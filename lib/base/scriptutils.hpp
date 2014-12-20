@@ -40,7 +40,7 @@ public:
 	static double CastNumber(const Value& value);
 	static bool CastBool(const Value& value);
 	static bool Regex(const String& pattern, const String& text);
-	static int Len(const Value& value);
+	static double Len(const Value& value);
 	static Array::Ptr Union(const std::vector<Value>& arguments);
 	static Array::Ptr Intersection(const std::vector<Value>& arguments);
 	static void Log(const std::vector<Value>& arguments);
