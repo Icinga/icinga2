@@ -139,7 +139,7 @@ public:
 			return intrusive_ptr<T>();
 
 		if (!IsObject())
-			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value to object."));
+			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value of type '" + GetTypeName() + "' to an object."));
 
 		Object::Ptr object = boost::get<Object::Ptr>(m_Value);
 
