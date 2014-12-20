@@ -51,7 +51,6 @@ class I2_BASE_API Value
 {
 public:
 	inline Value(void)
-		: m_Value()
 	{ }
 
 	inline Value(int value)
@@ -91,7 +90,6 @@ public:
 	{ }
 
 	inline Value(Object *value)
-		: m_Value()
 	{
 		if (!value)
 			return;
@@ -101,7 +99,6 @@ public:
 
 	template<typename T>
 	inline Value(const intrusive_ptr<T>& value)
-		: m_Value()
 	{
 		if (!value)
 			return;
@@ -160,7 +157,7 @@ public:
 	*/
 	inline bool IsEmpty(void) const
 	{
-		return (GetType() == ValueEmpty);
+		return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
 	}
 
 	/**

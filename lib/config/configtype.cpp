@@ -163,7 +163,7 @@ void ConfigType::ValidateObject(const Object::Ptr& object,
 
 			Value value = VMOps::GetField(object, require);
 
-			if (value.IsEmpty() || (value.IsString() && static_cast<String>(value).IsEmpty()))
+			if (value.IsEmpty())
 				BOOST_THROW_EXCEPTION(ScriptError("Required attribute is missing: " + LocationToString(locations)));
 
 			locations.pop_back();
