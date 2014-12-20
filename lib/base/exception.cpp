@@ -138,7 +138,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 
 	String message = ex.what();
 
-	if (verbose)
+	if (message.IsEmpty())
 		result << boost::diagnostic_information(ex);
 	else
 		result << "Error: " << message;
