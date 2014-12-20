@@ -234,7 +234,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			if (tokens.size() > 1)
 				FindNthWeekday(wday, n, begin);
 			else
-				begin->tm_mday += - begin->tm_wday + wday;
+				begin->tm_mday += (7 - begin->tm_wday + wday) % 7;
 
 			begin->tm_hour = 0;
 			begin->tm_min = 0;
@@ -247,7 +247,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			if (tokens.size() > 1)
 				FindNthWeekday(wday, n, end);
 			else
-				end->tm_mday += - end->tm_wday + wday;
+				end->tm_mday += (7 - end->tm_wday + wday) % 7;
 
 			end->tm_hour = 0;
 			end->tm_min = 0;
