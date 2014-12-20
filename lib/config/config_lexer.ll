@@ -89,7 +89,7 @@ do {							\
 
 	if (result > 0xff) {
 		/* error, constant is out-of-bounds */
-		BOOST_THROW_EXCEPTION(ScriptError("Constant is out of bounds: " + String(yytext), DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
+		BOOST_THROW_EXCEPTION(ScriptError("Constant is out of bounds: " + String(yytext), *yylloc));
 	}
 
 	yyextra->m_LexBuffer << static_cast<char>(result);
@@ -99,7 +99,7 @@ do {							\
 	/* generate error - bad escape sequence; something
 	 * like '\48' or '\0777777'
 	 */
-	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));
+	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
 
 <STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
@@ -107,7 +107,10 @@ do {							\
 <STRING>\\r			{ yyextra->m_LexBuffer << "\r"; }
 <STRING>\\b			{ yyextra->m_LexBuffer << "\b"; }
 <STRING>\\f			{ yyextra->m_LexBuffer << "\f"; }
-<STRING>\\(.|\n)		{ yyextra->m_LexBuffer << yytext[1]; }
+<STRING>\\\n			{ yyextra->m_LexBuffer << yytext[1]; }
+<STRING>\\.			{
+	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
+				}
 
 <STRING>[^\\\n\"]+		{
 	char *yptr = yytext;
