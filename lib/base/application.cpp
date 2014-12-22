@@ -506,6 +506,11 @@ void Application::DisplayBugMessage(std::ostream& os)
 	   << "***" << "\n";
 }
 
+String Application::GetCrashReportFilename(void)
+{
+	return GetLocalStateDir() + "/log/icinga2/crash/report." + Convert::ToString(Utility::GetTime());
+}
+
 #ifndef _WIN32
 /**
  * Signal handler for SIGINT and SIGTERM. Prepares the application for cleanly
@@ -537,11 +542,6 @@ void Application::SigIntTermHandler(int signum)
 void Application::SigUsr1Handler(int)
 {
 	RequestReopenLogs();
-}
-
-String Application::GetCrashReportFilename(void)
-{
-	return GetLocalStateDir() + "/log/icinga2/crash/report." + Convert::ToString(Utility::GetTime());
 }
 
 /**

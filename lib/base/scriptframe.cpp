@@ -22,3 +22,38 @@
 using namespace icinga;
 
 boost::thread_specific_ptr<ScriptFrame *> ScriptFrame::m_CurrentFrame;
+
+ScriptFrame::ScriptFrame(void)
+	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals())
+{
+	NextFrame = GetCurrentFrame();
+	SetCurrentFrame(this);
+}
+
+ScriptFrame::ScriptFrame(const Value& self)
+	: Locals(new Dictionary()), Self(self)
+{
+	NextFrame = GetCurrentFrame();
+	SetCurrentFrame(this);
+}
+
+ScriptFrame::~ScriptFrame(void)
+{
+	ASSERT(GetCurrentFrame() == this);
+	SetCurrentFrame(NextFrame);
+}
+
+ScriptFrame *ScriptFrame::GetCurrentFrame(void)
+{
+	ScriptFrame **pframe = m_CurrentFrame.get();
+
+	if (pframe)
+		return *pframe;
+	else
+		return NULL;
+}
+
+void ScriptFrame::SetCurrentFrame(ScriptFrame *frame)
+{
+	m_CurrentFrame.reset(new ScriptFrame *(frame));
+}

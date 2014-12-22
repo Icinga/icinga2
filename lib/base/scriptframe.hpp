@@ -34,43 +34,16 @@ struct I2_BASE_API ScriptFrame
 	Value Self;
 	ScriptFrame *NextFrame;
 
-	ScriptFrame(void)
-		: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals())
-	{
-		NextFrame = GetCurrentFrame();
-		SetCurrentFrame(this);
-	}
+	ScriptFrame(void);
+	ScriptFrame(const Value& self);
+	~ScriptFrame(void);
 
-	ScriptFrame(const Value& self)
-		: Locals(new Dictionary()), Self(self)
-	{
-		NextFrame = GetCurrentFrame();
-		SetCurrentFrame(this);
-	}
-
-	~ScriptFrame(void)
-	{
-		ASSERT(GetCurrentFrame() == this);
-		SetCurrentFrame(NextFrame);
-	}
-
-	static inline ScriptFrame *GetCurrentFrame(void)
-	{
-		ScriptFrame **pframe = m_CurrentFrame.get();
-
-		if (pframe)
-			return *pframe;
-		else
-			return NULL;
-	}
+	static ScriptFrame *GetCurrentFrame(void);
 
 private:
 	static boost::thread_specific_ptr<ScriptFrame *> m_CurrentFrame;
 
-	static inline void SetCurrentFrame(ScriptFrame *frame)
-	{
-		m_CurrentFrame.reset(new ScriptFrame *(frame));
-	}
+	static void SetCurrentFrame(ScriptFrame *frame);
 };
 
 }
