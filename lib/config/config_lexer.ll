@@ -101,8 +101,8 @@ do {							\
 	 */
 	BOOST_THROW_EXCEPTION(ScriptError("Bad escape sequence found: " + String(yytext), *yylloc));
 				}
-
 <STRING>\\n			{ yyextra->m_LexBuffer << "\n"; }
+<STRING>\\\\			{ yyextra->m_LexBuffer << "\\"; }
 <STRING>\\t			{ yyextra->m_LexBuffer << "\t"; }
 <STRING>\\r			{ yyextra->m_LexBuffer << "\r"; }
 <STRING>\\b			{ yyextra->m_LexBuffer << "\b"; }
