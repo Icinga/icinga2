@@ -299,12 +299,12 @@ lterm_items: /* empty */
 	}
 	;
 
-lterm_items_inner: lterm
+lterm_items_inner: lterm %dprec 2
 	{
 		$$ = new std::vector<Expression *>();
 		$$->push_back($1);
 	}
-	| lterm_items_inner sep lterm
+	| lterm_items_inner sep lterm %dprec 1
 	{
 		if ($1)
 			$$ = $1;
