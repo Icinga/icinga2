@@ -201,7 +201,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "\"\\'test\"");
-	BOOST_CHECK_THROW(expr->Evaluate(frame) == "\"test", ScriptError);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 }
 
