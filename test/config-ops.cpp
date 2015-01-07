@@ -195,6 +195,14 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "\"test\" + 3");
 	BOOST_CHECK(expr->Evaluate(frame) == "test3");
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"\\\"te\\\\st\"");
+	BOOST_CHECK(expr->Evaluate(frame) == "\"te\\st");
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "\"\\'test\"");
+	BOOST_CHECK_THROW(expr->Evaluate(frame) == "\"test", ScriptError);
+	delete expr;
 }
 
 BOOST_AUTO_TEST_CASE(advanced)
