@@ -1597,7 +1597,7 @@ Example:
 
     object StatusDataWriter "status" {
         status_path = "/var/cache/icinga2/status.dat"
-        objects_path = "/var/cache/icinga2/objects.path"
+        objects_path = "/var/cache/icinga2/objects.cache"
         update_interval = 30s
     }
 
