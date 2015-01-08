@@ -295,7 +295,7 @@ wizard_ticket:
 			Log(LogCritical, "cli")
 			    << "Failed to fetch signed certificate from master '" << master_host << ", "
 			    << master_port <<"'. Please try again.";
-			return 1;
+			goto wizard_ticket;
 		}
 
 		/* fix permissions (again) when updating the signed certificate */
