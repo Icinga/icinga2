@@ -346,7 +346,7 @@ type: T_TYPE identifier
 		context->m_Type = ConfigType::GetByName(name);
 
 		if (!context->m_Type) {
-			context->m_Type = new ConfigType(name, DebugInfoRange(@1, @2));
+			context->m_Type = new ConfigType(name, @$);
 			context->m_Type->Register();
 		}
 	}
@@ -396,14 +396,14 @@ typerule: T_REQUIRE T_STRING
 	}
 	| T_ATTRIBUTE type T_STRING
 	{
-		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), DebugInfoRange(@1, @3));
+		TypeRule rule($2, String(), $3, TypeRuleList::Ptr(), @$);
 		free($3);
 
 		context->m_RuleLists.top()->AddRule(rule);
 	}
 	| T_ATTRIBUTE T_TYPE_NAME '(' identifier ')' T_STRING
 	{
-		TypeRule rule($2, $4, $6, TypeRuleList::Ptr(), DebugInfoRange(@1, @6));
+		TypeRule rule($2, $4, $6, TypeRuleList::Ptr(), @$);
 		free($4);
 		free($6);
 
@@ -411,7 +411,7 @@ typerule: T_REQUIRE T_STRING
 	}
 	| T_ATTRIBUTE type T_STRING typerulelist
 	{
-		TypeRule rule($2, String(), $3, *$4, DebugInfoRange(@1, @4));
+		TypeRule rule($2, String(), $3, *$4, @$);
 		free($3);
 		delete $4;
 		context->m_RuleLists.top()->AddRule(rule);
@@ -538,42 +538,42 @@ lterm: type
 	}
 	| rterm combined_set_op rterm
 	{
-		$$ = new SetExpression($1, $2, $3, DebugInfoRange(@1, @3));
+		$$ = new SetExpression($1, $2, $3, @$);
 	}
 	| T_INCLUDE T_STRING
 	{
-		$$ = context->HandleInclude($2, false, DebugInfoRange(@1, @2));
+		$$ = context->HandleInclude($2, false, @$);
 		free($2);
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
-		$$ = context->HandleInclude($2, true, DebugInfoRange(@1, @2));
+		$$ = context->HandleInclude($2, true, @$);
 		free($2);
 	}
 	| T_INCLUDE_RECURSIVE T_STRING
 	{
-		$$ = context->HandleIncludeRecursive($2, "*.conf", DebugInfoRange(@1, @2));
+		$$ = context->HandleIncludeRecursive($2, "*.conf", @$);
 		free($2);
 	}
 	| T_INCLUDE_RECURSIVE T_STRING ',' T_STRING
 	{
-		$$ = context->HandleIncludeRecursive($2, $4, DebugInfoRange(@1, @4));
+		$$ = context->HandleIncludeRecursive($2, $4, @$);
 		free($2);
 		free($4);
 	}
 	| T_IMPORT rterm
 	{
-		$$ = new ImportExpression($2, DebugInfoRange(@1, @2));
+		$$ = new ImportExpression($2, @$);
 	}
 	| T_ASSIGN T_WHERE rterm
 	{
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
-			BOOST_THROW_EXCEPTION(ScriptError("'assign' keyword not valid in this context.", DebugInfoRange(@1, @3)));
+			BOOST_THROW_EXCEPTION(ScriptError("'assign' keyword not valid in this context.", @$));
 
 		context->m_SeenAssign.top() = true;
 
 		if (context->m_Assign.top())
-			context->m_Assign.top() = new LogicalOrExpression(context->m_Assign.top(), $3, DebugInfoRange(@1, @3));
+			context->m_Assign.top() = new LogicalOrExpression(context->m_Assign.top(), $3, @$);
 		else
 			context->m_Assign.top() = $3;
 
@@ -582,10 +582,10 @@ lterm: type
 	| T_IGNORE T_WHERE rterm
 	{
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
-			BOOST_THROW_EXCEPTION(ScriptError("'ignore' keyword not valid in this context.", DebugInfoRange(@1, @3)));
+			BOOST_THROW_EXCEPTION(ScriptError("'ignore' keyword not valid in this context.", @$));
 
 		if (context->m_Ignore.top())
-			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $3, DebugInfoRange(@1, @3));
+			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $3, @$);
 		else
 			context->m_Ignore.top() = $3;
 
@@ -593,7 +593,7 @@ lterm: type
 	}
 	| T_RETURN rterm
 	{
-		$$ = new ReturnExpression($2, DebugInfoRange(@1, @2));
+		$$ = new ReturnExpression($2, @$);
 	}
 	| apply
 	| object
@@ -602,7 +602,7 @@ lterm: type
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
 		aexpr->MakeInline();
 
-		$$ = new ForExpression($3, $5, $7, aexpr, DebugInfoRange(@1, @9));
+		$$ = new ForExpression($3, $5, $7, aexpr, @$);
 		free($3);
 		free($5);
 	}
@@ -611,7 +611,7 @@ lterm: type
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
 		aexpr->MakeInline();
 
-		$$ = new ForExpression($3, "", $5, aexpr, DebugInfoRange(@1, @7));
+		$$ = new ForExpression($3, "", $5, aexpr, @$);
 		free($3);
 	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
@@ -619,10 +619,10 @@ lterm: type
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
 		aexpr->MakeInline();
 
-		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, aexpr, DebugInfoRange(@1, @7));
+		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, aexpr, @$);
 		delete $4;
 
-		$$ = new SetExpression(MakeIndexer(ScopeCurrent, $2), OpSetLiteral, fexpr, DebugInfoRange(@1, @7));
+		$$ = new SetExpression(MakeIndexer(ScopeCurrent, $2), OpSetLiteral, fexpr, @$);
 		free($2);
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
@@ -634,13 +634,13 @@ lterm: type
 	{
 		Expression *expr = $2;
 		BindToScope(expr, ScopeLocal);
-		$$ = new SetExpression(expr, OpSetLiteral, MakeLiteral(), DebugInfoRange(@1, @2));
+		$$ = new SetExpression(expr, OpSetLiteral, MakeLiteral(), @$);
 	}
 	| T_VAR rterm combined_set_op rterm
 	{
 		Expression *expr = $2;
 		BindToScope(expr, ScopeLocal);
-		$$ = new SetExpression(expr, $3, $4, DebugInfoRange(@1, @4));
+		$$ = new SetExpression(expr, $3, $4, @$);
 	}
 	| rterm_side_effect
 	;
@@ -669,12 +669,12 @@ rterm_items_inner: rterm
 
 rterm_array: '[' newlines rterm_items ']'
 	{
-		$$ = new ArrayExpression(*$3, DebugInfoRange(@1, @4));
+		$$ = new ArrayExpression(*$3, @$);
 		delete $3;
 	}
 	| '[' rterm_items ']'
 	{
-		$$ = new ArrayExpression(*$2, DebugInfoRange(@1, @3));
+		$$ = new ArrayExpression(*$2, @$);
 		delete $2;
 	}
 	;
@@ -691,7 +691,7 @@ rterm_scope_require_side_effect: '{' statements '}'
 			num++;
 		}
 		delete $2;
-		$$ = new DictExpression(dlist, DebugInfoRange(@1, @3));
+		$$ = new DictExpression(dlist, @$);
 	}
 	;
 
@@ -707,13 +707,13 @@ rterm_scope: '{' statements '}'
 			num++;
 		}
 		delete $2;
-		$$ = new DictExpression(dlist, DebugInfoRange(@1, @3));
+		$$ = new DictExpression(dlist, @$);
 	}
 	;
 
 rterm_side_effect: rterm '(' rterm_items ')'
 	{
-		$$ = new FunctionCallExpression($1, *$3, DebugInfoRange(@1, @4));
+		$$ = new FunctionCallExpression($1, *$3, @$);
 		delete $3;
 	}
 	| identifier T_FOLLOWS rterm
@@ -726,7 +726,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		args.push_back($1);
 		free($1);
 
-		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
+		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, @$);
 	}
 	| '(' identifier_items ')' T_FOLLOWS rterm
 	{
@@ -734,7 +734,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		if (aexpr)
 			aexpr->MakeInline();
 
-		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
+		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, @$);
 		delete $2;
 	}
 	| T_IF '(' rterm ')' rterm_scope
@@ -742,7 +742,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
 		atrue->MakeInline();
 
-		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
+		$$ = new ConditionalExpression($3, atrue, NULL, @$);
 	}
 	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
 	{
@@ -752,7 +752,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
 		afalse->MakeInline();
 
-		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
+		$$ = new ConditionalExpression($3, atrue, afalse, @$);
 	}
 	;
 
@@ -775,12 +775,12 @@ rterm_no_side_effect: T_STRING
 	}
 	| rterm '.' T_IDENTIFIER %dprec 2
 	{
-		$$ = new IndexerExpression($1, MakeLiteral($3), DebugInfoRange(@1, @3));
+		$$ = new IndexerExpression($1, MakeLiteral($3), @$);
 		free($3);
 	}
 	| rterm '[' rterm ']'
 	{
-		$$ = new IndexerExpression($1, $3, DebugInfoRange(@1, @4));
+		$$ = new IndexerExpression($1, $3, @$);
 	}
 	| T_IDENTIFIER
 	{
@@ -789,11 +789,11 @@ rterm_no_side_effect: T_STRING
 	}
 	| '!' rterm
 	{
-		$$ = new LogicalNegateExpression($2, DebugInfoRange(@1, @2));
+		$$ = new LogicalNegateExpression($2, @$);
 	}
 	| '~' rterm
 	{
-		$$ = new NegateExpression($2, DebugInfoRange(@1, @2));
+		$$ = new NegateExpression($2, @$);
 	}
 	| T_PLUS rterm %prec UNARY_PLUS
 	{
@@ -801,7 +801,7 @@ rterm_no_side_effect: T_STRING
 	}
 	| T_MINUS rterm %prec UNARY_MINUS
 	{
-		$$ = new SubtractExpression(MakeLiteral(0), $2, DebugInfoRange(@1, @2));
+		$$ = new SubtractExpression(MakeLiteral(0), $2, @$);
 	}
 	| T_THIS
 	{
@@ -848,7 +848,7 @@ rterm_no_side_effect: T_STRING
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($6);
 		aexpr->MakeInline();
 
-		$$ = new FunctionExpression(*$3, $5, aexpr, DebugInfoRange(@1, @5));
+		$$ = new FunctionExpression(*$3, $5, aexpr, @$);
 		delete $3;
 	}
 	;
@@ -1006,7 +1006,7 @@ apply:
 		Expression *fterm = context->m_FTerm.top();
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, DebugInfoRange(@2, @7));
+		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, @$);
 	}
 	;
 
