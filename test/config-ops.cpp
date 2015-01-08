@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(simple)
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "{ 3\n\n5 }");
-	BOOST_CHECK(expr->Evaluate(frame) != Empty);
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 	delete expr;
 
 	expr = ConfigCompiler::CompileText("<test>", "1 + 3");

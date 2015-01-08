@@ -82,7 +82,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %error-verbose
 %glr-parser
 
-%parse-param { std::vector<Expression *> *elist }
+%parse-param { std::vector<std::pair<Expression *, EItemInfo> > *llist }
 %parse-param { ConfigCompiler *context }
 %lex-param { void *scanner }
 
@@ -95,6 +95,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	CombinedSetOp csop;
 	icinga::TypeSpecifier type;
 	std::vector<String> *slist;
+	std::vector<std::pair<Expression *, EItemInfo> > *llist;
 	std::vector<Expression *> *elist;
 	std::pair<String, Expression *> *cvitem;
 	std::map<String, Expression *> *cvlist;
@@ -181,11 +182,12 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <variant> typerulelist
 %type <csop> combined_set_op
 %type <type> type
-%type <elist> statements
-%type <elist> lterm_items
-%type <elist> lterm_items_inner
+%type <llist> statements
+%type <llist> lterm_items
+%type <llist> lterm_items_inner
 %type <expr> rterm
 %type <expr> rterm_array
+%type <expr> rterm_scope_require_side_effect
 %type <expr> rterm_scope
 %type <expr> rterm_side_effect
 %type <expr> rterm_no_side_effect
@@ -228,23 +230,34 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 extern int yydebug;
 
-void yyerror(const YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
+void yyerror(const YYLTYPE *locp, std::vector<std::pair<Expression *, EItemInfo> > *, ConfigCompiler *, const char *err)
 {
 	BOOST_THROW_EXCEPTION(ScriptError(err, *locp));
 }
 
-int yyparse(std::vector<Expression *> *elist, ConfigCompiler *context);
+int yyparse(std::vector<std::pair<Expression *, EItemInfo> > *llist, ConfigCompiler *context);
 
 Expression *ConfigCompiler::Compile(void)
 {
-	std::vector<Expression *> elist;
+	std::vector<std::pair<Expression *, EItemInfo> > llist;
 
 	//yydebug = 1;
 
-	if (yyparse(&elist, this) != 0)
+	if (yyparse(&llist, this) != 0)
 		return NULL;
 
-	DictExpression *expr = new DictExpression(elist);
+	std::vector<Expression *> dlist;
+	typedef std::pair<Expression *, EItemInfo> EListItem;
+	int num = 0;
+	BOOST_FOREACH(const EListItem& litem, llist) {
+		if (!litem.second.SideEffect && num != llist.size() - 1) {
+			yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
+		}
+		dlist.push_back(litem.first);
+		num++;
+	}
+
+	DictExpression *expr = new DictExpression(dlist);
 	expr->MakeInline();
 	return expr;
 }
@@ -256,7 +269,7 @@ Expression *ConfigCompiler::Compile(void)
 %%
 script: statements
 	{
-		elist->swap(*$1);
+		llist->swap(*$1);
 		delete $1;
 	}
 	;
@@ -273,48 +286,47 @@ statements: newlines lterm_items
 
 lterm_items: /* empty */
 	{
-		$$ = new std::vector<Expression *>();
+		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
 	}
 	| lterm_items_inner
-	{
-		$$ = $1;
-	}
-	| lterm_items_inner ','
-	{
-		$$ = $1;
-	}
-	| lterm_items_inner ',' newlines
-	{
-		$$ = $1;
-	}
-	| lterm_items_inner ';'
-	{
-		$$ = $1;
-	}
-	| lterm_items_inner ';' newlines
-	{
-		$$ = $1;
-	}
-	| lterm_items_inner newlines
-	{
-		$$ = $1;
-	}
+	| lterm_items_inner sep
 	;
 
 lterm_items_inner: lterm %dprec 2
 	{
-		$$ = new std::vector<Expression *>();
-		$$->push_back($1);
+		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+		EItemInfo info = { true, @1 };
+		$$->push_back(std::make_pair($1, info));
+	}
+	| rterm_no_side_effect
+	{
+		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+		EItemInfo info = { false, @1 };
+		$$->push_back(std::make_pair($1, info));
 	}
 	| lterm_items_inner sep lterm %dprec 1
 	{
 		if ($1)
 			$$ = $1;
 		else
-			$$ = new std::vector<Expression *>();
+			$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
 
-		if ($3)
-			$$->push_back($3);
+		if ($3) {
+			EItemInfo info = { true, @3 };
+			$$->push_back(std::make_pair($3, info));
+		}
+	}
+	| lterm_items_inner sep rterm_no_side_effect %dprec 1
+	{
+		if ($1)
+			$$ = $1;
+		else
+			$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+
+		if ($3) {
+			EItemInfo info = { false, @3 };
+			$$->push_back(std::make_pair($3, info));
+		}
 	}
 	;
 
@@ -439,7 +451,7 @@ object:
 		context->m_Assign.push(NULL);
 		context->m_Ignore.push(NULL);
 	}
-	object_declaration identifier rterm use_specifier rterm_scope
+	object_declaration identifier rterm use_specifier rterm_scope_require_side_effect
 	{
 		context->m_ObjectAssign.pop();
 
@@ -609,7 +621,7 @@ lterm: type
 	{
 		$$ = $1;
 	}
-	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope
+	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope_require_side_effect
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
 		aexpr->MakeInline();
@@ -618,7 +630,7 @@ lterm: type
 		free($3);
 		free($5);
 	}
-	| T_FOR '(' identifier T_IN rterm ')' rterm_scope
+	| T_FOR '(' identifier T_IN rterm ')' rterm_scope_require_side_effect
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
 		aexpr->MakeInline();
@@ -657,10 +669,6 @@ lterm: type
 	| rterm_side_effect
 	{
 		$$ = $1;
-	}
-	| rterm_no_side_effect
-	{
-		yyerror(&@1, NULL, NULL, "Value computed is not used.");	
 	}
 	;
 	
@@ -710,10 +718,35 @@ rterm_array: '[' newlines rterm_items ']'
 	}
 	;
 
+rterm_scope_require_side_effect: '{' statements '}'
+	{
+		std::vector<Expression *> dlist;
+		typedef std::pair<Expression *, EItemInfo> EListItem;
+		int num = 0;
+		BOOST_FOREACH(const EListItem& litem, *$2) {
+			if (!litem.second.SideEffect)
+				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
+			dlist.push_back(litem.first);
+			num++;
+		}
+		delete $2;
+		$$ = new DictExpression(dlist, DebugInfoRange(@1, @3));
+	}
+	;
+
 rterm_scope: '{' statements '}'
 	{
-		$$ = new DictExpression(*$2, DebugInfoRange(@1, @3));
+		std::vector<Expression *> dlist;
+		typedef std::pair<Expression *, EItemInfo> EListItem;
+		int num = 0;
+		BOOST_FOREACH(const EListItem& litem, *$2) {
+			if (!litem.second.SideEffect && num != $2->size() - 1)
+				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
+			dlist.push_back(litem.first);
+			num++;
+		}
 		delete $2;
+		$$ = new DictExpression(dlist, DebugInfoRange(@1, @3));
 	}
 	;
 
@@ -814,7 +847,7 @@ rterm_no_side_effect: T_STRING
 		$$ = new GetScopeExpression(ScopeThis);
 	}
 	| rterm_array
-	| rterm_scope
+	| rterm_scope_require_side_effect
 	{
 		Expression *expr = $1;
 		BindToScope(expr, ScopeCurrent);
@@ -949,7 +982,7 @@ apply:
 		context->m_FVVar.push("");
 		context->m_FTerm.push(NULL);
 	}
-	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm_scope
+	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm_scope_require_side_effect
 	{
 		context->m_Apply.pop();
 

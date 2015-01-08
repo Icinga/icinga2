@@ -59,6 +59,12 @@ struct CompilerDebugInfo
 	}
 };
 
+struct EItemInfo
+{
+	bool SideEffect;
+	CompilerDebugInfo DebugInfo;
+};
+
 /**
  * The configuration compiler can be used to compile a configuration file
  * into a number of configuration items.
