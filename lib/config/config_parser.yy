@@ -279,9 +279,6 @@ statements: newlines lterm_items
 		$$ = $2;
 	}
 	| lterm_items
-	{
-		$$ = $1;
-	}
 	;
 
 lterm_items: /* empty */
@@ -339,9 +336,6 @@ library: T_LIBRARY T_STRING
 
 identifier: T_IDENTIFIER
 	| T_STRING
-	{
-		$$ = $1;
-	}
 	;
 
 type: T_TYPE identifier
@@ -439,9 +433,6 @@ type: T_TYPE_DICTIONARY
 	| T_TYPE_SCALAR
 	| T_TYPE_ANY
 	| T_TYPE_NAME
-	{
-		$$ = $1;
-	}
 	;
 
 object:
@@ -505,13 +496,7 @@ identifier_items: /* empty */
 		$$ = new std::vector<String>();
 	}
 	| identifier_items_inner
-	{
-		$$ = $1;
-	}
 	| identifier_items_inner ','
-	{
-		$$ = $1;
-	}
 	;
 
 identifier_items_inner: identifier
@@ -541,9 +526,6 @@ combined_set_op: T_SET
 	| T_SET_XOR
 	| T_SET_BINARY_AND
 	| T_SET_BINARY_OR
-	{
-		$$ = $1;
-	}
 	;
 
 lterm: type
@@ -614,13 +596,7 @@ lterm: type
 		$$ = new ReturnExpression($2, DebugInfoRange(@1, @2));
 	}
 	| apply
-	{
-		$$ = $1;
-	}
 	| object
-	{
-		$$ = $1;
-	}
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope_require_side_effect
 	{
 		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
@@ -667,9 +643,6 @@ lterm: type
 		$$ = new SetExpression(expr, $3, $4, DebugInfoRange(@1, @4));
 	}
 	| rterm_side_effect
-	{
-		$$ = $1;
-	}
 	;
 	
 rterm_items: /* empty */
@@ -677,21 +650,9 @@ rterm_items: /* empty */
 		$$ = new std::vector<Expression *>();
 	}
 	| rterm_items_inner
-	{
-		$$ = $1;
-	}
 	| rterm_items_inner ','
-	{
-		$$ = $1;
-	}
 	| rterm_items_inner ',' newlines
-	{
-		$$ = $1;
-	}
 	| rterm_items_inner newlines
-	{
-		$$ = $1;
-	}
 	;
 
 rterm_items_inner: rterm
@@ -967,9 +928,6 @@ optional_rterm: /* empty */
 		$$ = MakeLiteral();
 	}
 	| rterm
-	{
-		$$ = $1;
-	}
 	;
 
 apply:
