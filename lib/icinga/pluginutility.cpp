@@ -186,17 +186,13 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 		Array::Ptr command_arr = command;
 		BOOST_FOREACH(const CommandArgument& arg, args) {
-			Array::Ptr arr;
 
-			if (arg.AValue.IsString())
-				AddArgumentHelper(command_arr, arg.Key, arg.AValue, !arg.SkipKey, !arg.SkipValue);
-			else if (arg.AValue.IsObjectType<Array>())
-				arr = static_cast<Array::Ptr>(arg.AValue);
-			else
+			if (arg.AValue.IsObjectType<Dictionary>()) {
+				Log(LogWarning, "PluginUtility", "Tried to use dictionary in argument");
 				continue;
-
-			if (arr) {
+			} else if (arg.AValue.IsObjectType<Array>()) {
 				bool first = true;
+				Array::Ptr arr = static_cast<Array::Ptr>(arg.AValue);
 
 				ObjectLock olock(arr);
 				BOOST_FOREACH(const Value& value, arr) {
@@ -207,11 +203,11 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 						add_key = !arg.SkipKey;
 					} else
 						add_key = !arg.SkipKey && arg.RepeatKey;
-						
 
 					AddArgumentHelper(command_arr, arg.Key, value, add_key, !arg.SkipValue);
 				}
-			}
+			} else
+				AddArgumentHelper(command_arr, arg.Key, arg.AValue, !arg.SkipKey, !arg.SkipValue);
 		}
 	}
 
