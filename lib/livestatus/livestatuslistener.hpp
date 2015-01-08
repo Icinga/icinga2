@@ -48,10 +48,13 @@ public:
 
 protected:
 	virtual void Start(void);
+	virtual void Stop(void);
 
 private:
 	void ServerThreadProc(const Socket::Ptr& server);
 	void ClientHandler(const Socket::Ptr& client);
+
+	Socket::Ptr m_Listener;
 };
 
 }
