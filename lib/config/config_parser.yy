@@ -187,6 +187,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> rterm
 %type <expr> rterm_array
 %type <expr> rterm_scope
+%type <expr> rterm_side_effect
+%type <expr> rterm_no_side_effect
 %type <expr> lterm
 %type <expr> object
 %type <expr> apply
@@ -226,7 +228,7 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 extern int yydebug;
 
-void yyerror(YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
+void yyerror(const YYLTYPE *locp, std::vector<Expression *> *, ConfigCompiler *, const char *err)
 {
 	BOOST_THROW_EXCEPTION(ScriptError(err, *locp));
 }
@@ -652,9 +654,13 @@ lterm: type
 		BindToScope(expr, ScopeLocal);
 		$$ = new SetExpression(expr, $3, $4, DebugInfoRange(@1, @4));
 	}
-	| rterm
+	| rterm_side_effect
 	{
 		$$ = $1;
+	}
+	| rterm_no_side_effect
+	{
+		yyerror(&@1, NULL, NULL, "Value computed is not used.");	
 	}
 	;
 	
@@ -711,7 +717,52 @@ rterm_scope: '{' statements '}'
 	}
 	;
 
-rterm: T_STRING
+rterm_side_effect: rterm '(' rterm_items ')'
+	{
+		$$ = new FunctionCallExpression($1, *$3, DebugInfoRange(@1, @4));
+		delete $3;
+	}
+	| identifier T_FOLLOWS rterm
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($3);
+		if (aexpr)
+			aexpr->MakeInline();
+
+		std::vector<String> args;
+		args.push_back($1);
+		free($1);
+
+		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
+	}
+	| '(' identifier_items ')' T_FOLLOWS rterm
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
+		if (aexpr)
+			aexpr->MakeInline();
+
+		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
+		delete $2;
+	}
+	| T_IF '(' rterm ')' rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
+	}
+	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
+		atrue->MakeInline();
+
+		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
+		afalse->MakeInline();
+
+		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
+	}
+	;
+
+rterm_no_side_effect: T_STRING
 	{
 		$$ = MakeLiteral($1);
 		free($1);
@@ -727,11 +778,6 @@ rterm: T_STRING
 	| T_NULL
 	{
 		$$ = MakeLiteral();
-	}
-	| rterm '(' rterm_items ')'
-	{
-		$$ = new FunctionCallExpression($1, *$3, DebugInfoRange(@1, @4));
-		delete $3;
 	}
 	| rterm '.' T_IDENTIFIER %dprec 2
 	{
@@ -768,9 +814,6 @@ rterm: T_STRING
 		$$ = new GetScopeExpression(ScopeThis);
 	}
 	| rterm_array
-	{
-		$$ = $1;
-	}
 	| rterm_scope
 	{
 		Expression *expr = $1;
@@ -814,44 +857,10 @@ rterm: T_STRING
 		$$ = new FunctionExpression(*$3, $5, aexpr, DebugInfoRange(@1, @5));
 		delete $3;
 	}
-	| identifier T_FOLLOWS rterm
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($3);
-		if (aexpr)
-			aexpr->MakeInline();
+	;
 
-		std::vector<String> args;
-		args.push_back($1);
-		free($1);
-
-		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, DebugInfoRange(@1, @3));
-	}
-	| '(' identifier_items ')' T_FOLLOWS rterm
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
-		if (aexpr)
-			aexpr->MakeInline();
-
-		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, DebugInfoRange(@1, @5));
-		delete $2;
-	}
-	| T_IF '(' rterm ')' rterm_scope
-	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
-
-		$$ = new ConditionalExpression($3, atrue, NULL, DebugInfoRange(@1, @5));
-	}
-	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
-	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
-
-		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
-		afalse->MakeInline();
-
-		$$ = new ConditionalExpression($3, atrue, afalse, DebugInfoRange(@1, @7));
-	}
+rterm: rterm_side_effect
+	| rterm_no_side_effect
 	;
 
 target_type_specifier: /* empty */
