@@ -71,6 +71,7 @@ void LivestatusListener::Start(void)
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
+
 		try {
 			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
 		} catch (std::exception&) {
@@ -78,6 +79,8 @@ void LivestatusListener::Start(void)
 			    << "Cannot bind TCP socket on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 			return;
 		}
+
+		m_Listener = socket;
 
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
@@ -87,6 +90,7 @@ void LivestatusListener::Start(void)
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
 		UnixSocket::Ptr socket = new UnixSocket();
+
 		try {
 			socket->Bind(GetSocketPath());
 		} catch (std::exception&) {
@@ -104,6 +108,8 @@ void LivestatusListener::Start(void)
 			return;
 		}
 
+		m_Listener = socket;
+
 		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
 		thread.detach();
 		Log(LogInformation, "LivestatusListener")
@@ -114,6 +120,13 @@ void LivestatusListener::Start(void)
 		return;
 #endif
 	}
+}
+
+void LivestatusListener::Stop(void)
+{
+	DynamicObject::Stop();
+
+	m_Listener->Close();
 }
 
 int LivestatusListener::GetClientsConnected(void)
