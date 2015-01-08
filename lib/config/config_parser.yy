@@ -1006,7 +1006,7 @@ apply:
 		Expression *fterm = context->m_FTerm.top();
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, @$);
+		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, DebugInfoRange(@2, @7));
 	}
 	;
 
