@@ -231,6 +231,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 {
 	ASSERT(!OwnsLock());
 
+	Log(LogInformation, "Notification")
+	    << "Attempting to send notifications for notification object '" << GetName() << "'.";
+
 	Checkable::Ptr checkable = GetCheckable();
 
 	if (!force) {
@@ -350,7 +353,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		}
 
 		Log(LogInformation, "Notification")
-		    << "Sending notification for user '" << userName << "'";
+		    << "Sending notification '" << GetName() << "' for user '" << userName << "'";
 
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 
@@ -444,10 +447,10 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName());
 
 		Log(LogInformation, "Notification")
-		    << "Completed sending notification for object '" << GetCheckable()->GetName() << "'";
+		    << "Completed sending notification '" << GetName() << "' for checkable '" << GetCheckable()->GetName() << "'";
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "Notification")
-		    << "Exception occured during notification for object '"
+		    << "Exception occured during notification for checkable '"
 		    << GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
 	}
 }

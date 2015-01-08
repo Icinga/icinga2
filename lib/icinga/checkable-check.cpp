@@ -381,10 +381,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (stateChange && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
 		hardChange = true;
 
-	if (GetVolatile())
-		hardChange = true;
+	bool is_volatile = GetVolatile();
 
-	if (hardChange) {
+	if (hardChange || is_volatile) {
 		SetLastHardStateRaw(new_state);
 		SetLastHardStateChange(now);
 	}
@@ -411,6 +410,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (old_state == ServiceOK && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
+
+	if (is_volatile && old_state == ServiceOK && new_state == ServiceOK)
+		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
 
 	bool send_downtime_notification = (GetLastInDowntime() != in_downtime);
 	SetLastInDowntime(in_downtime);
@@ -458,17 +460,17 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	String old_state_str = (service ? Service::StateToString(old_state) : Host::StateToString(Host::CalculateState(old_state)));
 	String new_state_str = (service ? Service::StateToString(new_state) : Host::StateToString(Host::CalculateState(new_state)));
 
-	if (hardChange) {
+	if (hardChange || is_volatile) {
 		OnStateChange(this, cr, StateTypeHard, origin);
 		Log(LogNotice, "Checkable")
-		    << "State Change: Checkable " << GetName() << " hard state change from " << old_state_str << " to " << new_state_str << " detected.";
+		    << "State Change: Checkable " << GetName() << " hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
 	} else if (stateChange) {
 		OnStateChange(this, cr, StateTypeSoft, origin);
 		Log(LogNotice, "Checkable")
 		    << "State Change: Checkable " << GetName() << " soft state change from " << old_state_str << " to " << new_state_str << " detected.";
 	}
 
-	if (GetStateType() == StateTypeSoft || hardChange || recovery)
+	if (GetStateType() == StateTypeSoft || hardChange || recovery || is_volatile)
 		ExecuteEventHandler();
 
 	if (send_downtime_notification)
