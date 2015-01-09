@@ -160,7 +160,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 						if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, Empty) &&
 						    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, Empty)) {
 							Log(LogWarning, "cli")
-							    << "Host '" << old_node << "' on node '" << old_node << "' is blacklisted, but not whitelisted. Skipping.";
+							    << "Host '" << old_node_name << "' on node '" << old_node_name << "' is blacklisted, but not whitelisted. Skipping.";
 							continue;
 						}
 
