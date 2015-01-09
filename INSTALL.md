@@ -78,7 +78,8 @@ Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files
     $ git log --use-mailmap | grep ^Author: | cut -f2- -d' ' | sort | uniq > AUTHORS
 
 Bump the version in icinga2.spec.
-Update the [ChangeLog](ChangeLog) and [doc/1-about.md](doc/1-about.md) files.
+Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) and [INSTALL.md](INSTALL.md)
+files.
 Commit these changes to the "master" branch.
 
     $ git commit -v -a -m "Release version <VERSION>"
@@ -91,11 +92,11 @@ GB:
 MF:
 
     $ git tag -u D14A1F16 -m "Version <VERSION>" v<VERSION>
-    
+
 Push the tag.
 
     $ git push --tags
-    
+
 Merge the "master" branch into the "support/2.2" branch (using --ff-only).
 
     $ git checkout support/2.2
@@ -113,12 +114,12 @@ disable the usage of `git describe`.
 
 Use `git archive` to build the release tarball:
 
-    $ VERSION=2.2.2
+    $ VERSION=2.2.3
     $ git archive --format=tar --prefix=icinga2-$VERSION/ tags/v$VERSION | gzip >icinga2-$VERSION.tar.gz
 
 Finally you should verify that the tarball only contains the files it should contain:
 
-    $ VERSION=2.2.2
+    $ VERSION=2.2.3
     $ tar ztf icinga2-$VERSION.tar.gz | less
 
 
@@ -147,12 +148,12 @@ variables are supported:
 - `ICINGA2_PLUGINDIR`: The path for the Monitoring Plugins project binaries; defaults to `/usr/lib/nagios/plugins`
 - `ICINGA2_RUNDIR`: The location of the "run" directory; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/run`
 - `CMAKE_INSTALL_SYSCONFDIR`: The configuration directory; defaults to `CMAKE_INSTALL_PREFIX/etc`
-- `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from; 
+- `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from;
 defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
 - `CMAKE_INSTALL_LOCALSTATEDIR`: The state directory; defaults to `CMAKE_INSTALL_PREFIX/var`
 - `USE_SYSTEMD=ON|OFF`: Use systemd or a classic SysV initscript; defaults to `OFF`
-- `INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT=ON|OFF` Force install both the systemd service definition file 
-and the SysV initscript in parallel, regardless of how `USE_SYSTEMD` is set. 
+- `INSTALL_SYSTEMD_SERVICE_AND_INITSCRIPT=ON|OFF` Force install both the systemd service definition file
+and the SysV initscript in parallel, regardless of how `USE_SYSTEMD` is set.
 Only use this for special packaging purposes and if you know what you are doing.
 Defaults to `OFF`.
 - `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
