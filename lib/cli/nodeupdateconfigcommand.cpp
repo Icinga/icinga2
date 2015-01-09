@@ -115,13 +115,15 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				Dictionary::Ptr old_node = old_node_objs.second;
 				Dictionary::Ptr old_node_repository = old_node->Get("repository");
 
-				ObjectLock olock(old_node_repository);
-				BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
-					String host = kv.first;
+				if (old_node_repository) {
+					ObjectLock olock(old_node_repository);
+					BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
+						String host = kv.first;
 
-					Dictionary::Ptr host_attrs = new Dictionary();
-					host_attrs->Set("name", host);
-					RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
+						Dictionary::Ptr host_attrs = new Dictionary();
+						host_attrs->Set("name", host);
+						RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
+					}
 				}
 
 				String zone = old_node->Get("zone");
@@ -142,56 +144,58 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				Dictionary::Ptr old_node = old_node_objs.second;
 				Dictionary::Ptr old_node_repository = old_node->Get("repository");
 
-				ObjectLock xlock(old_node_repository);
-				BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
-					String old_host = kv.first;
+				if (old_node_repository) {
+					ObjectLock xlock(old_node_repository);
+					BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
+						String old_host = kv.first;
 
-					if (old_host == "localhost") {
-						Log(LogWarning, "cli")
-						    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your node '" << old_node_name << "'.";
-						continue;
-					}
+						if (old_host == "localhost") {
+							Log(LogWarning, "cli")
+							    << "Ignoring host '" << old_host << "'. Please make sure to configure a unique name on your node '" << old_node_name << "'.";
+							continue;
+						}
 
-					/* check against black/whitelist before trying to remove host */
-					if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, Empty) &&
-					    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, Empty)) {
-						Log(LogWarning, "cli")
-						    << "Host '" << old_node << "' on node '" << old_node << "' is blacklisted, but not whitelisted. Skipping.";
-						continue;
-					}
+						/* check against black/whitelist before trying to remove host */
+						if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, Empty) &&
+						    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, Empty)) {
+							Log(LogWarning, "cli")
+							    << "Host '" << old_node << "' on node '" << old_node << "' is blacklisted, but not whitelisted. Skipping.";
+							continue;
+						}
 
-					if (!new_node_repository->Contains(old_host)) {
-						Log(LogInformation, "cli")
-						    << "Node update found old host '" << old_host << "' on node '" << old_node_name << "'. Removing it.";
+						if (!new_node_repository->Contains(old_host)) {
+							Log(LogInformation, "cli")
+							    << "Node update found old host '" << old_host << "' on node '" << old_node_name << "'. Removing it.";
 
-						Dictionary::Ptr host_attrs = new Dictionary();
-						host_attrs->Set("name", old_host);
-						RepositoryUtility::RemoveObject(old_host, "Host", host_attrs); //this will remove all services for this host too
-					} else {
-						/* host exists, now check all services for this host */
-						Array::Ptr old_services = kv.second;
-						Array::Ptr new_services = new_node_repository->Get(old_host);
+							Dictionary::Ptr host_attrs = new Dictionary();
+							host_attrs->Set("name", old_host);
+							RepositoryUtility::RemoveObject(old_host, "Host", host_attrs); //this will remove all services for this host too
+						} else {
+							/* host exists, now check all services for this host */
+							Array::Ptr old_services = kv.second;
+							Array::Ptr new_services = new_node_repository->Get(old_host);
 
-						ObjectLock ylock(old_services);
-						BOOST_FOREACH(const String& old_service, old_services) {
-							/* check against black/whitelist before trying to remove service */
-							if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, old_service) &&
-							    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, old_service)) {
-								Log(LogWarning, "cli")
-								    << "Service '" << old_service << "' on host '" << old_host << "' on node '"
-								    << old_node_name << "' is blacklisted, but not whitelisted. Skipping.";
-								continue;
-							}
+							ObjectLock ylock(old_services);
+							BOOST_FOREACH(const String& old_service, old_services) {
+								/* check against black/whitelist before trying to remove service */
+								if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, old_service) &&
+								    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, old_service)) {
+									Log(LogWarning, "cli")
+									    << "Service '" << old_service << "' on host '" << old_host << "' on node '"
+									    << old_node_name << "' is blacklisted, but not whitelisted. Skipping.";
+									continue;
+								}
 
-							if (!new_services->Contains(old_service)) {
-								Log(LogInformation, "cli")
-								    << "Node update found old service '" << old_service << "' on host '" << old_host
-								    << "' on node '" << old_node_name << "'. Removing it.";
+								if (!new_services->Contains(old_service)) {
+									Log(LogInformation, "cli")
+									    << "Node update found old service '" << old_service << "' on host '" << old_host
+									    << "' on node '" << old_node_name << "'. Removing it.";
 
-								Dictionary::Ptr service_attrs = new Dictionary();
-								service_attrs->Set("name", old_service);
-								service_attrs->Set("host_name", old_host);
-								RepositoryUtility::RemoveObject(old_service, "Service", service_attrs);
+									Dictionary::Ptr service_attrs = new Dictionary();
+									service_attrs->Set("name", old_service);
+									service_attrs->Set("host_name", old_host);
+									RepositoryUtility::RemoveObject(old_service, "Service", service_attrs);
+								}
 							}
 						}
 					}
