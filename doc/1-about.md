@@ -54,6 +54,26 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 
 ## <a id="whats-new"></a> What's new
 
+### What's New in Version 2.2.3
+
+#### Changes
+
+* Bugfixes
+
+#### Issues
+
+* Bug #8063: Volatile checks trigger invalid notifications on OK->OK state changes
+* Bug #8125: Incorrect ticket shouldn't cause "node wizard" to terminate
+* Bug #8126: Icinga 2.2.2 doesn't build on i586 SUSE distributions
+* Bug #8143: Windows plugin check_service.exe can't find service NTDS
+* Bug #8144: Arguments without values are not used on plugin exec
+* Bug #8147: check_interval must be greater than 0 error on update-config
+* Bug #8152: DB IDO query queue limit reached on reload
+* Bug #8171: Typo in example of StatusDataWriter
+* Bug #8178: Icinga 2.2.2 segfaults on FreeBSD
+* Bug #8181: icinga2 node update config shows hex instead of human readable names
+* Bug #8182: Segfault on update-config old empty config
+
 ### What's New in Version 2.2.2
 
 #### Changes
