@@ -110,7 +110,9 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"%s' thresholds work differently, since a service is either running or not\n"
 			L"all \"-w\" and \"-c\" do is say whether a not running service is a warning\n"
-			L"or critical state respectively.\n"
+			L"or critical state respectively.\n\n"
+			L"Known issue: Since icinga2 runs as NETWORK SERVICE it can't access the access control lists\n"
+			L"it will not be able to find a service like NTDS. To fix this add ACL read permissions to icinga2.\n"
 			, progName, progName);
 		cout << endl;
 		return 0;
