@@ -51,10 +51,11 @@ protected:
 	virtual void Stop(void);
 
 private:
-	void ServerThreadProc(const Socket::Ptr& server);
+	void ServerThreadProc(void);
 	void ClientHandler(const Socket::Ptr& client);
 
 	Socket::Ptr m_Listener;
+	boost::thread m_Thread;
 };
 
 }

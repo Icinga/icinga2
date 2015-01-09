@@ -81,8 +81,8 @@ void LivestatusListener::Start(void)
 
 		m_Listener = socket;
 
-		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
-		thread.detach();
+		m_Thread = boost::thread(boost::bind(&LivestatusListener::ServerThreadProc, this));
+
 		Log(LogInformation, "LivestatusListener")
 		    << "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 	}
@@ -109,8 +109,8 @@ void LivestatusListener::Start(void)
 
 		m_Listener = socket;
 
-		boost::thread thread(boost::bind(&LivestatusListener::ServerThreadProc, this, socket));
-		thread.detach();
+		m_Thread = boost::thread(boost::bind(&LivestatusListener::ServerThreadProc, this));
+
 		Log(LogInformation, "LivestatusListener")
 		    << "Created UNIX socket in '" << GetSocketPath() << "'.";
 #else
@@ -126,6 +126,9 @@ void LivestatusListener::Stop(void)
 	DynamicObject::Stop();
 
 	m_Listener->Close();
+
+	if (m_Thread.joinable())
+		m_Thread.join();
 }
 
 int LivestatusListener::GetClientsConnected(void)
@@ -142,19 +145,21 @@ int LivestatusListener::GetConnections(void)
 	return l_Connections;
 }
 
-void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
+void LivestatusListener::ServerThreadProc(void)
 {
-	server->Listen();
+	m_Listener->Listen();
 
-	for (;;) {
-		try {
-			Socket::Ptr client = server->Accept();
+	try {
+		for (;;) {
+			Socket::Ptr client = m_Listener->Accept();
 			Log(LogNotice, "LivestatusListener", "Client connected");
 			Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client), LowLatencyScheduler);
-		} catch (std::exception&) {
-			Log(LogCritical, "ListenerListener", "Cannot accept new connection.");
 		}
+	} catch (std::exception&) {
+		Log(LogCritical, "ListenerListener", "Cannot accept new connection.");
 	}
+
+	m_Listener->Close();
 }
 
 void LivestatusListener::ClientHandler(const Socket::Ptr& client)
