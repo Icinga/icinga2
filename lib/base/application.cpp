@@ -176,7 +176,7 @@ Application::Ptr Application::GetInstance(void)
 
 void Application::SetResourceLimits(void)
 {
-#ifndef _WIN32
+#ifdef __linux__
 	rlimit rl;
 
 #	ifdef RLIMIT_NOFILE
@@ -252,7 +252,7 @@ void Application::SetResourceLimits(void)
 #	else /* RLIMIT_STACK */
 	Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
 #	endif /* RLIMIT_STACK */
-#endif /* _WIN32 */
+#endif /* __linux__ */
 }
 
 int Application::GetArgC(void)
