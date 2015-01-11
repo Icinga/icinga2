@@ -786,15 +786,187 @@ feature.
 
 ### <a id="agent-based-checks-snmp-traps"></a> Passive Check Results and SNMP Traps
 
-SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourceforge.net/) and specific trap handlers
-passing the check results to Icinga 2.
+SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourceforge.net/)
+and specific trap handlers passing the check results to Icinga 2.
 
-> **Note**
->
-> The host and service object configuration must be available on the Icinga 2
-> server in order to process passive check results.
+Following the SNMPTT [Format](http://snmptt.sourceforge.net/docs/snmptt.shtml#SNMPTT.CONF-FORMAT)
+documentation and the Icinga external command syntax found [here](#external-commands-list-detail)
+we can create generic services that can accommodate any number of hosts for a given scenario.
 
+#### <a id="simple-traps"></a> Simple SNMP Traps
 
+A simple example might be monitoring host reboots indicated by an SNMP agent reset.
+Building the event to auto reset after dispatching a notification is important.
+Setup the manual check parameters to reset the event from an initial unhandled
+state or from a missed reset event.
+
+Add a directive in `snmptt.conf`
+
+    EVENT coldStart .1.3.6.1.6.3.1.1.5.1 "Status Events" Normal
+    FORMAT Device reinitialized (coldStart)
+    EXEC echo "[$@] PROCESS_SERVICE_CHECK_RESULT;$A;Coldstart;2;The snmp agent has reinitialized." >> /var/run/icinga2/cmd/icinga2.cmd
+    SDESC
+    A coldStart trap signifies that the SNMPv2 entity, acting
+    in an agent role, is reinitializing itself and that its
+    configuration may have been altered.
+    EDESC
+
+1. Define the `EVENT` as per your need.
+2. Construct the `EXEC` statement with the service name matching your template
+applied to your _n_ hosts. The host address inferred by SNMPTT will be the
+correlating factor. You can have snmptt provide host names or ip addresses to
+match your Icinga convention.
+
+Add an `EventCommand` configuration object for the passive service auto reset event.
+
+    object EventCommand "coldstart-reset-event" {
+      import "plugin-event-command"
+
+      command = [ SysconfDir + "/icinga2/conf.d/custom/scripts/coldstart_reset_event.sh" ]
+
+      arguments = {
+        "-i" = "$service.state_id$"
+        "-n" = "$host.name$"
+        "-s" = "$service.name$"
+      }
+    }
+
+Create the `coldstart_reset_event.sh` shell script to pass the expanded variable
+data in. The `$service.state_id$` is important in order to prevent an endless loop
+of event firing after the service has been reset.
+
+    #!/bin/bash
+
+    SERVICE_STATE_ID=""
+    HOST_NAME=""
+    SERVICE_NAME=""
+
+    show_help()
+    {
+    cat <<-EOF
+    	Usage: ${0##*/} [-h] -n HOST_NAME -s SERVICE_NAME
+    	Writes a coldstart reset event to the Icinga command pipe.
+
+    	  -h                  Display this help and exit.
+    	  -i SERVICE_STATE_ID The associated service state id.
+    	  -n HOST_NAME        The associated host name.
+    	  -s SERVICE_NAME     The associated service name.
+    EOF
+    }
+
+    while getopts "hi:n:s:" opt; do
+        case "$opt" in
+          h)
+              show_help
+              exit 0
+              ;;
+          i)
+              SERVICE_STATE_ID=$OPTARG
+              ;;
+          n)
+              HOST_NAME=$OPTARG
+              ;;
+          s)
+              SERVICE_NAME=$OPTARG
+              ;;
+          '?')
+              show_help
+              exit 0
+              ;;
+          esac
+    done
+
+    if [ -z "$SERVICE_STATE_ID" ]; then
+        show_help
+        printf "\n  Error: -i required.\n"
+        exit 1
+    fi
+
+    if [ -z "$HOST_NAME" ]; then
+        show_help
+        printf "\n  Error: -n required.\n"
+        exit 1
+    fi
+
+    if [ -z "$SERVICE_NAME" ]; then
+        show_help
+        printf "\n  Error: -s required.\n"
+        exit 1
+    fi
+
+    if [ "$SERVICE_STATE_ID" -gt 0 ]; then
+        echo "[`date +%s`] PROCESS_SERVICE_CHECK_RESULT;$HOST_NAME;$SERVICE_NAME;0;Auto-reset (`date +"%m-%d-%Y %T"`)." >> /var/run/icinga2/cmd/icinga2.cmd
+    fi
+
+Finally create the `Service` and assign it:
+
+    apply Service "Coldstart" {
+      import "generic-service-custom"
+
+      check_command         = "dummy"
+      event_command         = "coldstart-reset-event"
+
+      enable_notifications  = 1
+      enable_active_checks  = 0
+      enable_passive_checks = 1
+      enable_flapping       = 0
+      volatile              = 1
+      enable_perfdata       = 0
+
+      vars.dummy_state      = 0
+      vars.dummy_text       = "Manual reset."
+
+      vars.sla              = "24x7"
+
+      assign where (host.vars.os == "Linux" || host.vars.os == "Windows")
+    }
+
+#### <a id="complex-traps"></a> Complex SNMP Traps
+
+A more complex example might be passing dynamic data from a traps varbind list
+for a backup scenario where the backup software dispatches status updates. By
+utilizing active and passive checks, the older freshness concept can be leveraged.
+
+By defining the active check as a hard failed state, a missed backup can be reported.
+As long as the most recent passive update has occurred, the active check is bypassed.
+
+Add a directive in `snmptt.conf`
+
+    EVENT enterpriseSpecific <YOUR OID> "Status Events" Normal
+    FORMAT Enterprise specific trap
+    EXEC echo "[$@] PROCESS_SERVICE_CHECK_RESULT;$A;$1;$2;$3" >> /var/run/icinga2/cmd/icinga2.cmd
+    SDESC
+    An enterprise specific trap.
+    The varbinds in order denote the Icinga service name, state and text.
+    EDESC
+
+1. Define the `EVENT` as per your need using your actual oid.
+2. The service name, state and text are extracted from the first three varbinds.
+This has the advantage of accommodating an unlimited set of use cases.
+
+Create a `Service` for the specific use case associated to the host. If the host
+matches and the first varbind value is `Backup`, SNMPTT will submit the corresponding
+passive update with the state and text from the second and third varbind:
+
+    object Service "Backup" {
+      import "generic-service-custom"
+
+      host_name             = "host.domain.com"
+      check_command         = "dummy"
+
+      enable_notifications  = 1
+      enable_active_checks  = 1
+      enable_passive_checks = 1
+      enable_flapping       = 0
+      volatile              = 1
+      max_check_attempts    = 1
+      check_interval        = 87000
+      enable_perfdata       = 0
+
+      vars.sla              = "24x7"
+      vars.dummy_state      = 2
+      vars.dummy_text       = "No passive check result received."
+    }
 
 
 ## <a id="distributed-monitoring-high-availability"></a> Distributed Monitoring and High Availability
