@@ -387,7 +387,7 @@ Value SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 			delete psdhint;
 	}
 
-	return right;
+	return Empty;
 }
 
 Value ConditionalExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
