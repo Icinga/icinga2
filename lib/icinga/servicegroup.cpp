@@ -52,7 +52,7 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 	frame.Locals->Set("host", host);
 	frame.Locals->Set("service", service);
 
-	if (!group->GetFilter()->Evaluate(frame))
+	if (!group->GetFilter()->Evaluate(frame).ToBool())
 		return false;
 
 	Log(LogDebug, "ServiceGroup")
