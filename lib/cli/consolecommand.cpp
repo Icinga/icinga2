@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/replcommand.hpp"
+#include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
 #include "base/json.hpp"
 #include "base/console.hpp"
@@ -37,29 +37,24 @@ extern "C" {
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("repl", ReplCommand);
+REGISTER_CLICOMMAND("console", ConsoleCommand);
 
-String ReplCommand::GetDescription(void) const
+String ConsoleCommand::GetDescription(void) const
 {
 	return "Interprets Icinga script expressions.";
 }
 
-String ReplCommand::GetShortDescription(void) const
+String ConsoleCommand::GetShortDescription(void) const
 {
-	return "Icinga REPL console";
+	return "Icinga console";
 }
 
-bool ReplCommand::IsHidden(void) const
-{
-	return true;
-}
-
-ImpersonationLevel ReplCommand::GetImpersonationLevel(void) const
+ImpersonationLevel ConsoleCommand::GetImpersonationLevel(void) const
 {
 	return ImpersonateNone;
 }
 
-void ReplCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void ConsoleCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
@@ -68,11 +63,11 @@ void ReplCommand::InitParameters(boost::program_options::options_description& vi
 }
 
 /**
- * The entry point for the "repl" CLI command.
+ * The entry point for the "console" CLI command.
  *
  * @returns An exit status.
  */
-int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
+int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	ScriptFrame frame;
 	std::map<String, String> lines;
@@ -167,7 +162,7 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 				socket = usocket;
 			} else {
 #endif /* _WIN32 */
-				Log(LogCritical, "ReplCommand", "Sorry, TCP sockets aren't supported yet.");
+				Log(LogCritical, "ConsoleCommand", "Sorry, TCP sockets aren't supported yet.");
 				return 1;
 #ifndef _WIN32
 			}
@@ -187,7 +182,7 @@ int ReplCommand::Run(const po::variables_map& vm, const std::vector<std::string>
 			}
 
 			if (result.GetLength() < 16) {
-				Log(LogCritical, "ReplCommand", "Received invalid response from Livestatus.");
+				Log(LogCritical, "ConsoleCommand", "Received invalid response from Livestatus.");
 				continue;
 			}
 

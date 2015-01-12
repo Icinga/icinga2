@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef REPLCOMMAND_H
-#define REPLCOMMAND_H
+#ifndef CONSOLECOMMAND_H
+#define CONSOLECOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -26,18 +26,17 @@ namespace icinga
 {
 
 /**
- * The "repl" CLI command.
+ * The "console" CLI command.
  *
  * @ingroup cli
  */
-class ReplCommand : public CLICommand
+class ConsoleCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ReplCommand);
+	DECLARE_PTR_TYPEDEFS(ConsoleCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
-	virtual bool IsHidden(void) const;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const;
@@ -46,4 +45,4 @@ public:
 
 }
 
-#endif /* REPLCOMMAND_H */
+#endif /* CONSOLECOMMAND_H */
