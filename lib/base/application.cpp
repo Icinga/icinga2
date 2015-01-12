@@ -299,12 +299,12 @@ mainloop:
 		double now = Utility::GetTime();
 		double timeDiff = lastLoop - now;
 
-		if (abs(timeDiff) > 15) {
+		if (std::fabs(timeDiff) > 15) {
 			/* We made a significant jump in time. */
 			Log(LogInformation, "Application")
 			    << "We jumped "
 			    << (timeDiff < 0 ? "forward" : "backward")
-			    << " in time: " << abs(timeDiff) << " seconds";
+			    << " in time: " << std::fabs(timeDiff) << " seconds";
 
 			Timer::AdjustTimers(-timeDiff);
 		}
