@@ -33,7 +33,7 @@ int WorkQueue::m_NextID = 1;
 boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
-	: m_ID(m_NextID++), m_MaxItems(maxItems), m_ThreadCount(threadCount), m_Spawned(false), m_Stopped(false),
+	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
 	  m_Processing(0)
 {
 	m_StatusTimer = new Timer();

@@ -226,8 +226,8 @@ void Timer::AdjustTimers(double adjustment)
 	std::vector<Timer *> timers;
 
 	BOOST_FOREACH(Timer *timer, idx) {
-		if (abs(now - (timer->m_Next + adjustment)) <
-		    abs(now - timer->m_Next)) {
+		if (std::fabs(now - (timer->m_Next + adjustment)) <
+		    std::fabs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
 			timers.push_back(timer);
 		}

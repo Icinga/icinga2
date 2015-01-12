@@ -134,8 +134,6 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 {
 	std::ostringstream result;
 
-	const user_error *uex = dynamic_cast<const user_error *>(&ex);
-
 	String message = ex.what();
 
 	if (message.IsEmpty())
@@ -150,9 +148,10 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 		ShowCodeFragment(result, dex->GetDebugInfo());
 	}
 
+	const user_error *uex = dynamic_cast<const user_error *>(&ex);
 	const posix_error *pex = dynamic_cast<const posix_error *>(&ex);
 
-	if (!uex && verbose) {
+	if (!uex && !pex && verbose) {
 		const StackTrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
 
 		if (st) {
