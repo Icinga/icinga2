@@ -235,6 +235,9 @@ public:
 				return GetPrototypeField(context, field, true, debugInfo);
 			}
 
+			if (index < 0 || index >= arr->GetLength())
+				BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
+
 			return arr->Get(index);
 		}
 
