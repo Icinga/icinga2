@@ -32,6 +32,8 @@ namespace po = boost::program_options;
 using std::cout; using std::endl;
 using std::wcout; using std::wstring;
 
+static BOOL debug;
+
 struct printInfoStruct 
 {
 	threshold warn, crit;
@@ -70,6 +72,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		("help,h", "print help message and exit")
 		("version,V", "print version and exit")
 		("warning,w", po::wvalue<wstring>(), "warning threshold (Uses -unit)")
+		("debug,d", "Verbose/Debug output")
 		("critical,c", po::wvalue<wstring>(), "critical threshold (Uses -unit)")
 		("unit,u", po::wvalue<wstring>(), "desired unit of output\nh\t- hours\nm\t- minutes\ns\t- seconds (default)\nms\t- milliseconds")
 		;
@@ -164,12 +167,18 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		} wcout << L"Unknown unit type " << vm["unit"].as<wstring>() << endl;
 	} else
 		printInfo.unit = TunitS;
+
+	if (vm.count("debug"))
+		debug = TRUE;
     
 	return -1;
 }
 
 static int printOutput(printInfoStruct& printInfo) 
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
+
 	state state = OK;
 
 	if (printInfo.warn.rend(printInfo.time))
@@ -200,8 +209,14 @@ static int printOutput(printInfoStruct& printInfo)
 
 void getUptime(printInfoStruct& printInfo) 
 {
+	if (debug)
+		wcout << L"Getting uptime in milliseconds" << endl;
+
 	boost::chrono::milliseconds uptime = boost::chrono::milliseconds(GetTickCount64());
 	
+	if (debug)
+		wcout << L"Converting requested unit (default: seconds)" << endl;
+
 	switch (printInfo.unit) {
 	case TunitH: 
 		printInfo.time = boost::chrono::duration_cast<boost::chrono::hours>(uptime).count();
@@ -216,5 +231,4 @@ void getUptime(printInfoStruct& printInfo)
 		printInfo.time = uptime.count();
 		break;
 	}
-	
 }

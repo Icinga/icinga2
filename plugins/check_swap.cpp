@@ -31,6 +31,8 @@ namespace po = boost::program_options;
 using std::endl; using std::wcout; using std::wstring;
 using std::cout;
 
+static BOOL debug = FALSE;
+
 struct printInfoStruct 
 {
 	threshold warn, crit;
@@ -68,6 +70,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	desc.add_options()
 		("help,h", "print help message and exit")
 		("version,V", "print version and exit")
+		("debug,d", "Verbose/Debug output")
 		("warning,w", po::wvalue<wstring>(), "warning threshold")
 		("critical,c", po::wvalue<wstring>(), "critical threshold")
 		;
@@ -141,6 +144,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			return 3;
 		}
 	}
+
 	if (vm.count("critical")) {
 		try {
 			printInfo.crit = threshold(vm["critical"].as<wstring>());
@@ -150,11 +154,17 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		}
 	}
 
+	if (vm.count("debug"))
+		debug = TRUE;
+
 	return -1;
 }
 
 int printOutput(printInfoStruct& printInfo) 
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
+
 	state state = OK;
 
 	if (printInfo.warn.rend(printInfo.swap))
@@ -192,17 +202,29 @@ int check_swap(printInfoStruct& printInfo)
 
 	LPCWSTR path = L"\\Paging File(*)\\% Usage";
 
+	if (debug)
+		wcout << L"Opening querry handle" << endl;
+
 	err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
+
+	if (debug)
+		wcout << L"Adding counter" << endl;
 
 	err = PdhAddEnglishCounter(phQuery, path, NULL, &phCounter);
 	if (!SUCCEEDED(err))
 		goto die;
 
+	if (debug)
+		wcout << L"Collecting querry data" << endl;
+
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
+
+	if (debug)
+		wcout << L"Formatting counter data" << endl;
 
 	err = PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue);
 	if (SUCCEEDED(err)) {

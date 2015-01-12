@@ -31,6 +31,9 @@ namespace po = boost::program_options;
 
 using std::endl; using std::vector; using std::wstring;
 using std::wcout; using std::cout;
+
+static BOOL debug = FALSE;
+
 struct nInterface 
 {
 	wstring name;
@@ -77,6 +80,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	desc.add_options()
 		("help,h", "print usage and exit")
 		("version,V", "print version and exit")
+		("debug,d", "Verbose/Debug output")
 		("warning,w", po::wvalue<wstring>(), "warning value")
 		("critical,c", po::wvalue<wstring>(), "critical value")
 		;
@@ -161,11 +165,17 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		}
 	}
 	
+	if (vm.count("debug"))
+		debug = TRUE;
+
 	return -1;
 }
 
 int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterfaces) 
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
+
 	long tIn = 0, tOut = 0;
 	std::wstringstream tss, perfDataFirst;
 	state state = OK;
@@ -209,6 +219,9 @@ int check_network(vector <nInterface>& vInterfaces)
 	PDH_FMT_COUNTERVALUE_ITEM *pDisplayValuesIn = NULL, *pDisplayValuesOut = NULL;
 	PDH_STATUS err;
 
+	if (debug)
+		wcout << L"Creating Query and adding counters" << endl;
+
 	err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
@@ -221,16 +234,28 @@ int check_network(vector <nInterface>& vInterfaces)
 	if (!SUCCEEDED(err)) 
 		goto die;
 	
+	if (debug)
+		wcout << L"Collecting first batch of query data" << endl;
+
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
-	
+
+	if (debug)
+		wcout << L"Sleep for one second" << endl;
+
 	Sleep(1000);
 
+	if (debug)
+		wcout << L"Collecting second batch of query data" << endl;
+
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
+	if (debug)
+		wcout << L"Creating formatted counter arrays" << endl;
+	
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesIn = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
@@ -251,16 +276,24 @@ int check_network(vector <nInterface>& vInterfaces)
 	if (!SUCCEEDED(err))
 		goto die;
 
+	if (debug)
+		wcout << L"Going over counter array" << endl;
+
 	for (DWORD i = 0; i < dwItemCount; i++) {
 		nInterface *iface = new nInterface(wstring(pDisplayValuesIn[i].szName));
 		iface->BytesInSec = pDisplayValuesIn[i].FmtValue.longValue;
 		iface->BytesOutSec = pDisplayValuesOut[i].FmtValue.longValue;
 		vInterfaces.push_back(*iface);
+		if (debug)
+			wcout << L"Collected interface " << pDisplayValuesIn[i].szName << endl;
 	}
-		PdhCloseQuery(phQuery);
-		delete pDisplayValuesIn;
-		delete pDisplayValuesOut;
-		return -1;
+	if (debug)
+		wcout << L"Finished collection. Cleaning up and returning" << endl;
+
+	PdhCloseQuery(phQuery);
+	delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesIn);
+	delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
+	return -1;
 die:
 	die(err);
 	if (phQuery)

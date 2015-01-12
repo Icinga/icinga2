@@ -40,6 +40,8 @@ namespace po = boost::program_options;
 using std::cout; using std::endl; using std::wcout;
 using std::wstring; using std::string;
 
+static BOOL debug = FALSE;
+
 struct response
 {
 	double avg;
@@ -97,6 +99,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	desc.add_options()
 		("help,h", "print usage message and exit")
 		("version,V", "print version and exit")
+		("debug,d", "Verbose/Debug output")
 		("host,H", po::wvalue<wstring>()->required(), "host ip to ping")
 		(",4", "--host is an ipv4 address (default)")
 		(",6", "--host is an ipv6 address")
@@ -222,11 +225,17 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	printInfo.host = vm["host"].as<wstring>();
 
+	if (vm.count("debug"))
+		debug = TRUE;
+
 	return -1;
 }
 
 int printOutput(printInfoStruct& printInfo, response& response)
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
+
 	state state = OK;
 
 	double plp = ((double)response.dropped / printInfo.num) * 100.0;
@@ -273,6 +282,9 @@ int check_ping4(const printInfoStruct& pi, response& response)
 	LARGE_INTEGER frequency, timer1, timer2;
 	LPCWSTR term;
 
+	if (debug)
+		wcout << L"Parsing ip address" << endl;
+
 	if (RtlIpv4StringToAddress(pi.host.c_str(), TRUE, &term, &ipDest4) == STATUS_INVALID_PARAMETER) {
 		std::wcout << pi.host << " is not a valid ip address" << std::endl;
 		return 3;
@@ -282,6 +294,9 @@ int check_ping4(const printInfoStruct& pi, response& response)
 		std::wcout << pi.host << " is not a valid ip address" << std::endl;
 		return 3;
 	}
+
+	if (debug)
+		wcout << L"Creating Icmp File" << endl;
 
 	if ((hIcmp = IcmpCreateFile()) == INVALID_HANDLE_VALUE)
 		goto die;
@@ -295,19 +310,32 @@ int check_ping4(const printInfoStruct& pi, response& response)
 	QueryPerformanceFrequency(&frequency);
 	do {
 		QueryPerformanceCounter(&timer1);
-		dwRet = IcmpSendEcho2(hIcmp, NULL, NULL, NULL, ipDest4.S_un.S_addr,
-							  NULL, 0, NULL, repBuf, dwRepSize, pi.timeout);
-		if (!dwRet) {
+
+		if (debug)
+			wcout << L"Sending Icmp echo" << endl;
+
+		if (!IcmpSendEcho2(hIcmp, NULL, NULL, NULL, ipDest4.S_un.S_addr,
+			NULL, 0, NULL, repBuf, dwRepSize, pi.timeout)) {
 			response.dropped++;
+			if (debug)
+				wcout << L"Dropped: Response was 0" << endl;
 			continue;
 		}
+
+		if (debug)
+			wcout << "Ping recieved" << endl;
 
 		PICMP_ECHO_REPLY pEchoReply = static_cast<PICMP_ECHO_REPLY>(repBuf);
 
 		if (pEchoReply->Status != IP_SUCCESS) {
 			response.dropped++;
+			if (debug)
+				wcout << L"Dropped: echo reply status " << pEchoReply->Status << endl;
 			continue;
 		}
+
+		if (debug)
+			wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << endl;
 
 		rtt += pEchoReply->RoundTripTime;
 		if (response.pMin == 0 || pEchoReply->RoundTripTime < response.pMin)
@@ -320,6 +348,8 @@ int check_ping4(const printInfoStruct& pi, response& response)
 			Sleep(pi.timeout - ((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart));
 	} while (--num);
 
+	if (debug)
+		wcout << L"All pings sent. Cleaning up and returning" << endl;
 
 	IcmpCloseHandle(hIcmp);
 	delete reinterpret_cast<VOID *>(repBuf);
@@ -350,6 +380,9 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	int num = pi.num;
 	UINT rtt = 0;
 
+	if (debug)
+		wcout << L"Parsing ip address" << endl;
+
 	if (RtlIpv6StringToAddressEx(pi.host.c_str(), &ipDest6.sin6_addr, &ipDest6.sin6_scope_id, &ipDest6.sin6_port)) {
 		std::wcout << pi.host << " is not a valid ipv6 address" << std::endl;
 		return 3;
@@ -362,6 +395,9 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	ipSource6.sin6_flowinfo = 0;
 	ipSource6.sin6_port = 0;
 
+	if (debug)
+		wcout << L"Creating Icmp File" << endl;
+
 	HANDLE hIcmp = Icmp6CreateFile();
 	if (hIcmp == INVALID_HANDLE_VALUE) {
 		goto die;
@@ -370,31 +406,49 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	QueryPerformanceFrequency(&frequency);
 	do {
 		QueryPerformanceCounter(&timer1);
+
+		if (debug)
+			wcout << L"Sending Icmp echo" << endl;
+
 		if (!Icmp6SendEcho2(hIcmp, NULL, NULL, NULL, &ipSource6, &ipDest6,
 			NULL, 0, &ipInfo, repBuf, dwRepSize, pi.timeout)) {
 			response.dropped++;
+			if (debug)
+				wcout << L"Dropped: Response was 0" << endl;
 			continue;
 		}
+
+		if (debug)
+			wcout << "Ping recieved" << endl;
 
 		Icmp6ParseReplies(repBuf, dwRepSize);
 
-		ICMPV6_ECHO_REPLY *echoReply = static_cast<ICMPV6_ECHO_REPLY *>(repBuf);
+		ICMPV6_ECHO_REPLY *pEchoReply = static_cast<ICMPV6_ECHO_REPLY *>(repBuf);
 
-		if (echoReply->Status != IP_SUCCESS) {
+		if (pEchoReply->Status != IP_SUCCESS) {
 			response.dropped++;
+			if (debug)
+				wcout << L"Dropped: echo reply status " << pEchoReply->Status << endl;
 			continue;
 		}
 		
-		rtt += echoReply->RoundTripTime;
-		if (response.pMin == 0 || echoReply->RoundTripTime < response.pMin)
-			response.pMin = echoReply->RoundTripTime;
-		else if (echoReply->RoundTripTime > response.pMax)
-			response.pMax = echoReply->RoundTripTime;
+		rtt += pEchoReply->RoundTripTime;
+
+		if (debug)
+			wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << endl;
+
+		if (response.pMin == 0 || pEchoReply->RoundTripTime < response.pMin)
+			response.pMin = pEchoReply->RoundTripTime;
+		else if (pEchoReply->RoundTripTime > response.pMax)
+			response.pMax = pEchoReply->RoundTripTime;
 
 		QueryPerformanceCounter(&timer2);
 		if (((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart) < pi.timeout)
 			Sleep(pi.timeout - ((timer2.QuadPart - timer1.QuadPart) * 1000 / frequency.QuadPart));
 	} while (--num);
+
+	if (debug)
+		wcout << L"All pings sent. Cleaning up and returning" << endl;
 
 	IcmpCloseHandle(hIcmp);
 	delete reinterpret_cast<VOID *>(repBuf);

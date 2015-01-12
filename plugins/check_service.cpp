@@ -31,6 +31,8 @@ namespace po = boost::program_options;
 using std::wcout; using std::endl;
 using std::cout; using std::wstring;
 
+static BOOL debug;
+
 struct printInfoStruct 
 {
 	bool warn;
@@ -69,6 +71,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	desc.add_options()
 		("help,h", "print help message and exit")
 		("version,V", "print version and exit")
+		("debug,d", "Verbose/Debug output")
 		("service,s", po::wvalue<wstring>(), "service to check (required)")
 		("warn,w", "return warning (1) instead of critical (2),\n when service is not running")
 		;
@@ -132,12 +135,18 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		printInfo.warn = true;
 	
 	printInfo.service = vm["service"].as<wstring>();
+
+	if (vm.count("debug"))
+		debug = TRUE;
 	
 	return -1;
 }
 
 int printOutput(const printInfoStruct& printInfo) 
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
+
 	wstring perf;
 	state state = OK;
 
@@ -166,6 +175,9 @@ int printOutput(const printInfoStruct& printInfo)
 
 int ServiceStatus(const printInfoStruct& printInfo) 
 {
+	if (debug)
+		wcout << L"Opening SC Manager" << endl;
+
 	SC_HANDLE service_api = OpenSCManager(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
 	if (service_api == NULL)
 		goto die;
@@ -173,6 +185,9 @@ int ServiceStatus(const printInfoStruct& printInfo)
 	LPBYTE lpServices = NULL;
 	DWORD cbBufSize = 0;
 	DWORD pcbBytesNeeded = NULL, ServicesReturned = NULL, ResumeHandle = NULL;
+
+	if (debug)
+		wcout << L"Creating service info structure" << endl;
 
 	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
 		lpServices, cbBufSize, &pcbBytesNeeded, &ServicesReturned, &ResumeHandle, NULL)
@@ -188,16 +203,24 @@ int ServiceStatus(const printInfoStruct& printInfo)
 
 	LPENUM_SERVICE_STATUS_PROCESS pInfo = (LPENUM_SERVICE_STATUS_PROCESS)lpServices;
     
+	if (debug)
+		wcout << L"Traversing services" << endl;
+
 	for (DWORD i = 0; i < ServicesReturned; i++) {
+		if (debug)
+			wcout << L"Comparing " << pInfo[i].lpServiceName << L" to " << printInfo.service << endl;
+
 		if (!wcscmp(printInfo.service.c_str(), pInfo[i].lpServiceName)) {
+			if (debug)
+				wcout << L"Service " << pInfo[i].lpServiceName << L" = " << printInfo.service << ". Returning" << endl;
+
 			int state = pInfo[i].ServiceStatusProcess.dwCurrentState;
 			delete lpServices;
 			return state;
 		}
 	}
-	return 0;
 	delete[] reinterpret_cast<LPBYTE>(lpServices);
-	return -1;
+	return 0;
 
 die:
 	die();

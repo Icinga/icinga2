@@ -34,6 +34,8 @@ namespace po = boost::program_options;
 using std::cout; using std::endl; using std::set;
 using std::vector; using std::wstring; using std::wcout;
 
+static BOOL debug = FALSE;
+
 struct drive 
 {
 	wstring name;
@@ -100,6 +102,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	desc.add_options()
 		("help,h", "print usage message and exit")
 		("version,V", "print version and exit")
+		("debug,d", "Verbose/Debug output")
 		("warning,w", po::wvalue<wstring>(), "warning threshold")
 		("critical,c", po::wvalue<wstring>(), "critical threshold")
 		("path,p", po::wvalue<vector<std::wstring>>()->multitoken(), "declare explicitly which drives to check (default checks all)")
@@ -196,11 +199,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	} else
 		printInfo.unit = BunitB;
 
+	if (vm.count("debug"))
+		debug = TRUE;
+
 	return -1;
 }
 
 int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives) 
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
 	state state = OK;
 	double tCap = 0, tFree = 0;
 	std::wstringstream perf, prePerf;
@@ -233,13 +241,13 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 
 	switch (state) {
 	case OK:
-		wcout << L"DISK OK " << tFree << unit << prePerf.str() << perf.str() << endl;
+		wcout << L"DISK OK " << std::fixed << removeZero(tFree) << unit << prePerf.str() << perf.str() << endl;
 		break;
 	case WARNING:
-		wcout << L"DISK WARNING " << tFree << unit << prePerf.str() << perf.str() << endl;
+		wcout << L"DISK WARNING " << std::fixed << removeZero(tFree) << unit << prePerf.str() << perf.str() << endl;
 		break;
 	case CRITICAL:
-		wcout << L"DISK CRITICAL " << tFree << unit << prePerf.str() << perf.str() << endl;
+		wcout << L"DISK CRITICAL " << std::fixed << removeZero(tFree) << unit << prePerf.str() << perf.str() << endl;
 		break;
 	}
 
@@ -249,29 +257,45 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 int check_drives(vector<drive>& vDrives) 
 {
 	DWORD dwResult, dwSize = 0, dwVolumePathNamesLen = MAX_PATH + 1;
-	wchar_t szLogicalDrives[MAX_PATH], szVolumeName[MAX_PATH], *szVolumePathNames;
+	wchar_t szLogicalDrives[1024], szVolumeName[MAX_PATH], *szVolumePathNames;
 	HANDLE hVolume;
 	wstring wsLogicalDrives;
 	size_t volumeNameEnd = 0;
 
 	set<wstring> sDrives;
 
+	if (debug)
+		wcout << L"Getting logic drive string (includes network drives)" << endl;
+
 	dwResult = GetLogicalDriveStrings(MAX_PATH, szLogicalDrives);
 	if (dwResult < 0 || dwResult > MAX_PATH) 
 		goto die;
-	
+	if (debug)
+		wcout << L"Splitting string into single drive names" << endl;
+
 	LPTSTR szSingleDrive = szLogicalDrives;
 	while (*szSingleDrive) {
 		wstring drname = szSingleDrive;
 		sDrives.insert(drname);
 		szSingleDrive += wcslen(szSingleDrive) + 1;
+		if (debug)
+			wcout << "Got: " << drname << endl;
 	}
+
+	if (debug) 
+		wcout << L"Getting volume mountpoints (includes NTFS folders)" << endl
+		<< L"Getting first volume" << endl;
 
 	hVolume = FindFirstVolume(szVolumeName, MAX_PATH);
 	if (hVolume == INVALID_HANDLE_VALUE)
 		goto die;
 
+	if (debug)
+		wcout << L"Traversing through list of drives" << endl;
+
 	while (GetLastError() != ERROR_NO_MORE_FILES) {
+		if (debug)
+			wcout << L"Path name for " << szVolumeName << L"= \"";
 		volumeNameEnd = wcslen(szVolumeName) - 1;
 		szVolumePathNames = reinterpret_cast<wchar_t*>(new WCHAR[dwVolumePathNamesLen]);
 
@@ -282,17 +306,25 @@ int check_drives(vector<drive>& vDrives)
 			szVolumePathNames = reinterpret_cast<wchar_t*>(new WCHAR[dwVolumePathNamesLen]);
 
 		}
+		wcout << szVolumePathNames << L"\"" << endl;
 
+		//.insert() does the dublicate checking
 		sDrives.insert(wstring(szVolumePathNames));
 		FindNextVolume(hVolume, szVolumeName, MAX_PATH);
 	}
 
+	wcout << L"Creating vector from found volumes, removing cd drives etc.:" << endl;
 	for (set<wstring>::iterator it = sDrives.begin(); it != sDrives.end(); ++it) {
 		UINT type = GetDriveType(it->c_str());
 		if (type == DRIVE_FIXED || type == DRIVE_REMOTE) {
+			if (debug)
+				wcout << L"\t" << *it << endl;
 			vDrives.push_back(drive(*it));
 		}
 	}
+
+	FindVolumeClose(hVolume);
+	delete[] reinterpret_cast<wchar_t*>(szVolumePathNames);
 	return -1;
  
 die:
@@ -306,15 +338,19 @@ int check_drives(vector<drive>& vDrives, printInfoStruct& printInfo)
 {
 	wchar_t *slash = L"\\";
 
+	if (debug)
+		wcout << L"Parsing user input drive names" << endl;
+
 	for (vector<wstring>::iterator it = printInfo.drives.begin();
 			it != printInfo.drives.end(); ++it) {
 		if (it->at(it->length() - 1) != *slash)
 			it->append(slash);
-
 		if (std::wstring::npos == it->find(L":\\")) {
 			wcout << "A \":\" is required after the drive name of " << *it << endl;
 			return 3;
 		}
+		if (debug)
+			wcout << L"Added " << *it << endl;
 		vDrives.push_back(drive(*it));
 	}
 	return -1;
@@ -322,13 +358,21 @@ int check_drives(vector<drive>& vDrives, printInfoStruct& printInfo)
 
 bool getFreeAndCap(drive& drive, const Bunit& unit) 
 {
+	if (debug)
+		wcout << L"Getting free disk space for drive " << drive.name << endl;
 	ULARGE_INTEGER tempFree, tempTotal;
 	if (!GetDiskFreeSpaceEx(drive.name.c_str(), NULL, &tempTotal, &tempFree)) {
 		return FALSE;
 	}
-
+	if (debug)
+		wcout << L"\tcap: " << tempFree.QuadPart << endl;
 	drive.cap = round((tempTotal.QuadPart / pow(1024.0, unit)));
+	if (debug)
+		wcout << L"\tAfter converion: " << drive.cap << endl
+		<< L"\tfree: " << tempFree.QuadPart << endl;
 	drive.free = round((tempFree.QuadPart / pow(1024.0, unit)));
+	if (debug)
+		wcout << L"\tAfter converion: " << drive.free << endl << endl;
 
 	return TRUE;
 }

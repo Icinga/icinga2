@@ -33,6 +33,8 @@ namespace po = boost::program_options;
 using std::endl; using std::cout; using std::wstring;
 using std::wcout;
 
+static BOOL debug = FALSE;
+
 struct printInfoStruct 
 {
 	threshold warn, crit;
@@ -69,6 +71,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	desc.add_options()
 		("help,h", "print usage message and exit")
 		("version,V", "print version and exit")
+		("debug,d", "Verbose/Debug output")
 		("warning,w", po::wvalue<wstring>(), "warning value (in percent)")
 		("critical,c", po::wvalue<wstring>(), "critical value (in percent)")
 		;
@@ -156,11 +159,17 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		}
 	}
 
+	if (vm.count("debug"))
+		debug = TRUE;
+
 	return -1;
 }
 
 int printOutput(printInfoStruct& printInfo) 
 {
+	if (debug)
+		wcout << L"Constructing output string" << endl;
+
 	state state = OK;
 
 	if (printInfo.warn.rend(printInfo.load))
@@ -199,6 +208,9 @@ int check_load(printInfoStruct& printInfo)
 
 	LPCWSTR path = L"\\Processor(_Total)\\% Idle Time";
 
+	if (debug)
+		wcout << L"Creating query and adding counter" << endl;
+
 	err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
@@ -207,20 +219,39 @@ int check_load(printInfoStruct& printInfo)
 	if (!SUCCEEDED(err))
 		goto die;
 
+	if (debug)
+		wcout << L"Collecting first batch of query data" << endl;
+
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
+
+	if (debug)
+		wcout << L"Sleep for one second" << endl;
 
 	Sleep(1000);
 
+	if (debug)
+		wcout << L"Collecting second batch of query data" << endl;
+
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
+	if (debug)
+		wcout << L"Creating formatted counter array" << endl;
+
 	err = PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue);
 	if (SUCCEEDED(err)) {
-		if (DisplayValue.CStatus == PDH_CSTATUS_VALID_DATA)
+		if (DisplayValue.CStatus == PDH_CSTATUS_VALID_DATA) {
+			if (debug)
+				wcout << L"Recieved Value of " << DisplayValue.doubleValue << L" (idle)" << endl;
 			printInfo.load = 100.0 - DisplayValue.doubleValue;
+		}
+
+		if (debug)
+			wcout << L"Finished collection. Cleaning up and returning" << endl;
+
 		PdhCloseQuery(phQuery);
 		return -1;
 	}
