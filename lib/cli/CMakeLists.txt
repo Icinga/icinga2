@@ -37,14 +37,6 @@ add_library(cli SHARED ${cli_SOURCES})
 
 target_link_libraries(cli ${Boost_LIBRARIES} base config remote)
 
-if(HAVE_LIBREADLINE)
-  target_link_libraries(cli readline)
-endif()
-
-if(HAVE_LIBNCURSES)
-  target_link_libraries(cli ncurses)
-endif()
-
 set_target_properties (
   cli PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2

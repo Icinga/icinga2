@@ -27,12 +27,6 @@
 #include "base/networkstream.hpp"
 #include <iostream>
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBNCURSES)
-extern "C" {
-#include <readline/readline.h>
-#include <readline/history.h>
-}
-#endif /* HAVE_LIBREADLINE && HAVE_LIBNCURSES */
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -86,41 +80,14 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		String fileName = "<" + Convert::ToString(next_line) + ">";
 		next_line++;
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBNCURSES)
-		ConsoleType type = Console::GetType(std::cout);
-
-		std::stringstream prompt_sbuf;
-
-		prompt_sbuf << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_ForegroundCyan, type)
-		    << RL_PROMPT_END_IGNORE << fileName
-		    << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_ForegroundRed, type)
-		    << RL_PROMPT_END_IGNORE << " => "
-		    << RL_PROMPT_START_IGNORE << ConsoleColorTag(Console_Normal, type);
-#else /* HAVE_LIBREADLINE && HAVE_LIBNCURSES */
 		std::cout << ConsoleColorTag(Console_ForegroundCyan)
 		    << fileName
 		    << ConsoleColorTag(Console_ForegroundRed)
 		    << " => "
 		    << ConsoleColorTag(Console_Normal);
-#endif /* HAVE_LIBREADLINE && HAVE_LIBNCURSES */
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBNCURSES)
-		String prompt = prompt_sbuf.str();
-
-		char *rline = readline(prompt.CStr());
-
-		if (!rline)
-			break;
-
-		if (*rline)
-			add_history(rline);
-
-		String line = rline;
-		free(rline);
-#else /* HAVE_LIBREADLINE */
 		std::string line;
 		std::getline(std::cin, line);
-#endif /* HAVE_LIBREADLINE */
 
 		if (addr.IsEmpty()) {
 			Expression *expr;

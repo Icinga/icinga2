@@ -27,8 +27,6 @@ parentheses):
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
                installed via port or package)
-* recommended: GNU readline (readline-devel on RHEL, libreadline-dev on Debian)
-* recommended: ncurses (ncurses-devel on RHEL, libncurses-dev on Debian)
 * optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian); set CMake
              variable `ICINGA2_WITH_MYSQL` to disable this module
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian); set CMake

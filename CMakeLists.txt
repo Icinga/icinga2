@@ -158,8 +158,6 @@ check_function_exists(pipe2 HAVE_PIPE2)
 check_function_exists(nice HAVE_NICE)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)
 check_library_exists(execinfo backtrace_symbols "" HAVE_LIBEXECINFO)
-check_library_exists(readline readline "" HAVE_LIBREADLINE)
-check_library_exists(ncurses attroff "" HAVE_LIBNCURSES)
 check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
 
 if(HAVE_LIBEXECINFO)
