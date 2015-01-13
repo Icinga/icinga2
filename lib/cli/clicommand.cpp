@@ -166,7 +166,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 
 	std::vector<String> best_match;
-	int arg_end = 1;
+	int arg_end = 0;
 
 	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
