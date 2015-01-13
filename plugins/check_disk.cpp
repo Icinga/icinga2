@@ -306,7 +306,8 @@ int check_drives(vector<drive>& vDrives)
 			szVolumePathNames = reinterpret_cast<wchar_t*>(new WCHAR[dwVolumePathNamesLen]);
 
 		}
-		wcout << szVolumePathNames << L"\"" << endl;
+		if (debug)
+			wcout << szVolumePathNames << L"\"" << endl;
 
 		//.insert() does the dublicate checking
 		sDrives.insert(wstring(szVolumePathNames));
