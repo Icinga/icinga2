@@ -413,7 +413,7 @@ Configuration example for host and service objects running commands on the remot
 
       /* host specific check arguments */
       vars.users_wgreater = 10
-      vars.users_wgreater = 20
+      vars.users_cgreater = 20
     }
 
     apply Service "users-remote" {
