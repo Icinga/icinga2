@@ -1,5 +1,0 @@
-# ignoring apache2 warning
-# this is actually not a problem, because the handling is backwards compatible
-apache2-reverse-dependency-calls-invoke-rc.d postrm
-apache2-reverse-dependency-calls-wrapper-script postinst a2enmod
-apache2-reverse-dependency-calls-invoke-rc.d postinst

@@ -1,5 +1,0 @@
-# default settings for icinga2's initscript
-
-#DAEMON_CONFIG="/etc/icinga2/icinga2.conf"
-#DAEMON_CMDGROUP=www-data
-#DAEMON_ARGS="-e /var/log/icinga2/icinga2.err"

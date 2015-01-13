@@ -1,7 +1,0 @@
-debian/config/apt.conf        etc/icinga2/conf.d
-debian/tmp/etc/icinga2
-debian/tmp/etc/logrotate.d
-tools/syntax/* 		      usr/share/icinga2-common/syntax
-usr/share/icinga2
-debian/tmp/etc/bash_completion.d
-etc/sysconfig/icinga2 usr/lib/icinga2

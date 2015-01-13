@@ -1,4 +1,0 @@
-lib/db_ido_pgsql/schema/*.sql usr/share/icinga2-ido-pgsql/schema
-lib/db_ido_pgsql/schema/upgrade/*.sql usr/share/icinga2-ido-pgsql/schema/upgrade
-debian/ido-pgsql.conf-sample usr/share/icinga2/tmpl
-usr/lib/*/icinga2/libdb_ido_pgsql*

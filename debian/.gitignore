@@ -1,9 +1,0 @@
-files
-*.debhelper
-*.debhelper.log
-*.substvars
-
-icinga2/
-icinga2-*/
-tmp/
-

@@ -1,4 +1,0 @@
-lib/db_ido_mysql/schema/*.sql usr/share/icinga2-ido-mysql/schema
-lib/db_ido_mysql/schema/upgrade/*.sql usr/share/icinga2-ido-mysql/schema/upgrade
-debian/ido-mysql.conf-sample usr/share/icinga2/tmpl
-usr/lib/*/icinga2/libdb_ido_mysql*
