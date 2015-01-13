@@ -313,8 +313,8 @@ int check_drives(vector<drive>& vDrives)
 		sDrives.insert(wstring(szVolumePathNames));
 		FindNextVolume(hVolume, szVolumeName, MAX_PATH);
 	}
-
-	wcout << L"Creating vector from found volumes, removing cd drives etc.:" << endl;
+	if (debug)
+		wcout << L"Creating vector from found volumes, removing cd drives etc.:" << endl;
 	for (set<wstring>::iterator it = sDrives.begin(); it != sDrives.end(); ++it) {
 		UINT type = GetDriveType(it->c_str());
 		if (type == DRIVE_FIXED || type == DRIVE_REMOTE) {

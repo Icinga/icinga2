@@ -256,7 +256,7 @@ int check_update(printInfoStruct& printInfo)
 
 	SysFreeString(criteria);
 	CoUninitialize();
-	return 0;
+	return -1;
 
 die:
 	die(err);
