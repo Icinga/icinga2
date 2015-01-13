@@ -471,7 +471,7 @@ will be used by notification apply rules in [notifications.conf](notifications-c
 If you've installed [Icinga Web 2](#setting-up-icingaweb2) you can
 uncomment the http vhost attributes and relaod Icinga 2. The apply
 rules in [services.conf](#services.conf) will automatically
-generate a new service checking the `/icingaweb` URI using the `http`
+generate a new service checking the `/icingaweb2` URI using the `http`
 check.
 
     /*
@@ -508,7 +508,7 @@ check.
       }
       /* Uncomment if you've sucessfully installed Icinga Web 2. */
       //vars.http_vhosts["Icinga Web 2"] = {
-      //  http_uri = "/icingaweb"
+      //  http_uri = "/icingaweb2"
       //}
 
       /* Define disks and attributes for service apply rules in `services.conf`. */
@@ -1360,12 +1360,12 @@ In order for commands to work you will need to [setup the external command pipe]
 web-based setup wizard which will guide you through the entire setup process.
 
 Generate the Webserver configuration and a setup token using its local cli
-and proceed with the web setup when accessing `/icingaweb` after reloading
+and proceed with the web setup when accessing `/icingaweb2` after reloading
 your webserver configuration.
 
-Please consult the installation documentation shipped with `Icinga Web 2` for
-further instructions on how to install Icinga Web 2 and to configure
-backends, resources and instances manually.
+Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md)
+shipped with `Icinga Web 2` for further instructions on how to install
+`Icinga Web 2` and to configure backends, resources and instances manually.
 
 Check the [Icinga website](http://www.icinga.org) for release announcements
 and packages.
