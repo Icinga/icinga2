@@ -46,6 +46,8 @@ public:
 
 	Value Invoke(const std::vector<Value>& arguments);
 
+	static Object::Ptr GetPrototype(void);
+
 private:
 	Callback m_Callback;
 };

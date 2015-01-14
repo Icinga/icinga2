@@ -27,7 +27,7 @@ set(base_SOURCES
   convert.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp logger.cpp logger.thpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp object-script.cpp primitivetype.cpp process.cpp
-  ringbuffer.cpp scriptframe.cpp scriptfunction.cpp scriptfunctionwrapper.cpp scriptglobal.cpp
+  ringbuffer.cpp scriptframe.cpp scriptfunction.cpp scriptfunction-script.cpp scriptfunctionwrapper.cpp scriptglobal.cpp
   scriptutils.cpp serializer.cpp socket.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp thinmutex.cpp threadpool.cpp timer.cpp

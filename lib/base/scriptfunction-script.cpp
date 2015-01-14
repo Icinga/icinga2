@@ -18,19 +18,34 @@
  ******************************************************************************/
 
 #include "base/scriptfunction.hpp"
-#include "base/primitivetype.hpp"
-#include "base/dictionary.hpp"
+#include "base/scriptfunctionwrapper.hpp"
+#include "base/scriptframe.hpp"
+#include "base/exception.hpp"
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(ScriptFunction, ScriptFunction::GetPrototype());
-
-ScriptFunction::ScriptFunction(const Callback& function)
-	: m_Callback(function)
-{ }
-
-Value ScriptFunction::Invoke(const std::vector<Value>& arguments)
+static Value ScriptFunctionCall(const std::vector<Value>& args)
 {
-	return m_Callback(arguments);
+	if (args.size() < 1)
+		BOOST_THROW_EXCEPTION(ScriptError("Too few arguments for call()"));
+
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	ScriptFunction::Ptr self = static_cast<ScriptFunction::Ptr>(vframe->Self);
+
+	ScriptFrame uframe(args[0]);
+	std::vector<Value> uargs(args.begin() + 1, args.end());
+	return self->Invoke(uargs);
+}
+
+Object::Ptr ScriptFunction::GetPrototype(void)
+{
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+		prototype->Set("call", new ScriptFunction(WrapScriptFunction(ScriptFunctionCall)));
+	}
+
+	return prototype;
 }
 
