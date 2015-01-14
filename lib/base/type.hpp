@@ -81,6 +81,7 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 
+	virtual void SetField(int id, const Value& value);
 	virtual Value GetField(int id) const;
 
 protected:

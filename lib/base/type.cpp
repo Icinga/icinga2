@@ -88,6 +88,16 @@ void Type::SetPrototype(const Object::Ptr& object)
 	m_Prototype = object;
 }
 
+void Type::SetField(int id, const Value& value)
+{
+	if (id == 0) {
+		SetPrototype(value);
+		return;
+	}
+
+	Object::SetField(id, value);
+}
+
 Value Type::GetField(int id) const
 {
 	if (id == 0)
