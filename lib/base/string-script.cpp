@@ -22,6 +22,9 @@
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
 #include "base/scriptframe.hpp"
+#include "base/exception.hpp"
+#include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -38,6 +41,82 @@ static String StringToString(void)
 	return vframe->Self;
 }
 
+static String StringSubstr(const std::vector<Value>& args)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+
+	if (args.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments"));
+
+	if (static_cast<double>(args[0]) >= self.GetLength())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("String index is out of range"));
+
+	if (args.size() > 1)
+		return self.SubStr(args[0], args[1]);
+	else
+		return self.SubStr(args[0]);
+}
+
+static String StringUpper(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	return boost::to_upper_copy(self);
+}
+
+static String StringLower(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	return boost::to_lower_copy(self);
+}
+
+static Array::Ptr StringSplit(const String& delims)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, self, boost::is_any_of(delims));
+
+	Array::Ptr result = new Array();
+	BOOST_FOREACH(const String& token, tokens) {
+		result->Add(token);
+	}
+	return result;
+}
+
+static Value StringFind(const std::vector<Value>& args)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+
+	if (args.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments"));
+
+	String::SizeType result;
+
+	if (args.size() > 1)
+		result = self.Find(args[0], args[1]);
+	else
+		result = self.Find(args[0]);
+
+	if (result == String::NPos)
+		return -1;
+	else
+		return result;
+}
+
+static Value StringReplace(const String& search, const String& replacement)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+
+	boost::algorithm::replace_all(self, search, replacement);
+	return self;
+}
+
+
 Object::Ptr String::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -46,6 +125,12 @@ Object::Ptr String::GetPrototype(void)
 		prototype = new Dictionary();
 		prototype->Set("len", new ScriptFunction(WrapScriptFunction(StringLen)));
 		prototype->Set("to_string", new ScriptFunction(WrapScriptFunction(StringToString)));
+		prototype->Set("substr", new ScriptFunction(WrapScriptFunction(StringSubstr)));
+		prototype->Set("upper", new ScriptFunction(WrapScriptFunction(StringUpper)));
+		prototype->Set("lower", new ScriptFunction(WrapScriptFunction(StringLower)));
+		prototype->Set("split", new ScriptFunction(WrapScriptFunction(StringSplit)));
+		prototype->Set("find", new ScriptFunction(WrapScriptFunction(StringFind)));
+		prototype->Set("replace", new ScriptFunction(WrapScriptFunction(StringReplace)));
 	}
 
 	return prototype;
