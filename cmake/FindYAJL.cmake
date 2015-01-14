@@ -9,7 +9,7 @@ find_package(PkgConfig)
 pkg_check_modules(PC_YAJL QUIET yajl)
 set(YAJL_DEFINITIONS ${PC_YAJL_CFLAGS_OTHER})
 
-find_path(YAJL_INCLUDE_DIR yajl/yajl_parse.h
+find_path(YAJL_INCLUDE_DIR yajl/yajl_version.h
           HINTS ${PC_YAJL_INCLUDEDIR} ${PC_YAJL_INCLUDE_DIRS}
           PATH_SUFFIXES libyajl)
 
