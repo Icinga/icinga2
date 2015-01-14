@@ -81,11 +81,29 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 
+	virtual Value GetField(int id) const;
+
 protected:
 	virtual ObjectFactory GetFactory(void) const = 0;
 
 private:
 	Object::Ptr m_Prototype;
+};
+
+class I2_BASE_API TypeType : public Type
+{
+public:
+	DECLARE_PTR_TYPEDEFS(Type);
+
+	virtual String GetName(void) const;
+	virtual Type::Ptr GetBaseType(void) const;
+	virtual int GetAttributes(void) const;
+	virtual int GetFieldId(const String& name) const;
+	virtual Field GetFieldInfo(int id) const;
+	virtual int GetFieldCount(void) const;
+
+protected:
+	virtual ObjectFactory GetFactory(void) const;
 };
 
 template<typename T>

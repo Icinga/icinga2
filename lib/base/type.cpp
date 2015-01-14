@@ -22,6 +22,15 @@
 
 using namespace icinga;
 
+static void RegisterTypeType(void)
+{
+	Type::Ptr type = new TypeType();
+	Type::TypeInstance = type;
+	Type::Register(type);
+}
+
+INITIALIZE_ONCE(RegisterTypeType);
+
 String Type::ToString(void) const
 {
 	return "type '" + GetName() + "'";
@@ -77,5 +86,54 @@ Object::Ptr Type::GetPrototype(void) const
 void Type::SetPrototype(const Object::Ptr& object)
 {
 	m_Prototype = object;
+}
+
+Value Type::GetField(int id) const
+{
+	if (id == 0)
+		return GetPrototype();
+
+	return Object::GetField(id);
+}
+
+String TypeType::GetName(void) const
+{
+	return "Type";
+}
+
+Type::Ptr TypeType::GetBaseType(void) const
+{
+	return Type::Ptr();
+}
+
+int TypeType::GetAttributes(void) const
+{
+	return 0;
+}
+
+int TypeType::GetFieldId(const String& name) const
+{
+	if (name == "prototype")
+		return 0;
+
+	return -1;
+}
+
+Field TypeType::GetFieldInfo(int id) const
+{
+	if (id == 0)
+		return Field(0, "Object", "prototype", 0);
+
+	throw std::runtime_error("Invalid field ID.");
+}
+
+int TypeType::GetFieldCount(void) const
+{
+	return 1;
+}
+
+ObjectFactory TypeType::GetFactory(void) const
+{
+	return NULL;
 }
 
