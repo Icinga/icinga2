@@ -1811,7 +1811,7 @@ Attributes:
 
   Name            |Description
   ----------------|----------------
-  host            |**Required.** The hostname/IP address of the remote Icinga 2 instance.
+  host            |**Optional.** The hostname/IP address of the remote Icinga 2 instance.
   port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
   log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d`.
 
