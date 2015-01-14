@@ -27,7 +27,7 @@ using namespace icinga;
 static Value ScriptFunctionCall(const std::vector<Value>& args)
 {
 	if (args.size() < 1)
-		BOOST_THROW_EXCEPTION(ScriptError("Too few arguments for call()"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for call()"));
 
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	ScriptFunction::Ptr self = static_cast<ScriptFunction::Ptr>(vframe->Self);
