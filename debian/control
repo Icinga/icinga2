@@ -23,7 +23,7 @@ Build-Depends: bison,
                make (>= 3.81),
                po-debconf
 Standards-Version: 3.9.5
-Homepage: http://www.icinga.org
+Homepage: https://www.icinga.org
 
 Package: icinga2
 Architecture: any

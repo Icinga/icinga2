@@ -1367,7 +1367,7 @@ Please consult the [installation documentation](https://github.com/Icinga/icinga
 shipped with `Icinga Web 2` for further instructions on how to install
 `Icinga Web 2` and to configure backends, resources and instances manually.
 
-Check the [Icinga website](http://www.icinga.org) for release announcements
+Check the [Icinga website](https://www.icinga.org) for release announcements
 and packages.
 
 
@@ -1765,7 +1765,7 @@ all available global options.
     Command options:
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 
 #### <a id="cli-commands-autocompletion"></a> Icinga 2 CLI Bash Autocompletion
@@ -1850,7 +1850,7 @@ Furthermore it provides the [configuration validation](#config-validation).
       -d [ --daemonize ]    detach from the controlling terminal
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 ##### Config Files
 
@@ -1922,7 +1922,7 @@ nodes in a [remote monitoring ](#icinga2-remote-client-monitoring) or
     Command options:
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 
 #### <a id="cli-command-object"></a> Cli command: Object
@@ -1955,7 +1955,7 @@ More information can be found in the [troubleshooting](#list-configuration-objec
     Command options:
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 
 
@@ -1999,7 +1999,7 @@ This functionality is used by the [node setup/wizard](#cli-command-pki) cli comm
     Command options:
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 
 #### <a id="cli-command-repository"></a> Cli command: Repository
@@ -2053,7 +2053,7 @@ cleared after review.
     Command options:
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 
 
@@ -2084,7 +2084,7 @@ Lists all configured variables (constants) in a similar fasion like [object list
     Command options:
 
     Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <http://www.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 
 
