@@ -255,8 +255,9 @@ int Main(void)
 			try {
 				logLevel = Logger::StringToSeverity(severity);
 			} catch (std::exception&) {
-				/* use the default */
-				Log(LogWarning, "icinga", "Invalid log level set. Using default 'information'.");
+				/* Inform user and exit */
+				Log(LogCritical, "icinga", "Invalid log level set. Default is 'information'.");
+				return EXIT_FAILURE;
 			}
 
 			Logger::SetConsoleLogSeverity(logLevel);
