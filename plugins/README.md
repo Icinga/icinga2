@@ -1,15 +1,15 @@
 ##Icinga 2 plugins for Windows##
-Thhis collection of plugins is intended to provide basic functinality checks on windows machines. They (mostly) conform to the [nagios developer guidelines](https://nagios-plugins.org/doc/guidelines.html), returning adequate exit codes and printing a pertinent string with performance data.
+This collection of plugins is intended to provide basic functionality checks on windows machines. They (mostly) conform to the [nagios developer guidelines](https://nagios-plugins.org/doc/guidelines.html), returning adequate exit codes and printing a pertinent string with performance data.
 
 ###Intallation###
-The plugins are installed as part of Icinga 2
+The plugins are installed as part of Icinga 2.
 
 ###Requirements###
 - Boost 1.41.0
 - Windows Vista, Windows Server 2008 or newer
 
 ###Usage###
-Call a plugin with the "--help" option to recive information about its usage.
+Call a plugin with the "--help" option to receive information about its usage.
 
 ###License###
 
