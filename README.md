@@ -21,5 +21,5 @@ is also available on https://docs.icinga.org
 
 ## Support
 
-Check the project website at http://www.icinga.org for status updates and
+Check the project website at https://www.icinga.org for status updates and
 https://support.icinga.org if you want to contact us.
