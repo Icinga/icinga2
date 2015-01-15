@@ -20,6 +20,7 @@
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
 #include "base/scriptframe.hpp"
+#include "base/objectlock.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;
@@ -37,6 +38,23 @@ static Value ScriptFunctionCall(const std::vector<Value>& args)
 	return self->Invoke(uargs);
 }
 
+static Value ScriptFunctionCallV(const Value& thisArg, const Array::Ptr& args)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	ScriptFunction::Ptr self = static_cast<ScriptFunction::Ptr>(vframe->Self);
+
+	ScriptFrame uframe(thisArg);
+	std::vector<Value> uargs;
+
+	{
+		ObjectLock olock(args);
+		uargs = std::vector<Value>(args->Begin(), args->End());
+	}
+
+	return self->Invoke(uargs);
+}
+
+
 Object::Ptr ScriptFunction::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -44,6 +62,7 @@ Object::Ptr ScriptFunction::GetPrototype(void)
 	if (!prototype) {
 		prototype = new Dictionary();
 		prototype->Set("call", new ScriptFunction(WrapScriptFunction(ScriptFunctionCall)));
+		prototype->Set("callv", new ScriptFunction(WrapScriptFunction(ScriptFunctionCallV)));
 	}
 
 	return prototype;
