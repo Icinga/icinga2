@@ -109,9 +109,13 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 			} catch (const ScriptError& ex) {
 				DebugInfo di = ex.GetDebugInfo();
 
-				std::cout << di.Path << ": " << lines[di.Path] << "\n";
-				std::cout << String(di.Path.GetLength() + 2, ' ');
-				std::cout << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n";
+				if (lines.find(di.Path) != lines.end()) {
+					std::cout << di.Path << ": " << lines[di.Path] << "\n";
+					std::cout << String(di.Path.GetLength() + 2, ' ');
+					std::cout << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n";
+				} else {
+					ShowCodeFragment(std::cout, di);
+				}
 
 				std::cout << ex.what() << "\n";
 			} catch (const std::exception& ex) {
