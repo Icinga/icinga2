@@ -554,7 +554,7 @@ bool icinga::operator<(const Value& lhs, const Value& rhs)
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) < static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
-		return static_cast<int>(lhs) < static_cast<int>(rhs);
+		return static_cast<double>(lhs) < static_cast<double>(rhs);
 	else if (lhs.GetTypeName() != rhs.GetTypeName())
 		return lhs.GetTypeName() < rhs.GetTypeName();
 	else
@@ -586,7 +586,7 @@ bool icinga::operator>(const Value& lhs, const Value& rhs)
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) > static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
-		return static_cast<int>(lhs) > static_cast<int>(rhs);
+		return static_cast<double>(lhs) > static_cast<double>(rhs);
 	else if (lhs.GetTypeName() != rhs.GetTypeName())
 		return lhs.GetTypeName() > rhs.GetTypeName();
 	else
@@ -618,7 +618,7 @@ bool icinga::operator<=(const Value& lhs, const Value& rhs)
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) <= static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
-		return static_cast<int>(lhs) <= static_cast<int>(rhs);
+		return static_cast<double>(lhs) <= static_cast<double>(rhs);
 	else if (lhs.GetTypeName() != rhs.GetTypeName())
 		return lhs.GetTypeName() <= rhs.GetTypeName();
 	else
@@ -650,7 +650,7 @@ bool icinga::operator>=(const Value& lhs, const Value& rhs)
 	if (lhs.IsString() && rhs.IsString())
 		return static_cast<String>(lhs) >= static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
-		return static_cast<int>(lhs) >= static_cast<int>(rhs);
+		return static_cast<double>(lhs) >= static_cast<double>(rhs);
 	else if (lhs.GetTypeName() != rhs.GetTypeName())
 		return lhs.GetTypeName() >= rhs.GetTypeName();
 	else

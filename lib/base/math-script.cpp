@@ -23,6 +23,7 @@
 #include "base/scriptframe.hpp"
 #include "base/initialize.hpp"
 #include <boost/math/special_functions/round.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/foreach.hpp>
 #include <cmath>
 
@@ -138,6 +139,26 @@ static double MathTan(double x)
 	return std::tan(x);
 }
 
+static bool MathIsnan(double x)
+{
+	return boost::math::isnan(x);
+}
+
+static bool MathIsinf(double x)
+{
+	return boost::math::isinf(x);
+}
+
+static double MathSign(double x)
+{
+	if (x > 0)
+		return 1;
+	else if (x < 0)
+		return -1;
+	else
+		return 0;
+}
+
 static void InitializeMathObj(void)
 {
 	Dictionary::Ptr mathObj = new Dictionary();
@@ -171,6 +192,9 @@ static void InitializeMathObj(void)
 	mathObj->Set("sin", new ScriptFunction(WrapScriptFunction(MathSin)));
 	mathObj->Set("sqrt", new ScriptFunction(WrapScriptFunction(MathSqrt)));
 	mathObj->Set("tan", new ScriptFunction(WrapScriptFunction(MathTan)));
+	mathObj->Set("isnan", new ScriptFunction(WrapScriptFunction(MathIsnan)));
+	mathObj->Set("isinf", new ScriptFunction(WrapScriptFunction(MathIsinf)));
+	mathObj->Set("sign", new ScriptFunction(WrapScriptFunction(MathSign)));
 
 	ScriptGlobal::Set("Math", mathObj);
 }
