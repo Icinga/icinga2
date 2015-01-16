@@ -137,19 +137,8 @@ public:
 
 			Array::Ptr arr = value;
 
-			ObjectLock olock(arr);
-			BOOST_FOREACH(const Value& value, arr) {
-				frame.Locals->Set(fkvar, value);
-				expression->Evaluate(frame);
-			}
-		} else if (value.IsString()) {
-			if (!fvvar.IsEmpty())
-				BOOST_THROW_EXCEPTION(ScriptError("Cannot use dictionary iterator for string.", debugInfo));
-
-			String str = value;
-
-			BOOST_FOREACH(char ch, str) {
-				frame.Locals->Set(fkvar, String(1, ch));
+			for (Array::SizeType i = 0; i < arr->GetLength(); i++) {
+				frame.Locals->Set(fkvar, arr->Get(i));
 				expression->Evaluate(frame);
 			}
 		} else if (value.IsObjectType<Dictionary>()) {
@@ -157,11 +146,18 @@ public:
 				BOOST_THROW_EXCEPTION(ScriptError("Cannot use array iterator for dictionary.", debugInfo));
 
 			Dictionary::Ptr dict = value;
+			std::vector<String> keys;
 
-			ObjectLock olock(dict);
-			BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-				frame.Locals->Set(fkvar, kv.first);
-				frame.Locals->Set(fvvar, kv.second);
+			{
+				ObjectLock olock(dict);
+				BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+					keys.push_back(kv.first);
+				}
+			}
+
+			BOOST_FOREACH(const String& key, keys) {
+				frame.Locals->Set(fkvar, key);
+				frame.Locals->Set(fvvar, dict->Get(key));
 				expression->Evaluate(frame);
 			}
 		} else
