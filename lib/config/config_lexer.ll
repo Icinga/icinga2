@@ -190,6 +190,8 @@ false				{ yylval->boolean = 0; return T_BOOLEAN; }
 const				return T_CONST;
 var				return T_VAR;
 this				return T_THIS;
+globals				return T_GLOBALS;
+locals				return T_LOCALS;
 use				return T_USE;
 apply				return T_APPLY;
 to				return T_TO;

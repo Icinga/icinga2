@@ -142,6 +142,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_GREATER_THAN "> (T_GREATER_THAN)"
 
 %token T_VAR "var (T_VAR)"
+%token T_GLOBALS "globals (T_GLOBALS)"
+%token T_LOCALS "locals (T_LOCALS)"
 %token T_CONST "const (T_CONST)"
 %token T_USE "use (T_USE)"
 %token <type> T_TYPE_DICTIONARY "dictionary (T_TYPE_DICTIONARY)"
@@ -221,7 +223,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left UNARY_MINUS UNARY_PLUS
 %right '!' '~'
 %left '.' '(' '['
-%left T_VAR T_THIS
+%left T_VAR T_THIS T_GLOBALS T_LOCALS
 %right ';' ','
 %right T_NEWLINE
 %{
@@ -806,6 +808,14 @@ rterm_no_side_effect: T_STRING
 	| T_THIS
 	{
 		$$ = new GetScopeExpression(ScopeThis);
+	}
+	| T_GLOBALS
+	{
+		$$ = new GetScopeExpression(ScopeGlobal);
+	}
+	| T_LOCALS
+	{
+		$$ = new GetScopeExpression(ScopeLocal);
 	}
 	| rterm_array
 	| rterm_scope_require_side_effect
