@@ -591,7 +591,7 @@ lterm: type
 
 		$$ = MakeLiteral();
 	}
-	| T_RETURN rterm
+	| T_RETURN optional_rterm
 	{
 		$$ = new ReturnExpression($2, @$);
 	}
