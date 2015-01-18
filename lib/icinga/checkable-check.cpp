@@ -260,15 +260,37 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 
-	if (command_endpoint && (Endpoint::GetLocalEndpoint() != command_endpoint) && GetExtension("agent_check")) {
+	if (command_endpoint && GetExtension("agent_check")) {
+		/* agent checks go through the api */
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 
 		if (listener) {
+			/* send message back to its origin */
 			Dictionary::Ptr message = ApiEvents::MakeCheckResultMessage(this, cr);
 			listener->SyncSendMessage(command_endpoint, message);
+
+			/* HA cluster zone nodes must also process the check result locally
+			 * by fetching the real host/service object if existing
+			 */
+			Host::Ptr tempHost;
+			Service::Ptr tempService;
+			tie(tempHost, tempService) = GetHostService(this);
+			Host::Ptr realHost = Host::GetByName(tempHost->GetName());
+			if (realHost) {
+				Value agent_service_name = GetExtension("agent_service_name");
+				if (!agent_service_name.IsEmpty()) {
+					Checkable::Ptr realCheckable;
+					realCheckable = realHost->GetServiceByShortName(agent_service_name);
+					if (realCheckable) {
+						realCheckable->ProcessCheckResult(cr, origin);
+					}
+				}
+			}
+
 		}
 
 		return;
+
 	}
 
 	bool reachable = IsReachable();
@@ -498,7 +520,21 @@ bool Checkable::IsCheckPending(void) const
 	return m_CheckRunning;
 }
 
-void Checkable::ExecuteCheck(const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
+{
+	CONTEXT("Executing remote check for object '" + GetName() + "'");
+
+	double scheduled_start = GetNextCheck();
+	double before_check = Utility::GetTime();
+
+	CheckResult::Ptr cr = new CheckResult();
+	cr->SetScheduleStart(scheduled_start);
+	cr->SetExecutionStart(before_check);
+
+	GetCheckCommand()->Execute(this, cr, resolvedMacros, true);
+}
+
+void Checkable::ExecuteCheck()
 {
 	CONTEXT("Executing check for object '" + GetName() + "'");
 
@@ -526,23 +562,22 @@ void Checkable::ExecuteCheck(const Dictionary::Ptr& resolvedMacros, bool useReso
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
-	CheckResult::Ptr result = new CheckResult();
+	CheckResult::Ptr cr = new CheckResult();
 
-	result->SetScheduleStart(scheduled_start);
-	result->SetExecutionStart(before_check);
+	cr->SetScheduleStart(scheduled_start);
+	cr->SetExecutionStart(before_check);
 
-	Dictionary::Ptr macros;
 	Endpoint::Ptr endpoint = GetCommandEndpoint();
+	bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
 
-	if (endpoint && !useResolvedMacros)
-		macros = new Dictionary();
-	else
-		macros = resolvedMacros;
+	if (local) {
+		GetCheckCommand()->Execute(this, cr, NULL, false);
+	} else {
+		Dictionary::Ptr macros = new Dictionary();
+		GetCheckCommand()->Execute(this, cr, macros, false);
 
-	GetCheckCommand()->Execute(this, result, macros, useResolvedMacros);
-
-	if (endpoint && !useResolvedMacros) {
 		if (endpoint->IsConnected()) {
+			/* perform check on remote endpoint */
 			Dictionary::Ptr message = new Dictionary();
 			message->Set("jsonrpc", "2.0");
 			message->Set("method", "event::ExecuteCommand");
@@ -566,10 +601,15 @@ void Checkable::ExecuteCheck(const Dictionary::Ptr& resolvedMacros, bool useReso
 
 			if (listener)
 				listener->SyncSendMessage(endpoint, message);
+
 		} else if (Application::GetInstance()->GetStartTime() < Utility::GetTime() - 30) {
-			result->SetState(ServiceUnknown);
-			result->SetOutput("Remote Icinga instance '" + endpoint->GetName() + "' is not connected.");
-			ProcessCheckResult(result);
+			/* fail to perform check on unconnected endpoint */
+			cr->SetState(ServiceUnknown);
+
+			cr->SetOutput("Remote Icinga instance '" + endpoint->GetName() +
+			    "' " + "is not connected to '" + Endpoint::GetLocalEndpoint()->GetName() + "'");
+
+			ProcessCheckResult(cr);
 		}
 
 		{

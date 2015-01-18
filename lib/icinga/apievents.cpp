@@ -1511,9 +1511,9 @@ Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, c
 
 Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+	Endpoint::Ptr sourceEndpoint = origin.FromClient->GetEndpoint();
 
-	if (!endpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
+	if (!sourceEndpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
 		return Empty;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -1539,11 +1539,12 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 		cr->SetState(ServiceUnknown);
 		cr->SetOutput("'" + listener->GetName() + "' does not accept commands.");
 		Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-		listener->SyncSendMessage(endpoint, message);
+		listener->SyncSendMessage(sourceEndpoint, message);
 
 		return Empty;
 	}
 
+	/* use a virtual host object for executing the command */
 	Host::Ptr host = new Host();
 	Dictionary::Ptr attrs = new Dictionary();
 
@@ -1559,7 +1560,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 			cr->SetState(ServiceUnknown);
 			cr->SetOutput("Check command '" + command + "' does not exist.");
 			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-			listener->SyncSendMessage(endpoint, message);
+			listener->SyncSendMessage(sourceEndpoint, message);
 			return Empty;
 		}
 	} else if (command_type == "event_command") {
@@ -1569,7 +1570,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 		return Empty;
 
 	attrs->Set(command_type, params->Get("command"));
-	attrs->Set("command_endpoint", endpoint->GetName());
+	attrs->Set("command_endpoint", sourceEndpoint->GetName());
 
 	Deserialize(host, attrs, false, FAConfig);
 
@@ -1586,7 +1587,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 
 	if (command_type == "check_command") {
 		try {
-			host->ExecuteCheck(macros, true);
+			host->ExecuteRemoteCheck(macros);
 		} catch (const std::exception& ex) {
 			CheckResult::Ptr cr = new CheckResult();
 			cr->SetState(ServiceUnknown);
@@ -1601,7 +1602,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 			cr->SetExecutionEnd(now);
 
 			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-			listener->SyncSendMessage(endpoint, message);
+			listener->SyncSendMessage(sourceEndpoint, message);
 
 			Log(LogCritical, "checker", output);
 		}
