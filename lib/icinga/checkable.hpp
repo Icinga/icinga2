@@ -135,8 +135,8 @@ public:
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
-	void ExecuteCheck(const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
-	    bool useResolvedMacros = false);
+	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr());
+	void ExecuteCheck();
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin = MessageOrigin());
 
 	int GetModifiedAttributes(void) const;
