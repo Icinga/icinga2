@@ -2141,7 +2141,6 @@ Name            | Description
 ----------------|--------------
 ssmtp_address   | **Required.** The host's address. Defaults to "$address$".
 ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
-ssmtp_mail_from | **Optional.** Test a MAIL FROM command with the given email address.
 
 #### <a id="plugin-check-command-imap"></a> imap
 
