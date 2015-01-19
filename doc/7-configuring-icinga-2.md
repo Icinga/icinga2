@@ -547,7 +547,7 @@ the specified value is supplied to the caller of the function:
 
     log(multiply(3, 5))
 
-In this example the `add` function we declared earlier is invoked with two arguments (3 and 5).
+In this example the `multiply` function we declared earlier is invoked with two arguments (3 and 5).
 The function computes the product of those arguments and makes the result available to the
 function's caller.
 
@@ -594,7 +594,7 @@ already exists there:
 The local scope contains variables which only exist during the invocation of the current function,
 object or apply statement. Local variables can be declared using the `var` keyword:
 
-    function multiple(a, b) {
+    function multiply(a, b) {
 	  var temp = a * b
 	  return temp
 	}
