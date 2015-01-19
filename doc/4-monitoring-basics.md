@@ -2297,7 +2297,7 @@ You can customize the metric prefix name by using the `host_name_template` and
 `service_name_template` configuration attributes.
 
 The example below uses [runtime macros](#runtime-macros) and a
-[global constant](#global-constants) named `GraphiteEnv`. The constant name
+[global constant](#constants) named `GraphiteEnv`. The constant name
 is freely definable and should be put in the [constants.conf](#constants-conf) file.
 
     const GraphiteEnv = "icinga.env1"

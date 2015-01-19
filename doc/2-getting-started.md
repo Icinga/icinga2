@@ -356,7 +356,7 @@ directive makes sure that all of your own configuration files are included.
 ### <a id="init-conf"></a> init.conf
 
 This initialization configuration file is automatically included by Icinga 2. It
-defines the daemon user and group [constants](#global-constants) `RunAsUser` and
+defines the daemon user and group [constants](#constants) `RunAsUser` and
 `RunAsGroup`.
 
 
@@ -1799,7 +1799,7 @@ you can also use the `--library` command-line option.
 
 ##### Constants
 
-[Global constants](#global-constants) can be set using the `--define` command-line option.
+[Global constants](#constants) can be set using the `--define` command-line option.
 
 ##### Config Include Path
 

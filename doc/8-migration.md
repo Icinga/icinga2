@@ -773,7 +773,7 @@ included in `icinga2.conf` by default.
 ### <a id="differences-1x-2-main-config"></a> Main Config File
 
 In Icinga 1.x there are many global configuration settings available in `icinga.cfg`.
-Icinga 2 only uses a small set of [global constants](#global-constants) allowing
+Icinga 2 only uses a small set of [global constants](#constants) allowing
 you to specify certain different setting such as the `NodeName` in a cluster scenario.
 
 Aside from that, the [icinga2.conf](#icinga2-conf) should take care of including
@@ -826,7 +826,7 @@ set in the `constants.conf` configuration file:
 
     const PluginDir = "/usr/lib/nagios/plugins"
 
-[Global macros](#global-constants) can only be defined once. Trying to modify a
+[Global macros](#constants) can only be defined once. Trying to modify a
 global constant will result in an error.
 
 ### <a id="differences-1x-2-configuration-comments"></a> Configuration Comments

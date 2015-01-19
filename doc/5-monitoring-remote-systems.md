@@ -1103,7 +1103,7 @@ and configure [cluster scenarios](#cluster-scenarios).
 #### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
-that value using the [NodeName](#global-constants) constant.
+that value using the [NodeName](#constants) constant.
 
 > ** Note **
 >
@@ -1279,7 +1279,7 @@ process.
 >
 > `zones.d` must not be included in [icinga2.conf](#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
-> [global constant](#global-constants) `ZonesDir`.
+> [global constant](#constants) `ZonesDir`.
 
 #### <a id="zone-global-config-templates"></a> Global Configuration Zone for Templates
 
