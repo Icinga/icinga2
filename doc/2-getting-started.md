@@ -105,11 +105,6 @@ Some parts of Icinga 2's functionality are available as separate packages:
   icinga2-ido-mysql       | [DB IDO](#configuring-db-ido) provider module for MySQL
   icinga2-ido-pgsql       | [DB IDO](#configuring-db-ido) provider module for PostgreSQL
 
-If you're running a distribution for which Icinga 2 packages are
-not yet available you will need to use the release tarball which you
-can download from the [Icinga website](https://www.icinga.org/). The
-release tarballs contain an `INSTALL` file with further instructions.
-
 ### <a id="installation-enabled-features"></a> Enabled Features during Installation
 
 The default installation will enable three features required for a basic
@@ -119,7 +114,7 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log` file
 
-You can verify that by calling `icinga2 feature list` [cli command](#cli-command-feature)
+You can verify that by calling `icinga2 feature list` [CLI command](#cli-command-feature)
 to see which features are enabled and disabled.
 
     # icinga2 feature list
@@ -162,12 +157,6 @@ distribution's package manager.
 > using the old name while some distributions have adopted the new package
 > name `monitoring-plugins` already.
 
-> **Note**
->
-> EPEL for RHEL/CentOS 7 is still in beta mode at the time of writing and does
-> not provide a `monitoring-plugins` package. You are required to manually install
-> them.
-
 For your convenience here is a list of package names for some of the more
 popular operating systems/distributions:
 
@@ -180,98 +169,11 @@ OS X (MacPorts)        | nagios-plugins     | /opt/local/libexec
 
 Depending on which directory your plugins are installed into you may need to
 update the global `PluginDir` constant in your Icinga 2 configuration. This macro is used
-by the service templates contained in the Icinga Template Library to determine
+by the check command definitions contained in the Icinga Template Library to determine
 where to find the plugin binaries.
 
-### <a id="integrate-additional-plugins"></a> Integrate Additional Plugins
-
-For some services you may need additional 'check plugins' which are not provided
-by the official Monitoring Plugins project.
-
-All existing Nagios or Icinga 1.x plugins work with Icinga 2. Here's a
-list of popular community sites which host check plugins:
-
-* [Icinga Exchange](https://exchange.icinga.org)
-* [Icinga Wiki](https://wiki.icinga.org)
-
-The recommended way of setting up these plugins is to copy them to a common directory
-and create an extra global constant, e.g. `CustomPluginDir` in your [constants.conf](#constants-conf)
-configuration file:
-
-    # cp check_snmp_int.pl /opt/plugins
-    # chmod +x /opt/plugins/check_snmp_int.pl
-
-    # cat /etc/icinga2/constants.conf
-    /**
-     * This file defines global constants which can be used in
-     * the other configuration files. At a minimum the
-     * PluginDir constant should be defined.
-     */
-
-    const PluginDir = "/usr/lib/nagios/plugins"
-    const CustomPluginDir = "/opt/monitoring"
-
-Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
-by trying to run it on the console using whichever user Icinga 2 is running as:
-
-    # su - icinga -s /bin/bash
-    $ /opt/plugins/check_snmp_int.pl --help
-
-Additional libraries may be required for some plugins. Please consult the plugin
-documentation and/or plugin provided README for installation instructions.
-Sometimes plugins contain hard-coded paths to other components. Instead of changing
-the plugin it might be easier to create logical links which is (more) update-safe.
-
-Each plugin requires a [CheckCommand](#objecttype-checkcommand) object in your
-configuration which can be used in the [Service](#objecttype-service) or
-[Host](#objecttype-host) object definition.
-
-There are the following conventions to follow when adding a new command object definition:
-
-* Always import the `plugin-check-command` template
-* Use [command-arguments](#) whenever possible. The `command` attribute must be an array
-in `[ ... ]` then for shell escaping.
-* Define a unique `prefix` for the command's specific command arguments. That way you can safely
-set them on host/service level and you'll always know which command they control.
-* Use command argument default values, e.g. for thresholds
-* Use [advanced conditions](#objecttype-checkcommand) like `set_if` definitions.
-
-Example for a custom `my-snmp-int` check command:
-
-    object CheckCommand "my-snmp-int" {
-      import "plugin-check-command"
-
-      command = [ PluginDir + "/check_snmp_int.pl" ]
-
-      arguments = {
-	    "-H" = "$snmp_address$"
-	    "-C" = "$snmp_community$"
-		"-p" = "$snmp_port$"
-		"-2" = {
-          set_if = "$snmp_v2$"
-		}
-		"-n" = "$snmp_interface$"
-		"-f" = {
-			set_if = "$snmp_perf$"
-		}
-		"-w" = "$snmp_warn$"
-		"-c" = "$snmp_crit$"
-      }
-
-      vars.snmp_v2 = true
-      vars.snmp_perf = true
-	  vars.snmp_warn = "300,400"
-	  vars.snmp_crit = "0,600"
-    }
-
-You can find an existing `CheckCommand` definition for the `check_snmp_int.pl` plugin
-shipped with the optional [Manubulon Plugin Check Command](#snmp-manubulon-plugin-check-commands)
-definitions already.
-
-
-For further information on your monitoring configuration read the
-[monitoring basics](#monitoring-basics).
-
+Please refer to the [plugins](#plugins) chapter for details about how to integrate
+additional check plugins into your Icinga 2 setup.
 
 ## <a id="configuring-icinga2-first-steps"></a> Configuring Icinga 2: First Steps
 
@@ -353,14 +255,6 @@ directive makes sure that all of your own configuration files are included.
 > remove it entirely, or adapt the existing configuration structure with your
 > own object configuration.
 
-### <a id="init-conf"></a> init.conf
-
-This initialization configuration file is automatically included by Icinga 2. It
-defines the daemon user and group [constants](#constants) `RunAsUser` and
-`RunAsGroup`.
-
-
-
 ### <a id="constants-conf"></a> constants.conf
 
 The `constants.conf` configuration file can be used to define global constants.
@@ -399,24 +293,11 @@ Example:
 The `ZoneName` and `TicketSalt` constants are required for remote client
 and distributed setups only.
 
+### <a id="conf-d"></a> The conf.d Directory
 
-### <a id="zones-conf"></a> zones.conf
-
-The `zones.conf` configuration file can be used to configure `Endpoint` and `Zone` objects
-required for a [distributed zone setup](#distributed-monitoring-high-availability). By default
-a local dummy zone is defined based on the `NodeName` constant defined in
-[constants.conf](#constants-conf).
-
-> **Note**
->
-> Not required for single instance installations.
-
-
-### <a id="conf-d"></a> Configuration in conf.d Directory
-
-This directory contains example configuration getting your started with monitoring
-the local host and its services. It is included in [icinga2.conf](#icinga2-conf)
-in the default installation.
+This directory contains example configuration which should help you get started
+with monitoring the local host and its services. It is included in the
+[icinga2.conf](#icinga2-conf) configuration file by default.
 
 It can be used as reference example for your own configuration strategy.
 Just keep in mind to include the main directories in the
@@ -890,8 +771,6 @@ on the master. Can be ignored/removed on setups not using this features.
 Further details on the monitoring configuration can be found in the
 [monitoring basics](#monitoring-basics) chapter.
 
-
-
 ## <a id="configuring-db-ido"></a> Configuring DB IDO
 
 The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of exporting
@@ -899,11 +778,10 @@ all configuration and status information into a database. The IDO database is us
 by a number of projects including [Icinga Web 2](#setting-up-icingaweb2),
 Icinga Reporting or Icinga Web 1.x.
 
-Icinga 2 does not read configuration or status data from the database backend
-so this interface is fully optional, if not required by your user interfaces
-or addons.
+You only need to set up the IDO modules if you're using an external project which uses
+the IDO database.
 
-There is a separate module for each database back-end. At present support for
+There is a separate module for each database backend. At present support for
 both MySQL and PostgreSQL is implemented.
 
 Icinga 2 uses the Icinga 1.x IDOUtils database schema. Icinga 2 requires additional
@@ -913,21 +791,10 @@ features not yet released with older Icinga 1.x versions.
 >
 > Please check the [what's new](#whats-new) section for the required schema version.
 
-> **Tip**
->
-> Only install the IDO feature if your web interface or reporting tool requires
-> you to do so (for example, [Icinga Web](#setting-up-icinga-web) or [Icinga Web 2](#setting-up-icingaweb2)).
-> [Icinga Classic UI](#setting-up-icinga-classic-ui) does not use IDO as backend.
-
 ### <a id="installing-database"></a> Installing the Database Server
 
 In order to use DB IDO you need to setup either [MySQL](#installing-database-mysql-server)
 or [PostgreSQL](#installing-database-postgresql-server) as supported database server.
-
-> **Note**
->
-> It's up to you whether you choose to install it on the same server where Icinga 2 is running on,
-> or on a dedicated database host (or cluster).
 
 #### <a id="installing-database-mysql-server"></a> Installing MySQL database server
 
@@ -956,7 +823,6 @@ SUSE:
 RHEL based distributions do not automatically set a secure root password. Do that **now**:
 
     # /usr/bin/mysql_secure_installation
-
 
 #### <a id="installing-database-postgresql-server"></a> Installing PostgreSQL database server
 
@@ -1025,8 +891,8 @@ following command:
 
 #### <a id="upgrading-mysql-db"></a> Upgrading the MySQL database
 
-Check the `/usr/share/icinga2-ido-mysql/schema/upgrade` directory for an
-incremental schema upgrade file.
+If you're upgrading an existing Icinga 2 instance you should check the
+`/usr/share/icinga2-ido-mysql/schema/upgrade` directory for an incremental schema upgrade file.
 
 > **Note**
 >
@@ -1056,7 +922,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoMysqlConnection object][#objecttype-idomysqlconnection] configuration details.
+[IdoMysqlConnection object](#objecttype-idomysqlconnection) configuration details.
 
 You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
@@ -1139,8 +1005,8 @@ using the following command:
 
 #### <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
 
-Check the `/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for an
-incremental schema upgrade file.
+If you're updating an existing Icinga 2 instance you should check the
+`/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for an incremental schema upgrade file.
 
 > **Note**
 >
@@ -1170,7 +1036,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoPgsqlConnection object][#objecttype-idopgsqlconnection] configuration details.
+[IdoPgsqlConnection object](#objecttype-idopgsqlconnection) configuration details.
 
 You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
@@ -1194,7 +1060,7 @@ RHEL/CentOS 7 and Fedora 20:
 Web interfaces and other Icinga addons are able to send commands to
 Icinga 2 through the external command pipe.
 
-You can enable the External Command Pipe using icinga2 feature enable:
+You can enable the External Command Pipe using the CLI:
 
     # icinga2 feature enable command
 

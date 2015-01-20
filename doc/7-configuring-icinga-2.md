@@ -561,6 +561,13 @@ last expression which was performed by the function. For example, we could have 
 	  a * b
 	}
 
+Anonymous functions can be created by omitting the name in the function definition. The
+resulting function object can be used like any other value:
+
+    var fn = function() { 3 }
+	
+	fn() /* Returns 3 */
+
 ### <a id="lambdas"></a> Lambda Expressions
 
 Functions can also be declared using the alternative lambda syntax.
