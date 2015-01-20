@@ -21,6 +21,7 @@
 #include "base/scriptfunction.hpp"
 #include "base/scriptfunctionwrapper.hpp"
 #include "base/scriptframe.hpp"
+#include "base/objectlock.hpp"
 
 using namespace icinga;
 
@@ -66,6 +67,32 @@ static void ArrayClear(void)
 	self->Clear();
 }
 
+static bool ArraySortCmp(const ScriptFunction::Ptr& cmp, const Value& a, const Value& b)
+{
+	std::vector<Value> args;
+	args.push_back(a);
+	args.push_back(b);
+	return cmp->Invoke(args);
+}
+
+static Array::Ptr ArraySort(const std::vector<Value>& args)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	Array::Ptr arr = self->ShallowClone();
+
+	if (args.empty()) {
+		ObjectLock olock(arr);
+		std::sort(arr->Begin(), arr->End());
+	} else {
+		ObjectLock olock(arr);
+		std::sort(arr->Begin(), arr->End(), boost::bind(ArraySortCmp, args[0], _1, _2));
+	}
+
+	return arr;
+}
+
 static Array::Ptr ArrayClone(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -85,6 +112,7 @@ Object::Ptr Array::GetPrototype(void)
 		prototype->Set("remove", new ScriptFunction(WrapScriptFunction(ArrayRemove)));
 		prototype->Set("contains", new ScriptFunction(WrapScriptFunction(ArrayContains)));
 		prototype->Set("clear", new ScriptFunction(WrapScriptFunction(ArrayClear)));
+		prototype->Set("sort", new ScriptFunction(WrapScriptFunction(ArraySort)));
 		prototype->Set("clone", new ScriptFunction(WrapScriptFunction(ArrayClone)));
 	}
 

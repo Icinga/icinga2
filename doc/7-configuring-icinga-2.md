@@ -941,6 +941,33 @@ Signature:
 
 Returns a copy of the string.
 
+### <a id="array-type"> Array type
+
+#### <a id="array-add"> Array#add
+#### <a id="array-clear"> Array#clear
+#### <a id="array-clone"> Array#clone
+#### <a id="array-contains"> Array#contains
+#### <a id="array-len"> Array#len
+#### <a id="array-remove"> Array#remove
+#### <a id="array-set"> Array#set
+#### <a id="array-sort"> Array#sort
+
+Signature:
+
+    function sort(less_cmp);
+
+Returns a copy of the array where all items are sorted. The items are
+compared using the `<` (less-than) operator. A custom comparator function
+can be specified with the `less_cmp` argument.
+
+### <a id="dictionary-type"> Dictionary type
+
+#### <a id="dictionary-clone"> Dictionary#clone
+#### <a id="dictionary-contains"> Dictionary#contains
+#### <a id="dictionary-len"> Dictionary#len
+#### <a id="dictionary-remove"> Dictionary#remove
+#### <a id="dictionary-set"> Dictionary#set
+
 ### <a id="scriptfunction-type"> ScriptFunction type
 
 #### <a id="scriptfunction-call"> ScriptFunction#call
