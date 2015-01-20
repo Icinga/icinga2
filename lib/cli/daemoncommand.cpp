@@ -90,7 +90,7 @@ static void IncludeNonLocalZone(const String& zonePath)
 {
 	String etcPath = Application::GetZonesDir() + "/" + Utility::BaseName(zonePath);
 
-	if (Utility::PathExists(etcPath))
+	if (Utility::PathExists(etcPath) || Utility::PathExists(zonePath + "/.authoritative"))
 		return;
 
 	IncludeZoneDirRecursive(zonePath);
