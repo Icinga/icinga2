@@ -57,7 +57,7 @@ Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
 	return config;
 }
 
-bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir)
+bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative)
 {
 	bool configChange = false;
 
@@ -102,6 +102,14 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 		fp.close();
 	}
 
+	if (authoritative) {
+		String authPath = configDir + "/.authoritative";
+		if (!Utility::PathExists(tsPath)) {
+			std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+			fp.close();
+		}
+	}
+
 	return configChange;
 }
 
@@ -126,7 +134,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	Dictionary::Ptr newConfig = LoadConfigDir(newDir);
 	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
 
-	UpdateConfigDir(oldConfig, newConfig, oldDir);
+	UpdateConfigDir(oldConfig, newConfig, oldDir, true);
 }
 
 void ApiListener::SyncZoneDirs(void) const
@@ -238,7 +246,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 		Dictionary::Ptr newConfig = kv.second;
 		Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
 
-		if (UpdateConfigDir(oldConfig, newConfig, oldDir))
+		if (UpdateConfigDir(oldConfig, newConfig, oldDir, false))
 			configChange = true;
 	}
 

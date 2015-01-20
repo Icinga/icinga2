@@ -102,7 +102,7 @@ private:
 	void ReplayLog(const ApiClient::Ptr& client);
 
 	static Dictionary::Ptr LoadConfigDir(const String& dir);
-	static bool UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir);
+	static bool UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative);
 
 	void SyncZoneDirs(void) const;
 	void SyncZoneDir(const Zone::Ptr& zone) const;
