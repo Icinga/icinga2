@@ -21,7 +21,7 @@
 #include "icinga/usergroup.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/usergroup.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>

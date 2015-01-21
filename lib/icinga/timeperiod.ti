@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 
 namespace icinga
 {
@@ -34,7 +34,7 @@ class TimePeriod : CustomVarObject
 		}}}
 	};
 	[config] Dictionary::Ptr ranges;
-	[config] ScriptFunction::Ptr update;
+	[config] Function::Ptr update;
 	[state] Value valid_begin;
 	[state] Value valid_end;
 	[state] Array::Ptr segments;

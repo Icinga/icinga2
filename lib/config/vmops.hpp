@@ -28,7 +28,7 @@
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
@@ -54,7 +54,7 @@ public:
 			return ScriptGlobal::Get(name);
 	}
 
-	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const ScriptFunction::Ptr& func, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
 		boost::shared_ptr<ScriptFrame> vframe;
 
@@ -69,7 +69,7 @@ public:
 	static inline Value NewFunction(ScriptFrame& frame, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
-		return new ScriptFunction(boost::bind(&FunctionWrapper, _1, args,
+		return new Function(boost::bind(&FunctionWrapper, _1, args,
 		    EvaluateClosedVars(frame, closedVars), expression));
 	}
 

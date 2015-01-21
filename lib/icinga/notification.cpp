@@ -27,7 +27,7 @@
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

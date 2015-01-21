@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 
 namespace icinga
 {
@@ -31,7 +31,7 @@ abstract class Command : CustomVarObject
 		default {{{ return 60; }}}
 	};
 	[config] Dictionary::Ptr env;
-	[config] ScriptFunction::Ptr execute;
+	[config] Function::Ptr execute;
 };
 
 }

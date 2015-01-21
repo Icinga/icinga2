@@ -29,25 +29,25 @@
 namespace icinga
 {
 
-Value ScriptFunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments);
-Value ScriptFunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments);
+Value FunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments);
+Value FunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments);
 
-boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapScriptFunction(void (*function)(void));
+boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapFunction(void (*function)(void));
 
 template<typename TR>
-Value ScriptFunctionWrapperR(TR (*function)(void), const std::vector<Value>&)
+Value FunctionWrapperR(TR (*function)(void), const std::vector<Value>&)
 {
 	return function();
 }
 
 template<typename TR>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(void))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(void))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR>, function, _1);
 }
 
 template<typename T0>
-Value ScriptFunctionWrapperV(void (*function)(T0), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -58,13 +58,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0), const std::vector<Value>& arg
 }
 
 template<typename T0>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0>, function, _1);
 }
 
 template<typename TR, typename T0>
-Value ScriptFunctionWrapperR(TR (*function)(T0), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -73,13 +73,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0), const std::vector<Value>& argum
 }
 
 template<typename TR, typename T0>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0>, function, _1);
 }
 
 template<typename T0, typename T1>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -91,13 +91,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1), const std::vector<Value>&
 }
 
 template<typename T0, typename T1>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -107,13 +107,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1), const std::vector<Value>& a
 }
 
 template<typename TR, typename T0, typename T1>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1, T2), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -126,13 +126,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2), const std::vector<Val
 }
 
 template<typename T0, typename T1, typename T2>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1, T2>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1, T2), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -143,13 +143,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2), const std::vector<Value
 }
 
 template<typename TR, typename T0, typename T1, typename T2>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1, T2, T3), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -163,13 +163,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3), const std::vector
 }
 
 template<typename T0, typename T1, typename T2, typename T3>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -181,13 +181,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3), const std::vector<V
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 5)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -202,13 +202,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::ve
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3, T4))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3, T4>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 5)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -221,13 +221,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vect
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3, T4))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -243,13 +243,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3, T4, T5))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3, T4, T5>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -263,13 +263,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3, T4, T5))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -286,13 +286,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6), const
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3, T4, T5, T6>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -307,13 +307,13 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6), const s
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std::vector<Value>& arguments)
+Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -331,13 +331,13 @@ Value ScriptFunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7), c
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
 {
-	return boost::bind(&ScriptFunctionWrapperV<T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
+	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std::vector<Value>& arguments)
+Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
@@ -353,20 +353,20 @@ Value ScriptFunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7), con
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
+boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
 {
-	return boost::bind(&ScriptFunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
+	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
 }
 
 template<typename TR>
-boost::function<TR (const std::vector<Value>& arguments)> WrapScriptFunction(TR (*function)(const std::vector<Value>&))
+boost::function<TR (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(const std::vector<Value>&))
 {
 	return boost::bind<TR>(function, _1);
 }
 
-inline boost::function<Value (const std::vector<Value>& arguments)> WrapScriptFunction(void (*function)(const std::vector<Value>&))
+inline boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(const std::vector<Value>&))
 {
-	return boost::bind(&ScriptFunctionWrapperVA, function, _1);
+	return boost::bind(&FunctionWrapperVA, function, _1);
 }
 
 }

@@ -27,7 +27,7 @@
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/dynamictype.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/foreach.hpp>

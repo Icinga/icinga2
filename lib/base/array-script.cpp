@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "base/array.hpp"
-#include "base/scriptfunction.hpp"
-#include "base/scriptfunctionwrapper.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 
@@ -67,7 +67,7 @@ static void ArrayClear(void)
 	self->Clear();
 }
 
-static bool ArraySortCmp(const ScriptFunction::Ptr& cmp, const Value& a, const Value& b)
+static bool ArraySortCmp(const Function::Ptr& cmp, const Value& a, const Value& b)
 {
 	std::vector<Value> args;
 	args.push_back(a);
@@ -106,14 +106,14 @@ Object::Ptr Array::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new ScriptFunction(WrapScriptFunction(ArrayLen)));
-		prototype->Set("set", new ScriptFunction(WrapScriptFunction(ArraySet)));
-		prototype->Set("add", new ScriptFunction(WrapScriptFunction(ArrayAdd)));
-		prototype->Set("remove", new ScriptFunction(WrapScriptFunction(ArrayRemove)));
-		prototype->Set("contains", new ScriptFunction(WrapScriptFunction(ArrayContains)));
-		prototype->Set("clear", new ScriptFunction(WrapScriptFunction(ArrayClear)));
-		prototype->Set("sort", new ScriptFunction(WrapScriptFunction(ArraySort)));
-		prototype->Set("clone", new ScriptFunction(WrapScriptFunction(ArrayClone)));
+		prototype->Set("len", new Function(WrapFunction(ArrayLen)));
+		prototype->Set("set", new Function(WrapFunction(ArraySet)));
+		prototype->Set("add", new Function(WrapFunction(ArrayAdd)));
+		prototype->Set("remove", new Function(WrapFunction(ArrayRemove)));
+		prototype->Set("contains", new Function(WrapFunction(ArrayContains)));
+		prototype->Set("clear", new Function(WrapFunction(ArrayClear)));
+		prototype->Set("sort", new Function(WrapFunction(ArraySort)));
+		prototype->Set("clone", new Function(WrapFunction(ArrayClone)));
 	}
 
 	return prototype;

@@ -28,7 +28,7 @@
 #include "base/unixsocket.hpp"
 #include "base/networkstream.hpp"
 #include "base/application.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/statsfunction.hpp"
 #include "base/convert.hpp"
 

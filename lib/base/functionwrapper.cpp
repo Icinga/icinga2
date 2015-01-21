@@ -17,50 +17,25 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTFUNCTION_H
-#define SCRIPTFUNCTION_H
+#include "base/functionwrapper.hpp"
 
-#include "base/i2-base.hpp"
-#include "base/value.hpp"
-#include "base/scriptfunctionwrapper.hpp"
-#include "base/scriptglobal.hpp"
-#include <vector>
-#include <boost/function.hpp>
+using namespace icinga;
 
-namespace icinga
+Value icinga::FunctionWrapperVV(void (*function)(void), const std::vector<Value>&)
 {
+	function();
 
-/**
- * A script function that can be used to execute a script task.
- *
- * @ingroup base
- */
-class I2_BASE_API ScriptFunction : public Object
-{
-public:
-	DECLARE_OBJECT(ScriptFunction);
-
-	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
-
-	ScriptFunction(const Callback& function);
-
-	Value Invoke(const std::vector<Value>& arguments);
-
-	static Object::Ptr GetPrototype(void);
-
-private:
-	Callback m_Callback;
-};
-
-#define REGISTER_SCRIPTFUNCTION(name, callback) \
-	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## name { \
-		void RegisterFunction(void) { \
-			ScriptFunction::Ptr sf = new icinga::ScriptFunction(WrapScriptFunction(callback)); \
-			ScriptGlobal::Set(#name, sf); \
-		} \
-		INITIALIZE_ONCE(RegisterFunction); \
-	} } }
-
+	return Empty;
 }
 
-#endif /* SCRIPTFUNCTION_H */
+Value icinga::FunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments)
+{
+	function(arguments);
+
+	return Empty;
+}
+
+boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapFunction(void (*function)(void))
+{
+	return boost::bind(&FunctionWrapperVV, function, _1);
+}

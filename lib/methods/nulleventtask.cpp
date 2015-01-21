@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "methods/nulleventtask.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/logger.hpp"
 
 using namespace icinga;

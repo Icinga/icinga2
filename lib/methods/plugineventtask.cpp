@@ -24,7 +24,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"
 #include "base/convert.hpp"

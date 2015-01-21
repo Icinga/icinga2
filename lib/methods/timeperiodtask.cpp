@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "methods/timeperiodtask.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 
 using namespace icinga;
 

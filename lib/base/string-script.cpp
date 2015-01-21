@@ -19,8 +19,8 @@
 
 #include "base/object.hpp"
 #include "base/dictionary.hpp"
-#include "base/scriptfunction.hpp"
-#include "base/scriptfunctionwrapper.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string.hpp>
@@ -126,14 +126,14 @@ Object::Ptr String::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new ScriptFunction(WrapScriptFunction(StringLen)));
-		prototype->Set("to_string", new ScriptFunction(WrapScriptFunction(StringToString)));
-		prototype->Set("substr", new ScriptFunction(WrapScriptFunction(StringSubstr)));
-		prototype->Set("upper", new ScriptFunction(WrapScriptFunction(StringUpper)));
-		prototype->Set("lower", new ScriptFunction(WrapScriptFunction(StringLower)));
-		prototype->Set("split", new ScriptFunction(WrapScriptFunction(StringSplit)));
-		prototype->Set("find", new ScriptFunction(WrapScriptFunction(StringFind)));
-		prototype->Set("replace", new ScriptFunction(WrapScriptFunction(StringReplace)));
+		prototype->Set("len", new Function(WrapFunction(StringLen)));
+		prototype->Set("to_string", new Function(WrapFunction(StringToString)));
+		prototype->Set("substr", new Function(WrapFunction(StringSubstr)));
+		prototype->Set("upper", new Function(WrapFunction(StringUpper)));
+		prototype->Set("lower", new Function(WrapFunction(StringLower)));
+		prototype->Set("split", new Function(WrapFunction(StringSplit)));
+		prototype->Set("find", new Function(WrapFunction(StringFind)));
+		prototype->Set("replace", new Function(WrapFunction(StringReplace)));
 	}
 
 	return prototype;

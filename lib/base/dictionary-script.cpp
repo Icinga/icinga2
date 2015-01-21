@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "base/dictionary.hpp"
-#include "base/scriptfunction.hpp"
-#include "base/scriptfunctionwrapper.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 
 using namespace icinga;
@@ -65,11 +65,11 @@ Object::Ptr Dictionary::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new ScriptFunction(WrapScriptFunction(DictionaryLen)));
-		prototype->Set("set", new ScriptFunction(WrapScriptFunction(DictionarySet)));
-		prototype->Set("remove", new ScriptFunction(WrapScriptFunction(DictionaryRemove)));
-		prototype->Set("contains", new ScriptFunction(WrapScriptFunction(DictionaryContains)));
-		prototype->Set("clone", new ScriptFunction(WrapScriptFunction(DictionaryClone)));
+		prototype->Set("len", new Function(WrapFunction(DictionaryLen)));
+		prototype->Set("set", new Function(WrapFunction(DictionarySet)));
+		prototype->Set("remove", new Function(WrapFunction(DictionaryRemove)));
+		prototype->Set("contains", new Function(WrapFunction(DictionaryContains)));
+		prototype->Set("clone", new Function(WrapFunction(DictionaryClone)));
 	}
 
 	return prototype;

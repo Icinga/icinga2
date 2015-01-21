@@ -17,31 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/scriptfunction.hpp"
-#include "base/scriptfunctionwrapper.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;
 
-static Value ScriptFunctionCall(const std::vector<Value>& args)
+static Value FunctionCall(const std::vector<Value>& args)
 {
 	if (args.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for call()"));
 
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-	ScriptFunction::Ptr self = static_cast<ScriptFunction::Ptr>(vframe->Self);
+	Function::Ptr self = static_cast<Function::Ptr>(vframe->Self);
 
 	ScriptFrame uframe(args[0]);
 	std::vector<Value> uargs(args.begin() + 1, args.end());
 	return self->Invoke(uargs);
 }
 
-static Value ScriptFunctionCallV(const Value& thisArg, const Array::Ptr& args)
+static Value FunctionCallV(const Value& thisArg, const Array::Ptr& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-	ScriptFunction::Ptr self = static_cast<ScriptFunction::Ptr>(vframe->Self);
+	Function::Ptr self = static_cast<Function::Ptr>(vframe->Self);
 
 	ScriptFrame uframe(thisArg);
 	std::vector<Value> uargs;
@@ -55,14 +55,14 @@ static Value ScriptFunctionCallV(const Value& thisArg, const Array::Ptr& args)
 }
 
 
-Object::Ptr ScriptFunction::GetPrototype(void)
+Object::Ptr Function::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("call", new ScriptFunction(WrapScriptFunction(ScriptFunctionCall)));
-		prototype->Set("callv", new ScriptFunction(WrapScriptFunction(ScriptFunctionCallV)));
+		prototype->Set("call", new Function(WrapFunction(FunctionCall)));
+		prototype->Set("callv", new Function(WrapFunction(FunctionCallV)));
 	}
 
 	return prototype;

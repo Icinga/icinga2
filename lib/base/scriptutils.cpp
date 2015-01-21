@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/scriptutils.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/json.hpp"

@@ -267,10 +267,10 @@ Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) c
 	else
 		vfunc = m_FName->Evaluate(frame);
 
-	if (!vfunc.IsObjectType<ScriptFunction>())
+	if (!vfunc.IsObjectType<Function>())
 		BOOST_THROW_EXCEPTION(ScriptError("Argument is not a callable object.", m_DebugInfo));
 
-	ScriptFunction::Ptr func = vfunc;
+	Function::Ptr func = vfunc;
 
 	std::vector<Value> arguments;
 	BOOST_FOREACH(Expression *arg, m_Args) {

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/command.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;

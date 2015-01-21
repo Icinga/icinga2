@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "base/dictionary.hpp"
-#include "base/scriptfunction.hpp"
-#include "base/scriptfunctionwrapper.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/initialize.hpp"
 #include <boost/math/special_functions/round.hpp>
@@ -174,27 +174,27 @@ static void InitializeMathObj(void)
 	mathObj->Set("SQRT2", 1.41421356237309504880);
 
 	/* Methods */
-	mathObj->Set("abs", new ScriptFunction(WrapScriptFunction(MathAbs)));
-	mathObj->Set("acos", new ScriptFunction(WrapScriptFunction(MathAcos)));
-	mathObj->Set("asin", new ScriptFunction(WrapScriptFunction(MathAsin)));
-	mathObj->Set("atan", new ScriptFunction(WrapScriptFunction(MathAtan)));
-	mathObj->Set("atan2", new ScriptFunction(WrapScriptFunction(MathAtan2)));
-	mathObj->Set("ceil", new ScriptFunction(WrapScriptFunction(MathCeil)));
-	mathObj->Set("cos", new ScriptFunction(WrapScriptFunction(MathCos)));
-	mathObj->Set("exp", new ScriptFunction(WrapScriptFunction(MathExp)));
-	mathObj->Set("floor", new ScriptFunction(WrapScriptFunction(MathFloor)));
-	mathObj->Set("log", new ScriptFunction(WrapScriptFunction(MathLog)));
-	mathObj->Set("max", new ScriptFunction(WrapScriptFunction(MathMax)));
-	mathObj->Set("min", new ScriptFunction(WrapScriptFunction(MathMin)));
-	mathObj->Set("pow", new ScriptFunction(WrapScriptFunction(MathPow)));
-	mathObj->Set("random", new ScriptFunction(WrapScriptFunction(MathRandom)));
-	mathObj->Set("round", new ScriptFunction(WrapScriptFunction(MathRound)));
-	mathObj->Set("sin", new ScriptFunction(WrapScriptFunction(MathSin)));
-	mathObj->Set("sqrt", new ScriptFunction(WrapScriptFunction(MathSqrt)));
-	mathObj->Set("tan", new ScriptFunction(WrapScriptFunction(MathTan)));
-	mathObj->Set("isnan", new ScriptFunction(WrapScriptFunction(MathIsnan)));
-	mathObj->Set("isinf", new ScriptFunction(WrapScriptFunction(MathIsinf)));
-	mathObj->Set("sign", new ScriptFunction(WrapScriptFunction(MathSign)));
+	mathObj->Set("abs", new Function(WrapFunction(MathAbs)));
+	mathObj->Set("acos", new Function(WrapFunction(MathAcos)));
+	mathObj->Set("asin", new Function(WrapFunction(MathAsin)));
+	mathObj->Set("atan", new Function(WrapFunction(MathAtan)));
+	mathObj->Set("atan2", new Function(WrapFunction(MathAtan2)));
+	mathObj->Set("ceil", new Function(WrapFunction(MathCeil)));
+	mathObj->Set("cos", new Function(WrapFunction(MathCos)));
+	mathObj->Set("exp", new Function(WrapFunction(MathExp)));
+	mathObj->Set("floor", new Function(WrapFunction(MathFloor)));
+	mathObj->Set("log", new Function(WrapFunction(MathLog)));
+	mathObj->Set("max", new Function(WrapFunction(MathMax)));
+	mathObj->Set("min", new Function(WrapFunction(MathMin)));
+	mathObj->Set("pow", new Function(WrapFunction(MathPow)));
+	mathObj->Set("random", new Function(WrapFunction(MathRandom)));
+	mathObj->Set("round", new Function(WrapFunction(MathRound)));
+	mathObj->Set("sin", new Function(WrapFunction(MathSin)));
+	mathObj->Set("sqrt", new Function(WrapFunction(MathSqrt)));
+	mathObj->Set("tan", new Function(WrapFunction(MathTan)));
+	mathObj->Set("isnan", new Function(WrapFunction(MathIsnan)));
+	mathObj->Set("isinf", new Function(WrapFunction(MathIsinf)));
+	mathObj->Set("sign", new Function(WrapFunction(MathSign)));
 
 	ScriptGlobal::Set("Math", mathObj);
 }

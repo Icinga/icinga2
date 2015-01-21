@@ -24,7 +24,7 @@
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
 #include "base/convert.hpp"

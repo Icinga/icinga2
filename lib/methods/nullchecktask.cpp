@@ -24,7 +24,7 @@
 #include "icinga/perfdatavalue.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/logger.hpp"
 
 using namespace icinga;

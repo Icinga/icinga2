@@ -23,7 +23,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

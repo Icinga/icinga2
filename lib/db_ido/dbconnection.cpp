@@ -28,7 +28,7 @@
 #include "base/utility.hpp"
 #include "base/initialize.hpp"
 #include "base/logger.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 

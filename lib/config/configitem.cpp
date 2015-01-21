@@ -35,7 +35,7 @@
 #include "base/serializer.hpp"
 #include "base/json.hpp"
 #include "base/exception.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>

@@ -27,7 +27,7 @@
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/initialize.hpp"
 #include "base/workqueue.hpp"
 #include "base/context.hpp"

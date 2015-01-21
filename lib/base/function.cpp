@@ -17,19 +17,19 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(ScriptFunction, ScriptFunction::GetPrototype());
+REGISTER_PRIMITIVE_TYPE(Function, Function::GetPrototype());
 
-ScriptFunction::ScriptFunction(const Callback& function)
+Function::Function(const Callback& function)
 	: m_Callback(function)
 { }
 
-Value ScriptFunction::Invoke(const std::vector<Value>& arguments)
+Value Function::Invoke(const std::vector<Value>& arguments)
 {
 	return m_Callback(arguments);
 }

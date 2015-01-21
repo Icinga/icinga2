@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/legacytimeperiod.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"

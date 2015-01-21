@@ -32,7 +32,7 @@
 #include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>

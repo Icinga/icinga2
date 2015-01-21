@@ -24,7 +24,7 @@
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"

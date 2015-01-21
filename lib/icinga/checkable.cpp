@@ -20,7 +20,7 @@
 #include "icinga/checkable.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>

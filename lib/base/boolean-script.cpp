@@ -19,8 +19,8 @@
 
 #include "base/boolean.hpp"
 #include "base/convert.hpp"
-#include "base/scriptfunction.hpp"
-#include "base/scriptfunctionwrapper.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 
 using namespace icinga;
@@ -38,7 +38,7 @@ Object::Ptr Boolean::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("to_string", new ScriptFunction(WrapScriptFunction(BooleanToString)));
+		prototype->Set("to_string", new Function(WrapFunction(BooleanToString)));
 	}
 
 	return prototype;

@@ -22,7 +22,7 @@
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/singleton.hpp"
-#include "base/scriptfunction.hpp"
+#include "base/function.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -172,7 +172,7 @@ void ConfigType::ValidateObject(const Object::Ptr& object,
 		String validator = ruleList->GetValidator();
 
 		if (!validator.IsEmpty()) {
-			ScriptFunction::Ptr func = ScriptGlobal::Get(validator, &Empty);
+			Function::Ptr func = ScriptGlobal::Get(validator, &Empty);
 
 			if (!func)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Validator function '" + validator + "' does not exist."));
@@ -229,7 +229,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 		String validator = ruleList->GetValidator();
 
 		if (!validator.IsEmpty()) {
-			ScriptFunction::Ptr func = ScriptGlobal::Get(validator, &Empty);
+			Function::Ptr func = ScriptGlobal::Get(validator, &Empty);
 
 			if (!func)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Validator function '" + validator + "' does not exist."));
