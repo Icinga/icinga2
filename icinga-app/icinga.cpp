@@ -273,13 +273,13 @@ int Main(void)
 				catch (win32_error &ex) {
 					if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
 						Log(LogCritical, "icinga-app", "Could not load library \"" + libraryName + "\"");
-						exit(EXIT_FAILURE);
+						return EXIT_FAILURE;
 					}
 				}
 #else /*_WIN32*/
 				catch (std::runtime_error &ex) {
 					Log(LogCritical, "icinga-app", "Could not load library \"" + libraryName + "\"");
-					exit(EXIT_FAILURE);
+					return EXIT_FAILURE;
 				}
 #endif /*_WIN32*/
 			}
