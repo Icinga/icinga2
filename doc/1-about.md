@@ -141,7 +141,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 * Bug #7726: Windows wizard is missing --zone argument
 * Bug #7730: Restart Icinga - Error Restoring program state from file '/var/lib/icinga2/icinga2.state'
 * Bug #7735: 2.2.0 has out-of-date icinga2 man page
-* Bug #7738: Systemd rpm scripts are run in wrong package
+* Bug #7738: systemd rpm scripts are run in wrong package
 * Bug #7740: /usr/sbin/icinga-prepare-dirs conflicts in the bin and common package
 * Bug #7741: Icinga 2.2 misses the build requirement libyajl-devel for SUSE distributions
 * Bug #7743: Icinga2 node add failed with unhandled exception
@@ -173,7 +173,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * `icinga2 object list` replaces `icinga2-list-objects` script  #7251
     * `icinga2 pki` replaces` icinga2-build-{ca,key}` scripts  #7247
     * `icinga2 repository` manages `/etc/icinga2/repository.d` which must be included in `icinga2.conf` #7255
-    * `icinga2 node` cli command provides node (master, satellite, agent) setup (wizard) and management functionality #7248
+    * `icinga2 node` CLI command provides node (master, satellite, agent) setup (wizard) and management functionality #7248
     * `icinga2 daemon` for existing daemon arguments (`-c`, `-C`). Removed `-u` and `-g` parameters in favor of [init.conf](#init-conf).
     * bash auto-completion & terminal colors #7396
 * Configuration
@@ -194,7 +194,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
     * [PerfdataWriter](#writing-performance-data-files): Don't change perfdata, pass through from plugins #7268
     * [GraphiteWriter](#graphite-carbon-cache-writer): Add warn/crit/min/max perfdata and downtime_depth stats values #7366 #6946
 * Packages
-    * `python-icinga2` package dropped in favor of integrated cli commands #7245
+    * `python-icinga2` package dropped in favor of integrated CLI commands #7245
     * Windows Installer for the agent parts #7243
 
 > **Note**
@@ -277,7 +277,7 @@ Icinga 2 is available as [Vagrant Demo VM](#vagrant).
 * Bug #7373: Wrong usermod command for external command pipe setup
 * Bug #7378: Commands are auto-completed when they shouldn't be
 * Bug #7379: failed en/disable feature should return error
-* Bug #7380: Debian package root permissions interfere with icinga2 cli commands as icinga user
+* Bug #7380: Debian package root permissions interfere with icinga2 CLI commands as icinga user
 * Bug #7392: Schema upgrade files are missing in /usr/share/icinga2-ido-{mysql,pgsql}
 * Bug #7417: CMake warnings on OS X
 * Bug #7428: Documentation: 1-about contribute links to non-existing report a bug howto
@@ -327,14 +327,14 @@ Compiling from source is not recommended.
 [Cluster](#distributed-monitoring-high-availability) model for distributed setups, load balancing
 and High-Availability installations (or a combination of them). On-demand configuration
 synchronisation between zones is available, but not mandatory (for example when config management
-tools such as Puppet are used). Secured by SSL x509 certificates, supporting IPv4 and IPv6.
+tools such as Puppet are used). Secured by TLS with certificates, supporting IPv4 and IPv6.
 High Availability for DB IDO: Only active on the current zone master, failover happens automatically.
 
 * Monitoring Remote Clients
 
 Built on proven [cluster](#distributed-monitoring-high-availability) stack,
 [Icinga 2 clients](#icinga2-remote-client-monitoring) can be installed acting as remote satellite or
-agent. Secured communication by SSL x509 certificates, install them with [cli commands](#cli-commands),
+agent. Secured communication by TLS with certificates, install them with [CLI commands](#cli-commands),
 and configure them either locally with discovery on the master, or use them for executing checks and
 event handlers remotely.
 
@@ -355,7 +355,7 @@ That way you are not blind (anymore) during a configuration reload and benefit f
 
 Enable only the [features](#cli-command-feature) which are currently disabled,
 [list objects](#cli-command-object) generated from [apply rules](#using-apply) or
-[generate SSL x509 certificates](#cli-command-pki) for remote clients or cluster setup.
+[generate X.509 certificates](#cli-command-pki) for remote clients or cluster setup.
 Start/stop the Icinga 2 [daemon](#cli-command-daemon) or validate your configuration,
 [manage and install](#cli-command-node) remote clients and service discovery helped
 with black- and whitelists.

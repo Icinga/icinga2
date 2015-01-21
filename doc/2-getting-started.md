@@ -17,7 +17,7 @@ and distribution you are running.
   Debian                  | [Upstream](https://packages.debian.org/sid/icinga2), [DebMon](http://debmon.org/packages/debmon-wheezy/icinga2), [Icinga Repository](http://packages.icinga.org/debian/)
   Ubuntu                  | [Upstream](https://launchpad.net/ubuntu/+source/icinga2), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga), [Icinga Repository](http://packages.icinga.org/ubuntu/)
   RHEL/CentOS             | [Icinga Repository](http://packages.icinga.org/epel/)
-  OpenSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
+  openSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
   SLES                    | [Icinga Repository](http://packages.icinga.org/SUSE/)
   Gentoo                  | [Upstream](http://packages.gentoo.org/package/net-analyzer/icinga2)
   FreeBSD                 | [Upstream](http://www.freshports.org/net-mgmt/icinga2)
@@ -60,7 +60,7 @@ SLES:
     # zypper ar http://packages.icinga.org/SUSE/ICINGA-release.repo
     # zypper ref
 
-OpenSUSE:
+openSUSE:
 
     # zypper ar http://packages.icinga.org/openSUSE/ICINGA-release.repo
     # zypper ref
@@ -83,17 +83,17 @@ RHEL/CentOS/Fedora:
 
     # yum install icinga2
 
-SLES/OpenSUSE:
+SLES/openSUSE:
 
     # zypper install icinga2
 
-On RHEL/CentOS and SLES you will need to use `chkconfig` to enable the
-`icinga2` service. You can manually start Icinga 2 using `service icinga2 start`.
+On RHEL/CentOS and SLES you will need to use `chkconfig` and `service` to enable and start
+the `icinga2` service:
 
     # chkconfig icinga2 on
     # service icinga2 start
 
-RHEL/CentOS 7 use [Systemd](#systemd-service) with `systemctl {enable,start} icinga2`.
+RHEL/CentOS 7 and Fedora use [systemd](#systemd-service):
 
     # systemctl enable icinga2
     # systemctl start icinga2
@@ -1505,13 +1505,13 @@ By default the Icinga 2 daemon is running as `icinga` user and group
 using the init script. Using Debian packages the user and group are set to `nagios`
 for historical reasons.
 
-### <a id="systemd-service"></a> Systemd Service
+### <a id="systemd-service"></a> systemd Service
 
-Modern distributions (Fedora, OpenSUSE, etc.) already use `Systemd` natively. Enterprise-grade
-distributions such as RHEL7 changed to `Systemd` recently. Icinga 2 Packages will install the
+Some distributions (e.g. Fedora and openSUSE) already use `systemd`. Other
+distributions such as RHEL7 changed to `systemd` recently. Icinga 2 Packages will install the
 service automatically.
 
-The Icinga 2 `Systemd` service can be (re)started, reloaded, stopped and also queried for its current status.
+The Icinga 2 `systemd` service can be (re)started, reloaded, stopped and also queried for its current status.
 
     # systemctl status icinga2
     icinga2.service - Icinga host/service/network monitoring system
@@ -1532,7 +1532,7 @@ The Icinga 2 `Systemd` service can be (re)started, reloaded, stopped and also qu
     Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 8 Dependency(s).
     Jul 23 13:39:38 nbmif systemd[1]: Started Icinga host/service/network monitoring system.
 
-`Systemd` supports the following command actions:
+`systemd` supports the following command actions:
 
   Command             | Description
   --------------------|------------------------
@@ -1554,16 +1554,16 @@ If you're stuck with configuration errors, you can manually invoke the [configur
 
 ### <a id="cli-commands"></a> Icinga 2 CLI Commands
 
-Icinga 2 ships its own integrated cli commands supporting bash-autocompletion.
+Icinga 2 ships its own integrated CLI commands supporting bash-autocompletion.
 
-These cli commands will allow you to use certain functionality
+These CLI commands will allow you to use certain functionality
 provided by and around the Icinga 2 daemon.
 
 > **Note**
 >
-> The cli commands are available in Icinga 2 starting with *2.2*.
+> The CLI commands are available in Icinga 2 starting with *2.2*.
 
-Each cli command provides its own help and usage information, so please
+Each CLI command provides its own help and usage information, so please
 make sure to always run them withthe  `--help` parameter.
 
 Run `icinga2` without any arguments (or using `--help`) to get a list of
@@ -1686,7 +1686,7 @@ added.
 
 #### <a id="cli-command-daemon"></a> Cli command: Daemon
 
-The cli command `daemon` provides the functionality to start/stop Icinga 2.
+The CLI command `daemon` provides the functionality to start/stop Icinga 2.
 Furthermore it provides the [configuration validation](#config-validation).
 
     # icinga2 daemon --help
@@ -1736,7 +1736,7 @@ is returned. More details in the [configuration validation](#config-validation) 
 
 #### <a id="cli-command-feature"></a> Cli command: Feature
 
-The cli commands for `enable` and `disable` feature support bash auto-completion
+The CLI commands for `enable` and `disable` feature support bash auto-completion
 and will only suggest features for the corresponding context. Like disabling a
 feature will only bring up all enabled features.
 
@@ -1793,7 +1793,7 @@ nodes in a [remote monitoring ](#icinga2-remote-client-monitoring) or
 
 #### <a id="cli-command-object"></a> Cli command: Object
 
-The `object` cli command can be used to list all configuration objects and their
+The `object` CLI command can be used to list all configuration objects and their
 attributes. The command also shows where each of the attributes was modified.
 That way you can also identify which objects have been created from your [apply rules](#apply).
 
@@ -1827,7 +1827,7 @@ More information can be found in the [troubleshooting](#list-configuration-objec
 
 #### <a id="cli-command-pki"></a> Cli command: Pki
 
-Provides the cli commands to
+Provides the CLI commands to
 
 * generate a new local CA
 * generate a new CSR or self-signed certificate
@@ -1836,7 +1836,7 @@ Provides the cli commands to
 * request a signed certificate from the master
 * generate a new ticket for the client setup
 
-This functionality is used by the [node setup/wizard](#cli-command-pki) cli commands too.
+This functionality is used by the [node setup/wizard](#cli-command-pki) CLI commands too.
 
     # icinga2 pki --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -1877,7 +1877,7 @@ cleared after review.
 
 > **Note**
 >
-> The cli command `repository` only supports basic configuration manipulation (add, remove)
+> The CLI command `repository` only supports basic configuration manipulation (add, remove)
 > and a limited set of objects required for the [remote client] integration. Future
 > versions will support more options (set, etc.).
 >
@@ -1961,9 +1961,9 @@ Lists all configured variables (constants) in a similar fasion like [object list
 Icinga 2 provides configuration files for some commonly used features. These
 are installed in the `/etc/icinga2/features-available` directory and can be
 enabled and disabled using the `icinga2 feature enable` and `icinga2 feature disable`
-[cli commands](#cli-command-feature), respectively.
+[CLI commands](#cli-command-feature), respectively.
 
-The `icinga2 feature enable` cli command creates symlinks in the
+The `icinga2 feature enable` CLI command creates symlinks in the
 `/etc/icinga2/features-enabled` directory which is included by default
 in the example configuration file.
 
@@ -2012,8 +2012,8 @@ Validate the configuration with the init script option `checkconfig`:
 
 > **Note**
 >
-> Using [Systemd](#systemd-service) you need to manually validate the configuration using
-> the cli command below.
+> Using [systemd](#systemd-service) you need to manually validate the configuration using
+> the CLI command below.
 
 Or manually passing the `-C` argument:
 
@@ -2041,7 +2041,7 @@ Or manually passing the `-C` argument:
 If you encouter errors during configuration validation, please make sure
 to read the [troubleshooting](#troubleshooting) chapter.
 
-You can also use the [cli command](#cli-command-object) `icinga2 object list`
+You can also use the [CLI command](#cli-command-object) `icinga2 object list`
 after validation passes to analyze object attributes, inheritance or created
 objects by apply rules.
 Find more on troubleshooting with `object list` in [this chapter](#list-configuration-objects).

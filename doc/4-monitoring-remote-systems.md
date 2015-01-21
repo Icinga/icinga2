@@ -7,7 +7,7 @@ Icinga 2 uses its own unique and secure communitication protol amongst instances
 Be it an High-Availability cluster setup, distributed load-balanced setup or just a single
 agent [monitoring a remote client](#icinga2-remote-client-monitoring).
 
-All communication is secured by SSL x509, and fully supports IPv4 and IPv6.
+All communication is secured by TLS with certificates, and fully supports IPv4 and IPv6.
 
 If you are planning to use the native Icinga 2 cluster feature for distributed
 monitoring and high-availability, please continue reading in
@@ -82,7 +82,7 @@ Your master setup requires the following
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
 
-You can use the [cli command](#cli-command-node) `node wizard` for setting up a new node
+You can use the [CLI command](#cli-command-node) `node wizard` for setting up a new node
 on the master. The command must be run as root, all Icinga 2 specific files
 will be updated to the icinga user the daemon is running as (certificate files
 for example).
@@ -148,7 +148,7 @@ The setup wizard does not automatically restart Icinga 2.
 ## <a id="icinga2-remote-monitoring-client"></a> Client Setup for Remote Monitoring
 
 Icinga 2 can be installed on Linux/Unix and Windows. While
-[Linux/Unix](#icinga2-remote-monitoring-client-linux) will be using the [cli command](#cli-command-node)
+[Linux/Unix](#icinga2-remote-monitoring-client-linux) will be using the [CLI command](#cli-command-node)
 `node wizard` for a guided setup, you will need to use the
 graphical installer for Windows based client setup.
 
@@ -213,7 +213,7 @@ are fulfilled, or that you're using [manual SSL certificate generation](#manual-
 > You don't need any features (DB IDO, Livestatus) or user interfaces on the remote client.
 > Install them only if you're planning to use them.
 
-Once the package installation succeeded, use the `node wizard` cli command to install
+Once the package installation succeeded, use the `node wizard` CLI command to install
 a new Icinga 2 node as client setup.
 
 You'll need the following configuration details:
@@ -455,7 +455,7 @@ This is considered as independant satellite using a local scheduler, configurati
 and the possibility to add Icinga 2 features on demand.
 
 Local configured checks are transferred to the central master and helped
-with discovery cli commands.
+with discovery CLI commands.
 
 Please follow the instructions closely in order to deploy your fully featured
 client, or `agent` as others might call it.
@@ -472,11 +472,11 @@ The following convention applies to remote clients:
 The default setup routine will install a new host based on your FQDN in `repository.d/hosts` with all
 services in separate configuration files a directory underneath.
 
-The repository can be managed using the cli command `repository`.
+The repository can be managed using the CLI command `repository`.
 
 > **Note**
 >
-> The cli command `repository` only supports basic configuration manipulation (add, remove). Future
+> The CLI command `repository` only supports basic configuration manipulation (add, remove). Future
 > versions will support more options (set, etc.). Please check the Icinga 2 development roadmap
 > for that.
 
@@ -513,7 +513,7 @@ You can control that by calling the `node list` command:
 #### <a id="icinga2-remote-monitoring-master-discovery-remove"></a> Remove Discovered Clients
 
 If you don't require a connected agent, you can manually remove it and its discovered hosts and services
-using the following cli command:
+using the following CLI command:
 
     # icinga2 node remove my-discovered-agent
 
@@ -539,13 +539,13 @@ By default, the following additional configuration is generated:
 
 > **Note**
 >
-> If there are existing hosts/services defined or modified, the cli command will not overwrite these (modified)
+> If there are existing hosts/services defined or modified, the CLI command will not overwrite these (modified)
 > configuration files.
 >
 > If hosts or services disappeared from the client discovery, it will remove the existing configuration objects
 > from the config repository.
 
-The `update-config` cli command will fail, if there are uncommitted changes for the
+The `update-config` CLI command will fail, if there are uncommitted changes for the
 configuration repository.
 Please review these changes manually, or clear the commit and try again. This is a
 safety hook to prevent unwanted manual changes to be committed by a updating the
@@ -561,7 +561,7 @@ After updating the configuration repository, make sure to reload Icinga 2.
 
     # service icinga2 reload
 
-Using Systemd:
+Using systemd:
     # systemctl reload icinga2.service
 
 
@@ -1011,7 +1011,7 @@ Before you start deploying, keep the following things in mind:
 
 ### <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
 
-Icinga 2 ships [cli commands](#cli-command-pki) assisting with CA and node certificate creation
+Icinga 2 ships [CLI commands](#cli-command-pki) assisting with CA and node certificate creation
 for your Icinga 2 distributed setup.
 
 > **Note**

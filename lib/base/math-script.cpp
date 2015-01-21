@@ -49,9 +49,9 @@ static double MathAtan(double x)
 	return std::atan(x);
 }
 
-static double MathAtan2(double x, double y)
+static double MathAtan2(double y, double x)
 {
-	return std::atan2(x, y);
+	return std::atan2(y, x);
 }
 
 static double MathCeil(double x)

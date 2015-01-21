@@ -54,7 +54,7 @@ list of popular community sites which host check plugins:
 * [Icinga Wiki](https://wiki.icinga.org)
 
 The recommended way of setting up these plugins is to copy them to a common directory
-and create an extra global constant, e.g. `CustomPluginDir` in your [constants.conf](#constants-conf)
+and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](#constants-conf)
 configuration file:
 
     # cp check_snmp_int.pl /opt/plugins

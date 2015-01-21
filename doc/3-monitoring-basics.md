@@ -37,12 +37,6 @@ Here is an example of a host object which defines two child services:
 The example creates two services `ping4` and `http` which belong to the
 host `my-server1`.
 
-> **Note**
->
-> When using [apply](#using-apply) rules, a service apply definition will
-> implicitely create a relationship to each host by setting the `host_name`
-> attribute.
-
 It also specifies that the host should perform its own check using the `hostalive`
 check command.
 
@@ -254,7 +248,7 @@ dictionaries](#using-apply-for) for example provided by
 > **Tip**
 >
 > Building configuration in that dynamic way requires detailed information
-> of the generated objects. Use the `object list` [cli command](#cli-command-object)
+> of the generated objects. Use the `object list` [CLI command](#cli-command-object)
 > after successful [configuration validation](#config-validation).
 
 
@@ -443,7 +437,7 @@ This can be achieved by wrapping them into the [string()](#function-calls) funct
 > **Tip**
 >
 > Building configuration in that dynamic way requires detailed information
-> of the generated objects. Use the `object list` [cli command](#cli-command-object)
+> of the generated objects. Use the `object list` [CLI command](#cli-command-object)
 > after successful [configuration validation](#config-validation).
 
 

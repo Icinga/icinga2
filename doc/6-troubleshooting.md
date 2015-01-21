@@ -1,9 +1,5 @@
 # <a id="troubleshooting"></a> Icinga 2 Troubleshooting
 
-For a more verbose output of the Icinga 2 daemon increase the
-`severity` attribute of the [logs](#logging) to `notice` or
-`debug`.
-
 ## <a id="troubleshooting-information-required"></a> Which information is required
 
 * Which distribution and version
@@ -19,9 +15,12 @@ For a more verbose output of the Icinga 2 daemon increase the
 Run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
-    # /usr/sbin/icinga2 daemon -c /etc/icinga2/icinga2.conf -x notice
+    # /usr/sbin/icinga2 daemon -x notice
 
-Additionally you can enable the debug log using
+The log level can be one of `critical`, `warning`, `information`, `notice`
+and `debug`.
+
+Alternatively you can enable the debug log:
 
     # icinga2 feature enable debuglog
     # service icinga2 restart
@@ -29,7 +28,7 @@ Additionally you can enable the debug log using
 
 ## <a id="list-configuration-objects"></a> List Configuration Objects
 
-The `icinga2 object list` cli command can be used to list all configuration objects and their
+The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
 
 That way you can also identify which objects have been created from your [apply rules](#apply).
@@ -60,7 +59,7 @@ That way you can also identify which objects have been created from your [apply 
 
     [...]
 
-You can filter by name or type too.
+You can also filter by name and type:
 
     # icinga2 object list --name *ssh* --type Service
     Object 'localhost!ssh' of type 'Service':
@@ -97,8 +96,8 @@ included using
     include <itl>
     include <plugins>
 
-in [icinga2.conf](#icinga2-conf). These configurations will be overridden on upgrade, so please
-send modifications as proposed patches upstream. The default include path is set to
+in the [icinga2.conf](#icinga2-conf) configuration file. These configurations will be overridden
+on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
 `LocalStateDir + "/share/icinga2/includes"`.
 
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
@@ -235,27 +234,41 @@ The Icinga 2 packages provide a debug package which must be
 installed separately for all involved binaries, like `icinga2-bin`
 or `icinga2-ido-mysql`.
 
-    # yum install icinga2-debuginfo
-
-    # zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
+Debian/Ubuntu:
 
     # apt-get install icinga2-dbg
-    
-Furthermore, boost and gcc require their debug symbols installed as well.
 
-Compiled binaries require the `-DCMAKE_BUILD_TYPE=RelWithDebInfo` or
-`-DCMAKE_BUILD_TYPE=Debug` cmake build flags.
+RHEL/CentOS:
+
+    # yum install icinga2-debuginfo
+
+SLES/openSUSE:
+
+    # zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo
+   
+
+Furthermore, you may also have to install debug symbols for Boost and your C library.
+
+If you're building your own binaries you should use the `-DCMAKE_BUILD_TYPE=Debug` cmake
+build flag for debug builds.
 
 
 ### <a id="development-debug-gdb"></a> GDB
 
 Install gdb:
 
+Debian/Ubuntu:
+
+    # apt-get install gdb
+
+RHEL/CentOS/Fedora:
+
     # yum install gdb
+
+SLES/openSUSE:
 
     # zypper install gdb
 
-    # apt-get install gdb
 
 Install the `boost`, `python` and `icinga2` pretty printers. Absolute paths are required,
 so please make sure to update the installation paths accordingly (`pwd`).
