@@ -18,12 +18,12 @@
  ******************************************************************************/
 
 #include "cli/daemoncommand.hpp"
+#include "cli/daemonutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/logger.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
@@ -58,95 +58,6 @@ static String LoadAppType(const String& typeSpec)
 	(void) Utility::LoadExtensionLibrary(library);
 
 	return typeSpec.SubStr(index + 1);
-}
-
-static bool ExecuteExpression(Expression *expression)
-{
-	if (!expression)
-		return false;
-
-	try {
-		ScriptFrame frame;
-		expression->Evaluate(frame);
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "config", DiagnosticInformation(ex));
-		Application::Exit(EXIT_FAILURE);
-	}
-
-	return true;
-}
-
-static void IncludeZoneDirRecursive(const String& path)
-{
-	String zoneName = Utility::BaseName(path);
-
-	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
-	DictExpression expr(expressions);
-	ExecuteExpression(&expr);
-}
-
-static void IncludeNonLocalZone(const String& zonePath)
-{
-	String etcPath = Application::GetZonesDir() + "/" + Utility::BaseName(zonePath);
-
-	if (Utility::PathExists(etcPath) || Utility::PathExists(zonePath + "/.authoritative"))
-		return;
-
-	IncludeZoneDirRecursive(zonePath);
-}
-
-static bool LoadConfigFiles(const boost::program_options::variables_map& vm, const String& appType,
-    const String& objectsFile = String(), const String& varsfile = String())
-{
-	if (!objectsFile.IsEmpty())
-		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
-
-	if (vm.count("config") > 0) {
-		BOOST_FOREACH(const String& configPath, vm["config"].as<std::vector<std::string> >()) {
-			Expression *expression = ConfigCompiler::CompileFile(configPath);
-			ExecuteExpression(expression);
-			delete expression;
-		}
-	} else if (!vm.count("no-config")) {
-		Expression *expression = ConfigCompiler::CompileFile(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
-		ExecuteExpression(expression);
-		delete expression;
-	}
-
-	/* Load cluster config files - this should probably be in libremote but
-	* unfortunately moving it there is somewhat non-trivial. */
-	String zonesEtcDir = Application::GetZonesDir();
-	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", &IncludeZoneDirRecursive, GlobDirectory);
-
-	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
-	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", &IncludeNonLocalZone, GlobDirectory);
-
-	String name, fragment;
-	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
-		Expression *expression = ConfigCompiler::CompileText(name, fragment);
-		ExecuteExpression(expression);
-		delete expression;
-	}
-
-	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
-	builder->SetType(appType);
-	builder->SetName("application");
-	ConfigItem::Ptr item = builder->Compile();
-	item->Register();
-
-	bool result = ConfigItem::CommitItems();
-
-	if (!result)
-		return false;
-
-	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
-
-	ScriptGlobal::WriteToFile(varsfile);
-
-	return true;
 }
 
 #ifndef _WIN32
@@ -339,7 +250,13 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 	}
 
-	if (!LoadConfigFiles(vm, appType, Application::GetObjectsPath(), Application::GetVarsPath()))
+	std::vector<std::string> configs;
+	if (vm.count("config") > 0)
+		configs = vm["config"].as < std::vector<std::string> >() ;
+	else if (!vm.count("no-config"))
+		configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
+
+	if (!DaemonUtility::LoadConfigFiles(configs, appType, Application::GetObjectsPath(), Application::GetVarsPath()))
 		return EXIT_FAILURE;
 
 	if (vm.count("validate")) {

@@ -175,7 +175,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 	return 0;
 }
 
-int FeatureUtility::ListFeatures(void)
+int FeatureUtility::ListFeatures(std::ostream& os)
 {
 	std::vector<String> disabled_features;
 	std::vector<String> enabled_features;
@@ -183,13 +183,13 @@ int FeatureUtility::ListFeatures(void)
 	if (!FeatureUtility::GetFeatures(disabled_features, true))
 		return 1;
 
-	std::cout << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
+	os << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
 	    << boost::algorithm::join(disabled_features, " ") << "\n";
 
 	if (!FeatureUtility::GetFeatures(enabled_features, false))
 		return 1;
 
-	std::cout << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
+	os << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
 	    << boost::algorithm::join(enabled_features, " ") << "\n";
 
 	return 0;
