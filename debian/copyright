@@ -3,7 +3,7 @@ Upstream-Name: Icinga 2
 Source: http://www.icinga.org
 
 Files: *
-Copyright: 2012-2014 Icinga Development Team (http://www.icinga.org)
+Copyright: 2012-2015 Icinga Development Team (http://www.icinga.org)
 License: GPL-2+-with-exception
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
