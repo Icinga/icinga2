@@ -456,9 +456,9 @@ Signature:
 
 TODO
 
-## <a id="scriptfunction-type"></a> ScriptFunction type
+## <a id="scriptfunction-type"></a> Function type
 
-### <a id="scriptfunction-call"></a> ScriptFunction#call
+### <a id="scriptfunction-call"></a> Function#call
 
 Signature:
 
@@ -477,11 +477,11 @@ Example:
 	
 	set_x.call(dict, 7) /* Invokes set_x using `dict` as `this` */
 
-### <a id="scriptfunction-callv"></a> ScriptFunction#callv
+### <a id="scriptfunction-callv"></a> Function#callv
 
 Signature:
 
-    function call(thisArg, args);
+    function callv(thisArg, args);
 
 Invokes the function using an alternative `this` scope. The `thisArg` argument specifies the `this`
 scope for the function. The items in the `args` array are passed to the function as individual arguments.
