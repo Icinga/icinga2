@@ -462,7 +462,7 @@ snmp_invert_search  | **Optional.** Invert search result and return CRITICAL sta
 snmp_units          | **Optional.** Units label(s) for output value (e.g., 'sec.').
 snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
 
-### <a id="plugin-check-command-snmp"></a> snmpv3
+### <a id="plugin-check-command-snmpv3"></a> snmpv3
 
 Check command object for the `check_snmp` plugin, using SNMPv3 authentication and encryption options.
 
@@ -622,7 +622,7 @@ The SNMP manubulon plugin check commands assume that the global constant named `
 is set to the path where the Manubublon SNMP plugins are installed.
 
 You can enable these plugin check commands by adding the following the include directive in your
-configuration [icinga2.conf](#icinga2-conf) file:
+configuration [icinga2.conf](2-getting-started.md#icinga2-conf) file:
 
     include <manubulon>
 

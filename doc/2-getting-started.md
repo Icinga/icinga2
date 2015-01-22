@@ -4,7 +4,7 @@ This tutorial is a step-by-step introduction to installing Icinga 2 and
 available Icinga web interfaces. It assumes that you are familiar with
 the system you're installing Icinga 2 on.
 
-Details on troubleshooting problems can be found [here](#troubleshooting).
+Details on troubleshooting problems can be found [here](7-troubleshooting.md#troubleshooting).
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
@@ -68,7 +68,7 @@ openSUSE:
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL). Please
 make sure to enable this repository by following
-[these instructions](#http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+[these instructions](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
 ### <a id="installing-icinga2"></a> Installing Icinga 2
 
@@ -93,7 +93,7 @@ the `icinga2` service:
     # chkconfig icinga2 on
     # service icinga2 start
 
-RHEL/CentOS 7 and Fedora use [systemd](#systemd-service):
+RHEL/CentOS 7 and Fedora use [systemd](2-getting-started.md#systemd-service):
 
     # systemctl enable icinga2
     # systemctl start icinga2
@@ -102,8 +102,8 @@ Some parts of Icinga 2's functionality are available as separate packages:
 
   Name                    | Description
   ------------------------|--------------------------------
-  icinga2-ido-mysql       | [DB IDO](#configuring-db-ido) provider module for MySQL
-  icinga2-ido-pgsql       | [DB IDO](#configuring-db-ido) provider module for PostgreSQL
+  icinga2-ido-mysql       | [DB IDO](2-getting-started.md#configuring-db-ido) provider module for MySQL
+  icinga2-ido-pgsql       | [DB IDO](2-getting-started.md#configuring-db-ido) provider module for PostgreSQL
 
 ### <a id="installation-enabled-features"></a> Enabled Features during Installation
 
@@ -114,7 +114,7 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log` file
 
-You can verify that by calling `icinga2 feature list` [CLI command](#cli-command-feature)
+You can verify that by calling `icinga2 feature list` [CLI command](5-cli-commands.md#cli-command-feature)
 to see which features are enabled and disabled.
 
     # icinga2 feature list
@@ -172,7 +172,7 @@ update the global `PluginDir` constant in your Icinga 2 configuration. This macr
 by the check command definitions contained in the Icinga Template Library to determine
 where to find the plugin binaries.
 
-Please refer to the [plugins](#plugins) chapter for details about how to integrate
+Please refer to the [plugins](6-addons-plugins.md#plugins) chapter for details about how to integrate
 additional check plugins into your Icinga 2 setup.
 
 ## <a id="configuring-icinga2-first-steps"></a> Configuring Icinga 2: First Steps
@@ -192,7 +192,7 @@ Here's a brief description of the example configuration:
      * to the documentation that is distributed as part of Icinga 2.
      */
 
-Icinga 2 supports [C/C++-style comments](#comments).
+Icinga 2 supports [C/C++-style comments](9-language-reference.md#comments).
 
     /**
      * The constants.conf defines global constants.
@@ -226,7 +226,7 @@ The `include` directive can be used to include other files.
 
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
-[Enabling/Disabling Features](#features) for more details.
+[Enabling/Disabling Features](5-cli-commands.md#features) for more details.
 
     /**
      * The repository.d directory contains all configuration objects
@@ -236,7 +236,7 @@ the features which have been enabled with `icinga2 feature enable`. See
 
 This `include_recursive` directive is used for discovery of services on remote clients
 and their generated configuration described in
-[this chapter](#icinga2-remote-monitoring-master-discovery-generate-config).
+[this chapter](4-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
 
 
     /**
@@ -246,7 +246,7 @@ and their generated configuration described in
      */
     include_recursive "conf.d"
 
-You can put your own configuration files in the [conf.d](#conf-d) directory. This
+You can put your own configuration files in the [conf.d](2-getting-started.md#conf-d) directory. This
 directive makes sure that all of your own configuration files are included.
 
 > **Tip**
@@ -261,9 +261,9 @@ The `constants.conf` configuration file can be used to define global constants.
 
 By default, you need to make sure to set these constants:
 
-* The `PluginDir` constant must be pointed to your [check plugins](#setting-up-check-plugins) path.
+* The `PluginDir` constant must be pointed to your [check plugins](2-getting-started.md#setting-up-check-plugins) path.
 This constant is required by the shipped
-[plugin check command configuration](#plugin-check-commands).
+[plugin check command configuration](12-icinga-template-library.md#plugin-check-commands).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
@@ -297,35 +297,35 @@ and distributed setups only.
 
 This directory contains example configuration which should help you get started
 with monitoring the local host and its services. It is included in the
-[icinga2.conf](#icinga2-conf) configuration file by default.
+[icinga2.conf](2-getting-started.md#icinga2-conf) configuration file by default.
 
 It can be used as reference example for your own configuration strategy.
 Just keep in mind to include the main directories in the
-[icinga2.conf](#icinga2-conf) file.
+[icinga2.conf](2-getting-started.md#icinga2-conf) file.
 
 You are certainly not bound to it. Remove it, if you prefer your own
 way of deploying Icinga 2 configuration.
 
 Further details on configuration best practice and how to build your
-own strategy is described in [this chapter](#configuration-best-practice).
+own strategy is described in [this chapter](3-monitoring-basics.md#configuration-best-practice).
 
 Available configuration files shipped by default:
 
-* [hosts.conf](#hosts-conf)
-* [services.conf](#services-conf)
-* [users.conf](#users-conf)
-* [notifications.conf](#notifications-conf)
-* [commands.conf](#commands-conf)
-* [groups.conf](#groups-conf)
-* [templates.conf](#templates-conf)
-* [downtimes.conf](#downtimes-conf)
-* [timeperiods.conf](#timeperiods-conf)
-* [satellite.conf](#satellite-conf)
+* [hosts.conf](2-getting-started.md#hosts-conf)
+* [services.conf](2-getting-started.md#services-conf)
+* [users.conf](2-getting-started.md#users-conf)
+* [notifications.conf](2-getting-started.md#notifications-conf)
+* [commands.conf](2-getting-started.md#commands-conf)
+* [groups.conf](2-getting-started.md#groups-conf)
+* [templates.conf](2-getting-started.md#templates-conf)
+* [downtimes.conf](2-getting-started.md#downtimes-conf)
+* [timeperiods.conf](2-getting-started.md#timeperiods-conf)
+* [satellite.conf](2-getting-started.md#satellite-conf)
 
 #### <a id="hosts-conf"></a> hosts.conf
 
 The `hosts.conf` file contains an example host based on your
-`NodeName` setting in [constants.conf](#constants-conf). You
+`NodeName` setting in [constants.conf](2-getting-started.md#constants-conf). You
 can use global constants for your object names instead of string
 values.
 
@@ -334,11 +334,11 @@ takes care of setting up the host check command to `hostalive`. If you
 require a different check command, you can override it in the object definition.
 
 The `vars` attribute can be used to define custom attributes which are available
-for check and notification commands. Most of the [Plugin Check Commands](#plugin-check-commands)
+for check and notification commands. Most of the [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands)
 in the Icinga Template Library require an `address` attribute.
 
 The custom attribute `os` is evaluated by the `linux-servers` group in
-[groups.conf](#groups-conf) making the local host a member.
+[groups.conf](2-getting-started.md#groups-conf) making the local host a member.
 
 The example host will show you how to
 
@@ -349,7 +349,7 @@ service apply rule defined in [services.conf](#services.conf).
 * define notification types (`mail`) and set the groups attribute. This
 will be used by notification apply rules in [notifications.conf](notifications-conf).
 
-If you've installed [Icinga Web 2](#setting-up-icingaweb2) you can
+If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) you can
 uncomment the http vhost attributes and relaod Icinga 2. The apply
 rules in [services.conf](#services.conf) will automatically
 generate a new service checking the `/icingaweb2` URI using the `http`
@@ -408,17 +408,17 @@ check.
     }
 
 This is only the host object definition. Now we'll need to make sure that this
-host and your additional hosts are getting [services](#services-conf) applied.
+host and your additional hosts are getting [services](2-getting-started.md#services-conf) applied.
 
 > **Tip**
 >
-> If you don't understand all the attributes and how to use [apply rules](#apply)
-> don't worry - the [monitoring basics](#monitoring-basics) chapter will explain
+> If you don't understand all the attributes and how to use [apply rules](9-language-reference.md#apply)
+> don't worry - the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
 > that in detail.
 
 #### <a id="services-conf"></a> services.conf
 
-These service [apply rules](#apply) will show you how to monitor
+These service [apply rules](9-language-reference.md#apply) will show you how to monitor
 the local host, but also allow you to re-use or modify them for
 your own requirements.
 
@@ -439,7 +439,7 @@ The Debian packages also ship an additional `apt` service check applied to the l
 
 The command object `icinga` for the embedded health check is provided by the
 [Icinga Template Library (ITL)](#itl) while `http_ip`, `ssh`, `load`, `processes`,
-`users` and `disk` are all provided by the [Plugin Check Commands](#plugin-check-commands)
+`users` and `disk` are all provided by the [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands)
 which we enabled earlier by including the `itl` and `plugins` configuration file.
 
 
@@ -462,11 +462,11 @@ attributes.
 
 The custom attribe `backup_downtime` is defined to a specific timerange string.
 This variable value will be used for applying a `ScheduledDowntime` object to
-these services in [downtimes.conf](#downtimes-conf).
+these services in [downtimes.conf](2-getting-started.md#downtimes-conf).
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "load"
-is created for each matching host. [Expression operators](#expression-operators)
+is created for each matching host. [Expression operators](9-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 Multiple `assign where` condition can be combined with `AND` using the `&&` operator
@@ -484,7 +484,7 @@ In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
 `Linux`.
 You can modify this condition to match multiple expressions by combinding `AND`
-and `OR` using `&&` and `||` [operators](#expression-operators), for example
+and `OR` using `&&` and `||` [operators](9-language-reference.md#expression-operators), for example
 `assign where host.address && (vars.os == "Linux" || vars.os == "Windows")`.
 
 
@@ -493,10 +493,10 @@ rules. While one `apply` rule for `ssh` will only create a service for matching
 hosts, you can go one step further: Generate apply rules based on array items
 or dictionary key-value pairs.
 
-The idea is simple: Your host in [hosts.conf](#hosts-conf) defines the
+The idea is simple: Your host in [hosts.conf](2-getting-started.md#hosts-conf) defines the
 `disks` dictionary as custom attribute in `vars`.
 
-Remember the example from [hosts.conf](#hosts-conf):
+Remember the example from [hosts.conf](2-getting-started.md#hosts-conf):
 
     ...
 
@@ -516,7 +516,7 @@ parameter `disk_partition` to the check command.
 
 You'll recognize that the naming is important - that's the very same name
 as it is passed from a service to a check command argument. Read about services
-and passing check commands in [this chapter](#command-passing-parameters).
+and passing check commands in [this chapter](3-monitoring-basics.md#command-passing-parameters).
 
 Using `apply Service for` omits the service name, it will take the key stored in
 the `disk` variable in `key => config` as new service object name.
@@ -530,7 +530,7 @@ Once defined like this, the `apply` rule defined below will do the following:
 * loop through all entries in the `host.vars.disks` dictionary. That's `disk` and `disk /` as keys.
 * call `apply` on each, and set the service object name from the provided key
 * inside apply, the `generic-service` template is imported
-* defining the [disk](#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
+* defining the [disk](12-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
 * adding the `config` dictionary items to `vars`. Simply said, there's now `vars.disk_partition` defined for the
 generated service
 
@@ -550,21 +550,21 @@ A similar example is used for the `http` services. That way you can make your
 host the information provider for all apply rules. Define them once, and only
 manage your hosts.
 
-Look into [notifications.conf](#notifications-conf) how this technique is used
+Look into [notifications.conf](2-getting-started.md#notifications-conf) how this technique is used
 for applying notifications to hosts and services using their type and user
 attributes.
 
-Don't forget to install the [check plugins](#setting-up-check-plugins) required by
+Don't forget to install the [check plugins](2-getting-started.md#setting-up-check-plugins) required by
 the hosts and services and their check commands.
 
 Further details on the monitoring configuration can be found in the
-[monitoring basics](#monitoring-basics) chapter.
+[monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter.
 
 #### <a id="users-conf"></a> users.conf
 
 Defines the `icingaadmin` User and the `icingaadmins` UserGroup. The latter is used in
-[hosts.conf](#hostss-conf) for defining a custom host attribute later used in
-[notifications.conf](#notifications-conf) for notification apply rules.
+[hosts.conf](2-getting-started.md#hosts-conf) for defining a custom host attribute later used in
+[notifications.conf](2-getting-started.md#notifications-conf) for notification apply rules.
 
     object User "icingaadmin" {
       import "generic-user"
@@ -589,14 +589,14 @@ The shipped example defines two notification apply rules for hosts and services.
 Both `apply` rules match on the same condition: They are only applied if the
 nested dictionary attribute `notification.mail` is set.
 
-Please note that the `to` keyword is important in [notification apply rules](#using-apply-notifications)
+Please note that the `to` keyword is important in [notification apply rules](3-monitoring-basics.md#using-apply-notifications)
 defining whether these notifications are applies to hosts or services.
-The `import` keyword imports the specific mail templates defined in [templates.conf](#templates-conf).
+The `import` keyword imports the specific mail templates defined in [templates.conf](2-getting-started.md#templates-conf).
 
-The `interval` attribute is not explicitly set - it [defaults to 30 minutes](#objecttype-notification).
+The `interval` attribute is not explicitly set - it [defaults to 30 minutes](11-object-types.md#objecttype-notification).
 
 By setting the `user_groups` to the value provided by the
-respective [host.vars.notification.mail](#hosts-conf) attribute we'll
+respective [host.vars.notification.mail](2-getting-started.md#hosts-conf) attribute we'll
 implicitely use the`icingaadmins` UserGroup defined in [users.conf](#users.conf).
 
     apply Notification "mail-icingaadmin" to Host {
@@ -616,21 +616,21 @@ implicitely use the`icingaadmins` UserGroup defined in [users.conf](#users.conf)
     }
 
 More details on defining notifications and their additional attributes such as
-filters can be read in [this chapter](#notifications).
+filters can be read in [this chapter](3-monitoring-basics.md#notifications).
 
 #### <a id="commands-conf"></a> commands.conf
 
 This is the place where your own command configuration can be defined. By default
-only the notification commands used by the notification templates defined in [templates.conf](#templates-conf).
+only the notification commands used by the notification templates defined in [templates.conf](2-getting-started.md#templates-conf).
 
 > **Tip**
 >
 > Icinga 2 ships the most common command definitions already in the
-> [Plugin Check Commands](#plugin-check-commands) definitions. More details on
-> that topic in the [troubleshooting section](#check-command-definitions).
+> [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands) definitions. More details on
+> that topic in the [troubleshooting section](7-troubleshooting.md#check-command-definitions).
 
 You can freely customize these notification commands, and adapt them for your needs.
-Read more on that topic [here](#notification-commands).
+Read more on that topic [here](3-monitoring-basics.md#notification-commands).
 
 #### <a id="groups-conf"></a> groups.conf
 
@@ -638,8 +638,8 @@ The example host defined in [hosts.conf](hosts-conf) already has the
 custom attribute `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 
-This is done by using the [group assign](#group-assign) expressions similar
-to previously seen [apply rules](#using-apply).
+This is done by using the [group assign](9-language-reference.md#group-assign) expressions similar
+to previously seen [apply rules](3-monitoring-basics.md#using-apply).
 
     object HostGroup "linux-servers" {
       display_name = "Linux Servers"
@@ -654,7 +654,7 @@ to previously seen [apply rules](#using-apply).
     }
 
 Service groups can be grouped together by similar pattern matches.
-The [match() function](#function-calls) expects a wildcard match string
+The [match() function](9-language-reference.md#function-calls) expects a wildcard match string
 and the attribute string to match with.
 
     object ServiceGroup "ping" {
@@ -680,9 +680,9 @@ and the attribute string to match with.
 
 All shipped example configuration objects use generic global templates by
 default. Be it setting a default `check_command` attribute in the `generic-host`
-templates for your hosts defined in [hosts.conf](#hosts-conf), or defining
+templates for your hosts defined in [hosts.conf](2-getting-started.md#hosts-conf), or defining
 the default `states` and `types` filters for notification apply rules defined in
-[notifications.conf](#notifications-conf).
+[notifications.conf](2-getting-started.md#notifications-conf).
 
 
     template Host "generic-host" {
@@ -700,7 +700,7 @@ the default `states` and `types` filters for notification apply rules defined in
     }
 
 The `hostalive` check command is shipped with Icinga 2 in the
-[Plugin Check Commands](#plugin-check-commands).
+[Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands).
 
 
     template Notification "mail-host-notification" {
@@ -725,15 +725,15 @@ The `hostalive` check command is shipped with Icinga 2 in the
       period = "24x7"
     }
 
-More details on `Notification` object attributes can be found [here](#objecttype-notification).
+More details on `Notification` object attributes can be found [here](11-object-types.md#objecttype-notification).
 
 
 #### <a id="downtimes-conf"></a> downtimes.conf
 
-The `load` service apply rule defined in [services.conf](#services-conf) defines
+The `load` service apply rule defined in [services.conf](2-getting-started.md#services-conf) defines
 the `backup_downtime` custom attribute.
 
-The [ScheduledDowntime](#objecttype-scheduleddowntime) apply rule uses this attribute
+The [ScheduledDowntime](11-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
 to define the default value for the time ranges required for recurring downtime slots.
 
     apply ScheduledDowntime "backup-downtime" to Service {
@@ -763,19 +763,19 @@ objects such as hosts, services or notifications.
 
 #### <a id="satellite-conf"></a> satellite.conf
 
-Ships default templates and dependencies for [monitoring remote clients](#icinga2-remote-client-monitoring)
-using service discovery and [config generation](#icinga2-remote-monitoring-master-discovery-generate-config)
+Ships default templates and dependencies for [monitoring remote clients](4-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
+using service discovery and [config generation](4-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
 on the master. Can be ignored/removed on setups not using this features.
 
 
 Further details on the monitoring configuration can be found in the
-[monitoring basics](#monitoring-basics) chapter.
+[monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter.
 
 ## <a id="configuring-db-ido"></a> Configuring DB IDO
 
 The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of exporting
 all configuration and status information into a database. The IDO database is used
-by a number of projects including [Icinga Web 2](#setting-up-icingaweb2),
+by a number of projects including [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2),
 Icinga Reporting or Icinga Web 1.x.
 
 You only need to set up the IDO modules if you're using an external project which uses
@@ -789,12 +789,12 @@ features not yet released with older Icinga 1.x versions.
 
 > **Note**
 >
-> Please check the [what's new](#whats-new) section for the required schema version.
+> Please check the [what's new](1-about.md#whats-new) section for the required schema version.
 
 ### <a id="installing-database"></a> Installing the Database Server
 
-In order to use DB IDO you need to setup either [MySQL](#installing-database-mysql-server)
-or [PostgreSQL](#installing-database-postgresql-server) as supported database server.
+In order to use DB IDO you need to setup either [MySQL](2-getting-started.md#installing-database-mysql-server)
+or [PostgreSQL](2-getting-started.md#installing-database-postgresql-server) as supported database server.
 
 #### <a id="installing-database-mysql-server"></a> Installing MySQL database server
 
@@ -836,7 +836,7 @@ RHEL/CentOS 5/6:
     # chkconfig postgresql on
     # service postgresql start
 
-RHEL/CentOS 7 and Fedora 20 use [systemd](#systemd-service):
+RHEL/CentOS 7 and Fedora 20 use [systemd](2-getting-started.md#systemd-service):
 
     # yum install postgresql-server postgresql
     # systemctl enable postgresql.service
@@ -922,7 +922,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoMysqlConnection object](#objecttype-idomysqlconnection) configuration details.
+[IdoMysqlConnection object](11-object-types.md#objecttype-idomysqlconnection) configuration details.
 
 You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
@@ -1036,7 +1036,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoPgsqlConnection object](#objecttype-idopgsqlconnection) configuration details.
+[IdoPgsqlConnection object](11-object-types.md#objecttype-idopgsqlconnection) configuration details.
 
 You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
@@ -1101,8 +1101,8 @@ status information. It can also be used to send commands.
 > **Tip**
 >
 > Only install the Livestatus feature if your web interface or addon requires
-> you to do so (for example, [Icinga Web 2](#setting-up-icingaweb2)).
-> [Icinga Classic UI](#setting-up-icinga-classic-ui) and [Icinga Web](#setting-up-icinga-web)
+> you to do so (for example, [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2)).
+> [Icinga Classic UI](2-getting-started.md#setting-up-icinga-classic-ui) and [Icinga Web](2-getting-started.md#setting-up-icinga-web)
 > do not use Livestatus as backend.
 
 The Livestatus component that is distributed as part of Icinga 2 is a
@@ -1110,7 +1110,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus](#livestatus) section.
+in the [Livestatus](3-monitoring-basics.md#livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -1147,15 +1147,15 @@ are expected to be in `/var/log/icinga2/compat`. A different path can be set usi
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 
-Icinga 2 can be used with [Icinga Web 2](#setting-up-icingaweb2), using
+Icinga 2 can be used with [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2), using
 DB IDO or Livestatus as preferred backend provider, next to the command pipe.
 
 Icinga 2 also is compatible with Icinga 1.x user interfaces
-[Classic UI 1.x](#installing-icinga-classic-ui) and [Icinga Web 1.x](#setting-up-icinga-web)
+[Classic UI 1.x](2-getting-started.md#installing-icinga-classic-ui) and [Icinga Web 1.x](2-getting-started.md#setting-up-icinga-web)
 by providing additional features required as backends.
 
 Some Icinga 1.x interface features will only work in a limited manner due to
-[compatibility reasons](#differences-1x-2), other features like the
+[compatibility reasons](8-migrating-from-icinga-1x.md#differences-1x-2), other features like the
 statusmap parents are available by dumping the host dependencies as parents.
 Special restrictions are noted specifically in the sections below.
 
@@ -1164,8 +1164,8 @@ that Icinga 2 core features might not be fully supported in these addons.
 
 > **Tip**
 >
-> Choose your preferred interface. There's no need to install [Classic UI 1.x](#setting-up-icinga-classic-ui)
-> if you prefer [Icinga Web 1.x](#setting-up-icinga-web) or [Icinga Web 2](#setting-up-icingaweb2) for example.
+> Choose your preferred interface. There's no need to install [Classic UI 1.x](2-getting-started.md#setting-up-icinga-classic-ui)
+> if you prefer [Icinga Web 1.x](2-getting-started.md#setting-up-icinga-web) or [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) for example.
 
 ### <a id="icinga2-user-interface-requirements"></a> Requirements
 
@@ -1173,8 +1173,8 @@ that Icinga 2 core features might not be fully supported in these addons.
 * User credentials
 * Firewall ports (tcp/80)
 
-The Debian, RHEL and SUSE packages for Icinga [Classic UI](#setting-up-icinga-classic-ui),
-[Web](#setting-up-icinga-web) and [Icingaweb 2](#setting-up-icingaweb2) depend on Apache2
+The Debian, RHEL and SUSE packages for Icinga [Classic UI](2-getting-started.md#setting-up-icinga-classic-ui),
+[Web](2-getting-started.md#setting-up-icinga-web) and [Icingaweb 2](2-getting-started.md#setting-up-icingaweb2) depend on Apache2
 as web server.
 
 #### <a id="icinga2-user-interface-webserver"></a> Webserver
@@ -1210,17 +1210,17 @@ RHEL/CentOS 7 specific:
 Icinga Web 2 supports `DB IDO` or `Livestatus` as backends.
 
 Using DB IDO as backend, you need to install and configure the
-[DB IDO backend](#configuring-db-ido).
+[DB IDO backend](2-getting-started.md#configuring-db-ido).
 Once finished, you can enable the feature for DB IDO MySQL:
 
     # icinga2 feature enable ido-mysql
 
-Furthermore [external commands](#external-commands) are supported through the external
+Furthermore [external commands](3-monitoring-basics.md#external-commands) are supported through the external
 command pipe.
 
     # icinga2 feature enable command
 
-In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
+In order for commands to work you will need to [setup the external command pipe](2-getting-started.md#setting-up-external-command-pipe).
 
 [Icinga Web 2](https://github.com/Icinga/icingaweb2) ships its own
 web-based setup wizard which will guide you through the entire setup process.
@@ -1240,7 +1240,7 @@ and packages.
 ### <a id="setting-up-icinga-classic-ui"></a> Setting up Icinga Classic UI 1.x
 
 Icinga 2 can write `status.dat` and `objects.cache` files in the format that
-is supported by the Icinga 1.x Classic UI. [External commands](#external-commands)
+is supported by the Icinga 1.x Classic UI. [External commands](3-monitoring-basics.md#external-commands)
 (a.k.a. the "command pipe") are also supported. It also supports writing Icinga 1.x
 log files which are required for the reporting functionality in the Classic UI.
 
@@ -1269,13 +1269,13 @@ to satisfy this dependency:
 On all distributions other than Debian you may have to restart both your web
 server as well as Icinga 2 after installing the Classic UI package.
 
-Icinga Classic UI requires the [StatusDataWriter](#status-data), [CompatLogger](#compat-logging)
-and [ExternalCommandListener](#external-commands) features.
+Icinga Classic UI requires the [StatusDataWriter](3-monitoring-basics.md#status-data), [CompatLogger](3-monitoring-basics.md#compat-logging)
+and [ExternalCommandListener](3-monitoring-basics.md#external-commands) features.
 Enable these features and restart Icinga 2.
 
     # icinga2 feature enable statusdata compatlog command
 
-In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
+In order for commands to work you will need to [setup the external command pipe](2-getting-started.md#setting-up-external-command-pipe).
 
 #### <a id="setting-up-icinga-classic-ui-summary"></a> Setting Up Icinga Classic UI 1.x Summary
 
@@ -1342,11 +1342,11 @@ found in the [Icinga Web documentation](http://docs.icinga.org/latest/en/icinga-
 
     # icinga-web-clearcache
 
-Additionally you need to enable the `command` feature for sending [external commands](#external-commands):
+Additionally you need to enable the `command` feature for sending [external commands](3-monitoring-basics.md#external-commands):
 
     # icinga2 feature enable command
 
-In order for commands to work you will need to [setup the external command pipe](#setting-up-external-command-pipe).
+In order for commands to work you will need to [setup the external command pipe](2-getting-started.md#setting-up-external-command-pipe).
 
 Then edit the Icinga Web configuration for sending commands in `/etc/icinga-web/conf.d/access.xml`
 (RHEL) or `/etc/icinga-web/access.xml` (SUSE) setting the command pipe path
@@ -1378,7 +1378,7 @@ use one of the config packages:
  - `icinga-web-config-icinga2-ido-mysql`
  - `icinga-web-config-icinga2-ido-pgsql`
 
-These packages take care of setting up the [DB IDO](#configuring-db-ido) configuration,
+These packages take care of setting up the [DB IDO](2-getting-started.md#configuring-db-ido) configuration,
 enabling the external command pipe for Icinga Web and depend on
 the corresponding packages of Icinga 2.
 
@@ -1395,7 +1395,7 @@ When changing Icinga Web configuration files make sure to clear the config cache
 > **Note**
 >
 > If you are using an older version of Icinga Web, install it like this and adapt
-> the configuration manually as shown in [the RPM notes](#icinga-web-rpm-notes):
+> the configuration manually as shown in [the RPM notes](2-getting-started.md#icinga-web-rpm-notes):
 >
 > `apt-get install --no-install-recommends icinga-web`
 
@@ -1416,9 +1416,9 @@ please check the official [Icinga 1.x user interface documentation](http://docs.
 
 There are many visualization addons which can be used with Icinga 2.
 
-Some of the more popular ones are [PNP](#addons-graphing-pnp), [inGraph](#addons-graphing-pnp)
-(graphing performance data), [Graphite](#addons-graphing-pnp), and
-[NagVis](#addons-visualization-nagvis) (network maps).
+Some of the more popular ones are [PNP](6-addons-plugins.md#addons-graphing-pnp), [inGraph](6-addons-plugins.md#addons-graphing-pnp)
+(graphing performance data), [Graphite](6-addons-plugins.md#addons-graphing-pnp), and
+[NagVis](6-addons-plugins.md#addons-visualization-nagvis) (network maps).
 
 
 ## <a id="configuration-tools"></a> Configuration Tools
@@ -1429,8 +1429,8 @@ or similar.
 
 > **Tip**
 >
-> Get to know the new configuration format and the advanced [apply](#using-apply) rules and
-> use [syntax highlighting](#configuration-syntax-highlighting) in vim/nano.
+> Get to know the new configuration format and the advanced [apply](3-monitoring-basics.md#using-apply) rules and
+> use [syntax highlighting](2-getting-started.md#configuration-syntax-highlighting) in vim/nano.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
 to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).
@@ -1507,11 +1507,10 @@ for historical reasons.
 
 ### <a id="systemd-service"></a> systemd Service
 
-Some distributions (e.g. Fedora and openSUSE) already use `systemd`. Other
-distributions such as RHEL7 changed to `systemd` recently. Icinga 2 Packages will install the
-service automatically.
+Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The Icinga 2
+packages automatically install the necessary systemd unit files.
 
-The Icinga 2 `systemd` service can be (re)started, reloaded, stopped and also queried for its current status.
+The Icinga 2 systemd service can be (re)started, reloaded, stopped and also queried for its current status.
 
     # systemctl status icinga2
     icinga2.service - Icinga host/service/network monitoring system
@@ -1532,7 +1531,7 @@ The Icinga 2 `systemd` service can be (re)started, reloaded, stopped and also qu
     Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 8 Dependency(s).
     Jul 23 13:39:38 nbmif systemd[1]: Started Icinga host/service/network monitoring system.
 
-`systemd` supports the following command actions:
+The `systemctl` command supports the following actions:
 
   Command             | Description
   --------------------|------------------------
@@ -1543,581 +1542,10 @@ The Icinga 2 `systemd` service can be (re)started, reloaded, stopped and also qu
   status              | The `status` action checks if Icinga 2 is running.
   enable              | The `enable` action enables the service being started at system boot time (similar to `chkconfig`)
 
-If you're stuck with configuration errors, you can manually invoke the [configuration validation](#config-validation).
+If you're stuck with configuration errors, you can manually invoke the [configuration validation](5-cli-commands.md#config-validation).
 
     # systemctl enable icinga2
 
     # systemctl restart icinga2
     Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
 
-
-
-### <a id="cli-commands"></a> Icinga 2 CLI Commands
-
-Icinga 2 ships its own integrated CLI commands supporting bash-autocompletion.
-
-These CLI commands will allow you to use certain functionality
-provided by and around the Icinga 2 daemon.
-
-> **Note**
->
-> The CLI commands are available in Icinga 2 starting with *2.2*.
-
-Each CLI command provides its own help and usage information, so please
-make sure to always run them withthe  `--help` parameter.
-
-Run `icinga2` without any arguments (or using `--help`) to get a list of
-all available global options.
-
-    # icinga2
-
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 <command> [<arguments>]
-
-    Supported commands:
-      * daemon (starts Icinga 2)
-      * feature disable (disables specified feature)
-      * feature enable (enables specified feature)
-      * feature list (lists all enabled features)
-      * node add (add node)
-      * node blacklist add (adds a new blacklist filter)
-      * node blacklist list (lists all blacklist filters)
-      * node blacklist remove (removes a blacklist filter)
-      * node list (lists all nodes)
-      * node remove (removes node)
-      * node set (set node attributes)
-      * node setup (set up node)
-      * node update-config (update node config)
-      * node whitelist add (adds a new whitelist filter)
-      * node whitelist list (lists all whitelist filters)
-      * node whitelist remove (removes a whitelist filter)
-      * node wizard (wizard for node setup)
-      * object list (lists all objects)
-      * pki new-ca (sets up a new CA)
-      * pki new-cert (creates a new CSR)
-      * pki request (requests a certificate)
-      * pki save-cert (saves another Icinga 2 instance's certificate)
-      * pki sign-csr (signs a CSR)
-      * pki ticket (generates a ticket)
-      * repository clear-changes (clear uncommitted repository changes)
-      * repository commit (commit repository changes)
-      * repository endpoint add (adds a new Endpoint object)
-      * repository endpoint list (lists all Endpoint objects)
-      * repository endpoint remove (removes a Endpoint object)
-      * repository host add (adds a new Host object)
-      * repository host list (lists all Host objects)
-      * repository host remove (removes a Host object)
-      * repository service add (adds a new Service object)
-      * repository service list (lists all Service objects)
-      * repository service remove (removes a Service object)
-      * repository zone add (adds a new Zone object)
-      * repository zone list (lists all Zone objects)
-      * repository zone remove (removes a Zone object)
-      * variable get (gets a variable)
-      * variable list (lists all variables)
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-
-#### <a id="cli-commands-autocompletion"></a> Icinga 2 CLI Bash Autocompletion
-
-Bash Auto-Completion (pressing `<TAB>`) is provided only for the corresponding context.
-
-While `--config` will suggest and auto-complete files and directories on disk,
-`feature enable` will only suggest disabled features. `repository` will know
-about object specific attributes, and so on. Try it yourself.
-
-RPM and Debian packages install the bash completion files into
-`/etc/bash_completion.d/icinga2`.
-
-You will need to install the `bash-completion` package if not already installed.
-
-RHEL/CentOS/Fedora:
-    # yum install bash-completion
-
-SUSE:
-    # zypper install bash-completion
-
-Debian/Ubuntu:
-    # apt-get install bash-completion
-
-#### <a id="cli-commands-global-options"></a> Icinga 2 CLI Global Options
-
-##### Libraries
-
-Instead of loading libraries using the [`library` config directive](#library)
-you can also use the `--library` command-line option.
-
-##### Constants
-
-[Global constants](#constants) can be set using the `--define` command-line option.
-
-##### Config Include Path
-
-When including files you can specify that the include search path should be
-checked. You can do this by putting your configuration file name in angle
-brackets like this:
-
-    include <test.conf>
-
-This would cause Icinga 2 to search its include path for the configuration file
-`test.conf`. By default the installation path for the Icinga Template Library
-is the only search directory.
-
-Using the `--include` command-line option additional search directories can be
-added.
-
-
-
-#### <a id="cli-command-daemon"></a> Cli command: Daemon
-
-The CLI command `daemon` provides the functionality to start/stop Icinga 2.
-Furthermore it provides the [configuration validation](#config-validation).
-
-    # icinga2 daemon --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 daemon [<arguments>]
-
-    Starts Icinga 2.
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-      -c [ --config ] arg   parse a configuration file
-      -z [ --no-config ]    start without a configuration file
-      -C [ --validate ]     exit after validating the configuration
-      -e [ --errorlog ] arg log fatal errors to the specified log file (only works
-                            in combination with --daemonize)
-      -d [ --daemonize ]    detach from the controlling terminal
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-##### Config Files
-
-Using the `--config` option you can specify one or more configuration files.
-Config files are processed in the order they're specified on the command-line.
-
-When no configuration file is specified and the `--no-config` is not used
-Icinga 2 automatically falls back to using the configuration file
-`SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
-
-##### Config Validation
-
-The `--validate` option can be used to check if your configuration files
-contain errors. If any errors are found the exit status is 1, otherwise 0
-is returned. More details in the [configuration validation](#config-validation) chapter.
-
-
-#### <a id="cli-command-feature"></a> Cli command: Feature
-
-The CLI commands for `enable` and `disable` feature support bash auto-completion
-and will only suggest features for the corresponding context. Like disabling a
-feature will only bring up all enabled features.
-
-    # icinga2 feature disable <tab>
-    checker       --color       --define      --help        --include     --library     --log-level   mainlog       notification  --version
-
-    # icinga2 feature enable <tab>
-    api           command       debuglog      graphite      icingastatus  ido-pgsql     --library     --log-level   statusdata    --version
-    --color       compatlog     --define      --help        ido-mysql     --include     livestatus    perfdata      syslog
-
-#### <a id="cli-command-node"></a> Cli command: Node
-
-Provides the functionality to install and manage master and client
-nodes in a [remote monitoring ](#icinga2-remote-client-monitoring) or
-[distributed cluster](#distributed-monitoring-high-availability) scenario.
-
-
-    # icinga2 node --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 <command> [<arguments>]
-
-    Supported commands:
-      * node add (add node)
-      * node blacklist add (adds a new blacklist filter)
-      * node blacklist list (lists all blacklist filters)
-      * node blacklist remove (removes a blacklist filter)
-      * node list (lists all nodes)
-      * node remove (removes node)
-      * node set (set node attributes)
-      * node setup (set up node)
-      * node update-config (update node config)
-      * node whitelist add (adds a new whitelist filter)
-      * node whitelist list (lists all whitelist filters)
-      * node whitelist remove (removes a whitelist filter)
-      * node wizard (wizard for node setup)
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-
-#### <a id="cli-command-object"></a> Cli command: Object
-
-The `object` CLI command can be used to list all configuration objects and their
-attributes. The command also shows where each of the attributes was modified.
-That way you can also identify which objects have been created from your [apply rules](#apply).
-
-More information can be found in the [troubleshooting](#list-configuration-objects) section.
-
-    # icinga2 object --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 <command> [<arguments>]
-
-    Supported commands:
-      * object list (lists all objects)
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-
-
-#### <a id="cli-command-pki"></a> Cli command: Pki
-
-Provides the CLI commands to
-
-* generate a new local CA
-* generate a new CSR or self-signed certificate
-* sign a CSR and return a certificate
-* save a master certificate manually
-* request a signed certificate from the master
-* generate a new ticket for the client setup
-
-This functionality is used by the [node setup/wizard](#cli-command-pki) CLI commands too.
-
-    # icinga2 pki --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 <command> [<arguments>]
-
-    Supported commands:
-      * pki new-ca (sets up a new CA)
-      * pki new-cert (creates a new CSR)
-      * pki request (requests a certificate)
-      * pki save-cert (saves another Icinga 2 instance's certificate)
-      * pki sign-csr (signs a CSR)
-      * pki ticket (generates a ticket)
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-
-#### <a id="cli-command-repository"></a> Cli command: Repository
-
-Provides the functionality to manage the Icinga 2 configuration repository in
-`/etc/icinga2/repository.d`. All changes are logged and must be committed or
-cleared after review.
-
-
-> **Note**
->
-> The CLI command `repository` only supports basic configuration manipulation (add, remove)
-> and a limited set of objects required for the [remote client] integration. Future
-> versions will support more options (set, etc.).
->
-> Please check the Icinga 2 development roadmap for updates.
-
-
-    # icinga2 repository --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 <command> [<arguments>]
-
-    Supported commands:
-      * repository clear-changes (clear uncommitted repository changes)
-      * repository commit (commit repository changes)
-      * repository endpoint add (adds a new Endpoint object)
-      * repository endpoint list (lists all Endpoint objects)
-      * repository endpoint remove (removes a Endpoint object)
-      * repository host add (adds a new Host object)
-      * repository host list (lists all Host objects)
-      * repository host remove (removes a Host object)
-      * repository service add (adds a new Service object)
-      * repository service list (lists all Service objects)
-      * repository service remove (removes a Service object)
-      * repository zone add (adds a new Zone object)
-      * repository zone list (lists all Zone objects)
-      * repository zone remove (removes a Zone object)
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-
-
-#### <a id="cli-command-variable"></a> Cli command: Variable
-
-Lists all configured variables (constants) in a similar fasion like [object list](#cli-command-object).
-
-    # icinga2 variable --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
-    Usage:
-      icinga2 <command> [<arguments>]
-
-    Supported commands:
-      * variable get (gets a variable)
-      * variable list (lists all variables)
-
-    Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
-
-
-
-
-
-### <a id="features"></a> Enabling/Disabling Features
-
-Icinga 2 provides configuration files for some commonly used features. These
-are installed in the `/etc/icinga2/features-available` directory and can be
-enabled and disabled using the `icinga2 feature enable` and `icinga2 feature disable`
-[CLI commands](#cli-command-feature), respectively.
-
-The `icinga2 feature enable` CLI command creates symlinks in the
-`/etc/icinga2/features-enabled` directory which is included by default
-in the example configuration file.
-
-You can view a list of enabled and disabled features:
-
-    # icinga2 feature list
-    Disabled features: api command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus notification perfdata statusdata syslog
-    Enabled features: checker mainlog notification
-
-Using the `icinga2 feature enable` command you can enable features:
-
-    # icinga2 feature enable graphite
-    Enabling feature graphite. Make sure to restart Icinga 2 for these changes to take effect.
-
-
-You can disable features using the `icinga2 feature disable` command:
-
-    # icinga2 feature disable ido-mysql livestatus
-    Disabling feature ido-mysql. Make sure to restart Icinga 2 for these changes to take effect.
-    Disabling feature livestatus. Make sure to restart Icinga 2 for these changes to take effect.
-
-
-The `icinga2 feature enable` and `icinga2 feature disable` commands do not
-restart Icinga 2. You will need to restart Icinga 2 using the init script
-after enabling or disabling features.
-
-
-
-### <a id="config-validation"></a> Configuration Validation
-
-Once you've edited the configuration files make sure to tell Icinga 2 to validate
-the configuration changes. Icinga 2 will log any configuration error including
-a hint on the file, the line number and the affected configuration line itself.
-
-The following example creates an apply rule without any `assign` condition.
-
-    apply Service "5872-ping4" {
-      import "generic-service"
-      check_command = "ping4"
-      //assign where match("5872-*", host.name)
-    }
-
-Validate the configuration with the init script option `checkconfig`:
-
-    # /etc/init.d/icinga2 checkconfig
-
-> **Note**
->
-> Using [systemd](#systemd-service) you need to manually validate the configuration using
-> the CLI command below.
-
-Or manually passing the `-C` argument:
-
-    # /usr/sbin/icinga2 daemon -c /etc/icinga2/icinga2.conf -C
-
-    [2014-05-22 17:07:25 +0200] critical/ConfigItem: Location:
-    /etc/icinga2/conf.d/tests/5872.conf(5): }
-    /etc/icinga2/conf.d/tests/5872.conf(6):
-    /etc/icinga2/conf.d/tests/5872.conf(7): apply Service "5872-ping4" {
-                                            ^^^^^^^^^^^^^
-    /etc/icinga2/conf.d/tests/5872.conf(8):   import "test-generic-service"
-    /etc/icinga2/conf.d/tests/5872.conf(9):   check_command = "ping4"
-
-    Config error: 'apply' is missing 'assign'
-    [2014-05-22 17:07:25 +0200] critical/ConfigItem: 1 errors, 0 warnings.
-    Icinga 2 detected configuration errors.
-
-> **Tip**
->
-> Icinga 2 will automatically detect the default path for `icinga2.conf`
-> in `SysconfDir + /icinga2/icinga2.conf` and you can safely omit this parameter.
->
-> `# icinga2 daemon -C`
-
-If you encouter errors during configuration validation, please make sure
-to read the [troubleshooting](#troubleshooting) chapter.
-
-You can also use the [CLI command](#cli-command-object) `icinga2 object list`
-after validation passes to analyze object attributes, inheritance or created
-objects by apply rules.
-Find more on troubleshooting with `object list` in [this chapter](#list-configuration-objects).
-
-Example filtered by `Service` objects with the name `ping*`:
-
-    # icinga2 object list --type Service --name *ping*
-    Object 'nbmif.int.netways.de!ping4' of type 'Service':
-      * __name = 'nbmif.int.netways.de!ping4'
-      * check_command = 'ping4'
-        % = modified in '/etc/icinga2/conf.d/services.conf', lines 17:3-17:25
-      * check_interval = 60
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 28:3-28:21
-      * host_name = 'nbmif.int.netways.de'
-        % = modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
-      * max_check_attempts = 3
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 27:3-27:24
-      * name = 'ping4'
-        % = modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
-      * retry_interval = 30
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 29:3-29:22
-      * templates = [ 'ping4', 'generic-service' ]
-        % += modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
-        % += modified in '/etc/icinga2/conf.d/templates.conf', lines 26:1-30:1
-      * type = 'Service'
-      * vars
-        % += modified in '/etc/icinga2/conf.d/services.conf', lines 18:3-18:19
-        * sla = '24x7'
-          % = modified in '/etc/icinga2/conf.d/services.conf', lines 18:3-18:19
-
-
-
-### <a id="config-change-reload"></a> Reload on Configuration Changes
-
-Everytime you have changed your configuration you should first tell Icinga 2
-to [validate](#config-validation). If there are no validation errors you can
-safely reload the Icinga 2 daemon.
-
-    # /etc/init.d/icinga2 reload
-
-> **Note**
->
-> The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
-> which will validate the configuration in a separate process and not stop
-> the other events like check execution, notifications, etc.
->
-> Details can be found [here](#differences-1x-2-real-reload).
-
-
-## <a id="vagrant"></a> Vagrant Demo VM
-
-The Icinga Vagrant Git repository contains support for [Vagrant](http://docs.vagrantup.com/v2/)
-with VirtualBox. Please note that Vagrant version `1.0.x` is not supported. At least
-version `1.2.x` is required.
-
-In order to build the Vagrant VM first you will have to check out
-the Git repository:
-
-    $ git clone git://git.icinga.org/icinga-vagrant.git
-
-For Icinga 2 there are currently two scenarios available:
-
-* `icinga2x` bringing up a standalone box with Icinga 2
-* `icinga2x-cluster` setting up two virtual machines in a master/slave cluster
-
-> **Note**
->
-> Please consult the `README.md` file for each project for further installation
-> details at [https://github.com/Icinga/icinga-vagrant]
-
-Once you have checked out the Git repository navigate to your required
-vagrant box and build the VM using the following command:
-
-    $ vagrant up
-
-The Vagrant VMs are based on CentOS 6.x and are using the official
-Icinga 2 RPM snapshot packages from `packages.icinga.org`. The check
-plugins are installed from EPEL providing RPMs with sources from the
-Monitoring Plugins project.

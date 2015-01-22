@@ -188,12 +188,6 @@ Functions can be called using the `()` operator:
       check_interval = len(MyGroups) * 1m
     }
 
-> **Tip**
->
-> Use these functions in [apply](#using-apply) rule expressions.
-
-    assign where match("192.168.*", host.address)
-
 A list of available functions is available in the [Built-in functions and methods](#builtin-functions) chapter.
 
 ## <a id="dictionary-operators"></a> Assignments
@@ -389,7 +383,7 @@ another group of objects.
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "ping"
-is created for each matching host. [Expression operators](#expression-operators)
+is created for each matching host. [Expression operators](9-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 The `to` keyword and the target type may be omitted if there is only one target
@@ -426,7 +420,7 @@ and `ignore where` conditions.
 In this example the `assign where` condition is a boolean expression which is evaluated
 for all objects of the type `Host`. Each matching host is added as member to the host group
 with the name "linux-servers". Membership exclusion can be controlled using the `ignore where`
-condition. [Expression operators](#expression-operators) may be used in `assign where` and
+condition. [Expression operators](9-language-reference.md#expression-operators) may be used in `assign where` and
 `ignore where` conditions.
 
 Source Type       | Variables
@@ -455,7 +449,7 @@ Empty dictionary     | {}                | false
 Non-empty dictionary | { key = "value" } | true
 
 For a list of supported expression operators for `assign where` and `ignore where`
-statements, see [expression operators](#expression-operators).
+statements, see [expression operators](9-language-reference.md#expression-operators).
 
 ## <a id="comments"></a> Comments
 

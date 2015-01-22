@@ -27,7 +27,7 @@ If you encounter a bug, please open an issue at https://dev.icinga.org.
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the proposed Icinga 2 configuration paradigm.
 
-Please read the [next chapter](#differences-1x-2) to find out more about the differences
+Please read the [next chapter](8-migrating-from-icinga-1x.md#differences-1x-2) to find out more about the differences
 between 1.x and 2.
 
 ### <a id="manual-config-migration-hints"></a> Manual Config Migration Hints
@@ -39,7 +39,7 @@ Icinga 1.x configuration.
 The examples are taken from Icinga 1.x test and production environments and converted
 straight into a possible Icinga 2 format. If you found a different strategy, send a patch!
 
-If you require in-depth explanations, please check the [next chapter](#differences-1x-2).
+If you require in-depth explanations, please check the [next chapter](8-migrating-from-icinga-1x.md#differences-1x-2).
 
 #### <a id="manual-config-migration-hints-Intervals"></a> Manual Config Migration Hints for Intervals
 
@@ -70,7 +70,7 @@ Icinga 2:
 #### <a id="manual-config-migration-hints-services"></a> Manual Config Migration Hints for Services
 
 If you have used the `host_name` attribute in Icinga 1.x with one or more host names this service
-belongs to, you can migrate this to the [apply rules](#using-apply) syntax.
+belongs to, you can migrate this to the [apply rules](3-monitoring-basics.md#using-apply) syntax.
 
 Icinga 1.x:
 
@@ -100,7 +100,7 @@ like the following example:
       use                             generic-service
     }
 
-Using Icinga 2 you can migrate this to the [apply rules](#using-apply) syntax:
+Using Icinga 2 you can migrate this to the [apply rules](3-monitoring-basics.md#using-apply) syntax:
 
     apply Service "servicewithhostgroups" {
       import "generic-service"
@@ -127,7 +127,7 @@ a member and includes all members of the `hg1` hostgroup.
       hostgroup_members               hg1
     }
 
-This can be migrated to Icinga 2 and [using group assign](#group-assign). The additional nested hostgroup
+This can be migrated to Icinga 2 and [using group assign](9-language-reference.md#group-assign). The additional nested hostgroup
 `hg1` is included into `hg2` with the `groups` attribute.
 
 
@@ -217,8 +217,8 @@ directory - one major problem solved.
 For the check command it is required to
 
 * Escape all double quotes with an additional `\`.
-* Replace all [runtime macros](#manual-config-migration-hints-runtime-macros), e.g. `$HOSTADDRESS$` with `$address$`.
-* Replace [custom variable macros](#manual-config-migration-hints-runtime-custom-attributes) if any.
+* Replace all [runtime macros](8-migrating-from-icinga-1x.md#manual-config-migration-hints-runtime-macros), e.g. `$HOSTADDRESS$` with `$address$`.
+* Replace [custom variable macros](8-migrating-from-icinga-1x.md#manual-config-migration-hints-runtime-custom-attributes) if any.
 * Keep `$ARGn$` macros.
 
 The final check command looks like this in Icinga2:
@@ -257,7 +257,7 @@ That way the old command arguments fashion can be applied for Icinga 2, although
 
 #### <a id="manual-config-migration-hints-runtime-macros"></a> Manual Config Migration Hints for Runtime Macros
 
-Runtime macros have been renamed. A detailed comparison table can be found [here](#differences-1x-2-runtime-macros).
+Runtime macros have been renamed. A detailed comparison table can be found [here](8-migrating-from-icinga-1x.md#differences-1x-2-runtime-macros).
 
 For example, accessing the service check output looks like the following in Icinga 1.x:
 
@@ -318,7 +318,7 @@ while the service check command resolves its value to the service attribute attr
 #### <a id="manual-config-migration-hints-contacts-users"></a> Manual Config Migration Hints for Contacts (Users)
 
 Contacts in Icinga 1.x act as users in Icinga 2, but do not have any notification commands specified.
-This migration part is explained in the [next chapter](#manual-config-migration-hints-notifications).
+This migration part is explained in the [next chapter](8-migrating-from-icinga-1x.md#manual-config-migration-hints-notifications).
 
     define contact{
       contact_name                    testconfig-user
@@ -328,7 +328,7 @@ This migration part is explained in the [next chapter](#manual-config-migration-
       email                           icinga@localhost
     }
 
-The `service_notification_options` can be [mapped](#manual-config-migration-hints-notification-filters)
+The `service_notification_options` can be [mapped](8-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters)
 into generic `state` and `type` filters, if additional notification filtering is required. `alias` gets
 renamed to `display_name`.
 
@@ -358,7 +358,7 @@ generic strategy
 * which contacts (users) are notified by mail?
 * do the notification filters, periods, intervals still apply for them? (do a cleanup during migration)
 * assign users and groups to these notifications
-* Redesign the notifications into generic [apply rules](#using-apply-notifications)
+* Redesign the notifications into generic [apply rules](3-monitoring-basics.md#using-apply-notifications)
 
 
 The ugly workaround solution could look like this:
@@ -380,7 +380,7 @@ Assign it to the host or service and set the newly generated notification comman
 
 
 Convert the `notification_options` attribute from Icinga 1.x to Icinga 2 `states` and `types`. Details
-[here](#manual-config-migration-hints-notification-filters). Add the notification period.
+[here](8-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters). Add the notification period.
 
       states = [ OK, Warning, Critical ]
       types = [ Recovery, Problem, Custom ]
@@ -518,7 +518,7 @@ just this service belonging to hosts in the matched hostgroup.
 
 #### <a id="manual-config-migration-hints-dependencies"></a> Manual Config Migration Hints for Dependencies
 
-There are some dependency examples already in the [basics chapter](#dependencies). Dependencies in
+There are some dependency examples already in the [basics chapter](3-monitoring-basics.md#dependencies). Dependencies in
 Icinga 1.x can be confusing in terms of which host/service is the parent and which host/service acts
 as the child.
 
@@ -617,7 +617,7 @@ enabled.
       assign where "hg_svcdep2" in host.groups
     }
 
-Host dependencies are explained in the [next chapter](#manual-config-migration-hints-host-parents).
+Host dependencies are explained in the [next chapter](8-migrating-from-icinga-1x.md#manual-config-migration-hints-host-parents).
 
 
 
@@ -721,9 +721,9 @@ daemon for passing check results between instances.
 * Icinga 2 does not support any 1.x NEB addons for check load distribution
 
 * If your current setup consists of instances distributing the check load, you should consider
-building a [load distribution](#cluster-scenarios-load-distribution) setup with Icinga 2.
+building a [load distribution](4-monitoring-remote-systems.md#cluster-scenarios-load-distribution) setup with Icinga 2.
 * If your current setup includes active/passive clustering with external tools like Pacemaker/DRBD
-consider the [High Availability](#cluster-scenarios-high-availability) setup.
+consider the [High Availability](4-monitoring-remote-systems.md#cluster-scenarios-high-availability) setup.
 * If you have build your own custom configuration deployment and check result collecting mechanism
 you should re-design your setup and re-evaluate your requirements, and how they may be fulfilled
 using the Icinga 2 cluster capabilities.
@@ -773,11 +773,11 @@ included in `icinga2.conf` by default.
 ### <a id="differences-1x-2-main-config"></a> Main Config File
 
 In Icinga 1.x there are many global configuration settings available in `icinga.cfg`.
-Icinga 2 only uses a small set of [global constants](#constants) allowing
+Icinga 2 only uses a small set of [global constants](9-language-reference.md#constants) allowing
 you to specify certain different setting such as the `NodeName` in a cluster scenario.
 
-Aside from that, the [icinga2.conf](#icinga2-conf) should take care of including
-global constants, enabled [features](#features) and the object configuration.
+Aside from that, the [icinga2.conf](2-getting-started.md#icinga2-conf) should take care of including
+global constants, enabled [features](5-cli-commands.md#features) and the object configuration.
 
 ### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories
 
@@ -826,7 +826,7 @@ set in the `constants.conf` configuration file:
 
     const PluginDir = "/usr/lib/nagios/plugins"
 
-[Global macros](#constants) can only be defined once. Trying to modify a
+[Global macros](9-language-reference.md#constants) can only be defined once. Trying to modify a
 global constant will result in an error.
 
 ### <a id="differences-1x-2-configuration-comments"></a> Configuration Comments
@@ -924,7 +924,7 @@ In Icinga 2 these attributes must be added to the `vars` dictionary as custom at
     vars.dn = "cn=icinga2-dev-host,ou=icinga,ou=main,ou=IcingaConfig,ou=LConf,dc=icinga,dc=org"
     vars.cv = "my custom cmdb description"
 
-These custom attributes are also used as [command parameters](#command-passing-parameters).
+These custom attributes are also used as [command parameters](3-monitoring-basics.md#command-passing-parameters).
 
 ### <a id="differences-1x-2-host-service-relation"></a> Host Service Relation
 
@@ -933,7 +933,7 @@ In Icinga 1.x a service object is associated with a host by defining the
 to `hostgroup_name` or behaviour changing regular expression.
 
 The preferred way of associating hosts with services in Icinga 2 is by
-using the [apply](#using-apply) keyword.
+using the [apply](3-monitoring-basics.md#using-apply) keyword.
 
 ### <a id="differences-1x-2-users"></a> Users
 
@@ -952,7 +952,7 @@ and their users.
 ### <a id="differences-1x-2-macros"></a> Macros
 
 Various object attributes and runtime variables can be accessed as macros in
-commands in Icinga 1.x - Icinga 2 supports all required [custom attributes](#custom-attributes).
+commands in Icinga 1.x - Icinga 2 supports all required [custom attributes](3-monitoring-basics.md#custom-attributes).
 
 #### <a id="differences-1x-2-command-arguments"></a> Command Arguments
 
@@ -992,7 +992,7 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
 
 > **Note**
 >
-> For better maintainability you should consider using [command arguments](#command-arguments)
+> For better maintainability you should consider using [command arguments](3-monitoring-basics.md#command-arguments)
 > for your check commands.
 
 > **Note**
@@ -1004,7 +1004,7 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
 
-Macros exported into the [environment](#runtime-custom-attribute-env-vars)
+Macros exported into the [environment](3-monitoring-basics.md#runtime-custom-attribute-env-vars)
 must be set using the `env` attribute in command objects.
 
 #### <a id="differences-1x-2-runtime-macros"></a> Runtime Macros
@@ -1251,7 +1251,7 @@ timeout. This was essentially bad when there only was a couple of check plugins
 requiring some command timeouts to be extended.
 
 Icinga 2 allows you to specify the command timeout directly on the command. So
-if your VMVware check plugin takes 15 minutes, [increase the timeout](#objecttype-checkcommand)
+if your VMVware check plugin takes 15 minutes, [increase the timeout](11-object-types.md#objecttype-checkcommand)
 accordingly.
 
 
@@ -1383,10 +1383,10 @@ The former `host_name` and `dependent_host_name` have been renamed to `parent_ho
 and `child_host_name` (same for the service attribute). When using apply rules the
 child attributes may be omitted.
 
-For detailed examples on how to use the dependencies please check the [dependencies](#dependencies)
+For detailed examples on how to use the dependencies please check the [dependencies](3-monitoring-basics.md#dependencies)
 chapter.
 
-Dependencies can be applied to hosts or services using the [apply rules](#apply).
+Dependencies can be applied to hosts or services using the [apply rules](9-language-reference.md#apply).
 
 The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
 support the Icinga 1.x schema with dependencies and parent attributes for
@@ -1436,7 +1436,7 @@ Unlike Icinga 1.x the Icinga 2 daemon reload happens asynchronously.
 * parent process continues with old configuration objects and the event scheduling
 (doing checks, replicating cluster events, triggering alert notifications, etc.)
 * validation NOT ok: child process terminates, parent process continues with old configuration state
-(this is ESSENTIAL for the [cluster config synchronisation](#cluster-zone-config-sync))
+(this is ESSENTIAL for the [cluster config synchronisation](4-monitoring-remote-systems.md#cluster-zone-config-sync))
 * validation ok: child process signals parent process to terminate and save its current state
 (all events until now) into the icinga2 state file
 * parent process shuts down writing icinga2.state file
@@ -1491,6 +1491,6 @@ distribution out-of-the-box. Furthermore comments, downtimes, and other stateful
 not synced between the master and slave nodes. There are addons available solving the check
 and configuration distribution problems Icinga 1.x distributed monitoring currently suffers from.
 
-Icinga 2 implements a new built-in [distributed monitoring architecture](#distributed-monitoring-high-availability),
+Icinga 2 implements a new built-in [distributed monitoring architecture](4-monitoring-remote-systems.md#distributed-monitoring-high-availability),
 including config and check distribution, IPv4/IPv6 support, SSL certificates and zone support for DMZ.
 High Availability and load balancing are also part of the Icinga 2 Cluster setup.
