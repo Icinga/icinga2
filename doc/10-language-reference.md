@@ -188,7 +188,7 @@ Functions can be called using the `()` operator:
       check_interval = len(MyGroups) * 1m
     }
 
-A list of available functions is available in the [Built-in functions and methods](#builtin-functions) chapter.
+A list of available functions is available in the [Library Reference](10-library-reference.md#library-reference) chapter.
 
 ## <a id="dictionary-operators"></a> Assignments
 
@@ -487,7 +487,7 @@ Note the use of angle brackets instead of double quotes. This causes the
 config compiler to search the include search paths for the specified
 file. By default $PREFIX/share/icinga2/include is included in the list of search
 paths. Additional include search paths can be added using
-[command-line options](#cmdline).
+[command-line options](5-cli-commands.md#config-include-path).
 
 Wildcards are not permitted when using angle brackets.
 

@@ -24,19 +24,19 @@ monitoring and high-availability, please continue reading in
 If the remote service is available using a network protocol and port,
 and a [check plugin](2-getting-started.md#setting-up-check-plugins) is available, you don't
 necessarily need a local client installed. Rather choose a plugin and
-configure all parameters and thresholds. The [Icinga 2 Template Library](#itl)
+configure all parameters and thresholds. The [Icinga 2 Template Library](12-icinga-template-library.md#icinga-template-library)
 already ships various examples like
 
 * [ping4](12-icinga-template-library.md#plugin-check-command-ping4), [ping6](12-icinga-template-library.md#plugin-check-command-ping6),
-[fping4](#plugin-check-command-fping4), [fping6](12-icinga-template-library.md#plugin-check-command-fping6), [hostalive](12-icinga-template-library.md#plugin-check-command-hostalive)
-* [tcp](#plugin-check-command-tcp), [udp](12-icinga-template-library.md#plugin-check-command-udp), [ssl](12-icinga-template-library.md#plugin-check-command-ssl)
+[fping4](12-icinga-template-library.md#plugin-check-command-fping4), [fping6](12-icinga-template-library.md#plugin-check-command-fping6), [hostalive](12-icinga-template-library.md#plugin-check-command-hostalive)
+* [tcp](12-icinga-template-library.md#plugin-check-command-tcp), [udp](12-icinga-template-library.md#plugin-check-command-udp), [ssl](12-icinga-template-library.md#plugin-check-command-ssl)
 * [http](12-icinga-template-library.md#plugin-check-command-http), [ftp](12-icinga-template-library.md#plugin-check-command-ftp)
 * [smtp](12-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](12-icinga-template-library.md#plugin-check-command-ssmtp),
 [imap](12-icinga-template-library.md#plugin-check-command-imap), [simap](12-icinga-template-library.md#plugin-check-command-simap),
 [pop](12-icinga-template-library.md#plugin-check-command-pop), [spop](12-icinga-template-library.md#plugin-check-command-spop)
-* [ntp_time](#plugin-check-command-ntp_time)
+* [ntp_time](12-icinga-template-library.md#plugin-check-command-ntp-time)
 * [ssh](12-icinga-template-library.md#plugin-check-command-ssh)
-* [dns](#plugin-check-command-dns), [dig](12-icinga-template-library.md#plugin-check-command-dig), [dhcp](12-icinga-template-library.md#plugin-check-command-dhcp)
+* [dns](12-icinga-template-library.md#plugin-check-command-dns), [dig](12-icinga-template-library.md#plugin-check-command-dig), [dhcp](12-icinga-template-library.md#plugin-check-command-dhcp)
 
 There are numerous check plugins contributed by community members available
 on the internet. If you found one for your requirements, [integrate them into Icinga 2](3-monitoring-basics.md#command-plugin-integration).
@@ -133,7 +133,7 @@ The setup wizard will do the following:
 * Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
 * Generate a local zone and endpoint configuration for this master based on FQDN
 * Enabling the API feature, and setting optional `bind_host` and `bind_port`
-* Setting the `NodeName` and `TicketSalt` constants in [constants.conf](#constants.conf)
+* Setting the `NodeName` and `TicketSalt` constants in [constants.conf](2-getting-started.md#constants-conf)
 
 The setup wizard does not automatically restart Icinga 2.
 
@@ -299,7 +299,7 @@ The setup wizard will do the following:
 (based on FQDN)
 * Disabling the notification feature for this client
 * Enabling the API feature, and setting optional `bind_host` and `bind_port`
-* Setting the `NodeName` constant in [constants.conf](#constants.conf)
+* Setting the `NodeName` constant in [constants.conf](2-getting-started.md#constants-conf)
 
 The setup wizard does not automatically restart Icinga 2.
 
@@ -562,8 +562,7 @@ After updating the configuration repository, make sure to reload Icinga 2.
     # service icinga2 reload
 
 Using systemd:
-    # systemctl reload icinga2.service
-
+    # systemctl reload icinga2
 
 
 #### <a id="icinga2-remote-monitoring-master-discovery-blacklist-whitelist"></a> Blacklist/Whitelist for Clients on the Master
@@ -623,7 +622,7 @@ become handy.
 
 The SNMP daemon runs on the remote system and answers SNMP queries by plugin
 binaries. The [Monitoring Plugins package](2-getting-started.md#setting-up-check-plugins) ships
-the `check_snmp` plugin binary, but there are plenty of [existing plugins](#integrate-additional-plugins)
+the `check_snmp` plugin binary, but there are plenty of [existing plugins](6-addons-plugins.md#plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
 The following example uses the [SNMP ITL](12-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
@@ -1347,7 +1346,7 @@ master instances anymore.
 
 ### <a id="cluster-health-check"></a> Cluster Health Check
 
-The Icinga 2 [ITL](#itl) ships an internal check command checking all configured
+The Icinga 2 [ITL](12-icinga-template-library.md#icinga-template-library) ships an internal check command checking all configured
 `EndPoints` in the cluster setup. The check result will become critical if
 one or more configured nodes are not connected.
 

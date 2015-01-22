@@ -343,15 +343,15 @@ The custom attribute `os` is evaluated by the `linux-servers` group in
 The example host will show you how to
 
 * define http vhost attributes for the `http` service apply rule defined
-in [services.conf](#services.conf).
+in [services.conf](2-getting-started.md#services-conf).
 * define disks (all, specific `/`) and their attributes for the `disk`
-service apply rule defined in [services.conf](#services.conf).
+service apply rule defined in [services.conf](2-getting-started.md#services-conf).
 * define notification types (`mail`) and set the groups attribute. This
 will be used by notification apply rules in [notifications.conf](notifications-conf).
 
 If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) you can
 uncomment the http vhost attributes and relaod Icinga 2. The apply
-rules in [services.conf](#services.conf) will automatically
+rules in [services.conf](2-getting-started.md#services-conf) will automatically
 generate a new service checking the `/icingaweb2` URI using the `http`
 check.
 
@@ -438,7 +438,7 @@ Service(s)                                  | Applied on host(s)
 The Debian packages also ship an additional `apt` service check applied to the local host.
 
 The command object `icinga` for the embedded health check is provided by the
-[Icinga Template Library (ITL)](#itl) while `http_ip`, `ssh`, `load`, `processes`,
+[Icinga Template Library (ITL)](12-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
 `users` and `disk` are all provided by the [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands)
 which we enabled earlier by including the `itl` and `plugins` configuration file.
 
@@ -597,7 +597,7 @@ The `interval` attribute is not explicitly set - it [defaults to 30 minutes](11-
 
 By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](2-getting-started.md#hosts-conf) attribute we'll
-implicitely use the`icingaadmins` UserGroup defined in [users.conf](#users.conf).
+implicitely use the`icingaadmins` UserGroup defined in [users.conf](2-getting-started.md#users-conf).
 
     apply Notification "mail-icingaadmin" to Host {
       import "mail-host-notification"
@@ -811,8 +811,8 @@ RHEL/CentOS 5/6:
 RHEL/CentOS 7 and Fedora 20 prefer MariaDB over MySQL:
 
     # yum install mariadb-server mariadb
-    # systemctl enable mariadb.service
-    # systemctl start mariadb.service
+    # systemctl enable mariadb
+    # systemctl start mariadb
 
 SUSE:
 
@@ -839,8 +839,8 @@ RHEL/CentOS 5/6:
 RHEL/CentOS 7 and Fedora 20 use [systemd](2-getting-started.md#systemd-service):
 
     # yum install postgresql-server postgresql
-    # systemctl enable postgresql.service
-    # systemctl start postgresql.service
+    # systemctl enable postgresql
+    # systemctl start postgresql
 
 SUSE:
 
@@ -938,7 +938,7 @@ Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
 RHEL/CentOS 7 and Fedora 20:
 
-    # systemctl restart icinga2.service
+    # systemctl restart icinga2
 
 ### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
@@ -1052,7 +1052,7 @@ Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
 RHEL/CentOS 7 and Fedora 20:
 
-    # systemctl restart icinga2.service
+    # systemctl restart icinga2
 
 
 ### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
@@ -1072,7 +1072,7 @@ Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
 RHEL/CentOS 7 and Fedora 20:
 
-    # systemctl restart icinga2.service
+    # systemctl restart icinga2
 
 By default the command pipe file is owned by the group `icingacmd` with read/write
 permissions. Add your webserver's user to the group `icingacmd` to
@@ -1091,59 +1091,6 @@ Change "www-data" to the user you're using to run queries.
 >
 > Packages will do that automatically. Verify that by running `id <your-webserver-user>` and skip this
 > step.
-
-## <a id="setting-up-livestatus"></a> Setting up Livestatus
-
-The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
-implements a query protocol that lets users query their Icinga instance for
-status information. It can also be used to send commands.
-
-> **Tip**
->
-> Only install the Livestatus feature if your web interface or addon requires
-> you to do so (for example, [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2)).
-> [Icinga Classic UI](2-getting-started.md#setting-up-icinga-classic-ui) and [Icinga Web](2-getting-started.md#setting-up-icinga-web)
-> do not use Livestatus as backend.
-
-The Livestatus component that is distributed as part of Icinga 2 is a
-re-implementation of the Livestatus protocol which is compatible with MK
-Livestatus.
-
-Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus](3-monitoring-basics.md#livestatus) section.
-
-You can enable Livestatus using icinga2 feature enable:
-
-    # icinga2 feature enable livestatus
-
-After that you will have to restart Icinga 2:
-
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
-
-    # service icinga2 restart
-
-RHEL/CentOS 7 and Fedora 20:
-
-    # systemctl restart icinga2.service
-
-By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
-
-In order for queries and commands to work you will need to add your query user
-(e.g. your web server) to the `icingacmd` group:
-
-    # usermod -a -G icingacmd www-data
-
-The Debian packages use `nagios` as the user and group name. Make sure to change `icingacmd` to
-`nagios` if you're using Debian.
-
-Change "www-data" to the user you're using to run queries.
-
-In order to use the historical tables provided by the livestatus feature (for example, the
-`log` table) you need to have the `CompatLogger` feature enabled. By default these logs
-are expected to be in `/var/log/icinga2/compat`. A different path can be set using the
-`compat_log_path` configuration attribute.
-
-    # icinga2 feature enable compatlog
 
 ## <a id="setting-up-icinga2-user-interfaces"></a> Setting up Icinga 2 User Interfaces
 
@@ -1294,7 +1241,7 @@ please check the official [Icinga 1.x user interface documentation](http://docs.
 
 Icinga 2 can write to the same schema supplied by `Icinga IDOUtils 1.x` which
 is an explicit requirement to run `Icinga Web` next to the external command pipe.
-Therefore you need to setup the [DB IDO feature](#configuring-ido) remarked in the previous sections.
+Therefore you need to setup the [DB IDO feature](2-getting-started.md#configuring-db-ido) remarked in the previous sections.
 
 #### <a id="installing-icinga-web"></a> Installing Icinga Web 1.x
 

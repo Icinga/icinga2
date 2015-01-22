@@ -112,7 +112,7 @@ you can also use the `--library` command-line option.
 
 [Global constants](9-language-reference.md#constants) can be set using the `--define` command-line option.
 
-#### Config Include Path
+#### <a id="config-include-path"> Config Include Path
 
 When including files you can specify that the include search path should be
 checked. You can do this by putting your configuration file name in angle
@@ -129,7 +129,7 @@ added.
 
 
 
-### <a id="cli-command-daemon"></a> Cli command: Daemon
+### <a id="cli-command-daemon"></a> CLI command: Daemon
 
 The CLI command `daemon` provides the functionality to start/stop Icinga 2.
 Furthermore it provides the [configuration validation](5-cli-commands.md#config-validation).
@@ -179,7 +179,7 @@ contain errors. If any errors are found the exit status is 1, otherwise 0
 is returned. More details in the [configuration validation](5-cli-commands.md#config-validation) chapter.
 
 
-### <a id="cli-command-feature"></a> Cli command: Feature
+### <a id="cli-command-feature"></a> CLI command: Feature
 
 The CLI commands for `enable` and `disable` feature support bash auto-completion
 and will only suggest features for the corresponding context. Like disabling a
@@ -192,7 +192,7 @@ feature will only bring up all enabled features.
     api           command       debuglog      graphite      icingastatus  ido-pgsql     --library     --log-level   statusdata    --version
     --color       compatlog     --define      --help        ido-mysql     --include     livestatus    perfdata      syslog
 
-### <a id="cli-command-node"></a> Cli command: Node
+### <a id="cli-command-node"></a> CLI command: Node
 
 Provides the functionality to install and manage master and client
 nodes in a [remote monitoring ](4-monitoring-remote-systems.md#icinga2-remote-client-monitoring) or
@@ -236,7 +236,7 @@ nodes in a [remote monitoring ](4-monitoring-remote-systems.md#icinga2-remote-cl
     Icinga home page: <https://www.icinga.org/>
 
 
-### <a id="cli-command-object"></a> Cli command: Object
+### <a id="cli-command-object"></a> CLI command: Object
 
 The `object` CLI command can be used to list all configuration objects and their
 attributes. The command also shows where each of the attributes was modified.
@@ -270,7 +270,7 @@ More information can be found in the [troubleshooting](7-troubleshooting.md#list
 
 
 
-### <a id="cli-command-pki"></a> Cli command: Pki
+### <a id="cli-command-pki"></a> CLI command: Pki
 
 Provides the CLI commands to
 
@@ -313,7 +313,7 @@ This functionality is used by the [node setup/wizard](5-cli-commands.md#cli-comm
     Icinga home page: <https://www.icinga.org/>
 
 
-### <a id="cli-command-repository"></a> Cli command: Repository
+### <a id="cli-command-repository"></a> CLI command: Repository
 
 Provides the functionality to manage the Icinga 2 configuration repository in
 `/etc/icinga2/repository.d`. All changes are logged and must be committed or
@@ -368,7 +368,7 @@ cleared after review.
 
 
 
-### <a id="cli-command-variable"></a> Cli command: Variable
+### <a id="cli-command-variable"></a> CLI command: Variable
 
 Lists all configured variables (constants) in a similar fasion like [object list](5-cli-commands.md#cli-command-object).
 

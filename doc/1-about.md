@@ -124,7 +124,7 @@ Icinga 2 still supports writing performance data files for graphing addons, but 
 capability of writing performance data directly into a Graphite TCP socket simplifying realtime
 monitoring graphs.
 
-* Native support for writing log events to [GELF](#gelf-writer) receivers (graylog2, Logstash)
+* Native support for writing log events to [GELF](11-object-types.md#objecttype-gelfwriter) receivers (graylog2, Logstash)
 
 Icinga 2 will write all check result, state change and notification event logs into a defined
 [GELF](3-monitoring-basics.md#gelfwriter) input receiver. Natively provided by [graylog2](http://www.graylog2.org),
@@ -139,7 +139,7 @@ relationships based on patterns. More advanced features for dynamic object gener
 Supported with [duration literals](9-language-reference.md#duration-literals) for interval
 attributes, [expression operators](9-language-reference.md#expression-operators), [function calls](9-language-reference.md#function-calls) for
 pattern and regex matching and (global) [constants](9-language-reference.md#constants).
-[Check command configuration](#plugin-check-commands) for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](#itl).
+[Check command configuration](12-icinga-template-library.md#plugin-check-commands) for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](12-icinga-template-library.md#icinga-template-library).
 
 * Revamped Commands
 
@@ -183,13 +183,13 @@ objects and specify their active time window.
 
 * Embedded Health Checks
 
-No more external statistic tool but an [instance](#itl-icinga) and [cluster](#itl-cluster) health
+No more external statistic tool but an [instance](12-icinga-template-library.md#itl-icinga) and [cluster](12-icinga-template-library.md#itl-icinga-cluster) health
 check providing direct statistics as performance data for your graphing addon, for example Graphite.
 
 * Compatibility with Icinga 1.x
 
 All known interfaces are optionally available: [status files](3-monitoring-basics.md#status-data), [logs](3-monitoring-basics.md#compat-logging),
-[DB IDO](#configuring-ido) MySQL/PostgreSQL, [performance data](3-monitoring-basics.md#performance-data),
+[DB IDO](2-getting-started.md#configuring-db-ido) MySQL/PostgreSQL, [performance data](3-monitoring-basics.md#performance-data),
 [external command pipe](3-monitoring-basics.md#external-commands) and for migration reasons a
 [checkresult file reader](3-monitoring-basics.md#check-result-files) too.
 All [Monitoring Plugins](2-getting-started.md#setting-up-check-plugins) can be integrated into Icinga 2 with

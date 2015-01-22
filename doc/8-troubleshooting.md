@@ -24,7 +24,8 @@ Alternatively you can enable the debug log:
 
     # icinga2 feature enable debuglog
     # service icinga2 restart
-    # tail -f /var/log/icinga2/debug.log
+
+You can find the debug log file in `/var/log/icinga2/debug.log`.
 
 ## <a id="list-configuration-objects"></a> List Configuration Objects
 
@@ -88,7 +89,7 @@ You can also filter by name and type:
 
     [2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
 
-## <a id="check-command-definitions"></a> Where are the check command definitions
+## <a id="check-command-definitions"></a> Where are the check command definitions?
 
 Icinga 2 ships additional [plugin check command definitions](12-icinga-template-library.md#plugin-check-commands) which are
 included using
@@ -151,13 +152,13 @@ to `features-enabled` and that the latter is included in [icinga2.conf](2-gettin
 
 ## <a id="configuration-ignored"></a> Configuration is ignored
 
-* Make sure that the line(s) are not [commented](9-language-reference.md#comments) (starting with `//` or `#`, or
+* Make sure that the line(s) are not [commented out](9-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
 * Is the configuration file included in [icinga2.conf](2-getting-started.md#icinga2-conf)?
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
-Icinga 2 allows you to import templates using the [import](#import) keyword. If these templates
+Icinga 2 allows you to import templates using the [import](9-language-reference.md#template-imports) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 

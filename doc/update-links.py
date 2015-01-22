@@ -23,7 +23,7 @@ import re
 if len(sys.argv) < 2:
     print "Syntax: %s <md-files>"
     print ""
-    print "Updates intra-chapter links in the specified Markdown files."
+    print "Updates inter-chapter links in the specified Markdown files."
     sys.exit(1)
 
 anchors = {}

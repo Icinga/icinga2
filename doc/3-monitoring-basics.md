@@ -142,7 +142,7 @@ In either way of choosing the right strategy you should additionally check the f
 You can later use them for applying assign/ignore rules, or export them into external interfaces.
 * Put hosts into hostgroups, services into servicegroups and use these attributes for your apply rules.
 * Use templates to store generic attributes for your objects and apply rules making your configuration more readable.
-Details can be found in the [using templates](#using-templates) chapter.
+Details can be found in the [using templates](3-monitoring-basics.md#object-inheritance-using-templates) chapter.
 * Apply rules may overlap. Keep a central place (for example, [services.conf](2-getting-started.md#services-conf) or [notifications.conf](2-getting-started.md#notifications-conf)) storing
 the configuration instead of defining apply rules deep in your configuration tree.
 * Every plugin used as check, notification or event command requires a `Command` definition.
@@ -299,7 +299,7 @@ The notification is ignored for services whose host name ends with `*internal`
       import "cust-xy-notification"
 
       assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true
-      ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.is_clustered == true)
+      ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
     }
 
 
@@ -453,15 +453,15 @@ values for any object attribute specified in that apply rule.
 
       vars.hosting["xyz"] = {
         http_uri = "/shop"
-	customer_name = "Customer xyz"
-	customer_id = "7568"
-	support_contract = "gold"
+        customer_name = "Customer xyz"
+        customer_id = "7568"
+        support_contract = "gold"
       }
       vars.hosting["abc"] = {
         http_uri = "/shop"
-	customer_name = "Customer xyz"
-	customer_id = "7568"
-	support_contract = "silver"
+        customer_name = "Customer xyz"
+        customer_id = "7568"
+        support_contract = "silver"
       }
     }
 
@@ -629,7 +629,7 @@ Use the `apply` keyword to create `Notification` objects for your services:
       users = [ "noc-xy", "mgmt-xy" ]
 
       assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true
-      ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.is_clustered == true)
+      ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
     }
 
 
@@ -1229,7 +1229,7 @@ check execution if one of these conditions match:
 
 * The host/service is in a [soft state](3-monitoring-basics.md#hard-soft-states)
 * The host/service state changes into a [hard state](3-monitoring-basics.md#hard-soft-states)
-* The host/service state recovers from a [soft or hard state](#hard-soft-states) to [OK](3-monitoring-basics.md#service-states)/[Up](3-monitoring-basics.md#host-states)
+* The host/service state recovers from a [soft or hard state](3-monitoring-basics.md#hard-soft-states) to [OK](3-monitoring-basics.md#service-states)/[Up](3-monitoring-basics.md#host-states)
 
 [EventCommand](11-object-types.md#objecttype-eventcommand) objects are referenced by
 [Host](11-object-types.md#objecttype-host) and [Service](11-object-types.md#objecttype-service) objects
@@ -1728,8 +1728,8 @@ for applying objects for dynamic config generation.
 
 There are several ways of using custom attributes with [apply rules](3-monitoring-basics.md#using-apply):
 
-* As simple attribute literal ([number](#numeric-literal), [string](#string-literal),
-[boolean](#boolean-literal)) for expression conditions (`assign where`, `ignore where`)
+* As simple attribute literal ([number](9-language-reference.md#numeric-literals), [string](9-language-reference.md#string-literals),
+[boolean](9-language-reference.md#boolean-literals)) for expression conditions (`assign where`, `ignore where`)
 * As [array](9-language-reference.md#array) or [dictionary](9-language-reference.md#dictionary) attribute with nested values
 (e.g. dictionaries in dictionaries) in [apply for](3-monitoring-basics.md#using-apply-for) rules.
 
@@ -2432,10 +2432,10 @@ The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
 configuration and status information into a database. The IDO database is used
 by a number of projects including Icinga Web 1.x and 2.
 
-Details on the installation can be found in the [Getting Started](#configuring-ido)
+Details on the installation can be found in the [Configuring DB IDO](2-getting-started.md#configuring-db-ido)
 chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](11-object-types.md#objecttype-idomysqlconnection) and
-[IdoPgsqlConnection](#objecttype-idoPgsqlconnection)
+[IdoPgsqlConnection](11-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
 The DB IDO feature supports [High Availability](4-monitoring-remote-systems.md#high-availability-db-ido) in
 the Icinga 2 cluster.
@@ -2480,156 +2480,6 @@ Example for PostgreSQL:
 
 
 A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](13-appendix.md#schema-db-ido).
-
-
-## <a id="livestatus"></a> Livestatus
-
-The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
-implements a query protocol that lets users query their Icinga instance for
-status information. It can also be used to send commands.
-
-Details on the installation can be found in the [Getting Started](2-getting-started.md#setting-up-livestatus)
-chapter.
-
-### <a id="livestatus-sockets"></a> Livestatus Sockets
-
-Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
-
-* Unix socket (default)
-* TCP socket
-
-Details on the configuration can be found in the [LivestatusListener](11-object-types.md#objecttype-livestatuslistener)
-object configuration.
-
-### <a id="livestatus-get-queries"></a> Livestatus GET Queries
-
-> **Note**
->
-> All Livestatus queries require an additional empty line as query end identifier.
-> The `nc` tool (`netcat`) provides the `-U` parameter to communicate using
-> a unix socket.
-
-There also is a Perl module available in CPAN for accessing the Livestatus socket
-programmatically: [Monitoring::Livestatus](http://search.cpan.org/~nierlein/Monitoring-Livestatus-0.74/)
-
-
-Example using the unix socket:
-
-    # echo -e "GET services\n" | /usr/bin/nc -U /var/run/icinga2/cmd/livestatus
-
-Example using the tcp socket listening on port `6558`:
-
-    # echo -e 'GET services\n' | netcat 127.0.0.1 6558
-
-    # cat servicegroups <<EOF
-    GET servicegroups
-
-    EOF
-
-    (cat servicegroups; sleep 1) | netcat 127.0.0.1 6558
-
-
-### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
-
-A list of available external commands and their parameters can be found [here](13-appendix.md#external-commands-list-detail)
-
-    $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
-
-
-### <a id="livestatus-filters"></a> Livestatus Filters
-
-and, or, negate
-
-  Operator  | Negate   | Description
-  ----------|------------------------
-   =        | !=       | Equality
-   ~        | !~       | Regex match
-   =~       | !=~      | Equality ignoring case
-   ~~       | !~~      | Regex ignoring case
-   <        |          | Less than
-   >        |          | Greater than
-   <=       |          | Less than or equal
-   >=       |          | Greater than or equal
-
-
-### <a id="livestatus-stats"></a> Livestatus Stats
-
-Schema: "Stats: aggregatefunction aggregateattribute"
-
-  Aggregate Function | Description
-  -------------------|--------------
-  sum                | &nbsp;
-  min                | &nbsp;
-  max                | &nbsp;
-  avg                | sum / count
-  std                | standard deviation
-  suminv             | sum (1 / value)
-  avginv             | suminv / count
-  count              | ordinary default for any stats query if not aggregate function defined
-
-Example:
-
-    GET hosts
-    Filter: has_been_checked = 1
-    Filter: check_type = 0
-    Stats: sum execution_time
-    Stats: sum latency
-    Stats: sum percent_state_change
-    Stats: min execution_time
-    Stats: min latency
-    Stats: min percent_state_change
-    Stats: max execution_time
-    Stats: max latency
-    Stats: max percent_state_change
-    OutputFormat: json
-    ResponseHeader: fixed16
-
-### <a id="livestatus-output"></a> Livestatus Output
-
-* CSV
-
-CSV Output uses two levels of array separators: The members array separator
-is a comma (1st level) while extra info and host|service relation separator
-is a pipe (2nd level).
-
-Separators can be set using ASCII codes like:
-
-    Separators: 10 59 44 124
-
-* JSON
-
-Default separators.
-
-### <a id="livestatus-error-codes"></a> Livestatus Error Codes
-
-  Code      | Description
-  ----------|--------------
-  200       | OK
-  404       | Table does not exist
-  452       | Exception on query
-
-### <a id="livestatus-tables"></a> Livestatus Tables
-
-  Table         | Join      |Description
-  --------------|-----------|----------------------------
-  hosts         | &nbsp;    | host config and status attributes, services counter
-  hostgroups    | &nbsp;    | hostgroup config, status attributes and host/service counters
-  services      | hosts     | service config and status attributes
-  servicegroups | &nbsp;    | servicegroup config, status attributes and service counters
-  contacts      | &nbsp;    | contact config and status attributes
-  contactgroups | &nbsp;    | contact config, members
-  commands      | &nbsp;    | command name and line
-  status        | &nbsp;    | programstatus, config and stats
-  comments      | services  | status attributes
-  downtimes     | services  | status attributes
-  timeperiods   | &nbsp;    | name and is inside flag
-  endpoints     | &nbsp;    | config and status attributes
-  log           | services, hosts, contacts, commands | parses [compatlog](11-object-types.md#objecttype-compatlogger) and shows log attributes
-  statehist     | hosts, services | parses [compatlog](11-object-types.md#objecttype-compatlogger) and aggregates state change attributes
-
-The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
-
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](13-appendix.md#schema-livestatus).
 
 
 ## <a id="check-result-files"></a> Check Result Files
