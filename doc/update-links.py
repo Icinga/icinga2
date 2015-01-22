@@ -51,5 +51,5 @@ def update_anchor(match):
 
 for file in sys.argv[1:]:
     text = open(file).read()
-    new_text = re.sub(r"\[(?P<text>.*)\]\((?P<file>[0-9-[a-z]\.]+)?#(?P<id>[^#\)]+)\)", update_anchor, text)
+    new_text = re.sub(r"\[(?P<text>.*?)\]\((?P<file>[0-9-a-z\.]+)?#(?P<id>[^#\)]+)\)", update_anchor, text)
     open(file, "w").write(new_text)

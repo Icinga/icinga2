@@ -105,12 +105,12 @@ Debian/Ubuntu:
 
 #### Libraries
 
-Instead of loading libraries using the [`library` config directive](9-language-reference.md#library)
+Instead of loading libraries using the [`library` config directive](10-language-reference.md#library)
 you can also use the `--library` command-line option.
 
 #### Constants
 
-[Global constants](9-language-reference.md#constants) can be set using the `--define` command-line option.
+[Global constants](10-language-reference.md#constants) can be set using the `--define` command-line option.
 
 #### <a id="config-include-path"> Config Include Path
 
@@ -240,9 +240,9 @@ nodes in a [remote monitoring ](4-monitoring-remote-systems.md#icinga2-remote-cl
 
 The `object` CLI command can be used to list all configuration objects and their
 attributes. The command also shows where each of the attributes was modified.
-That way you can also identify which objects have been created from your [apply rules](9-language-reference.md#apply).
+That way you can also identify which objects have been created from your [apply rules](10-language-reference.md#apply).
 
-More information can be found in the [troubleshooting](7-troubleshooting.md#list-configuration-objects) section.
+More information can be found in the [troubleshooting](8-troubleshooting.md#list-configuration-objects) section.
 
     # icinga2 object --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -484,12 +484,12 @@ Or manually passing the `-C` argument:
 > `# icinga2 daemon -C`
 
 If you encouter errors during configuration validation, please make sure
-to read the [troubleshooting](7-troubleshooting.md#troubleshooting) chapter.
+to read the [troubleshooting](8-troubleshooting.md#troubleshooting) chapter.
 
 You can also use the [CLI command](5-cli-commands.md#cli-command-object) `icinga2 object list`
 after validation passes to analyze object attributes, inheritance or created
 objects by apply rules.
-Find more on troubleshooting with `object list` in [this chapter](7-troubleshooting.md#list-configuration-objects).
+Find more on troubleshooting with `object list` in [this chapter](8-troubleshooting.md#list-configuration-objects).
 
 Example filtered by `Service` objects with the name `ping*`:
 
@@ -533,5 +533,5 @@ safely reload the Icinga 2 daemon.
 > which will validate the configuration in a separate process and not stop
 > the other events like check execution, notifications, etc.
 >
-> Details can be found [here](8-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
+> Details can be found [here](9-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
 

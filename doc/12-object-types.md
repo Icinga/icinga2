@@ -59,7 +59,7 @@ A group of hosts.
 
 > **Best Practice**
 >
-> Assign host group members using the [group assign](9-language-reference.md#group-assign) rules.
+> Assign host group members using the [group assign](10-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -145,7 +145,7 @@ A group of services.
 
 > **Best Practice**
 >
-> Assign service group members using the [group assign](9-language-reference.md#group-assign) rules.
+> Assign service group members using the [group assign](10-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -224,7 +224,7 @@ A user group.
 
 > **Best Practice**
 >
-> Assign user group members using the [group assign](9-language-reference.md#group-assign) rules.
+> Assign user group members using the [group assign](10-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -398,7 +398,7 @@ Attributes:
   zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](11-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](12-object-types.md#objecttype-checkcommand-arguments).
 
 
 ## <a id="objecttype-eventcommand"></a> EventCommand
@@ -425,7 +425,7 @@ Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](11-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](12-object-types.md#objecttype-checkcommand-arguments).
 
 
 ## <a id="objecttype-notification"></a> Notification
@@ -737,7 +737,7 @@ Attributes:
 
 Metric prefix names can be modified using [runtime macros](3-monitoring-basics.md#runtime-macros).
 
-Example with your custom [global constant](9-language-reference.md#constants) `GraphiteEnv`:
+Example with your custom [global constant](10-language-reference.md#constants) `GraphiteEnv`:
 
     const GraphiteEnv = "icinga.env1"
 

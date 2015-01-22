@@ -16,7 +16,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus](3-monitoring-basics.md#livestatus) section.
+in the [Livestatus](#livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -59,7 +59,7 @@ Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
 * Unix socket (default)
 * TCP socket
 
-Details on the configuration can be found in the [LivestatusListener](11-object-types.md#objecttype-livestatuslistener)
+Details on the configuration can be found in the [LivestatusListener](12-object-types.md#objecttype-livestatuslistener)
 object configuration.
 
 ### <a id="livestatus-get-queries"></a> Livestatus GET Queries
@@ -92,7 +92,7 @@ Example using the tcp socket listening on port `6558`:
 
 ### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
 
-A list of available external commands and their parameters can be found [here](13-appendix.md#external-commands-list-detail)
+A list of available external commands and their parameters can be found [here](14-appendix.md#external-commands-list-detail)
 
     $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 
@@ -185,10 +185,10 @@ Default separators.
   downtimes     | services  | status attributes
   timeperiods   | &nbsp;    | name and is inside flag
   endpoints     | &nbsp;    | config and status attributes
-  log           | services, hosts, contacts, commands | parses [compatlog](11-object-types.md#objecttype-compatlogger) and shows log attributes
-  statehist     | hosts, services | parses [compatlog](11-object-types.md#objecttype-compatlogger) and aggregates state change attributes
+  log           | services, hosts, contacts, commands | parses [compatlog](12-object-types.md#objecttype-compatlogger) and shows log attributes
+  statehist     | hosts, services | parses [compatlog](12-object-types.md#objecttype-compatlogger) and aggregates state change attributes
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](13-appendix.md#schema-livestatus).
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](14-appendix.md#schema-livestatus).
 

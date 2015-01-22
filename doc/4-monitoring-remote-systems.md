@@ -24,19 +24,19 @@ monitoring and high-availability, please continue reading in
 If the remote service is available using a network protocol and port,
 and a [check plugin](2-getting-started.md#setting-up-check-plugins) is available, you don't
 necessarily need a local client installed. Rather choose a plugin and
-configure all parameters and thresholds. The [Icinga 2 Template Library](12-icinga-template-library.md#icinga-template-library)
+configure all parameters and thresholds. The [Icinga 2 Template Library](13-icinga-template-library.md#icinga-template-library)
 already ships various examples like
 
-* [ping4](12-icinga-template-library.md#plugin-check-command-ping4), [ping6](12-icinga-template-library.md#plugin-check-command-ping6),
-[fping4](12-icinga-template-library.md#plugin-check-command-fping4), [fping6](12-icinga-template-library.md#plugin-check-command-fping6), [hostalive](12-icinga-template-library.md#plugin-check-command-hostalive)
-* [tcp](12-icinga-template-library.md#plugin-check-command-tcp), [udp](12-icinga-template-library.md#plugin-check-command-udp), [ssl](12-icinga-template-library.md#plugin-check-command-ssl)
-* [http](12-icinga-template-library.md#plugin-check-command-http), [ftp](12-icinga-template-library.md#plugin-check-command-ftp)
-* [smtp](12-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](12-icinga-template-library.md#plugin-check-command-ssmtp),
-[imap](12-icinga-template-library.md#plugin-check-command-imap), [simap](12-icinga-template-library.md#plugin-check-command-simap),
-[pop](12-icinga-template-library.md#plugin-check-command-pop), [spop](12-icinga-template-library.md#plugin-check-command-spop)
-* [ntp_time](12-icinga-template-library.md#plugin-check-command-ntp-time)
-* [ssh](12-icinga-template-library.md#plugin-check-command-ssh)
-* [dns](12-icinga-template-library.md#plugin-check-command-dns), [dig](12-icinga-template-library.md#plugin-check-command-dig), [dhcp](12-icinga-template-library.md#plugin-check-command-dhcp)
+* [ping4](13-icinga-template-library.md#plugin-check-command-ping4), [ping6](13-icinga-template-library.md#plugin-check-command-ping6),
+[fping4](13-icinga-template-library.md#plugin-check-command-fping4), [fping6](13-icinga-template-library.md#plugin-check-command-fping6), [hostalive](13-icinga-template-library.md#plugin-check-command-hostalive)
+* [tcp](13-icinga-template-library.md#plugin-check-command-tcp), [udp](13-icinga-template-library.md#plugin-check-command-udp), [ssl](13-icinga-template-library.md#plugin-check-command-ssl)
+* [http](13-icinga-template-library.md#plugin-check-command-http), [ftp](13-icinga-template-library.md#plugin-check-command-ftp)
+* [smtp](13-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](13-icinga-template-library.md#plugin-check-command-ssmtp),
+[imap](13-icinga-template-library.md#plugin-check-command-imap), [simap](13-icinga-template-library.md#plugin-check-command-simap),
+[pop](13-icinga-template-library.md#plugin-check-command-pop), [spop](13-icinga-template-library.md#plugin-check-command-spop)
+* [ntp_time](13-icinga-template-library.md#plugin-check-command-ntp-time)
+* [ssh](13-icinga-template-library.md#plugin-check-command-ssh)
+* [dns](13-icinga-template-library.md#plugin-check-command-dns), [dig](13-icinga-template-library.md#plugin-check-command-dig), [dhcp](13-icinga-template-library.md#plugin-check-command-dhcp)
 
 There are numerous check plugins contributed by community members available
 on the internet. If you found one for your requirements, [integrate them into Icinga 2](3-monitoring-basics.md#command-plugin-integration).
@@ -348,8 +348,8 @@ This scenario allows you to configure the checkable objects (hosts, services) on
 your Icinga 2 master or satellite, and only send commands remotely.
 
 Requirements:
-* Exact same [CheckCommand](11-object-types.md#objecttype-checkcommand) (and
-[EventCommand](11-object-types.md#objecttype-eventcommand)) configuration objects
+* Exact same [CheckCommand](12-object-types.md#objecttype-checkcommand) (and
+[EventCommand](12-object-types.md#objecttype-eventcommand)) configuration objects
 on the master and the remote client(s).
 * Installed plugin scripts on the remote client (`PluginDir` constant can be locally modified)
 * `Zone` and `Endpoint` configuration for the client on the master
@@ -357,7 +357,7 @@ on the master and the remote client(s).
 endpoint
 
 `CheckCommand` objects are already shipped with the Icinga 2 ITL
-as [plugin check commands](12-icinga-template-library.md#plugin-check-commands). If you are
+as [plugin check commands](13-icinga-template-library.md#plugin-check-commands). If you are
 using your own configuration definitions for example in
 [commands.conf](2-getting-started.md#commands-conf) make sure to copy/sync it
 on your remote client.
@@ -600,7 +600,7 @@ You can `list` and `remove` existing blacklists:
 
 ### <a id="icinga2-remote-monitoring-master-manual-add-endpoint-zone"></a> Manually add Client Endpoint and Zone Objects on the Master
 
-Define a [Zone](11-object-types.md#objecttype-zone) with a new [Endpoint](11-object-types.md#objecttype-endpoint) similar to the cluster setup.
+Define a [Zone](12-object-types.md#objecttype-zone) with a new [Endpoint](12-object-types.md#objecttype-endpoint) similar to the cluster setup.
 
 * [configure the node name](4-monitoring-remote-systems.md#configure-nodename)
 * [configure the ApiListener object](4-monitoring-remote-systems.md#configure-apilistener-object)
@@ -625,7 +625,7 @@ binaries. The [Monitoring Plugins package](2-getting-started.md#setting-up-check
 the `check_snmp` plugin binary, but there are plenty of [existing plugins](6-addons-plugins.md#plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
-The following example uses the [SNMP ITL](12-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
+The following example uses the [SNMP ITL](13-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
 overrides the `snmp_oid` custom attribute. A service is created for all hosts which
 have the `snmp-community` custom attribute.
 
@@ -638,7 +638,7 @@ have the `snmp-community` custom attribute.
       assign where host.vars.snmp_community != ""
     }
 
-Additional SNMP plugins are available using the [Manubulon SNMP Plugins](12-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
+Additional SNMP plugins are available using the [Manubulon SNMP Plugins](13-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
 
 ### <a id="agent-based-checks-ssh"></a> SSH
 
@@ -683,7 +683,7 @@ The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
 can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
 
 You can use the `check_nrpe` plugin from the NRPE project to query the NRPE daemon.
-Icinga 2 provides the [nrpe check command](12-icinga-template-library.md#plugin-check-command-nrpe) for this:
+Icinga 2 provides the [nrpe check command](13-icinga-template-library.md#plugin-check-command-nrpe) for this:
 
 Example:
 
@@ -753,7 +753,7 @@ but using `NSClient++` will allow you to run local scripts similar to check plug
 the required output and performance counters.
 
 You can use the `check_nt` plugin from the Monitoring Plugins project to query NSClient++.
-Icinga 2 provides the [nscp check command](12-icinga-template-library.md#plugin-check-command-nscp) for this:
+Icinga 2 provides the [nscp check command](13-icinga-template-library.md#plugin-check-command-nscp) for this:
 
 Example:
 
@@ -789,7 +789,7 @@ SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourcefo
 and specific trap handlers passing the check results to Icinga 2.
 
 Following the SNMPTT [Format](http://snmptt.sourceforge.net/docs/snmptt.shtml#SNMPTT.CONF-FORMAT)
-documentation and the Icinga external command syntax found [here](13-appendix.md#external-commands-list-detail)
+documentation and the Icinga external command syntax found [here](14-appendix.md#external-commands-list-detail)
 we can create generic services that can accommodate any number of hosts for a given scenario.
 
 #### <a id="simple-traps"></a> Simple SNMP Traps
@@ -1005,7 +1005,7 @@ Before you start deploying, keep the following things in mind:
 > **Tip**
 >
 > If you're looking for troubleshooting cluster problems, check the general
-> [troubleshooting](7-troubleshooting.md#troubleshooting-cluster) section.
+> [troubleshooting](8-troubleshooting.md#troubleshooting-cluster) section.
 
 
 ### <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
@@ -1053,8 +1053,8 @@ the host's FQDN):
 
 #### <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
-The SSL certificate common name (CN) will be used by the [ApiListener](11-object-types.md#objecttype-apilistener)
-object to determine the local authority. This name must match the local [Endpoint](11-object-types.md#objecttype-endpoint)
+The SSL certificate common name (CN) will be used by the [ApiListener](12-object-types.md#objecttype-apilistener)
+object to determine the local authority. This name must match the local [Endpoint](12-object-types.md#objecttype-endpoint)
 object name.
 
 Example:
@@ -1068,8 +1068,8 @@ Example:
       host = "icinga2a.icinga.org"
     }
 
-The [Endpoint](11-object-types.md#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
-[Zone](11-object-types.md#objecttype-zone) object.
+The [Endpoint](12-object-types.md#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
+[Zone](12-object-types.md#objecttype-zone) object.
 
     object Endpoint "icinga2b" {
       host = "icinga2b.icinga.org"
@@ -1102,7 +1102,7 @@ and configure [cluster scenarios](4-monitoring-remote-systems.md#cluster-scenari
 #### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
-that value using the [NodeName](9-language-reference.md#constants) constant.
+that value using the [NodeName](10-language-reference.md#constants) constant.
 
 > ** Note **
 >
@@ -1110,7 +1110,7 @@ that value using the [NodeName](9-language-reference.md#constants) constant.
 > in `/etc/icinga2/constants.conf`.
 
 This setting must be unique for each node, and must also match
-the name of the local [Endpoint](11-object-types.md#objecttype-endpoint) object and the
+the name of the local [Endpoint](12-object-types.md#objecttype-endpoint) object and the
 SSL certificate common name as described in the
 [cluster naming convention](4-monitoring-remote-systems.md#cluster-naming-convention).
 
@@ -1129,7 +1129,7 @@ configured endpoint names and common names are in sync.
 
 #### <a id="configure-apilistener-object"></a> Configure the ApiListener Object
 
-The [ApiListener](11-object-types.md#objecttype-apilistener) object needs to be configured on
+The [ApiListener](12-object-types.md#objecttype-apilistener) object needs to be configured on
 every node in the cluster with the following settings:
 
 A sample config looks like:
@@ -1278,7 +1278,7 @@ process.
 >
 > `zones.d` must not be included in [icinga2.conf](2-getting-started.md#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
-> [global constant](9-language-reference.md#constants) `ZonesDir`.
+> [global constant](10-language-reference.md#constants) `ZonesDir`.
 
 #### <a id="zone-global-config-templates"></a> Global Configuration Zone for Templates
 
@@ -1325,7 +1325,7 @@ If you don't require any global configuration, skip this setting.
 
 #### <a id="zone-config-sync-permissions"></a> Zone Configuration Synchronisation Permissions
 
-Each [ApiListener](11-object-types.md#objecttype-apilistener) object must have the `accept_config` attribute
+Each [ApiListener](12-object-types.md#objecttype-apilistener) object must have the `accept_config` attribute
 set to `true` to receive configuration from the parent `Zone` members. Default value is `false`.
 
     object ApiListener "api" {
@@ -1340,13 +1340,13 @@ master instances anymore.
 
 > ** Tip **
 >
-> Look into the [troubleshooting guides](7-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
+> Look into the [troubleshooting guides](8-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
 > problems with the configuration synchronisation.
 
 
 ### <a id="cluster-health-check"></a> Cluster Health Check
 
-The Icinga 2 [ITL](12-icinga-template-library.md#icinga-template-library) ships an internal check command checking all configured
+The Icinga 2 [ITL](13-icinga-template-library.md#icinga-template-library) ships an internal check command checking all configured
 `EndPoints` in the cluster setup. The check result will become critical if
 one or more configured nodes are not connected.
 
@@ -1633,7 +1633,7 @@ Notifications are load balanced amongst all nodes in a zone. By default this fun
 is enabled.
 If your nodes should notify independent from any other nodes (this will cause
 duplicated notifications if not properly handled!), you can set `enable_ha = false`
-in the [NotificationComponent](11-object-types.md#objecttype-notificationcomponent) feature.
+in the [NotificationComponent](12-object-types.md#objecttype-notificationcomponent) feature.
 
 #### <a id="high-availability-db-ido"></a> High Availability with DB IDO
 
@@ -1651,8 +1651,8 @@ nodes disable the active IDO database connection at runtime.
 > **Note**
 >
 > The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
-> for the [IdoMysqlConnection](11-object-types.md#objecttype-idomysqlconnection) or
-> [IdoPgsqlConnection](11-object-types.md#objecttype-idopgsqlconnection) object on all nodes in the
+> for the [IdoMysqlConnection](12-object-types.md#objecttype-idomysqlconnection) or
+> [IdoPgsqlConnection](12-object-types.md#objecttype-idopgsqlconnection) object on all nodes in the
 > same zone.
 >
 > All endpoints will enable the DB IDO feature then, connect to the configured

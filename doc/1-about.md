@@ -46,7 +46,7 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 * [Register](https://exchange.icinga.org/authentication/register) an Icinga account.
 * Create a new issue at the [Icinga 2 Development Tracker](https://dev.icinga.org/projects/i2).
-* When reporting a bug, please include the details described in the [Troubleshooting](7-troubleshooting.md#troubleshooting-information-required) chapter (version, configs, logs, etc).
+* When reporting a bug, please include the details described in the [Troubleshooting](8-troubleshooting.md#troubleshooting-information-required) chapter (version, configs, logs, etc).
 
 ## <a id="whats-new"></a> What's new
 
@@ -88,10 +88,10 @@ event handlers remotely.
 
 Multithreaded and scalable for small embedded systems as well as large scale environments.
 Running checks every second is no longer a problem and enables real-time monitoring capabilities.
-Checks, notifications and event handlers [do not block Icinga 2](8-migrating-from-icinga-1x.md#differences-1x-2-async-event-execution)
+Checks, notifications and event handlers [do not block Icinga 2](9-migrating-from-icinga-1x.md#differences-1x-2-async-event-execution)
 in its operation. Same goes for performance data writers and the external command pipe, or any
 file writers on disk (`statusdata`).
-Unlike Icinga 1.x the [daemon reload](8-migrating-from-icinga-1x.md#differences-1x-2-real-reload) happens asynchronously.
+Unlike Icinga 1.x the [daemon reload](9-migrating-from-icinga-1x.md#differences-1x-2-real-reload) happens asynchronously.
 A child daemon validates the new configuration, the parent process is still doing checks, replicating cluster events, triggering alert notifications, etc. If the configuration validation is ok, all remaining events are synchronized and the child process continues as normal.
 The DB IDO configuration dump and status/historical event updates also runs asynchronously in a queue not blocking the core anymore. The configuration validation itself runs in parallel allowing fast verification checks.
 That way you are not blind (anymore) during a configuration reload and benefit from a real scalable architecture.
@@ -114,7 +114,7 @@ on a dedicated cluster node. Enable it over there and point it to the carbon cac
 Combine Icinga 2 Core with web user interfaces: Use [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2), but also
 Web 1.x or Classic UI or your own preferred addon.
 
-* Native support for the [Livestatus protocol](2-getting-started.md#setting-up-livestatus)
+* Native support for the [Livestatus protocol](7-livestatus.md#setting-up-livestatus)
 
 In Icinga2, the 'Livestatus' protocol is available for use as either a UNIX, or TCP socket.
 
@@ -124,7 +124,7 @@ Icinga 2 still supports writing performance data files for graphing addons, but 
 capability of writing performance data directly into a Graphite TCP socket simplifying realtime
 monitoring graphs.
 
-* Native support for writing log events to [GELF](11-object-types.md#objecttype-gelfwriter) receivers (graylog2, Logstash)
+* Native support for writing log events to [GELF](12-object-types.md#objecttype-gelfwriter) receivers (graylog2, Logstash)
 
 Icinga 2 will write all check result, state change and notification event logs into a defined
 [GELF](3-monitoring-basics.md#gelfwriter) input receiver. Natively provided by [graylog2](http://www.graylog2.org),
@@ -132,14 +132,14 @@ and as additional input type provided by [Logstash](http://logstash.net).
 
 * Dynamic configuration language
 
-Simple [apply](3-monitoring-basics.md#using-apply) and [assign](9-language-reference.md#group-assign) rules for creating configuration object
+Simple [apply](3-monitoring-basics.md#using-apply) and [assign](10-language-reference.md#group-assign) rules for creating configuration object
 relationships based on patterns. More advanced features for dynamic object generation using
 [apply for rules](3-monitoring-basics.md#using-apply-for) helped with arrays and dictionaries for
 [custom attributes](3-monitoring-basics.md#custom-attributes-apply).
-Supported with [duration literals](9-language-reference.md#duration-literals) for interval
-attributes, [expression operators](9-language-reference.md#expression-operators), [function calls](9-language-reference.md#function-calls) for
-pattern and regex matching and (global) [constants](9-language-reference.md#constants).
-[Check command configuration](12-icinga-template-library.md#plugin-check-commands) for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](12-icinga-template-library.md#icinga-template-library).
+Supported with [duration literals](10-language-reference.md#duration-literals) for interval
+attributes, [expression operators](10-language-reference.md#expression-operators), [function calls](10-language-reference.md#function-calls) for
+pattern and regex matching and (global) [constants](10-language-reference.md#constants).
+[Check command configuration](13-icinga-template-library.md#plugin-check-commands) for common plugins is shipped with Icinga 2 as part of the [Icinga Template Library](13-icinga-template-library.md#icinga-template-library).
 
 * Revamped Commands
 
@@ -163,7 +163,7 @@ the command line, environment variables and custom attribute assignments.
 Multiple [notifications](3-monitoring-basics.md#notifications) for one host or service with existing users
 and notification commands. No more duplicated contacts for different notification types.
 Telling notification filters by state and type, even more fine-grained than Icinga 1.x.
-[Escalation notifications](#notification-escalations) and [delayed notifications](#first-notification-delay)
+[Escalation notifications](3-monitoring-basics.md#notification-escalations) and [delayed notifications](#first-notification-delay)
 are just notifications with an additional begin and/or end time attribute.
 
 * Dependencies between Hosts and Services
@@ -183,7 +183,7 @@ objects and specify their active time window.
 
 * Embedded Health Checks
 
-No more external statistic tool but an [instance](12-icinga-template-library.md#itl-icinga) and [cluster](12-icinga-template-library.md#itl-icinga-cluster) health
+No more external statistic tool but an [instance](13-icinga-template-library.md#itl-icinga) and [cluster](13-icinga-template-library.md#itl-icinga-cluster) health
 check providing direct statistics as performance data for your graphing addon, for example Graphite.
 
 * Compatibility with Icinga 1.x
@@ -194,11 +194,11 @@ All known interfaces are optionally available: [status files](3-monitoring-basic
 [checkresult file reader](3-monitoring-basics.md#check-result-files) too.
 All [Monitoring Plugins](2-getting-started.md#setting-up-check-plugins) can be integrated into Icinga 2 with
 newly created check command configuration if not already provided.
-[Configuration migration](8-migrating-from-icinga-1x.md#configuration-migration) is possible through an external migration tool.
+[Configuration migration](9-migrating-from-icinga-1x.md#configuration-migration) is possible through an external migration tool.
 
-Detailed [migration hints](8-migrating-from-icinga-1x.md#manual-config-migration-hints) explain migration of the Icinga 1.x
+Detailed [migration hints](9-migrating-from-icinga-1x.md#manual-config-migration-hints) explain migration of the Icinga 1.x
 configuration objects into the native Icinga 2 configuration schema.
-Additional information on the differences is documented in the [migration](8-migrating-from-icinga-1x.md#differences-1x-2) chapter.
+Additional information on the differences is documented in the [migration](9-migrating-from-icinga-1x.md#differences-1x-2) chapter.
 
 * Configuration Syntax Highlighting
 

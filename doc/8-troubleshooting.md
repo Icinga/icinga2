@@ -8,7 +8,7 @@
 * Provide complete configuration snippets explaining your problem in detail
 * Provide complete logs targetting your problem
 * If the check command failed - what's the output of your manual plugin tests?
-* In case of [debugging](7-troubleshooting.md#debug) Icinga 2, the full back traces and outputs
+* In case of [debugging](8-troubleshooting.md#debug) Icinga 2, the full back traces and outputs
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
@@ -32,7 +32,7 @@ You can find the debug log file in `/var/log/icinga2/debug.log`.
 The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
 
-That way you can also identify which objects have been created from your [apply rules](9-language-reference.md#apply).
+That way you can also identify which objects have been created from your [apply rules](10-language-reference.md#apply).
 
     # icinga2 object list
 
@@ -91,7 +91,7 @@ You can also filter by name and type:
 
 ## <a id="check-command-definitions"></a> Where are the check command definitions?
 
-Icinga 2 ships additional [plugin check command definitions](12-icinga-template-library.md#plugin-check-commands) which are
+Icinga 2 ships additional [plugin check command definitions](13-icinga-template-library.md#plugin-check-commands) which are
 included using
 
     include <itl>
@@ -152,13 +152,13 @@ to `features-enabled` and that the latter is included in [icinga2.conf](2-gettin
 
 ## <a id="configuration-ignored"></a> Configuration is ignored
 
-* Make sure that the line(s) are not [commented out](9-language-reference.md#comments) (starting with `//` or `#`, or
+* Make sure that the line(s) are not [commented out](10-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
 * Is the configuration file included in [icinga2.conf](2-getting-started.md#icinga2-conf)?
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
-Icinga 2 allows you to import templates using the [import](9-language-reference.md#template-imports) keyword. If these templates
+Icinga 2 allows you to import templates using the [import](10-language-reference.md#template-imports) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 

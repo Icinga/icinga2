@@ -39,7 +39,7 @@ based on your monitoring configuration and status data using [NagVis](http://www
 As well as the Icinga supported web interfaces (Classic UI 1.x, Web 1.x, Web 2) there are a
 number of community provided web interfaces too:
 
-* [Thruk](http://www.thruk.org) based on the [Livestatus](3-monitoring-basics.md#livestatus) feature
+* [Thruk](http://www.thruk.org) based on the [Livestatus](#livestatus) feature
 
 
 ## <a id="plugins"></a> Plugins
@@ -81,9 +81,9 @@ documentation and/or plugin provided README for installation instructions.
 Sometimes plugins contain hard-coded paths to other components. Instead of changing
 the plugin it might be easier to create logical links which is (more) update-safe.
 
-Each plugin requires a [CheckCommand](11-object-types.md#objecttype-checkcommand) object in your
-configuration which can be used in the [Service](11-object-types.md#objecttype-service) or
-[Host](11-object-types.md#objecttype-host) object definition.
+Each plugin requires a [CheckCommand](12-object-types.md#objecttype-checkcommand) object in your
+configuration which can be used in the [Service](12-object-types.md#objecttype-service) or
+[Host](12-object-types.md#objecttype-host) object definition.
 
 There are the following conventions to follow when adding a new command object definition:
 
@@ -93,7 +93,7 @@ in `[ ... ]` then for shell escaping.
 * Define a unique `prefix` for the command's specific command arguments. That way you can safely
 set them on host/service level and you'll always know which command they control.
 * Use command argument default values, e.g. for thresholds
-* Use [advanced conditions](11-object-types.md#objecttype-checkcommand) like `set_if` definitions.
+* Use [advanced conditions](12-object-types.md#objecttype-checkcommand) like `set_if` definitions.
 
 Example for a custom `my-snmp-int` check command:
 
@@ -124,7 +124,7 @@ Example for a custom `my-snmp-int` check command:
     }
 
 You can find an existing `CheckCommand` definition for the `check_snmp_int.pl` plugin
-shipped with the optional [Manubulon Plugin Check Command](12-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
+shipped with the optional [Manubulon Plugin Check Command](13-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
 definitions already.
 
 

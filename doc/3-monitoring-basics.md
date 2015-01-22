@@ -43,7 +43,7 @@ check command.
 The `address` attribute is used by check commands to determine which network
 address is associated with the host object.
 
-Details on troubleshooting check problems can be found [here](7-troubleshooting.md#troubleshooting).
+Details on troubleshooting check problems can be found [here](8-troubleshooting.md#troubleshooting).
 
 ### <a id="host-states"></a> Host States
 
@@ -97,7 +97,7 @@ there is no check available, the `dummy` check command.
 Service checks could also use a `dummy` check, but the common strategy is to
 [integrate an existing plugin](3-monitoring-basics.md#command-plugin-integration) as
 [check command](3-monitoring-basics.md#check-commands) and [reference](3-monitoring-basics.md#command-passing-parameters)
-that in your [Service](11-object-types.md#objecttype-service) object definition.
+that in your [Service](12-object-types.md#objecttype-service) object definition.
 
 ## <a id="configuration-best-practice"></a> Configuration Best Practice
 
@@ -213,18 +213,18 @@ Example for importing objects:
 
 ### <a id="using-apply"></a> Apply objects based on rules
 
-Instead of assigning each object ([Service](11-object-types.md#objecttype-service),
-[Notification](11-object-types.md#objecttype-notification), [Dependency](11-object-types.md#objecttype-dependency),
-[ScheduledDowntime](11-object-types.md#objecttype-scheduleddowntime))
-based on attribute identifiers for example `host_name` objects can be [applied](9-language-reference.md#apply).
+Instead of assigning each object ([Service](12-object-types.md#objecttype-service),
+[Notification](12-object-types.md#objecttype-notification), [Dependency](12-object-types.md#objecttype-dependency),
+[ScheduledDowntime](12-object-types.md#objecttype-scheduleddowntime))
+based on attribute identifiers for example `host_name` objects can be [applied](10-language-reference.md#apply).
 
 Before you start using the apply rules keep the following in mind:
 
 * Define the best match.
     * A set of unique [custom attributes](3-monitoring-basics.md#custom-attributes-apply) for these hosts/services?
     * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
-    * A generic pattern [match](9-language-reference.md#function-calls) on the host/service name?
-    * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](9-language-reference.md#expression-operators)
+    * A generic pattern [match](10-language-reference.md#function-calls) on the host/service name?
+    * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](10-language-reference.md#expression-operators)
 * All expressions must return a boolean value (an empty string is equal to `false` e.g.)
 
 > **Note**
@@ -288,7 +288,7 @@ two condition passes: Either the `customer` host custom attribute is set to `cus
 `OR` the host custom attribute `always_notify` is set to `true`.
 
 The notification is ignored for services whose host name ends with `*internal`
-`OR` the `priority` custom attribute is [less than](9-language-reference.md#expression-operators) `2`.
+`OR` the `priority` custom attribute is [less than](10-language-reference.md#expression-operators) `2`.
 
     template Notification "cust-xy-notification" {
       users = [ "noc-xy", "mgmt-xy" ]
@@ -432,7 +432,7 @@ You can also specifiy the check command that way.
     }
 
 Note that numbers must be explicitely casted to string when adding to strings.
-This can be achieved by wrapping them into the [string()](9-language-reference.md#function-calls) function.
+This can be achieved by wrapping them into the [string()](10-language-reference.md#function-calls) function.
 
 > **Tip**
 >
@@ -545,7 +545,7 @@ the user groups are associated as attributes in `Notification` objects.
 
 If there is a certain number of hosts, services, or users matching a pattern
 it's reasonable to assign the group object to these members.
-Details on the `assign where` syntax can be found [here](9-language-reference.md#apply)
+Details on the `assign where` syntax can be found [here](10-language-reference.md#apply)
 
     object HostGroup "prod-mssql" {
       display_name = "Production MSSQL Servers"
@@ -590,7 +590,7 @@ The user `icingaadmin` in the example below will get notified only on `WARNING` 
 If you don't set the `states` and `types` configuration attributes for the `User`
 object, notifications for all states and types will be sent.
 
-Details on troubleshooting notification problems can be found [here](7-troubleshooting.md#troubleshooting).
+Details on troubleshooting notification problems can be found [here](8-troubleshooting.md#troubleshooting).
 
 > **Note**
 >
@@ -886,11 +886,11 @@ Please check [Runtime Custom Attributes as Environment Variables](3-monitoring-b
 
 ### <a id="check-commands"></a> Check Commands
 
-[CheckCommand](11-object-types.md#objecttype-checkcommand) objects define the command line how
+[CheckCommand](12-object-types.md#objecttype-checkcommand) objects define the command line how
 a check is called.
 
-[CheckCommand](11-object-types.md#objecttype-checkcommand) objects are referenced by
-[Host](11-object-types.md#objecttype-host) and [Service](11-object-types.md#objecttype-service) objects
+[CheckCommand](12-object-types.md#objecttype-checkcommand) objects are referenced by
+[Host](12-object-types.md#objecttype-host) and [Service](12-object-types.md#objecttype-service) objects
 using the `check_command` attribute.
 
 > **Note**
@@ -900,7 +900,7 @@ using the `check_command` attribute.
 
 #### <a id="command-plugin-integration"></a> Integrate the Plugin with a CheckCommand Definition
 
-[CheckCommand](11-object-types.md#objecttype-checkcommand) objects require the [ITL template](12-icinga-template-library.md#itl-plugin-check-command)
+[CheckCommand](12-object-types.md#objecttype-checkcommand) objects require the [ITL template](13-icinga-template-library.md#itl-plugin-check-command)
 `plugin-check-command` to support native plugin based check methods.
 
 Unless you have done so already, download your check plugin and put it
@@ -932,7 +932,7 @@ partition defined (`-p`) it will check all local partitions.
 > Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us.
 
 Next step is to understand how command parameters are being passed from
-a host or service object, and add a [CheckCommand](11-object-types.md#objecttype-checkcommand)
+a host or service object, and add a [CheckCommand](12-object-types.md#objecttype-checkcommand)
 definition based on these required parameters and/or default values.
 
 #### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
@@ -976,7 +976,7 @@ can also be inherited from a parent template using additive inheritance (`+=`).
 > **Note**
 >
 > A proper example for the `check_disk` plugin is already shipped with Icinga 2
-> ready to use with the [plugin check commands](12-icinga-template-library.md#plugin-check-command-disk).
+> ready to use with the [plugin check commands](13-icinga-template-library.md#plugin-check-command-disk).
 
 The host `localhost` with the applied service `basic-partitions` checks a basic set of disk partitions
 with modified custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
@@ -1072,7 +1072,7 @@ That way you can use the `check_http` command definition for both, with and
 without SSL enabled checks saving you duplicated command definitions.
 
 Details on all available options can be found in the
-[CheckCommand object definition](11-object-types.md#objecttype-checkcommand).
+[CheckCommand object definition](12-object-types.md#objecttype-checkcommand).
 
 ### <a id="using-apply-services-command-arguments"></a> Apply Services with Custom Command Arguments
 
@@ -1100,7 +1100,7 @@ the `my-host2` host requires a different port on 2222. Both hosts are in the hos
     }
 
 All hosts in the `my-linux-servers` hostgroup should get the `my-ssh` service applied based on an
-[apply rule](9-language-reference.md#apply). The optional `ssh_port` command argument should be inherited from the host
+[apply rule](10-language-reference.md#apply). The optional `ssh_port` command argument should be inherited from the host
 the service is applied to. If not set, the check command `my-ssh` will omit the argument.
 The `host` argument is special: `skip_key` tells Icinga 2 to ignore the key, and directly put the
 value onto the command line. The `order` attribute specifies that this argument is the first one
@@ -1145,13 +1145,13 @@ The `my-host2` will inherit the `custom_ssh_port` variable to the service and ex
 
 ### <a id="notification-commands"></a> Notification Commands
 
-[NotificationCommand](11-object-types.md#objecttype-notificationcommand) objects define how notifications are delivered to external
+[NotificationCommand](12-object-types.md#objecttype-notificationcommand) objects define how notifications are delivered to external
 interfaces (E-Mail, XMPP, IRC, Twitter, etc).
 
-[NotificationCommand](11-object-types.md#objecttype-notificationcommand) objects are referenced by
-[Notification](11-object-types.md#objecttype-notification) objects using the `command` attribute.
+[NotificationCommand](12-object-types.md#objecttype-notificationcommand) objects are referenced by
+[Notification](12-object-types.md#objecttype-notification) objects using the `command` attribute.
 
-`NotificationCommand` objects require the [ITL template](12-icinga-template-library.md#itl-plugin-notification-command)
+`NotificationCommand` objects require the [ITL template](13-icinga-template-library.md#itl-plugin-notification-command)
 `plugin-notification-command` to support native plugin-based notifications.
 
 > **Note**
@@ -1231,8 +1231,8 @@ check execution if one of these conditions match:
 * The host/service state changes into a [hard state](3-monitoring-basics.md#hard-soft-states)
 * The host/service state recovers from a [soft or hard state](3-monitoring-basics.md#hard-soft-states) to [OK](3-monitoring-basics.md#service-states)/[Up](3-monitoring-basics.md#host-states)
 
-[EventCommand](11-object-types.md#objecttype-eventcommand) objects are referenced by
-[Host](11-object-types.md#objecttype-host) and [Service](11-object-types.md#objecttype-service) objects
+[EventCommand](12-object-types.md#objecttype-eventcommand) objects are referenced by
+[Host](12-object-types.md#objecttype-host) and [Service](12-object-types.md#objecttype-service) objects
 using the `event_command` attribute.
 
 Therefore the `EventCommand` object should define a command line
@@ -1269,7 +1269,7 @@ Example on Debian:
     icinga  ALL=(ALL) NOPASSWD: /etc/init.d/apache2 restart
 
 
-Define a generic [EventCommand](11-object-types.md#objecttype-eventcommand) object `event_by_ssh`
+Define a generic [EventCommand](12-object-types.md#objecttype-eventcommand) object `event_by_ssh`
 which can be used for all event commands triggered using ssh:
 
     /* pass event commands through ssh */
@@ -1370,7 +1370,7 @@ Remote Host Terminal:
 
 ## <a id="dependencies"></a> Dependencies
 
-Icinga 2 uses host and service [Dependency](11-object-types.md#objecttype-dependency) objects
+Icinga 2 uses host and service [Dependency](12-object-types.md#objecttype-dependency) objects
 for determing their network reachability.
 
 A service can depend on a host, and vice versa. A service has an implicit
@@ -1405,7 +1405,7 @@ Rephrased: If the parent service object changes into the `Warning` state, this
 dependency will fail and render all child objects (hosts or services) unreachable.
 
 You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](13-appendix.md#schema-db-ido-extensions).
+in for example [DB IDO](14-appendix.md#schema-db-ido-extensions).
 
 ### <a id="dependencies-implicit-host-service"></a> Implicit Dependencies for Services on Host
 
@@ -1657,7 +1657,7 @@ downtime on NOT-OK state change.
 
 ### <a id="recurring-downtimes"></a> Recurring Downtimes
 
-[ScheduledDowntime objects](11-object-types.md#objecttype-scheduleddowntime) can be used to set up
+[ScheduledDowntime objects](12-object-types.md#objecttype-scheduleddowntime) can be used to set up
 recurring downtimes for services.
 
 Example:
@@ -1728,9 +1728,9 @@ for applying objects for dynamic config generation.
 
 There are several ways of using custom attributes with [apply rules](3-monitoring-basics.md#using-apply):
 
-* As simple attribute literal ([number](9-language-reference.md#numeric-literals), [string](9-language-reference.md#string-literals),
-[boolean](9-language-reference.md#boolean-literals)) for expression conditions (`assign where`, `ignore where`)
-* As [array](9-language-reference.md#array) or [dictionary](9-language-reference.md#dictionary) attribute with nested values
+* As simple attribute literal ([number](10-language-reference.md#numeric-literals), [string](10-language-reference.md#string-literals),
+[boolean](10-language-reference.md#boolean-literals)) for expression conditions (`assign where`, `ignore where`)
+* As [array](10-language-reference.md#array) or [dictionary](10-language-reference.md#dictionary) attribute with nested values
 (e.g. dictionaries in dictionaries) in [apply for](3-monitoring-basics.md#using-apply-for) rules.
 
 Features like [DB IDO](3-monitoring-basics.md#db-ido), Livestatus(#livestatus) or StatusData(#status-data)
@@ -1751,7 +1751,7 @@ which use custom runtime attributes to format their output.
 > **Tip**
 >
 > Custom attributes are identified by the `vars` dictionary attribute as short name.
-> Accessing the different attribute keys is possible using the [index accessor](9-language-reference.md#indexer) `.`.
+> Accessing the different attribute keys is possible using the [index accessor](10-language-reference.md#indexer) `.`.
 
 Custom attributes in command definitions or performance data templates are evaluated at
 runtime when executing a command. These custom attributes cannot be used somewhere else
@@ -1764,13 +1764,13 @@ Arrays can be used to pass multiple arguments with or without repeating the key 
 This helps passing multiple parameters to check plugins requiring them. Prominent
 plugin examples are:
 
-* [check_disk -p](12-icinga-template-library.md#plugin-check-command-disk)
-* [check_nrpe -a](12-icinga-template-library.md#plugin-check-command-nrpe)
-* [check_nscp -l](12-icinga-template-library.md#plugin-check-command-nscp)
-* [check_dns -a](12-icinga-template-library.md#plugin-check-command-dns)
+* [check_disk -p](13-icinga-template-library.md#plugin-check-command-disk)
+* [check_nrpe -a](13-icinga-template-library.md#plugin-check-command-nrpe)
+* [check_nscp -l](13-icinga-template-library.md#plugin-check-command-nscp)
+* [check_dns -a](13-icinga-template-library.md#plugin-check-command-dns)
 
 More details on how to use `repeat_key` and other command argument options can be
-found in [this section](11-object-types.md#objecttype-checkcommand-arguments).
+found in [this section](12-object-types.md#objecttype-checkcommand-arguments).
 
 > **Note**
 >
@@ -2204,7 +2204,7 @@ a forced service check:
 
 ### <a id="external-command-list"></a> External Command List
 
-A list of currently supported external commands can be found [here](13-appendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](14-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -2291,7 +2291,7 @@ You can customize the metric prefix name by using the `host_name_template` and
 `service_name_template` configuration attributes.
 
 The example below uses [runtime macros](3-monitoring-basics.md#runtime-macros) and a
-[global constant](9-language-reference.md#constants) named `GraphiteEnv`. The constant name
+[global constant](10-language-reference.md#constants) named `GraphiteEnv`. The constant name
 is freely definable and should be put in the [constants.conf](2-getting-started.md#constants-conf) file.
 
     const GraphiteEnv = "icinga.env1"
@@ -2385,7 +2385,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
 SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
-[Livestatus](3-monitoring-basics.md#livestatus) feature uses these logs for answering queries to
+[Livestatus](#livestatus) feature uses these logs for answering queries to
 historical tables.
 
 The `CompatLogger` object can be enabled with
@@ -2434,8 +2434,8 @@ by a number of projects including Icinga Web 1.x and 2.
 
 Details on the installation can be found in the [Configuring DB IDO](2-getting-started.md#configuring-db-ido)
 chapter. Details on the configuration can be found in the
-[IdoMysqlConnection](11-object-types.md#objecttype-idomysqlconnection) and
-[IdoPgsqlConnection](11-object-types.md#objecttype-idopgsqlconnection)
+[IdoMysqlConnection](12-object-types.md#objecttype-idomysqlconnection) and
+[IdoPgsqlConnection](12-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
 The DB IDO feature supports [High Availability](4-monitoring-remote-systems.md#high-availability-db-ido) in
 the Icinga 2 cluster.
@@ -2479,7 +2479,7 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](13-appendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](14-appendix.md#schema-db-ido).
 
 
 ## <a id="check-result-files"></a> Check Result Files

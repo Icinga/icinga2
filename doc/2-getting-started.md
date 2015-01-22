@@ -4,7 +4,7 @@ This tutorial is a step-by-step introduction to installing Icinga 2 and
 available Icinga web interfaces. It assumes that you are familiar with
 the system you're installing Icinga 2 on.
 
-Details on troubleshooting problems can be found [here](7-troubleshooting.md#troubleshooting).
+Details on troubleshooting problems can be found [here](8-troubleshooting.md#troubleshooting).
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
@@ -192,7 +192,7 @@ Here's a brief description of the example configuration:
      * to the documentation that is distributed as part of Icinga 2.
      */
 
-Icinga 2 supports [C/C++-style comments](9-language-reference.md#comments).
+Icinga 2 supports [C/C++-style comments](10-language-reference.md#comments).
 
     /**
      * The constants.conf defines global constants.
@@ -263,7 +263,7 @@ By default, you need to make sure to set these constants:
 
 * The `PluginDir` constant must be pointed to your [check plugins](2-getting-started.md#setting-up-check-plugins) path.
 This constant is required by the shipped
-[plugin check command configuration](12-icinga-template-library.md#plugin-check-commands).
+[plugin check command configuration](13-icinga-template-library.md#plugin-check-commands).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
@@ -334,7 +334,7 @@ takes care of setting up the host check command to `hostalive`. If you
 require a different check command, you can override it in the object definition.
 
 The `vars` attribute can be used to define custom attributes which are available
-for check and notification commands. Most of the [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands)
+for check and notification commands. Most of the [Plugin Check Commands](13-icinga-template-library.md#plugin-check-commands)
 in the Icinga Template Library require an `address` attribute.
 
 The custom attribute `os` is evaluated by the `linux-servers` group in
@@ -412,13 +412,13 @@ host and your additional hosts are getting [services](2-getting-started.md#servi
 
 > **Tip**
 >
-> If you don't understand all the attributes and how to use [apply rules](9-language-reference.md#apply)
+> If you don't understand all the attributes and how to use [apply rules](10-language-reference.md#apply)
 > don't worry - the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
 > that in detail.
 
 #### <a id="services-conf"></a> services.conf
 
-These service [apply rules](9-language-reference.md#apply) will show you how to monitor
+These service [apply rules](10-language-reference.md#apply) will show you how to monitor
 the local host, but also allow you to re-use or modify them for
 your own requirements.
 
@@ -438,8 +438,8 @@ Service(s)                                  | Applied on host(s)
 The Debian packages also ship an additional `apt` service check applied to the local host.
 
 The command object `icinga` for the embedded health check is provided by the
-[Icinga Template Library (ITL)](12-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
-`users` and `disk` are all provided by the [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands)
+[Icinga Template Library (ITL)](13-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
+`users` and `disk` are all provided by the [Plugin Check Commands](13-icinga-template-library.md#plugin-check-commands)
 which we enabled earlier by including the `itl` and `plugins` configuration file.
 
 
@@ -466,7 +466,7 @@ these services in [downtimes.conf](2-getting-started.md#downtimes-conf).
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "load"
-is created for each matching host. [Expression operators](9-language-reference.md#expression-operators)
+is created for each matching host. [Expression operators](10-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 Multiple `assign where` condition can be combined with `AND` using the `&&` operator
@@ -484,7 +484,7 @@ In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
 `Linux`.
 You can modify this condition to match multiple expressions by combinding `AND`
-and `OR` using `&&` and `||` [operators](9-language-reference.md#expression-operators), for example
+and `OR` using `&&` and `||` [operators](10-language-reference.md#expression-operators), for example
 `assign where host.address && (vars.os == "Linux" || vars.os == "Windows")`.
 
 
@@ -530,7 +530,7 @@ Once defined like this, the `apply` rule defined below will do the following:
 * loop through all entries in the `host.vars.disks` dictionary. That's `disk` and `disk /` as keys.
 * call `apply` on each, and set the service object name from the provided key
 * inside apply, the `generic-service` template is imported
-* defining the [disk](12-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
+* defining the [disk](13-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
 * adding the `config` dictionary items to `vars`. Simply said, there's now `vars.disk_partition` defined for the
 generated service
 
@@ -593,7 +593,7 @@ Please note that the `to` keyword is important in [notification apply rules](3-m
 defining whether these notifications are applies to hosts or services.
 The `import` keyword imports the specific mail templates defined in [templates.conf](2-getting-started.md#templates-conf).
 
-The `interval` attribute is not explicitly set - it [defaults to 30 minutes](11-object-types.md#objecttype-notification).
+The `interval` attribute is not explicitly set - it [defaults to 30 minutes](12-object-types.md#objecttype-notification).
 
 By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](2-getting-started.md#hosts-conf) attribute we'll
@@ -626,8 +626,8 @@ only the notification commands used by the notification templates defined in [te
 > **Tip**
 >
 > Icinga 2 ships the most common command definitions already in the
-> [Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands) definitions. More details on
-> that topic in the [troubleshooting section](7-troubleshooting.md#check-command-definitions).
+> [Plugin Check Commands](13-icinga-template-library.md#plugin-check-commands) definitions. More details on
+> that topic in the [troubleshooting section](8-troubleshooting.md#check-command-definitions).
 
 You can freely customize these notification commands, and adapt them for your needs.
 Read more on that topic [here](3-monitoring-basics.md#notification-commands).
@@ -638,7 +638,7 @@ The example host defined in [hosts.conf](hosts-conf) already has the
 custom attribute `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 
-This is done by using the [group assign](9-language-reference.md#group-assign) expressions similar
+This is done by using the [group assign](10-language-reference.md#group-assign) expressions similar
 to previously seen [apply rules](3-monitoring-basics.md#using-apply).
 
     object HostGroup "linux-servers" {
@@ -654,7 +654,7 @@ to previously seen [apply rules](3-monitoring-basics.md#using-apply).
     }
 
 Service groups can be grouped together by similar pattern matches.
-The [match() function](9-language-reference.md#function-calls) expects a wildcard match string
+The [match() function](10-language-reference.md#function-calls) expects a wildcard match string
 and the attribute string to match with.
 
     object ServiceGroup "ping" {
@@ -700,7 +700,7 @@ the default `states` and `types` filters for notification apply rules defined in
     }
 
 The `hostalive` check command is shipped with Icinga 2 in the
-[Plugin Check Commands](12-icinga-template-library.md#plugin-check-commands).
+[Plugin Check Commands](13-icinga-template-library.md#plugin-check-commands).
 
 
     template Notification "mail-host-notification" {
@@ -725,7 +725,7 @@ The `hostalive` check command is shipped with Icinga 2 in the
       period = "24x7"
     }
 
-More details on `Notification` object attributes can be found [here](11-object-types.md#objecttype-notification).
+More details on `Notification` object attributes can be found [here](12-object-types.md#objecttype-notification).
 
 
 #### <a id="downtimes-conf"></a> downtimes.conf
@@ -733,7 +733,7 @@ More details on `Notification` object attributes can be found [here](11-object-t
 The `load` service apply rule defined in [services.conf](2-getting-started.md#services-conf) defines
 the `backup_downtime` custom attribute.
 
-The [ScheduledDowntime](11-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
+The [ScheduledDowntime](12-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
 to define the default value for the time ranges required for recurring downtime slots.
 
     apply ScheduledDowntime "backup-downtime" to Service {
@@ -922,7 +922,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoMysqlConnection object](11-object-types.md#objecttype-idomysqlconnection) configuration details.
+[IdoMysqlConnection object](12-object-types.md#objecttype-idomysqlconnection) configuration details.
 
 You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
@@ -1036,7 +1036,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoPgsqlConnection object](11-object-types.md#objecttype-idopgsqlconnection) configuration details.
+[IdoPgsqlConnection object](12-object-types.md#objecttype-idopgsqlconnection) configuration details.
 
 You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
@@ -1102,7 +1102,7 @@ Icinga 2 also is compatible with Icinga 1.x user interfaces
 by providing additional features required as backends.
 
 Some Icinga 1.x interface features will only work in a limited manner due to
-[compatibility reasons](8-migrating-from-icinga-1x.md#differences-1x-2), other features like the
+[compatibility reasons](9-migrating-from-icinga-1x.md#differences-1x-2), other features like the
 statusmap parents are available by dumping the host dependencies as parents.
 Special restrictions are noted specifically in the sections below.
 
