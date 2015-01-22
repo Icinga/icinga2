@@ -254,16 +254,33 @@ int Main(void)
 			try {
 				logLevel = Logger::StringToSeverity(severity);
 			} catch (std::exception&) {
-				/* use the default */
-				Log(LogWarning, "icinga", "Invalid log level set. Using default 'information'.");
+				/* Inform user and exit */
+				Log(LogCritical, "icinga-app", "Invalid log level set. Default is 'information'.");
+				return EXIT_FAILURE;
 			}
 
 			Logger::SetConsoleLogSeverity(logLevel);
 		}
 
 		if (vm.count("library")) {
-			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >()) {
-				(void)Utility::LoadExtensionLibrary(libraryName);
+			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >())
+			{
+				try {
+					(void)Utility::LoadExtensionLibrary(libraryName);
+				}
+#ifdef _WIN32	
+				catch (win32_error &ex) {
+					if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
+						Log(LogCritical, "icinga-app", "Could not load library \"" + libraryName + "\"");
+						return EXIT_FAILURE;
+					}
+				}
+#else /*_WIN32*/
+				catch (std::runtime_error &ex) {
+					Log(LogCritical, "icinga-app", "Could not load library \"" + libraryName + "\"");
+					return EXIT_FAILURE;
+				}
+#endif /*_WIN32*/
 			}
 		}
 
