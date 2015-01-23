@@ -15,7 +15,7 @@ Here's a brief description of the example configuration:
      * to the documentation that is distributed as part of Icinga 2.
      */
 
-Icinga 2 supports [C/C++-style comments](13-language-reference.md#comments).
+Icinga 2 supports [C/C++-style comments](15-language-reference.md#comments).
 
     /**
      * The constants.conf defines global constants.
@@ -49,7 +49,7 @@ The `include` directive can be used to include other files.
 
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
-[Enabling/Disabling Features](6-cli-commands.md#features) for more details.
+[Enabling/Disabling Features](8-cli-commands.md#features) for more details.
 
     /**
      * The repository.d directory contains all configuration objects
@@ -59,7 +59,7 @@ the features which have been enabled with `icinga2 feature enable`. See
 
 This `include_recursive` directive is used for discovery of services on remote clients
 and their generated configuration described in
-[this chapter](5-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
+[this chapter](7-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
 
 
     /**
@@ -86,7 +86,7 @@ By default, you need to make sure to set these constants:
 
 * The `PluginDir` constant must be pointed to your [check plugins](2-getting-started.md#setting-up-check-plugins) path.
 This constant is required by the shipped
-[plugin check command configuration](16-icinga-template-library.md#plugin-check-commands).
+[plugin check command configuration](6-icinga-template-library.md#plugin-check-commands).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
@@ -157,7 +157,7 @@ takes care of setting up the host check command to `hostalive`. If you
 require a different check command, you can override it in the object definition.
 
 The `vars` attribute can be used to define custom attributes which are available
-for check and notification commands. Most of the [Plugin Check Commands](16-icinga-template-library.md#plugin-check-commands)
+for check and notification commands. Most of the [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands)
 in the Icinga Template Library require an `address` attribute.
 
 The custom attribute `os` is evaluated by the `linux-servers` group in
@@ -235,13 +235,13 @@ host and your additional hosts are getting [services](4-configuring-icinga-2.md#
 
 > **Tip**
 >
-> If you don't understand all the attributes and how to use [apply rules](13-language-reference.md#apply)
+> If you don't understand all the attributes and how to use [apply rules](15-language-reference.md#apply)
 > don't worry - the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
 > that in detail.
 
 ### <a id="services-conf"></a> services.conf
 
-These service [apply rules](13-language-reference.md#apply) will show you how to monitor
+These service [apply rules](15-language-reference.md#apply) will show you how to monitor
 the local host, but also allow you to re-use or modify them for
 your own requirements.
 
@@ -261,8 +261,8 @@ Service(s)                                  | Applied on host(s)
 The Debian packages also ship an additional `apt` service check applied to the local host.
 
 The command object `icinga` for the embedded health check is provided by the
-[Icinga Template Library (ITL)](16-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
-`users` and `disk` are all provided by the [Plugin Check Commands](16-icinga-template-library.md#plugin-check-commands)
+[Icinga Template Library (ITL)](6-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
+`users` and `disk` are all provided by the [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands)
 which we enabled earlier by including the `itl` and `plugins` configuration file.
 
 
@@ -289,7 +289,7 @@ these services in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "load"
-is created for each matching host. [Expression operators](13-language-reference.md#expression-operators)
+is created for each matching host. [Expression operators](15-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 Multiple `assign where` condition can be combined with `AND` using the `&&` operator
@@ -307,7 +307,7 @@ In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
 `Linux`.
 You can modify this condition to match multiple expressions by combinding `AND`
-and `OR` using `&&` and `||` [operators](13-language-reference.md#expression-operators), for example
+and `OR` using `&&` and `||` [operators](15-language-reference.md#expression-operators), for example
 `assign where host.address && (vars.os == "Linux" || vars.os == "Windows")`.
 
 
@@ -353,7 +353,7 @@ Once defined like this, the `apply` rule defined below will do the following:
 * loop through all entries in the `host.vars.disks` dictionary. That's `disk` and `disk /` as keys.
 * call `apply` on each, and set the service object name from the provided key
 * inside apply, the `generic-service` template is imported
-* defining the [disk](16-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
+* defining the [disk](6-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
 * adding the `config` dictionary items to `vars`. Simply said, there's now `vars.disk_partition` defined for the
 generated service
 
@@ -416,7 +416,7 @@ Please note that the `to` keyword is important in [notification apply rules](3-m
 defining whether these notifications are applies to hosts or services.
 The `import` keyword imports the specific mail templates defined in [templates.conf](4-configuring-icinga-2.md#templates-conf).
 
-The `interval` attribute is not explicitly set - it [defaults to 30 minutes](15-object-types.md#objecttype-notification).
+The `interval` attribute is not explicitly set - it [defaults to 30 minutes](5-object-types.md#objecttype-notification).
 
 By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](4-configuring-icinga-2.md#hosts-conf) attribute we'll
@@ -449,8 +449,8 @@ only the notification commands used by the notification templates defined in [te
 > **Tip**
 >
 > Icinga 2 ships the most common command definitions already in the
-> [Plugin Check Commands](16-icinga-template-library.md#plugin-check-commands) definitions. More details on
-> that topic in the [troubleshooting section](10-troubleshooting.md#check-command-definitions).
+> [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands) definitions. More details on
+> that topic in the [troubleshooting section](12-troubleshooting.md#check-command-definitions).
 
 You can freely customize these notification commands, and adapt them for your needs.
 Read more on that topic [here](3-monitoring-basics.md#notification-commands).
@@ -461,7 +461,7 @@ The example host defined in [hosts.conf](hosts-conf) already has the
 custom attribute `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 
-This is done by using the [group assign](13-language-reference.md#group-assign) expressions similar
+This is done by using the [group assign](15-language-reference.md#group-assign) expressions similar
 to previously seen [apply rules](3-monitoring-basics.md#using-apply).
 
     object HostGroup "linux-servers" {
@@ -477,7 +477,7 @@ to previously seen [apply rules](3-monitoring-basics.md#using-apply).
     }
 
 Service groups can be grouped together by similar pattern matches.
-The [match() function](13-language-reference.md#function-calls) expects a wildcard match string
+The [match() function](15-language-reference.md#function-calls) expects a wildcard match string
 and the attribute string to match with.
 
     object ServiceGroup "ping" {
@@ -523,7 +523,7 @@ the default `states` and `types` filters for notification apply rules defined in
     }
 
 The `hostalive` check command is shipped with Icinga 2 in the
-[Plugin Check Commands](16-icinga-template-library.md#plugin-check-commands).
+[Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands).
 
 
     template Notification "mail-host-notification" {
@@ -548,7 +548,7 @@ The `hostalive` check command is shipped with Icinga 2 in the
       period = "24x7"
     }
 
-More details on `Notification` object attributes can be found [here](15-object-types.md#objecttype-notification).
+More details on `Notification` object attributes can be found [here](5-object-types.md#objecttype-notification).
 
 
 ### <a id="downtimes-conf"></a> downtimes.conf
@@ -556,7 +556,7 @@ More details on `Notification` object attributes can be found [here](15-object-t
 The `load` service apply rule defined in [services.conf](4-configuring-icinga-2.md#services-conf) defines
 the `backup_downtime` custom attribute.
 
-The [ScheduledDowntime](15-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
+The [ScheduledDowntime](5-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
 to define the default value for the time ranges required for recurring downtime slots.
 
     apply ScheduledDowntime "backup-downtime" to Service {
@@ -586,8 +586,8 @@ objects such as hosts, services or notifications.
 
 ### <a id="satellite-conf"></a> satellite.conf
 
-Ships default templates and dependencies for [monitoring remote clients](5-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
-using service discovery and [config generation](5-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
+Ships default templates and dependencies for [monitoring remote clients](7-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
+using service discovery and [config generation](7-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
 on the master. Can be ignored/removed on setups not using this features.
 
 

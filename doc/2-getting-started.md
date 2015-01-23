@@ -4,7 +4,7 @@ This tutorial is a step-by-step introduction to installing Icinga 2 and
 available Icinga web interfaces. It assumes that you are familiar with
 the system you're installing Icinga 2 on.
 
-Details on troubleshooting problems can be found [here](10-troubleshooting.md#troubleshooting).
+Details on troubleshooting problems can be found [here](12-troubleshooting.md#troubleshooting).
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
@@ -112,7 +112,7 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log` file
 
-You can verify that by calling `icinga2 feature list` [CLI command](6-cli-commands.md#cli-command-feature)
+You can verify that by calling `icinga2 feature list` [CLI command](8-cli-commands.md#cli-command-feature)
 to see which features are enabled and disabled.
 
     # icinga2 feature list
@@ -170,7 +170,7 @@ update the global `PluginDir` constant in your [Icinga 2 configuration](4-config
 This macro is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
-Please refer to the [plugins](7-addons-plugins.md#plugins) chapter for details about how to integrate
+Please refer to the [plugins](9-addons-plugins.md#plugins) chapter for details about how to integrate
 additional check plugins into your Icinga 2 setup.
 
 ## <a id="configuring-db-ido"></a> Configuring DB IDO
@@ -262,7 +262,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoMysqlConnection object](15-object-types.md#objecttype-idomysqlconnection) configuration details.
+[IdoMysqlConnection object](5-object-types.md#objecttype-idomysqlconnection) configuration details.
 
 You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
@@ -376,7 +376,7 @@ The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
 database credentials in this file.
 All available attributes are listed in the
-[IdoPgsqlConnection object](15-object-types.md#objecttype-idopgsqlconnection) configuration details.
+[IdoPgsqlConnection object](5-object-types.md#objecttype-idopgsqlconnection) configuration details.
 
 You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
@@ -491,7 +491,7 @@ The `systemctl` command supports the following actions:
   status              | The `status` action checks if Icinga 2 is running.
   enable              | The `enable` action enables the service being started at system boot time (similar to `chkconfig`)
 
-If you're stuck with configuration errors, you can manually invoke the [configuration validation](6-cli-commands.md#config-validation).
+If you're stuck with configuration errors, you can manually invoke the [configuration validation](8-cli-commands.md#config-validation).
 
     # systemctl enable icinga2
 
@@ -502,7 +502,7 @@ If you're stuck with configuration errors, you can manually invoke the [configur
 ## <a id="setting-up-the-user-interface"></a> Setting up the User Interface
 
 Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces. This chapter explains how
-to set up Icinga Web 2. The [Alternative Frontends](8-alternative-frontends.md#alternative-frontends) chapter can be used as a
+to set up Icinga Web 2. The [Alternative Frontends](10-alternative-frontends.md#alternative-frontends) chapter can be used as a
 starting point for installing some of the other web interfaces which are also available.
 
 
@@ -563,5 +563,5 @@ and packages.
 ### <a id="install-addons"></a> Addons
 
 A number of additional features are available in the form of plugins. A list of popular
-addons is available in the [Addons and Plugins](7-addons-plugins.md#addons-plugins) chapter.
+addons is available in the [Addons and Plugins](9-addons-plugins.md#addons-plugins) chapter.
 

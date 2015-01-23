@@ -39,7 +39,7 @@ based on your monitoring configuration and status data using [NagVis](http://www
 As well as the Icinga supported web interfaces (Classic UI 1.x, Web 1.x, Web 2) there are a
 number of community provided web interfaces too:
 
-* [Thruk](http://www.thruk.org) based on the [Livestatus](9-livestatus.md#setting-up-livestatus) feature
+* [Thruk](http://www.thruk.org) based on the [Livestatus](11-livestatus.md#setting-up-livestatus) feature
 
 
 ## <a id="plugins"></a> Plugins
@@ -81,9 +81,9 @@ documentation and/or plugin provided README for installation instructions.
 Sometimes plugins contain hard-coded paths to other components. Instead of changing
 the plugin it might be easier to create logical links which is (more) update-safe.
 
-Each plugin requires a [CheckCommand](15-object-types.md#objecttype-checkcommand) object in your
-configuration which can be used in the [Service](15-object-types.md#objecttype-service) or
-[Host](15-object-types.md#objecttype-host) object definition.
+Each plugin requires a [CheckCommand](5-object-types.md#objecttype-checkcommand) object in your
+configuration which can be used in the [Service](5-object-types.md#objecttype-service) or
+[Host](5-object-types.md#objecttype-host) object definition.
 
 There are the following conventions to follow when adding a new command object definition:
 
@@ -93,7 +93,7 @@ in `[ ... ]` then for shell escaping.
 * Define a unique `prefix` for the command's specific command arguments. That way you can safely
 set them on host/service level and you'll always know which command they control.
 * Use command argument default values, e.g. for thresholds
-* Use [advanced conditions](15-object-types.md#objecttype-checkcommand) like `set_if` definitions.
+* Use [advanced conditions](5-object-types.md#objecttype-checkcommand) like `set_if` definitions.
 
 Example for a custom `my-snmp-int` check command:
 
@@ -124,7 +124,7 @@ Example for a custom `my-snmp-int` check command:
     }
 
 You can find an existing `CheckCommand` definition for the `check_snmp_int.pl` plugin
-shipped with the optional [Manubulon Plugin Check Command](16-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
+shipped with the optional [Manubulon Plugin Check Command](6-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
 definitions already.
 
 
@@ -154,7 +154,7 @@ or similar.
 > **Tip**
 >
 > Get to know the new configuration format and the advanced [apply](3-monitoring-basics.md#using-apply) rules and
-> use [syntax highlighting](7-addons-plugins.md#configuration-syntax-highlighting) in vim/nano.
+> use [syntax highlighting](9-addons-plugins.md#configuration-syntax-highlighting) in vim/nano.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
 to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).

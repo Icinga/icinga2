@@ -8,7 +8,7 @@
 * Provide complete configuration snippets explaining your problem in detail
 * Provide complete logs targetting your problem
 * If the check command failed - what's the output of your manual plugin tests?
-* In case of [debugging](10-troubleshooting.md#debug) Icinga 2, the full back traces and outputs
+* In case of [debugging](12-troubleshooting.md#debug) Icinga 2, the full back traces and outputs
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
@@ -32,7 +32,7 @@ You can find the debug log file in `/var/log/icinga2/debug.log`.
 The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
 
-That way you can also identify which objects have been created from your [apply rules](13-language-reference.md#apply).
+That way you can also identify which objects have been created from your [apply rules](15-language-reference.md#apply).
 
     # icinga2 object list
 
@@ -91,7 +91,7 @@ You can also filter by name and type:
 
 ## <a id="check-command-definitions"></a> Where are the check command definitions?
 
-Icinga 2 ships additional [plugin check command definitions](16-icinga-template-library.md#plugin-check-commands) which are
+Icinga 2 ships additional [plugin check command definitions](6-icinga-template-library.md#plugin-check-commands) which are
 included using
 
     include <itl>
@@ -109,7 +109,7 @@ or similar.
 * Check the debug log to see if the check command gets executed
 * Verify that failed depedencies do not prevent command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
-* Make sure the [checker](6-cli-commands.md#features) feature is enabled.
+* Make sure the [checker](8-cli-commands.md#features) feature is enabled.
 
 Examples:
 
@@ -131,7 +131,7 @@ Verify the following configuration
 * Do the notification attributes `states`, `types`, `period` match the notification conditions?
 * Do the user attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
-* Make sure the [notification](6-cli-commands.md#features) feature is enabled.
+* Make sure the [notification](8-cli-commands.md#features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
 If notifications are to be sent via mail make sure that the mail program specified exists.
@@ -152,19 +152,19 @@ to `features-enabled` and that the latter is included in [icinga2.conf](4-config
 
 ## <a id="configuration-ignored"></a> Configuration is ignored
 
-* Make sure that the line(s) are not [commented out](13-language-reference.md#comments) (starting with `//` or `#`, or
+* Make sure that the line(s) are not [commented out](15-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
 * Is the configuration file included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf)?
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
-Icinga 2 allows you to import templates using the [import](13-language-reference.md#template-imports) keyword. If these templates
+Icinga 2 allows you to import templates using the [import](15-language-reference.md#template-imports) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 
 ## <a id="troubleshooting-cluster"></a> Cluster Troubleshooting
 
-You should configure the [cluster health checks](5-monitoring-remote-systems.md#cluster-health-check) if you haven't
+You should configure the [cluster health checks](7-monitoring-remote-systems.md#cluster-health-check) if you haven't
 done so already.
 
 > **Note**
@@ -218,7 +218,7 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 * Within a config master zone, only one configuration master is allowed to have its config in `/etc/icinga2/zones.d`.
 ** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes
 ** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`
-* The `icinga2.log` log file will indicate whether this ApiListener [accepts config](5-monitoring-remote-systems.md#zone-config-sync-permissions), or not
+* The `icinga2.log` log file will indicate whether this ApiListener [accepts config](7-monitoring-remote-systems.md#zone-config-sync-permissions), or not
 
 
 ## <a id="debug"></a> Debug Icinga 2

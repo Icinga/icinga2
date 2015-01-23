@@ -8,7 +8,7 @@ status information. It can also be used to send commands.
 >
 > Only install the Livestatus feature if your web interface or addon requires
 > you to do so (for example, [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2)).
-> [Icinga Classic UI](8-alternative-frontends.md#setting-up-icinga-classic-ui) and [Icinga Web](8-alternative-frontends.md#setting-up-icinga-web)
+> [Icinga Classic UI](10-alternative-frontends.md#setting-up-icinga-classic-ui) and [Icinga Web](10-alternative-frontends.md#setting-up-icinga-web)
 > do not use Livestatus as backend.
 
 The Livestatus component that is distributed as part of Icinga 2 is a
@@ -59,7 +59,7 @@ Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
 * Unix socket (default)
 * TCP socket
 
-Details on the configuration can be found in the [LivestatusListener](15-object-types.md#objecttype-livestatuslistener)
+Details on the configuration can be found in the [LivestatusListener](5-object-types.md#objecttype-livestatuslistener)
 object configuration.
 
 ### <a id="livestatus-get-queries"></a> Livestatus GET Queries
@@ -185,8 +185,8 @@ Default separators.
   downtimes     | services  | status attributes
   timeperiods   | &nbsp;    | name and is inside flag
   endpoints     | &nbsp;    | config and status attributes
-  log           | services, hosts, contacts, commands | parses [compatlog](15-object-types.md#objecttype-compatlogger) and shows log attributes
-  statehist     | hosts, services | parses [compatlog](15-object-types.md#objecttype-compatlogger) and aggregates state change attributes
+  log           | services, hosts, contacts, commands | parses [compatlog](5-object-types.md#objecttype-compatlogger) and shows log attributes
+  statehist     | hosts, services | parses [compatlog](5-object-types.md#objecttype-compatlogger) and aggregates state change attributes
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 

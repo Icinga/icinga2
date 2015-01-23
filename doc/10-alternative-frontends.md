@@ -158,7 +158,7 @@ When changing Icinga Web configuration files make sure to clear the config cache
 > **Note**
 >
 > If you are using an older version of Icinga Web, install it like this and adapt
-> the configuration manually as shown in [the RPM notes](8-alternative-frontends.md#icinga-web-rpm-notes):
+> the configuration manually as shown in [the RPM notes](10-alternative-frontends.md#icinga-web-rpm-notes):
 >
 > `apt-get install --no-install-recommends icinga-web`
 
