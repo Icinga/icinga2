@@ -1,7 +1,5 @@
 # <a id="icinga-template-library"></a> Icinga Template Library
 
-## <a id="itl-overview"></a> Overview
-
 The Icinga Template Library (ITL) implements standard templates and object
 definitions for commonly used services.
 
@@ -61,8 +59,6 @@ Name         | Description
 cluster_zone | **Optional.** The zone name. Defaults to "$host.name$".
 
 # <a id="plugin-check-commands"></a> Plugin Check Commands
-
-## <a id="plugin-check-command-overview"></a> Overview
 
 The Plugin Check Commands provides example configuration for plugin check commands
 provided by the Monitoring Plugins project.
@@ -613,8 +609,6 @@ The `running_kernel` check command does not support any vars.
 
 # <a id="snmp-manubulon-plugin-check-commands"></a> SNMP Manubulon Plugin Check Commands
 
-## <a id="snmp-manubulon-plugin-check-commands-overview"></a> Overview
-
 The `SNMP Manubulon Plugin Check Commands` provide example configuration for plugin check
 commands provided by the [SNMP Manubulon project](http://nagios.manubulon.com/index_snmp.html).
 
@@ -622,7 +616,7 @@ The SNMP manubulon plugin check commands assume that the global constant named `
 is set to the path where the Manubublon SNMP plugins are installed.
 
 You can enable these plugin check commands by adding the following the include directive in your
-configuration [icinga2.conf](2-getting-started.md#icinga2-conf) file:
+configuration [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) file:
 
     include <manubulon>
 

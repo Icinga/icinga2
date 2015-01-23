@@ -16,6 +16,7 @@ bool(value)                     | Converts the value to a bool.
 random()                        | Returns a random value between 0 and RAND_MAX (as defined in stdlib.h).
 log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
+typeof(value)                   | Returns the type object for a value.
 exit(integer)                   | Terminates the application.
 
 ## <a id="math-object"></a> Math object
@@ -356,7 +357,7 @@ Signature:
 
     function add(value);
 
-TODO
+Adds a new value after the last element in the array.
 
 ### <a id="array-clear"></a> Array#clear
 
@@ -364,13 +365,14 @@ Signature:
 
     function clear();
 
-TODO
+Removes all elements from the array.
 
 ### <a id="array-clone"></a> Array#clone
 
     function clone();
 
-TODO
+Returns a copy of the array. Note that for elements which are reference values (e.g. objects such
+as arrays and dictionaries) only the references are copied.
 
 ### <a id="array-contains"></a> Array#contains
 
@@ -378,7 +380,7 @@ Signature:
 
     function contains(value);
 
-TODO
+Returns true if the array contains the specified value, false otherwise.
 
 ### <a id="array-len"></a> Array#len
 
@@ -386,7 +388,7 @@ Signature:
 
     function len();
 
-TODO
+Returns the number of elements contained in the array.
 
 ### <a id="array-remove"></a> Array#remove
 
@@ -394,7 +396,7 @@ Signature:
 
     function remove(index);
 
-TODO
+Removes the element at the specified zero-based index.
 
 ### <a id="array-set"></a> Array#set
 
@@ -402,7 +404,8 @@ Signature:
 
     function set(index, value);
 
-TODO
+Sets the element at the zero-based index to the specified value. The `index` must refer to an element
+which already exists in the array.
 
 ### <a id="array-sort"></a> Array#sort
 
@@ -422,7 +425,8 @@ Signature:
 
     function clone();
 
-TODO
+Returns a copy of the dictionary. Note that for elements which are reference values (e.g. objects such
+as arrays and dictionaries) only the references are copied.
 
 ### <a id="dictionary-contains"></a> Dictionary#contains
 
@@ -430,7 +434,7 @@ Signature:
 
     function contains(key);
 
-TODO
+Returns true if a dictionary item with the specified `key` exists, false otherwise.
 
 ### <a id="dictionary-len"></a> Dictionary#len
 
@@ -438,7 +442,7 @@ Signature:
 
     function len();
 
-TODO
+Returns the number of items contained in the dictionary.
 
 ### <a id="dictionary-remove"></a> Dictionary#remove
 
@@ -446,7 +450,8 @@ Signature:
 
     function remove(key);
 
-TODO
+Removes the item with the specified `key`. Trying to remove an item which does not exist
+is a no-op.
 
 ### <a id="dictionary-set"></a> Dictionary#set
 
@@ -454,7 +459,7 @@ Signature:
 
     function set(key, value);
 
-TODO
+Creates or updates an item with the specified `key` and `value`.
 
 ## <a id="scriptfunction-type"></a> Function type
 

@@ -39,7 +39,7 @@ based on your monitoring configuration and status data using [NagVis](http://www
 As well as the Icinga supported web interfaces (Classic UI 1.x, Web 1.x, Web 2) there are a
 number of community provided web interfaces too:
 
-* [Thruk](http://www.thruk.org) based on the [Livestatus](7-livestatus.md#setting-up-livestatus) feature
+* [Thruk](http://www.thruk.org) based on the [Livestatus](9-livestatus.md#setting-up-livestatus) feature
 
 
 ## <a id="plugins"></a> Plugins
@@ -54,7 +54,7 @@ list of popular community sites which host check plugins:
 * [Icinga Wiki](https://wiki.icinga.org)
 
 The recommended way of setting up these plugins is to copy them to a common directory
-and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](2-getting-started.md#constants-conf)
+and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](4-configuring-icinga-2.md#constants-conf)
 configuration file:
 
     # cp check_snmp_int.pl /opt/plugins
@@ -81,9 +81,9 @@ documentation and/or plugin provided README for installation instructions.
 Sometimes plugins contain hard-coded paths to other components. Instead of changing
 the plugin it might be easier to create logical links which is (more) update-safe.
 
-Each plugin requires a [CheckCommand](12-object-types.md#objecttype-checkcommand) object in your
-configuration which can be used in the [Service](12-object-types.md#objecttype-service) or
-[Host](12-object-types.md#objecttype-host) object definition.
+Each plugin requires a [CheckCommand](15-object-types.md#objecttype-checkcommand) object in your
+configuration which can be used in the [Service](15-object-types.md#objecttype-service) or
+[Host](15-object-types.md#objecttype-host) object definition.
 
 There are the following conventions to follow when adding a new command object definition:
 
@@ -93,7 +93,7 @@ in `[ ... ]` then for shell escaping.
 * Define a unique `prefix` for the command's specific command arguments. That way you can safely
 set them on host/service level and you'll always know which command they control.
 * Use command argument default values, e.g. for thresholds
-* Use [advanced conditions](12-object-types.md#objecttype-checkcommand) like `set_if` definitions.
+* Use [advanced conditions](15-object-types.md#objecttype-checkcommand) like `set_if` definitions.
 
 Example for a custom `my-snmp-int` check command:
 
@@ -124,7 +124,7 @@ Example for a custom `my-snmp-int` check command:
     }
 
 You can find an existing `CheckCommand` definition for the `check_snmp_int.pl` plugin
-shipped with the optional [Manubulon Plugin Check Command](13-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
+shipped with the optional [Manubulon Plugin Check Command](16-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
 definitions already.
 
 
@@ -144,3 +144,66 @@ The `Monitoring Plugin API` is defined in the [Monitoring Plugins Development Gu
 
 There are no output length restrictions using Icinga 2. This is different to the
 [Icinga 1.x plugin api definition](http://docs.icinga.org/latest/en/pluginapi.html#outputlengthrestrictions).
+
+## <a id="configuration-tools"></a> Configuration Tools
+
+If you require your favourite configuration tool to export Icinga 2 configuration, please get in
+touch with their developers. The Icinga project does not provide a configuration web interface
+or similar.
+
+> **Tip**
+>
+> Get to know the new configuration format and the advanced [apply](3-monitoring-basics.md#using-apply) rules and
+> use [syntax highlighting](7-addons-plugins.md#configuration-syntax-highlighting) in vim/nano.
+
+If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
+to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).
+
+These tools are in development and require feedback and tests:
+
+* [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
+* [Puppet Module](https://github.com/Icinga/puppet-icinga2)
+
+## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
+
+Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano` editors.
+The RHEL, SUSE and Debian package `icinga2-common` install these files into
+`/usr/share/*/icinga2-common/syntax`. Sources provide these files in `tools/syntax`.
+
+### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
+
+Create a new local vim configuration storage, if not already existing.
+Edit `vim/ftdetect/icinga2.vim` if your paths to the Icinga 2 configuration
+differ.
+
+    $ PREFIX=~/.vim
+    $ mkdir -p $PREFIX/{syntax,ftdetect}
+    $ cp vim/syntax/icinga2.vim $PREFIX/syntax/
+    $ cp vim/ftdetect/icinga2.vim $PREFIX/ftdetect/
+
+Test it:
+
+    $ vim /etc/icinga2/conf.d/templates.conf
+
+### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
+
+Copy the `/etc/nanorc` sample file to your home directory. Create the `/etc/nano` directory
+and copy the provided `icinga2.nanorc` into it.
+
+    $ cp /etc/nanorc ~/.nanorc
+
+    # mkdir -p /etc/nano
+    # cp icinga2.nanorc /etc/nano/
+
+Then include the icinga2.nanorc file in your ~/.nanorc by adding the following line:
+
+    $ vim ~/.nanorc
+
+    ## Icinga 2
+    include "/etc/nano/icinga2.nanorc"
+
+Test it:
+
+    $ nano /etc/icinga2/conf.d/templates.conf
+
+
