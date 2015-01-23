@@ -40,10 +40,10 @@ public:
 	threshold(const std::wstring&);
 
 	//return TRUE if the threshold is broken
-	bool rend(const double b);
+	bool rend(const double val, const double max = 100);
 
 	//returns a printable string of the threshold
-	std::wstring pString();
+	std::wstring pString(const double max = 100);
 
 };
 std::wstring removeZero(double);

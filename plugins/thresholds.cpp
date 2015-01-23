@@ -86,39 +86,44 @@ threshold::threshold(const wstring& stri)
 }
 
 //return TRUE if the threshold is broken
-bool threshold::rend(const double b)
+bool threshold::rend(const double val, const double max)
 {
+	double upperAbs = upper;
+	double lowerAbs = lower;
+
+	if (perc) {
+		upperAbs = upper / 100 * max;
+		lowerAbs = lower / 100 * max;
+	}
+
 	if (!set)
 		return set;
-	if (lower == upper)
-		return b > upper == legal;
+	if (lowerAbs == upperAbs)
+		return val > upperAbs == legal;
 	else
-		return (b < lower || upper < b) != legal;
+		return (val < lowerAbs || upperAbs < val) != legal;
 }
 
 //returns a printable string of the threshold
-std::wstring threshold::pString()
+std::wstring threshold::pString(const double max)
 {
 	if (!set)
 		return L"";
+	//transform percentages to abolute values
+	double lowerAbs = lower/100 * max;
+	double upperAbs = upper/100 * max;
 
-	std::wstring s, lowerStr = removeZero(lower), upperStr = removeZero(upper);
+	std::wstring s, lowerStr = removeZero(lowerAbs), 
+					upperStr = removeZero(upperAbs);
 	if (!legal)
 		s.append(L"!");
 
 	if (lower != upper) {
-		if (perc)
-			s.append(L"[").append(lowerStr).append(L"%").append(L"-")
-			.append(upperStr).append(L"%").append(L"]");
-		else
-			s.append(L"[").append(lowerStr).append(L"-")
-			.append(upperStr).append(L"]");
-	} else {
-		if (perc)
-			s = lowerStr.append(L"%");
-		else
-			s = lowerStr;
-	}
+		s.append(L"[").append(lowerStr).append(L"-")
+		.append(upperStr).append(L"]");
+	} else 
+		s = lowerStr;
+	
 	return s;
 }
 

@@ -27,7 +27,7 @@
 
 #include "boost/program_options.hpp"
 
-#define VERSION 1.0
+#define VERSION 1.1
 
 namespace po = boost::program_options;
 
@@ -209,48 +209,46 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 {
 	if (debug)
 		wcout << L"Constructing output string" << endl;
-	state state = OK;
-	double tCap = 0, tFree = 0;
-	std::wstringstream perf, prePerf;
+
+	vector<wstring> wsDrives, wsPerf;
 	wstring unit = BunitStr(printInfo.unit);
 
-	for (vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); ++it) {
-		tCap += it->cap; tFree += it->free;
-		perf << std::fixed << L" " << it->name << L"=" << removeZero(it->free) << unit << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << removeZero(tCap);
+	state state = OK;
+	wstring output = L"DISK OK - free space:";
+
+	double tCap = 0, tFree = 0;
+	for (vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); it++) {
+		tCap += it->cap;
+		tFree += it->free;
+		wsDrives.push_back(it->name + L" " + removeZero(it->free) + L" " + unit + L" (" + 
+						   removeZero(std::round(it->free/it->cap * 100.0)) + L"%); ");
+		wsPerf.push_back(L" " + it->name + L"=" + removeZero(it->free) + unit + L";" + 
+						 printInfo.warn.pString(it->cap) + L";" + printInfo.crit.pString(it->cap) + L";0;"
+						 + removeZero(it->cap));
 	}
 
-	prePerf << L" | disk=" << removeZero(tFree) << unit << L";" << printInfo.warn.pString() << L";"
-		<< printInfo.crit.pString() << L";0;" << removeZero(tCap);
-
-	if (printInfo.warn.perc) {
-		if (printInfo.warn.rend((tFree / tCap) * 100.0))
-			state = WARNING;
-	} else {
-		if (printInfo.warn.rend(tFree))
-			state = WARNING;
+	if (printInfo.warn.rend(tFree, tCap)) {
+		state = WARNING;
+		output = L"DISK WARNING - free space:";
 	}
 
-	if (printInfo.crit.perc) {
-		if (printInfo.crit.rend((tFree / tCap) * 100.0))
-			state = CRITICAL;
-	} else {
-		if (printInfo.crit.rend(tFree))
-			state = CRITICAL;
+	if (printInfo.crit.rend(tFree, tCap)) {
+		state = CRITICAL;
+		output = L"DISK CRITICAL - free space:";
 	}
 
-	switch (state) {
-	case OK:
-		wcout << L"DISK OK " << std::fixed << removeZero(tFree) << unit << prePerf.str() << perf.str() << endl;
-		break;
-	case WARNING:
-		wcout << L"DISK WARNING " << std::fixed << removeZero(tFree) << unit << prePerf.str() << perf.str() << endl;
-		break;
-	case CRITICAL:
-		wcout << L"DISK CRITICAL " << std::fixed << removeZero(tFree) << unit << prePerf.str() << perf.str() << endl;
-		break;
-	}
+	wcout << output;
+	if (vDrives.size() > 1)
+		wcout << L"Total " << tFree << unit << L" (" << removeZero(std::round(tFree/tCap * 100.0)) << L"%); ";
 
+	for (vector<wstring>::const_iterator it = wsDrives.begin(); it != wsDrives.end(); it++)
+		wcout << *it;
+	wcout << L"|";
+
+	for (vector<wstring>::const_iterator it = wsPerf.begin(); it != wsPerf.end(); it++)
+		wcout << *it;
+
+	wcout << endl;
 	return state;
 }
 
@@ -369,11 +367,11 @@ bool getFreeAndCap(drive& drive, const Bunit& unit)
 		wcout << L"\tcap: " << tempFree.QuadPart << endl;
 	drive.cap = round((tempTotal.QuadPart / pow(1024.0, unit)));
 	if (debug)
-		wcout << L"\tAfter converion: " << drive.cap << endl
+		wcout << L"\tAfter conversion: " << drive.cap << endl
 		<< L"\tfree: " << tempFree.QuadPart << endl;
 	drive.free = round((tempFree.QuadPart / pow(1024.0, unit)));
 	if (debug)
-		wcout << L"\tAfter converion: " << drive.free << endl << endl;
+		wcout << L"\tAfter conversion: " << drive.free << endl << endl;
 
 	return TRUE;
 }
