@@ -487,7 +487,7 @@ Note the use of angle brackets instead of double quotes. This causes the
 config compiler to search the include search paths for the specified
 file. By default $PREFIX/share/icinga2/include is included in the list of search
 paths. Additional include search paths can be added using
-[command-line options](8-cli-commands.md#config-include-path).
+[command-line options](7-cli-commands.md#config-include-path).
 
 Wildcards are not permitted when using angle brackets.
 

@@ -721,9 +721,9 @@ daemon for passing check results between instances.
 * Icinga 2 does not support any 1.x NEB addons for check load distribution
 
 * If your current setup consists of instances distributing the check load, you should consider
-building a [load distribution](7-monitoring-remote-systems.md#cluster-scenarios-load-distribution) setup with Icinga 2.
+building a [load distribution](8-monitoring-remote-systems.md#cluster-scenarios-load-distribution) setup with Icinga 2.
 * If your current setup includes active/passive clustering with external tools like Pacemaker/DRBD
-consider the [High Availability](7-monitoring-remote-systems.md#cluster-scenarios-high-availability) setup.
+consider the [High Availability](8-monitoring-remote-systems.md#cluster-scenarios-high-availability) setup.
 * If you have build your own custom configuration deployment and check result collecting mechanism
 you should re-design your setup and re-evaluate your requirements, and how they may be fulfilled
 using the Icinga 2 cluster capabilities.
@@ -777,7 +777,7 @@ Icinga 2 only uses a small set of [global constants](15-language-reference.md#co
 you to specify certain different setting such as the `NodeName` in a cluster scenario.
 
 Aside from that, the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) should take care of including
-global constants, enabled [features](8-cli-commands.md#features) and the object configuration.
+global constants, enabled [features](7-cli-commands.md#features) and the object configuration.
 
 ### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories
 
@@ -1436,7 +1436,7 @@ Unlike Icinga 1.x the Icinga 2 daemon reload happens asynchronously.
 * parent process continues with old configuration objects and the event scheduling
 (doing checks, replicating cluster events, triggering alert notifications, etc.)
 * validation NOT ok: child process terminates, parent process continues with old configuration state
-(this is ESSENTIAL for the [cluster config synchronisation](7-monitoring-remote-systems.md#cluster-zone-config-sync))
+(this is ESSENTIAL for the [cluster config synchronisation](8-monitoring-remote-systems.md#cluster-zone-config-sync))
 * validation ok: child process signals parent process to terminate and save its current state
 (all events until now) into the icinga2 state file
 * parent process shuts down writing icinga2.state file
@@ -1491,6 +1491,6 @@ distribution out-of-the-box. Furthermore comments, downtimes, and other stateful
 not synced between the master and slave nodes. There are addons available solving the check
 and configuration distribution problems Icinga 1.x distributed monitoring currently suffers from.
 
-Icinga 2 implements a new built-in [distributed monitoring architecture](7-monitoring-remote-systems.md#distributed-monitoring-high-availability),
+Icinga 2 implements a new built-in [distributed monitoring architecture](8-monitoring-remote-systems.md#distributed-monitoring-high-availability),
 including config and check distribution, IPv4/IPv6 support, SSL certificates and zone support for DMZ.
 High Availability and load balancing are also part of the Icinga 2 Cluster setup.

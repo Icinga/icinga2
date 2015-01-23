@@ -112,7 +112,7 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log` file
 
-You can verify that by calling `icinga2 feature list` [CLI command](8-cli-commands.md#cli-command-feature)
+You can verify that by calling `icinga2 feature list` [CLI command](7-cli-commands.md#cli-command-feature)
 to see which features are enabled and disabled.
 
     # icinga2 feature list
@@ -491,7 +491,7 @@ The `systemctl` command supports the following actions:
   status              | The `status` action checks if Icinga 2 is running.
   enable              | The `enable` action enables the service being started at system boot time (similar to `chkconfig`)
 
-If you're stuck with configuration errors, you can manually invoke the [configuration validation](8-cli-commands.md#config-validation).
+If you're stuck with configuration errors, you can manually invoke the [configuration validation](7-cli-commands.md#config-validation).
 
     # systemctl enable icinga2
 

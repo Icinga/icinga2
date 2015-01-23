@@ -1,5 +1,12 @@
 # <a id="configuring-icinga2-first-steps"></a> Configuring Icinga 2: First Steps
 
+This chapter prodides an introduction to the configuration files which are automatically created
+when installing the Icinga 2 packages.
+
+If you're interested in a detailed explanation of each language feature used in those
+configuration files you can find more information in the [Language Reference](15-language-reference.md#language-reference)
+chapter.
+
 ## <a id="icinga2-conf"></a> icinga2.conf
 
 An example configuration file is installed for you in `/etc/icinga2/icinga2.conf`.
@@ -49,7 +56,7 @@ The `include` directive can be used to include other files.
 
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
-[Enabling/Disabling Features](8-cli-commands.md#features) for more details.
+[Enabling/Disabling Features](7-cli-commands.md#features) for more details.
 
     /**
      * The repository.d directory contains all configuration objects
@@ -59,7 +66,7 @@ the features which have been enabled with `icinga2 feature enable`. See
 
 This `include_recursive` directive is used for discovery of services on remote clients
 and their generated configuration described in
-[this chapter](7-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
+[this chapter](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
 
 
     /**
@@ -586,8 +593,8 @@ objects such as hosts, services or notifications.
 
 ### <a id="satellite-conf"></a> satellite.conf
 
-Ships default templates and dependencies for [monitoring remote clients](7-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
-using service discovery and [config generation](7-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
+Ships default templates and dependencies for [monitoring remote clients](8-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
+using service discovery and [config generation](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
 on the master. Can be ignored/removed on setups not using this features.
 
 

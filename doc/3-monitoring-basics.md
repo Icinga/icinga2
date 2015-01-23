@@ -248,8 +248,8 @@ dictionaries](#using-apply-for) for example provided by
 > **Tip**
 >
 > Building configuration in that dynamic way requires detailed information
-> of the generated objects. Use the `object list` [CLI command](8-cli-commands.md#cli-command-object)
-> after successful [configuration validation](8-cli-commands.md#config-validation).
+> of the generated objects. Use the `object list` [CLI command](7-cli-commands.md#cli-command-object)
+> after successful [configuration validation](7-cli-commands.md#config-validation).
 
 
 #### <a id="using-apply-expressions"></a> Apply Rules Expressions
@@ -437,8 +437,8 @@ This can be achieved by wrapping them into the [string()](15-language-reference.
 > **Tip**
 >
 > Building configuration in that dynamic way requires detailed information
-> of the generated objects. Use the `object list` [CLI command](8-cli-commands.md#cli-command-object)
-> after successful [configuration validation](8-cli-commands.md#config-validation).
+> of the generated objects. Use the `object list` [CLI command](7-cli-commands.md#cli-command-object)
+> after successful [configuration validation](7-cli-commands.md#config-validation).
 
 
 #### <a id="using-apply-object attributes"></a> Use Object Attributes in Apply Rules
@@ -594,7 +594,7 @@ Details on troubleshooting notification problems can be found [here](12-troubles
 
 > **Note**
 >
-> Make sure that the [notification](8-cli-commands.md#features) feature is enabled on your master instance
+> Make sure that the [notification](7-cli-commands.md#features) feature is enabled on your master instance
 > in order to execute notification commands.
 
 You should choose which information you (and your notified users) are interested in
@@ -895,7 +895,7 @@ using the `check_command` attribute.
 
 > **Note**
 >
-> Make sure that the [checker](8-cli-commands.md#features) feature is enabled in order to
+> Make sure that the [checker](7-cli-commands.md#features) feature is enabled in order to
 > execute checks.
 
 #### <a id="command-plugin-integration"></a> Integrate the Plugin with a CheckCommand Definition
@@ -1156,7 +1156,7 @@ interfaces (E-Mail, XMPP, IRC, Twitter, etc).
 
 > **Note**
 >
-> Make sure that the [notification](8-cli-commands.md#features) feature is enabled on your master instance
+> Make sure that the [notification](7-cli-commands.md#features) feature is enabled on your master instance
 > in order to execute notification commands.
 
 Below is an example using runtime macros from Icinga 2 (such as `$service.output$` for
@@ -2437,7 +2437,7 @@ chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](5-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](5-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
-The DB IDO feature supports [High Availability](7-monitoring-remote-systems.md#high-availability-db-ido) in
+The DB IDO feature supports [High Availability](8-monitoring-remote-systems.md#high-availability-db-ido) in
 the Icinga 2 cluster.
 
 The following example query checks the health of the current Icinga 2 instance
