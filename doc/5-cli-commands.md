@@ -112,7 +112,7 @@ you can also use the `--library` command-line option.
 
 [Global constants](10-language-reference.md#constants) can be set using the `--define` command-line option.
 
-#### <a id="config-include-path"> Config Include Path
+#### <a id="config-include-path"></a> Config Include Path
 
 When including files you can specify that the include search path should be
 checked. You can do this by putting your configuration file name in angle

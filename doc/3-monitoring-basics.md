@@ -1733,7 +1733,7 @@ There are several ways of using custom attributes with [apply rules](3-monitorin
 * As [array](10-language-reference.md#array) or [dictionary](10-language-reference.md#dictionary) attribute with nested values
 (e.g. dictionaries in dictionaries) in [apply for](3-monitoring-basics.md#using-apply-for) rules.
 
-Features like [DB IDO](3-monitoring-basics.md#db-ido), Livestatus(#livestatus) or StatusData(#status-data)
+Features like [DB IDO](3-monitoring-basics.md#db-ido), Livestatus(#setting-up-livestatus) or StatusData(#status-data)
 dump this column as encoded JSON string, and set `is_json` resp. `cv_is_json` to `1`.
 
 If arrays are used in runtime macros (for example `$host.groups$`) all entries
@@ -2385,7 +2385,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
 SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
-[Livestatus](#livestatus) feature uses these logs for answering queries to
+[Livestatus](7-livestatus.md#setting-up-livestatus) feature uses these logs for answering queries to
 historical tables.
 
 The `CompatLogger` object can be enabled with

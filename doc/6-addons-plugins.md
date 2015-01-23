@@ -39,7 +39,7 @@ based on your monitoring configuration and status data using [NagVis](http://www
 As well as the Icinga supported web interfaces (Classic UI 1.x, Web 1.x, Web 2) there are a
 number of community provided web interfaces too:
 
-* [Thruk](http://www.thruk.org) based on the [Livestatus](#livestatus) feature
+* [Thruk](http://www.thruk.org) based on the [Livestatus](7-livestatus.md#setting-up-livestatus) feature
 
 
 ## <a id="plugins"></a> Plugins

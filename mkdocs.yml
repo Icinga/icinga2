@@ -19,3 +19,4 @@ pages:
 theme: readthedocs
 markdown_extensions: [smarty]
 extra_javascript: [scroll.js]
+include_search: true

@@ -14,7 +14,7 @@ and distribution you are running.
 
   Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | [Upstream](https://packages.debian.org/sid/icinga2), [DebMon](http://debmon.org/packages/debmon-wheezy/icinga2), [Icinga Repository](http://packages.icinga.org/debian/)
+  Debian                  | [Upstream](https://packages.debian.org/sid/icinga2), [debmon](http://debmon.org/packages/debmon-wheezy/icinga2), [Icinga Repository](http://packages.icinga.org/debian/)
   Ubuntu                  | [Upstream](https://launchpad.net/ubuntu/+source/icinga2), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga), [Icinga Repository](http://packages.icinga.org/ubuntu/)
   RHEL/CentOS             | [Icinga Repository](http://packages.icinga.org/epel/)
   openSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
@@ -34,9 +34,7 @@ Below is a list with examples for the various distributions.
 Debian (debmon):
 
     # wget -O - http://debmon.org/debmon/repo.key 2>/dev/null | apt-key add -
-    # cat >/etc/apt/sources.list.d/debmon.list<<EOF
-    deb http://debmon.org/debmon debmon-wheezy main
-    EOF
+    # echo 'deb http://debmon.org/debmon debmon-wheezy main' >/etc/apt/sources.list.d/debmon.list
     # apt-get update
 
 Ubuntu (PPA):
@@ -1202,7 +1200,7 @@ the Classic UI using the following packages:
   RHEL/SUSE     | icinga2-classicui-config icinga-gui
 
 The Debian packages require additional packages which are provided by the
-[Debian Monitoring Project](http://www.debmon.org) (`DebMon`) repository.
+[Debian Monitoring Project](http://www.debmon.org) (`debmon`) repository.
 
 `libjs-jquery-ui` requires at least version `1.10.*` which is not available
 in Debian 7 (Wheezy) and Ubuntu 12.04 LTS (Precise). Add the following repositories
@@ -1210,7 +1208,7 @@ to satisfy this dependency:
 
   Distribution  		| Package Repositories
   ------------------------------|------------------------------
-  Debian Wheezy 		| [wheezy-backports](http://backports.debian.org/Instructions/) or [DebMon](http://www.debmon.org)
+  Debian Wheezy 		| [wheezy-backports](http://backports.debian.org/Instructions/) or [debmon](http://www.debmon.org)
   Ubuntu 12.04 LTS (Precise)    | [Icinga PPA](https://launchpad.net/~formorer/+archive/icinga)
 
 On all distributions other than Debian you may have to restart both your web

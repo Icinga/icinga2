@@ -1,4 +1,4 @@
-## <a id="setting-up-livestatus"></a> Setting up Livestatus
+## <a id="setting-up-livestatus"></a> Livestatus
 
 The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
 implements a query protocol that lets users query their Icinga instance for
@@ -16,7 +16,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus](#livestatus) section.
+in the [Livestatus Schema](14-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -42,7 +42,7 @@ In order for queries and commands to work you will need to add your query user
 The Debian packages use `nagios` as the user and group name. Make sure to change `icingacmd` to
 `nagios` if you're using Debian.
 
-Change "www-data" to the user you're using to run queries.
+Change `www-data` to the user you're using to run queries.
 
 In order to use the historical tables provided by the livestatus feature (for example, the
 `log` table) you need to have the `CompatLogger` feature enabled. By default these logs
