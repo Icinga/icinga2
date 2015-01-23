@@ -400,6 +400,14 @@ Value ConditionalExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) co
 	return Empty;
 }
 
+Value WhileExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	while (m_Condition->Evaluate(frame, dhint).ToBool())
+		m_LoopBody->Evaluate(frame, dhint);
+
+	return Empty;
+}
+
 Value ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	BOOST_THROW_EXCEPTION(InterruptExecutionError(m_Operand->Evaluate(frame)));

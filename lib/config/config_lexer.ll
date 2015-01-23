@@ -204,6 +204,7 @@ return				return T_RETURN;
 for				return T_FOR;
 if				return T_IF;
 else				return T_ELSE;
+while				return T_WHILE;
 =\>				return T_FOLLOWS;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;

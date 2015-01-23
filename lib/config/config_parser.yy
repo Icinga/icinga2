@@ -174,6 +174,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_FOR "for (T_FOR)"
 %token T_IF "if (T_IF)"
 %token T_ELSE "else (T_ELSE)"
+%token T_WHILE "while (T_WHILE)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
 
 %type <text> identifier
@@ -643,6 +644,13 @@ lterm: type
 		Expression *expr = $2;
 		BindToScope(expr, ScopeLocal);
 		$$ = new SetExpression(expr, $3, $4, @$);
+	}
+	| T_WHILE '(' rterm ')' rterm_scope
+	{
+		DictExpression *aloop = dynamic_cast<DictExpression *>($5);
+		aloop->MakeInline();
+
+		$$ = new WhileExpression($3, aloop, @$);
 	}
 	| rterm_side_effect
 	;

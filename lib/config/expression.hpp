@@ -632,6 +632,28 @@ private:
 	Expression *m_FalseBranch;
 };
 
+class I2_CONFIG_API WhileExpression : public DebuggableExpression
+{
+public:
+	WhileExpression(Expression *condition, Expression *loop_body, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Condition(condition), m_LoopBody(loop_body)
+	{ }
+
+	~WhileExpression(void)
+	{
+		delete m_Condition;
+		delete m_LoopBody;
+	}
+
+protected:
+	virtual Value DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+
+private:
+	Expression *m_Condition;
+	Expression *m_LoopBody;
+};
+
+
 class I2_CONFIG_API ReturnExpression : public UnaryExpression
 {
 public:

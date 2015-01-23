@@ -668,6 +668,20 @@ This example prints the log message "Taking the 'true' branch" and the `a` varia
 
 The value of an if/else construct is null if the condition evaluates to false and no else branch is given.
 
+## <a id="while-loops"></a> While Loops
+
+The `while` statement checks a condition and executes the loop body when the condition evaluates to `true`.
+This is repeated until the condition is no longer true.
+
+Example:
+
+    var num = 5
+
+    while (num > 5) {
+        log("Test")
+        num -= 1
+    }
+
 ## <a id="for-loops"></a> For Loops
 
 The `for` statement can be used to iterate over arrays and dictionaries.
