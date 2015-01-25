@@ -123,15 +123,12 @@ Example for a custom `my-snmp-int` check command:
 	  vars.snmp_crit = "0,600"
     }
 
-You can find an existing `CheckCommand` definition for the `check_snmp_int.pl` plugin
-shipped with the optional [Manubulon Plugin Check Command](6-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
-definitions already.
-
+Icinga 2 has built-in check command definitions for the [Manubulon Plugin Checks](6-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
 
 For further information on your monitoring configuration read the
-[monitoring basics](3-monitoring-basics.md#monitoring-basics).
-You can find plugins (additional to the ones at [Monitoring Plugins](https://www.monitoring-plugins.org)) over at
-[Icinga Exchange](https://exchange.icinga.org)
+[Monitoring Basics](3-monitoring-basics.md#monitoring-basics) chapter.
+
+You can find additional plugins at the [Icinga Exchange](https://exchange.icinga.org)
 
 More details on the plugins can also be found on the Icinga Wiki at https://wiki.icinga.org
 

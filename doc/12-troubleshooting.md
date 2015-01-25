@@ -91,13 +91,13 @@ You can also filter by name and type:
 
 ## <a id="check-command-definitions"></a> Where are the check command definitions?
 
-Icinga 2 ships additional [plugin check command definitions](6-icinga-template-library.md#plugin-check-commands) which are
+Icinga 2 features a number of built-in [check command definitions](6-icinga-template-library.md#plugin-check-commands) which are
 included using
 
     include <itl>
     include <plugins>
 
-in the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file. These configurations will be overridden
+in the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
 on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
 `LocalStateDir + "/share/icinga2/includes"`.
 

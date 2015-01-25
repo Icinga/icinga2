@@ -79,21 +79,15 @@ and their generated configuration described in
 You can put your own configuration files in the [conf.d](4-configuring-icinga-2.md#conf-d) directory. This
 directive makes sure that all of your own configuration files are included.
 
-> **Tip**
->
-> The example configuration is shipped in this directory too. You can either
-> remove it entirely, or adapt the existing configuration structure with your
-> own object configuration.
-
 ## <a id="constants-conf"></a> constants.conf
 
 The `constants.conf` configuration file can be used to define global constants.
 
 By default, you need to make sure to set these constants:
 
-* The `PluginDir` constant must be pointed to your [check plugins](2-getting-started.md#setting-up-check-plugins) path.
-This constant is required by the shipped
-[plugin check command configuration](6-icinga-template-library.md#plugin-check-commands).
+* The `PluginDir` constant must be set to the path where the [Monitoring Project plugins](2-getting-started.md#setting-up-check-plugins) are installed.
+This constant is used by a number of 
+[built-in check command definitions](6-icinga-template-library.md#plugin-check-commands).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
@@ -139,7 +133,7 @@ way of deploying Icinga 2 configuration.
 Further details on configuration best practice and how to build your
 own strategy is described in [this chapter](3-monitoring-basics.md#configuration-best-practice).
 
-Available configuration files shipped by default:
+Available configuration files which are installed by default:
 
 * [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
 * [services.conf](4-configuring-icinga-2.md#services-conf)
@@ -265,7 +259,7 @@ Service(s)                                  | Applied on host(s)
 `http`, optional: `Icinga Web 2`            | All hosts with custom attribute `http_vhosts` defined as dictionary
 `disk`, `disk /`                            | All hosts with custom attribute `disks` defined as dictionary
 
-The Debian packages also ship an additional `apt` service check applied to the local host.
+The Debian packages also include an additional `apt` service check applied to the local host.
 
 The command object `icinga` for the embedded health check is provided by the
 [Icinga Template Library (ITL)](6-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
@@ -415,7 +409,7 @@ Defines the `icingaadmin` User and the `icingaadmins` UserGroup. The latter is u
 Notifications for check alerts are an integral part or your
 Icinga 2 monitoring stack.
 
-The shipped example defines two notification apply rules for hosts and services.
+The examples in this file define two notification apply rules for hosts and services.
 Both `apply` rules match on the same condition: They are only applied if the
 nested dictionary attribute `notification.mail` is set.
 
@@ -452,12 +446,6 @@ filters can be read in [this chapter](3-monitoring-basics.md#notifications).
 
 This is the place where your own command configuration can be defined. By default
 only the notification commands used by the notification templates defined in [templates.conf](4-configuring-icinga-2.md#templates-conf).
-
-> **Tip**
->
-> Icinga 2 ships the most common command definitions already in the
-> [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands) definitions. More details on
-> that topic in the [troubleshooting section](12-troubleshooting.md#check-command-definitions).
 
 You can freely customize these notification commands, and adapt them for your needs.
 Read more on that topic [here](3-monitoring-basics.md#notification-commands).
@@ -508,12 +496,8 @@ and the attribute string to match with.
 
 ### <a id="templates-conf"></a> templates.conf
 
-All shipped example configuration objects use generic global templates by
-default. Be it setting a default `check_command` attribute in the `generic-host`
-templates for your hosts defined in [hosts.conf](4-configuring-icinga-2.md#hosts-conf), or defining
-the default `states` and `types` filters for notification apply rules defined in
-[notifications.conf](4-configuring-icinga-2.md#notifications-conf).
-
+Most of the example configuration objects use generic global templates by
+default:
 
     template Host "generic-host" {
       max_check_attempts = 5
@@ -529,7 +513,7 @@ the default `states` and `types` filters for notification apply rules defined in
       retry_interval = 30s
     }
 
-The `hostalive` check command is shipped with Icinga 2 in the
+The `hostalive` check command is part of the
 [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands).
 
 
@@ -586,14 +570,14 @@ to define the default value for the time ranges required for recurring downtime 
 
 ### <a id="timeperiods-conf"></a> timeperiods.conf
 
-This file ships the default timeperiod definitions for `24x7`, `9to5`
+This file contains the default timeperiod definitions for `24x7`, `9to5`
 and `never`. Timeperiod objects are referenced by `*period`
 objects such as hosts, services or notifications.
 
 
 ### <a id="satellite-conf"></a> satellite.conf
 
-Ships default templates and dependencies for [monitoring remote clients](8-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
+Includes default templates and dependencies for [monitoring remote clients](8-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
 using service discovery and [config generation](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
 on the master. Can be ignored/removed on setups not using this features.
 

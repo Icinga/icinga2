@@ -1,6 +1,6 @@
 ## <a id="cli-commands"></a> Icinga 2 CLI Commands
 
-Icinga 2 ships its own integrated CLI commands supporting bash-autocompletion.
+Icinga 2 comes with a number of CLI commands which support bash autocompletion.
 
 These CLI commands will allow you to use certain functionality
 provided by and around the Icinga 2 daemon.
@@ -12,12 +12,11 @@ Run `icinga2` without any arguments to get a list of all available global
 options.
 
     # icinga2
-
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-
+    
     Usage:
       icinga2 <command> [<arguments>]
-
+    
     Supported commands:
       * daemon (starts Icinga 2)
       * feature disable (disables specified feature)
@@ -59,7 +58,7 @@ options.
       * repository zone remove (removes a Zone object)
       * variable get (gets a variable)
       * variable list (lists all variables)
-
+    
     Global options:
       -h [ --help ]          show this help message
       -V [ --version ]       show version information
@@ -69,9 +68,9 @@ options.
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
-
+    
     Command options:
-
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
 
@@ -181,9 +180,7 @@ is returned. More details in the [configuration validation](7-cli-commands.md#co
 
 ### <a id="cli-command-feature"></a> CLI command: Feature
 
-The CLI commands for `enable` and `disable` feature support bash auto-completion
-and will only suggest features for the corresponding context. Like disabling a
-feature will only bring up all enabled features.
+The `feature enable` and `feature disable` commands can be used to enable and disable features:
 
     # icinga2 feature disable <tab>
     checker       --color       --define      --help        --include     --library     --log-level   mainlog       notification  --version
@@ -191,6 +188,13 @@ feature will only bring up all enabled features.
     # icinga2 feature enable <tab>
     api           command       debuglog      graphite      icingastatus  ido-pgsql     --library     --log-level   statusdata    --version
     --color       compatlog     --define      --help        ido-mysql     --include     livestatus    perfdata      syslog
+
+The `feature list` command shows which features are currently enabled:
+
+    # icinga2 feature list
+    Disabled features: agent command compatlog debuglog gelf graphite icingastatus notification perfdata statusdata syslog
+    Enabled features: api checker livestatus mainlog
+
 
 ### <a id="cli-command-node"></a> CLI command: Node
 

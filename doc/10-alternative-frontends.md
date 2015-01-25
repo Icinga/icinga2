@@ -62,7 +62,7 @@ Therefore you need to setup the [DB IDO feature](2-getting-started.md#configurin
 ### <a id="installing-icinga-web"></a> Installing Icinga Web 1.x
 
 The Icinga package repository has both Debian and RPM packages. You can install
-Icinga Web using the following packages (RPMs ship an additional configuration package):
+Icinga Web using the following packages:
 
   Distribution  | Packages
   --------------|-------------------------------------------------------
@@ -76,7 +76,6 @@ Details can be found in the package `README` files, for example [README.RHEL](ht
 
 The Icinga Web RPM packages install the schema files into
 `/usr/share/doc/icinga-web-*/schema` (`*` means package version).
-The Icinga Web dist tarball ships the schema files in `etc/schema`.
 
 On SuSE-based distributions the schema files are installed in
 `/usr/share/doc/packages/icinga-web/schema`.

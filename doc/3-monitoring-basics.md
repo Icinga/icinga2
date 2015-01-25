@@ -307,7 +307,7 @@ The notification is ignored for services whose host name ends with `*internal`
 
 #### <a id="using-apply-services"></a> Apply Services to Hosts
 
-The sample configuration already ships a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
+The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
 and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.
 
 The example for `ssh` applies a service object to all hosts with the `address`
@@ -350,7 +350,7 @@ Detailed examples can be found in the [dependencies](3-monitoring-basics.md#depe
 
 #### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
 
-The sample confituration ships an example in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
+The sample confituration includes an example in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
 
 Detailed examples can be found in the [recurring downtimes](3-monitoring-basics.md#recurring-downtimes) chapter.
 
@@ -362,7 +362,7 @@ apply rules objects based on set (array or dictionary). That way you'll save qui
 of a lot of duplicated apply rules by combining them into one generic generating
 the object name with or without a prefix.
 
-The sample configuration already ships a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
+The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
 and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.
 
 Imagine a different example: You are monitoring your switch (hosts) with many
@@ -619,7 +619,7 @@ to the defined notifications. That way you'll save duplicated attributes in each
       period = "24x7"
     }
 
-The time period `24x7` is shipped as example configuration with Icinga 2.
+The time period `24x7` is included as example configuration with Icinga 2.
 
 Use the `apply` keyword to create `Notification` objects for your services:
 
@@ -905,7 +905,7 @@ using the `check_command` attribute.
 
 Unless you have done so already, download your check plugin and put it
 into the [PluginDir](4-configuring-icinga-2.md#constants-conf) directory. The following example uses the
-`check_disk` plugin shipped with the Monitoring Plugins package.
+`check_disk` plugin contained in the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
 double-quoted string arguments for proper shell escaping.
@@ -2494,7 +2494,7 @@ skipping the external command pipe.
 
 Several clustered/distributed environments and check-aggregation addons
 use that method. In order to support step-by-step migration of these
-environments, Icinga 2 ships the `CheckResultReader` object.
+environments, Icinga 2 supports the `CheckResultReader` object.
 
 There is no feature configuration available, but it must be defined
 on-demand in your Icinga 2 objects configuration.

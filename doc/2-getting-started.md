@@ -45,12 +45,13 @@ Ubuntu (PPA):
 RHEL/CentOS:
 
     # rpm --import http://packages.icinga.org/icinga.key
-    # wget http://packages.icinga.org/epel/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
+    # curl -o /etc/yum.repos.d/ICINGA-release.repo http://packages.icinga.org/epel/ICINGA-release.repo
     # yum makecache
 
 Fedora:
 
-    # wget http://packages.icinga.org/fedora/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
+    # rpm --import http://packages.icinga.org/icinga.key
+    # curl -o /etc/yum.repos.d/ICINGA-release.repo http://packages.icinga.org/fedora/ICINGA-release.repo
     # yum makecache
 
 SLES:
@@ -95,13 +96,6 @@ RHEL/CentOS 7 and Fedora use [systemd](2-getting-started.md#systemd-service):
 
     # systemctl enable icinga2
     # systemctl start icinga2
-
-Some parts of Icinga 2's functionality are available as separate packages:
-
-  Name                    | Description
-  ------------------------|--------------------------------
-  icinga2-ido-mysql       | [DB IDO](2-getting-started.md#configuring-db-ido) provider module for MySQL
-  icinga2-ido-pgsql       | [DB IDO](2-getting-started.md#configuring-db-ido) provider module for PostgreSQL
 
 ### <a id="installation-enabled-features"></a> Enabled Features during Installation
 
@@ -214,7 +208,7 @@ SUSE:
 
 RHEL based distributions do not automatically set a secure root password. Do that **now**:
 
-    # /usr/bin/mysql_secure_installation
+    # mysql_secure_installation
 
 #### <a id="installing-database-mysql-modules"></a> Installing the IDO modules for MySQL
 
@@ -236,9 +230,9 @@ SUSE:
 
 > **Note**
 >
-> Upstream Debian packages provide a database configuration wizard by default.
-> You can skip the automated setup and install/upgrade the database manually
-> if you prefer that.
+> The Debian/Ubuntu packages provide a database configuration wizard by
+> default. You can skip the automated setup and install/upgrade the
+> database manually if you prefer that.
 
 #### <a id="setting-up-mysql-db"></a> Setting up the MySQL database
 
@@ -248,7 +242,6 @@ Set up a MySQL database for Icinga 2:
 
     mysql>  CREATE DATABASE icinga;
             GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
-            quit
 
 After creating the database you can import the Icinga 2 IDO schema using the
 following command:
@@ -259,10 +252,11 @@ following command:
 #### <a id="enabling-ido-mysql"></a> Enabling the IDO MySQL module
 
 The package provides a new configuration file that is installed in
-`/etc/icinga2/features-available/ido-mysql.conf`. You will need to update the
-database credentials in this file.
-All available attributes are listed in the
-[IdoMysqlConnection object](5-object-types.md#objecttype-idomysqlconnection) configuration details.
+`/etc/icinga2/features-available/ido-mysql.conf`. You will need to
+update the database credentials in this file.
+
+All available attributes are explained in the
+[IdoMysqlConnection object](5-object-types.md#objecttype-idomysqlconnection) chapter.
 
 You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
 
@@ -373,10 +367,11 @@ using the following command:
 #### <a id="enabling-ido-postgresql"></a> Enabling the IDO PostgreSQL module
 
 The package provides a new configuration file that is installed in
-`/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update the
-database credentials in this file.
-All available attributes are listed in the
-[IdoPgsqlConnection object](5-object-types.md#objecttype-idopgsqlconnection) configuration details.
+`/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update
+the database credentials in this file.
+
+All available attributes are explained in the
+[IdoPgsqlConnection object](5-object-types.md#objecttype-idopgsqlconnection) chapter.
 
 You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
 
@@ -427,10 +422,9 @@ The webserver's user is different between distributions so you might have to cha
 
 Change "www-data" to the user you're using to run queries.
 
-> **Note**
->
-> Packages will do that automatically. Verify that by running `id <your-webserver-user>` and skip this
-> step.
+You can verify that the user has been successfully added to the `icingacmd` group using the `id` command:
+
+    id <your-webserver-user>
 
 ## <a id="running-icinga2"></a> Running Icinga 2
 
@@ -440,6 +434,8 @@ Icinga 2's init script is installed in `/etc/init.d/icinga2` by default:
 
     # /etc/init.d/icinga2
     Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
+
+The init script supports the following actions:
 
   Command             | Description
   --------------------|------------------------
@@ -451,15 +447,15 @@ Icinga 2's init script is installed in `/etc/init.d/icinga2` by default:
   status              | The `status` action checks if Icinga 2 is running.
 
 By default the Icinga 2 daemon is running as `icinga` user and group
-using the init script. Using Debian packages the user and group are set to `nagios`
-for historical reasons.
+using the init script. Using Debian packages the user and group are set to
+`nagios` for historical reasons.
 
 ### <a id="systemd-service"></a> systemd Service
 
-Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The Icinga 2
-packages automatically install the necessary systemd unit files.
+Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
+Icinga 2 packages automatically install the necessary systemd unit files.
 
-The Icinga 2 systemd service can be (re)started, reloaded, stopped and also queried for its current status.
+The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also queried for its current status.
 
     # systemctl status icinga2
     icinga2.service - Icinga host/service/network monitoring system
@@ -491,19 +487,22 @@ The `systemctl` command supports the following actions:
   status              | The `status` action checks if Icinga 2 is running.
   enable              | The `enable` action enables the service being started at system boot time (similar to `chkconfig`)
 
-If you're stuck with configuration errors, you can manually invoke the [configuration validation](7-cli-commands.md#config-validation).
+Examples:
 
     # systemctl enable icinga2
 
     # systemctl restart icinga2
     Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
 
+If you're stuck with configuration errors, you can manually invoke the [configuration validation](7-cli-commands.md#config-validation).
 
 ## <a id="setting-up-the-user-interface"></a> Setting up the User Interface
 
-Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces. This chapter explains how
-to set up Icinga Web 2. The [Alternative Frontends](10-alternative-frontends.md#alternative-frontends) chapter can be used as a
-starting point for installing some of the other web interfaces which are also available.
+Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
+This chapter explains how to set up Icinga Web 2. The
+[Alternative Frontends](10-alternative-frontends.md#alternative-frontends)
+chapter can be used as a starting point for installing some of the other web
+interfaces which are also available.
 
 
 #### <a id="icinga2-user-interface-webserver"></a> Webserver
@@ -512,17 +511,22 @@ Debian/Ubuntu:
 
     # apt-get install apache2
 
-RHEL/CentOS/Fedora:
+RHEL/CentOS 6:
 
     # yum install httpd
-    # chkconfig httpd on && service httpd start
-    ## RHEL7
-    # systemctl enable httpd && systemctl start httpd
+    # chkconfig httpd on
+    # service httpd start
+
+RHEL/CentOS 7/Fedora:
+
+    # systemctl enable httpd
+    # systemctl start httpd
 
 SUSE:
 
     # zypper install apache2
-    # chkconfig on && service apache2 start
+    # chkconfig on
+    # service apache2 start
 
 #### <a id="icinga2-user-interface-firewall-rules"></a> Firewall Rules
 
@@ -538,30 +542,19 @@ RHEL/CentOS 7 specific:
 
 ### <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
 
-Icinga Web 2 supports `DB IDO` or `Livestatus` as backends.
+Icinga Web 2 currently requires `DB IDO` as a backend. You need to install and configure the [DB IDO backend](2-getting-started.md#configuring-db-ido) if you
+haven't already done so.
 
-Using DB IDO as backend, you need to install and configure the
-[DB IDO backend](2-getting-started.md#configuring-db-ido).
+In order to use commands in Web 2 you will also need to [set up the external command pipe](2-getting-started.md#setting-up-external-command-pipe).
 
-In order to use commands in Web 2 you need to [set up the external command pipe](2-getting-started.md#setting-up-external-command-pipe).
+[Icinga Web 2](https://github.com/Icinga/icingaweb2) features a
+web-based setup wizard which will guide you through the setup process.
 
-[Icinga Web 2](https://github.com/Icinga/icingaweb2) ships its own
-web-based setup wizard which will guide you through the entire setup process.
-
-Generate the Webserver configuration and a setup token using its local cli
-and proceed with the web setup when accessing `/icingaweb2` after reloading
-your webserver configuration.
-
-Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md)
-shipped with `Icinga Web 2` for further instructions on how to install
-`Icinga Web 2` and to configure backends, resources and instances manually.
-
-Check the [Icinga website](https://www.icinga.org) for release announcements
-and packages.
+Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md) for further instructions on how to install `Icinga Web 2`.
 
 
 ### <a id="install-addons"></a> Addons
 
-A number of additional features are available in the form of plugins. A list of popular
+A number of additional features are available in the form of addons. A list of popular
 addons is available in the [Addons and Plugins](9-addons-plugins.md#addons-plugins) chapter.
 
