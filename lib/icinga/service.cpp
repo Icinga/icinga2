@@ -178,6 +178,9 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 		} else if (macro == "last_check") {
 			*result = Convert::ToString((long)cr->GetExecutionEnd());
 			return true;
+		} else if (macro == "check_source") {
+			*result = cr->GetCheckSource();
+			return true;
 		}
 	}
 

@@ -2045,6 +2045,7 @@ hosts or services:
   host.output                  | The last check's output.
   host.perfdata                | The last check's performance data.
   host.last_check              | The timestamp when the last check was executed.
+  host.check_source            | The monitoring instance that performed the last check.
   host.num_services            | Number of services associated with the host.
   host.num_services_ok         | Number of services associated with the host which are in an `OK` state.
   host.num_services_warning    | Number of services associated with the host which are in a `WARNING` state.
@@ -2076,6 +2077,7 @@ services:
   service.output             | The last check's output.
   service.perfdata           | The last check's performance data.
   service.last_check         | The timestamp when the last check was executed.
+  service.check_source       | The monitoring instance that performed the last check.
 
 ### <a id="command-runtime-macros"></a> Command Runtime Macros
 
