@@ -1,10 +1,8 @@
 # <a id="getting-started"></a> Getting Started
 
 This tutorial is a step-by-step introduction to installing Icinga 2 and
-available Icinga web interfaces. It assumes that you are familiar with
-the system you're installing Icinga 2 on.
-
-Details on troubleshooting problems can be found [here](12-troubleshooting.md#troubleshooting).
+Icinga Web 2. It assumes that you are familiar with the operating system
+you're using to install Icinga 2.
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
@@ -78,24 +76,21 @@ Debian/Ubuntu:
 
     # apt-get install icinga2
 
-RHEL/CentOS/Fedora:
+RHEL/CentOS 5/6:
 
     # yum install icinga2
+    # chkconfig icinga2 on
+    # service icinga2 start
+
+RHEL/CentOS 7 and Fedora:
+
+    # yum install icinga2
+    # systemctl enable icinga2
+    # systemctl start icinga2
 
 SLES/openSUSE:
 
     # zypper install icinga2
-
-On RHEL/CentOS and SLES you will need to use `chkconfig` and `service` to enable and start
-the `icinga2` service:
-
-    # chkconfig icinga2 on
-    # service icinga2 start
-
-RHEL/CentOS 7 and Fedora use [systemd](2-getting-started.md#systemd-service):
-
-    # systemctl enable icinga2
-    # systemctl start icinga2
 
 ### <a id="installation-enabled-features"></a> Enabled Features during Installation
 
@@ -142,13 +137,6 @@ services are working properly.
 The recommended way of installing these standard plugins is to use your
 distribution's package manager.
 
-> **Note**
->
-> The `Nagios Plugins` project was renamed to `Monitoring Plugins`
-> in January 2014. At the time of this writing some packages are still
-> using the old name while some distributions have adopted the new package
-> name `monitoring-plugins` already.
-
 For your convenience here is a list of package names for some of the more
 popular operating systems/distributions:
 
@@ -161,21 +149,94 @@ OS X (MacPorts)        | nagios-plugins     | /opt/local/libexec
 
 Depending on which directory your plugins are installed into you may need to
 update the global `PluginDir` constant in your [Icinga 2 configuration](4-configuring-icinga-2.md#constants-conf).
-This macro is used by the check command definitions contained in the Icinga Template Library
+This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
 Please refer to the [plugins](9-addons-plugins.md#plugins) chapter for details about how to integrate
 additional check plugins into your Icinga 2 setup.
 
-## <a id="configuring-db-ido"></a> Configuring DB IDO
+## <a id="running-icinga2"></a> Running Icinga 2
+
+### <a id="init-script"></a> Init Script
+
+Icinga 2's init script is installed in `/etc/init.d/icinga2` by default:
+
+    # /etc/init.d/icinga2
+    Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
+
+The init script supports the following actions:
+
+  Command             | Description
+  --------------------|------------------------
+  start               | The `start` action starts the Icinga 2 daemon.
+  stop                | The `stop` action stops the Icinga 2 daemon.
+  restart             | The `restart` action is a shortcut for running the `stop` action followed by `start`.
+  reload              | The `reload` action sends the `HUP` signal to Icinga 2 which causes it to restart. Unlike the `restart` action `reload` does not wait until Icinga 2 has restarted.
+  checkconfig         | The `checkconfig` action checks if the `/etc/icinga2/icinga2.conf` configuration file contains any errors.
+  status              | The `status` action checks if Icinga 2 is running.
+
+By default the Icinga 2 daemon is running as `icinga` user and group
+using the init script. Using Debian packages the user and group are set to
+`nagios` for historical reasons.
+
+### <a id="systemd-service"></a> systemd Service
+
+Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
+Icinga 2 packages automatically install the necessary systemd unit files.
+
+The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also queried for its current status.
+
+    # systemctl status icinga2
+    icinga2.service - Icinga host/service/network monitoring system
+       Loaded: loaded (/usr/lib/systemd/system/icinga2.service; disabled)
+       Active: active (running) since Mi 2014-07-23 13:39:38 CEST; 15s ago
+      Process: 21692 ExecStart=/usr/sbin/icinga2 -c ${ICINGA2_CONFIG_FILE} -d -e ${ICINGA2_ERROR_LOG} -u ${ICINGA2_USER} -g ${ICINGA2_GROUP} (code=exited, status=0/SUCCESS)
+      Process: 21674 ExecStartPre=/usr/sbin/icinga2-prepare-dirs /etc/sysconfig/icinga2 (code=exited, status=0/SUCCESS)
+     Main PID: 21727 (icinga2)
+       CGroup: /system.slice/icinga2.service
+               └─21727 /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -d -e /var/log/icinga2/error.log -u icinga -g icinga --no-stack-rlimit
+
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 309 Service(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 User(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 15 Notification(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 4 ScheduledDowntime(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 UserGroup(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 IcingaApplication(s).
+    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 8 Dependency(s).
+    Jul 23 13:39:38 nbmif systemd[1]: Started Icinga host/service/network monitoring system.
+
+The `systemctl` command supports the following actions:
+
+  Command             | Description
+  --------------------|------------------------
+  start               | The `start` action starts the Icinga 2 daemon.
+  stop                | The `stop` action stops the Icinga 2 daemon.
+  restart             | The `restart` action is a shortcut for running the `stop` action followed by `start`.
+  reload              | The `reload` action sends the `HUP` signal to Icinga 2 which causes it to restart. Unlike the `restart` action `reload` does not wait until Icinga 2 has restarted.
+  status              | The `status` action checks if Icinga 2 is running.
+  enable              | The `enable` action enables the service being started at system boot time (similar to `chkconfig`)
+
+Examples:
+
+    # systemctl enable icinga2
+
+    # systemctl restart icinga2
+    Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
+
+If you're stuck with configuration errors, you can manually invoke the [configuration validation](7-cli-commands.md#config-validation).
+
+## <a id="setting-up-the-user-interface"></a> Setting up Icinga Web 2
+
+Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
+This chapter explains how to set up Icinga Web 2. The
+[Alternative Frontends](10-alternative-frontends.md#alternative-frontends)
+chapter can be used as a starting point for installing some of the other web
+interfaces which are also available.
 
 The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of exporting
 all configuration and status information into a database. The IDO database is used
 by a number of projects including [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2),
 Icinga Reporting or Icinga Web 1.x.
-
-You only need to set up the IDO modules if you're planning to use one of the web interfaces or
-another external project which uses the IDO database.
 
 There is a separate module for each database backend. At present support for
 both MySQL and PostgreSQL is implemented.
@@ -193,22 +254,20 @@ RHEL/CentOS 5/6:
     # yum install mysql-server mysql
     # chkconfig mysqld on
     # service mysqld start
+    # mysql_secure_installation
 
 RHEL/CentOS 7 and Fedora:
 
     # yum install mariadb-server mariadb
     # systemctl enable mariadb
     # systemctl start mariadb
+    # mysql_secure_installation
 
 SUSE:
 
     # zypper install mysql mysql-client
     # chkconfig mysqld on
     # service mysqld start
-
-RHEL based distributions do not automatically set a secure root password. Do that **now**:
-
-    # mysql_secure_installation
 
 #### <a id="installing-database-mysql-modules"></a> Installing the IDO modules for MySQL
 
@@ -390,6 +449,43 @@ RHEL/CentOS 7 and Fedora:
     # systemctl restart icinga2
 
 
+### <a id="icinga2-user-interface-webserver"></a> Webserver
+
+Debian/Ubuntu:
+
+    # apt-get install apache2
+
+RHEL/CentOS 6:
+
+    # yum install httpd
+    # chkconfig httpd on
+    # service httpd start
+
+RHEL/CentOS 7/Fedora:
+
+    # yum install httpd
+    # systemctl enable httpd
+    # systemctl start httpd
+
+SUSE:
+
+    # zypper install apache2
+    # chkconfig on
+    # service apache2 start
+
+### <a id="icinga2-user-interface-firewall-rules"></a> Firewall Rules
+
+Example:
+
+    # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+    # service iptables save
+
+RHEL/CentOS 7 specific:
+
+    # firewall-cmd --add-service=http
+    # firewall-cmd --permanent --add-service=http
+
+
 ### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
 
 Web interfaces and other Icinga addons are able to send commands to
@@ -426,134 +522,13 @@ You can verify that the user has been successfully added to the `icingacmd` grou
 
     id <your-webserver-user>
 
-## <a id="running-icinga2"></a> Running Icinga 2
 
-### <a id="init-script"></a> Init Script
+### <a id="setting-up-icingaweb2"></a> Installing up Icinga Web 2
 
-Icinga 2's init script is installed in `/etc/init.d/icinga2` by default:
-
-    # /etc/init.d/icinga2
-    Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
-
-The init script supports the following actions:
-
-  Command             | Description
-  --------------------|------------------------
-  start               | The `start` action starts the Icinga 2 daemon.
-  stop                | The `stop` action stops the Icinga 2 daemon.
-  restart             | The `restart` action is a shortcut for running the `stop` action followed by `start`.
-  reload              | The `reload` action sends the `HUP` signal to Icinga 2 which causes it to restart. Unlike the `restart` action `reload` does not wait until Icinga 2 has restarted.
-  checkconfig         | The `checkconfig` action checks if the `/etc/icinga2/icinga2.conf` configuration file contains any errors.
-  status              | The `status` action checks if Icinga 2 is running.
-
-By default the Icinga 2 daemon is running as `icinga` user and group
-using the init script. Using Debian packages the user and group are set to
-`nagios` for historical reasons.
-
-### <a id="systemd-service"></a> systemd Service
-
-Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
-Icinga 2 packages automatically install the necessary systemd unit files.
-
-The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also queried for its current status.
-
-    # systemctl status icinga2
-    icinga2.service - Icinga host/service/network monitoring system
-       Loaded: loaded (/usr/lib/systemd/system/icinga2.service; disabled)
-       Active: active (running) since Mi 2014-07-23 13:39:38 CEST; 15s ago
-      Process: 21692 ExecStart=/usr/sbin/icinga2 -c ${ICINGA2_CONFIG_FILE} -d -e ${ICINGA2_ERROR_LOG} -u ${ICINGA2_USER} -g ${ICINGA2_GROUP} (code=exited, status=0/SUCCESS)
-      Process: 21674 ExecStartPre=/usr/sbin/icinga2-prepare-dirs /etc/sysconfig/icinga2 (code=exited, status=0/SUCCESS)
-     Main PID: 21727 (icinga2)
-       CGroup: /system.slice/icinga2.service
-               └─21727 /usr/sbin/icinga2 -c /etc/icinga2/icinga2.conf -d -e /var/log/icinga2/error.log -u icinga -g icinga --no-stack-rlimit
-
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 309 Service(s).
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 User(s).
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 15 Notification(s).
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 4 ScheduledDowntime(s).
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 UserGroup(s).
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 1 IcingaApplication(s).
-    Jul 23 13:39:38 nbmif icinga2[21692]: [2014-07-23 13:39:38 +0200] information/ConfigItem: Checked 8 Dependency(s).
-    Jul 23 13:39:38 nbmif systemd[1]: Started Icinga host/service/network monitoring system.
-
-The `systemctl` command supports the following actions:
-
-  Command             | Description
-  --------------------|------------------------
-  start               | The `start` action starts the Icinga 2 daemon.
-  stop                | The `stop` action stops the Icinga 2 daemon.
-  restart             | The `restart` action is a shortcut for running the `stop` action followed by `start`.
-  reload              | The `reload` action sends the `HUP` signal to Icinga 2 which causes it to restart. Unlike the `restart` action `reload` does not wait until Icinga 2 has restarted.
-  status              | The `status` action checks if Icinga 2 is running.
-  enable              | The `enable` action enables the service being started at system boot time (similar to `chkconfig`)
-
-Examples:
-
-    # systemctl enable icinga2
-
-    # systemctl restart icinga2
-    Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
-
-If you're stuck with configuration errors, you can manually invoke the [configuration validation](7-cli-commands.md#config-validation).
-
-## <a id="setting-up-the-user-interface"></a> Setting up the User Interface
-
-Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
-This chapter explains how to set up Icinga Web 2. The
-[Alternative Frontends](10-alternative-frontends.md#alternative-frontends)
-chapter can be used as a starting point for installing some of the other web
-interfaces which are also available.
+Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md) for further instructions on how to install Icinga Web 2.
 
 
-#### <a id="icinga2-user-interface-webserver"></a> Webserver
-
-Debian/Ubuntu:
-
-    # apt-get install apache2
-
-RHEL/CentOS 6:
-
-    # yum install httpd
-    # chkconfig httpd on
-    # service httpd start
-
-RHEL/CentOS 7/Fedora:
-
-    # systemctl enable httpd
-    # systemctl start httpd
-
-SUSE:
-
-    # zypper install apache2
-    # chkconfig on
-    # service apache2 start
-
-#### <a id="icinga2-user-interface-firewall-rules"></a> Firewall Rules
-
-Example:
-
-    # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-    # service iptables save
-
-RHEL/CentOS 7 specific:
-
-    # firewall-cmd --add-service=http
-    # firewall-cmd --permanent --add-service=http
-
-### <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
-
-Icinga Web 2 currently requires `DB IDO` as a backend. You need to install and configure the [DB IDO backend](2-getting-started.md#configuring-db-ido) if you
-haven't already done so.
-
-In order to use commands in Web 2 you will also need to [set up the external command pipe](2-getting-started.md#setting-up-external-command-pipe).
-
-[Icinga Web 2](https://github.com/Icinga/icingaweb2) features a
-web-based setup wizard which will guide you through the setup process.
-
-Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md) for further instructions on how to install `Icinga Web 2`.
-
-
-### <a id="install-addons"></a> Addons
+## <a id="install-addons"></a> Addons
 
 A number of additional features are available in the form of addons. A list of popular
 addons is available in the [Addons and Plugins](9-addons-plugins.md#addons-plugins) chapter.
