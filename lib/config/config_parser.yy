@@ -152,6 +152,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token <type> T_TYPE_STRING "string (T_TYPE_STRING)"
 %token <type> T_TYPE_SCALAR "scalar (T_TYPE_SCALAR)"
 %token <type> T_TYPE_ANY "any (T_TYPE_ANY)"
+%token <type> T_TYPE_FUNCTION "function (T_TYPE_FUNCTION)"
 %token <type> T_TYPE_NAME "name (T_TYPE_NAME)"
 %token T_VALIDATOR "%validator (T_VALIDATOR)"
 %token T_REQUIRE "%require (T_REQUIRE)"
@@ -435,6 +436,7 @@ type: T_TYPE_DICTIONARY
 	| T_TYPE_STRING
 	| T_TYPE_SCALAR
 	| T_TYPE_ANY
+	| T_TYPE_FUNCTION
 	| T_TYPE_NAME
 	;
 

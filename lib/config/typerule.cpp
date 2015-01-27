@@ -73,6 +73,9 @@ bool TypeRule::MatchValue(const Value& value, String *hint, const TypeRuleUtilit
 		case TypeArray:
 			return value.IsObjectType<Array>();
 
+		case TypeFunction:
+			return value.IsObjectType<Function>();
+
 		case TypeName:
 			if (!value.IsScalar())
 				return false;

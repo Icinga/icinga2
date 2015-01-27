@@ -174,6 +174,7 @@ do {							\
 %string				{ yylval->type = TypeString; return T_TYPE_STRING; }
 %scalar				{ yylval->type = TypeScalar; return T_TYPE_SCALAR; }
 %any				{ yylval->type = TypeAny; return T_TYPE_ANY; }
+%function			{ yylval->type = TypeFunction; return T_TYPE_FUNCTION; }
 %name				{ yylval->type = TypeName; return T_TYPE_NAME; }
 %validator			{ return T_VALIDATOR; }
 %require			{ return T_REQUIRE; }

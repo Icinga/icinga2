@@ -51,6 +51,7 @@ enum TypeSpecifier
 	TypeString,
 	TypeDictionary,
 	TypeArray,
+	TypeFunction,
 	TypeName
 };
 
