@@ -684,7 +684,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		tempobjectfp << "\t" "members" "\t";
 		DumpNameList(tempobjectfp, ug->GetMembers());
 		tempobjectfp << "\n"
-			        "\t" "}" "\n";
+				"\t" "}" "\n";
 
 		objectfp << tempobjectfp.str();
 	}

@@ -98,9 +98,9 @@ Object::Ptr DowntimesTable::HostAccessor(const Value& row, const Column::ObjectA
 
 	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
 
-        Host::Ptr host;
-        Service::Ptr service;
-        tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	return host;
 }
@@ -111,9 +111,9 @@ Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::Obje
 
 	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
 
-        Host::Ptr host;
-        Service::Ptr service;
-        tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	return service;
 }

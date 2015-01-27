@@ -76,7 +76,6 @@ void ConfigCompilerContext::FinishObjectsFile(void)
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(tempFilename));
-        }
-
+	}
 }
 

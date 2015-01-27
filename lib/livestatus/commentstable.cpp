@@ -98,9 +98,9 @@ Object::Ptr CommentsTable::HostAccessor(const Value& row, const Column::ObjectAc
 
 	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
 
-        Host::Ptr host;
-        Service::Ptr service;
-        tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	return host;
 }
@@ -111,9 +111,9 @@ Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::Objec
 
 	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
 
-        Host::Ptr host;
-        Service::Ptr service;
-        tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
 	return service;
 }

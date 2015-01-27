@@ -39,7 +39,7 @@ public:
 	static void ScriptFunc(const Notification::Ptr& notification,
 	    const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
 	    const String& author, const String& comment,
-            const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	PluginNotificationTask(void);
