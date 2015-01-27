@@ -600,6 +600,9 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 	if (!m_Connected)
 		return;
 
+	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool())
+		return;
+
 	std::ostringstream qbuf, where;
 	int type;
 
