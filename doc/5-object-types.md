@@ -1223,4 +1223,5 @@ Attributes:
   ----------------|----------------
   endpoints       |**Optional.** Dictionary with endpoints located in this zone.
   parent          |**Optional.** The name of the parent zone.
+  global          |**Optional.** Whether configuration files for this zone should be synced to all endpoints. Defaults to false.
 
