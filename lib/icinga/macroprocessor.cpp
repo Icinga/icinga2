@@ -25,6 +25,7 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/dynamicobject.hpp"
+#include "base/scriptframe.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -166,6 +167,8 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 	size_t offset, pos_first, pos_second;
 	offset = 0;
 
+	Dictionary::Ptr resolvers_this;
+
 	String result = str;
 	while ((pos_first = result.FindFirstOf("$", offset)) != String::NPos) {
 		pos_second = result.FindFirstOf("$", pos_first + 1);
@@ -192,6 +195,22 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 		if (name.IsEmpty()) {
 			resolved_macro = "$";
 			found = true;
+		}
+
+		if (resolved_macro.IsObjectType<Function>()) {
+			Function::Ptr func = resolved_macro;
+
+			if (!resolvers_this) {
+				resolvers_this = new Dictionary();
+
+				BOOST_FOREACH(const ResolverSpec& resolver, resolvers) {
+					resolvers_this->Set(resolver.first, resolver.second);
+				}
+			}
+
+			ScriptFrame frame(resolvers_this);
+			std::vector<Value> args;
+			resolved_macro = func->Invoke(args);
 		}
 
 		if (!found) {

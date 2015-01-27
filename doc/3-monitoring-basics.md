@@ -1732,6 +1732,7 @@ There are several ways of using custom attributes with [apply rules](3-monitorin
 [boolean](15-language-reference.md#boolean-literals)) for expression conditions (`assign where`, `ignore where`)
 * As [array](15-language-reference.md#array) or [dictionary](15-language-reference.md#dictionary) attribute with nested values
 (e.g. dictionaries in dictionaries) in [apply for](3-monitoring-basics.md#using-apply-for) rules.
+* As a [function object](#functions)
 
 Features like [DB IDO](3-monitoring-basics.md#db-ido), Livestatus(#setting-up-livestatus) or StatusData(#status-data)
 dump this column as encoded JSON string, and set `is_json` resp. `cv_is_json` to `1`.
