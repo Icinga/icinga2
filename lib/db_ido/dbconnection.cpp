@@ -27,7 +27,6 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
-#include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/scriptfunction.hpp"
 #include <boost/foreach.hpp>
@@ -38,8 +37,7 @@ REGISTER_TYPE(DbConnection);
 REGISTER_SCRIPTFUNCTION(ValidateFailoverTimeout, &DbConnection::ValidateFailoverTimeout);
 
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
-
-INITIALIZE_ONCE(&DbConnection::StaticInitialize);
+boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
 void DbConnection::OnConfigLoaded(void)
 {
@@ -51,6 +49,8 @@ void DbConnection::OnConfigLoaded(void)
 
 		SetHAMode(HARunEverywhere);
 	}
+
+	boost::call_once(m_OnceFlag, InitializeDbTimer);
 }
 
 void DbConnection::Start(void)
@@ -83,7 +83,7 @@ void DbConnection::Pause(void)
 	m_CleanUpTimer.reset();
 }
 
-void DbConnection::StaticInitialize(void)
+void DbConnection::InitializeDbTimer(void)
 {
 	m_ProgramStatusTimer = new Timer();
 	m_ProgramStatusTimer->SetInterval(10);

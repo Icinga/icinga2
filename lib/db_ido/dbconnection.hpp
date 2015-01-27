@@ -25,6 +25,7 @@
 #include "db_ido/dbobject.hpp"
 #include "db_ido/dbquery.hpp"
 #include "base/timer.hpp"
+#include <boost/thread/once.hpp>
 
 namespace icinga
 {
@@ -39,7 +40,7 @@ class I2_DB_IDO_API DbConnection : public ObjectImpl<DbConnection>
 public:
 	DECLARE_OBJECT(DbConnection);
 
-	static void StaticInitialize(void);
+	static void InitializeDbTimer(void);
 
 	void SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetObjectID(const DbObject::Ptr& dbobj) const;
@@ -96,6 +97,7 @@ private:
 	virtual void ClearConfigTable(const String& table) = 0;
 
 	static Timer::Ptr m_ProgramStatusTimer;
+	static boost::once_flag m_OnceFlag;
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 	static void ProgramStatusHandler(void);
