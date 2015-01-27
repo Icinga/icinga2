@@ -163,8 +163,8 @@ Operator | Examples (Result)                             | Description
 ^        | 17 ^ 12 (29)                                  | Bitwise XOR
 &        | 7 & 3 (3)                                     | Binary AND
 &#124;   | 2 &#124; 3 (3)                                | Binary OR
-&&       | true && false (false)                         | Logical AND
-&#124;&#124; | true &#124;&#124; false (true)            | Logical OR
+&&       | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
+&#124;&#124; | true &#124;&#124; false (true), 0 || 7 (7)| Logical OR
 <        | 3 < 5 (true)                                  | Less than
 >        | 3 > 5 (false)                                 | Greater than
 <=       | 3 <= 3 (true)                                 | Less than or equal
@@ -432,9 +432,9 @@ UserGroup         | user
 
 ## <a id="boolean-values"></a> Boolean Values
 
-The `assign where` and `ignore where` statements, the `!`, `&&` and `||`
-operators as well as the `bool()` function convert their arguments to a
-boolean value based on the following rules:
+The `assign where`, `ignore where`, `if` and `while`  statements, the `!` operator as
+well as the `bool()` function convert their arguments to a boolean value based on the
+following rules:
 
 Description          | Example Value     | Boolean Value
 ---------------------|-------------------|--------------

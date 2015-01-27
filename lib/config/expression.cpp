@@ -249,12 +249,22 @@ Value NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 
 Value LogicalAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(frame).ToBool() && m_Operand2->Evaluate(frame).ToBool();
+	Value left = m_Operand1->Evaluate(frame);
+
+	if (!left.ToBool())
+		return left;
+	else
+		return m_Operand2->Evaluate(frame);
 }
 
 Value LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return m_Operand1->Evaluate(frame).ToBool() || m_Operand2->Evaluate(frame).ToBool();
+	Value left = m_Operand1->Evaluate(frame);
+
+	if (left.ToBool())
+		return left;
+	else
+		return m_Operand2->Evaluate(frame);
 }
 
 Value FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
