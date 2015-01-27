@@ -1510,9 +1510,9 @@ Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, c
 
 Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+	Endpoint::Ptr sourceEndpoint = origin.FromClient->GetEndpoint();
 
-	if (!endpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
+	if (!sourceEndpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
 		return Empty;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -1543,7 +1543,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 			cr->SetState(ServiceUnknown);
 			cr->SetOutput("Check command '" + command + "' does not exist.");
 			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
-			listener->SyncSendMessage(endpoint, message);
+			listener->SyncSendMessage(sourceEndpoint, message);
 			return Empty;
 		}
 	} else if (command_type == "event_command") {
@@ -1553,7 +1553,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 		return Empty;
 
 	attrs->Set(command_type, params->Get("command"));
-	attrs->Set("command_endpoint", endpoint->GetName());
+	attrs->Set("command_endpoint", sourceEndpoint->GetName());
 
 	Deserialize(host, attrs, false, FAConfig);
 
@@ -1569,7 +1569,7 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 	Dictionary::Ptr macros = params->Get("macros");
 
 	if (command_type == "check_command")
-		host->ExecuteCheck(macros, true);
+		host->ExecuteRemoteCheck(macros);
 	else if (command_type == "event_command")
 		host->ExecuteEventHandler(macros, true);
 
