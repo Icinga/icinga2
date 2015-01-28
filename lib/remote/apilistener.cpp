@@ -407,7 +407,8 @@ void ApiListener::ApiTimerHandler(void)
 				if (endpoint->GetConnecting())
 					continue;
 
-				Utility::QueueAsyncCallback(boost::bind(&ApiListener::AddConnection, this, endpoint));
+				boost::thread thread(boost::bind(&ApiListener::AddConnection, this, endpoint));
+				thread.detach();
 			}
 		}
 	}
