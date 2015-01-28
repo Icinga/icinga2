@@ -154,6 +154,18 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 	return false;
 }
 
+Value MacroProcessor::InternalResolveMacrosShim(const std::vector<Value>& args, const ResolverList& resolvers,
+    const CheckResult::Ptr& cr, String *missingMacro,
+    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
+    bool useResolvedMacros, int recursionLevel)
+{
+	if (args.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
+
+	return MacroProcessor::InternalResolveMacros(args[0], resolvers, cr, missingMacro, escapeFn,
+	    resolvedMacros, useResolvedMacros, recursionLevel);
+}
+
 Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
     const CheckResult::Ptr& cr, String *missingMacro,
     const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
@@ -206,6 +218,10 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				BOOST_FOREACH(const ResolverSpec& resolver, resolvers) {
 					resolvers_this->Set(resolver.first, resolver.second);
 				}
+
+				resolvers_this->Set("macro", new Function(boost::bind(&MacroProcessor::InternalResolveMacrosShim,
+				    _1, boost::cref(resolvers), cr, missingMacro, boost::cref(escapeFn), resolvedMacros, useResolvedMacros,
+				    recursionLevel)));
 			}
 
 			ScriptFrame frame(resolvers_this);
