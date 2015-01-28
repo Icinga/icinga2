@@ -241,16 +241,19 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 		if (recursive_macro) {
 			if (resolved_macro.IsObjectType<Array>()) {
 				Array::Ptr arr = resolved_macro;
-				Array::Ptr result = new Array();
+				Array::Ptr resolved_arr = new Array();
 
 				ObjectLock olock(arr);
-				BOOST_FOREACH(Value& value, arr) {
-					result->Add(InternalResolveMacros(value,
-						resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
-						false, recursionLevel + 1));
+				BOOST_FOREACH(const Value& value, arr) {
+					if (value.IsScalar()) {
+						resolved_arr->Add(InternalResolveMacros(value,
+							resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+							false, recursionLevel + 1));
+					} else
+						resolved_arr->Add(value);
 				}
 
-				resolved_macro = result;
+				resolved_macro = resolved_arr;
 			} else
 				resolved_macro = InternalResolveMacros(resolved_macro,
 					resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
