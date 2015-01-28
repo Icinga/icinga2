@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,31 +17,49 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-%type PerfdataWriter {
-	%attribute %string "host_perfdata_path",
-	%attribute %string "service_perfdata_path",
-	%attribute %string "host_temp_path",
-	%attribute %string "service_temp_path",
-	%attribute %string "host_format_template",
-	%attribute %string "service_format_template",
-	%attribute %number "rotation_interval"
+#ifndef OPENTSDBWRITER_H
+#define OPENTSDBWRITER_H
+
+#include "perfdata/opentsdbwriter.thpp"
+#include "icinga/service.hpp"
+#include "base/dynamicobject.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/timer.hpp"
+#include <fstream>
+
+namespace icinga
+{
+
+/**
+ * An Icinga opentsdb writer.
+ *
+ * @ingroup perfdata
+ */
+class OpenTsdbWriter : public ObjectImpl<OpenTsdbWriter>
+{
+public:
+	DECLARE_OBJECT(OpenTsdbWriter);
+	DECLARE_OBJECTNAME(OpenTsdbWriter);
+
+	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+
+protected:
+	virtual void Start(void);
+
+private:
+	Stream::Ptr m_Stream;
+	
+	Timer::Ptr m_ReconnectTimer;
+
+	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void SendMetric(const String& metric, const std::map<String, String>& tags, double value);
+	void SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr);
+	static String EscapeTag(const String& str);
+	static String EscapeMetric(const String& str);
+
+	void ReconnectTimerHandler(void);
+};
+
 }
 
-%type GraphiteWriter {
-	%attribute %string "host",
-	%attribute %string "port",
-	%attribute %string "host_name_template",
-	%attribute %string "service_name_template"
-}
-
-%type GelfWriter {
-	%attribute %string "host",
-	%attribute %string "port",
-	%attribute %string "source"
-}
-
-%type OpenTsdbWriter {
-	%attribute %string "host",
-	%attribute %string "port",
-}
-
+#endif /* OPENTSDBWRITER_H */

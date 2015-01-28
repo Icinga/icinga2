@@ -17,12 +17,13 @@
 
 mkclass_target(gelfwriter.ti gelfwriter.thpp)
 mkclass_target(graphitewriter.ti graphitewriter.thpp)
+mkclass_target(opentsdbwriter.ti opentsdbwriter.thpp)
 mkclass_target(perfdatawriter.ti perfdatawriter.thpp)
 
 mkembedconfig_target(perfdata-type.conf perfdata-type.cpp)
 
 set(perfdata_SOURCES
-  gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp perfdatawriter.cpp perfdatawriter.thpp perfdata-type.cpp
+  gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp opentsdbwriter.cpp opentsdbwriter.thpp perfdatawriter.cpp perfdatawriter.thpp perfdata-type.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -46,6 +47,11 @@ install_if_not_exists(
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/graphite.conf
+  ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
+)
+
+install_if_not_exists(
+  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/opentsdb.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
 )
 

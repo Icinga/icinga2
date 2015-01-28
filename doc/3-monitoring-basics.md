@@ -2362,6 +2362,69 @@ Currently these events are processed:
 * State changes
 * Notifications
 
+### <a id="opentsdb-writer"></a> OpenTSDB Writer
+
+While there are some OpenTSDB collector scripts and daemons like tcollector available for
+Icinga 1.x it's more reasonable to directly process the check and plugin performance
+in memory in Icinga 2. Once there are new metrics available, Icinga 2 will directly
+write them to the defined TSDB TCP socket.
+
+You can enable the feature using
+
+    # icinga2 feature enable opentsdb
+
+By default the `OpenTsdbWriter` object expects the TSD to listen at
+`127.0.0.1` on port `4242`.
+
+The current naming schema is
+
+    icinga.host.<metricname>
+    icinga.service.<servicename>.<metricname>
+
+for host and service checks. The tag host is always applied.
+
+To make sure Icinga 2 writes a valid metric into OpenTSDB some characters are replaced
+with `_` in the target name:
+
+    \  (and space)
+
+The resulting name in OpenTSDB might look like:
+
+    www-01 / http-cert / response time
+    icinga.http_cert.response_time
+
+In addition to the performance data retrieved from the check plugin, Icinga 2 sends
+internal check statistic data to OpenTSDB:
+
+  metric             | description
+  -------------------|------------------------------------------
+  current_attempt    | current check attempt
+  max_check_attempts | maximum check attempts until the hard state is reached
+  reachable          | checked object is reachable
+  downtime_depth     | number of downtimes this object is in
+  execution_time     | check execution time
+  latency            | check latency
+  state              | current state of the checked object
+  state_type         | 0=SOFT, 1=HARD state
+
+While reachable, state and state_type are metrics for the host or service the
+other metrics follow the current naming schema
+
+    icinga.check.<metricname>
+
+with the following tags
+
+  tag     | description
+  --------|------------------------------------------
+  type    | the check type, one of [host, service]
+  host    | hostname, the check ran on
+  service | the service name (if type=service)
+
+> **Note**
+>
+> You might want to set the tsd.core.auto_create_metrics setting to `true`
+> in your opentsdb.conf configuration file.
+
 
 ## <a id="status-data"></a> Status Data
 

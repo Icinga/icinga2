@@ -744,6 +744,27 @@ Example with your custom [global constant](15-language-reference.md#constants) `
     host_name_template = GraphiteEnv + ".$host.name$"
     service_name_template = GraphiteEnv + ".$host.name$.$service.name$"
 
+## <a id="objecttype-opentsdbwriter"></a> OpenTsdbWriter
+
+Writes check result metrics and performance data to OpenTSDB.
+
+Example:
+
+    library "perfdata"
+
+    object OpenTsdbWriter "opentsdb" {
+      host = "127.0.0.1"
+      port = 4242
+    }
+
+Attributes:
+
+  Name            	|Description
+  ----------------------|----------------------
+  host            	|**Optional.** OpenTSDB host address. Defaults to '127.0.0.1'.
+  port            	|**Optional.** OpenTSDB port. Defaults to 4242.
+
+
 ## <a id="objecttype-gelfwriter"></a> GelfWriter
 
 Writes event log entries to a defined GELF receiver host (Graylog2, Logstash).

@@ -1,0 +1,16 @@
+#include "base/dynamicobject.hpp"
+
+namespace icinga
+{
+
+class OpenTsdbWriter : DynamicObject
+{
+	[config] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config] String port {
+		default {{{ return "4242"; }}}
+	};
+};
+
+}
