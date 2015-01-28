@@ -47,8 +47,8 @@ public:
 	static Array::Ptr Range(const std::vector<Value>& arguments);
 	static Type::Ptr TypeOf(const Value& value);
 	static Array::Ptr Keys(const Dictionary::Ptr& dict);
-	static DynamicObject::Ptr GetObject(const String& type, const String& name);
-	static Array::Ptr GetObjects(const String& type);
+	static DynamicObject::Ptr GetObject(const Type::Ptr& type, const String& name);
+	static Array::Ptr GetObjects(const Type::Ptr& type);
 	static void Assert(const Value& arg);
 
 private:

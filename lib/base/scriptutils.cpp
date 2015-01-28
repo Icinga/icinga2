@@ -45,8 +45,8 @@ REGISTER_SCRIPTFUNCTION(exit, &Application::Exit);
 REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
 REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
 REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
-REGISTER_SCRIPTFUNCTION(__get_object, &ScriptUtils::GetObject);
-REGISTER_SCRIPTFUNCTION(__get_objects, &ScriptUtils::GetObjects);
+REGISTER_SCRIPTFUNCTION(get_object, &ScriptUtils::GetObject);
+REGISTER_SCRIPTFUNCTION(get_objects, &ScriptUtils::GetObjects);
 REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
 REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
 REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
@@ -246,9 +246,9 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 	return result;
 }
 
-DynamicObject::Ptr ScriptUtils::GetObject(const String& type, const String& name)
+DynamicObject::Ptr ScriptUtils::GetObject(const Type::Ptr& type, const String& name)
 {
-	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	DynamicType::Ptr dtype = DynamicType::GetByName(type->GetName());
 
 	if (!dtype)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
@@ -256,9 +256,9 @@ DynamicObject::Ptr ScriptUtils::GetObject(const String& type, const String& name
 	return dtype->GetObject(name);
 }
 
-Array::Ptr ScriptUtils::GetObjects(const String& type)
+Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
 {
-	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	DynamicType::Ptr dtype = DynamicType::GetByName(type->GetName());
 
 	if (!dtype)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
