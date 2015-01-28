@@ -57,7 +57,7 @@ The recommended way of setting up these plugins is to copy them to a common dire
 and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](4-configuring-icinga-2.md#constants-conf)
 configuration file:
 
-    # cp check_snmp_int.pl /opt/plugins
+    # cp check_snmp_int.pl /opt/monitoring/plugins
     # chmod +x /opt/plugins/check_snmp_int.pl
 
     # cat /etc/icinga2/constants.conf
@@ -68,13 +68,13 @@ configuration file:
      */
 
     const PluginDir = "/usr/lib/nagios/plugins"
-    const CustomPluginDir = "/opt/monitoring"
+    const CustomPluginDir = "/opt/monitoring/plugins"
 
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
 
     # su - icinga -s /bin/bash
-    $ /opt/plugins/check_snmp_int.pl --help
+    $ /opt/monitoring/plugins/check_snmp_int.pl --help
 
 Additional libraries may be required for some plugins. Please consult the plugin
 documentation and/or plugin provided README for installation instructions.
@@ -100,27 +100,27 @@ Example for a custom `my-snmp-int` check command:
     object CheckCommand "my-snmp-int" {
       import "plugin-check-command"
 
-      command = [ PluginDir + "/check_snmp_int.pl" ]
+      command = [ CustomPluginDir + "/check_snmp_int.pl" ]
 
       arguments = {
-	    "-H" = "$snmp_address$"
-	    "-C" = "$snmp_community$"
-		"-p" = "$snmp_port$"
-		"-2" = {
+        "-H" = "$snmp_address$"
+        "-C" = "$snmp_community$"
+        "-p" = "$snmp_port$"
+        "-2" = {
           set_if = "$snmp_v2$"
-		}
-		"-n" = "$snmp_interface$"
-		"-f" = {
-			set_if = "$snmp_perf$"
-		}
-		"-w" = "$snmp_warn$"
-		"-c" = "$snmp_crit$"
+        }
+        "-n" = "$snmp_interface$"
+        "-f" = {
+          set_if = "$snmp_perf$"
+        }
+        "-w" = "$snmp_warn$"
+        "-c" = "$snmp_crit$"
       }
 
       vars.snmp_v2 = true
       vars.snmp_perf = true
-	  vars.snmp_warn = "300,400"
-	  vars.snmp_crit = "0,600"
+      vars.snmp_warn = "300,400"
+      vars.snmp_crit = "0,600"
     }
 
 Icinga 2 has built-in check command definitions for the [Manubulon Plugin Checks](6-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
