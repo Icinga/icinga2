@@ -48,7 +48,7 @@ set(icinga_SOURCES
   externalcommandprocessor.cpp host.cpp host.thpp hostgroup.cpp hostgroup.thpp icingaapplication.cpp
   icingaapplication.thpp customvarobject.cpp customvarobject.thpp icingastatuswriter.cpp icingastatuswriter.thpp
   legacytimeperiod.cpp macroprocessor.cpp notificationcommand.cpp notificationcommand.thpp notification.cpp
-  notification.thpp notification-apply.cpp perfdatavalue.cpp perfdatavalue.thpp pluginutility.cpp scheduleddowntime.cpp
+  notification.thpp notification-apply.cpp objectutils.cpp perfdatavalue.cpp perfdatavalue.thpp pluginutility.cpp scheduleddowntime.cpp
   scheduleddowntime.thpp scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp
   service.cpp service.thpp servicegroup.cpp servicegroup.thpp checkable-notification.cpp timeperiod.cpp timeperiod.thpp
   user.cpp user.thpp usergroup.cpp usergroup.thpp icinga-type.cpp
