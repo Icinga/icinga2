@@ -379,6 +379,9 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 
 	BOOST_FOREACH(const String& range, ranges) {
 		Dictionary::Ptr segment = ProcessTimeRange(range, reference);
+		if (segment->Get("begin") >= segment->Get("end"))
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
+
 		result->Add(segment);
 	}
 }

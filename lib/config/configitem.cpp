@@ -381,6 +381,7 @@ bool ConfigItem::ActivateItems(void)
 	}
 
 	upq.Join();
+	upq.ReportExceptions("ConfigItem");
 
 #ifdef I2_DEBUG
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
