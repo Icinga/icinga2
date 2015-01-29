@@ -366,8 +366,6 @@ Configuration example:
       check_command = "disk"
 
       vars += config
-
-      assign where host.vars.disks
     }
 
 A similar example is used for the `http` services. That way you can make your

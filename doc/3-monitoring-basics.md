@@ -427,8 +427,6 @@ You can also specifiy the check command that way.
       notes = "Interface check for Port " + string(vars.port) + " in VLAN " + vars.vlan + " on Address " + vars.address + " QoS " + vars.qos
       notes_url = "http://foreman.company.com/hosts/" + host.name
       action_url = "http://snmp.checker.company.com/" + host.name + "if-" + if_name
-
-      assign where host.vars.interfaces
     }
 
 Note that numbers must be explicitely casted to string when adding to strings.
@@ -481,8 +479,6 @@ values for any object attribute specified in that apply rule.
 
       notes_url = "http://foreman.company.com/hosts/" + host.name
       action_url = "http://snmp.checker.company.com/" + host.name + "/" + vars.customer_id
-
-      assign where host.vars.hosting
     }
 
 ### <a id="groups"></a> Groups
@@ -1003,8 +999,6 @@ string values for passing multiple partitions to the `check_disk` check plugin.
 
       vars.disk_wfree = 10
       vars.disk_cfree = 5
-
-      assign where host.vars.local_disks
     }
 
 

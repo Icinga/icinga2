@@ -215,3 +215,23 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
 	CopyTo(clone);
 	return clone;
 }
+
+/**
+ * Returns an array containing all keys
+ * which are currently set in this directory.
+ *
+ * @returns an array of key names
+ */
+std::vector<String> Dictionary::GetKeys(void) const
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	std::vector<String> keys;
+
+	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+		keys.push_back(kv.first);
+	}
+
+	return keys;
+}

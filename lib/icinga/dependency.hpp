@@ -65,7 +65,7 @@ private:
 	Checkable::Ptr m_Parent;
 	Checkable::Ptr m_Child;
 
-	static void EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
+	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);
 };
 

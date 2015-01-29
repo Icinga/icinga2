@@ -39,8 +39,11 @@ void Service::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Service", targets);
 }
 
-void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule)
+bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {
+	if (!rule.EvaluateFilter(frame))
+		return false;
+
 	DebugInfo di = rule.GetDebugInfo();
 
 	Log(LogDebug, "Service")
@@ -64,6 +67,8 @@ void Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 	ConfigItem::Ptr serviceItem = builder->Compile();
 	serviceItem->Commit();
+
+	return true;
 }
 
 bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
@@ -79,27 +84,32 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);
 
-	if (!rule.EvaluateFilter(frame))
-		return false;
-
 	Value vinstances;
 
 	if (rule.GetFTerm()) {
-		vinstances = rule.GetFTerm()->Evaluate(frame);
+		try {
+			vinstances = rule.GetFTerm()->Evaluate(frame);
+		} catch (const std::exception&) {
+			/* Silently ignore errors here and assume there are no instances. */
+			return false;
+		}
 	} else {
 		Array::Ptr instances = new Array();
 		instances->Add("");
 		vinstances = instances;
 	}
 
+	bool match = false;
+
 	if (vinstances.IsObjectType<Array>()) {
 		if (!rule.GetFVVar().IsEmpty())
 			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
 		Array::Ptr arr = vinstances;
+		Array::Ptr arrclone = arr->ShallowClone();
 
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const String& instance, arr) {
+		ObjectLock olock(arrclone);
+		BOOST_FOREACH(const String& instance, arrclone) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
@@ -107,7 +117,8 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 				name += instance;
 			}
 
-			EvaluateApplyRuleInstance(host, name, frame, rule);
+			if (EvaluateApplyRuleInstance(host, name, frame, rule))
+				match = true;
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
@@ -115,16 +126,16 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	
 		Dictionary::Ptr dict = vinstances;
 
-		ObjectLock olock(dict);
-		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			frame.Locals->Set(rule.GetFKVar(), kv.first);
-			frame.Locals->Set(rule.GetFVVar(), kv.second);
+		BOOST_FOREACH(const String& key, dict->GetKeys()) {
+			frame.Locals->Set(rule.GetFKVar(), key);
+			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
-			EvaluateApplyRuleInstance(host, rule.GetName() + kv.first, frame, rule);
+			if (EvaluateApplyRuleInstance(host, rule.GetName() + key, frame, rule))
+				match = true;
 		}
 	}
 
-	return true;
+	return match;
 }
 
 void Service::EvaluateApplyRules(const Host::Ptr& host)

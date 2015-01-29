@@ -996,16 +996,23 @@ apply:
 		DictExpression *exprl = dynamic_cast<DictExpression *>($8);
 		exprl->MakeInline();
 
-		// assign && !ignore
-		if (!context->m_SeenAssign.top())
-			BOOST_THROW_EXCEPTION(ScriptError("'apply' is missing 'assign'", DebugInfoRange(@2, @3)));
-
+		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
+
+		// assign && !ignore
+		if (!seen_assign && !context->m_FTerm.top())
+			BOOST_THROW_EXCEPTION(ScriptError("'apply' is missing 'assign'/'for'", DebugInfoRange(@2, @3)));
 
 		Expression *ignore = context->m_Ignore.top();
 		context->m_Ignore.pop();
 
-		Expression *assign = context->m_Assign.top();
+		Expression *assign;
+
+		if (!seen_assign)
+			assign = MakeLiteral(true);
+		else
+			assign = context->m_Assign.top();
+
 		context->m_Assign.pop();
 
 		Expression *filter;

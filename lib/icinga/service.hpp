@@ -61,7 +61,7 @@ protected:
 private:
 	Host::Ptr m_Host;
 
-	static void EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule);
+	static bool EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
 };
 

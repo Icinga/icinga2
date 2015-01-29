@@ -41,8 +41,11 @@ void Notification::RegisterApplyRuleHandler(void)
 	ApplyRule::RegisterType("Notification", targets);
 }
 
-void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
+bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {
+	if (!rule.EvaluateFilter(frame))
+		return false;
+
 	DebugInfo di = rule.GetDebugInfo();
 
 	Log(LogDebug, "Notification")
@@ -71,6 +74,8 @@ void Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 
 	ConfigItem::Ptr notificationItem = builder->Compile();
 	notificationItem->Commit();
+
+	return true;
 }
 
 bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule)
@@ -92,18 +97,22 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	if (service)
 		frame.Locals->Set("service", service);
 
-	if (!rule.EvaluateFilter(frame))
-		return false;
-
 	Value vinstances;
 
 	if (rule.GetFTerm()) {
-		vinstances = rule.GetFTerm()->Evaluate(frame);
+		try {
+			vinstances = rule.GetFTerm()->Evaluate(frame);
+		} catch (const std::exception&) {
+			/* Silently ignore errors here and assume there are no instances. */
+			return false;
+		}
 	} else {
 		Array::Ptr instances = new Array();
 		instances->Add("");
 		vinstances = instances;
 	}
+
+	bool match = false;
 
 	if (vinstances.IsObjectType<Array>()) {
 		if (!rule.GetFVVar().IsEmpty())
@@ -120,7 +129,8 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 				name += instance;
 			}
 
-			EvaluateApplyRuleInstance(checkable, name, frame, rule);
+			if (EvaluateApplyRuleInstance(checkable, name, frame, rule))
+				match = true;
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
@@ -128,16 +138,16 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	
 		Dictionary::Ptr dict = vinstances;
 
-		ObjectLock olock(dict);
-		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			frame.Locals->Set(rule.GetFKVar(), kv.first);
-			frame.Locals->Set(rule.GetFVVar(), kv.second);
+		BOOST_FOREACH(const String& key, dict->GetKeys()) {
+			frame.Locals->Set(rule.GetFKVar(), key);
+			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
-			EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, frame, rule);
+			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule))
+				match = true;
 		}
 	}
 
-	return true;
+	return match;
 }
 
 void Notification::EvaluateApplyRules(const Host::Ptr& host)

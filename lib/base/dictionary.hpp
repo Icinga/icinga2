@@ -25,6 +25,7 @@
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
 #include <map>
+#include <vector>
 
 namespace icinga
 {
@@ -63,6 +64,8 @@ public:
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone(void) const;
+
+	std::vector<String> GetKeys(void) const;
 
 	static Object::Ptr GetPrototype(void);
 
