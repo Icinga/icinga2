@@ -889,7 +889,8 @@ String Application::GetPrefixDir(void)
  */
 void Application::DeclarePrefixDir(const String& path)
 {
-	ScriptGlobal::Set("PrefixDir", path);
+	if (!ScriptGlobal::Exists("PrefixDir"))
+		ScriptGlobal::Set("PrefixDir", path);
 }
 
 /**
@@ -909,7 +910,8 @@ String Application::GetSysconfDir(void)
  */
 void Application::DeclareSysconfDir(const String& path)
 {
-	ScriptGlobal::Set("SysconfDir", path);
+	if (!ScriptGlobal::Exists("SysconfDir"))
+		ScriptGlobal::Set("SysconfDir", path);
 }
 
 /**
@@ -929,7 +931,8 @@ String Application::GetRunDir(void)
  */
 void Application::DeclareRunDir(const String& path)
 {
-	ScriptGlobal::Set("RunDir", path);
+	if (!ScriptGlobal::Exists("RunDir"))
+		ScriptGlobal::Set("RunDir", path);
 }
 
 /**
@@ -949,7 +952,8 @@ String Application::GetLocalStateDir(void)
  */
 void Application::DeclareLocalStateDir(const String& path)
 {
-	ScriptGlobal::Set("LocalStateDir", path);
+	if (!ScriptGlobal::Exists("LocalStateDir"))
+		ScriptGlobal::Set("LocalStateDir", path);
 }
 
 /**
@@ -969,7 +973,8 @@ String Application::GetZonesDir(void)
  */
 void Application::DeclareZonesDir(const String& path)
 {
-	ScriptGlobal::Set("ZonesDir", path);
+	if (!ScriptGlobal::Exists("ZonesDir"))
+		ScriptGlobal::Set("ZonesDir", path);
 }
 
 /**
@@ -990,7 +995,8 @@ String Application::GetPkgDataDir(void)
  */
 void Application::DeclarePkgDataDir(const String& path)
 {
-	ScriptGlobal::Set("PkgDataDir", path);
+	if (!ScriptGlobal::Exists("PkgDataDir"))
+		ScriptGlobal::Set("PkgDataDir", path);
 }
 
 /**
@@ -1010,7 +1016,8 @@ String Application::GetIncludeConfDir(void)
  */
 void Application::DeclareIncludeConfDir(const String& path)
 {
-	ScriptGlobal::Set("IncludeConfDir", path);
+	if (!ScriptGlobal::Exists("IncludeConfDir"))
+		ScriptGlobal::Set("IncludeConfDir", path);
 }
 
 /**
@@ -1030,7 +1037,8 @@ String Application::GetStatePath(void)
  */
 void Application::DeclareStatePath(const String& path)
 {
-	ScriptGlobal::Set("StatePath", path);
+	if (!ScriptGlobal::Exists("StatePath"))
+		ScriptGlobal::Set("StatePath", path);
 }
 
 /**
@@ -1050,7 +1058,8 @@ String Application::GetObjectsPath(void)
  */
 void Application::DeclareObjectsPath(const String& path)
 {
-	ScriptGlobal::Set("ObjectsPath", path);
+	if (!ScriptGlobal::Exists("ObjectsPath"))
+		ScriptGlobal::Set("ObjectsPath", path);
 }
 
 /**
@@ -1070,7 +1079,8 @@ String Application::GetVarsPath(void)
 */
 void Application::DeclareVarsPath(const String& path)
 {
-	ScriptGlobal::Set("VarsPath", path);
+	if (!ScriptGlobal::Exists("VarsPath"))
+		ScriptGlobal::Set("VarsPath", path);
 }
 
 /**
@@ -1090,7 +1100,8 @@ String Application::GetPidPath(void)
  */
 void Application::DeclarePidPath(const String& path)
 {
-	ScriptGlobal::Set("PidPath", path);
+	if (!ScriptGlobal::Exists("PidPath"))
+		ScriptGlobal::Set("PidPath", path);
 }
 
 /**
@@ -1110,7 +1121,8 @@ String Application::GetApplicationType(void)
  */
 void Application::DeclareApplicationType(const String& type)
 {
-	ScriptGlobal::Set("ApplicationType", type);
+	if (!ScriptGlobal::Exists("ApplicationType"))
+		ScriptGlobal::Set("ApplicationType", type);
 }
 
 /**
@@ -1130,7 +1142,8 @@ String Application::GetRunAsUser(void)
  */
 void Application::DeclareRunAsUser(const String& user)
 {
-	ScriptGlobal::Set("RunAsUser", user);
+	if (!ScriptGlobal::Exists("RunAsUser"))
+		ScriptGlobal::Set("RunAsUser", user);
 }
 
 /**
@@ -1150,7 +1163,8 @@ String Application::GetRunAsGroup(void)
  */
 void Application::DeclareConcurrency(int ncpus)
 {
-	ScriptGlobal::Set("Concurrency", ncpus);
+	if (!ScriptGlobal::Exists("Concurrency"))
+		ScriptGlobal::Set("Concurrency", ncpus);
 }
 
 /**
@@ -1171,7 +1185,8 @@ int Application::GetConcurrency(void)
  */
 void Application::DeclareRunAsGroup(const String& group)
 {
-	ScriptGlobal::Set("RunAsGroup", group);
+	if (!ScriptGlobal::Exists("RunAsGroup"))
+		ScriptGlobal::Set("RunAsGroup", group);
 }
 
 /**
