@@ -344,7 +344,7 @@ Socket::Ptr Socket::Accept(void)
 	return new Socket(fd);
 }
 
-bool Socket::Poll(bool read, bool write)
+bool Socket::Poll(bool read, bool write, struct timeval *timeout)
 {
 	int rc;
 
@@ -362,7 +362,7 @@ bool Socket::Poll(bool read, bool write)
 	FD_ZERO(&exceptfds);
 	FD_SET(GetFD(), &exceptfds);
 
-	rc = select(GetFD() + 1, &readfds, &writefds, &exceptfds, NULL);
+	rc = select(GetFD() + 1, &readfds, &writefds, &exceptfds, timeout);
 
 	if (rc < 0) {
 		Log(LogCritical, "Socket")
@@ -378,7 +378,7 @@ bool Socket::Poll(bool read, bool write)
 	pfd.events = (read ? POLLIN : 0) | (write ? POLLOUT : 0);
 	pfd.revents = 0;
 
-	rc = poll(&pfd, 1, -1);
+	rc = poll(&pfd, 1, timeout ? (timeout->tv_sec + 1000 + timeout->tv_usec / 1000) : -1);
 
 	if (rc < 0) {
 		Log(LogCritical, "Socket")
