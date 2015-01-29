@@ -180,7 +180,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	}
 
 	resolvers_this->Set("macro", new Function(boost::bind(&MacroProcessor::InternalResolveMacrosShim,
-	    _1, boost::cref(resolvers), cr, missingMacro, boost::cref(escapeFn), resolvedMacros, useResolvedMacros,
+	    _1, boost::cref(resolvers), cr, missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
 	    recursionLevel)));
 
 	ScriptFrame frame(resolvers_this);
