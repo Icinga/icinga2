@@ -61,6 +61,11 @@ private:
 	    const CheckResult::Ptr& cr, String *missingMacro,
 	    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
 	    bool useResolvedMacros, int recursionLevel);
+	static Value EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
+	    const CheckResult::Ptr& cr, String *missingMacro,
+	    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
+	    bool useResolvedMacros, int recursionLevel);
+
 };
 
 }

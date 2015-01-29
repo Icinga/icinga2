@@ -109,7 +109,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			arg.Key = kv.first;
 
 			bool required = false;
-			String argval;
+			Value argval;
 
 			if (arginfo.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr argdict = arginfo;
@@ -123,11 +123,11 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 					arg.RepeatKey = argdict->Get("repeat_key");
 				arg.Order = argdict->Get("order");
 
-				String set_if = argdict->Get("set_if");
+				Value set_if = argdict->Get("set_if");
 
 				if (!set_if.IsEmpty()) {
 					String missingMacro;
-					String set_if_resolved = MacroProcessor::ResolveMacros(set_if, macroResolvers,
+					Value set_if_resolved = MacroProcessor::ResolveMacros(set_if, macroResolvers,
 					    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
 					    useResolvedMacros);
 
