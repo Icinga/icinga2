@@ -302,6 +302,7 @@ private:
 
 	/* Notifications */
 	std::set<Notification::Ptr> m_Notifications;
+	mutable boost::mutex m_NotificationMutex;
 
 	/* Dependencies */
 	mutable boost::mutex m_DependencyMutex;
