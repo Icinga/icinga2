@@ -89,7 +89,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
 
 	Value command;
-	if (!raw_arguments || raw_command.IsObjectType<Array>())
+	if (!raw_arguments || raw_command.IsObjectType<Array>() || raw_command.IsObjectType<Function>())
 		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL,
 		    PluginUtility::EscapeMacroShellArg, resolvedMacros, useResolvedMacros);
 	else {
