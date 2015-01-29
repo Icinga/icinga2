@@ -42,7 +42,13 @@ Value::operator double(void) const
 	if (IsEmpty())
 		return 0;
 
-	return boost::lexical_cast<double>(m_Value);
+	try {
+		return boost::lexical_cast<double>(m_Value);
+	} catch (const std::exception&) {
+		std::ostringstream msgbuf;
+		msgbuf << "Can't convert '" << *this << "' to a floating point number.";
+		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+	}
 }
 
 Value::operator String(void) const
