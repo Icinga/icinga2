@@ -147,13 +147,18 @@ void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 {
 	server->Listen();
 
-	for (;;) {
-		try {
-			Socket::Ptr client = server->Accept();
-			Log(LogNotice, "LivestatusListener", "Client connected");
-			Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client), LowLatencyScheduler);
-		} catch (std::exception&) {
-			Log(LogCritical, "ListenerListener", "Cannot accept new connection.");
+	try {
+		for (;;) {
+			timeval tv = { 0, 500000 };
+
+			if (m_Listener->Poll(true, false, &tv)) {
+				Socket::Ptr client = m_Listener->Accept();
+				Log(LogNotice, "LivestatusListener", "Client connected");
+				Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client), LowLatencyScheduler);
+			}
+
+			if (!IsActive())
+				break;
 		}
 	}
 }
