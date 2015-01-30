@@ -818,6 +818,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    "\t" "check_service_freshness=1" "\n"
 		    "\t" "check_host_freshness=1" "\n"
 		    "\t" "enable_notifications=" << (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) << "\n"
+		    "\t" "enable_event_handlers=" << (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0) << "\n"
 		    "\t" "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
 		    "\t" "enable_failure_prediction=0" "\n"
 		    "\t" "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
