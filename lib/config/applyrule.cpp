@@ -155,7 +155,7 @@ void ApplyRule::CheckMatches(void)
 		BOOST_FOREACH(const ApplyRule& rule, kv.second) {
 			if (!rule.HasMatches())
 				Log(LogWarning, "ApplyRule")
-				    << "Apply rule '" + rule.GetName() + "' for type '" + kv.first + "' does not match anywhere!";
+				    << "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '" << kv.first << "' does not match anywhere!";
 		}
 	}
 }
