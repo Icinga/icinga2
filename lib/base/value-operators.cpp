@@ -561,8 +561,6 @@ bool icinga::operator<(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) < static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) < static_cast<double>(rhs);
-	else if (lhs.GetTypeName() != rhs.GetTypeName())
-		return lhs.GetTypeName() < rhs.GetTypeName();
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator < cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
@@ -593,8 +591,6 @@ bool icinga::operator>(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) > static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) > static_cast<double>(rhs);
-	else if (lhs.GetTypeName() != rhs.GetTypeName())
-		return lhs.GetTypeName() > rhs.GetTypeName();
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator > cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
@@ -625,8 +621,6 @@ bool icinga::operator<=(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) <= static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) <= static_cast<double>(rhs);
-	else if (lhs.GetTypeName() != rhs.GetTypeName())
-		return lhs.GetTypeName() <= rhs.GetTypeName();
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator <= cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
@@ -657,8 +651,6 @@ bool icinga::operator>=(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) >= static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) >= static_cast<double>(rhs);
-	else if (lhs.GetTypeName() != rhs.GetTypeName())
-		return lhs.GetTypeName() >= rhs.GetTypeName();
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator >= cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
