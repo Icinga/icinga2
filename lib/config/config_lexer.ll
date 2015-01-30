@@ -217,6 +217,8 @@ while				return T_WHILE;
 in				return T_IN;
 &&				return T_LOGICAL_AND;
 \|\|				return T_LOGICAL_OR;
+\{\{				return T_NULLARY_LAMBDA_BEGIN;
+\}\}				return T_NULLARY_LAMBDA_END;
 [a-zA-Z_][a-zA-Z0-9\_]*		{ yylval->text = strdup(yytext); return T_IDENTIFIER; }
 @[a-zA-Z_][a-zA-Z0-9\_]*	{ yylval->text = strdup(yytext + 1); return T_IDENTIFIER; }
 \<[^ \>]*\>			{ yytext[yyleng-1] = '\0'; yylval->text = strdup(yytext + 1); return T_STRING_ANGLE; }

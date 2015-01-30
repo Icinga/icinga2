@@ -177,6 +177,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_ELSE "else (T_ELSE)"
 %token T_WHILE "while (T_WHILE)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
+%token T_NULLARY_LAMBDA_BEGIN "{{ (T_NULLARY_LAMBDA_BEGIN)"
+%token T_NULLARY_LAMBDA_END "}} (T_NULLARY_LAMBDA_END)"
 
 %type <text> identifier
 %type <elist> rterm_items
@@ -870,6 +872,23 @@ rterm_no_side_effect: T_STRING
 
 		$$ = new FunctionExpression(*$3, $5, aexpr, @$);
 		delete $3;
+	}
+	| T_NULLARY_LAMBDA_BEGIN statements T_NULLARY_LAMBDA_END
+	{
+		std::vector<Expression *> dlist;
+		typedef std::pair<Expression *, EItemInfo> EListItem;
+		int num = 0;
+		BOOST_FOREACH(const EListItem& litem, *$2) {
+			if (!litem.second.SideEffect && num != $2->size() - 1)
+				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
+			dlist.push_back(litem.first);
+			num++;
+		}
+		delete $2;
+		DictExpression *aexpr = new DictExpression(dlist, @$);
+		aexpr->MakeInline();
+
+		$$ = new FunctionExpression(std::vector<String>(), NULL, aexpr, @$);
 	}
 	;
 

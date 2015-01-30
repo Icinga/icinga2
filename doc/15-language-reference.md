@@ -574,6 +574,16 @@ For lambdas which take exactly one argument the braces around the arguments can 
 
     f = x => x * x
 
+## <a id="nullary-lambdas"></a> Abbreviated Lambda Syntax
+
+Lambdas which take no arguments can also be written using the abbreviated lambda syntax.
+
+Example:
+
+    f = {{ 3 }}
+
+This creates a new function which returns the value 3.
+
 ## <a id="variable-scopes"></a> Variable Scopes
 
 When setting a variable Icinga checks the following scopes in this order whether the variable
