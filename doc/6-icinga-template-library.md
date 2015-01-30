@@ -375,6 +375,23 @@ disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
 disk_partition_excluded | **Optional.** The excluded partition. **Deprecated in 2.3.**
 disk_partitions        	| **Optional.** The partition(s). Multiple partitions must be defined as array.
 disk_partitions_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
+disk_clear               | **Optional.** Clear thresholds.
+disk_exact_match       | **Optional.** For paths or partitions specified with -p, only check for exact paths.
+disk_errors_only       | **Optional.** Display only devices/mountpoints with errors. May be true or false.
+disk_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together
+disk_kilobytes         | **Optional.** Same as --units kB. May be true or false.
+disk_local             | **Optional.** Only check local filesystems. May be true or false.
+disk_stat_remote_fs    | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). Myy be true or false
+disk_mountpoint        | **Optional.** Display the mountpoint instead of the partition. May be true or false.
+disk_megabytes         | **Optional.** Same as --units MB. May be true or false.
+disk_all               | **Optional.** Explicitly select all paths. This is equivalent to -R '.*'. May be true or false.
+disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition (may be repeated).
+disk_ereg_path         | **Optional.** Regular expression for path or partition (may be repeated).
+disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive) (may be repeated).
+disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition (may be repeated).
+disk_timeout           | **Optional.** Seconds before connection times out (default: 10).
+disk_units             | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
+disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type (may be repeated).
 
 ### <a id="plugin-check-command-users"></a> users
 
