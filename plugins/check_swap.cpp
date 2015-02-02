@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 #include <Shlwapi.h>
-#include <Pdh.h>
 #include <iostream>
+#include <WinBase.h>
 
 #include "thresholds.h"
 
@@ -36,7 +36,7 @@ static BOOL debug = FALSE;
 struct printInfoStruct 
 {
 	threshold warn, crit;
-	double swap;
+	DWORD tSwap, aSwap;
 };
 
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
@@ -100,7 +100,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tSWAP WARNING 23.8304%%|swap=23.8304%%;19.5;30;0;100\n\n"
+			L"\tSWAP WARNING - 20%% free | swap=2000B;3000;500;0;10000\n\n"
 			L"\"SWAP\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"23.8304%%\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
@@ -166,25 +166,29 @@ int printOutput(printInfoStruct& printInfo)
 		wcout << L"Constructing output string" << endl;
 
 	state state = OK;
+	double fswap = (printInfo.aSwap / printInfo.tSwap) * 100.0;
 
-	if (printInfo.warn.rend(printInfo.swap))
+	if (!printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
 		state = WARNING;
 
-	if (printInfo.crit.rend(printInfo.swap))
+	if (!printInfo.crit.rend(printInfo.aSwap, printInfo.tSwap))
 		state = CRITICAL;
 
 	switch (state) {
 	case OK:
-		wcout << L"SWAP OK " << printInfo.swap << L"% | swap=" << printInfo.swap << L"%;" 
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;100" << endl;
+		wcout << L"SWAP OK - " << fswap << L"% free | swap=" << printInfo.aSwap << L"B;"
+			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
+			<< L";0;" << printInfo.tSwap << endl;
 		break;
 	case WARNING:
-		wcout << L"SWAP WARNING " << printInfo.swap << L"% | swap=" << printInfo.swap << L"%;"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;100" << endl;
+		wcout << L"SWAP WARNING - " << fswap << L"% free | swap=" << printInfo.aSwap << L"B;"
+			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
+			<< L";0;" << printInfo.tSwap << endl;
 		break;
 	case CRITICAL:
-		wcout << L"SWAP CRITICAL " << printInfo.swap << L"% | swap=" << printInfo.swap << L"%;"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;100" << endl;
+		wcout << L"SWAP CRITICAL - " << fswap << L"% free | swap=" << printInfo.aSwap << L"B;"
+			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
+			<< L";0;" << printInfo.tSwap << endl;
 		break;
 	}
 
@@ -193,49 +197,14 @@ int printOutput(printInfoStruct& printInfo)
 
 int check_swap(printInfoStruct& printInfo) 
 {
-	PDH_HQUERY phQuery;
-	PDH_HCOUNTER phCounter;
-	DWORD dwBufferSize = 0;
-	DWORD CounterType;
-	PDH_FMT_COUNTERVALUE DisplayValue;
-	PDH_STATUS err;
+	_MEMORYSTATUS *pMemBuf = new _MEMORYSTATUS;
 
-	LPCWSTR path = L"\\Paging File(*)\\% Usage";
+	GlobalMemoryStatus(pMemBuf);
 
-	if (debug)
-		wcout << L"Opening querry handle" << endl;
+	printInfo.tSwap = pMemBuf->dwTotalPageFile;
+	printInfo.aSwap = pMemBuf->dwAvailPageFile;
 
-	err = PdhOpenQuery(NULL, NULL, &phQuery);
-	if (!SUCCEEDED(err))
-		goto die;
+	delete pMemBuf;
 
-	if (debug)
-		wcout << L"Adding counter" << endl;
-
-	err = PdhAddEnglishCounter(phQuery, path, NULL, &phCounter);
-	if (!SUCCEEDED(err))
-		goto die;
-
-	if (debug)
-		wcout << L"Collecting querry data" << endl;
-
-	err = PdhCollectQueryData(phQuery);
-	if (!SUCCEEDED(err))
-		goto die;
-
-	if (debug)
-		wcout << L"Formatting counter data" << endl;
-
-	err = PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue);
-	if (SUCCEEDED(err)) {
-		printInfo.swap = DisplayValue.doubleValue;
-		PdhCloseQuery(phQuery);
-		return -1;
-	}
-
-die:
-	if (phQuery)
-		PdhCloseQuery(phQuery);
-	die(err);
-	return 3;
+	return -1;
 }

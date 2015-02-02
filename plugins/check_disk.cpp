@@ -312,7 +312,7 @@ int check_drives(vector<drive>& vDrives)
 		FindNextVolume(hVolume, szVolumeName, MAX_PATH);
 	}
 	if (debug)
-		wcout << L"Creating vector from found volumes, removing cd drives etc.:" << endl;
+		wcout << L"Creating vector from found volumes, ignoring cd drives etc.:" << endl;
 	for (set<wstring>::iterator it = sDrives.begin(); it != sDrives.end(); ++it) {
 		UINT type = GetDriveType(it->c_str());
 		if (type == DRIVE_FIXED || type == DRIVE_REMOTE) {
