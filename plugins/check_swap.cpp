@@ -143,6 +143,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			cout << e.what() << endl;
 			return 3;
 		}
+		printInfo.warn.legal = !printInfo.warn.legal;
 	}
 
 	if (vm.count("critical")) {
@@ -152,6 +153,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			cout << e.what() << endl;
 			return 3;
 		}
+		printInfo.crit.legal = !printInfo.crit.legal;
 	}
 
 	if (vm.count("debug"))
@@ -168,10 +170,10 @@ int printOutput(printInfoStruct& printInfo)
 	state state = OK;
 	double fswap = (printInfo.aSwap / printInfo.tSwap) * 100.0;
 
-	if (!printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
+	if (printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
 		state = WARNING;
 
-	if (!printInfo.crit.rend(printInfo.aSwap, printInfo.tSwap))
+	if (printInfo.crit.rend(printInfo.aSwap, printInfo.tSwap))
 		state = CRITICAL;
 
 	switch (state) {
