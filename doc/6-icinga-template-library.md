@@ -615,7 +615,19 @@ Check command for the `check_apt` plugin.
 
 The `apt` check command does not support any vars.
 
+### <a id="plugin-check-command-hpjd"></a> hpjd
 
+Check command object for the `check_hpjd` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+hpjd_address    | **Optional.** The host's address. Defaults to "$address$".
+hpjd_port       | **Optional.** The host's SNMP port. Defaults to 161.
+hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
+
+#
 ### <a id="plugin-check-command-running-kernel"></a> running_kernel
 
 Check command object for the `check_running_kernel` plugin
