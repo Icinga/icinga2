@@ -63,6 +63,8 @@ if(MYSQL_FOUND)
     DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2-ido-mysql/schema
     FILES_MATCHING PATTERN "*.sql"
   )
+
+  set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)
 else()
   message(FATAL_ERROR "You have selected MySQL support, but MySQL could not be found. You can disable the MySQL IDO module using -DICINGA2_WITH_MYSQL=OFF.")
 endif()

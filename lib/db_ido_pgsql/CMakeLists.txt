@@ -65,6 +65,8 @@ if(PostgreSQL_FOUND)
     DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2-ido-pgsql/schema
     FILES_MATCHING PATTERN "*.sql"
   )
+
+  set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)
 else()
   message(FATAL_ERROR "You have selected PostgreSQL support, but PostgreSQL could not be found. You can disable the PostgreSQL IDO module using -DICINGA2_WITH_PGSQL=OFF.")
 endif()
