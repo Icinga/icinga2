@@ -268,15 +268,15 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "7 | 8 == 15");
+	expr = ConfigCompiler::CompileText("<test>", "(7 | 8) == 15");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "7 ^ 8 == 15");
+	expr = ConfigCompiler::CompileText("<test>", "(7 ^ 8) == 15");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "7 & 15 == 7");
+	expr = ConfigCompiler::CompileText("<test>", "(7 & 15) == 7");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
@@ -288,15 +288,15 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "7 | 8 > 14");
+	expr = ConfigCompiler::CompileText("<test>", "(7 | 8) > 14");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "7 ^ 8 > 14");
+	expr = ConfigCompiler::CompileText("<test>", "(7 ^ 8) > 14");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 
-	expr = ConfigCompiler::CompileText("<test>", "7 & 15 > 6");
+	expr = ConfigCompiler::CompileText("<test>", "(7 & 15) > 6");
 	BOOST_CHECK(expr->Evaluate(frame));
 	delete expr;
 

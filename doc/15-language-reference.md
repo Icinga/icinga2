@@ -147,36 +147,40 @@ strings and numbers.
 
 ### <a id="expression-operators"></a> Operators
 
-The following operators are supported in expressions:
+The following operators are supported in expressions. The operators are by descending precedence.
 
-Operator | Examples (Result)                             | Description
----------|-----------------------------------------------|--------------------------------
-!        | !"Hello" (false), !false (true)               | Logical negation of the operand
-~        | ~true (false)                                 | Bitwise negation of the operand
-+        | 1 + 3 (4), "hello " + "world" ("hello world") | Adds two numbers; concatenates strings
-+        | +3                                            | Unary plus
--        | 3 - 1 (2)                                     | Subtracts two numbers
--        | -3                                            | Unary minus
-*        | 5m * 10 (3000)                                | Multiplies two numbers
-/        | 5m / 5 (60)                                   | Divides two numbers
-%        | 17 % 12 (5)                                   | Remainder after division
-^        | 17 ^ 12 (29)                                  | Bitwise XOR
-&        | 7 & 3 (3)                                     | Binary AND
-&#124;   | 2 &#124; 3 (3)                                | Binary OR
-&&       | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
-&#124;&#124; | true &#124;&#124; false (true), 0 || 7 (7)| Logical OR
-<        | 3 < 5 (true)                                  | Less than
->        | 3 > 5 (false)                                 | Greater than
-<=       | 3 <= 3 (true)                                 | Less than or equal
->=       | 3 >= 3 (true)                                 | Greater than or equal
-<<       | 4 << 8 (1024)                                 | Left shift
->>       | 1024 >> 4 (64)                                | Right shift
-==       | "hello" == "hello" (true), 3 == 5 (false)     | Equal to
-!=       | "hello" != "world" (true), 3 != 3 (false)     | Not equal to
-in       | "foo" in [ "foo", "bar" ] (true)              | Element contained in array
-!in      | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array
-()       | (3 + 3) * 5                                   | Groups sub-expressions
-()       | Math.random()                                 | Calls a function
+Operator | Precedence | Examples (Result)                             | Description
+---------|------------|-----------------------------------------------|--------------------------------
+()       | 1          | (3 + 3) * 5                                   | Groups sub-expressions
+()       | 1          | Math.random()                                 | Calls a function
+[]       | 1          | a[3]                                          | Array subscript
+.        | 1          | a.b                                           | Element access
+!        | 2          | !"Hello" (false), !false (true)               | Logical negation of the operand
+~        | 2          | ~true (false)                                 | Bitwise negation of the operand
++        | 2          | +3                                            | Unary plus
+-        | 2          | -3                                            | Unary minus
+*        | 3          | 5m * 10 (3000)                                | Multiplies two numbers
+/        | 3          | 5m / 5 (60)                                   | Divides two numbers
+%        | 3          | 17 % 12 (5)                                   | Remainder after division
++        | 4          | 1 + 3 (4), "hello " + "world" ("hello world") | Adds two numbers; concatenates strings
+-        | 4          | 3 - 1 (2)                                     | Subtracts two numbers
+<<       | 5          | 4 << 8 (1024)                                 | Left shift
+>>       | 5          | 1024 >> 4 (64)                                | Right shift
+<        | 6         | 3 < 5 (true)                                  | Less than
+>        | 6         | 3 > 5 (false)                                 | Greater than
+<=       | 6         | 3 <= 3 (true)                                 | Less than or equal
+>=       | 6         | 3 >= 3 (true)                                 | Greater than or equal
+in       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element contained in array
+!in      | 7          | "foo" !in [ "bar", "baz" ] (true)             | Element not contained in array
+==       | 8         | "hello" == "hello" (true), 3 == 5 (false)     | Equal to
+!=       | 8         | "hello" != "world" (true), 3 != 3 (false)     | Not equal to
+&        | 9          | 7 & 3 (3)                                     | Binary AND
+^        | 10          | 17 ^ 12 (29)                                  | Bitwise XOR
+&#124;   | 11          | 2 &#124; 3 (3)                                | Binary OR
+&&       | 13         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
+&#124;&#124; | 14     | true &#124;&#124; false (true), 0 || 7 (7)| Logical OR
+=        | 12         | a = 3                                         | Assignment
+=>       | 15         | x => x * x (function with arg x)              | Lambda, for loop
 
 ### <a id="function-calls"></a> Function Calls
 
