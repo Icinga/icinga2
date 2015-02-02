@@ -62,8 +62,7 @@ int wmain(int argc, wchar_t **argv)
 	if (ret != -1)
 		return ret;
 		
-	printOutput(printInfo, vInterfaces);
-	return 1;
+	return printOutput(printInfo, vInterfaces);
 }
 
 int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
