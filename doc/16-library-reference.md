@@ -417,6 +417,14 @@ Returns a copy of the array where all items are sorted. The items are
 compared using the `<` (less-than) operator. A custom comparator function
 can be specified with the `less_cmp` argument.
 
+### <a id="array-join"></a> Array#join
+
+Signature:
+
+    function join(separator);
+
+Joins all elements of the array using the specified separator.
+
 ## <a id="dictionary-type"></a> Dictionary type
 
 ### <a id="dictionary-clone"></a> Dictionary#clone

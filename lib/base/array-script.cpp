@@ -22,6 +22,7 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -100,6 +101,28 @@ static Array::Ptr ArrayClone(void)
 	return self->ShallowClone();
 }
 
+static Value ArrayJoin(const Value& separator)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	Value result;
+	bool first = true;
+
+	ObjectLock olock(self);
+	BOOST_FOREACH(const Value& item, self) {
+		if (first) {
+			first = false;
+		} else {
+			result = result + separator;
+		}
+
+		result = result + item;
+	}
+
+	return result;
+}
+
 Object::Ptr Array::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -114,6 +137,7 @@ Object::Ptr Array::GetPrototype(void)
 		prototype->Set("clear", new Function(WrapFunction(ArrayClear)));
 		prototype->Set("sort", new Function(WrapFunction(ArraySort)));
 		prototype->Set("clone", new Function(WrapFunction(ArrayClone)));
+		prototype->Set("join", new Function(WrapFunction(ArrayJoin)));
 	}
 
 	return prototype;
