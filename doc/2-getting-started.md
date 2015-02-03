@@ -52,7 +52,12 @@ Fedora:
     # curl -o /etc/yum.repos.d/ICINGA-release.repo http://packages.icinga.org/fedora/ICINGA-release.repo
     # yum makecache
 
-SLES:
+SLES 11
+
+    # zypper ar http://packages.icinga.org/SUSE/ICINGA-release-11.repo
+    # zypper ref
+
+SLES 12:
 
     # zypper ar http://packages.icinga.org/SUSE/ICINGA-release.repo
     # zypper ref
