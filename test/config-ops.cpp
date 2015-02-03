@@ -209,6 +209,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 {
 	ScriptFrame frame;
 	Expression *expr;
+	Function::Ptr func;
 
 	expr = ConfigCompiler::CompileText("<test>", "regex(\"^Hello\", \"Hello World\")");
 	BOOST_CHECK(expr->Evaluate(frame));
@@ -318,6 +319,11 @@ BOOST_AUTO_TEST_CASE(advanced)
 
 	expr = ConfigCompiler::CompileText("<test>", "Array.x");
 	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
+	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "{{ 3 }}");
+	func = expr->Evaluate(frame);
+	BOOST_CHECK(func->Invoke() == 3);
 	delete expr;
 }
 

@@ -44,7 +44,7 @@ public:
 
 	Function(const Callback& function);
 
-	Value Invoke(const std::vector<Value>& arguments);
+	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
 
 	static Object::Ptr GetPrototype(void);
 
