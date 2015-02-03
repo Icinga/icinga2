@@ -1,0 +1,62 @@
+policy_module(icinga2, 0.1.0)
+
+########################################
+#
+# Declarations
+#
+
+type icinga2_t;
+type icinga2_exec_t;
+init_daemon_domain(icinga2_t, icinga2_exec_t)
+
+permissive icinga2_t;
+
+type icinga2_initrc_exec_t;
+init_script_file(icinga2_initrc_exec_t)
+
+type icinga2_log_t;
+logging_log_file(icinga2_log_t)
+
+type icinga2_var_lib_t;
+files_type(icinga2_var_lib_t)
+
+type icinga2_command_t;
+files_type(icinga2_command_t)
+
+type icinga2_var_run_t;
+files_pid_file(icinga2_var_run_t)
+
+########################################
+#
+# icinga2 local policy
+#
+allow icinga2_t self:capability { setgid setuid };
+allow icinga2_t self:fifo_file rw_fifo_file_perms;
+allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
+
+manage_dirs_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
+manage_files_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
+manage_lnk_files_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
+logging_log_filetrans(icinga2_t, icinga2_log_t, { dir file lnk_file })
+
+manage_dirs_pattern(icinga2_t, icinga2_var_lib_t, icinga2_var_lib_t)
+manage_files_pattern(icinga2_t, icinga2_var_lib_t, icinga2_var_lib_t)
+manage_lnk_files_pattern(icinga2_t, icinga2_var_lib_t, icinga2_var_lib_t)
+files_var_lib_filetrans(icinga2_t, icinga2_var_lib_t, { dir file lnk_file })
+
+manage_dirs_pattern(icinga2_t, icinga2_var_run_t, icinga2_var_run_t)
+manage_files_pattern(icinga2_t, icinga2_var_run_t, icinga2_var_run_t)
+files_pid_filetrans(icinga2_t, icinga2_var_run_t, { dir file })
+
+manage_dirs_pattern(icinga2_t, icinga2_command_t, icinga2_command_t)
+manage_files_pattern(icinga2_t, icinga2_command_t, icinga2_command_t)
+manage_fifo_files_pattern(icinga2_t, icinga2_command_t, icinga2_command_t)
+
+
+domain_use_interactive_fds(icinga2_t)
+
+files_read_etc_files(icinga2_t)
+
+auth_use_nsswitch(icinga2_t)
+
+miscfiles_read_localization(icinga2_t)

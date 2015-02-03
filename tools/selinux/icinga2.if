@@ -1,0 +1,245 @@
+
+## <summary>policy for icinga2</summary>
+
+########################################
+## <summary>
+##	Execute TEMPLATE in the icinga2 domin.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`icinga2_domtrans',`
+	gen_require(`
+		type icinga2_t, icinga2_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, icinga2_exec_t, icinga2_t)
+')
+
+########################################
+## <summary>
+##	Execute icinga2 server in the icinga2 domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_initrc_domtrans',`
+	gen_require(`
+		type icinga2_initrc_exec_t;
+	')
+
+	init_labeled_script_domtrans($1, icinga2_initrc_exec_t)
+')
+########################################
+## <summary>
+##	Read icinga2's log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`icinga2_read_log',`
+	gen_require(`
+		type icinga2_log_t;
+	')
+
+	logging_search_logs($1)
+	read_files_pattern($1, icinga2_log_t, icinga2_log_t)
+')
+
+########################################
+## <summary>
+##	Append to icinga2 log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_append_log',`
+	gen_require(`
+		type icinga2_log_t;
+	')
+
+	logging_search_logs($1)
+	append_files_pattern($1, icinga2_log_t, icinga2_log_t)
+')
+
+########################################
+## <summary>
+##	Manage icinga2 log files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_manage_log',`
+	gen_require(`
+		type icinga2_log_t;
+	')
+
+	logging_search_logs($1)
+	manage_dirs_pattern($1, icinga2_log_t, icinga2_log_t)
+	manage_files_pattern($1, icinga2_log_t, icinga2_log_t)
+	manage_lnk_files_pattern($1, icinga2_log_t, icinga2_log_t)
+')
+
+########################################
+## <summary>
+##	Search icinga2 lib directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_search_lib',`
+	gen_require(`
+		type icinga2_var_lib_t;
+	')
+
+	allow $1 icinga2_var_lib_t:dir search_dir_perms;
+	files_search_var_lib($1)
+')
+
+########################################
+## <summary>
+##	Read icinga2 lib files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_read_lib_files',`
+	gen_require(`
+		type icinga2_var_lib_t;
+	')
+
+	files_search_var_lib($1)
+	read_files_pattern($1, icinga2_var_lib_t, icinga2_var_lib_t)
+')
+
+########################################
+## <summary>
+##	Manage icinga2 lib files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_manage_lib_files',`
+	gen_require(`
+		type icinga2_var_lib_t;
+	')
+
+	files_search_var_lib($1)
+	manage_files_pattern($1, icinga2_var_lib_t, icinga2_var_lib_t)
+')
+
+########################################
+## <summary>
+##	Manage icinga2 lib directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_manage_lib_dirs',`
+	gen_require(`
+		type icinga2_var_lib_t;
+	')
+
+	files_search_var_lib($1)
+	manage_dirs_pattern($1, icinga2_var_lib_t, icinga2_var_lib_t)
+')
+
+
+########################################
+## <summary>
+##	All of the rules required to administrate
+##	an icinga2 environment
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`icinga2_admin',`
+	gen_require(`
+		type icinga2_t;
+		type icinga2_initrc_exec_t;
+		type icinga2_log_t;
+		type icinga2_var_lib_t;
+	')
+
+	allow $1 icinga2_t:process { signal_perms };
+	ps_process_pattern($1, icinga2_t)
+
+    tunable_policy(`deny_ptrace',`',`
+        allow $1 icinga2_t:process ptrace;
+    ')
+
+	icinga2_initrc_domtrans($1)
+	domain_system_change_exemption($1)
+	role_transition $2 icinga2_initrc_exec_t system_r;
+	allow $2 system_r;
+
+	logging_search_logs($1)
+	admin_pattern($1, icinga2_log_t)
+
+	files_search_var_lib($1)
+	admin_pattern($1, icinga2_var_lib_t)
+	optional_policy(`
+		systemd_passwd_agent_exec($1)
+		systemd_read_fifo_file_passwd_run($1)
+	')
+')
+
+########################################
+### <summary>
+###      Send icinga2 commands through pipe
+### </summary>
+### <param name="domain">
+###      <summary>
+###      Domain allowed to send commands.
+###      </summary>
+### </param>
+#
+interface(`icinga2_send_commands',`
+	gen_require(`
+		type icinga2_var_run_t;
+	')
+
+	files_search_pids($1)
+	read_files_pattern($1, icinga2_var_run_t, icinga2_var_run_t)
+	read_files_pattern($1, icina2_command_t, icinga2_command_t)
+	write_fifo_files_pattern($1, icinga2_command_t, icinga2_command_t)
+')
+
