@@ -110,19 +110,21 @@ std::wstring threshold::pString(const double max)
 	if (!set)
 		return L"";
 	//transform percentages to abolute values
-	double lowerAbs = lower/100 * max;
-	double upperAbs = upper/100 * max;
+	double lowerAbs = lower;
+	double upperAbs = upper;
+	if (perc) {
+		lowerAbs = lower / 100 * max;
+		upperAbs = upper / 100 * max;
+	}
 
 	std::wstring s, lowerStr = removeZero(lowerAbs), 
 					upperStr = removeZero(upperAbs);
-	if (!legal)
-		s.append(L"!");
 
 	if (lower != upper) {
 		s.append(L"[").append(lowerStr).append(L"-")
 		.append(upperStr).append(L"]");
 	} else 
-		s = lowerStr;
+		s.append(lowerStr);
 	
 	return s;
 }
@@ -158,7 +160,7 @@ Bunit parseBUnit(const wstring& str)
 
 	if (wstr == L"B")
 		return BunitB;
-	if (wstr == L"kB")
+	if (wstr == L"KB")
 		return BunitkB;
 	if (wstr == L"MB")
 		return BunitMB;

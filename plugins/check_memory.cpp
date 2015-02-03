@@ -1,21 +1,21 @@
 /******************************************************************************
- * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
- *                                                                            *
- * This program is free software; you can redistribute it and/or              *
- * modify it under the terms of the GNU General Public License                *
- * as published by the Free Software Foundation; either version 2             *
- * of the License, or (at your option) any later version.                     *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program; if not, write to the Free Software Foundation     *
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
- ******************************************************************************/
+* Icinga 2                                                                   *
+* Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+*                                                                            *
+* This program is free software; you can redistribute it and/or              *
+* modify it under the terms of the GNU General Public License                *
+* as published by the Free Software Foundation; either version 2             *
+* of the License, or (at your option) any later version.                     *
+*                                                                            *
+* This program is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+* GNU General Public License for more details.                               *
+*                                                                            *
+* You should have received a copy of the GNU General Public License          *
+* along with this program; if not, write to the Free Software Foundation     *
+* Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+******************************************************************************/
 #include <Shlwapi.h>
 #include <iostream>
 #include <WinBase.h>
@@ -33,34 +33,34 @@ using std::cout;
 
 static BOOL debug = FALSE;
 
-struct printInfoStruct 
+struct printInfoStruct
 {
 	threshold warn, crit;
-	DWORD tSwap, aSwap;
+	DWORD tRam, aRam;
 	Bunit unit = BunitMB;
 };
 
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
 static int printOutput(printInfoStruct&);
-static int check_swap(printInfoStruct&);
+static int check_memory(printInfoStruct&);
 
-int wmain(int argc, wchar_t **argv) 
+int wmain(int argc, wchar_t **argv)
 {
-	printInfoStruct printInfo = { };
+	printInfoStruct printInfo = {};
 	po::variables_map vm;
 
 	int ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
 
-	ret = check_swap(printInfo);
+	ret = check_memory(printInfo);
 	if (ret != -1)
 		return ret;
 
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+int parseArguments(int ac, wchar_t ** av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -97,14 +97,14 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
-			L"%s is a simple program to check a machines swap in percent.\n"
+			L"%s is a simple program to check a machines physical memory.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
 		cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tSWAP WARNING - 20%% free | swap=2000B;3000;500;0;10000\n\n"
-			L"\"SWAP\" being the type of the check, \"WARNING\" the returned status\n"
-			L"and \"20%%\" is the returned value.\n"
+			L"\tMEMORY WARNING - 50%% free | memory=2024MB;3000;500;0;4096\n\n"
+			L"\"MEMORY\" being the type of the check, \"WARNING\" the returned status\n"
+			L"and \"50%%\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
 			L"if applicable, the maximal value. Performance data will only be displayed when\n"
@@ -173,49 +173,56 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo) 
+int printOutput(printInfoStruct& printInfo)
 {
 	if (debug)
 		wcout << L"Constructing output string" << endl;
 
 	state state = OK;
-	double fswap = ((double)printInfo.aSwap / (double)printInfo.tSwap) * 100.0;
+	double fswap = ((double)printInfo.aRam / (double)printInfo.tRam) * 100.0;
 
-	if (printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
+	if (printInfo.warn.rend(printInfo.aRam, printInfo.tRam))
 		state = WARNING;
 
-	if (printInfo.crit.rend(printInfo.aSwap, printInfo.tSwap))
+	if (printInfo.crit.rend(printInfo.aRam, printInfo.tRam))
 		state = CRITICAL;
 
 	switch (state) {
 	case OK:
-		wcout << L"SWAP OK - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
-			<< L";0;" << printInfo.tSwap << endl;
+		wcout << L"MEMORY OK - " << fswap << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
+			<< L";0;" << printInfo.tRam << endl;
 		break;
 	case WARNING:
-		wcout << L"SWAP WARNING - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
-			<< L";0;" << printInfo.tSwap << endl;
+		wcout << L"MEMORY WARNING - " << fswap << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
+			<< L";0;" << printInfo.tRam << endl;
 		break;
 	case CRITICAL:
-		wcout << L"SWAP CRITICAL - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
-			<< L";0;" << printInfo.tSwap << endl;
+		wcout << L"MEMORY CRITICAL - " << fswap << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
+			<< L";0;" << printInfo.tRam << endl;
 		break;
 	}
 
 	return state;
 }
 
-int check_swap(printInfoStruct& printInfo) 
+int check_memory(printInfoStruct& printInfo)
 {
+	if (debug)
+		wcout << L"Accessing memory statistics via MemoryStatus" << endl;
+
 	_MEMORYSTATUS *pMemBuf = new _MEMORYSTATUS;
 
 	GlobalMemoryStatus(pMemBuf);
 
-	printInfo.tSwap = round(pMemBuf->dwTotalPageFile / pow(1024.0, printInfo.unit));
-	printInfo.aSwap = round(pMemBuf->dwAvailPageFile / pow(1024.0, printInfo.unit));
+	printInfo.tRam = round(pMemBuf->dwTotalPhys / pow(1024.0, printInfo.unit));
+	printInfo.aRam = round(pMemBuf->dwAvailPhys / pow(1024.0, printInfo.unit));
+
+	if (debug)
+		wcout << L"Found pMemBuf->dwTotalPhys: " << pMemBuf->dwTotalPhys << endl
+		<< L"Found pMemBuf->dwAvailPhys: " << pMemBuf->dwAvailPhys << endl;
 
 	delete pMemBuf;
 
