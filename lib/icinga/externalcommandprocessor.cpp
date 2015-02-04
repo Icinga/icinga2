@@ -1079,6 +1079,13 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 	if (triggeredByLegacy != 0)
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
+	Log(LogNotice, "ExternalCommandProcessor")
+	    << "Creating downtime for host " << host->GetName();
+
+	(void) host->AddDowntime(arguments[6], arguments[7],
+	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+	    Convert::ToBool(arguments[3]), triggeredBy, Convert::ToDouble(arguments[5]));
+
 	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 		Log(LogNotice, "ExternalCommandProcessor")
 		    << "Creating downtime for service " << service->GetName();
