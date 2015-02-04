@@ -55,6 +55,7 @@ protected:
 	virtual void ExecuteQuery(const DbQuery& query);
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 	virtual void FillIDCache(const DbType::Ptr& type);
+	virtual void NewTransaction(void);
 
 private:
 	DbReference m_InstanceID;
@@ -80,7 +81,6 @@ private:
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 
 	void Disconnect(void);
-	void NewTransaction(void);
 	void Reconnect(void);
 
 	void AssertOnWorkQueue(void);
@@ -90,6 +90,7 @@ private:
 
 	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
+	void InternalNewTransaction(void);
 
 	virtual void ClearConfigTable(const String& table);
 

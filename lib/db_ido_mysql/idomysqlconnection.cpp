@@ -135,10 +135,15 @@ void IdoMysqlConnection::Disconnect(void)
 
 void IdoMysqlConnection::TxTimerHandler(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::NewTransaction, this), true);
+	NewTransaction();
 }
 
 void IdoMysqlConnection::NewTransaction(void)
+{
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this));
+}
+
+void IdoMysqlConnection::InternalNewTransaction(void)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 

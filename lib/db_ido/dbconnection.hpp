@@ -78,6 +78,7 @@ protected:
 
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_column, double max_age);
 	virtual void FillIDCache(const DbType::Ptr& type) = 0;
+	virtual void NewTransaction(void) = 0;
 
 	void UpdateAllObjects(void);
 

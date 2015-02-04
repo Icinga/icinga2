@@ -81,6 +81,21 @@ void DbConnection::Pause(void)
 	     << "Pausing IDO connection: " << GetName();
 
 	m_CleanUpTimer.reset();
+
+	DbQuery query1;
+	query1.Table = "programstatus";
+	query1.IdColumn = "programstatus_id";
+	query1.Type = DbQueryUpdate;
+	query1.Category = DbCatProgramStatus;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+
+	query1.Fields = new Dictionary();
+	query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query1.Fields->Set("program_end_time", DbValue::FromTimestamp(Utility::GetTime()));
+	ExecuteQuery(query1);
+
+	NewTransaction();
 }
 
 void DbConnection::InitializeDbTimer(void)

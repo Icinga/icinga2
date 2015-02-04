@@ -136,10 +136,15 @@ void IdoPgsqlConnection::Disconnect(void)
 
 void IdoPgsqlConnection::TxTimerHandler(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::NewTransaction, this), true);
+	NewTransaction();
 }
 
 void IdoPgsqlConnection::NewTransaction(void)
+{
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::NewTransaction, this), true);
+}
+
+void IdoPgsqlConnection::InternalNewTransaction(void)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
