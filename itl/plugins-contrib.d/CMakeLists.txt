@@ -15,9 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_subdirectory(plugins-contrib.d)
-
 install(
-  FILES itl command.conf command-icinga.conf timeperiod.conf plugins command-plugins.conf manubulon command-plugins-manubulon.conf plugins-contrib
-  DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2/include
+  FILES network-components.conf operating-system.conf virtualization.conf
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2/include/plugins-contrib.d
 )

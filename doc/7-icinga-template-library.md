@@ -343,7 +343,7 @@ http_maxage              | **Optional.** Warn if document is more than seconds o
 http_contenttype         | **Optional.** Specify Content-Type header when POSTing.
 http_useragent           | **Optional.** String to be sent in http header as User Agent.
 http_header              | **Optional.** Any other tags to be sent in http header.
-http_extendedperfdata    | **Optional.** Print additional perfdata. Defaults to "false".
+http_extendedperfdata    | **Optional.** Print additional perfdata. Defaults to false.
 http_onredirect          | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
 http_pagesize            | **Optional.** Minimum page size required:Maximum page size required.
 http_timeout             | **Optional.** Seconds before connection times out.
@@ -533,7 +533,7 @@ procs_warning        | **Optional.** The process count warning threshold. Defaul
 procs_critical       | **Optional.** The process count critical threshold. Defaults to 400.
 procs_metric         | **Optional.** Check thresholds against metric.
 procs_timeout        | **Optional.** Seconds before plugin times out.
-procs_traditional    | **Optional.** Filter own process the traditional way by PID instead of /proc/pid/exe. Defaults to "false".
+procs_traditional    | **Optional.** Filter own process the traditional way by PID instead of /proc/pid/exe. Defaults to false.
 procs_state          | **Optional.** Only scan for processes that have one or more of the status flags you specify.
 procs_ppid           | **Optional.** Only scan for children of the parent process ID indicated.
 procs_vsz            | **Optional.** Only scan for processes with VSZ higher than indicated.
@@ -543,7 +543,7 @@ procs_user           | **Optional.** Only scan for processes with user name or I
 procs_argument       | **Optional.** Only scan for processes with args that contain STRING.
 procs_argument_regex | **Optional.** Only scan for processes with args that contain the regex STRING.
 procs_command        | **Optional.** Only scan for exact matches of COMMAND (without path).
-procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to "false".
+procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to false.
 
 
 ### <a id="plugin-check-command-running-kernel"></a> running_kernel
@@ -795,20 +795,20 @@ Custom Attributes:
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to false.
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
-snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to "false".
-snmp_v3                 | **Optional.** SNMP version to 3. Defaults to "false".
+snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
+snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
 snmp_crit               | **Optional.** The critical threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
 snmp_load_type          | **Optional.** Load type. Defaults to "stand". Check all available types in the [snmp load](http://nagios.manubulon.com/snmp_load.html) documentation.
-snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### <a id="plugin-check-command-snmp-memory"></a> snmp-memory
@@ -820,19 +820,19 @@ Custom Attributes:
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to false.
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
-snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to "false".
-snmp_v3                 | **Optional.** SNMP version to 3. Defaults to "false".
+snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
+snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
-snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### <a id="plugin-check-command-snmp-storage"></a> snmp-storage
@@ -844,20 +844,20 @@ Custom Attributes:
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to false.
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
-snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to "false".
-snmp_v3                 | **Optional.** SNMP version to 3. Defaults to "false".
+snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
+snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
-snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### <a id="plugin-check-command-snmp-interface"></a> snmp-interface
@@ -869,31 +869,31 @@ Custom Attributes:
 Name                        | Description
 ----------------------------|--------------
 snmp_address                | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
-snmp_nocrypt                | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
+snmp_nocrypt                | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to false.
 snmp_community              | **Optional.** The SNMP community. Defaults to "public".
 snmp_port                   | **Optional.** The SNMP port connection.
-snmp_v2                     | **Optional.** SNMP version to 2c. Defaults to "false".
-snmp_v3                     | **Optional.** SNMP version to 3. Defaults to "false".
+snmp_v2                     | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                     | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login                  | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password               | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass        | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
+snmp_v3_use_privpass        | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
 snmp_authprotocol           | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass               | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn                   | **Optional.** The warning threshold.
 snmp_crit                   | **Optional.** The critical threshold.
 snmp_interface              | **Optional.** Network interface name. Default to regex "eth0".
-snmp_interface_perf         | **Optional.** Check the input/ouput bandwidth of the interface. Defaults to "true".
+snmp_interface_perf         | **Optional.** Check the input/ouput bandwidth of the interface. Defaults to true.
 snmp_interface_label        | **Optional.** Add label before speed in output: in=, out=, errors-out=, etc...
-snmp_interface_bits_bytes   | **Optional.** Output performance data in bits/s or Bytes/s. **Depends** on snmp_interface_kbits set to "true". Defaults to "true".
-snmp_interface_percent      | **Optional.** Output performance data in % of max speed. Defaults to "false".
-snmp_interface_kbits        | **Optional.** Make the warning and critical levels in KBits/s. Defaults to "true".
-snmp_interface_megabytes    | **Optional.** Make the warning and critical levels in Mbps or MBps. **Depends** on snmp_interface_kbits set to "true". Defaults to "true".
-snmp_interface_64bit        | **Optional.** Use 64 bits counters instead of the standard counters when checking bandwidth & performance data for interface >= 1Gbps. Defaults to "false".
-snmp_interface_errors       | **Optional.** Add error & discard to Perfparse output. Defaults to "true".
-snmp_interface_noregexp     | **Optional.** Do not use regexp to match interface name in description OID. Defaults to "false".
+snmp_interface_bits_bytes   | **Optional.** Output performance data in bits/s or Bytes/s. **Depends** on snmp_interface_kbits set to true. Defaults to true.
+snmp_interface_percent      | **Optional.** Output performance data in % of max speed. Defaults to false.
+snmp_interface_kbits        | **Optional.** Make the warning and critical levels in KBits/s. Defaults to true.
+snmp_interface_megabytes    | **Optional.** Make the warning and critical levels in Mbps or MBps. **Depends** on snmp_interface_kbits set to true. Defaults to true.
+snmp_interface_64bit        | **Optional.** Use 64 bits counters instead of the standard counters when checking bandwidth & performance data for interface >= 1Gbps. Defaults to false.
+snmp_interface_errors       | **Optional.** Add error & discard to Perfparse output. Defaults to true.
+snmp_interface_noregexp     | **Optional.** Do not use regexp to match interface name in description OID. Defaults to false.
 snmp_interface_delta        | **Optional.** Delta time of perfcheck. Defaults to "300" (5 min).
-snmp_warncrit_percent       | **Optional.** Make the warning and critical levels in % of reported interface speed. If set **snmp_interface_megabytes** needs to be set to "false". Defaults to "false".
-snmp_perf                   | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_warncrit_percent       | **Optional.** Make the warning and critical levels in % of reported interface speed. If set **snmp_interface_megabytes** needs to be set to false. Defaults to false.
+snmp_perf                   | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout                | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### <a id="plugin-check-command-snmp-process"></a> snmp-process
@@ -905,18 +905,142 @@ Custom Attributes:
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to false.
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
-snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to "false".
-snmp_v3                 | **Optional.** SNMP version to 3. Defaults to "false".
+snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to "false".
+snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default..
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
 snmp_process_name       | **Optional.** Name of the process (regexp). No trailing slash!. Defaults to ".*".
-snmp_perf               | **Optional.** Enable perfdata values. Defaults to "true".
+snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+
+# <a id="plugins-contrib"></a> Plugins Contrib
+
+The Plugins contrib collects various contributed command definitions.
+
+These check commands assume that the global constant named `PluginsContribDir`
+is set to the path where the user installs custom plugins and can be enabled by uncommenting the corresponding line in icinga2.conf.
+
+## <a id="plugins-contrib-network-components"> Network Components
+
+This category includes all plugins for various network components like routers, switches and firewalls.
+
+### <a id="plugins-contrib-command-interfacetable"></a> interfacetable
+
+The plugin `interfacetable` generates a html page containing information about the monitored node and all of its interfaces. The actively developed and maintained version is `interfacetable_v3t` provided by `Yannick Charton` on [http://www.tontonitch.com](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t) or [https://github.com](https://github.com/Tontonitch/interfacetable_v3t).
+
+Custom Attributes:
+
+Name                                | Description
+------------------------------------|-----------------------------------------------------------------------------------------------------
+interfacetable_hostquery            | **Required.** Specifies the remote host to poll. Defaults to "$address$".
+interfacetable_hostdisplay          | **Optional.** Specifies the hostname to display in the HTML link. Defaults to "$host.display_name$".
+interfacetable_regex                | **Optional.** Interface names and property names for some other options will be interpreted as regular expressions. Defaults to false.
+interfacetable_outputshort          | **Optional.** Reduce the verbosity of the plugin output. Defaults to false.
+interfacetable_exclude              | **Optional.** Comma separated list of interfaces globally excluded from the monitoring.
+interfacetable_include              | **Optional.** Comma separated list of interfaces globally included in the monitoring.
+interfacetable_aliasmatching        | **Optional.** Allow you to specify alias in addition to interface names. Defaults to false.
+interfacetable_excludetraffic       | **Optional.** Comma separated list of interfaces excluded from traffic checks.
+interfacetable_includetraffic       | **Optional.** Comma separated list of interfaces included for traffic checks.
+interfacetable_warningtraffic       | **Optional.** Interface traffic load percentage leading to a warning alert.
+interfacetable_criticaltraffic      | **Optional.** Interface traffic load percentage leading to a critical alert.
+interfacetable_pkt                  | **Optional.** Add unicast/non-unicast pkt stats for each interface.
+interfacetable_trackproperty        | **Optional.** List of tracked properties.
+interfacetable_excludeproperty      | **Optional.** Comma separated list of interfaces excluded from the property tracking.
+interfacetable_includeproperty      | **Optional.** Comma separated list of interfaces included in the property tracking.
+interfacetable_community            | **Optional.** Specifies the snmp v1/v2c community string. Defaults to "public" if using snmp v1/v2c, ignored using v3.
+interfacetable_snmpv2               | **Optional.** Use snmp v2c. Defaults to false.
+interfacetable_login                | **Optional.** Login for snmpv3 authentication.
+interfacetable_passwd               | **Optional.** Auth password for snmpv3 authentication.
+interfacetable_privpass             | **Optional.** Priv password for snmpv3 authentication.
+interfacetable_protocols            | **Optional.** Authentication protocol,Priv protocol for snmpv3 authentication.
+interfacetable_domain               | **Optional.** SNMP transport domain.
+interfacetable_contextname          | **Optional.** Context name for the snmp requests.
+interfacetable_port                 | **Optional.** SNMP port. Defaults to standard port.
+interfacetable_64bits               | **Optional.** Use SNMP 64-bits counters. Defaults to false.
+interfacetable_maxrepetitions       | **Optional.** Increasing this value may enhance snmp query performances by gathering more results at one time.
+interfacetable_snmptimeout          | **Optional.** Define the Transport Layer timeout for the snmp queries.
+interfacetable_snmpretries          | **Optional.** Define the number of times to retry sending a SNMP message.
+interfacetable_unixsnmp             | **Optional.** Use unix snmp utilities for snmp requests. Defaults to false, which means use the perl bindings.
+interfacetable_enableperfdata       | **Optional.** Enable port performance data. Defaults to false.
+interfacetable_perfdataformat       | **Optional.** Define which performance data will be generated. Possible values are "full" (default), "loadonly", "globalonly".
+interfacetable_perfdatathreshold    | **Optional.** Define which thresholds are printed in the generated performance data. Possible values are "full" (default), "loadonly", "globalonly".
+interfacetable_perfdatadir          | **Optional.** When specified, the performance data are also written directly to a file, in the specified location.
+interfacetable_perfdataservicedesc  | **Optional.** Specify additional parameters for output performance data to PNP. Defaults to "$service.name$", only affects **interfacetable_perfdatadir**.
+interfacetable_grapher              | **Optional.** Specify the used graphing solution. Possible values are "pnp4nagios" (default), "nagiosgrapher", "netwaysgrapherv2" and "ingraph".
+interfacetable_grapherurl           | **Optional.** Graphing system url. Default depends on **interfacetable_grapher**.
+interfacetable_portperfunit         | **Optional.** Traffic could be reported in bits (counters) or in bps (calculated value).
+interfacetable_nodetype             | **Optional.** Specify the node type, for specific information to be printed / specific oids to be used. Possible values: "standard" (default), "cisco", "hp", "netscreen", "netapp", "bigip", "bluecoat", "brocade", "brocade-nos", "nortel", "hpux".
+interfacetable_duplex               | **Optional.** Add the duplex mode property for each interface in the interface table. Defaults to false.
+interfacetable_stp                  | **Optional.** Add the stp state property for each interface in the interface table. Defaults to false.
+interfacetable_vlan                 | **Optional.** Add the vlan attribution property for each interface in the interface table. Defaults to false. This option is available only for the following nodetypes: "cisco", "hp", "nortel"
+interfacetable_noipinfo             | **Optional.** Remove the ip information for each interface from the interface table. Defaults to false.
+interfacetable_alias                | **Optional.** Add the alias information for each interface in the interface table. Defaults to false.
+interfacetable_accessmethod         | **Optional.** Access method for a shortcut to the host in the HTML page. Format is : <method>[:<target>] Where method can be: ssh, telnet, http or https.
+interfacetable_htmltablelinktarget  | **Optional.** Specifies the windows or the frame where the [details] link will load the generated html page. Possible values are: "_blank", "_self" (default), "_parent", "_top", or a frame name.
+interfacetable_delta                | **Optional.** Set the delta used for interface throuput calculation in seconds.
+interfacetable_ifs                  | **Optional.** Input field separator. Defaults to ",".
+interfacetable_cache                | **Optional.** Define the retention time of the cached data in seconds.
+interfacetable_noifloadgradient     | **Optional.** Disable color gradient from green over yellow to red for the load percentage. Defaults to false.
+interfacetable_nohuman              | **Optional.** Do not translate bandwidth usage in human readable format. Defaults to false.
+interfacetable_snapshot             | **Optional.** Force the plugin to run like if it was the first launch. Defaults to false.
+interfacetable_timeout              | **Optional.** Define the global timeout limit of the plugin in seconds. Defaults to "15s".
+interfacetable_css                  | **Optional.** Define the css stylesheet used by the generated html files. Possible values are "classic", "icinga", "icinga-alternate1" or "nagiosxi".
+interfacetable_config               | **Optional.** Specify a config file to load.
+interfacetable_noconfigtable        | **Optional.** Disable configuration table on the generated HTML page. Defaults to false.
+interfacetable_notips               | **Optional.** Disable the tips in the generated html tables. Defaults to false.
+interfacetable_defaulttablesorting  | **Optional.** Default table sorting can be "index" (default) or "name".
+interfacetable_tablesplit           | **Optional.** Generate multiple interface tables, one per interface type. Defaults to false.
+interfacetable_notype               | **Optional.** Remove the interface type for each interface. Defaults to false.
+
+## <a id="plugins-contrib-operating-system"> Operating System
+
+In this category you can find plugins for gathering information about your operating system or the system beneath like memory usage.
+
+### <a id="plugins-contrib-command-mem"></a> mem
+
+The plugin `mem` is used for gathering information about memory usage on linux and unix hosts. It is able to count cache memory as free when comparing it to the thresholds. It is provided by `Justin Ellison` on [https://github.com](https://github.com/justintime/nagios-plugins). For more details see the developers blog [http://sysadminsjourney.com](http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
+
+Custom Attributes:
+
+Name         | Description
+-------------|-----------------------------------------------------------------------------------------------------------------------
+mem_used     | **Optional.** Tell the plugin to check for used memory in opposite of **mem_free**. Must specify one of these as true.
+mem_free     | **Optional.** Tell the plugin to check for free memory in opposite of **mem_used**. Must specify one of these as true.
+mem_cache    | **Optional.** If set to true plugin will count cache as free memory. Defaults to false.
+mem_warning  | **Required.** Specifiy the warning threshold as number interpreted as percent.
+mem_critical | **Required.** Specifiy the critical threshold as number interpreted as percent.
+
+## <a id="plugins-contrib-virtualization"> Virtualization
+
+This category includes all plugins for various virtualization technologies.
+
+### <a id="plugins-contrib-command-esxi-hardware"></a> esxi_hardware
+
+The plugin `esxi_hardware` is a plugin to monitor hardware of ESXi servers through the vmware api and cim service. It is provided by `Claudio Kuenzler` on [http://www.claudiokuenzler.com](http://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php). For instruction on creating the required local user and workarounds for some hardware types have a look on his homepage.
+
+Custom Attributes:
+
+Name                    | Description
+------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+esxi_hardware_host      | **Required.** Specifies the host to monitor. Defaults to "$address$".
+esxi_hardware_user      | **Required.** Specifies the user for polling. Must be a local user of the root group on the system. Can also be provided as a file path file:/path/to/.passwdfile, then first string of file is used.
+esxi_hardware_pass      | **Required.** Password of the user. Can also be provided as a file path file:/path/to/.passwdfile, then second string of file is used.
+esxi_hardware_vendor    | **Optional.** Defines the vendor of the server: "auto", "dell", "hp", "ibm", "intel", "unknown" (default).
+esxi_hardware_html      | **Optional.** Add web-links to hardware manuals for Dell servers (use your country extension). Only useful with **esxi_hardware_vendor** = dell.
+esxi_hardware_ignore    | **Optional.** Comma separated list of elements to ignore.
+esxi_hardware_perfdata  | **Optional.** Add performcedata for graphers like PNP4Nagios to the output. Defaults to false.
+esxi_hardware_nopower   | **Optional.** Do not collect power performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
+esxi_hardware_novolts   | **Optional.** Do not collect voltage performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
+esxi_hardware_nocurrent | **Optional.** Do not collect current performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
+esxi_hardware_notemp    | **Optional.** Do not collect temperature performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
+esxi_hardware_nofan     | **Optional.** Do not collect fan performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
+
+
