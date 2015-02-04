@@ -24,6 +24,7 @@
 #include "base/logger.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 using namespace icinga;
 
@@ -80,7 +81,17 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 
 			return ret;
 		} else if (m_Operator == "=~") {
-			return string_iless()(value, m_Operand);
+			bool ret;
+			try {
+				String operand = value;
+				ret = boost::iequals(operand, m_Operand.GetData());
+			} catch (boost::exception&) {
+				Log(LogWarning, "AttributeFilter")
+				    << "Case-insensitive equality '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+				ret = false;
+			}
+
+			return ret;
 		} else if (m_Operator == "~~") {
 			bool ret;
 			try {
