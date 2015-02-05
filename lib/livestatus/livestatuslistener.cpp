@@ -160,7 +160,11 @@ void LivestatusListener::ServerThreadProc(const Socket::Ptr& server)
 			if (!IsActive())
 				break;
 		}
+	} catch (std::exception&) {
+		Log(LogCritical, "ListenerListener", "Cannot accept new connection.");
 	}
+
+	m_Listener->Close();
 }
 
 void LivestatusListener::ClientHandler(const Socket::Ptr& client)
