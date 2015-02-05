@@ -98,11 +98,11 @@ BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: make
 
-%if "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
+%if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
 # el5 requires packages.icinga.org
 BuildRequires: boost153-devel
 %else
-%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
+%if 0%{?build_icinga_org} && "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
 # sles 11 sp3 requires packages.icinga.org
 BuildRequires: boost153-devel
 %else
