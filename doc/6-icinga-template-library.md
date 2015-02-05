@@ -627,7 +627,29 @@ hpjd_address    | **Optional.** The host's address. Defaults to "$address$".
 hpjd_port       | **Optional.** The host's SNMP port. Defaults to 161.
 hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
 
-#
+
+### <a id="plugin-check-command-icmp"></a> icmp
+
+Check command object for the `check_icmp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+icmp_address    | **Optional.** The host's address. This can either be a single address or an array of addresses. Defaults to "$address$".
+icmp_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+icmp_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+icmp_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+icmp_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+icmp_source     | **Optional.** The source IP address to send packets from.
+icmp_packets    | **Optional.** The number of packets to send. Defaults to 5.
+icmp_packet_interval | **Optional** The maximum packet interval. Defaults to 80 (milliseconds).
+icmp_target_interval | **Optional.** The maximum target interval.
+icmp_hosts_alive | **Optional.** The number of hosts which have to be alive for the check to succeed.
+icmp_data_bytes | **Optional.** Payload size for each ICMP request. Defaults to 8.
+icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (seconds).
+
+
 ### <a id="plugin-check-command-running-kernel"></a> running_kernel
 
 Check command object for the `check_running_kernel` plugin
