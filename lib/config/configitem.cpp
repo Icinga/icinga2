@@ -214,6 +214,14 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	persistentItem->Set("properties", attrs);
 	persistentItem->Set("debug_hints", debugHints.ToDictionary());
 
+	Array::Ptr di = new Array();
+	di->Add(m_DebugInfo.Path);
+	di->Add(m_DebugInfo.FirstLine);
+	di->Add(m_DebugInfo.FirstColumn);
+	di->Add(m_DebugInfo.LastLine);
+	di->Add(m_DebugInfo.LastColumn);
+	persistentItem->Set("debug_info", di);
+
 	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
 	persistentItem.reset();
 

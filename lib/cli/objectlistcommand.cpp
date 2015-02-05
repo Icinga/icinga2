@@ -140,6 +140,13 @@ void ObjectListCommand::PrintObject(std::ostream& fp, bool& first, const String&
 	fp << "Object '" << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << internal_name << ConsoleColorTag(Console_Normal) << "'";
 	fp << " of type '" << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << type << ConsoleColorTag(Console_Normal) << "':\n";
 
+	Array::Ptr di = object->Get("debug_info");
+
+	if (di) {
+		fp << ConsoleColorTag(Console_ForegroundCyan) << "  % declared in '" << di->Get(0) << "', lines "
+		    << di->Get(1) << ":" << di->Get(2) << "-" << di->Get(3) << ":" << di->Get(4) << ConsoleColorTag(Console_Normal) << "\n";
+	}
+
 	PrintProperties(fp, properties, debug_hints, 2);
 
 	type_count[type]++;
