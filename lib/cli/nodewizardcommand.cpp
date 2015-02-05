@@ -274,7 +274,7 @@ wizard_master_host:
 
 wizard_ticket:
 		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the request ticket generated on your Icinga 2 master." << ConsoleColorTag(Console_Normal) << "\n"
-		    << " (Hint: '# icinga2 pki ticket --cn '" << cn << "'): ";
+		    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
