@@ -4,6 +4,34 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.2.4
+
+#### Changes
+
+* Bugfixes
+
+#### Issues
+
+* Bug #6943: Configured recurring downtimes not applied on saturdays
+* Bug #7660: livestatus / nsca / etc submits are ignored during reload
+* Bug #7685: kUn-Bashify mail-{host,service}-notification.sh
+* Bug #8128: Icinga 2.2.2 build fails on SLES11SP3 because of changed boost dependency
+* Bug #8131: vfork() hangs on OS X
+* Bug #8162: Satellite doesn't use manually supplied 'local zone name'
+* Bug #8192: Feature statusdata shows wrong host notification options
+* Bug #8201: Update Icinga Web 2 uri to /icingaweb2
+* Bug #8214: Fix YAJL detection on Debian squeeze
+* Bug #8222: inconsistent URL http(s)://www.icinga.org
+* Bug #8223: Typos in readme file for windows plugins
+* Bug #8245: check_ssmtp command does NOT support mail_from
+* Bug #8256: Restart fails after deleting a Host
+* Bug #8288: Crash in DbConnection::ProgramStatusHandler
+* Bug #8295: Restart of Icinga hangs
+* Bug #8299: Scheduling downtime for host and all services only schedules services
+* Bug #8311: Segfault in Checkable::AddNotification
+* Bug #8321: enable_event_handlers attribute is missing in status.dat
+* Bug #8368: Output in "node wizard" is confusing
+
 ### What's New in Version 2.2.3
 
 #### Changes
