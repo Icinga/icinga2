@@ -389,7 +389,7 @@ wizard_ticket:
 		NodeUtility::CreateBackupFile(constants_file);
 
 		NodeUtility::UpdateConstant("NodeName", cn);
-
+		NodeUtility::UpdateConstant("ZoneName", local_zone);
 	} else {
 		/* master setup */
 		std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
