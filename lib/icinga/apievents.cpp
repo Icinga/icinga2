@@ -1525,6 +1525,21 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 	if (!listener->GetAcceptCommands()) {
 		Log(LogWarning, "ApiListener")
 		    << "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
+
+		Host::Ptr host = new Host();
+		Dictionary::Ptr attrs = new Dictionary();
+
+		attrs->Set("__name", params->Get("host"));
+		attrs->Set("type", "Host");
+
+		Deserialize(host, attrs, false, FAConfig);
+
+		CheckResult::Ptr cr = new CheckResult();
+		cr->SetState(ServiceUnknown);
+		cr->SetOutput("'" + listener->GetName() + "' does not accept commands.");
+		Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+		listener->SyncSendMessage(endpoint, message);
+
 		return Empty;
 	}
 
