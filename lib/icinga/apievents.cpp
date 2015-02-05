@@ -1582,10 +1582,30 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 
 	Dictionary::Ptr macros = params->Get("macros");
 
-	if (command_type == "check_command")
-		host->ExecuteCheck(macros, true);
-	else if (command_type == "event_command")
+	if (command_type == "check_command") {
+		try {
+			host->ExecuteCheck(macros, true);
+		} catch (const std::exception& ex) {
+			CheckResult::Ptr cr = new CheckResult();
+			cr->SetState(ServiceUnknown);
+
+			String output = "Exception occured while checking '" + host->GetName() + "': " + DiagnosticInformation(ex);
+			cr->SetOutput(output);
+
+			double now = Utility::GetTime();
+			cr->SetScheduleStart(now);
+			cr->SetScheduleEnd(now);
+			cr->SetExecutionStart(now);
+			cr->SetExecutionEnd(now);
+
+			Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
+			listener->SyncSendMessage(endpoint, message);
+
+			Log(LogCritical, "checker", output);
+		}
+	} else if (command_type == "event_command") {
 		host->ExecuteEventHandler(macros, true);
+	}
 
 	return Empty;
 }
