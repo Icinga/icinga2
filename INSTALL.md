@@ -112,12 +112,12 @@ disable the usage of `git describe`.
 
 Use `git archive` to build the release tarball:
 
-    $ VERSION=2.2.3
+    $ VERSION=2.2.4
     $ git archive --format=tar --prefix=icinga2-$VERSION/ tags/v$VERSION | gzip >icinga2-$VERSION.tar.gz
 
 Finally you should verify that the tarball only contains the files it should contain:
 
-    $ VERSION=2.2.3
+    $ VERSION=2.2.4
     $ tar ztf icinga2-$VERSION.tar.gz | less
 
 
