@@ -1,5 +1,8 @@
 # <a id="object-types"></a> Object Types
 
+This chapter provides an overview of all available object types which can be
+instantiated using the `object` keyword.
+
 ## <a id="objecttype-host"></a> Host
 
 A host.
@@ -1224,7 +1227,6 @@ Attributes:
 ## <a id="objecttype-zone"></a> Zone
 
 Zone objects are used to specify which Icinga 2 instances are located in a zone.
-All zone endpoints elect one active master instance among them (required for High-Availability setups).
 
 Example:
 

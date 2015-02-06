@@ -52,7 +52,7 @@ Fedora:
     # curl -o /etc/yum.repos.d/ICINGA-release.repo http://packages.icinga.org/fedora/ICINGA-release.repo
     # yum makecache
 
-SLES 11
+SLES 11:
 
     # zypper ar http://packages.icinga.org/SUSE/ICINGA-release-11.repo
     # zypper ref
@@ -106,8 +106,9 @@ Icinga 2 installation:
 * `notification` for sending notifications
 * `mainlog` for writing the `icinga2.log` file
 
-You can verify that by calling `icinga2 feature list` [CLI command](7-cli-commands.md#cli-command-feature)
-to see which features are enabled and disabled.
+You can verify that by calling `icinga2 feature list`
+[CLI command](7-cli-commands.md#cli-command-feature) to see which features are
+enabled and disabled.
 
     # icinga2 feature list
     Disabled features: api command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus notification perfdata statusdata syslog
@@ -189,7 +190,8 @@ using the init script. Using Debian packages the user and group are set to
 Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
 Icinga 2 packages automatically install the necessary systemd unit files.
 
-The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also queried for its current status.
+The Icinga 2 systemd service can be (re-)started, reloaded, stopped and also
+queried for its current status.
 
     # systemctl status icinga2
     icinga2.service - Icinga host/service/network monitoring system
@@ -228,7 +230,8 @@ Examples:
     # systemctl restart icinga2
     Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
 
-If you're stuck with configuration errors, you can manually invoke the [configuration validation](7-cli-commands.md#config-validation).
+If you're stuck with configuration errors, you can manually invoke the
+[configuration validation](7-cli-commands.md#config-validation).
 
 ## <a id="setting-up-the-user-interface"></a> Setting up Icinga Web 2
 
@@ -238,10 +241,11 @@ This chapter explains how to set up Icinga Web 2. The
 chapter can be used as a starting point for installing some of the other web
 interfaces which are also available.
 
-The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of exporting
-all configuration and status information into a database. The IDO database is used
-by a number of projects including [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2),
-Icinga Reporting or Icinga Web 1.x.
+The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of
+exporting all configuration and status information into a database. The IDO
+database is used by a number of projects including
+[Icinga Web 2](2-getting-started.md#setting-up-icingaweb2), Icinga Reporting
+or Icinga Web 1.x.
 
 There is a separate module for each database backend. At present support for
 both MySQL and PostgreSQL is implemented.
@@ -320,9 +324,11 @@ The package provides a new configuration file that is installed in
 update the database credentials in this file.
 
 All available attributes are explained in the
-[IdoMysqlConnection object](5-object-types.md#objecttype-idomysqlconnection) chapter.
+[IdoMysqlConnection object](5-object-types.md#objecttype-idomysqlconnection)
+chapter.
 
-You can enable the `ido-mysql` feature configuration file using `icinga2 feature enable`:
+You can enable the `ido-mysql` feature configuration file using
+`icinga2 feature enable`:
 
     # icinga2 feature enable ido-mysql
     Module 'ido-mysql' was enabled.
@@ -398,7 +404,7 @@ Set up a PostgreSQL database for Icinga 2:
 
 > **Note**
 >
-> Using PostgreSQL 9.x you can omit the `createlang` command.
+> When using PostgreSQL 9.x you can omit the `createlang` command.
 
 Locate your pg_hba.conf (Debian: `/etc/postgresql/*/main/pg_hba.conf`,
 RHEL/SUSE: `/var/lib/pgsql/data/pg_hba.conf`), add the icinga user with md5
@@ -421,8 +427,8 @@ authentication method and restart the postgresql server.
     # /etc/init.d/postgresql restart
 
 
-After creating the database and permissions you can import the Icinga 2 IDO schema
-using the following command:
+After creating the database and permissions you can import the Icinga 2 IDO
+schema using the following command:
 
     # export PGPASSWORD=icinga
     # psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
@@ -435,9 +441,11 @@ The package provides a new configuration file that is installed in
 the database credentials in this file.
 
 All available attributes are explained in the
-[IdoPgsqlConnection object](5-object-types.md#objecttype-idopgsqlconnection) chapter.
+[IdoPgsqlConnection object](5-object-types.md#objecttype-idopgsqlconnection)
+chapter.
 
-You can enable the `ido-pgsql` feature configuration file using `icinga2 feature enable`:
+You can enable the `ido-pgsql` feature configuration file using
+`icinga2 feature enable`:
 
     # icinga2 feature enable ido-pgsql
     Module 'ido-pgsql' was enabled.
@@ -510,31 +518,35 @@ RHEL/CentOS 7 and Fedora:
 
     # systemctl restart icinga2
 
-By default the command pipe file is owned by the group `icingacmd` with read/write
-permissions. Add your webserver's user to the group `icingacmd` to
+By default the command pipe file is owned by the group `icingacmd` with
+read/write permissions. Add your webserver's user to the group `icingacmd` to
 enable sending commands to Icinga 2 through your web interface:
 
     # usermod -a -G icingacmd www-data
 
-Debian packages use `nagios` as the default user and group name. Therefore change `icingacmd` to
-`nagios`.
-The webserver's user is different between distributions so you might have to change `www-data` to
-`wwwrun`, `www`, or `apache`.
+Debian packages use `nagios` as the default user and group name. Therefore
+change `icingacmd` to `nagios`.
+
+The webserver's user is different between distributions so you might have to
+change `www-data` to `wwwrun`, `www`, or `apache`.
 
 Change "www-data" to the user you're using to run queries.
 
-You can verify that the user has been successfully added to the `icingacmd` group using the `id` command:
+You can verify that the user has been successfully added to the `icingacmd`
+group using the `id` command:
 
-    id <your-webserver-user>
+    $ id <your-webserver-user>
 
 
 ### <a id="setting-up-icingaweb2"></a> Installing up Icinga Web 2
 
-Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md) for further instructions on how to install Icinga Web 2.
+Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md)
+for further instructions on how to install Icinga Web 2.
 
 
 ## <a id="install-addons"></a> Addons
 
-A number of additional features are available in the form of addons. A list of popular
-addons is available in the [Addons and Plugins](9-addons-plugins.md#addons-plugins) chapter.
+A number of additional features are available in the form of addons. A list of
+popular addons is available in the
+[Addons and Plugins](9-addons-plugins.md#addons-plugins) chapter.
 

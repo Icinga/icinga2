@@ -2,8 +2,9 @@
 
 ## <a id="what-is-icinga2"></a> What is Icinga 2?
 
-Icinga 2 is an open source monitoring system which checks the availability of your
-network resources, notifies users of outages, and generates performance data for reporting.
+Icinga 2 is an open source monitoring system which checks the availability of
+your network resources, notifies users of outages, and generates performance
+data for reporting.
 
 Scalable and extensible, Icinga 2 can monitor large, complex environments across
 multiple locations.
@@ -21,9 +22,9 @@ the [support overview page](https://support.icinga.org).
 
 ## <a id="contribute"></a> Contribute
 
-There are many ways to contribute to Icinga - whether it be sending patches, testing,
-reporting bugs, or reviewing and updating the documentation. Every contribution
-is appreciated!
+There are many ways to contribute to Icinga - whether it be sending patches,
+testing, reporting bugs, or reviewing and updating the documentation. Every
+contribution is appreciated!
 
 Please get in touch with the Icinga team at https://www.icinga.org/community/.
 

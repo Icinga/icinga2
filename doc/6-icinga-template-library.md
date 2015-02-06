@@ -71,54 +71,121 @@ file:
 The plugin check commands assume that there's a global constant named `PluginDir`
 which contains the path of the plugins from the Monitoring Plugins project.
 
+### <a id="plugin-check-command-apt"></a> apt
 
-### <a id="plugin-check-command-ping4"></a> ping4
+Check command for the `check_apt` plugin.
 
-Check command object for the `check_ping` plugin.
+The `apt` check command does not support any vars.
 
-Custom Attributes:
 
-Name            | Description
-----------------|--------------
-ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
-ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
-ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
-ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
-ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
-ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
-ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+### <a id="plugin-check-command-by-ssh"></a> by_ssh
 
-### <a id="plugin-check-command-ping6"></a> ping6
-
-Check command object for the `check_ping` plugin.
+Check command object for the `check_by_ssh` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ping_address    | **Optional.** The host's IPv6 address. Defaults to "$address6$".
-ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
-ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
-ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
-ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
-ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
-ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+by_ssh_address  | **Optional.** The host's address. Defaults to "$address$".
+by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
+by_ssh_command  | **Optional.** The command that should be executed.
+by_ssh_logname  | **Optional.** The SSH username.
+by_ssh_identity | **Optional.** The SSH identity.
+by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to false.
+by_ssh_warn     | **Optional.** The warning threshold.
+by_ssh_crit     | **Optional.** The critical threshold.
+by_ssh_timeout  | **Optional.** The timeout in seconds.
 
-### <a id="plugin-check-command-hostalive"></a> hostalive
 
-Check command object for the `check_ping` plugin with host check default values.
+### <a id="plugin-check-command-dhcp"></a> dhcp
+
+Check command object for the `check_dhcp` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
-ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.
-ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 80.
-ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
-ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
-ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
-ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+dhcp_serverip   | **Optional.** The IP address of the DHCP server which we should get a response from.
+dhcp_requestedip| **Optional.** The IP address which we should be offered by a DHCP server.
+dhcp_timeout    | **Optional.** The timeout in seconds.
+dhcp_interface  | **Optional.** The interface to use.
+dhcp_mac        | **Optional.** The MAC address to use in the DHCP request.
+dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to false.
+
+
+### <a id="plugin-check-command-dig"></a> dig
+
+Check command object for the `check_dig` plugin.
+
+Custom Attributes:
+
+Name                 | Description
+---------------------|--------------
+dig_server           | **Optional.** The DNS server to query. Defaults to "127.0.0.1".
+dig_lookup           | **Optional.** The address that should be looked up.
+
+
+### <a id="plugin-check-command-disk"></a> disk
+
+Check command object for the `check_disk` plugin.
+
+Custom Attributes:
+
+Name            	| Description
+------------------------|------------------------
+disk_wfree      	| **Optional.** The free space warning threshold in %. Defaults to 20.
+disk_cfree      	| **Optional.** The free space critical threshold in %. Defaults to 10.
+disk_inode_wfree 	| **Optional.** The free inode warning threshold.
+disk_inode_cfree 	| **Optional.** The free inode critical threshold.
+disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
+disk_partition_excluded | **Optional.** The excluded partition. **Deprecated in 2.3.**
+disk_partitions        	| **Optional.** The partition(s). Multiple partitions must be defined as array.
+disk_partitions_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
+disk_clear               | **Optional.** Clear thresholds.
+disk_exact_match       | **Optional.** For paths or partitions specified with -p, only check for exact paths.
+disk_errors_only       | **Optional.** Display only devices/mountpoints with errors. May be true or false.
+disk_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together
+disk_kilobytes         | **Optional.** Same as --units kB. May be true or false.
+disk_local             | **Optional.** Only check local filesystems. May be true or false.
+disk_stat_remote_fs    | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). Myy be true or false
+disk_mountpoint        | **Optional.** Display the mountpoint instead of the partition. May be true or false.
+disk_megabytes         | **Optional.** Same as --units MB. May be true or false.
+disk_all               | **Optional.** Explicitly select all paths. This is equivalent to -R '.*'. May be true or false.
+disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition (may be repeated).
+disk_ereg_path         | **Optional.** Regular expression for path or partition (may be repeated).
+disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive) (may be repeated).
+disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition (may be repeated).
+disk_timeout           | **Optional.** Seconds before connection times out (default: 10).
+disk_units             | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
+disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type (may be repeated).
+
+
+### <a id="plugin-check-command-dns"></a> dns
+
+Check command object for the `check_dns` plugin.
+
+Custom Attributes:
+
+Name                 | Description
+---------------------|--------------
+dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to $host_name$.
+dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
+dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot. **Deprecated in 2.3.**
+dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Multiple answers must be defined as array.
+dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
+
+
+### <a id="plugin-check-command-dummy"></a> dummy
+
+Check command object for the `check_dummy` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
+dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
+
 
 ### <a id="plugin-check-command-fping4"></a> fping4
 
@@ -139,6 +206,7 @@ fping_bytes	| **Optional.** The size of ICMP packet.
 fping_target_timeout | **Optional.** The target timeout in milli-seconds.
 fping_source_ip | **Optional.** The name or ip address of the source ip.
 fping_source_interface | **Optional.** The source interface name.
+
 
 ### <a id="plugin-check-command-fping6"></a> fping6
 
@@ -161,63 +229,46 @@ fping_source_ip | **Optional.** The name or ip address of the source ip.
 fping_source_interface | **Optional.** The source interface name.
 
 
-### <a id="plugin-check-command-dummy"></a> dummy
+### <a id="plugin-check-command-ftp"></a> ftp
 
-Check command object for the `check_dummy` plugin.
+Check command object for the `check_ftp` plugin.
+
+Custom Attributes:
+
+Name               | Description
+-------------------|--------------
+ftp_address        | **Optional.** The host's address. Defaults to "$address$".
+
+
+### <a id="plugin-check-command-hostalive"></a> hostalive
+
+Check command object for the `check_ping` plugin with host check default values.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
-dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
+ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 80.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
-### <a id="plugin-check-command-passive"></a> passive
 
-Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
+### <a id="plugin-check-command-hpjd"></a> hpjd
 
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
-dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
-
-### <a id="plugin-check-command-tcp"></a> tcp
-
-Check command object for the `check_tcp` plugin.
+Check command object for the `check_hpjd` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-tcp_address     | **Optional.** The host's address. Defaults to "$address$".
-tcp_port        | **Required.** The port that should be checked.
+hpjd_address    | **Optional.** The host's address. Defaults to "$address$".
+hpjd_port       | **Optional.** The host's SNMP port. Defaults to 161.
+hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
 
-### <a id="plugin-check-command-ssl"></a> ssl
-
-Check command object for the `check_tcp` plugin, using ssl-related options.
-
-Custom Attributes:
-
-Name                          | Description
-------------------------------|--------------
-ssl_address                   | **Optional.** The host's address. Defaults to "$address$".
-ssl_port                      | **Required.** The port that should be checked.
-ssl_timeout                   | **Optional.** Timeout in seconds for the connect and handshake. The plugin default is 10 seconds.
-ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, ssl_cert_valid_days_critical must also be set.
-ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before the certificate will expire. When used, ssl_cert_valid_days_warn must also be set.
-
-### <a id="plugin-check-command-udp"></a> udp
-
-Check command object for the `check_udp` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-udp_address     | **Optional.** The host's address. Defaults to "$address$".
-udp_port        | **Required.** The port that should be checked.
 
 ### <a id="plugin-check-command-http"></a> http
 
@@ -260,38 +311,27 @@ http_pagesize            | **Optional.** Minimum page size required:Maximum page
 http_timeout             | **Optional.** Seconds before connection times out.
 
 
-### <a id="plugin-check-command-ftp"></a> ftp
+### <a id="plugin-check-command-icmp"></a> icmp
 
-Check command object for the `check_ftp` plugin.
-
-Custom Attributes:
-
-Name               | Description
--------------------|--------------
-ftp_address        | **Optional.** The host's address. Defaults to "$address$".
-
-### <a id="plugin-check-command-smtp"></a> smtp
-
-Check command object for the `check_smtp` plugin.
-
-Custom Attributes:
-
-Name                 | Description
----------------------|--------------
-smtp_address         | **Optional.** The host's address. Defaults to "$address$".
-smtp_port            | **Optional.** The port that should be checked. Defaults to 25.
-smtp_mail_from       | **Optional.** Test a MAIL FROM command with the given email address.
-
-### <a id="plugin-check-command-ssmtp"></a> ssmtp
-
-Check command object for the `check_ssmtp` plugin.
+Check command object for the `check_icmp` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ssmtp_address   | **Required.** The host's address. Defaults to "$address$".
-ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
+icmp_address    | **Optional.** The host's address. This can either be a single address or an array of addresses. Defaults to "$address$".
+icmp_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+icmp_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+icmp_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+icmp_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+icmp_source     | **Optional.** The source IP address to send packets from.
+icmp_packets    | **Optional.** The number of packets to send. Defaults to 5.
+icmp_packet_interval | **Optional** The maximum packet interval. Defaults to 80 (milliseconds).
+icmp_target_interval | **Optional.** The maximum target interval.
+icmp_hosts_alive | **Optional.** The number of hosts which have to be alive for the check to succeed.
+icmp_data_bytes | **Optional.** Payload size for each ICMP request. Defaults to 8.
+icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (seconds).
+
 
 ### <a id="plugin-check-command-imap"></a> imap
 
@@ -304,16 +344,113 @@ Name            | Description
 imap_address    | **Optional.** The host's address. Defaults to "$address$".
 imap_port       | **Optional.** The port that should be checked. Defaults to 143.
 
-### <a id="plugin-check-command-simap"></a> simap
 
-Check command object for the `check_simap` plugin.
+### <a id="plugin-check-command-load"></a> load
+
+Check command object for the `check_load` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-simap_address   | **Optional.** The host's address. Defaults to "$address$".
-simap_port      | **Optional.** The host's port.
+load_wload1     | **Optional.** The 1-minute warning threshold. Defaults to 5.
+load_wload5     | **Optional.** The 5-minute warning threshold. Defaults to 4.
+load_wload15    | **Optional.** The 15-minute warning threshold. Defaults to 3.
+load_cload1     | **Optional.** The 1-minute critical threshold. Defaults to 10.
+load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
+load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
+
+
+### <a id="plugin-check-command-nrpe"></a> nrpe
+
+Check command object for the `check_nrpe` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+nrpe_address    | **Optional.** The host's address. Defaults to "$address$".
+nrpe_port       | **Optional.** The NRPE port. Defaults to 5668.
+nrpe_command    | **Optional.** The command that should be executed.
+nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `false`.
+nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
+nrpe_timeout    | **Optional.** The timeout in seconds.
+nrpe_arguments	| **Optional.** Arguments that should be passed to the command. Multiple arguments must be defined as array.
+
+
+### <a id="plugin-check-command-nscp"></a> nscp
+
+Check command object for the `check_nt` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+nscp_address    | **Optional.** The host's address. Defaults to "$address$".
+nscp_port       | **Optional.** The NSClient++ port. Defaults to 12489.
+nscp_password   | **Optional.** The NSClient++ password.
+nscp_variable   | **Required.** The variable that should be checked.
+nscp_params     | **Optional.** Parameters for the query. Multiple parameters must be defined as array.
+nscp_warn       | **Optional.** The warning threshold.
+nscp_crit       | **Optional.** The critical threshold.
+nscp_timeout    | **Optional.** The query timeout in seconds.
+
+
+### <a id="plugin-check-command-ntp-time"></a> ntp_time
+
+Check command object for the `check_ntp_time` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ntp_address     | **Optional.** The host's address. Defaults to "$address$".
+
+
+### <a id="plugin-check-command-passive"></a> passive
+
+Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
+dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
+
+
+### <a id="plugin-check-command-ping4"></a> ping4
+
+Check command object for the `check_ping` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
+### <a id="plugin-check-command-ping6"></a> ping6
+
+Check command object for the `check_ping` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's IPv6 address. Defaults to "$address6$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
 
 ### <a id="plugin-check-command-pop"></a> pop
 
@@ -326,83 +463,6 @@ Name            | Description
 pop_address     | **Optional.** The host's address. Defaults to "$address$".
 pop_port        | **Optional.** The port that should be checked. Defaults to 110.
 
-### <a id="plugin-check-command-spop"></a> spop
-
-Check command object for the `check_spop` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-spop_address    | **Optional.** The host's address. Defaults to "$address$".
-spop_port       | **Optional.** The host's port.
-
-### <a id="plugin-check-command-ntp-time"></a> ntp_time
-
-Check command object for the `check_ntp_time` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-ntp_address     | **Optional.** The host's address. Defaults to "$address$".
-
-### <a id="plugin-check-command-ssh"></a> ssh
-
-Check command object for the `check_ssh` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-ssh_address     | **Optional.** The host's address. Defaults to "$address$".
-ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
-ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
-
-### <a id="plugin-check-command-disk"></a> disk
-
-Check command object for the `check_disk` plugin.
-
-Custom Attributes:
-
-Name            	| Description
-------------------------|------------------------
-disk_wfree      	| **Optional.** The free space warning threshold in %. Defaults to 20.
-disk_cfree      	| **Optional.** The free space critical threshold in %. Defaults to 10.
-disk_inode_wfree 	| **Optional.** The free inode warning threshold.
-disk_inode_cfree 	| **Optional.** The free inode critical threshold.
-disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
-disk_partition_excluded | **Optional.** The excluded partition. **Deprecated in 2.3.**
-disk_partitions        	| **Optional.** The partition(s). Multiple partitions must be defined as array.
-disk_partitions_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
-disk_clear               | **Optional.** Clear thresholds.
-disk_exact_match       | **Optional.** For paths or partitions specified with -p, only check for exact paths.
-disk_errors_only       | **Optional.** Display only devices/mountpoints with errors. May be true or false.
-disk_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together
-disk_kilobytes         | **Optional.** Same as --units kB. May be true or false.
-disk_local             | **Optional.** Only check local filesystems. May be true or false.
-disk_stat_remote_fs    | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). Myy be true or false
-disk_mountpoint        | **Optional.** Display the mountpoint instead of the partition. May be true or false.
-disk_megabytes         | **Optional.** Same as --units MB. May be true or false.
-disk_all               | **Optional.** Explicitly select all paths. This is equivalent to -R '.*'. May be true or false.
-disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition (may be repeated).
-disk_ereg_path         | **Optional.** Regular expression for path or partition (may be repeated).
-disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive) (may be repeated).
-disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition (may be repeated).
-disk_timeout           | **Optional.** Seconds before connection times out (default: 10).
-disk_units             | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type (may be repeated).
-
-### <a id="plugin-check-command-users"></a> users
-
-Check command object for the `check_users` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
-users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
 ### <a id="plugin-check-command-processes"></a> procs
 
@@ -428,31 +488,39 @@ procs_argument_regex | **Optional.** Only scan for processes with args that cont
 procs_command        | **Optional.** Only scan for exact matches of COMMAND (without path).
 procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to "false".
 
-### <a id="plugin-check-command-swap"></a> swap
 
-Check command object for the `check_swap` plugin.
+### <a id="plugin-check-command-running-kernel"></a> running_kernel
 
-Custom Attributes:
+Check command object for the `check_running_kernel` plugin
+provided by the `nagios-plugins-contrib` package on Debian.
 
-Name            | Description
-----------------|--------------
-swap_wfree      | **Optional.** The free swap space warning threshold in %. Defaults to 50.
-swap_cfree      | **Optional.** The free swap space critical threshold in %. Defaults to 25.
+The `running_kernel` check command does not support any vars.
 
-### <a id="plugin-check-command-load"></a> load
 
-Check command object for the `check_load` plugin.
+### <a id="plugin-check-command-simap"></a> simap
+
+Check command object for the `check_simap` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-load_wload1     | **Optional.** The 1-minute warning threshold. Defaults to 5.
-load_wload5     | **Optional.** The 5-minute warning threshold. Defaults to 4.
-load_wload15    | **Optional.** The 15-minute warning threshold. Defaults to 3.
-load_cload1     | **Optional.** The 1-minute critical threshold. Defaults to 10.
-load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
-load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
+simap_address   | **Optional.** The host's address. Defaults to "$address$".
+simap_port      | **Optional.** The host's port.
+
+
+### <a id="plugin-check-command-smtp"></a> smtp
+
+Check command object for the `check_smtp` plugin.
+
+Custom Attributes:
+
+Name                 | Description
+---------------------|--------------
+smtp_address         | **Optional.** The host's address. Defaults to "$address$".
+smtp_port            | **Optional.** The port that should be checked. Defaults to 25.
+smtp_mail_from       | **Optional.** Test a MAIL FROM command with the given email address.
+
 
 ### <a id="plugin-check-command-snmp"></a> snmp
 
@@ -506,80 +574,94 @@ snmp_address    | **Optional.** The host's address. Defaults to "$address$".
 snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
-### <a id="plugin-check-command-dns"></a> dns
 
-Check command object for the `check_dns` plugin.
+### <a id="plugin-check-command-spop"></a> spop
 
-Custom Attributes:
-
-Name                 | Description
----------------------|--------------
-dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to $host_name$.
-dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
-dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot. **Deprecated in 2.3.**
-dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Multiple answers must be defined as array.
-dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
-
-### <a id="plugin-check-command-dig"></a> dig
-
-Check command object for the `check_dig` plugin.
-
-Custom Attributes:
-
-Name                 | Description
----------------------|--------------
-dig_server           | **Optional.** The DNS server to query. Defaults to "127.0.0.1".
-dig_lookup           | **Optional.** The address that should be looked up.
-
-### <a id="plugin-check-command-dhcp"></a> dhcp
-
-Check command object for the `check_dhcp` plugin.
+Check command object for the `check_spop` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-dhcp_serverip   | **Optional.** The IP address of the DHCP server which we should get a response from.
-dhcp_requestedip| **Optional.** The IP address which we should be offered by a DHCP server.
-dhcp_timeout    | **Optional.** The timeout in seconds.
-dhcp_interface  | **Optional.** The interface to use.
-dhcp_mac        | **Optional.** The MAC address to use in the DHCP request.
-dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to false.
+spop_address    | **Optional.** The host's address. Defaults to "$address$".
+spop_port       | **Optional.** The host's port.
 
-### <a id="plugin-check-command-nscp"></a> nscp
 
-Check command object for the `check_nt` plugin.
+### <a id="plugin-check-command-ssh"></a> ssh
+
+Check command object for the `check_ssh` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-nscp_address    | **Optional.** The host's address. Defaults to "$address$".
-nscp_port       | **Optional.** The NSClient++ port. Defaults to 12489.
-nscp_password   | **Optional.** The NSClient++ password.
-nscp_variable   | **Required.** The variable that should be checked.
-nscp_params     | **Optional.** Parameters for the query. Multiple parameters must be defined as array.
-nscp_warn       | **Optional.** The warning threshold.
-nscp_crit       | **Optional.** The critical threshold.
-nscp_timeout    | **Optional.** The query timeout in seconds.
+ssh_address     | **Optional.** The host's address. Defaults to "$address$".
+ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
+ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
 
-### <a id="plugin-check-command-by-ssh"></a> by_ssh
 
-Check command object for the `check_by_ssh` plugin.
+### <a id="plugin-check-command-ssl"></a> ssl
+
+Check command object for the `check_tcp` plugin, using ssl-related options.
+
+Custom Attributes:
+
+Name                          | Description
+------------------------------|--------------
+ssl_address                   | **Optional.** The host's address. Defaults to "$address$".
+ssl_port                      | **Required.** The port that should be checked.
+ssl_timeout                   | **Optional.** Timeout in seconds for the connect and handshake. The plugin default is 10 seconds.
+ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, ssl_cert_valid_days_critical must also be set.
+ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before the certificate will expire. When used, ssl_cert_valid_days_warn must also be set.
+
+
+### <a id="plugin-check-command-ssmtp"></a> ssmtp
+
+Check command object for the `check_ssmtp` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-by_ssh_address  | **Optional.** The host's address. Defaults to "$address$".
-by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
-by_ssh_command  | **Optional.** The command that should be executed.
-by_ssh_logname  | **Optional.** The SSH username.
-by_ssh_identity | **Optional.** The SSH identity.
-by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to false.
-by_ssh_warn     | **Optional.** The warning threshold.
-by_ssh_crit     | **Optional.** The critical threshold.
-by_ssh_timeout  | **Optional.** The timeout in seconds.
+ssmtp_address   | **Required.** The host's address. Defaults to "$address$".
+ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
+
+
+### <a id="plugin-check-command-swap"></a> swap
+
+Check command object for the `check_swap` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+swap_wfree      | **Optional.** The free swap space warning threshold in %. Defaults to 50.
+swap_cfree      | **Optional.** The free swap space critical threshold in %. Defaults to 25.
+
+
+### <a id="plugin-check-command-tcp"></a> tcp
+
+Check command object for the `check_tcp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+tcp_address     | **Optional.** The host's address. Defaults to "$address$".
+tcp_port        | **Required.** The port that should be checked.
+
+
+### <a id="plugin-check-command-udp"></a> udp
+
+Check command object for the `check_udp` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+udp_address     | **Optional.** The host's address. Defaults to "$address$".
+udp_port        | **Required.** The port that should be checked.
+
 
 ### <a id="plugin-check-command-ups"></a> ups
 
@@ -593,69 +675,16 @@ ups_address     | **Optional.** The host's address. Defaults to "$address$".
 ups_name        | **Optional.** The UPS name. Defaults to `ups`.
 
 
-### <a id="plugin-check-command-nrpe"></a> nrpe
+### <a id="plugin-check-command-users"></a> users
 
-Check command object for the `check_nrpe` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-nrpe_address    | **Optional.** The host's address. Defaults to "$address$".
-nrpe_port       | **Optional.** The NRPE port. Defaults to 5668.
-nrpe_command    | **Optional.** The command that should be executed.
-nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `false`.
-nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
-nrpe_timeout    | **Optional.** The timeout in seconds.
-nrpe_arguments	| **Optional.** Arguments that should be passed to the command. Multiple arguments must be defined as array.
-
-### <a id="plugin-check-command-apt"></a> apt
-
-Check command for the `check_apt` plugin.
-
-The `apt` check command does not support any vars.
-
-### <a id="plugin-check-command-hpjd"></a> hpjd
-
-Check command object for the `check_hpjd` plugin.
+Check command object for the `check_users` plugin.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-hpjd_address    | **Optional.** The host's address. Defaults to "$address$".
-hpjd_port       | **Optional.** The host's SNMP port. Defaults to 161.
-hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
-
-
-### <a id="plugin-check-command-icmp"></a> icmp
-
-Check command object for the `check_icmp` plugin.
-
-Custom Attributes:
-
-Name            | Description
-----------------|--------------
-icmp_address    | **Optional.** The host's address. This can either be a single address or an array of addresses. Defaults to "$address$".
-icmp_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
-icmp_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
-icmp_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
-icmp_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
-icmp_source     | **Optional.** The source IP address to send packets from.
-icmp_packets    | **Optional.** The number of packets to send. Defaults to 5.
-icmp_packet_interval | **Optional** The maximum packet interval. Defaults to 80 (milliseconds).
-icmp_target_interval | **Optional.** The maximum target interval.
-icmp_hosts_alive | **Optional.** The number of hosts which have to be alive for the check to succeed.
-icmp_data_bytes | **Optional.** Payload size for each ICMP request. Defaults to 8.
-icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (seconds).
-
-
-### <a id="plugin-check-command-running-kernel"></a> running_kernel
-
-Check command object for the `check_running_kernel` plugin
-provided by the `nagios-plugins-contrib` package on Debian.
-
-The `running_kernel` check command does not support any vars.
+users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
+users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
 
 # <a id="snmp-manubulon-plugin-check-commands"></a> SNMP Manubulon Plugin Check Commands
