@@ -36,6 +36,13 @@ Objects can contain a comma-separated list of property
 declarations. Instead of commas semicolons may also be used.
 The following data types are available for property values:
 
+All objects have at least the following attributes:
+
+Attribute            | Description
+---------------------|-----------------------------
+name                 | The name of the object. This attribute can be modified in the object definition to override the name specified with the `object` directive.
+type                 | The type of the object.
+
 ## Expressions
 
 The following expressions can be used on the right-hand side of assignments.
