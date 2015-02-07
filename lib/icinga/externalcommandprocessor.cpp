@@ -641,6 +641,7 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const std::vector<St
 void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<String>& arguments)
 {
 	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
+	bool notify = (Convert::ToLong(arguments[3]) > 0 ? true : false);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -651,15 +652,16 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Setting acknowledgement for service '" << service->GetName() << "'";
+	    << "Setting acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	service->AddComment(CommentAcknowledgement, arguments[5], arguments[6], 0);
-	service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify);
 }
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::vector<String>& arguments)
 {
 	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
+	bool notify = (Convert::ToLong(arguments[3]) > 0 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[5]);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -671,10 +673,10 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
 	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Setting timed acknowledgement for service '" << service->GetName() << "'";
+	    << "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	service->AddComment(CommentAcknowledgement, arguments[6], arguments[7], 0);
-	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
+	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vector<String>& arguments)
@@ -698,6 +700,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<String>& arguments)
 {
 	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
+	bool notify = (Convert::ToLong(arguments[2]) > 0 ? true : false);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -705,18 +708,19 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge host problem for non-existent host '" + arguments[0] + "'"));
 
 	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Setting acknowledgement for host '" << host->GetName() << "'";
+	    << "Setting acknowledgement for host '" << host->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
 	host->AddComment(CommentAcknowledgement, arguments[4], arguments[5], 0);
-	host->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal);
+	host->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify);
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::vector<String>& arguments)
 {
 	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
+	bool notify = (Convert::ToLong(arguments[2]) > 0 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -725,13 +729,13 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge host problem with expire time for non-existent host '" + arguments[0] + "'"));
 
 	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Setting timed acknowledgement for host '" << host->GetName() << "'";
+	    << "Setting timed acknowledgement for host '" << host->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
 	host->AddComment(CommentAcknowledgement, arguments[5], arguments[6], 0);
-	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, timestamp);
+	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vector<String>& arguments)

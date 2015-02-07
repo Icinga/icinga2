@@ -94,7 +94,7 @@ public:
 
 	AcknowledgementType GetAcknowledgement(void);
 
-	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry = 0, const MessageOrigin& origin = MessageOrigin());
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, double expiry = 0, const MessageOrigin& origin = MessageOrigin());
 	void ClearAcknowledgement(const MessageOrigin& origin = MessageOrigin());
 
 	/* Checks */
@@ -187,7 +187,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> OnFlappingChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> OnDowntimeTriggered;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
-					     double, const MessageOrigin&)> OnAcknowledgementSet;
+					     bool, double, const MessageOrigin&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 

@@ -103,7 +103,8 @@ public:
 	static void DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin& origin);
 	static Value DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
-	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, double expiry, const MessageOrigin& origin);
+	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type,
+	    bool notify, double expiry, const MessageOrigin& origin);
 	static Value AcknowledgementSetAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin& origin);

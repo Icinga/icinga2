@@ -1392,7 +1392,7 @@ Value ApiEvents::DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Di
 
 void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
     const String& author, const String& comment, AcknowledgementType type,
-    double expiry, const MessageOrigin& origin)
+    bool notify, double expiry, const MessageOrigin& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -1410,6 +1410,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	params->Set("author", author);
 	params->Set("comment", comment);
 	params->Set("acktype", type);
+	params->Set("notify", notify);
 	params->Set("expiry", expiry);
 
 	Dictionary::Ptr message = new Dictionary();
@@ -1448,7 +1449,7 @@ Value ApiEvents::AcknowledgementSetAPIHandler(const MessageOrigin& origin, const
 
 	checkable->AcknowledgeProblem(params->Get("author"), params->Get("comment"),
 	    static_cast<AcknowledgementType>(static_cast<int>(params->Get("acktype"))),
-	    params->Get("expiry"), origin);
+	    params->Get("notify"), params->Get("expiry"), origin);
 
 	return Empty;
 }

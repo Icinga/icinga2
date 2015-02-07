@@ -31,7 +31,7 @@ REGISTER_TYPE(Checkable);
 REGISTER_SCRIPTFUNCTION(ValidateCheckableCheckInterval, &Checkable::ValidateCheckInterval);
 
 boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnablePerfdataChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, double, const MessageOrigin&)> Checkable::OnAcknowledgementSet;
+boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, double, const MessageOrigin&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> Checkable::OnAcknowledgementCleared;
 
 Checkable::Checkable(void)
@@ -121,7 +121,7 @@ bool Checkable::IsAcknowledged(void)
 	return GetAcknowledgement() != AcknowledgementNone;
 }
 
-void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, double expiry, const MessageOrigin& origin)
+void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, double expiry, const MessageOrigin& origin)
 {
 	{
 		ObjectLock olock(this);
@@ -130,9 +130,10 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 		SetAcknowledgementExpiry(expiry);
 	}
 
-	OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment);
+	if (notify)
+		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment);
 
-	OnAcknowledgementSet(this, author, comment, type, expiry, origin);
+	OnAcknowledgementSet(this, author, comment, type, notify, expiry, origin);
 }
 
 void Checkable::ClearAcknowledgement(const MessageOrigin& origin)
