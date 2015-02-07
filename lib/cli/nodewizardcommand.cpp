@@ -242,6 +242,11 @@ wizard_master_host:
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
 		}
 
+		if (Utility::PathExists(node_key))
+			NodeUtility::CreateBackupFile(node_key, 0600);
+		if (Utility::PathExists(node_cert))
+			NodeUtility::CreateBackupFile(node_cert, 0640);
+
 		if (PkiUtility::NewCert(cn, node_key, Empty, node_cert) > 0) {
 			Log(LogCritical, "cli")
 			    << "Failed to create new self-signed certificate for CN '" << cn << "'. Please try again.";
@@ -263,6 +268,9 @@ wizard_master_host:
 		    << master_host << ", " << master_port << "):\n";
 
 		String trusted_cert = PkiUtility::GetPkiPath() + "/trusted-master.crt";
+
+		if (Utility::PathExists(trusted_cert))
+			NodeUtility::CreateBackupFile(trusted_cert, 0640);
 
 		if (PkiUtility::SaveCert(master_host, master_port, node_key, node_cert, trusted_cert) > 0) {
 			Log(LogCritical, "cli")
@@ -290,6 +298,11 @@ wizard_ticket:
 		    << "Processing self-signed certificate request. Ticket '" << ticket << "'.\n";
 
 		String target_ca = pki_path + "/ca.crt";
+
+		if (Utility::PathExists(target_ca))
+			NodeUtility::CreateBackupFile(target_ca, 0640);
+		if (Utility::PathExists(node_cert))
+			NodeUtility::CreateBackupFile(node_cert, 0640);
 
 		if (PkiUtility::RequestCertificate(master_host, master_port, node_key, node_cert, target_ca, trusted_cert, ticket) > 0) {
 			Log(LogCritical, "cli")
@@ -433,6 +446,11 @@ wizard_ticket:
 		Log(LogInformation, "cli")
 		    << "Generating new CSR in '" << csr << "'.";
 
+		if (Utility::PathExists(key))
+			NodeUtility::CreateBackupFile(key, 0600);
+		if (Utility::PathExists(csr))
+			NodeUtility::CreateBackupFile(csr, 0640);
+
 		if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
 			Log(LogCritical, "cli", "Failed to create certificate signing request.");
 			return 1;
@@ -443,6 +461,9 @@ wizard_ticket:
 
 		Log(LogInformation, "cli")
 		    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
+
+		if (Utility::PathExists(cert))
+			NodeUtility::CreateBackupFile(cert, 0640);
 
 		if (PkiUtility::SignCsr(csr, cert) != 0) {
 			Log(LogCritical, "cli", "Could not sign CSR.");
@@ -460,37 +481,28 @@ wizard_ticket:
 		Log(LogInformation, "cli")
 		    << "Copying CA certificate to '" << target_ca << "'.";
 
+		if (Utility::PathExists(target_ca))
+			NodeUtility::CreateBackupFile(target_ca);
+
 		/* does not overwrite existing files! */
 		Utility::CopyFile(ca, target_ca);
 
 		/* fix permissions: root -> icinga daemon user */
-		if (!Utility::SetFileOwnership(ca_path, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_path << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(ca, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(ca_key, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(serial, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << serial << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(target_ca, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << target_ca << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(key, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
-		}
-		if (!Utility::SetFileOwnership(csr, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << csr << "'. Verify it yourself!";
+		std::vector<String> files;
+		files.push_back(ca_path);
+		files.push_back(ca);
+		files.push_back(ca_key);
+		files.push_back(serial);
+		files.push_back(target_ca);
+		files.push_back(key);
+		files.push_back(csr);
+		files.push_back(cert);
+
+		BOOST_FOREACH(const String& file, files) {
+			if (!Utility::SetFileOwnership(file, user, group)) {
+				Log(LogWarning, "cli")
+				    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
+			}
 		}
 
 		NodeUtility::GenerateNodeMasterIcingaConfig(cn);
