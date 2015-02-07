@@ -73,7 +73,7 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 
 	if (!triggeredBy.IsEmpty()) {
 		Downtime::Ptr triggerDowntime = GetDowntimeByID(triggeredBy);
-		
+
 		if (triggerDowntime)
 			downtime->SetTriggeredByLegacyId(triggerDowntime->GetLegacyId());
 	}
@@ -102,6 +102,14 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 		boost::mutex::scoped_lock lock(l_DowntimeMutex);
 		l_LegacyDowntimesCache[legacy_id] = uid;
 		l_DowntimesCache[uid] = this;
+	}
+
+	/* if this object is already in a NOT-OK state trigger this downtime now */
+	if (GetStateRaw() != ServiceOK) {
+		Log(LogNotice, "Checkable")
+		    << "Checkable '" << GetName() << "' already in a NOT-OK state."
+		    << " Triggering downtime now.";
+		TriggerDowntime(uid);
 	}
 
 	Log(LogNotice, "Checkable")
