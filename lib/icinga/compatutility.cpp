@@ -544,6 +544,11 @@ String CompatUtility::GetCheckableNotificationNotificationPeriod(const Checkable
 
 String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkable::Ptr& checkable)
 {
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
 	unsigned long notification_type_filter = 0;
 	unsigned long notification_state_filter = 0;
 
@@ -555,14 +560,20 @@ String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkabl
 	std::vector<String> notification_options;
 
 	/* notification state filters */
-	if (notification_state_filter & (1<<ServiceWarning)) {
-		notification_options.push_back("w");
-	}
-	if (notification_state_filter & (1<<ServiceUnknown)) {
-		notification_options.push_back("u");
-	}
-	if (notification_state_filter & (1<<ServiceCritical)) {
-		notification_options.push_back("c");
+	if (service) {
+		if (notification_state_filter & (1<<ServiceWarning)) {
+			notification_options.push_back("w");
+		}
+		if (notification_state_filter & (1<<ServiceUnknown)) {
+			notification_options.push_back("u");
+		}
+		if (notification_state_filter & (1<<ServiceCritical)) {
+			notification_options.push_back("c");
+		}
+	} else {
+		if (notification_state_filter & (1<<HostDown)) {
+			notification_options.push_back("d");
+		}
 	}
 
 	/* notification type filters */
