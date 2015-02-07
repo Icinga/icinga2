@@ -34,6 +34,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Notification);
 REGISTER_SCRIPTFUNCTION(ValidateNotificationFilters, &Notification::ValidateFilters);
+REGISTER_SCRIPTFUNCTION(ValidateNotificationUsers, &Notification::ValidateUsers);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
 boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> Notification::OnNextNotificationChanged;
@@ -498,6 +499,24 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
 	}
 
 	return resultTypeFilter;
+}
+
+void Notification::ValidateUsers(const String& location, const Notification::Ptr& object)
+{
+	std::set<User::Ptr> allUsers;
+
+	std::set<User::Ptr> users = object->GetUsers();
+	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
+
+	BOOST_FOREACH(const UserGroup::Ptr& ug, object->GetUserGroups()) {
+		std::set<User::Ptr> members = ug->GetMembers();
+		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
+	}
+
+	if (allUsers.empty()) {
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": No users/user_groups specified.", object->GetDebugInfo()));
+	}
 }
 
 void Notification::ValidateFilters(const String& location, const Notification::Ptr& object)
