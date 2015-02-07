@@ -104,8 +104,8 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 
 	if (authoritative) {
 		String authPath = configDir + "/.authoritative";
-		if (!Utility::PathExists(tsPath)) {
-			std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
+		if (!Utility::PathExists(authPath)) {
+			std::ofstream fp(authPath.CStr(), std::ofstream::out | std::ostream::trunc);
 			fp.close();
 		}
 	}
