@@ -494,7 +494,8 @@ void DbEvents::AddDowntimeInternal(const Checkable::Ptr& checkable, const Downti
 	    << "adding service downtime (id = " << downtime->GetLegacyId() << ") for '" << checkable->GetName() << "'";
 
 	/* add the downtime */
-	AddDowntimeByType(checkable, downtime, historical);}
+	AddDowntimeByType(checkable, downtime, historical);
+}
 
 void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical)
 {
