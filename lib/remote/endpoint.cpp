@@ -46,14 +46,14 @@ void Endpoint::OnAllConfigLoaded(void)
 
 		if (members.find(this) != members.end()) {
 			if (m_Zone)
-				BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint '" + GetName() + "' is in more than one zone."));
+				BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() + "' is in more than one zone.", GetDebugInfo()));
 
 			m_Zone = zone;
 		}
 	}
 
 	if (!m_Zone)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Endpoint '" + GetName() + "' does not belong to a zone."));
+		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() + "' does not belong to a zone.", GetDebugInfo()));
 }
 
 void Endpoint::AddClient(const ApiClient::Ptr& client)
