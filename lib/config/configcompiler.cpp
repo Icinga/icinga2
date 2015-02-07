@@ -134,8 +134,8 @@ Expression *ConfigCompiler::HandleInclude(const String& include, bool search, co
 
 	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
-		msgbuf << "Include file '" + include + "' does not exist: " << debuginfo;
-		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		msgbuf << "Include file '" + include + "' does not exist";
+		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
 	}
 
 	DictExpression *expr = new DictExpression(expressions);
