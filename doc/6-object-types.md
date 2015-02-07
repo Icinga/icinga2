@@ -686,6 +686,7 @@ Configuration Attributes:
   child_service_name    |**Optional.** The child service. If omitted this dependency object is treated as host dependency.
   disable_checks        |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
   disable_notifications |**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
+  ignore_soft_states    |**Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
   period                |**Optional.** Time period during which this dependency is enabled.
   zone		        |**Optional.** The zone this object is a member of.
   states    	        |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.

@@ -44,6 +44,10 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	[config] Array::Ptr states;
 	int state_filter_real (StateFilter);
 
+	[config] bool ignore_soft_states {
+		default {{{ return true; }}}
+	};
+
 	[config] bool disable_checks;
 	[config] bool disable_notifications {
 		default {{{ return true; }}}

@@ -1418,6 +1418,9 @@ You can control that option by defining the `disable_notifications` attribute.
 
     disable_notifications = false
 
+If the dependency should be triggered in the parent object's soft state, you
+need to set `ignore_soft_states` to `false`.
+
 The dependency state filter must be defined based on the parent object being
 either a host (`Up`, `Down`) or a service (`OK`, `Warning`, `Critical`, `Unknown`).
 

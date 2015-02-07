@@ -131,11 +131,16 @@ bool Dependency::IsAvailable(DependencyType dt) const
 		return true;
 	}
 
-	/* ignore soft states */
-	if (parent->GetStateType() == StateTypeSoft) {
+	if (GetIgnoreSoftStates()) {
+		/* ignore soft states */
+		if (parent->GetStateType() == StateTypeSoft) {
+			Log(LogNotice, "Dependency")
+			    << "Dependency '" << GetName() << "' passed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' is in a soft state.";
+			return true;
+		}
+	} else {
 		Log(LogNotice, "Dependency")
-		    << "Dependency '" << GetName() << "' passed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' is in a soft state.";
-		return true;
+		    << "Dependency '" << GetName() << "' failed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' is in a soft state.";
 	}
 
 	int state;
