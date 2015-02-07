@@ -108,7 +108,7 @@ public:
 	static void AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void AddDowntimeHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 	static void AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
-	    AcknowledgementType type, double expiry);
+	    AcknowledgementType type, bool notify, double expiry);
 
 	/* notification & contactnotification history */
 	static void AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,

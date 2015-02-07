@@ -66,7 +66,7 @@ void DbEvents::StaticInitialize(void)
 	/* History */
 	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
 	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1, _2));
-	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5));
+	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _6));
 
 	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 
@@ -698,7 +698,7 @@ void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::
 
 /* acknowledgements */
 void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
-    AcknowledgementType type, double expiry)
+    AcknowledgementType type, bool notify, double expiry)
 {
 	Log(LogDebug, "DbEvents")
 	    << "add acknowledgement history for '" << checkable->GetName() << "'";
@@ -725,6 +725,8 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields1->Set("author_name", author);
 	fields1->Set("comment_data", comment);
+	fields1->Set("persistent_comment", 1); //always persistent
+	fields1->Set("notify_contacts", notify ? 1 : 0);
 	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
 	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
