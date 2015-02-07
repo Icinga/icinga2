@@ -1040,6 +1040,7 @@ Changes to service runtime macros
   LASTSERVICESTATEID     | service.last_state_id
   LASTSERVICESTATETYPE   | service.last_state_type
   LASTSERVICESTATECHANGE | service.last_state_change
+  SERVICEDOWNTIME 	 | service.downtime_depth
   SERVICEDURATIONSEC     | service.duration_sec
   SERVICELATENCY         | service.latency
   SERVICEEXECUTIONTIME   | service.execution_time
@@ -1070,6 +1071,7 @@ Changes to host runtime macros
   LASTHOSTSTATEID        | host.last_state_id
   LASTHOSTSTATETYPE      | host.last_state_type
   LASTHOSTSTATECHANGE    | host.last_state_change
+  HOSTDOWNTIME  	 | host.downtime_depth
   HOSTDURATIONSEC        | host.duration_sec
   HOSTLATENCY            | host.latency
   HOSTEXECUTIONTIME      | host.execution_time

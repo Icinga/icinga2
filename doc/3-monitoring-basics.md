@@ -2034,6 +2034,7 @@ hosts or services:
   host.last_state_id           | The host's previous state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
   host.last_state_type         | The host's previous state type. Can be one of `SOFT` and `HARD`.
   host.last_state_change       | The last state change's timestamp.
+  host.downtime_depth	       | The number of active downtimes.
   host.duration_sec            | The time since the last state change.
   host.latency                 | The host's check latency.
   host.execution_time          | The host's check execution time.
@@ -2066,6 +2067,7 @@ services:
   service.last_state_id      | The service's previous state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
   service.last_state_type    | The service's previous state type. Can be one of `SOFT` and `HARD`.
   service.last_state_change  | The last state change's timestamp.
+  service.downtime_depth     | The number of active downtimes.
   service.duration_sec       | The time since the last state change.
   service.latency            | The service's check latency.
   service.execution_time     | The service's check execution time.

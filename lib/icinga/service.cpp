@@ -157,6 +157,9 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 	} else if (macro == "last_state_change") {
 		*result = Convert::ToString((long)GetLastStateChange());
 		return true;
+	} else if (macro == "downtime_depth") {
+		*result = Convert::ToString((long)GetDowntimeDepth());
+		return true;
 	} else if (macro == "duration_sec") {
 		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
 		return true;
