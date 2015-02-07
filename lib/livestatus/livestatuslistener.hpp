@@ -39,7 +39,7 @@ public:
 	DECLARE_OBJECT(LivestatusListener);
 	DECLARE_OBJECTNAME(LivestatusListener);
 
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static int GetClientsConnected(void);
 	static int GetConnections(void);

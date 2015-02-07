@@ -36,7 +36,7 @@ REGISTER_TYPE(PerfdataWriter);
 
 REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
 
-Value PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -45,8 +45,6 @@ Value PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&
 	}
 
 	status->Set("perfdatawriter", nodes);
-
-	return 0;
 }
 
 void PerfdataWriter::Start(void)

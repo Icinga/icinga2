@@ -44,7 +44,7 @@ REGISTER_SCRIPTFUNCTION(ValidateRotationMethod, &CompatLogger::ValidateRotationM
 
 REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
 
-Value CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -53,8 +53,6 @@ Value CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 	}
 
 	status->Set("compatlogger", nodes);
-
-	return 0;
 }
 
 /**

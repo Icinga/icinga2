@@ -747,7 +747,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 	}
 }
 
-Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
+void ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
@@ -755,7 +755,7 @@ Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener)
-		return 0;
+		return;
 
 	stats = listener->GetStatus();
 
@@ -764,8 +764,6 @@ Value ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 		perfdata->Add("'api_" + kv.first + "'=" + Convert::ToString(kv.second));
 
 	status->Set("api", stats.first);
-
-	return 0;
 }
 
 std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)

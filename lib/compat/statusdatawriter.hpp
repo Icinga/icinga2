@@ -44,7 +44,7 @@ public:
 	DECLARE_OBJECT(StatusDataWriter);
 	DECLARE_OBJECTNAME(StatusDataWriter);
 
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);

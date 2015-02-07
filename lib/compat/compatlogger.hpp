@@ -39,7 +39,7 @@ public:
 	DECLARE_OBJECT(CompatLogger);
 	DECLARE_OBJECTNAME(CompatLogger);
 
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static void ValidateRotationMethod(const String& location, const CompatLogger::Ptr& object);
 

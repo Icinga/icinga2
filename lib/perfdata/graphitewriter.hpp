@@ -41,14 +41,14 @@ public:
 	DECLARE_OBJECT(GraphiteWriter);
 	DECLARE_OBJECTNAME(GraphiteWriter);
 
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);
 
 private:
 	Stream::Ptr m_Stream;
-	
+
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

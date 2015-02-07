@@ -34,7 +34,7 @@ REGISTER_TYPE(NotificationComponent);
 
 REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::StatsFunc);
 
-Value NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -43,8 +43,6 @@ Value NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Arra
 	}
 
 	status->Set("notificationcomponent", nodes);
-
-	return 0;
 }
 
 /**

@@ -29,7 +29,7 @@ REGISTER_TYPE(FileLogger);
 
 REGISTER_STATSFUNCTION(FileLoggerStats, &FileLogger::StatsFunc);
 
-Value FileLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
+void FileLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -38,8 +38,6 @@ Value FileLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
 	}
 
 	status->Set("filelogger", nodes);
-
-	return 0;
 }
 
 /**

@@ -39,7 +39,7 @@ public:
 	DECLARE_OBJECT(ExternalCommandListener);
 	DECLARE_OBJECTNAME(ExternalCommandListener);
 
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
 	virtual void Start(void);

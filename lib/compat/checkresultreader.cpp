@@ -38,7 +38,7 @@ REGISTER_TYPE(CheckResultReader);
 
 REGISTER_STATSFUNCTION(CheckResultReaderStats, &CheckResultReader::StatsFunc);
 
-Value CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -47,8 +47,6 @@ Value CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	}
 
 	status->Set("checkresultreader", nodes);
-
-	return 0;
 }
 
 /**

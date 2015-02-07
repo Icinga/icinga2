@@ -43,7 +43,7 @@ IdoMysqlConnection::IdoMysqlConnection(void)
 	: m_QueryQueue(500000), m_Connected(false)
 { }
 
-Value IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -61,8 +61,6 @@ Value IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::
 	}
 
 	status->Set("idomysqlconnection", nodes);
-
-	return 0;
 }
 
 void IdoMysqlConnection::Resume(void)

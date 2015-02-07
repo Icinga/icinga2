@@ -46,16 +46,16 @@ protected:
 
 private:
 	Stream::Ptr m_Stream;
-	
+
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-  void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-    const String& author, const String& comment_text, const String& command_name);
-  String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source);
-  void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-  void SendLogMessage(const String& gelf);
+	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
+	    const String& author, const String& comment_text, const String& command_name);
+	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source);
+	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+	void SendLogMessage(const String& gelf);
 
 	void ReconnectTimerHandler(void);
 };

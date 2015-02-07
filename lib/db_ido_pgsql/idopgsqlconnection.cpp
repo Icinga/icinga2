@@ -45,7 +45,7 @@ IdoPgsqlConnection::IdoPgsqlConnection(void)
 	: m_QueryQueue(500000), m_Connection(NULL)
 { }
 
-Value IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -63,8 +63,6 @@ Value IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::
 	}
 
 	status->Set("idopgsqlconnection", nodes);
-
-	return 0;
 }
 
 void IdoPgsqlConnection::Resume(void)

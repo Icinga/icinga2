@@ -35,7 +35,7 @@ REGISTER_TYPE(IcingaStatusWriter);
 
 REGISTER_STATSFUNCTION(IcingaStatusWriterStats, &IcingaStatusWriter::StatsFunc);
 
-Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
+void IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -44,8 +44,6 @@ Value IcingaStatusWriter::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdat
 	}
 
 	status->Set("icingastatuswriter", nodes);
-
-	return 0;
 }
 
 /**

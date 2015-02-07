@@ -43,8 +43,8 @@ public:
 	DECLARE_OBJECTNAME(IdoPgsqlConnection);
 
     IdoPgsqlConnection(void);
-    
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
 	virtual void Resume(void);

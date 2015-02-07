@@ -46,7 +46,7 @@ REGISTER_TYPE(OpenTsdbWriter);
 
 REGISTER_STATSFUNCTION(OpenTsdbWriterStats, &OpenTsdbWriter::StatsFunc);
 
-Value OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -55,8 +55,6 @@ Value OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&
 	}
 
 	status->Set("opentsdbwriter", nodes);
-
-	return 0;
 }
 
 void OpenTsdbWriter::Start(void)

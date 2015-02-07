@@ -38,7 +38,7 @@ public:
 	DECLARE_OBJECT(SyslogLogger);
 	DECLARE_OBJECTNAME(SyslogLogger);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
+	static void StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
 
 protected:
 	virtual void ProcessLogEntry(const LogEntry& entry);

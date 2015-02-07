@@ -31,7 +31,7 @@ REGISTER_TYPE(ExternalCommandListener);
 
 REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::StatsFunc);
 
-Value ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -40,8 +40,6 @@ Value ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Ar
 	}
 
 	status->Set("externalcommandlistener", nodes);
-
-	return 0;
 }
 
 /**

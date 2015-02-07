@@ -37,7 +37,7 @@ public:
 	DECLARE_OBJECT(NotificationComponent);
 	DECLARE_OBJECTNAME(NotificationComponent);
 
-	static Value StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	virtual void Start(void);
 

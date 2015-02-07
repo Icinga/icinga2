@@ -43,7 +43,7 @@ static boost::mutex l_ComponentMutex;
 
 REGISTER_STATSFUNCTION(LivestatusListenerStats, &LivestatusListener::StatsFunc);
 
-Value LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -57,8 +57,6 @@ Value LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::
 	}
 
 	status->Set("livestatuslistener", nodes);
-
-	return 0;
 }
 
 /**

@@ -46,7 +46,7 @@ REGISTER_TYPE(GraphiteWriter);
 
 REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
-Value GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -55,8 +55,6 @@ Value GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&
 	}
 
 	status->Set("graphitewriter", nodes);
-
-	return 0;
 }
 
 void GraphiteWriter::Start(void)

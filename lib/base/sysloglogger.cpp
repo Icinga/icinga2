@@ -28,7 +28,7 @@ REGISTER_TYPE(SyslogLogger);
 
 REGISTER_STATSFUNCTION(SyslogLoggerStats, &SyslogLogger::StatsFunc);
 
-Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
+void SyslogLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -37,8 +37,6 @@ Value SyslogLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
 	}
 
 	status->Set("sysloglogger", nodes);
-
-	return 0;
 }
 
 /**

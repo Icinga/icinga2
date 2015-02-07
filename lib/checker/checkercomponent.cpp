@@ -37,7 +37,7 @@ REGISTER_TYPE(CheckerComponent);
 
 REGISTER_STATSFUNCTION(CheckerComponentStats, &CheckerComponent::StatsFunc);
 
-Value CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -57,8 +57,6 @@ Value CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 	}
 
 	status->Set("checkercomponent", nodes);
-
-	return 0;
 }
 
 void CheckerComponent::OnConfigLoaded(void)

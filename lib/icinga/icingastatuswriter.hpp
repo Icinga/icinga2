@@ -35,7 +35,7 @@ public:
 	DECLARE_OBJECT(IcingaStatusWriter);
 	DECLARE_OBJECTNAME(IcingaStatusWriter);
 
-	static Value StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
+	static void StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
 	static Dictionary::Ptr GetStatusData(void);
 
 protected:

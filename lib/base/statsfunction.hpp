@@ -40,11 +40,11 @@ class I2_BASE_API StatsFunction : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(StatsFunction);
 
-	typedef boost::function<Value (Dictionary::Ptr& status, Array::Ptr& perfdata)> Callback;
+	typedef boost::function<void (Dictionary::Ptr& status, Array::Ptr& perfdata)> Callback;
 
 	StatsFunction(const Callback& function);
 
-	Value Invoke(Dictionary::Ptr& status, Array::Ptr& perfdata);
+	void Invoke(Dictionary::Ptr& status, Array::Ptr& perfdata);
 
 private:
 	Callback m_Callback;

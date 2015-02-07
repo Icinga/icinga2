@@ -244,14 +244,13 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
 	Array::Ptr perfdata = new Array();
 
 	String name;
-	Value ret;
 	BOOST_FOREACH(tie(name, boost::tuples::ignore), StatsFunctionRegistry::GetInstance()->GetItems()) {
 		StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem(name);
 
 		if (!func)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Function '" + name + "' does not exist."));
 
-		ret = func->Invoke(status, perfdata);
+		func->Invoke(status, perfdata);
 	}
 
 	return std::make_pair(status, perfdata);
