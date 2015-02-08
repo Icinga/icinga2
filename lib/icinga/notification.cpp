@@ -503,17 +503,10 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
 
 void Notification::ValidateUsers(const String& location, const Notification::Ptr& object)
 {
-	std::set<User::Ptr> allUsers;
+	Array::Ptr users = object->GetUsersRaw();
+	Array::Ptr groups = object->GetUserGroupsRaw();
 
-	std::set<User::Ptr> users = object->GetUsers();
-	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
-
-	BOOST_FOREACH(const UserGroup::Ptr& ug, object->GetUserGroups()) {
-		std::set<User::Ptr> members = ug->GetMembers();
-		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
-	}
-
-	if (allUsers.empty()) {
+	if ((!users || users->GetLength() == 0) && (!groups || groups->GetLength() == 0)) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 		    location + ": No users/user_groups specified.", object->GetDebugInfo()));
 	}
