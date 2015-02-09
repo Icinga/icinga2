@@ -19,7 +19,7 @@ Example:
       check_command = "hostalive"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -55,6 +55,26 @@ Attributes:
 > The `address` and `address6` attributes are required for running commands using
 > the `$address$` and `$address6$` runtime macros.
 
+Runtime Attributes:
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  next\_check               | Number        | When the next check occurs (as a UNIX timestamp).
+  check\_attempt            | Number        | The current check attempt number.
+  state\_type               | Number        | The current state type (0 = SOFT, 1 = HARD).
+  last\_state\_type         | Number        | The previous state type (0 = SOFT, 1 = HARD).
+  last\_reachable           | Boolean       | Whether the host was reachable when the last check occurred.
+  last\_check\_result       | CheckResult   | The current check result.
+  last\_state\_change       | Number        | When the last state change occurred (as a UNIX timestamp).
+  last\_hard\_state\_change | Number        | When the last hard state change occurred (as a UNIX timestamp).
+  last\_in\_downtime        | Boolean       | Whether the host was in a downtime when the last check occurred.
+  acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
+  acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  comments                  | Dictionary    | The comments for this host.
+  downtimes                 | Dictionary    | The downtimes for this host.
+  state                     | Number        | The current state (0 = UP, 1 = DOWN).
+  last\_state               | Number        | The previous state (0 = UP, 1 = DOWN).
+  last\_hard\_state         | Number        | The last hard state (0 = UP, 1 = DOWN).
 
 ## <a id="objecttype-hostgroup"></a> HostGroup
 
@@ -70,7 +90,7 @@ Example:
       display_name = "My hosts"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -107,7 +127,7 @@ Example:
       groups = [ "all-services", "snmp" ]
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -138,9 +158,30 @@ Attributes:
   icon\_image     |**Optional.** Icon image for the service. Used by external interfaces only.
   icon\_image\_alt|**Optional.** Icon image description for the service. Used by external interface only.
 
-
 Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
 you can define more than one object with the same (short) name as long as the `host_name` attribute has a different value.
+
+Runtime Attributes:
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  next\_check               | Number        | When the next check occurs (as a UNIX timestamp).
+  check\_attempt            | Number        | The current check attempt number.
+  state\_type               | Number        | The current state type (0 = SOFT, 1 = HARD).
+  last\_state\_type         | Number        | The previous state type (0 = SOFT, 1 = HARD).
+  last\_reachable           | Boolean       | Whether the service was reachable when the last check occurred.
+  last\_check\_result       | CheckResult   | The current check result.
+  last\_state\_change       | Number        | When the last state change occurred (as a UNIX timestamp).
+  last\_hard\_state\_change | Number        | When the last hard state change occurred (as a UNIX timestamp).
+  last\_in\_downtime        | Boolean       | Whether the service was in a downtime when the last check occurred.
+  acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
+  acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  comments                  | Dictionary    | The comments for this service.
+  downtimes                 | Dictionary    | The downtimes for this service.
+  state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_state               | Number        | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_hard\_state         | Number        | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+
 
 ## <a id="objecttype-servicegroup"></a> ServiceGroup
 
@@ -156,7 +197,7 @@ Example:
       display_name = "SNMP services"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -205,7 +246,7 @@ Available notification type filters:
     FlappingStart
     FlappingEnd
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -220,6 +261,11 @@ Attributes:
   states          |**Optional.** A set of state filters when this notification should be triggered. By default everything is matched.
   zone		  |**Optional.** The zone this object is a member of.
 
+Runtime Attributes:
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  last\_notification        | Number        | When the last notification was sent for this user (as a UNIX timestamp).
 
 ## <a id="objecttype-usergroup"></a> UserGroup
 
@@ -235,7 +281,7 @@ Example:
         display_name = "Icinga 2 Admin Group"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -287,7 +333,7 @@ Example:
     }
 
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -389,7 +435,7 @@ Example:
       }
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -417,7 +463,7 @@ Example:
     }
 
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -457,7 +503,7 @@ Example:
       types = [ Problem, Recovery ]
     }
 
-Attributes:
+Configuration Attributes:
 
   Name                      | Description
   --------------------------|----------------
@@ -495,6 +541,14 @@ Available notification type filters:
     FlappingStart
     FlappingEnd
 
+Runtime Attributes:
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  last\_notification        | Number        | When the last notification was sent for this Notification object (as a UNIX timestamp).
+  next\_notifcation         | Number        | When the next notification is going to be sent for this assuming the associated host/service is still in a non-OK state (as a UNIX timestamp).
+  notification\_number      | Number        | The notification number
+  last\_problem\_notification | Number      | When the last notification was sent for a problem (as a UNIX timestamp).
 
 
 ## <a id="objecttype-timeperiod"></a> TimePeriod
@@ -520,7 +574,7 @@ Example:
       }
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -562,7 +616,7 @@ Example:
       }
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -622,7 +676,7 @@ Host-to-Host Example:
       disable_checks = true
     }
 
-Attributes:
+Configuration Attributes:
 
   Name                  |Description
   ----------------------|----------------
@@ -699,7 +753,7 @@ Example:
       rotation_interval = 15s
     }
 
-Attributes:
+Configuration Attributes:
 
   Name                    |Description
   ------------------------|----------------
@@ -729,7 +783,7 @@ Example:
       port = 2003
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            	|Description
   ----------------------|----------------------
@@ -760,7 +814,7 @@ Example:
       port = 4242
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            	|Description
   ----------------------|----------------------
@@ -781,7 +835,7 @@ Example:
       port = 12201
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            	|Description
   ----------------------|----------------------
@@ -816,7 +870,7 @@ Example:
       categories = DbCatConfig | DbCatState
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -906,7 +960,7 @@ Example:
       categories = DbCatConfig | DbCatState
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -990,7 +1044,7 @@ Example:
       socket_path = "/var/run/icinga2/cmd/livestatus"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1018,7 +1072,7 @@ Example:
         update_interval = 30s
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1039,7 +1093,7 @@ Example:
         command_path = "/var/run/icinga2/cmd/icinga2.cmd"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1058,7 +1112,7 @@ Example:
       rotation_method = "HOURLY"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1080,7 +1134,7 @@ Example:
       spool_dir = "/data/check-results"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1108,11 +1162,11 @@ Example:
 
     object NotificationComponent "notification" { }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability). Defaults to "true".
+  enable\_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](#high-availability). Defaults to "true".
 
 
 ## <a id="objecttype-filelogger"></a> FileLogger
@@ -1126,7 +1180,7 @@ Example:
       path = "/var/log/icinga2/debug.log"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1144,7 +1198,7 @@ Example:
       severity = "critical"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1165,7 +1219,7 @@ Example:
       update_interval = 15s
     }
 
-Attributes:
+Configuration Attributes:
 
   Name                      |Description
   --------------------------|--------------------------
@@ -1189,7 +1243,7 @@ Example:
     }
 
 
-Attributes:
+Configuration Attributes:
 
   Name                      |Description
   --------------------------|--------------------------
@@ -1215,7 +1269,7 @@ Example:
       port = 5665
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
@@ -1240,7 +1294,7 @@ Example:
       parent = "config-ha-master"
     }
 
-Attributes:
+Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
