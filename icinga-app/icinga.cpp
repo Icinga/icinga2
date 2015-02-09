@@ -362,6 +362,7 @@ int Main(void)
 			}
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
 			String group = Application::GetRunAsGroup();
+			String user = Application::GetRunAsUser();
 	
 			errno = 0;
 			struct group *gr = getgrnam(group.CStr());
@@ -382,6 +383,8 @@ int Main(void)
 				if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
 					Log(LogCritical, "cli")
 					    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					Log(LogCritical, "cli")
+					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 	
@@ -391,8 +394,6 @@ int Main(void)
 					return EXIT_FAILURE;
 				}
 			}
-	
-			String user = Application::GetRunAsUser();
 	
 			errno = 0;
 			struct passwd *pw = getpwnam(user.CStr());
@@ -414,12 +415,16 @@ int Main(void)
 				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
 					Log(LogCritical, "cli")
 					    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					Log(LogCritical, "cli")
+					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 	
 				if (setuid(pw->pw_uid) < 0) {
 					Log(LogCritical, "cli")
 					    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					Log(LogCritical, "cli")
+					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 			}
