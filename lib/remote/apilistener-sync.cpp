@@ -25,6 +25,7 @@
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <fstream>
+#include <iomanip>
 
 using namespace icinga;
 
@@ -99,7 +100,7 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 	String tsPath = configDir + "/.timestamp";
 	if (!Utility::PathExists(tsPath)) {
 		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
-		fp << Utility::GetTime();
+		fp << std::fixed << Utility::GetTime();
 		fp.close();
 	}
 
