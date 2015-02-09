@@ -526,7 +526,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		std::cout << "private:" << std::endl;
 
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			std::cout << "\t" << it->Type << " m_" << it->GetFriendlyName() << ";" << std::endl;
+			if (!(it->Attributes & FANoStorage))
+				std::cout << "\t" << it->Type << " m_" << it->GetFriendlyName() << ";" << std::endl;
 		}
 	}
 
