@@ -89,12 +89,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
-	if (m_Name.IsEmpty()) {
-		std::ostringstream msgbuf;
-		msgbuf << "The name of an object may not be empty: " << m_DebugInfo;
-		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
-	}
-
 	std::vector<Expression *> exprs;
 
 	Array::Ptr templateArray = new Array();

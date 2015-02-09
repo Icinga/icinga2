@@ -223,6 +223,26 @@ Signature:
 
 Returns the tangent of `x`.
 
+## <a id="json-object"></a> Json object
+
+The global `Json` object can be used to encode and decode JSON.
+
+### <a id="json-encode"></a> Json.encode
+
+Signature:
+
+    function encode(x);
+
+Encodes an arbitrary value into JSON.
+
+### <a id="json-decode"></a> Json.decode
+
+Signature:
+
+    function decode(x);
+
+Decodes a JSON string.
+
 ## <a id="number-type"></a> Number type
 
 ### <a id="number-to_string"></a> Number#to_string

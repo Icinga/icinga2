@@ -449,7 +449,7 @@ object:
 		context->m_Assign.push(NULL);
 		context->m_Ignore.push(NULL);
 	}
-	object_declaration identifier rterm use_specifier rterm_scope_require_side_effect
+	object_declaration identifier optional_rterm use_specifier rterm_scope_require_side_effect
 	{
 		context->m_ObjectAssign.pop();
 
