@@ -43,7 +43,7 @@ void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path,
 	Log(LogNotice, "ApiListener")
 	    << "Creating config update for file '" << file << "'";
 
-	std::ifstream fp(file.CStr());
+	std::ifstream fp(file.CStr(), std::ifstream::binary);
 	if (!fp)
 		return;
 
@@ -81,7 +81,7 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 
 			//pass the directory and generate a dir tree, if not existing already
 			Utility::MkDirP(Utility::DirName(path), 0755);
-			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
+			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 			fp << kv.second;
 			fp.close();
 		}
