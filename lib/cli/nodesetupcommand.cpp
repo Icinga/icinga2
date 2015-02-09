@@ -150,6 +150,11 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	String key = pki_path + "/" + cn + ".key";
 	String csr = pki_path + "/" + cn + ".csr";
 
+	if (Utility::PathExists(key))
+		NodeUtility::CreateBackupFile(key, true);
+	if (Utility::PathExists(csr))
+		NodeUtility::CreateBackupFile(csr);
+
 	if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
 		Log(LogCritical, "cli", "Failed to create self-signed certificate");
 		return 1;
@@ -158,6 +163,9 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	/* Sign the CSR with the CA key */
 
 	String cert = pki_path + "/" + cn + ".crt";
+
+	if (Utility::PathExists(cert))
+		NodeUtility::CreateBackupFile(cert);
 
 	if (PkiUtility::SignCsr(csr, cert) != 0) {
 		Log(LogCritical, "cli", "Could not sign CSR.");
@@ -178,33 +186,21 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	Utility::CopyFile(ca, target_ca);
 
 	/* fix permissions: root -> icinga daemon user */
-	if (!Utility::SetFileOwnership(ca_path, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_path << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(ca, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(ca_key, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca_key << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(serial, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << serial << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(target_ca, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << target_ca << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(key, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(csr, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << csr << "'. Verify it yourself!";
+	std::vector<String> files;
+	files.push_back(ca_path);
+	files.push_back(ca);
+	files.push_back(ca_key);
+	files.push_back(serial);
+	files.push_back(target_ca);
+	files.push_back(key);
+	files.push_back(csr);
+	files.push_back(cert);
+
+	BOOST_FOREACH(const String& file, files) {
+		if (!Utility::SetFileOwnership(file, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
+		}
 	}
 
 	/* read zones.conf and update with zone + endpoint information */
@@ -383,23 +379,27 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
 	}
 
+	if (Utility::PathExists(key))
+		NodeUtility::CreateBackupFile(key, true);
+	if (Utility::PathExists(cert))
+		NodeUtility::CreateBackupFile(cert);
+
 	if (PkiUtility::NewCert(cn, key, String(), cert) != 0) {
 		Log(LogCritical, "cli", "Failed to generate new self-signed certificate.");
 		return 1;
 	}
 
 	/* fix permissions: root -> icinga daemon user */
-	if (!Utility::SetFileOwnership(ca, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(cert, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << cert << "'. Verify it yourself!";
-	}
-	if (!Utility::SetFileOwnership(key, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
+	std::vector<String> files;
+	files.push_back(ca);
+	files.push_back(key);
+	files.push_back(cert);
+
+	BOOST_FOREACH(const String& file, files) {
+		if (!Utility::SetFileOwnership(file, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
+		}
 	}
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
