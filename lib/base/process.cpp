@@ -489,7 +489,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	while (environ[envc] != NULL)
 		envc++;
 
-	char **envp = new char *[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0) + 1];
+	char **envp = new char *[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0) + 2];
 
 	for (int i = 0; i < envc; i++)
 		envp[i] = strdup(environ[i]);
@@ -505,7 +505,8 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		}
 	}
 
-	envp[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0)] = NULL;
+	envp[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0)] = strdup("LC_NUMERIC=C");
+	envp[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0) + 1] = NULL;
 
 	m_ExtraEnvironment.reset();
 
