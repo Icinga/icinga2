@@ -110,8 +110,15 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 				DebugInfo di = ex.GetDebugInfo();
 
 				if (lines.find(di.Path) != lines.end()) {
-					std::cout << di.Path << ": " << lines[di.Path] << "\n";
-					std::cout << String(di.Path.GetLength() + 2, ' ');
+					int offset;
+
+					if (di.Path != fileName) {
+						std::cout << di.Path << ": " << lines[di.Path] << "\n";
+						offset = 2;
+					} else
+						offset = 4;
+
+					std::cout << String(di.Path.GetLength() + offset, ' ');
 					std::cout << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n";
 				} else {
 					ShowCodeFragment(std::cout, di);
