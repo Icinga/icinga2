@@ -37,7 +37,7 @@ Configuration Attributes:
   enable\_active\_checks|**Optional.** Whether active checks are enabled. Defaults to true.
   enable\_passive\_checks|**Optional.** Whether passive checks are enabled. Defaults to true.
   enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
-  enable\_flapping|**Optional.** Whether flap detection is enabled. Defaults to true.
+  enable\_flapping|**Optional.** Whether flap detection is enabled. Defaults to false.
   enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
   event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
@@ -145,7 +145,7 @@ Configuration Attributes:
   enable\_active\_checks|**Optional.** Whether active checks are enabled. Defaults to true.
   enable\_passive\_checks|**Optional.** Whether passive checks are enabled. Defaults to true.
   enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
-  enable\_flapping|**Optional.** Whether flap detection is enabled. Defaults to true.
+  enable\_flapping|**Optional.** Whether flap detection is enabled. Defaults to false.
   enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
   event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
   flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.

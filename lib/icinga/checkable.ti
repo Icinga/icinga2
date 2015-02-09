@@ -72,7 +72,7 @@ abstract class Checkable : CustomVarObject
 		default {{{ return true; }}}
 	};
 	[config] bool enable_flapping (EnableFlappingRaw) {
-		default {{{ return true; }}}
+		default {{{ return false; }}}
 	};
 	[config] bool enable_perfdata (EnablePerfdataRaw) {
 		default {{{ return true; }}}
