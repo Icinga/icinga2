@@ -591,7 +591,7 @@ bool NodeUtility::CheckAgainstBlackAndWhiteList(const String& type, const String
 /*
  * We generally don't overwrite files without backup before
  */
-bool NodeUtility::CreateBackupFile(const String& target, mode_t mode)
+bool NodeUtility::CreateBackupFile(const String& target, bool is_private)
 {
 	if (!Utility::PathExists(target))
 		return false;
@@ -607,7 +607,8 @@ bool NodeUtility::CreateBackupFile(const String& target, mode_t mode)
 	Utility::CopyFile(target, backup);
 
 #ifndef _WIN32
-	chmod(backup.CStr(), mode);
+	if (is_private)
+		chmod(backup.CStr(), 0600);
 #endif /* _WIN32 */
 
 	Log(LogInformation, "cli")

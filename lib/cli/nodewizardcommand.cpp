@@ -243,9 +243,9 @@ wizard_master_host:
 		}
 
 		if (Utility::PathExists(node_key))
-			NodeUtility::CreateBackupFile(node_key, 0600);
+			NodeUtility::CreateBackupFile(node_key, true);
 		if (Utility::PathExists(node_cert))
-			NodeUtility::CreateBackupFile(node_cert, 0640);
+			NodeUtility::CreateBackupFile(node_cert);
 
 		if (PkiUtility::NewCert(cn, node_key, Empty, node_cert) > 0) {
 			Log(LogCritical, "cli")
@@ -270,7 +270,7 @@ wizard_master_host:
 		String trusted_cert = PkiUtility::GetPkiPath() + "/trusted-master.crt";
 
 		if (Utility::PathExists(trusted_cert))
-			NodeUtility::CreateBackupFile(trusted_cert, 0640);
+			NodeUtility::CreateBackupFile(trusted_cert);
 
 		if (PkiUtility::SaveCert(master_host, master_port, node_key, node_cert, trusted_cert) > 0) {
 			Log(LogCritical, "cli")
@@ -300,9 +300,9 @@ wizard_ticket:
 		String target_ca = pki_path + "/ca.crt";
 
 		if (Utility::PathExists(target_ca))
-			NodeUtility::CreateBackupFile(target_ca, 0640);
+			NodeUtility::CreateBackupFile(target_ca);
 		if (Utility::PathExists(node_cert))
-			NodeUtility::CreateBackupFile(node_cert, 0640);
+			NodeUtility::CreateBackupFile(node_cert);
 
 		if (PkiUtility::RequestCertificate(master_host, master_port, node_key, node_cert, target_ca, trusted_cert, ticket) > 0) {
 			Log(LogCritical, "cli")
@@ -447,9 +447,9 @@ wizard_ticket:
 		    << "Generating new CSR in '" << csr << "'.";
 
 		if (Utility::PathExists(key))
-			NodeUtility::CreateBackupFile(key, 0600);
+			NodeUtility::CreateBackupFile(key, true);
 		if (Utility::PathExists(csr))
-			NodeUtility::CreateBackupFile(csr, 0640);
+			NodeUtility::CreateBackupFile(csr);
 
 		if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
 			Log(LogCritical, "cli", "Failed to create certificate signing request.");
@@ -463,7 +463,7 @@ wizard_ticket:
 		    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
 
 		if (Utility::PathExists(cert))
-			NodeUtility::CreateBackupFile(cert, 0640);
+			NodeUtility::CreateBackupFile(cert);
 
 		if (PkiUtility::SignCsr(csr, cert) != 0) {
 			Log(LogCritical, "cli", "Could not sign CSR.");

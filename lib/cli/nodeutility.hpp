@@ -51,7 +51,7 @@ public:
 
 	static std::vector<Dictionary::Ptr> GetNodes(void);
 
-	static bool CreateBackupFile(const String& target, mode_t mode = 0640);
+	static bool CreateBackupFile(const String& target, bool is_private = false);
 
 	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);
 
