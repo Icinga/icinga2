@@ -239,7 +239,7 @@ int printOutput(printInfoStruct& printInfo, response& response)
 	state state = OK;
 
 	double plp = ((double)response.dropped / printInfo.num) * 100.0;
-	wstring test = removeZero(plp);
+
 	if (printInfo.warn.rend(response.avg) || printInfo.wpl.rend(plp))
 		state = WARNING;
 
@@ -249,7 +249,7 @@ int printOutput(printInfoStruct& printInfo, response& response)
 	std::wstringstream perf;
 	perf << L"rta=" << response.avg << L"ms;" << printInfo.warn.pString() << L";"
 		<< printInfo.crit.pString() << L";0;" << " pl=" << removeZero(plp) << "%;" 
-		<< printInfo.warn.pString() << ";" << printInfo.crit.pString() << ";0;100";
+		<< printInfo.wpl.pString() << ";" << printInfo.cpl.pString() << ";0;100";
 
 	if (response.dropped == printInfo.num) {
 		wcout << L"PING CRITICAL ALL CONNECTIONS DROPPED | " << perf.str() << endl;
