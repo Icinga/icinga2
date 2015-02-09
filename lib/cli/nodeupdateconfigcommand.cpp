@@ -213,6 +213,13 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 		Dictionary::Ptr host_services = new Dictionary();
 
+		if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", node_name, "*", Empty) &&
+		    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", node_name, "*", Empty)) {
+			Log(LogWarning, "cli")
+			    << "Skipping node '" << node_name << "' on blacklist.";
+			continue;
+		}
+
 		Log(LogInformation, "cli")
 		    << "Adding host '" << zone << "' to the repository.";
 
