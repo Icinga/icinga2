@@ -141,6 +141,7 @@ get_protected			{ yylval->num = FAGetProtected; return T_FIELD_ATTRIBUTE; }
 set_protected			{ yylval->num = FASetProtected; return T_FIELD_ATTRIBUTE; }
 protected			{ yylval->num = FAGetProtected | FASetProtected; return T_FIELD_ATTRIBUTE; }
 internal			{ yylval->num = FAInternal; return T_FIELD_ATTRIBUTE; }
+no_storage			{ yylval->num = FANoStorage; return T_FIELD_ATTRIBUTE; }
 default				{ yylval->num = FTDefault; return T_FIELD_ACCESSOR_TYPE; }
 get				{ yylval->num = FTGet; return T_FIELD_ACCESSOR_TYPE; }
 set				{ yylval->num = FTSet; return T_FIELD_ACCESSOR_TYPE; }

@@ -58,7 +58,7 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 	builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "name"), OpSetLiteral, MakeLiteral(name), di));
 
-	String zone = host->GetZone();
+	String zone = host->GetZoneName();
 
 	if (!zone.IsEmpty())
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "zone"), OpSetLiteral, MakeLiteral(zone), di));

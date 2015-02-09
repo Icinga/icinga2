@@ -258,7 +258,7 @@ void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
-	Zone::Ptr zone = Zone::GetByName(checkable->GetZone());
+	Zone::Ptr zone = Zone::GetByName(checkable->GetZoneName());
 	bool same_zone = (!zone || Zone::GetLocalZone() == zone);
 
 	{

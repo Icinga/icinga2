@@ -66,7 +66,7 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 	if (service)
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "child_service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
-	String zone = checkable->GetZone();
+	String zone = checkable->GetZoneName();
 
 	if (!zone.IsEmpty())
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "zone"), OpSetLiteral, MakeLiteral(zone), di));

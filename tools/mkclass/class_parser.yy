@@ -265,9 +265,11 @@ class_field: field_attribute_list identifier identifier alternative_name_specifi
 			switch (it->Type) {
 				case FTGet:
 					field->GetAccessor = it->Accessor;
+					field->PureGetAccessor = it->Pure;
 					break;
 				case FTSet:
 					field->SetAccessor = it->Accessor;
+					field->PureSetAccessor = it->Pure;
 					break;
 				case FTDefault:
 					field->DefaultAccessor = it->Accessor;
@@ -339,8 +341,12 @@ field_accessors: /* empty */
 
 field_accessor: T_FIELD_ACCESSOR_TYPE T_STRING
 	{
-		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), $2);
+		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), $2, false);
 		std::free($2);
+	}
+	| T_FIELD_ACCESSOR_TYPE ';'
+	{
+		$$ = new FieldAccessor(static_cast<FieldAccessorType>($1), "", true);
 	}
 	;
 

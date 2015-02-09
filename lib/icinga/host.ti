@@ -36,6 +36,17 @@ class Host : Checkable
 
 	[config] String address;
 	[config] String address6;
+
+	[enum, no_storage] HostState "state" {
+		get;
+	};
+	[enum, no_storage] HostState last_state {
+		get;
+	};
+	[enum, no_storage] HostState last_hard_state {
+		get;
+	};
+
 };
 
 }

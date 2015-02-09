@@ -454,15 +454,21 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			std::cout << prot << ":" << std::endl
-					  << "\t" << it->Type << " Get" << it->GetFriendlyName() << "(void) const" << std::endl
+			    << "\t" << "virtual " << it->Type << " Get" << it->GetFriendlyName() << "(void) const";
+
+			if (it->PureGetAccessor) {
+				std::cout << " = 0;" << std::endl;
+			} else {
+				std::cout << std::endl
 					  << "\t" << "{" << std::endl;
 
-			if (it->GetAccessor.empty())
-				std::cout << "\t\t" << "return m_" << it->GetFriendlyName() << ";" << std::endl;
-			else
-				std::cout << it->GetAccessor << std::endl;
+				if (it->GetAccessor.empty() && !(it->Attributes & FANoStorage))
+					std::cout << "\t\t" << "return m_" << it->GetFriendlyName() << ";" << std::endl;
+				else
+					std::cout << it->GetAccessor << std::endl;
 
-			std::cout << "\t" << "}" << std::endl << std::endl;
+				std::cout << "\t" << "}" << std::endl << std::endl;
+			}
 		}
 
 		/* setters */
@@ -484,15 +490,20 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				std::cout << "const " << it->Type << "&";
 
-			std::cout << " value)" << std::endl
-					  << "\t" << "{" << std::endl;
+			std::cout << " value)" << std::endl;
 
-			if (it->SetAccessor.empty())
-				std::cout << "\t\t" << "m_" << it->GetFriendlyName() << " = value;" << std::endl;
-			else
-				std::cout << it->SetAccessor << std::endl;
+			if (it->PureSetAccessor) {
+				std::cout << " = 0;" << std::endl;
+			} else {
+				std::cout << "\t" << "{" << std::endl;
 
-			std::cout << "\t" << "}" << std::endl << std::endl;
+				if (it->SetAccessor.empty() && !(it->Attributes & FANoStorage))
+					std::cout << "\t\t" << "m_" << it->GetFriendlyName() << " = value;" << std::endl;
+				else
+					std::cout << it->SetAccessor << std::endl;
+
+				std::cout << "\t" << "}" << std::endl << std::endl;
+			}
 		}
 
 		/* default */

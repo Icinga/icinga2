@@ -53,7 +53,7 @@ DynamicObject::DynamicObject(void)
 
 DynamicType::Ptr DynamicObject::GetType(void) const
 {
-	return DynamicType::GetByName(GetTypeName());
+	return DynamicType::GetByName(GetTypeNameV());
 }
 
 DebugInfo DynamicObject::GetDebugInfo(void) const

@@ -44,8 +44,8 @@ abstract class DynamicObject
 				return m_ShortName;
 		}}}
 	};
-	[config, internal, get_protected] String type (TypeName);
-	[config] String zone;
+	[config, internal, get_protected] String type (TypeNameV);
+	[config] String zone (ZoneName);
 	[config, internal, get_protected] Array::Ptr templates;
 	[get_protected] bool active;
 	[get_protected] bool paused {

@@ -51,9 +51,9 @@ public:
 
 	static HostState CalculateState(ServiceState state);
 
-	HostState GetState(void) const;
-	HostState GetLastState(void) const;
-	HostState GetLastHardState(void) const;
+	virtual HostState GetState(void) const;
+	virtual HostState GetLastState(void) const;
+	virtual HostState GetLastHardState(void) const;
 	double GetLastStateUp(void) const;
 	double GetLastStateDown(void) const;
 

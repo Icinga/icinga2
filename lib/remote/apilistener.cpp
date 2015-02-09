@@ -556,7 +556,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 
 		/* only relay the message to a) the same zone, b) the parent zone and c) direct child zones */
 		if (target_zone != my_zone && target_zone != my_zone->GetParent() &&
-		    secobj->GetZone() != target_zone->GetName()) {
+		    secobj->GetZoneName() != target_zone->GetName()) {
 			skippedEndpoints.push_back(endpoint);
 			continue;
 		}

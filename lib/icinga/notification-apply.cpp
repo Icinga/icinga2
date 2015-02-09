@@ -65,7 +65,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	if (service)
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
-	String zone = checkable->GetZone();
+	String zone = checkable->GetZoneName();
 
 	if (!zone.IsEmpty())
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeCurrent, "zone"), OpSetLiteral, MakeLiteral(zone), di));
