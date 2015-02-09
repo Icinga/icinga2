@@ -78,6 +78,10 @@ struct Field
 	bool PureSetAccessor;
 	std::string DefaultAccessor;
 
+	Field(void)
+		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false)
+	{ }
+
 	std::string GetFriendlyName(void) const
 	{
 		if (!AlternativeName.empty())
