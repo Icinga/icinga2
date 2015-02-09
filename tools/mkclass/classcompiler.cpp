@@ -483,7 +483,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			std::cout << prot << ":" << std::endl
-					  << "\t" << "void Set" << it->GetFriendlyName() << "(";
+					  << "\t" << "virtual void Set" << it->GetFriendlyName() << "(";
 
 			if (it->Type == "bool" || it->Type == "double" || it->Type == "int")
 				std::cout << it->Type;
