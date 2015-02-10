@@ -112,9 +112,17 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::basic_command_line_parser<wchar_t> parser(ac, av);
 
 	try {
+		po::options_description allDesc;
+
+		allDesc.add(desc);
+		allDesc.add_options()
+			("exclude-type,X", po::wvalue<vector<std::wstring>>()->multitoken(), "exclude partition types (ignored)")
+			("megabytes,m", "use megabytes")
+			;
+
 		po::store(
 			parser
-			.options(desc)
+			.options(allDesc)
 			.style(
 			po::command_line_style::unix_style |
 			po::command_line_style::allow_long_disguise)
