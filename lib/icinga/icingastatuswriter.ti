@@ -23,7 +23,7 @@
 namespace icinga
 {
 
-class IcingaStatusWriter : CustomVarObject
+class IcingaStatusWriter : DynamicObject
 {
 	[config] String status_path {
 		default {{{ return Application::GetLocalStateDir() + "/cache/icinga2/status.json"; }}}
