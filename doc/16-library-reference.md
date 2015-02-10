@@ -19,6 +19,106 @@ log(severity, facility, value)  | Writes a message to the log. `severity` can be
 typeof(value)                   | Returns the type object for a value.
 exit(integer)                   | Terminates the application.
 
+## <a id="object-accessor-functions"></a> Object Accessor Functions
+
+These functions can be used to retrieve a reference to another object by name.
+
+### <a id="objref-get_check_command"></a> get_check_command
+
+Signature:
+
+    function get_check_command(name);
+
+Returns the CheckCommand object with the specified name, or `null` if no such CheckCommand object exists.
+
+### <a id="objref-get_event_command"></a> get_event_command
+
+Signature:
+
+    function get_event_command(name);
+
+Returns the EventCommand object with the specified name, or `null` if no such EventCommand object exists.
+
+### <a id="objref-get_notification_command"></a> get_notification_command
+
+Signature:
+
+    function get_notification_command(name);
+
+Returns the NotificationCommand object with the specified name, or `null` if no such NotificationCommand object exists.
+
+### <a id="objref-get_host"></a> get_host
+
+Signature:
+
+    function get_notification_command(name);
+
+Returns the Host object with the specified name, or `null` if no such Host object exists.
+
+
+### <a id="objref-get_service"></a> get_service
+
+Signature:
+
+    function get_service(host_name, service_name);
+
+Returns the Service object with the specified name, or `null` if no such Service object exists.
+
+
+### <a id="objref-get_user"></a> get_user
+
+Signature:
+
+    function get_user(name);
+
+Returns the User object with the specified name, or `null` if no such User object exists.
+
+### <a id="objref-get_host_group"></a> get_host_group
+
+Signature:
+
+    function get_host_group(name);
+
+Returns the HostGroup object with the specified name, or `null` if no such HostGroup object exists.
+
+
+### <a id="objref-get_service_group"></a> get_service_group
+
+Signature:
+
+    function get_service_group(name);
+
+Returns the ServiceGroup object with the specified name, or `null` if no such ServiceGroup object exists.
+
+### <a id="objref-get_user_group"></a> get_user_group
+
+Signature:
+
+    function get_user_group(name);
+
+Returns the UserGroup object with the specified name, or `null` if no such UserGroup object exists.
+
+
+### <a id="objref-get_object"></a> get_object
+
+Signature:
+
+    function get_object(type, name);
+
+Returns the object with the specified type and name, or `null` if no such object exists. `type` must refer
+to a type object.
+
+
+### <a id="objref-get_objects"></a> get_objects
+
+Signature:
+
+    function get_objects(type);
+
+Returns an array of objects whose type matches the specified type. `type` must refer
+to a type object.
+
+
 ## <a id="math-object"></a> Math object
 
 The global `Math` object can be used to access a number of mathematical constants
