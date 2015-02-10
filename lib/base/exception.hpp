@@ -50,16 +50,18 @@ class I2_BASE_API ScriptError : virtual public user_error
 {
 public:
 	ScriptError(const String& message);
-	ScriptError(const String& message, const DebugInfo& di);
+	ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr = false);
 	~ScriptError(void) throw();
 
 	virtual const char *what(void) const throw();
 
 	DebugInfo GetDebugInfo(void) const;
+	bool IsIncompleteExpression(void) const;
 
 private:
 	String m_Message;
 	DebugInfo m_DebugInfo;
+	bool m_IncompleteExpr;
 };
 
 I2_BASE_API StackTrace *GetLastExceptionStack(void);

@@ -208,8 +208,8 @@ ScriptError::ScriptError(const String& message)
 	: m_Message(message)
 { }
 
-ScriptError::ScriptError(const String& message, const DebugInfo& di)
-	: m_Message(message), m_DebugInfo(di)
+ScriptError::ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr)
+	: m_Message(message), m_DebugInfo(di), m_IncompleteExpr(incompleteExpr)
 { }
 
 ScriptError::~ScriptError(void) throw()
@@ -223,6 +223,11 @@ const char *ScriptError::what(void) const throw()
 DebugInfo ScriptError::GetDebugInfo(void) const
 {
 	return m_DebugInfo;
+}
+
+bool ScriptError::IsIncompleteExpression(void) const
+{
+	return m_IncompleteExpr;;
 }
 
 posix_error::posix_error(void)

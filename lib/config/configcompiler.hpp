@@ -118,6 +118,7 @@ private:
 
 public:
 	bool m_Eof;
+	int m_OpenBraces;
 
 	int m_IgnoreNewlines;
 	std::ostringstream m_LexBuffer;

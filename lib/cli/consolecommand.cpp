@@ -80,22 +80,37 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		String fileName = "<" + Convert::ToString(next_line) + ">";
 		next_line++;
 
+		bool continuation = false;
+		std::string command;
+
+incomplete:
+
 		std::cout << ConsoleColorTag(Console_ForegroundCyan)
 		    << fileName
-		    << ConsoleColorTag(Console_ForegroundRed)
-		    << " => "
-		    << ConsoleColorTag(Console_Normal);
+		    << ConsoleColorTag(Console_ForegroundRed);
+
+		if (!continuation)
+			std::cout << " => ";
+		else
+			std::cout << " .. ";
+
+		std::cout << ConsoleColorTag(Console_Normal);
 
 		std::string line;
 		std::getline(std::cin, line);
+
+		if (!command.empty())
+			command += "\n";
+
+		command += line;
 
 		if (addr.IsEmpty()) {
 			Expression *expr;
 
 			try {
-				lines[fileName] = line;
+				lines[fileName] = command;
 
-				expr = ConfigCompiler::CompileText(fileName, line);
+				expr = ConfigCompiler::CompileText(fileName, command);
 
 				if (expr) {
 					Value result = expr->Evaluate(frame);
@@ -107,6 +122,11 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 					std::cout << ConsoleColorTag(Console_Normal) << "\n";
 				}
 			} catch (const ScriptError& ex) {
+				if (ex.IsIncompleteExpression()) {
+					continuation = true;
+					goto incomplete;
+				}
+
 				DebugInfo di = ex.GetDebugInfo();
 
 				if (lines.find(di.Path) != lines.end()) {

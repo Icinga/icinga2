@@ -236,9 +236,10 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 extern int yydebug;
 
-void yyerror(const YYLTYPE *locp, std::vector<std::pair<Expression *, EItemInfo> > *, ConfigCompiler *, const char *err)
+void yyerror(const YYLTYPE *locp, std::vector<std::pair<Expression *, EItemInfo> > *, ConfigCompiler *context, const char *err)
 {
-	BOOST_THROW_EXCEPTION(ScriptError(err, *locp));
+	bool incomplete = context->m_Eof && (context->m_OpenBraces > 0);
+	BOOST_THROW_EXCEPTION(ScriptError(err, *locp, incomplete));
 }
 
 int yyparse(std::vector<std::pair<Expression *, EItemInfo> > *llist, ConfigCompiler *context);
@@ -372,11 +373,13 @@ type: T_TYPE identifier
 
 typerulelist: '{'
 	{
+		context->m_OpenBraces++;
 		context->m_RuleLists.push(new TypeRuleList());
 	}
 	typerules
 	'}'
 	{
+		context->m_OpenBraces--;
 		$$ = new Value(context->m_RuleLists.top());
 		context->m_RuleLists.pop();
 	}
@@ -681,46 +684,65 @@ rterm_items_inner: rterm
 	}
 	;
 
-rterm_array: '[' newlines rterm_items ']'
+rterm_array: '['
+	{
+		context->m_OpenBraces++;
+	}
+	newlines rterm_items ']'
+	{
+		context->m_OpenBraces--;
+		$$ = new ArrayExpression(*$4, @$);
+		delete $4;
+	}
+	| '['
+	{
+		context->m_OpenBraces++;
+	}
+	rterm_items ']'
 	{
 		$$ = new ArrayExpression(*$3, @$);
 		delete $3;
 	}
-	| '[' rterm_items ']'
-	{
-		$$ = new ArrayExpression(*$2, @$);
-		delete $2;
-	}
 	;
 
-rterm_scope_require_side_effect: '{' statements '}'
+rterm_scope_require_side_effect: '{'
 	{
+		context->m_OpenBraces++;
+	}
+	statements '}'
+	{
+		context->m_OpenBraces--;
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$2) {
+		BOOST_FOREACH(const EListItem& litem, *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);
 			num++;
 		}
-		delete $2;
+		delete $3;
 		$$ = new DictExpression(dlist, @$);
 	}
 	;
 
-rterm_scope: '{' statements '}'
+rterm_scope: '{'
 	{
+		context->m_OpenBraces++;
+	}
+	statements '}'
+	{
+		context->m_OpenBraces--;
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$2) {
-			if (!litem.second.SideEffect && num != $2->size() - 1)
+		BOOST_FOREACH(const EListItem& litem, *$3) {
+			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);
 			num++;
 		}
-		delete $2;
+		delete $3;
 		$$ = new DictExpression(dlist, @$);
 	}
 	;
