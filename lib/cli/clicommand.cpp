@@ -310,18 +310,24 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	if (command && autocomplete) {
 		String aname, prefix, pword;
 		const po::option_description *odesc;
-	
+
 		if (autoindex - 2 >= 0 && strcmp(argv[autoindex - 1], "=") == 0 && strstr(argv[autoindex - 2], "--") == argv[autoindex - 2]) {
 			aname = argv[autoindex - 2] + 2;
 			pword = aword;
 		} else if (autoindex - 1 >= 0 && argv[autoindex - 1][0] == '-' && argv[autoindex - 1][1] == '-') {
 			aname = argv[autoindex - 1] + 2;
 			pword = aword;
+
+			if (pword == "=")
+				pword = "";
+		} else if (autoindex - 1 >= 0 && argv[autoindex - 1][0] == '-' && argv[autoindex - 1][1] != '-') {
+			aname = argv[autoindex - 1];
+			pword = aword;
 			
 			if (pword == "=")
 				pword = "";
 		} else if (aword.GetLength() > 1 && aword[0] == '-' && aword[1] != '-') {
-			aname = aword.SubStr(1, 1);
+			aname = aword.SubStr(0, 2);
 			prefix = aword.SubStr(0, 2);
 			pword = aword.SubStr(2);
 		} else {
@@ -336,11 +342,11 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		if (odesc->semantic()->min_tokens() == 0)
 			goto complete_option;
 
-		BOOST_FOREACH(const String& suggestion, globalArgCompletionCallback(aname, pword)) {
+		BOOST_FOREACH(const String& suggestion, globalArgCompletionCallback(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 
-		BOOST_FOREACH(const String& suggestion, command->GetArgumentSuggestions(aname, pword)) {
+		BOOST_FOREACH(const String& suggestion, command->GetArgumentSuggestions(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 		
