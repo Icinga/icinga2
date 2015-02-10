@@ -292,6 +292,7 @@ namespace Icinga
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\agent\\inventory");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\config");
 			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\log");
+			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\zones");
 			Directory.CreateDirectory(installDir + "\\var\\log\\icinga2\\compat\\archive");
 			Directory.CreateDirectory(installDir + "\\var\\run\\icinga2\\cmd");
 			Directory.CreateDirectory(installDir + "\\var\\spool\\icinga2\\perfdata");
