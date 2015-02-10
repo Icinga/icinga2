@@ -138,11 +138,9 @@ incomplete:
 					for (int i = 1; i <= ulines.size(); i++) {
 						int start, len;
 
-						if (i == di.FirstLine) {
+						if (i == di.FirstLine)
 							start = di.FirstColumn;
-							if (start > 0)
-								start--;
-						} else
+						else
 							start = 0;
 
 						if (i == di.LastLine)
