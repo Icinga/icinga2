@@ -130,16 +130,39 @@ incomplete:
 				DebugInfo di = ex.GetDebugInfo();
 
 				if (lines.find(di.Path) != lines.end()) {
-					int offset;
+					String text = lines[di.Path];
 
-					if (di.Path != fileName) {
-						std::cout << di.Path << ": " << lines[di.Path] << "\n";
-						offset = 2;
-					} else
-						offset = 4;
+					std::vector<String> ulines;
+					boost::algorithm::split(ulines, text, boost::is_any_of("\n"));
 
-					std::cout << String(di.Path.GetLength() + offset, ' ');
-					std::cout << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n";
+					for (int i = 1; i <= ulines.size(); i++) {
+						int start, len;
+
+						if (i == di.FirstLine) {
+							start = di.FirstColumn;
+							if (start > 0)
+								start--;
+						} else
+							start = 0;
+
+						if (i == di.LastLine)
+							len = di.LastColumn - di.FirstColumn + 1;
+						else
+							len = ulines[i].GetLength();
+
+						int offset;
+
+						if (di.Path != fileName) {
+							std::cout << di.Path << ": " << ulines[i - 1] << "\n";
+							offset = 2;
+						} else
+							offset = 4;
+
+						if (i >= di.FirstLine && i <= di.LastLine) {
+							std::cout << String(di.Path.GetLength() + offset, ' ');
+							std::cout << String(start, ' ') << String(len, '^') << "\n";
+						}
+					}
 				} else {
 					ShowCodeFragment(std::cout, di);
 				}
