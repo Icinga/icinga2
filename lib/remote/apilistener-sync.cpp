@@ -125,7 +125,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 
 	if (!Utility::MkDir(oldDir, 0700)) {
 		Log(LogCritical, "ApiListener")
-		    << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		    << "mkdir() for path '" << oldDir << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("mkdir")
@@ -237,7 +237,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 
 		if (!Utility::MkDir(oldDir, 0700)) {
 			Log(LogCritical, "ApiListener")
-			    << "mkdir() for path '" << oldDir << "'failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			    << "mkdir() for path '" << oldDir << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("mkdir")
