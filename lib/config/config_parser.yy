@@ -238,7 +238,7 @@ extern int yydebug;
 
 void yyerror(const YYLTYPE *locp, std::vector<std::pair<Expression *, EItemInfo> > *, ConfigCompiler *context, const char *err)
 {
-	bool incomplete = context->m_Eof && (context->m_OpenBraces > 0);
+	bool incomplete = context && context->m_Eof && (context->m_OpenBraces > 0);
 	BOOST_THROW_EXCEPTION(ScriptError(err, *locp, incomplete));
 }
 
