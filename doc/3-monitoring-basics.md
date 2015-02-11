@@ -716,7 +716,7 @@ This can be done for service and user groups the same way:
 
 ### <a id="group-assign-intro"></a> Group Membership Assign
 
-Instead of manually assigning each object to a group you can also assign objects
+Instead of manually assigning each object to a group you can also assign objects
 to a group based on their attributes:
 
     object HostGroup "prod-mssql" {
