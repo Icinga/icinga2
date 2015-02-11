@@ -16,7 +16,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus Schema](18-appendix.md#schema-livestatus) section.
+in the [Livestatus Schema](19-apendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -92,7 +92,7 @@ Example using the tcp socket listening on port `6558`:
 
 ### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
 
-A list of available external commands and their parameters can be found [here](18-appendix.md#external-commands-list-detail)
+A list of available external commands and their parameters can be found [here](19-apendix.md#external-commands-list-detail)
 
     $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 
@@ -190,5 +190,5 @@ Default separators.
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](18-appendix.md#schema-livestatus).
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](19-apendix.md#schema-livestatus).
 
