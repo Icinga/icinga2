@@ -18,6 +18,7 @@ options.
       icinga2 <command> [<arguments>]
     
     Supported commands:
+      * console (Icinga console)
       * daemon (starts Icinga 2)
       * feature disable (disables specified feature)
       * feature enable (enables specified feature)
@@ -127,6 +128,25 @@ Using the `--include` command-line option additional search directories can be
 added.
 
 
+### <a id="cli-command-console"></a> CLI command: Console
+
+The CLI command `console` can be used to evaluate Icinga config expressions, e.g. to test
+`assign where` rules.
+
+    $ icinga2 console
+    Icinga (version: v2.2.0-435-gc95d2f1)
+    <1> => function test(name) {
+    <1> ..   log("Hello " + name)
+    <1> .. }
+    null
+    <2> => test("World")
+    information/config: Hello World
+    null
+
+The `console` command does not support line-editing or a command history. However you can
+use the `rlwrap` program if you require those features:
+
+    $ rlwrap icinga2 console
 
 ### <a id="cli-command-daemon"></a> CLI command: Daemon
 
