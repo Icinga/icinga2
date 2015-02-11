@@ -85,10 +85,10 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 
 			ObjectLock xlock(varval_dict);
 			BOOST_FOREACH(const Dictionary::Pair& kv_var, varval_dict) {
-				if(kv_var.second.IsEmpty())
+				if (kv_var.second.IsEmpty())
 					continue;
 
-				if(!Utility::ValidateMacroString(kv_var.second)) {
+				if (!Utility::ValidateMacroString(kv_var.second)) {
 					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 					    location + ": Closing $ not found in macro format string '" + kv_var.second + "'.", object->GetDebugInfo()));
 				}
@@ -102,7 +102,7 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 				if (arrval.IsEmpty())
 					continue;
 
-				if(!Utility::ValidateMacroString(arrval)) {
+				if (!Utility::ValidateMacroString(arrval)) {
 					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 					    location + ": Closing $ not found in macro format string '" + arrval + "'.", object->GetDebugInfo()));
 				}
@@ -113,7 +113,7 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 
 			String varstr = varval;
 
-			if(!Utility::ValidateMacroString(varstr)) {
+			if (!Utility::ValidateMacroString(varstr)) {
 				BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 				    location + ": Closing $ not found in macro format string '" + varstr + "'.", object->GetDebugInfo()));
 			}

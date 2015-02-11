@@ -493,7 +493,7 @@ bool RepositoryUtility::SetObjectAttributeInternal(const String& name, const Str
 	std::cout << "Writing object '" << name << "' to path '" << path << "'.\n";
 
 	//TODO: Create a patch file
-	if(!WriteObjectToRepository(path, name, type, obj)) {
+	if (!WriteObjectToRepository(path, name, type, obj)) {
 		Log(LogCritical, "cli")
 		    << "Can't write object " << name << " to repository.\n";
 		return false;

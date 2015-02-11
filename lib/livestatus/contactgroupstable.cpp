@@ -58,7 +58,7 @@ Value ContactGroupsTable::NameAccessor(const Value& row)
 {
 	UserGroup::Ptr user_group = static_cast<UserGroup::Ptr>(row);
 
-	if(!user_group)
+	if (!user_group)
 		return Empty;
 
 	return user_group->GetName();
@@ -68,7 +68,7 @@ Value ContactGroupsTable::AliasAccessor(const Value& row)
 {
 	UserGroup::Ptr user_group = static_cast<UserGroup::Ptr>(row);
 
-	if(!user_group)
+	if (!user_group)
 		return Empty;
 
 	return user_group->GetName();
@@ -78,7 +78,7 @@ Value ContactGroupsTable::MembersAccessor(const Value& row)
 {
 	UserGroup::Ptr user_group = static_cast<UserGroup::Ptr>(row);
 
-	if(!user_group)
+	if (!user_group)
 		return Empty;
 
 	Array::Ptr members = new Array();

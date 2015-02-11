@@ -151,7 +151,7 @@ wizard_endpoint_loop_start:
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
 
-		if(answer.empty()) {
+		if (answer.empty()) {
 			Log(LogWarning, "cli", "Master CN is required! Please retry.");
 			goto wizard_endpoint_loop_start;
 		}

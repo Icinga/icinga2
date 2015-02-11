@@ -347,7 +347,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		return EXIT_SUCCESS;
 	}
 
-	if(vm.count("reload-internal")) {
+	if (vm.count("reload-internal")) {
 		int parentpid = vm["reload-internal"].as<int>();
 		Log(LogInformation, "cli")
 		    << "Terminating previous instance of Icinga (PID " << parentpid << ")";
