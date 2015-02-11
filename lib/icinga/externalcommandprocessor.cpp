@@ -152,7 +152,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 
 	if (argnum > 0) {
 		std::copy(arguments.begin(), arguments.begin() + argnum - 1, realArguments.begin());
-	
+
 		String last_argument;
 		for (std::vector<String>::size_type i = argnum - 1; i < arguments.size(); i++) {
 			if (!last_argument.IsEmpty())
@@ -233,6 +233,8 @@ void ExternalCommandProcessor::StaticInitialize(void)
 	RegisterCommand("DISABLE_HOST_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostNotifications, 1);
 	RegisterCommand("ENABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableSvcNotifications, 2);
 	RegisterCommand("DISABLE_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableSvcNotifications, 2);
+	RegisterCommand("ENABLE_HOST_SVC_NOTIFICATIONS", &ExternalCommandProcessor::EnableHostSvcNotifications, 1);
+	RegisterCommand("DISABLE_HOST_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableHostSvcNotifications, 1);
 	RegisterCommand("DISABLE_HOSTGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupHostChecks, 1);
 	RegisterCommand("DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS", &ExternalCommandProcessor::DisableHostgroupPassiveHostChecks, 1);
 	RegisterCommand("DISABLE_SERVICEGROUP_HOST_CHECKS", &ExternalCommandProcessor::DisableServicegroupHostChecks, 1);
@@ -1412,6 +1414,50 @@ void ExternalCommandProcessor::DisableSvcNotifications(double, const std::vector
 		ObjectLock olock(service);
 
 		service->SetEnableNotifications(false);
+	}
+}
+
+void ExternalCommandProcessor::EnableHostSvcNotifications(double, const std::vector<String>& arguments)
+{
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable notifications for all services for non-existent host '" + arguments[0] + "'"));
+
+	Log(LogNotice, "ExternalCommandProcessor")
+	    << "Enabling notifications for all services on host '" << arguments[0] << "'";
+
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		Log(LogNotice, "ExternalCommandProcessor")
+		    << "Enabling notifications for service '" << service->GetName() << "'";
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableNotifications(true);
+		}
+	}
+}
+
+void ExternalCommandProcessor::DisableHostSvcNotifications(double, const std::vector<String>& arguments)
+{
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable notifications for all services  for non-existent host '" + arguments[0] + "'"));
+
+	Log(LogNotice, "ExternalCommandProcessor")
+	    << "Disabling notifications for all services on host '" << arguments[0] << "'";
+
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		Log(LogNotice, "ExternalCommandProcessor")
+		    << "Disabling notifications for service '" << service->GetName() << "'";
+
+		{
+			ObjectLock olock(service);
+
+			service->SetEnableNotifications(false);
+		}
 	}
 }
 

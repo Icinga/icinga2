@@ -36,7 +36,7 @@ public:
 	static void Execute(double time, const String& command, const std::vector<String>& arguments);
 
 	static void StaticInitialize(void);
-	
+
 	static boost::signals2::signal<void(double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
 private:
@@ -100,6 +100,8 @@ private:
 	static void DisableHostNotifications(double time, const std::vector<String>& arguments);
 	static void EnableSvcNotifications(double time, const std::vector<String>& arguments);
 	static void DisableSvcNotifications(double time, const std::vector<String>& arguments);
+	static void EnableHostSvcNotifications(double, const std::vector<String>& arguments);
+	static void DisableHostSvcNotifications(double, const std::vector<String>& arguments);
 	static void DisableHostgroupHostChecks(double, const std::vector<String>& arguments);
 	static void DisableHostgroupPassiveHostChecks(double, const std::vector<String>& arguments);
 	static void DisableServicegroupHostChecks(double, const std::vector<String>& arguments);

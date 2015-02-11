@@ -68,6 +68,8 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   DISABLE_HOST_NOTIFICATIONS                | ;&lt;host_name&gt; (1)  | -
   ENABLE_SVC_NOTIFICATIONS                  | ;&lt;host_name&gt;;&lt;service_name&gt; (2)  | -
   DISABLE_SVC_NOTIFICATIONS                 | ;&lt;host_name&gt;;&lt;service_name&gt; (2) | -
+  ENABLE_HOST_SVC_NOTIFICATIONS		    | ;&lt;host_name&gt; (1)  | -
+  DISABLE_HOST_SVC_NOTIFICATIONS	    | ;&lt;host_name&gt; (1)  | -
   DISABLE_HOSTGROUP_HOST_CHECKS             | ;&lt;hostgroup_name&gt; (1)  | -
   DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS     | ;&lt;hostgroup_name&gt; (1)  | -
   DISABLE_SERVICEGROUP_HOST_CHECKS          | ;&lt;servicegroup_name&gt; (1)  | -
