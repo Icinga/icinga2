@@ -59,6 +59,19 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 		}
 
 		result = resultArr;
+	} else if (str.IsObjectType<Dictionary>()) {
+		Dictionary::Ptr resultDict = new Dictionary();
+		Dictionary::Ptr dict = str;
+
+		ObjectLock olock(dict);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			/* Note: don't escape macros here. */
+			resultDict->Set(kv.first, InternalResolveMacros(kv.second, resolvers, cr, missingMacro,
+			    EscapeCallback(), resolvedMacros, useResolvedMacros));
+		}
+
+		result = resultDict;
 	} else if (str.IsObjectType<Function>()) {
 		result = EvaluateFunction(str, resolvers, cr, missingMacro, escapeFn, resolvedMacros, useResolvedMacros, 0);
 	} else {
