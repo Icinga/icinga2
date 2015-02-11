@@ -51,6 +51,17 @@ BOOST_AUTO_TEST_CASE(simple)
 	Array::Ptr result = MacroProcessor::ResolveMacros("$testD$", resolvers);
 	BOOST_CHECK(result->GetLength() == 2);
 
+	/* verify the config validator macro checks */
+	BOOST_CHECK(Utility::ValidateMacroString("$host.address") == false);
+	BOOST_CHECK(Utility::ValidateMacroString("host.vars.test$") == false);
+
+	BOOST_CHECK(Utility::ValidateMacroString("host.vars.test$") == false);
+	BOOST_CHECK(Utility::ValidateMacroString("$template::test$abc$") == false);
+
+	BOOST_CHECK(Utility::ValidateMacroString("$$test $host.vars.test$") == true);
+
+	BOOST_CHECK(Utility::ValidateMacroString("test $host.vars.test$") == true);
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

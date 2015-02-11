@@ -40,6 +40,8 @@ public:
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
 	static void ValidateAttributes(const String& location, const Command::Ptr& object);
+	static void ValidateArguments(const String& location, const Command::Ptr& object);
+	static void ValidateEnvironmentVariables(const String& location, const Command::Ptr& object);
 
 	int GetModifiedAttributes(void) const;
 	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());

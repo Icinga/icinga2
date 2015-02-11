@@ -118,6 +118,8 @@ public:
 	static String EscapeString(const String& s, const String& chars);
 	static String UnescapeString(const String& s);
 
+	static bool ValidateMacroString(const String& macro);
+
 	static void SetThreadName(const String& name, bool os = true);
 	static String GetThreadName(void);
 

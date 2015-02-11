@@ -43,6 +43,7 @@
 using namespace icinga;
 
 REGISTER_TYPE(GraphiteWriter);
+REGISTER_SCRIPTFUNCTION(ValidateNameTemplates, &GraphiteWriter::ValidateNameTemplates);
 
 REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
 
@@ -146,7 +147,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 	ObjectLock olock(perfdata);
 	BOOST_FOREACH(const Value& val, perfdata) {
 		PerfdataValue::Ptr pdv;
-		
+
 		if (val.IsObjectType<PerfdataValue>())
 			pdv = val;
 		else {
@@ -158,7 +159,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 				continue;
 			}
 		}
-		
+
 		String escaped_key = EscapeMetric(pdv->GetLabel());
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
@@ -229,4 +230,16 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value)
 		return Utility::Join(result, '.');
 	} else
 		return EscapeMetric(value);
+}
+
+void GraphiteWriter::ValidateNameTemplates(const String& location, const GraphiteWriter::Ptr& object)
+{
+	if(!Utility::ValidateMacroString(object->GetHostNameTemplate())) {
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Closing $ not found in macro format string '" + object->GetHostNameTemplate() + "'.", object->GetDebugInfo()));
+	}
+	if (!Utility::ValidateMacroString(object->GetServiceNameTemplate())) {
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Closing $ not found in macro format string '" + object->GetServiceNameTemplate() + "'.", object->GetDebugInfo()));
+	}
 }

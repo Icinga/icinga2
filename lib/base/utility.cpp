@@ -1256,3 +1256,23 @@ String Utility::UnescapeString(const String& s)
 
 	return result.str();
 }
+
+bool Utility::ValidateMacroString(const String& macro)
+{
+	if (macro.IsEmpty())
+		return true;
+
+	size_t pos_first, pos_second, offset;
+	offset = 0;
+
+	while((pos_first = macro.FindFirstOf("$", offset)) != String::NPos) {
+		pos_second = macro.FindFirstOf("$", pos_first + 1);
+
+		if (pos_second == String::NPos)
+			return false;
+
+		offset = pos_second + 1;
+	}
+
+	return true;
+}

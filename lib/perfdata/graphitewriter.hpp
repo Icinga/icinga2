@@ -43,6 +43,8 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
+	static void ValidateNameTemplates(const String& location, const GraphiteWriter::Ptr& object);
+
 protected:
 	virtual void Start(void);
 

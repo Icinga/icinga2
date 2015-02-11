@@ -27,12 +27,14 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
+#include "base/exception.hpp"
 #include "base/application.hpp"
 #include "base/statsfunction.hpp"
 
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataWriter);
+REGISTER_SCRIPTFUNCTION(ValidateFormatTemplates, &PerfdataWriter::ValidateFormatTemplates);
 
 REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
 
@@ -138,3 +140,14 @@ void PerfdataWriter::RotationTimerHandler(void)
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
+void PerfdataWriter::ValidateFormatTemplates(const String& location, const PerfdataWriter::Ptr& object)
+{
+	if(!Utility::ValidateMacroString(object->GetHostFormatTemplate())) {
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Closing $ not found in macro format string '" + object->GetHostFormatTemplate() + "'.", object->GetDebugInfo()));
+	}
+	if (!Utility::ValidateMacroString(object->GetServiceFormatTemplate())) {
+		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+		    location + ": Closing $ not found in macro format string '" + object->GetHostFormatTemplate() + "'.", object->GetDebugInfo()));
+	}
+}
