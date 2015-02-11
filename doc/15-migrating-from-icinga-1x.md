@@ -1004,7 +1004,7 @@ With the freely definable custom attributes in Icinga 2 it looks like this:
 The global configuration setting `enable_environment_macros` does not exist in
 Icinga 2.
 
-Macros exported into the [environment](3-monitoring-basics.md#runtime-custom-attribute-env-vars)
+Macros exported into the [environment](#runtime-custom-attribute-env-vars)
 must be set using the `env` attribute in command objects.
 
 #### <a id="differences-1x-2-runtime-macros"></a> Runtime Macros

@@ -139,6 +139,257 @@ and objects share the same namespace, i.e. you can't define a template
 that has the same name like an object.
 
 
+## <a id="custom-attributes"></a> Custom Attributes
+
+In addition to built-in attributes you can define your own attributes:
+
+    object Host "localhost" {
+      vars.ssh_port = 2222
+    }
+
+Valid values for custom attributes include:
+
+* Strings and numbers
+* Arrays and dictionaries
+* Functions
+
+### <a id="custom-attributes-functions"></a> Functions as Custom Attributes
+
+Icinga lets you specify functions for custom attributes. The special case here
+is that whenever Icinga needs the value for such a custom attribute it runs
+the function and uses whatever value the function returns:
+
+    object CheckCommand "random-value" {
+      command = [ PluginDir + "/check_dummy", "0", "$text$" ]
+
+      vars.text = {{ Math.random() * 100 }}
+    }
+
+This example uses the [abbreviated lambda syntax](16-language-reference.md#nullary-lambdas).
+
+These functions have access to a number of variables:
+
+  Variable     | Description
+  -------------|---------------
+  user         | The User object (for notifications).
+  service      | The Service object (for service checks/notifications/event handlers).
+  host         | The Host object.
+  command      | The command object (e.g. a CheckCommand object for checks).
+
+Here's an example:
+
+    vars.text = {{ host.check_interval }}
+
+In addition to these variables the `macro` function can be used to retrieve the
+value of arbitrary macro expressions:
+
+    vars.text = {{
+      if (macro("$address$") == "127.0.0.1") {
+        log("Running a check for localhost!")
+      }
+
+      return "Some text"
+    }}
+
+The [Object Accessor Functions](17-library-reference.md#object-accessor-functions) can be used to retrieve references
+to other objects by name.
+
+## <a id="runtime-macros"></a> Runtime Macros
+
+Macros can be used to access other objects' attributes at runtime. For example they
+are used in command definitions to figure out which IP address a check should be
+run against:
+
+    object CheckCommand "my-ping" {
+      command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
+
+      arguments = {
+        "-w" = "$ping_wrta$,$ping_wpl$%"
+        "-c" = "$ping_crta$,$ping_cpl$%"
+        "-p" = "$ping_packets$"
+      }
+
+      vars.ping_wrta = 100
+      vars.ping_wpl = 5
+
+      vars.ping_crta = 250
+      vars.ping_cpl = 10
+
+      vars.ping_packets = 5
+    }
+
+    object Host "router" {
+      check_command = "my-ping"
+      address = "10.0.0.1"
+    }
+
+In this example we are using the `$address$` macro to refer to the host's `address`
+attribute.
+
+We can also directly refer to custom attributes, e.g. by using `$ping_wrta$`. Icinga
+automatically tries to find the closest match for the attribute you specified. The
+exact rules for this are explained in the next section.
+
+
+### <a id="macro-evaluation-order"></a> Evaluation Order
+
+When executing commands Icinga 2 checks the following objects in this order to look
+up macros and their respective values:
+
+1. User object (only for notifications)
+2. Service object
+3. Host object
+4. Command object
+5. Global custom attributes in the `Vars` constant
+
+This execution order allows you to define default values for custom attributes
+in your command objects.
+
+Here's how you can override the custom attribute `ping_packets` from the previous
+example:
+
+    object Service "ping" {
+      host_name = "localhost"
+      check_command = "my-ping"
+
+      vars.ping_packets = 10 // Overrides the default value of 5 given in the command
+    }
+
+If a custom attribute isn't defined anywhere an empty value is used and a warning is
+written to the Icinga 2 log.
+
+You can also directly refer to a specific attribute - thereby ignoring these evaluation
+rules - by specifying the full attribute name:
+
+    $service.vars.ping_wrta$
+
+This retrieves the value of the `ping_wrta` custom attribute for the service. This
+returns an empty value if the server does not have such a custom attribute no matter
+whether another object such as the host has this attribute.
+
+
+### <a id="host-runtime-macros"></a> Host Runtime Macros
+
+The following host custom attributes are available in all commands that are executed for
+hosts or services:
+
+  Name                         | Description
+  -----------------------------|--------------
+  host.name                    | The name of the host object.
+  host.display_name            | The value of the `display_name` attribute.
+  host.state                   | The host's current state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
+  host.state_id                | The host's current state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
+  host.state_type              | The host's current state type. Can be one of `SOFT` and `HARD`.
+  host.check_attempt           | The current check attempt number.
+  host.max_check_attempts      | The maximum number of checks which are executed before changing to a hard state.
+  host.last_state              | The host's previous state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
+  host.last_state_id           | The host's previous state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
+  host.last_state_type         | The host's previous state type. Can be one of `SOFT` and `HARD`.
+  host.last_state_change       | The last state change's timestamp.
+  host.downtime_depth	       | The number of active downtimes.
+  host.duration_sec            | The time since the last state change.
+  host.latency                 | The host's check latency.
+  host.execution_time          | The host's check execution time.
+  host.output                  | The last check's output.
+  host.perfdata                | The last check's performance data.
+  host.last_check              | The timestamp when the last check was executed.
+  host.check_source            | The monitoring instance that performed the last check.
+  host.num_services            | Number of services associated with the host.
+  host.num_services_ok         | Number of services associated with the host which are in an `OK` state.
+  host.num_services_warning    | Number of services associated with the host which are in a `WARNING` state.
+  host.num_services_unknown    | Number of services associated with the host which are in an `UNKNOWN` state.
+  host.num_services_critical   | Number of services associated with the host which are in a `CRITICAL` state.
+
+### <a id="service-runtime-macros"></a> Service Runtime Macros
+
+The following service macros are available in all commands that are executed for
+services:
+
+  Name                       | Description
+  ---------------------------|--------------
+  service.name               | The short name of the service object.
+  service.display_name       | The value of the `display_name` attribute.
+  service.check_command      | The short name of the command along with any arguments to be used for the check.
+  service.state              | The service's current state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
+  service.state_id           | The service's current state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
+  service.state_type         | The service's current state type. Can be one of `SOFT` and `HARD`.
+  service.check_attempt      | The current check attempt number.
+  service.max_check_attempts | The maximum number of checks which are executed before changing to a hard state.
+  service.last_state         | The service's previous state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
+  service.last_state_id      | The service's previous state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
+  service.last_state_type    | The service's previous state type. Can be one of `SOFT` and `HARD`.
+  service.last_state_change  | The last state change's timestamp.
+  service.downtime_depth     | The number of active downtimes.
+  service.duration_sec       | The time since the last state change.
+  service.latency            | The service's check latency.
+  service.execution_time     | The service's check execution time.
+  service.output             | The last check's output.
+  service.perfdata           | The last check's performance data.
+  service.last_check         | The timestamp when the last check was executed.
+  service.check_source       | The monitoring instance that performed the last check.
+
+### <a id="command-runtime-macros"></a> Command Runtime Macros
+
+The following custom attributes are available in all commands:
+
+  Name                   | Description
+  -----------------------|--------------
+  command.name           | The name of the command object.
+
+### <a id="user-runtime-macros"></a> User Runtime Macros
+
+The following custom attributes are available in all commands that are executed for
+users:
+
+  Name                   | Description
+  -----------------------|--------------
+  user.name              | The name of the user object.
+  user.display_name      | The value of the display_name attribute.
+
+### <a id="notification-runtime-macros"></a> Notification Runtime Macros
+
+  Name                   | Description
+  -----------------------|--------------
+  notification.type      | The type of the notification.
+  notification.author    | The author of the notification comment, if existing.
+  notification.comment   | The comment of the notification, if existing.
+
+### <a id="global-runtime-macros"></a> Global Runtime Macros
+
+The following macros are available in all executed commands:
+
+  Name                   | Description
+  -----------------------|--------------
+  icinga.timet           | Current UNIX timestamp.
+  icinga.long_date_time  | Current date and time including timezone information. Example: `2014-01-03 11:23:08 +0000`
+  icinga.short_date_time | Current date and time. Example: `2014-01-03 11:23:08`
+  icinga.date            | Current date. Example: `2014-01-03`
+  icinga.time            | Current time including timezone information. Example: `11:23:08 +0000`
+  icinga.uptime          | Current uptime of the Icinga 2 process.
+
+The following macros provide global statistics:
+
+  Name                              | Description
+  ----------------------------------|--------------
+  icinga.num_services_ok            | Current number of services in state 'OK'.
+  icinga.num_services_warning       | Current number of services in state 'Warning'.
+  icinga.num_services_critical      | Current number of services in state 'Critical'.
+  icinga.num_services_unknown       | Current number of services in state 'Unknown'.
+  icinga.num_services_pending       | Current number of pending services.
+  icinga.num_services_unreachable   | Current number of unreachable services.
+  icinga.num_services_flapping      | Current number of flapping services.
+  icinga.num_services_in_downtime   | Current number of services in downtime.
+  icinga.num_services_acknowledged  | Current number of acknowledged service problems.
+  icinga.num_hosts_up               | Current number of hosts in state 'Up'.
+  icinga.num_hosts_down             | Current number of hosts in state 'Down'.
+  icinga.num_hosts_unreachable      | Current number of unreachable hosts.
+  icinga.num_hosts_flapping         | Current number of flapping hosts.
+  icinga.num_hosts_in_downtime      | Current number of hosts in downtime.
+  icinga.num_hosts_acknowledged     | Current number of acknowledged host problems.
+
+
+
+
 ## <a id="using-apply"></a> Apply Rules
 
 Instead of assigning each object ([Service](6-object-types.md#objecttype-service),
@@ -149,7 +400,7 @@ based on attribute identifiers for example `host_name` objects can be [applied](
 Before you start using the apply rules keep the following in mind:
 
 * Define the best match.
-    * A set of unique [custom attributes](3-monitoring-basics.md#custom-attributes-apply) for these hosts/services?
+    * A set of unique [custom attributes](#custom-attributes-apply) for these hosts/services?
     * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
     * A generic pattern [match](16-language-reference.md#function-calls) on the host/service name?
     * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](16-language-reference.md#expression-operators)
@@ -171,7 +422,7 @@ for not only matching for their existance or values in apply expressions, but al
 
 A more advanced example is using [apply with for loops on arrays or
 dictionaries](#using-apply-for) for example provided by
-[custom atttributes](3-monitoring-basics.md#custom-attributes-apply) or groups.
+[custom atttributes](#custom-attributes-apply) or groups.
 
 > **Tip**
 >
@@ -849,7 +1100,7 @@ string values for passing multiple partitions to the `check_disk` check plugin.
 
 
 More details on using arrays in custom attributes can be found in
-[this chapter](3-monitoring-basics.md#runtime-custom-attributes).
+[this chapter](#runtime-custom-attributes).
 
 
 #### <a id="command-arguments"></a> Command Arguments
@@ -1358,431 +1609,6 @@ and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
 The `disable-nrpe-checks` dependency is applied to all services
 on the `nrpe-service` host using the `nrpe` check_command attribute
 but not the `nrpe-health` service itself.
-
-
-
-## <a id="custom-attributes"></a> Custom Attributes
-
-### <a id="custom-attributes-apply"></a> Using Custom Attributes for Apply Rules
-
-Custom attributes are not only used at runtime in command definitions to pass
-command arguments, but are also a smart way to define patterns and groups
-for applying objects for dynamic config generation.
-
-There are several ways of using custom attributes with [apply rules](3-monitoring-basics.md#using-apply):
-
-* As simple attribute literal ([number](16-language-reference.md#numeric-literals), [string](16-language-reference.md#string-literals),
-[boolean](16-language-reference.md#boolean-literals)) for expression conditions (`assign where`, `ignore where`)
-* As [array](16-language-reference.md#array) or [dictionary](16-language-reference.md#dictionary) attribute with nested values
-(e.g. dictionaries in dictionaries) in [apply for](3-monitoring-basics.md#using-apply-for) rules.
-* As a [function object](16-language-reference.md#functions)
-
-Features like [DB IDO](4-advanced-topics.md#db-ido), [Livestatus](12-livestatus.md#setting-up-livestatus) or [StatusData](4-advanced-topics.md#status-data)
-dump this column as encoded JSON string, and set `is_json` resp. `cv_is_json` to `1`.
-
-If arrays are used in runtime macros (for example `$host.groups$`) all entries
-are separated using the `;` character. If an entry contains a semi-colon itself,
-it is escaped like this: `entry1;ent\;ry2;entry3`.
-
-### <a id="runtime-custom-attributes"></a> Using Custom Attributes at Runtime
-
-Custom attributes may be used in command definitions to dynamically change how the command
-is executed.
-
-Additionally there are Icinga 2 features such as the [PerfDataWriter](4-advanced-topics.md#performance-data) feature
-which use custom runtime attributes to format their output.
-
-> **Tip**
->
-> Custom attributes are identified by the `vars` dictionary attribute as short name.
-> Accessing the different attribute keys is possible using the [index accessor](16-language-reference.md#indexer) `.`.
-
-Custom attributes in command definitions or performance data templates are evaluated at
-runtime when executing a command. These custom attributes cannot be used somewhere else
-for example in other configuration attributes.
-
-Custom attribute values must be either a string, a number, a boolean value or an array.
-Dictionaries cannot be used at the time of writing.
-
-Arrays can be used to pass multiple arguments with or without repeating the key string.
-This helps passing multiple parameters to check plugins requiring them. Prominent
-plugin examples are:
-
-* [check_disk -p](7-icinga-template-library.md#plugin-check-command-disk)
-* [check_nrpe -a](7-icinga-template-library.md#plugin-check-command-nrpe)
-* [check_nscp -l](7-icinga-template-library.md#plugin-check-command-nscp)
-* [check_dns -a](7-icinga-template-library.md#plugin-check-command-dns)
-
-More details on how to use `repeat_key` and other command argument options can be
-found in [this section](6-object-types.md#objecttype-checkcommand-arguments).
-
-> **Note**
->
-> If a macro value cannot be resolved, be it a single macro, or a recursive macro
-> containing an array of macros, the entire command argument is skipped.
-
-This is an example of a command definition which uses user-defined custom attributes:
-
-    object CheckCommand "my-icmp" {
-      import "plugin-check-command"
-      command = [ "/bin/sudo", PluginDir + "/check_icmp" ]
-
-      arguments = {
-        "-H" = {
-          value = "$icmp_targets$"
-          repeat_key = false
-          order = 1
-        }
-        "-w" = "$icmp_wrta$,$icmp_wpl$%"
-        "-c" = "$icmp_crta$,$icmp_cpl$%"
-        "-s" = "$icmp_source$"
-        "-n" = "$icmp_packets$"
-        "-i" = "$icmp_packet_interval$"
-        "-I" = "$icmp_target_interval$"
-        "-m" = "$icmp_hosts_alive$"
-        "-b" = "$icmp_data_bytes$"
-        "-t" = "$icmp_timeout$"
-      }
-
-      vars.icmp_wrta = 200.00
-      vars.icmp_wpl = 40
-      vars.icmp_crta = 500.00
-      vars.icmp_cpl = 80
-
-      vars.notes = "Requires setuid root or sudo."
-    }
-
-Custom attribute names used at runtime must be enclosed in two `$` signs,
-for example `$address$`.
-
-> **Note**
->
-> When using the `$` sign as single character, you need to escape it with an
-> additional dollar sign (`$$`).
-
-This example also makes use of the [command arguments](3-monitoring-basics.md#command-arguments) passed
-to the command line.
-
-You can integrate the above example `CheckCommand` definition
-[passing command argument parameters](3-monitoring-basics.md#command-passing-parameters) like this:
-
-    object Host "my-icmp-host" {
-      import "generic-host"
-      address = "192.168.1.10"
-      vars.address_mgmt = "192.168.2.10"
-      vars.address_web = "192.168.10.10"
-      vars.icmp_targets = [ "$address$", "$host.vars.address_mgmt$", "$host.vars.address_web$" ]
-    }
-
-    apply Service "my-icmp" {
-      check_command = "my-icmp"
-      check_interval = 1m
-      retry_interval = 30s
-
-      vars.icmp_targets = host.vars.icmp_targets
-
-      assign where host.vars.icmp_targets
-    }
-
-### <a id="runtime-custom-attributes-evaluation-order"></a> Runtime Custom Attributes Evaluation Order
-
-When executing commands Icinga 2 checks the following objects in this order to look
-up custom attributes and their respective values:
-
-1. User object (only for notifications)
-2. Service object
-3. Host object
-4. Command object
-5. Global custom attributes in the `vars` constant
-
-This execution order allows you to define default values for custom attributes
-in your command objects. The `my-ping` command shown above uses this to set
-default values for some of the latency thresholds and timeouts.
-
-When using the `my-ping` command you can override some or all of the custom
-attributes in the service definition like this:
-
-    object Service "ping" {
-      host_name = "localhost"
-      check_command = "my-ping"
-
-      vars.ping_packets = 10 // Overrides the default value of 5 given in the command
-    }
-
-If a custom attribute isn't defined anywhere an empty value is used and a warning is
-emitted to the Icinga 2 log.
-
-> **Best Practice**
->
-> By convention every host should have an `address` attribute. Hosts
-> which have an IPv6 address should also have an `address6` attribute.
-
-### <a id="runtime-custom-attribute-env-vars"></a> Runtime Custom Attributes as Environment Variables
-
-The `env` command object attribute specifies a list of environment variables with values calculated
-from either runtime macros or custom attributes which should be exported as environment variables
-prior to executing the command.
-
-This is useful for example for hiding sensitive information on the command line output
-when passing credentials to database checks:
-
-    object CheckCommand "mysql-health" {
-      import "plugin-check-command"
-
-      command = [
-        PluginDir + "/check_mysql"
-      ]
-
-      arguments = {
-        "-H" = "$mysql_address$"
-        "-d" = "$mysql_database$"
-      }
-
-      vars.mysql_address = "$address$"
-      vars.mysql_database = "icinga"
-      vars.mysql_user = "icinga_check"
-      vars.mysql_pass = "password"
-
-      env.MYSQLUSER = "$mysql_user$"
-      env.MYSQLPASS = "$mysql_pass$"
-    }
-
-### <a id="multiple-host-addresses-custom-attributes"></a> Multiple Host Addresses using Custom Attributes
-
-The following example defines a `Host` with three different interface addresses defined as
-custom attributes in the `vars` dictionary. The `if-eth0` and `if-eth1` services will import
-these values into the `address` custom attribute. This attribute is available through the
-generic `$address$` runtime macro.
-
-    object Host "multi-ip" {
-      check_command = "dummy"
-      vars.address_lo = "127.0.0.1"
-      vars.address_eth0 = "10.0.0.10"
-      vars.address_eth1 = "192.168.1.10"
-    }
-
-    apply Service "if-eth0" {
-      import "generic-service"
-
-      vars.address = "$host.vars.address_eth0$"
-      check_command = "my-generic-interface-check"
-
-      assign where host.vars.address_eth0 != ""
-    }
-
-    apply Service "if-eth1" {
-      import "generic-service"
-
-      vars.address = "$host.vars.address_eth1$"
-      check_command = "my-generic-interface-check"
-
-      assign where host.vars.address_eth1 != ""
-    }
-
-    object CheckCommand "my-generic-interface-check" {
-      import "plugin-check-command"
-
-      command = "echo \"This would be the service $service.description$ using the address value: $address$\""
-    }
-
-The `CheckCommand` object is just an example to help you with testing and
-understanding the different custom attributes and runtime macros.
-
-### <a id="modified-attributes"></a> Modified Attributes
-
-Icinga 2 allows you to modify defined object attributes at runtime different to
-the local configuration object attributes. These modified attributes are
-stored as bit-shifted-value and made available in backends. Icinga 2 stores
-modified attributes in its state file and restores them on restart.
-
-Modified Attributes can be reset using external commands.
-
-
-## <a id="runtime-macros"></a> Runtime Macros
-
-Next to custom attributes there are additional runtime macros made available by Icinga 2.
-These runtime macros reflect the current object state and may change over time while
-custom attributes are configured statically (but can be modified at runtime using
-external commands).
-
-### <a id="runtime-macro-evaluation-order"></a> Runtime Macro Evaluation Order
-
-Custom attributes can be accessed at [runtime](3-monitoring-basics.md#runtime-custom-attributes) using their
-identifier omitting the `vars.` prefix.
-There are special cases when those custom attributes are not set and Icinga 2 provides
-a fallback to existing object attributes for example `host.address`.
-
-In the following example the `$address$` macro will be resolved with the value of `vars.address`.
-
-    object Host "localhost" {
-      import "generic-host"
-      check_command = "my-host-macro-test"
-      address = "127.0.0.1"
-      vars.address = "127.2.2.2"
-    }
-
-    object CheckCommand "my-host-macro-test" {
-      command = "echo \"address: $address$ host.address: $host.address$ host.vars.address: $host.vars.address$\""
-    }
-
-The check command output will look like
-
-    "address: 127.2.2.2 host.address: 127.0.0.1 host.vars.address: 127.2.2.2"
-
-If you alter the host object and remove the `vars.address` line, Icinga 2 will fail to look up `$address$` in the
-custom attributes dictionary and then look for the host object's attribute.
-
-The check command output will change to
-
-    "address: 127.0.0.1 host.address: 127.0.0.1 host.vars.address: "
-
-
-The same example can be defined for services overriding the `address` field based on a specific host custom attribute.
-
-    object Host "localhost" {
-      import "generic-host"
-      address = "127.0.0.1"
-      vars.macro_address = "127.3.3.3"
-    }
-
-    apply Service "my-macro-test" to Host {
-      import "generic-service"
-      check_command = "my-service-macro-test"
-      vars.address = "$host.vars.macro_address$"
-
-      assign where host.address
-    }
-
-    object CheckCommand "my-service-macro-test" {
-      command = "echo \"address: $address$ host.address: $host.address$ host.vars.macro_address: $host.vars.macro_address$ service.vars.address: $service.vars.address$\""
-    }
-
-When the service check is executed the output looks like
-
-    "address: 127.3.3.3 host.address: 127.0.0.1 host.vars.macro_address: 127.3.3.3 service.vars.address: 127.3.3.3"
-
-That way you can easily override existing macros being accessed by their short name like `$address$` and refrain
-from defining multiple check commands (one for `$address$` and one for `$host.vars.macro_address$`).
-
-
-### <a id="host-runtime-macros"></a> Host Runtime Macros
-
-The following host custom attributes are available in all commands that are executed for
-hosts or services:
-
-  Name                         | Description
-  -----------------------------|--------------
-  host.name                    | The name of the host object.
-  host.display_name            | The value of the `display_name` attribute.
-  host.state                   | The host's current state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
-  host.state_id                | The host's current state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
-  host.state_type              | The host's current state type. Can be one of `SOFT` and `HARD`.
-  host.check_attempt           | The current check attempt number.
-  host.max_check_attempts      | The maximum number of checks which are executed before changing to a hard state.
-  host.last_state              | The host's previous state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
-  host.last_state_id           | The host's previous state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
-  host.last_state_type         | The host's previous state type. Can be one of `SOFT` and `HARD`.
-  host.last_state_change       | The last state change's timestamp.
-  host.downtime_depth	       | The number of active downtimes.
-  host.duration_sec            | The time since the last state change.
-  host.latency                 | The host's check latency.
-  host.execution_time          | The host's check execution time.
-  host.output                  | The last check's output.
-  host.perfdata                | The last check's performance data.
-  host.last_check              | The timestamp when the last check was executed.
-  host.check_source            | The monitoring instance that performed the last check.
-  host.num_services            | Number of services associated with the host.
-  host.num_services_ok         | Number of services associated with the host which are in an `OK` state.
-  host.num_services_warning    | Number of services associated with the host which are in a `WARNING` state.
-  host.num_services_unknown    | Number of services associated with the host which are in an `UNKNOWN` state.
-  host.num_services_critical   | Number of services associated with the host which are in a `CRITICAL` state.
-
-### <a id="service-runtime-macros"></a> Service Runtime Macros
-
-The following service macros are available in all commands that are executed for
-services:
-
-  Name                       | Description
-  ---------------------------|--------------
-  service.name               | The short name of the service object.
-  service.display_name       | The value of the `display_name` attribute.
-  service.check_command      | The short name of the command along with any arguments to be used for the check.
-  service.state              | The service's current state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
-  service.state_id           | The service's current state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
-  service.state_type         | The service's current state type. Can be one of `SOFT` and `HARD`.
-  service.check_attempt      | The current check attempt number.
-  service.max_check_attempts | The maximum number of checks which are executed before changing to a hard state.
-  service.last_state         | The service's previous state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
-  service.last_state_id      | The service's previous state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
-  service.last_state_type    | The service's previous state type. Can be one of `SOFT` and `HARD`.
-  service.last_state_change  | The last state change's timestamp.
-  service.downtime_depth     | The number of active downtimes.
-  service.duration_sec       | The time since the last state change.
-  service.latency            | The service's check latency.
-  service.execution_time     | The service's check execution time.
-  service.output             | The last check's output.
-  service.perfdata           | The last check's performance data.
-  service.last_check         | The timestamp when the last check was executed.
-  service.check_source       | The monitoring instance that performed the last check.
-
-### <a id="command-runtime-macros"></a> Command Runtime Macros
-
-The following custom attributes are available in all commands:
-
-  Name                   | Description
-  -----------------------|--------------
-  command.name           | The name of the command object.
-
-### <a id="user-runtime-macros"></a> User Runtime Macros
-
-The following custom attributes are available in all commands that are executed for
-users:
-
-  Name                   | Description
-  -----------------------|--------------
-  user.name              | The name of the user object.
-  user.display_name      | The value of the display_name attribute.
-
-### <a id="notification-runtime-macros"></a> Notification Runtime Macros
-
-  Name                   | Description
-  -----------------------|--------------
-  notification.type      | The type of the notification.
-  notification.author    | The author of the notification comment, if existing.
-  notification.comment   | The comment of the notification, if existing.
-
-### <a id="global-runtime-macros"></a> Global Runtime Macros
-
-The following macros are available in all executed commands:
-
-  Name                   | Description
-  -----------------------|--------------
-  icinga.timet           | Current UNIX timestamp.
-  icinga.long_date_time  | Current date and time including timezone information. Example: `2014-01-03 11:23:08 +0000`
-  icinga.short_date_time | Current date and time. Example: `2014-01-03 11:23:08`
-  icinga.date            | Current date. Example: `2014-01-03`
-  icinga.time            | Current time including timezone information. Example: `11:23:08 +0000`
-  icinga.uptime          | Current uptime of the Icinga 2 process.
-
-The following macros provide global statistics:
-
-  Name                              | Description
-  ----------------------------------|--------------
-  icinga.num_services_ok            | Current number of services in state 'OK'.
-  icinga.num_services_warning       | Current number of services in state 'Warning'.
-  icinga.num_services_critical      | Current number of services in state 'Critical'.
-  icinga.num_services_unknown       | Current number of services in state 'Unknown'.
-  icinga.num_services_pending       | Current number of pending services.
-  icinga.num_services_unreachable   | Current number of unreachable services.
-  icinga.num_services_flapping      | Current number of flapping services.
-  icinga.num_services_in_downtime   | Current number of services in downtime.
-  icinga.num_services_acknowledged  | Current number of acknowledged service problems.
-  icinga.num_hosts_up               | Current number of hosts in state 'Up'.
-  icinga.num_hosts_down             | Current number of hosts in state 'Down'.
-  icinga.num_hosts_unreachable      | Current number of unreachable hosts.
-  icinga.num_hosts_flapping         | Current number of flapping hosts.
-  icinga.num_hosts_in_downtime      | Current number of hosts in downtime.
-  icinga.num_hosts_acknowledged     | Current number of acknowledged host problems.
 
 
 
