@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/command.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "base/function.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
@@ -81,7 +82,7 @@ void Command::ValidateArguments(const String& location, const Command::Ptr& obje
 
 		String argstr = argval;
 
-		if (!Utility::ValidateMacroString(argstr)) {
+		if(!MacroProcessor::ValidateMacroString(argstr)) {
 			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 			    location + ": Closing $ not found in macro format string '" + argstr + "'.", object->GetDebugInfo()));
 		}
@@ -102,7 +103,7 @@ void Command::ValidateEnvironmentVariables(const String& location, const Command
 		if (!envval.IsString() || envval.IsEmpty())
 			continue;
 
-		if (!Utility::ValidateMacroString(envval)) {
+		if(!MacroProcessor::ValidateMacroString(envval)) {
 			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 			    location + ": Closing $ not found in macro format string '" + envval + "'.", object->GetDebugInfo()));
 		}

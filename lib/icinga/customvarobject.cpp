@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
 #include "base/exception.hpp"
@@ -88,7 +89,7 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 				if (kv_var.second.IsEmpty())
 					continue;
 
-				if (!Utility::ValidateMacroString(kv_var.second)) {
+				if (!MacroProcessor::ValidateMacroString(kv_var.second)) {
 					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 					    location + ": Closing $ not found in macro format string '" + kv_var.second + "'.", object->GetDebugInfo()));
 				}
@@ -102,7 +103,7 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 				if (arrval.IsEmpty())
 					continue;
 
-				if (!Utility::ValidateMacroString(arrval)) {
+				if (!MacroProcessor::ValidateMacroString(arrval)) {
 					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 					    location + ": Closing $ not found in macro format string '" + arrval + "'.", object->GetDebugInfo()));
 				}
@@ -113,7 +114,7 @@ void CustomVarObject::ValidateCustomAttributes(const String& location, const Cus
 
 			String varstr = varval;
 
-			if (!Utility::ValidateMacroString(varstr)) {
+			if (!MacroProcessor::ValidateMacroString(varstr)) {
 				BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 				    location + ": Closing $ not found in macro format string '" + varstr + "'.", object->GetDebugInfo()));
 			}

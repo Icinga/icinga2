@@ -47,6 +47,8 @@ public:
 	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
 	    bool useResolvedMacros = false);
 
+	static bool ValidateMacroString(const String& macro);
+
 private:
 	MacroProcessor(void);
 

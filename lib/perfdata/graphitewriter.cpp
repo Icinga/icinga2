@@ -234,12 +234,12 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value)
 
 void GraphiteWriter::ValidateNameTemplates(const String& location, const GraphiteWriter::Ptr& object)
 {
-	if (!Utility::ValidateMacroString(object->GetHostNameTemplate())) {
+	if (!MacroProcessor::ValidateMacroString(object->GetHostNameTemplate())) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 		    location + ": Closing $ not found in macro format string '" + object->GetHostNameTemplate() + "'.", object->GetDebugInfo()));
 	}
 
-	if (!Utility::ValidateMacroString(object->GetServiceNameTemplate())) {
+	if (!MacroProcessor::ValidateMacroString(object->GetServiceNameTemplate())) {
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 		    location + ": Closing $ not found in macro format string '" + object->GetServiceNameTemplate() + "'.", object->GetDebugInfo()));
 	}
