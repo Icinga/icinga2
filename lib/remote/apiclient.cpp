@@ -220,22 +220,24 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 	if (!params)
 		return Empty;
 
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-	String salt = listener->GetTicketSalt();
-
 	Dictionary::Ptr result = new Dictionary();
 
-	if (salt.IsEmpty()) {
-		result->Set("error", "Ticket salt is not configured.");
-		return result;
-	}
+	if (!origin.FromClient->IsAuthenticated()) {
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+		String salt = listener->GetTicketSalt();
 
-	String ticket = params->Get("ticket");
-	String realTicket = PBKDF2_SHA1(origin.FromClient->GetIdentity(), salt, 50000);
+		if (salt.IsEmpty()) {
+			result->Set("error", "Ticket salt is not configured.");
+			return result;
+		}
 
-	if (ticket != realTicket) {
-		result->Set("error", "Invalid ticket.");
-		return result;
+		String ticket = params->Get("ticket");
+		String realTicket = PBKDF2_SHA1(origin.FromClient->GetIdentity(), salt, 50000);
+
+		if (ticket != realTicket) {
+			result->Set("error", "Invalid ticket.");
+			return result;
+		}
 	}
 
 	boost::shared_ptr<X509> cert = origin.FromClient->GetStream()->GetPeerCertificate();
