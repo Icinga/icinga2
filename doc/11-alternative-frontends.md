@@ -3,7 +3,7 @@
 ## <a id="setting-up-icinga-classic-ui"></a> Setting up Icinga Classic UI 1.x
 
 Icinga 2 can write `status.dat` and `objects.cache` files in the format that
-is supported by the Icinga 1.x Classic UI. [External commands](3-monitoring-basics.md#external-commands)
+is supported by the Icinga 1.x Classic UI. [External commands](4-advanced-topics.md#external-commands)
 (a.k.a. the "command pipe") are also supported. It also supports writing Icinga 1.x
 log files which are required for the reporting functionality in the Classic UI.
 
@@ -32,8 +32,8 @@ to satisfy this dependency:
 On all distributions other than Debian you may have to restart both your web
 server as well as Icinga 2 after installing the Classic UI package.
 
-Icinga Classic UI requires the [StatusDataWriter](3-monitoring-basics.md#status-data), [CompatLogger](3-monitoring-basics.md#compat-logging)
-and [ExternalCommandListener](3-monitoring-basics.md#external-commands) features.
+Icinga Classic UI requires the [StatusDataWriter](4-advanced-topics.md#status-data), [CompatLogger](4-advanced-topics.md#compat-logging)
+and [ExternalCommandListener](4-advanced-topics.md#external-commands) features.
 Enable these features and restart Icinga 2.
 
     # icinga2 feature enable statusdata compatlog command
@@ -57,7 +57,7 @@ please check the official [Icinga 1.x user interface documentation](http://docs.
 
 Icinga 2 can write to the same schema supplied by `Icinga IDOUtils 1.x` which
 is an explicit requirement to run `Icinga Web` next to the external command pipe.
-Therefore you need to setup the [DB IDO feature](2-getting-started.md#configuring-db-ido) remarked in the previous sections.
+Therefore you need to setup the [DB IDO feature](#configuring-db-ido) remarked in the previous sections.
 
 ### <a id="installing-icinga-web"></a> Installing Icinga Web 1.x
 
@@ -104,7 +104,7 @@ found in the [Icinga Web documentation](http://docs.icinga.org/latest/en/icinga-
 
     # icinga-web-clearcache
 
-Additionally you need to enable the `command` feature for sending [external commands](3-monitoring-basics.md#external-commands):
+Additionally you need to enable the `command` feature for sending [external commands](4-advanced-topics.md#external-commands):
 
     # icinga2 feature enable command
 
@@ -140,7 +140,7 @@ use one of the config packages:
  - `icinga-web-config-icinga2-ido-mysql`
  - `icinga-web-config-icinga2-ido-pgsql`
 
-These packages take care of setting up the [DB IDO](2-getting-started.md#configuring-db-ido) configuration,
+These packages take care of setting up the [DB IDO](#configuring-db-ido) configuration,
 enabling the external command pipe for Icinga Web and depend on
 the corresponding packages of Icinga 2.
 
@@ -157,7 +157,7 @@ When changing Icinga Web configuration files make sure to clear the config cache
 > **Note**
 >
 > If you are using an older version of Icinga Web, install it like this and adapt
-> the configuration manually as shown in [the RPM notes](10-alternative-frontends.md#icinga-web-rpm-notes):
+> the configuration manually as shown in [the RPM notes](11-alternative-frontends.md#icinga-web-rpm-notes):
 >
 > `apt-get install --no-install-recommends icinga-web`
 

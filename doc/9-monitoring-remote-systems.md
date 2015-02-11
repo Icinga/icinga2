@@ -1,17 +1,17 @@
 # <a id="monitoring-remote-systems"></a> Monitoring Remote Systems
 
-There are multiple ways you can monitor remote clients. Be it using [agent-less](8-monitoring-remote-systems.md#agent-less-checks)
+There are multiple ways you can monitor remote clients. Be it using [agent-less](9-monitoring-remote-systems.md#agent-less-checks)
 or [agent-based](agent-based-checks-addons) using additional addons & tools.
 
 Icinga 2 uses its own unique and secure communitication protol amongst instances.
 Be it an High-Availability cluster setup, distributed load-balanced setup or just a single
-agent [monitoring a remote client](8-monitoring-remote-systems.md#icinga2-remote-client-monitoring).
+agent [monitoring a remote client](9-monitoring-remote-systems.md#icinga2-remote-client-monitoring).
 
 All communication is secured by TLS with certificates, and fully supports IPv4 and IPv6.
 
 If you are planning to use the native Icinga 2 cluster feature for distributed
 monitoring and high-availability, please continue reading in
-[this chapter](8-monitoring-remote-systems.md#distributed-monitoring-high-availability).
+[this chapter](9-monitoring-remote-systems.md#distributed-monitoring-high-availability).
 
 > **Tip**
 >
@@ -24,19 +24,19 @@ monitoring and high-availability, please continue reading in
 If the remote service is available using a network protocol and port,
 and a [check plugin](2-getting-started.md#setting-up-check-plugins) is available, you don't
 necessarily need a local client installed. Rather choose a plugin and
-configure all parameters and thresholds. The [Icinga 2 Template Library](6-icinga-template-library.md#icinga-template-library)
+configure all parameters and thresholds. The [Icinga 2 Template Library](7-icinga-template-library.md#icinga-template-library)
 already ships various examples like
 
-* [ping4](6-icinga-template-library.md#plugin-check-command-ping4), [ping6](6-icinga-template-library.md#plugin-check-command-ping6),
-[fping4](6-icinga-template-library.md#plugin-check-command-fping4), [fping6](6-icinga-template-library.md#plugin-check-command-fping6), [hostalive](6-icinga-template-library.md#plugin-check-command-hostalive)
-* [tcp](6-icinga-template-library.md#plugin-check-command-tcp), [udp](6-icinga-template-library.md#plugin-check-command-udp), [ssl](6-icinga-template-library.md#plugin-check-command-ssl)
-* [http](6-icinga-template-library.md#plugin-check-command-http), [ftp](6-icinga-template-library.md#plugin-check-command-ftp)
-* [smtp](6-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](6-icinga-template-library.md#plugin-check-command-ssmtp),
-[imap](6-icinga-template-library.md#plugin-check-command-imap), [simap](6-icinga-template-library.md#plugin-check-command-simap),
-[pop](6-icinga-template-library.md#plugin-check-command-pop), [spop](6-icinga-template-library.md#plugin-check-command-spop)
-* [ntp_time](6-icinga-template-library.md#plugin-check-command-ntp-time)
-* [ssh](6-icinga-template-library.md#plugin-check-command-ssh)
-* [dns](6-icinga-template-library.md#plugin-check-command-dns), [dig](6-icinga-template-library.md#plugin-check-command-dig), [dhcp](6-icinga-template-library.md#plugin-check-command-dhcp)
+* [ping4](7-icinga-template-library.md#plugin-check-command-ping4), [ping6](7-icinga-template-library.md#plugin-check-command-ping6),
+[fping4](7-icinga-template-library.md#plugin-check-command-fping4), [fping6](7-icinga-template-library.md#plugin-check-command-fping6), [hostalive](7-icinga-template-library.md#plugin-check-command-hostalive)
+* [tcp](7-icinga-template-library.md#plugin-check-command-tcp), [udp](7-icinga-template-library.md#plugin-check-command-udp), [ssl](7-icinga-template-library.md#plugin-check-command-ssl)
+* [http](7-icinga-template-library.md#plugin-check-command-http), [ftp](7-icinga-template-library.md#plugin-check-command-ftp)
+* [smtp](7-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](7-icinga-template-library.md#plugin-check-command-ssmtp),
+[imap](7-icinga-template-library.md#plugin-check-command-imap), [simap](7-icinga-template-library.md#plugin-check-command-simap),
+[pop](7-icinga-template-library.md#plugin-check-command-pop), [spop](7-icinga-template-library.md#plugin-check-command-spop)
+* [ntp_time](7-icinga-template-library.md#plugin-check-command-ntp-time)
+* [ssh](7-icinga-template-library.md#plugin-check-command-ssh)
+* [dns](7-icinga-template-library.md#plugin-check-command-dns), [dig](7-icinga-template-library.md#plugin-check-command-dig), [dhcp](7-icinga-template-library.md#plugin-check-command-dhcp)
 
 There are numerous check plugins contributed by community members available
 on the internet. If you found one for your requirements, [integrate them into Icinga 2](3-monitoring-basics.md#command-plugin-integration).
@@ -47,7 +47,7 @@ Start your search at
 * [Icinga Wiki](https://wiki.icinga.org)
 
 An example is provided in the sample configuration in the getting started
-section shipped with Icinga 2 ([hosts.conf](4-configuring-icinga-2.md#hosts-conf), [services.conf](4-configuring-icinga-2.md#services-conf)).
+section shipped with Icinga 2 ([hosts.conf](5-configuring-icinga-2.md#hosts-conf), [services.conf](5-configuring-icinga-2.md#services-conf)).
 
 ## <a id="icinga2-remote-client-monitoring"></a> Monitoring Icinga 2 Remote Clients
 
@@ -58,13 +58,13 @@ First, you should decide which role the remote client has:
 * a remote command execution client (similar to NRPE, NSClient++, etc)
 
 Later on, you will be asked again and told how to proceed with these
-different [roles](8-monitoring-remote-systems.md#icinga2-remote-monitoring-client-roles).
+different [roles](9-monitoring-remote-systems.md#icinga2-remote-monitoring-client-roles).
 
 > **Note**
 >
 > If you are planning to build an Icinga 2 distributed setup using the cluster feature, please skip
 > the following instructions and jump directly to the
-> [cluster setup instructions](8-monitoring-remote-systems.md#distributed-monitoring-high-availability).
+> [cluster setup instructions](9-monitoring-remote-systems.md#distributed-monitoring-high-availability).
 
 > **Note**
 >
@@ -73,7 +73,7 @@ different [roles](8-monitoring-remote-systems.md#icinga2-remote-monitoring-clien
 
 ## <a id="icinga2-remote-monitoring-master"></a> Master Setup for Remote Monitoring
 
-If you are planning to use the [remote Icinga 2 clients](8-monitoring-remote-systems.md#icinga2-remote-monitoring-client)
+If you are planning to use the [remote Icinga 2 clients](9-monitoring-remote-systems.md#icinga2-remote-monitoring-client)
 you'll first need to update your master setup.
 
 Your master setup requires the following
@@ -82,7 +82,7 @@ Your master setup requires the following
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
 
-You can use the [CLI command](7-cli-commands.md#cli-command-node) `node wizard` for setting up a new node
+You can use the [CLI command](8-cli-commands.md#cli-command-node) `node wizard` for setting up a new node
 on the master. The command must be run as root, all Icinga 2 specific files
 will be updated to the icinga user the daemon is running as (certificate files
 for example).
@@ -133,7 +133,7 @@ The setup wizard will do the following:
 * Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
 * Generate a local zone and endpoint configuration for this master based on FQDN
 * Enabling the API feature, and setting optional `bind_host` and `bind_port`
-* Setting the `NodeName` and `TicketSalt` constants in [constants.conf](4-configuring-icinga-2.md#constants-conf)
+* Setting the `NodeName` and `TicketSalt` constants in [constants.conf](5-configuring-icinga-2.md#constants-conf)
 
 The setup wizard does not automatically restart Icinga 2.
 
@@ -148,13 +148,13 @@ The setup wizard does not automatically restart Icinga 2.
 ## <a id="icinga2-remote-monitoring-client"></a> Client Setup for Remote Monitoring
 
 Icinga 2 can be installed on Linux/Unix and Windows. While
-[Linux/Unix](8-monitoring-remote-systems.md#icinga2-remote-monitoring-client-linux) will be using the [CLI command](7-cli-commands.md#cli-command-node)
+[Linux/Unix](9-monitoring-remote-systems.md#icinga2-remote-monitoring-client-linux) will be using the [CLI command](8-cli-commands.md#cli-command-node)
 `node wizard` for a guided setup, you will need to use the
 graphical installer for Windows based client setup.
 
 Your client setup requires the following
 
-* A ready configured and installed [master node](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master)
+* A ready configured and installed [master node](9-monitoring-remote-systems.md#icinga2-remote-monitoring-master)
 * SSL signed certificate for communication with the master (Use [CSR auto-signing](certifiates-csr-autosigning)).
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
@@ -168,8 +168,8 @@ Your client setup requires the following
 If your remote clients are capable of connecting to the central master, Icinga 2
 supports CSR auto-signing.
 
-First you'll need to define a secure ticket salt in the [constants.conf](4-configuring-icinga-2.md#constants-conf).
-The [setup wizard for the master setup](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master) will create
+First you'll need to define a secure ticket salt in the [constants.conf](5-configuring-icinga-2.md#constants-conf).
+The [setup wizard for the master setup](9-monitoring-remote-systems.md#icinga2-remote-monitoring-master) will create
 one for you already.
 
     # grep TicketSalt /etc/icinga2/constants.conf
@@ -188,16 +188,16 @@ Example for a client notebook:
 > **Note**
 >
 > You can omit the `--salt` parameter using the `TicketSalt` constant from
-> [constants.conf](4-configuring-icinga-2.md#constants-conf) if already defined and Icinga 2 was
+> [constants.conf](5-configuring-icinga-2.md#constants-conf) if already defined and Icinga 2 was
 > reloaded after the master setup.
 
 #### <a id="certificates-manual-creation"></a> Manual SSL Certificate Generation
 
-This is described separately in the [cluster setup chapter](8-monitoring-remote-systems.md#manual-certificate-generation).
+This is described separately in the [cluster setup chapter](9-monitoring-remote-systems.md#manual-certificate-generation).
 
 > **Note**
 >
-> If you're using [CSR Auto-Signing](8-monitoring-remote-systems.md#csr-autosigning-requirements), skip this step.
+> If you're using [CSR Auto-Signing](9-monitoring-remote-systems.md#csr-autosigning-requirements), skip this step.
 
 
 #### <a id="icinga2-remote-monitoring-client-linux-setup"></a> Linux Client Setup Wizard for Remote Monitoring
@@ -205,8 +205,8 @@ This is described separately in the [cluster setup chapter](8-monitoring-remote-
 Install Icinga 2 from your distribution's package repository as described in the
 general [installation instructions](2-getting-started.md#setting-up-icinga2).
 
-Please make sure that either [CSR Auto-Signing](8-monitoring-remote-systems.md#csr-autosigning-requirements) requirements
-are fulfilled, or that you're using [manual SSL certificate generation](8-monitoring-remote-systems.md#manual-certificate-generation).
+Please make sure that either [CSR Auto-Signing](9-monitoring-remote-systems.md#csr-autosigning-requirements) requirements
+are fulfilled, or that you're using [manual SSL certificate generation](9-monitoring-remote-systems.md#manual-certificate-generation).
 
 > **Note**
 >
@@ -222,7 +222,7 @@ You'll need the following configuration details:
 * The client's local zone name. Defaults to FQDN.
 * The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
 * The master endpoint connection information. Your master's IP address and port (defaults to 5665)
-* The [request ticket number](8-monitoring-remote-systems.md#csr-autosigning-requirements) generated on your master
+* The [request ticket number](9-monitoring-remote-systems.md#csr-autosigning-requirements) generated on your master
 for CSR Auto-Signing
 * Bind host/port for the Api feature (optional)
 
@@ -299,7 +299,7 @@ The setup wizard will do the following:
 (based on FQDN)
 * Disabling the notification feature for this client
 * Enabling the API feature, and setting optional `bind_host` and `bind_port`
-* Setting the `NodeName` constant in [constants.conf](4-configuring-icinga-2.md#constants-conf)
+* Setting the `NodeName` constant in [constants.conf](5-configuring-icinga-2.md#constants-conf)
 
 The setup wizard does not automatically restart Icinga 2.
 
@@ -325,7 +325,7 @@ You'll need the following configuration details:
 * The client's local zone name. Defaults to FQDN.
 * The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
 * The master endpoint connection information. Your master's IP address and port (defaults to 5665)
-* The [request ticket number](8-monitoring-remote-systems.md#csr-autosigning-requirements) generated on your master
+* The [request ticket number](9-monitoring-remote-systems.md#csr-autosigning-requirements) generated on your master
 for CSR Auto-Signing
 * Bind host/port for the Api feature (optional)
 
@@ -348,8 +348,8 @@ This scenario allows you to configure the checkable objects (hosts, services) on
 your Icinga 2 master or satellite, and only send commands remotely.
 
 Requirements:
-* Exact same [CheckCommand](5-object-types.md#objecttype-checkcommand) (and
-[EventCommand](5-object-types.md#objecttype-eventcommand)) configuration objects
+* Exact same [CheckCommand](6-object-types.md#objecttype-checkcommand) (and
+[EventCommand](6-object-types.md#objecttype-eventcommand)) configuration objects
 on the master and the remote client(s).
 * Installed plugin scripts on the remote client (`PluginDir` constant can be locally modified)
 * `Zone` and `Endpoint` configuration for the client on the master
@@ -357,9 +357,9 @@ on the master and the remote client(s).
 endpoint
 
 `CheckCommand` objects are already shipped with the Icinga 2 ITL
-as [plugin check commands](6-icinga-template-library.md#plugin-check-commands). If you are
+as [plugin check commands](7-icinga-template-library.md#plugin-check-commands). If you are
 using your own configuration definitions for example in
-[commands.conf](4-configuring-icinga-2.md#commands-conf) make sure to copy/sync it
+[commands.conf](5-configuring-icinga-2.md#commands-conf) make sure to copy/sync it
 on your remote client.
 
 #### <a id="icinga2-remote-monitoring-client-command-execution-client"></a> Client Configuration Remote Client for Command Execution
@@ -395,8 +395,8 @@ in [zones.conf](#zones-conf) and define a trusted master zone as `parent`.
     }
 
 More details here:
-* [configure endpoints](8-monitoring-remote-systems.md#configure-cluster-endpoints)
-* [configure zones](8-monitoring-remote-systems.md#configure-cluster-zones)
+* [configure endpoints](9-monitoring-remote-systems.md#configure-cluster-endpoints)
+* [configure zones](9-monitoring-remote-systems.md#configure-cluster-zones)
 
 
 Configuration example for host and service objects running commands on the remote endpoint `remote-client1`:
@@ -447,7 +447,7 @@ schedule client updates in your management tool (e.g. Puppet).
 > clients. There are no local configured objects available.
 >
 > If you require this, please install a full-featured
-> [local client](8-monitoring-remote-systems.md#icinga2-remote-monitoring-client-local-config).
+> [local client](9-monitoring-remote-systems.md#icinga2-remote-monitoring-client-local-config).
 
 ### <a id="icinga2-remote-monitoring-client-local-config"></a> Remote Client with Local Configuration
 
@@ -519,7 +519,7 @@ using the following CLI command:
 
 > **Note**
 >
-> Better use [blacklists and/or whitelists](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-blacklist-whitelist)
+> Better use [blacklists and/or whitelists](9-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-blacklist-whitelist)
 > to control which clients and hosts/services are integrated into your master configuration repository.
 
 ### <a id="icinga2-remote-monitoring-master-discovery-generate-config"></a> Generate Icinga 2 Configuration for Client Services on the Master
@@ -600,15 +600,15 @@ You can `list` and `remove` existing blacklists:
 
 ### <a id="icinga2-remote-monitoring-master-manual-add-endpoint-zone"></a> Manually add Client Endpoint and Zone Objects on the Master
 
-Define a [Zone](5-object-types.md#objecttype-zone) with a new [Endpoint](5-object-types.md#objecttype-endpoint) similar to the cluster setup.
+Define a [Zone](6-object-types.md#objecttype-zone) with a new [Endpoint](6-object-types.md#objecttype-endpoint) similar to the cluster setup.
 
-* [configure the node name](8-monitoring-remote-systems.md#configure-nodename)
-* [configure the ApiListener object](8-monitoring-remote-systems.md#configure-apilistener-object)
-* [configure cluster endpoints](8-monitoring-remote-systems.md#configure-cluster-endpoints)
-* [configure cluster zones](8-monitoring-remote-systems.md#configure-cluster-zones)
+* [configure the node name](9-monitoring-remote-systems.md#configure-nodename)
+* [configure the ApiListener object](9-monitoring-remote-systems.md#configure-apilistener-object)
+* [configure cluster endpoints](9-monitoring-remote-systems.md#configure-cluster-endpoints)
+* [configure cluster zones](9-monitoring-remote-systems.md#configure-cluster-zones)
 
 on a per remote client basis. If you prefer to synchronize the configuration to remote
-clients, you can also use the cluster provided [configuration sync](8-monitoring-remote-systems.md#cluster-zone-config-sync)
+clients, you can also use the cluster provided [configuration sync](9-monitoring-remote-systems.md#cluster-zone-config-sync)
 in `zones.d`.
 
 
@@ -622,10 +622,10 @@ become handy.
 
 The SNMP daemon runs on the remote system and answers SNMP queries by plugin
 binaries. The [Monitoring Plugins package](2-getting-started.md#setting-up-check-plugins) ships
-the `check_snmp` plugin binary, but there are plenty of [existing plugins](9-addons-plugins.md#plugins)
+the `check_snmp` plugin binary, but there are plenty of [existing plugins](10-addons-plugins.md#plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
-The following example uses the [SNMP ITL](6-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
+The following example uses the [SNMP ITL](7-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
 overrides the `snmp_oid` custom attribute. A service is created for all hosts which
 have the `snmp-community` custom attribute.
 
@@ -638,7 +638,7 @@ have the `snmp-community` custom attribute.
       assign where host.vars.snmp_community != ""
     }
 
-Additional SNMP plugins are available using the [Manubulon SNMP Plugins](6-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
+Additional SNMP plugins are available using the [Manubulon SNMP Plugins](7-icinga-template-library.md#snmp-manubulon-plugin-check-commands).
 
 ### <a id="agent-based-checks-ssh"></a> SSH
 
@@ -676,14 +676,14 @@ remote client.
 > The NRPE protocol is considered insecure and has multiple flaws in its
 > design. Upstream is not willing to fix these issues.
 >
-> In order to stay safe, please use the native [Icinga 2 client](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master)
+> In order to stay safe, please use the native [Icinga 2 client](9-monitoring-remote-systems.md#icinga2-remote-monitoring-master)
 > instead.
 
 The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
 can be embedded into the Icinga 2 `CheckCommand` configuration syntax.
 
 You can use the `check_nrpe` plugin from the NRPE project to query the NRPE daemon.
-Icinga 2 provides the [nrpe check command](6-icinga-template-library.md#plugin-check-command-nrpe) for this:
+Icinga 2 provides the [nrpe check command](7-icinga-template-library.md#plugin-check-command-nrpe) for this:
 
 Example:
 
@@ -742,7 +742,7 @@ executed by the NRPE daemon looks similar to that:
 
     /usr/local/icinga/libexec/check_disk -w 20% -c 10% -p /
 
-You can pass arguments in a similar manner to [NSClient++](8-monitoring-remote-systems.md#agent-based-checks-nsclient)
+You can pass arguments in a similar manner to [NSClient++](9-monitoring-remote-systems.md#agent-based-checks-nsclient)
 when using its NRPE supported check method.
 
 ### <a id="agent-based-checks-nsclient"></a> NSClient++
@@ -753,7 +753,7 @@ but using `NSClient++` will allow you to run local scripts similar to check plug
 the required output and performance counters.
 
 You can use the `check_nt` plugin from the Monitoring Plugins project to query NSClient++.
-Icinga 2 provides the [nscp check command](6-icinga-template-library.md#plugin-check-command-nscp) for this:
+Icinga 2 provides the [nscp check command](7-icinga-template-library.md#plugin-check-command-nscp) for this:
 
 Example:
 
@@ -789,7 +789,7 @@ SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourcefo
 and specific trap handlers passing the check results to Icinga 2.
 
 Following the SNMPTT [Format](http://snmptt.sourceforge.net/docs/snmptt.shtml#SNMPTT.CONF-FORMAT)
-documentation and the Icinga external command syntax found [here](17-appendix.md#external-commands-list-detail)
+documentation and the Icinga external command syntax found [here](18-appendix.md#external-commands-list-detail)
 we can create generic services that can accommodate any number of hosts for a given scenario.
 
 #### <a id="simple-traps"></a> Simple SNMP Traps
@@ -973,9 +973,9 @@ passive update with the state and text from the second and third varbind:
 Building distributed environments with high availability included is fairly easy with Icinga 2.
 The cluster feature is built-in and allows you to build many scenarios based on your requirements:
 
-* [High Availability](8-monitoring-remote-systems.md#cluster-scenarios-high-availability). All instances in the `Zone` elect one active master and run as Active/Active cluster.
-* [Distributed Zones](8-monitoring-remote-systems.md#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
-* [Load Distribution](8-monitoring-remote-systems.md#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
+* [High Availability](9-monitoring-remote-systems.md#cluster-scenarios-high-availability). All instances in the `Zone` elect one active master and run as Active/Active cluster.
+* [Distributed Zones](9-monitoring-remote-systems.md#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
+* [Load Distribution](9-monitoring-remote-systems.md#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
 
 You can combine these scenarios into a global setup fitting your requirements.
 
@@ -999,18 +999,18 @@ Before you start deploying, keep the following things in mind:
     * cluster zones can be built in a Top-Down-design where the child trusts the parent
     * communication between zones happens bi-directional which means that a DMZ-located node can still reach the master node, or vice versa
 * Update firewall rules and ACLs
-* Decide whether to use the built-in [configuration syncronization](8-monitoring-remote-systems.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment
+* Decide whether to use the built-in [configuration syncronization](9-monitoring-remote-systems.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment
 
 
 > **Tip**
 >
 > If you're looking for troubleshooting cluster problems, check the general
-> [troubleshooting](12-troubleshooting.md#troubleshooting-cluster) section.
+> [troubleshooting](13-troubleshooting.md#troubleshooting-cluster) section.
 
 
 ### <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
 
-Icinga 2 ships [CLI commands](7-cli-commands.md#cli-command-pki) assisting with CA and node certificate creation
+Icinga 2 ships [CLI commands](8-cli-commands.md#cli-command-pki) assisting with CA and node certificate creation
 for your Icinga 2 distributed setup.
 
 > **Note**
@@ -1053,8 +1053,8 @@ the host's FQDN):
 
 #### <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
-The SSL certificate common name (CN) will be used by the [ApiListener](5-object-types.md#objecttype-apilistener)
-object to determine the local authority. This name must match the local [Endpoint](5-object-types.md#objecttype-endpoint)
+The SSL certificate common name (CN) will be used by the [ApiListener](6-object-types.md#objecttype-apilistener)
+object to determine the local authority. This name must match the local [Endpoint](6-object-types.md#objecttype-endpoint)
 object name.
 
 Example:
@@ -1068,8 +1068,8 @@ Example:
       host = "icinga2a.icinga.org"
     }
 
-The [Endpoint](5-object-types.md#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
-[Zone](5-object-types.md#objecttype-zone) object.
+The [Endpoint](6-object-types.md#objecttype-endpoint) name is further referenced as `endpoints` attribute on the
+[Zone](6-object-types.md#objecttype-zone) object.
 
     object Endpoint "icinga2b" {
       host = "icinga2b.icinga.org"
@@ -1079,7 +1079,7 @@ The [Endpoint](5-object-types.md#objecttype-endpoint) name is further referenced
       endpoints = [ "icinga2a", "icinga2b" ]
     }
 
-Specifying the local node name using the [NodeName](8-monitoring-remote-systems.md#configure-nodename) variable requires
+Specifying the local node name using the [NodeName](9-monitoring-remote-systems.md#configure-nodename) variable requires
 the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
 
     const NodeName = "icinga2a"
@@ -1090,19 +1090,19 @@ the same name as used for the endpoint name and common name above. If not set, t
 The following section describe which configuration must be updated/created
 in order to get your cluster running with basic functionality.
 
-* [configure the node name](8-monitoring-remote-systems.md#configure-nodename)
-* [configure the ApiListener object](8-monitoring-remote-systems.md#configure-apilistener-object)
-* [configure cluster endpoints](8-monitoring-remote-systems.md#configure-cluster-endpoints)
-* [configure cluster zones](8-monitoring-remote-systems.md#configure-cluster-zones)
+* [configure the node name](9-monitoring-remote-systems.md#configure-nodename)
+* [configure the ApiListener object](9-monitoring-remote-systems.md#configure-apilistener-object)
+* [configure cluster endpoints](9-monitoring-remote-systems.md#configure-cluster-endpoints)
+* [configure cluster zones](9-monitoring-remote-systems.md#configure-cluster-zones)
 
 Once you're finished with the basic setup the following section will
-describe how to use [zone configuration synchronisation](8-monitoring-remote-systems.md#cluster-zone-config-sync)
-and configure [cluster scenarios](8-monitoring-remote-systems.md#cluster-scenarios).
+describe how to use [zone configuration synchronisation](9-monitoring-remote-systems.md#cluster-zone-config-sync)
+and configure [cluster scenarios](9-monitoring-remote-systems.md#cluster-scenarios).
 
 #### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
-that value using the [NodeName](15-language-reference.md#constants) constant.
+that value using the [NodeName](16-language-reference.md#constants) constant.
 
 > ** Note **
 >
@@ -1110,9 +1110,9 @@ that value using the [NodeName](15-language-reference.md#constants) constant.
 > in `/etc/icinga2/constants.conf`.
 
 This setting must be unique for each node, and must also match
-the name of the local [Endpoint](5-object-types.md#objecttype-endpoint) object and the
+the name of the local [Endpoint](6-object-types.md#objecttype-endpoint) object and the
 SSL certificate common name as described in the
-[cluster naming convention](8-monitoring-remote-systems.md#cluster-naming-convention).
+[cluster naming convention](9-monitoring-remote-systems.md#cluster-naming-convention).
 
     vim /etc/icinga2/constants.conf
 
@@ -1122,14 +1122,14 @@ SSL certificate common name as described in the
     const NodeName = "icinga2a"
 
 
-Read further about additional [naming conventions](8-monitoring-remote-systems.md#cluster-naming-convention).
+Read further about additional [naming conventions](9-monitoring-remote-systems.md#cluster-naming-convention).
 
 Not specifying the node name will make Icinga 2 using the FQDN. Make sure that all
 configured endpoint names and common names are in sync.
 
 #### <a id="configure-apilistener-object"></a> Configure the ApiListener Object
 
-The [ApiListener](5-object-types.md#objecttype-apilistener) object needs to be configured on
+The [ApiListener](6-object-types.md#objecttype-apilistener) object needs to be configured on
 every node in the cluster with the following settings:
 
 A sample config looks like:
@@ -1177,9 +1177,9 @@ If this endpoint object is reachable on a different port, you must configure the
 `Zone` objects specify the endpoints located in a zone. That way your distributed setup can be
 seen as zones connected together instead of multiple instances in that specific zone.
 
-Zones can be used for [high availability](8-monitoring-remote-systems.md#cluster-scenarios-high-availability),
-[distributed setups](8-monitoring-remote-systems.md#cluster-scenarios-distributed-zones) and
-[load distribution](8-monitoring-remote-systems.md#cluster-scenarios-load-distribution).
+Zones can be used for [high availability](9-monitoring-remote-systems.md#cluster-scenarios-high-availability),
+[distributed setups](9-monitoring-remote-systems.md#cluster-scenarios-distributed-zones) and
+[load distribution](9-monitoring-remote-systems.md#cluster-scenarios-load-distribution).
 
 Each Icinga 2 `Endpoint` must be put into its respective `Zone`. In this example, you will
 define the zone `config-ha-master` where the `icinga2a` and `icinga2b` endpoints
@@ -1214,21 +1214,21 @@ on the configuration master.
 Your child zones and endpoint members **must not** have their config copied to `zones.d`.
 The built-in configuration synchronisation takes care of that if your nodes accept
 configuration from the parent zone. You can define that in the
-[ApiListener](8-monitoring-remote-systems.md#configure-apilistener-object) object by configuring the `accept_config`
+[ApiListener](9-monitoring-remote-systems.md#configure-apilistener-object) object by configuring the `accept_config`
 attribute accordingly.
 
 You should remove the sample config included in `conf.d` by commenting the `recursive_include`
-statement in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf):
+statement in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf):
 
     //include_recursive "conf.d"
 
 Better use a dedicated directory name like `cluster` or similar, and include that
 one if your nodes require local configuration not being synced to other nodes. That's
-useful for local [health checks](8-monitoring-remote-systems.md#cluster-health-check) for example.
+useful for local [health checks](9-monitoring-remote-systems.md#cluster-health-check) for example.
 
 > **Note**
 >
-> In a [high availability](8-monitoring-remote-systems.md#cluster-scenarios-high-availability)
+> In a [high availability](9-monitoring-remote-systems.md#cluster-scenarios-high-availability)
 > setup only one assigned node can act as configuration master. All other zone
 > member nodes **must not** have the `/etc/icinga2/zones.d` directory populated.
 
@@ -1237,7 +1237,7 @@ to their respective target zone instances.
 
 Each configured zone must exist with the same directory name. The parent zone
 syncs the configuration to the child zones, if allowed using the `accept_config`
-attribute of the [ApiListener](8-monitoring-remote-systems.md#configure-apilistener-object) object.
+attribute of the [ApiListener](9-monitoring-remote-systems.md#configure-apilistener-object) object.
 
 Config on node `icinga2a`:
 
@@ -1276,9 +1276,9 @@ process.
 
 > **Note**
 >
-> `zones.d` must not be included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf). Icinga 2 automatically
+> `zones.d` must not be included in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
-> [global constant](15-language-reference.md#constants) `ZonesDir`.
+> [global constant](16-language-reference.md#constants) `ZonesDir`.
 
 #### <a id="zone-global-config-templates"></a> Global Configuration Zone for Templates
 
@@ -1325,7 +1325,7 @@ If you don't require any global configuration, skip this setting.
 
 #### <a id="zone-config-sync-permissions"></a> Zone Configuration Synchronisation Permissions
 
-Each [ApiListener](5-object-types.md#objecttype-apilistener) object must have the `accept_config` attribute
+Each [ApiListener](6-object-types.md#objecttype-apilistener) object must have the `accept_config` attribute
 set to `true` to receive configuration from the parent `Zone` members. Default value is `false`.
 
     object ApiListener "api" {
@@ -1340,13 +1340,13 @@ master instances anymore.
 
 > ** Tip **
 >
-> Look into the [troubleshooting guides](12-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
+> Look into the [troubleshooting guides](13-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
 > problems with the configuration synchronisation.
 
 
 ### <a id="cluster-health-check"></a> Cluster Health Check
 
-The Icinga 2 [ITL](6-icinga-template-library.md#icinga-template-library) ships an internal check command checking all configured
+The Icinga 2 [ITL](7-icinga-template-library.md#icinga-template-library) ships an internal check command checking all configured
 `EndPoints` in the cluster setup. The check result will become critical if
 one or more configured nodes are not connected.
 
@@ -1395,7 +1395,7 @@ additional security itself:
 * Child zones only receive event updates (check results, commands, etc) for their configured updates.
 * Zones cannot influence/interfere other zones. Each checked object is assigned to only one zone.
 * All nodes in a zone trust each other.
-* [Configuration sync](8-monitoring-remote-systems.md#zone-config-sync-permissions) is disabled by default.
+* [Configuration sync](9-monitoring-remote-systems.md#zone-config-sync-permissions) is disabled by default.
 
 #### <a id="cluster-scenarios-features"></a> Features in Cluster Zones
 
@@ -1406,11 +1406,11 @@ re-schedule a check or acknowledge a problem on the master, and it gets replicat
 actual slave checker node.
 
 DB IDO on the left, graphite on the right side - works (if you disable
-[DB IDO HA](8-monitoring-remote-systems.md#high-availability-db-ido)).
+[DB IDO HA](9-monitoring-remote-systems.md#high-availability-db-ido)).
 Icinga Web 2 on the left, checker and notifications on the right side - works too.
 Everything on the left and on the right side - make sure to deal with
-[load-balanced notifications and checks](8-monitoring-remote-systems.md#high-availability-features) in a
-[HA zone](8-monitoring-remote-systems.md#cluster-scenarios-high-availability).
+[load-balanced notifications and checks](9-monitoring-remote-systems.md#high-availability-features) in a
+[HA zone](9-monitoring-remote-systems.md#cluster-scenarios-high-availability).
 configure-cluster-zones
 #### <a id="cluster-scenarios-distributed-zones"></a> Distributed Zones
 
@@ -1425,7 +1425,7 @@ graphing, etc. in their own specified zone.
 
 Imagine the following example with a master node in Nuremberg, and two remote DMZ
 based instances in Berlin and Vienna. Additonally you'll specify
-[global templates](8-monitoring-remote-systems.md#zone-global-config-templates) available in all zones.
+[global templates](9-monitoring-remote-systems.md#zone-global-config-templates) available in all zones.
 
 The configuration tree on the master instance `nuremberg` could look like this:
 
@@ -1489,7 +1489,7 @@ check results from the satellite nodes in the zones `berlin` and `vienna`.
 > The child zones `berlin` and `vienna` will get their configuration synchronised
 > from the configuration master 'nuremberg'. The endpoints in the child
 > zones **must not** have their `zones.d` directory populated if this endpoint
-> [accepts synced configuration](8-monitoring-remote-systems.md#zone-config-sync-permissions).
+> [accepts synced configuration](9-monitoring-remote-systems.md#zone-config-sync-permissions).
 
 #### <a id="cluster-scenarios-load-distribution"></a> Load Distribution
 
@@ -1548,15 +1548,15 @@ Zones:
 > The child zones `checker` will get its configuration synchronised
 > from the configuration master 'master'. The endpoints in the child
 > zone **must not** have their `zones.d` directory populated if this endpoint
-> [accepts synced configuration](8-monitoring-remote-systems.md#zone-config-sync-permissions).
+> [accepts synced configuration](9-monitoring-remote-systems.md#zone-config-sync-permissions).
 
 #### <a id="cluster-scenarios-high-availability"></a> Cluster High Availability
 
 High availability with Icinga 2 is possible by putting multiple nodes into
-a dedicated [zone](8-monitoring-remote-systems.md#configure-cluster-zones). All nodes will elect one
+a dedicated [zone](9-monitoring-remote-systems.md#configure-cluster-zones). All nodes will elect one
 active master, and retry an election once the current active master is down.
 
-Selected features provide advanced [HA functionality](8-monitoring-remote-systems.md#high-availability-features).
+Selected features provide advanced [HA functionality](9-monitoring-remote-systems.md#high-availability-features).
 Checks and notifications are load-balanced between nodes in the high availability
 zone.
 
@@ -1568,15 +1568,15 @@ commands, etc.
       endpoints = [ "icinga2a", "icinga2b", "icinga2c" ]
     }
 
-Two or more nodes in a high availability setup require an [initial cluster sync](8-monitoring-remote-systems.md#initial-cluster-sync).
+Two or more nodes in a high availability setup require an [initial cluster sync](9-monitoring-remote-systems.md#initial-cluster-sync).
 
 > **Note**
 >
 > Keep in mind that **only one node acts as configuration master** having the
 > configuration files in the `zones.d` directory. All other nodes **must not**
 > have that directory populated. Instead they are required to
-> [accept synced configuration](8-monitoring-remote-systems.md#zone-config-sync-permissions).
-> Details in the [Configuration Sync Chapter](8-monitoring-remote-systems.md#cluster-zone-config-sync).
+> [accept synced configuration](9-monitoring-remote-systems.md#zone-config-sync-permissions).
+> Details in the [Configuration Sync Chapter](9-monitoring-remote-systems.md#cluster-zone-config-sync).
 
 #### <a id="cluster-scenarios-multiple-hierarchies"></a> Multiple Hierarchies
 
@@ -1610,9 +1610,9 @@ amongst them.
 
 By default the following features provide advanced HA functionality:
 
-* [Checks](8-monitoring-remote-systems.md#high-availability-checks) (load balanced, automated failover)
-* [Notifications](8-monitoring-remote-systems.md#high-availability-notifications) (load balanced, automated failover)
-* [DB IDO](8-monitoring-remote-systems.md#high-availability-db-ido) (Run-Once, automated failover)
+* [Checks](9-monitoring-remote-systems.md#high-availability-checks) (load balanced, automated failover)
+* [Notifications](9-monitoring-remote-systems.md#high-availability-notifications) (load balanced, automated failover)
+* [DB IDO](9-monitoring-remote-systems.md#high-availability-db-ido) (Run-Once, automated failover)
 
 #### <a id="high-availability-checks"></a> High Availability with Checks
 
@@ -1633,7 +1633,7 @@ Notifications are load balanced amongst all nodes in a zone. By default this fun
 is enabled.
 If your nodes should notify independent from any other nodes (this will cause
 duplicated notifications if not properly handled!), you can set `enable_ha = false`
-in the [NotificationComponent](5-object-types.md#objecttype-notificationcomponent) feature.
+in the [NotificationComponent](6-object-types.md#objecttype-notificationcomponent) feature.
 
 #### <a id="high-availability-db-ido"></a> High Availability with DB IDO
 
@@ -1651,8 +1651,8 @@ nodes disable the active IDO database connection at runtime.
 > **Note**
 >
 > The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
-> for the [IdoMysqlConnection](5-object-types.md#objecttype-idomysqlconnection) or
-> [IdoPgsqlConnection](5-object-types.md#objecttype-idopgsqlconnection) object on all nodes in the
+> for the [IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection) or
+> [IdoPgsqlConnection](6-object-types.md#objecttype-idopgsqlconnection) object on all nodes in the
 > same zone.
 >
 > All endpoints will enable the DB IDO feature then, connect to the configured
@@ -1682,11 +1682,11 @@ These steps are required for integrating a new cluster endpoint:
 
 * generate a new [SSL client certificate](#certificate-authority-certificates)
 * identify its location in the zones
-* update the `zones.conf` file on each involved node ([endpoint](8-monitoring-remote-systems.md#configure-cluster-endpoints), [zones](8-monitoring-remote-systems.md#configure-cluster-zones))
+* update the `zones.conf` file on each involved node ([endpoint](9-monitoring-remote-systems.md#configure-cluster-endpoints), [zones](9-monitoring-remote-systems.md#configure-cluster-zones))
     * a new slave zone node requires updates for the master and slave zones
-    * verify if this endpoints requires [configuration synchronisation](8-monitoring-remote-systems.md#cluster-zone-config-sync) enabled
-* if the node requires the existing zone history: [initial cluster sync](8-monitoring-remote-systems.md#initial-cluster-sync)
-* add a [cluster health check](8-monitoring-remote-systems.md#cluster-health-check)
+    * verify if this endpoints requires [configuration synchronisation](9-monitoring-remote-systems.md#cluster-zone-config-sync) enabled
+* if the node requires the existing zone history: [initial cluster sync](9-monitoring-remote-systems.md#initial-cluster-sync)
+* add a [cluster health check](9-monitoring-remote-systems.md#cluster-health-check)
 
 #### <a id="initial-cluster-sync"></a> Initial Cluster Sync
 
@@ -1705,7 +1705,7 @@ Special scenarios might require multiple cluster nodes running on a single host.
 By default Icinga 2 and its features will place their runtime data below the prefix
 `LocalStateDir`. By default packages will set that path to `/var`.
 You can either set that variable as constant configuration
-definition in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) or pass it as runtime variable to
+definition in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) or pass it as runtime variable to
 the Icinga 2 daemon.
 
     # icinga2 -c /etc/icinga2/node1/icinga2.conf -DLocalStateDir=/opt/node1/var

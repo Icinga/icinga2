@@ -4,7 +4,7 @@ This chapter prodides an introduction to the configuration files which are autom
 when installing the Icinga 2 packages.
 
 If you're interested in a detailed explanation of each language feature used in those
-configuration files you can find more information in the [Language Reference](15-language-reference.md#language-reference)
+configuration files you can find more information in the [Language Reference](16-language-reference.md#language-reference)
 chapter.
 
 ## <a id="icinga2-conf"></a> icinga2.conf
@@ -22,7 +22,7 @@ Here's a brief description of the example configuration:
      * to the documentation that is distributed as part of Icinga 2.
      */
 
-Icinga 2 supports [C/C++-style comments](15-language-reference.md#comments).
+Icinga 2 supports [C/C++-style comments](16-language-reference.md#comments).
 
     /**
      * The constants.conf defines global constants.
@@ -56,7 +56,7 @@ The `include` directive can be used to include other files.
 
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
-[Enabling/Disabling Features](7-cli-commands.md#features) for more details.
+[Enabling/Disabling Features](8-cli-commands.md#features) for more details.
 
     /**
      * The repository.d directory contains all configuration objects
@@ -66,7 +66,7 @@ the features which have been enabled with `icinga2 feature enable`. See
 
 This `include_recursive` directive is used for discovery of services on remote clients
 and their generated configuration described in
-[this chapter](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
+[this chapter](9-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config).
 
 
     /**
@@ -76,7 +76,7 @@ and their generated configuration described in
      */
     include_recursive "conf.d"
 
-You can put your own configuration files in the [conf.d](4-configuring-icinga-2.md#conf-d) directory. This
+You can put your own configuration files in the [conf.d](5-configuring-icinga-2.md#conf-d) directory. This
 directive makes sure that all of your own configuration files are included.
 
 ## <a id="constants-conf"></a> constants.conf
@@ -87,7 +87,7 @@ By default, you need to make sure to set these constants:
 
 * The `PluginDir` constant must be set to the path where the [Monitoring Project plugins](2-getting-started.md#setting-up-check-plugins) are installed.
 This constant is used by a number of 
-[built-in check command definitions](6-icinga-template-library.md#plugin-check-commands).
+[built-in check command definitions](7-icinga-template-library.md#plugin-check-commands).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
@@ -121,35 +121,35 @@ and distributed setups only.
 
 This directory contains example configuration which should help you get started
 with monitoring the local host and its services. It is included in the
-[icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file by default.
+[icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) configuration file by default.
 
 It can be used as reference example for your own configuration strategy.
 Just keep in mind to include the main directories in the
-[icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) file.
+[icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) file.
 
 You are certainly not bound to it. Remove it, if you prefer your own
 way of deploying Icinga 2 configuration.
 
 Further details on configuration best practice and how to build your
-own strategy is described in [this chapter](3-monitoring-basics.md#configuration-best-practice).
+own strategy is described in [this chapter](#configuration-best-practice).
 
 Available configuration files which are installed by default:
 
-* [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
-* [services.conf](4-configuring-icinga-2.md#services-conf)
-* [users.conf](4-configuring-icinga-2.md#users-conf)
-* [notifications.conf](4-configuring-icinga-2.md#notifications-conf)
-* [commands.conf](4-configuring-icinga-2.md#commands-conf)
-* [groups.conf](4-configuring-icinga-2.md#groups-conf)
-* [templates.conf](4-configuring-icinga-2.md#templates-conf)
-* [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf)
-* [timeperiods.conf](4-configuring-icinga-2.md#timeperiods-conf)
-* [satellite.conf](4-configuring-icinga-2.md#satellite-conf)
+* [hosts.conf](5-configuring-icinga-2.md#hosts-conf)
+* [services.conf](5-configuring-icinga-2.md#services-conf)
+* [users.conf](5-configuring-icinga-2.md#users-conf)
+* [notifications.conf](5-configuring-icinga-2.md#notifications-conf)
+* [commands.conf](5-configuring-icinga-2.md#commands-conf)
+* [groups.conf](5-configuring-icinga-2.md#groups-conf)
+* [templates.conf](5-configuring-icinga-2.md#templates-conf)
+* [downtimes.conf](5-configuring-icinga-2.md#downtimes-conf)
+* [timeperiods.conf](5-configuring-icinga-2.md#timeperiods-conf)
+* [satellite.conf](5-configuring-icinga-2.md#satellite-conf)
 
 ### <a id="hosts-conf"></a> hosts.conf
 
 The `hosts.conf` file contains an example host based on your
-`NodeName` setting in [constants.conf](4-configuring-icinga-2.md#constants-conf). You
+`NodeName` setting in [constants.conf](5-configuring-icinga-2.md#constants-conf). You
 can use global constants for your object names instead of string
 values.
 
@@ -158,24 +158,24 @@ takes care of setting up the host check command to `hostalive`. If you
 require a different check command, you can override it in the object definition.
 
 The `vars` attribute can be used to define custom attributes which are available
-for check and notification commands. Most of the [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands)
+for check and notification commands. Most of the [Plugin Check Commands](7-icinga-template-library.md#plugin-check-commands)
 in the Icinga Template Library require an `address` attribute.
 
 The custom attribute `os` is evaluated by the `linux-servers` group in
-[groups.conf](4-configuring-icinga-2.md#groups-conf) making the local host a member.
+[groups.conf](5-configuring-icinga-2.md#groups-conf) making the local host a member.
 
 The example host will show you how to
 
 * define http vhost attributes for the `http` service apply rule defined
-in [services.conf](4-configuring-icinga-2.md#services-conf).
+in [services.conf](5-configuring-icinga-2.md#services-conf).
 * define disks (all, specific `/`) and their attributes for the `disk`
-service apply rule defined in [services.conf](4-configuring-icinga-2.md#services-conf).
+service apply rule defined in [services.conf](5-configuring-icinga-2.md#services-conf).
 * define notification types (`mail`) and set the groups attribute. This
 will be used by notification apply rules in [notifications.conf](notifications-conf).
 
 If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) you can
 uncomment the http vhost attributes and relaod Icinga 2. The apply
-rules in [services.conf](4-configuring-icinga-2.md#services-conf) will automatically
+rules in [services.conf](5-configuring-icinga-2.md#services-conf) will automatically
 generate a new service checking the `/icingaweb2` URI using the `http`
 check.
 
@@ -232,17 +232,17 @@ check.
     }
 
 This is only the host object definition. Now we'll need to make sure that this
-host and your additional hosts are getting [services](4-configuring-icinga-2.md#services-conf) applied.
+host and your additional hosts are getting [services](5-configuring-icinga-2.md#services-conf) applied.
 
 > **Tip**
 >
-> If you don't understand all the attributes and how to use [apply rules](15-language-reference.md#apply)
+> If you don't understand all the attributes and how to use [apply rules](16-language-reference.md#apply)
 > don't worry - the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
 > that in detail.
 
 ### <a id="services-conf"></a> services.conf
 
-These service [apply rules](15-language-reference.md#apply) will show you how to monitor
+These service [apply rules](16-language-reference.md#apply) will show you how to monitor
 the local host, but also allow you to re-use or modify them for
 your own requirements.
 
@@ -262,8 +262,8 @@ Service(s)                                  | Applied on host(s)
 The Debian packages also include an additional `apt` service check applied to the local host.
 
 The command object `icinga` for the embedded health check is provided by the
-[Icinga Template Library (ITL)](6-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
-`users` and `disk` are all provided by the [Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands)
+[Icinga Template Library (ITL)](7-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
+`users` and `disk` are all provided by the [Plugin Check Commands](7-icinga-template-library.md#plugin-check-commands)
 which we enabled earlier by including the `itl` and `plugins` configuration file.
 
 
@@ -286,11 +286,11 @@ attributes.
 
 The custom attribe `backup_downtime` is defined to a specific timerange string.
 This variable value will be used for applying a `ScheduledDowntime` object to
-these services in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
+these services in [downtimes.conf](5-configuring-icinga-2.md#downtimes-conf).
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "load"
-is created for each matching host. [Expression operators](15-language-reference.md#expression-operators)
+is created for each matching host. [Expression operators](16-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 Multiple `assign where` condition can be combined with `AND` using the `&&` operator
@@ -308,7 +308,7 @@ In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
 `Linux`.
 You can modify this condition to match multiple expressions by combinding `AND`
-and `OR` using `&&` and `||` [operators](15-language-reference.md#expression-operators), for example
+and `OR` using `&&` and `||` [operators](16-language-reference.md#expression-operators), for example
 `assign where host.address && (vars.os == "Linux" || vars.os == "Windows")`.
 
 
@@ -317,10 +317,10 @@ rules. While one `apply` rule for `ssh` will only create a service for matching
 hosts, you can go one step further: Generate apply rules based on array items
 or dictionary key-value pairs.
 
-The idea is simple: Your host in [hosts.conf](4-configuring-icinga-2.md#hosts-conf) defines the
+The idea is simple: Your host in [hosts.conf](5-configuring-icinga-2.md#hosts-conf) defines the
 `disks` dictionary as custom attribute in `vars`.
 
-Remember the example from [hosts.conf](4-configuring-icinga-2.md#hosts-conf):
+Remember the example from [hosts.conf](5-configuring-icinga-2.md#hosts-conf):
 
     ...
 
@@ -354,7 +354,7 @@ Once defined like this, the `apply` rule defined below will do the following:
 * loop through all entries in the `host.vars.disks` dictionary. That's `disk` and `disk /` as keys.
 * call `apply` on each, and set the service object name from the provided key
 * inside apply, the `generic-service` template is imported
-* defining the [disk](6-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
+* defining the [disk](7-icinga-template-library.md#plugin-check-command-disk) check command requiring command arguments like `disk_partition`
 * adding the `config` dictionary items to `vars`. Simply said, there's now `vars.disk_partition` defined for the
 generated service
 
@@ -372,7 +372,7 @@ A similar example is used for the `http` services. That way you can make your
 host the information provider for all apply rules. Define them once, and only
 manage your hosts.
 
-Look into [notifications.conf](4-configuring-icinga-2.md#notifications-conf) how this technique is used
+Look into [notifications.conf](5-configuring-icinga-2.md#notifications-conf) how this technique is used
 for applying notifications to hosts and services using their type and user
 attributes.
 
@@ -385,8 +385,8 @@ Further details on the monitoring configuration can be found in the
 ### <a id="users-conf"></a> users.conf
 
 Defines the `icingaadmin` User and the `icingaadmins` UserGroup. The latter is used in
-[hosts.conf](4-configuring-icinga-2.md#hosts-conf) for defining a custom host attribute later used in
-[notifications.conf](4-configuring-icinga-2.md#notifications-conf) for notification apply rules.
+[hosts.conf](5-configuring-icinga-2.md#hosts-conf) for defining a custom host attribute later used in
+[notifications.conf](5-configuring-icinga-2.md#notifications-conf) for notification apply rules.
 
     object User "icingaadmin" {
       import "generic-user"
@@ -413,13 +413,13 @@ nested dictionary attribute `notification.mail` is set.
 
 Please note that the `to` keyword is important in [notification apply rules](3-monitoring-basics.md#using-apply-notifications)
 defining whether these notifications are applies to hosts or services.
-The `import` keyword imports the specific mail templates defined in [templates.conf](4-configuring-icinga-2.md#templates-conf).
+The `import` keyword imports the specific mail templates defined in [templates.conf](5-configuring-icinga-2.md#templates-conf).
 
-The `interval` attribute is not explicitly set - it [defaults to 30 minutes](5-object-types.md#objecttype-notification).
+The `interval` attribute is not explicitly set - it [defaults to 30 minutes](6-object-types.md#objecttype-notification).
 
 By setting the `user_groups` to the value provided by the
-respective [host.vars.notification.mail](4-configuring-icinga-2.md#hosts-conf) attribute we'll
-implicitely use the`icingaadmins` UserGroup defined in [users.conf](4-configuring-icinga-2.md#users-conf).
+respective [host.vars.notification.mail](5-configuring-icinga-2.md#hosts-conf) attribute we'll
+implicitely use the`icingaadmins` UserGroup defined in [users.conf](5-configuring-icinga-2.md#users-conf).
 
     apply Notification "mail-icingaadmin" to Host {
       import "mail-host-notification"
@@ -443,7 +443,7 @@ filters can be read in [this chapter](3-monitoring-basics.md#notifications).
 ### <a id="commands-conf"></a> commands.conf
 
 This is the place where your own command configuration can be defined. By default
-only the notification commands used by the notification templates defined in [templates.conf](4-configuring-icinga-2.md#templates-conf).
+only the notification commands used by the notification templates defined in [templates.conf](5-configuring-icinga-2.md#templates-conf).
 
 You can freely customize these notification commands, and adapt them for your needs.
 Read more on that topic [here](3-monitoring-basics.md#notification-commands).
@@ -454,7 +454,7 @@ The example host defined in [hosts.conf](hosts-conf) already has the
 custom attribute `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 
-This is done by using the [group assign](15-language-reference.md#group-assign) expressions similar
+This is done by using the [group assign](16-language-reference.md#group-assign) expressions similar
 to previously seen [apply rules](3-monitoring-basics.md#using-apply).
 
     object HostGroup "linux-servers" {
@@ -470,7 +470,7 @@ to previously seen [apply rules](3-monitoring-basics.md#using-apply).
     }
 
 Service groups can be grouped together by similar pattern matches.
-The [match() function](15-language-reference.md#function-calls) expects a wildcard match string
+The [match() function](16-language-reference.md#function-calls) expects a wildcard match string
 and the attribute string to match with.
 
     object ServiceGroup "ping" {
@@ -512,7 +512,7 @@ default:
     }
 
 The `hostalive` check command is part of the
-[Plugin Check Commands](6-icinga-template-library.md#plugin-check-commands).
+[Plugin Check Commands](7-icinga-template-library.md#plugin-check-commands).
 
 
     template Notification "mail-host-notification" {
@@ -537,15 +537,15 @@ The `hostalive` check command is part of the
       period = "24x7"
     }
 
-More details on `Notification` object attributes can be found [here](5-object-types.md#objecttype-notification).
+More details on `Notification` object attributes can be found [here](6-object-types.md#objecttype-notification).
 
 
 ### <a id="downtimes-conf"></a> downtimes.conf
 
-The `load` service apply rule defined in [services.conf](4-configuring-icinga-2.md#services-conf) defines
+The `load` service apply rule defined in [services.conf](5-configuring-icinga-2.md#services-conf) defines
 the `backup_downtime` custom attribute.
 
-The [ScheduledDowntime](5-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
+The [ScheduledDowntime](6-object-types.md#objecttype-scheduleddowntime) apply rule uses this attribute
 to define the default value for the time ranges required for recurring downtime slots.
 
     apply ScheduledDowntime "backup-downtime" to Service {
@@ -575,8 +575,8 @@ objects such as hosts, services or notifications.
 
 ### <a id="satellite-conf"></a> satellite.conf
 
-Includes default templates and dependencies for [monitoring remote clients](8-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
-using service discovery and [config generation](8-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
+Includes default templates and dependencies for [monitoring remote clients](9-monitoring-remote-systems.md#icinga2-remote-client-monitoring)
+using service discovery and [config generation](9-monitoring-remote-systems.md#icinga2-remote-monitoring-master-discovery-generate-config)
 on the master. Can be ignored/removed on setups not using this features.
 
 

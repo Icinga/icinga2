@@ -105,12 +105,12 @@ Debian/Ubuntu:
 
 #### Libraries
 
-Instead of loading libraries using the [`library` config directive](15-language-reference.md#library)
+Instead of loading libraries using the [`library` config directive](16-language-reference.md#library)
 you can also use the `--library` command-line option.
 
 #### Constants
 
-[Global constants](15-language-reference.md#constants) can be set using the `--define` command-line option.
+[Global constants](16-language-reference.md#constants) can be set using the `--define` command-line option.
 
 #### <a id="config-include-path"></a> Config Include Path
 
@@ -151,7 +151,7 @@ use the `rlwrap` program if you require those features:
 ### <a id="cli-command-daemon"></a> CLI command: Daemon
 
 The CLI command `daemon` provides the functionality to start/stop Icinga 2.
-Furthermore it provides the [configuration validation](7-cli-commands.md#config-validation).
+Furthermore it provides the [configuration validation](8-cli-commands.md#config-validation).
 
     # icinga2 daemon --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -195,7 +195,7 @@ Icinga 2 automatically falls back to using the configuration file
 
 The `--validate` option can be used to check if your configuration files
 contain errors. If any errors are found the exit status is 1, otherwise 0
-is returned. More details in the [configuration validation](7-cli-commands.md#config-validation) chapter.
+is returned. More details in the [configuration validation](8-cli-commands.md#config-validation) chapter.
 
 
 ### <a id="cli-command-feature"></a> CLI command: Feature
@@ -219,8 +219,8 @@ The `feature list` command shows which features are currently enabled:
 ### <a id="cli-command-node"></a> CLI command: Node
 
 Provides the functionality to install and manage master and client
-nodes in a [remote monitoring ](8-monitoring-remote-systems.md#icinga2-remote-client-monitoring) or
-[distributed cluster](8-monitoring-remote-systems.md#distributed-monitoring-high-availability) scenario.
+nodes in a [remote monitoring ](9-monitoring-remote-systems.md#icinga2-remote-client-monitoring) or
+[distributed cluster](9-monitoring-remote-systems.md#distributed-monitoring-high-availability) scenario.
 
 
     # icinga2 node --help
@@ -264,9 +264,9 @@ nodes in a [remote monitoring ](8-monitoring-remote-systems.md#icinga2-remote-cl
 
 The `object` CLI command can be used to list all configuration objects and their
 attributes. The command also shows where each of the attributes was modified.
-That way you can also identify which objects have been created from your [apply rules](15-language-reference.md#apply).
+That way you can also identify which objects have been created from your [apply rules](16-language-reference.md#apply).
 
-More information can be found in the [troubleshooting](12-troubleshooting.md#list-configuration-objects) section.
+More information can be found in the [troubleshooting](13-troubleshooting.md#list-configuration-objects) section.
 
     # icinga2 object --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -305,7 +305,7 @@ Provides the CLI commands to
 * request a signed certificate from the master
 * generate a new ticket for the client setup
 
-This functionality is used by the [node setup/wizard](7-cli-commands.md#cli-command-pki) CLI commands too.
+This functionality is used by the [node setup/wizard](8-cli-commands.md#cli-command-pki) CLI commands too.
 
     # icinga2 pki --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -394,7 +394,7 @@ cleared after review.
 
 ### <a id="cli-command-variable"></a> CLI command: Variable
 
-Lists all configured variables (constants) in a similar fasion like [object list](7-cli-commands.md#cli-command-object).
+Lists all configured variables (constants) in a similar fasion like [object list](8-cli-commands.md#cli-command-object).
 
     # icinga2 variable --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -430,7 +430,7 @@ Lists all configured variables (constants) in a similar fasion like [object list
 Icinga 2 provides configuration files for some commonly used features. These
 are installed in the `/etc/icinga2/features-available` directory and can be
 enabled and disabled using the `icinga2 feature enable` and `icinga2 feature disable`
-[CLI commands](7-cli-commands.md#cli-command-feature), respectively.
+[CLI commands](8-cli-commands.md#cli-command-feature), respectively.
 
 The `icinga2 feature enable` CLI command creates symlinks in the
 `/etc/icinga2/features-enabled` directory which is included by default
@@ -508,12 +508,12 @@ Or manually passing the `-C` argument:
 > `# icinga2 daemon -C`
 
 If you encouter errors during configuration validation, please make sure
-to read the [troubleshooting](12-troubleshooting.md#troubleshooting) chapter.
+to read the [troubleshooting](13-troubleshooting.md#troubleshooting) chapter.
 
-You can also use the [CLI command](7-cli-commands.md#cli-command-object) `icinga2 object list`
+You can also use the [CLI command](8-cli-commands.md#cli-command-object) `icinga2 object list`
 after validation passes to analyze object attributes, inheritance or created
 objects by apply rules.
-Find more on troubleshooting with `object list` in [this chapter](12-troubleshooting.md#list-configuration-objects).
+Find more on troubleshooting with `object list` in [this chapter](13-troubleshooting.md#list-configuration-objects).
 
 Example filtered by `Service` objects with the name `ping*`:
 
@@ -546,7 +546,7 @@ Example filtered by `Service` objects with the name `ping*`:
 ## <a id="config-change-reload"></a> Reload on Configuration Changes
 
 Everytime you have changed your configuration you should first tell Icinga 2
-to [validate](7-cli-commands.md#config-validation). If there are no validation errors you can
+to [validate](8-cli-commands.md#config-validation). If there are no validation errors you can
 safely reload the Icinga 2 daemon.
 
     # /etc/init.d/icinga2 reload
@@ -557,5 +557,5 @@ safely reload the Icinga 2 daemon.
 > which will validate the configuration in a separate process and not stop
 > the other events like check execution, notifications, etc.
 >
-> Details can be found [here](14-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
+> Details can be found [here](15-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
 

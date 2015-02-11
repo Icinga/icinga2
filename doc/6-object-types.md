@@ -82,7 +82,7 @@ A group of hosts.
 
 > **Best Practice**
 >
-> Assign host group members using the [group assign](15-language-reference.md#group-assign) rules.
+> Assign host group members using the [group assign](16-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -189,7 +189,7 @@ A group of services.
 
 > **Best Practice**
 >
-> Assign service group members using the [group assign](15-language-reference.md#group-assign) rules.
+> Assign service group members using the [group assign](16-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -273,7 +273,7 @@ A user group.
 
 > **Best Practice**
 >
-> Assign user group members using the [group assign](15-language-reference.md#group-assign) rules.
+> Assign user group members using the [group assign](16-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -447,7 +447,7 @@ Configuration Attributes:
   zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](5-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](6-object-types.md#objecttype-checkcommand-arguments).
 
 
 ## <a id="objecttype-eventcommand"></a> EventCommand
@@ -474,7 +474,7 @@ Configuration Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](5-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](6-object-types.md#objecttype-checkcommand-arguments).
 
 
 ## <a id="objecttype-notification"></a> Notification
@@ -597,7 +597,7 @@ ScheduledDowntime objects can be used to set up recurring downtimes for hosts/se
 > to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
 > scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
-> Check the [recurring downtimes](3-monitoring-basics.md#recurring-downtimes) example for details.
+> Check the [recurring downtimes](4-advanced-topics.md#recurring-downtimes) example for details.
 
 Example:
 
@@ -794,7 +794,7 @@ Configuration Attributes:
 
 Metric prefix names can be modified using [runtime macros](3-monitoring-basics.md#runtime-macros).
 
-Example with your custom [global constant](15-language-reference.md#constants) `GraphiteEnv`:
+Example with your custom [global constant](16-language-reference.md#constants) `GraphiteEnv`:
 
     const GraphiteEnv = "icinga.env1"
 
@@ -883,8 +883,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](8-monitoring-remote-systems.md#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](8-monitoring-remote-systems.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](9-monitoring-remote-systems.md#high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](9-monitoring-remote-systems.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -972,8 +972,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** PostgreSQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](8-monitoring-remote-systems.md#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](8-monitoring-remote-systems.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](9-monitoring-remote-systems.md#high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](9-monitoring-remote-systems.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -1232,7 +1232,7 @@ Configuration Attributes:
 ApiListener objects are used for distributed monitoring setups
 specifying the certificate files used for ssl authorization.
 
-The `NodeName` constant must be defined in [constants.conf](4-configuring-icinga-2.md#constants-conf).
+The `NodeName` constant must be defined in [constants.conf](5-configuring-icinga-2.md#constants-conf).
 
 Example:
 

@@ -696,7 +696,7 @@ The SNMP manubulon plugin check commands assume that the global constant named `
 is set to the path where the Manubublon SNMP plugins are installed.
 
 You can enable these plugin check commands by adding the following the include directive in your
-configuration [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) file:
+configuration [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) file:
 
     include <manubulon>
 

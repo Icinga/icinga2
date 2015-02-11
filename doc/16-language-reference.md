@@ -199,7 +199,7 @@ Functions can be called using the `()` operator:
       check_interval = len(MyGroups) * 1m
     }
 
-A list of available functions is available in the [Library Reference](16-library-reference.md#library-reference) chapter.
+A list of available functions is available in the [Library Reference](17-library-reference.md#library-reference) chapter.
 
 ## <a id="dictionary-operators"></a> Assignments
 
@@ -394,7 +394,7 @@ another group of objects.
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "ping"
-is created for each matching host. [Expression operators](15-language-reference.md#expression-operators)
+is created for each matching host. [Expression operators](16-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 The `to` keyword and the target type may be omitted if there is only one target
@@ -431,7 +431,7 @@ and `ignore where` conditions.
 In this example the `assign where` condition is a boolean expression which is evaluated
 for all objects of the type `Host`. Each matching host is added as member to the host group
 with the name "linux-servers". Membership exclusion can be controlled using the `ignore where`
-condition. [Expression operators](15-language-reference.md#expression-operators) may be used in `assign where` and
+condition. [Expression operators](16-language-reference.md#expression-operators) may be used in `assign where` and
 `ignore where` conditions.
 
 Source Type       | Variables
@@ -460,7 +460,7 @@ Empty dictionary     | {}                | false
 Non-empty dictionary | { key = "value" } | true
 
 For a list of supported expression operators for `assign where` and `ignore where`
-statements, see [expression operators](15-language-reference.md#expression-operators).
+statements, see [expression operators](16-language-reference.md#expression-operators).
 
 ## <a id="comments"></a> Comments
 
@@ -498,7 +498,7 @@ Note the use of angle brackets instead of double quotes. This causes the
 config compiler to search the include search paths for the specified
 file. By default $PREFIX/share/icinga2/include is included in the list of search
 paths. Additional include search paths can be added using
-[command-line options](7-cli-commands.md#config-include-path).
+[command-line options](8-cli-commands.md#config-include-path).
 
 Wildcards are not permitted when using angle brackets.
 
