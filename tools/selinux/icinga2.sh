@@ -47,12 +47,22 @@ sepolicy manpage -p . -d icinga2_t
 # Fixing the file context on /usr/sbin/icinga2
 /sbin/restorecon -F -R -v /usr/sbin/icinga2
 # Fixing the file context on /etc/rc\.d/init\.d/icinga2
-/sbin/restorecon -F -R -v /etc/rc\.d/init\.d/icinga2
+#/sbin/restorecon -F -R -v /etc/rc\.d/init\.d/icinga2
 # Fixing the file context on /var/log/icinga2
 /sbin/restorecon -F -R -v /var/log/icinga2
 # Fixing the file context on /var/lib/icinga2
 /sbin/restorecon -F -R -v /var/lib/icinga2
+# Fixing the file context on /var/run/icinga2
+/sbin/restorecon -F -R -v /var/run/icinga2
+# Fixing the file context on /var/cache/icinga2
+/sbin/restorecon -F -R -v /var/cache/icinga2
+# Fixing the file context on /var/spool/icinga2
+/sbin/restorecon -F -R -v /var/spool/icinga2
+
+# Label the port 5665
+/sbin/semanage port -a -t icinga2_port_t -p tcp 5665
+
 # Generate a rpm package for the newly generated policy
 
 pwd=$(pwd)
-rpmbuild --define "_sourcedir ${pwd}" --define "_specdir ${pwd}" --define "_builddir ${pwd}" --define "_srcrpmdir ${pwd}" --define "_rpmdir ${pwd}" --define "_buildrootdir ${pwd}/.build"  -ba icinga2_selinux.spec
+#rpmbuild --define "_sourcedir ${pwd}" --define "_specdir ${pwd}" --define "_builddir ${pwd}" --define "_srcrpmdir ${pwd}" --define "_rpmdir ${pwd}" --define "_buildrootdir ${pwd}/.build"  -ba icinga2_selinux.spec

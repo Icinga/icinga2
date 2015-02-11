@@ -1,9 +1,18 @@
-policy_module(icinga2, 0.1.0)
+policy_module(icinga2, 0.1.1)
 
 ########################################
 #
 # Declarations
 #
+
+require {
+	type nagios_admin_plugin_t; type nagios_admin_plugin_exec_t;
+	type nagios_checkdisk_plugin_t; type nagios_checkdisk_plugin_exec_t;
+	type nagios_mail_plugin_t; type nagios_mail_plugin_exec_t;
+	type nagios_services_plugin_t; type nagios_services_plugin_exec_t;
+	type nagios_system_plugin_t; type nagios_system_plugin_exec_t;
+	type httpd_t;
+}
 
 type icinga2_t;
 type icinga2_exec_t;
@@ -20,11 +29,20 @@ logging_log_file(icinga2_log_t)
 type icinga2_var_lib_t;
 files_type(icinga2_var_lib_t)
 
+type icinga2_var_run_t;
+files_pid_file(icinga2_var_run_t)
+
 type icinga2_command_t;
 files_type(icinga2_command_t)
 
-type icinga2_var_run_t;
-files_pid_file(icinga2_var_run_t)
+type icinga2_spool_t;
+files_type(icinga2_spool_t)
+
+type icinga2_cache_t;
+files_type(icinga2_cache_t)
+
+type icinga2_port_t;
+corenet_port(icinga2_port_t)
 
 ########################################
 #
@@ -52,6 +70,12 @@ manage_dirs_pattern(icinga2_t, icinga2_command_t, icinga2_command_t)
 manage_files_pattern(icinga2_t, icinga2_command_t, icinga2_command_t)
 manage_fifo_files_pattern(icinga2_t, icinga2_command_t, icinga2_command_t)
 
+manage_dirs_pattern(icinga2_t, icinga2_spool_t, icinga2_spool_t)
+manage_files_pattern(icinga2_t, icinga2_spool_t, icinga2_spool_t)
+files_spool_filetrans(icinga2_t, icinga2_spool_t, { dir file })
+
+manage_dirs_pattern(icinga2_t, icinga2_cache_t, icinga2_cache_t)
+manage_files_pattern(icinga2_t, icinga2_cache_t, icinga2_cache_t)
 
 domain_use_interactive_fds(icinga2_t)
 
@@ -60,3 +84,23 @@ files_read_etc_files(icinga2_t)
 auth_use_nsswitch(icinga2_t)
 
 miscfiles_read_localization(icinga2_t)
+
+# should be moved to nagios_plugin_template in nagios.if
+icinga2_execstrans(nagios_admin_plugin_exec_t, nagios_admin_plugin_t)
+icinga2_execstrans(nagios_checkdisk_plugin_exec_t, nagios_checkdisk_plugin_t)
+icinga2_execstrans(nagios_mail_plugin_exec_t, nagios_mail_plugin_t)
+icinga2_execstrans(nagios_services_plugin_exec_t, nagios_services_plugin_t)
+icinga2_execstrans(nagios_system_plugin_exec_t, nagios_system_plugin_t)
+
+allow icinga2_t icinga2_port_t:tcp_socket name_bind;
+allow icinga2_t self:tcp_socket create_stream_socket_perms;
+
+########################################
+#
+# Icinga Webinterfaces
+#
+
+optional_policy(`
+	# should be a boolean in apache-policy
+	icinga2_send_commands(httpd_t)
+')

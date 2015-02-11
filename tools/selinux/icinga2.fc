@@ -9,3 +9,7 @@
 /var/run/icinga2(/.*)?		gen_context(system_u:object_r:icinga2_var_run_t,s0)
 
 /var/run/icinga2/cmd(/.*)?	gen_context(system_u:object_r:icinga2_command_t,s0)
+
+/var/spool/icinga2(/.*)?	gen_context(system_u:object_r:icinga2_spool_t,s0)
+
+/var/cache/icinga2(/.*)?	gen_context(system_u:object_r:icinga2_cache_t,s0)

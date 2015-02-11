@@ -239,7 +239,29 @@ interface(`icinga2_send_commands',`
 
 	files_search_pids($1)
 	read_files_pattern($1, icinga2_var_run_t, icinga2_var_run_t)
-	read_files_pattern($1, icina2_command_t, icinga2_command_t)
+	read_files_pattern($1, icinga2_command_t, icinga2_command_t)
 	write_fifo_files_pattern($1, icinga2_command_t, icinga2_command_t)
 ')
 
+########################################
+## <summary>
+##	For domains icinga should transition to (e.g. Plugins).
+## </summary>
+## <param name="executable">
+## <summary>
+##	Context of the executable.
+## </summary>
+## </param>
+## <param name="domain">
+## <summary>
+##	Domain icinga should transition to. 
+## </summary>
+## </param>
+#
+interface(`icinga2_execstrans',`
+	gen_require(`
+		type icinga2_t;
+	')
+
+	domtrans_pattern(icinga2_t, $1, $2)
+')
