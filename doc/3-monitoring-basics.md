@@ -160,6 +160,8 @@ is that whenever Icinga needs the value for such a custom attribute it runs
 the function and uses whatever value the function returns:
 
     object CheckCommand "random-value" {
+      import "plugin-check-command"
+
       command = [ PluginDir + "/check_dummy", "0", "$text$" ]
 
       vars.text = {{ Math.random() * 100 }}
@@ -201,6 +203,8 @@ are used in command definitions to figure out which IP address a check should be
 run against:
 
     object CheckCommand "my-ping" {
+      import "plugin-check-command"
+
       command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
 
       arguments = {
