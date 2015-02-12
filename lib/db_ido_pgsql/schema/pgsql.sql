@@ -562,8 +562,8 @@ CREATE TABLE  icinga_hostdependencies (
   fail_on_down INTEGER  default 0,
   fail_on_unreachable INTEGER  default 0,
   CONSTRAINT PK_hostdependency_id PRIMARY KEY (hostdependency_id) ,
-  CONSTRAINT UQ_hostdependencies UNIQUE (instance_id,config_type,host_object_id,dependent_host_object_id,dependency_type,inherits_parent,fail_on_up,fail_on_down,fail_on_unreachable)
 ) ;
+CREATE INDEX idx_hostdependencies ON icinga_hostdependencies(instance_id,config_type,host_object_id,dependent_host_object_id,dependency_type,inherits_parent,fail_on_up,fail_on_down,fail_on_unreachable);
 
 -- --------------------------------------------------------
 
@@ -1053,8 +1053,8 @@ CREATE TABLE  icinga_servicedependencies (
   fail_on_unknown INTEGER  default 0,
   fail_on_critical INTEGER  default 0,
   CONSTRAINT PK_servicedependency_id PRIMARY KEY (servicedependency_id) ,
-  CONSTRAINT UQ_servicedependencies UNIQUE (instance_id,config_type,service_object_id,dependent_service_object_id,dependency_type,inherits_parent,fail_on_ok,fail_on_warning,fail_on_unknown,fail_on_critical)
 ) ;
+CREATE INDEX idx_servicedependencies ON icinga_servicedependencies(instance_id,config_type,service_object_id,dependent_service_object_id,dependency_type,inherits_parent,fail_on_ok,fail_on_warning,fail_on_unknown,fail_on_critical);
 
 -- --------------------------------------------------------
 
@@ -1633,5 +1633,5 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.12.0');
+SELECT updatedbversion('1.13.0');
 

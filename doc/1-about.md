@@ -55,9 +55,10 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 #### Changes
 
+* [DB IDO schema upgrade](14-upgrading-icinga-2.md#upgrading-icinga-2) to `1.13.0` required!
+
 TODO
 
 #### Issues
 
 TODO
-

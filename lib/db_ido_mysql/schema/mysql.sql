@@ -535,7 +535,7 @@ CREATE TABLE IF NOT EXISTS icinga_hostdependencies (
   fail_on_down smallint default 0,
   fail_on_unreachable smallint default 0,
   PRIMARY KEY  (hostdependency_id),
-  UNIQUE KEY instance_id (instance_id,config_type,host_object_id,dependent_host_object_id,dependency_type,inherits_parent,fail_on_up,fail_on_down,fail_on_unreachable)
+  KEY instance_id (instance_id,config_type,host_object_id,dependent_host_object_id,dependency_type,inherits_parent,fail_on_up,fail_on_down,fail_on_unreachable)
 ) ENGINE=InnoDB COMMENT='Host dependency definitions';
 
 -- --------------------------------------------------------
@@ -1026,7 +1026,7 @@ CREATE TABLE IF NOT EXISTS icinga_servicedependencies (
   fail_on_unknown smallint default 0,
   fail_on_critical smallint default 0,
   PRIMARY KEY  (servicedependency_id),
-  UNIQUE KEY instance_id (instance_id,config_type,service_object_id,dependent_service_object_id,dependency_type,inherits_parent,fail_on_ok,fail_on_warning,fail_on_unknown,fail_on_critical)
+  KEY instance_id (instance_id,config_type,service_object_id,dependent_service_object_id,dependency_type,inherits_parent,fail_on_ok,fail_on_warning,fail_on_unknown,fail_on_critical)
 ) ENGINE=InnoDB COMMENT='Service dependency definitions';
 
 -- --------------------------------------------------------
@@ -1603,6 +1603,6 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
-INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.12.0', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.12.0', modify_time=NOW();
+INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.13.0', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.13.0', modify_time=NOW();
 
 

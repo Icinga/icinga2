@@ -1,4 +1,4 @@
-# Upgrading Icinga 2
+# <a id="upgrading-icinga-2"></a>  Upgrading Icinga 2
 
 Upgrading Icinga 2 is usually quite straightforward. Ordinarily the only manual steps involved
 are scheme updates for the IDO database.
@@ -20,13 +20,13 @@ The Icinga 2 DB IDO module will check for the required database schema version o
 and generate an error message if not satisfied.
 
 
-**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.2.0`. Look into
+**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.3.0`. Look into
 the *upgrade* directory:
 
     $ ls /usr/share/icinga2-ido-mysql/schema/upgrade/
-    2.0.2.sql  2.1.0.sql 2.2.0.sql
+    2.0.2.sql  2.1.0.sql 2.2.0.sql 2.3.0.sql
 
-There are two new upgrade files called `2.1.0.sql` and `2.2.0.sql`
+There are two new upgrade files called `2.1.0.sql`, `2.2.0.sql` and `2.3.0.sql`
 which must be applied incrementially to your IDO database.
 
 ## <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
@@ -46,12 +46,11 @@ Apply all database schema upgrade files incrementially.
 The Icinga 2 DB IDO module will check for the required database schema version on startup
 and generate an error message if not satisfied.
 
-**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.1.0`. Look into
+**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.3.0`. Look into
 the *upgrade* directory:
 
     $ ls /usr/share/icinga2-ido-pgsql/schema/upgrade/
-    2.0.2.sql  2.1.0.sql 2.2.0.sql
+    2.0.2.sql  2.1.0.sql 2.2.0.sql 2.3.0.sql
 
-There are two new upgrade files called `2.1.0.sql` and `2.2.0.sql`
+There are two new upgrade files called `2.1.0.sql`, `2.2.0.sql` and `2.3.0.sql`
 which must be applied incrementially to your IDO database.
-
