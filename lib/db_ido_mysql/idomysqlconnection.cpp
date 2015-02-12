@@ -34,7 +34,7 @@
 
 using namespace icinga;
 
-#define SCHEMA_VERSION "1.12.0"
+#define SCHEMA_VERSION "1.13.0"
 
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
