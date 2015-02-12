@@ -46,6 +46,8 @@ public:
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
+	static void ValidateRanges(const String& location, const TimePeriod::Ptr& object);
+
 private:
 	void AddSegment(double s, double end);
 	void AddSegment(const Dictionary::Ptr& segment);

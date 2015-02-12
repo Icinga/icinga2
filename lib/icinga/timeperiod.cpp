@@ -18,8 +18,10 @@
  ******************************************************************************/
 
 #include "icinga/timeperiod.hpp"
+#include "icinga/legacytimeperiod.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
+#include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
@@ -28,6 +30,7 @@
 using namespace icinga;
 
 REGISTER_TYPE(TimePeriod);
+REGISTER_SCRIPTFUNCTION(ValidateTimePeriodRanges, &TimePeriod::ValidateRanges);
 
 static Timer::Ptr l_UpdateTimer;
 
@@ -296,4 +299,36 @@ void TimePeriod::Dump(void)
 	}
 
 	Log(LogDebug, "TimePeriod", "---");
+}
+
+void TimePeriod::ValidateRanges(const String& location, const TimePeriod::Ptr& object)
+{
+	Dictionary::Ptr ranges = object->GetRanges();
+
+	if (!ranges)
+		return;
+
+	/* create a fake time environment to validate the definitions */
+	time_t begin = Utility::GetTime();
+	time_t end = begin + 24 * 60 * 60;
+	tm reference = Utility::LocalTime(end);
+	tm begin_tm, end_tm;
+	Array::Ptr segments = new Array();
+
+	ObjectLock olock(ranges);
+	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+		try {
+			LegacyTimePeriod::ParseTimeSpec(kv.first, &begin_tm, &end_tm, &reference);
+		} catch (std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+			    location + ": Invalid time specification.", object->GetDebugInfo()));
+		}
+
+		try {
+			LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);
+		} catch (std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+			    location + ": Invalid time range definition.", object->GetDebugInfo()));
+		}
+	}
 }
