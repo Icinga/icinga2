@@ -273,9 +273,6 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-
-### <a id="external-command-list"></a> External Command List
-
 A list of currently supported external commands can be found [here](19-apendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found

@@ -24,7 +24,7 @@ and distribution you are running.
 Packages for distributions other than the ones listed above may also be
 available. Please contact your distribution packagers.
 
-### <a id="installing-requirements"></a> Installing Requirements for Icinga 2
+### <a id="package-repositories"></a> Package Repositories
 
 You need to add the Icinga repository to your package management configuration.
 Below is a list with examples for the various distributions.

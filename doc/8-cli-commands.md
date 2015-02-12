@@ -1,4 +1,4 @@
-## <a id="cli-commands"></a> Icinga 2 CLI Commands
+# <a id="cli-commands"></a> Icinga 2 CLI Commands
 
 Icinga 2 comes with a number of CLI commands which support bash autocompletion.
 
@@ -76,7 +76,7 @@ options.
     Icinga home page: <https://www.icinga.org/>
 
 
-### <a id="cli-commands-autocompletion"></a> Icinga 2 CLI Bash Autocompletion
+## <a id="cli-commands-autocompletion"></a> Icinga 2 CLI Bash Autocompletion
 
 Bash Auto-Completion (pressing `<TAB>`) is provided only for the corresponding context.
 
@@ -101,18 +101,18 @@ Debian/Ubuntu:
 
     # apt-get install bash-completion
 
-### <a id="cli-commands-global-options"></a> Icinga 2 CLI Global Options
+## <a id="cli-commands-global-options"></a> Icinga 2 CLI Global Options
 
-#### Libraries
+### Libraries
 
 Instead of loading libraries using the [`library` config directive](16-language-reference.md#library)
 you can also use the `--library` command-line option.
 
-#### Constants
+### Constants
 
 [Global constants](16-language-reference.md#constants) can be set using the `--define` command-line option.
 
-#### <a id="config-include-path"></a> Config Include Path
+### <a id="config-include-path"></a> Config Include Path
 
 When including files you can specify that the include search path should be
 checked. You can do this by putting your configuration file name in angle
@@ -128,7 +128,7 @@ Using the `--include` command-line option additional search directories can be
 added.
 
 
-### <a id="cli-command-console"></a> CLI command: Console
+## <a id="cli-command-console"></a> CLI command: Console
 
 The CLI command `console` can be used to evaluate Icinga config expressions, e.g. to test
 `assign where` rules.
@@ -148,7 +148,7 @@ use the `rlwrap` program if you require those features:
 
     $ rlwrap icinga2 console
 
-### <a id="cli-command-daemon"></a> CLI command: Daemon
+## <a id="cli-command-daemon"></a> CLI command: Daemon
 
 The CLI command `daemon` provides the functionality to start/stop Icinga 2.
 Furthermore it provides the [configuration validation](8-cli-commands.md#config-validation).
@@ -182,7 +182,7 @@ Furthermore it provides the [configuration validation](8-cli-commands.md#config-
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
 
-#### Config Files
+### Config Files
 
 Using the `--config` option you can specify one or more configuration files.
 Config files are processed in the order they're specified on the command-line.
@@ -191,14 +191,14 @@ When no configuration file is specified and the `--no-config` is not used
 Icinga 2 automatically falls back to using the configuration file
 `SysconfDir + "/icinga2/icinga2.conf"` (where SysconfDir is usually `/etc`).
 
-#### Config Validation
+### Config Validation
 
 The `--validate` option can be used to check if your configuration files
 contain errors. If any errors are found the exit status is 1, otherwise 0
 is returned. More details in the [configuration validation](8-cli-commands.md#config-validation) chapter.
 
 
-### <a id="cli-command-feature"></a> CLI command: Feature
+## <a id="cli-command-feature"></a> CLI command: Feature
 
 The `feature enable` and `feature disable` commands can be used to enable and disable features:
 
@@ -216,7 +216,7 @@ The `feature list` command shows which features are currently enabled:
     Enabled features: api checker livestatus mainlog
 
 
-### <a id="cli-command-node"></a> CLI command: Node
+## <a id="cli-command-node"></a> CLI command: Node
 
 Provides the functionality to install and manage master and client
 nodes in a [remote monitoring ](9-monitoring-remote-systems.md#icinga2-remote-client-monitoring) or
@@ -260,7 +260,7 @@ nodes in a [remote monitoring ](9-monitoring-remote-systems.md#icinga2-remote-cl
     Icinga home page: <https://www.icinga.org/>
 
 
-### <a id="cli-command-object"></a> CLI command: Object
+## <a id="cli-command-object"></a> CLI command: Object
 
 The `object` CLI command can be used to list all configuration objects and their
 attributes. The command also shows where each of the attributes was modified.
@@ -294,7 +294,7 @@ More information can be found in the [troubleshooting](13-troubleshooting.md#lis
 
 
 
-### <a id="cli-command-pki"></a> CLI command: Pki
+## <a id="cli-command-pki"></a> CLI command: Pki
 
 Provides the CLI commands to
 
@@ -337,7 +337,7 @@ This functionality is used by the [node setup/wizard](8-cli-commands.md#cli-comm
     Icinga home page: <https://www.icinga.org/>
 
 
-### <a id="cli-command-repository"></a> CLI command: Repository
+## <a id="cli-command-repository"></a> CLI command: Repository
 
 Provides the functionality to manage the Icinga 2 configuration repository in
 `/etc/icinga2/repository.d`. All changes are logged and must be committed or
@@ -392,7 +392,7 @@ cleared after review.
 
 
 
-### <a id="cli-command-variable"></a> CLI command: Variable
+## <a id="cli-command-variable"></a> CLI command: Variable
 
 Lists all configured variables (constants) in a similar fasion like [object list](8-cli-commands.md#cli-command-object).
 
@@ -420,9 +420,6 @@ Lists all configured variables (constants) in a similar fasion like [object list
 
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
-
-
-
 
 
 ## <a id="features"></a> Enabling/Disabling Features

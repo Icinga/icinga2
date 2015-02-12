@@ -93,7 +93,7 @@ The `hostalive` command is one of several built-in check commands. It sends ICMP
 echo requests to the IP address specified in the `address` attribute to determine
 whether a host is online.
 
-A number of other [built-in check commands](#plugin-check-comamnds) are also
+A number of other [built-in check commands](7-icinga-template-library.md#plugin-check-commands) are also
 available. In addition to these commands the next few chapters will explain in
 detail how to set up your own check commands.
 

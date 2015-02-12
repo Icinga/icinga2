@@ -1,45 +1,36 @@
 # <a id="addons-plugins"></a> Icinga 2 Addons and Plugins
 
-## <a id="addons"></a> Addons
+## <a id="addons-graphing-pnp"></a> PNP
 
-### <a id="addons-graphing-reporting"></a> Graphing Addons
-
-#### <a id="addons-graphing-pnp"></a> PNP
-
-[PNP](http://www.pnp4nagios.org) must be configured using the
+[PNP](http://www.pnp4nagios.org) is a graphing addon. If you're planning to use
+it you have to configure it to use the
 [bulk mode with npcd and npcdmod](http://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
-hence Icinga 2's [PerfdataWriter](4-advanced-topics.md#performance-data) acts as npcdmod. NPCD will collect
-the rotated performance data files.
+in combination with Icinga 2's [PerfdataWriter](4-advanced-topics.md#performance-data). NPCD collects the performance
+data files which Icinga 2 generates.
 
-#### <a id="addons-graphing-ingraph"></a> inGraph
+## <a id="addons-graphing-ingraph"></a> inGraph
 
 [inGraph](https://www.netways.org/projects/ingraph/wiki) requires the ingraph-collector addon
 to be configured to point at the perfdata files. Icinga 2's [PerfdataWriter](4-advanced-topics.md#performance-data) will
 write to the performance data spool directory.
 
-#### <a id="addons-graphing-graphite"></a> Graphite
+## <a id="addons-graphing-graphite"></a> Graphite
 
 There are Graphite addons available for collecting the performance data files as well. But
 natively you can use the [GraphiteWriter](4-advanced-topics.md#graphite-carbon-cache-writer) feature.
 
-#### <a id="addons-reporting"></a> Icinga Reporting
+## <a id="addons-reporting"></a> Icinga Reporting
 
 By enabling the DB IDO feature you can use the Icinga Reporting package.
 
-
-### <a id="addons-visualization"></a> Visualization
-
-#### <a id="addons-visualization-nagvis"></a> NagVis
+## <a id="addons-visualization-nagvis"></a> NagVis
 
 By using either Livestatus or DB IDO as a backend you can create your own network maps
 based on your monitoring configuration and status data using [NagVis](http://www.nagvis.org).
 
-### <a id="addons-web-interfaces"></a> Web Interfaces
+## <a id="addons-thruk"></a> Thruk
 
-As well as the Icinga supported web interfaces (Classic UI 1.x, Web 1.x, Web 2) there are a
-number of community provided web interfaces too:
-
-* [Thruk](http://www.thruk.org) based on the [Livestatus](12-livestatus.md#setting-up-livestatus) feature
+[Thruk](http://www.thruk.org) is an alternative web interface which can be used with Icinga 2.
 
 
 ## <a id="plugins"></a> Plugins
