@@ -77,7 +77,7 @@ Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files
 
 Bump the version in icinga2.spec.
 Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) and [INSTALL.md](INSTALL.md)
-files.
+files using the changelog.py script.
 Commit these changes to the "master" branch.
 
     $ git commit -v -a -m "Release version <VERSION>"
