@@ -475,6 +475,11 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 
 void DbEvents::AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
 {
+	/*
+	 * make sure to delete any old downtime to avoid multiple inserts from
+	 * configured ScheduledDowntime dumps and CreateNextDowntime() calls
+	 */
+	RemoveDowntime(checkable, downtime);
 	AddDowntimeInternal(checkable, downtime, false);
 }
 
