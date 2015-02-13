@@ -17,48 +17,46 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef FIFO_H
-#define FIFO_H
+#ifndef SOCKETEVENTS_H
+#define SOCKETEVENTS_H
 
 #include "base/i2-base.hpp"
-#include "base/stream.hpp"
+#include "base/socket.hpp"
 
 namespace icinga
 {
 
 /**
- * A byte-based FIFO buffer.
+ * Socket event interface
  *
  * @ingroup base
  */
-class I2_BASE_API FIFO : public Stream
+class I2_BASE_API SocketEvents
 {
 public:
-	DECLARE_PTR_TYPEDEFS(FIFO);
+	~SocketEvents(void);
 
-	static const size_t BlockSize = 16 * 1024;
+	virtual void OnEvent(int revents);
 
-	FIFO(void);
-	~FIFO(void);
+	void Register(void);
+	void Unregister(void);
 
-	size_t Peek(void *buffer, size_t count);
-	virtual size_t Read(void *buffer, size_t count);
-	virtual void Write(const void *buffer, size_t count);
-	virtual void Close(void);
-	virtual bool IsEof(void) const;
+	void ChangeEvents(int events);
 
-	size_t GetAvailableBytes(void) const;
+protected:
+	SocketEvents(const Socket::Ptr& socket);
 
 private:
-	char *m_Buffer;
-	size_t m_DataSize;
-	size_t m_AllocSize;
-	size_t m_Offset;
+	SOCKET m_FD;
 
-	void ResizeBuffer(size_t newSize, bool decrease);
-	void Optimize(void);
+	static void InitializeThread(void);
+	static void ThreadProc(void);
+
+	static void WakeUpThread(void);
+
+	int GetPollEvents(void) const;
 };
 
 }
 
-#endif /* FIFO_H */
+#endif /* SOCKETEVENTS_H */

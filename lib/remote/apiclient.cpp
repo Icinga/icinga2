@@ -123,7 +123,11 @@ void ApiClient::DisconnectSync(void)
 		listener->RemoveAnonymousClient(this);
 	}
 
-	m_Stream->Close();
+	try {
+		m_Stream->Close();
+	} catch (const std::exception&) {
+		/* Ignore the exception. */
+	}
 }
 
 bool ApiClient::ProcessMessage(void)

@@ -61,6 +61,8 @@ public:
 
 	void MakeNonBlocking(void);
 
+	static void SocketPair(SOCKET s[2]);
+
 protected:
 	void SetFD(SOCKET fd);
 

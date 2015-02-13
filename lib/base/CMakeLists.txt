@@ -28,7 +28,7 @@ set(base_SOURCES
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp json-script.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp object-script.cpp primitivetype.cpp process.cpp
   ringbuffer.cpp scriptframe.cpp function.cpp function-script.cpp functionwrapper.cpp scriptglobal.cpp
-  scriptutils.cpp serializer.cpp socket.cpp stacktrace.cpp
+  scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp thinmutex.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
@@ -43,7 +43,7 @@ endif()
 
 add_library(base SHARED ${base_SOURCES})
 
-target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch)
+target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch socketpair)
 
 if(HAVE_LIBEXECINFO)
     target_link_libraries(base execinfo)
@@ -54,6 +54,9 @@ link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
+
+include_directories(${icinga2_SOURCE_DIR}/third-party/socketpair)
+link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
 
 if(UNIX OR CYGWIN)
   target_link_libraries(base execvpe)

@@ -164,6 +164,11 @@ int PkiUtility::SaveCert(const String& host, const String& port, const String& k
 
 	boost::shared_ptr<X509> cert = stream->GetPeerCertificate();
 
+	if (!cert) {
+		Log(LogCritical, "cli", "Peer did not present a valid certificate.");
+		return 1;
+	}
+
 	std::ofstream fpcert;
 	fpcert.open(trustedfile.CStr());
 	fpcert << CertificateToString(cert);

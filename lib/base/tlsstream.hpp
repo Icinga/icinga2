@@ -22,18 +22,29 @@
 
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
+#include "base/socketevents.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
+#include "base/fifo.hpp"
 
 namespace icinga
 {
+
+enum TlsAction
+{
+	TlsActionNone,
+	TlsActionRead,
+	TlsActionWrite,
+	TlsActionHandshake,
+	TlsActionClose
+};
 
 /**
  * A TLS stream.
  *
  * @ingroup base
  */
-class I2_BASE_API TlsStream : public Stream
+class I2_BASE_API TlsStream : public Stream, private SocketEvents
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
@@ -57,17 +68,29 @@ public:
 private:
 	boost::shared_ptr<SSL> m_SSL;
 	bool m_Eof;
-	mutable boost::mutex m_SSLLock;
-	mutable boost::mutex m_IOActionLock;
+	mutable boost::mutex m_Mutex;
+	mutable boost::condition_variable m_CV;
+	bool m_HandshakeOK;
 	bool m_VerifyOK;
+	bool m_CloseOK;
+	int m_ErrorCode;
+	bool m_ErrorOccurred;
 
 	Socket::Ptr m_Socket;
 	ConnectionRole m_Role;
 
+	FIFO::Ptr m_SendQ;
+	FIFO::Ptr m_RecvQ;
+
+	TlsAction m_CurrentAction;
+	bool m_Retry;
+
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	void CloseUnlocked(void);
+	virtual void OnEvent(int revents);
+
+	void HandleError(void) const;
 
 	static int ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx);
 	static void NullCertificateDeleter(X509 *certificate);

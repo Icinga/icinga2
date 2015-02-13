@@ -15,14 +15,20 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_subdirectory(mmatch)
+add_library(socketpair SHARED socketpair.c socketpair.h)
 
-if(NOT YAJL_FOUND)
-  add_subdirectory(yajl)
+set_target_properties (
+  socketpair PROPERTIES
+  DEFINE_SYMBOL I2_SOCKETPAIR_BUILD
+)
+
+if(WIN32)
+  target_link_libraries(socketpair ws2_32)
 endif()
 
-if(UNIX OR CYGWIN)
-  add_subdirectory(execvpe)
-endif()
+install(
+  TARGETS socketpair
+  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
+)
 
-add_subdirectory(socketpair)

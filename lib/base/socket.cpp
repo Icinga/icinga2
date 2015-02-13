@@ -26,6 +26,7 @@
 #include <iostream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
+#include <socketpair.h>
 
 #ifndef _WIN32
 #	include <poll.h>
@@ -401,3 +402,12 @@ void Socket::MakeNonBlocking(void)
 	Utility::SetNonBlocking(GetFD());
 #endif /* _WIN32 */
 }
+
+void Socket::SocketPair(SOCKET s[2])
+{
+	if (dumb_socketpair(s, 0) < 0)
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function("socketpair")
+		    << boost::errinfo_errno(errno));
+}
+
