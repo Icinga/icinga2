@@ -264,24 +264,14 @@ int Main(void)
 		}
 
 		if (vm.count("library")) {
-			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >())
-			{
+			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >()) {
 				try {
-					(void)Utility::LoadExtensionLibrary(libraryName);
-				}
-#ifdef _WIN32	
-				catch (win32_error &ex) {
-					if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
-						Log(LogCritical, "icinga-app", "Could not load library \"" + libraryName + "\"");
-						return EXIT_FAILURE;
-					}
-				}
-#else /*_WIN32*/
-				catch (std::runtime_error &ex) {
-					Log(LogCritical, "icinga-app", "Could not load library \"" + libraryName + "\"");
+					(void) Utility::LoadExtensionLibrary(libraryName);
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "icinga-app")
+					    <<  "Could not load library \"" << libraryName << "\": " << DiagnosticInformation(ex);
 					return EXIT_FAILURE;
 				}
-#endif /*_WIN32*/
 			}
 		} 
 
