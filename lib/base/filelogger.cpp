@@ -29,7 +29,7 @@ REGISTER_TYPE(FileLogger);
 
 REGISTER_STATSFUNCTION(FileLoggerStats, &FileLogger::StatsFunc);
 
-void FileLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
+void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 

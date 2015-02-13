@@ -27,7 +27,7 @@ StatsFunction::StatsFunction(const Callback& function)
 	: m_Callback(function)
 { }
 
-void StatsFunction::Invoke(Dictionary::Ptr& status, Array::Ptr& perfdata)
+void StatsFunction::Invoke(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	m_Callback(status, perfdata);
 }

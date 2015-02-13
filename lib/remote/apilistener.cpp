@@ -747,7 +747,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 	}
 }
 
-void ApiListener::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
+void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;

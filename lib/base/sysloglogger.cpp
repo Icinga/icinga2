@@ -28,7 +28,7 @@ REGISTER_TYPE(SyslogLogger);
 
 REGISTER_STATSFUNCTION(SyslogLoggerStats, &SyslogLogger::StatsFunc);
 
-void SyslogLogger::StatsFunc(Dictionary::Ptr& status, Array::Ptr&)
+void SyslogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 

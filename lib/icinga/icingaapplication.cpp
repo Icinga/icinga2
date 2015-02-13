@@ -63,7 +63,7 @@ void IcingaApplication::StaticInitialize(void)
 
 REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
 
-void IcingaApplication::StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata)
+void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 

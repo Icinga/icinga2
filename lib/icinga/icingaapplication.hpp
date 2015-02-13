@@ -42,7 +42,7 @@ public:
 
 	int Main(void);
 
-	static void StatsFunc(Dictionary::Ptr& status, Array::Ptr& perfdata);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static IcingaApplication::Ptr GetInstance(void);
 
