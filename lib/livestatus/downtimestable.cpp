@@ -74,7 +74,7 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 		Downtime::Ptr downtime;
 		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 			if (Host::GetOwnerByDowntimeID(id) == host)
-				addRowFn(downtime);
+				addRowFn(downtime, LivestatusGroupByNone, Empty);
 		}
 	}
 
@@ -87,7 +87,7 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 		Downtime::Ptr downtime;
 		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
 			if (Service::GetOwnerByDowntimeID(id) == service)
-				addRowFn(downtime);
+				addRowFn(downtime, LivestatusGroupByNone, Empty);
 		}
 	}
 }

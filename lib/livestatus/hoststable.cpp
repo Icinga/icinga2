@@ -18,8 +18,11 @@
  ******************************************************************************/
 
 #include "livestatus/hoststable.hpp"
+#include "livestatus/hostgroupstable.hpp"
+#include "livestatus/endpointstable.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "icinga/hostgroup.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/timeperiod.hpp"
@@ -31,15 +34,14 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
 
-HostsTable::HostsTable(void)
+HostsTable::HostsTable(LivestatusGroupByType type)
+    :Table(type)
 {
 	AddColumns(this);
 }
@@ -162,6 +164,14 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "check_source", Column(&HostsTable::CheckSourceAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_reachable", Column(&HostsTable::IsReachableAccessor, objectAccessor));
 	table->AddColumn(prefix + "cv_is_json", Column(&HostsTable::CVIsJsonAccessor, objectAccessor));
+
+	/* add additional group by values received through the object accessor */
+	if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
+		/* _1 = row, _2 = groupByType, _3 = groupByObject */
+		Log(LogDebug, "Livestatus")
+		    << "Processing hosts group by hostgroup table.";
+		HostGroupsTable::AddColumns(table, "hostgroup_", boost::bind(&HostsTable::HostGroupAccessor, _1, _2, _3));
+	}
 }
 
 String HostsTable::GetName(void) const
@@ -176,9 +186,30 @@ String HostsTable::GetPrefix(void) const
 
 void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
-		addRowFn(host);
+	if (GetGroupByType() == LivestatusGroupByHostGroup) {
+		BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
+			BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+				/* the caller must know which groupby type and value are set for this row */
+				addRowFn(host, LivestatusGroupByHostGroup, hg);
+			}
+		}
+	} else {
+		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+			addRowFn(host, LivestatusGroupByNone, Empty);
+		}
 	}
+}
+
+Object::Ptr HostsTable::HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
+{
+	/* return the current group by value set from within FetchRows()
+	 * this is the hostgrouo object used for the table join inside
+	 * in AddColumns()
+	 */
+	if (groupByType == LivestatusGroupByHostGroup)
+		return groupByObject;
+
+	return Object::Ptr();
 }
 
 Value HostsTable::NameAccessor(const Value& row)
@@ -207,7 +238,6 @@ Value HostsTable::AddressAccessor(const Value& row)
 
 	if (!host)
 		return Empty;
-
 
 	return host->GetAddress();
 }

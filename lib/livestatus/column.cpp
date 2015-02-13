@@ -25,12 +25,12 @@ Column::Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectA
 	: m_ValueAccessor(valueAccessor), m_ObjectAccessor(objectAccessor)
 { }
 
-Value Column::ExtractValue(const Value& urow) const
+Value Column::ExtractValue(const Value& urow, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) const
 {
 	Value row;
 
 	if (!m_ObjectAccessor.empty())
-		row = m_ObjectAccessor(urow);
+		row = m_ObjectAccessor(urow, groupByType, groupByObject);
 	else
 		row = urow;
 

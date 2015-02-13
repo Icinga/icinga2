@@ -118,7 +118,7 @@ void StatusTable::FetchRows(const AddRowFunction& addRowFn)
 	Object::Ptr obj = new Object();
 
 	/* Return a fake row. */
-	addRowFn(obj);
+	addRowFn(obj, LivestatusGroupByNone, Empty);
 }
 
 Value StatusTable::ConnectionsAccessor(const Value&)

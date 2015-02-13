@@ -23,12 +23,20 @@
 #include "livestatus/column.hpp"
 #include "base/object.hpp"
 #include "base/dictionary.hpp"
+#include "base/array.hpp"
 #include <vector>
 
 namespace icinga
 {
 
-typedef boost::function<void (const Value&)> AddRowFunction;
+struct LivestatusRowValue {
+	Value Row;
+	LivestatusGroupByType GroupByType;
+	Value GroupByObject;
+};
+
+
+typedef boost::function<void (const Value&, LivestatusGroupByType, const Object::Ptr&)> AddRowFunction;
 
 class Filter;
 
@@ -45,14 +53,16 @@ public:
 	virtual String GetName(void) const = 0;
 	virtual String GetPrefix(void) const = 0;
 
-	std::vector<Value> FilterRows(const intrusive_ptr<Filter>& filter);
+	std::vector<LivestatusRowValue> FilterRows(const intrusive_ptr<Filter>& filter);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
 	std::vector<String> GetColumnNames(void) const;
 
+	virtual LivestatusGroupByType GetGroupByType(void) const;
+
 protected:
-	Table(void);
+	Table(LivestatusGroupByType type = LivestatusGroupByNone);
 
 	virtual void FetchRows(const AddRowFunction& addRowFn) = 0;
 
@@ -62,10 +72,13 @@ protected:
 	static Value EmptyArrayAccessor(const Value&);
 	static Value EmptyDictionaryAccessor(const Value&);
 
+	LivestatusGroupByType m_GroupByType;
+	Value m_GroupByObject;
+
 private:
 	std::map<String, Column> m_Columns;
 
-	void FilteredAddRow(std::vector<Value>& rs, const intrusive_ptr<Filter>& filter, const Value& row);
+	void FilteredAddRow(std::vector<LivestatusRowValue>& rs, const intrusive_ptr<Filter>& filter, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
 };
 
 }

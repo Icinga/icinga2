@@ -55,7 +55,7 @@ String TimePeriodsTable::GetPrefix(void) const
 void TimePeriodsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjectsByType<TimePeriod>()) {
-		addRowFn(tp);
+		addRowFn(tp, LivestatusGroupByNone, Empty);
 	}
 }
 
@@ -73,5 +73,3 @@ Value TimePeriodsTable::InAccessor(const Value& row)
 {
 	return (static_cast<TimePeriod::Ptr>(row)->IsInside(Utility::GetTime()) ? 1 : 0);
 }
-
-

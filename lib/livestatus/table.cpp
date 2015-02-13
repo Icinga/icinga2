@@ -42,7 +42,8 @@
 
 using namespace icinga;
 
-Table::Table(void)
+Table::Table(LivestatusGroupByType type)
+    : m_GroupByType(type), m_GroupByObject(Empty)
 { }
 
 Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, const unsigned long& from, const unsigned long& until)
@@ -57,10 +58,16 @@ Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, c
 		return new HostGroupsTable();
 	else if (name == "hosts")
 		return new HostsTable();
+	else if (name == "hostsbygroup")
+		return new HostsTable(LivestatusGroupByHostGroup);
 	else if (name == "servicegroups")
 		return new ServiceGroupsTable();
 	else if (name == "services")
 		return new ServicesTable();
+	else if (name == "servicesbygroup")
+		return new ServicesTable(LivestatusGroupByServiceGroup);
+	else if (name == "servicesbyhostgroup")
+		return new ServicesTable(LivestatusGroupByHostGroup);
 	else if (name == "commands")
 		return new CommandsTable();
 	else if (name == "comments")
@@ -117,19 +124,25 @@ std::vector<String> Table::GetColumnNames(void) const
 	return names;
 }
 
-std::vector<Value> Table::FilterRows(const Filter::Ptr& filter)
+std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter)
 {
-	std::vector<Value> rs;
+	std::vector<LivestatusRowValue> rs;
 
-	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, _1));
+	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, _1, _2, _3));
 
 	return rs;
 }
 
-void Table::FilteredAddRow(std::vector<Value>& rs, const Filter::Ptr& filter, const Value& row)
+void Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Ptr& filter, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
 {
-	if (!filter || filter->Apply(this, row))
-		rs.push_back(row);
+	if (!filter || filter->Apply(this, row)) {
+		LivestatusRowValue rval;
+		rval.Row = row;
+		rval.GroupByType = groupByType;
+		rval.GroupByObject = groupByObject;
+
+		rs.push_back(rval);
+	}
 }
 
 Value Table::ZeroAccessor(const Value&)
@@ -155,4 +168,9 @@ Value Table::EmptyArrayAccessor(const Value&)
 Value Table::EmptyDictionaryAccessor(const Value&)
 {
 	return new Dictionary();
+}
+
+LivestatusGroupByType Table::GetGroupByType(void) const
+{
+	return m_GroupByType;
 }

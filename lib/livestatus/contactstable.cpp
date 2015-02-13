@@ -71,7 +71,7 @@ String ContactsTable::GetPrefix(void) const
 void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjectsByType<User>()) {
-		addRowFn(user);
+		addRowFn(user, LivestatusGroupByNone, Empty);
 	}
 }
 

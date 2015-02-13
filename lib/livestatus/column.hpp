@@ -28,15 +28,21 @@ using namespace icinga;
 namespace icinga
 {
 
+enum LivestatusGroupByType {
+	LivestatusGroupByNone,
+	LivestatusGroupByHostGroup,
+	LivestatusGroupByServiceGroup
+};
+
 class Column
 {
 public:
 	typedef boost::function<Value (const Value&)> ValueAccessor;
-	typedef boost::function<Value (const Value&)> ObjectAccessor;
+	typedef boost::function<Value (const Value&, LivestatusGroupByType, const Object::Ptr&)> ObjectAccessor;
 
 	Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor);
 
-	Value ExtractValue(const Value& urow) const;
+	Value ExtractValue(const Value& urow, LivestatusGroupByType groupByType = LivestatusGroupByNone, const Object::Ptr& groupByObject = Empty) const;
 
 private:
 	ValueAccessor m_ValueAccessor;

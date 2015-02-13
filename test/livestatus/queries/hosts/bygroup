@@ -1,0 +1,4 @@
+GET hostsbygroup
+Columns: hostgroup_name host_name
+ResponseHeader: fixed16
+

@@ -35,7 +35,7 @@ class ServicesTable : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(ServicesTable);
 
-	ServicesTable(void);
+	ServicesTable(LivestatusGroupByType type = LivestatusGroupByNone);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
@@ -47,6 +47,8 @@ protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
+	static Object::Ptr ServiceGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
+	static Object::Ptr HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
 
 	static Value ShortNameAccessor(const Value& row);
 	static Value DisplayNameAccessor(const Value& row);

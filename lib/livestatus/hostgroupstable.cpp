@@ -74,7 +74,7 @@ String HostGroupsTable::GetPrefix(void) const
 void HostGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
-		addRowFn(hg);
+		addRowFn(hg, LivestatusGroupByNone, Empty);
 	}
 }
 

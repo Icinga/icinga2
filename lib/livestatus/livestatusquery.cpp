@@ -495,7 +495,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		return;
 	}
 
-	std::vector<Value> objects = table->FilterRows(m_Filter);
+	std::vector<LivestatusRowValue> objects = table->FilterRows(m_Filter);
 	std::vector<String> columns;
 
 	if (m_Columns.size() > 0)
@@ -508,7 +508,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	if (m_Aggregators.empty()) {
 		Array::Ptr header = new Array();
 
-		BOOST_FOREACH(const Value& object, objects) {
+		BOOST_FOREACH(const LivestatusRowValue& object, objects) {
 			Array::Ptr row = new Array();
 
 			BOOST_FOREACH(const String& columnName, columns) {
@@ -517,7 +517,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 				if (m_ColumnHeaders)
 					header->Add(columnName);
 
-				row->Add(column.ExtractValue(object));
+				row->Add(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 
 			if (m_ColumnHeaders) {
@@ -533,8 +533,8 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 		/* add aggregated stats */
 		BOOST_FOREACH(const Aggregator::Ptr aggregator, m_Aggregators) {
-			BOOST_FOREACH(const Value& object, objects) {
-				aggregator->Apply(table, object);
+			BOOST_FOREACH(const LivestatusRowValue& object, objects) {
+				aggregator->Apply(table, object.Row);
 			}
 
 			stats[index] = aggregator->GetResult();
@@ -566,7 +566,9 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			BOOST_FOREACH(const String& columnName, m_Columns) {
 				Column column = table->GetColumn(columnName);
 
-				row->Add(column.ExtractValue(objects[0])); // first object wins
+				LivestatusRowValue object = objects[0]; //first object wins
+
+				row->Add(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 		}
 

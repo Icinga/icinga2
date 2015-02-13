@@ -19,8 +19,12 @@
 
 #include "livestatus/servicestable.hpp"
 #include "livestatus/hoststable.hpp"
+#include "livestatus/servicegroupstable.hpp"
+#include "livestatus/hostgroupstable.hpp"
 #include "livestatus/endpointstable.hpp"
 #include "icinga/service.hpp"
+#include "icinga/servicegroup.hpp"
+#include "icinga/hostgroup.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/timeperiod.hpp"
@@ -38,10 +42,12 @@
 
 using namespace icinga;
 
-ServicesTable::ServicesTable(void)
+ServicesTable::ServicesTable(LivestatusGroupByType type)
+    : Table(type)
 {
 	AddColumns(this);
 }
+
 
 void ServicesTable::AddColumns(Table *table, const String& prefix,
     const Column::ObjectAccessor& objectAccessor)
@@ -133,6 +139,19 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "cv_is_json", Column(&ServicesTable::CVIsJsonAccessor, objectAccessor));
 
 	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
+
+	/* add additional group by values received through the object accessor */
+	if (table->GetGroupByType() == LivestatusGroupByServiceGroup) {
+		/* _1 = row, _2 = groupByType, _3 = groupByObject */
+		Log(LogDebug, "Livestatus")
+		    << "Processing services group by servicegroup table.";
+		ServiceGroupsTable::AddColumns(table, "servicegroup_", boost::bind(&ServicesTable::ServiceGroupAccessor, _1, _2, _3));
+	} else if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
+		/* _1 = row, _2 = groupByType, _3 = groupByObject */
+		Log(LogDebug, "Livestatus")
+		    << "Processing services group by hostgroup table.";
+		HostGroupsTable::AddColumns(table, "hostgroup_", boost::bind(&ServicesTable::HostGroupAccessor, _1, _2, _3));
+	}
 }
 
 String ServicesTable::GetName(void) const
@@ -147,8 +166,28 @@ String ServicesTable::GetPrefix(void) const
 
 void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
-		addRowFn(service);
+	if (GetGroupByType() == LivestatusGroupByServiceGroup) {
+		BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjectsByType<ServiceGroup>()) {
+			BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+				/* the caller must know which groupby type and value are set for this row */
+				addRowFn(service, LivestatusGroupByServiceGroup, sg);
+			}
+		}
+	} else if (GetGroupByType() == LivestatusGroupByHostGroup) {
+		BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
+			ObjectLock ylock(hg);
+			BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+				ObjectLock ylock(host);
+				BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+					/* the caller must know which groupby type and value are set for this row */
+					addRowFn(service, LivestatusGroupByHostGroup, hg);
+				}
+			}
+		}
+	} else {
+		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+			addRowFn(service, LivestatusGroupByNone, Empty);
+		}
 	}
 }
 
@@ -157,7 +196,7 @@ Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAc
 	Value service;
 
 	if (parentObjectAccessor)
-		service = parentObjectAccessor(row);
+		service = parentObjectAccessor(row, LivestatusGroupByNone, Empty);
 	else
 		service = row;
 
@@ -167,6 +206,30 @@ Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAc
 		return Object::Ptr();
 
 	return svc->GetHost();
+}
+
+Object::Ptr ServicesTable::ServiceGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
+{
+	/* return the current group by value set from within FetchRows()
+	 * this is the servicegroup object used for the table join inside
+	 * in AddColumns()
+	 */
+	if (groupByType == LivestatusGroupByServiceGroup)
+		return groupByObject;
+
+	return Object::Ptr();
+}
+
+Object::Ptr ServicesTable::HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
+{
+	/* return the current group by value set from within FetchRows()
+	 * this is the servicegroup object used for the table join inside
+	 * in AddColumns()
+	 */
+	if (groupByType == LivestatusGroupByHostGroup)
+		return groupByObject;
+
+	return Object::Ptr();
 }
 
 Value ServicesTable::ShortNameAccessor(const Value& row)

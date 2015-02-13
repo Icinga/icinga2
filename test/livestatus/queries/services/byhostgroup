@@ -1,0 +1,4 @@
+GET servicesbyhostgroup
+Columns: hostgroup_name host_name service_description
+ResponseHeader: fixed16
+

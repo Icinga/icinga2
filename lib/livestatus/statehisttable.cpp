@@ -271,7 +271,7 @@ void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 	BOOST_FOREACH(boost::tie(checkable, boost::tuples::ignore), m_CheckablesCache) {
 		BOOST_FOREACH(const Dictionary::Ptr& state_hist_bag, m_CheckablesCache[checkable]) {
 			/* pass a dictionary from state history array */
-			addRowFn(state_hist_bag);
+			addRowFn(state_hist_bag, LivestatusGroupByNone, Empty);
 		}
 	}
 }
