@@ -273,7 +273,7 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-A list of currently supported external commands can be found [here](19-apendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](19-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -610,7 +610,7 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](19-apendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](19-appendix.md#schema-db-ido).
 
 
 ## <a id="check-result-files"></a> Check Result Files
