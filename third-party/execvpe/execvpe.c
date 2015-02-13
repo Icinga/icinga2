@@ -17,9 +17,9 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef __FreeBSD__
+#if !defined(__FreeBSD__) && !defined(__OpenBSD__)
 #include <alloca.h>
-#endif /* _FreeBSD__ */
+#endif /* !__FreeBSD__ && !__OpenBSD__ */
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdbool.h>
