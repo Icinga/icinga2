@@ -86,7 +86,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-by_ssh_address  | **Optional.** The host's address. Defaults to "$address$".
+by_ssh_address  | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
 by_ssh_command  | **Optional.** The command that should be executed.
 by_ssh_logname  | **Optional.** The SSH username.
@@ -237,18 +237,56 @@ Custom Attributes:
 
 Name               | Description
 -------------------|--------------
-ftp_address        | **Optional.** The host's address. Defaults to "$address$".
+ftp_address        | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 
 
 ### <a id="plugin-check-command-hostalive"></a> hostalive
 
-Check command object for the `check_ping` plugin with host check default values.
+Check command object for the `check_ping` plugin with host check default values. This variant
+uses the host's `address` attribute if available and falls back to using the `address6` attribute
+if the `address` attribute is not set.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 80.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
+
+### <a id="plugin-check-command-hostalive4"></a> hostalive4
+
+Check command object for the `check_ping` plugin with host check default values. This variant
+uses the host's `address` attribute.
 
 Custom Attributes:
 
 Name            | Description
 ----------------|--------------
 ping_address    | **Optional.** The host's IPv4 address. Defaults to "$address$".
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 80.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+
+
+### <a id="plugin-check-command-hostalive6"></a> hostalive6
+
+Check command object for the `check_ping` plugin with host check default values. This variant
+uses the host's `address6` attribute.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's IPv6 address. Defaults to "$address6$".
 ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 3000.
 ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 80.
 ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
@@ -265,7 +303,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-hpjd_address    | **Optional.** The host's address. Defaults to "$address$".
+hpjd_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 hpjd_port       | **Optional.** The host's SNMP port. Defaults to 161.
 hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
 
@@ -278,7 +316,7 @@ Custom Attributes:
 
 Name                     | Description
 -------------------------|--------------
-http_address             | **Optional.** The host's address. Defaults to "$address".
+http_address             | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 http_vhost               | **Optional.** The virtual host that should be sent in the "Host" header.
 http_uri                 | **Optional.** The request URI.
 http_port                | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
@@ -341,7 +379,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-imap_address    | **Optional.** The host's address. Defaults to "$address$".
+imap_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 imap_port       | **Optional.** The port that should be checked. Defaults to 143.
 
 
@@ -369,7 +407,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-nrpe_address    | **Optional.** The host's address. Defaults to "$address$".
+nrpe_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 nrpe_port       | **Optional.** The NRPE port. Defaults to 5668.
 nrpe_command    | **Optional.** The command that should be executed.
 nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `false`.
@@ -386,7 +424,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-nscp_address    | **Optional.** The host's address. Defaults to "$address$".
+nscp_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 nscp_port       | **Optional.** The NSClient++ port. Defaults to 12489.
 nscp_password   | **Optional.** The NSClient++ password.
 nscp_variable   | **Required.** The variable that should be checked.
@@ -404,7 +442,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ntp_address     | **Optional.** The host's address. Defaults to "$address$".
+ntp_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 
 
 ### <a id="plugin-check-command-passive"></a> passive
@@ -417,6 +455,25 @@ Name            | Description
 ----------------|--------------
 dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
 dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
+
+
+### <a id="plugin-check-command-ping"></a> ping
+
+Check command object for the `check_ping` plugin. This command uses the host's `address` attribute
+if available and falls back to using the `address6` attribute if the `address` attribute is not set.
+
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ping_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
+ping_wrta       | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
 
 ### <a id="plugin-check-command-ping4"></a> ping4
@@ -460,7 +517,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-pop_address     | **Optional.** The host's address. Defaults to "$address$".
+pop_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 pop_port        | **Optional.** The port that should be checked. Defaults to 110.
 
 
@@ -505,7 +562,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-simap_address   | **Optional.** The host's address. Defaults to "$address$".
+simap_address   | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 simap_port      | **Optional.** The host's port.
 
 
@@ -517,7 +574,7 @@ Custom Attributes:
 
 Name                 | Description
 ---------------------|--------------
-smtp_address         | **Optional.** The host's address. Defaults to "$address$".
+smtp_address         | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 smtp_port            | **Optional.** The port that should be checked. Defaults to 25.
 smtp_mail_from       | **Optional.** Test a MAIL FROM command with the given email address.
 
@@ -530,7 +587,7 @@ Custom Attributes:
 
 Name                | Description
 --------------------|--------------
-snmp_address        | **Optional.** The host's address. Defaults to "$address$".
+snmp_address        | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_oid            | **Required.** The SNMP OID.
 snmp_community      | **Optional.** The SNMP community. Defaults to "public".
 snmp_warn           | **Optional.** The warning threshold.
@@ -551,7 +608,7 @@ Custom Attributes:
 
 Name              | Description
 ------------------|--------------
-snmpv3_address    | **Optional.** The host's address. Defaults to "$address$".
+snmpv3_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmpv3_user       | **Required.** The username to log in with.
 snmpv3_auth_alg   | **Optional.** The authentication algorithm. Defaults to SHA.
 snmpv3_auth_key   | **Required.** The authentication key.
@@ -570,7 +627,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-snmp_address    | **Optional.** The host's address. Defaults to "$address$".
+snmp_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_oid        | **Optional.** The SNMP OID. Defaults to "1.3.6.1.2.1.1.3.0".
 snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
@@ -583,7 +640,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-spop_address    | **Optional.** The host's address. Defaults to "$address$".
+spop_address    | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 spop_port       | **Optional.** The host's port.
 
 
@@ -595,7 +652,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ssh_address     | **Optional.** The host's address. Defaults to "$address$".
+ssh_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
 ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
 
@@ -608,7 +665,7 @@ Custom Attributes:
 
 Name                          | Description
 ------------------------------|--------------
-ssl_address                   | **Optional.** The host's address. Defaults to "$address$".
+ssl_address                   | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 ssl_port                      | **Required.** The port that should be checked.
 ssl_timeout                   | **Optional.** Timeout in seconds for the connect and handshake. The plugin default is 10 seconds.
 ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, ssl_cert_valid_days_critical must also be set.
@@ -623,7 +680,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ssmtp_address   | **Required.** The host's address. Defaults to "$address$".
+ssmtp_address   | **Required.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
 
 
@@ -647,7 +704,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-tcp_address     | **Optional.** The host's address. Defaults to "$address$".
+tcp_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 tcp_port        | **Required.** The port that should be checked.
 
 
@@ -659,7 +716,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-udp_address     | **Optional.** The host's address. Defaults to "$address$".
+udp_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 udp_port        | **Required.** The port that should be checked.
 
 
@@ -671,7 +728,7 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ups_address     | **Optional.** The host's address. Defaults to "$address$".
+ups_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 ups_name        | **Optional.** The UPS name. Defaults to `ups`.
 
 
@@ -737,7 +794,7 @@ Custom Attributes:
 
 Name                    | Description
 ------------------------|--------------
-snmp_address            | **Optional.** The host's address. Defaults to "$address$".
+snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
@@ -762,7 +819,7 @@ Custom Attributes:
 
 Name                    | Description
 ------------------------|--------------
-snmp_address            | **Optional.** The host's address. Defaults to "$address$".
+snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
@@ -786,7 +843,7 @@ Custom Attributes:
 
 Name                    | Description
 ------------------------|--------------
-snmp_address            | **Optional.** The host's address. Defaults to "$address$".
+snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
@@ -811,7 +868,7 @@ Custom Attributes:
 
 Name                        | Description
 ----------------------------|--------------
-snmp_address                | **Optional.** The host's address. Defaults to "$address$".
+snmp_address                | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_nocrypt                | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
 snmp_community              | **Optional.** The SNMP community. Defaults to "public".
 snmp_port                   | **Optional.** The SNMP port connection.
@@ -847,7 +904,7 @@ Custom Attributes:
 
 Name                    | Description
 ------------------------|--------------
-snmp_address            | **Optional.** The host's address. Defaults to "$address$".
+snmp_address            | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 snmp_nocrypt            | **Optional.** Define SNMP encryption. If set **snmp_v3** needs to be set. Defaults to "false".
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
