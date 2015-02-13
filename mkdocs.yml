@@ -19,7 +19,8 @@ pages:
 - [15-migrating-from-icinga-1x.md, Migrating from Icinga 1.x]
 - [16-language-reference.md, Language Reference]
 - [17-library-reference.md, Library Reference]
-- [18-appendix.md, Appendix]
+- [18-debug.md, Debug]
+- [19-appendix.md, Appendix]
 theme: readthedocs
 markdown_extensions: [smarty]
 extra_javascript: [scroll.js]
