@@ -36,7 +36,7 @@ REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
 ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
-	  m_NextHeartbeat(0)
+	  m_NextHeartbeat(0), m_Context(false)
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
@@ -44,8 +44,7 @@ ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream
 
 void ApiClient::Start(void)
 {
-	boost::thread thread(boost::bind(&ApiClient::MessageThreadProc, ApiClient::Ptr(this)));
-	thread.detach();
+	m_Stream->RegisterDataHandler(boost::bind(&ApiClient::DataAvailableHandler, this));
 }
 
 String ApiClient::GetIdentity(void) const
@@ -134,21 +133,9 @@ bool ApiClient::ProcessMessage(void)
 {
 	Dictionary::Ptr message;
 
-	if (m_Stream->IsEof())
-		return false;
+	StreamReadStatus srs = JsonRpc::ReadMessage(m_Stream, &message, m_Context);
 
-	try {
-		message = JsonRpc::ReadMessage(m_Stream);
-	} catch (const openssl_error& ex) {
-		const unsigned long *pe = boost::get_error_info<errinfo_openssl_error>(ex);
-
-		if (pe && *pe == 0)
-			return false; /* Connection was closed cleanly */
-
-		throw;
-	}
-
-	if (!message)
+	if (srs != StatusNewItem)
 		return false;
 
 	if (message->Get("method") != "log::SetLogPosition")
@@ -208,19 +195,17 @@ bool ApiClient::ProcessMessage(void)
 	return true;
 }
 
-void ApiClient::MessageThreadProc(void)
+void ApiClient::DataAvailableHandler(void)
 {
-	Utility::SetThreadName("API Client");
-
 	try {
 		while (ProcessMessage())
 			; /* empty loop body */
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ApiClient")
 		    << "Error while reading JSON-RPC message for identity '" << m_Identity << "': " << DiagnosticInformation(ex);
-	}
 
-	Disconnect();
+		Disconnect();
+	}
 }
 
 Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)

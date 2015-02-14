@@ -179,11 +179,19 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 
 	for (;;) {
 		String line;
-		ReadLineContext context;
+		StreamReadContext context;
 
 		std::vector<String> lines;
 
-		while (stream->ReadLine(&line, context)) {
+		for (;;) {
+			StreamReadStatus srs = stream->ReadLine(&line, context);
+
+			if (srs == StatusEof)
+				break;
+
+			if (srs != StatusNewItem)
+				continue;
+
 			if (line.GetLength() > 0)
 				lines.push_back(line);
 			else

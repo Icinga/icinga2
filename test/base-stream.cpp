@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(readline_stdio)
 
 	StdioStream::Ptr stdstream = new StdioStream(&msgbuf, false);
 
-	ReadLineContext rlc;
+	StreamReadContext rlc;
 
 	String line;
 	BOOST_CHECK(stdstream->ReadLine(&line, rlc));

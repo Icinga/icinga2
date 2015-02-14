@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup icinga
  */
-class I2_BASE_API ObjectUtils
+class I2_ICINGA_API ObjectUtils
 {
 public:
 	static Service::Ptr GetService(const String& host, const String& name);

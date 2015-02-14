@@ -34,7 +34,7 @@ public:
 	StdioStream(std::iostream *innerStream, bool ownsStream);
 	~StdioStream(void);
 
-	virtual size_t Read(void *buffer, size_t size);
+	virtual size_t Read(void *buffer, size_t size, bool allow_partial = false);
 	virtual void Write(const void *buffer, size_t size);
 
 	virtual void Close(void);

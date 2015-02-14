@@ -39,7 +39,7 @@ public:
 
 	NetworkStream(const Socket::Ptr& socket);
 
-	virtual size_t Read(void *buffer, size_t count);
+	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false);
 	virtual void Write(const void *buffer, size_t count);
 
 	virtual void Close(void);

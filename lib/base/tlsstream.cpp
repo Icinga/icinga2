@@ -147,7 +147,7 @@ void TlsStream::OnEvent(int revents)
 			rc = SSL_write(m_SSL.get(), buffer, count);
 
 			if (rc > 0)
-				m_SendQ->Read(NULL, rc);
+				m_SendQ->Read(NULL, rc, true);
 
 			break;
 		case TlsActionHandshake:
@@ -181,13 +181,17 @@ void TlsStream::OnEvent(int revents)
 			ChangeEvents(POLLIN);
 		}
 
+		lock.unlock();
+
+		if (m_RecvQ->IsDataAvailable())
+			SignalDataAvailable();
+
 		return;
 	}
 
 	err = SSL_get_error(m_SSL.get(), rc);
 
 	std::ostringstream msgbuf;
-	char errbuf[120];
 
 	switch (err) {
 		case SSL_ERROR_WANT_READ:
@@ -251,16 +255,17 @@ void TlsStream::Handshake(void)
 /**
  * Processes data for the stream.
  */
-size_t TlsStream::Read(void *buffer, size_t count)
+size_t TlsStream::Read(void *buffer, size_t count, bool allow_partial)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (m_RecvQ->GetAvailableBytes() < count && !m_ErrorOccurred && !m_Eof)
-		m_CV.wait(lock);
+	if (!allow_partial)
+		while (m_RecvQ->GetAvailableBytes() < count && !m_ErrorOccurred && !m_Eof)
+			m_CV.wait(lock);
 
 	HandleError();
 
-	return m_RecvQ->Read(buffer, count);
+	return m_RecvQ->Read(buffer, count, true);
 }
 
 void TlsStream::Write(const void *buffer, size_t count)
@@ -290,4 +295,16 @@ void TlsStream::Close(void)
 bool TlsStream::IsEof(void) const
 {
 	return m_Eof;
+}
+
+bool TlsStream::SupportsWaiting(void) const
+{
+	return true;
+}
+
+bool TlsStream::IsDataAvailable(void) const
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	return m_RecvQ->GetAvailableBytes() > 0;
 }

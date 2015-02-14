@@ -32,7 +32,8 @@ BOOST_AUTO_TEST_CASE(netstring)
 	NetString::WriteStringToStream(fifo, "hello");
 
 	String s;
-	BOOST_CHECK(NetString::ReadStringFromStream(fifo, &s));
+	StreamReadContext src;
+	BOOST_CHECK(NetString::ReadStringFromStream(fifo, &s, src));
 	BOOST_CHECK(s == "hello");
 
 	fifo->Close();

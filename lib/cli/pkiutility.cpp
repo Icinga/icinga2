@@ -262,9 +262,16 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	JsonRpc::SendMessage(stream, request);
 
 	Dictionary::Ptr response;
+	StreamReadContext src;
 
 	for (;;) {
-		response = JsonRpc::ReadMessage(stream);
+		StreamReadStatus srs = JsonRpc::ReadMessage(stream, &response, src);
+
+		if (srs == StatusEof)
+			break;
+
+		if (srs != StatusNewItem)
+			continue;
 
 		if (response && response->Contains("error")) {
 			Log(LogCritical, "cli", "Could not fetch valid response. Please check the master log (notice or debug).");

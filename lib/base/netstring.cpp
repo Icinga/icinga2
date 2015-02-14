@@ -32,86 +32,66 @@ using namespace icinga;
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-bool NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str)
+StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str, StreamReadContext& context)
 {
-	/* 16 bytes are enough for the header */
-	const size_t header_length = 16;
-	size_t read_length;
-	char *header = static_cast<char *>(malloc(header_length));
+	if (stream->IsEof())
+		return StatusEof;
 
-	if (header == NULL)
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
+	if (context.MustRead && context.FillFromStream(stream) == 0)
+		return StatusEof;
 
-	read_length = 0;
+	size_t header_length = 0;
 
-	while (read_length < header_length) {
-		/* Read one byte. */
-		int rc = stream->Read(header + read_length, 1);
-
-		if (rc == 0) {
-			if (read_length == 0) {
-				free(header);
-				return false;
-			}
-
-			BOOST_THROW_EXCEPTION(std::runtime_error("Read() failed."));
-		}
-
-		ASSERT(rc == 1);
-
-		read_length++;
-
-		if (header[read_length - 1] == ':') {
+	for (size_t i = 0; i < context.Size; i++) {
+		if (context.Buffer[i] == ':') {
+			header_length = i;
 			break;
-		} else if (header_length == read_length) {
-			free(header);
+		} else if (i > 16)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
-		}
 	}
+
+	if (header_length == 0) {
+		context.MustRead = true;
+		return StatusNeedData;
+	}
+
+	/* make sure there's a header */
+	if (header_length == 0)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (no length specifier)"));
 
 	/* no leading zeros allowed */
-	if (header[0] == '0' && isdigit(header[1])) {
-		free(header);
+	if (context.Buffer[0] == '0' && isdigit(context.Buffer[1]))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (leading zero)"));
-	}
 
 	size_t len, i;
 
 	len = 0;
-	for (i = 0; i < read_length && isdigit(header[i]); i++) {
+	for (i = 0; i < header_length && isdigit(context.Buffer[i]); i++) {
 		/* length specifier must have at most 9 characters */
-		if (i >= 9) {
-			free(header);
+		if (i >= 9)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Length specifier must not exceed 9 characters"));
-		}
 
-		len = len * 10 + (header[i] - '0');
+		len = len * 10 + (context.Buffer[i] - '0');
 	}
-
-	free(header);
 
 	/* read the whole message */
 	size_t data_length = len + 1;
 
-	char *data = static_cast<char *>(malloc(data_length));
+	char *data = context.Buffer + header_length + 1;
 
-	if (data == NULL) {
-		BOOST_THROW_EXCEPTION(std::bad_alloc());
+	if (context.Size < header_length + 1 + len + 1) {
+		context.MustRead = true;
+		return StatusNeedData;
 	}
-
-	size_t rc = stream->Read(data, data_length);
-	
-	if (rc != data_length)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Read() failed."));
 
 	if (data[len] != ',')
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
 	
 	*str = String(&data[0], &data[len]);
 
-	free(data);
+	context.DropData(header_length + 1 + len + 1);
 
-	return true;
+	return StatusNewItem;
 }
 
 /**

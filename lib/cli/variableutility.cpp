@@ -39,8 +39,9 @@ Value VariableUtility::GetVariable(const String& name)
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	String message;
+	StreamReadContext src;
 
-	while (NetString::ReadStringFromStream(sfp, &message))  {
+	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
 		Dictionary::Ptr variable = JsonDecode(message);
 
 		if (variable->Get("name") == name) {
@@ -62,8 +63,9 @@ void VariableUtility::PrintVariables(std::ostream& outfp)
 	unsigned long variables_count = 0;
 
 	String message;
+	StreamReadContext src;
 
-	while (NetString::ReadStringFromStream(sfp, &message)) {
+	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
 		Dictionary::Ptr variable = JsonDecode(message);
 		outfp << variable->Get("name") << " = " << variable->Get("value") << "\n";
 		variables_count++;

@@ -22,11 +22,13 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
 
 class String;
+class Stream;
 
 enum ConnectionRole
 {
@@ -34,20 +36,31 @@ enum ConnectionRole
 	RoleServer
 };
 
-struct ReadLineContext
+struct StreamReadContext
 {
-	ReadLineContext(void) : Buffer(NULL), Size(0), Eof(false), MustRead(true)
+	StreamReadContext(bool wait = true)
+		: Buffer(NULL), Size(0), MustRead(true), Wait(wait)
 	{ }
 
-	~ReadLineContext(void)
+	~StreamReadContext(void)
 	{
 		free(Buffer);
 	}
 
+	bool FillFromStream(const intrusive_ptr<Stream>& stream);
+	void DropData(size_t count);
+
 	char *Buffer;
 	size_t Size;
-	bool Eof;
 	bool MustRead;
+	bool Wait;
+};
+
+enum StreamReadStatus
+{
+	StatusNewItem,
+	StatusNeedData,
+	StatusEof
 };
 
 /**
@@ -66,9 +79,10 @@ public:
 	 * @param buffer The buffer where data should be stored. May be NULL if you're
 	 *		 not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
+	 * @param allow_partial Whether to allow partial reads.
 	 * @returns The number of bytes actually read.
 	 */
-	virtual size_t Read(void *buffer, size_t count) = 0;
+	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) = 0;
 
 	/**
 	 * Writes data to the stream.
@@ -91,7 +105,27 @@ public:
 	 */
 	virtual bool IsEof(void) const = 0;
 
-	bool ReadLine(String *line, ReadLineContext& context);
+	/**
+	 * Waits until data can be read from the stream.
+	 */
+	void WaitForData(void);
+
+	virtual bool SupportsWaiting(void) const;
+
+	virtual bool IsDataAvailable(void) const;
+
+	void RegisterDataHandler(const boost::function<void(void)>& handler);
+
+	StreamReadStatus ReadLine(String *line, StreamReadContext& context);
+
+protected:
+	void SignalDataAvailable(void);
+
+private:
+	boost::signals2::signal<void(void)> OnDataAvailable;
+
+	boost::mutex m_Mutex;
+	boost::condition_variable m_CV;
 };
 
 }

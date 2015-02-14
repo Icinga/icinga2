@@ -314,7 +314,8 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 	WorkQueue upq(25000, Application::GetConcurrency());
 
 	String message;
-	while (NetString::ReadStringFromStream(sfp, &message)) {
+	StreamReadContext src;
+	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
 		upq.Enqueue(boost::bind(&DynamicObject::RestoreObject, message, attributeTypes));
 		restored++;
 	}

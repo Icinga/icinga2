@@ -58,10 +58,13 @@ public:
 
 	virtual void Close(void);
 
-	virtual size_t Read(void *buffer, size_t count);
+	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false);
 	virtual void Write(const void *buffer, size_t count);
 
 	virtual bool IsEof(void) const;
+
+	virtual bool SupportsWaiting(void) const;
+	virtual bool IsDataAvailable(void) const;
 
 	bool IsVerifyOK(void) const;
 

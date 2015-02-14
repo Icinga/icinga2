@@ -686,11 +686,12 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			StdioStream::Ptr logStream = new StdioStream(fp, true);
 
 			String message;
+			StreamReadContext src;
 			while (true) {
 				Dictionary::Ptr pmessage;
 
 				try {
-					if (!NetString::ReadStringFromStream(logStream, &message))
+					if (NetString::ReadStringFromStream(logStream, &message, src) != StatusNewItem)
 						break;
 
 					pmessage = JsonDecode(message);

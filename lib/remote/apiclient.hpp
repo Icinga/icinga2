@@ -74,10 +74,12 @@ private:
 	double m_Seen;
 	double m_NextHeartbeat;
 
+	StreamReadContext m_Context;
+
 	WorkQueue m_WriteQueue;
 
 	bool ProcessMessage(void);
-	void MessageThreadProc(void);
+	void DataAvailableHandler(void);
 	void SendMessageSync(const Dictionary::Ptr& request);
 };
 
