@@ -160,12 +160,11 @@ void TlsStream::OnEvent(int revents)
 
 			break;
 		case TlsActionClose:
-			rc = SSL_shutdown(m_SSL.get());
+			(void) SSL_shutdown(m_SSL.get());
+			rc = 1;
 
-			if (rc > 0) {
-				m_CloseOK = true;
-				m_CV.notify_all();
-			}
+			m_CloseOK = true;
+			m_CV.notify_all();
 
 			break;
 		default:
