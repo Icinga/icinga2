@@ -301,6 +301,9 @@ void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 
 void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 {
+	if (!Utility::PathExists(filename))
+		return;
+
 	Log(LogInformation, "DynamicObject")
 	    << "Restoring program state from file '" << filename << "'";
 
