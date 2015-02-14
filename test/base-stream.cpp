@@ -37,17 +37,19 @@ BOOST_AUTO_TEST_CASE(readline_stdio)
 	StreamReadContext rlc;
 
 	String line;
-	BOOST_CHECK(stdstream->ReadLine(&line, rlc));
+	BOOST_CHECK(stdstream->ReadLine(&line, rlc) == StatusNewItem);
 	BOOST_CHECK(line == "Hello");
 
-	BOOST_CHECK(stdstream->ReadLine(&line, rlc));
+	BOOST_CHECK(stdstream->ReadLine(&line, rlc) == StatusNewItem);
 	BOOST_CHECK(line == "World");
 
-	BOOST_CHECK(stdstream->ReadLine(&line, rlc));
+	BOOST_CHECK(stdstream->ReadLine(&line, rlc) == StatusNewItem);
 	BOOST_CHECK(line == "");
 
-	BOOST_CHECK(stdstream->ReadLine(&line, rlc));
+	BOOST_CHECK(stdstream->ReadLine(&line, rlc) == StatusNewItem);
 	BOOST_CHECK(line == "");
+
+	BOOST_CHECK(stdstream->ReadLine(&line, rlc) == StatusEof);
 
 	stdstream->Close();
 }

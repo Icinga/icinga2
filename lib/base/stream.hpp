@@ -39,7 +39,7 @@ enum ConnectionRole
 struct StreamReadContext
 {
 	StreamReadContext(bool wait = true)
-		: Buffer(NULL), Size(0), MustRead(true), Wait(wait)
+		: Buffer(NULL), Size(0), MustRead(true), Eof(false), Wait(wait)
 	{ }
 
 	~StreamReadContext(void)
@@ -53,6 +53,7 @@ struct StreamReadContext
 	char *Buffer;
 	size_t Size;
 	bool MustRead;
+	bool Eof;
 	bool Wait;
 };
 

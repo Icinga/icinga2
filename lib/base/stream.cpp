@@ -63,11 +63,13 @@ void Stream::WaitForData(void)
 
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context)
 {
-	if (IsEof())
+	if (context.Eof)
 		return StatusEof;
 
 	if (context.MustRead) {
 		if (!context.FillFromStream(this)) {
+			context.Eof = true;
+
 			*line = String(context.Buffer, &(context.Buffer[context.Size]));
 			boost::algorithm::trim_right(*line);
 
@@ -106,6 +108,8 @@ bool StreamReadContext::FillFromStream(const Stream::Ptr& stream)
 	if (Wait && stream->SupportsWaiting())
 		stream->WaitForData();
 
+	size_t count = 0;
+
 	do {
 		Buffer = (char *)realloc(Buffer, Size + 4096);
 
@@ -114,13 +118,14 @@ bool StreamReadContext::FillFromStream(const Stream::Ptr& stream)
 
 		size_t rc = stream->Read(Buffer + Size, 4096, true);
 
-		if (rc == 0 && stream->IsEof())
-			return false;
-
 		Size += rc;
+		count += rc;
 	} while (stream->IsDataAvailable());
 
-	return true;
+	if (count == 0 && stream->IsEof())
+		return false;
+	else
+		return true;
 }
 
 void StreamReadContext::DropData(size_t count)

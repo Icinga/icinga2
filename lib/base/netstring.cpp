@@ -34,11 +34,13 @@ using namespace icinga;
  */
 StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str, StreamReadContext& context)
 {
-	if (stream->IsEof())
+	if (context.Eof)
 		return StatusEof;
 
-	if (context.MustRead && context.FillFromStream(stream) == 0)
+	if (context.MustRead && !context.FillFromStream(stream)) {
+		context.Eof = true;
 		return StatusEof;
+	}
 
 	size_t header_length = 0;
 
