@@ -37,9 +37,13 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 	if (context.Eof)
 		return StatusEof;
 
-	if (context.MustRead && !context.FillFromStream(stream)) {
-		context.Eof = true;
-		return StatusEof;
+	if (context.MustRead) {
+		if (!context.FillFromStream(stream)) {
+			context.Eof = true;
+			return StatusEof;
+		}
+
+		context.MustRead = false;
 	}
 
 	size_t header_length = 0;

@@ -315,7 +315,15 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	String message;
 	StreamReadContext src;
-	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
+	for (;;) {
+		StreamReadStatus srs = NetString::ReadStringFromStream(sfp, &message, src);
+
+		if (srs == StatusEof)
+			break;
+
+		if (srs != StatusNewItem)
+			continue;
+
 		upq.Enqueue(boost::bind(&DynamicObject::RestoreObject, message, attributeTypes));
 		restored++;
 	}

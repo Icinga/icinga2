@@ -691,8 +691,13 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 				Dictionary::Ptr pmessage;
 
 				try {
-					if (NetString::ReadStringFromStream(logStream, &message, src) != StatusNewItem)
+					StreamReadStatus srs = NetString::ReadStringFromStream(logStream, &message, src);
+
+					if (srs == StatusEof)
 						break;
+
+					if (srs != StatusNewItem)
+						continue;
 
 					pmessage = JsonDecode(message);
 				} catch (const std::exception&) {
