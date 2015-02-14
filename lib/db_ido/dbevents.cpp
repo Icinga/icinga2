@@ -1325,7 +1325,7 @@ void DbEvents::AddServiceCheckHistory(const Checkable::Ptr& checkable, const Che
 	fields1->Set("end_time_usec", time_bag_end.second);
 	fields1->Set("command_object_id", checkable->GetCheckCommand());
 	fields1->Set("command_args", Empty);
-	fields1->Set("command_line", cr->GetCommand());
+	fields1->Set("command_line", CompatUtility::GetCommandLine(checkable->GetCheckCommand()));
 	fields1->Set("execution_time", Convert::ToString(execution_time));
 	fields1->Set("latency", Convert::ToString(Service::CalculateLatency(cr)));
 	fields1->Set("return_code", cr->GetExitStatus());
