@@ -71,34 +71,64 @@ void ServiceGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 
 Value ServiceGroupsTable::NameAccessor(const Value& row)
 {
-	return static_cast<ServiceGroup::Ptr>(row)->GetName();
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
+	return sg->GetName();
 }
 
 Value ServiceGroupsTable::AliasAccessor(const Value& row)
 {
-	return static_cast<ServiceGroup::Ptr>(row)->GetDisplayName();
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
+	return sg->GetDisplayName();
 }
 
 Value ServiceGroupsTable::NotesAccessor(const Value& row)
 {
-	return static_cast<ServiceGroup::Ptr>(row)->GetNotes();
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
+	return sg->GetNotes();
 }
 
 Value ServiceGroupsTable::NotesUrlAccessor(const Value& row)
 {
-	return static_cast<ServiceGroup::Ptr>(row)->GetNotesUrl();
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
+	return sg->GetNotesUrl();
 }
 
 Value ServiceGroupsTable::ActionUrlAccessor(const Value& row)
 {
-	return static_cast<ServiceGroup::Ptr>(row)->GetActionUrl();
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
+	return sg->GetActionUrl();
 }
 
 Value ServiceGroupsTable::MembersAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	Array::Ptr members = new Array();
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Array::Ptr host_svc = new Array();
 		host_svc->Add(service->GetHost()->GetName());
 		host_svc->Add(service->GetShortName());
@@ -110,9 +140,14 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 
 Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	Array::Ptr members = new Array();
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		Array::Ptr host_svc = new Array();
 		host_svc->Add(service->GetHost()->GetName());
 		host_svc->Add(service->GetShortName());
@@ -126,9 +161,14 @@ Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 
 Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	Value worst_service = ServiceOK;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetState() > worst_service)
 			worst_service = service->GetState();
 	}
@@ -138,14 +178,24 @@ Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesAccessor(const Value& row)
 {
-	return static_cast<long>(static_cast<ServiceGroup::Ptr>(row)->GetMembers().size());
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
+	return sg->GetMembers().size();
 }
 
 Value ServiceGroupsTable::NumServicesOkAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetState() == ServiceOK)
 			num_services++;
 	}
@@ -155,9 +205,14 @@ Value ServiceGroupsTable::NumServicesOkAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesWarnAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetState() == ServiceWarning)
 			num_services++;
 	}
@@ -167,9 +222,14 @@ Value ServiceGroupsTable::NumServicesWarnAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesCritAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetState() == ServiceCritical)
 			num_services++;
 	}
@@ -179,9 +239,14 @@ Value ServiceGroupsTable::NumServicesCritAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesUnknownAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetState() == ServiceUnknown)
 			num_services++;
 	}
@@ -191,9 +256,14 @@ Value ServiceGroupsTable::NumServicesUnknownAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesPendingAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (!service->GetLastCheckResult())
 			num_services++;
 	}
@@ -203,9 +273,14 @@ Value ServiceGroupsTable::NumServicesPendingAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesHardOkAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceOK)
 			num_services++;
 	}
@@ -215,9 +290,14 @@ Value ServiceGroupsTable::NumServicesHardOkAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesHardWarnAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceWarning)
 			num_services++;
 	}
@@ -227,9 +307,14 @@ Value ServiceGroupsTable::NumServicesHardWarnAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesHardCritAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceCritical)
 			num_services++;
 	}
@@ -239,9 +324,14 @@ Value ServiceGroupsTable::NumServicesHardCritAccessor(const Value& row)
 
 Value ServiceGroupsTable::NumServicesHardUnknownAccessor(const Value& row)
 {
+	ServiceGroup::Ptr sg = static_cast<ServiceGroup::Ptr>(row);
+
+	if (!sg)
+		return Empty;
+
 	int num_services = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, static_cast<ServiceGroup::Ptr>(row)->GetMembers()) {
+	BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 		if (service->GetStateType() == StateTypeHard && service->GetState() == ServiceUnknown)
 			num_services++;
 	}
