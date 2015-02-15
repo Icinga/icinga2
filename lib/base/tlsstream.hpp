@@ -50,6 +50,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
 	TlsStream(const Socket::Ptr& socket, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext);
+	~TlsStream(void);
 
 	boost::shared_ptr<X509> GetClientCertificate(void) const;
 	boost::shared_ptr<X509> GetPeerCertificate(void) const;

@@ -77,6 +77,11 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const boost
 		SSL_set_connect_state(m_SSL.get());
 }
 
+TlsStream::~TlsStream(void)
+{
+	SocketEvents::Unregister();
+}
+
 int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
 {
 	SSL *ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));

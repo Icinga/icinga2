@@ -153,17 +153,21 @@ SocketEvents::SocketEvents(const Socket::Ptr& socket)
 
 SocketEvents::~SocketEvents(void)
 {
-	Unregister();
+	ASSERT(m_FD == INVALID_SOCKET);
 }
 
 void SocketEvents::Register(void)
 {
+	ASSERT(m_FD != INVALID_SOCKET);
+
 	SocketEventDescriptor desc;
 	desc.Events = 0;
 	desc.EventInterface = this;
 
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex);
+
+		ASSERT(l_SocketIOSockets.find(m_FD) == l_SocketIOSockets.end());
 
 		l_SocketIOSockets[m_FD] = desc;
 	}
@@ -173,17 +177,23 @@ void SocketEvents::Register(void)
 
 void SocketEvents::Unregister(void)
 {
+	if (m_FD == INVALID_SOCKET)
+		return;
+
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
 		l_SocketIOSockets.erase(m_FD);
+		m_FD = INVALID_SOCKET;
 	}
 
-	/* There's no need to wake up the I/O thread here. */
+	WakeUpThread();
 }
 
 void SocketEvents::ChangeEvents(int events)
 {
+	ASSERT(m_FD != INVALID_SOCKET);
+
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
