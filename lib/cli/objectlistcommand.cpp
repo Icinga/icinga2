@@ -83,8 +83,6 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	unsigned long objects_count = 0;
 	std::map<String, int> type_count;
 
-	String message;
-	StreamReadContext src;
 	String name_filter, type_filter;
 
 	if (vm.count("name"))
@@ -94,7 +92,17 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	bool first = true;
 
-	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
+	String message;
+	StreamReadContext src;
+	for (;;) {
+		StreamReadStatus srs = NetString::ReadStringFromStream(sfp, &message, src);
+
+		if (srs == StatusEof)
+			break;
+
+		if (srs != StatusNewItem)
+			continue;
+
 		PrintObject(std::cout, first, message, type_count, name_filter, type_filter);
 		objects_count++;
 	}
