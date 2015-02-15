@@ -128,4 +128,6 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs, con
 
 	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
 	ScriptGlobal::WriteToFile(varsfile);
+
+	return true;
 }

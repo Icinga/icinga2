@@ -23,6 +23,7 @@
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
 #include <vector>
+#include <iostream>
 
 namespace icinga
 {
