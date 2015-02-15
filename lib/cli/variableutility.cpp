@@ -40,8 +40,15 @@ Value VariableUtility::GetVariable(const String& name)
 
 	String message;
 	StreamReadContext src;
+	for (;;) {
+		StreamReadStatus srs = NetString::ReadStringFromStream(sfp, &message, src);
 
-	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
+		if (srs == StatusEof)
+			break;
+
+		if (srs != StatusNewItem)
+			continue;
+
 		Dictionary::Ptr variable = JsonDecode(message);
 
 		if (variable->Get("name") == name) {
@@ -64,8 +71,15 @@ void VariableUtility::PrintVariables(std::ostream& outfp)
 
 	String message;
 	StreamReadContext src;
+	for (;;) {
+		StreamReadStatus srs = NetString::ReadStringFromStream(sfp, &message, src);
 
-	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
+		if (srs == StatusEof)
+			break;
+
+		if (srs != StatusNewItem)
+			continue;
+
 		Dictionary::Ptr variable = JsonDecode(message);
 		outfp << variable->Get("name") << " = " << variable->Get("value") << "\n";
 		variables_count++;

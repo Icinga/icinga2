@@ -244,10 +244,18 @@ static void CheckObjectFile(const String& objectfile, std::ostream& os)
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	int typeL = 0, countTotal = 0;
+
 	String message;
 	StreamReadContext src;
+	for (;;) {
+		StreamReadStatus srs = NetString::ReadStringFromStream(sfp, &message, src);
 
-	while (NetString::ReadStringFromStream(sfp, &message, src) == StatusNewItem) {
+		if (srs == StatusEof)
+			break;
+
+		if (srs != StatusNewItem)
+			continue;
+
 		Dictionary::Ptr object = JsonDecode(message);
 		Dictionary::Ptr properties = object->Get("properties");
 
