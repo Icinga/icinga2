@@ -38,13 +38,12 @@ public:
 
 	virtual void OnEvent(int revents);
 
-	void Register(void);
 	void Unregister(void);
 
 	void ChangeEvents(int events);
 
 protected:
-	SocketEvents(const Socket::Ptr& socket);
+	SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject);
 
 private:
 	SOCKET m_FD;
@@ -55,6 +54,8 @@ private:
 	static void WakeUpThread(void);
 
 	int GetPollEvents(void) const;
+
+	void Register(Object *lifesupportObject);
 };
 
 }

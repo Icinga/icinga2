@@ -34,6 +34,7 @@ struct SocketEventDescriptor
 {
 	int Events;
 	SocketEvents *EventInterface;
+	Object *LifesupportObject;
 
 	SocketEventDescriptor(void)
 		: Events(0)
@@ -125,7 +126,8 @@ void SocketEvents::ThreadProc(void)
 				desc = it->second;
 
 				/* We must hold a ref-counted reference to the event object to keep it alive. */
-				ltref = dynamic_cast<Object *>(desc.EventInterface);
+				ltref = desc.LifesupportObject;
+				VERIFY(ltref);
 			}
 
 			desc.EventInterface->OnEvent(pfds[i].revents);
@@ -143,31 +145,32 @@ void SocketEvents::WakeUpThread(void)
 /**
  * Constructor for the SocketEvents class.
  */
-SocketEvents::SocketEvents(const Socket::Ptr& socket)
+SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
 	: m_FD(socket->GetFD())
 {
 	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeThread);
 
-	Register();
+	Register(lifesupportObject);
 }
 
 SocketEvents::~SocketEvents(void)
 {
-	ASSERT(m_FD == INVALID_SOCKET);
+	VERIFY(m_FD == INVALID_SOCKET);
 }
 
-void SocketEvents::Register(void)
+void SocketEvents::Register(Object *lifesupportObject)
 {
-	ASSERT(m_FD != INVALID_SOCKET);
+	VERIFY(m_FD != INVALID_SOCKET);
 
 	SocketEventDescriptor desc;
 	desc.Events = 0;
 	desc.EventInterface = this;
+	desc.LifesupportObject = lifesupportObject;
 
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-		ASSERT(l_SocketIOSockets.find(m_FD) == l_SocketIOSockets.end());
+		VERIFY(l_SocketIOSockets.find(m_FD) == l_SocketIOSockets.end());
 
 		l_SocketIOSockets[m_FD] = desc;
 	}

@@ -40,7 +40,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param sslContext The SSL context for the client.
  */
 TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext)
-	: SocketEvents(socket), m_Eof(false), m_HandshakeOK(false), m_VerifyOK(true), m_CloseOK(false), m_ErrorCode(0),
+	: SocketEvents(socket, this), m_Eof(false), m_HandshakeOK(false), m_VerifyOK(true), m_CloseOK(false), m_ErrorCode(0),
 	  m_ErrorOccurred(false),  m_Socket(socket), m_Role(role), m_SendQ(new FIFO()), m_RecvQ(new FIFO()),
 	  m_CurrentAction(TlsActionNone), m_Retry(false)
 {
