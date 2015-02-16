@@ -109,6 +109,8 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 
 	String key;
 	Value value;
+
+	ObjectLock xlock(vars);
 	BOOST_FOREACH(tie(key, value), vars) {
 		cv->Add(key);
 	}
@@ -137,6 +139,8 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 
 	String key;
 	Value value;
+
+	ObjectLock xlock(vars);
 	BOOST_FOREACH(tie(key, value), vars) {
 		cv->Add(value);
 	}
@@ -165,6 +169,8 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 
 	String key;
 	Value value;
+
+	ObjectLock xlock(vars);
 	BOOST_FOREACH(tie(key, value), vars) {
 		Array::Ptr key_val = new Array();
 		key_val->Add(key);
