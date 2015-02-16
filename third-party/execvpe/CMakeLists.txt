@@ -20,6 +20,7 @@ add_library(execvpe SHARED execvpe.c execvpe.h)
 set_target_properties (
   execvpe PROPERTIES
   DEFINE_SYMBOL I2_EXECVPE_BUILD
+  FOLDER Lib
 )
 
 install(

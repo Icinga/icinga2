@@ -20,6 +20,7 @@ add_library(socketpair SHARED socketpair.c socketpair.h)
 set_target_properties (
   socketpair PROPERTIES
   DEFINE_SYMBOL I2_SOCKETPAIR_BUILD
+  FOLDER Lib
 )
 
 if(WIN32)
