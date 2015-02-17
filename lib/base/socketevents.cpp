@@ -195,7 +195,8 @@ void SocketEvents::Unregister(void)
 
 void SocketEvents::ChangeEvents(int events)
 {
-	ASSERT(m_FD != INVALID_SOCKET);
+	if (m_FD == INVALID_SOCKET)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Tried to read/write from a closed socket."));
 
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex);
