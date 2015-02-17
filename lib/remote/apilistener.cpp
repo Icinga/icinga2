@@ -378,8 +378,11 @@ void ApiListener::ApiTimerHandler(void)
 
 		BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
 			/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
-			if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent())
+			if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
+				Log(LogDebug, "ApiListener")
+				    << "Not connecting to Endpoint '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
 				continue;
+			}
 
 			bool connected = false;
 
@@ -391,21 +394,33 @@ void ApiListener::ApiTimerHandler(void)
 			}
 
 			/* don't connect to an endpoint if we already have a connection to the zone */
-			if (connected)
+			if (connected) {
+				Log(LogDebug, "ApiListener")
+				    << "Not connecting to Endpoint '" << zone->GetName() << "' because we're already connected to it.";
 				continue;
+			}
 
 			BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
 				/* don't connect to ourselves */
-				if (endpoint->GetName() == GetIdentity())
+				if (endpoint->GetName() == GetIdentity()) {
+					Log(LogDebug, "ApiListener")
+					    << "Not connecting to Endpoint '" << zone->GetName() << "' because that's us.";
 					continue;
+				}
 
 				/* don't try to connect to endpoints which don't have a host and port */
-				if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty())
+				if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty()) {
+					Log(LogDebug, "ApiListener")
+					    << "Not connecting to Endpoint '" << zone->GetName() << "' because the host/port attributes are missing.";
 					continue;
+				}
 
 				/* don't try to connect if there's already a connection attempt */
-				if (endpoint->GetConnecting())
+				if (endpoint->GetConnecting()) {
+					Log(LogDebug, "ApiListener")
+					    << "Not connecting to Endpoint '" << zone->GetName() << "' because we're already trying to connect to it.";
 					continue;
+				}
 
 				boost::thread thread(boost::bind(&ApiListener::AddConnection, this, endpoint));
 				thread.detach();
