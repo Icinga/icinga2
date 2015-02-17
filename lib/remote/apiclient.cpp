@@ -74,13 +74,6 @@ ConnectionRole ApiClient::GetRole(void) const
 
 void ApiClient::SendMessage(const Dictionary::Ptr& message)
 {
-	if (m_WriteQueue.GetLength() > 20000) {
-		Log(LogWarning, "remote")
-		    << "Closing connection for API identity '" << m_Identity << "': Too many queued messages.";
-		Disconnect();
-		return;
-	}
-
 	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, ApiClient::Ptr(this), message));
 }
 
@@ -107,11 +100,6 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
-	Utility::QueueAsyncCallback(boost::bind(&ApiClient::DisconnectSync, ApiClient::Ptr(this)));
-}
-
-void ApiClient::DisconnectSync(void)
-{
 	Log(LogWarning, "ApiClient")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
@@ -127,6 +115,8 @@ void ApiClient::DisconnectSync(void)
 	} catch (const std::exception&) {
 		/* Ignore the exception. */
 	}
+
+	m_WriteQueue.Join();
 }
 
 bool ApiClient::ProcessMessage(void)
