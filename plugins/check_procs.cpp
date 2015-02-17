@@ -51,7 +51,7 @@ int wmain(int argc, wchar_t **argv)
 	printInfoStruct printInfo = { };
 
 	int r = parseArguments(argc, argv, vm, printInfo);
-    
+
 	if (r != -1)
 		return r;
 
@@ -94,7 +94,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		std::cout << e.what() << endl << desc << endl;
 		return 3;
 	}
-    
+
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -136,7 +136,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << endl;
 		return 0;
 	}
-    
+
 	if (vm.count("version")) {
 		std::cout << "Version: " << VERSION << endl;
 		return 0;
@@ -208,7 +208,7 @@ int countProcs()
 	if (debug)
 		wcout << L"Counting all processes" << endl;
 
-	HANDLE hProcessSnap;
+	HANDLE hProcessSnap = NULL;
 	PROCESSENTRY32 pe32;
 
 	if (debug)
@@ -240,7 +240,8 @@ int countProcs()
 	if (debug)
 		wcout << L"Found " << numProcs << L" processes. Cleaning up udn returning" << endl;
 
-	CloseHandle(hProcessSnap);
+	if (hProcessSnap)
+		CloseHandle(hProcessSnap);
 	return numProcs;
 }
 

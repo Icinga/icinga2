@@ -351,15 +351,17 @@ int check_ping4(const printInfoStruct& pi, response& response)
 	if (debug)
 		wcout << L"All pings sent. Cleaning up and returning" << endl;
 
-	IcmpCloseHandle(hIcmp);
-	delete reinterpret_cast<VOID *>(repBuf);
+	if (hIcmp)
+		IcmpCloseHandle(hIcmp);
+	if (repBuf)
+		delete reinterpret_cast<VOID *>(repBuf);
 
 	response.avg = ((double)rtt / pi.num);
 
 	return -1;
 
 die:
-	die(GetLastError());
+	die();
 	if (hIcmp)
 		IcmpCloseHandle(hIcmp);
 	if (repBuf)
@@ -375,6 +377,7 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	IP_OPTION_INFORMATION ipInfo = { 30, 0, 0, 0, NULL };
 	DWORD dwRepSize = sizeof(ICMPV6_ECHO_REPLY) + 8;
 	LPVOID repBuf = reinterpret_cast<VOID *>(new BYTE[dwRepSize]);
+	HANDLE hIcmp = NULL;
 
 	LARGE_INTEGER frequency, timer1, timer2;
 	int num = pi.num;
@@ -398,7 +401,7 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	if (debug)
 		wcout << L"Creating Icmp File" << endl;
 
-	HANDLE hIcmp = Icmp6CreateFile();
+	hIcmp = Icmp6CreateFile();
 	if (hIcmp == INVALID_HANDLE_VALUE) {
 		goto die;
 	}
@@ -450,8 +453,10 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	if (debug)
 		wcout << L"All pings sent. Cleaning up and returning" << endl;
 
-	IcmpCloseHandle(hIcmp);
-	delete reinterpret_cast<VOID *>(repBuf);
+	if (hIcmp)
+		IcmpCloseHandle(hIcmp);
+	if (repBuf)
+		delete reinterpret_cast<VOID *>(repBuf);
 	response.avg = ((double)rtt / pi.num);
 
 	return -1;

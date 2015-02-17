@@ -199,7 +199,7 @@ int printOutput(printInfoStruct& printInfo)
 
 int check_load(printInfoStruct& printInfo) 
 {
-	PDH_HQUERY phQuery;
+	PDH_HQUERY phQuery = NULL;
 	PDH_HCOUNTER phCounter;
 	DWORD dwBufferSize = 0;
 	DWORD CounterType;

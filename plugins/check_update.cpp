@@ -97,7 +97,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << e.what() << endl << desc << endl;
 		return 3;
 	}
-    
+
 	if (vm.count("help")) {
 		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
 		wprintf(
@@ -130,7 +130,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			, progName, progName);
 		cout << endl;
 		return 0;
-	}  if (vm.count("version")) {
+	} if (vm.count("version")) {
 		cout << "Version: " << VERSION << endl;
 		return 0;
 	}
@@ -190,6 +190,7 @@ int check_update(printInfoStruct& printInfo)
 	ISearchResult *pResult;
 	IUpdateSession *pSession;
 	IUpdateSearcher *pSearcher;
+	BSTR criteria = NULL;
 
 	HRESULT err;
 	if (debug)
@@ -204,7 +205,7 @@ int check_update(printInfoStruct& printInfo)
 	 RebootRequired = 1: Reboot required
 	*/
 
-	BSTR criteria = SysAllocString(CRITERIA);
+	criteria = SysAllocString(CRITERIA);
 	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx
 	// http://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
 

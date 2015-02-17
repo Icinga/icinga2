@@ -36,7 +36,7 @@ static BOOL debug = FALSE;
 struct printInfoStruct 
 {
 	threshold warn, crit;
-	DWORD tSwap, aSwap;
+	double tSwap, aSwap;
 	Bunit unit = BunitMB;
 };
 
@@ -210,14 +210,16 @@ int printOutput(printInfoStruct& printInfo)
 
 int check_swap(printInfoStruct& printInfo) 
 {
-	_MEMORYSTATUS *pMemBuf = new _MEMORYSTATUS;
+	MEMORYSTATUSEX MemBuf;
+	MemBuf.dwLength = sizeof(MemBuf);
 
-	GlobalMemoryStatus(pMemBuf);
+	if (!GlobalMemoryStatusEx(&MemBuf)) {
+		die();
+		return 3;
+	}
 
-	printInfo.tSwap = round(pMemBuf->dwTotalPageFile / pow(1024.0, printInfo.unit));
-	printInfo.aSwap = round(pMemBuf->dwAvailPageFile / pow(1024.0, printInfo.unit));
-
-	delete pMemBuf;
+	printInfo.tSwap = round(MemBuf.ullTotalPageFile / pow(1024.0, printInfo.unit));
+	printInfo.aSwap = round(MemBuf.ullAvailPageFile / pow(1024.0, printInfo.unit));
 
 	return -1;
 }

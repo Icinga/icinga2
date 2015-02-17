@@ -263,8 +263,8 @@ int printOutput(printInfoStruct& printInfo, vector<drive>& vDrives)
 int check_drives(vector<drive>& vDrives) 
 {
 	DWORD dwResult, dwSize = 0, dwVolumePathNamesLen = MAX_PATH + 1;
-	wchar_t szLogicalDrives[1024], szVolumeName[MAX_PATH], *szVolumePathNames;
-	HANDLE hVolume;
+	wchar_t szLogicalDrives[1024], szVolumeName[MAX_PATH], *szVolumePathNames = NULL;
+	HANDLE hVolume = NULL;
 	wstring wsLogicalDrives;
 	size_t volumeNameEnd = 0;
 
@@ -331,7 +331,8 @@ int check_drives(vector<drive>& vDrives)
 	}
 
 	FindVolumeClose(hVolume);
-	delete[] reinterpret_cast<wchar_t*>(szVolumePathNames);
+	if (szVolumePathNames)
+		delete[] reinterpret_cast<wchar_t*>(szVolumePathNames);
 	return -1;
  
 die:

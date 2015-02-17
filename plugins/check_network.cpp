@@ -289,9 +289,12 @@ int check_network(vector <nInterface>& vInterfaces)
 	if (debug)
 		wcout << L"Finished collection. Cleaning up and returning" << endl;
 
-	PdhCloseQuery(phQuery);
-	delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesIn);
-	delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
+	if (phQuery)
+		PdhCloseQuery(phQuery);
+	if (pDisplayValuesIn)
+		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesIn);
+	if (pDisplayValuesOut)
+		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
 	return -1;
 die:
 	die(err);

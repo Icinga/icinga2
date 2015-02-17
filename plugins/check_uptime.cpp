@@ -171,7 +171,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("debug"))
 		debug = TRUE;
-    
+
 	return -1;
 }
 
