@@ -24,7 +24,7 @@
 
 #include "boost/program_options.hpp"
 
-#define VERSION 1.0
+#define VERSION 1.1
 
 namespace po = boost::program_options;
 
@@ -36,13 +36,13 @@ static BOOL debug;
 struct printInfoStruct 
 {
 	bool warn;
-	int ServiceState;
+	DWORD ServiceState;
 	wstring service;
 };
 
 static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
 static int printOutput(const printInfoStruct&);
-static int ServiceStatus(const printInfoStruct&);
+static DWORD ServiceStatus(const printInfoStruct&);
 
 int wmain(int argc, wchar_t **argv)
 {
@@ -114,19 +114,17 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"%s' thresholds work differently, since a service is either running or not\n"
 			L"all \"-w\" and \"-c\" do is say whether a not running service is a warning\n"
 			L"or critical state respectively.\n\n"
-			L"Known issue: Since icinga2 runs as NETWORK SERVICE it can't access the access control lists\n"
-			L"it will not be able to find a service like NTDS. To fix this add ACL read permissions to icinga2.\n"
 			, progName, progName);
 		cout << endl;
 		return 0;
 	}
-    
+
 	 if (vm.count("version")) {
 		cout << "Version: " << VERSION << endl;
 		return 0;
 	} 
-    
-    if (!vm.count("service")) {
+
+	if (!vm.count("service")) {
 		cout << "Missing argument: service" << endl << desc << endl;
 		return 3;
 	}
@@ -151,7 +149,7 @@ int printOutput(const printInfoStruct& printInfo)
 	state state = OK;
 
 	if (!printInfo.ServiceState) {
-		wcout << L"SERVICE CRITICAL NOT_FOUND | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		wcout << L"SERVICE CRITICAL NOTFOUND | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		return 3;
 	}
 
@@ -163,68 +161,56 @@ int printOutput(const printInfoStruct& printInfo)
 		wcout << L"SERVICE OK RUNNING | service=4;!4;!4;1;7" << endl;
 		break;
 	case WARNING:
-		wcout << L"SERVICE WARNING NOT_RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		wcout << L"SERVICE WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		break;
 	case CRITICAL:
-		wcout << L"SERVICE CRITICAL NOT_RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		wcout << L"SERVICE CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
 		break;
 	}
-    
+
 	return state;
 }
 
-int ServiceStatus(const printInfoStruct& printInfo) 
+DWORD ServiceStatus(const printInfoStruct& printInfo) 
 {
+	SC_HANDLE hSCM;
+	SC_HANDLE hService;
+	DWORD cbBufSize;
+	LPBYTE lpBuf = NULL;
+
 	if (debug)
 		wcout << L"Opening SC Manager" << endl;
 
-	SC_HANDLE service_api = OpenSCManager(NULL, NULL, SC_MANAGER_ENUMERATE_SERVICE);
-	if (service_api == NULL)
+	hSCM = OpenSCManager(NULL, NULL, GENERIC_READ);
+	if (hSCM == NULL)
 		goto die;
-
-	LPBYTE lpServices = NULL;
-	DWORD cbBufSize = 0;
-	DWORD pcbBytesNeeded = NULL, ServicesReturned = NULL, ResumeHandle = NULL;
 
 	if (debug)
-		wcout << L"Creating service info structure" << endl;
+		wcout << L"Getting Service Information" << endl;
 
-	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
-		lpServices, cbBufSize, &pcbBytesNeeded, &ServicesReturned, &ResumeHandle, NULL)
-		&& GetLastError() != ERROR_MORE_DATA) 
+	hService = OpenService(hSCM, printInfo.service.c_str(), SERVICE_QUERY_STATUS);
+	if (hService == NULL)
+		goto die;
+	
+	QueryServiceStatusEx(hService, SC_STATUS_PROCESS_INFO, NULL, 0, &cbBufSize);
+	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		goto die;
 
-	lpServices = reinterpret_cast<LPBYTE>(new BYTE[pcbBytesNeeded]);
-	cbBufSize = pcbBytesNeeded;
-
-	if (!EnumServicesStatusEx(service_api, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL,
-		lpServices, cbBufSize, &pcbBytesNeeded, &ServicesReturned, &ResumeHandle, NULL))
-		goto die;
-
-	LPENUM_SERVICE_STATUS_PROCESS pInfo = (LPENUM_SERVICE_STATUS_PROCESS)lpServices;
-    
-	if (debug)
-		wcout << L"Traversing services" << endl;
-
-	for (DWORD i = 0; i < ServicesReturned; i++) {
-		if (debug)
-			wcout << L"Comparing " << pInfo[i].lpServiceName << L" to " << printInfo.service << endl;
-
-		if (!wcscmp(printInfo.service.c_str(), pInfo[i].lpServiceName)) {
-			if (debug)
-				wcout << L"Service " << pInfo[i].lpServiceName << L" = " << printInfo.service << ". Returning" << endl;
-
-			int state = pInfo[i].ServiceStatusProcess.dwCurrentState;
-			delete lpServices;
-			return state;
-		}
+	lpBuf = new BYTE[cbBufSize];
+	if (QueryServiceStatusEx(hService, SC_STATUS_PROCESS_INFO, lpBuf, cbBufSize, &cbBufSize)) {
+		LPSERVICE_STATUS_PROCESS pInfo = (LPSERVICE_STATUS_PROCESS)lpBuf;
+		return pInfo->dwCurrentState;
 	}
-	delete[] reinterpret_cast<LPBYTE>(lpServices);
-	return 0;
+
 
 die:
 	die();
-	if (lpServices)
-		delete[] reinterpret_cast<LPBYTE>(lpServices);
+	if (hSCM)
+		CloseServiceHandle(hSCM);
+	if (hService)
+		CloseServiceHandle(hService);
+	if (lpBuf)
+		delete[] lpBuf;
+
 	return -1;
 }
