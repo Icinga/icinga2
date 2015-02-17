@@ -139,7 +139,7 @@ void IdoPgsqlConnection::TxTimerHandler(void)
 
 void IdoPgsqlConnection::NewTransaction(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::NewTransaction, this), true);
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalNewTransaction, this), true);
 }
 
 void IdoPgsqlConnection::InternalNewTransaction(void)
