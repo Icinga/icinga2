@@ -45,13 +45,7 @@ public:
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 
 private:
-	static void PrintObject(std::ostream& fp, bool& first, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter);
-	static void PrintProperties(std::ostream& fp, const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent = 0);
-	static void PrintHints(std::ostream& fp, const Dictionary::Ptr& hints, int indent = 0);
-	static void PrintHint(std::ostream& fp, const Array::Ptr& msg, int indent = 0);
 	static void PrintTypeCounts(std::ostream& fp, const std::map<String, int>& type_count);
-	static void PrintValue(std::ostream& fp, const Value& val);
-	static void PrintArray(std::ostream& fp, const Array::Ptr& arr);
 };
 
 }
