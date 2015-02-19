@@ -356,11 +356,12 @@ void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoL
 			continue;
 
 		bool first = true;
+		/*
 		if (print)
 			ObjectListUtility::PrintObject(std::ostream(nullptr), first, message, type_count, "", "");
 		else
 			ObjectListUtility::PrintObject(std::ostream(nullptr), first, message, type_count, "", "");
-
+		*/
 		Dictionary::Ptr object = JsonDecode(message);
 		Dictionary::Ptr properties = object->Get("properties");
 
