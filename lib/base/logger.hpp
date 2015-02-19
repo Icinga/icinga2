@@ -82,6 +82,7 @@ public:
 	static std::set<Logger::Ptr> GetLoggers(void);
 
 	static void DisableConsoleLog(void);
+	static void EnableConsoleLog(void);
 	static bool IsConsoleLogEnabled(void);
 	static void DisableTimestamp(bool);
 	static bool IsTimestampEnabled(void);

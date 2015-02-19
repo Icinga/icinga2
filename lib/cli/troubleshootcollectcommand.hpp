@@ -21,6 +21,8 @@
 #define TROUBLESHOOTCOLLECTCOMMAND_H
 
 #include "cli/clicommand.hpp"
+#include "base/i2-base.hpp"
+#include "base/dictionary.hpp"
 
 namespace icinga
 {
@@ -39,7 +41,26 @@ namespace icinga
 		virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
 		virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 									boost::program_options::options_description& hiddenDesc) const;
-		static int tail(const String& file, int numLines, std::ostream& os);
+	
+	private:
+		class InfoLog;
+		class InfoLogLine;
+		static bool GeneralInfo(InfoLog& log, boost::program_options::variables_map vm);
+		static bool FeatureInfo(InfoLog& log, boost::program_options::variables_map vm);
+		static bool ObjectInfo(InfoLog& log, boost::program_options::variables_map vm, Dictionary::Ptr& logs);
+		static bool ReportInfo(InfoLog& log, boost::program_options::variables_map vm, Dictionary::Ptr& logs);
+		static bool ConfigInfo(InfoLog& log, boost::program_options::variables_map vm);
+
+		static int tail(const String& file, int numLines, InfoLog& log);
+		static bool CheckFeatures(InfoLog& log);
+		static void GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename);
+		static bool PrintCrashReports(InfoLog& log);
+		static bool PrintConf(InfoLog& log, const String& path);
+		static bool CheckConfig(void);
+		static void CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
+									Dictionary::Ptr& logs, std::set<String>& configs);
+		static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
+		static void PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal);
 	};
 }
 #endif /* TROUBLESHOOTCOLLECTCOMMAND_H */

@@ -189,6 +189,11 @@ void Logger::DisableConsoleLog(void)
 	m_ConsoleLogEnabled = false;
 }
 
+void Logger::EnableConsoleLog(void)
+{
+	m_ConsoleLogEnabled = false;
+}
+
 bool Logger::IsConsoleLogEnabled(void)
 {
 	return m_ConsoleLogEnabled;
