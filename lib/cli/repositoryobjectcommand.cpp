@@ -176,10 +176,19 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 
 	if (m_Command == RepositoryCommandAdd) {
 		Utility::LoadExtensionLibrary("icinga");
-		RepositoryUtility::AddObject(name, m_Type, attrs);
+
+		std::vector<String> object_paths = RepositoryUtility::GetObjects();
+
+		Array::Ptr changes = new Array();
+		RepositoryUtility::GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changes));
+
+		RepositoryUtility::AddObject(object_paths, name, m_Type, attrs, changes);
 	} else if (m_Command == RepositoryCommandRemove) {
+		Array::Ptr changes = new Array();
+		RepositoryUtility::GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changes));
+
 		/* pass attrs for service->host_name requirement */
-		RepositoryUtility::RemoveObject(name, m_Type, attrs);
+		RepositoryUtility::RemoveObject(name, m_Type, attrs, changes);
 	} else if (m_Command == RepositoryCommandSet) {
 		Log(LogWarning, "cli")
 		    << "Not supported yet. Please check the roadmap at https://dev.icinga.org\n";

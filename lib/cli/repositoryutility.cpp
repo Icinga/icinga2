@@ -199,9 +199,8 @@ public:
 };
 
 /* modify objects and write changelog */
-bool RepositoryUtility::AddObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
+bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const String& name, const String& type, const Dictionary::Ptr& attrs, const Array::Ptr& changes)
 {
-	std::vector<String> object_paths = GetObjects();
 	String pattern;
 
 	if (type == "Service")
@@ -264,7 +263,7 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 		}
 	}
 
-	if (CheckChangeExists(change)) {
+	if (CheckChangeExists(change, changes)) {
 		Log(LogWarning, "cli")
 		    << "Change '" << change->Get("command") << "' for type '"
 		    << change->Get("type") << "' and name '" << change->Get("name")
@@ -273,10 +272,13 @@ bool RepositoryUtility::AddObject(const String& name, const String& type, const 
 		return false;
 	}
 
+	/* store the cached change */
+	changes->Add(change);
+
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
 
-bool RepositoryUtility::RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs)
+bool RepositoryUtility::RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs, const Array::Ptr& changes)
 {
 	/* add a new changelog entry by timestamp */
 	String path = GetRepositoryChangeLogPath() + "/" + Convert::ToString(Utility::GetTime()) + "-" + type + "-" + SHA256(name) + ".change";
@@ -289,7 +291,7 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 	change->Set("command", "remove");
 	change->Set("attrs", attrs); //required for service->host_name
 
-	if (CheckChangeExists(change)) {
+	if (CheckChangeExists(change, changes)) {
 		Log(LogWarning, "cli")
 		    << "Change '" << change->Get("command") << "' for type '"
 		    << change->Get("type") << "' and name '" << change->Get("name")
@@ -297,6 +299,9 @@ bool RepositoryUtility::RemoveObject(const String& name, const String& type, con
 
 		return false;
 	}
+
+	/* store the cached change */
+	changes->Add(change);
 
 	return WriteObjectToRepositoryChangeLog(path, change);
 }
@@ -307,16 +312,12 @@ bool RepositoryUtility::SetObjectAttribute(const String& name, const String& typ
 	return true;
 }
 
-bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change)
+bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change, const Array::Ptr& changes)
 {
 	Dictionary::Ptr attrs = change->Get("attrs");
 
-	Array::Ptr changelog = new Array();
-
-	GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changelog));
-
-	ObjectLock olock(changelog);
-	BOOST_FOREACH(const Dictionary::Ptr& entry, changelog) {
+	ObjectLock olock(changes);
+	BOOST_FOREACH(const Dictionary::Ptr& entry, changes) {
 		if (entry->Get("type") != change->Get("type"))
 			continue;
 

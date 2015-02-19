@@ -85,7 +85,12 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 	Utility::LoadExtensionLibrary("icinga");
 
+	/* cache all existing object configs only once and pass it to AddObject() */
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
+	/* cache all existing changes only once and pass it to AddObject() */
+	Array::Ptr changes = new Array();
+	RepositoryUtility::GetChangeLog(boost::bind(RepositoryUtility::CollectChange, _1, changes));
+
 	std::vector<Dictionary::Ptr> nodes = NodeUtility::GetNodes();
 
 	/* first make sure that all nodes are valid and should not be removed */
@@ -122,7 +127,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 						Dictionary::Ptr host_attrs = new Dictionary();
 						host_attrs->Set("name", host);
-						RepositoryUtility::RemoveObject(host, "Host", host_attrs); //this removes all services for this host as well
+						RepositoryUtility::RemoveObject(host, "Host", host_attrs, changes); //this removes all services for this host as well
 					}
 				}
 
@@ -131,11 +136,11 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 				Dictionary::Ptr zone_attrs = new Dictionary();
 				zone_attrs->Set("name", zone);
-				RepositoryUtility::RemoveObject(zone, "Zone", zone_attrs);
+				RepositoryUtility::RemoveObject(zone, "Zone", zone_attrs, changes);
 
 				Dictionary::Ptr endpoint_attrs = new Dictionary();
 				endpoint_attrs->Set("name", endpoint);
-				RepositoryUtility::RemoveObject(endpoint, "Endpoint", endpoint_attrs);
+				RepositoryUtility::RemoveObject(endpoint, "Endpoint", endpoint_attrs, changes);
 			} else {
 				/* get the current node */
 				Dictionary::Ptr new_node = inventory->Get(old_node_name);
@@ -169,7 +174,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 							Dictionary::Ptr host_attrs = new Dictionary();
 							host_attrs->Set("name", old_host);
-							RepositoryUtility::RemoveObject(old_host, "Host", host_attrs); //this will remove all services for this host too
+							RepositoryUtility::RemoveObject(old_host, "Host", host_attrs, changes); //this will remove all services for this host too
 						} else {
 							/* host exists, now check all services for this host */
 							Array::Ptr old_services = kv.second;
@@ -194,7 +199,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 									Dictionary::Ptr service_attrs = new Dictionary();
 									service_attrs->Set("name", old_service);
 									service_attrs->Set("host_name", old_host);
-									RepositoryUtility::RemoveObject(old_service, "Service", service_attrs);
+									RepositoryUtility::RemoveObject(old_service, "Service", service_attrs, changes);
 								}
 							}
 						}
@@ -231,7 +236,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		host_imports->Add("satellite-host"); //default host node template
 		host_attrs->Set("import", host_imports);
 
-		if (!RepositoryUtility::AddObject(zone, "Host", host_attrs)) {
+		if (!RepositoryUtility::AddObject(object_paths, zone, "Host", host_attrs, changes)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node host '" << zone << "' to the config repository!\n";
 		}
@@ -290,7 +295,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					host_imports->Add("satellite-host"); //default host node template
 					host_attrs->Set("import", host_imports);
 
-					RepositoryUtility::AddObject(host, "Host", host_attrs);
+					RepositoryUtility::AddObject(object_paths, host, "Host", host_attrs, changes);
 				}
 
 				/* special condition: what if the host was blacklisted before, but the services should be generated? */
@@ -348,7 +353,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					service_imports->Add("satellite-service"); //default service node template
 					service_attrs->Set("import", service_imports);
 
-					if (!RepositoryUtility::AddObject(service, "Service", service_attrs))
+					if (!RepositoryUtility::AddObject(object_paths, service, "Service", service_attrs, changes))
 						continue;
 				}
 			}
@@ -371,7 +376,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		Log(LogInformation, "cli")
 		    << "Adding endpoint '" << endpoint << "' to the repository.";
 
-		if (!RepositoryUtility::AddObject(endpoint, "Endpoint", endpoint_attrs)) {
+		if (!RepositoryUtility::AddObject(object_paths, endpoint, "Endpoint", endpoint_attrs, changes)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node endpoint '" << endpoint << "' to the config repository!\n";
 		}
@@ -406,7 +411,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		Log(LogInformation, "cli")
 		    << "Adding zone '" << zone << "' to the repository.";
 
-		if (!RepositoryUtility::AddObject(zone, "Zone", zone_attrs)) {
+		if (!RepositoryUtility::AddObject(object_paths, zone, "Zone", zone_attrs, changes)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node zone '" << zone << "' to the config repository!\n";
 		}
