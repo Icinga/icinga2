@@ -26,6 +26,11 @@ set(base_test_SOURCES
   test.cpp
 )
 
+set(livestatus_test_SOURCES
+  livestatus.cpp
+  test.cpp
+)
+
 set_property(SOURCE test.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)
@@ -102,3 +107,10 @@ add_boost_test(base
 	icinga_perfdata/multi
 )
 
+if(ICINGA2_WITH_LIVESTATUS)
+  add_boost_test(livestatus
+    SOURCES test.cpp ${livestatus_test_SOURCES}
+    LIBRARIES base config icinga cli livestatus
+    TESTS livestatus/hosts livestatus/services
+  )
+endif()
