@@ -357,10 +357,9 @@ void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoL
 
 		bool first = true;
 		
-		if (print)
-			ObjectListUtility::PrintObject(std::ostream(NULL), first, message, type_count, "", "");
-		else
-			ObjectListUtility::PrintObject(std::ostream(NULL), first, message, type_count, "", "");
+		std::ofstream badstream;
+		
+		ObjectListUtility::PrintObject(badstream, first, message, type_count, "", "");
 		
 		Dictionary::Ptr object = JsonDecode(message);
 		Dictionary::Ptr properties = object->Get("properties");
