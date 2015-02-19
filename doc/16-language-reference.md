@@ -703,6 +703,10 @@ Example:
         num -= 1
     }
 
+The `continue` and `break` keywords can be used to control how the loop is executed: The `continue` keyword
+skips over the remaining expressions for the loop body and begins the next loop evaluation. The `break` keyword
+breaks out of the loop.
+
 ## <a id="for-loops"></a> For Loops
 
 The `for` statement can be used to iterate over arrays and dictionaries.
@@ -725,6 +729,10 @@ Iterating over dictionaries can be accomplished in a similar manner:
 	for (key => value in dict) {
 	  log("Key: " + key + ", Value: " + value)
     }
+
+The `continue` and `break` keywords can be used to control how the loop is executed: The `continue` keyword
+skips over the remaining expressions for the loop body and begins the next loop evaluation. The `break` keyword
+breaks out of the loop.
 
 ## <a id="types"></a> Types
 

@@ -139,7 +139,8 @@ public:
 
 			for (Array::SizeType i = 0; i < arr->GetLength(); i++) {
 				frame.Locals->Set(fkvar, arr->Get(i));
-				expression->Evaluate(frame);
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
 			}
 		} else if (value.IsObjectType<Dictionary>()) {
 			if (fvvar.IsEmpty())
@@ -158,7 +159,8 @@ public:
 			BOOST_FOREACH(const String& key, keys) {
 				frame.Locals->Set(fkvar, key);
 				frame.Locals->Set(fvvar, dict->Get(key));
-				expression->Evaluate(frame);
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
 			}
 		} else
 			BOOST_THROW_EXCEPTION(ScriptError("Invalid type in for expression: " + value.GetTypeName(), debugInfo));
@@ -304,14 +306,7 @@ private:
 		for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
 			frame.Locals->Set(funcargs[i], arguments[i]);
 
-		Value result;
-		try {
-			result = expr->Evaluate(frame);
-		} catch (const InterruptExecutionError& iee) {
-			result = iee.GetResult();
-		}
-
-		return result;
+		return expr->Evaluate(frame);
 	}
 
 	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, std::map<String, Expression *> *closedVars)

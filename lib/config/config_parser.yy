@@ -172,6 +172,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_IGNORE "ignore (T_IGNORE)"
 %token T_FUNCTION "function (T_FUNCTION)"
 %token T_RETURN "return (T_RETURN)"
+%token T_BREAK "break (T_BREAK)"
+%token T_CONTINUE "continue (T_CONTINUE)"
 %token T_FOR "for (T_FOR)"
 %token T_IF "if (T_IF)"
 %token T_ELSE "else (T_ELSE)"
@@ -213,7 +215,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %left T_LOGICAL_OR
 %left T_LOGICAL_AND
-%left T_RETURN
+%left T_RETURN T_BREAK T_CONTINUE
 %left T_IDENTIFIER
 %left T_BINARY_OR
 %left T_XOR
@@ -604,6 +606,14 @@ lterm: type
 	| T_RETURN optional_rterm
 	{
 		$$ = new ReturnExpression($2, @$);
+	}
+	| T_BREAK
+	{
+		$$ = new BreakExpression(@$);
+	}
+	| T_CONTINUE
+	{
+		$$ = new ContinueExpression(@$);
 	}
 	| apply
 	| object

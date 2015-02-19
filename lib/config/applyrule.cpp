@@ -88,7 +88,7 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 
 bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const
 {
-	return m_Filter->Evaluate(frame).ToBool();
+	return Convert::ToBool(m_Filter->Evaluate(frame));
 }
 
 void ApplyRule::RegisterType(const String& sourceType, const std::vector<String>& targetTypes)

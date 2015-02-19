@@ -49,7 +49,7 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 		group->GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("user", user);
 
-	if (!group->GetFilter()->Evaluate(frame).ToBool())
+	if (!group->GetFilter()->Evaluate(frame).GetValue().ToBool())
 		return false;
 
 	Log(LogDebug, "UserGroup")
