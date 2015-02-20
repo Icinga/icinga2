@@ -51,7 +51,7 @@ private:
 	static void InitializeThread(void);
 	static void ThreadProc(void);
 
-	static void WakeUpThread(void);
+	static void WakeUpThread(bool wait = false);
 
 	int GetPollEvents(void) const;
 

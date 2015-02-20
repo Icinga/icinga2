@@ -149,17 +149,21 @@ void SocketEvents::ThreadProc(void)
 	}
 }
 
-void SocketEvents::WakeUpThread(void)
+void SocketEvents::WakeUpThread(bool wait)
 {
-	if (boost::this_thread::get_id() != l_SocketIOThread.get_id()) {
-		boost::mutex::scoped_lock lock(l_SocketIOMutex);
+	if (wait) {
+		if (boost::this_thread::get_id() != l_SocketIOThread.get_id()) {
+			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-		l_SocketIOFDChanged = true;
+			l_SocketIOFDChanged = true;
 
+			(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
+
+			while (l_SocketIOFDChanged)
+				l_SocketIOCV.wait(lock);
+		}
+	} else {
 		(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
-
-		while (l_SocketIOFDChanged)
-			l_SocketIOCV.wait(lock);
 	}
 }
 
@@ -209,7 +213,7 @@ void SocketEvents::Unregister(void)
 		m_FD = INVALID_SOCKET;
 	}
 
-	WakeUpThread();
+	WakeUpThread(true);
 }
 
 void SocketEvents::ChangeEvents(int events)
