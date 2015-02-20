@@ -120,23 +120,6 @@ void Application::Exit(int rc)
 
 void Application::InitializeBase(void)
 {
-#ifndef _WIN32
-	rlimit rl;
-	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-		rlim_t maxfds = rl.rlim_max;
-
-		if (maxfds == RLIM_INFINITY)
-			maxfds = 65536;
-
-		for (rlim_t i = 3; i < maxfds; i++) {
-#ifdef I2_DEBUG
-			if (close(i) >= 0)
-				std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
-#endif /* I2_DEBUG */
-		}
-	}
-#endif /* _WIN32 */
-
 #ifdef _WIN32
 	/* disable GUI-based error messages for LoadLibrary() */
 	SetErrorMode(SEM_FAILCRITICALERRORS);
