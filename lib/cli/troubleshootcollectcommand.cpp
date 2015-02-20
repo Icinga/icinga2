@@ -81,7 +81,7 @@ public:
 
 	bool GetStreamHealth(void) const
 	{
-		return *m_Stream;
+		return m_Stream->good();
 	}
 
 private:
