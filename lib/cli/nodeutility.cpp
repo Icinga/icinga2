@@ -548,7 +548,7 @@ bool NodeUtility::CheckAgainstBlackAndWhiteList(const String& type, const String
 {
 	Array::Ptr lists = GetBlackAndWhiteList(type);
 
-	Log(LogInformation, "cli")
+	Log(LogNotice, "cli")
 	    << "Checking object against " << type << ".";
 
 	ObjectLock olock(lists);

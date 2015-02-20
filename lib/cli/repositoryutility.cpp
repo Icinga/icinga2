@@ -199,7 +199,8 @@ public:
 };
 
 /* modify objects and write changelog */
-bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const String& name, const String& type, const Dictionary::Ptr& attrs, const Array::Ptr& changes)
+bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const String& name, const String& type,
+    const Dictionary::Ptr& attrs, const Array::Ptr& changes, bool check_config)
 {
 	String pattern;
 
@@ -227,39 +228,41 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 	change->Set("command", "add");
 	change->Set("attrs", attrs);
 
-	String fname, fragment;
-	BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
-		Expression *expression = ConfigCompiler::CompileText(fname, fragment);
-		if (expression) {
-			ScriptFrame frame;
-			expression->Evaluate(frame);
-			delete expression;
+	if (check_config) {
+		String fname, fragment;
+		BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
+			Expression *expression = ConfigCompiler::CompileText(fname, fragment);
+			if (expression) {
+				ScriptFrame frame;
+				expression->Evaluate(frame);
+				delete expression;
+			}
 		}
-	}
 
-	ConfigType::Ptr ctype = ConfigType::GetByName(type);
+		ConfigType::Ptr ctype = ConfigType::GetByName(type);
 
-	if (!ctype)
-		Log(LogCritical, "cli")
-		    << "No validation type available for '" << type << "'.";
-	else {
-		Dictionary::Ptr vattrs = attrs->ShallowClone();
-		vattrs->Set("__name", vattrs->Get("name"));
-		vattrs->Remove("name");
-		vattrs->Remove("import");
-		vattrs->Set("type", type);
+		if (!ctype)
+			Log(LogCritical, "cli")
+			    << "No validation type available for '" << type << "'.";
+		else {
+			Dictionary::Ptr vattrs = attrs->ShallowClone();
+			vattrs->Set("__name", vattrs->Get("name"));
+			vattrs->Remove("name");
+			vattrs->Remove("import");
+			vattrs->Set("type", type);
 
-		Type::Ptr dtype = Type::GetByName(type);
+			Type::Ptr dtype = Type::GetByName(type);
 
-		Object::Ptr object = dtype->Instantiate();
-		Deserialize(object, vattrs, false, FAConfig);
+			Object::Ptr object = dtype->Instantiate();
+			Deserialize(object, vattrs, false, FAConfig);
 
-		try {
-			RepositoryTypeRuleUtilities utils;
-			ctype->ValidateItem(name, object, DebugInfo(), &utils);
-		} catch (const ScriptError& ex) {
-			Log(LogCritical, "config", DiagnosticInformation(ex));
-			return false;
+			try {
+				RepositoryTypeRuleUtilities utils;
+				ctype->ValidateItem(name, object, DebugInfo(), &utils);
+			} catch (const ScriptError& ex) {
+				Log(LogCritical, "config", DiagnosticInformation(ex));
+				return false;
+			}
 		}
 	}
 

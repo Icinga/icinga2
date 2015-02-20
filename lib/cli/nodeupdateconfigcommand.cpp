@@ -236,7 +236,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		host_imports->Add("satellite-host"); //default host node template
 		host_attrs->Set("import", host_imports);
 
-		if (!RepositoryUtility::AddObject(object_paths, zone, "Host", host_attrs, changes)) {
+		if (!RepositoryUtility::AddObject(object_paths, zone, "Host", host_attrs, changes, false)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node host '" << zone << "' to the config repository!\n";
 		}
@@ -295,7 +295,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					host_imports->Add("satellite-host"); //default host node template
 					host_attrs->Set("import", host_imports);
 
-					RepositoryUtility::AddObject(object_paths, host, "Host", host_attrs, changes);
+					RepositoryUtility::AddObject(object_paths, host, "Host", host_attrs, changes, false);
 				}
 
 				/* special condition: what if the host was blacklisted before, but the services should be generated? */
@@ -353,7 +353,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					service_imports->Add("satellite-service"); //default service node template
 					service_attrs->Set("import", service_imports);
 
-					if (!RepositoryUtility::AddObject(object_paths, service, "Service", service_attrs, changes))
+					if (!RepositoryUtility::AddObject(object_paths, service, "Service", service_attrs, changes, false))
 						continue;
 				}
 			}
@@ -376,7 +376,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		Log(LogInformation, "cli")
 		    << "Adding endpoint '" << endpoint << "' to the repository.";
 
-		if (!RepositoryUtility::AddObject(object_paths, endpoint, "Endpoint", endpoint_attrs, changes)) {
+		if (!RepositoryUtility::AddObject(object_paths, endpoint, "Endpoint", endpoint_attrs, changes, false)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node endpoint '" << endpoint << "' to the config repository!\n";
 		}
@@ -411,7 +411,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		Log(LogInformation, "cli")
 		    << "Adding zone '" << zone << "' to the repository.";
 
-		if (!RepositoryUtility::AddObject(object_paths, zone, "Zone", zone_attrs, changes)) {
+		if (!RepositoryUtility::AddObject(object_paths, zone, "Zone", zone_attrs, changes, false)) {
 			Log(LogCritical, "cli")
 			    << "Cannot add node zone '" << zone << "' to the config repository!\n";
 		}

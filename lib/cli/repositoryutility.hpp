@@ -52,7 +52,8 @@ public:
 
 	static void PrintChangeLog(std::ostream& fp);
 
-	static bool AddObject(const std::vector<String>& object_paths, const String& name, const String& type, const Dictionary::Ptr& attrs, const Array::Ptr& changes);
+	static bool AddObject(const std::vector<String>& object_paths, const String& name, const String& type, const Dictionary::Ptr& attrs,
+	    const Array::Ptr& changes, bool check_config = true);
 	static bool RemoveObject(const String& name, const String& type, const Dictionary::Ptr& attrs, const Array::Ptr& changes);
 
 	static bool CheckChangeExists(const Dictionary::Ptr& change, const Array::Ptr& changes);
