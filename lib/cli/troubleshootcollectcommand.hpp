@@ -45,13 +45,15 @@ namespace icinga
 	private:
 		class InfoLog;
 		class InfoLogLine;
-		static bool GeneralInfo(InfoLog& log, boost::program_options::variables_map vm);
-		static bool FeatureInfo(InfoLog& log, boost::program_options::variables_map vm);
-		static bool ObjectInfo(InfoLog& log, boost::program_options::variables_map vm, Dictionary::Ptr& logs);
-		static bool ReportInfo(InfoLog& log, boost::program_options::variables_map vm, Dictionary::Ptr& logs);
-		static bool ConfigInfo(InfoLog& log, boost::program_options::variables_map vm);
+		static bool GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm);
+		static bool FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm);
+		static bool ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm,
+			   					Dictionary::Ptr& logs);
+		static bool ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, 
+								Dictionary::Ptr& logs);
+		static bool ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm);
 
-		static int tail(const String& file, int numLines, InfoLog& log);
+		static int Tail(const String& file, const int numLines, InfoLog& log);
 		static bool CheckFeatures(InfoLog& log);
 		static void GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename);
 		static bool PrintCrashReports(InfoLog& log);

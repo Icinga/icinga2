@@ -53,66 +53,68 @@ String TroubleshootCollectCommand::GetShortDescription(void) const
 
 class TroubleshootCollectCommand::InfoLog
 {
-	bool console;
-	std::ostream *os;
 public:
 	InfoLog(const String& path, const bool cons)
 	{
-		console = cons;
-		if (console) {
-			os = new std::ostream(std::cout.rdbuf());
-		} else {
+		m_Console = cons;
+		if (m_Console)
+			m_Stream = new std::ostream(std::cout.rdbuf());
+		else {
 			std::ofstream *ofs = new std::ofstream();
 			ofs->open(path.CStr(), std::ios::out | std::ios::trunc);
-			os = ofs;
+			m_Stream = ofs;
 		}
-	};
+	}
 
-	void logLine(const LogSeverity sev, const String& str)
+	void WriteLine(const LogSeverity sev, const String& str)
 	{
-		if (!console)
+		if (!m_Console)
 			Log(sev, "troubleshoot", str);
 
 		if (sev == LogCritical || sev == LogWarning) {
-			*os << std::string(24, '#') << '\n'
+			*m_Stream << std::string(24, '#') << '\n'
 				<< "# " << str << '\n'
 				<< std::string(24, '#') << '\n';
 		} else
-			*os << str << '\n';
+			*m_Stream << str << '\n';
 	}
 
-	bool GetStreamHealth()
+	bool GetStreamHealth(void) const
 	{
-		return *os;
+		return *m_Stream;
 	}
+
+private:
+	bool m_Console;
+	std::ostream *m_Stream;
 };
 
 class TroubleshootCollectCommand::InfoLogLine
 {
 public:
 	InfoLogLine(InfoLog& log, LogSeverity sev = LogInformation)
-		: log(log), sev(sev) {}
+		: m_Log(log), m_Sev(sev) {}
 
 	~InfoLogLine()
 	{
-		log.logLine(sev, os.str());
+		m_Log.WriteLine(m_Sev, m_String.str());
 	}
 
 	template <typename T>
 	InfoLogLine& operator<<(const T& info)
 	{
-		os << info;
+		m_String << info;
 		return *this;
 	}
 
 private:
-	std::ostringstream os;
-	InfoLog& log;
-	LogSeverity sev;
+	std::ostringstream m_String;
+	InfoLog& m_Log;
+	LogSeverity m_Sev;
 };
 
 
-bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, boost::program_options::variables_map vm)
+bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log) << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << '\n';
 
@@ -133,14 +135,14 @@ bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, boost::program_option
 	return true;
 }
 
-bool TroubleshootCollectCommand::FeatureInfo(InfoLog& log, boost::program_options::variables_map vm)
+bool TroubleshootCollectCommand::FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	TroubleshootCollectCommand::CheckFeatures(log);
 	//TODO Check whether active faetures are operational.
 	return true;
 }
 
-bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, boost::program_options::variables_map vm, Dictionary::Ptr& logs)
+bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
 	InfoLogLine(log) << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << '\n';
 
@@ -157,7 +159,7 @@ bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, boost::program_options
 	return true;
 }
 
-bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, boost::program_options::variables_map vm, Dictionary::Ptr& logs)
+bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
 	InfoLogLine(log) << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << '\n';
 	PrintLoggers(log, logs);
@@ -166,7 +168,7 @@ bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, boost::program_options
 	return true;
 }
 
-bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, boost::program_options::variables_map vm)
+bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log) << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << '\n';
 
@@ -187,7 +189,7 @@ bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, boost::program_options
 
 
 /*Print the last *numLines* of *file* to *os* */
-int TroubleshootCollectCommand::tail(const String& file, int numLines, InfoLog& log)
+int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& log)
 {
 	boost::circular_buffer<std::string> ringBuf(numLines);
 	std::ifstream text;
@@ -297,7 +299,7 @@ bool TroubleshootCollectCommand::PrintCrashReports(InfoLog& log)
 	else {
 		InfoLogLine(log) << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime())
 			<< "\nFile: " << bestFilename;
-		tail(bestFilename, 20, log);
+		Tail(bestFilename, 20, log);
 	}
 	return true;
 }
@@ -413,7 +415,7 @@ void TroubleshootCollectCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& log
 		BOOST_FOREACH(const Dictionary::Pair& kv, logs)
 		{
 			InfoLogLine(log) << "\nLogger " << kv.first << " at path: " << kv.second;
-			if (!tail(kv.second, 20, log))
+			if (!Tail(kv.second, 20, log))
 				InfoLogLine(log, LogWarning) << kv.second << " either does not exist or is empty";
 		}
 	}
