@@ -1,6 +1,6 @@
 /*****************************************************************************
 * Icinga 2                                                                   *
-* Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+* Copyright (C) 2012-2015 Icinga Development Team (https://www.icinga.org)   *
 *                                                                            *
 * This program is free software; you can redistribute it and/or              *
 * modify it under the terms of the GNU General Public License                *
@@ -27,9 +27,7 @@
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-
 #include "config/configitembuilder.hpp"
-
 #include <boost/circular_buffer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -118,19 +116,19 @@ bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, const boost::program_
 {
 	InfoLogLine(log) << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << '\n';
 
-	//Application::DisplayInfoMessage() but formatted 
+	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
-		<< "\tApplication version: " << Application::GetVersion() << '\n'
-		<< "\tInstallation root: " << Application::GetPrefixDir() << '\n'
-		<< "\tSysconf directory: " << Application::GetSysconfDir() << '\n'
-		<< "\tRun directory: " << Application::GetRunDir() << '\n'
-		<< "\tLocal state directory: " << Application::GetLocalStateDir() << '\n'
-		<< "\tPackage data directory: " << Application::GetPkgDataDir() << '\n'
-		<< "\tState path: " << Application::GetStatePath() << '\n'
-		<< "\tObjects path: " << Application::GetObjectsPath() << '\n'
-		<< "\tVars path: " << Application::GetVarsPath() << '\n'
-		<< "\tPID path: " << Application::GetPidPath() << '\n'
-		<< "\tApplication type: " << Application::GetApplicationType() << '\n';
+	    << "\tApplication version: " << Application::GetVersion() << '\n'
+	    << "\tInstallation root: " << Application::GetPrefixDir() << '\n'
+	    << "\tSysconf directory: " << Application::GetSysconfDir() << '\n'
+	    << "\tRun directory: " << Application::GetRunDir() << '\n'
+	    << "\tLocal state directory: " << Application::GetLocalStateDir() << '\n'
+	    << "\tPackage data directory: " << Application::GetPkgDataDir() << '\n'
+	    << "\tState path: " << Application::GetStatePath() << '\n'
+	    << "\tObjects path: " << Application::GetObjectsPath() << '\n'
+	    << "\tVars path: " << Application::GetVarsPath() << '\n'
+	    << "\tPID path: " << Application::GetPidPath() << '\n'
+	    << "\tApplication type: " << Application::GetApplicationType() << '\n';
 
 	return true;
 }
@@ -174,19 +172,20 @@ bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, const boost::program_o
 
 	InfoLogLine(log) << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc";
 	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
-		InfoLogLine(log, LogWarning) << "icinga2.conf not found, therefore skipping validation.\n"
-			<< "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
-			<< "and provide it with your support request.";
+		InfoLogLine(log, LogWarning)
+		    << "icinga2.conf not found, therefore skipping validation.\n"
+		    << "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
+		    << "and provide it with your support request.";
 	}
 
 	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/zones.conf")) {
-		InfoLogLine(log, LogWarning) << "zones.conf not found.\n"
-			<< "If you are using a zones.conf somewhere but the default path please provide it with your support request";
+		InfoLogLine(log, LogWarning)
+		    << "zones.conf not found.\n"
+		    << "If you are using a zones.conf somewhere but the default path please provide it with your support request";
 	}
 
 	return true;
 }
-
 
 /*Print the last *numLines* of *file* to *os* */
 int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& log)
@@ -208,11 +207,16 @@ int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& 
 	if (lines < numLines)
 		numLines = lines;
 
+	for (int k = 0; k < numLines; k++) {
+		InfoLogLine(log)
+		    << '\t' << ringBuf[k];
+	}
 
-	for (int k = 0; k < numLines; k++)
-		InfoLogLine(log) << '\t' << ringBuf[k];
 	text.close();
-	InfoLogLine(log) << "[end: '" << file << "' line: " << lines << ']';
+
+	InfoLogLine(log)
+	    << "[end: '" << file << "' line: " << lines << ']';
+
 	return numLines;
 }
 
@@ -222,11 +226,12 @@ bool TroubleshootCollectCommand::CheckFeatures(InfoLog& log)
 	std::vector<String> disabled_features;
 	std::vector<String> enabled_features;
 
-	if (!FeatureUtility::GetFeatures(disabled_features, true)
-		|| !FeatureUtility::GetFeatures(enabled_features, false)) {
-		InfoLogLine(log, LogCritical) << "Failed to collect enabled and/or disabled features. Check\n"
-			<< FeatureUtility::GetFeaturesAvailablePath() << '\n'
-			<< FeatureUtility::GetFeaturesEnabledPath();
+	if (!FeatureUtility::GetFeatures(disabled_features, true) ||
+	    !FeatureUtility::GetFeatures(enabled_features, false)) {
+		InfoLogLine(log, LogCritical)
+		    << "Failed to collect enabled and/or disabled features. Check\n"
+		    << FeatureUtility::GetFeaturesAvailablePath() << '\n'
+		    << FeatureUtility::GetFeaturesEnabledPath();
 		return false;
 	}
 
@@ -235,8 +240,9 @@ bool TroubleshootCollectCommand::CheckFeatures(InfoLog& log)
 	BOOST_FOREACH(const String feature, enabled_features)
 		features->Set(feature, true);
 
-	InfoLogLine(log) << "Enabled features:\n\t" << boost::algorithm::join(enabled_features, " ") << '\n'
-		<< "Disabled features:\n\t" << boost::algorithm::join(disabled_features, " ") << '\n';
+	InfoLogLine(log)
+	    << "Enabled features:\n\t" << boost::algorithm::join(enabled_features, " ") << '\n'
+	    << "Disabled features:\n\t" << boost::algorithm::join(disabled_features, " ") << '\n';
 
 	if (!features->Get("checker").ToBool())
 		InfoLogLine(log, LogWarning) << "checker is disabled, no checks can be run from this instance";
@@ -244,6 +250,7 @@ bool TroubleshootCollectCommand::CheckFeatures(InfoLog& log)
 		InfoLogLine(log, LogWarning) << "mainlog is disabled, please activate it and rerun icinga2";
 	if (!features->Get("debuglog").ToBool())
 		InfoLogLine(log, LogWarning) << "debuglog is disabled, please activate it and rerun icinga2";
+
 	return true;
 }
 
@@ -271,36 +278,44 @@ bool TroubleshootCollectCommand::PrintCrashReports(InfoLog& log)
 	String bestFilename;
 
 	try {
-		Utility::Glob(spath,
-					boost::bind(&GetLatestReport, _1, boost::ref(bestTimestamp), boost::ref(bestFilename)), 
-					  GlobFile);
+		Utility::Glob(spath, boost::bind(&GetLatestReport, _1, boost::ref(bestTimestamp),
+		    boost::ref(bestFilename)), GlobFile);
 	}
 #ifdef _WIN32
 	catch (win32_error &ex) {
 		if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
 			if (*err != 3) {//Error code for path does not exist
-				InfoLogLine(log, LogWarning) << Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist";
+				InfoLogLine(log, LogWarning)
+				    << Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist";
+
 				return false;
 			}
-		} 
-		InfoLogLine(log, LogWarning) << "Error printing crash reports";
+		}
+		InfoLogLine(log, LogWarning)
+		    << "Error printing crash reports";
+
 		return false;
 	}
 #else
 	catch (...) {
-		InfoLogLine(log, LogWarning) << "Error printing crash reports.\nDoes " 
-			<< Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?";
-			return false;
+		InfoLogLine(log, LogWarning)
+		    << "Error printing crash reports.\nDoes "
+		    << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?";
+
+		return false;
 	}
 #endif /*_WIN32*/
 
 	if (!bestTimestamp)
-		InfoLogLine(log) << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/";
+		InfoLogLine(log)
+		    << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/";
 	else {
-		InfoLogLine(log) << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime())
-			<< "\nFile: " << bestFilename;
+		InfoLogLine(log)
+		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime())
+		    << "\nFile: " << bestFilename;
 		Tail(bestFilename, 20, log);
 	}
+
 	return true;
 }
 
@@ -313,38 +328,47 @@ bool TroubleshootCollectCommand::PrintConf(InfoLog& log, const String& path)
 
 	std::string line;
 
-	InfoLogLine(log) << "\n[begin: '" << path << "']";
+	InfoLogLine(log)
+	    << "\n[begin: '" << path << "']";
+
 	while (std::getline(text, line)) {
-		InfoLogLine(log) << '\t' << line;
+		InfoLogLine(log)
+		    << '\t' << line;
 	}
-	InfoLogLine(log) << "\n[end: '" << path << "']";
+
+	InfoLogLine(log)
+	     << "\n[end: '" << path << "']";
+
 	return true;
 }
 
 bool TroubleshootCollectCommand::CheckConfig(void)
 {
 	/* Not loading the icinga library would make config validation fail.
-	 * (Depending on the configuration and the speed of your machine.) 
+	 * (Depending on the configuration and the speed of your machine.)
 	 */
 	Utility::LoadExtensionLibrary("icinga");
 	std::vector<std::string> configs;
 	configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
+
 	return DaemonUtility::ValidateConfigFiles(configs, Application::GetObjectsPath());
 }
 
 void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
-							Dictionary::Ptr& logs, std::set<String>& configs)
+     Dictionary::Ptr& logs, std::set<String>& configs)
 {
-	InfoLogLine(log) << "Checking object file from " << objectfile;
+	InfoLogLine(log)
+	     << "Checking object file from " << objectfile;
 
 	std::fstream fp;
 	fp.open(objectfile.CStr(), std::ios_base::in);
 
 	if (!fp.is_open()) {
-		InfoLogLine(log, LogWarning) << "Could not open object file.";
+		InfoLogLine(log, LogWarning)
+		     << "Could not open object file.";
 		return;
 	}
-	
+
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 	String::SizeType typeL = 0, countTotal = 0;
 
@@ -353,16 +377,15 @@ void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoL
 	StreamReadStatus srs;
 	std::map<String, int> type_count;
 	bool first = true;
+
 	while ((srs = NetString::ReadStringFromStream(sfp, &message, src)) != StatusEof) {
 		if (srs != StatusNewItem)
 			continue;
 
-		bool first = true;
-		
 		std::stringstream sStream;
-		
+
 		ObjectListUtility::PrintObject(sStream, first, message, type_count, "", "");
-		
+
 		Dictionary::Ptr object = JsonDecode(message);
 		Dictionary::Ptr properties = object->Get("properties");
 
@@ -374,9 +397,9 @@ void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoL
 		countTotal++;
 
 		Array::Ptr debug_info = object->Get("debug_info");
-		if (debug_info) {
+
+		if (debug_info)
 			configs.insert(debug_info->Get(0));
-		}
 
 		if (Utility::Match(type, "FileLogger")) {
 			Dictionary::Ptr debug_hints = object->Get("debug_hints");
@@ -391,46 +414,59 @@ void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoL
 	}
 
 	if (!countTotal) {
-		InfoLogLine(log, LogCritical) << "No objects found in objectfile.";
+		InfoLogLine(log, LogCritical)
+		    << "No objects found in objectfile.";
+
 		return;
 	}
 
 	//Print objects with count
-	InfoLogLine(log) << "Found the " << countTotal << " objects:"
-		<< "\tType" << std::string(typeL-4, ' ') << " : Count";
+	InfoLogLine(log)
+	    << "Found the " << countTotal << " objects:"
+	    << "\tType" << std::string(typeL-4, ' ') << " : Count";
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, type_count) {
-		InfoLogLine(log) << '\t' << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
-			<< " : " << kv.second;
+		InfoLogLine(log)
+		    << '\t' << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
+		    << " : " << kv.second;
 	}
 }
 
 void TroubleshootCollectCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 {
 	if (!logs->GetLength()) {
-		InfoLogLine(log, LogWarning) << "No loggers found, check whether you enabled any logging features";
+		InfoLogLine(log, LogWarning)
+		     << "No loggers found, check whether you enabled any logging features";
 	} else {
-		InfoLogLine(log) << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.";
+		InfoLogLine(log)
+		     << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.";
+
 		ObjectLock ulock(logs);
-		BOOST_FOREACH(const Dictionary::Pair& kv, logs)
-		{
-			InfoLogLine(log) << "\nLogger " << kv.first << " at path: " << kv.second;
-			if (!Tail(kv.second, 20, log))
-				InfoLogLine(log, LogWarning) << kv.second << " either does not exist or is empty";
+		BOOST_FOREACH(const Dictionary::Pair& kv, logs) {
+			InfoLogLine(log)
+			     << "\nLogger " << kv.first << " at path: " << kv.second;
+
+			if (!Tail(kv.second, 20, log)) {
+				InfoLogLine(log, LogWarning)
+				     << kv.second << " either does not exist or is empty";
+			}
 		}
 	}
 }
 
 void TroubleshootCollectCommand::PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal)
 {
-	InfoLogLine(log) << countTotal << " objects in total, originating from these files:";
-	for (std::set<String>::iterator it = configSet.begin();
-		 it != configSet.end(); it++)
-		 InfoLogLine(log) << '\t' << *it;
+	InfoLogLine(log)
+	     << countTotal << " objects in total, originating from these files:";
+
+	for (std::set<String>::iterator it = configSet.begin(); it != configSet.end(); it++) {
+		InfoLogLine(log)
+		     << '\t' << *it;
+	}
 }
 
 void TroubleshootCollectCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-												boost::program_options::options_description& hiddenDesc) const
+     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("console,c", "print to console instead of file")
@@ -453,10 +489,10 @@ int TroubleshootCollectCommand::Run(const boost::program_options::variables_map&
 		else {
 #ifdef _WIN32 //Dislikes ':' in filenames
 			path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
-				+ Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
+			    + Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
 #else
-			path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-" 
-				+ Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
+			path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
+			    + Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
 #endif /*_WIN32*/
 		}
 		log = new InfoLog(path, false);
@@ -464,7 +500,7 @@ int TroubleshootCollectCommand::Run(const boost::program_options::variables_map&
 			Log(LogCritical, "troubleshoot", "Failed to open file to write: " + path);
 			return 3;
 		}
-	}	
+	}
 	String appName = Utility::BaseName(Application::GetArgV()[0]);
 	double goTime = Utility::GetTime();
 
@@ -477,19 +513,24 @@ int TroubleshootCollectCommand::Run(const boost::program_options::variables_map&
 
 	Dictionary::Ptr logs = new Dictionary;
 
-	if (!GeneralInfo(*log, vm)
-		|| !FeatureInfo(*log, vm)
-		|| !ObjectInfo(*log, vm, logs)
-		|| !ReportInfo(*log, vm, logs)
-		|| !ConfigInfo(*log, vm)) {
-		InfoLogLine(*log, LogCritical) << "Could not recover from critical failure, exiting.";
+	if (!GeneralInfo(*log, vm) ||
+	    !FeatureInfo(*log, vm) ||
+	    !ObjectInfo(*log, vm, logs) ||
+	    !ReportInfo(*log, vm, logs) ||
+	    !ConfigInfo(*log, vm)) {
+		InfoLogLine(*log, LogCritical)
+		    << "Could not recover from critical failure, exiting.";
+
 		delete log;
 		return 3;
 	}
-	
+
 	double endTime = Utility::GetTime();
-	InfoLogLine(*log) << "\nFinished collection at timestamp " << Convert::ToString(endTime)
-		<< "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
+
+	InfoLogLine(*log)
+	    << "\nFinished collection at timestamp " << Convert::ToString(endTime)
+	    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
+
 	if (!vm.count("console")) {
 		std::cout << "\nFinished collection. See '" << path << "'\n";
 	}

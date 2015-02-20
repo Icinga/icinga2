@@ -1,6 +1,6 @@
 /******************************************************************************
 * Icinga 2                                                                   *
-* Copyright (C) 2012-2014 Icinga Development Team (http://www.icinga.org)    *
+* Copyright (C) 2012-2015 Icinga Development Team (https://www.icinga.org)   *
 *                                                                            *
 * This program is free software; you can redistribute it and/or              *
 * modify it under the terms of the GNU General Public License                *
@@ -26,43 +26,45 @@
 
 namespace icinga
 {
-	/**
-	* The "troubleshoot collect" command.
-	*
-	* @ingroup cli
-	*/
-	class TroubleshootCollectCommand : public CLICommand
-	{
-	public:
-		DECLARE_PTR_TYPEDEFS(TroubleshootCollectCommand);
 
-		virtual String GetDescription(void) const;
-		virtual String GetShortDescription(void) const;
-		virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
-		virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-									boost::program_options::options_description& hiddenDesc) const;
-	
-	private:
-		class InfoLog;
-		class InfoLogLine;
-		static bool GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm);
-		static bool FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm);
-		static bool ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm,
-			   					Dictionary::Ptr& logs);
-		static bool ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, 
-								Dictionary::Ptr& logs);
-		static bool ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm);
+/**
+ * The "troubleshoot collect" command.
+ *
+ * @ingroup cli
+ */
+class TroubleshootCollectCommand : public CLICommand
+{
+public:
+	DECLARE_PTR_TYPEDEFS(TroubleshootCollectCommand);
 
-		static int Tail(const String& file, const int numLines, InfoLog& log);
-		static bool CheckFeatures(InfoLog& log);
-		static void GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename);
-		static bool PrintCrashReports(InfoLog& log);
-		static bool PrintConf(InfoLog& log, const String& path);
-		static bool CheckConfig(void);
-		static void CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
-									Dictionary::Ptr& logs, std::set<String>& configs);
-		static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
-		static void PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal);
-	};
+	virtual String GetDescription(void) const;
+	virtual String GetShortDescription(void) const;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+	    boost::program_options::options_description& hiddenDesc) const;
+
+private:
+	class InfoLog;
+	class InfoLogLine;
+	static bool GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm);
+	static bool FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm);
+	static bool ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm,
+	    Dictionary::Ptr& logs);
+	static bool ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm,
+	    Dictionary::Ptr& logs);
+	static bool ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm);
+
+	static int Tail(const String& file, const int numLines, InfoLog& log);
+	static bool CheckFeatures(InfoLog& log);
+	static void GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename);
+	static bool PrintCrashReports(InfoLog& log);
+	static bool PrintConf(InfoLog& log, const String& path);
+	static bool CheckConfig(void);
+	static void CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
+	    Dictionary::Ptr& logs, std::set<String>& configs);
+	static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
+	static void PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal);
+};
+
 }
 #endif /* TROUBLESHOOTCOLLECTCOMMAND_H */
