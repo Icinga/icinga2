@@ -70,11 +70,13 @@ public:
 			Log(sev, "troubleshoot", str);
 
 		if (sev == LogCritical || sev == LogWarning) {
-			*m_Stream << std::string(24, '#') << '\n'
-				<< "# " << str << '\n'
-				<< std::string(24, '#') << '\n';
+			*m_Stream 
+			    << std::string(24, '#') << '\n'
+			    << "# " << str << '\n'
+			    << std::string(24, '#') << '\n';
 		} else
-			*m_Stream << str << '\n';
+			*m_Stream 
+			    << str << '\n';
 	}
 
 	bool GetStreamHealth(void) const
@@ -114,7 +116,8 @@ private:
 
 bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
-	InfoLogLine(log) << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << '\n';
+	InfoLogLine(log) 
+	    << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << '\n';
 
 	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
@@ -142,14 +145,16 @@ bool TroubleshootCollectCommand::FeatureInfo(InfoLog& log, const boost::program_
 
 bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
-	InfoLogLine(log) << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << '\n';
+	InfoLogLine(log) 
+	    << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << '\n';
 
 	String objectfile = Application::GetObjectsPath();
 	std::set<String> configs;
 
 	if (!Utility::PathExists(objectfile)) {
-		InfoLogLine(log, LogCritical) << "Cannot open object file '" << objectfile << "'.\n"
-			<< "FAILED: This probably means you have a fault configuration.";
+		InfoLogLine(log, LogCritical) 
+		    << "Cannot open object file '" << objectfile << "'.\n"
+		    << "FAILED: This probably means you have a fault configuration.";
 		return false;
 	} else
 		CheckObjectFile(objectfile, log, vm.count("include-objects"), logs, configs);
@@ -159,7 +164,8 @@ bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, const boost::program_o
 
 bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
-	InfoLogLine(log) << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << '\n';
+	InfoLogLine(log) 
+	    << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << '\n';
 	PrintLoggers(log, logs);
 	PrintCrashReports(log);
 
@@ -168,9 +174,12 @@ bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, const boost::program_o
 
 bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
-	InfoLogLine(log) << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << '\n';
+	InfoLogLine(log) 
+	    << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << '\n';
 
-	InfoLogLine(log) << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc";
+	InfoLogLine(log) 
+	    << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc";
+
 	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
 		InfoLogLine(log, LogWarning)
 		    << "icinga2.conf not found, therefore skipping validation.\n"
@@ -214,7 +223,7 @@ int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& 
 
 	text.close();
 
-	InfoLogLine(log)
+	InfoLogLine(log) 
 	    << "[end: '" << file << "' line: " << lines << ']';
 
 	return numLines;
@@ -245,11 +254,14 @@ bool TroubleshootCollectCommand::CheckFeatures(InfoLog& log)
 	    << "Disabled features:\n\t" << boost::algorithm::join(disabled_features, " ") << '\n';
 
 	if (!features->Get("checker").ToBool())
-		InfoLogLine(log, LogWarning) << "checker is disabled, no checks can be run from this instance";
+		InfoLogLine(log, LogWarning) 
+		    << "checker is disabled, no checks can be run from this instance";
 	if (!features->Get("mainlog").ToBool())
-		InfoLogLine(log, LogWarning) << "mainlog is disabled, please activate it and rerun icinga2";
+		InfoLogLine(log, LogWarning) 
+		    << "mainlog is disabled, please activate it and rerun icinga2";
 	if (!features->Get("debuglog").ToBool())
-		InfoLogLine(log, LogWarning) << "debuglog is disabled, please activate it and rerun icinga2";
+		InfoLogLine(log, LogWarning) 
+		    << "debuglog is disabled, please activate it and rerun icinga2";
 
 	return true;
 }
@@ -291,16 +303,15 @@ bool TroubleshootCollectCommand::PrintCrashReports(InfoLog& log)
 				return false;
 			}
 		}
-		InfoLogLine(log, LogWarning)
+		InfoLogLine(log, LogWarning) 
 		    << "Error printing crash reports";
 
 		return false;
 	}
 #else
 	catch (...) {
-		InfoLogLine(log, LogWarning)
-		    << "Error printing crash reports.\nDoes "
-		    << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?";
+		InfoLogLine(log, LogWarning) << "Error printing crash reports.\n"
+		    << "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?";
 
 		return false;
 	}
@@ -328,11 +339,11 @@ bool TroubleshootCollectCommand::PrintConf(InfoLog& log, const String& path)
 
 	std::string line;
 
-	InfoLogLine(log)
+	InfoLogLine(log) 
 	    << "\n[begin: '" << path << "']";
 
 	while (std::getline(text, line)) {
-		InfoLogLine(log)
+		InfoLogLine(log) 
 		    << '\t' << line;
 	}
 
@@ -504,9 +515,10 @@ int TroubleshootCollectCommand::Run(const boost::program_options::variables_map&
 	String appName = Utility::BaseName(Application::GetArgV()[0]);
 	double goTime = Utility::GetTime();
 
-	InfoLogLine(*log) << appName << " -- Troubleshooting help:\n"
-		<< "Should you run into problems with Icinga please add this file to your help request\n"
-		<< "Began procedure at timestamp " << Convert::ToString(goTime) << '\n';
+	InfoLogLine(*log) 
+	    << appName << " -- Troubleshooting help:\n"
+	    << "Should you run into problems with Icinga please add this file to your help request\n"
+	    << "Began procedure at timestamp " << Convert::ToString(goTime) << '\n';
 
 	if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 		appName = appName.SubStr(3, appName.GetLength() - 3);
@@ -532,7 +544,8 @@ int TroubleshootCollectCommand::Run(const boost::program_options::variables_map&
 	    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
 
 	if (!vm.count("console")) {
-		std::cout << "\nFinished collection. See '" << path << "'\n";
+		std::cout 
+		    << "\nFinished collection. See '" << path << "'\n";
 	}
 
 	delete log;
