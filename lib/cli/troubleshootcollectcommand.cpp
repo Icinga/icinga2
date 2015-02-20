@@ -54,17 +54,17 @@ String TroubleshootCollectCommand::GetShortDescription(void) const
 class TroubleshootCollectCommand::InfoLog
 {
 	bool console;
-	std::ofstream os;
+	std::ostream *os;
 public:
 	InfoLog(const String& path, const bool cons)
 	{
 		console = cons;
 		if (console) {
-			os.copyfmt(std::cout);
-			os.clear(std::cout.rdstate());
-			os.basic_ios<char>::rdbuf(std::cout.rdbuf());
+			os = new std::ostream(std::cout.rdbuf());
 		} else {
-			os.open(path.CStr(), std::ios::out | std::ios::trunc);
+			std::ofstream *ofs = new std::ofstream();
+			ofs->open(path.CStr(), std::ios::out | std::ios::trunc);
+			os = ofs;
 		}
 	};
 
@@ -74,16 +74,16 @@ public:
 			Log(sev, "troubleshoot", str);
 
 		if (sev == LogCritical || sev == LogWarning) {
-			os << std::string(24, '#') << '\n'
+			*os << std::string(24, '#') << '\n'
 				<< "# " << str << '\n'
 				<< std::string(24, '#') << '\n';
 		} else
-			os << str << '\n';
+			*os << str << '\n';
 	}
 
 	bool GetStreamHealth()
 	{
-		return console || os.is_open();
+		return *os;
 	}
 };
 
