@@ -338,9 +338,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-		} else if (old_stateType == StateTypeSoft || old_state == ServiceOK) {
+		} else if (old_stateType == StateTypeSoft && old_state != ServiceOK) {
 			SetStateType(StateTypeSoft);
-			attempt = old_attempt + 1;
+			attempt = old_attempt + 1; //NOT-OK -> NOT-OK counter
+		} else if (old_state == ServiceOK) {
+			SetStateType(StateTypeSoft);
+			attempt = 1; //OK -> NOT-OK transition, reset the counter
 		} else {
 			attempt = old_attempt;
 		}
