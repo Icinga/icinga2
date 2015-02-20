@@ -611,9 +611,6 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 */
 int main(int argc, char **argv)
 {
-	/* must be called before using any other libbase functions */
-	Application::InitializeBase();
-
 #ifndef _WIN32
 	rlimit rl;
 	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
@@ -632,6 +629,9 @@ int main(int argc, char **argv)
 		}
 	}
 #endif /* _WIN32 */
+
+	/* must be called before using any other libbase functions */
+	Application::InitializeBase();
 
 	/* Set command-line arguments. */
 	Application::SetArgC(argc);
