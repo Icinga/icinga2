@@ -146,7 +146,7 @@ incomplete:
 						if (i == di.LastLine)
 							len = di.LastColumn - di.FirstColumn + 1;
 						else
-							len = ulines[i].GetLength();
+							len = ulines[i - 1].GetLength();
 
 						int offset;
 
