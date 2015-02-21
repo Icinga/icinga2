@@ -928,6 +928,32 @@ The Plugins contrib collects various contributed command definitions.
 These check commands assume that the global constant named `PluginsContribDir`
 is set to the path where the user installs custom plugins and can be enabled by uncommenting the corresponding line in icinga2.conf.
 
+## <a id="plugins-contrib-ipmi"></a> IPMI Devices
+
+This category includes all plugins for IPMI devices.
+
+### <a id="plugins-contrib-command-ipmi-sensor"></a> ipmi-sensor
+
+With the plugin `ipmi-sensor` provided by <a href="https://www.thomas-krenn.com/">Thomas-Krenn.AG</a> you can monitor sensor data for IPMI devices. See https://www.thomas-krenn.com/en/wiki/IPMI_Sensor_Monitoring_Plugin for installation and configuration instructions.
+
+Custom Attributes:
+
+Name                             | Description
+---------------------------------|-----------------------------------------------------------------------------------------------------
+ipmi_address                     | **Required.** Specifies the remote host (IPMI device) to check. Defaults to "$address$".
+ipmi_config_file                 | **Optional.** Path to the FreeIPMI configuration file. It should contain IPMI username, IPMI password, and IPMI privilege-level.
+ipmi_username                    | **Optional.** The IPMI username.
+ipmi_password                    | **Optional.** The IPMI password.
+ipmi_privilege_level             | **Optional.** The IPMI privilege level of the IPMI user.
+ipmi_backward_compatibility_mode | **Optional.** Enable backward compatibility mode, useful for FreeIPMI 0.5.* (this omits FreeIPMI options "--quiet-cache" and "--sdr-cache-recreate").
+ipmi_sensor_type                 | **Optional.** Limit sensors to query based on IPMI sensor type. Examples for IPMI sensor types are 'Fan', 'Temperature' and 'Voltage'.
+ipmi_exclude_sensor_id           | **Optional.** Exclude sensor matching ipmi_sensor_id.
+ipmi_sensor_id                   | **Optional.** Include sensor matching ipmi_sensor_id.
+ipmi_protocal_lan_version        | **Optional.** Change the protocol LAN version. Defaults to "LAN_2_0".
+ipmi_number_of_active_fans       | **Optional.** Number of fans that should be active. Otherwise a WARNING state is returned.
+ipmi_show_fru                    | **Optional.** Print the product serial number if it is available in the IPMI FRU data.
+ipmi_no_sel_checking             | **Optional.** Turn off system event log checking via ipmi-sel.
+
 ## <a id="plugins-contrib-network-components"></a> Network Components
 
 This category includes all plugins for various network components like routers, switches and firewalls.
