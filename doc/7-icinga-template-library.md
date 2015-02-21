@@ -928,7 +928,7 @@ The Plugins contrib collects various contributed command definitions.
 These check commands assume that the global constant named `PluginsContribDir`
 is set to the path where the user installs custom plugins and can be enabled by uncommenting the corresponding line in icinga2.conf.
 
-## <a id="plugins-contrib-network-components"> Network Components
+## <a id="plugins-contrib-network-components"></a> Network Components
 
 This category includes all plugins for various network components like routers, switches and firewalls.
 
@@ -1000,7 +1000,7 @@ interfacetable_defaulttablesorting  | **Optional.** Default table sorting can be
 interfacetable_tablesplit           | **Optional.** Generate multiple interface tables, one per interface type. Defaults to false.
 interfacetable_notype               | **Optional.** Remove the interface type for each interface. Defaults to false.
 
-## <a id="plugins-contrib-operating-system"> Operating System
+## <a id="plugins-contrib-operating-system"></a> Operating System
 
 In this category you can find plugins for gathering information about your operating system or the system beneath like memory usage.
 
@@ -1018,7 +1018,7 @@ mem_cache    | **Optional.** If set to true plugin will count cache as free memo
 mem_warning  | **Required.** Specifiy the warning threshold as number interpreted as percent.
 mem_critical | **Required.** Specifiy the critical threshold as number interpreted as percent.
 
-## <a id="plugins-contrib-virtualization"> Virtualization
+## <a id="plugins-contrib-virtualization"></a> Virtualization
 
 This category includes all plugins for various virtualization technologies.
 
