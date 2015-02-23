@@ -38,6 +38,7 @@ REGISTER_SCRIPTFUNCTION(get_notification_command, &NotificationCommand::GetByNam
 REGISTER_SCRIPTFUNCTION(get_host_group, &HostGroup::GetByName);
 REGISTER_SCRIPTFUNCTION(get_service_group, &ServiceGroup::GetByName);
 REGISTER_SCRIPTFUNCTION(get_user_group, &UserGroup::GetByName);
+REGISTER_SCRIPTFUNCTION(get_time_period, &TimePeriod::GetByName);
 
 Service::Ptr ObjectUtils::GetService(const String& host, const String& name)
 {

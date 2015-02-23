@@ -99,6 +99,15 @@ Signature:
 Returns the UserGroup object with the specified name, or `null` if no such UserGroup object exists.
 
 
+### <a id="objref-get_time_period"></a> get_time_period
+
+Signature:
+
+    function get_time_period(name);
+
+Returns the TimePeriod object with the specified name, or `null` if no such TimePeriod object exists.
+
+
 ### <a id="objref-get_object"></a> get_object
 
 Signature:
