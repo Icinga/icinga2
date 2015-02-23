@@ -928,7 +928,7 @@ snmp_timeout            | **Optional.** The command timeout in seconds. Defaults
 
 The Plugins contrib collects various contributed command definitions.
 
-These check commands assume that the global constant named `PluginsContribDir`
+These check commands assume that the global constant named `PluginContribDir`
 is set to the path where the user installs custom plugins and can be enabled by uncommenting the corresponding line in icinga2.conf.
 
 ## <a id="plugins-contrib-ipmi"></a> IPMI Devices

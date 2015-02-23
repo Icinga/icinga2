@@ -15,7 +15,7 @@ const ManubulonPluginDir = "@ICINGA2_PLUGINDIR@"
 /* The directory which you use to store additional plugins which ITL provides user contributed command definitions for.
  * Check the documentation, chapter "Plugins Contribution", for details.
  */
- const PluginsContribDir = "@ICINGA2_PLUGINDIR@"
+ const PluginContribDir = "@ICINGA2_PLUGINDIR@"
 
 /* Our local instance name. By default this is the server's hostname as returned by `hostname --fqdn`.
  * This should be the common name from the API certificate.
