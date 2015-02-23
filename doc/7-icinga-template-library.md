@@ -718,6 +718,9 @@ Name            | Description
 ----------------|--------------
 udp_address     | **Optional.** The host's address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
 udp_port        | **Required.** The port that should be checked.
+udp_send        | **Required.** The payload to send in the UDP datagram.
+udp_expect      | **Required.** The payload to expect in the response datagram.
+udp_quit        | **Optional.** The payload to send to 'close' the session.
 
 
 ### <a id="plugin-check-command-ups"></a> ups
