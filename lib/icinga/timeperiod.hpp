@@ -43,6 +43,8 @@ public:
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
 
+	virtual bool GetIsInside(void) const;
+
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 

@@ -586,6 +586,11 @@ Configuration Attributes:
 The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
 timeperiods including this one.
 
+Runtime Attributes:
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  is\_insidek               | Boolean       | Whether we're currently inside this timeperiod.
 
 ## <a id="objecttype-scheduleddowntime"></a> ScheduledDowntime
 

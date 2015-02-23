@@ -217,6 +217,11 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 	}
 }
 
+bool TimePeriod::GetIsInside(void) const
+{
+	return IsInside(Utility::GetTime());
+}
+
 bool TimePeriod::IsInside(double ts) const
 {
 	ObjectLock olock(this);

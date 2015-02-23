@@ -38,6 +38,9 @@ class TimePeriod : CustomVarObject
 	[state] Value valid_begin;
 	[state] Value valid_end;
 	[state] Array::Ptr segments;
+	[no_storage] bool is_inside {
+		get;
+	};
 };
 
 }
