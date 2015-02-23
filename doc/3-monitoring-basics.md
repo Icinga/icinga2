@@ -972,7 +972,7 @@ Available state and type filters for notifications are:
 
 If you are familiar with Icinga 1.x `notification_options` please note that they have been split
 into type and state to allow more fine granular filtering for example on downtimes and flapping.
-You can filter for acknowledgements and custom notifications too.s and custom notifications too.
+You can filter for acknowledgements and custom notifications too.
 
 
 ## <a id="commands"></a> Commands
