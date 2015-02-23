@@ -590,7 +590,7 @@ Runtime Attributes:
 
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
-  is\_insidek               | Boolean       | Whether we're currently inside this timeperiod.
+  is\_inside                | Boolean       | Whether we're currently inside this timeperiod.
 
 ## <a id="objecttype-scheduleddowntime"></a> ScheduledDowntime
 
