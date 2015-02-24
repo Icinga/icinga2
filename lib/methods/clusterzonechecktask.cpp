@@ -25,7 +25,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
 #include "base/function.hpp"
-#include "base/convert.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -97,10 +97,10 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	if (!connected) {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Convert::ToString(lag));
+		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(lag));
 	} else {
 		cr->SetState(ServiceOK);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Convert::ToString(lag));
+		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(lag));
 	}
 
 	Array::Ptr perfdata = new Array();
