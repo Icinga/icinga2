@@ -196,7 +196,7 @@ incomplete:
 			char buf[1024];
 
 			while (!ns->IsEof()) {
-				size_t rc = ns->Read(buf, sizeof(buf));
+				size_t rc = ns->Read(buf, sizeof(buf), true);
 				result += String(buf, buf + rc);
 			}
 
