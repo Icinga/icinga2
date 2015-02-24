@@ -598,6 +598,11 @@ snmp_eregi          | **Optional.** Return OK state if case-insensitive extended
 snmp_label          | **Optional.** Prefix label for output value
 snmp_invert_search  | **Optional.** Invert search result and return CRITICAL state if found
 snmp_units          | **Optional.** Units label(s) for output value (e.g., 'sec.').
+snmp_version        | **Optional.** Version to use. E.g. 1, 2, 2c or 3.
+snmp_miblist        | **Optional.** MIB's to use, comma separated. Defaults to "ALL".
+snmp_rate_multiplier | **Optional.** Converts rate per second. For example, set to 60 to convert to per minute.
+snmp_rate           | **Optional.** Boolean. Enable rate calculation.
+snmp_getnext        | **Optional.** Boolean. Use SNMP GETNEXT. Defaults to false.
 snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
 
 ### <a id="plugin-check-command-snmpv3"></a> snmpv3
