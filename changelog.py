@@ -34,16 +34,24 @@ version_id = None
 for version in versions_data["versions"]:
     if version["name"] == version_name:
         version_id = version["id"]
+        break
 
 if version_id == None:
     print "Version '%s' not found." % (version_name)
     sys.exit(1)
 
+changes = ""
+
+for field in version["custom_fields"]:
+    if field["id"] == 14:
+        changes = field["value"]
+        break
+
 print "### What's New in Version %s" % (version_name)
 print ""
 print "#### Changes"
 print ""
-print "TODO: Update this section."
+print changes
 print ""
 print "#### Issues"
 print ""
