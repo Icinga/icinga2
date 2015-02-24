@@ -121,7 +121,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 		Array::Ptr arrclone = arr->ShallowClone();
 
 		ObjectLock olock(arrclone);
-		BOOST_FOREACH(const String& instance, arrclone) {
+		BOOST_FOREACH(const Value& instance, arrclone) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {

@@ -121,7 +121,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 		Array::Ptr arr = vinstances;
 
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const String& instance, arr) {
+		BOOST_FOREACH(const Value& instance, arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
