@@ -20,10 +20,12 @@
 #include "methods/clusterzonechecktask.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
 #include "base/function.hpp"
+#include "base/convert.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -79,8 +81,14 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	}
 
 	bool connected = false;
+	double lag = 0;
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+		double eplag = Utility::GetTime() - endpoint->GetRemoteLogPosition();
+
+		if (eplag > lag)
+			lag = eplag;
+
 		if (endpoint->IsConnected()) {
 			connected = true;
 			break;
@@ -89,11 +97,15 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	if (!connected) {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected.");
+		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Convert::ToString(lag));
 	} else {
 		cr->SetState(ServiceOK);
-		cr->SetOutput("Zone '" + zoneName + "' is connected.");
+		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Convert::ToString(lag));
 	}
+
+	Array::Ptr perfdata = new Array();
+	perfdata->Add(new PerfdataValue("slave_lag", lag));
+	cr->SetPerformanceData(perfdata);
 
 	checkable->ProcessCheckResult(cr);
 }
