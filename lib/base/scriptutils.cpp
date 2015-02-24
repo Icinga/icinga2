@@ -51,6 +51,7 @@ REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
 REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
 REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
 REGISTER_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
+REGISTER_SCRIPTFUNCTION(get_time, &Utility::GetTime);
 
 String ScriptUtils::CastString(const Value& value)
 {
