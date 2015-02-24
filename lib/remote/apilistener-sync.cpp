@@ -72,22 +72,26 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 			return false;
 	}
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
-		if (oldConfig->Get(kv.first) != kv.second) {
-			configChange = true;
+	{
+		ObjectLock olock(newConfig);
+		BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
+			if (oldConfig->Get(kv.first) != kv.second) {
+				configChange = true;
 
-			String path = configDir + "/" + kv.first;
-			Log(LogInformation, "ApiListener")
-			    << "Updating configuration file: " << path;
+				String path = configDir + "/" + kv.first;
+				Log(LogInformation, "ApiListener")
+				    << "Updating configuration file: " << path;
 
-			//pass the directory and generate a dir tree, if not existing already
-			Utility::MkDirP(Utility::DirName(path), 0755);
-			std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
-			fp << kv.second;
-			fp.close();
+				//pass the directory and generate a dir tree, if not existing already
+				Utility::MkDirP(Utility::DirName(path), 0755);
+				std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+				fp << kv.second;
+				fp.close();
+			}
 		}
 	}
 
+	ObjectLock xlock(oldConfig);
 	BOOST_FOREACH(const Dictionary::Pair& kv, oldConfig) {
 		if (!newConfig->Contains(kv.first)) {
 			configChange = true;
