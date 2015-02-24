@@ -128,10 +128,14 @@ void TlsStream::OnEvent(int revents)
 	char buffer[512];
 
 	if (m_CurrentAction == TlsActionNone) {
-		if (m_SendQ->GetAvailableBytes() > 0 && (revents & POLLOUT))
-			m_CurrentAction = TlsActionWrite;
-		else
+		if (revents & POLLIN)
 			m_CurrentAction = TlsActionRead;
+		else if (m_SendQ->GetAvailableBytes() > 0 && (revents & POLLOUT))
+			m_CurrentAction = TlsActionWrite;
+		else {
+			ChangeEvents(POLLIN);
+			return;
+		}
 	}
 
 	switch (m_CurrentAction) {
@@ -177,13 +181,12 @@ void TlsStream::OnEvent(int revents)
 	}
 
 	if (rc > 0) {
-		if (m_SendQ->GetAvailableBytes() > 0) {
-			m_CurrentAction = TlsActionWrite;
+		m_CurrentAction = TlsActionNone;
+
+		if (m_SendQ->GetAvailableBytes() > 0)
 			ChangeEvents(POLLIN|POLLOUT);
-		} else {
-			m_CurrentAction = TlsActionNone;
+		else
 			ChangeEvents(POLLIN);
-		}
 
 		lock.unlock();
 
@@ -205,7 +208,7 @@ void TlsStream::OnEvent(int revents)
 			break;
 		case SSL_ERROR_WANT_WRITE:
 			m_Retry = true;
-			ChangeEvents(POLLIN|POLLOUT);
+			ChangeEvents(POLLOUT);
 
 			break;
 		case SSL_ERROR_ZERO_RETURN:
