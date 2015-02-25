@@ -484,7 +484,7 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-	Log(LogInformation, "LivestatusQuery")
+	Log(LogNotice, "LivestatusQuery")
 	    << "Table: " << m_Table;
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
@@ -592,7 +592,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 		l_ExternalCommands++;
 	}
 
-	Log(LogInformation, "LivestatusQuery")
+	Log(LogNotice, "LivestatusQuery")
 	    << "Executing command: " << m_Command;
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
@@ -684,7 +684,7 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 {
 	try {
-		Log(LogInformation, "LivestatusQuery")
+		Log(LogNotice, "LivestatusQuery")
 		    << "Executing livestatus query: " << m_Verb;
 
 		if (m_Verb == "GET")
