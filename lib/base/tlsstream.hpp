@@ -75,7 +75,6 @@ private:
 	mutable boost::condition_variable m_CV;
 	bool m_HandshakeOK;
 	bool m_VerifyOK;
-	bool m_CloseOK;
 	int m_ErrorCode;
 	bool m_ErrorOccurred;
 
