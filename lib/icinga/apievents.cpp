@@ -1641,6 +1641,9 @@ void ApiEvents::RepositoryTimerHandler(void)
 
 	Zone::Ptr my_zone = my_endpoint->GetZone();
 
+	if (!my_zone)
+		return;
+
 	Dictionary::Ptr params = new Dictionary();
 	params->Set("seen", Utility::GetTime());
 	params->Set("endpoint", my_endpoint->GetName());
