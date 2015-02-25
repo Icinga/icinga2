@@ -35,8 +35,7 @@ enum TlsAction
 	TlsActionNone,
 	TlsActionRead,
 	TlsActionWrite,
-	TlsActionHandshake,
-	TlsActionClose
+	TlsActionHandshake
 };
 
 /**

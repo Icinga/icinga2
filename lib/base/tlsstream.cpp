@@ -168,14 +168,6 @@ void TlsStream::OnEvent(int revents)
 			}
 
 			break;
-		case TlsActionClose:
-			(void) SSL_shutdown(m_SSL.get());
-			rc = 1;
-
-			m_CloseOK = true;
-			m_CV.notify_all();
-
-			break;
 		default:
 			VERIFY(!"Invalid TlsAction");
 	}
@@ -290,13 +282,11 @@ void TlsStream::Write(const void *buffer, size_t count)
 void TlsStream::Close(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_CurrentAction = TlsActionClose;
-	ChangeEvents(POLLOUT);
+	(void) SSL_shutdown(m_SSL.get());
+	m_Socket->Close();
 
-	while (!m_CloseOK && !m_ErrorOccurred)
-		m_CV.wait(lock);
-
-	HandleError();
+	m_CloseOK = true;
+	m_CV.notify_all();
 }
 
 bool TlsStream::IsEof(void) const
