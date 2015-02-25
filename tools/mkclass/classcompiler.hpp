@@ -63,7 +63,8 @@ enum FieldAttribute
 	FAGetProtected = 8,
 	FASetProtected = 16,
 	FAInternal = 32,
-	FANoStorage = 64
+	FANoStorage = 64,
+	FALoadDependency = 128
 };
 
 struct Field
@@ -124,6 +125,7 @@ struct Klass
 	std::string TypeBase;
 	int Attributes;
 	std::vector<Field> Fields;
+	std::vector<std::string> LoadDependencies;
 };
 
 class ClassCompiler

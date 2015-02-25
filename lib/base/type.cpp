@@ -106,6 +106,11 @@ Value Type::GetField(int id) const
 	return Object::GetField(id);
 }
 
+std::vector<String> Type::GetLoadDependencies(void) const
+{
+	return std::vector<String>();
+}
+
 String TypeType::GetName(void) const
 {
 	return "Type";

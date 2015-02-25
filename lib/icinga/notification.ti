@@ -32,6 +32,9 @@ public:
 
 class Notification : CustomVarObject < NotificationNameComposer
 {
+	load_after Host;
+	load_after Service;
+
 	[config, protected] String command (CommandRaw);
 	[config] double interval {
 		default {{{ return 1800; }}}

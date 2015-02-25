@@ -84,6 +84,8 @@ public:
 	virtual void SetField(int id, const Value& value);
 	virtual Value GetField(int id) const;
 
+	virtual std::vector<String> GetLoadDependencies(void) const;
+
 protected:
 	virtual ObjectFactory GetFactory(void) const = 0;
 

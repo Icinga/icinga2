@@ -326,11 +326,43 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 			new_items.swap(m_CommittedItems);
 		}
 
+		std::set<String> types;
+
 		BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
-			upq.Enqueue(boost::bind(&DynamicObject::OnAllConfigLoaded, item->m_Object));
+			types.insert(item->m_Type);
 		}
 
-		upq.Join();
+		std::set<String> completed_types;
+
+		while (types.size() != completed_types.size()) {
+			std::set<String> current_types;
+
+			BOOST_FOREACH(const String& type, types) {
+				if (completed_types.find(type) != completed_types.end())
+					continue;
+
+				Type::Ptr ptype = Type::GetByName(type);
+				bool unresolved_dep = false;
+
+				BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
+					if (types.find(loadDep) != types.end() && completed_types.find(loadDep) == completed_types.end()) {
+						unresolved_dep = true;
+						break;
+					}
+				}
+
+				if (!unresolved_dep) {
+					BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+						if (item->m_Type == type)
+							upq.Enqueue(boost::bind(&DynamicObject::OnAllConfigLoaded, item->m_Object));
+					}
+
+					completed_types.insert(type);
+				}
+			}
+
+			upq.Join();
+		}
 	} while (!items.empty());
 
 	return true;

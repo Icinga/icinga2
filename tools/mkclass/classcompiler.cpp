@@ -349,6 +349,17 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		  << "\t\t" << "return TypeHelper<" << klass.Name << ">::GetFactory();" << std::endl
 		  << "\t" << "}" << std::endl << std::endl;
 
+	/* GetLoadDependencies */
+	std::cout << "\t" << "virtual std::vector<String> GetLoadDependencies(void) const" << std::endl
+		  << "\t" << "{" << std::endl
+		  << "\t\t" << "std::vector<String> deps;" << std::endl;
+
+	for (std::vector<std::string>::const_iterator itd = klass.LoadDependencies.begin(); itd != klass.LoadDependencies.end(); itd++)
+		std::cout << "\t\t" << "deps.push_back(\"" << *itd << "\");" << std::endl;
+
+	std::cout << "\t\t" << "return deps;" << std::endl
+		  << "\t" << "}" << std::endl;
+
 	std::cout << "};" << std::endl << std::endl;
 
 	/* ObjectImpl */

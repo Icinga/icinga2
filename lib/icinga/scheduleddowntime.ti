@@ -32,6 +32,9 @@ public:
 
 class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 {
+	load_after Host;
+	load_after Service;
+
 	[config, protected] String host_name;
 	[config, protected] String service_name;
 

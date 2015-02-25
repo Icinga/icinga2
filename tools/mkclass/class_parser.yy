@@ -55,6 +55,7 @@ using namespace icinga;
 %token T_INCLUDE "include (T_INCLUDE)"
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
+%token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_STRING "string (T_STRING)"
 %token T_ANGLE_STRING "angle_string (T_ANGLE_STRING)"
@@ -192,7 +193,13 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 
 		$$->Attributes = $1;
 
-		$$->Fields = *$7;
+		for (std::vector<Field>::iterator it = $7->begin(); it != $7->end(); it++) {
+			if (it->Attributes & FALoadDependency) {
+				$$->LoadDependencies.push_back(it->Name);
+			} else
+				$$->Fields.push_back(*it);
+		}
+
 		delete $7;
 
 		ClassCompiler::OptimizeStructLayout($$->Fields);
@@ -279,6 +286,14 @@ class_field: field_attribute_list identifier identifier alternative_name_specifi
 
 		delete $5;
 
+		$$ = field;
+	}
+	| T_LOAD_AFTER identifier ';'
+	{
+		Field *field = new Field();
+		field->Attributes = FALoadDependency;
+		field->Name = $2;
+		std::free($2);
 		$$ = field;
 	}
 	;
