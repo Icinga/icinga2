@@ -135,7 +135,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			}
 		}
 
-		delete line;
+		delete [] line;
 		fclose(fp);
 	}
 }
