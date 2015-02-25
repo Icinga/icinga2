@@ -520,14 +520,14 @@ exit 0
 %files ido-mysql
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
-%{_sysconfdir}/%{name}/features-available/ido-mysql.conf
+%config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/ido-mysql.conf
 %{_libdir}/%{name}/libdb_ido_mysql*
 %{_datadir}/icinga2-ido-mysql
 
 %files ido-pgsql
 %defattr(-,root,root,-)
 %doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
-%{_sysconfdir}/%{name}/features-available/ido-pgsql.conf
+%config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/ido-pgsql.conf
 %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_datadir}/icinga2-ido-pgsql
 
