@@ -57,6 +57,7 @@ options.
       * repository zone add (adds a new Zone object)
       * repository zone list (lists all Zone objects)
       * repository zone remove (removes a Zone object)
+      * troubleshoot (collect information for troubleshooting)
       * variable get (gets a variable)
       * variable list (lists all variables)
     
@@ -391,6 +392,40 @@ cleared after review.
     Icinga home page: <https://www.icinga.org/>
 
 
+
+## <a id="cli-command-variable"></a> CLI command: Troubleshoot
+
+Collects basic information like version, paths, log files and crash reports for troubleshooting purposes and prints them to a file or the console. See [troubleshooting](13-troubleshooting.md#troubleshooting-information-required).
+
+Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.  
+
+> **Note**  
+> Keep in mind that this tool can not collect information from other icinga2 nodes, you will have to run it on
+> each of one of you instances.  
+> This is only a tool to collect information to help others help you, it will not attempt to fix anything.
+
+
+    # icinga2 troubleshoot --help
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.2.0-551-g1d0f6ed)
+
+    Usage:
+      icinga2 troubleshoot [<arguments>]
+
+    Global options:
+      -h [ --help ]          show this help message
+      -V [ --version ]	     show version information
+      --color                use VT100 color codes even when stdout is not aterminal
+      -D [ --define ] arg    define a constant
+      -l [ --library ] arg   load a library
+      -I [ --include ] arg   add include search directory
+      -x [ --log-level ] arg specify the log level for the console log
+
+    Command options:
+      -c [ --console ]      print to console instead of file
+      -o [ --output ] arg   path to output file
+
+    Report bugs at <https://dev.icinga.org/>
+    Icinga home page: <https://www.icinga.org/>
 
 ## <a id="cli-command-variable"></a> CLI command: Variable
 

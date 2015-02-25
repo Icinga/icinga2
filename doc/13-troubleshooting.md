@@ -2,11 +2,9 @@
 
 ## <a id="troubleshooting-information-required"></a> Which information is required
 
-* Which distribution and version
-* How was Icinga 2 installed (and which repository in case)
-* Run `icinga2 --version`
+* Run `icinga2 troubleshoot` to receive a file with the most basic information
+* How was Icinga 2 installed (and which repository in case) and which distribution are you using
 * Provide complete configuration snippets explaining your problem in detail
-* Provide complete logs targetting your problem
 * If the check command failed - what's the output of your manual plugin tests?
 * In case of [debugging](18-debug.md#debug) Icinga 2, the full back traces and outputs
 
