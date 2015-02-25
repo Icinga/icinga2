@@ -46,7 +46,7 @@ String TroubleshootCommand::GetDescription(void) const
 
 String TroubleshootCommand::GetShortDescription(void) const
 {
-	return "Collect information for troubleshooting";
+	return "collect information for troubleshooting";
 }
 
 class TroubleshootCommand::InfoLog
@@ -375,6 +375,7 @@ bool TroubleshootCommand::CheckConfig(void)
 	return DaemonUtility::ValidateConfigFiles(configs, Application::GetObjectsPath());
 }
 
+//print is supposed allow the user to print the object file
 void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
      Dictionary::Ptr& logs, std::set<String>& configs)
 {
@@ -404,7 +405,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 			continue;
 
 		std::stringstream sStream;
-
+		
 		ObjectListUtility::PrintObject(sStream, first, message, type_count, "", "");
 
 		Dictionary::Ptr object = JsonDecode(message);
@@ -497,7 +498,7 @@ void TroubleshootCommand::InitParameters(boost::program_options::options_descrip
 	visibleDesc.add_options()
 		("console,c", "print to console instead of file")
 		("output,o", boost::program_options::value<std::string>(), "path to output file")
-		("include-objects", "Print the whole objectfile (like `object list`)")
+//		("include-objects", "Print the whole objectfile (like `object list`)") TODO
 		;
 }
 
