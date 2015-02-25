@@ -64,6 +64,11 @@ public:
 		}
 	}
 
+        ~InfoLog(void)
+        {
+            delete m_Stream;
+        }
+
 	void WriteLine(const LogSeverity sev, const String& str)
 	{
 		if (!m_Console)
@@ -95,7 +100,7 @@ public:
 	InfoLogLine(InfoLog& log, LogSeverity sev = LogInformation)
 		: m_Log(log), m_Sev(sev) {}
 
-	~InfoLogLine()
+	~InfoLogLine(void)
 	{
 		m_Log.WriteLine(m_Sev, m_String.str());
 	}
@@ -139,7 +144,7 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 bool TroubleshootCommand::FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	TroubleshootCommand::CheckFeatures(log);
-	//TODO Check whether active faetures are operational.
+	//TODO Check whether active features are operational.
 	return true;
 }
 
