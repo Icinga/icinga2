@@ -17,7 +17,7 @@
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
 
-#include "cli/troubleshootcollectcommand.hpp"
+#include "cli/troubleshootcommand.hpp"
 #include "cli/objectlistutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/daemonutility.hpp"
@@ -37,19 +37,19 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("troubleshoot/collect", TroubleshootCollectCommand);
+REGISTER_CLICOMMAND("troubleshoot", TroubleshootCommand);
 
-String TroubleshootCollectCommand::GetDescription(void) const
+String TroubleshootCommand::GetDescription(void) const
 {
 	return "Collect logs and other relevant information for troubleshooting purposes.";
 }
 
-String TroubleshootCollectCommand::GetShortDescription(void) const
+String TroubleshootCommand::GetShortDescription(void) const
 {
 	return "Collect information for troubleshooting";
 }
 
-class TroubleshootCollectCommand::InfoLog
+class TroubleshootCommand::InfoLog
 {
 public:
 	InfoLog(const String& path, const bool cons)
@@ -89,7 +89,7 @@ private:
 	std::ostream *m_Stream;
 };
 
-class TroubleshootCollectCommand::InfoLogLine
+class TroubleshootCommand::InfoLogLine
 {
 public:
 	InfoLogLine(InfoLog& log, LogSeverity sev = LogInformation)
@@ -114,7 +114,7 @@ private:
 };
 
 
-bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
+bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log) 
 	    << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << '\n';
@@ -136,14 +136,14 @@ bool TroubleshootCollectCommand::GeneralInfo(InfoLog& log, const boost::program_
 	return true;
 }
 
-bool TroubleshootCollectCommand::FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm)
+bool TroubleshootCommand::FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
-	TroubleshootCollectCommand::CheckFeatures(log);
+	TroubleshootCommand::CheckFeatures(log);
 	//TODO Check whether active faetures are operational.
 	return true;
 }
 
-bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
+bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
 	InfoLogLine(log) 
 	    << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << '\n';
@@ -162,7 +162,7 @@ bool TroubleshootCollectCommand::ObjectInfo(InfoLog& log, const boost::program_o
 	return true;
 }
 
-bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
+bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
 	InfoLogLine(log) 
 	    << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << '\n';
@@ -172,7 +172,7 @@ bool TroubleshootCollectCommand::ReportInfo(InfoLog& log, const boost::program_o
 	return true;
 }
 
-bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
+bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log) 
 	    << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << '\n';
@@ -197,7 +197,7 @@ bool TroubleshootCollectCommand::ConfigInfo(InfoLog& log, const boost::program_o
 }
 
 /*Print the last *numLines* of *file* to *os* */
-int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& log)
+int TroubleshootCommand::Tail(const String& file, int numLines, InfoLog& log)
 {
 	boost::circular_buffer<std::string> ringBuf(numLines);
 	std::ifstream text;
@@ -215,6 +215,9 @@ int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& 
 
 	if (lines < numLines)
 		numLines = lines;
+	
+	InfoLogLine(log)
+	    << "[begin: '" << file << "' line: " << numLines-lines << ']';
 
 	for (int k = 0; k < numLines; k++) {
 		InfoLogLine(log)
@@ -229,7 +232,7 @@ int TroubleshootCollectCommand::Tail(const String& file, int numLines, InfoLog& 
 	return numLines;
 }
 
-bool TroubleshootCollectCommand::CheckFeatures(InfoLog& log)
+bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 {
 	Dictionary::Ptr features = new Dictionary;
 	std::vector<String> disabled_features;
@@ -266,7 +269,7 @@ bool TroubleshootCollectCommand::CheckFeatures(InfoLog& log)
 	return true;
 }
 
-void TroubleshootCollectCommand::GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename)
+void TroubleshootCommand::GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename)
 {
 #ifdef _WIN32
 	struct _stat buf;
@@ -283,7 +286,7 @@ void TroubleshootCollectCommand::GetLatestReport(const String& filename, time_t&
 	}
 }
 
-bool TroubleshootCollectCommand::PrintCrashReports(InfoLog& log)
+bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 {
 	String spath = Application::GetLocalStateDir() + "/log/icinga2/crash/report.*";
 	time_t bestTimestamp = 0;
@@ -330,7 +333,7 @@ bool TroubleshootCollectCommand::PrintCrashReports(InfoLog& log)
 	return true;
 }
 
-bool TroubleshootCollectCommand::PrintConf(InfoLog& log, const String& path)
+bool TroubleshootCommand::PrintConf(InfoLog& log, const String& path)
 {
 	std::ifstream text;
 	text.open(path.CStr(), std::ifstream::in);
@@ -340,7 +343,7 @@ bool TroubleshootCollectCommand::PrintConf(InfoLog& log, const String& path)
 	std::string line;
 
 	InfoLogLine(log) 
-	    << "\n[begin: '" << path << "']";
+	    << "[begin: '" << path << "']";
 
 	while (std::getline(text, line)) {
 		InfoLogLine(log) 
@@ -348,12 +351,12 @@ bool TroubleshootCollectCommand::PrintConf(InfoLog& log, const String& path)
 	}
 
 	InfoLogLine(log)
-	     << "\n[end: '" << path << "']";
+	     << "[end: '" << path << "']";
 
 	return true;
 }
 
-bool TroubleshootCollectCommand::CheckConfig(void)
+bool TroubleshootCommand::CheckConfig(void)
 {
 	/* Not loading the icinga library would make config validation fail.
 	 * (Depending on the configuration and the speed of your machine.)
@@ -365,7 +368,7 @@ bool TroubleshootCollectCommand::CheckConfig(void)
 	return DaemonUtility::ValidateConfigFiles(configs, Application::GetObjectsPath());
 }
 
-void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
+void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
      Dictionary::Ptr& logs, std::set<String>& configs)
 {
 	InfoLogLine(log)
@@ -443,7 +446,7 @@ void TroubleshootCollectCommand::CheckObjectFile(const String& objectfile, InfoL
 	}
 }
 
-void TroubleshootCollectCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
+void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 {
 	if (!logs->GetLength()) {
 		InfoLogLine(log, LogWarning)
@@ -455,7 +458,7 @@ void TroubleshootCollectCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& log
 		ObjectLock ulock(logs);
 		BOOST_FOREACH(const Dictionary::Pair& kv, logs) {
 			InfoLogLine(log)
-			     << "\nLogger " << kv.first << " at path: " << kv.second;
+			     << "Logger " << kv.first << " at path: " << kv.second;
 
 			if (!Tail(kv.second, 20, log)) {
 				InfoLogLine(log, LogWarning)
@@ -465,7 +468,7 @@ void TroubleshootCollectCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& log
 	}
 }
 
-void TroubleshootCollectCommand::PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal)
+void TroubleshootCommand::PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal)
 {
 	InfoLogLine(log)
 	     << countTotal << " objects in total, originating from these files:";
@@ -476,7 +479,7 @@ void TroubleshootCollectCommand::PrintConfig(InfoLog& log, const std::set<String
 	}
 }
 
-void TroubleshootCollectCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void TroubleshootCommand::InitParameters(boost::program_options::options_description& visibleDesc,
      boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
@@ -486,7 +489,7 @@ void TroubleshootCollectCommand::InitParameters(boost::program_options::options_
 		;
 }
 
-int TroubleshootCollectCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
 	String path;
 	InfoLog *log;

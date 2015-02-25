@@ -17,8 +17,8 @@
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
 
-#ifndef TROUBLESHOOTCOLLECTCOMMAND_H
-#define TROUBLESHOOTCOLLECTCOMMAND_H
+#ifndef TROUBLESHOOTCOMMAND_H
+#define TROUBLESHOOTCOMMAND_H
 
 #include "cli/clicommand.hpp"
 #include "base/i2-base.hpp"
@@ -28,14 +28,14 @@ namespace icinga
 {
 
 /**
- * The "troubleshoot collect" command.
+ * The "troubleshoot" command.
  *
  * @ingroup cli
  */
-class TroubleshootCollectCommand : public CLICommand
+class TroubleshootCommand : public CLICommand
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TroubleshootCollectCommand);
+	DECLARE_PTR_TYPEDEFS(TroubleshootCommand);
 
 	virtual String GetDescription(void) const;
 	virtual String GetShortDescription(void) const;
@@ -67,4 +67,4 @@ private:
 };
 
 }
-#endif /* TROUBLESHOOTCOLLECTCOMMAND_H */
+#endif /* TROUBLESHOOTCOMMAND_H */
