@@ -63,7 +63,7 @@ private:
 	static void CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
 	    Dictionary::Ptr& logs, std::set<String>& configs);
 	static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
-	static void PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal);
+	static void PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet);
 };
 
 }

@@ -64,10 +64,10 @@ public:
 		}
 	}
 
-        ~InfoLog(void)
-        {
-            delete m_Stream;
-        }
+	~InfoLog(void)
+	{
+		delete m_Stream;
+	}
 
 	void WriteLine(const LogSeverity sev, const String& str)
 	{
@@ -222,7 +222,7 @@ int TroubleshootCommand::Tail(const String& file, int numLines, InfoLog& log)
 		numLines = lines;
 	
 	InfoLogLine(log)
-	    << "[begin: '" << file << "' line: " << numLines-lines << ']';
+	    << "\n[begin: '" << file << "' line: " << numLines-lines << ']';
 
 	for (int k = 0; k < numLines; k++) {
 		InfoLogLine(log)
@@ -232,7 +232,7 @@ int TroubleshootCommand::Tail(const String& file, int numLines, InfoLog& log)
 	text.close();
 
 	InfoLogLine(log) 
-	    << "[end: '" << file << "' line: " << lines << ']';
+	    << "[end: '" << file << "' line: " << lines << "]\n";
 
 	return numLines;
 }
@@ -306,7 +306,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 		if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
 			if (*err != 3) {//Error code for path does not exist
 				InfoLogLine(log, LogWarning)
-				    << Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist";
+				    << Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist\n";
 
 				return false;
 			}
@@ -319,7 +319,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 #else
 	catch (...) {
 		InfoLogLine(log, LogWarning) << "Error printing crash reports.\n"
-		    << "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?";
+		    << "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?\n";
 
 		return false;
 	}
@@ -327,12 +327,14 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 
 	if (!bestTimestamp)
 		InfoLogLine(log)
-		    << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/";
+		    << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/\n";
 	else {
 		InfoLogLine(log)
 		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime())
 		    << "\nFile: " << bestFilename;
 		Tail(bestFilename, 20, log);
+		InfoLogLine(log)
+		    << "";
 	}
 
 	return true;
@@ -348,7 +350,7 @@ bool TroubleshootCommand::PrintConf(InfoLog& log, const String& path)
 	std::string line;
 
 	InfoLogLine(log) 
-	    << "[begin: '" << path << "']";
+	    << "\n[begin: '" << path << "']";
 
 	while (std::getline(text, line)) {
 		InfoLogLine(log) 
@@ -441,21 +443,26 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 
 	//Print objects with count
 	InfoLogLine(log)
-	    << "Found the " << countTotal << " objects:"
+	    << "Found the " << countTotal << " objects:\n"
 	    << "\tType" << std::string(typeL-4, ' ') << " : Count";
-
+	
 	BOOST_FOREACH(const Dictionary::Pair& kv, type_count) {
 		InfoLogLine(log)
 		    << '\t' << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
 		    << " : " << kv.second;
 	}
+
+	InfoLogLine(log)
+	    << "";
+
+	TroubleshootCommand::PrintObjectOrigin(log, configs);
 }
 
 void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 {
 	if (!logs->GetLength()) {
 		InfoLogLine(log, LogWarning)
-		     << "No loggers found, check whether you enabled any logging features";
+		     << "No loggers found, check whether you enabled any logging features\n";
 	} else {
 		InfoLogLine(log)
 		     << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.";
@@ -467,16 +474,16 @@ void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 
 			if (!Tail(kv.second, 20, log)) {
 				InfoLogLine(log, LogWarning)
-				     << kv.second << " either does not exist or is empty";
+				     << kv.second << " either does not exist or is empty\n";
 			}
 		}
 	}
 }
 
-void TroubleshootCommand::PrintConfig(InfoLog& log, const std::set<String>& configSet, const String::SizeType& countTotal)
+void TroubleshootCommand::PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet)
 {
 	InfoLogLine(log)
-	     << countTotal << " objects in total, originating from these files:";
+	     << "The objects origins are:";
 
 	for (std::set<String>::iterator it = configSet.begin(); it != configSet.end(); it++) {
 		InfoLogLine(log)
