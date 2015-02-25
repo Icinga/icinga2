@@ -18,6 +18,6 @@
 add_subdirectory(plugins-contrib.d)
 
 install(
-  FILES itl command.conf command-icinga.conf timeperiod.conf plugins command-plugins.conf manubulon command-plugins-manubulon.conf plugins-contrib
+  FILES itl command.conf command-icinga.conf hangman timeperiod.conf plugins command-plugins.conf manubulon command-plugins-manubulon.conf plugins-contrib
   DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2/include
 )

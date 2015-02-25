@@ -1,0 +1,176 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+if (!globals.irc) {
+	globals.irc = globals.log
+}
+
+hm = {
+	max_errors = 6
+
+	h_word = null
+	h_arr = null
+	guesses = 0
+	errors = 0
+	a_arr = null
+	misses = ""
+
+	function str2arr(str) { 
+		var arr = []
+
+		for (i in range(str.len())) { 
+			arr.add(str.substr(i, 1))
+		}
+
+		return arr
+	}
+
+	function init(s) {
+		s = s.upper()
+		h_word = s
+		h_arr = str2arr(h_word)
+		guesses = 0
+		errors = 0
+		a_arr = h_arr.clone()
+		misses = ""
+
+		for (x in range(a_arr.len())) {
+			a_arr[x] = (h_arr[x] == " ")
+		}
+	}
+
+	function print_progress() {
+		var ir
+
+		for (x in range(a_arr.len())) {
+			if (a_arr[x]) {
+				ir += h_arr[x]
+			} else {
+				ir += "_"
+			}
+
+			ir += " "
+		}
+
+		irc(ir)
+		irc(errors + "/" + (max_errors + 1) + " errors made: " + misses)
+	}
+
+	function create_hint() {
+		var r = Math.floor(Math.random() * a_arr.len())
+		if (!a_arr[r]) {
+			a_arr[r] = true
+			for (x in range(h_arr.len())) {
+				if (h_arr[x] == h_arr[r]) {
+					a_arr[x]=true
+				}
+			}
+		} else {
+			if (a_arr.contains(false)) {
+				create_hint()
+			} else {
+				winner()
+			}
+		}
+
+		if (!a_arr.contains(false)) {
+			winner()
+		}
+	}
+
+	function hint(i) {
+		for (x in range(i)) {
+			create_hint()
+		}
+
+		print_progress()
+	}
+
+	function winner() {
+		if (h_word) {
+			irc("Congratulations, you are a winner in " + guesses + " guesses.")
+			h_word = null
+		}
+	}
+
+	function guess(s) {
+		if (!h_word) {
+			irc("Please set a word with hm.init(\"word\")")
+			return
+		}
+
+		s = s.upper()
+
+		if (s.len() != 1) {
+			irc("NEIN!")
+			return
+		}	
+
+		var correct = false
+		for (x in range(h_arr.len())) {
+			if (h_arr[x] == s) {
+				a_arr[x] = true
+				correct = true
+			}
+		}
+
+		if (!correct) {
+			misses += s + " "
+			errors += 1
+		}
+		
+		print_progress()
+
+		guesses += 1
+
+		if (!a_arr.contains(false)) {
+			winner()
+			return
+		}
+
+		if (errors > max_errors) {
+			irc("You died...")
+			irc(" ________")
+			irc(" |/      |")
+			irc(" |      (_)")
+			irc(" |      \\|/")
+			irc(" |       |")
+			irc(" |      / \\")
+			irc(" |")
+			irc("_|___")
+			remove("h_word")
+			return
+		}
+	}
+
+	function clone() {
+		var n = Dictionary.prototype.clone.call(this)
+
+		if (h_arr) {
+			n.h_arr = h_arr.clone()
+		}
+
+		if (a_arr) {
+			n.a_arr = a_arr.clone()
+		}
+
+		return n
+	}
+}
+
