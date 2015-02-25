@@ -2,7 +2,14 @@
 
 ## <a id="troubleshooting-information-required"></a> Which information is required
 
-* Run `icinga2 troubleshoot` to receive a file with the most basic information
+* Run `icinga2 troubleshoot` to collect required troubleshooting information
+* Alternative, manual steps:
+	* `icinga2 --version`
+	* `icinga2 feature list`
+	* `icinga2 daemon --validate`
+	* Relevant output from your main and debug log ( `icinga2 object list --type='filelogger'` )
+	* The newest Icinga 2 crash log, if relevant
+	* Your icinga2.conf and, if you run multiple Icinga 2 instances, your zones.conf
 * How was Icinga 2 installed (and which repository in case) and which distribution are you using
 * Provide complete configuration snippets explaining your problem in detail
 * If the check command failed - what's the output of your manual plugin tests?
