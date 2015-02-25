@@ -664,3 +664,19 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   current_host_         | join      | Prefix for attributes from implicit join with hosts table.
 
 Not supported: `debug_info`.
+
+#### <a id="schema-livestatus-hostsbygroup-table-attributes"></a> Livestatus Hostsbygroup Table Attributes
+
+All (hosts)[19-appendix.md#schema-livestatus-hosts-table-attributes] table attributes grouped with
+the (hostgroups)[19-appendix.md#schema-livestatus-hostgroups-table-attributes] table prefixed with `hostgroup_`.
+
+#### <a id="schema-livestatus-servicesbygroup-table-attributes"></a> Livestatus Servicesbygroup Table Attributes
+
+All (services)[19-appendix.md#schema-livestatus-services-table-attributes] table attributes grouped with
+the (servicegroups)[19-appendix.md#schema-livestatus-servicegroups-table-attributes] table prefixed with `servicegroup_`.
+
+#### <a id="schema-livestatus-servicesbyhostgroup-table-attributes"></a> Livestatus Servicesbyhostgroup Table Attributes
+
+All (services)[19-appendix.md#schema-livestatus-services-table-attributes] table attributes grouped with
+the (hostgroups)[19-appendix.md#schema-livestatus-hostgroups-table-attributes] table prefixed with `hostgroup_`.
+

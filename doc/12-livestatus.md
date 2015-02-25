@@ -187,6 +187,9 @@ Default separators.
   endpoints     | &nbsp;    | config and status attributes
   log           | services, hosts, contacts, commands | parses [compatlog](6-object-types.md#objecttype-compatlogger) and shows log attributes
   statehist     | hosts, services | parses [compatlog](6-object-types.md#objecttype-compatlogger) and aggregates state change attributes
+  hostsbygroup  | hostgroups | host attributes grouped by hostgroup and its attributes
+  servicesbygroup | servicegroups | service attributes grouped by servicegroup and its attributes
+  servicesbyhostgroup  | hostgroups | service attributes grouped by hostgroup and its attributes
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
