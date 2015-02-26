@@ -72,6 +72,7 @@ private:
 	ConnectionRole m_Role;
 	double m_Seen;
 	double m_NextHeartbeat;
+	Timer::Ptr m_TimeoutTimer;
 
 	StreamReadContext m_Context;
 
@@ -80,6 +81,8 @@ private:
 	bool ProcessMessage(void);
 	void DataAvailableHandler(void);
 	void SendMessageSync(const Dictionary::Ptr& request);
+
+	void TimeoutTimerHandler(void);
 };
 
 }

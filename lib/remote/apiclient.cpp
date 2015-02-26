@@ -45,6 +45,11 @@ ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream
 void ApiClient::Start(void)
 {
 	m_Stream->RegisterDataHandler(boost::bind(&ApiClient::DataAvailableHandler, this));
+
+	m_TimeoutTimer = new Timer();
+	m_TimeoutTimer->OnTimerExpired.connect(boost::bind(&ApiClient::TimeoutTimerHandler, this));
+	m_TimeoutTimer->SetInterval(15);
+	m_TimeoutTimer->Start();
 }
 
 String ApiClient::GetIdentity(void) const
@@ -84,8 +89,6 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 		if (m_Stream->IsEof())
 			return;
 		JsonRpc::SendMessage(m_Stream, message);
-		if (message->Get("method") != "log::SetLogPosition")
-			m_Seen = Utility::GetTime();
 	} catch (const std::exception& ex) {
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
@@ -128,8 +131,7 @@ bool ApiClient::ProcessMessage(void)
 	if (srs != StatusNewItem)
 		return false;
 
-	if (message->Get("method") != "log::SetLogPosition")
-		m_Seen = Utility::GetTime();
+	m_Seen = Utility::GetTime();
 
 	if (m_Endpoint && message->Contains("ts")) {
 		double ts = message->Get("ts");
@@ -253,4 +255,10 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 	result->Set("ca", CertificateToString(cacert));
 
 	return result;
+}
+
+void ApiClient::TimeoutTimerHandler(void)
+{
+	if (Utility::GetTime() - 60 > m_Seen)
+		Disconnect();
 }
