@@ -225,7 +225,7 @@ void IdoPgsqlConnection::Reconnect(void)
 		if (!row) {
 			Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
-			Application::Exit(EXIT_FAILURE);
+			Application::RequestShutdown(EXIT_FAILURE);
 		}
 
 		String version = row->Get("version");
@@ -235,7 +235,7 @@ void IdoPgsqlConnection::Reconnect(void)
 			    << "Schema version '" << version << "' does not match the required version '"
 			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
 
-			Application::Exit(EXIT_FAILURE);
+			Application::RequestShutdown(EXIT_FAILURE);
 		}
 
 		String instanceName = GetInstanceName();

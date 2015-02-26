@@ -93,14 +93,14 @@ static bool Daemonize(void)
 
 		if (ret == pid) {
 			Log(LogCritical, "cli", "The daemon could not be started. See log output for details.");
-			Application::Exit(EXIT_FAILURE);
+			_exit(EXIT_FAILURE);
 		} else if (ret == -1) {
 			Log(LogCritical, "cli")
 			    << "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			Application::Exit(EXIT_FAILURE);
+			_exit(EXIT_FAILURE);
 		}
 
-		Application::Exit(0);
+		_exit(EXIT_SUCCESS);
 	}
 
 	Application::GetTP().Start();

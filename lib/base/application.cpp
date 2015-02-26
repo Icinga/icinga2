@@ -54,6 +54,7 @@ static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
+int Application::m_ExitStatus = 0;
 
 /**
  * Constructor for the Application class.
@@ -110,7 +111,6 @@ void Application::Exit(int rc)
 	}
 
 	UninitializeBase();
-
 #ifdef I2_DEBUG
 	exit(rc);
 #else /* I2_DEBUG */
@@ -308,7 +308,11 @@ mainloop:
 		goto mainloop;
 	}
 
-	Log(LogInformation, "Application", "Shutting down Icinga...");
+	if (m_ExitStatus)
+		Log(LogInformation, "Application", "Shutting down Icinga after a fatal error.");
+	else
+		Log(LogInformation, "Application", "Shutting down Icinga...");
+
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
@@ -355,8 +359,9 @@ pid_t Application::StartReloadProcess(void)
  * Signals the application to shut down during the next
  * execution of the event loop.
  */
-void Application::RequestShutdown(void)
+void Application::RequestShutdown(int rc)
 {
+	m_ExitStatus = rc > m_ExitStatus ? rc : m_ExitStatus;
 	m_ShuttingDown = true;
 }
 

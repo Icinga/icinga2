@@ -49,17 +49,13 @@ void ApiListener::OnConfigLoaded(void)
 	try {
 		cert = GetX509Certificate(GetCertPath());
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener")
-		    << "Cannot get certificate from cert path: '" << GetCertPath() << "'.";
-		Application::Exit(EXIT_FAILURE);
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate from cert path: '" + GetCertPath() + "'.", GetDebugInfo()));
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener")
-		    << "Cannot get certificate common name from cert path: '" << GetCertPath() << "'.";
-		Application::Exit(EXIT_FAILURE);
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate common name from cert path: '" + GetCertPath() + "'.", GetDebugInfo()));
 	}
 
 	Log(LogInformation, "ApiListener")
@@ -68,29 +64,22 @@ void ApiListener::OnConfigLoaded(void)
 	try {
 		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener")
-		    << "Cannot make SSL context for cert path: '" << GetCertPath() << "' key path: '" << GetKeyPath() << "' ca path: '" << GetCaPath() << "'.";
-		Application::Exit(EXIT_FAILURE);
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '" + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.", GetDebugInfo()));
 	}
 
 	if (!GetCrlPath().IsEmpty()) {
 		try {
 			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
 		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener")
-			    << "Cannot add certificate revocation list to SSL context for crl path: '" << GetCrlPath() << "'.";
-			Application::Exit(EXIT_FAILURE);
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '" + GetCrlPath() + "'.", GetDebugInfo()));
 		}
 	}
 }
 
 void ApiListener::OnAllConfigLoaded(void)
 {
-	if (!Endpoint::GetByName(GetIdentity())) {
-		Log(LogCritical, "ApiListener")
-		    << "Endpoint object for '" << GetIdentity() << "' is missing.";
-		Application::Exit(EXIT_FAILURE);
-	}
+	if (!Endpoint::GetByName(GetIdentity()))
+		BOOST_THROW_EXCEPTION(ScriptError("Endpoint object for '" + GetIdentity() + "' is missing.", GetDebugInfo()));
 }
 
 /**
@@ -117,7 +106,7 @@ void ApiListener::Start(void)
 	if (!AddListener(GetBindHost(), GetBindPort())) {
 		Log(LogCritical, "ApiListener")
 		     << "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
-		Application::Exit(EXIT_FAILURE);
+		Application::RequestShutdown(EXIT_FAILURE);
 	}
 
 	m_Timer = new Timer();

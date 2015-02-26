@@ -69,7 +69,7 @@ public:
 
 	static void InstallExceptionHandlers(void);
 
-	static void RequestShutdown(void);
+	static void RequestShutdown(int rc = 0);
 	static void RequestRestart(void);
 	static void RequestReopenLogs(void);
 
@@ -162,6 +162,7 @@ private:
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
+	static int m_ExitStatus;
 
 #ifndef _WIN32
 	static void SigIntTermHandler(int signum);

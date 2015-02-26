@@ -653,7 +653,7 @@ int main(int argc, char **argv)
 		};
 
 		StartServiceCtrlDispatcher(dispatchTable);
-		Application::Exit(1);
+		Application::Exit(EXIT_FAILURE);
 	}
 #endif /* _WIN32 */
 
