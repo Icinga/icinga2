@@ -168,7 +168,7 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 	} else {
 		InfoLog *OFile = NULL;
 		if (vm.count("include-objects")) {
-			OFile = new InfoLog(path+"-objects", vm.count("console"));
+			OFile = new InfoLog(path+"-objects", false);
 			if (!OFile->GetStreamHealth()) {
 				InfoLogLine(log, LogWarning)
 				    << "Failed to open Object-write-stream, not printing objects\n";
@@ -547,24 +547,23 @@ void TroubleshootCommand::InitParameters(boost::program_options::options_descrip
 
 int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String path;
+#ifdef _WIN32 //Dislikes ':' in filenames
+	String path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
+	     + Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
+#else
+	String path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
+	     + Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
+#endif /*_WIN32*/
+
 	InfoLog *log;
 	Logger::SetConsoleLogSeverity(LogWarning);
+
+	if (vm.count("output"))
+		path = vm["output"].as<std::string>();
 
 	if (vm.count("console")) {
 		log = new InfoLog("", true);
 	} else {
-		if (vm.count("output"))
-			path = vm["output"].as<std::string>();
-		else {
-#ifdef _WIN32 //Dislikes ':' in filenames
-			path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
-			    + Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
-#else
-			path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
-			    + Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
-#endif /*_WIN32*/
-		}
 		log = new InfoLog(path, false);
 		if (!log->GetStreamHealth()) {
 			Log(LogCritical, "troubleshoot", "Failed to open file to write: " + path);
