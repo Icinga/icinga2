@@ -421,8 +421,10 @@ Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won'
       -x [ --log-level ] arg specify the log level for the console log
 
     Command options:
-      -c [ --console ]      print to console instead of file
-      -o [ --output ] arg   path to output file
+      -c [ --console ]       print to console instead of file
+      -o [ --output ] arg    path to output file
+      --include-vars         print variables to separate file
+      --inluce-objects       print object to separate file
 
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
