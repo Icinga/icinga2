@@ -118,8 +118,6 @@ void ApiClient::Disconnect(void)
 	} catch (const std::exception&) {
 		/* Ignore the exception. */
 	}
-
-	m_WriteQueue.Join();
 }
 
 bool ApiClient::ProcessMessage(void)
