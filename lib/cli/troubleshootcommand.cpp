@@ -17,22 +17,26 @@
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
 
-#include "cli/troubleshootcommand.hpp"
-#include "cli/objectlistutility.hpp"
-#include "cli/featureutility.hpp"
-#include "cli/daemonutility.hpp"
-#include "base/netstring.hpp"
 #include "base/application.hpp"
-#include "base/stdiostream.hpp"
-#include "base/json.hpp"
-#include "base/objectlock.hpp"
 #include "base/convert.hpp"
+#include "base/json.hpp"
+#include "base/netstring.hpp"
+#include "base/objectlock.hpp"
+#include "base/stdiostream.hpp"
+#include "cli/daemonutility.hpp"
+#include "cli/featureutility.hpp"
+#include "cli/objectlistutility.hpp"
+#include "cli/troubleshootcommand.hpp"
+#include "cli/variableutility.hpp"
 #include "config/configitembuilder.hpp"
-#include <boost/circular_buffer.hpp>
-#include <boost/foreach.hpp>
+
 #include <boost/algorithm/string/join.hpp>
-#include <iostream>
+#include <boost/circular_buffer.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+
 #include <fstream>
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -148,7 +152,7 @@ bool TroubleshootCommand::FeatureInfo(InfoLog& log, const boost::program_options
 	return true;
 }
 
-bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
+bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs, const String& path)
 {
 	InfoLogLine(log) 
 	    << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << '\n';
@@ -161,9 +165,32 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 		    << "Cannot open object file '" << objectfile << "'.\n"
 		    << "FAILED: This probably means you have a fault configuration.";
 		return false;
-	} else
-		CheckObjectFile(objectfile, log, vm.count("include-objects"), logs, configs);
+	} else {
+		InfoLog *OFile = NULL;
+		if (vm.count("include-objects")) {
+			OFile = new InfoLog(path+"-objects", vm.count("console"));
+			if (!OFile->GetStreamHealth()) {
+				InfoLogLine(log, LogWarning)
+				    << "Failed to open Object-write-stream, not printing objects\n";
+				OFile = NULL;
+			} else
+				InfoLogLine(log)
+				    << "Printing all objects to " << path+"-objects";
+		}
+		CheckObjectFile(objectfile, log, OFile, logs, configs);
+		if (OFile != NULL)
+			delete OFile;
+	}
 
+	if (vm.count("include-vars")) {
+		if (PrintVarsFile(path))
+			InfoLogLine(log)
+			    << "Successfully printed all variables to " << path+"-vars";
+		else
+			InfoLogLine(log, LogWarning)
+			    << "Failed to prin vars to " << path+"-vars";
+	}
+	
 	return true;
 }
 
@@ -376,7 +403,7 @@ bool TroubleshootCommand::CheckConfig(void)
 }
 
 //print is supposed allow the user to print the object file
-void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
+void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile,
      Dictionary::Ptr& logs, std::set<String>& configs)
 {
 	InfoLogLine(log)
@@ -400,13 +427,18 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 	std::map<String, int> type_count;
 	bool first = true;
 
+	std::stringstream sStream;
+
 	while ((srs = NetString::ReadStringFromStream(sfp, &message, src)) != StatusEof) {
 		if (srs != StatusNewItem)
 			continue;
-
-		std::stringstream sStream;
 		
 		ObjectListUtility::PrintObject(sStream, first, message, type_count, "", "");
+		if(OFile != NULL) {	
+			InfoLogLine(*OFile)
+			    << sStream.str();
+			sStream.flush();
+		}
 
 		Dictionary::Ptr object = JsonDecode(message);
 		Dictionary::Ptr properties = object->Get("properties");
@@ -438,7 +470,6 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 	if (!countTotal) {
 		InfoLogLine(log, LogCritical)
 		    << "No objects found in objectfile.";
-
 		return;
 	}
 
@@ -457,6 +488,17 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 	    << "";
 
 	TroubleshootCommand::PrintObjectOrigin(log, configs);
+}
+
+bool TroubleshootCommand::PrintVarsFile(const String& path) {
+	std::ofstream *ofs = new std::ofstream();
+	ofs->open((path+"-vars").CStr(), std::ios::out | std::ios::trunc);
+	if (!ofs->is_open())
+		return false;
+	else
+		VariableUtility::PrintVariables(*ofs);
+	ofs->close();
+	return true;
 }
 
 void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
@@ -498,7 +540,8 @@ void TroubleshootCommand::InitParameters(boost::program_options::options_descrip
 	visibleDesc.add_options()
 		("console,c", "print to console instead of file")
 		("output,o", boost::program_options::value<std::string>(), "path to output file")
-//		("include-objects", "Print the whole objectfile (like `object list`)") TODO
+		("include-objects", "Print the whole objectfile (like `object list`)")
+		("include-vars", "Print all Variables (like `variable list`)")
 		;
 }
 
@@ -528,6 +571,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 			return 3;
 		}
 	}
+
 	String appName = Utility::BaseName(Application::GetArgV()[0]);
 	double goTime = Utility::GetTime();
 
@@ -543,7 +587,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 
 	if (!GeneralInfo(*log, vm) ||
 	    !FeatureInfo(*log, vm) ||
-	    !ObjectInfo(*log, vm, logs) ||
+	    !ObjectInfo(*log, vm, logs, path) ||
 	    !ReportInfo(*log, vm, logs) ||
 	    !ConfigInfo(*log, vm)) {
 		InfoLogLine(*log, LogCritical)

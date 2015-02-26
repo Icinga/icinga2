@@ -49,7 +49,7 @@ private:
 	static bool GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm);
 	static bool FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm);
 	static bool ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm,
-	    Dictionary::Ptr& logs);
+	    Dictionary::Ptr& logs, const String& path);
 	static bool ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm,
 	    Dictionary::Ptr& logs);
 	static bool ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm);
@@ -60,8 +60,9 @@ private:
 	static bool PrintCrashReports(InfoLog& log);
 	static bool PrintConf(InfoLog& log, const String& path);
 	static bool CheckConfig(void);
-	static void CheckObjectFile(const String& objectfile, InfoLog& log, const bool print,
+	static void CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile,
 	    Dictionary::Ptr& logs, std::set<String>& configs);
+	static bool PrintVarsFile(const String& path);
 	static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
 	static void PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet);
 };
