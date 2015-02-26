@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class NegateFilter : public Filter
+class I2_LIVESTATUS_API NegateFilter : public Filter
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NegateFilter);

@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class SumAggregator : public Aggregator
+class I2_LIVESTATUS_API SumAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(SumAggregator);

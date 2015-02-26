@@ -55,7 +55,7 @@ struct LivestatusScriptFrame
 /**
  * @ingroup livestatus
  */
-class LivestatusQuery : public Object
+class I2_LIVESTATUS_API LivestatusQuery : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(LivestatusQuery);

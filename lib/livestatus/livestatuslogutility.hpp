@@ -60,9 +60,8 @@ enum LogEntryClass {
 /**
  * @ingroup livestatus
  */
-class LivestatusLogUtility
+class I2_LIVESTATUS_API LivestatusLogUtility
 {
-
 public:
 	static void CreateLogIndex(const String& path, std::map<time_t, String>& index);
 	static void CreateLogIndexFileHandler(const String& path, std::map<time_t, String>& index);

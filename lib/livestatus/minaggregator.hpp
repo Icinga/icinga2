@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class MinAggregator : public Aggregator
+class I2_LIVESTATUS_API MinAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MinAggregator);

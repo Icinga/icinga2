@@ -20,6 +20,7 @@
 #ifndef LIVESTATUSLISTENER_H
 #define LIVESTATUSLISTENER_H
 
+#include "livestatus/i2-livestatus.hpp"
 #include "livestatus/livestatuslistener.thpp"
 #include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
@@ -33,7 +34,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class LivestatusListener : public ObjectImpl<LivestatusListener>
+class I2_LIVESTATUS_API LivestatusListener : public ObjectImpl<LivestatusListener>
 {
 public:
 	DECLARE_OBJECT(LivestatusListener);

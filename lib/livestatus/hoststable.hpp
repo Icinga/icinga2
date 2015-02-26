@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class HostsTable : public Table
+class I2_LIVESTATUS_API HostsTable : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HostsTable);

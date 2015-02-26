@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class DowntimesTable : public Table
+class I2_LIVESTATUS_API DowntimesTable : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DowntimesTable);

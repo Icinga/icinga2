@@ -44,6 +44,7 @@ target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga remote)
 set_target_properties (
   livestatus PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_LIVESTATUS_BUILD
   FOLDER Components
 )
 

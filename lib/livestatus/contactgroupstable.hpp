@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class ContactGroupsTable : public Table
+class I2_LIVESTATUS_API ContactGroupsTable : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ContactGroupsTable);

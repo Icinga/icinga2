@@ -20,6 +20,7 @@
 #ifndef AGGREGATOR_H
 #define AGGREGATOR_H
 
+#include "livestatus/i2-livestatus.hpp"
 #include "livestatus/table.hpp"
 #include "livestatus/filter.hpp"
 
@@ -29,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class Aggregator : public Object
+class I2_LIVESTATUS_API Aggregator : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Aggregator);

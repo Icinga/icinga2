@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class MaxAggregator : public Aggregator
+class I2_LIVESTATUS_API MaxAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MaxAggregator);

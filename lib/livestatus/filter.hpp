@@ -20,6 +20,7 @@
 #ifndef FILTER_H
 #define FILTER_H
 
+#include "livestatus/i2-livestatus.hpp"
 #include "livestatus/table.hpp"
 
 namespace icinga
@@ -28,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class Filter : public Object
+class I2_LIVESTATUS_API Filter : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Filter);

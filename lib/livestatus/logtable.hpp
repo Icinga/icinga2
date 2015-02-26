@@ -31,7 +31,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class LogTable : public HistoryTable
+class I2_LIVESTATUS_API LogTable : public HistoryTable
 {
 public:
 	DECLARE_PTR_TYPEDEFS(LogTable);

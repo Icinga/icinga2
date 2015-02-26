@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class CombinerFilter : public Filter
+class I2_LIVESTATUS_API CombinerFilter : public Filter
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CombinerFilter);

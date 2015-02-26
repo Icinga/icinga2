@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class AttributeFilter : public Filter
+class I2_LIVESTATUS_API AttributeFilter : public Filter
 {
 public:
 	DECLARE_PTR_TYPEDEFS(AttributeFilter);

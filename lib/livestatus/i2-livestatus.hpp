@@ -17,40 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef COLUMN_H
-#define COLUMN_H
+#ifndef I2LIVESTATUS_H
+#define I2LIVESTATUS_H
 
-#include "livestatus/i2-livestatus.hpp"
-#include "livestatus/i2-livestatus.hpp"
-#include "base/value.hpp"
-#include <boost/function.hpp>
+/**
+ * @defgroup icinga Livestatus
+ *
+ * The Livestatus library implements the Livestatus protocol for Icinga.
+ */
 
-using namespace icinga;
+#include "base/i2-base.hpp"
 
-namespace icinga
-{
+#ifdef I2_LIVESTATUS_BUILD
+#	define I2_LIVESTATUS_API I2_EXPORT
+#else /* I2_LIVESTATUS_BUILD */
+#	define I2_LIVESTATUS_API I2_IMPORT
+#endif /* I2_LIVESTATUS_BUILD */
 
-enum LivestatusGroupByType {
-	LivestatusGroupByNone,
-	LivestatusGroupByHostGroup,
-	LivestatusGroupByServiceGroup
-};
-
-class I2_LIVESTATUS_API Column
-{
-public:
-	typedef boost::function<Value (const Value&)> ValueAccessor;
-	typedef boost::function<Value (const Value&, LivestatusGroupByType, const Object::Ptr&)> ObjectAccessor;
-
-	Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor);
-
-	Value ExtractValue(const Value& urow, LivestatusGroupByType groupByType = LivestatusGroupByNone, const Object::Ptr& groupByObject = Empty) const;
-
-private:
-	ValueAccessor m_ValueAccessor;
-	ObjectAccessor m_ObjectAccessor;
-};
-
-}
-
-#endif /* COLUMN_H */
+#endif /* I2LIVESTATUS_H */
