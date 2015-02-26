@@ -259,6 +259,9 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 
 void ApiClient::TimeoutTimerHandler(void)
 {
-	if (Utility::GetTime() - 60 > m_Seen)
+	if (m_Seen < Utility::GetTime() - 60) {
+		Log(LogInformation, "ApiClient")
+		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
 		Disconnect();
+	}
 }
