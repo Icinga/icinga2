@@ -668,11 +668,13 @@ Example:
 
     a = 3
 
-	if (a < 5) {
+    if (a < 5) {
       a *= 7
-	} else {
-	  a *= 2
-	}
+    } else if (a > 10) {
+      a *= 5
+    } else {
+      a *= 2
+    }
 
 An if/else construct can also be used in place of any other value. The value of an if/else statement
 is the value of the last statement which was evaluated for the branch which was taken:

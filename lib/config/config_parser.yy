@@ -97,6 +97,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	std::vector<String> *slist;
 	std::vector<std::pair<Expression *, EItemInfo> > *llist;
 	std::vector<Expression *> *elist;
+	std::vector<std::pair<Expression *, Expression *> > *ebranchlist;
+	std::pair<Expression *, Expression *> *ebranch;
 	std::pair<String, Expression *> *cvitem;
 	std::map<String, Expression *> *cvlist;
 	icinga::ScopeSpecifier scope;
@@ -197,6 +199,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> rterm_array
 %type <expr> rterm_scope_require_side_effect
 %type <expr> rterm_scope
+%type <ebranchlist> else_if_branches
+%type <ebranch> else_if_branch
 %type <expr> rterm_side_effect
 %type <expr> rterm_no_side_effect
 %type <expr> lterm
@@ -757,6 +761,27 @@ rterm_scope: '{'
 	}
 	;
 
+else_if_branch: T_ELSE T_IF '(' rterm ')' rterm_scope
+	{
+		DictExpression *atrue = dynamic_cast<DictExpression *>($6);
+		atrue->MakeInline();
+
+		$$ = new std::pair<Expression *, Expression *>($4, atrue);
+	}
+	;
+
+else_if_branches: /* empty */
+	{
+		$$ = new std::vector<std::pair<Expression *, Expression *> >();
+	}
+	| else_if_branches else_if_branch
+	{
+		$$ = $1;
+		$$->push_back(*$2);
+		delete $2;
+	}
+	;
+
 rterm_side_effect: rterm '(' rterm_items ')'
 	{
 		$$ = new FunctionCallExpression($1, *$3, @$);
@@ -790,13 +815,23 @@ rterm_side_effect: rterm '(' rterm_items ')'
 
 		$$ = new ConditionalExpression($3, atrue, NULL, @$);
 	}
-	| T_IF '(' rterm ')' rterm_scope T_ELSE rterm_scope
+	| T_IF '(' rterm ')' rterm_scope else_if_branches T_ELSE rterm_scope
 	{
 		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
 		atrue->MakeInline();
 
-		DictExpression *afalse = dynamic_cast<DictExpression *>($7);
-		afalse->MakeInline();
+		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
+		delete $6;
+
+		DictExpression *afalsedict = dynamic_cast<DictExpression *>($8);
+		afalsedict->MakeInline();
+
+		Expression *afalse = afalsedict;
+
+		for (int i = ebranches.size() - 1; i >= 0; i--) {
+			const std::pair<Expression *, Expression *>& ebranch = ebranches[i];
+			afalse = new ConditionalExpression(ebranch.first, ebranch.second, afalse, @6);
+		}
 
 		$$ = new ConditionalExpression($3, atrue, afalse, @$);
 	}
