@@ -292,6 +292,8 @@ void TlsStream::Close(void)
 	(void) SSL_shutdown(m_SSL.get());
 	m_SSL.reset();
 
+	SocketEvents::Unregister();
+
 	m_Socket->Close();
 
 	m_Eof = true;
