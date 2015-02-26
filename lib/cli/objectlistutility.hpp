@@ -20,6 +20,7 @@
 #define OBJECTLISTUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/value.hpp"
@@ -27,16 +28,15 @@
 
 namespace icinga
 {
-class ObjectListUtility
+
+/**
+ * @ingroup cli
+ */
+class I2_CLI_API ObjectListUtility
 {
 public:
-	/*
-	 * Print decoded json blob *message* to *fp*, filtering by *name_filter* and *type_filter*.
-	 * An enumeration by type is written to *type_count*
-	 * *first* needs to be true
-	 * returns true if object was printed
-	*/
 	static bool PrintObject(std::ostream& fp, bool& first, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter);
+
 private:
 	static void PrintProperties(std::ostream& fp, const Dictionary::Ptr& props, const Dictionary::Ptr& debug_hints, int indent);
 	static void PrintHints(std::ostream& fp, const Dictionary::Ptr& debug_hints, int indent);
@@ -44,5 +44,7 @@ private:
 	static void PrintValue(std::ostream& fp, const Value& val);
 	static void PrintArray(std::ostream& fp, const Array::Ptr& arr);
 };
+
 }
+
 #endif /* OBJECTLISTUTILITY_H */

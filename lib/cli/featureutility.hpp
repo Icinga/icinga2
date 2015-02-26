@@ -21,6 +21,7 @@
 #define FEATUREUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/string.hpp"
 #include <vector>
 #include <iostream>
@@ -31,7 +32,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class FeatureUtility
+class I2_CLI_API FeatureUtility
 {
 public:
 	static String GetFeaturesAvailablePath(void);

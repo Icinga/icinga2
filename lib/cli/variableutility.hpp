@@ -21,6 +21,7 @@
 #define VARIABLEUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
 #include <ostream>
@@ -31,7 +32,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class VariableUtility
+class I2_CLI_API VariableUtility
 {
 public:
 	static Value GetVariable(const String& name);
@@ -39,7 +40,6 @@ public:
 
 private:
 	VariableUtility(void);
-
 
 };
 

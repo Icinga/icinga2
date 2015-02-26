@@ -21,6 +21,7 @@
 #define REPOSITORYUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/value.hpp"
@@ -33,7 +34,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class RepositoryUtility
+class I2_CLI_API RepositoryUtility
 {
 public:
 	static Dictionary::Ptr GetArgumentAttributes(const std::vector<std::string>& arguments);

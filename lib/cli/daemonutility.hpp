@@ -17,20 +17,26 @@
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
 
-#ifndef DAEMONUTILIT_H
-#define DAEMONUTILIT_H
+#ifndef DAEMONUTILITY_H
+#define DAEMONUTILITY_H
 
-//#include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/string.hpp"
 #include <boost/program_options.hpp>
 
 namespace icinga
 {
-class DaemonUtility
+
+/**
+ * @ingroup cli
+ */
+class I2_CLI_API DaemonUtility
 {
 public:
 	static bool ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile = String());
 	static bool LoadConfigFiles(const std::vector<std::string>& configs, const String& appType, const String& objectsFile = String(), const String& varsfile = String());
 };
+
 }
-#endif /*DAEMONULITIY_H*/
+
+#endif /* DAEMONULITIY_H */

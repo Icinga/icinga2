@@ -21,6 +21,7 @@
 #define PKIUTILITY_H
 
 #include "base/i2-base.hpp"
+#include "cli/i2-cli.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
 
@@ -30,7 +31,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class PkiUtility
+class I2_CLI_API PkiUtility
 {
 public:
 	static String GetPkiPath(void);
