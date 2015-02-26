@@ -20,6 +20,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apiclient.hpp"
 #include "remote/endpoint.hpp"
+#include "remote/jsonrpc.hpp"
 #include "base/convert.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
@@ -659,6 +660,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 
 	int count = -1;
 	double peer_ts = endpoint->GetLocalLogPosition();
+	double logpos_ts = peer_ts;
 	bool last_sync = false;
 	
 	Endpoint::Ptr target_endpoint = client->GetEndpoint();
@@ -697,7 +699,7 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 			Log(LogNotice, "ApiListener")
 			    << "Replaying log: " << path;
 
-			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in);
+			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in | std::fstream::binary);
 			StdioStream::Ptr logStream = new StdioStream(fp, true);
 
 			String message;
@@ -747,6 +749,20 @@ void ApiListener::ReplayLog(const ApiClient::Ptr& client)
 				count++;
 
 				peer_ts = pmessage->Get("timestamp");
+
+				if (ts > logpos_ts + 10) {
+					logpos_ts = ts;
+
+					Dictionary::Ptr lparams = new Dictionary();
+					lparams->Set("log_position", logpos_ts);
+
+					Dictionary::Ptr lmessage = new Dictionary();
+					lmessage->Set("jsonrpc", "2.0");
+					lmessage->Set("method", "log::SetLogPosition");
+					lmessage->Set("params", lparams);
+
+					JsonRpc::SendMessage(client->GetStream(), lmessage);
+				}
 			}
 
 			logStream->Close();

@@ -211,6 +211,7 @@ void TlsStream::OnEvent(int revents)
 
 			m_SSL.reset();
 			m_Socket->Close();
+			m_Socket.reset();
 
 			m_Eof = true;
 
@@ -222,6 +223,7 @@ void TlsStream::OnEvent(int revents)
 
 			m_SSL.reset();
 			m_Socket->Close();
+			m_Socket.reset();
 
 			m_ErrorCode = ERR_peek_error();
 			m_ErrorOccurred = true;
@@ -284,6 +286,8 @@ void TlsStream::Write(const void *buffer, size_t count)
  */
 void TlsStream::Close(void)
 {
+	SocketEvents::Unregister();
+
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (!m_SSL)
@@ -292,9 +296,8 @@ void TlsStream::Close(void)
 	(void) SSL_shutdown(m_SSL.get());
 	m_SSL.reset();
 
-	SocketEvents::Unregister();
-
 	m_Socket->Close();
+	m_Socket.reset();
 
 	m_Eof = true;
 }

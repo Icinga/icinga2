@@ -45,6 +45,12 @@ void ApiClient::HeartbeatTimerHandler(void)
 {
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
 		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
+			if (endpoint->GetSyncing()) {
+				Log(LogInformation, "ApiClient")
+				    << "Not sending heartbeat for endpoint '" << endpoint->GetName() << "' because we're replaying the log for it.";
+				continue;
+			}
+
 			if (client->m_NextHeartbeat != 0 && client->m_NextHeartbeat < Utility::GetTime()) {
 				Log(LogWarning, "ApiClient")
 				    << "Client for endpoint '" << endpoint->GetName() << "' has requested "

@@ -259,7 +259,7 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 
 void ApiClient::TimeoutTimerHandler(void)
 {
-	if (m_Seen < Utility::GetTime() - 60) {
+	if (m_Seen < Utility::GetTime() - 60 && !m_Endpoint->GetSyncing()) {
 		/* Obtain a strong reference to ourselves because Disconnect otherwise removes the last reference */
 		ApiClient::Ptr self = this;
 
