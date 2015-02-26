@@ -83,6 +83,8 @@ void Endpoint::RemoveClient(const ApiClient::Ptr& client)
 
 		Log(LogWarning, "ApiListener")
 		    << "Removing API client for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
+
+		SetConnecting(false);
 	}
 
 	bool is_master = ApiListener::GetInstance()->IsMaster();
