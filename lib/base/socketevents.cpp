@@ -142,7 +142,15 @@ void SocketEvents::ThreadProc(void)
 				VERIFY(ltref);
 			}
 
-			desc.EventInterface->OnEvent(pfds[i].revents);
+			try {
+				desc.EventInterface->OnEvent(pfds[i].revents);
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "SocketEvents")
+				    << "Exception thrown in socket I/O handler:\n"
+				    << DiagnosticInformation(ex);
+			} catch (...) {
+				Log(LogCritical, "SocketEvents", "Exception of unknown type thrown in socket I/O handler.");
+			}
 		}
 
 		delete [] pfds;
