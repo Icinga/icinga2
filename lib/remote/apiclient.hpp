@@ -82,7 +82,9 @@ private:
 	void DataAvailableHandler(void);
 	void SendMessageSync(const Dictionary::Ptr& request);
 
-	void TimeoutTimerHandler(void);
+	static void StaticInitialize(void);
+	static void TimeoutTimerHandler(void);
+	void CheckLiveness(void);
 };
 
 }

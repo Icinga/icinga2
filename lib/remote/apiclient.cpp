@@ -26,6 +26,7 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -34,22 +35,30 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 static Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
+static boost::once_flag l_ApiClientOnceFlag = BOOST_ONCE_INIT;
+static Timer::Ptr l_ApiClientTimeoutTimer;
+
 ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
 	  m_NextHeartbeat(0), m_Context(false)
 {
+	boost::call_once(l_ApiClientOnceFlag, &ApiClient::StaticInitialize);
+
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
+}
+
+void ApiClient::StaticInitialize(void)
+{
+	l_ApiClientTimeoutTimer = new Timer();
+	l_ApiClientTimeoutTimer->OnTimerExpired.connect(boost::bind(&ApiClient::TimeoutTimerHandler));
+	l_ApiClientTimeoutTimer->SetInterval(15);
+	l_ApiClientTimeoutTimer->Start();
 }
 
 void ApiClient::Start(void)
 {
 	m_Stream->RegisterDataHandler(boost::bind(&ApiClient::DataAvailableHandler, this));
-
-	m_TimeoutTimer = new Timer();
-	m_TimeoutTimer->OnTimerExpired.connect(boost::bind(&ApiClient::TimeoutTimerHandler, this));
-	m_TimeoutTimer->SetInterval(15);
-	m_TimeoutTimer->Start();
 }
 
 String ApiClient::GetIdentity(void) const
@@ -103,9 +112,6 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
-	m_TimeoutTimer->Stop();
-	m_TimeoutTimer.reset();
-
 	Log(LogWarning, "ApiClient")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
@@ -254,11 +260,26 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 	return result;
 }
 
-void ApiClient::TimeoutTimerHandler(void)
+void ApiClient::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
 		Log(LogInformation, "ApiClient")
 		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
-		Utility::QueueAsyncCallback(boost::bind(&ApiClient::Disconnect, ApiClient::Ptr(this)));
+		Disconnect();
+	}
+}
+
+void ApiClient::TimeoutTimerHandler(void)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	BOOST_FOREACH(const ApiClient::Ptr& client, listener->GetAnonymousClients()) {
+		client->CheckLiveness();
+	}
+
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
+		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
+			client->CheckLiveness();
+		}
 	}
 }
