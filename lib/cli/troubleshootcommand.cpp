@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "base/application.hpp"
+#include "base/console.hpp"
 #include "base/convert.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
@@ -59,8 +60,15 @@ public:
 	InfoLog(const String& path, const bool cons)
 	{
 		m_Console = cons;
-		if (m_Console)
+		m_ConsoleType = Console_Dumb;
+		if (m_Console) {
 			m_Stream = new std::ostream(std::cout.rdbuf());
+#ifndef _WIN32
+			m_ConsoleType = Console_VT100;
+#else /*_WIN32*/
+			m_ConsoleType = Console_Windows;
+#endif /*_WIN32*/
+		}
 		else {
 			std::ofstream *ofs = new std::ofstream();
 			ofs->open(path.CStr(), std::ios::out | std::ios::trunc);
@@ -73,19 +81,27 @@ public:
 		delete m_Stream;
 	}
 
-	void WriteLine(const LogSeverity sev, const String& str)
+	void WriteLine(const LogSeverity sev, const int colour, const String& str)
 	{
 		if (!m_Console)
 			Log(sev, "troubleshoot", str);
 
-		if (sev == LogCritical || sev == LogWarning) {
+		if (sev == LogWarning) {
 			*m_Stream 
-			    << std::string(24, '#') << '\n'
-			    << "# " << str << '\n'
-			    << std::string(24, '#') << '\n';
+			    << '\n' << ConsoleColorTag(Console_ForegroundYellow, m_ConsoleType) << std::string(24, '#') << '\n'
+			    << ConsoleColorTag(Console_Normal, m_ConsoleType) << str
+			    << ConsoleColorTag(Console_ForegroundYellow, m_ConsoleType) << std::string(24, '#') << "\n\n"
+			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
+		} else if (sev == LogCritical) {
+			*m_Stream 
+			    << '\n' << ConsoleColorTag(Console_ForegroundRed, m_ConsoleType) << std::string(24, '#') << '\n'
+			    << ConsoleColorTag(Console_Normal, m_ConsoleType) << str
+			    << ConsoleColorTag(Console_ForegroundRed, m_ConsoleType) << std::string(24, '#') << "\n\n"
+			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
 		} else
 			*m_Stream 
-			    << str << '\n';
+			    << ConsoleColorTag(colour, m_ConsoleType) << str
+			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
 	}
 
 	bool GetStreamHealth(void) const
@@ -95,18 +111,19 @@ public:
 
 private:
 	bool m_Console;
+	ConsoleType m_ConsoleType;
 	std::ostream *m_Stream;
 };
 
 class TroubleshootCommand::InfoLogLine
 {
 public:
-	InfoLogLine(InfoLog& log, LogSeverity sev = LogInformation)
-		: m_Log(log), m_Sev(sev) {}
+	InfoLogLine(InfoLog& log, int col = Console_Normal, LogSeverity sev = LogInformation)
+		: m_Log(log), m_colour(col), m_Sev(sev) {}
 
 	~InfoLogLine(void)
 	{
-		m_Log.WriteLine(m_Sev, m_String.str());
+		m_Log.WriteLine(m_Sev, m_colour, m_String.str());
 	}
 
 	template <typename T>
@@ -120,13 +137,14 @@ private:
 	std::ostringstream m_String;
 	InfoLog& m_Log;
 	LogSeverity m_Sev;
+	int m_colour;
 };
 
 
 bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
-	InfoLogLine(log) 
-	    << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << '\n';
+	InfoLogLine(log, Console_ForegroundBlue) 
+	    << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << "\n\n";
 
 	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
@@ -140,7 +158,7 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 	    << "\tObjects path: " << Application::GetObjectsPath() << '\n'
 	    << "\tVars path: " << Application::GetVarsPath() << '\n'
 	    << "\tPID path: " << Application::GetPidPath() << '\n'
-	    << "\tApplication type: " << Application::GetApplicationType() << '\n';
+	    << "\tApplication type: " << Application::GetApplicationType() << "\n\n";
 
 	return true;
 }
@@ -154,28 +172,28 @@ bool TroubleshootCommand::FeatureInfo(InfoLog& log, const boost::program_options
 
 bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs, const String& path)
 {
-	InfoLogLine(log) 
-	    << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << '\n';
+	InfoLogLine(log, Console_ForegroundBlue) 
+	    << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << "\n\n";
 
 	String objectfile = Application::GetObjectsPath();
 	std::set<String> configs;
 
 	if (!Utility::PathExists(objectfile)) {
-		InfoLogLine(log, LogCritical) 
+		InfoLogLine(log, 0, LogCritical) 
 		    << "Cannot open object file '" << objectfile << "'.\n"
-		    << "FAILED: This probably means you have a fault configuration.";
+		    << "FAILED: This probably means you have a fault configuration.\n";
 		return false;
 	} else {
 		InfoLog *OFile = NULL;
 		if (vm.count("include-objects")) {
 			OFile = new InfoLog(path+"-objects", false);
 			if (!OFile->GetStreamHealth()) {
-				InfoLogLine(log, LogWarning)
-				    << "Failed to open Object-write-stream, not printing objects\n";
+				InfoLogLine(log, 0, LogWarning)
+				    << "Failed to open Object-write-stream, not printing objects\n\n";
 				OFile = NULL;
 			} else
 				InfoLogLine(log)
-				    << "Printing all objects to " << path+"-objects";
+				    << "Printing all objects to " << path+"-objects\n";
 		}
 		CheckObjectFile(objectfile, log, OFile, logs, configs);
 		if (OFile != NULL)
@@ -185,10 +203,10 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 	if (vm.count("include-vars")) {
 		if (PrintVarsFile(path))
 			InfoLogLine(log)
-			    << "Successfully printed all variables to " << path+"-vars";
+			    << "Successfully printed all variables to " << path+"-vars\n";
 		else
-			InfoLogLine(log, LogWarning)
-			    << "Failed to prin vars to " << path+"-vars";
+			InfoLogLine(log, 0, LogWarning)
+			    << "Failed to prin vars to " << path+"-vars\n";
 	}
 	
 	return true;
@@ -196,8 +214,8 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 
 bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
-	InfoLogLine(log) 
-	    << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << '\n';
+	InfoLogLine(log, Console_ForegroundBlue) 
+	    << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << "\n\n";
 	PrintLoggers(log, logs);
 	PrintCrashReports(log);
 
@@ -206,23 +224,23 @@ bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options:
 
 bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
-	InfoLogLine(log) 
-	    << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << '\n';
+	InfoLogLine(log, Console_ForegroundBlue) 
+	    << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << "\n\n";
 
 	InfoLogLine(log) 
-	    << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc";
+	    << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc\n";
 
 	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
-		InfoLogLine(log, LogWarning)
+		InfoLogLine(log, 0, LogWarning)
 		    << "icinga2.conf not found, therefore skipping validation.\n"
 		    << "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
-		    << "and provide it with your support request.";
+		    << "and provide it with your support request.\n";
 	}
 
 	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/zones.conf")) {
-		InfoLogLine(log, LogWarning)
+		InfoLogLine(log, 0, LogWarning)
 		    << "zones.conf not found.\n"
-		    << "If you are using a zones.conf somewhere but the default path please provide it with your support request";
+		    << "If you are using a zones.conf somewhere but the default path please provide it with your support request\n";
 	}
 
 	return true;
@@ -248,18 +266,20 @@ int TroubleshootCommand::Tail(const String& file, int numLines, InfoLog& log)
 	if (lines < numLines)
 		numLines = lines;
 	
-	InfoLogLine(log)
-	    << "\n[begin: '" << file << "' line: " << numLines-lines << ']';
+	InfoLogLine(log, Console_ForegroundCyan)
+	    << "[begin: '" << file << "' line: " << lines-numLines << "]\n";
 
 	for (int k = 0; k < numLines; k++) {
-		InfoLogLine(log)
-		    << '\t' << ringBuf[k];
+		InfoLogLine(log, Console_ForegroundCyan)
+		    <<  "#  ";
+	 	InfoLogLine(log)
+		    << ringBuf[k] << '\n';
 	}
 
 	text.close();
 
-	InfoLogLine(log) 
-	    << "[end: '" << file << "' line: " << lines << "]\n";
+	InfoLogLine(log, Console_ForegroundCyan) 
+	    << "[end: '" << file << "' line: " << lines << "]\n\n";
 
 	return numLines;
 }
@@ -272,10 +292,10 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 
 	if (!FeatureUtility::GetFeatures(disabled_features, true) ||
 	    !FeatureUtility::GetFeatures(enabled_features, false)) {
-		InfoLogLine(log, LogCritical)
+		InfoLogLine(log, 0, LogCritical)
 		    << "Failed to collect enabled and/or disabled features. Check\n"
 		    << FeatureUtility::GetFeaturesAvailablePath() << '\n'
-		    << FeatureUtility::GetFeaturesEnabledPath();
+		    << FeatureUtility::GetFeaturesEnabledPath() << '\n';
 		return false;
 	}
 
@@ -285,18 +305,23 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 		features->Set(feature, true);
 
 	InfoLogLine(log)
-	    << "Enabled features:\n\t" << boost::algorithm::join(enabled_features, " ") << '\n'
-	    << "Disabled features:\n\t" << boost::algorithm::join(disabled_features, " ") << '\n';
+	    << "Enabled features:\n";
+	InfoLogLine(log, Console_ForegroundGreen) 
+	    << '\t' << boost::algorithm::join(enabled_features, " ") << '\n';
+	InfoLogLine(log)
+	    << "Disabled features:\n";
+	InfoLogLine(log, Console_ForegroundRed)
+		<< '\t' << boost::algorithm::join(disabled_features, " ") << '\n';
 
 	if (!features->Get("checker").ToBool())
-		InfoLogLine(log, LogWarning) 
-		    << "checker is disabled, no checks can be run from this instance";
+		InfoLogLine(log, 0, LogWarning) 
+		    << "checker is disabled, no checks can be run from this instance\n";
 	if (!features->Get("mainlog").ToBool())
-		InfoLogLine(log, LogWarning) 
-		    << "mainlog is disabled, please activate it and rerun icinga2";
+		InfoLogLine(log, 0, LogWarning) 
+		    << "mainlog is disabled, please activate it and rerun icinga2\n";
 	if (!features->Get("debuglog").ToBool())
-		InfoLogLine(log, LogWarning) 
-		    << "debuglog is disabled, please activate it and rerun icinga2";
+		InfoLogLine(log, 0, LogWarning) 
+		    << "debuglog is disabled, please activate it and rerun icinga2\n";
 
 	return true;
 }
@@ -332,20 +357,20 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 	catch (win32_error &ex) {
 		if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
 			if (*err != 3) {//Error code for path does not exist
-				InfoLogLine(log, LogWarning)
+				InfoLogLine(log, 0, LogWarning)
 				    << Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist\n";
 
 				return false;
 			}
 		}
-		InfoLogLine(log, LogWarning) 
-		    << "Error printing crash reports";
+		InfoLogLine(log, 0, LogWarning) 
+		    << "Error printing crash reports\n";
 
 		return false;
 	}
 #else
 	catch (...) {
-		InfoLogLine(log, LogWarning) << "Error printing crash reports.\n"
+		InfoLogLine(log, 0, LogWarning) << "Error printing crash reports.\n"
 		    << "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?\n";
 
 		return false;
@@ -353,15 +378,15 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 #endif /*_WIN32*/
 
 	if (!bestTimestamp)
-		InfoLogLine(log)
-		    << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/\n";
+		InfoLogLine(log, Console_ForegroundYellow)
+		    << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/\n\n";
 	else {
 		InfoLogLine(log)
-		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime())
-		    << "\nFile: " << bestFilename;
+		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()) << '\n'
+		    << "File: " << bestFilename << '\n';
 		Tail(bestFilename, 20, log);
 		InfoLogLine(log)
-		    << "";
+		    << '\n';
 	}
 
 	return true;
@@ -376,16 +401,18 @@ bool TroubleshootCommand::PrintConf(InfoLog& log, const String& path)
 
 	std::string line;
 
-	InfoLogLine(log) 
-	    << "\n[begin: '" << path << "']";
+	InfoLogLine(log, Console_ForegroundCyan) 
+	    << "[begin: '" << path << "']\n";
 
 	while (std::getline(text, line)) {
-		InfoLogLine(log) 
-		    << '\t' << line;
+		InfoLogLine(log, Console_ForegroundCyan) 
+		    << "#  ";
+		InfoLogLine(log)
+		   	<< line << '\n';
 	}
 
-	InfoLogLine(log)
-	     << "[end: '" << path << "']";
+	InfoLogLine(log, Console_ForegroundCyan)
+	     << "[end: '" << path << "']\n";
 
 	return true;
 }
@@ -407,14 +434,14 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
      Dictionary::Ptr& logs, std::set<String>& configs)
 {
 	InfoLogLine(log)
-	     << "Checking object file from " << objectfile;
+	     << "Checking object file from " << objectfile << '\n';
 
 	std::fstream fp;
 	fp.open(objectfile.CStr(), std::ios_base::in);
 
 	if (!fp.is_open()) {
-		InfoLogLine(log, LogWarning)
-		     << "Could not open object file.";
+		InfoLogLine(log, 0, LogWarning)
+		     << "Could not open object file.\n";
 		return;
 	}
 
@@ -468,24 +495,24 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 	}
 
 	if (!countTotal) {
-		InfoLogLine(log, LogCritical)
-		    << "No objects found in objectfile.";
+		InfoLogLine(log, 0, LogCritical)
+		    << "No objects found in objectfile.\n";
 		return;
 	}
 
 	//Print objects with count
 	InfoLogLine(log)
 	    << "Found the " << countTotal << " objects:\n"
-	    << "\tType" << std::string(typeL-4, ' ') << " : Count";
+	    << "  Type" << std::string(typeL-4, ' ') << " : Count\n";
 	
 	BOOST_FOREACH(const Dictionary::Pair& kv, type_count) {
 		InfoLogLine(log)
-		    << '\t' << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
-		    << " : " << kv.second;
+		    << "  " << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
+		    << " : " << kv.second << '\n';
 	}
 
 	InfoLogLine(log)
-	    << "";
+	    << '\n';
 
 	TroubleshootCommand::PrintObjectOrigin(log, configs);
 }
@@ -504,19 +531,19 @@ bool TroubleshootCommand::PrintVarsFile(const String& path) {
 void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 {
 	if (!logs->GetLength()) {
-		InfoLogLine(log, LogWarning)
+		InfoLogLine(log, 0, LogWarning)
 		     << "No loggers found, check whether you enabled any logging features\n";
 	} else {
 		InfoLogLine(log)
-		     << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.";
+		     << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.\n";
 
 		ObjectLock ulock(logs);
 		BOOST_FOREACH(const Dictionary::Pair& kv, logs) {
 			InfoLogLine(log)
-			     << "Logger " << kv.first << " at path: " << kv.second;
+			     << "Logger " << kv.first << " at path: " << kv.second << '\n';
 
 			if (!Tail(kv.second, 20, log)) {
-				InfoLogLine(log, LogWarning)
+				InfoLogLine(log, 0, LogWarning)
 				     << kv.second << " either does not exist or is empty\n";
 			}
 		}
@@ -526,11 +553,11 @@ void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 void TroubleshootCommand::PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet)
 {
 	InfoLogLine(log)
-	     << "The objects origins are:";
+	     << "The objects origins are:\n";
 
 	for (std::set<String>::iterator it = configSet.begin(); it != configSet.end(); it++) {
 		InfoLogLine(log)
-		     << '\t' << *it;
+		     << "  " << *it << '\n';
 	}
 }
 
@@ -577,7 +604,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	InfoLogLine(*log) 
 	    << appName << " -- Troubleshooting help:\n"
 	    << "Should you run into problems with Icinga please add this file to your help request\n"
-	    << "Began procedure at timestamp " << Convert::ToString(goTime) << '\n';
+	    << "Began procedure at timestamp " << Convert::ToString(goTime) << "\n\n";
 
 	if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 		appName = appName.SubStr(3, appName.GetLength() - 3);
@@ -589,8 +616,8 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	    !ObjectInfo(*log, vm, logs, path) ||
 	    !ReportInfo(*log, vm, logs) ||
 	    !ConfigInfo(*log, vm)) {
-		InfoLogLine(*log, LogCritical)
-		    << "Could not recover from critical failure, exiting.";
+		InfoLogLine(*log, 0, LogCritical)
+		    << "Could not recover from critical failure, exiting.\n";
 
 		delete log;
 		return 3;
@@ -604,7 +631,8 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 
 	if (!vm.count("console")) {
 		std::cout 
-		    << "\nFinished collection. See '" << path << "'\n";
+		    << "\nFinished collection. See '" << path << "'\n"
+		    << "Please compress these files with tar or zip before uploading them\n";
 	}
 
 	delete log;
