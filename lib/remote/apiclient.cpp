@@ -258,11 +258,8 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 void ApiClient::TimeoutTimerHandler(void)
 {
 	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
-		/* Obtain a strong reference to ourselves because Disconnect otherwise removes the last reference */
-		ApiClient::Ptr self = this;
-
 		Log(LogInformation, "ApiClient")
 		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
-		Disconnect();
+		Utility::QueueAsyncCallback(boost::bind(&ApiClient::Disconnect, ApiClient::Ptr(this)));
 	}
 }
