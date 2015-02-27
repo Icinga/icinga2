@@ -81,6 +81,7 @@ private:
 	double m_Interval; /**< The interval of the timer. */
 	double m_Next; /**< When the next event should happen. */
 	bool m_Started; /**< Whether the timer is enabled. */
+	bool m_Running; /**< Whether the timer proc is currently running. */
 
 	void Call();
 

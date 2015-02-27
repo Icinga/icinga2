@@ -49,7 +49,7 @@ static TimerSet l_Timers;
  * Constructor for the Timer class.
  */
 Timer::Timer(void)
-	: m_Interval(0), m_Next(0)
+	: m_Interval(0), m_Next(0), m_Started(false), m_Running(false)
 { }
 
 /**
@@ -58,6 +58,10 @@ Timer::Timer(void)
 Timer::~Timer(void)
 {
 	Stop();
+
+	boost::mutex::scoped_lock lock(l_TimerMutex);
+	while (m_Running)
+		l_TimerCV.wait(lock);
 }
 
 /**
@@ -100,7 +104,14 @@ void Timer::Call(void)
 		throw;
 	}
 
+	{
+		boost::mutex::scoped_lock lock(l_TimerMutex);
+		m_Running = false;
+		l_TimerCV.notify_all();
+	}
+
 	Reschedule();
+
 }
 
 /**
@@ -172,6 +183,7 @@ void Timer::Stop(void)
 void Timer::Reschedule(double next)
 {
 	ASSERT(!OwnsLock());
+	ASSERT(!m_Running);
 
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 
@@ -279,6 +291,8 @@ void Timer::TimerThreadProc(void)
 		/* Remove the timer from the list so it doesn't get called again
 		 * until the current call is completed. */
 		l_Timers.erase(timer);
+
+		timer->m_Running = true;
 
 		lock.unlock();
 
