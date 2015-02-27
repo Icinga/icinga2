@@ -63,5 +63,5 @@ void StdioStream::Close(void)
 
 bool StdioStream::IsEof(void) const
 {
-	return m_InnerStream->eof();
+	return !m_InnerStream->good();
 }

@@ -131,7 +131,7 @@ void TlsStream::OnEvent(int revents)
 	char buffer[512];
 
 	if (m_CurrentAction == TlsActionNone) {
-		if (revents & POLLIN)
+		if (revents & (POLLIN | POLLERR | POLLHUP))
 			m_CurrentAction = TlsActionRead;
 		else if (m_SendQ->GetAvailableBytes() > 0 && (revents & POLLOUT))
 			m_CurrentAction = TlsActionWrite;
