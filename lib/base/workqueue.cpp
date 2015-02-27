@@ -220,6 +220,10 @@ void WorkQueue::WorkerThreadProc(void)
 				m_ExceptionCallback(boost::current_exception());
 		}
 
+		/* clear the task so whatever other resources it holds are released
+		   _before_ we re-acquire the mutex */
+		task = Task();
+
 		lock.lock();
 
 		m_Processing--;
