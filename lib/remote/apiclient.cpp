@@ -103,6 +103,9 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 
 void ApiClient::Disconnect(void)
 {
+	m_TimeoutTimer->Stop();
+	m_TimeoutTimer.reset();
+
 	Log(LogWarning, "ApiClient")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
@@ -113,11 +116,7 @@ void ApiClient::Disconnect(void)
 		listener->RemoveAnonymousClient(this);
 	}
 
-	try {
-		m_Stream->Close();
-	} catch (const std::exception&) {
-		/* Ignore the exception. */
-	}
+	m_Stream->Close();
 }
 
 bool ApiClient::ProcessMessage(void)
