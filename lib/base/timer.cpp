@@ -183,7 +183,6 @@ void Timer::Stop(void)
 void Timer::Reschedule(double next)
 {
 	ASSERT(!OwnsLock());
-	ASSERT(!m_Running);
 
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 
@@ -197,7 +196,7 @@ void Timer::Reschedule(double next)
 
 	m_Next = next;
 
-	if (m_Started) {
+	if (m_Started && !m_Running) {
 		/* Remove and re-add the timer to update the index. */
 		l_Timers.erase(this);
 		l_Timers.insert(this);
