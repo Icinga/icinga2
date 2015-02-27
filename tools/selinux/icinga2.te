@@ -48,7 +48,8 @@ corenet_port(icinga2_port_t)
 #
 # icinga2 local policy
 #
-allow icinga2_t self:capability { setgid setuid };
+allow icinga2_t self:capability { setgid setuid sys_resource };
+allow icinga2_t self:process { setsched signal setrlimit };
 allow icinga2_t self:fifo_file rw_fifo_file_perms;
 allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
 
@@ -94,6 +95,12 @@ icinga2_execstrans(nagios_system_plugin_exec_t, nagios_system_plugin_t)
 
 allow icinga2_t icinga2_port_t:tcp_socket name_bind;
 allow icinga2_t self:tcp_socket create_stream_socket_perms;
+
+mysql_stream_connect(icinga2_t)
+mysql_tcp_connect(icinga2_t)
+postgresql_stream_connect(icinga2_t)
+postgresql_tcp_connect(icinga2_t)
+
 
 ########################################
 #
