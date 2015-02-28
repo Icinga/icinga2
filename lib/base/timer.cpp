@@ -58,10 +58,6 @@ Timer::Timer(void)
 Timer::~Timer(void)
 {
 	Stop();
-
-	boost::mutex::scoped_lock lock(l_TimerMutex);
-	while (m_Running)
-		l_TimerCV.wait(lock);
 }
 
 /**
@@ -99,19 +95,12 @@ void Timer::Call(void)
 	try {
 		OnTimerExpired(Timer::Ptr(this));
 	} catch (...) {
-		Reschedule();
+		InternalReschedule(true);
 
 		throw;
 	}
 
-	{
-		boost::mutex::scoped_lock lock(l_TimerMutex);
-		m_Running = false;
-		l_TimerCV.notify_all();
-	}
-
-	Reschedule();
-
+	InternalReschedule(true);
 }
 
 /**
@@ -152,13 +141,13 @@ void Timer::Start(void)
 		m_Started = true;
 	}
 
-	Reschedule();
+	InternalReschedule(false);
 }
 
 /**
  * Unregisters the timer and stops processing events for it.
  */
-void Timer::Stop(void)
+void Timer::Stop(bool wait)
 {
 	ASSERT(!OwnsLock());
 
@@ -172,19 +161,31 @@ void Timer::Stop(void)
 
 	/* Notify the worker thread that we've disabled a timer. */
 	l_TimerCV.notify_all();
+
+	while (wait && m_Running)
+		l_TimerCV.wait(lock);
+}
+
+void Timer::Reschedule(double next)
+{
+	InternalReschedule(false, next);
 }
 
 /**
  * Reschedules this timer.
  *
+ * @param completed Whether the timer has just completed its callback.
  * @param next The time when this timer should be called again. Use -1 to let
  * 	       the timer figure out a suitable time based on the interval.
  */
-void Timer::Reschedule(double next)
+void Timer::InternalReschedule(bool completed, double next)
 {
 	ASSERT(!OwnsLock());
 
 	boost::mutex::scoped_lock lock(l_TimerMutex);
+
+	if (completed)
+		m_Running = false;
 
 	if (next < 0) {
 		/* Don't schedule the next call if this is not a periodic timer. */

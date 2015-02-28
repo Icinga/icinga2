@@ -44,6 +44,8 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 
 WorkQueue::~WorkQueue(void)
 {
+	m_StatusTimer->Stop();
+
 	Join(true);
 }
 

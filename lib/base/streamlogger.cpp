@@ -59,6 +59,9 @@ void StreamLogger::Stop(void)
  */
 StreamLogger::~StreamLogger(void)
 {
+	if (m_FlushLogTimer)
+		m_FlushLogTimer->Stop();
+
 	if (m_OwnsStream)
 		delete m_Stream;
 }
