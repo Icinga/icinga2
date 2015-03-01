@@ -20,6 +20,7 @@
 #include "icinga/perfdatavalue.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -113,17 +114,10 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data unit: " + unit));
 	}
 
-	if (tokens.size() > 1 && tokens[1] != "U" && tokens[1] != "")
-		warn = Convert::ToDouble(tokens[1]);
-
-	if (tokens.size() > 2 && tokens[2] != "U" && tokens[2] != "")
-		crit = Convert::ToDouble(tokens[2]);
-
-	if (tokens.size() > 3 && tokens[3] != "U" && tokens[3] != "")
-		min = Convert::ToDouble(tokens[3]);
-
-	if (tokens.size() > 4 && tokens[4] != "U" && tokens[4] != "")
-		max = Convert::ToDouble(tokens[4]);
+	warn = ParseWarnCritMinMaxToken(tokens, 1, "warning");
+	crit = ParseWarnCritMinMaxToken(tokens, 2, "critical");
+	min = ParseWarnCritMinMaxToken(tokens, 3, "minimum");
+	max = ParseWarnCritMinMaxToken(tokens, 4, "maximum");
 
 	value = value * base;
 
@@ -183,4 +177,16 @@ String PerfdataValue::Format(void) const
 	}
 
 	return result.str();
+}
+
+Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens, std::vector<String>::size_type index, const String& description)
+{
+	if (tokens.size() > index && tokens[index] != "U" && tokens[index] != "" && tokens[index].FindFirstNotOf("+-0123456789.e") == String::NPos)
+		return Convert::ToDouble(tokens[index]);
+	else {
+		if (tokens.size() > index && tokens[index] != "")
+			Log(LogDebug, "PerfdataValue")
+			    << "Ignoring unsupported perfdata " << description << " range, value: '" << tokens[index] << "'.";
+		return Empty;
+	}
 }

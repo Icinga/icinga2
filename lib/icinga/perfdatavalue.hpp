@@ -39,6 +39,10 @@ public:
 
 	static PerfdataValue::Ptr Parse(const String& perfdata);
 	String Format(void) const;
+
+private:
+	static Value ParseWarnCritMinMaxToken(const std::vector<String>& tokens,
+	    std::vector<String>::size_type index, const String& description);
 };
 
 }

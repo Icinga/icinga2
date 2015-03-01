@@ -114,10 +114,23 @@ BOOST_AUTO_TEST_CASE(warncritminmax)
 	BOOST_CHECK(pv->Format() == "test=123456B;1000;2000;3000;4000");
 }
 
+BOOST_AUTO_TEST_CASE(ignore_invalid_warn_crit_min_max)
+{
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=123456;1000:2000;0:3000;3000;4000");
+	BOOST_CHECK(pv);
+	BOOST_CHECK(pv->GetValue() == 123456);
+	BOOST_CHECK(pv->GetWarn() == Empty);
+	BOOST_CHECK(pv->GetCrit() == Empty);
+	BOOST_CHECK(pv->GetMin() == 3000);
+	BOOST_CHECK(pv->GetMax() == 4000);
+
+	BOOST_CHECK(pv->Format() == "test=123456");
+}
+
 BOOST_AUTO_TEST_CASE(invalid)
 {
+	BOOST_CHECK_THROW(PerfdataValue::Parse("123456"), boost::exception);
 	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1,23456"), boost::exception);
-	BOOST_CHECK_THROW(PerfdataValue::Parse("test=123456;10%;20%"), boost::exception);
 }
 
 BOOST_AUTO_TEST_CASE(multi)
