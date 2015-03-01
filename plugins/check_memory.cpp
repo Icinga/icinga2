@@ -36,7 +36,7 @@ static BOOL debug = FALSE;
 struct printInfoStruct
 {
 	threshold warn, crit;
-	DWORD tRam, aRam;
+	DWORDLONG tRam, aRam;
 	Bunit unit = BunitMB;
 };
 
@@ -213,16 +213,18 @@ int check_memory(printInfoStruct& printInfo)
 	if (debug)
 		wcout << L"Accessing memory statistics via MemoryStatus" << endl;
 
-	_MEMORYSTATUS *pMemBuf = new _MEMORYSTATUS;
+	_MEMORYSTATUSEX *pMemBuf = new _MEMORYSTATUSEX;
 
-	GlobalMemoryStatus(pMemBuf);
+	pMemBuf->dwLength = sizeof(*pMemBuf);
 
-	printInfo.tRam = round(pMemBuf->dwTotalPhys / pow(1024.0, printInfo.unit));
-	printInfo.aRam = round(pMemBuf->dwAvailPhys / pow(1024.0, printInfo.unit));
+	GlobalMemoryStatusEx(pMemBuf);
+
+	printInfo.tRam = round(pMemBuf->ullTotalPhys / pow(1024.0, printInfo.unit));
+	printInfo.aRam = round(pMemBuf->ullAvailPhys / pow(1024.0, printInfo.unit));
 
 	if (debug)
-		wcout << L"Found pMemBuf->dwTotalPhys: " << pMemBuf->dwTotalPhys << endl
-		<< L"Found pMemBuf->dwAvailPhys: " << pMemBuf->dwAvailPhys << endl;
+		wcout << L"Found pMemBuf->dwTotalPhys: " << pMemBuf->ullTotalPhys << endl
+		<< L"Found pMemBuf->dwAvailPhys: " << pMemBuf->ullAvailPhys << endl;
 
 	delete pMemBuf;
 
