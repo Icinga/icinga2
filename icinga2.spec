@@ -201,8 +201,7 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DICINGA2_RUNDIR=%{_rundir} \
          -DICINGA2_USER=%{icinga_user} \
          -DICINGA2_GROUP=%{icinga_group} \
-         -DICINGA2_COMMAND_GROUP=%{icingacmd_group} \
-         -DICINGA2_UNITY_BUILD=TRUE"
+         -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
