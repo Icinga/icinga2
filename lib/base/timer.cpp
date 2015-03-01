@@ -57,7 +57,7 @@ Timer::Timer(void)
  */
 Timer::~Timer(void)
 {
-	Stop();
+	Stop(true);
 }
 
 /**
