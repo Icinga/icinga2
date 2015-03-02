@@ -776,7 +776,7 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	}
 #endif /* _WIN32 */
 
-	fprintf(m_PidFile, "%d\n", pid);
+	fprintf(m_PidFile, "%lu\n", (unsigned long)pid);
 	fflush(m_PidFile);
 }
 
