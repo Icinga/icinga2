@@ -631,7 +631,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 
 	if (!vm.count("console")) {
 		std::cout 
-		    << "\nFinished collection. See '" << path << "'\n"
+		    << "Finished collection. See '" << path << "'\n"
 		    << "Please compress these files with tar or zip before uploading them\n";
 	}
 
