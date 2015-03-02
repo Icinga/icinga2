@@ -72,8 +72,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
 	if (!configs.empty()) {
-		BOOST_FOREACH(const String& configPath, configs)
-		{
+		BOOST_FOREACH(const String& configPath, configs) {
 			Expression *expression = ConfigCompiler::CompileFile(configPath);
 			success = ExecuteExpression(expression);
 			delete expression;
@@ -84,21 +83,24 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	/* Load cluster config files - this should probably be in libremote but
 	* unfortunately moving it there is somewhat non-trivial. */
+	success = true;
+
 	String zonesEtcDir = Application::GetZonesDir();
 	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
 		Utility::Glob(zonesEtcDir + "/*", boost::bind(&IncludeZoneDirRecursive, _1, boost::ref(success)), GlobDirectory);
+
 	if (!success)
 		return false;
 
 	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", boost::bind(&IncludeNonLocalZone, _1, boost::ref(success)), GlobDirectory);
+
 	if (!success)
 		return false;
 
 	String name, fragment;
-	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems())
-	{
+	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
 		Expression *expression = ConfigCompiler::CompileText(name, fragment);
 		success = ExecuteExpression(expression);
 		delete expression;
