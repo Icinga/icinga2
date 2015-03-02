@@ -328,7 +328,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 				pword = "";
 		} else if (aword.GetLength() > 1 && aword[0] == '-' && aword[1] != '-') {
 			aname = aword.SubStr(0, 2);
-			prefix = aword.SubStr(0, 2);
+			prefix = aname;
 			pword = aword.SubStr(2);
 		} else {
 			goto complete_option;
