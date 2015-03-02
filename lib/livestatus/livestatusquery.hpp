@@ -48,7 +48,7 @@ struct LivestatusScriptFrame
 	Dictionary::Ptr Locals;
 
 	LivestatusScriptFrame(void)
-		: NextLine(1)
+		: Seen(0), NextLine(1)
 	{ }
 };
 
