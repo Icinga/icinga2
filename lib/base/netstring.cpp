@@ -51,6 +51,11 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 	for (size_t i = 0; i < context.Size; i++) {
 		if (context.Buffer[i] == ':') {
 			header_length = i;
+
+			/* make sure there's a header */
+			if (header_length == 0)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (no length specifier)"));
+
 			break;
 		} else if (i > 16)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing :)"));
@@ -60,10 +65,6 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 		context.MustRead = true;
 		return StatusNeedData;
 	}
-
-	/* make sure there's a header */
-	if (header_length == 0)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (no length specifier)"));
 
 	/* no leading zeros allowed */
 	if (context.Buffer[0] == '0' && isdigit(context.Buffer[1]))
