@@ -119,11 +119,11 @@ class TroubleshootCommand::InfoLogLine
 {
 public:
 	InfoLogLine(InfoLog& log, int col = Console_Normal, LogSeverity sev = LogInformation)
-		: m_Log(log), m_colour(col), m_Sev(sev) {}
+		: m_Log(log), m_Sev(sev), m_Color(col) {}
 
 	~InfoLogLine(void)
 	{
-		m_Log.WriteLine(m_Sev, m_colour, m_String.str());
+		m_Log.WriteLine(m_Sev, m_Color, m_String.str());
 	}
 
 	template <typename T>
@@ -137,7 +137,7 @@ private:
 	std::ostringstream m_String;
 	InfoLog& m_Log;
 	LogSeverity m_Sev;
-	int m_colour;
+	int m_Color;
 };
 
 
@@ -226,7 +226,7 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 				    << "Failed to print vars to " << path+"-vars\n";
 		}
 	}
-	
+
 	InfoLogLine(log)
 	    << '\n';
 
@@ -649,7 +649,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	InfoLogLine(*log)
 	    << appName << " -- Troubleshooting help:\n"
 	    << "Should you run into problems with Icinga please add this file to your help request\n"
-	    << "Began procedure at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n";
+	    << "Started collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n";
 
 	InfoLogLine(*log, Console_ForegroundMagenta)
 	    << std::string(52, '=') << "\n\n";
@@ -677,19 +677,22 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	    << std::string(52, '=') << '\n';
 	InfoLogLine(*log, Console_ForegroundGreen)
 	    << "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
-	    << "\nTook " << Utility::FormatDateTime("%S", (endTime - goTime)) << " seconds\n";
+	    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
 
 	if (!vm.count("console")) {
-		std::cout
-		    << "Finished collection. See '" << path << '\'';
-			if (vm.count("include-vars"))
-				std::cout
-				    << " and '" << path << "-vars'";
-			if (vm.count("include-objects"))
-				std::cout
-				    << " and '" << path << "-objects'";
-		std::cout
-		    << "\nPlease compress the files with tar and zip before uploading them\n";
+		std::cout << "Started collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n"
+		    << "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
+		    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n\n";
+
+		std::cout << "General log file: '" << path << "'\n";
+
+		if (vm.count("include-vars"))
+			std::cout << "Vars log file: '" << path << "-vars'\n";
+		if (vm.count("include-objects"))
+			std::cout << "Objects log file: '" << path << "-objects'\n";
+
+		std::cout << "\nPlease compress the files before uploading them,, for example:\n"
+	           << "'tar czf troubleshoot.tar.gz " << path << "*'\n";
 	}
 
 	delete log;
