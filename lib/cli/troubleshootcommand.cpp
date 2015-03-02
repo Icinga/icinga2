@@ -144,7 +144,7 @@ private:
 bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << '\n' << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << "\n\n";
+	    << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << "\n\n";
 
 	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
@@ -158,7 +158,10 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 	    << "\tObjects path: " << Application::GetObjectsPath() << '\n'
 	    << "\tVars path: " << Application::GetVarsPath() << '\n'
 	    << "\tPID path: " << Application::GetPidPath() << '\n'
-	    << "\tApplication type: " << Application::GetApplicationType() << "\n\n";
+	    << "\tApplication type: " << Application::GetApplicationType() << "\n";
+
+	InfoLogLine(log)
+	    << '\n';
 
 	return true;
 }
@@ -173,7 +176,7 @@ bool TroubleshootCommand::FeatureInfo(InfoLog& log, const boost::program_options
 bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs, const String& path)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << '\n' << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << "\n\n";
+	    << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << "\n\n";
 
 	String objectfile = Application::GetObjectsPath();
 	std::set<String> configs;
@@ -224,6 +227,9 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 				    << "Failed to print vars to " << path+"-vars\n";
 		}
 	}
+	
+	InfoLogLine(log)
+	    << '\n';
 
 	return true;
 }
@@ -231,9 +237,12 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << '\n' << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << "\n\n";
+	    << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << "\n\n";
 	PrintLoggers(log, logs);
 	PrintCrashReports(log);
+
+	InfoLogLine(log)
+	    << '\n';
 
 	return true;
 }
@@ -241,7 +250,7 @@ bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options:
 bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << '\n' << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << "\n\n";
+	    << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << "\n\n";
 
 	InfoLogLine(log)
 	    << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc\n";
@@ -258,6 +267,9 @@ bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options:
 		    << "zones.conf not found.\n"
 		    << "If you are using a zones.conf somewhere but the default path please provide it with your support request\n";
 	}
+
+	InfoLogLine(log)
+	   << '\n';
 
 	return true;
 }
@@ -638,7 +650,10 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	InfoLogLine(*log)
 	    << appName << " -- Troubleshooting help:\n"
 	    << "Should you run into problems with Icinga please add this file to your help request\n"
-	    << "Began procedure at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n\n";
+	    << "Began procedure at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n";
+
+	InfoLogLine(*log, Console_ForegroundMagenta)
+	    << std::string(52, '=') << "\n\n";
 
 	if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 		appName = appName.SubStr(3, appName.GetLength() - 3);
@@ -659,8 +674,10 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 
 	double endTime = Utility::GetTime();
 
-	InfoLogLine(*log)
-	    << "\nFinished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
+	InfoLogLine(*log, Console_ForegroundMagenta)
+	    << std::string(52, '=') << '\n';
+	InfoLogLine(*log, Console_ForegroundGreen)
+	    << "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
 	    << "\nTook " << Utility::FormatDateTime("%S", (endTime - goTime)) << " seconds\n";
 
 	if (!vm.count("console")) {
