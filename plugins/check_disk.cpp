@@ -274,7 +274,7 @@ int check_drives(vector<drive>& vDrives)
 		wcout << L"Getting logic drive string (includes network drives)" << endl;
 
 	dwResult = GetLogicalDriveStrings(MAX_PATH, szLogicalDrives);
-	if (dwResult < 0 || dwResult > MAX_PATH) 
+	if (dwResult > MAX_PATH)
 		goto die;
 	if (debug)
 		wcout << L"Splitting string into single drive names" << endl;
