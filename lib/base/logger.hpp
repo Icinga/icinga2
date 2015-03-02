@@ -137,6 +137,7 @@ private:
 	std::ostringstream m_Buffer;
 
 	Log(void);
+	Log(const Log& other);
 	Log& operator=(const Log& rhs);
 };
 
