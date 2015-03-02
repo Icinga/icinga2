@@ -689,8 +689,6 @@ void Application::InstallExceptionHandlers(void)
  */
 int Application::Run(void)
 {
-	int result;
-
 #ifndef _WIN32
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -712,12 +710,10 @@ int Application::Run(void)
 	} catch (const std::exception&) {
 		Log(LogCritical, "Application")
 		    << "Cannot update PID file '" << GetPidPath() << "'. Aborting.";
-		return false;
+		return EXIT_FAILURE;
 	}
 
-	result = Main();
-
-	return result;
+	return Main();
 }
 
 /**
