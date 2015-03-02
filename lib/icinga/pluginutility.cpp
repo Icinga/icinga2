@@ -177,7 +177,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 						ProcessResult pr;
 						pr.PID = -1;
 						pr.ExecutionStart = Utility::GetTime();
-						pr.ExecutionStart = pr.ExecutionStart;
+						pr.ExecutionEnd = pr.ExecutionStart;
 						pr.ExitStatus = 3; /* Unknown */
 						pr.Output = message;
 						callback(Empty, pr);
