@@ -105,6 +105,7 @@ private:
 
 	static void StateChangedHandler(const DynamicObject::Ptr& object);
 	static void VarsChangedHandler(const CustomVarObject::Ptr& object);
+	static boost::mutex& GetStaticMutex(void);
 
 	friend class DbType;
 };

@@ -293,6 +293,8 @@ void DbObject::OnStatusUpdate(void)
 
 DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 {
+	boost::mutex::scoped_lock lock(GetStaticMutex());
+
 	DbObject::Ptr dbobj = object->GetExtension("DbObject");
 
 	if (dbobj)
@@ -326,11 +328,8 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 
 	dbobj = dbtype->GetOrCreateObjectByName(name1, name2);
 
-	{
-		ObjectLock olock(object);
-		dbobj->SetObject(object);
-		object->SetExtension("DbObject", dbobj);
-	}
+	dbobj->SetObject(object);
+	object->SetExtension("DbObject", dbobj);
 
 	return dbobj;
 }
@@ -356,4 +355,10 @@ void DbObject::VarsChangedHandler(const CustomVarObject::Ptr& object)
 		return;
 
 	dbobj->SendVarsStatusUpdate();
+}
+
+boost::mutex& DbObject::GetStaticMutex(void)
+{
+	static boost::mutex mutex;
+	return mutex;
 }
