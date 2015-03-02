@@ -43,6 +43,7 @@ int main(int argc, char **argv)
 	outfp = fopen(argv[2], "w");
 
 	if (!outfp) {
+		fclose(infp);
 		perror("fopen");
 		return EXIT_FAILURE;
 	}
