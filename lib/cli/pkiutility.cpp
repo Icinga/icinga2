@@ -93,7 +93,6 @@ int PkiUtility::NewCert(const String& cn, const String& keyfile, const String& c
 
 int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 {
-	std::stringstream msgbuf;
 	char errbuf[120];
 
 	InitializeOpenSSL();
