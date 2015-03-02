@@ -108,6 +108,7 @@ void SocketEvents::ThreadProc(void)
 			if (l_SocketIOFDChanged) {
 				l_SocketIOFDChanged = false;
 				l_SocketIOCV.notify_all();
+				delete [] pfds;
 				continue;
 			}
 		}
