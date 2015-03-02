@@ -40,7 +40,6 @@ public:
 
 	StreamLogger(void);
 
-	virtual void Start(void);
 	virtual void Stop(void);
 	~StreamLogger(void);
 
