@@ -99,6 +99,12 @@ std::istream& icinga::operator>>(std::istream& stream, Value& value)
 	return stream;
 }
 
+Value& Value::operator=(const Value& other)
+{
+	m_Value = other.m_Value;
+	return *this;
+}
+
 bool Value::operator==(bool rhs) const
 {
 	return *this == Value(rhs);

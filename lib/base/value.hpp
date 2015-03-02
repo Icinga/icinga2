@@ -111,6 +111,8 @@ public:
 	operator double(void) const;
 	operator String(void) const;
 
+	Value& operator=(const Value& other);
+
 	bool operator==(bool rhs) const;
 	bool operator!=(bool rhs) const;
 
