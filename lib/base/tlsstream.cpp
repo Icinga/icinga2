@@ -193,8 +193,6 @@ void TlsStream::OnEvent(int revents)
 
 	err = SSL_get_error(m_SSL.get(), rc);
 
-	std::ostringstream msgbuf;
-
 	switch (err) {
 		case SSL_ERROR_WANT_READ:
 			m_Retry = true;

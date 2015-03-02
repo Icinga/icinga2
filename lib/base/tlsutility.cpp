@@ -78,7 +78,6 @@ void InitializeOpenSSL(void)
  */
 boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey)
 {
-	std::ostringstream msgbuf;
 	char errbuf[120];
 
 	InitializeOpenSSL();
