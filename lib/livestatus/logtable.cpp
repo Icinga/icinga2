@@ -164,8 +164,6 @@ Object::Ptr LogTable::CommandAccessor(const Value& row, const Column::ObjectAcce
 			return event_command;
 	} else
 		return check_command;
-
-	return Object::Ptr();
 }
 
 Value LogTable::TimeAccessor(const Value& row)
