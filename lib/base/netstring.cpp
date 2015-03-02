@@ -86,14 +86,14 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 
 	char *data = context.Buffer + header_length + 1;
 
-	if (context.Size < header_length + 1 + len + 1) {
+	if (context.Size < header_length + 1 + data_length) {
 		context.MustRead = true;
 		return StatusNeedData;
 	}
 
 	if (data[len] != ',')
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid NetString (missing ,)"));
-	
+
 	*str = String(&data[0], &data[len]);
 
 	context.DropData(header_length + 1 + len + 1);

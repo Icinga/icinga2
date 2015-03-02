@@ -33,7 +33,7 @@ boost::mutex StreamLogger::m_Mutex;
  * Constructor for the StreamLogger class.
  */
 StreamLogger::StreamLogger(void)
-	: m_Stream(NULL), m_OwnsStream(false), m_Tty(false)
+	: m_Stream(NULL), m_OwnsStream(false)
 { }
 
 void StreamLogger::Stop(void)
