@@ -692,7 +692,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 			std::cout << "Objects log file: '" << path << "-objects'\n";
 
 		std::cout << "\nPlease compress the files before uploading them,, for example:\n"
-	           << "'tar czf troubleshoot.tar.gz " << path << "*'\n";
+	           << "  # tar czf troubleshoot.tar.gz " << path << "*\n";
 	}
 
 	delete log;
