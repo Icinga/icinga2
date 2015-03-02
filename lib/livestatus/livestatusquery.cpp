@@ -84,7 +84,7 @@ static void InitScriptFrameCleanup(void)
 INITIALIZE_ONCE(InitScriptFrameCleanup);
 
 LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
-	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true),
+	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_ErrorCode(0),
 	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
 	if (lines.size() == 0) {
