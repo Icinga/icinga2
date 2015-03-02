@@ -282,7 +282,6 @@ public:
 protected:
 	virtual void Start(void);
 
-	virtual void OnConfigLoaded(void);
 	virtual void OnStateLoaded(void);
 
 private:

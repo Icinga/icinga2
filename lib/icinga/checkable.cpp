@@ -36,7 +36,9 @@ boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin&)> Chec
 
 Checkable::Checkable(void)
 	: m_CheckRunning(false)
-{ }
+{
+	SetSchedulingOffset(Utility::Random());
+}
 
 void Checkable::Start(void)
 {
@@ -46,13 +48,6 @@ void Checkable::Start(void)
 		UpdateNextCheck();
 
 	DynamicObject::Start();
-}
-
-void Checkable::OnConfigLoaded(void)
-{
-	DynamicObject::OnConfigLoaded();
-
-	SetSchedulingOffset(Utility::Random());
 }
 
 void Checkable::OnStateLoaded(void)
