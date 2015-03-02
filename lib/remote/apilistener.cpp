@@ -42,6 +42,10 @@ boost::signals2::signal<void(bool)> ApiListener::OnMasterChanged;
 
 REGISTER_STATSFUNCTION(ApiListenerStats, &ApiListener::StatsFunc);
 
+ApiListener::ApiListener(void)
+	: m_LogMessageCount(0)
+{ }
+
 void ApiListener::OnConfigLoaded(void)
 {
 	/* set up SSL context */

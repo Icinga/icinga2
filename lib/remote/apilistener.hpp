@@ -47,6 +47,8 @@ public:
 
 	static boost::signals2::signal<void(bool)> OnMasterChanged;
 
+	ApiListener(void);
+
 	static ApiListener::Ptr GetInstance(void);
 
 	boost::shared_ptr<SSL_CTX> GetSSLContext(void) const;
