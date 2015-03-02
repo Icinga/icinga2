@@ -185,28 +185,44 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 		return false;
 	} else {
 		InfoLog *OFile = NULL;
+		bool OConsole = false;
 		if (vm.count("include-objects")) {
-			OFile = new InfoLog(path+"-objects", false);
-			if (!OFile->GetStreamHealth()) {
-				InfoLogLine(log, 0, LogWarning)
-				    << "Failed to open Object-write-stream, not printing objects\n\n";
-				OFile = NULL;
-			} else
-				InfoLogLine(log)
-				    << "Printing all objects to " << path+"-objects\n";
+			if (vm.count("console"))
+				OConsole = true;
+			else {
+				OFile = new InfoLog(path+"-objects", false);
+				if (!OFile->GetStreamHealth()) {
+					InfoLogLine(log, 0, LogWarning)
+					    << "Failed to open Object-write-stream, not printing objects\n\n";
+					delete OFile;
+					OFile = NULL;
+				} else
+					InfoLogLine(log)
+				        << "Printing all objects to " << path+"-objects\n";
+			}
 		}
-		CheckObjectFile(objectfile, log, OFile, logs, configs);
+		CheckObjectFile(objectfile, log, OFile, OConsole, logs, configs);
 		if (OFile != NULL)
 			delete OFile;
 	}
 
 	if (vm.count("include-vars")) {
-		if (PrintVarsFile(path))
-			InfoLogLine(log)
-			    << "Successfully printed all variables to " << path+"-vars\n";
-		else
-			InfoLogLine(log, 0, LogWarning)
-			    << "Failed to prin vars to " << path+"-vars\n";
+		if (vm.count("console")) {
+			InfoLogLine(log, Console_ForegroundBlue)
+			    << "\n[begin: varsfile]\n";
+			if (!PrintVarsFile(path, true))
+				InfoLogLine(log, 0, LogWarning)
+				    << "Failed to print vars file\n";
+			InfoLogLine(log, Console_ForegroundBlue)
+			    << "[end: varsfile]\n";
+		} else {
+			if (PrintVarsFile(path, false))
+				InfoLogLine(log)
+				    << "Successfully printed all variables to " << path+"-vars\n";
+			else
+				InfoLogLine(log, 0, LogWarning)
+				    << "Failed to print vars to " << path+"-vars\n";
+		}
 	}
 	
 	return true;
@@ -430,7 +446,7 @@ bool TroubleshootCommand::CheckConfig(void)
 }
 
 //print is supposed allow the user to print the object file
-void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile,
+void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile, const bool objectConsole,
      Dictionary::Ptr& logs, std::set<String>& configs)
 {
 	InfoLogLine(log)
@@ -456,15 +472,24 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 
 	std::stringstream sStream;
 
+	if (objectConsole)
+		InfoLogLine(log, Console_ForegroundBlue)
+			<< "\n[begin: objectfile]\n";
+
 	while ((srs = NetString::ReadStringFromStream(sfp, &message, src)) != StatusEof) {
 		if (srs != StatusNewItem)
 			continue;
 		
+		if (objectConsole) {
+			ObjectListUtility::PrintObject(std::cout, first, message, type_count, "", "");
+		}
+		else {		
 		ObjectListUtility::PrintObject(sStream, first, message, type_count, "", "");
-		if(OFile != NULL) {	
-			InfoLogLine(*OFile)
-			    << sStream.str();
-			sStream.flush();
+			if(OFile != NULL) {
+				InfoLogLine(*OFile)
+				    << sStream.str();
+				sStream.flush();
+			}
 		}
 
 		Dictionary::Ptr object = JsonDecode(message);
@@ -494,6 +519,10 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 		}
 	}
 
+	if (objectConsole)
+		InfoLogLine(log, Console_ForegroundBlue)
+			<< "\n[end: objectfile]\n";
+
 	if (!countTotal) {
 		InfoLogLine(log, 0, LogCritical)
 		    << "No objects found in objectfile.\n";
@@ -517,14 +546,18 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 	TroubleshootCommand::PrintObjectOrigin(log, configs);
 }
 
-bool TroubleshootCommand::PrintVarsFile(const String& path) {
-	std::ofstream *ofs = new std::ofstream();
-	ofs->open((path+"-vars").CStr(), std::ios::out | std::ios::trunc);
-	if (!ofs->is_open())
-		return false;
-	else
-		VariableUtility::PrintVariables(*ofs);
-	ofs->close();
+bool TroubleshootCommand::PrintVarsFile(const String& path, const bool console) {
+	if (!console) {
+		std::ofstream *ofs = new std::ofstream();
+		ofs->open((path+"-vars").CStr(), std::ios::out | std::ios::trunc);
+		if (!ofs->is_open())
+			return false;
+		else
+			VariableUtility::PrintVariables(*ofs);
+		ofs->close();
+	} else 
+		VariableUtility::PrintVariables(std::cout);
+
 	return true;
 }
 
@@ -594,6 +627,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 		log = new InfoLog(path, false);
 		if (!log->GetStreamHealth()) {
 			Log(LogCritical, "troubleshoot", "Failed to open file to write: " + path);
+			delete log;
 			return 3;
 		}
 	}
@@ -604,7 +638,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	InfoLogLine(*log) 
 	    << appName << " -- Troubleshooting help:\n"
 	    << "Should you run into problems with Icinga please add this file to your help request\n"
-	    << "Began procedure at timestamp " << Convert::ToString(goTime) << "\n\n";
+	    << "Began procedure at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n\n";
 
 	if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 		appName = appName.SubStr(3, appName.GetLength() - 3);
@@ -626,13 +660,20 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	double endTime = Utility::GetTime();
 
 	InfoLogLine(*log)
-	    << "\nFinished collection at timestamp " << Convert::ToString(endTime)
-	    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
+	    << "\nFinished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
+	    << "\nTook " << Utility::FormatDateTime("%S", (endTime - goTime)) << " seconds\n";
 
 	if (!vm.count("console")) {
 		std::cout 
-		    << "Finished collection. See '" << path << "'\n"
-		    << "Please compress these files with tar or zip before uploading them\n";
+		    << "Finished collection. See '" << path << '\'';
+			if (vm.count("include-vars"))
+				std::cout 
+				    << " and '" << path << "-vars'";
+			if (vm.count("include-objects"))
+				std::cout
+				    << " and '" << path << "-objects'";
+		std::cout
+		    << "\nPlease compress the files with tar and zip before uploading them\n";
 	}
 
 	delete log;

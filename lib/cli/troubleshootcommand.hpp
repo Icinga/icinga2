@@ -60,9 +60,9 @@ private:
 	static bool PrintCrashReports(InfoLog& log);
 	static bool PrintConf(InfoLog& log, const String& path);
 	static bool CheckConfig(void);
-	static void CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile,
+	static void CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile, const bool objectConsole,
 	    Dictionary::Ptr& logs, std::set<String>& configs);
-	static bool PrintVarsFile(const String& path);
+	static bool PrintVarsFile(const String& path, const bool console);
 	static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
 	static void PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet);
 };
