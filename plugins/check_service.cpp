@@ -209,8 +209,7 @@ die:
 		CloseServiceHandle(hSCM);
 	if (hService)
 		CloseServiceHandle(hService);
-	if (lpBuf)
-		delete[] lpBuf;
+	delete [] lpBuf;
 
 	return -1;
 }
