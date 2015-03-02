@@ -335,8 +335,6 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 		std::set<String> completed_types;
 
 		while (types.size() != completed_types.size()) {
-			std::set<String> current_types;
-
 			BOOST_FOREACH(const String& type, types) {
 				if (completed_types.find(type) != completed_types.end())
 					continue;
