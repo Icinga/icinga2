@@ -81,7 +81,7 @@ public:
 		delete m_Stream;
 	}
 
-	void WriteLine(const LogSeverity sev, const int colour, const String& str)
+	void WriteLine(const LogSeverity sev, const int color, const String& str)
 	{
 		if (!m_Console)
 			Log(sev, "troubleshoot", str);
@@ -100,7 +100,7 @@ public:
 			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
 		} else
 			*m_Stream
-			    << ConsoleColorTag(colour, m_ConsoleType) << str
+			    << ConsoleColorTag(color, m_ConsoleType) << str
 			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
 	}
 
@@ -119,7 +119,7 @@ class TroubleshootCommand::InfoLogLine
 {
 public:
 	InfoLogLine(InfoLog& log, int col = Console_Normal, LogSeverity sev = LogInformation)
-		: m_Log(log), m_Sev(sev), m_Color(col) {}
+		: m_Log(log), m_Color(col), m_Sev(sev) {}
 
 	~InfoLogLine(void)
 	{
@@ -136,8 +136,8 @@ public:
 private:
 	std::ostringstream m_String;
 	InfoLog& m_Log;
-	LogSeverity m_Sev;
 	int m_Color;
+	LogSeverity m_Sev;
 };
 
 
