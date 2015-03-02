@@ -37,7 +37,7 @@ struct SocketEventDescriptor
 	Object *LifesupportObject;
 
 	SocketEventDescriptor(void)
-		: Events(0)
+		: Events(0), EventInterface(NULL), LifesupportObject(NULL)
 	{ }
 };
 
