@@ -425,22 +425,22 @@ Value icinga::operator^(const Value& lhs, const Value& rhs)
 
 Value icinga::operator^(const Value& lhs, double rhs)
 {
-	return lhs & Value(rhs);
+	return lhs ^ Value(rhs);
 }
 
 Value icinga::operator^(double lhs, const Value& rhs)
 {
-	return Value(lhs) & rhs;
+	return Value(lhs) ^ rhs;
 }
 
 Value icinga::operator^(const Value& lhs, int rhs)
 {
-	return lhs & Value(rhs);
+	return lhs ^ Value(rhs);
 }
 
 Value icinga::operator^(int lhs, const Value& rhs)
 {
-	return Value(lhs) & rhs;
+	return Value(lhs) ^ rhs;
 }
 
 Value icinga::operator&(const Value& lhs, const Value& rhs)
