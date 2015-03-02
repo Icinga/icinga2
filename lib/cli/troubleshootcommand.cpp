@@ -205,8 +205,7 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 			}
 		}
 		CheckObjectFile(objectfile, log, OFile, OConsole, logs, configs);
-		if (OFile != NULL)
-			delete OFile;
+		delete OFile;
 	}
 
 	if (vm.count("include-vars")) {
@@ -497,7 +496,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 		}
 		else {
 		ObjectListUtility::PrintObject(sStream, first, message, type_count, "", "");
-			if(OFile != NULL) {
+			if (OFile) {
 				InfoLogLine(*OFile)
 				    << sStream.str();
 				sStream.flush();
