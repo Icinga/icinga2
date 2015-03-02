@@ -297,14 +297,8 @@ int countProcs(const wstring user)
 		pSIDTokenUser = reinterpret_cast<PTOKEN_USER>(new BYTE[dwReturnLength]);
 		memset(pSIDTokenUser, 0, dwReturnLength);
 
-		if (!pSIDTokenUser) {
-			if (debug)
-				wcout << L"Could not recieve token, skiping" << endl;
-			continue;
-		}
-
 		if (debug)
-			wcout << L"Recieved token, saving information" << endl;
+			wcout << L"Received token, saving information" << endl;
 
 		//write Info in pSIDTokenUser
 		if (!GetTokenInformation(hToken, TokenUser, pSIDTokenUser, dwReturnLength, NULL))
@@ -327,9 +321,6 @@ int countProcs(const wstring user)
 		AcctName = reinterpret_cast<LPWSTR>(new WCHAR[dwAcctName]);
 		DomainName = reinterpret_cast<LPWSTR>(new WCHAR[dwDomainName]);
 
-		if (!AcctName || !DomainName)
-			continue;
-		
 		if (!LookupAccountSid(NULL, pSIDTokenUser->User.Sid, AcctName,
 			(LPDWORD)&dwAcctName, DomainName, (LPDWORD)&dwDomainName, &sidNameUse))
 			continue;
@@ -346,7 +337,6 @@ int countProcs(const wstring user)
 		delete[] reinterpret_cast<LPWSTR>(DomainName);
 
 	} while (Process32Next(hProcessSnap, &pe32));
-	
 
 die:
 	if (hProcessSnap)
