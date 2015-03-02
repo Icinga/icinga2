@@ -205,7 +205,7 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
 }
 
 ScriptError::ScriptError(const String& message)
-	: m_Message(message)
+	: m_Message(message), m_IncompleteExpr(false)
 { }
 
 ScriptError::ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr)
