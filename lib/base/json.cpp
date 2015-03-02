@@ -278,7 +278,7 @@ static int DecodeStartMap(void *ctx)
 	return 1;
 }
 
-static int DecodeEndMap(void *ctx)
+static int DecodeEndMapOrArray(void *ctx)
 {
 	JsonContext *context = static_cast<JsonContext *>(ctx);
 
@@ -306,20 +306,6 @@ static int DecodeStartArray(void *ctx)
 	return 1;
 }
 
-static int DecodeEndArray(void *ctx)
-{
-	JsonContext *context = static_cast<JsonContext *>(ctx);
-
-	try {
-		context->AddValue(context->Pop().EValue);
-	} catch (...) {
-		context->SaveException();
-		return 0;
-	}
-
-	return 1;
-}
-
 Value icinga::JsonDecode(const String& data)
 {
 	static const yajl_callbacks callbacks = {
@@ -331,9 +317,9 @@ Value icinga::JsonDecode(const String& data)
 		DecodeString,
 		DecodeStartMap,
 		DecodeString,
-		DecodeEndMap,
+		DecodeEndMapOrArray,
 		DecodeStartArray,
-		DecodeEndArray
+		DecodeEndMapOrArray
 	};
 
 	yajl_handle handle;
