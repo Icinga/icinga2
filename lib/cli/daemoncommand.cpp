@@ -134,7 +134,7 @@ static bool SetDaemonIO(const String& stderrFile)
 	if (fderr < 0 && errno == ENOENT)
 		fderr = open(errPath, O_CREAT | O_WRONLY | O_APPEND, 0600);
 
-	if (fderr > 0) {
+	if (fderr >= 0) {
 		if (fderr != 2)
 			dup2(fderr, 2);
 
