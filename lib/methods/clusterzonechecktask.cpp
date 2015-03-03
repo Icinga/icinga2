@@ -86,13 +86,11 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
 		double eplag = Utility::GetTime() - endpoint->GetRemoteLogPosition();
 
-		if (eplag > lag)
-			lag = eplag;
-
-		if (endpoint->IsConnected()) {
+		if (endpoint->IsConnected())
 			connected = true;
-			break;
-		}
+
+		if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && eplag > lag)
+			lag = eplag;
 	}
 
 	if (!connected) {
