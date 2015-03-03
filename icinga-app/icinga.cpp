@@ -284,7 +284,14 @@ int Main(void)
 		} 
 
 		if (!command || vm.count("help") || vm.count("version")) {
-			String appName = Utility::BaseName(Application::GetArgV()[0]);
+			String appName;
+
+			try {
+				Utility::BaseName(Application::GetArgV()[0]);
+			} catch (const std::bad_alloc&) {
+				Log(LogCritical, "icinga-app", "Allocation failed.");
+				return EXIT_FAILURE;
+			}
 
 			if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 				appName = appName.SubStr(3, appName.GetLength() - 3);
