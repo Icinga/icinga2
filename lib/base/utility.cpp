@@ -341,8 +341,10 @@ void Utility::ExecuteDeferredInitializers(void)
 	if (!GetDeferredInitializers().get())
 		return;
 
-	BOOST_FOREACH(const boost::function<void(void)>& callback, *GetDeferredInitializers().get())
+	BOOST_FOREACH(const boost::function<void(void)>& callback, *GetDeferredInitializers().get()) {
+		VERIFY(callback);
 		callback();
+	}
 
 	GetDeferredInitializers().reset();
 }
