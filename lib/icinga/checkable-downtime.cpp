@@ -203,7 +203,7 @@ void Checkable::TriggerDowntime(const String& id)
 
 	double now = Utility::GetTime();
 
-        if (now < downtime->GetStartTime() && now > downtime->GetEndTime()) {
+        if (now < downtime->GetStartTime() || now > downtime->GetEndTime()) {
 		Log(LogDebug, "Checkable")
 		    << "Not triggering downtime with ID '" << downtime->GetLegacyId() << "': current time is outside downtime window.";
 		return;
