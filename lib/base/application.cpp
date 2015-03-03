@@ -38,6 +38,9 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif /* __linux__ */
 
 using namespace icinga;
 
@@ -498,7 +501,78 @@ String Application::GetCrashReportFilename(void)
 	return GetLocalStateDir() + "/log/icinga2/crash/report." + Convert::ToString(Utility::GetTime());
 }
 
+
 #ifndef _WIN32
+void Application::GetDebuggerBacktrace(const String& filename)
+{
+#ifdef __linux__
+	prctl(PR_SET_DUMPABLE, 1);
+#endif /* __linux __ */
+
+	String my_pid = Convert::ToString(Utility::GetPid());
+
+	pid_t pid = fork();
+
+	if (pid < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("fork")
+		    << boost::errinfo_errno(errno));
+	}
+
+	if (pid == 0) {
+		int fd = open(filename.CStr(), O_CREAT | O_RDWR | O_APPEND, 0600);
+
+		if (fd < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("open")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(filename));
+		}
+
+		if (fd != 1) {
+			/* redirect stdout to the file */
+			dup2(fd, 1);
+			close(fd);
+		}
+
+		/* redirect stderr to stdout */
+		if (fd != 2)
+			close(2);
+
+		dup2(1, 2);
+
+		char *my_pid_str = strdup(my_pid.CStr());
+		const char *argv[] = {
+			"gdb",
+			"--batch",
+			"-p",
+			my_pid_str,
+			"-ex",
+			"thread apply all bt full",
+			"-ex",
+			"detach",
+			"-ex",
+			"quit",
+			NULL
+		};
+		(void)execvp(argv[0], const_cast<char **>(argv));
+		perror("Failed to launch GDB");
+		free(my_pid_str);
+		_exit(0);
+	}
+
+	int status;
+	if (waitpid(pid, &status, 0) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("waitpid")
+		    << boost::errinfo_errno(errno));
+	}
+
+#ifdef __linux__
+	prctl(PR_SET_DUMPABLE, 0);
+#endif /* __linux __ */
+}
+
 /**
  * Signal handler for SIGINT and SIGTERM. Prepares the application for cleanly
  * shutting down during the next execution of the event loop.
@@ -565,6 +639,10 @@ void Application::SigAbrtHandler(int)
 	DisplayBugMessage(ofs);
 
 	ofs.close();
+
+#ifndef _WIN32
+	GetDebuggerBacktrace(fname);
+#endif /* _WIN32 */
 }
 #else /* _WIN32 */
 /**
@@ -629,6 +707,10 @@ void Application::ExceptionHandler(void)
 	DisplayBugMessage(ofs);
 
 	ofs.close();
+
+#ifndef _WIN32
+	GetDebuggerBacktrace(fname);
+#endif /* _WIN32 */
 
 	abort();
 }

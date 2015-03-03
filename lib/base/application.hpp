@@ -178,6 +178,10 @@ private:
 	static void ExceptionHandler(void);
 
 	static String GetCrashReportFilename(void);
+
+#ifndef _WIN32
+	static void GetDebuggerBacktrace(const String& filename);
+#endif /* _WIN32 */
 };
 
 }
