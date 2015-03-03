@@ -96,7 +96,15 @@ int Main(void)
 
 	if (argc >= 4 && strcmp(argv[1], "--autocomplete") == 0) {
 		autocomplete = true;
-		autoindex = Convert::ToLong(argv[2]);
+
+		try {
+			autoindex = Convert::ToLong(argv[2]);
+		} catch (const std::invalid_argument& ex) {
+			Log(LogCritical, "icinga-app")
+			    << "Invalid index for --autocomplete: " << argv[2];
+			return EXIT_FAILURE;
+		}
+
 		argc -= 3;
 		argv += 3;
 	}
