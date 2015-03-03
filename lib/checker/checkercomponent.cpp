@@ -59,6 +59,10 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 	status->Set("checkercomponent", nodes);
 }
 
+CheckerComponent::CheckerComponent(void)
+    : m_Stopped(false)
+{ }
+
 void CheckerComponent::OnConfigLoaded(void)
 {
 	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
@@ -72,8 +76,6 @@ void CheckerComponent::OnConfigLoaded(void)
 void CheckerComponent::Start(void)
 {
 	DynamicObject::Start();
-
-	m_Stopped = false;
 
 	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
