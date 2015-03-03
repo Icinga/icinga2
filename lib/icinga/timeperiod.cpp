@@ -314,16 +314,16 @@ void TimePeriod::ValidateRanges(const String& location, const TimePeriod::Ptr& o
 		return;
 
 	/* create a fake time environment to validate the definitions */
-	time_t begin = Utility::GetTime();
-	time_t end = begin + 24 * 60 * 60;
-	tm reference = Utility::LocalTime(end);
-	tm begin_tm, end_tm;
+	time_t refts = Utility::GetTime();
+	tm reference = Utility::LocalTime(refts);
 	Array::Ptr segments = new Array();
 
 	ObjectLock olock(ranges);
 	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
 		try {
-			LegacyTimePeriod::ParseTimeSpec(kv.first, &begin_tm, &end_tm, &reference);
+			tm begin_tm, end_tm;
+			int stride;
+			LegacyTimePeriod::ParseTimeRange(kv.first, &begin_tm, &end_tm, &stride, &reference);
 		} catch (std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 			    location + ": Invalid time specification.", object->GetDebugInfo()));
