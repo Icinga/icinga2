@@ -256,11 +256,8 @@ double Utility::GetTime(void)
 #else /* _WIN32 */
 	struct timeval tv;
 
-	if (gettimeofday(&tv, NULL) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("gettimeofday")
-		    << boost::errinfo_errno(errno));
-	}
+	int rc = gettimeofday(&tv, NULL);
+	VERIFY(rc >= 0);
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
 #endif /* _WIN32 */
