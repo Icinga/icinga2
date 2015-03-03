@@ -55,7 +55,7 @@ static String LoadAppType(const String& typeSpec)
 
 	String library = typeSpec.SubStr(0, index);
 
-	(void) Utility::LoadExtensionLibrary(library);
+	Utility::LoadExtensionLibrary(library);
 
 	return typeSpec.SubStr(index + 1);
 }

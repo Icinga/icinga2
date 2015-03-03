@@ -171,7 +171,7 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& path, const Str
  */
 void ConfigCompiler::HandleLibrary(const String& library)
 {
-	(void) Utility::LoadExtensionLibrary(library);
+	Utility::LoadExtensionLibrary(library);
 }
 
 void ConfigCompiler::CompileHelper(void)

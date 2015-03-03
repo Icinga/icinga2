@@ -299,12 +299,7 @@ void Utility::Sleep(double timeout)
  *
  * @param library The name of the library.
  */
-#ifdef _WIN32
-HMODULE
-#else /* _WIN32 */
-void *
-#endif /* _WIN32 */
-Utility::LoadExtensionLibrary(const String& library)
+void Utility::LoadExtensionLibrary(const String& library)
 {
 	String path;
 #if defined(_WIN32)
@@ -336,9 +331,6 @@ Utility::LoadExtensionLibrary(const String& library)
 #endif /* _WIN32 */
 
 	ExecuteDeferredInitializers();
-
-
-	return hModule;
 }
 
 boost::thread_specific_ptr<std::vector<boost::function<void(void)> > >& Utility::GetDeferredInitializers(void)

@@ -94,13 +94,7 @@ public:
 	static String FormatDateTime(const char *format, double ts);
 	static String FormatErrorNumber(int code);
 
-	static
-#ifdef _WIN32
-	HMODULE
-#else /* _WIN32 */
-	void *
-#endif /* _WIN32 */
-	LoadExtensionLibrary(const String& library);
+	static void LoadExtensionLibrary(const String& library);
 
 	static void AddDeferredInitializer(const boost::function<void(void)>& callback);
 	static void ExecuteDeferredInitializers(void);
