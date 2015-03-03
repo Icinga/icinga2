@@ -808,12 +808,22 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, @$);
 		delete $2;
 	}
-	| T_IF '(' rterm ')' rterm_scope
+	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{
 		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
 		atrue->MakeInline();
 
-		$$ = new ConditionalExpression($3, atrue, NULL, @$);
+		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
+		delete $6;
+
+		Expression *afalse = NULL;
+
+		for (int i = ebranches.size() - 1; i >= 0; i--) {
+			const std::pair<Expression *, Expression *>& ebranch = ebranches[i];
+			afalse = new ConditionalExpression(ebranch.first, ebranch.second, afalse, @6);
+		}
+
+		$$ = new ConditionalExpression($3, atrue, afalse, @$);
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches T_ELSE rterm_scope
 	{
