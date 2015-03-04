@@ -170,7 +170,8 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 		BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjectsByType<ServiceGroup>()) {
 			BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
-				addRowFn(service, LivestatusGroupByServiceGroup, sg);
+				if (!addRowFn(service, LivestatusGroupByServiceGroup, sg))
+					return;
 			}
 		}
 	} else if (GetGroupByType() == LivestatusGroupByHostGroup) {
@@ -180,13 +181,15 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 				ObjectLock ylock(host);
 				BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
 					/* the caller must know which groupby type and value are set for this row */
-					addRowFn(service, LivestatusGroupByHostGroup, hg);
+					if (!addRowFn(service, LivestatusGroupByHostGroup, hg))
+						return;
 				}
 			}
 		}
 	} else {
 		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
-			addRowFn(service, LivestatusGroupByNone, Empty);
+			if (!addRowFn(service, LivestatusGroupByNone, Empty))
+				return;
 		}
 	}
 }

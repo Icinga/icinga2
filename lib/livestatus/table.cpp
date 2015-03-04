@@ -124,17 +124,20 @@ std::vector<String> Table::GetColumnNames(void) const
 	return names;
 }
 
-std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter)
+std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter, int limit)
 {
 	std::vector<LivestatusRowValue> rs;
 
-	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, _1, _2, _3));
+	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, limit, _1, _2, _3));
 
 	return rs;
 }
 
-void Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Ptr& filter, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
+bool Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Ptr& filter, int limit, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
 {
+	if (limit != -1 && rs.size() == limit)
+		return false;
+
 	if (!filter || filter->Apply(this, row)) {
 		LivestatusRowValue rval;
 		rval.Row = row;
@@ -142,7 +145,10 @@ void Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Pt
 		rval.GroupByObject = groupByObject;
 
 		rs.push_back(rval);
+
 	}
+
+	return true;
 }
 
 Value Table::ZeroAccessor(const Value&)

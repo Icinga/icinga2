@@ -73,8 +73,10 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 		String id;
 		Comment::Ptr comment;
 		BOOST_FOREACH(tie(id, comment), comments) {
-			if (Host::GetOwnerByCommentID(id) == host)
-				addRowFn(comment, LivestatusGroupByNone, Empty);
+			if (Host::GetOwnerByCommentID(id) == host) {
+				if (!addRowFn(comment, LivestatusGroupByNone, Empty))
+					return;
+			}
 		}
 	}
 
@@ -86,8 +88,10 @@ void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 		String id;
 		Comment::Ptr comment;
 		BOOST_FOREACH(tie(id, comment), comments) {
-			if (Service::GetOwnerByCommentID(id) == service)
-				addRowFn(comment, LivestatusGroupByNone, Empty);
+			if (Service::GetOwnerByCommentID(id) == service) {
+				if (!addRowFn(comment, LivestatusGroupByNone, Empty))
+					return;
+			}
 		}
 	}
 }

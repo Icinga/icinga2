@@ -84,7 +84,7 @@ static void InitScriptFrameCleanup(void)
 INITIALIZE_ONCE(InitScriptFrameCleanup);
 
 LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
-	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_ErrorCode(0),
+	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1), m_ErrorCode(0),
 	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
 	if (lines.size() == 0) {
@@ -182,6 +182,8 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 				m_Separators[3] = String(1, static_cast<char>(Convert::ToLong(separators[3])));
 		} else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
+		else if (header == "Limit")
+			m_Limit = Convert::ToLong(params);
 		else if (header == "Filter") {
 			Filter::Ptr filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -495,7 +497,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		return;
 	}
 
-	std::vector<LivestatusRowValue> objects = table->FilterRows(m_Filter);
+	std::vector<LivestatusRowValue> objects = table->FilterRows(m_Filter, m_Limit);
 	std::vector<String> columns;
 
 	if (m_Columns.size() > 0)

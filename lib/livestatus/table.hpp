@@ -36,7 +36,7 @@ struct LivestatusRowValue {
 };
 
 
-typedef boost::function<void (const Value&, LivestatusGroupByType, const Object::Ptr&)> AddRowFunction;
+typedef boost::function<bool (const Value&, LivestatusGroupByType, const Object::Ptr&)> AddRowFunction;
 
 class Filter;
 
@@ -53,7 +53,7 @@ public:
 	virtual String GetName(void) const = 0;
 	virtual String GetPrefix(void) const = 0;
 
-	std::vector<LivestatusRowValue> FilterRows(const intrusive_ptr<Filter>& filter);
+	std::vector<LivestatusRowValue> FilterRows(const intrusive_ptr<Filter>& filter, int limit = -1);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
@@ -78,7 +78,7 @@ protected:
 private:
 	std::map<String, Column> m_Columns;
 
-	void FilteredAddRow(std::vector<LivestatusRowValue>& rs, const intrusive_ptr<Filter>& filter, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
+	bool FilteredAddRow(std::vector<LivestatusRowValue>& rs, const intrusive_ptr<Filter>& filter, int limit, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
 };
 
 }

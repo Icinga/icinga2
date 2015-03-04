@@ -190,12 +190,14 @@ void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 		BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
 			BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
-				addRowFn(host, LivestatusGroupByHostGroup, hg);
+				if (!addRowFn(host, LivestatusGroupByHostGroup, hg))
+					return;
 			}
 		}
 	} else {
 		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
-			addRowFn(host, LivestatusGroupByNone, Empty);
+			if (!addRowFn(host, LivestatusGroupByNone, Empty))
+				return;
 		}
 	}
 }

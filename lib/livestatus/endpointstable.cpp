@@ -61,7 +61,8 @@ String EndpointsTable::GetPrefix(void) const
 void EndpointsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
-		addRowFn(endpoint, LivestatusGroupByNone, Empty);
+		if (!addRowFn(endpoint, LivestatusGroupByNone, Empty))
+			return;
 	}
 }
 
