@@ -56,7 +56,6 @@ public:
 	void Register(void);
 	static ConfigType::Ptr GetByName(const String& name);
 	static Registry<ConfigType, ConfigType::Ptr>::ItemMap GetTypes(void);
-	static void DiscardTypes(void);
 
 private:
 	String m_Name; /**< The type name. */

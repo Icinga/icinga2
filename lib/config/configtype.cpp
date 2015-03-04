@@ -269,11 +269,6 @@ ConfigTypeRegistry::ItemMap ConfigType::GetTypes(void)
 	return ConfigTypeRegistry::GetInstance()->GetItems();
 }
 
-void ConfigType::DiscardTypes(void)
-{
-	ConfigTypeRegistry::GetInstance()->Clear();
-}
-
 ConfigTypeRegistry *ConfigTypeRegistry::GetInstance(void)
 {
 	return Singleton<ConfigTypeRegistry>::GetInstance();

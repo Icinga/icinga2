@@ -378,7 +378,6 @@ bool ConfigItem::CommitItems(void)
 	}
 
 	ApplyRule::CheckMatches();
-	ConfigType::DiscardTypes();
 
 	/* log stats for external parsers */
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
