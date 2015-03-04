@@ -463,7 +463,7 @@ ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	else if (m_ScopeSpec == ScopeGlobal)
 		return ScriptGlobal::GetGlobals();
 	else
-		ASSERT(!"Invalid scope.");
+		VERIFY(!"Invalid scope.");
 }
 
 ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

@@ -638,7 +638,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		else if (query.StatusUpdate)
 			hasid = GetStatusUpdate(query.Object);
 		else
-			ASSERT(!"Invalid query flags.");
+			VERIFY(!"Invalid query flags.");
 
 		if (!hasid)
 			upsert = true;
@@ -657,7 +657,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			qbuf << "DELETE FROM " << GetTablePrefix() << query.Table;
 			break;
 		default:
-			ASSERT(!"Invalid query type.");
+			VERIFY(!"Invalid query type.");
 	}
 
 	if (type == DbQueryInsert || type == DbQueryUpdate) {

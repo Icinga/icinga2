@@ -661,7 +661,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			qbuf << "DELETE FROM " << GetTablePrefix() << query.Table;
 			break;
 		default:
-			ASSERT(!"Invalid query type.");
+			VERIFY(!"Invalid query type.");
 	}
 
 	if (type == DbQueryInsert || type == DbQueryUpdate) {
