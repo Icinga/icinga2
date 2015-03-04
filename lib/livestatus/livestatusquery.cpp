@@ -508,16 +508,26 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	if (m_Aggregators.empty()) {
 		Array::Ptr header = new Array();
 
+		typedef std::pair<String, Column> ColumnPair;
+
+		std::vector<ColumnPair> column_objs;
+		column_objs.reserve(columns.size());
+
+		BOOST_FOREACH(const String& columnName, columns)
+			column_objs.push_back(std::make_pair(columnName, table->GetColumn(columnName)));
+
+		rs->Reserve(1 + objects.size());
+
 		BOOST_FOREACH(const LivestatusRowValue& object, objects) {
 			Array::Ptr row = new Array();
 
-			BOOST_FOREACH(const String& columnName, columns) {
-				Column column = table->GetColumn(columnName);
+			row->Reserve(column_objs.size());
 
+			BOOST_FOREACH(const ColumnPair& cv, column_objs) {
 				if (m_ColumnHeaders)
-					header->Add(columnName);
+					header->Add(cv.first);
 
-				row->Add(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
+				row->Add(cv.second.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 
 			if (m_ColumnHeaders) {
@@ -557,6 +567,8 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		}
 
 		Array::Ptr row = new Array();
+
+		row->Reserve(m_Columns.size() + m_Aggregators.size());
 
 		/*
 		 * add selected columns next to stats

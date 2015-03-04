@@ -181,6 +181,14 @@ void Array::Clear(void)
 	m_Data.clear();
 }
 
+void Array::Reserve(size_t new_size)
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	m_Data.reserve(new_size);
+}
+
 void Array::CopyTo(const Array::Ptr& dest) const
 {
 	ASSERT(!OwnsLock());

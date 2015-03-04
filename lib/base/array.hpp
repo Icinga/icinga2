@@ -62,6 +62,8 @@ public:
 	void Resize(size_t new_size);
 	void Clear(void);
 
+	void Reserve(size_t new_size);
+
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone(void) const;
 
