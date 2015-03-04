@@ -213,9 +213,20 @@ int Main(void)
 	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
 
 	if (Utility::PathExists(initconfig)) {
-		ScriptFrame frame;
-		Expression *expression = ConfigCompiler::CompileFile(initconfig);
-		expression->Evaluate(frame);
+		Expression *expression;
+		try {
+			expression = ConfigCompiler::CompileFile(initconfig);
+
+			ScriptFrame frame;
+			expression->Evaluate(frame);
+		} catch (const std::exception& ex) {
+			delete expression;
+
+			Log(LogCritical, "config", DiagnosticInformation(ex));
+			return EXIT_FAILURE;
+		}
+
+		delete expression;
 	}
 
 #ifndef _WIN32
