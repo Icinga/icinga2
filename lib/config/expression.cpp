@@ -597,8 +597,9 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 {
 	Value vparent;
 	String vindex;
+	DebugHint *psdhint = NULL;
 
-	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, dhint)) {
+	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, &psdhint)) {
 		if (init_dict && VMOps::GetField(vparent, vindex, m_Operand1->GetDebugInfo()).IsEmpty())
 			VMOps::SetField(vparent, vindex, new Dictionary(), m_Operand1->GetDebugInfo());
 
@@ -611,8 +612,10 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 	ExpressionResult operand2 = m_Operand2->Evaluate(frame);
 	*index = operand2.GetValue();
 
-	if (dhint && *dhint)
-		*dhint = new DebugHint((*dhint)->GetChild(*index));
+	if (dhint && psdhint)
+		*dhint = new DebugHint(psdhint->GetChild(*index));
+
+	delete psdhint;
 
 	return true;
 }
