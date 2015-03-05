@@ -1535,9 +1535,12 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 
 		Deserialize(host, attrs, false, FAConfig);
 
+		if (params->Contains("service"))
+			host->SetExtension("agent_service_name", params->Get("service"));
+
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
-		cr->SetOutput("'" + listener->GetName() + "' does not accept commands.");
+		cr->SetOutput("Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.");
 		Dictionary::Ptr message = MakeCheckResultMessage(host, cr);
 		listener->SyncSendMessage(sourceEndpoint, message);
 
@@ -1550,6 +1553,11 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 
 	attrs->Set("__name", params->Get("host"));
 	attrs->Set("type", "Host");
+
+	Deserialize(host, attrs, false, FAConfig);
+
+	if (params->Contains("service"))
+		host->SetExtension("agent_service_name", params->Get("service"));
 
 	String command = params->Get("command");
 	String command_type = params->Get("command_type");
@@ -1569,13 +1577,11 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 	} else
 		return Empty;
 
+	attrs->Clear();
 	attrs->Set(command_type, params->Get("command"));
 	attrs->Set("command_endpoint", sourceEndpoint->GetName());
 
 	Deserialize(host, attrs, false, FAConfig);
-
-	if (params->Contains("service"))
-		host->SetExtension("agent_service_name", params->Get("service"));
 
 	host->SetExtension("agent_check", true);
 

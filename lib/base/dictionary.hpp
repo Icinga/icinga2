@@ -62,6 +62,8 @@ public:
 	void Remove(const String& key);
 	void Remove(Iterator it);
 
+	void Clear(void);
+
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone(void) const;
 

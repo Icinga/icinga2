@@ -194,6 +194,17 @@ void Dictionary::Remove(Dictionary::Iterator it)
 	m_Data.erase(it);
 }
 
+/**
+ * Removes all dictionary items.
+ */
+void Dictionary::Clear(void)
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	m_Data.clear();
+}
+
 void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
 	ASSERT(!OwnsLock());
