@@ -153,7 +153,7 @@ int PkiUtility::SaveCert(const String& host, const String& port, const String& k
 		return 1;
 	}
 
-	TlsStream::Ptr stream = new TlsStream(client, RoleClient, sslContext);
+	TlsStream::Ptr stream = new TlsStream(client, String(), RoleClient, sslContext);
 
 	try {
 		stream->Handshake();
@@ -219,7 +219,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	TlsStream::Ptr stream = new TlsStream(client, RoleClient, sslContext);
+	TlsStream::Ptr stream = new TlsStream(client, String(), RoleClient, sslContext);
 
 	try {
 		stream->Handshake();

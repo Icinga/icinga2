@@ -39,7 +39,7 @@ bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
  * @param role The role of the client.
  * @param sslContext The SSL context for the client.
  */
-TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext)
+TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext)
 	: SocketEvents(socket, this), m_Eof(false), m_HandshakeOK(false), m_VerifyOK(true), m_ErrorCode(0),
 	  m_ErrorOccurred(false),  m_Socket(socket), m_Role(role), m_SendQ(new FIFO()), m_RecvQ(new FIFO()),
 	  m_CurrentAction(TlsActionNone), m_Retry(false)
@@ -73,8 +73,14 @@ TlsStream::TlsStream(const Socket::Ptr& socket, ConnectionRole role, const boost
 
 	if (m_Role == RoleServer)
 		SSL_set_accept_state(m_SSL.get());
-	else
+	else {
+#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+		if (!hostname.IsEmpty())
+			SSL_set_tlsext_host_name(m_SSL.get(), hostname.CStr());
+#endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
+
 		SSL_set_connect_state(m_SSL.get());
+	}
 }
 
 TlsStream::~TlsStream(void)

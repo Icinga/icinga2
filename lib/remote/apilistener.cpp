@@ -210,7 +210,7 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, RoleServer), LowLatencyScheduler);
+			Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer), LowLatencyScheduler);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
 		}
@@ -246,7 +246,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	try {
 		endpoint->SetConnecting(true);
 		client->Connect(host, port);
-		NewClientHandler(client, RoleClient);
+		NewClientHandler(client, endpoint->GetName(), RoleClient);
 		endpoint->SetConnecting(false);
 	} catch (const std::exception& ex) {
 		endpoint->SetConnecting(false);
@@ -265,7 +265,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
  *
  * @param client The new client.
  */
-void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole role)
+void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
 {
 	CONTEXT("Handling new API client connection");
 
@@ -274,7 +274,7 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, ConnectionRole rol
 	{
 		ObjectLock olock(this);
 		try {
-			tlsStream = new TlsStream(client, role, m_SSLContext);
+			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot create TLS stream from client connection.");
 			return;
