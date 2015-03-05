@@ -51,7 +51,7 @@ class String;
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
 
-#define IMPL_TYPE_LOOKUP(klass) 					\
+#define IMPL_TYPE_LOOKUP() 						\
 	static intrusive_ptr<Type> TypeInstance;			\
 	virtual intrusive_ptr<Type> GetReflectionType(void) const	\
 	{								\
@@ -60,7 +60,7 @@ class String;
 
 #define DECLARE_OBJECT(klass) \
 	DECLARE_PTR_TYPEDEFS(klass); \
-	IMPL_TYPE_LOOKUP(klass);
+	IMPL_TYPE_LOOKUP();
 
 template<typename T>
 intrusive_ptr<Object> DefaultObjectFactory(void)
