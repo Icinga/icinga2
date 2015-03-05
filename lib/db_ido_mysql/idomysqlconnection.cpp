@@ -226,6 +226,7 @@ void IdoMysqlConnection::Reconnect(void)
 			Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
 			Application::RequestShutdown(EXIT_FAILURE);
+			return;
 		}
 
 		DiscardRows(result);
@@ -238,6 +239,7 @@ void IdoMysqlConnection::Reconnect(void)
 			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
 
 			Application::RequestShutdown(EXIT_FAILURE);
+			return;
 		}
 
 		String instanceName = GetInstanceName();

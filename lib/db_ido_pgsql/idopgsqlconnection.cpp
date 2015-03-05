@@ -223,19 +223,27 @@ void IdoPgsqlConnection::Reconnect(void)
 		Dictionary::Ptr row = FetchRow(result, 0);
 
 		if (!row) {
+			PQfinish(m_Connection);
+			m_Connection = NULL;
+
 			Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
 			Application::RequestShutdown(EXIT_FAILURE);
+			return;
 		}
 
 		String version = row->Get("version");
 
 		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
+			PQfinish(m_Connection);
+			m_Connection = NULL;
+
 			Log(LogCritical, "IdoPgsqlConnection")
 			    << "Schema version '" << version << "' does not match the required version '"
 			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
 
 			Application::RequestShutdown(EXIT_FAILURE);
+			return;
 		}
 
 		String instanceName = GetInstanceName();
