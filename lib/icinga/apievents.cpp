@@ -1585,10 +1585,6 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 
 	host->SetExtension("agent_check", true);
 
-	static_pointer_cast<DynamicObject>(host)->OnStateLoaded();
-	static_pointer_cast<DynamicObject>(host)->OnConfigLoaded();
-	static_pointer_cast<DynamicObject>(host)->OnAllConfigLoaded();
-
 	Dictionary::Ptr macros = params->Get("macros");
 
 	if (command_type == "check_command") {
