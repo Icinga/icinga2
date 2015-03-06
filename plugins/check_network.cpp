@@ -109,7 +109,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tNETWORK WARNING 1131B/s|network=1131B/s;1000;7000;0\n\n"
+			L"\tNETWORK WARNING 1131B/s | network=1131B/s;1000;7000;0\n\n"
 			L"\"DISK\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"1131B/s\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"

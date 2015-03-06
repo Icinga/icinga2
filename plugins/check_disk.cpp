@@ -142,7 +142,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tDISK WARNING 29GB|disk=29GB;50%%;5;0;120\n\n"
+			L"\tDISK WARNING 29GB | disk=29GB;50%%;5;0;120\n\n"
 			L"\"DISK\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"23.8304%%\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"

@@ -102,7 +102,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tUPTIME WARNING 712h|uptime=712h;700;1800;0\n\n"
+			L"\tUPTIME WARNING 712h | uptime=712h;700;1800;0\n\n"
 			L"\"UPTIME\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"712h\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"

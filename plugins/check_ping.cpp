@@ -138,7 +138,7 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"\nIt will take at least timeout times number of pings to run\n"
 			L"Then it will output a string looking something like this:\n\n"
 			L"\tPING WARNING RTA: 72ms Packet loss: 20% | ping=72ms;40;80;71;77 pl=20%;20;50;0;100\n\n"
-			L"\"PING4\" being the type of the check, \"WARNING\" the returned status\n"
+			L"\"PING\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"RTA: 72ms Packet loss: 20%\" the relevant information.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
