@@ -751,6 +751,85 @@ Name            | Description
 users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
+# <a id="nscp-plugin-check-commands"></a> NSClient++ Check Commands
+
+Icinga 2 can use the `nscp client` command to run arbitrary NSClient++ checks.
+
+You can enable these check commands by adding the following the include directive in your
+[icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) configuration file:
+
+    include <nscp>
+    
+You can also optionally specify an alternative installation directory for NSClient++ by adding
+the NscpPath constant in your [constants.conf](5-configuring-icinga-2.md#constants-conf) configuration
+file:
+
+    const NscpPath = "C:\\Program Files (x86)\\NSClient++"
+
+By default the check commands assume that NSClient++ is installed in "C:\Program Files\NSClient++".
+
+Note that it is not necessary to run NSClient++ as a Windows service for these commands to work.
+
+## <a id="nscp-check-local"></a> nscp-local
+
+Check command object for NSClient++
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+nscp_path       | **Optional.** Can be used to override the NSClient++ on a per-command basis. Defaults to NscpPath.
+nscp_boot       | **Optional.** Whether to use the --boot option. Defaults to true.
+nscp_query      | **Required.** The NSClient++ query. Try `nscp client -q x` for a list.
+nscp_arguments  | **Optional.** An array of query arguments.
+
+## <a id="nscp-check-local"></a> nscp-local-cpu
+
+Check command object for the `check_cpu` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-memory"></a> nscp-local-memory
+
+Check command object for the `check_memory` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-os-version"></a> nscp-local-os-version
+
+Check command object for the `check_os_version` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-pagefile"></a> nscp-local-pagefile
+
+Check command object for the `check_pagefile` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-process"></a> nscp-local-process
+
+Check command object for the `check_process` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-service"></a> nscp-local-service
+
+Check command object for the `check_service` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-uptime"></a> nscp-local-uptime
+
+Check command object for the `check_uptime` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
+## <a id="nscp-check-local-version"></a> nscp-local-version
+
+Check command object for the `check_version` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
 
 # <a id="snmp-manubulon-plugin-check-commands"></a> SNMP Manubulon Plugin Check Commands
 
@@ -761,7 +840,7 @@ The SNMP manubulon plugin check commands assume that the global constant named `
 is set to the path where the Manubublon SNMP plugins are installed.
 
 You can enable these plugin check commands by adding the following the include directive in your
-configuration [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) file:
+[icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) configuration file:
 
     include <manubulon>
 
