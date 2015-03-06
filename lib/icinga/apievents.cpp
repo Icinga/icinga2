@@ -1577,7 +1577,6 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 	} else
 		return Empty;
 
-	attrs->Clear();
 	attrs->Set(command_type, params->Get("command"));
 	attrs->Set("command_endpoint", sourceEndpoint->GetName());
 
