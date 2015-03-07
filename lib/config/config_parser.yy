@@ -91,6 +91,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	double num;
 	bool boolean;
 	icinga::Expression *expr;
+	icinga::DictExpression *dexpr;
 	icinga::Value *variant;
 	CombinedSetOp csop;
 	icinga::TypeSpecifier type;
@@ -197,8 +198,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <llist> lterm_items_inner
 %type <expr> rterm
 %type <expr> rterm_array
-%type <expr> rterm_scope_require_side_effect
-%type <expr> rterm_scope
+%type <dexpr> rterm_scope_require_side_effect
+%type <dexpr> rterm_scope
 %type <ebranchlist> else_if_branches
 %type <ebranch> else_if_branch
 %type <expr> rterm_side_effect
@@ -467,8 +468,7 @@ object:
 		String type = $3;
 		free($3);
 
-		DictExpression *exprl = dynamic_cast<DictExpression *>($6);
-		exprl->MakeInline();
+		$6->MakeInline();
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -493,7 +493,7 @@ object:
 				filter = assign;
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), $5, exprl, DebugInfoRange(@2, @5));
+		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), $5, $6, DebugInfoRange(@2, @5));
 	}
 	;
 
@@ -623,27 +623,24 @@ lterm: type
 	| object
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope_require_side_effect
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($9);
-		aexpr->MakeInline();
+		$9->MakeInline();
 
-		$$ = new ForExpression($3, $5, $7, aexpr, @$);
+		$$ = new ForExpression($3, $5, $7, $9, @$);
 		free($3);
 		free($5);
 	}
 	| T_FOR '(' identifier T_IN rterm ')' rterm_scope_require_side_effect
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
-		aexpr->MakeInline();
+		$7->MakeInline();
 
-		$$ = new ForExpression($3, "", $5, aexpr, @$);
+		$$ = new ForExpression($3, "", $5, $7, @$);
 		free($3);
 	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($7);
-		aexpr->MakeInline();
+		$7->MakeInline();
 
-		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, aexpr, @$);
+		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, $7, @$);
 		delete $4;
 
 		$$ = new SetExpression(MakeIndexer(ScopeCurrent, $2), OpSetLiteral, fexpr, @$);
@@ -668,10 +665,9 @@ lterm: type
 	}
 	| T_WHILE '(' rterm ')' rterm_scope
 	{
-		DictExpression *aloop = dynamic_cast<DictExpression *>($5);
-		aloop->MakeInline();
+		$5->MakeInline();
 
-		$$ = new WhileExpression($3, aloop, @$);
+		$$ = new WhileExpression($3, $5, @$);
 	}
 	| rterm_side_effect
 	;
@@ -763,10 +759,9 @@ rterm_scope: '{'
 
 else_if_branch: T_ELSE T_IF '(' rterm ')' rterm_scope
 	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($6);
-		atrue->MakeInline();
+		$6->MakeInline();
 
-		$$ = new std::pair<Expression *, Expression *>($4, atrue);
+		$$ = new std::pair<Expression *, Expression *>($4, $6);
 	}
 	;
 
@@ -810,8 +805,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
+		$5->MakeInline();
 
 		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
 		delete $6;
@@ -823,27 +817,25 @@ rterm_side_effect: rterm '(' rterm_items ')'
 			afalse = new ConditionalExpression(ebranch.first, ebranch.second, afalse, @6);
 		}
 
-		$$ = new ConditionalExpression($3, atrue, afalse, @$);
+		$$ = new ConditionalExpression($3, $5, afalse, @$);
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches T_ELSE rterm_scope
 	{
-		DictExpression *atrue = dynamic_cast<DictExpression *>($5);
-		atrue->MakeInline();
+		$5->MakeInline();
 
 		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
 		delete $6;
 
-		DictExpression *afalsedict = dynamic_cast<DictExpression *>($8);
-		afalsedict->MakeInline();
+		$8->MakeInline();
 
-		Expression *afalse = afalsedict;
+		Expression *afalse = $8;
 
 		for (int i = ebranches.size() - 1; i >= 0; i--) {
 			const std::pair<Expression *, Expression *>& ebranch = ebranches[i];
 			afalse = new ConditionalExpression(ebranch.first, ebranch.second, afalse, @6);
 		}
 
-		$$ = new ConditionalExpression($3, atrue, afalse, @$);
+		$$ = new ConditionalExpression($3, $5, afalse, @$);
 	}
 	;
 
@@ -944,10 +936,9 @@ rterm_no_side_effect: T_STRING
 	| rterm T_XOR rterm { MakeRBinaryOp<XorExpression>(&$$, $1, $3, @1, @3); }
 	| T_FUNCTION '(' identifier_items ')' use_specifier rterm_scope
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($6);
-		aexpr->MakeInline();
+		$6->MakeInline();
 
-		$$ = new FunctionExpression(*$3, $5, aexpr, @$);
+		$$ = new FunctionExpression(*$3, $5, $6, @$);
 		delete $3;
 	}
 	| T_NULLARY_LAMBDA_BEGIN statements T_NULLARY_LAMBDA_END
@@ -1089,8 +1080,7 @@ apply:
 				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", DebugInfoRange(@2, @5)));
 		}
 
-		DictExpression *exprl = dynamic_cast<DictExpression *>($8);
-		exprl->MakeInline();
+		$8->MakeInline();
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -1129,7 +1119,7 @@ apply:
 		Expression *fterm = context->m_FTerm.top();
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, exprl, DebugInfoRange(@2, @7));
+		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, $8, DebugInfoRange(@2, @7));
 	}
 	;
 
