@@ -46,13 +46,6 @@ If you are planning to use the Icinga 2 client inside a distributed setup, refer
 [this chapter](12-distributed-monitoring-ha.md#cluster-scenarios-master-satellite-clients) with detailed instructions.
 
 
-
-## <a id="icinga2-client-requirements"></a> Requirements
-
-* Overview of Configuration Objects
-* SSL Certificates (manual or using CSR-Autosigning by the setup wizard)
-
-
 ## <a id="icinga2-client-installation"></a> Installation
 
 ### <a id="icinga2-client-installation-firewall"></a> Configure the Firewall
