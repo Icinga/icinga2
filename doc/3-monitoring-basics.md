@@ -43,7 +43,7 @@ check command.
 The `address` attribute is used by check commands to determine which network
 address is associated with the host object.
 
-Details on troubleshooting check problems can be found [here](13-troubleshooting.md#troubleshooting).
+Details on troubleshooting check problems can be found [here](16-troubleshooting.md#troubleshooting).
 
 ### <a id="host-states"></a> Host States
 
@@ -167,7 +167,7 @@ the function and uses whatever value the function returns:
       vars.text = {{ Math.random() * 100 }}
     }
 
-This example uses the [abbreviated lambda syntax](16-language-reference.md#nullary-lambdas).
+This example uses the [abbreviated lambda syntax](19-language-reference.md#nullary-lambdas).
 
 These functions have access to a number of variables:
 
@@ -193,7 +193,7 @@ value of arbitrary macro expressions:
       return "Some text"
     }}
 
-The [Object Accessor Functions](17-library-reference.md#object-accessor-functions) can be used to retrieve references
+The [Object Accessor Functions](20-library-reference.md#object-accessor-functions) can be used to retrieve references
 to other objects by name.
 
 ## <a id="runtime-macros"></a> Runtime Macros
@@ -399,15 +399,15 @@ The following macros provide global statistics:
 Instead of assigning each object ([Service](6-object-types.md#objecttype-service),
 [Notification](6-object-types.md#objecttype-notification), [Dependency](6-object-types.md#objecttype-dependency),
 [ScheduledDowntime](6-object-types.md#objecttype-scheduleddowntime))
-based on attribute identifiers for example `host_name` objects can be [applied](16-language-reference.md#apply).
+based on attribute identifiers for example `host_name` objects can be [applied](19-language-reference.md#apply).
 
 Before you start using the apply rules keep the following in mind:
 
 * Define the best match.
     * A set of unique [custom attributes](#custom-attributes-apply) for these hosts/services?
     * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
-    * A generic pattern [match](16-language-reference.md#function-calls) on the host/service name?
-    * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](16-language-reference.md#expression-operators)
+    * A generic pattern [match](19-language-reference.md#function-calls) on the host/service name?
+    * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](19-language-reference.md#expression-operators)
 * All expressions must return a boolean value (an empty string is equal to `false` e.g.)
 
 > **Note**
@@ -471,7 +471,7 @@ two condition passes: Either the `customer` host custom attribute is set to `cus
 `OR` the host custom attribute `always_notify` is set to `true`.
 
 The notification is ignored for services whose host name ends with `*internal`
-`OR` the `priority` custom attribute is [less than](16-language-reference.md#expression-operators) `2`.
+`OR` the `priority` custom attribute is [less than](19-language-reference.md#expression-operators) `2`.
 
     template Notification "cust-xy-notification" {
       users = [ "noc-xy", "mgmt-xy" ]
@@ -613,7 +613,7 @@ You can also specifiy the check command that way.
     }
 
 Note that numbers must be explicitely casted to string when adding to strings.
-This can be achieved by wrapping them into the [string()](16-language-reference.md#function-calls) function.
+This can be achieved by wrapping them into the [string()](19-language-reference.md#function-calls) function.
 
 > **Tip**
 >
@@ -737,7 +737,7 @@ hosts or with the `test_server` attribute set to `true` are not added to this
 group.
 
 Details on the `assign where` syntax can be found in the
-[Language Reference](16-language-reference.md#apply)
+[Language Reference](19-language-reference.md#apply)
 
 ## <a id="notifications"></a> Notifications
 
@@ -771,7 +771,7 @@ The user `icingaadmin` in the example below will get notified only on `WARNING` 
 If you don't set the `states` and `types` configuration attributes for the `User`
 object, notifications for all states and types will be sent.
 
-Details on troubleshooting notification problems can be found [here](13-troubleshooting.md#troubleshooting).
+Details on troubleshooting notification problems can be found [here](16-troubleshooting.md#troubleshooting).
 
 > **Note**
 >
@@ -1433,7 +1433,7 @@ Rephrased: If the parent service object changes into the `Warning` state, this
 dependency will fail and render all child objects (hosts or services) unreachable.
 
 You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](19-appendix.md#schema-db-ido-extensions).
+in for example [DB IDO](22-appendix.md#schema-db-ido-extensions).
 
 ### <a id="dependencies-implicit-host-service"></a> Implicit Dependencies for Services on Host
 

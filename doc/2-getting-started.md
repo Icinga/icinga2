@@ -158,7 +158,7 @@ update the global `PluginDir` constant in your [Icinga 2 configuration](5-config
 This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
-Please refer to the [plugins](10-addons-plugins.md#plugins) chapter for details about how to integrate
+Please refer to the [plugins](13-addons-plugins.md#plugins) chapter for details about how to integrate
 additional check plugins into your Icinga 2 setup.
 
 ## <a id="running-icinga2"></a> Running Icinga 2
@@ -233,11 +233,55 @@ Examples:
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](8-cli-commands.md#config-validation).
 
+
+## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
+
+Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano` editors.
+The RHEL, SUSE and Debian package `icinga2-common` install these files into
+`/usr/share/*/icinga2-common/syntax`. Sources provide these files in `tools/syntax`.
+
+### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
+
+Create a new local vim configuration storage, if not already existing.
+Edit `vim/ftdetect/icinga2.vim` if your paths to the Icinga 2 configuration
+differ.
+
+    $ PREFIX=~/.vim
+    $ mkdir -p $PREFIX/{syntax,ftdetect}
+    $ cp vim/syntax/icinga2.vim $PREFIX/syntax/
+    $ cp vim/ftdetect/icinga2.vim $PREFIX/ftdetect/
+
+Test it:
+
+    $ vim /etc/icinga2/conf.d/templates.conf
+
+### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
+
+Copy the `/etc/nanorc` sample file to your home directory. Create the `/etc/nano` directory
+and copy the provided `icinga2.nanorc` into it.
+
+    $ cp /etc/nanorc ~/.nanorc
+
+    # mkdir -p /etc/nano
+    # cp icinga2.nanorc /etc/nano/
+
+Then include the icinga2.nanorc file in your ~/.nanorc by adding the following line:
+
+    $ vim ~/.nanorc
+
+    ## Icinga 2
+    include "/etc/nano/icinga2.nanorc"
+
+Test it:
+
+    $ nano /etc/icinga2/conf.d/templates.conf
+
+
 ## <a id="setting-up-the-user-interface"></a> Setting up Icinga Web 2
 
 Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
 This chapter explains how to set up Icinga Web 2. The
-[Alternative Frontends](11-alternative-frontends.md#alternative-frontends)
+[Alternative Frontends](14-alternative-frontends.md#alternative-frontends)
 chapter can be used as a starting point for installing some of the other web
 interfaces which are also available.
 
@@ -548,5 +592,4 @@ for further instructions on how to install Icinga Web 2.
 
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
-[Addons and Plugins](10-addons-plugins.md#addons-plugins) chapter.
-
+[Addons and Plugins](13-addons-plugins.md#addons-plugins) chapter.

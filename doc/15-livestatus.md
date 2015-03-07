@@ -8,7 +8,7 @@ status information. It can also be used to send commands.
 >
 > Only install the Livestatus feature if your web interface or addon requires
 > you to do so (for example, [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2)).
-> [Icinga Classic UI](11-alternative-frontends.md#setting-up-icinga-classic-ui) and [Icinga Web](11-alternative-frontends.md#setting-up-icinga-web)
+> [Icinga Classic UI](14-alternative-frontends.md#setting-up-icinga-classic-ui) and [Icinga Web](14-alternative-frontends.md#setting-up-icinga-web)
 > do not use Livestatus as backend.
 
 The Livestatus component that is distributed as part of Icinga 2 is a
@@ -16,7 +16,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus Schema](19-appendix.md#schema-livestatus) section.
+in the [Livestatus Schema](22-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -92,7 +92,7 @@ Example using the tcp socket listening on port `6558`:
 
 ### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
 
-A list of available external commands and their parameters can be found [here](19-appendix.md#external-commands-list-detail)
+A list of available external commands and their parameters can be found [here](22-appendix.md#external-commands-list-detail)
 
     $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 
@@ -193,5 +193,5 @@ Default separators.
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](19-appendix.md#schema-livestatus).
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](22-appendix.md#schema-livestatus).
 

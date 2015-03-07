@@ -47,7 +47,7 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 * [Register](https://exchange.icinga.org/authentication/register) an Icinga account.
 * Create a new issue at the [Icinga 2 Development Tracker](https://dev.icinga.org/projects/i2).
-* When reporting a bug, please include the details described in the [Troubleshooting](13-troubleshooting.md#troubleshooting-information-required) chapter (version, configs, logs, etc).
+* When reporting a bug, please include the details described in the [Troubleshooting](16-troubleshooting.md#troubleshooting-information-required) chapter (version, configs, logs, etc).
 
 ## <a id="whats-new"></a> What's new
 
@@ -55,7 +55,7 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 #### Changes
 
-* [DB IDO schema upgrade](14-upgrading-icinga-2.md#upgrading-icinga-2) to `1.13.0` required!
+* [DB IDO schema upgrade](17-upgrading-icinga-2.md#upgrading-icinga-2) to `1.13.0` required!
 
 TODO
 

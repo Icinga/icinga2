@@ -273,7 +273,7 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-A list of currently supported external commands can be found [here](19-appendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](22-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -359,7 +359,7 @@ You can customize the metric prefix name by using the `host_name_template` and
 `service_name_template` configuration attributes.
 
 The example below uses [runtime macros](3-monitoring-basics.md#runtime-macros) and a
-[global constant](16-language-reference.md#constants) named `GraphiteEnv`. The constant name
+[global constant](19-language-reference.md#constants) named `GraphiteEnv`. The constant name
 is freely definable and should be put in the [constants.conf](5-configuring-icinga-2.md#constants-conf) file.
 
     const GraphiteEnv = "icinga.env1"
@@ -516,7 +516,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
 SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
-[Livestatus](12-livestatus.md#setting-up-livestatus) feature uses these logs for answering queries to
+[Livestatus](15-livestatus.md#setting-up-livestatus) feature uses these logs for answering queries to
 historical tables.
 
 The `CompatLogger` object can be enabled with
@@ -563,12 +563,12 @@ The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
 configuration and status information into a database. The IDO database is used
 by a number of projects including Icinga Web 1.x and 2.
 
-Details on the installation can be found in the [Configuring DB IDO](#configuring-db-ido)
+Details on the installation can be found in the [Configuring DB IDO](2-getting-started.md#configuring-db-ido-mysql)
 chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](6-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
-The DB IDO feature supports [High Availability](9-monitoring-remote-systems.md#high-availability-db-ido) in
+The DB IDO feature supports [High Availability](12-distributed-monitoring-ha.md#high-availability-db-ido) in
 the Icinga 2 cluster.
 
 The following example query checks the health of the current Icinga 2 instance
@@ -579,7 +579,7 @@ the query returns an empty result.
 
 > **Tip**
 >
-> Use [check plugins](10-addons-plugins.md#plugins) to monitor the backend.
+> Use [check plugins](13-addons-plugins.md#plugins) to monitor the backend.
 
 Replace the `default` string with your instance name, if different.
 
@@ -610,7 +610,7 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](19-appendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](22-appendix.md#schema-db-ido).
 
 
 ## <a id="check-result-files"></a> Check Result Files

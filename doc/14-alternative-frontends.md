@@ -57,7 +57,7 @@ please check the official [Icinga 1.x user interface documentation](http://docs.
 
 Icinga 2 can write to the same schema supplied by `Icinga IDOUtils 1.x` which
 is an explicit requirement to run `Icinga Web` next to the external command pipe.
-Therefore you need to setup the [DB IDO feature](#configuring-db-ido) remarked in the previous sections.
+Therefore you need to setup the [DB IDO feature](2-getting-started.md#configuring-db-ido-mysql) remarked in the previous sections.
 
 ### <a id="installing-icinga-web"></a> Installing Icinga Web 1.x
 
@@ -140,7 +140,7 @@ use one of the config packages:
  - `icinga-web-config-icinga2-ido-mysql`
  - `icinga-web-config-icinga2-ido-pgsql`
 
-These packages take care of setting up the [DB IDO](#configuring-db-ido) configuration,
+These packages take care of setting up the [DB IDO](2-getting-started.md#configuring-db-ido-mysql) configuration,
 enabling the external command pipe for Icinga Web and depend on
 the corresponding packages of Icinga 2.
 
@@ -157,7 +157,7 @@ When changing Icinga Web configuration files make sure to clear the config cache
 > **Note**
 >
 > If you are using an older version of Icinga Web, install it like this and adapt
-> the configuration manually as shown in [the RPM notes](11-alternative-frontends.md#icinga-web-rpm-notes):
+> the configuration manually as shown in [the RPM notes](14-alternative-frontends.md#icinga-web-rpm-notes):
 >
 > `apt-get install --no-install-recommends icinga-web`
 
