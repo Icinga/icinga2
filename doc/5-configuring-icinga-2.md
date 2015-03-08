@@ -231,7 +231,7 @@ service apply rule defined in [services.conf](5-configuring-icinga-2.md#services
 will be used by notification apply rules in [notifications.conf](notifications-conf).
 
 If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) you can
-uncomment the http vhost attributes and relaod Icinga 2. The apply
+uncomment the http vhost attributes and reload Icinga 2. The apply
 rules in [services.conf](5-configuring-icinga-2.md#services-conf) will automatically
 generate a new service checking the `/icingaweb2` URI using the `http`
 check.
