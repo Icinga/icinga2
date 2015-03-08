@@ -29,8 +29,8 @@ Set `perfdata_spool_dir = /var/spool/icinga2/perfdata` and restart the `npcd` da
 There's also an Icinga Web 2 module for direct PNP graph integration
 available at https://exchange.icinga.org/icinga/PNP4Nagios
 
-More information on [action_url as attribute](12-addons-plugins.md#addons-graphing-pnp-action-url)
-and [graph template names](12-addons-plugins.md#addons-graphing-pnp-custom-templates).
+More information on [action_url as attribute](13-addons-plugins.md#addons-graphing-pnp-action-url)
+and [graph template names](13-addons-plugins.md#addons-graphing-pnp-custom-templates).
 
 
 ### <a id="addons-graphing-graphite"></a> Graphite
@@ -223,7 +223,7 @@ This behavior changed in Icinga 2 compared to Icinga 1.x. Though there are certa
 fix this:
 
 * Create a symlink for example from the `templates.dist/check_ping.php` template to the actual check name in Icinga 2 (`templates/ping4.php`)
-* Pass the check command name inside the [format template configuration](04-advanced-topics.md#writing-performance-data-files)
+* Pass the check command name inside the [format template configuration](4-advanced-topics.md#writing-performance-data-files)
 
 The latter becomes difficult with agent based checks like NRPE or SSH where the first command argument acts as
 graph template identifier. There is the possibility to define the pnp template name as custom attribute

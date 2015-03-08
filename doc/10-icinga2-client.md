@@ -523,7 +523,7 @@ objects configured, only the check command definitions must be configured.
 > **Note**
 >
 > Remote clients must explicitely accept commands in a similar
-> fashion as cluster nodes [accept configuration](#cluster-zone-config-sync).
+> fashion as cluster nodes [accept configuration](12-distributed-monitoring-ha.md#cluster-zone-config-sync).
 > This is due to security reasons.
 
 Edit the `api` feature configuration in `/etc/icinga2/features-enabled/api.conf` on your client

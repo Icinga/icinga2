@@ -783,7 +783,7 @@ nscp_boot       | **Optional.** Whether to use the --boot option. Defaults to tr
 nscp_query      | **Required.** The NSClient++ query. Try `nscp client -q x` for a list.
 nscp_arguments  | **Optional.** An array of query arguments.
 
-## <a id="nscp-check-local"></a> nscp-local-cpu
+## <a id="nscp-check-local-cpu"></a> nscp-local-cpu
 
 Check command object for the `check_cpu` NSClient++ plugin.
 

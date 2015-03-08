@@ -393,7 +393,7 @@ cleared after review.
 
 
 
-## <a id="cli-command-variable"></a> CLI command: Troubleshoot
+## <a id="cli-command-troubleshoot"></a> CLI command: Troubleshoot
 
 Collects basic information like version, paths, log files and crash reports for troubleshooting purposes and prints them to a file or the console. See [troubleshooting](16-troubleshooting.md#troubleshooting-information-required).
 
