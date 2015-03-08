@@ -6,7 +6,10 @@
 
   <Type Name="icinga::Value">
     <DisplayString Condition="m_Value.which_ == 0">Empty</DisplayString>
-    <DisplayString>{m_Value}</DisplayString>
+    <DisplayString Condition="m_Value.which_ == 1">{*(double *)m_Value.storage_.data_.buf}</DisplayString>
+    <DisplayString Condition="m_Value.which_ == 2">{*(double *)m_Value.storage_.data_.buf}</DisplayString>
+    <DisplayString Condition="m_Value.which_ == 3">{*(icinga::String *)m_Value.storage_.data_.buf}</DisplayString>
+    <DisplayString Condition="m_Value.which_ == 4">{*(boost::intrusive_ptr&lt;icinga::Object&gt; *)m_Value.storage_.data_.buf}</DisplayString>
   </Type>
 
   <Type Name="icinga::Array">
