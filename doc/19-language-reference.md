@@ -535,8 +535,8 @@ Functions can be defined using the `function` keyword.
 Example:
 
     function multiply(a, b) {
-	  return a * b
-	}
+      return a * b
+    }
 
 When encountering the `return` keyword further execution of the function is terminated and
 the specified value is supplied to the caller of the function:
@@ -554,15 +554,15 @@ last expression which was performed by the function. For example, we could have 
 `multiply` function like this:
 
     function multiply(a, b) {
-	  a * b
-	}
+      a * b
+    }
 
 Anonymous functions can be created by omitting the name in the function definition. The
 resulting function object can be used like any other value:
 
     var fn = function() { 3 }
-	
-	fn() /* Returns 3 */
+
+    fn() /* Returns 3 */
 
 ## <a id="lambdas"></a> Lambda Expressions
 
@@ -575,8 +575,8 @@ Example:
 Multiple statements can be used by putting the function body into braces:
 
     f = (x) => {
-	  log("Lambda called")
-	  x * x
+      log("Lambda called")
+      x * x
     }
 
 Just like with ordinary functions the return value is the value of the last statement.
@@ -608,9 +608,9 @@ The local scope contains variables which only exist during the invocation of the
 object or apply statement. Local variables can be declared using the `var` keyword:
 
     function multiply(a, b) {
-	  var temp = a * b
-	  return temp
-	}
+      var temp = a * b
+      return temp
+    }
 
 Each time the `multiply` function is invoked a new `temp` variable is used which is in no way
 related to previous invocations of the function.
@@ -622,7 +622,7 @@ The `this` scope refers to the current object which the function or object/apply
 operates on.
 
     object Host "localhost" {
-	  check_interval = 5m
+      check_interval = 5m
     }
 
 In this example the `this` scope refers to the "localhost" object. The `check_interval` attribute
@@ -631,7 +631,7 @@ is set for this particular host.
 You can explicitly access the `this` scope using the `this` keyword:
 
     object Host "localhost" {
-	  var check_interval = 5m
+      var check_interval = 5m
   
       /* This explicitly specifies that the attribute should be set
        * for the host, if we had omitted `this.` the (poorly named)
@@ -646,15 +646,15 @@ Functions also have a `this` scope. However unlike for object/apply statements t
 a function is set to whichever object was used to invoke the function. Here's an example:
 
      hm = {
-	   h_word = null
-		 
-	   function init(word) {
-	     h_word = word
-	   }
-	 }
-	 
-	 /* Let's invoke the init() function */
-	 hm.init("hello")
+       h_word = null
+ 
+       function init(word) {
+         h_word = word
+       }
+     }
+
+     /* Let's invoke the init() function */
+     hm.init("hello")
 
 We're using `hm.init` to invoke the function which causes the value of `hm` to become the `this`
 scope for this function call.
@@ -680,12 +680,12 @@ An if/else construct can also be used in place of any other value. The value of 
 is the value of the last statement which was evaluated for the branch which was taken:
 
     a = if (true) {
-	  log("Taking the 'true' branch")
-	  7 * 3
-	} else {
-	  log("Taking the 'false' branch")
-	  9
-	}
+      log("Taking the 'true' branch")
+      7 * 3
+    } else {
+      log("Taking the 'false' branch")
+      9
+    }
 
 This example prints the log message "Taking the 'true' branch" and the `a` variable is set to 21 (7 * 3).
 
@@ -716,10 +716,10 @@ The `for` statement can be used to iterate over arrays and dictionaries.
 Example:
 
     var list = [ "a", "b", "c" ]
-	
-	for (item in list) {
-	  log("Item: " + item)
-	}
+
+    for (item in list) {
+      log("Item: " + item)
+    }
 
 The loop body is evaluated once for each item in the array. The variable `item` is declared as a local
 variable just as if the `var` keyword had been used.
@@ -727,9 +727,9 @@ variable just as if the `var` keyword had been used.
 Iterating over dictionaries can be accomplished in a similar manner:
 
     var dict = { a = 3, b = 7 }
-	
-	for (key => value in dict) {
-	  log("Key: " + key + ", Value: " + value)
+
+    for (key => value in dict) {
+      log("Key: " + key + ", Value: " + value)
     }
 
 The `continue` and `break` keywords can be used to control how the loop is executed: The `continue` keyword
@@ -764,7 +764,7 @@ type objects are made available using global variables which match the type's na
 The type object's `prototype` property can be used to find out which methods a certain type
 supports:
 
-	/* This returns: ["find","len","lower","replace","split","substr","to_string","upper"] */
+    /* This returns: ["find","len","lower","replace","split","substr","to_string","upper"] */
     keys(String.prototype)
 
 ## <a id="reserved-keywords"></a> Reserved Keywords
