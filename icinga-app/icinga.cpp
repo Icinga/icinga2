@@ -298,7 +298,7 @@ int Main(void)
 			String appName;
 
 			try {
-				Utility::BaseName(Application::GetArgV()[0]);
+				appName = Utility::BaseName(Application::GetArgV()[0]);
 			} catch (const std::bad_alloc&) {
 				Log(LogCritical, "icinga-app", "Allocation failed.");
 				return EXIT_FAILURE;
