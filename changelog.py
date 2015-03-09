@@ -18,7 +18,7 @@
 # * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 # ******************************************************************************/
 
-import urllib2, json, sys
+import urllib2, json, sys, string
 
 if len(sys.argv) < 2:
     print "Usage:", sys.argv[0], "<VERSION>"
@@ -46,6 +46,8 @@ for field in version["custom_fields"]:
     if field["id"] == 14:
         changes = field["value"]
         break
+
+changes = string.join(string.split(changes, "\r\n"), "\n")
 
 print "### What's New in Version %s" % (version_name)
 print ""
