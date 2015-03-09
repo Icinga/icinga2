@@ -659,6 +659,30 @@ a function is set to whichever object was used to invoke the function. Here's an
 We're using `hm.init` to invoke the function which causes the value of `hm` to become the `this`
 scope for this function call.
 
+## <a id="closures"></a> Closures
+
+By default `function`s, `object`s and `apply` rules do not have access to variables declared
+outside of their scope (except for global variables).
+
+In order to access variables which are defined in the outer scope the `use` keyword can be used:
+
+    function MakeHelloFunction(name) {
+      return function() use(name) {
+        log("Hello, " + name)
+      }
+    }
+
+In this case a new variable `name` is created inside the inner function's scope which has the
+value of the `name` function argument.
+
+Alternatively a different value for the inner variable can be specified:
+
+    function MakeHelloFunction(name) {
+      return function() use (greeting = "Hello, " + name) {
+        log(greeting)
+      }
+    }
+
 ## <a id="conditional-statements"></a> Conditional Statements
 
 Sometimes it can be desirable to only evaluate statements when certain conditions are met. The if/else
