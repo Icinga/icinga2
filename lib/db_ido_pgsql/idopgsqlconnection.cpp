@@ -645,8 +645,6 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			hasid = GetConfigUpdate(query.Object);
 		else if (query.StatusUpdate)
 			hasid = GetStatusUpdate(query.Object);
-		else
-			VERIFY(!"Invalid query flags.");
 
 		if (!hasid)
 			upsert = true;
