@@ -53,6 +53,8 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
+	static void ValidateRanges(const String& location, const ScheduledDowntime::Ptr& object);
+
 protected:
 	virtual void OnAllConfigLoaded(void);
 	virtual void Start(void);
