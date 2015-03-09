@@ -83,7 +83,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(host));
 	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(host));
 
-	fields->Set("process_performance_data", 0);
+	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
 
 	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(host));
 	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(host));
@@ -164,7 +164,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 
 	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
 	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("process_performance_data", 0); /* this is a host which does not process any perf data */
+	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
 	fields->Set("obsess_over_host", Empty);
 	fields->Set("modified_host_attributes", host->GetModifiedAttributes());
 	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(host));
