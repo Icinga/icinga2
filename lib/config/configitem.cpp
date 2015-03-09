@@ -360,6 +360,9 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 			}
 
 			upq.Join();
+
+			if (upq.HasExceptions())
+				return false;
 		}
 	} while (!items.empty());
 

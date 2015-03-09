@@ -77,7 +77,7 @@ void Dependency::OnAllConfigLoaded(void)
 	}
 	
 	if (!m_Child)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" << GetName() << "' references a child host/service which doesn't exist.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a child host/service which doesn't exist.", GetDebugInfo()));
 
 	m_Child->AddDependency(this);
 
@@ -96,7 +96,7 @@ void Dependency::OnAllConfigLoaded(void)
 	}
 	
 	if (!m_Parent)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" << GetName() << "' references a parent host/service which doesn't exist.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
 	m_Parent->AddReverseDependency(this);
 }
