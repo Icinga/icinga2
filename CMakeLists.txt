@@ -147,6 +147,15 @@ if(ICINGA2_LTO_BUILD)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 endif()
 
+include(CheckCCompilerFlag)
+
+check_c_compiler_flag(-fvisibility-inlines-hidden HAVE_VISIBILITY_INLINES_HIDDEN)
+
+if(HAVE_VISIBILITY_INLINES_HIDDEN)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility-inlines-hidden")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+endif()
+
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
 endif()
