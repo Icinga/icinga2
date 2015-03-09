@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-bool ApiListener::IsConfigMaster(const Zone::Ptr& zone) const
+bool ApiListener::IsConfigMaster(const Zone::Ptr& zone)
 {
 	String path = Application::GetZonesDir() + "/" + zone->GetName();
 	return Utility::PathExists(path);
@@ -233,7 +233,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictio
 
 		if (!zone) {
 			Log(LogWarning, "ApiListener")
-			    << "Ignoring config update for unknown zone: " << kv.first;
+			    << "Ignoring config update for unknown zone '" << kv.first << "'.";
+			continue;
+		}
+
+		if (IsConfigMaster(zone)) {
+			Log(LogWarning, "ApiListener")
+			    << "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
 			continue;
 		}
 
