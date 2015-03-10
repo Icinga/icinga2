@@ -123,7 +123,7 @@ By default Icinga 2 uses the following files and directories:
   ------------------------------------|------------------------------------
   /etc/icinga2                        | Contains Icinga 2 configuration files.
   /etc/init.d/icinga2                 | The Icinga 2 init script.
-  /usr/sbin/icinga2*                  | The Icinga 2 binary.
+  /usr/sbin/icinga2                   | The Icinga 2 binary.
   /usr/share/doc/icinga2              | Documentation files that come with Icinga 2.
   /usr/share/icinga2/include          | The Icinga Template Library and plugin command configuration.
   /var/run/icinga2                    | PID file.
