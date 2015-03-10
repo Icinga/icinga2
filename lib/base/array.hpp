@@ -49,8 +49,33 @@ public:
 	void Set(unsigned int index, const Value& value);
 	void Add(const Value& value);
 
-	Iterator Begin(void);
-	Iterator End(void);
+	/**
+	 * Returns an iterator to the beginning of the array.
+	 *
+	 * Note: Caller must hold the object lock while using the iterator.
+	 *
+	 * @returns An iterator.
+	 */
+	inline Iterator Begin(void)
+	{
+		ASSERT(OwnsLock());
+
+		return m_Data.begin();
+	}
+
+	/**
+	 * Returns an iterator to the end of the array.
+	 *
+	 * Note: Caller must hold the object lock while using the iterator.
+	 *
+	 * @returns An iterator.
+	 */
+	inline Iterator End(void)
+	{
+		ASSERT(OwnsLock());
+
+		return m_Data.end();
+	}
 
 	size_t GetLength(void) const;
 	bool Contains(const Value& value) const;

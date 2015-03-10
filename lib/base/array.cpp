@@ -70,34 +70,6 @@ void Array::Add(const Value& value)
 }
 
 /**
- * Returns an iterator to the beginning of the array.
- *
- * Note: Caller must hold the object lock while using the iterator.
- *
- * @returns An iterator.
- */
-Array::Iterator Array::Begin(void)
-{
-	ASSERT(OwnsLock());
-
-	return m_Data.begin();
-}
-
-/**
- * Returns an iterator to the end of the array.
- *
- * Note: Caller must hold the object lock while using the iterator.
- *
- * @returns An iterator.
- */
-Array::Iterator Array::End(void)
-{
-	ASSERT(OwnsLock());
-
-	return m_Data.end();
-}
-
-/**
  * Returns the number of elements in the array.
  *
  * @returns Number of elements.

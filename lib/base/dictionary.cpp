@@ -108,33 +108,6 @@ void Dictionary::Set(const String& key, const Value& value)
 		ret.first->second = value;
 }
 
-/**
- * Returns an iterator to the beginning of the dictionary.
- *
- * Note: Caller must hold the object lock while using the iterator.
- *
- * @returns An iterator.
- */
-Dictionary::Iterator Dictionary::Begin(void)
-{
-	ASSERT(OwnsLock());
-
-	return m_Data.begin();
-}
-
-/**
- * Returns an iterator to the end of the dictionary.
- *
- * Note: Caller must hold the object lock while using the iterator.
- *
- * @returns An iterator.
- */
-Dictionary::Iterator Dictionary::End(void)
-{
-	ASSERT(OwnsLock());
-
-	return m_Data.end();
-}
 
 /**
  * Returns the number of elements in the dictionary.
@@ -178,18 +151,6 @@ void Dictionary::Remove(const String& key)
 
 	if (it == m_Data.end())
 		return;
-
-	m_Data.erase(it);
-}
-
-/**
- * Removes the item specified by the iterator from the dictionary.
- *
- * @param it The iterator.
- */
-void Dictionary::Remove(Dictionary::Iterator it)
-{
-	ASSERT(OwnsLock());
 
 	m_Data.erase(it);
 }

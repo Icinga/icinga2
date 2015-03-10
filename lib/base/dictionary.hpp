@@ -54,13 +54,49 @@ public:
 	void Set(const String& key, const Value& value);
 	bool Contains(const String& key) const;
 
-	Iterator Begin(void);
-	Iterator End(void);
+	/**
+	 * Returns an iterator to the beginning of the dictionary.
+	 *
+	 * Note: Caller must hold the object lock while using the iterator.
+	 *
+	 * @returns An iterator.
+	 */
+	inline Iterator Begin(void)
+	{
+		ASSERT(OwnsLock());
+
+		return m_Data.begin();
+	}
+
+	/**
+	 * Returns an iterator to the end of the dictionary.
+	 *
+	 * Note: Caller must hold the object lock while using the iterator.
+	 *
+	 * @returns An iterator.
+	 */
+	inline Iterator End(void)
+	{
+		ASSERT(OwnsLock());
+
+		return m_Data.end();
+	}
 
 	size_t GetLength(void) const;
 
 	void Remove(const String& key);
-	void Remove(Iterator it);
+
+	/**
+	 * Removes the item specified by the iterator from the dictionary.
+	 *
+	 * @param it The iterator.
+	 */
+	inline void Remove(Iterator it)
+	{
+		ASSERT(OwnsLock());
+
+		m_Data.erase(it);
+	}
 
 	void Clear(void);
 
