@@ -105,7 +105,7 @@ Note: CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
 is extracted from the [icinga2.spec](icinga2.spec) file. This behavior can be overridden by
 creating a file called `icinga-version.h.force` in the source directory.
-Alternatively the `-DICINGA2_GIT_VERSION_INFO=ON option` for CMake can be used to
+Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake can be used to
 disable the usage of `git describe`.
 
 ### Build Tarball
