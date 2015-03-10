@@ -129,12 +129,17 @@ dig_lookup           | **Optional.** The address that should be looked up.
 
 Check command object for the `check_disk` plugin.
 
+> **Note**
+>
+> `disk_wfree` and `disk_cfree` require the percent sign compared to older versions.
+> If omitted, disk units can be used. This has been changed in **2.3.0**.
+
 Custom Attributes:
 
 Name            	| Description
 ------------------------|------------------------
-disk_wfree      	| **Optional.** The free space warning threshold in %. Defaults to 20.
-disk_cfree      	| **Optional.** The free space critical threshold in %. Defaults to 10.
+disk_wfree      	| **Optional.** The free space warning threshold. Defaults to "20%". If the percent sign is omitted, units from `disk_units` are used.
+disk_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
 disk_inode_wfree 	| **Optional.** The free inode warning threshold.
 disk_inode_cfree 	| **Optional.** The free inode critical threshold.
 disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
