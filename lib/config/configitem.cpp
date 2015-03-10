@@ -205,13 +205,11 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 		m_CommittedItems.push_back(this);
 	}
 
-	Dictionary::Ptr attrs = Serialize(dobj, FAConfig);
-
 	Dictionary::Ptr persistentItem = new Dictionary();
 
 	persistentItem->Set("type", GetType());
 	persistentItem->Set("name", GetName());
-	persistentItem->Set("properties", attrs);
+	persistentItem->Set("properties", Serialize(dobj, FAConfig));
 	persistentItem->Set("debug_hints", debugHints.ToDictionary());
 
 	Array::Ptr di = new Array();
