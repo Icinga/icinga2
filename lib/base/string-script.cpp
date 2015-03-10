@@ -110,6 +110,13 @@ static Value StringFind(const std::vector<Value>& args)
 		return result;
 }
 
+static bool StringContains(const Value& value)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	return self.Contains(value);
+}
+
 static Value StringReplace(const String& search, const String& replacement)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -133,6 +140,7 @@ Object::Ptr String::GetPrototype(void)
 		prototype->Set("lower", new Function(WrapFunction(StringLower)));
 		prototype->Set("split", new Function(WrapFunction(StringSplit)));
 		prototype->Set("find", new Function(WrapFunction(StringFind)));
+		prototype->Set("contains", new Function(WrapFunction(StringContains)));
 		prototype->Set("replace", new Function(WrapFunction(StringReplace)));
 	}
 

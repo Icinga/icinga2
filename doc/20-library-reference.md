@@ -399,6 +399,20 @@ Example:
 
     "Hello World".find("World") /* Returns 6 */
 
+### <a id="string-contains"></a> String#contains
+
+Signature:
+
+    function contains(str);
+
+Returns `true` if the string `str` was found in the string. If the string
+was not found `false` is returned. Use [find](20-library-reference.md#string-find)
+for getting the index instead.
+
+Example:
+
+    "Hello World".contains("World") /* Returns true */
+
 ### <a id="string-len"></a> String#len
 
 Signature
