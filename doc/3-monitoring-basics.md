@@ -1058,16 +1058,38 @@ can also be inherited from a parent template using additive inheritance (`+=`).
       command = [ PluginDir + "/check_disk" ]
 
       arguments = {
-        "-w" = "$disk_wfree$%"
-        "-c" = "$disk_cfree$%"
-        "-W" = "$disk_inode_wfree$%"
-        "-K" = "$disk_inode_cfree$%"
-        "-p" = "$disk_partitions$"
-        "-x" = "$disk_partitions_excluded$"
+        "-w" = {
+          value = "$disk_wfree$"
+          description = "Exit with WARNING status if less than INTEGER units of disk are free or Exit with WARNING status if less than PERCENT of disk space is free"
+          required = true
+        }
+        "-c" = {
+          value = "$disk_cfree$"
+          description = "Exit with CRITICAL status if less than INTEGER units of disk are free or Exit with CRITCAL status if less than PERCENT of disk space is free"
+          required = true
+        }
+        "-W" = {
+          value = "$disk_inode_wfree$"
+          description = "Exit with WARNING status if less than PERCENT of inode space is free"
+        }
+        "-K" = {
+          value = "$disk_inode_cfree$"
+          description = "Exit with CRITICAL status if less than PERCENT of inode space is free"
+        }
+        "-p" = {
+          value = "$disk_partitions$"
+          description = "Path or partition (may be repeated)"
+          repeat_key = true
+          order = 1
+        }
+        "-x" = {
+          value = "$disk_partitions_excluded$"
+          description = "Ignore device (only works if -p unspecified)"
+        }
       }
 
-      vars.disk_wfree = 20
-      vars.disk_cfree = 10
+      vars.disk_wfree = "20%"
+      vars.disk_cfree = "10%"
     }
 
 > **Note**
@@ -1098,8 +1120,8 @@ string values for passing multiple partitions to the `check_disk` check plugin.
 
       vars += config
 
-      vars.disk_wfree = 10
-      vars.disk_cfree = 5
+      vars.disk_wfree = "10%"
+      vars.disk_cfree = "5%"
     }
 
 
