@@ -624,6 +624,8 @@ void Application::SigAbrtHandler(int)
 		  << std::endl;
 
 	String fname = GetCrashReportFilename();
+	Utility::MkDir(Utility::DirName(fname), 0750);
+
 	std::ofstream ofs;
 	ofs.open(fname.CStr());
 
@@ -682,6 +684,8 @@ void Application::ExceptionHandler(void)
 #endif /* _WIN32 */
 
 	String fname = GetCrashReportFilename();
+	Utility::MkDir(Utility::DirName(fname), 0750);
+
 	std::ofstream ofs;
 	ofs.open(fname.CStr());
 
@@ -724,6 +728,8 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	l_InExceptionHandler = true;
 
 	String fname = GetCrashReportFilename();
+	Utility::MkDir(Utility::DirName(fname), 0750);
+
 	std::ofstream ofs;
 	ofs.open(fname.CStr());
 
