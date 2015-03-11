@@ -110,11 +110,11 @@ static Value StringFind(const std::vector<Value>& args)
 		return result;
 }
 
-static bool StringContains(const Value& value)
+static bool StringContains(const String& str)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
-	return self.Contains(value);
+	return self.Contains(str);
 }
 
 static Value StringReplace(const String& search, const String& replacement)
