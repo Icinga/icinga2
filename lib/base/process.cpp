@@ -530,6 +530,11 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	if (m_Process == 0) {
 		// child process
 
+		if (setsid() < 0) {
+			perror("setsid() failed");
+			_exit(128);
+		}
+
 		if (dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[1], STDERR_FILENO) < 0) {
 			perror("dup2() failed");
 			_exit(128);
@@ -611,14 +616,14 @@ bool Process::DoEvents(void)
 
 		if (timeout < Utility::GetTime()) {
 			Log(LogWarning, "Process")
-			    << "Killing process " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+			    << "Killing process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 			    << ") after timeout of " << m_Timeout << " seconds";
 
 			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
 			TerminateProcess(m_Process, 1);
 #else /* _WIN32 */
-			kill(m_Process, SIGKILL);
+			kill(-m_Process, SIGKILL);
 #endif /* _WIN32 */
 
 			is_timeout = true;
