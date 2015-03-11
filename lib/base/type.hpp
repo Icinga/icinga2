@@ -30,11 +30,13 @@
 namespace icinga
 {
 
+/* keep this in sync with tools/mkclass/classcompiler.hpp */
 enum FieldAttribute
 {
-	FAConfig = 1,
-	FAState = 2,
-	FAInternal = 32
+	FAEphemeral = 1,
+	FAConfig = 2,
+	FAState = 4,
+	FAInternal = 64,
 }; 
 
 class Type;

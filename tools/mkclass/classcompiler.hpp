@@ -55,16 +55,18 @@ struct FieldAccessor
 	{ }
 };
 
+/* keep this in sync with lib/base/type.hpp */
 enum FieldAttribute
 {
-	FAConfig = 1,
-	FAState = 2,
-	FAEnum = 4,
-	FAGetProtected = 8,
-	FASetProtected = 16,
-	FAInternal = 32,
-	FANoStorage = 64,
-	FALoadDependency = 128
+	FAEphemeral = 1,
+	FAConfig = 2,
+	FAState = 4,
+	FAEnum = 8,
+	FAGetProtected = 16,
+	FASetProtected = 32,
+	FAInternal = 64,
+	FANoStorage = 128,
+	FALoadDependency = 256
 };
 
 struct Field

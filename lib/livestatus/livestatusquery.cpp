@@ -655,7 +655,7 @@ void LivestatusQuery::ExecuteScriptHelper(const Stream::Ptr& stream)
 		throw;
 	}
 	delete expr;
-	SendResponse(stream, LivestatusErrorOK, JsonEncode(Serialize(result, FAState | FAConfig), true));
+	SendResponse(stream, LivestatusErrorOK, JsonEncode(Serialize(result, FAEphemeral | FAState | FAConfig), true));
 }
 
 void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)

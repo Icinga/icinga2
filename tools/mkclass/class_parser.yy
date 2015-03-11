@@ -256,6 +256,9 @@ class_field: field_attribute_list identifier identifier alternative_name_specifi
 
 		field->Attributes = $1;
 
+		if ((field->Attributes & (FAConfig | FAState)) == 0)
+			field->Attributes |= FAEphemeral;
+
 		field->Type = $2;
 		std::free($2);
 
