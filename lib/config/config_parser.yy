@@ -907,11 +907,11 @@ rterm_no_side_effect: T_STRING
 	}
 	| '('
 	{
-		context->m_IgnoreNewlines++;
+		context->m_OpenBraces++;
 	}
 	rterm ')'
 	{
-		context->m_IgnoreNewlines--;
+		context->m_OpenBraces--;
 		$$ = $3;
 	}
 	| rterm T_LOGICAL_OR rterm { MakeRBinaryOp<LogicalOrExpression>(&$$, $1, $3, @1, @3); }

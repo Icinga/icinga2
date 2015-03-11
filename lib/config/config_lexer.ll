@@ -251,7 +251,9 @@ in				return T_IN;
 \>				return T_GREATER_THAN;
 }
 
-[\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!yyextra->m_IgnoreNewlines) return T_NEWLINE; }
+\(				{ yyextra->m_IgnoreNewlines++; return '('; }
+\)				{ yyextra->m_IgnoreNewlines--; return ')'; }
+[\r\n]+				{ yycolumn -= strlen(yytext) - 1; if (!yyextra->m_IgnoreNewlines) { return T_NEWLINE; } }
 <<EOF>>				{ if (!yyextra->m_Eof) { yyextra->m_Eof = true; return T_NEWLINE; } else { yyterminate(); } }
 .				return yytext[0];
 
