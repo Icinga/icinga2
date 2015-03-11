@@ -21,6 +21,7 @@
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
+#include "base/function.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -28,6 +29,7 @@
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataValue);
+REGISTER_SCRIPTFUNCTION(parse_performance_data, PerfdataValue::Parse);
 
 PerfdataValue::PerfdataValue(void)
 { }

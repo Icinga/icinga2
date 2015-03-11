@@ -18,6 +18,7 @@ log(value)                      | Writes a message to the log. Non-string values
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
 typeof(value)                   | Returns the type object for a value.
 get_time()                      | Returns the current UNIX timestamp.
+parse_performance_data(pd)      | Parses a performance data string and returns an array describing the values.
 exit(integer)                   | Terminates the application.
 
 ## <a id="object-accessor-functions"></a> Object Accessor Functions
