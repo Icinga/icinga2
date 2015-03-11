@@ -640,10 +640,13 @@ void Application::SigAbrtHandler(int)
 
 	DisplayBugMessage(ofs);
 
+#ifndef _WIN32
+	ofs << "\n";
 	ofs.close();
 
-#ifndef _WIN32
 	GetDebuggerBacktrace(fname);
+#else /* _WIN32 */
+	ofs.close();
 #endif /* _WIN32 */
 }
 #else /* _WIN32 */
