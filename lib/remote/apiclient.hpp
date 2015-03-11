@@ -72,6 +72,7 @@ private:
 	ConnectionRole m_Role;
 	double m_Seen;
 	double m_NextHeartbeat;
+	double m_HeartbeatTimeout;
 	Timer::Ptr m_TimeoutTimer;
 
 	StreamReadContext m_Context;

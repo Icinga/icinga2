@@ -65,7 +65,7 @@ void ApiClient::HeartbeatTimerHandler(void)
 			request->Set("method", "event::Heartbeat");
 
 			Dictionary::Ptr params = new Dictionary();
-			params->Set("timeout", 30);
+			params->Set("timeout", 120);
 
 			request->Set("params", params);
 
@@ -78,8 +78,10 @@ Value ApiClient::HeartbeatAPIHandler(const MessageOrigin& origin, const Dictiona
 {
 	Value vtimeout = params->Get("timeout");
 
-	if (!vtimeout.IsEmpty())
+	if (!vtimeout.IsEmpty()) {
 		origin.FromClient->m_NextHeartbeat = Utility::GetTime() + vtimeout;
+		origin.FromClient->m_HeartbeatTimeout = vtimeout;
+	}
 
 	return Empty;
 }
