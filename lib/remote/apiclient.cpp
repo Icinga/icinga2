@@ -40,7 +40,7 @@ static Timer::Ptr l_ApiClientTimeoutTimer;
 
 ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
-	  m_NextHeartbeat(0), m_Context(false)
+	  m_NextHeartbeat(0), m_HeartbeatTimeout(0), m_Context(false)
 {
 	boost::call_once(l_ApiClientOnceFlag, &ApiClient::StaticInitialize);
 
@@ -135,6 +135,9 @@ bool ApiClient::ProcessMessage(void)
 		return false;
 
 	m_Seen = Utility::GetTime();
+
+	if (m_HeartbeatTimeout != 0)
+		m_NextHeartbeat = Utility::GetTime() + m_HeartbeatTimeout;
 
 	if (m_Endpoint && message->Contains("ts")) {
 		double ts = message->Get("ts");
