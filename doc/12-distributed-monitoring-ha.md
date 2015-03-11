@@ -718,21 +718,22 @@ Example DB IDO MySQL:
     # icinga2 feature enable ido-mysql
     The feature 'ido-mysql' is already enabled.
 
-By default the DB IDO feature only runs on the elected zone master. All other passive
-nodes disable the active IDO database connection at runtime.
+By default the DB IDO feature only runs on one node. All other nodes in the same zone disable
+the active IDO database connection at runtime. The node with the active DB IDO connection is
+not necessarily the zone master.
 
 > **Note**
 >
 > The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
 > for the [IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection) or
-> [IdoPgsqlConnection](6-object-types.md#objecttype-idopgsqlconnection) object on all nodes in the
-> same zone.
+> [IdoPgsqlConnection](6-object-types.md#objecttype-idopgsqlconnection) object on **all** nodes in the
+> **same** zone.
 >
-> All endpoints will enable the DB IDO feature then, connect to the configured
+> All endpoints will enable the DB IDO feature and connect to the configured
 > database and dump configuration, status and historical data on their own.
 
 If the instance with the active DB IDO connection dies, the HA functionality will
-re-enable the DB IDO connection on the newly elected zone master.
+automatically elect a new DB IDO master.
 
 The DB IDO feature will try to determine which cluster endpoint is currently writing
 to the database and bail out if another endpoint is active. You can manually verify that
