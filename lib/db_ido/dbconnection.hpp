@@ -27,6 +27,9 @@
 #include "base/timer.hpp"
 #include <boost/thread/once.hpp>
 
+#define IDO_CURRENT_SCHEMA_VERSION "1.13.0"
+#define IDO_COMPAT_SCHEMA_VERSION "1.12.0"
+
 namespace icinga
 {
 

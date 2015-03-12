@@ -35,8 +35,6 @@
 
 using namespace icinga;
 
-#define SCHEMA_VERSION "1.13.0"
-
 REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
@@ -53,7 +51,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", SCHEMA_VERSION);
+		stats->Set("version", IDO_CURRENT_SCHEMA_VERSION);
 		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
@@ -234,13 +232,13 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		String version = row->Get("version");
 
-		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
+		if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
 			PQfinish(m_Connection);
 			m_Connection = NULL;
 
 			Log(LogCritical, "IdoPgsqlConnection")
 			    << "Schema version '" << version << "' does not match the required version '"
-			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
+			    << IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation.";
 
 			Application::RequestShutdown(EXIT_FAILURE);
 			return;

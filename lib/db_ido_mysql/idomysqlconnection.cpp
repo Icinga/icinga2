@@ -34,8 +34,6 @@
 
 using namespace icinga;
 
-#define SCHEMA_VERSION "1.13.0"
-
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
 
@@ -51,7 +49,7 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", SCHEMA_VERSION);
+		stats->Set("version", IDO_CURRENT_SCHEMA_VERSION);
 		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
@@ -223,6 +221,9 @@ void IdoMysqlConnection::Reconnect(void)
 		Dictionary::Ptr row = FetchRow(result);
 
 		if (!row) {
+			mysql_close(&m_Connection);
+			m_Connected = false;
+
 			Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
 			Application::RequestShutdown(EXIT_FAILURE);
@@ -233,10 +234,13 @@ void IdoMysqlConnection::Reconnect(void)
 
 		String version = row->Get("version");
 
-		if (Utility::CompareVersion(SCHEMA_VERSION, version) < 0) {
+		if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
+			mysql_close(&m_Connection);
+			m_Connected = false;
+
 			Log(LogCritical, "IdoMysqlConnection")
 			    << "Schema version '" << version << "' does not match the required version '"
-			    << SCHEMA_VERSION << "'! Please check the upgrade documentation.";
+			    << IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation.";
 
 			Application::RequestShutdown(EXIT_FAILURE);
 			return;
