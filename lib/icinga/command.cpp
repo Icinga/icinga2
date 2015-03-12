@@ -72,19 +72,37 @@ void Command::ValidateArguments(const String& location, const Command::Ptr& obje
 		if (arginfo.IsObjectType<Dictionary>()) {
 			Dictionary::Ptr argdict = arginfo;
 
-			if (argdict->Contains("value"))
-				argval = argdict->Get("value");
-		} else
+			if (argdict->Contains("value")) {
+				String argvalue = argdict->Get("value");
+
+				if (!MacroProcessor::ValidateMacroString(argvalue)) {
+					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+					    location + ": Closing $ not found in macro format string '" + argvalue + "'.", object->GetDebugInfo()));
+				}
+			}
+
+			if (argdict->Contains("set_if")) {
+				String argsetif = argdict->Get("set_if");
+
+				if (!MacroProcessor::ValidateMacroString(argsetif)) {
+					BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+					    location + ": Closing $ not found in macro format string '" + argsetif + "'.", object->GetDebugInfo()));
+				}
+			}
+		} else if (arginfo.IsObjectType<Function>()) {
+			continue; /* we cannot evaluate macros in functions */
+		} else {
 			argval = arginfo;
 
-		if (argval.IsEmpty())
-			continue;
+			if (argval.IsEmpty())
+				continue;
 
-		String argstr = argval;
+			String argstr = argval;
 
-		if (!MacroProcessor::ValidateMacroString(argstr)) {
-			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-			    location + ": Closing $ not found in macro format string '" + argstr + "'.", object->GetDebugInfo()));
+			if (!MacroProcessor::ValidateMacroString(argstr)) {
+				BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
+				    location + ": Closing $ not found in macro format string '" + argstr + "'.", object->GetDebugInfo()));
+			}
 		}
 	}
 }
