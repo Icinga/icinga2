@@ -4,6 +4,16 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.2
+
+#### Changes
+
+* Bugfixes
+
+#### Issues
+
+* Bug 8721: Log message for cli commands breaks the init script
+
 ### What's New in Version 2.3.1
 
 #### Changes
