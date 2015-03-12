@@ -100,7 +100,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 			cr->SetState(ServiceCritical);
 		} else {
 			cr->SetOutput("Not currently enabled: Another cluster instance is responsible for the IDO database.");
-			cr->SetState(ServciceOK);
+			cr->SetState(ServiceOK);
 		}
 	} else {
 		String schema_version = conn->GetSchemaVersion();
