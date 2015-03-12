@@ -106,12 +106,6 @@ Application::~Application(void)
 
 void Application::Exit(int rc)
 {
-	if (rc)
-		Log(LogCritical, "Application")
-		    << "Shutting down after a fatal error; exit code: " << rc;
-	else
-		Log(LogInformation, "Application", "Shutting down...");
-
 	std::cout.flush();
 
 	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
@@ -314,6 +308,8 @@ mainloop:
 
 		goto mainloop;
 	}
+
+	Log(LogInformation, "Application", "Shutting down...");
 
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
