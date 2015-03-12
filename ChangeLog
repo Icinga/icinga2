@@ -4,6 +4,30 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.1
+
+#### Changes
+
+* Bugfixes
+
+Please note that this version fixes the default thresholds for the disk check which were inadvertently broken in 2.3.0; if you're using percent-based custom thresholds you will need to add the '%' sign to your custom attributes
+
+#### Issues
+
+* Feature 8659: Implement String#contains
+
+* Bug 8540: Kill signal sent only to check process, not whole process group
+* Bug 8657: Missing program name in 'icinga2 --version'
+* Bug 8658: Fix check_disk thresholds: make sure partitions are the last arguments
+* Bug 8672: Api heartbeat message response time problem
+* Bug 8673: Fix check_disk default thresholds and document the change of unit
+* Bug 8679: Config validation fail because of unexpected new-line
+* Bug 8680: Update documentation for DB IDO HA Run-Once
+* Bug 8683: Make sure that the /var/log/icinga2/crash directory exists
+* Bug 8684: Fix formatting for the GDB stacktrace
+* Bug 8687: Crash in Dependency::Stop
+* Bug 8691: Debian packages do not create /var/log/icinga2/crash
+
 ### What's New in Version 2.3.0
 
 #### Changes
