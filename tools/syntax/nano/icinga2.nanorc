@@ -4,7 +4,7 @@
 syntax 	"icinga2" "/etc/icinga2/.*\.conf$" "/usr/share/icinga2/include/(plugin|itl|.*\.conf$)"
 
 ## objects types
-icolor brightgreen 		"object[ \t]+(host|hostgroup|host|hostgroup|service|servicegroup|user|usergroup)"
+icolor brightgreen 		"object[ \t]+(host|hostgroup|service|servicegroup|user|usergroup)"
 icolor brightgreen 		"object[ \t]+(checkcommand|notificationcommand|eventcommand|notification)"
 icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfdatawriter)"
 icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
@@ -13,12 +13,10 @@ icolor brightgreen 		"object[ \t]+(compatlogger|checkresultreader|checkcomponent
 icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|icingastatuswriter|apilistener|endpoint|zone)"
 
 ## apply def
-
 icolor brightgreen 		"apply[ \t]+(Service|Dependency|Notification|ScheduledDowntime)"
 
 
 ## objects attributes
-
 icolor red 		"(^|^\s+)(accept_commands|accept_config|action_url|address|address6|arguments|author|bind_host)"
 icolor red 		"(^|^\s+)(bind_port|ca_path|categories|cert_path|check_command|check_interval)"
 icolor red 		"(^|^\s+)(check_period|child_host_name|child_service_name|cleanup|command|command_endpoint|command_path)"
@@ -38,24 +36,97 @@ icolor red 		"(^|^\s+)(vars\.\w+)"
 
 
 ## keywords
-
-icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive)"
+icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive|var|function)\s+"
 
 ## Assign conditions
-
 icolor magenta 	"(assign|ignone)[ \t]+where"
 
-## functions
+## Global functions
+icolor white 	"(regex|match|len|union|intersection|keys|string|number|bool|random|log|typeof|get_time|exit)"
 
-icolor white 	"(regex|match|len|union|intersection|string|number|bool|log|exit)"
+## Accessor Functions
+icolor white 	"(get_host|get_service|get_user|get_check_command|get_event_command|get_notification_command)"
+icolor white 	"(get_host_group|get_service_group|get_user_group|get_time_period)"
 
 
-## global constats
-icolor yellow  	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|PkgDataDir|RunDir|StatePath|PidPath)"
-icolor yellow  	"(NodeName|ApplicationType|EnableNotifications|EnableEventHandlers)"
-icolor yellow  	"(EnableFlapping|EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup)"
-icolor yellow  	"(Vars\s+)"
+## Math functions
+icolor white	"(Math.E|Math.LN2|Math.LN10|Math.LOG2E|Math.PI|Math.SQRT1_2|Math.SQRT2)"
+icolor white	"(Math.abs|Math.acos|Math.asin|Math.atan|Math.atan2|Math.ceil|Math.cos)"
+icolor white	"(Math.exp|Math.floor|Math.isinf|Math.isnan|Math.log|Math.max|Math.min)"
+icolor white	"(Math.pow|Math.random|Math.round|Math.sign|Math.sin|Math.sqrt|Math.tan)"
 
+## Json functions
+icolor white 	"(Json.encode|Json.decode)"
+
+## String functions
+icolor white	"(\.to_string)"
+icolor white	"(\.find)"
+icolor white	"(\.contains)"
+icolor white	"(\.len)"
+icolor white	"(\.lower)"
+icolor white	"(\.upper)"
+icolor white	"(\.replace)"
+icolor white	"(\.split)"
+icolor white	"(\.substr)"
+
+## Array and Dict  Functions
+icolor white	"(\.add)"
+icolor white	"(\.clear)"
+icolor white	"(\.clone)"
+icolor white	"(\.contains)"
+icolor white	"(\.len)"
+icolor white	"(\.remove)"
+icolor white	"(\.set)"
+icolor white	"(\.remove)"
+icolor white	"(\.sort)"
+icolor white	"(\.join)"
+icolor white	"(\.clone)"
+icolor white	"(\.call)"
+icolor white	"(\.callv)"
+
+
+## Conditional statements
+icolor white	"(if|else)"
+
+## Loops
+icolor white	"(while|for|break|continue)"
+
+## Operators
+icolor green		"\s(\.)\s"
+icolor green		"\s(!)\s"
+icolor green		"\s(\~)\s"
+icolor green		"\s(\+)\s"
+icolor green		"\s(-)\s"
+icolor green		"\s(\*)\s"
+icolor green		"\s(/)\s"
+icolor green		"\s(%)\s"
+icolor green		"\s(=)\s"
+icolor green		"\s(<)\s"
+icolor green		"\s(>)\s"
+icolor green		"\s(<<)\s"
+icolor green		"\s(>>)\s"
+icolor green		"\s(<=)\s"
+icolor green		"\s(>=)\s"
+icolor green		"\s(in)\s"
+icolor green		"\s(!in)\s"
+icolor green		"\s(==)\s"
+icolor green		"\s(!=)\s"
+icolor green		"\s(&)\s"
+icolor green		"\s(\^)\s"
+icolor green		"\s(|)\s"
+icolor green		"\s(&&)\s"
+icolor green		"\s(||)\s"
+icolor green		"\s(=>)\s"
+icolor green		"\s(\+=)\s"
+icolor green		"\s(-=)\s"
+icolor green		"\s(\*=)\s"
+icolor green		"\s(/=)\s"
+
+## Global constats
+icolor yellow 	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|RunDir|PkgDataDir|StatePath|ObjectsPath)"
+icolor yellow 	"(PidPath|NodeName|ApplicationType|EnableNotifications|EnableEventHandlers|EnableFlapping)"
+icolor yellow 	"(EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup|PluginDir)"
+icolor yellow 	"(Vars\s+)"
 
 ## Boolean
 icolor blue 	"(true|false)"
@@ -72,16 +143,15 @@ color brightblue 	start="/\*"  end="\*/"
 ## Braces and Parens definition
 # - Braces are used in dictionary definition
 
-color brightmagenta 	"[\[\]]"
-color brightmagenta 	"[()]"
-color brightmagenta 	"[{}]"
-
+color magenta 	"(\(|\))"
+color magenta 	"(\[|\])"
+color magenta 	"(\{|\})"
 
 ## type definitions
 # - double quotes "
 # - single quotes '
 # - brackets <>
 
-color brightyellow 		""(\\.|[^"])*""
-color brightyellow 		"'(\\.|[^'])*'"
+color brightyellow		"'"
+color brightyellow		"""
 color brightyellow  	start="<"   end=">"
