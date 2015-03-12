@@ -39,6 +39,10 @@ REGISTER_SCRIPTFUNCTION(ValidateFailoverTimeout, &DbConnection::ValidateFailover
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
+DbConnection::DbConnection(void)
+	: m_QueryStats(15 * 60)
+{ }
+
 void DbConnection::OnConfigLoaded(void)
 {
 	DynamicObject::OnConfigLoaded();
@@ -442,4 +446,18 @@ void DbConnection::ValidateFailoverTimeout(const String& location, const DbConne
 		BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
 		    location + ": Failover timeout minimum is 60s.", object->GetDebugInfo()));
 	}
+}
+
+void DbConnection::IncreaseQueryCount(void)
+{
+	double now = Utility::GetTime();
+
+	boost::mutex::scoped_lock lock(m_StatsMutex);
+	m_QueryStats.InsertValue(now, 1);
+}
+
+int DbConnection::GetQueryCount(RingBuffer::SizeType span) const
+{
+	boost::mutex::scoped_lock lock(m_StatsMutex);
+	return m_QueryStats.GetValues(span);
 }

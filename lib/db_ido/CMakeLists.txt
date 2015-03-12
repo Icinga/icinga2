@@ -18,13 +18,15 @@
 mkclass_target(dbconnection.ti dbconnection.thpp)
 
 mkembedconfig_target(db_ido-type.conf db_ido-type.cpp)
+mkembedconfig_target(db_ido-check.conf db_ido-check.cpp)
 
 set(db_ido_SOURCES
   commanddbobject.cpp dbconnection.cpp dbconnection.thpp dbconnection.thpp
-  db_ido-type.cpp dbevents.cpp dbobject.cpp dbquery.cpp dbreference.cpp dbtype.cpp
-  dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp hostgroupdbobject.cpp
-  servicedbobject.cpp servicegroupdbobject.cpp timeperioddbobject.cpp
-  userdbobject.cpp usergroupdbobject.cpp
+  db_ido-type.cpp db_ido-check.cpp dbevents.cpp dbobject.cpp dbquery.cpp
+  dbreference.cpp dbtype.cpp dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp
+  hostgroupdbobject.cpp idochecktask.cpp servicedbobject.cpp
+  servicegroupdbobject.cpp timeperioddbobject.cpp userdbobject.cpp
+  usergroupdbobject.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

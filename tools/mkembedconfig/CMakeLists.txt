@@ -30,5 +30,6 @@ macro(MKEMBEDCONFIG_TARGET EmbedInput EmbedOutput)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS mkembedconfig ${EmbedInput}
     )
+    set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/${EmbedOutput} PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 endmacro()
 

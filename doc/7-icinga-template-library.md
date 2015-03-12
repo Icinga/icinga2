@@ -52,11 +52,22 @@ The `cluster` check command does not support any vars.
 
 Check command for the built-in `cluster-zone` check.
 
-Cluster Attributes:
+Custom Attributes:
 
 Name         | Description
 -------------|---------------
 cluster_zone | **Optional.** The zone name. Defaults to "$host.name$".
+
+### <a id="itl-icinga-ido"></a> ido
+
+Check command for the built-in `ido` check.
+
+Custom Attributes:
+
+Name         | Description
+-------------|---------------
+ido_type     | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
+ido_name     | **Required.** The name of the IDO connection object.
 
 # <a id="plugin-check-commands"></a> Plugin Check Commands
 

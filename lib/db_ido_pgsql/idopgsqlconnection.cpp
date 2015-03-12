@@ -51,7 +51,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", IDO_CURRENT_SCHEMA_VERSION);
+		stats->Set("version", idopgsqlconnection->GetSchemaVersion());
 		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
@@ -67,6 +67,7 @@ void IdoPgsqlConnection::Resume(void)
 {
 	DbConnection::Resume();
 
+	SetConnected(false);
 	m_Connection = NULL;
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
@@ -106,6 +107,7 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 
 	if (m_Connection) {
 		PQfinish(m_Connection);
+		SetConnected(false);
 		m_Connection = NULL;
 	}
 }
@@ -127,6 +129,7 @@ void IdoPgsqlConnection::Disconnect(void)
 	Query("COMMIT");
 	PQfinish(m_Connection);
 
+	SetConnected(false);
 	m_Connection = NULL;
 }
 
@@ -175,6 +178,7 @@ void IdoPgsqlConnection::Reconnect(void)
 				Query("SELECT 1");
 				return;
 			} catch (const std::exception&) {
+				SetConnected(false);
 				PQfinish(m_Connection);
 				m_Connection = NULL;
 				reconnect = true;
@@ -203,9 +207,12 @@ void IdoPgsqlConnection::Reconnect(void)
 		if (!m_Connection)
 			return;
 
+		SetConnected(true);
+
 		if (PQstatus(m_Connection) != CONNECTION_OK) {
 			String message = PQerrorMessage(m_Connection);
 			PQfinish(m_Connection);
+			SetConnected(false);
 			m_Connection = NULL;
 
 			Log(LogCritical, "IdoPgsqlConnection")
@@ -222,18 +229,21 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		if (!row) {
 			PQfinish(m_Connection);
+			SetConnected(false);
 			m_Connection = NULL;
 
 			Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
-			Application::RequestShutdown(EXIT_FAILURE);
-			return;
+			BOOST_THROW_EXCEPTION(std::runtime_error("Schema does not provide any valid version! Verify your schema installation."));
 		}
 
 		String version = row->Get("version");
 
+		SetSchemaVersion(version);
+
 		if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
 			PQfinish(m_Connection);
+			SetConnected(false);
 			m_Connection = NULL;
 
 			Log(LogCritical, "IdoPgsqlConnection")
@@ -288,6 +298,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 				if (status_update_age < GetFailoverTimeout()) {
 					PQfinish(m_Connection);
+					SetConnected(false);
 					m_Connection = NULL;
 
 					return;
@@ -299,6 +310,7 @@ void IdoPgsqlConnection::Reconnect(void)
 					    << "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
 					PQfinish(m_Connection);
+					SetConnected(false);
 					m_Connection = NULL;
 
 					return;
@@ -368,6 +380,8 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 	Log(LogDebug, "IdoPgsqlConnection")
 	    << "Query: " << query;
+
+	IncreaseQueryCount();
 
 	PGresult *result = PQexec(m_Connection, query.CStr());
 

@@ -63,7 +63,6 @@ private:
 	WorkQueue m_QueryQueue;
 
 	boost::mutex m_ConnectionMutex;
-	bool m_Connected;
 	MYSQL m_Connection;
 	int m_AffectedRows;
 

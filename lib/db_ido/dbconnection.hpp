@@ -25,7 +25,9 @@
 #include "db_ido/dbobject.hpp"
 #include "db_ido/dbquery.hpp"
 #include "base/timer.hpp"
+#include "base/ringbuffer.hpp"
 #include <boost/thread/once.hpp>
+#include <boost/thread/mutex.hpp>
 
 #define IDO_CURRENT_SCHEMA_VERSION "1.13.0"
 #define IDO_COMPAT_SCHEMA_VERSION "1.12.0"
@@ -42,6 +44,8 @@ class I2_DB_IDO_API DbConnection : public ObjectImpl<DbConnection>
 {
 public:
 	DECLARE_OBJECT(DbConnection);
+
+	DbConnection(void);
 
 	static void InitializeDbTimer(void);
 
@@ -67,6 +71,8 @@ public:
 	void SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
+	int GetQueryCount(RingBuffer::SizeType span) const;
+
 	static void ValidateFailoverTimeout(const String& location, const DbConnection::Ptr& object);
 
 protected:
@@ -87,6 +93,8 @@ protected:
 
 	void PrepareDatabase(void);
 
+	void IncreaseQueryCount(void);
+
 private:
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<std::pair<DbType::Ptr, DbReference>, DbReference> m_InsertIDs;
@@ -105,6 +113,9 @@ private:
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 	static void ProgramStatusHandler(void);
+
+	mutable boost::mutex m_StatsMutex;
+	RingBuffer m_QueryStats;
 };
 
 struct database_error : virtual std::exception, virtual boost::exception { };

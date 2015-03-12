@@ -17,43 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "db_ido/dbquery.hpp"
-#include "base/dynamicobject.hpp"
+#ifndef IDOCHECKTASK_H
+#define IDOCHECKTASK_H
+
+#include "db_ido/dbconnection.hpp"
+#include "icinga/checkable.hpp"
 
 namespace icinga
 {
 
-abstract class DbConnection : DynamicObject
+/**
+ * IDO check type.
+ *
+ * @ingroup db_ido
+ */
+class IdoCheckTask
 {
-	[config] String table_prefix {
-		default {{{ return "icinga_"; }}}
-	};
+public:
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
-	[config] Dictionary::Ptr cleanup {
-		default {{{ return new Dictionary(); }}}
-	};
-
-	[config] int categories {
-		default {{{
-			return DbCatConfig | DbCatState | DbCatAcknowledgement |
-			    DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand | DbCatFlapping |
-			    DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention | DbCatStateHistory;
-		}}}
-	};
-
-	[config] bool enable_ha {
-		default {{{ return true; }}}
-	};
-
-	[config] double failover_timeout {
-		default {{{ return 60; }}}
-	};
-
-	String schema_version;
-	bool connected;
-	bool should_connect {
-		default {{{ return true; }}}
-	};
+private:
+	IdoCheckTask(void);
 };
 
 }
+
+#endif /* IDOCHECKTASK_H */

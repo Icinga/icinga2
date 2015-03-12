@@ -38,7 +38,7 @@ REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
 
 IdoMysqlConnection::IdoMysqlConnection(void)
-	: m_QueryQueue(500000), m_Connected(false)
+	: m_QueryQueue(500000)
 { }
 
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -49,7 +49,7 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", IDO_CURRENT_SCHEMA_VERSION);
+		stats->Set("version", idomysqlconnection->GetSchemaVersion());
 		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
@@ -65,7 +65,7 @@ void IdoMysqlConnection::Resume(void)
 {
 	DbConnection::Resume();
 
-	m_Connected = false;
+	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
 
@@ -102,10 +102,10 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
-	if (m_Connected) {
+	if (GetConnected()) {
 		mysql_close(&m_Connection);
 
-		m_Connected = false;
+		SetConnected(false);
 	}
 }
 
@@ -120,13 +120,13 @@ void IdoMysqlConnection::Disconnect(void)
 
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
-	if (!m_Connected)
+	if (!GetConnected())
 		return;
 
 	Query("COMMIT");
 	mysql_close(&m_Connection);
 
-	m_Connected = false;
+	SetConnected(false);
 }
 
 void IdoMysqlConnection::TxTimerHandler(void)
@@ -143,7 +143,7 @@ void IdoMysqlConnection::InternalNewTransaction(void)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
-	if (!m_Connected)
+	if (!GetConnected())
 		return;
 
 	Query("COMMIT");
@@ -161,6 +161,8 @@ void IdoMysqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
+	SetShouldConnect(true);
+
 	std::vector<DbObject::Ptr> active_dbobjs;
 
 	{
@@ -168,13 +170,13 @@ void IdoMysqlConnection::Reconnect(void)
 
 		bool reconnect = false;
 
-		if (m_Connected) {
+		if (GetConnected()) {
 			/* Check if we're really still connected */
 			if (mysql_ping(&m_Connection) == 0)
 				return;
 
 			mysql_close(&m_Connection);
-			m_Connected = false;
+			SetConnected(false);
 			reconnect = true;
 		}
 
@@ -213,7 +215,7 @@ void IdoMysqlConnection::Reconnect(void)
 			BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
 		}
 
-		m_Connected = true;
+		SetConnected(true);
 
 		String dbVersionName = "idoutils";
 		IdoMysqlResult result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name='" + Escape(dbVersionName) + "'");
@@ -222,7 +224,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 		if (!row) {
 			mysql_close(&m_Connection);
-			m_Connected = false;
+			SetConnected(false);
 
 			Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
@@ -234,9 +236,11 @@ void IdoMysqlConnection::Reconnect(void)
 
 		String version = row->Get("version");
 
+		SetSchemaVersion(version);
+
 		if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
 			mysql_close(&m_Connection);
-			m_Connected = false;
+			SetConnected(false);
 
 			Log(LogCritical, "IdoMysqlConnection")
 			    << "Schema version '" << version << "' does not match the required version '"
@@ -293,7 +297,8 @@ void IdoMysqlConnection::Reconnect(void)
 
 				if (status_update_age < GetFailoverTimeout()) {
 					mysql_close(&m_Connection);
-					m_Connected = false;
+					SetConnected(false);
+					SetShouldConnect(false);
 
 					return;
 				}
@@ -304,7 +309,7 @@ void IdoMysqlConnection::Reconnect(void)
 					    << "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
 					mysql_close(&m_Connection);
-					m_Connected = false;
+					SetConnected(false);
 
 					return;
 				}
@@ -373,6 +378,8 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 
 	Log(LogDebug, "IdoMysqlConnection")
 	    << "Query: " << query;
+
+	IncreaseQueryCount();
 
 	if (mysql_query(&m_Connection, query.CStr()) != 0) {
 		std::ostringstream msgbuf;
@@ -484,7 +491,7 @@ void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 {
-	if (!m_Connected)
+	if (!GetConnected())
 		return;
 
 	DbReference dbref = GetObjectID(dbobj);
@@ -513,7 +520,7 @@ void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
-	if (!m_Connected)
+	if (!GetConnected())
 		return;
 
 	DbReference dbref = GetObjectID(dbobj);
@@ -606,7 +613,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 	if ((query.Category & GetCategories()) == 0)
 		return;
 
-	if (!m_Connected)
+	if (!GetConnected())
 		return;
 
 	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool())
@@ -746,7 +753,7 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 {
 	boost::mutex::scoped_lock lock(m_ConnectionMutex);
 
-	if (!m_Connected)
+	if (!GetConnected())
 		return;
 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
