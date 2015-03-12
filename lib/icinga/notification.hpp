@@ -104,6 +104,7 @@ public:
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
 	static String NotificationTypeToString(NotificationType type);
+	static String NotificationFilterToString(int filter);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> OnNextNotificationChanged;
 
@@ -126,11 +127,16 @@ private:
 
 	static bool EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule);
+
+	static String NotificationTypeToStringInternal(NotificationType type);
+	static String NotificationServiceStateToString(ServiceState state);
+	static String NotificationHostStateToString(HostState state);
 };
 
 I2_ICINGA_API int ServiceStateToFilter(ServiceState state);
 I2_ICINGA_API int HostStateToFilter(HostState state);
 I2_ICINGA_API int FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue);
+I2_ICINGA_API std::vector<String> FilterIntToArray(int iFilter);
 
 }
 

@@ -29,6 +29,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/function.hpp"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
@@ -202,6 +203,7 @@ void Notification::ResetNotificationNumber(void)
 	SetNotificationNumber(0);
 }
 
+/* the upper case string used in all interfaces */
 String Notification::NotificationTypeToString(NotificationType type)
 {
 	switch (type) {
@@ -274,12 +276,15 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		unsigned long ftype = 1 << type;
 
 		Log(LogDebug, "Notification")
-		    << "FType=" << ftype << ", TypeFilter=" << GetTypeFilter();
+		    << "Type '" << NotificationTypeToStringInternal(type)
+		    << "', TypeFilter " << NotificationFilterToString(GetTypeFilter())
+		    << " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
 		if (!(ftype & GetTypeFilter())) {
 			Log(LogNotice, "Notification")
-			    << "Not sending notifications for notification object '" << GetName() << "': type filter does not match '"
-			    << NotificationTypeToString(type) << "'";
+			    << "Not sending notifications for notification object '" << GetName() << "': type '"
+			    << NotificationTypeToStringInternal(type) << "' does not match type filter '"
+			    << NotificationFilterToString(GetTypeFilter()) << ".";
 			return;
 		}
 
@@ -290,15 +295,24 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			tie(host, service) = GetHostService(checkable);
 
 			unsigned long fstate;
+			String stateStr;
 
-			if (service)
+			if (service) {
 				fstate = ServiceStateToFilter(service->GetState());
-			else
+				stateStr = NotificationServiceStateToString(service->GetState());
+			} else {
 				fstate = HostStateToFilter(host->GetState());
+				stateStr = NotificationHostStateToString(host->GetState());
+			}
+
+			Log(LogDebug, "Notification")
+			    << "State '" << stateStr << "', StateFilter " << NotificationFilterToString(GetStateFilter())
+			    << " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
 
 			if (!(fstate & GetStateFilter())) {
 				Log(LogNotice, "Notification")
-				    << "Not sending notifications for notification object '" << GetName() << "': state filter does not match";
+				    << "Not sending notifications for notification object '" << GetName() << "': state '" << stateStr
+				    << "' does not match state filter " << NotificationFilterToString(GetStateFilter()) << ".";
 				return;
 			}
 		}
@@ -390,10 +404,18 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 
 		unsigned long ftype = 1 << type;
 
+		Log(LogDebug, "Notification")
+		    << "User notification, Type '" << NotificationTypeToStringInternal(type)
+		    << "', TypeFilter " << NotificationFilterToString(user->GetTypeFilter())
+		    << " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
+
+
 		if (!(ftype & user->GetTypeFilter())) {
 			Log(LogNotice, "Notification")
 			    << "Not sending notifications for notification object '"
-			    << GetName() << " and user '" << user->GetName() << "': type filter does not match";
+			    << GetName() << " and user '" << user->GetName() << "': type '"
+			    << NotificationTypeToStringInternal(type) << "' does not match type filter "
+			    << NotificationFilterToString(user->GetTypeFilter()) << ".";
 			return false;
 		}
 
@@ -405,16 +427,26 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 			tie(host, service) = GetHostService(checkable);
 
 			unsigned long fstate;
+			String stateStr;
 
-			if (service)
-					fstate = ServiceStateToFilter(service->GetState());
-			else
-					fstate = HostStateToFilter(host->GetState());
+			if (service) {
+				fstate = ServiceStateToFilter(service->GetState());
+				stateStr = NotificationServiceStateToString(service->GetState());
+			} else {
+				fstate = HostStateToFilter(host->GetState());
+				stateStr = NotificationHostStateToString(host->GetState());
+			}
+
+			Log(LogDebug, "Notification")
+			    << "User notification, State '" << stateStr << "', StateFilter "
+			    << NotificationFilterToString(user->GetStateFilter())
+			    << " (FState=" << fstate << ", StateFilter=" << user->GetStateFilter() << ")";
 
 			if (!(fstate & user->GetStateFilter())) {
 				Log(LogNotice, "Notification")
 				    << "Not sending notifications for notification object '"
-				    << GetName() << " and user '" << user->GetName() << "': state filter does not match";
+				    << GetName() << " and user '" << user->GetName() << "': state '" << stateStr
+				    << "' does not match state filter " << NotificationFilterToString(user->GetStateFilter()) << ".";
 				return false;
 			}
 		}
@@ -499,6 +531,102 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
 	}
 
 	return resultTypeFilter;
+}
+
+std::vector<String> icinga::FilterIntToArray(int iFilter)
+{
+	std::vector<String> filter;
+
+	if (iFilter & StateFilterOK)
+		filter.push_back("OK");
+	if (iFilter & StateFilterWarning)
+		filter.push_back("Warning");
+	if (iFilter & StateFilterUnknown)
+		filter.push_back("Unknown");
+	if (iFilter & StateFilterUp)
+		filter.push_back("Up");
+	if (iFilter & StateFilterDown)
+		filter.push_back("Down");
+	if (iFilter & NotificationDowntimeStart)
+		filter.push_back("DowntimeStart");
+	if (iFilter & NotificationDowntimeEnd)
+		filter.push_back("DowntimeEnd");
+	if (iFilter & NotificationDowntimeRemoved)
+		filter.push_back("DowntimeRemoved");
+	if (iFilter & NotificationCustom)
+		filter.push_back("Custom");
+	if (iFilter & NotificationAcknowledgement)
+		filter.push_back("Acknowledgement");
+	if (iFilter & NotificationProblem)
+		filter.push_back("Problem");
+	if (iFilter & NotificationRecovery)
+		filter.push_back("Recovery");
+	if (iFilter & NotificationFlappingStart)
+		filter.push_back("FlappingStart");
+	if (iFilter & NotificationFlappingEnd)
+		filter.push_back("FlappingEnd");
+
+	return filter;
+}
+
+String Notification::NotificationFilterToString(int filter)
+{
+	return "'" + boost::algorithm::join(FilterIntToArray(filter), "', '") + "'";
+}
+
+/* internal for logging */
+String Notification::NotificationTypeToStringInternal(NotificationType type)
+{
+	switch (type) {
+		case NotificationDowntimeStart:
+			return "DowntimeStart";
+		case NotificationDowntimeEnd:
+			return "DowntimeEnd";
+		case NotificationDowntimeRemoved:
+			return "DowntimeRemoved";
+		case NotificationCustom:
+			return "Custom";
+		case NotificationAcknowledgement:
+			return "Acknowledgement";
+		case NotificationProblem:
+			return "Problem";
+		case NotificationRecovery:
+			return "Recovery";
+		case NotificationFlappingStart:
+			return "FlappingStart";
+		case NotificationFlappingEnd:
+			return "FlappingEnd";
+		default:
+			return Empty;
+	}
+}
+
+String Notification::NotificationServiceStateToString(ServiceState state)
+{
+	switch (state) {
+		case ServiceOK:
+			return "OK";
+		case ServiceWarning:
+			return "Warning";
+		case ServiceCritical:
+			return "Critical";
+		case ServiceUnknown:
+			return "Unknown";
+		default:
+			VERIFY(!"Invalid state type.");
+	}
+}
+
+String Notification::NotificationHostStateToString(HostState state)
+{
+	switch (state) {
+		case HostUp:
+			return "Up";
+		case HostDown:
+			return "Down";
+		default:
+			VERIFY(!"Invalid state type.");
+	}
 }
 
 void Notification::ValidateUsers(const String& location, const Notification::Ptr& object)
