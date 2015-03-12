@@ -54,6 +54,16 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.2
+
+#### Changes
+
+* Bugfixes
+
+#### Issues
+
+* Bug 8721: Log message for cli commands breaks the init script
+
 ### What's New in Version 2.3.1
 
 #### Changes
