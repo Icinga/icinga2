@@ -58,6 +58,13 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
+	if (idoType.IsEmpty()) {
+		cr->SetOutput("Macro 'ido_type' must be set.");
+		cr->SetState(ServiceUnknown);
+		checkable->ProcessCheckResult(cr);
+		return;
+	}
+
 	String idoName = MacroProcessor::ResolveMacros("$ido_name$", resolvers, checkable->GetLastCheckResult(),
 	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
@@ -87,9 +94,14 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 
 	double qps = conn->GetQueryCount(60) / 60.0;
 
-	if (!conn->GetConnected() && conn->GetShouldConnect()) {
-		cr->SetOutput("Could not connect to the database server.");
-		cr->SetState(ServiceCritical);
+	if (!conn->GetConnected()) {
+		if (conn->GetShouldConnect()) {
+			cr->SetOutput("Could not connect to the database server.");
+			cr->SetState(ServiceCritical);
+		} else {
+			cr->SetOutput("Not currently enabled: Another cluster instance is responsible for the IDO database.");
+			cr->SetState(ServciceOK);
+		}
 	} else {
 		String schema_version = conn->GetSchemaVersion();
 
