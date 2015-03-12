@@ -110,7 +110,7 @@ void ApiListener::Start(void)
 	if (!AddListener(GetBindHost(), GetBindPort())) {
 		Log(LogCritical, "ApiListener")
 		     << "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
-		Application::RequestShutdown(EXIT_FAILURE);
+		Application::Exit(EXIT_FAILURE);
 	}
 
 	m_Timer = new Timer();

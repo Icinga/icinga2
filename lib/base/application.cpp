@@ -57,7 +57,6 @@ static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
-int Application::m_ExitStatus = 0;
 
 /**
  * Constructor for the Application class.
@@ -107,6 +106,12 @@ Application::~Application(void)
 
 void Application::Exit(int rc)
 {
+	if (rc)
+		Log(LogCritical, "Application")
+		    << "Shutting down after a fatal error; exit code: " << rc;
+	else
+		Log(LogInformation, "Application", "Shutting down...");
+
 	std::cout.flush();
 
 	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
@@ -310,11 +315,6 @@ mainloop:
 		goto mainloop;
 	}
 
-	if (m_ExitStatus)
-		Log(LogInformation, "Application", "Shutting down Icinga after a fatal error.");
-	else
-		Log(LogInformation, "Application", "Shutting down Icinga...");
-
 	DynamicObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
@@ -361,9 +361,10 @@ pid_t Application::StartReloadProcess(void)
  * Signals the application to shut down during the next
  * execution of the event loop.
  */
-void Application::RequestShutdown(int rc)
+void Application::RequestShutdown(void)
 {
-	m_ExitStatus = rc > m_ExitStatus ? rc : m_ExitStatus;
+	Log(LogInformation, "Application", "Received request to shut down.");
+
 	m_ShuttingDown = true;
 }
 
