@@ -78,10 +78,11 @@ DbType::Ptr DbObject::GetType(void) const
 
 void DbObject::SendConfigUpdate(void)
 {
-	/* update custom var config for all objects */
+	/* update custom var config and status */
 	SendVarsConfigUpdate();
+	SendVarsStatusUpdate();
 
-	/* config objects */
+	/* config attributes */
 	Dictionary::Ptr fields = GetConfigFields();
 
 	if (!fields)
@@ -108,10 +109,7 @@ void DbObject::SendConfigUpdate(void)
 
 void DbObject::SendStatusUpdate(void)
 {
-	/* update custom var status for all objects */
-	SendVarsStatusUpdate();
-
-	/* status objects */
+	/* status attributes */
 	Dictionary::Ptr fields = GetStatusFields();
 
 	if (!fields)
