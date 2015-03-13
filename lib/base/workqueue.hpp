@@ -52,7 +52,7 @@ public:
 
 	bool IsWorkerThread(void) const;
 
-	size_t GetLength(void);
+	size_t GetLength(void) const;
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 

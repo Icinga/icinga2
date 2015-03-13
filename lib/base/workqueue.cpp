@@ -166,7 +166,7 @@ void WorkQueue::ReportExceptions(const String& facility) const
 	    << exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
 }
 
-size_t WorkQueue::GetLength(void)
+size_t WorkQueue::GetLength(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
