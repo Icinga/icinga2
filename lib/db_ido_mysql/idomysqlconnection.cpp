@@ -770,3 +770,8 @@ void IdoMysqlConnection::FillIDCache(const DbType::Ptr& type)
 		SetInsertID(type, DbReference(row->Get("object_id")), DbReference(row->Get(type->GetTable() + "_id")));
 	}
 }
+
+int IdoMysqlConnection::GetPendingQueryCount(void) const
+{
+	return m_QueryQueue.GetLength();
+}

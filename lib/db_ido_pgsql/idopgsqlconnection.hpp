@@ -42,9 +42,11 @@ public:
 	DECLARE_OBJECT(IdoPgsqlConnection);
 	DECLARE_OBJECTNAME(IdoPgsqlConnection);
 
-    IdoPgsqlConnection(void);
+	IdoPgsqlConnection(void);
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+
+	virtual int GetPendingQueryCount(void) const;
 
 protected:
 	virtual void Resume(void);

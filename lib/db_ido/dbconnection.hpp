@@ -72,6 +72,7 @@ public:
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
 	int GetQueryCount(RingBuffer::SizeType span) const;
+	virtual int GetPendingQueryCount(void) const = 0;
 
 	static void ValidateFailoverTimeout(const String& location, const DbConnection::Ptr& object);
 

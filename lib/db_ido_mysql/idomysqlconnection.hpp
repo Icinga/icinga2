@@ -46,6 +46,8 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
+	virtual int GetPendingQueryCount(void) const;
+
 protected:
 	virtual void Resume(void);
 	virtual void Pause(void);

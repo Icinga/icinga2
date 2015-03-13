@@ -121,6 +121,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	perfdata->Add(new PerfdataValue("queries_1min", conn->GetQueryCount(60)));
 	perfdata->Add(new PerfdataValue("queries_5mins", conn->GetQueryCount(5 * 60)));
 	perfdata->Add(new PerfdataValue("queries_15mins", conn->GetQueryCount(15 * 60)));
+	perfdata->Add(new PerfdataValue("pending_queries", conn->GetPendingQueryCount()));
 	cr->SetPerformanceData(perfdata);
 
 	checkable->ProcessCheckResult(cr);

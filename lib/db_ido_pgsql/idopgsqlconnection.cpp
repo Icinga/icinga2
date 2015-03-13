@@ -781,3 +781,8 @@ void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 		SetInsertID(type, DbReference(row->Get("object_id")), DbReference(row->Get(type->GetTable() + "_id")));
 	}
 }
+
+int IdoPgsqlConnection::GetPendingQueryCount(void) const
+{
+	return m_QueryQueue.GetLength();
+}
