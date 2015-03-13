@@ -31,6 +31,14 @@ namespace icinga
 
 typedef boost::shared_ptr<MYSQL_RES> IdoMysqlResult;
 
+typedef boost::function<void (const IdoMysqlResult&)> IdoAsyncCallback;
+
+struct IdoAsyncQuery
+{
+	String Query;
+	IdoAsyncCallback Callback;
+};
+
 /**
  * An IDO MySQL database connection.
  *
@@ -64,9 +72,11 @@ private:
 
 	WorkQueue m_QueryQueue;
 
-	boost::mutex m_ConnectionMutex;
 	MYSQL m_Connection;
 	int m_AffectedRows;
+	int m_MaxPacketSize;
+
+	std::vector<IdoAsyncQuery> m_AsyncQueries;
 
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_TxTimer;
@@ -78,8 +88,12 @@ private:
 	Dictionary::Ptr FetchRow(const IdoMysqlResult& result);
 	void DiscardRows(const IdoMysqlResult& result);
 
+	void AsyncQuery(const String& query, const IdoAsyncCallback& callback = IdoAsyncCallback());
+	void FinishAsyncQueries(bool force = false);
+
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
+	void InternalDeactivateObject(const DbObject::Ptr& dbobj);
 
 	void Disconnect(void);
 	void Reconnect(void);
@@ -90,6 +104,7 @@ private:
 	void ReconnectTimerHandler(void);
 
 	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
+	void FinishExecuteQuery(const DbQuery& query, int type, bool upsert);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 	void InternalNewTransaction(void);
 
