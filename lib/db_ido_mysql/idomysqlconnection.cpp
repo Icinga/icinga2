@@ -132,8 +132,8 @@ void IdoMysqlConnection::TxTimerHandler(void)
 
 void IdoMysqlConnection::NewTransaction(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, true));
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, true));
 }
 
 void IdoMysqlConnection::InternalNewTransaction(void)
@@ -143,8 +143,8 @@ void IdoMysqlConnection::InternalNewTransaction(void)
 	if (!GetConnected())
 		return;
 
-	Query("COMMIT");
-	Query("BEGIN");
+	AsyncQuery("COMMIT");
+	AsyncQuery("BEGIN");
 }
 
 void IdoMysqlConnection::ReconnectTimerHandler(void)
@@ -382,7 +382,11 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<v
 	aq.Query = query;
 	aq.Callback = callback;
 	m_AsyncQueries.push_back(aq);
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, false));
+
+	if (m_AsyncQueries.size() > 500)
+		FinishAsyncQueries(true);
+	else
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, false));
 }
 
 void IdoMysqlConnection::FinishAsyncQueries(bool force)
