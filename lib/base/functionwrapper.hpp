@@ -51,6 +51,8 @@ Value FunctionWrapperV(void (*function)(T0), const std::vector<Value>& arguments
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]));
 
@@ -68,6 +70,8 @@ Value FunctionWrapperR(TR (*function)(T0), const std::vector<Value>& arguments)
 {
 	if (arguments.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]));
 }
@@ -83,6 +87,8 @@ Value FunctionWrapperV(void (*function)(T0, T1), const std::vector<Value>& argum
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]));
@@ -101,6 +107,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1), const std::vector<Value>& argumen
 {
 	if (arguments.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]));
@@ -117,6 +125,8 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2), const std::vector<Value>& a
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -136,6 +146,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2), const std::vector<Value>& arg
 {
 	if (arguments.size() < 3)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 3)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -153,6 +165,8 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3), const std::vector<Value
 {
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 4)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -173,6 +187,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3), const std::vector<Value>&
 {
 	if (arguments.size() < 4)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 4)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -191,6 +207,8 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::vector<V
 {
 	if (arguments.size() < 5)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 5)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -212,6 +230,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vector<Val
 {
 	if (arguments.size() < 5)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 5)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -231,6 +251,8 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std::vect
 {
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 6)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -253,6 +275,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::vector
 {
 	if (arguments.size() < 6)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 6)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -273,6 +297,8 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6), const std::
 {
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 7)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -296,6 +322,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6), const std::ve
 {
 	if (arguments.size() < 7)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 7)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -317,6 +345,8 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const s
 {
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 8)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
@@ -341,6 +371,8 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std
 {
 	if (arguments.size() < 8)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+	else if (arguments.size() > 8)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 
 	return function(static_cast<T0>(arguments[0]),
 	    static_cast<T1>(arguments[1]),
