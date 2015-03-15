@@ -18,6 +18,10 @@
 find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
+if("${FLEX_VERSION}" VERSION_LESS "2.5.31")
+    message(SEND_ERROR "Your version of flex is too old. You can specify an alternative path using -DFLEX_EXECUTABLE=/path/to/flex")
+endif()
+
 bison_target(config_parser config_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
 set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
