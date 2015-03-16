@@ -16,6 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 install(
-  FILES ipmi.conf network-components.conf operating-system.conf virtualization.conf vmware.conf
+  FILES databases.conf ipmi.conf network-components.conf operating-system.conf virtualization.conf vmware.conf
   DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2/include/plugins-contrib.d
 )
