@@ -113,7 +113,7 @@ IF(FLEX_EXECUTABLE)
       MESSAGE("Command \"${FLEX_EXECUTABLE} --version\" failed with output:\n${FLEX_version_output}\n${FLEX_version_error}\nFLEX_VERSION will not be available")
     ENDIF()
   ELSE()
-    STRING(REGEX REPLACE "^flex (.*)$" "\\1"
+    STRING(REGEX REPLACE "^flex[^ ]* (.*)$" "\\1"
       FLEX_VERSION "${FLEX_version_output}")
   ENDIF()
 
