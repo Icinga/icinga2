@@ -117,6 +117,12 @@ IF(FLEX_EXECUTABLE)
       FLEX_VERSION "${FLEX_version_output}")
   ENDIF()
 
+  IF(FLEX_FIND_VERSION)
+    IF("${FLEX_VERSION}" VERSION_LESS "${FLEX_FIND_VERSION}")
+      MESSAGE(SEND_ERROR "Your version of flex is too old. You can specify an alternative path using -DFLEX_EXECUTABLE=/path/to/flex")
+    ENDIF()
+  ENDIF()
+
   #============================================================
   # FLEX_TARGET (public macro)
   #============================================================

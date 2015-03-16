@@ -18,10 +18,6 @@
 find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
-if("${FLEX_VERSION}" VERSION_LESS "2.5.31")
-    message(SEND_ERROR "Your version of flex is too old. You can specify an alternative path using -DFLEX_EXECUTABLE=/path/to/flex")
-endif()
-
 bison_target(class_parser class_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc)
 flex_target(class_lexer class_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc)
 add_flex_bison_dependency(class_lexer class_parser)
