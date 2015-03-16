@@ -23,6 +23,7 @@ syntax case ignore
 " comments
 syn keyword		icinga2CommentTodo		TODO FIXME XXX TBD contained
 syn match		icinga2LineComment		"\/\/.*" contains=icinga2CommentTodo
+syn match		icinga2LineComment		"#.*" contains=icinga2CommentTodo
 syn match		icinga2CommentSkip		"^[ \t]*\*\($\|[ \t]\+\)"
 syn region		icinga2Comment			start="/\*"  end="\*/" contains=icinga2CommentTodo
 
@@ -143,7 +144,7 @@ syn  match         icinga2Operators "[ \t]\+\(\~\)\+"
 syn  match         icinga2Operators "[ \t]\+\(+\)\+"
 syn  match         icinga2Operators "[ \t]\+\(-\)\+"
 syn  match         icinga2Operators "[ \t]\+\(*\)\+"
-syn  match         icinga2Operators "[ \t]\+\(/\)\+"
+syn  match         icinga2Operators "[ \t]\+\(/[^/\*]\)\+"
 syn  match         icinga2Operators "[ \t]\+\(%\)\+"
 syn  match         icinga2Operators "[ \t]\+\(+\)\+"
 syn  match         icinga2Operators "[ \t]\+\(-\)\+"
