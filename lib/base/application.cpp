@@ -459,6 +459,50 @@ String Application::GetExePath(const String& argv0)
 #endif /* _WIN32 */
 }
 
+#ifndef _WIN32
+static String UnameHelper(char type)
+{
+	/* Unfortunately the uname() system call doesn't support some of the
+	 * query types we're interested in - so we're using popen() instead. */
+
+	char cmd[] = "uname -X 2>&1";
+	cmd[7] = type;
+
+	FILE *fp = popen(cmd, "r");
+
+	char line[1024];
+	std::ostringstream msgbuf;
+
+	while (fgets(line, sizeof(line), fp) != NULL)
+		msgbuf << line;
+
+	pclose(fp);
+
+	String result = msgbuf.str();
+	result.Trim();
+
+	return result;
+}
+
+static String LsbReleaseHelper(void)
+{
+	FILE *fp = popen("lsb_release -s -d 2>&1", "r");
+
+	char line[1024];
+	std::ostringstream msgbuf;
+
+	while (fgets(line, sizeof(line), fp) != NULL)
+		msgbuf << line;
+
+	pclose(fp);
+
+	String result = msgbuf.str();
+	result.Trim();
+
+	return result;
+}
+#endif /* _WIN32 */
+
 /**
  * Display version and path information.
  */
@@ -479,6 +523,18 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 	   << "  Vars path: " << GetVarsPath() << "\n"
 	   << "  PID path: " << GetPidPath() << "\n"
 	   << "  Application type: " << GetApplicationType() << "\n";
+
+#ifndef _WIN32
+	os << "\n"
+	   << "System information:" << "\n"
+	   << "  Operating system: " << UnameHelper('s') << "\n"
+	   << "  Operating system version: " << UnameHelper('r') << "\n"
+	   << "  Architecture: " << UnameHelper('m') << "\n";
+#endif /* _WIN32 */
+
+#ifdef __linux__
+	os << "  Distribution: " << LsbReleaseHelper() << "\n";
+#endif /* __linux__ */
 }
 
 /**
