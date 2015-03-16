@@ -52,7 +52,7 @@ Returns the NotificationCommand object with the specified name, or `null` if no 
 
 Signature:
 
-    function get_notification_command(name);
+    function get_host(host_name);
 
 Returns the Host object with the specified name, or `null` if no such Host object exists.
 
