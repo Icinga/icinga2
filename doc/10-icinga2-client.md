@@ -104,7 +104,6 @@ Make sure to answer the first question with `n` (no).
     information/cli: Created backup file '/etc/icinga2/constants.conf.orig'.
     information/cli: Updating constants file '/etc/icinga2/constants.conf'.
     information/cli: Updating constants file '/etc/icinga2/constants.conf'.
-    Please edit the constants.conf file '/etc/icinga2/constants.conf' and set a secure 'TicketSalt' constant.
     Done.
 
     Now restart your Icinga 2 daemon to finish the installation!

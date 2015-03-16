@@ -586,9 +586,6 @@ wizard_ticket:
 		String salt = RandomString(16);
 
 		NodeUtility::UpdateConstant("TicketSalt", salt);
-
-		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please edit the constants.conf file '" << constants_file << "' and set a secure 'TicketSalt' constant." << ConsoleColorTag(Console_Normal) << "\n";
 	}
 
 	std::cout << "Done.\n\n";
