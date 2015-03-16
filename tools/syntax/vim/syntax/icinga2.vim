@@ -78,7 +78,7 @@ syn match		icinga2ObjAttr		contained	"\(vars.\w\+\)"
 
 
 " keywords
-syn keyword		icinga2Keyword		template const import include include_recursive var function
+syn keyword		icinga2Keyword		template const import include include_recursive var function return to use locals globals this
 
 
 " Assign conditions

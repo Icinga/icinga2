@@ -36,7 +36,7 @@ icolor red 		"(^|^\s+)(vars\.\w+)"
 
 
 ## keywords
-icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive|var|function)\s+"
+icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive|var|function|return|to|use|locals|globals|this)\s+"
 
 ## Assign conditions
 icolor magenta 	"(assign|ignone)[ \t]+where"
