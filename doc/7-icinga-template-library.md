@@ -1034,6 +1034,113 @@ The Plugins contrib collects various contributed command definitions.
 These check commands assume that the global constant named `PluginContribDir`
 is set to the path where the user installs custom plugins and can be enabled by uncommenting the corresponding line in icinga2.conf.
 
+## <a id="plugins-contrib-databases"></a> Databases
+
+All database plugins go in this category.
+
+### <a id="plugins-contrib-command-mssql_health"></a> mssql_health
+
+The plugin `mssql_health` utilises Perl DBD::Sybase based on FreeTDS to connect to MSSQL databases for monitoring.
+For release tarballs, detailed documentation especially on the different modes and scripts for creating a monitoring user see [https://labs.consol.de](https://labs.consol.de/nagios/check_mssql_health/). For development check [https://github.com](https://github.com/lausser/check_mssql_health).
+
+Custom Attributes:
+
+Name                             | Description
+---------------------------------|------------------------------------------------------------------------------------------------------------------------------
+mssql_health_hostname            | **Optional.** Specifies the database hostname or address. No default because you typically use "mssql_health_server".
+mssql_health_port                | **Optional.** Specifies the database port. No default because you typically use "mssql_health_server".
+mssql_health_server              | **Optional.** The name of a predefined connection (in freetds.conf).
+mssql_health_currentdb           | **Optional.** The name of a database which is used as the current database for the connection.
+mssql_health_username            | **Optional.** The username for the database connection.
+mssql_health_password            | **Optional.** The password for the database connection.
+mssql_health_warning             | **Optional.** The warning threshold depending on the mode.
+mssql_health_critical            | **Optional.** The critical threshold depending on the mode.
+mssql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "database-free" or "sql".
+mssql_health_name                | **Optional.** Depending on the mode this could be the database name or a SQL statement.
+mssql_health_name2               | **Optional.** If "mssql_health_name" is a sql statement, "mssql_health_name2" can be used to appear in the output and the performance data.
+mssql_health_regexep             | **Optional.** If set to true, "mssql_health_name" will be interpreted as a regular expression. Defaults to false.
+mssql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
+mssql_health_offlineok           | **Optional.** Set this to true, if offline databases are perfectly ok for you. Defaults to false.
+mssql_health_commit              | **Optional.** Set this to true to turn on autocommit for the dbd::sybase module. Defaults to false.
+
+### <a id="plugins-contrib-command-mysql_health"></a> mysql_health
+
+The plugin `mysql_health` utilises Perl DBD::MySQL to connect to MySQL databases for monitoring.
+For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_mysql_health/). For development check [https://github.com](https://github.com/lausser/check_mysql_health).
+
+Custom Attributes:
+
+Name                             | Description
+---------------------------------|------------------------------------------------------------------------------------------------------------------------------
+mysql_health_hostname            | **Required.** Specifies the database hostname or address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set.
+mysql_health_port                | **Optional.** Specifies the database port. Defaults to 3306 (or 1186 for "mysql_health_mode" cluster).
+mysql_health_socket              | **Optional.** Specifies the database unix socket. No default.
+mysql_health_username            | **Optional.** The username for the database connection.
+mysql_health_password            | **Optional.** The password for the database connection.
+mysql_health_database            | **Optional.** The database to connect to. Defaults to information_schema.
+mysql_health_warning             | **Optional.** The warning threshold depending on the mode.
+mysql_health_critical            | **Optional.** The critical threshold depending on the mode.
+mysql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "slave-lag" or "sql".
+mysql_health_name                | **Optional.** The SQL statement to be executed with "mysql_health_mode" sql.
+mysql_health_name2               | **Optional.** If "mysql_health_name" is a sql statement, "mysql_health_name2" can be used to appear in the output and the performance data.
+mysql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
+mysql_health_labelformat         | **Optional.** One of those formats pnp4nagios or groundwork. Defaults to pnp4nagios.
+
+### <a id="plugins-contrib-command-oracle_health"></a> oracle_health
+
+The plugin `oracle_health` utilises Perl DBD::Oracle based on oracle-instantclient-sdk or sqlplus to connect to Oracle databases for monitoring.
+For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_oracle_health/). For development check [https://github.com](https://github.com/lausser/check_oracle_health).
+
+Custom Attributes:
+
+Name                             | Description
+---------------------------------|------------------------------------------------------------------------------------------------------------------------------
+oracle_health_connect            | **Required.** Specifies the database connection string (from tnsnames.ora).
+oracle_health_username           | **Optional.** The username for the database connection.
+oracle_health_password           | **Optional.** The password for the database connection.
+oracle_health_warning            | **Optional.** The warning threshold depending on the mode.
+oracle_health_critical           | **Optional.** The critical threshold depending on the mode.
+oracle_health_mode               | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "flash-recovery-area-usage" or "sql".
+oracle_health_name               | **Optional.** The tablespace, datafile, wait event, latch, enqueue depending on the mode or SQL statement to be executed with "oracle_health_mode" sql.
+oracle_health_name2              | **Optional.** If "oracle_health_name" is a sql statement, "oracle_health_name2" can be used to appear in the output and the performance data.
+oracle_health_units              | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
+oracle_health_ident              | **Optional.** If set to true outputs instance and database names. Defaults to false.
+oracle_health_commit             | **Optional.** Set this to true to turn on autocommit for the dbd::oracle module. Defaults to false.
+oracle_health_noperfdata         | **Optional.** Set this to true if you want to disable perfdata. Defaults to false.
+
+Environment Macros:
+
+Name                | Description
+--------------------|------------------------------------------------------------------------------------------------------------------------------------------
+ORACLE_HOME         | **Required.** Specifies the location of the oracle instant client libraries. Defaults to "/usr/lib/oracle/11.2/client64/lib". Can be overridden by setting "oracle_home".
+TNS_ADMIN           | **Required.** Specifies the location of the tnsnames.ora including the database connection strings. Defaults to "/etc/icinga2/plugin-configs". Can be overridden by setting "oracle_tns_admin".
+
+### <a id="plugins-contrib-command-postgres"></a> postgres
+
+The plugin `postgres` utilises the psql binary to connect to PostgreSQL databases for monitoring.
+For release tarballs and detailed documentation especially the different actions and required persmissions see [https://bucardo.org/wiki/Check_postgres](https://bucardo.org/wiki/Check_postgres). For development check [https://github.com](https://github.com/bucardo/check_postgres).
+
+Custom Attributes:
+
+Name                             | Description
+---------------------------------|------------------------------------------------------------------------------------------------------------------------------
+postgres_host        | **Optional.** Specifies the database hostname or address. Defaults to "$address$" or "$address6$" if the `address` attribute is not set. If "postgres_unixsocket" is set to true falls back to unix socket.
+postgres_port        | **Optional.** Specifies the database port. Defaults to 5432.
+postgres_dbname      | **Optional.** Specifies the database name to connect to. Defaults to "postgres" or "template1".
+postgres_dbuser      | **Optional.** The username for the database connection. Defaults to "postgres".
+postgres_dbpass      | **Optional.** The password for the database connection. You can use a .pgpass file instead.
+postgres_dbservice   | **Optional.** Specifies the service name to use inside of pg_service.conf.
+postgres_warning     | **Optional.** Specifies the warning threshold, range depends on the action.
+postgres_critical    | **Optional.** Specifies the critical threshold, range depends on the action.
+postgres_include     | **Optional.** Specifies name(s) items to specifically include (e.g. tables), depends on the action.
+postgres_exclude     | **Optional.** Specifies name(s) items to specifically exclude (e.g. tables), depends on the action.
+postgres_includeuser | **Optional.** Include objects owned by certain users.
+postgres_excludeuser | **Optional.** Exclude objects owned by certain users.
+postgres_standby     | **Optional.** Assume that the server is in continious WAL recovery mode if set to true. Defaults to false.
+postgres_production  | **Optional.** Assume that the server is in production mode if set to true. Defaults to false.
+postgres_action      | **Required.** Determines the test executed.
+postgres_unixsocket  | **Optional.** If "postgres_unixsocket" is set to true the unix socket is used instead of an address. Defaults to false.
+
 ## <a id="plugins-contrib-ipmi"></a> IPMI Devices
 
 This category includes all plugins for IPMI devices.
