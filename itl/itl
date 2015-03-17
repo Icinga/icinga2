@@ -22,6 +22,7 @@
  * configuration templates.
  */
 
-include "command.conf"
+library "methods"
+
 include "command-icinga.conf"
 include "timeperiod.conf"

@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
+mkembedconfig_target(methods-itl.conf methods-itl.cpp)
+
 if(MSVC)
   set(WindowsSources clrchecktask.cpp)
 else()
@@ -23,7 +25,7 @@ endif()
 
 set(methods_SOURCES
   clusterchecktask.cpp clusterzonechecktask.cpp
-  icingachecktask.cpp nullchecktask.cpp nulleventtask.cpp
+  icingachecktask.cpp methods-itl.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
   randomchecktask.cpp timeperiodtask.cpp ${WindowsSources}
 )
