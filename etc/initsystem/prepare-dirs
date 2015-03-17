@@ -47,4 +47,7 @@ fi
 
 mkdir -p $ICINGA2_RUN_DIR/icinga2/cmd
 chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $ICINGA2_RUN_DIR/icinga2/cmd
+if [ $(which restorecon) ]; then
+	restorecon -R $ICINGA2_RUN_DIR/icinga2/
+fi
 chmod 2750 $ICINGA2_RUN_DIR/icinga2/cmd
