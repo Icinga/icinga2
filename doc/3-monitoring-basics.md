@@ -213,6 +213,8 @@ run against:
         "-p" = "$ping_packets$"
       }
 
+      vars.ping_address = "$address$"
+
       vars.ping_wrta = 100
       vars.ping_wpl = 5
 
@@ -268,7 +270,7 @@ rules - by specifying the full attribute name:
     $service.vars.ping_wrta$
 
 This retrieves the value of the `ping_wrta` custom attribute for the service. This
-returns an empty value if the server does not have such a custom attribute no matter
+returns an empty value if the service does not have such a custom attribute no matter
 whether another object such as the host has this attribute.
 
 
