@@ -33,9 +33,23 @@ set_target_properties (
   OUTPUT_NAME icinga2
 )
 
+if(WIN32)
+  set(InstallPath "${CMAKE_INSTALL_SBINDIR}")
+else()
+  configure_file(icinga2.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2 @ONLY)
+
+  install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/icinga2
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+  )
+
+  set(InstallPath "${CMAKE_INSTALL_LIBDIR}/icinga2/sbin")
+endif()
+
 install(
   TARGETS icinga-app
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  RUNTIME DESTINATION ${InstallPath}
 )
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/log/icinga2\")")

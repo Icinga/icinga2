@@ -56,6 +56,8 @@ enum ConsoleColor
 
 enum ConsoleType
 {
+	Console_Autodetect = -1,
+
 	Console_Dumb,
 #ifndef _WIN32
 	Console_VT100,
@@ -67,8 +69,7 @@ enum ConsoleType
 class I2_BASE_API ConsoleColorTag
 {
 public:
-	ConsoleColorTag(int color);
-	ConsoleColorTag(int color, ConsoleType consoleType);
+	ConsoleColorTag(int color, ConsoleType consoleType = Console_Autodetect);
 
 	friend I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
 

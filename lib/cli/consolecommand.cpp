@@ -26,7 +26,9 @@
 #include "base/utility.hpp"
 #include "base/networkstream.hpp"
 #include <iostream>
-
+#ifdef HAVE_EDITLINE
+#include "cli/editline.hpp"
+#endif /* HAVE_EDITLINE */
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -84,20 +86,44 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		std::string command;
 
 incomplete:
+#ifdef HAVE_EDITLINE
+		ConsoleType console_type = Console_VT100;
+		std::ostringstream promptbuf;
+		std::ostream& os = promptbuf;
+#else /* HAVE_EDITLINE */
+		ConsoleType console_type = Console_Autodetect;
+		std::ostream& os = std::cout;
+#endif /* HAVE_EDITLINE */
 
-		std::cout << ConsoleColorTag(Console_ForegroundCyan)
-		    << fileName
-		    << ConsoleColorTag(Console_ForegroundRed);
+		os << ConsoleColorTag(Console_ForegroundCyan, console_type)
+		   << fileName
+		   << ConsoleColorTag(Console_ForegroundRed, console_type);
 
 		if (!continuation)
-			std::cout << " => ";
+			os << " => ";
 		else
-			std::cout << " .. ";
+			os << " .. ";
 
-		std::cout << ConsoleColorTag(Console_Normal);
+		os << ConsoleColorTag(Console_Normal, console_type);
 
+#ifdef HAVE_EDITLINE
+		String prompt = promptbuf.str();
+
+		char *cline;
+		cline = readline(prompt.CStr());
+
+		if (!cline)
+			break;
+
+		add_history(cline);
+
+		std::string line = cline;
+
+		free(cline);
+#else /* HAVE_EDITLINE */
 		std::string line;
 		std::getline(std::cin, line);
+#endif /* HAVE_EDITLINE */
 
 		if (!command.empty())
 			command += "\n";

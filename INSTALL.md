@@ -32,6 +32,9 @@ parentheses):
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian); set CMake
             variable `ICINGA2_WITH_PGSQL` to `OFF` to disable this module
 * optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
+* optional: libedit (libedit-devel on RHEL, libedit-dev on Debian)
+* optional: Termcap (libtermcap-devel on RHEL, libtermcap-dev on Debian) - only required
+            if libedit doesn't already link against termcap/ncurses
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
 example from the repoforge buildtools repository.

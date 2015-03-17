@@ -27,10 +27,6 @@ INITIALIZE_ONCE(&Console::DetectType);
 
 static ConsoleType l_ConsoleType = Console_Dumb;
 
-ConsoleColorTag::ConsoleColorTag(int color)
-	: m_Color(color), m_ConsoleType(-1)
-{ }
-
 ConsoleColorTag::ConsoleColorTag(int color, ConsoleType consoleType)
 	: m_Color(color), m_ConsoleType(consoleType)
 { }

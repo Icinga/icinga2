@@ -100,6 +100,12 @@ if(NOT YAJL_FOUND)
   set(YAJL_LIBRARIES "yajl")
 endif()
 
+find_package(Editline)
+set(HAVE_EDITLINE "${EDITLINE_FOUND}")
+
+find_package(Termcap)
+set(HAVE_TERMCAP "${TERMCAP_FOUND}")
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
@@ -108,7 +114,7 @@ include_directories(
 #set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 if(APPLE)
-  set(CMAKE_INSTALL_NAME_DIR "@executable_path/../lib/icinga2")
+  set(CMAKE_INSTALL_NAME_DIR "@executable_path/..")
   set(CMAKE_MACOSX_RPATH 0)
 endif(APPLE)
 
