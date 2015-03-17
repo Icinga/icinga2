@@ -172,7 +172,7 @@ function(add_boost_test _name)
 		endforeach()
 
 		if(NOT _boostTestTargetsNagged${_name} STREQUAL "${includeType}")
-			if("includeType" STREQUAL "CONFIGURED")
+			if("${includeType}" STREQUAL "CONFIGURED")
 				message(STATUS
 					"Test '${_name}' uses the CMake-configurable form of the boost test framework - congrats! (Including File: ${includeFileLoc})")
 			elseif("${includeType}" STREQUAL "INCLUDED")
