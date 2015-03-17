@@ -11,7 +11,7 @@ require {
 	type nagios_mail_plugin_t; type nagios_mail_plugin_exec_t;
 	type nagios_services_plugin_t; type nagios_services_plugin_exec_t;
 	type nagios_system_plugin_t; type nagios_system_plugin_exec_t;
-	type httpd_t;
+	type httpd_t; type system_mail_t;
 }
 
 type icinga2_t;
@@ -40,6 +40,9 @@ files_type(icinga2_spool_t)
 
 type icinga2_cache_t;
 files_type(icinga2_cache_t)
+
+type icinga2_tmp_t;
+files_tmp_file(icinga2_tmp_t)
 
 type icinga2_port_t;
 corenet_port(icinga2_port_t)
@@ -78,6 +81,10 @@ files_spool_filetrans(icinga2_t, icinga2_spool_t, { dir file })
 manage_dirs_pattern(icinga2_t, icinga2_cache_t, icinga2_cache_t)
 manage_files_pattern(icinga2_t, icinga2_cache_t, icinga2_cache_t)
 
+manage_files_pattern(icinga2_t, icinga2_tmp_t, icinga2_tmp_t)
+manage_dirs_pattern(icinga2_t, icinga2_tmp_t, icinga2_tmp_t)
+files_tmp_filetrans(icinga2_t, icinga2_tmp_t, { dir file })
+
 domain_use_interactive_fds(icinga2_t)
 
 files_read_etc_files(icinga2_t)
@@ -86,12 +93,32 @@ auth_use_nsswitch(icinga2_t)
 
 miscfiles_read_localization(icinga2_t)
 
+corecmd_check_exec_shell(icinga2_t)
+
 # should be moved to nagios_plugin_template in nagios.if
 icinga2_execstrans(nagios_admin_plugin_exec_t, nagios_admin_plugin_t)
 icinga2_execstrans(nagios_checkdisk_plugin_exec_t, nagios_checkdisk_plugin_t)
 icinga2_execstrans(nagios_mail_plugin_exec_t, nagios_mail_plugin_t)
 icinga2_execstrans(nagios_services_plugin_exec_t, nagios_services_plugin_t)
 icinga2_execstrans(nagios_system_plugin_exec_t, nagios_system_plugin_t)
+
+# should be moved nagios.te
+nagios_plugin_template(notification)
+icinga2_execstrans(nagios_notification_plugin_exec_t, nagios_notification_plugin_t)
+allow nagios_notification_plugin_t nagios_notification_plugin_exec_t:dir search;
+#permissive nagios_notification_plugin_t;
+corecmd_exec_bin(nagios_notification_plugin_t)
+type nagios_notification_plugin_tmp_t;
+files_tmp_file(nagios_notification_plugin_tmp_t)
+manage_files_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
+manage_dirs_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
+files_tmp_filetrans(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, { dir file })
+auth_dontaudit_read_passwd(nagios_notification_plugin_t)
+fs_dontaudit_getattr_xattr_fs(nagios_notification_plugin_t)
+optional_policy(`
+        mta_send_mail(nagios_notification_plugin_t)
+')
+icinga2_dontaudit_leaks_fifo(system_mail_t)
 
 allow icinga2_t icinga2_port_t:tcp_socket name_bind;
 allow icinga2_t self:tcp_socket create_stream_socket_perms;

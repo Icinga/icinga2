@@ -265,3 +265,22 @@ interface(`icinga2_execstrans',`
 
 	domtrans_pattern(icinga2_t, $1, $2)
 ')
+
+######################################
+## <summary>
+##  Dontaudit read and write an leaked file descriptors
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain to not audit.
+##      </summary>
+## </param>
+#
+interface(`icinga2_dontaudit_leaks_fifo',`
+        gen_require(`
+                type icinga2_t;
+        ')
+
+        dontaudit $1 icinga2_t:fifo_file write;
+')
+

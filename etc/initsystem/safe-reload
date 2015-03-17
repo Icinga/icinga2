@@ -11,6 +11,10 @@ fi
 printf "Validating config files: "
 
 OUTPUTFILE=`mktemp`
+if [ $(which chcon) ]; then
+        chcon -t icinga2_tmp_t $OUTPUTFILE
+fi
+
 
 if ! $DAEMON daemon --validate --color > $OUTPUTFILE; then
 	echo "Failed"
