@@ -120,6 +120,41 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 				AddSuggestion(matches, word, kv.first);
 			}
 		}
+
+		String::SizeType cperiod = aword.RFind(".");
+
+		if (cperiod != -1) {
+			String pword = aword.SubStr(0, cperiod);
+
+			Value value;
+
+			try {
+				Expression *expr = ConfigCompiler::CompileText("temp", pword);
+
+				if (expr)
+					value = expr->Evaluate(l_ScriptFrame);
+
+				if (value.IsObjectType<Dictionary>()) {
+					Dictionary::Ptr dict = value;
+
+					ObjectLock olock(dict);
+					BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+						AddSuggestion(matches, word, pword + "." + kv.first);
+					}
+				}
+
+				Type::Ptr type = value.GetReflectionType();
+				Object::Ptr prototype = type->GetPrototype();
+				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
+
+				if (dict) {
+					ObjectLock olock(dict);
+					BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+						AddSuggestion(matches, word, pword + "." + kv.first);
+					}
+				}
+			} catch (...) { /* Ignore the exception */ }
+		}
 	}
 
 	if (state >= matches.size())
@@ -141,6 +176,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 
 #ifdef HAVE_EDITLINE
 	rl_completion_entry_function = ConsoleCompleteHelper;
+	rl_completion_append_character = '\0';
 #endif /* HAVE_EDITLINE */
 
 	String addr, session;

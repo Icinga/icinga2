@@ -27,6 +27,7 @@ int add_history(const char *line);
 
 typedef char *ELFunction(const char *, int);
 
+extern char rl_completion_append_character;
 extern ELFunction *rl_completion_entry_function;
 
 }
