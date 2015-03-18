@@ -248,7 +248,7 @@ incomplete:
 		command += line;
 
 		if (addr.IsEmpty()) {
-			Expression *expr;
+			Expression *expr = NULL;
 
 			try {
 				lines[fileName] = command;
