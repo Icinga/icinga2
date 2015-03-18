@@ -25,6 +25,10 @@ extern "C" {
 char *readline(const char *prompt);
 int add_history(const char *line);
 
+typedef char *ELFunction(const char *, int);
+
+extern ELFunction *rl_completion_entry_function;
+
 }
 
 #endif /* EDITLINE_H */

@@ -22,6 +22,7 @@
 #include "base/json.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
+#include "base/objectlock.hpp"
 #include "base/unixsocket.hpp"
 #include "base/utility.hpp"
 #include "base/networkstream.hpp"
@@ -32,6 +33,8 @@
 
 using namespace icinga;
 namespace po = boost::program_options;
+
+static ScriptFrame l_ScriptFrame;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
@@ -58,6 +61,74 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 	;
 }
 
+#ifdef HAVE_EDITLINE
+static void AddSuggestion(std::vector<String>& matches, const String& word, const String& suggestion)
+{
+	if (suggestion.Find(word) != 0)
+		return;
+
+	matches.push_back(suggestion);
+}
+
+static char *ConsoleCompleteHelper(const char *word, int state)
+{
+	static std::vector<String> matches;
+	String aword = word;
+
+	if (state == 0) {
+		matches.clear();
+
+		AddSuggestion(matches, word, "object");
+		AddSuggestion(matches, word, "template");
+		AddSuggestion(matches, word, "include");
+		AddSuggestion(matches, word, "include_recursive");
+		AddSuggestion(matches, word, "library");
+		AddSuggestion(matches, word, "null");
+		AddSuggestion(matches, word, "true");
+		AddSuggestion(matches, word, "false");
+		AddSuggestion(matches, word, "const");
+		AddSuggestion(matches, word, "var");
+		AddSuggestion(matches, word, "this");
+		AddSuggestion(matches, word, "globals");
+		AddSuggestion(matches, word, "locals");
+		AddSuggestion(matches, word, "use");
+		AddSuggestion(matches, word, "apply");
+		AddSuggestion(matches, word, "to");
+		AddSuggestion(matches, word, "where");
+		AddSuggestion(matches, word, "import");
+		AddSuggestion(matches, word, "assign");
+		AddSuggestion(matches, word, "ignore");
+		AddSuggestion(matches, word, "function");
+		AddSuggestion(matches, word, "return");
+		AddSuggestion(matches, word, "break");
+		AddSuggestion(matches, word, "continue");
+		AddSuggestion(matches, word, "for");
+		AddSuggestion(matches, word, "if");
+		AddSuggestion(matches, word, "else");
+		AddSuggestion(matches, word, "while");
+
+		{
+			ObjectLock olock(l_ScriptFrame.Locals);
+			BOOST_FOREACH(const Dictionary::Pair& kv, l_ScriptFrame.Locals) {
+				AddSuggestion(matches, word, kv.first);
+			}
+		}
+
+		{
+			ObjectLock olock(ScriptGlobal::GetGlobals());
+			BOOST_FOREACH(const Dictionary::Pair& kv, ScriptGlobal::GetGlobals()) {
+				AddSuggestion(matches, word, kv.first);
+			}
+		}
+	}
+
+	if (state >= matches.size())
+		return NULL;
+
+	return strdup(matches[state].CStr());
+}
+#endif /* HAVE_EDITLINE */
+
 /**
  * The entry point for the "console" CLI command.
  *
@@ -65,9 +136,12 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
  */
 int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	ScriptFrame frame;
 	std::map<String, String> lines;
 	int next_line = 1;
+
+#ifdef HAVE_EDITLINE
+	rl_completion_entry_function = ConsoleCompleteHelper;
+#endif /* HAVE_EDITLINE */
 
 	String addr, session;
 
@@ -139,7 +213,7 @@ incomplete:
 				expr = ConfigCompiler::CompileText(fileName, command);
 
 				if (expr) {
-					Value result = expr->Evaluate(frame);
+					Value result = expr->Evaluate(l_ScriptFrame);
 					std::cout << ConsoleColorTag(Console_ForegroundCyan);
 					if (!result.IsObject() || result.IsObjectType<Array>() || result.IsObjectType<Dictionary>())
 						std::cout << JsonEncode(result);
