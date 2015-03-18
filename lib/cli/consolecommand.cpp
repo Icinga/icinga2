@@ -144,6 +144,13 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 				}
 
 				Type::Ptr type = value.GetReflectionType();
+
+				for (int i = 0; i < type->GetFieldCount(); i++) {
+					Field field = type->GetFieldInfo(i);
+
+					AddSuggestion(matches, word, pword + "." + field.Name);
+				}
+
 				Object::Ptr prototype = type->GetPrototype();
 				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
 
