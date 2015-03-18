@@ -34,7 +34,7 @@ class I2_CLI_API DaemonUtility
 {
 public:
 	static bool ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile = String());
-	static bool LoadConfigFiles(const std::vector<std::string>& configs, const String& appType, const String& objectsFile = String(), const String& varsfile = String());
+	static bool LoadConfigFiles(const std::vector<std::string>& configs, const String& objectsFile = String(), const String& varsfile = String());
 };
 
 }

@@ -115,9 +115,6 @@ public:
 	static String GetPidPath(void);
 	static void DeclarePidPath(const String& path);
 
-	static String GetApplicationType(void);
-	static void DeclareApplicationType(const String& type);
-
 	static String GetRunAsUser(void);
 	static void DeclareRunAsUser(const String& user);
 

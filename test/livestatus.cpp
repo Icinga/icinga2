@@ -79,8 +79,6 @@ struct GlobalConfigFixture {
 		BOOST_MESSAGE( "Preparing config objects...");
 
 		/* start the Icinga application and load the configuration */
-		Application::DeclareApplicationType("icinga/IcingaApplication");
-
 		Application::DeclareSysconfDir("etc");
 		Application::DeclareLocalStateDir("var");
 
@@ -90,7 +88,7 @@ struct GlobalConfigFixture {
 		std::vector<std::string> configs;
 		configs.push_back(TestConfig);
 
-		DaemonUtility::LoadConfigFiles(configs, "IcingaApplication", "icinga2.debug", "icinga2.vars");
+		DaemonUtility::LoadConfigFiles(configs, "icinga2.debug", "icinga2.vars");
 
 		/* ignore config errors */
 		ConfigItem::ActivateItems();

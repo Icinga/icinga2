@@ -521,8 +521,7 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 	   << "  State path: " << GetStatePath() << "\n"
 	   << "  Objects path: " << GetObjectsPath() << "\n"
 	   << "  Vars path: " << GetVarsPath() << "\n"
-	   << "  PID path: " << GetPidPath() << "\n"
-	   << "  Application type: " << GetApplicationType() << "\n";
+	   << "  PID path: " << GetPidPath() << "\n";
 
 #ifndef _WIN32
 	os << "\n"
@@ -1229,27 +1228,6 @@ void Application::DeclarePidPath(const String& path)
 {
 	if (!ScriptGlobal::Exists("PidPath"))
 		ScriptGlobal::Set("PidPath", path);
-}
-
-/**
- * Retrieves the name of the Application type.
- *
- * @returns The name.
- */
-String Application::GetApplicationType(void)
-{
-	return ScriptGlobal::Get("ApplicationType");
-}
-
-/**
- * Sets the name of the Application type.
- *
- * @param path The new type name.
- */
-void Application::DeclareApplicationType(const String& type)
-{
-	if (!ScriptGlobal::Exists("ApplicationType"))
-		ScriptGlobal::Set("ApplicationType", type);
 }
 
 /**

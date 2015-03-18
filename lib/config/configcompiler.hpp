@@ -79,9 +79,9 @@ public:
 
 	Expression *Compile(void);
 
-	static Expression *CompileStream(const String& path, std::istream *stream, const String& zone = String());
-	static Expression *CompileFile(const String& path, const String& zone = String());
-	static Expression *CompileText(const String& path, const String& text, const String& zone = String());
+	static Expression *CompileStream(const String& path, std::istream *stream, bool async = true, const String& zone = String());
+	static Expression *CompileFile(const String& path, bool async = true, const String& zone = String());
+	static Expression *CompileText(const String& path, const String& text, bool async = true, const String& zone = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
@@ -136,22 +136,6 @@ public:
 	std::stack<String> m_FVVar;
 	std::stack<Expression *> m_FTerm;
 };
-
-class I2_CONFIG_API ConfigFragmentRegistry : public Registry<ConfigFragmentRegistry, String>
-{
-public:
-	static ConfigFragmentRegistry *GetInstance(void);
-};
-
-#define REGISTER_CONFIG_FRAGMENT(id, name, fragment) \
-	namespace { \
-		void RegisterConfigFragment(void) \
-		{ \
-			icinga::ConfigFragmentRegistry::GetInstance()->Register(name, fragment); \
-		} \
-		\
-		INITIALIZE_ONCE(RegisterConfigFragment); \
-	}
 
 }
 

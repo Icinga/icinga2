@@ -98,7 +98,7 @@ String ConfigCompiler::GetZone(void) const
 
 void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions, const String& file, const String& zone)
 {
-	expressions.push_back(CompileFile(file, zone));
+	expressions.push_back(CompileFile(file, true, zone));
 }
 
 /**
@@ -192,7 +192,7 @@ void ConfigCompiler::CompileHelper(void)
  * @param stream The input stream.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stream, const String& zone)
+Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stream, bool async, const String& zone)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
 
@@ -200,10 +200,19 @@ Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stre
 
 	ConfigCompiler* ctx = new ConfigCompiler(path, stream, zone);
 
-	boost::shared_future<boost::shared_ptr<Expression> > ftr = boost::shared_future<boost::shared_ptr<Expression> >(ctx->m_Promise.get_future());
+	if (async) {
+		boost::shared_future<boost::shared_ptr<Expression> > ftr = boost::shared_future<boost::shared_ptr<Expression> >(ctx->m_Promise.get_future());
 
-	Utility::QueueAsyncCallback(boost::bind(&ConfigCompiler::CompileHelper, ctx));
-	return new FutureExpression(ftr);
+		Utility::QueueAsyncCallback(boost::bind(&ConfigCompiler::CompileHelper, ctx));
+		return new FutureExpression(ftr);
+	} else {
+		try {
+			return ctx->Compile();
+		} catch (...) {
+			delete ctx;
+			throw;
+		}
+	}
 }
 
 /**
@@ -212,7 +221,7 @@ Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stre
  * @param path The path.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
+Expression *ConfigCompiler::CompileFile(const String& path, bool async, const String& zone)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
@@ -228,7 +237,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
 	Log(LogInformation, "ConfigCompiler")
 	    << "Compiling config file: " << path;
 
-	return CompileStream(path, stream, zone);
+	return CompileStream(path, stream, async, zone);
 }
 
 /**
@@ -238,10 +247,10 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
  * @param text The text.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileText(const String& path, const String& text, const String& zone)
+Expression *ConfigCompiler::CompileText(const String& path, const String& text, bool async, const String& zone)
 {
 	std::stringstream *stream = new std::stringstream(text);
-	return CompileStream(path, stream, zone);
+	return CompileStream(path, stream, async, zone);
 }
 
 /**
@@ -255,10 +264,5 @@ void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 	    << "Adding include search dir: " << dir;
 
 	m_IncludeSearchDirs.push_back(dir);
-}
-
-ConfigFragmentRegistry *ConfigFragmentRegistry::GetInstance(void)
-{
-	return Singleton<ConfigFragmentRegistry>::GetInstance();
 }
 

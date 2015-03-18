@@ -92,7 +92,6 @@ private:
 
 	typedef std::vector<ConfigItem::Ptr> ItemList;
 	static ItemList m_UnnamedItems;
-	static ItemList m_CommittedItems;
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);

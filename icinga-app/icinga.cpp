@@ -161,10 +161,16 @@ int Main(void)
 #endif /* _WIN32 */
 
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
-	Application::DeclareApplicationType("icinga/IcingaApplication");
 	Application::DeclareRunAsUser(ICINGA_USER);
 	Application::DeclareRunAsGroup(ICINGA_GROUP);
 	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
+
+	if (!ScriptGlobal::Exists("UseVfork"))
+#ifdef __APPLE__
+		ScriptGlobal::Set("UseVfork", false);
+#else /* __APPLE__ */
+		ScriptGlobal::Set("UseVfork", true);
+#endif /* __APPLE__ */
 
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
@@ -180,6 +186,7 @@ int Main(void)
 		("color", "use VT100 color codes even when stdout is not a terminal")
 #endif /* _WIN32 */
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
+		("app,a", po::value<std::vector<std::string> >(), "application library name (default: icinga)")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log");
@@ -464,6 +471,15 @@ int Main(void)
 			    << " argument" << (command->GetMaxArguments() != 1 ? "s" : "") << " may be specified.";
 			return EXIT_FAILURE;
 		}
+
+		Logger::SetConsoleLogSeverity(LogWarning);
+
+		if (vm.count("app"))
+			Utility::LoadExtensionLibrary(vm["app"].as<std::string>());
+		else
+			Utility::LoadExtensionLibrary("icinga");
+
+		Logger::SetConsoleLogSeverity(logLevel);
 
 		rc = command->Run(vm, args);
 	}

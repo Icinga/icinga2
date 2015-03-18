@@ -157,8 +157,7 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 	    << "\tState path: " << Application::GetStatePath() << '\n'
 	    << "\tObjects path: " << Application::GetObjectsPath() << '\n'
 	    << "\tVars path: " << Application::GetVarsPath() << '\n'
-	    << "\tPID path: " << Application::GetPidPath() << '\n'
-	    << "\tApplication type: " << Application::GetApplicationType() << "\n";
+	    << "\tPID path: " << Application::GetPidPath() << '\n';
 
 	InfoLogLine(log)
 	    << '\n';

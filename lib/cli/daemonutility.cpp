@@ -99,29 +99,14 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	String name, fragment;
-	BOOST_FOREACH(boost::tie(name, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
-		Expression *expression = ConfigCompiler::CompileText(name, fragment);
-		success = ExecuteExpression(expression);
-		delete expression;
-		if (!success)
-			return false;
-	}
-
 	return true;
 }
 
-bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs, const String& appType,
-									const String& objectsFile, const String& varsfile)
+bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
+    const String& objectsFile, const String& varsfile)
 {
 	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile))
 		return false;
-
-	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
-	builder->SetType(appType);
-	builder->SetName("application");
-	ConfigItem::Ptr item = builder->Compile();
-	item->Register();
 
 	bool result = ConfigItem::CommitItems();
 

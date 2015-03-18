@@ -43,23 +43,6 @@ static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
 
-static String LoadAppType(const String& typeSpec)
-{
-	Log(LogInformation, "cli")
-	    << "Loading application type: " << typeSpec;
-
-	String::SizeType index = typeSpec.FindFirstOf('/');
-
-	if (index == String::NPos)
-		return typeSpec;
-
-	String library = typeSpec.SubStr(0, index);
-
-	Utility::LoadExtensionLibrary(library);
-
-	return typeSpec.SubStr(index + 1);
-}
-
 #ifndef _WIN32
 static void SigHupHandler(int)
 {
@@ -225,21 +208,12 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (!vm.count("validate"))
 		Logger::DisableTimestamp(false);
 
-	if (!ScriptGlobal::Exists("UseVfork"))
-#ifdef __APPLE__
-		ScriptGlobal::Set("UseVfork", false);
-#else /* __APPLE__ */
-		ScriptGlobal::Set("UseVfork", true);
-#endif /* __APPLE__ */
-
 	Log(LogInformation, "cli")
 	    << "Icinga application loader (version: " << Application::GetVersion()
 #ifdef I2_DEBUG
 	    << "; debug"
 #endif /* I2_DEBUG */
 	    << ")";
-
-	String appType = LoadAppType(Application::GetApplicationType());
 
 	if (!vm.count("validate") && !vm.count("reload-internal")) {
 		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
@@ -256,7 +230,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	else if (!vm.count("no-config"))
 		configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
 
-	if (!DaemonUtility::LoadConfigFiles(configs, appType, Application::GetObjectsPath(), Application::GetVarsPath()))
+	if (!DaemonUtility::LoadConfigFiles(configs, Application::GetObjectsPath(), Application::GetVarsPath()))
 		return EXIT_FAILURE;
 
 	if (vm.count("validate")) {

@@ -45,9 +45,8 @@ using namespace icinga;
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
-ConfigItem::ItemList ConfigItem::m_CommittedItems;
 
-REGISTER_SCRIPTFUNCTION(__commit, &ConfigItem::ScriptCommit);
+REGISTER_SCRIPTFUNCTION(commit_objects, &ConfigItem::ScriptCommit);
 
 /**
  * Constructor for the ConfigItem class.
@@ -200,11 +199,6 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	dobj->SetName(name);
 	dobj->OnConfigLoaded();
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_CommittedItems.push_back(this);
-	}
-
 	Dictionary::Ptr persistentItem = new Dictionary();
 
 	persistentItem->Set("type", GetType());
@@ -318,11 +312,6 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 			return false;
 
 		std::vector<ConfigItem::Ptr> new_items;
-
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			new_items.swap(m_CommittedItems);
-		}
 
 		std::set<String> types;
 
@@ -442,8 +431,15 @@ bool ConfigItem::ScriptCommit(void)
 {
 	WorkQueue upq(25000, Application::GetConcurrency());
 
-	if (!CommitNewItems(upq))
+	if (!CommitNewItems(upq)) {
+		upq.ReportExceptions("ConfigItem");
+
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Items.clear();
+		m_UnnamedItems.clear();
+
 		return false;
+	}
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
@@ -456,6 +452,18 @@ bool ConfigItem::ScriptCommit(void)
 #endif /* I2_DEBUG */
 		upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
 		}
+	}
+
+	upq.Join();
+
+	if (upq.HasExceptions()) {
+		upq.ReportExceptions("ConfigItem");
+
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_Items.clear();
+		m_UnnamedItems.clear();
+
+		return false;
 	}
 
 	return true;

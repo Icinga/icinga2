@@ -129,7 +129,7 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 			Value value;
 
 			try {
-				Expression *expr = ConfigCompiler::CompileText("temp", pword);
+				Expression *expr = ConfigCompiler::CompileText("temp", pword, false);
 
 				if (expr)
 					value = expr->Evaluate(l_ScriptFrame);
@@ -253,7 +253,7 @@ incomplete:
 			try {
 				lines[fileName] = command;
 
-				expr = ConfigCompiler::CompileText(fileName, command);
+				expr = ConfigCompiler::CompileText(fileName, command, false);
 
 				if (expr) {
 					Value result = expr->Evaluate(l_ScriptFrame);

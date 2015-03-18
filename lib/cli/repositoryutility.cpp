@@ -229,16 +229,6 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 	change->Set("attrs", attrs);
 
 	if (check_config) {
-		String fname, fragment;
-		BOOST_FOREACH(boost::tie(fname, fragment), ConfigFragmentRegistry::GetInstance()->GetItems()) {
-			Expression *expression = ConfigCompiler::CompileText(fname, fragment);
-			if (expression) {
-				ScriptFrame frame;
-				expression->Evaluate(frame);
-				delete expression;
-			}
-		}
-
 		ConfigType::Ptr ctype = ConfigType::GetByName(type);
 
 		if (!ctype)
