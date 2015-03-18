@@ -630,9 +630,10 @@ void LivestatusQuery::ExecuteScriptHelper(const Stream::Ptr& stream)
 
 	lsf.Lines[fileName] = m_Command;
 
-	Expression *expr = ConfigCompiler::CompileText(fileName, m_Command);
+	Expression *expr = NULL;
 	Value result;
 	try {
+		expr = ConfigCompiler::CompileText(fileName, m_Command, false);
 		ScriptFrame frame;
 		frame.Locals = lsf.Locals;
 		result = expr->Evaluate(frame);

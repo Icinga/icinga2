@@ -29,6 +29,7 @@
 		void RegisterConfigFragment(void) \
 		{ \
 			icinga::Expression *expression = icinga::ConfigCompiler::CompileText(name, fragment, false); \
+			VERIFY(expression); \
 			icinga::ScriptFrame frame; \
 			expression->Evaluate(frame); \
 			delete expression; \
