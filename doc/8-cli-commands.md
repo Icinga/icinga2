@@ -67,6 +67,7 @@ options.
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -103,6 +104,11 @@ Debian/Ubuntu:
     # apt-get install bash-completion
 
 ## <a id="cli-commands-global-options"></a> Icinga 2 CLI Global Options
+
+### Application Type
+
+By default the `icinga2` binary loads the `icinga` library. A different application type
+can be specified with the `--app` command-line option.
 
 ### Libraries
 
@@ -168,6 +174,7 @@ Furthermore it provides the [configuration validation](8-cli-commands.md#config-
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -251,6 +258,7 @@ nodes in a [remote monitoring ](10-icinga2-client.md#icinga2-client) or
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -284,6 +292,7 @@ More information can be found in the [troubleshooting](16-troubleshooting.md#lis
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -328,6 +337,7 @@ This functionality is used by the [node setup/wizard](8-cli-commands.md#cli-comm
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -382,6 +392,7 @@ cleared after review.
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -416,6 +427,7 @@ Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won'
       -V [ --version ]	     show version information
       --color                use VT100 color codes even when stdout is not aterminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
@@ -449,6 +461,7 @@ Lists all configured variables (constants) in a similar fasion like [object list
       --color                use VT100 color codes even when stdout is not a
                              terminal
       -D [ --define ] arg    define a constant
+      -a [ --app ] arg       application library name (default: icinga)
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log

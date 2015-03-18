@@ -368,7 +368,6 @@ ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects f
 PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to RunDir + "/icinga2/icinga2.pid".
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
-ApplicationType     |**Read-write.** Contains the name of the Application type. Defaults to "icinga/IcingaApplication".
 EnableNotifications |**Read-write.** Whether notifications are globally enabled. Defaults to true.
 EnableEventHandlers |**Read-write.** Whether event handlers are globally enabled. Defaults to true.
 EnableFlapping      |**Read-write.** Whether flap detection is globally enabled. Defaults to true.
