@@ -54,7 +54,7 @@ private:
 			t->SetPrototype(prototype);				\
 			icinga::Type::Register(t);				\
 		}								\
-		INITIALIZE_ONCE(RegisterBuiltinType);				\
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterBuiltinType, 15);		\
 	} } }
 
 #define REGISTER_PRIMITIVE_TYPE(type, prototype)				\
@@ -66,7 +66,7 @@ private:
 			icinga::Type::Register(t);				\
 			type::TypeInstance = t;					\
 		}								\
-		INITIALIZE_ONCE(RegisterPrimitiveType);				\
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterPrimitiveType, 15);	\
 	} } }									\
 	DEFINE_TYPE_INSTANCE(type)
 
