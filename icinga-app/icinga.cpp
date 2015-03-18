@@ -186,7 +186,7 @@ int Main(void)
 		("color", "use VT100 color codes even when stdout is not a terminal")
 #endif /* _WIN32 */
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
-		("app,a", po::value<std::vector<std::string> >(), "application library name (default: icinga)")
+		("app,a", po::value<std::string>(), "application library name (default: icinga)")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log");
