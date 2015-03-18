@@ -94,11 +94,6 @@ public:
 	static String FormatDateTime(const char *format, double ts);
 	static String FormatErrorNumber(int code);
 
-	static void LoadExtensionLibrary(const String& library);
-
-	static void AddDeferredInitializer(const boost::function<void(void)>& callback);
-	static void ExecuteDeferredInitializers(void);
-
 #ifndef _WIN32
 	static void SetNonBlocking(int fd);
 	static void SetCloExec(int fd);
@@ -138,8 +133,6 @@ private:
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
-
-	static boost::thread_specific_ptr<std::vector<boost::function<void(void)> > >& GetDeferredInitializers(void);
 
 };
 

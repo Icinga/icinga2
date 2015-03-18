@@ -34,7 +34,7 @@
 			delete expression; \
 		} \
 		\
-		INITIALIZE_ONCE(RegisterConfigFragment); \
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterConfigFragment, 5); \
 	}
 
 #endif /* CONFIGFRAGMENT_H */

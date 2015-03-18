@@ -27,6 +27,7 @@
 #include "base/serializer.hpp"
 #include "base/stdiostream.hpp"
 #include "base/json.hpp"
+#include "base/loader.hpp"
 #include "cli/daemonutility.hpp"
 #include <boost/test/unit_test.hpp>
 #include <fstream>
@@ -82,8 +83,8 @@ struct GlobalConfigFixture {
 		Application::DeclareSysconfDir("etc");
 		Application::DeclareLocalStateDir("var");
 
-		Utility::LoadExtensionLibrary("icinga");
-		Utility::LoadExtensionLibrary("methods"); //loaded by ITL
+		Loader::LoadExtensionLibrary("icinga");
+		Loader::LoadExtensionLibrary("methods"); //loaded by ITL
 
 		std::vector<std::string> configs;
 		configs.push_back(TestConfig);

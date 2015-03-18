@@ -108,7 +108,6 @@ void RepositoryObjectCommand::InitParameters(boost::program_options::options_des
 std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const String& word) const
 {
 	if (m_Command == RepositoryCommandAdd) {
-		Utility::LoadExtensionLibrary("icinga");
 		Type::Ptr ptype = Type::GetByName(m_Type);
 		ASSERT(ptype);
 		return GetFieldCompletionSuggestions(ptype, word);
@@ -175,8 +174,6 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 	}
 
 	if (m_Command == RepositoryCommandAdd) {
-		Utility::LoadExtensionLibrary("icinga");
-
 		std::vector<String> object_paths = RepositoryUtility::GetObjects();
 
 		Array::Ptr changes = new Array();

@@ -25,6 +25,7 @@
 #include "base/logger.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include "base/loader.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/scriptglobal.hpp"
@@ -175,7 +176,7 @@ int Main(void)
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 
-	Utility::LoadExtensionLibrary("cli");
+	Loader::LoadExtensionLibrary("cli");
 
 	po::options_description visibleDesc("Global options");
 
@@ -292,7 +293,7 @@ int Main(void)
 		if (vm.count("library")) {
 			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >()) {
 				try {
-					(void) Utility::LoadExtensionLibrary(libraryName);
+					(void) Loader::LoadExtensionLibrary(libraryName);
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "icinga-app")
 					    <<  "Could not load library \"" << libraryName << "\": " << DiagnosticInformation(ex);
@@ -476,9 +477,9 @@ int Main(void)
 		Logger::SetConsoleLogSeverity(LogWarning);
 
 		if (vm.count("app"))
-			Utility::LoadExtensionLibrary(vm["app"].as<std::string>());
+			Loader::LoadExtensionLibrary(vm["app"].as<std::string>());
 		else
-			Utility::LoadExtensionLibrary("icinga");
+			Loader::LoadExtensionLibrary("icinga");
 
 		Logger::SetConsoleLogSeverity(logLevel);
 

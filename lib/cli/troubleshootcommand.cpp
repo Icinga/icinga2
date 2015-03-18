@@ -445,10 +445,6 @@ bool TroubleshootCommand::PrintConf(InfoLog& log, const String& path)
 
 bool TroubleshootCommand::CheckConfig(void)
 {
-	/* Not loading the icinga library would make config validation fail.
-	 * (Depending on the configuration and the speed of your machine.)
-	 */
-	Utility::LoadExtensionLibrary("icinga");
 	std::vector<std::string> configs;
 	configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
 

@@ -17,14 +17,60 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/initialize.hpp"
-#include "base/loader.hpp"
+#ifndef LOADER_H
+#define LOADER_H
 
-using namespace icinga;
+#include "base/i2-base.hpp"
+#include "base/string.hpp"
+#include <boost/thread/tss.hpp>
+#include <boost/function.hpp>
+#include <queue>
 
-bool icinga::InitializeOnceHelper(void (*func)(void), int priority)
+namespace icinga
 {
-	Loader::AddDeferredInitializer(func, priority);
-	return true;
+
+struct DeferredInitializer
+{
+public:
+	DeferredInitializer(const boost::function<void (void)>& callback, int priority)
+	    : m_Callback(callback), m_Priority(priority)
+	{ }
+
+	inline bool operator<(const DeferredInitializer& other) const
+	{
+		return m_Priority < other.m_Priority;
+	}
+
+	inline void operator()(void)
+	{
+		m_Callback();
+	}
+
+private:
+	boost::function<void (void)> m_Callback;
+	int m_Priority;
+};
+
+/**
+ * Loader helper functions.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API Loader
+{
+public:
+	static void LoadExtensionLibrary(const String& library);
+
+	static void AddDeferredInitializer(const boost::function<void(void)>& callback, int priority = 0);
+	static void ExecuteDeferredInitializers(void);
+
+private:
+	Loader(void);
+
+	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers(void);
+
+};
+
 }
 
+#endif /* LOADER_H */

@@ -25,13 +25,17 @@
 namespace icinga
 {
 
-I2_BASE_API bool InitializeOnceHelper(void (*func)(void));
+I2_BASE_API bool InitializeOnceHelper(void (*func)(void), int priority = 0);
 
-#define INITIALIZE_ONCE(func)								\
-	namespace { namespace UNIQUE_NAME(io) {						\
-		I2_EXPORT bool l_InitializeOnce(icinga::InitializeOnceHelper(func));	\
+#define INITIALIZE_ONCE(func)									\
+	namespace { namespace UNIQUE_NAME(io) {							\
+		I2_EXPORT bool l_InitializeOnce(icinga::InitializeOnceHelper(func));		\
 	} }
 
+#define INITIALIZE_ONCE_WITH_PRIORITY(func, priority)						\
+	namespace { namespace UNIQUE_NAME(io) {							\
+		I2_EXPORT bool l_InitializeOnce(icinga::InitializeOnceHelper(func, priority));	\
+	} }
 }
 
 #endif /* INITIALIZE_H */

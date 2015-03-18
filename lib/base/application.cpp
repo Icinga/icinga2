@@ -24,6 +24,7 @@
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "base/loader.hpp"
 #include "base/debug.hpp"
 #include "base/type.hpp"
 #include "base/convert.hpp"
@@ -134,7 +135,7 @@ void Application::InitializeBase(void)
 	}
 #endif /* _WIN32 */
 
-	Utility::ExecuteDeferredInitializers();
+	Loader::ExecuteDeferredInitializers();
 
 	/* make sure the thread pool gets initialized */
 	GetTP();

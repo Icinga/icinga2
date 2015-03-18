@@ -83,8 +83,6 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 	NodeUtility::PrintNodes(std::cout);
 
-	Utility::LoadExtensionLibrary("icinga");
-
 	/* cache all existing object configs only once and pass it to AddObject() */
 	std::vector<String> object_paths = RepositoryUtility::GetObjects();
 	/* cache all existing changes only once and pass it to AddObject() */

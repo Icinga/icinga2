@@ -21,6 +21,7 @@
 #include "config/configitem.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
+#include "base/loader.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"
 #include <fstream>
@@ -171,7 +172,7 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& path, const Str
  */
 void ConfigCompiler::HandleLibrary(const String& library)
 {
-	Utility::LoadExtensionLibrary(library);
+	Loader::LoadExtensionLibrary(library);
 }
 
 void ConfigCompiler::CompileHelper(void)

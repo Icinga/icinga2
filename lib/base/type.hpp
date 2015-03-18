@@ -126,7 +126,7 @@ class TypeImpl
 			icinga::Type::Register(t); \
 		} \
 		\
-		INITIALIZE_ONCE(RegisterType ## type); \
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterType ## type, 10); \
 	} } \
 	DEFINE_TYPE_INSTANCE(type)
 
