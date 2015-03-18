@@ -472,6 +472,7 @@ int Main(void)
 			return EXIT_FAILURE;
 		}
 
+		LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 		Logger::SetConsoleLogSeverity(LogWarning);
 
 		if (vm.count("app"))

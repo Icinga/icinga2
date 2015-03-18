@@ -45,6 +45,7 @@ using namespace icinga;
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
+ConfigItem::ItemList ConfigItem::m_CommittedItems;
 
 REGISTER_SCRIPTFUNCTION(commit_objects, &ConfigItem::ScriptCommit);
 
@@ -199,6 +200,11 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 	dobj->SetName(name);
 	dobj->OnConfigLoaded();
 
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		m_CommittedItems.push_back(this);
+	}
+
 	Dictionary::Ptr persistentItem = new Dictionary();
 
 	persistentItem->Set("type", GetType());
@@ -258,21 +264,19 @@ void ConfigItem::Register(void)
  */
 ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 {
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-		ConfigItem::TypeMap::const_iterator it = m_Items.find(type);
+	ConfigItem::TypeMap::const_iterator it = m_Items.find(type);
 
-		if (it == m_Items.end())
-			return ConfigItem::Ptr();
+	if (it == m_Items.end())
+		return ConfigItem::Ptr();
 
-		ConfigItem::ItemMap::const_iterator it2 = it->second.find(name);
+	ConfigItem::ItemMap::const_iterator it2 = it->second.find(name);
 
-		if (it2 == it->second.end())
-			return ConfigItem::Ptr();
+	if (it2 == it->second.end())
+		return ConfigItem::Ptr();
 
-		return it2->second;
-	}
+	return it2->second;
 }
 
 bool ConfigItem::CommitNewItems(WorkQueue& upq)
@@ -312,6 +316,11 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 			return false;
 
 		std::vector<ConfigItem::Ptr> new_items;
+
+		{
+			boost::mutex::scoped_lock lock(m_Mutex);
+			new_items.swap(m_CommittedItems);
+		}
 
 		std::set<String> types;
 
