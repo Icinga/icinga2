@@ -186,7 +186,8 @@ public:
 
 	static inline Value GetPrototypeField(const Value& context, const String& field, bool not_found_error = true, const DebugInfo& debugInfo = DebugInfo())
 	{
-		Type::Ptr type = context.GetReflectionType();
+		Type::Ptr ctype = context.GetReflectionType();
+		Type::Ptr type = ctype;
 
 		do {
 			Object::Ptr object = type->GetPrototype();
@@ -198,7 +199,7 @@ public:
 		} while (type);
 
 		if (not_found_error)
-			BOOST_THROW_EXCEPTION(ScriptError("Invalid field name: '" + field + "'", debugInfo));
+			BOOST_THROW_EXCEPTION(ScriptError("Invalid field access (for value of type '" + ctype->GetName() + "'): '" + field + "'", debugInfo));
 		else
 			return Empty;
 	}
