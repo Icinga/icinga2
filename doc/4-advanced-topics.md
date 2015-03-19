@@ -208,7 +208,109 @@ Use the `period` attribute to assign time periods to
       period = "workhours"
     }
 
- 
+## <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
+
+The [Object Accessor Functions](20-library-reference.md#object-accessor-functions)
+can be used to retrieve references to other objects by name.
+
+This allows you to access configuration and runtime object attributes. A detailed
+list can be found [here](6-object-types.md#object-types).
+
+Simple cluster example for accessing two host object states and calculating a virtual
+cluster state and output:
+
+    object Host "cluster-host-01" {
+      check_command = "dummy"
+      vars.dummy_state = 2
+      vars.dummy_text = "This host is down."
+    }
+
+    object Host "cluster-host-02" {
+      check_command = "dummy"
+      vars.dummy_state = 0
+      vars.dummy_text = "This host is up."
+    }
+
+    object Host "cluster" {
+      check_command = "dummy"
+      vars.cluster_nodes = [ "cluster-host-01", "cluster-host-02" ]
+
+      vars.dummy_state = {{
+        var up_count = 0
+        var down_count = 0
+        var cluster_nodes = macro("$cluster_nodes$")
+
+        for (node in cluster_nodes) {
+          if (get_host(node).state > 0) {
+            down_count += 1
+          } else {
+            up_count += 1
+          }
+        }
+
+        if (up_count >= down_count) {
+          return 0 //same up as down -> UP
+        } else {
+          return 1 //something is broken
+        }
+      }}
+
+      vars.dummy_text = {{
+        var output = "Cluster hosts:\n"
+        var cluster_nodes = macro("$cluster_nodes$")
+
+        for (node in cluster_nodes) {
+          output += node + ": " + get_host(node).last_check_result.output + "\n"
+        }
+
+        return output
+      }}
+    }
+
+
+The following example sets time dependent thresholds for the load check based on the current
+time of the day compared to the defined time period.
+
+    object TimePeriod "backup" {
+      import "legacy-timeperiod"
+
+      ranges = {
+        monday = "02:00-03:00"
+        tuesday = "02:00-03:00"
+        wednesday = "02:00-03:00"
+        thursday = "02:00-03:00"
+        friday = "02:00-03:00"
+        saturday = "02:00-03:00"
+        sunday = "02:00-03:00"
+      }
+    }
+
+    object Host "webserver-with-backup" {
+      check_command = "hostalive"
+      address = "127.0.0.1"
+    }
+
+    object Service "webserver-backup-load" {
+      check_command = "load"
+      host_name = "webserver-with-backup"
+
+      vars.load_wload1 = {{
+        if (get_time_period("backup").is_inside) {
+          return 20
+        } else {
+          return 5
+        }
+      }}
+      vars.load_cload1 = {{
+        if (get_time_period("backup").is_inside) {
+          return 40
+        } else {
+          return 10
+        }
+      }}
+    }
+
+
 ## <a id="check-result-freshness"></a> Check Result Freshness
 
 In Icinga 2 active check freshness is enabled by default. It is determined by the
