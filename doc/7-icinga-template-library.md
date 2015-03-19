@@ -69,6 +69,14 @@ Name         | Description
 ido_type     | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
 ido_name     | **Required.** The name of the IDO connection object.
 
+### <a id="itl-random"></a> random
+
+Check command for the built-in `random` check. This check returns random states
+and adds the check source to the check output.
+
+For test and demo purposes only. The `random` check command does not support
+any vars.
+
 # <a id="plugin-check-commands"></a> Plugin Check Commands
 
 The Plugin Check Commands provides example configuration for plugin check commands
