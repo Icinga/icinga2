@@ -155,8 +155,8 @@ Valid values for custom attributes include:
 
 ### <a id="custom-attributes-functions"></a> Functions as Custom Attributes
 
-Icinga lets you specify functions for custom attributes. The special case here
-is that whenever Icinga needs the value for such a custom attribute it runs
+Icinga 2 lets you specify functions for custom attributes. The special case here
+is that whenever Icinga 2 needs the value for such a custom attribute it runs
 the function and uses whatever value the function returns:
 
     object CheckCommand "random-value" {
@@ -193,8 +193,8 @@ value of arbitrary macro expressions:
       return "Some text"
     }}
 
-The [Object Accessor Functions](20-library-reference.md#object-accessor-functions) can be used to retrieve references
-to other objects by name.
+Acessing object attributes at runtime inside these functions is described in the
+[advanced topics](4-advanced-topics.md#access-object-attributes-at-runtime) chapter.
 
 ## <a id="runtime-macros"></a> Runtime Macros
 
@@ -394,8 +394,6 @@ The following macros provide global statistics:
   icinga.num_hosts_acknowledged     | Current number of acknowledged host problems.
 
 
-
-
 ## <a id="using-apply"></a> Apply Rules
 
 Instead of assigning each object ([Service](6-object-types.md#objecttype-service),
@@ -542,15 +540,59 @@ Detailed examples can be found in the [recurring downtimes](4-advanced-topics.md
 
 ### <a id="using-apply-for"></a> Using Apply For Rules
 
-Next to the standard way of using apply rules there is the requirement of generating
-apply rules objects based on set (array or dictionary). That way you'll save quite
-of a lot of duplicated apply rules by combining them into one generic generating
-the object name with or without a prefix.
+Next to the standard way of using [apply rules](3-monitoring-basics.md#using-apply)
+there is the requirement of generating apply rules objects based on set (array or
+dictionary).
 
 The sample configuration already includes a detailed example in [hosts.conf](5-configuring-icinga-2.md#hosts-conf)
 and [services.conf](5-configuring-icinga-2.md#services-conf) for this use case.
 
-Imagine a different example: You are monitoring your switch (hosts) with many
+Take the following example: A host provides the snmp oids for different service check
+types. This could look like the following example:
+
+    object Host "router-v6" {
+      check_command = "hostalive"
+      address6 = "::1"
+
+      vars.oids["if01"] = "1.1.1.1.1"
+      vars.oids["temp"] = "1.1.1.1.2"
+      vars.oids["bgp"] = "1.1.1.1.5"
+    }
+
+Now we want to create service checks for `if01` and `temp` but not `bgp`.
+Furthermore we want to pass the snmp oid stored as dictionary value to the
+custom attribute called `vars.snmp_oid` - this is the command argument required
+by the [snmp]() check command.
+The service's `display_name` should be set to the identifier inside the dictionary.
+
+    apply Service for (identifier => oid in host.vars.oids) {
+      check_command = "snmp"
+      display_name = identifier
+      vars.snmp_oid = oid
+
+      ignore where identifier == "bgp" //don't generate service for bgp checks
+    }
+
+Icinga 2 evalatues the `apply for` rule for all objects with the custom attribute
+`oids` set. It then iterates over all list items inside the `for` loop and evaluates the
+`assign/ignore where` expressions. You can access the loop variable
+in these expressions, e.g. for ignoring certain values.
+In this example we'd ignore the `bgp` identifier and avoid generating an unwanted service.
+We could extend the configuration by also matching the `oid` value on certain regex/wildcard
+patterns for example.
+
+> **Note**
+>
+> You don't need an `assign where` expression only checking for existance
+> of the custom attribute.
+
+That way you'll save duplicated apply rules by combining them into one
+generic `apply for` rule generating the object name with or without a prefix.
+
+
+#### <a id="using-apply-for-custom-attribute-override"></a> Apply For and Custom Attribute Override
+
+Imagine a different more advanced example: You are monitoring your switch (hosts) with many
 interfaces (services). The following requirements/problems apply:
 
 * Each interface service check should be named with a prefix and a running number
@@ -562,7 +604,6 @@ dynamically generated
 By defining the `interfaces` dictionary with three example interfaces on the `core-switch`
 host object, you'll make sure to pass the storage required by the for loop in the service apply
 rule.
-
 
     object Host "core-switch" {
       import "generic-host"
@@ -593,7 +634,7 @@ The config dictionary contains all key-value pairs for the specific interface in
 loop cycle, like `port`, `vlan`, `address` and `qos` for the `0` interface.
 
 By defining a default value for the custom attribute `qos` in the `vars` dictionary
-before adding the `config` dictionary we''ll ensure that this attribute is always defined.
+before adding the `config` dictionary we'll ensure that this attribute is always defined.
 
 After `vars` is fully populated, all object attributes can be set. For strings, you can use
 string concatention with the `+` operator.
@@ -624,7 +665,7 @@ This can be achieved by wrapping them into the [string()](19-language-reference.
 > after successful [configuration validation](8-cli-commands.md#config-validation).
 
 
-### <a id="using-apply-object attributes"></a> Use Object Attributes in Apply Rules
+### <a id="using-apply-object-attributes"></a> Use Object Attributes in Apply Rules
 
 Since apply rules are evaluated after the generic objects, you
 can reference existing host and/or service object attributes as
@@ -1194,6 +1235,38 @@ Details on all available options can be found in the
 [CheckCommand object definition](6-object-types.md#objecttype-checkcommand).
 
 
+#### <a id="command-environment-variables"></a> Environment Variables
+
+The `env` command object attribute specifies a list of environment variables with values calculated
+from either runtime macros or custom attributes which should be exported as environment variables
+prior to executing the command.
+
+This is useful for example for hiding sensitive information on the command line output
+when passing credentials to database checks:
+
+    object CheckCommand "mysql-health" {
+      import "plugin-check-command"
+
+      command = [
+        PluginDir + "/check_mysql"
+      ]
+
+      arguments = {
+        "-H" = "$mysql_address$"
+        "-d" = "$mysql_database$"
+      }
+
+      vars.mysql_address = "$address$"
+      vars.mysql_database = "icinga"
+      vars.mysql_user = "icinga_check"
+      vars.mysql_pass = "password"
+
+      env.MYSQLUSER = "$mysql_user$"
+      env.MYSQLPASS = "$mysql_pass$"
+    }
+
+
+
 ### <a id="notification-commands"></a> Notification Commands
 
 [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects define how notifications are delivered to external
@@ -1640,6 +1713,3 @@ and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
 The `disable-nrpe-checks` dependency is applied to all services
 on the `nrpe-service` host using the `nrpe` check_command attribute
 but not the `nrpe-health` service itself.
-
-
-

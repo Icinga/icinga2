@@ -3,7 +3,7 @@
 Building distributed environments with high availability included is fairly easy with Icinga 2.
 The cluster feature is built-in and allows you to build many scenarios based on your requirements:
 
-* [High Availability](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability). All instances in the `Zone` elect one active master and run as Active/Active cluster.
+* [High Availability](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability). All instances in the `Zone` run as Active/Active cluster.
 * [Distributed Zones](12-distributed-monitoring-ha.md#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
 * [Load Distribution](12-distributed-monitoring-ha.md#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
 
@@ -232,7 +232,7 @@ are located. The `check-satellite` zone consists of `icinga2c` only, but more no
 be added.
 
 The `config-ha-master` zone acts as High-Availability setup - the Icinga 2 instances elect
-one active master where all features are running on (for example `icinga2a`). In case of
+one instance running a check, notification or feature (DB IDO), for example `icinga2a`. In case of
 failure of the `icinga2a` instance, `icinga2b` will take over automatically.
 
     object Zone "config-ha-master" {
