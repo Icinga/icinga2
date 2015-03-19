@@ -74,7 +74,7 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr dependencyItem = builder->Compile();
-	dependencyItem->Commit();
+	dependencyItem->Register();
 
 	return true;
 }

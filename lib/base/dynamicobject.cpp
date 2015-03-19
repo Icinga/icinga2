@@ -187,6 +187,11 @@ void DynamicObject::OnAllConfigLoaded(void)
 	/* Nothing to do here. */
 }
 
+void DynamicObject::CreateChildObjects(const Type::Ptr& childType)
+{
+	/* Nothing to do here. */
+}
+
 void DynamicObject::OnStateLoaded(void)
 {
 	/* Nothing to do here. */

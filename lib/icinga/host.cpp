@@ -54,11 +54,21 @@ void Host::OnAllConfigLoaded(void)
 				hg->ResolveGroupMembership(this, true);
 		}
 	}
+}
 
-	ScheduledDowntime::EvaluateApplyRules(this);
-	Notification::EvaluateApplyRules(this);
-	Dependency::EvaluateApplyRules(this);
-	Service::EvaluateApplyRules(this);
+void Host::CreateChildObjects(const Type::Ptr& childType)
+{
+	if (childType->GetName() == "ScheduledDowntime")
+		ScheduledDowntime::EvaluateApplyRules(this);
+
+	if (childType->GetName() == "Notification")
+		Notification::EvaluateApplyRules(this);
+
+	if (childType->GetName() == "Dependency")
+		Dependency::EvaluateApplyRules(this);
+
+	if (childType->GetName() == "Service")
+		Service::EvaluateApplyRules(this);
 }
 
 void Host::Stop(void)

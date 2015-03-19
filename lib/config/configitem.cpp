@@ -284,74 +284,100 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
 	std::vector<ItemPair> items;
 
-	do {
-		items.clear();
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
 
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
+		BOOST_FOREACH(const TypeMap::value_type& kv, m_Items) {
+			BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second)
+			{
+				if (!kv2.second->m_Abstract && !kv2.second->m_Object)
+					items.push_back(std::make_pair(kv2.second, false));
+			}
+		}
 
-			BOOST_FOREACH(const TypeMap::value_type& kv, m_Items) {
-				BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second)
-				{
-					if (!kv2.second->m_Abstract && !kv2.second->m_Object)
-						items.push_back(std::make_pair(kv2.second, false));
+		BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
+			if (!item->m_Abstract && !item->m_Object)
+				items.push_back(std::make_pair(item, true));
+		}
+
+		m_UnnamedItems.clear();
+	}
+
+	if (items.empty())
+		return true;
+
+	BOOST_FOREACH(const ItemPair& ip, items) {
+		upq.Enqueue(boost::bind(&ConfigItem::Commit, ip.first, ip.second));
+	}
+
+	upq.Join();
+
+	if (upq.HasExceptions())
+		return false;
+
+	std::vector<ConfigItem::Ptr> new_items;
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+		new_items.swap(m_CommittedItems);
+	}
+
+	std::set<String> types;
+
+	std::vector<Type::Ptr> all_types;
+	Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
+
+	{
+		ObjectLock olock(globals);
+		BOOST_FOREACH(const Dictionary::Pair& kv, globals) {
+			if (kv.second.IsObjectType<Type>())
+				all_types.push_back(kv.second);
+		}
+	}
+
+	Type::Ptr dotype = Type::GetByName("DynamicObject");
+	BOOST_FOREACH(const Type::Ptr& type, all_types) {
+		if (dotype->IsAssignableFrom(type))
+			types.insert(type->GetName());
+	}
+
+	std::set<String> completed_types;
+
+	while (types.size() != completed_types.size()) {
+		BOOST_FOREACH(const String& type, types) {
+			if (completed_types.find(type) != completed_types.end())
+				continue;
+
+			Type::Ptr ptype = Type::GetByName(type);
+			bool unresolved_dep = false;
+
+			/* skip this type (for now) if there are unresolved load dependencies */
+			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
+				if (types.find(loadDep) != types.end() && completed_types.find(loadDep) == completed_types.end()) {
+					unresolved_dep = true;
+					break;
 				}
 			}
 
-			BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
-				if (!item->m_Abstract && !item->m_Object)
-					items.push_back(std::make_pair(item, true));
+			if (unresolved_dep)
+				continue;
+
+			BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+				if (item->m_Type == type)
+					upq.Enqueue(boost::bind(&DynamicObject::OnAllConfigLoaded, item->m_Object));
 			}
 
-			m_UnnamedItems.clear();
-		}
+			completed_types.insert(type);
 
-		BOOST_FOREACH(const ItemPair& ip, items) {
-			upq.Enqueue(boost::bind(&ConfigItem::Commit, ip.first, ip.second));
-		}
+			upq.Join();
 
-		upq.Join();
+			if (upq.HasExceptions())
+				return false;
 
-		if (upq.HasExceptions())
-			return false;
-
-		std::vector<ConfigItem::Ptr> new_items;
-
-		{
-			boost::mutex::scoped_lock lock(m_Mutex);
-			new_items.swap(m_CommittedItems);
-		}
-
-		std::set<String> types;
-
-		BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
-			types.insert(item->m_Type);
-		}
-
-		std::set<String> completed_types;
-
-		while (types.size() != completed_types.size()) {
-			BOOST_FOREACH(const String& type, types) {
-				if (completed_types.find(type) != completed_types.end())
-					continue;
-
-				Type::Ptr ptype = Type::GetByName(type);
-				bool unresolved_dep = false;
-
-				BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
-					if (types.find(loadDep) != types.end() && completed_types.find(loadDep) == completed_types.end()) {
-						unresolved_dep = true;
-						break;
-					}
-				}
-
-				if (!unresolved_dep) {
-					BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
-						if (item->m_Type == type)
-							upq.Enqueue(boost::bind(&DynamicObject::OnAllConfigLoaded, item->m_Object));
-					}
-
-					completed_types.insert(type);
+			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
+				BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+					if (item->m_Type == loadDep)
+						upq.Enqueue(boost::bind(&DynamicObject::CreateChildObjects, item->m_Object, ptype));
 				}
 			}
 
@@ -359,8 +385,11 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 
 			if (upq.HasExceptions())
 				return false;
+
+			if (!CommitNewItems(upq))
+				return false;
 		}
-	} while (!items.empty());
+	}
 
 	return true;
 }

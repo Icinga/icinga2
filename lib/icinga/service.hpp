@@ -57,6 +57,7 @@ public:
 
 protected:
 	virtual void OnAllConfigLoaded(void);
+	virtual void CreateChildObjects(const Type::Ptr& childType);
 
 private:
 	Host::Ptr m_Host;
