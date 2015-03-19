@@ -207,12 +207,17 @@ Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stre
 		Utility::QueueAsyncCallback(boost::bind(&ConfigCompiler::CompileHelper, ctx));
 		return new FutureExpression(ftr);
 	} else {
+		Expression *expr;
+
 		try {
-			return ctx->Compile();
+			expr = ctx->Compile();
 		} catch (...) {
 			delete ctx;
 			throw;
 		}
+
+		delete ctx;
+		return expr;
 	}
 }
 
