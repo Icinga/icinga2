@@ -29,7 +29,6 @@
 #include "base/scriptglobal.hpp"
 #include "base/function.hpp"
 #include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
@@ -571,7 +570,7 @@ std::vector<String> icinga::FilterIntToArray(int iFilter)
 
 String Notification::NotificationFilterToString(int filter)
 {
-	return "'" + boost::algorithm::join(FilterIntToArray(filter), "', '") + "'";
+	return Utility::NaturalJoin(FilterIntToArray(filter));
 }
 
 /* internal for logging */
