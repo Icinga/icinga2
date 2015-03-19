@@ -66,10 +66,18 @@ void Service::OnAllConfigLoaded(void)
 				sg->ResolveGroupMembership(this, true);
 		}
 	}
+}
 
-	ScheduledDowntime::EvaluateApplyRules(this);
-	Notification::EvaluateApplyRules(this);
-	Dependency::EvaluateApplyRules(this);
+void Service::CreateChildObjects(const Type::Ptr& childType)
+{
+	if (childType->GetName() == "ScheduledDowntime")
+		ScheduledDowntime::EvaluateApplyRules(this);
+
+	if (childType->GetName() == "Notification")
+		Notification::EvaluateApplyRules(this);
+
+	if (childType->GetName() == "Dependency")
+		Dependency::EvaluateApplyRules(this);
 }
 
 Service::Ptr Service::GetByNamePair(const String& hostName, const String& serviceName)

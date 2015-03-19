@@ -73,7 +73,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr notificationItem = builder->Compile();
-	notificationItem->Commit();
+	notificationItem->Register();
 
 	return true;
 }

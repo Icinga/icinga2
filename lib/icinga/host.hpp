@@ -69,6 +69,7 @@ protected:
 	virtual void Stop(void);
 
 	virtual void OnAllConfigLoaded(void);
+	virtual void CreateChildObjects(const Type::Ptr& childType);
 
 private:
 	mutable boost::mutex m_ServicesMutex;

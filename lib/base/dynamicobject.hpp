@@ -75,6 +75,7 @@ public:
 	virtual void Resume(void);
 
 	virtual void OnConfigLoaded(void);
+	virtual void CreateChildObjects(const Type::Ptr& childType);
 	virtual void OnAllConfigLoaded(void);
 	virtual void OnStateLoaded(void);
 
