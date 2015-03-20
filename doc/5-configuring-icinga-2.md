@@ -482,6 +482,7 @@ implicitely use the`icingaadmins` UserGroup defined in [users.conf](5-configurin
       import "mail-host-notification"
 
       user_groups = host.vars.notification.mail.groups
+      users = host.vars.notification.mail.users
 
       assign where host.vars.notification.mail
     }
@@ -490,6 +491,7 @@ implicitely use the`icingaadmins` UserGroup defined in [users.conf](5-configurin
       import "mail-service-notification"
 
       user_groups = host.vars.notification.mail.groups
+      users = host.vars.notification.mail.users
 
       assign where host.vars.notification.mail
     }
