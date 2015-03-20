@@ -22,7 +22,7 @@
 namespace icinga
 {
 
-class StreamLogger : Logger
+abstract class StreamLogger : Logger
 {
 };
 
