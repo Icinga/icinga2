@@ -20,8 +20,7 @@ object specific policies.
 > **Note**
 >
 > It is highly recommended to review your existing installation, do an inventory
-> of checked objects, thresholds and then pland and design your new configuration
-> layout.
+> of checked objects, thresholds and then design your new configuration layout.
 > Keep in mind that the more dynamic approach using the [apply rules](3-monitoring-basics.md#using-apply)
 > allows you to start over in many scenarios.
 
