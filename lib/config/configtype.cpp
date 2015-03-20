@@ -169,9 +169,7 @@ void ConfigType::ValidateObject(const Object::Ptr& object,
 			locations.pop_back();
 		}
 
-		String validator = ruleList->GetValidator();
-
-		if (!validator.IsEmpty()) {
+		BOOST_FOREACH(const String& validator, ruleList->GetValidators()) {
 			Function::Ptr func = ScriptGlobal::Get(validator, &Empty);
 
 			if (!func)
@@ -226,9 +224,7 @@ void ConfigType::ValidateArray(const Array::Ptr& array,
 			locations.pop_back();
 		}
 
-		String validator = ruleList->GetValidator();
-
-		if (!validator.IsEmpty()) {
+		BOOST_FOREACH(const String& validator, ruleList->GetValidators()) {
 			Function::Ptr func = ScriptGlobal::Get(validator, &Empty);
 
 			if (!func)
