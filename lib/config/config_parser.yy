@@ -372,9 +372,9 @@ type: T_TYPE identifier
 		context->m_Type->GetRuleList()->AddRules(ruleList);
 		context->m_Type->GetRuleList()->AddRequires(ruleList);
 
-		String validator = ruleList->GetValidator();
-		if (!validator.IsEmpty())
-			context->m_Type->GetRuleList()->SetValidator(validator);
+		BOOST_FOREACH(const String& validator, ruleList->GetValidators()) {
+			context->m_Type->GetRuleList()->AddValidator(validator);
+		}
 	}
 	;
 
@@ -407,7 +407,7 @@ typerule: T_REQUIRE T_STRING
 	}
 	| T_VALIDATOR T_STRING
 	{
-		context->m_RuleLists.top()->SetValidator($2);
+		context->m_RuleLists.top()->AddValidator($2);
 		free($2);
 	}
 	| T_ATTRIBUTE type T_STRING

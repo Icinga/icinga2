@@ -24,23 +24,23 @@
 using namespace icinga;
 
 /**
- * Sets the validator method for a rule list.
+ * Adds a validator method for a rule list.
  *
  * @param validator The validator.
  */
-void TypeRuleList::SetValidator(const String& validator)
+void TypeRuleList::AddValidator(const String& validator)
 {
-	m_Validator = validator;
+	m_Validators.push_back(validator);
 }
 
 /**
- * Retrieves the validator method.
+ * Retrieves the validator methods.
  *
- * @returns The validator method.
+ * @returns The validator methods.
  */
-String TypeRuleList::GetValidator(void) const
+std::vector<String> TypeRuleList::GetValidators(void) const
 {
-	return m_Validator;
+	return m_Validators;
 }
 
 /**

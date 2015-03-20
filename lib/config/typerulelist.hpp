@@ -50,8 +50,8 @@ class I2_CONFIG_API TypeRuleList : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(TypeRuleList);
 
-	void SetValidator(const String& validator);
-	String GetValidator(void) const;
+	void AddValidator(const String& validator);
+	std::vector<String> GetValidators(void) const;
 
 	void AddRequire(const String& attr);
 	void AddRequires(const TypeRuleList::Ptr& ruleList);
@@ -66,7 +66,7 @@ public:
 	size_t GetLength(void) const;
 
 private:
-	String m_Validator;
+	std::vector<String> m_Validators;
 	std::vector<String> m_Requires;
 	std::vector<TypeRule> m_Rules;
 };
