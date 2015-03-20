@@ -33,8 +33,8 @@ parentheses):
             variable `ICINGA2_WITH_PGSQL` to `OFF` to disable this module
 * optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
 * optional: libedit (libedit-devel on RHEL, libedit-dev on Debian)
-* optional: Termcap (libtermcap-devel on RHEL, libtermcap-dev on Debian) - only required
-            if libedit doesn't already link against termcap/ncurses
+* optional: Termcap (libtermcap-devel on RHEL, not necessary on Debian) - only
+            required if libedit doesn't already link against termcap/ncurses
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
 example from the repoforge buildtools repository.
@@ -60,69 +60,6 @@ permissions to the external command pipe and livestatus socket:
 
 Make sure to replace "www-data" with the name of the user your web server
 is running as.
-
-
-## Building Release Tarballs
-
-In order to build a release tarball you should first check out the Git repository
-in a new directory. If you're using an existing check-out you should make sure
-that there are no local modifications:
-
-    $ git status
-
-### Release Checklist
-
-Here's a short check-list for releases:
-
-Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files
-
-    $ git log --use-mailmap | grep ^Author: | cut -f2- -d' ' | sort | uniq > AUTHORS
-
-Bump the version in icinga2.spec.
-Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) and [INSTALL.md](INSTALL.md)
-files using the changelog.py script.
-Commit these changes to the "master" branch.
-
-    $ git commit -v -a -m "Release version <VERSION>"
-
-Create a signed tag (tags/v<VERSION>).
-
-GB:
-
-    $ git tag -u EE8E0720 -m "Version <VERSION>" v<VERSION>
-MF:
-
-    $ git tag -u D14A1F16 -m "Version <VERSION>" v<VERSION>
-
-Push the tag.
-
-    $ git push --tags
-
-Merge the "master" branch into the "support/2.3" branch (using --ff-only).
-
-    $ git checkout support/2.3
-    $ git merge --ff-only master
-    $ git push origin support/2.3
-
-Note: CMake determines the Icinga 2 version number using `git describe` if the
-source directory is contained in a Git repository. Otherwise the version number
-is extracted from the [icinga2.spec](icinga2.spec) file. This behavior can be overridden by
-creating a file called `icinga-version.h.force` in the source directory.
-Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake can be used to
-disable the usage of `git describe`.
-
-### Build Tarball
-
-Use `git archive` to build the release tarball:
-
-    $ VERSION=2.3.2
-    $ git archive --format=tar --prefix=icinga2-$VERSION/ tags/v$VERSION | gzip >icinga2-$VERSION.tar.gz
-
-Finally you should verify that the tarball only contains the files it should contain:
-
-    $ VERSION=2.3.2
-    $ tar ztf icinga2-$VERSION.tar.gz | less
-
 
 ## Building Icinga 2
 
@@ -168,20 +105,29 @@ Defaults to `OFF`.
 - `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
 
+CMake determines the Icinga 2 version number using `git describe` if the
+source directory is contained in a Git repository. Otherwise the version number
+is extracted from the [icinga2.spec](icinga2.spec) file. This behavior can be
+overridden by creating a file called `icinga-version.h.force` in the source
+directory. Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake
+can be used to disable the usage of `git describe`.
+
 ### Building Icinga 2 RPMs
 
 Setup your build environment on RHEL/SUSE and copy the generated tarball from your git
 repository to `rpmbuild/SOURCES`.
-Copy the icinga2.spec file to `rpmbuild/SPEC` and then invoke
+
+Copy the icinga2.spec file to `rpmbuild/SPEC` and then run this command:
 
     $ rpmbuild -ba SPEC/icinga2.spec
 
 ### Building Icinga 2 Debs
 
-Setup your build environment on Debian/Ubuntu and run the following command straight from
-the git repository checkout:
+Setup your build environment on Debian/Ubuntu, copy the 'debian' directory from
+the Debian packaging Git repository (https://anonscm.debian.org/cgit/pkg-nagios/pkg-icinga2.git)
+into your source tree and run the following command:
 
-    $ ./debian/updateversion && dpkg-buildpackage -uc -us
+    $ dpkg-buildpackage -uc -us
 
 ## Running Icinga 2
 
@@ -196,14 +142,14 @@ components (e.g. for check execution, notifications, etc.):
     [2015-03-12 13:25:56 +0100] information/ConfigCompiler: Compiling config file: /Users/gunnar/i2/etc/icinga2/constants.conf
     ...
 
-Icinga 2 can be started as daemon using the provided init script:
+Icinga 2 can be started as a daemon using the provided init script:
 
     # /etc/init.d/icinga2
     Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 
 Or if your distribution uses systemd:
 
-    # systemctl {start|stop|reload|status|enable|disable} icinga2.service
+    # systemctl {start|stop|reload|status|enable|disable} icinga2
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
