@@ -152,7 +152,7 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	/* Make sure the type is valid. */
 	Type::Ptr type = Type::GetByName(GetType());
-	ASSERT(type && Type::GetByName("DynamicObject")->IsAssignableFrom(type));
+	ASSERT(type && DynamicObject::TypeInstance->IsAssignableFrom(type));
 
 	if (IsAbstract())
 		return DynamicObject::Ptr();
@@ -335,9 +335,8 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 		}
 	}
 
-	Type::Ptr dotype = Type::GetByName("DynamicObject");
 	BOOST_FOREACH(const Type::Ptr& type, all_types) {
-		if (dotype->IsAssignableFrom(type))
+		if (DynamicObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type->GetName());
 	}
 

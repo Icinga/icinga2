@@ -80,7 +80,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 
 	Type::Ptr type = Type::GetByName(idoType);
 
-	if (!type || !Type::GetByName("DbConnection")->IsAssignableFrom(type)) {
+	if (!type || !DbConnection::TypeInstance->IsAssignableFrom(type)) {
 		cr->SetOutput("IDO type '" + idoType + "' is invalid.");
 		cr->SetState(ServiceUnknown);
 		checkable->ProcessCheckResult(cr);

@@ -90,7 +90,7 @@ Type::Ptr Value::GetReflectionType(void) const
 {
 	switch (GetType()) {
 		case ValueEmpty:
-			return Type::GetByName("Object");
+			return Object::TypeInstance;
 		case ValueNumber:
 			return Type::GetByName("Number");
 		case ValueBoolean:

@@ -217,20 +217,7 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 
 Type::Ptr ScriptUtils::TypeOf(const Value& value)
 {
-	switch (value.GetType()) {
-		case ValueEmpty:
-			return Type::GetByName("Object");
-		case ValueNumber:
-			return Type::GetByName("Number");
-		case ValueBoolean:
-			return Type::GetByName("Boolean");
-		case ValueString:
-			return Type::GetByName("String");
-		case ValueObject:
-			return static_cast<Object::Ptr>(value)->GetReflectionType();
-		default:
-			VERIFY(!"Invalid value type.");
-	}
+	return value.GetReflectionType();
 }
 
 Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)

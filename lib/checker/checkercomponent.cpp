@@ -255,10 +255,10 @@ void CheckerComponent::ResultTimerHandler(void)
 
 void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
 {
-	if (!Type::GetByName("Checkable")->IsAssignableFrom(object->GetReflectionType()))
-		return;
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
-	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+	if (!checkable)
+		return;
 
 	Zone::Ptr zone = Zone::GetByName(checkable->GetZoneName());
 	bool same_zone = (!zone || Zone::GetLocalZone() == zone);
