@@ -107,6 +107,7 @@ Application::~Application(void)
 void Application::Exit(int rc)
 {
 	std::cout.flush();
+	std::cerr.flush();
 
 	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
 		logger->Flush();
