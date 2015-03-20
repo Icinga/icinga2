@@ -1,18 +1,27 @@
+sudo: false
+
 language: cpp
 
 compiler:
   - gcc
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install libboost-all-dev flex bison libssl-dev libpq-dev libmysqlclient-dev libedit-dev libyajl-dev
+addons:
+  apt_packages:
+    - ccache
+    - libboost-all-dev
+    - flex
+    - bison
+    - libssl-dev
+    - libpq-dev
+    - libmysqlclient-dev
+    - libedit-dev
+    - libyajl-dev
 
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - export PATH="/usr/lib/ccache:$PATH"
+  - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
 script:
-  - make
-  - sudo make install
-  - icinga2 --version
+  - make && make test && make install && /tmp/icinga2/sbin/icinga2 --version
