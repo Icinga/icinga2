@@ -562,7 +562,7 @@ types. This could look like the following example:
 Now we want to create service checks for `if01` and `temp` but not `bgp`.
 Furthermore we want to pass the snmp oid stored as dictionary value to the
 custom attribute called `vars.snmp_oid` - this is the command argument required
-by the [snmp]() check command.
+by the [snmp](7-icinga-template-library.md#plugin-check-command-snmp) check command.
 The service's `display_name` should be set to the identifier inside the dictionary.
 
     apply Service for (identifier => oid in host.vars.oids) {
