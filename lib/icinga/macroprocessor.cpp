@@ -312,7 +312,7 @@ bool MacroProcessor::ValidateMacroString(const String& macro)
 	size_t pos_first, pos_second, offset;
 	offset = 0;
 
-	while((pos_first = macro.FindFirstOf("$", offset)) != String::NPos) {
+	while ((pos_first = macro.FindFirstOf("$", offset)) != String::NPos) {
 		pos_second = macro.FindFirstOf("$", pos_first + 1);
 
 		if (pos_second == String::NPos)

@@ -995,7 +995,7 @@ void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& ar
 
 	ifp.open(file.CStr(), std::ifstream::in);
 
-	while(ifp.good()) {
+	while (ifp.good()) {
 		std::string line;
 		std::getline(ifp, line);
 
