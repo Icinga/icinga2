@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-PrimitiveType::PrimitiveType(const String& name)
-	: m_Name(name)
+PrimitiveType::PrimitiveType(const String& name, const ObjectFactory& factory)
+	: m_Name(name), m_Factory(factory)
 { }
 
 String PrimitiveType::GetName(void) const
@@ -58,6 +58,6 @@ int PrimitiveType::GetFieldCount(void) const
 
 ObjectFactory PrimitiveType::GetFactory(void) const
 {
-	return NULL;
+	return m_Factory;
 }
 

@@ -395,6 +395,18 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 		vfunc = vfuncres.GetValue();
 	}
 
+	if (vfunc.IsObjectType<Type>()) {
+		if (m_Args.empty())
+			return VMOps::ConstructorCall(vfunc, m_DebugInfo);
+		else if (m_Args.size() == 1) {
+			ExpressionResult argres = m_Args[0]->Evaluate(frame);
+			CHECK_RESULT(argres);
+
+			return VMOps::CopyConstructorCall(vfunc, argres.GetValue(), m_DebugInfo);
+		} else
+			BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor.", m_DebugInfo));
+	}
+
 	if (!vfunc.IsObjectType<Function>())
 		BOOST_THROW_EXCEPTION(ScriptError("Argument is not a callable object.", m_DebugInfo));
 

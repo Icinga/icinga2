@@ -54,6 +54,38 @@ public:
 			return ScriptGlobal::Get(name);
 	}
 
+	static inline Value CopyConstructorCall(const Type::Ptr& type, const Value& value, const DebugInfo& debugInfo = DebugInfo())
+	{
+		if (type->GetName() == "String")
+			return Convert::ToString(value);
+		else if (type->GetName() == "Number")
+			return Convert::ToDouble(value);
+		else if (type->GetName() == "Boolean")
+			return Convert::ToBool(value);
+		else if (!type->IsAssignableFrom(value.GetReflectionType()))
+			BOOST_THROW_EXCEPTION(ScriptError("Invalid cast: Tried to cast object of type '" + value.GetReflectionType()->GetName() + "' to type '" + type->GetName() + "'", debugInfo));
+		else
+			return value;
+	}
+
+	static inline Value ConstructorCall(const Type::Ptr& type, const DebugInfo& debugInfo = DebugInfo())
+	{
+		if (type->GetName() == "String")
+			return "";
+		else if (type->GetName() == "Number")
+			return 0;
+		else if (type->GetName() == "Boolean")
+			return false;
+		else {
+			Object::Ptr object = type->Instantiate();
+
+			if (!object)
+				BOOST_THROW_EXCEPTION(ScriptError("Failed to instantiate object of type '" + type->GetName() + "'", debugInfo));
+
+			return object;
+		}
+	}
+
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
 		boost::shared_ptr<ScriptFrame> vframe;

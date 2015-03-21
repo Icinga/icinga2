@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Function, Function::GetPrototype());
+REGISTER_PRIMITIVE_TYPE_NOINST(Function, Function::GetPrototype());
 
 Function::Function(const Callback& function)
 	: m_Callback(function)
