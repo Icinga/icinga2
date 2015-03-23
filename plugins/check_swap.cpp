@@ -20,36 +20,20 @@
 #include <iostream>
 #include <WinBase.h>
 
-#include "thresholds.h"
-
-#include "boost/program_options.hpp"
+#include "check_swap.h"
 
 #define VERSION 1.0
 
 namespace po = boost::program_options;
 
-using std::endl; using std::wcout; using std::wstring;
-using std::cout;
-
 static BOOL debug = FALSE;
 
-struct printInfoStruct 
-{
-	threshold warn, crit;
-	double tSwap, aSwap;
-	Bunit unit = BunitMB;
-};
-
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int printOutput(printInfoStruct&);
-static int check_swap(printInfoStruct&);
-
-int wmain(int argc, wchar_t **argv) 
+INT wmain(INT argc, WCHAR **argv) 
 {
 	printInfoStruct printInfo = { };
 	po::variables_map vm;
 
-	int ret = parseArguments(argc, argv, vm, printInfo);
+	INT ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
 
@@ -60,24 +44,24 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
 
 	desc.add_options()
-		("help,h", "print help message and exit")
-		("version,V", "print version and exit")
+		("help,h", "Print help message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("warning,w", po::wvalue<wstring>(), "warning threshold")
-		("critical,c", po::wvalue<wstring>(), "critical threshold")
-		("unit,u", po::wvalue<wstring>(), "the unit to use for display (default MB)")
+		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
+		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
+		("unit,u", po::wvalue<std::wstring>(), "The unit to use for display (default MB)")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -90,16 +74,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check a machines swap in percent.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
 			L"\tSWAP WARNING - 20%% free | swap=2000B;3000;500;0;10000\n\n"
@@ -131,18 +115,18 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too.\n"
 			, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	}
 
 	if (vm.count("version"))
-		wcout << L"Version: " << VERSION << endl;
+		std::wcout << L"Version: " << VERSION << '\n';
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = threshold(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 		printInfo.warn.legal = !printInfo.warn.legal;
@@ -150,9 +134,9 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = threshold(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 		printInfo.crit.legal = !printInfo.crit.legal;
@@ -163,9 +147,9 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 
 	if (vm.count("unit")) {
 		try {
-			printInfo.unit = parseBUnit(vm["unit"].as<wstring>());
+			printInfo.unit = parseBUnit(vm["unit"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
@@ -173,10 +157,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
 	double fswap = ((double)printInfo.aSwap / (double)printInfo.tSwap) * 100.0;
@@ -189,26 +173,26 @@ int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"SWAP OK - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP OK - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
-			<< L";0;" << printInfo.tSwap << endl;
+			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case WARNING:
-		wcout << L"SWAP WARNING - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP WARNING - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
-			<< L";0;" << printInfo.tSwap << endl;
+			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case CRITICAL:
-		wcout << L"SWAP CRITICAL - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP CRITICAL - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
-			<< L";0;" << printInfo.tSwap << endl;
+			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	}
 
 	return state;
 }
 
-int check_swap(printInfoStruct& printInfo) 
+INT check_swap(printInfoStruct& printInfo) 
 {
 	MEMORYSTATUSEX MemBuf;
 	MemBuf.dwLength = sizeof(MemBuf);

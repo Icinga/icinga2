@@ -20,80 +20,77 @@
 #include "thresholds.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <vector>
 #include <iostream>
 
 using namespace boost::algorithm;
-
-using std::wstring;
 
 threshold::threshold()
 	: set(false)
 {}
 
-threshold::threshold(const wstring& stri)
+threshold::threshold(CONST std::wstring& stri)
 {
 	if (stri.empty())
 		throw std::invalid_argument("Threshold must not be empty");
 
-	wstring str = stri;
+	std::wstring str = stri;
 
 	//kill whitespace
 	boost::algorithm::trim(str);
 
 	bool low = (str.at(0) == L'!');
 	if (low)
-		str = wstring(str.begin() + 1, str.end());
+		str = std::wstring(str.begin() + 1, str.end());
 
 	bool pc = false;
 
 	if (str.at(0) == L'[' && str.at(str.length() - 1) == L']') {//is range
-		str = wstring(str.begin() + 1, str.end() - 1);
-		std::vector<wstring> svec;
+		str = std::wstring(str.begin() + 1, str.end() - 1);
+		std::vector<std::wstring> svec;
 		boost::split(svec, str, boost::is_any_of(L"-"));
 		if (svec.size() != 2)
 			throw std::invalid_argument("Threshold range requires two arguments");
-		wstring str1 = svec.at(0), str2 = svec.at(1);
+		std::wstring str1 = svec.at(0), str2 = svec.at(1);
 
 		if (str1.at(str1.length() - 1) == L'%' && str2.at(str2.length() - 1) == L'%') {
 			pc = true;
-			str1 = wstring(str1.begin(), str1.end() - 1);
-			str2 = wstring(str2.begin(), str2.end() - 1);
+			str1 = std::wstring(str1.begin(), str1.end() - 1);
+			str2 = std::wstring(str2.begin(), str2.end() - 1);
 		}
 
 		try {
 			boost::algorithm::trim(str1);
-			lower = boost::lexical_cast<double>(str1);
+			lower = boost::lexical_cast<DOUBLE>(str1);
 			boost::algorithm::trim(str2);
-			upper = boost::lexical_cast<double>(str2);
+			upper = boost::lexical_cast<DOUBLE>(str2);
 			legal = !low; perc = pc; set = true;
-		} catch (const boost::bad_lexical_cast&) {
+		} catch (CONST boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
 	} else { //not range
 		if (str.at(str.length() - 1) == L'%') {
 			pc = true;
-			str = wstring(str.begin(), str.end() - 1);
+			str = std::wstring(str.begin(), str.end() - 1);
 		}
 		try {
 			boost::algorithm::trim(str);
-			lower = upper = boost::lexical_cast<double>(str);
+			lower = upper = boost::lexical_cast<DOUBLE>(str);
 			legal = !low; perc = pc; set = true;
-		} catch (const boost::bad_lexical_cast&) {
+		} catch (CONST boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
 		}
 	}
 }
 
 //return TRUE if the threshold is broken
-bool threshold::rend(const double val, const double max)
+BOOL threshold::rend(CONST DOUBLE val, CONST DOUBLE max)
 {
-	double upperAbs = upper;
-	double lowerAbs = lower;
+	DOUBLE upperAbs = upper;
+	DOUBLE lowerAbs = lower;
 
 	if (perc) {
-		upperAbs = upper / 100 * max;
-		lowerAbs = lower / 100 * max;
+		upperAbs = upper / 100.0 * max;
+		lowerAbs = lower / 100.0 * max;
 	}
 
 	if (!set)
@@ -105,16 +102,16 @@ bool threshold::rend(const double val, const double max)
 }
 
 //returns a printable string of the threshold
-std::wstring threshold::pString(const double max)
+std::wstring threshold::pString(CONST DOUBLE max)
 {
 	if (!set)
 		return L"";
 	//transform percentages to abolute values
-	double lowerAbs = lower;
-	double upperAbs = upper;
+	DOUBLE lowerAbs = lower;
+	DOUBLE upperAbs = upper;
 	if (perc) {
-		lowerAbs = lower / 100 * max;
-		upperAbs = upper / 100 * max;
+		lowerAbs = lower / 100.0 * max;
+		upperAbs = upper / 100.0 * max;
 	}
 
 	std::wstring s, lowerStr = removeZero(lowerAbs), 
@@ -129,10 +126,10 @@ std::wstring threshold::pString(const double max)
 	return s;
 }
 
-std::wstring removeZero(double val)
+std::wstring removeZero(DOUBLE val)
 {
 	std::wstring ret = boost::lexical_cast<std::wstring>(val);
-	int pos = ret.length();
+	INT pos = ret.length();
 	if (ret.find_first_of(L".") == std::string::npos)
 		return ret;
 	for (std::wstring::reverse_iterator rit = ret.rbegin(); rit != ret.rend(); ++rit) {
@@ -149,14 +146,14 @@ std::wstring removeZero(double val)
 
 std::vector<std::wstring> splitMultiOptions(std::wstring str)
 {
-	std::vector<wstring> sVec;
+	std::vector<std::wstring> sVec;
 	boost::split(sVec, str, boost::is_any_of(L","));
 	return sVec;
 }
 
-Bunit parseBUnit(const wstring& str)
+Bunit parseBUnit(CONST std::wstring& str)
 {
-	wstring wstr = to_upper_copy(str);
+	std::wstring wstr = to_upper_copy(str);
 
 	if (wstr == L"B")
 		return BunitB;
@@ -172,7 +169,7 @@ Bunit parseBUnit(const wstring& str)
 	throw std::invalid_argument("Unknown unit type");
 }
 
-wstring BunitStr(const Bunit& unit) 
+std::wstring BunitStr(CONST Bunit& unit) 
 {
 	switch (unit) {
 	case BunitB:
@@ -189,8 +186,8 @@ wstring BunitStr(const Bunit& unit)
 	return NULL;
 }
 
-Tunit parseTUnit(const wstring& str) {
-	wstring wstr = to_lower_copy(str);
+Tunit parseTUnit(CONST std::wstring& str) {
+	std::wstring wstr = to_lower_copy(str);
 
 	if (wstr == L"ms")
 		return TunitMS;
@@ -204,7 +201,7 @@ Tunit parseTUnit(const wstring& str) {
 	throw std::invalid_argument("Unknown unit type");
 }
 
-wstring TunitStr(const Tunit& unit) 
+std::wstring TunitStr(CONST Tunit& unit) 
 {
 	switch (unit) {
 	case TunitMS:
@@ -219,12 +216,14 @@ wstring TunitStr(const Tunit& unit)
 	return NULL;
 }
 
-void die(DWORD err)
+VOID die(DWORD err)
 {
 	if (!err)
 		err = GetLastError();
 	LPWSTR mBuf = NULL;
-	size_t mS = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-							  NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL);
-	std::wcout << mBuf << std::endl;
+	if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
+			std::wcout << "Failed to format error message, last error was: " << err << '\n';
+	else
+		std::wcout << mBuf << std::endl;
 }

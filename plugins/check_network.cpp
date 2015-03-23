@@ -16,63 +16,54 @@
  * along with this program; if not, write to the Free Software Foundation     *
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
+
+#define WIN32_LEAN_AND_MEAN
+
 #include <Windows.h>
 #include <Pdh.h>
 #include <Shlwapi.h>
 #include <iostream>
 #include <pdhmsg.h>
+#include <WinSock2.h>
+#include <map>
 
-#include "thresholds.h"
+#include <IPHlpApi.h>
 
-#include "boost/program_options.hpp"
+#include "check_network.h"
 
-#define VERSION 1.0
+#define VERSION 1.1
+
 namespace po = boost::program_options;
-
-using std::endl; using std::vector; using std::wstring;
-using std::wcout; using std::cout;
 
 static BOOL debug = FALSE;
 
-struct nInterface 
+INT wmain(INT argc, WCHAR **argv) 
 {
-	wstring name;
-	long BytesInSec, BytesOutSec;
-	nInterface(wstring p)
-		: name(p)
-	{}
-};
-
-struct printInfoStruct 
-{
-	threshold warn, crit;
-};
-
-static int parseArguments(int, TCHAR **, po::variables_map&, printInfoStruct&);
-static int printOutput(printInfoStruct&, const vector<nInterface>&);
-static int check_network(vector<nInterface>&);
-
-int wmain(int argc, wchar_t **argv) 
-{
-	vector<nInterface> vInterfaces;
-	printInfoStruct printInfo{ };
+	std::vector<nInterface> vInterfaces;
+	std::map<std::wstring, std::wstring> mapNames;
+	printInfoStruct printInfo{};
 	po::variables_map vm;
-	int ret = parseArguments(argc, argv, vm, printInfo);
+
+	INT ret = parseArguments(argc, argv, vm, printInfo);
+
 	if (ret != -1)
 		return ret;
+
+	if (!mapSystemNamesToFamiliarNames(mapNames))
+		return 3;
 
 	ret = check_network(vInterfaces);
 	if (ret != -1)
 		return ret;
 		
-	return printOutput(printInfo, vInterfaces);
+	return printOutput(printInfo, vInterfaces, mapNames);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc("Options");
 
@@ -80,11 +71,11 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 		("help,h", "print usage and exit")
 		("version,V", "print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("warning,w", po::wvalue<wstring>(), "warning value")
-		("critical,c", po::wvalue<wstring>(), "critical value")
+		("warning,w", po::wvalue<std::wstring>(), "warning value")
+		("critical,c", po::wvalue<std::wstring>(), "critical value")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -97,20 +88,20 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check a machines network performance.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
 			L"\tNETWORK WARNING 1131B/s | network=1131B/s;1000;7000;0\n\n"
-			L"\"DISK\" being the type of the check, \"WARNING\" the returned status\n"
+			L"\"NETWORK\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"1131B/s\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
@@ -140,26 +131,26 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	}
 
 	if (vm.count("version"))
-		cout << "Version: " << VERSION << endl;
+		std::cout << "Version: " << VERSION << '\n';
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = threshold(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = threshold(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
@@ -170,47 +161,62 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo, const vector<nInterface>& vInterfaces) 
+INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInterfaces, CONST std::map<std::wstring, std::wstring>& mapNames)
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	long tIn = 0, tOut = 0;
 	std::wstringstream tss, perfDataFirst;
 	state state = OK;
 
-	for (vector<nInterface>::const_iterator it = vInterfaces.begin(); it != vInterfaces.end(); ++it) {
+	std::map<std::wstring, std::wstring>::const_iterator mapIt;
+	std::wstring wsFriendlyName;
+
+	for (std::vector<nInterface>::const_iterator it = vInterfaces.begin(); it != vInterfaces.end(); ++it) {
 		tIn += it->BytesInSec;
 		tOut += it->BytesOutSec;
-		tss << L"netI=\"" << it->name << L"\";in=" << it->BytesInSec << L"B/s;out=" << it->BytesOutSec << L"B/s ";
+		if (debug)
+			std::wcout << "Getting friendly name of " << it->name << '\n';
+		mapIt = mapNames.find(it->name);
+		if (mapIt != mapNames.end()) {
+			if (debug)
+				std::wcout << "\tIs " << mapIt->second << '\n';
+			wsFriendlyName = mapIt->second;
+		} else {
+			if (debug)
+				std::wcout << "\tNo friendly name found, using adapter name\n";
+			wsFriendlyName = it->name;
+		}
+		tss << L"netI=\"" << wsFriendlyName << L"\";in=" << it->BytesInSec << "B/s;out=" << it->BytesOutSec << L"B/s ";
 	}
 
 	if (printInfo.warn.rend(tIn + tOut))
 		state = WARNING;
 	if (printInfo.crit.rend(tIn + tOut))
 		state = CRITICAL;
-	
+
 	perfDataFirst << L"network=" << tIn + tOut << L"B/s;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
 
 	switch (state) {
 	case OK:
-		wcout << L"NETWORK OK " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << endl;
+		std::wcout << L"NETWORK OK " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << '\n';
 		break;
 	case WARNING:
-		wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << endl;
+		std::wcout << L"NETWORK WARNING " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << '\n';
 		break;
 	case CRITICAL:
-		wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << endl;
+		std::wcout << L"NETWORK CRITICAL " << tIn + tOut << L"B/s | " << perfDataFirst.str() << tss.str() << '\n';
 		break;
 	}
 
 	return state;
 }
 
-int check_network(vector <nInterface>& vInterfaces) 
+INT check_network(std::vector <nInterface>& vInterfaces) 
 {
-	const wchar_t *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
-	const wchar_t *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
+	CONST WCHAR *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
+	CONST WCHAR *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
 
 	PDH_HQUERY phQuery = NULL;
 	PDH_HCOUNTER phCounterIn, phCounterOut;
@@ -219,7 +225,7 @@ int check_network(vector <nInterface>& vInterfaces)
 	PDH_STATUS err;
 
 	if (debug)
-		wcout << L"Creating Query and adding counters" << endl;
+		std::wcout << L"Creating Query and adding counters" << '\n';
 
 	err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
@@ -234,26 +240,26 @@ int check_network(vector <nInterface>& vInterfaces)
 		goto die;
 	
 	if (debug)
-		wcout << L"Collecting first batch of query data" << endl;
+		std::wcout << L"Collecting first batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
 	if (debug)
-		wcout << L"Sleep for one second" << endl;
+		std::wcout << L"Sleep for one second" << '\n';
 
 	Sleep(1000);
 
 	if (debug)
-		wcout << L"Collecting second batch of query data" << endl;
+		std::wcout << L"Collecting second batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
 	if (debug)
-		wcout << L"Creating formatted counter arrays" << endl;
+		std::wcout << L"Creating formatted counter arrays" << '\n';
 	
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
@@ -276,18 +282,18 @@ int check_network(vector <nInterface>& vInterfaces)
 		goto die;
 
 	if (debug)
-		wcout << L"Going over counter array" << endl;
+		std::wcout << L"Going over counter array" << '\n';
 
 	for (DWORD i = 0; i < dwItemCount; i++) {
-		nInterface *iface = new nInterface(wstring(pDisplayValuesIn[i].szName));
+		nInterface *iface = new nInterface(std::wstring(pDisplayValuesIn[i].szName));
 		iface->BytesInSec = pDisplayValuesIn[i].FmtValue.longValue;
 		iface->BytesOutSec = pDisplayValuesOut[i].FmtValue.longValue;
 		vInterfaces.push_back(*iface);
 		if (debug)
-			wcout << L"Collected interface " << pDisplayValuesIn[i].szName << endl;
+			std::wcout << L"Collected interface " << pDisplayValuesIn[i].szName << '\n';
 	}
 	if (debug)
-		wcout << L"Finished collection. Cleaning up and returning" << endl;
+		std::wcout << L"Finished collection. Cleaning up and returning" << '\n';
 
 	if (phQuery)
 		PdhCloseQuery(phQuery);
@@ -305,4 +311,62 @@ die:
 	if (pDisplayValuesOut)
 		delete reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(pDisplayValuesOut);
 	return 3;
+}
+
+BOOL mapSystemNamesToFamiliarNames(std::map<std::wstring, std::wstring>& mapNames)
+{
+	DWORD dwSize = 0, dwRetVal = 0;
+
+	ULONG family = AF_UNSPEC, flags = GAA_FLAG_INCLUDE_PREFIX,
+		outBufLen = 0, Iterations = 0;
+	LPVOID lpMsgBuf = NULL;
+
+	PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+	PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+	/*
+	PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+	PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
+	PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
+	PIP_ADAPTER_DNS_SERVER_ADDRESS pDnsServer = NULL;
+	PIP_ADAPTER_PREFIX pPrefix = NULL;
+	*/
+	outBufLen = 15000; //15KB as suggestet by msdn of GetAdaptersAddresses
+
+	if (debug)
+		std::wcout << "Mapping adapter system names to friendly names\n";
+
+	do {
+		pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(new BYTE[outBufLen]);
+
+		dwRetVal = GetAdaptersAddresses(family, flags, NULL, pAddresses, &outBufLen);
+
+		if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+			delete[]pAddresses;
+			pAddresses = NULL;
+		} else
+			break;
+	} while (++Iterations < 3);
+
+	if (dwRetVal != NO_ERROR) {
+		std::wcout << "Failed to collect friendly adapter names\n";
+		delete[]pAddresses;
+		return FALSE;
+	}
+
+	pCurrAddresses = pAddresses;
+	std::wstringstream wssAdapterName;
+	std::wstringstream wssFriendlyName;
+	for (pCurrAddresses = pAddresses; pCurrAddresses; pCurrAddresses = pCurrAddresses->Next) {
+		wssAdapterName.str(std::wstring());
+		wssFriendlyName.str(std::wstring());
+		wssAdapterName << pCurrAddresses->Description;
+		wssFriendlyName << pCurrAddresses->FriendlyName;
+		if (debug)
+			std::wcout << "Got: " << wssAdapterName.str() << " -- " << wssFriendlyName.str() << '\n';
+
+		mapNames.insert(std::pair<std::wstring, std::wstring>(wssAdapterName.str(), wssFriendlyName.str()));
+	}
+
+	delete[]pAddresses;
+	return TRUE;
 }

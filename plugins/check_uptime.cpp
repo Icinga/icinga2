@@ -20,37 +20,21 @@
 #include <Shlwapi.h>
 #include <iostream>
 
-#include "thresholds.h"
+#include "check_uptime.h"
 
 #include "boost/chrono.hpp"
-#include "boost/program_options.hpp"
 
 #define VERSION 1.0
 
 namespace po = boost::program_options;
 
-using std::cout; using std::endl;
-using std::wcout; using std::wstring;
-
 static BOOL debug;
 
-struct printInfoStruct 
-{
-	threshold warn, crit;
-	long long time;
-	Tunit unit;
-};
-
-
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int printOutput(printInfoStruct&);
-static void getUptime(printInfoStruct&);
-
-int wmain(int argc, wchar_t **argv)
+INT wmain(INT argc, WCHAR **argv)
 {
 	po::variables_map vm;
 	printInfoStruct printInfo = { };
-	int ret = parseArguments(argc, argv, vm, printInfo);
+	INT ret = parseArguments(argc, argv, vm, printInfo);
 	
 	if (ret != -1)
 		return ret;
@@ -60,24 +44,24 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
 	
 	desc.add_options()
-		("help,h", "print help message and exit")
-		("version,V", "print version and exit")
-		("warning,w", po::wvalue<wstring>(), "warning threshold (Uses -unit)")
+		("help,h", "Print help message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("critical,c", po::wvalue<wstring>(), "critical threshold (Uses -unit)")
-		("unit,u", po::wvalue<wstring>(), "desired unit of output\nh\t- hours\nm\t- minutes\ns\t- seconds (default)\nms\t- milliseconds")
+		("warning,w", po::wvalue<std::wstring>(), "Warning threshold (Uses -unit)")
+		("critical,c", po::wvalue<std::wstring>(), "Critical threshold (Uses -unit)")
+		("unit,u", po::wvalue<std::wstring>(), "Unit to use:\nh\t- hours\nm\t- minutes\ns\t- seconds (default)\nms\t- milliseconds")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -90,16 +74,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check a machines uptime.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
 			L"\tUPTIME WARNING 712h | uptime=712h;700;1800;0\n\n"
@@ -133,37 +117,37 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too.\n"
 			, progName);
-			cout << endl;
+			std::cout << '\n';
 		return 0;
 	}
 
 	if (vm.count("version")) {
-		cout << VERSION << endl;
+		std::cout << VERSION << '\n';
 		return 0;
 	}
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = threshold(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = threshold(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 
 	if (vm.count("unit")) {
 		try{
-			printInfo.unit = parseTUnit(vm["unit"].as<wstring>());
+			printInfo.unit = parseTUnit(vm["unit"].as<std::wstring>());
 		} catch (std::invalid_argument) {
-			wcout << L"Unknown unit type " << vm["unit"].as<wstring>() << endl;
+			std::wcout << L"Unknown unit type " << vm["unit"].as<std::wstring>() << '\n';
 			return 3;
 		} 
 	} else
@@ -175,10 +159,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-static int printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
 
@@ -189,34 +173,34 @@ static int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+		std::wcout << L"UPTIME OK " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << endl;
+			<< printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case WARNING:
-		wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+		std::wcout << L"UPTIME WARNING " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << endl;
+			<< printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case CRITICAL:
-		wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
+		std::wcout << L"UPTIME CRITICAL " << printInfo.time << TunitStr(printInfo.unit) << L" | uptime=" << printInfo.time
 			<< TunitStr(printInfo.unit) << L";" << printInfo.warn.pString() << L";"
-			<< printInfo.crit.pString() << L";0;" << endl;
+			<< printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	}
 
 	return state;
 }
 
-void getUptime(printInfoStruct& printInfo) 
+VOID getUptime(printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << L"Getting uptime in milliseconds" << endl;
+		std::wcout << L"Getting uptime in milliseconds" << '\n';
 
 	boost::chrono::milliseconds uptime = boost::chrono::milliseconds(GetTickCount64());
 	
 	if (debug)
-		wcout << L"Converting requested unit (default: seconds)" << endl;
+		std::wcout << L"Converting requested unit (default: seconds)" << '\n';
 
 	switch (printInfo.unit) {
 	case TunitH: 
