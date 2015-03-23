@@ -196,6 +196,29 @@ if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)
 endif()
 
+if(UNIX)
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-std=c++11" CXX_FLAG_CXX11)
+  check_cxx_compiler_flag("-std=c++0x" CXX_FLAG_CXX0X)
+  if(CXX_FLAG_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  elseif(CXX_FLAG_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  endif()
+
+  check_cxx_compiler_flag("-Wno-inconsistent-missing-override" CXX_FLAG_NO_OVERRIDE_WARNING)
+  if(CXX_FLAG_NO_OVERRIDE_WARNING)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
+  endif()
+endif()
+
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
+
+if(NOT CXX_FEATURE_OVERRIDE)
+  add_definitions("-Doverride=")
+endif()
+
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
 install(
