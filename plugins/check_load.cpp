@@ -17,40 +17,29 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "thresholds.h"
-#include <boost/program_options.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <Pdh.h>
 #include <Shlwapi.h>
 #include <pdhmsg.h>
 #include <iostream>
 
+#include "check_load.h"
+
+#include "boost/algorithm/string/split.hpp"
+#include "boost/algorithm/string/classification.hpp"
+
 #define VERSION 1.0
 
 namespace po = boost::program_options;
 
-using std::endl; using std::cout; using std::wstring;
-using std::wcout;
-
 static BOOL debug = FALSE;
 
-struct printInfoStruct 
-{
-	threshold warn, crit;
-	double load;
-};
 
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int printOutput(printInfoStruct&);
-static int check_load(printInfoStruct&);
-
-int wmain(int argc, wchar_t **argv) 
+INT wmain(INT argc, WCHAR **argv) 
 {
 	printInfoStruct printInfo{ };
 	po::variables_map vm;
 
-	int ret = parseArguments(argc, argv, vm, printInfo);
+	INT ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
 
@@ -61,7 +50,7 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) {
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) {
 	wchar_t namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
 	wchar_t *progName = PathFindFileName(namePath);
@@ -69,11 +58,11 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	po::options_description desc;
 
 	desc.add_options()
-		("help,h", "print usage message and exit")
-		("version,V", "print version and exit")
+		("help,h", "Print usage message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("warning,w", po::wvalue<wstring>(), "warning value (in percent)")
-		("critical,c", po::wvalue<wstring>(), "critical value (in percent)")
+		("warning,w", po::wvalue<std::wstring>(), "Warning value (in percent)")
+		("critical,c", po::wvalue<std::wstring>(), "Critical value (in percent)")
 		;
 
 	po::basic_command_line_parser<wchar_t> parser(ac, av);
@@ -89,16 +78,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check a machines CPU load.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
 			L"\tLOAD WARNING 67%% | load=67%%;50%%;90%%;0;100\n\n"
@@ -129,32 +118,32 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	}
 
 	if (vm.count("version"))
-		cout << "Version: " << VERSION << endl;
+		std::cout << "Version: " << VERSION << '\n';
 
 	if (vm.count("warning")) {
 		try {
-			std::wstring wthreshold = vm["warning"].as<wstring>();
+			std::wstring wthreshold = vm["warning"].as<std::wstring>();
 			std::vector<std::wstring> tokens;
 			boost::algorithm::split(tokens, wthreshold, boost::algorithm::is_any_of(","));
 			printInfo.warn = threshold(tokens[0]);
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 	if (vm.count("critical")) {
 		try {
-			std::wstring cthreshold = vm["critical"].as<wstring>();
+			std::wstring cthreshold = vm["critical"].as<std::wstring>();
 			std::vector<std::wstring> tokens;
 			boost::algorithm::split(tokens, cthreshold, boost::algorithm::is_any_of(","));
 			printInfo.crit = threshold(tokens[0]);
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
@@ -165,10 +154,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
 
@@ -180,24 +169,24 @@ int printOutput(printInfoStruct& printInfo)
 
 	std::wstringstream perf;
 	perf << L"% | load=" << printInfo.load << L"%;" << printInfo.warn.pString() << L";" 
-		<< printInfo.crit.pString() << L";0;100" << endl;
+		<< printInfo.crit.pString() << L";0;100" << '\n';
 
 	switch (state) {
 	case OK:
-		wcout << L"LOAD OK " << printInfo.load << perf.str();
+		std::wcout << L"LOAD OK " << printInfo.load << perf.str();
 		break;
 	case WARNING:
-		wcout << L"LOAD WARNING " << printInfo.load << perf.str();
+		std::wcout << L"LOAD WARNING " << printInfo.load << perf.str();
 		break;
 	case CRITICAL:
-		wcout << L"LOAD CRITICAL " << printInfo.load << perf.str();
+		std::wcout << L"LOAD CRITICAL " << printInfo.load << perf.str();
 		break;
 	}
 
 	return state;
 }
 
-int check_load(printInfoStruct& printInfo) 
+INT check_load(printInfoStruct& printInfo) 
 {
 	PDH_HQUERY phQuery = NULL;
 	PDH_HCOUNTER phCounter;
@@ -209,7 +198,7 @@ int check_load(printInfoStruct& printInfo)
 	LPCWSTR path = L"\\Processor(_Total)\\% Idle Time";
 
 	if (debug)
-		wcout << L"Creating query and adding counter" << endl;
+		std::wcout << L"Creating query and adding counter" << '\n';
 
 	err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
@@ -220,37 +209,37 @@ int check_load(printInfoStruct& printInfo)
 		goto die;
 
 	if (debug)
-		wcout << L"Collecting first batch of query data" << endl;
+		std::wcout << L"Collecting first batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
 	if (debug)
-		wcout << L"Sleep for one second" << endl;
+		std::wcout << L"Sleep for one second" << '\n';
 
 	Sleep(1000);
 
 	if (debug)
-		wcout << L"Collecting second batch of query data" << endl;
+		std::wcout << L"Collecting second batch of query data" << '\n';
 
 	err = PdhCollectQueryData(phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
 	if (debug)
-		wcout << L"Creating formatted counter array" << endl;
+		std::wcout << L"Creating formatted counter array" << '\n';
 
 	err = PdhGetFormattedCounterValue(phCounter, PDH_FMT_DOUBLE, &CounterType, &DisplayValue);
 	if (SUCCEEDED(err)) {
 		if (DisplayValue.CStatus == PDH_CSTATUS_VALID_DATA) {
 			if (debug)
-				wcout << L"Recieved Value of " << DisplayValue.doubleValue << L" (idle)" << endl;
+				std::wcout << L"Recieved Value of " << DisplayValue.doubleValue << L" (idle)" << '\n';
 			printInfo.load = 100.0 - DisplayValue.doubleValue;
 		}
 
 		if (debug)
-			wcout << L"Finished collection. Cleaning up and returning" << endl;
+			std::wcout << L"Finished collection. Cleaning up and returning" << '\n';
 
 		PdhCloseQuery(phQuery);
 		return -1;

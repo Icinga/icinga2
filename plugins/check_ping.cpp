@@ -31,39 +31,15 @@
 
 #include <iostream>
 
-#include "thresholds.h"
-#include "boost/program_options.hpp"
+#include "check_ping.h"
 
 #define VERSION 1.0
 
 namespace po = boost::program_options;
-using std::cout; using std::endl; using std::wcout;
-using std::wstring; using std::string;
 
 static BOOL debug = FALSE;
 
-struct response
-{
-	double avg;
-	UINT pMin = 0, pMax = 0, dropped = 0;
-};
-
-struct printInfoStruct
-{
-	threshold warn, crit;
-	threshold wpl, cpl;
-	wstring host;
-	BOOL ipv4 = TRUE;
-	DWORD timeout = 1000;
-	int num = 5;
-};
-
-static int printOutput(printInfoStruct&, response&);
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int check_ping4(const printInfoStruct&, response&);
-static int check_ping6(const printInfoStruct&, response&);
-
-int wmain(int argc, wchar_t **argv)
+INT wmain(INT argc, WCHAR **argv)
 {
 	po::variables_map vm;
 	printInfoStruct printInfo;
@@ -88,28 +64,28 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo, response);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo)
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
 
 	desc.add_options()
-		("help,h", "print usage message and exit")
-		("version,V", "print version and exit")
+		("help,h", "Print usage message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("host,H", po::wvalue<wstring>()->required(), "host ip to ping")
-		(",4", "--host is an ipv4 address (default)")
-		(",6", "--host is an ipv6 address")
-		("timeout,T", po::value<int>(), "specify timeout for requests in ms (default=1000)")
-		("ncount,n", po::value<int>(), "declare ping count (default=5)")
-		("warning,w", po::wvalue<wstring>(), "warning values: rtt,package loss")
-		("critical,c", po::wvalue<wstring>(), "critical values: rtt,package loss")
+		("host,H", po::wvalue<std::wstring>()->required(), "Host ip to ping")
+		(",4", "--Host is an ipv4 address (default)")
+		(",6", "--Host is an ipv6 address")
+		("timeout,t", po::value<INT>(), "Specify timeout for requests in ms (default=1000)")
+		("packets,p", po::value<INT>(), "Declare ping count (default=5)")
+		("warning,w", po::wvalue<std::wstring>(), "Warning values: rtt,package loss")
+		("critical,c", po::wvalue<std::wstring>(), "Critical values: rtt,package loss")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -124,16 +100,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to ping an ip4 address.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will take at least timeout times number of pings to run\n"
 			L"Then it will output a string looking something like this:\n\n"
@@ -165,65 +141,65 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	}
 
 	if (vm.count("version")) {
-		cout << progName << " Version: " << VERSION << endl;
+		std::cout << progName << " Version: " << VERSION << '\n';
 		return 0;
 	}
 
 	if (vm.count("-4") && vm.count("-6")) {
-		cout << "Conflicting options \"4\" and \"6\"" << endl;
+		std::cout << "Conflicting options \"4\" and \"6\"" << '\n';
 		return 3;
 	}
     
 	if (vm.count("warning")) {
-		std::vector<wstring> sVec = splitMultiOptions(vm["warning"].as<wstring>());
+		std::vector<std::wstring> sVec = splitMultiOptions(vm["warning"].as<std::wstring>());
 		if (sVec.size() != 2) {
-			cout << "Wrong format for warning thresholds" << endl;
+			std::cout << "Wrong format for warning thresholds" << '\n';
 			return 3;
 		}
 		try {
 			printInfo.warn = threshold(*sVec.begin());
 			printInfo.wpl = threshold(sVec.back());
 			if (!printInfo.wpl.perc) {
-				cout << "Packet loss must be percentage" << endl;
+				std::cout << "Packet loss must be percentage" << '\n';
 				return 3;
 			}
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 	if (vm.count("critical")) {
-		std::vector<wstring> sVec = splitMultiOptions(vm["critical"].as<wstring>());
+		std::vector<std::wstring> sVec = splitMultiOptions(vm["critical"].as<std::wstring>());
 		if (sVec.size() != 2) {
-			cout << "Wrong format for critical thresholds" << endl;
+			std::cout << "Wrong format for critical thresholds" << '\n';
 			return 3;
 		}
 		try {
 			printInfo.crit = threshold(*sVec.begin());
 			printInfo.cpl = threshold(sVec.back());
 			if (!printInfo.wpl.perc) {
-				cout << "Packet loss must be percentage" << endl;
+				std::cout << "Packet loss must be percentage" << '\n';
 				return 3;
 			}
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 
 	if (vm.count("timeout"))
-		printInfo.timeout = vm["timeout"].as<int>();
+		printInfo.timeout = vm["timeout"].as<INT>();
 	if (vm.count("count"))
-		printInfo.num = vm["count"].as<int>();
+		printInfo.num = vm["count"].as<INT>();
 	if (vm.count("-6"))
 		printInfo.ipv4 = FALSE;
 
-	printInfo.host = vm["host"].as<wstring>();
+	printInfo.host = vm["host"].as<std::wstring>();
 
 	if (vm.count("debug"))
 		debug = TRUE;
@@ -231,10 +207,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo, response& response)
+INT printOutput(printInfoStruct& printInfo, response& response)
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
 
@@ -252,51 +228,51 @@ int printOutput(printInfoStruct& printInfo, response& response)
 		<< printInfo.wpl.pString() << ";" << printInfo.cpl.pString() << ";0;100";
 
 	if (response.dropped == printInfo.num) {
-		wcout << L"PING CRITICAL ALL CONNECTIONS DROPPED | " << perf.str() << endl;
+		std::wcout << L"PING CRITICAL ALL CONNECTIONS DROPPED | " << perf.str() << '\n';
 		return 3;
 	}
 
 	switch (state) {
 	case OK:
-		wcout << L"PING OK RTA: " << response.avg << L"ms Packet loss: " << removeZero(plp) << "% | " << perf.str() << endl;
+		std::wcout << L"PING OK RTA: " << response.avg << L"ms Packet loss: " << removeZero(plp) << "% | " << perf.str() << '\n';
 		break;
 	case WARNING:
-		wcout << L"PING WARNING RTA: " << response.avg << L"ms Packet loss: " << removeZero(plp) << "% | " << perf.str() << endl;
+		std::wcout << L"PING WARNING RTA: " << response.avg << L"ms Packet loss: " << removeZero(plp) << "% | " << perf.str() << '\n';
 		break;
 	case CRITICAL:
-		wcout << L"PING CRITICAL RTA: " << response.avg << L"ms Packet loss: " << removeZero(plp) << "% | " << perf.str() << endl;
+		std::wcout << L"PING CRITICAL RTA: " << response.avg << L"ms Packet loss: " << removeZero(plp) << "% | " << perf.str() << '\n';
 		break;
 	}
 
 	return state;
 }
 
-int check_ping4(const printInfoStruct& pi, response& response)
+INT check_ping4(const printInfoStruct& pi, response& response)
 {
 	in_addr ipDest4;
 	HANDLE hIcmp;
 	DWORD dwRet = 0, dwRepSize = 0;
 	LPVOID repBuf = NULL;
 	UINT rtt = 0;
-	int num = pi.num;
+	INT num = pi.num;
 	LARGE_INTEGER frequency, timer1, timer2;
 	LPCWSTR term;
 
 	if (debug)
-		wcout << L"Parsing ip address" << endl;
+		std::wcout << L"Parsing ip address" << '\n';
 
 	if (RtlIpv4StringToAddress(pi.host.c_str(), TRUE, &term, &ipDest4) == STATUS_INVALID_PARAMETER) {
-		std::wcout << pi.host << " is not a valid ip address" << std::endl;
+		std::wcout << pi.host << " is not a valid ip address\n";
 		return 3;
 	}
 
 	if (*term != L'\0') {
-		std::wcout << pi.host << " is not a valid ip address" << std::endl;
+		std::wcout << pi.host << " is not a valid ip address\n";
 		return 3;
 	}
 
 	if (debug)
-		wcout << L"Creating Icmp File" << endl;
+		std::wcout << L"Creating Icmp File\n";
 
 	if ((hIcmp = IcmpCreateFile()) == INVALID_HANDLE_VALUE)
 		goto die;
@@ -312,30 +288,30 @@ int check_ping4(const printInfoStruct& pi, response& response)
 		QueryPerformanceCounter(&timer1);
 
 		if (debug)
-			wcout << L"Sending Icmp echo" << endl;
+			std::wcout << L"Sending Icmp echo\n";
 
 		if (!IcmpSendEcho2(hIcmp, NULL, NULL, NULL, ipDest4.S_un.S_addr,
 			NULL, 0, NULL, repBuf, dwRepSize, pi.timeout)) {
 			response.dropped++;
 			if (debug)
-				wcout << L"Dropped: Response was 0" << endl;
+				std::wcout << L"Dropped: Response was 0" << '\n';
 			continue;
 		}
 
 		if (debug)
-			wcout << "Ping recieved" << endl;
+			std::wcout << "Ping recieved" << '\n';
 
 		PICMP_ECHO_REPLY pEchoReply = static_cast<PICMP_ECHO_REPLY>(repBuf);
 
 		if (pEchoReply->Status != IP_SUCCESS) {
 			response.dropped++;
 			if (debug)
-				wcout << L"Dropped: echo reply status " << pEchoReply->Status << endl;
+				std::wcout << L"Dropped: echo reply status " << pEchoReply->Status << '\n';
 			continue;
 		}
 
 		if (debug)
-			wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << endl;
+			std::wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << '\n';
 
 		rtt += pEchoReply->RoundTripTime;
 		if (response.pMin == 0 || pEchoReply->RoundTripTime < response.pMin)
@@ -349,7 +325,7 @@ int check_ping4(const printInfoStruct& pi, response& response)
 	} while (--num);
 
 	if (debug)
-		wcout << L"All pings sent. Cleaning up and returning" << endl;
+		std::wcout << L"All pings sent. Cleaning up and returning" << '\n';
 
 	if (hIcmp)
 		IcmpCloseHandle(hIcmp);
@@ -370,9 +346,8 @@ die:
 	return 3;
 }
 
-int check_ping6(const printInfoStruct& pi, response& response)
+INT check_ping6(const printInfoStruct& pi, response& response)
 {
-	PCWSTR term;
 	sockaddr_in6 ipDest6, ipSource6;
 	IP_OPTION_INFORMATION ipInfo = { 30, 0, 0, 0, NULL };
 	DWORD dwRepSize = sizeof(ICMPV6_ECHO_REPLY) + 8;
@@ -380,14 +355,14 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	HANDLE hIcmp = NULL;
 
 	LARGE_INTEGER frequency, timer1, timer2;
-	int num = pi.num;
+	INT num = pi.num;
 	UINT rtt = 0;
 
 	if (debug)
-		wcout << L"Parsing ip address" << endl;
+		std::wcout << L"Parsing ip address" << '\n';
 
 	if (RtlIpv6StringToAddressEx(pi.host.c_str(), &ipDest6.sin6_addr, &ipDest6.sin6_scope_id, &ipDest6.sin6_port)) {
-		std::wcout << pi.host << " is not a valid ipv6 address" << std::endl;
+		std::wcout << pi.host << " is not a valid ipv6 address" << '\n';
 		return 3;
 	}
 
@@ -399,7 +374,7 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	ipSource6.sin6_port = 0;
 
 	if (debug)
-		wcout << L"Creating Icmp File" << endl;
+		std::wcout << L"Creating Icmp File" << '\n';
 
 	hIcmp = Icmp6CreateFile();
 	if (hIcmp == INVALID_HANDLE_VALUE) {
@@ -411,18 +386,18 @@ int check_ping6(const printInfoStruct& pi, response& response)
 		QueryPerformanceCounter(&timer1);
 
 		if (debug)
-			wcout << L"Sending Icmp echo" << endl;
+			std::wcout << L"Sending Icmp echo" << '\n';
 
 		if (!Icmp6SendEcho2(hIcmp, NULL, NULL, NULL, &ipSource6, &ipDest6,
 			NULL, 0, &ipInfo, repBuf, dwRepSize, pi.timeout)) {
 			response.dropped++;
 			if (debug)
-				wcout << L"Dropped: Response was 0" << endl;
+				std::wcout << L"Dropped: Response was 0" << '\n';
 			continue;
 		}
 
 		if (debug)
-			wcout << "Ping recieved" << endl;
+			std::wcout << "Ping recieved" << '\n';
 
 		Icmp6ParseReplies(repBuf, dwRepSize);
 
@@ -431,14 +406,14 @@ int check_ping6(const printInfoStruct& pi, response& response)
 		if (pEchoReply->Status != IP_SUCCESS) {
 			response.dropped++;
 			if (debug)
-				wcout << L"Dropped: echo reply status " << pEchoReply->Status << endl;
+				std::wcout << L"Dropped: echo reply status " << pEchoReply->Status << '\n';
 			continue;
 		}
 		
 		rtt += pEchoReply->RoundTripTime;
 
 		if (debug)
-			wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << endl;
+			std::wcout << L"Recorded rtt of " << pEchoReply->RoundTripTime << '\n';
 
 		if (response.pMin == 0 || pEchoReply->RoundTripTime < response.pMin)
 			response.pMin = pEchoReply->RoundTripTime;
@@ -451,7 +426,7 @@ int check_ping6(const printInfoStruct& pi, response& response)
 	} while (--num);
 
 	if (debug)
-		wcout << L"All pings sent. Cleaning up and returning" << endl;
+		std::wcout << L"All pings sent. Cleaning up and returning" << '\n';
 
 	if (hIcmp)
 		IcmpCloseHandle(hIcmp);

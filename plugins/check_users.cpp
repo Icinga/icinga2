@@ -21,35 +21,20 @@
 #include <wtsapi32.h>
 #include <iostream>
 
-#include "thresholds.h"
-
-#include "boost/program_options.hpp"
+#include "check_users.h"
 
 #define VERSION 1.0
 
 namespace po = boost::program_options;
 
-using std::endl; using std::wcout;
-using std::cout; using std::wstring;
-
 static BOOL debug = FALSE;
 
-struct printInfoStruct 
-{
-	threshold warn, crit;
-	double users;
-};
-
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int printOutput(printInfoStruct&);
-static int check_users(printInfoStruct&);
-
-int wmain(int argc, wchar_t **argv) 
+INT wmain(INT argc, WCHAR **argv) 
 {
 	printInfoStruct printInfo = { };
 	po::variables_map vm;
 
-	int ret = parseArguments(argc, argv, vm, printInfo);
+	INT ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
 
@@ -60,23 +45,23 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
 
 	desc.add_options()
-		("help,h", "print help message and exit")
-		("version,V", "print version and exit")
+		("help,h", "Print help message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("warning,w", po::wvalue<wstring>(), "warning threshold")
-		("critical,c", po::wvalue<wstring>(), "critical threshold")
+		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
+		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -89,16 +74,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check a machines logged in users.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
 			L"\tUSERS WARNING 48 | users=48;10;50;0\n\n"
@@ -130,26 +115,26 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"to end with a percentage sign.\n\n"
 			L"All of these options work with the critical threshold \"-c\" too."
 			, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	}
 
 	if (vm.count("version"))
-		wcout << L"Version: " << VERSION << endl;
+		std::wcout << L"Version: " << VERSION << '\n';
 
 	if (vm.count("warning")) {
 		try {
-			printInfo.warn = threshold(vm["warning"].as<wstring>());
+			printInfo.warn = threshold(vm["warning"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
 	if (vm.count("critical")) {
 		try {
-			printInfo.crit = threshold(vm["critical"].as<wstring>());
+			printInfo.crit = threshold(vm["critical"].as<std::wstring>());
 		} catch (std::invalid_argument& e) {
-			cout << e.what() << endl;
+			std::cout << e.what() << '\n';
 			return 3;
 		}
 	}
@@ -160,10 +145,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
 
@@ -175,34 +160,34 @@ int printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"USERS OK " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
+		std::wcout << L"USERS OK " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case WARNING:
-		wcout << L"USERS WARNING " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
+		std::wcout << L"USERS WARNING " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	case CRITICAL:
-		wcout << L"USERS CRITICAL " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
-			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << endl;
+		std::wcout << L"USERS CRITICAL " << printInfo.users << L" User(s) logged in | users=" << printInfo.users << L";"
+			<< printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";0;" << '\n';
 		break;
 	}
 
 	return state;
 }
 
-int check_users(printInfoStruct& printInfo) 
+INT check_users(printInfoStruct& printInfo) 
 {
-	double users = 0;
+	DOUBLE users = 0;
 	WTS_SESSION_INFOW *pSessionInfo = NULL;
 	DWORD count;
 	DWORD index;
 
 	if (debug) 
-		wcout << L"Trying to enumerate terminal sessions" << endl;
+		std::wcout << L"Trying to enumerate terminal sessions" << '\n';
 	
 	if (!WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfo, &count)) {
-		wcout << L"Failed to enumerate terminal sessions" << endl;
+		std::wcout << L"Failed to enumerate terminal sessions" << '\n';
 		die();
 		if (pSessionInfo)
 			WTSFreeMemory(pSessionInfo);
@@ -210,22 +195,22 @@ int check_users(printInfoStruct& printInfo)
 	}
 
 	if (debug)
-		wcout << L"Got all sessions (" << count << L"), traversing and counting active ones" << endl;
+		std::wcout << L"Got all sessions (" << count << L"), traversing and counting active ones" << '\n';
 
 	for (index = 0; index < count; index++) {
 		LPWSTR name;
 		DWORD size;
-		int len;
+		INT len;
 
 		if (debug)
-			wcout << L"Querrying session number " << index << endl;
+			std::wcout << L"Querrying session number " << index << '\n';
 
 		if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, pSessionInfo[index].SessionId,
 										WTSUserName, &name, &size))
 			continue;
 
 		if (debug)
-			wcout << L"Found \"" << name << L"\". Checking whether it's a real session" << endl;
+			std::wcout << L"Found \"" << name << L"\". Checking whether it's a real session" << '\n';
 
 		len = lstrlenW(name);
 
@@ -237,12 +222,12 @@ int check_users(printInfoStruct& printInfo)
 		if (pSessionInfo[index].State == WTSActive || pSessionInfo[index].State == WTSDisconnected) {
 			users++;
 			if (debug)
-				wcout << L"\"" << name << L"\" is a real session, counting it. Now " << users << endl;
+				std::wcout << L"\"" << name << L"\" is a real session, counting it. Now " << users << '\n';
 		}
 	}
 
 	if (debug)
-		wcout << "Finished coutning user sessions (" << users << "). Freeing memory and returning" << endl;
+		std::wcout << "Finished coutning user sessions (" << users << "). Freeing memory and returning" << '\n';
 
 	WTSFreeMemory(pSessionInfo);
 	printInfo.users = users;

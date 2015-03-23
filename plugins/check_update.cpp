@@ -22,9 +22,7 @@
 #include <wuapi.h>
 #include <wuerror.h>
 
-#include "thresholds.h"
-
-#include "boost/program_options.hpp"
+#include "check_update.h"
 
 #define VERSION 1.0
 
@@ -32,28 +30,14 @@
 
 namespace po = boost::program_options;
 
-using std::wcout; using std::endl;
-using std::wstring; using std::cout;
-
 static BOOL debug = FALSE;
 
-struct printInfoStruct 
-{
-	BOOL warn, crit;
-	LONG numUpdates;
-	BOOL important, reboot, careForCanRequest;
-};
-
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int printOutput(const printInfoStruct&);
-static int check_update(printInfoStruct&);
-
-int wmain(int argc, wchar_t **argv) 
+INT wmain(INT argc, WCHAR **argv) 
 {
 	printInfoStruct printInfo = { FALSE, FALSE, 0, FALSE, FALSE, FALSE };
 	po::variables_map vm;
 
-	int ret = parseArguments(argc, argv, vm, printInfo);
+	INT ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
 	
@@ -64,24 +48,24 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
 
 	desc.add_options()
-		("help,h", "print help message and exit")
-		("version,V", "print version and exit")
+		("help,h", "Print help message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("warning,w", "warn if there are important updates available")
-		("critical,c", "critical if there are important updates that require a reboot")
-		("possible-reboot", "treat \"update may need reboot\" as \"update needs reboot\"")
+		("warning,w", "Warn if there are important updates available")
+		("critical,c", "Critical if there are important updates that require a reboot")
+		("possible-reboot", "Treat \"update may need reboot\" as \"update needs reboot\"")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -94,16 +78,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check a machines required updates.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nAfter some time, it will then output a string like this one:\n\n"
 			L"\tUPDATE WARNING 8 | updates=8;1;1;0\n\n"
@@ -128,10 +112,10 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"The \"possible-reboot\" option is not recommended since this true for nearly\n"
 			L"every update."
 			, progName, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	} if (vm.count("version")) {
-		cout << "Version: " << VERSION << endl;
+		std::cout << "Version: " << VERSION << '\n';
 		return 0;
 	}
 
@@ -150,13 +134,13 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(const printInfoStruct& printInfo)
+INT printOutput(const printInfoStruct& printInfo)
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
-	wstring output = L"UPDATE ";
+	std::wstring output = L"UPDATE ";
 
 	if (printInfo.important)
 		state = WARNING;
@@ -176,16 +160,16 @@ int printOutput(const printInfoStruct& printInfo)
 		break;
 	}
 
-	wcout << output << printInfo.numUpdates << L" | update=" << printInfo.numUpdates << L";"
-		<< printInfo.warn << L";" << printInfo.crit << L";0;" << endl;
+	std::wcout << output << printInfo.numUpdates << L" | update=" << printInfo.numUpdates << L";"
+		<< printInfo.warn << L";" << printInfo.crit << L";0;" << '\n';
 
 	return state;
 }
 
-int check_update(printInfoStruct& printInfo) 
+INT check_update(printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << "Initializing COM library" << endl;
+		std::wcout << "Initializing COM library" << '\n';
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	ISearchResult *pResult;
 	IUpdateSession *pSession;
@@ -194,7 +178,7 @@ int check_update(printInfoStruct& printInfo)
 
 	HRESULT err;
 	if (debug)
-		wcout << "Creating UpdateSession and UpdateSearcher" << endl;
+		std::wcout << "Creating UpdateSession and UpdateSearcher" << '\n';
 	CoCreateInstance(CLSID_UpdateSession, NULL, CLSCTX_INPROC_SERVER, IID_IUpdateSession, (LPVOID*)&pSession);
 	pSession->CreateUpdateSearcher(&pSearcher);
 
@@ -210,7 +194,7 @@ int check_update(printInfoStruct& printInfo)
 	// http://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
 
 	if (debug)
-		wcout << L"Querrying updates from server" << endl;
+		std::wcout << L"Querrying updates from server" << '\n';
 
 	err = pSearcher->Search(criteria, &pResult);
 	if (!SUCCEEDED(err))
@@ -236,24 +220,24 @@ int check_update(printInfoStruct& printInfo)
 	for (LONG i = 0; i < updateSize; i++) {
 		pCollection->get_Item(i, &pUpdate);
 		if (debug) {
-			wcout << L"Checking reboot behaviour of update number " << i << endl;
+			std::wcout << L"Checking reboot behaviour of update number " << i << '\n';
 		}
 		pUpdate->get_InstallationBehavior(&pIbehav);
 		pIbehav->get_RebootBehavior(&updateReboot);
 		if (updateReboot == irbAlwaysRequiresReboot) {
 			printInfo.reboot = TRUE;
 			if (debug)
-				wcout << L"It requires reboot" << endl;
+				std::wcout << L"It requires reboot" << '\n';
 			continue;
 		}
 		if (printInfo.careForCanRequest && updateReboot == irbCanRequestReboot)
 			if (debug)
-				wcout << L"It requires reboot" << endl;
+				std::wcout << L"It requires reboot" << '\n';
 			printInfo.reboot = TRUE;
 	}
 
 	if (debug)
-		wcout << L"Cleaning up and returning" << endl;
+		std::wcout << L"Cleaning up and returning" << '\n';
 
 	SysFreeString(criteria);
 	CoUninitialize();

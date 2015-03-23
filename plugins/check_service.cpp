@@ -20,36 +20,21 @@
 #include <Shlwapi.h>
 #include <iostream>
 
-#include "thresholds.h"
+#include "check_service.h"
 
-#include "boost/program_options.hpp"
 
 #define VERSION 1.1
 
 namespace po = boost::program_options;
 
-using std::wcout; using std::endl;
-using std::cout; using std::wstring;
-
 static BOOL debug;
 
-struct printInfoStruct 
-{
-	bool warn;
-	DWORD ServiceState;
-	wstring service;
-};
-
-static int parseArguments(int, wchar_t **, po::variables_map&, printInfoStruct&);
-static int printOutput(const printInfoStruct&);
-static DWORD ServiceStatus(const printInfoStruct&);
-
-int wmain(int argc, wchar_t **argv)
+INT wmain(INT argc, WCHAR **argv)
 {
 	po::variables_map vm;
 	printInfoStruct printInfo = { false, 0, L"" };
 
-	int ret = parseArguments(argc, argv, vm, printInfo);
+	INT ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
 
@@ -60,23 +45,23 @@ int wmain(int argc, wchar_t **argv)
 	return printOutput(printInfo);
 }
 
-int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
-	wchar_t namePath[MAX_PATH];
+	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
-	wchar_t *progName = PathFindFileName(namePath);
+	WCHAR *progName = PathFindFileName(namePath);
 
 	po::options_description desc;
 
 	desc.add_options()
-		("help,h", "print help message and exit")
-		("version,V", "print version and exit")
+		("help,h", "Print help message and exit")
+		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("service,s", po::wvalue<wstring>(), "service to check (required)")
-		("warn,w", "return warning (1) instead of critical (2),\n when service is not running")
+		("service,s", po::wvalue<std::wstring>(), "Service to check (required)")
+		("warn,w", "Return warning (1) instead of critical (2),\n when service is not running")
 		;
 
-	po::basic_command_line_parser<wchar_t> parser(ac, av);
+	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
 		po::store(
@@ -89,16 +74,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			vm);
 		vm.notify();
 	} catch (std::exception& e) {
-		cout << e.what() << endl << desc << endl;
+		std::cout << e.what() << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("help")) {
-		wcout << progName << " Help\n\tVersion: " << VERSION << endl;
+		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
 			L"%s is a simple program to check the status of a service.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
-		cout << desc;
+		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
 			L"\tSERVICE CRITICAL NOT_RUNNING | service=4;!4;!4;1;7\n\n"
@@ -115,24 +100,24 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 			L"all \"-w\" and \"-c\" do is say whether a not running service is a warning\n"
 			L"or critical state respectively.\n\n"
 			, progName, progName);
-		cout << endl;
+		std::cout << '\n';
 		return 0;
 	}
 
 	 if (vm.count("version")) {
-		cout << "Version: " << VERSION << endl;
+		std::cout << "Version: " << VERSION << '\n';
 		return 0;
 	} 
 
 	if (!vm.count("service")) {
-		cout << "Missing argument: service" << endl << desc << endl;
+		std::cout << "Missing argument: service" << '\n' << desc << '\n';
 		return 3;
 	}
 
 	if (vm.count("warn"))
 		printInfo.warn = true;
 	
-	printInfo.service = vm["service"].as<wstring>();
+	printInfo.service = vm["service"].as<std::wstring>();
 
 	if (vm.count("debug"))
 		debug = TRUE;
@@ -140,16 +125,16 @@ int parseArguments(int ac, wchar_t **av, po::variables_map& vm, printInfoStruct&
 	return -1;
 }
 
-int printOutput(const printInfoStruct& printInfo) 
+INT printOutput(CONST printInfoStruct& printInfo) 
 {
 	if (debug)
-		wcout << L"Constructing output string" << endl;
+		std::wcout << L"Constructing output string" << '\n';
 
-	wstring perf;
+	std::wstring perf;
 	state state = OK;
 
 	if (!printInfo.ServiceState) {
-		wcout << L"SERVICE CRITICAL NOTFOUND | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		std::wcout << L"SERVICE CRITICAL NOTFOUND | service=" << printInfo.ServiceState << ";!4;!4;1;7" << '\n';
 		return 3;
 	}
 
@@ -158,20 +143,20 @@ int printOutput(const printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		wcout << L"SERVICE OK RUNNING | service=4;!4;!4;1;7" << endl;
+		std::wcout << L"SERVICE OK RUNNING | service=4;!4;!4;1;7" << '\n';
 		break;
 	case WARNING:
-		wcout << L"SERVICE WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		std::wcout << L"SERVICE WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << '\n';
 		break;
 	case CRITICAL:
-		wcout << L"SERVICE CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << endl;
+		std::wcout << L"SERVICE CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";!4;!4;1;7" << '\n';
 		break;
 	}
 
 	return state;
 }
 
-DWORD ServiceStatus(const printInfoStruct& printInfo) 
+DWORD ServiceStatus(CONST printInfoStruct& printInfo) 
 {
 	SC_HANDLE hSCM;
 	SC_HANDLE hService;
@@ -179,14 +164,14 @@ DWORD ServiceStatus(const printInfoStruct& printInfo)
 	LPBYTE lpBuf = NULL;
 
 	if (debug)
-		wcout << L"Opening SC Manager" << endl;
+		std::wcout << L"Opening SC Manager" << '\n';
 
 	hSCM = OpenSCManager(NULL, NULL, GENERIC_READ);
 	if (hSCM == NULL)
 		goto die;
 
 	if (debug)
-		wcout << L"Getting Service Information" << endl;
+		std::wcout << L"Getting Service Information" << '\n';
 
 	hService = OpenService(hSCM, printInfo.service.c_str(), SERVICE_QUERY_STATUS);
 	if (hService == NULL)
