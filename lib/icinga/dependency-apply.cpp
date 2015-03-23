@@ -54,7 +54,7 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
 	builder->SetType("Dependency");
 	builder->SetName(name);
-	builder->SetScope(frame.Locals);
+	builder->SetScope(frame.Locals->ShallowClone());
 
 	Host::Ptr host;
 	Service::Ptr service;
