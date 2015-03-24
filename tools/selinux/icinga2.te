@@ -11,6 +11,9 @@ require {
 	type nagios_mail_plugin_t; type nagios_mail_plugin_exec_t;
 	type nagios_services_plugin_t; type nagios_services_plugin_exec_t;
 	type nagios_system_plugin_t; type nagios_system_plugin_exec_t;
+	type nagios_unconfined_plugin_t; type nagios_unconfined_plugin_exec_t;
+	type nagios_eventhandler_plugin_t; type nagios_eventhandler_plugin_exec_t;
+	type nagios_openshift_plugin_t; type nagios_openshift_plugin_exec_t;
 	type httpd_t; type system_mail_t;
 }
 
@@ -101,6 +104,9 @@ icinga2_execstrans(nagios_checkdisk_plugin_exec_t, nagios_checkdisk_plugin_t)
 icinga2_execstrans(nagios_mail_plugin_exec_t, nagios_mail_plugin_t)
 icinga2_execstrans(nagios_services_plugin_exec_t, nagios_services_plugin_t)
 icinga2_execstrans(nagios_system_plugin_exec_t, nagios_system_plugin_t)
+icinga2_execstrans(nagios_unconfined_plugin_exec_t, nagios_unconfined_plugin_t)
+icinga2_execstrans(nagios_eventhandler_plugin_exec_t, nagios_eventhandler_plugin_t)
+icinga2_execstrans(nagios_openshift_plugin_exec_t, nagios_openshift_plugin_t)
 
 # should be moved nagios.te
 nagios_plugin_template(notification)
