@@ -771,6 +771,200 @@ Name            | Description
 users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
+
+# <a id="windows-plugins"></a>Icinga 2 Windows plugins
+
+To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
+
+A check-commands-windows.conf comes with Icinga 2, it asumes that the Windows Plugins are installed in the PluginDir set in your constants.conf. To enable them the following include directive is needed in you icinga2.conf:
+ 
+	include <windows-plugins>
+
+One of the differences between the Windows plugins and their linux counterparts is that they consistently do not require thresholds to run, functioning like dummies without.
+
+
+## <a id"windows-plugins-thresholds"></a>Threshold syntax
+
+So not specified differently the thresholds for the plugins all follow the same pattern
+
+Threshold    | Meaning
+:------------|:----------
+"29"         | The threshold is 29.
+"!29"        | The threshold is 29, but the negative of the result is returned.
+"[10-40]"    | The threshold is a range from (including) 20 to 40, a value inside means the threshold has been exceeded.
+"![10-40]"   | Same as above, but the result is inverted.
+
+
+## <a id="windows-plugins-disk-windows"></a>disk-windows
+
+Check command object for the `check_disk.exe` plugin.  
+Aggregates the free disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like fash drives and discs (CD, DVD etc.).
+
+Custom attributes:
+
+Name            | Description
+:---------------|:------------
+disk\_win\_warn | **Optional**. The warning threshold.
+disk\_win\_crit | **Optional**. The critical threshold.
+disk\_win\_path | **Optional**. Check only these paths, default checks all.
+disk\_win\_unit | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
+
+
+## <a id="windows-plugins-load-windows"></a>load-windows
+
+Check command object for the `check_load.exe` plugin.  
+This plugin collects the inverse of the performance counter `\Processor(_Total)\% Idle Time` two times, with a wait time of one second between the collection. To change this wait time use [`perfmon-windows`](7-icinga-template-library.md#windows-plugins-load-windows).
+
+Custom attributes:
+
+Name            | Description
+:---------------|:------------
+load\_win\_warn | **Optional**. The warning threshold.
+load\_win\_crit | **Optional**. The critical threshold.
+
+
+## <a id="windows-plugins-memory-windows"></a>memory-windows
+
+Check command object for the `check_memory.exe` plugin.  
+The memory collection is instant.
+
+Custom attributes:
+
+Name              | Description
+:-----------------|:------------
+memory\_win\_warn | **Optional**. The warning threshold.
+memory\_win\_crit | **Optional**. The critical threshold.
+memory\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabye), possible values are: b, kb, mb, gb and tb.
+
+
+## <a id="windows-plugins-network-windows"></a>network-windows
+
+Check command object for the `check_network.exe` plugin.  
+Collects the total Bytes inbount and outbound for all interfaces in one second, to itemise interfaces or use a different collection interval use [`perfmon-windows`](7-icinga-template-library.md#windows-plugins-load-windows).
+
+Custom attributes:
+
+Name               | Description
+:------------------|:------------
+network\_win\_warn | **Optional**. The warning threshold.
+network\_win\_crit | **Optional**. The critical threshold.
+
+
+## <a id="windows-plugins-permon-windows"></a>perfmon-windows
+
+Check command object for the `check_perfmon.exe` plugin.  
+This plugins allows to collect data from a Performance Counter. After the first data collection a second one is done after `perfmon_win_wait` milliseconds. When you know `perfmon_win_counter` only requires one set of data to provide valid data you can set `perfmon_win_wait` to `0`.
+
+To recieve a list of possible Performance Counter Objects run `check_perfmon.exe --print-objects` and to view an objects instances and counters run `check_perfmon.exe --print-object-info -P "name of object"`
+
+Custom attributes:
+
+Name                  | Description
+:---------------------|:------------
+perfmon\_win\_warn    | **Optional**. The warning threshold.
+perfmon\_win\_crit    | **Optional**. The critical threshold.
+perfmon\_win\_counter | **Required**. The Performance Counter to use. Ex. `\Processor(_Total)\% Idle Time`.
+perfmon\_win\_wait    | **Optional**. Time in milliseconds to wait between data collection (default: 1000).
+perfmon\_win\_type    | **Optional**. Format in which to expect perfomance values. Possible are: long, int64 and double (default).
+
+
+## <a id="windows-plugins-ping-windows"></a>ping-windows
+
+Check command object for the `check_ping.exe` plugin.  
+ping-windows should automaticly detect whether `ping_win_address` is an IPv4 or IPv6 address, if not use ping4-windows and ping6-windows. Also note that check\_ping.exe waits at least `ping_win_timeout` milliseconds between the pings.
+
+Custom attributes:
+
+Name               | Description
+:------------------|:------------
+ping\_win\_warn    | **Optional**. The warning threshold. RTA and package loss seperated by comma.
+ping\_win\_crit    | **Optional**. The critical threshold. RTA and package loss seperated by comma.
+ping\_win\_address | **Required**. An IPv4 or IPv6 address
+ping\_win\_packets | **Optional**. Number of packages to send. Default: 5.
+ping\_win\_timeout | **Optional**. The timeout in milliseconds. Default: 1000
+
+
+## <a id="windows-plugins-procs-windows"></a>procs-windows
+
+Check command object for `check_procs.exe` plugin.  
+When useing `procs_win_user` this plugins needs adminstratice privileges to access the processes of other users, to just enumerate them no additional privileges are required.
+
+Custom attributes:
+
+Name             | Description
+:----------------|:------------
+procs\_win\_warn | **Optional**. The warning threshold.
+procs\_win\_crit | **Optional**. The critical threshold.
+procs\_win\_user | **Optional**. Count this useres processes.
+
+
+## <a id="windows-plugins-service-windows"></a>service-windows
+
+Check command object for `check_service.exe` plugin.  
+This checks thresholds work different since the binary decision whether a service is running or not does not allow for three states. As a default `check_service.exe` will return CRITICAL when `service_win_service` is not running, the `service_win_warn` flag changes this to WARNING.
+
+Custom attributes:
+
+Name                  | Description
+:---------------------|:------------
+service\_win\_warn    | **Optional**. Warn when service is not running.
+service\_win\_service | **Required**. The critical threshold.
+
+
+## <a id="windows-plugins-swap-windows"></a>swap-windows
+
+Check command object for `check_swap.exe` plugin.  
+The data collection is instant.
+
+Custom attributes:
+
+Name            | Description
+:---------------|:------------
+swap\_win\_warn | **Optional**. The warning threshold.
+swap\_win\_crit | **Optional**. The critical threshold.
+swap\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte).
+
+
+## <a id="windows-plugins-update-windows"></a>update-windows
+
+Check command object for `check_update.exe`plugin.  
+Querying Microsoft for Windows updates can take multiple seconds to minutes. An update is treated as important when it has the WSUS flag for SecurityUpdates or CriticalUpdates. 
+
+Custom attributes:
+
+Name                | Description
+:-------------------|:------------
+update\_win\_warn   | If set returns warning when important updates are available
+update\_win\_crit   | If set return critical when important updates that require a reboot are available.
+update\_win\_reboot | Set to treat 'may need update' as 'definitely needs update'
+
+
+## <a id="windows-plugins-uptime-windows"></a>uptime-windows
+
+Check command opject for `check_uptime.exe` plugin.  
+Uses GetTickCount64 to get the uptime, so boot time is not included.
+
+Custom attributes:
+
+Name              | Description
+:-----------------|:------------
+uptime\_win\_warn | **Optional**. The warning threshold.
+uptime\_win\_crit | **Optional**. The critical threshold.
+uptime\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "s"(seconds), possible values are ms (milliseconds), s, m (minutes), h (hours).
+
+
+## <a id="windows-plugins-users-windows"></a>users-windows
+
+Check command object for `check_users.exe` plugin.  
+
+Custom attributes:
+
+Name             | Description
+:----------------|:------------
+users\_win\_warn | **Optional**. The warning threshold.
+users\_win\_crit | **Optional**. The critical threshold.
+
+
 # <a id="nscp-plugin-check-commands"></a> NSClient++ Check Commands
 
 Icinga 2 can use the `nscp client` command to run arbitrary NSClient++ checks.

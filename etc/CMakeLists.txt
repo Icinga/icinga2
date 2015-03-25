@@ -27,12 +27,13 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
-install_if_not_exists(icinga2/icinga2.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 
 if(NOT WIN32)
   install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
+	install_if_not_exists(icinga2/icinga2.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 else()
   install_if_not_exists(${CMAKE_CURRENT_SOURCE_DIR}/icinga2/win32/constants.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
+		install_if_not_exists(icinga2/win32/icinga2.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
 endif()
 
 install_if_not_exists(icinga2/zones.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
@@ -42,13 +43,14 @@ install_if_not_exists(icinga2/conf.d/groups.conf ${CMAKE_INSTALL_SYSCONFDIR}/ici
 
 if(NOT WIN32)
   install_if_not_exists(icinga2/conf.d/hosts.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
+	install_if_not_exists(icinga2/conf.d/services.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 else()
   install_if_not_exists(icinga2/conf.d/win32/hosts.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
+	install_if_not_exists(icinga2/conf.d/win32/services.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 endif()
 
 install_if_not_exists(icinga2/conf.d/notifications.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/satellite.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
-install_if_not_exists(icinga2/conf.d/services.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/templates.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/timeperiods.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/users.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
