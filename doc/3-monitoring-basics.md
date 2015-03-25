@@ -1,7 +1,10 @@
 # <a id="monitoring-basics"></a> Monitoring Basics
 
 This part of the Icinga 2 documentation provides an overview of all the basic
-monitoring concepts you need to know to run Icinga 2.
+monitoring concepts you need to know to run Icinga 2.  
+Keep in mind these examples are made with a linux server in mind, if you are 
+using Windows you will need to change the services accordingly. See the [ITL reference](7-icinga-template-library.md#windows-plugins)
+ for further information.
 
 ## <a id="hosts-services"></a> Hosts and Services
 
