@@ -1,5 +1,7 @@
 /etc/rc\.d/init\.d/icinga2	--	gen_context(system_u:object_r:icinga2_initrc_exec_t,s0)
 
+/usr/lib/systemd/system/icinga2.*  --     gen_context(system_u:object_r:icinga2_unit_file_t,s0)
+
 /etc/icinga2(/.*)?		gen_context(system_u:object_r:icinga2_etc_t,s0)
 
 /etc/icinga2/scripts(/.*)?	gen_context(system_u:object_r:nagios_notification_plugin_exec_t,s0)

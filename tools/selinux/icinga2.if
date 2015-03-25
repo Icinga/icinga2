@@ -40,6 +40,30 @@ interface(`icinga2_initrc_domtrans',`
 
 ########################################
 ## <summary>
+##      Execute icinga2 daemon in the icinga2 domain.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed to transition.
+##      </summary>
+## </param>
+#
+interface(`icinga2_systemctl',`
+        gen_require(`
+                type icinga2_t;
+                type icinga2_unit_file_t;
+        ')
+
+        systemd_exec_systemctl($1)
+        allow $1 icinga2_unit_file_t:file read_file_perms;
+        allow $1 icinga2_unit_file_t:service manage_service_perms;
+
+        ps_process_pattern($1, icinga2_t)
+	init_dbus_chat($1)
+')
+
+########################################
+## <summary>
 ##      Allow the specified domain to read
 ##      icinga2 configuration files.
 ## </summary>
@@ -256,11 +280,24 @@ interface(`icinga2_admin',`
 	role_transition $2 icinga2_initrc_exec_t system_r;
 	allow $2 system_r;
 
+        files_list_etc($1)
+        admin_pattern($1, icinga2_etc_t)
+
 	logging_search_logs($1)
 	admin_pattern($1, icinga2_log_t)
 
 	files_search_var_lib($1)
 	admin_pattern($1, icinga2_var_lib_t)
+
+	admin_pattern($1, icinga2_var_run_t)
+	admin_pattern($1, icinga2_command_t)
+	admin_pattern($1, icinga2_spool_t)
+	admin_pattern($1, icinga2_cache_t)
+
+	icinga2_systemctl($1)
+	admin_pattern($1, icinga2_unit_file_t)
+        allow $1 icinga2_unit_file_t:service all_service_perms;
+
 	optional_policy(`
 		systemd_passwd_agent_exec($1)
 		systemd_read_fifo_file_passwd_run($1)
@@ -329,3 +366,23 @@ interface(`icinga2_dontaudit_leaks_fifo',`
         dontaudit $1 icinga2_t:fifo_file write;
 ')
 
+## <summary>Icinga2 administrator role.</summary>
+
+########################################
+## <summary>
+##      Change to the Icinga2 administrator role.
+## </summary>
+## <param name="role">
+##      <summary>
+##      Role allowed access.
+##      </summary>
+## </param>
+## <rolecap/>
+#
+interface(`icinga2adm_role_change',`
+        gen_require(`
+                role icinga2adm_r;
+        ')
+
+        allow $1 icinga2adm_r;
+')

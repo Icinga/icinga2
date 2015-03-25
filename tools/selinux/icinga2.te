@@ -15,6 +15,7 @@ require {
 	type nagios_eventhandler_plugin_t; type nagios_eventhandler_plugin_exec_t;
 	type nagios_openshift_plugin_t; type nagios_openshift_plugin_exec_t;
 	type httpd_t; type system_mail_t;
+	role staff_r;
 }
 
 type icinga2_t;
@@ -25,6 +26,9 @@ permissive icinga2_t;
 
 type icinga2_initrc_exec_t;
 init_script_file(icinga2_initrc_exec_t)
+
+type icinga2_unit_file_t;
+systemd_unit_file(icinga2_unit_file_t)
 
 type icinga2_etc_t;
 files_config_file(icinga2_etc_t)
@@ -62,6 +66,7 @@ allow icinga2_t self:process { setsched signal setrlimit };
 allow icinga2_t self:fifo_file rw_fifo_file_perms;
 allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
 
+list_dirs_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 read_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 read_lnk_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 
@@ -152,3 +157,18 @@ optional_policy(`
 	# should be a boolean in apache-policy
 	icinga2_send_commands(httpd_t)
 ')
+
+########################################
+#
+# Icinga2 Admin Role
+#
+
+userdom_unpriv_user_template(icinga2adm)
+
+icinga2_admin(icinga2adm_t, icinga2adm_r)
+
+allow icinga2adm_t self:capability { dac_read_search dac_override };
+
+# should be moved to staff.te
+icinga2adm_role_change(staff_r)
+
