@@ -37,6 +37,51 @@ interface(`icinga2_initrc_domtrans',`
 
 	init_labeled_script_domtrans($1, icinga2_initrc_exec_t)
 ')
+
+########################################
+## <summary>
+##      Allow the specified domain to read
+##      icinga2 configuration files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+## <rolecap/>
+#
+interface(`icinga2_read_config',`
+        gen_require(`
+                type icinga2_etc_t;
+        ')
+
+        files_search_etc($1)
+        list_dirs_pattern($1, icinga2_etc_t, icinga2_etc_t)
+        read_files_pattern($1, icinga2_etc_t, icinga2_etc_t)
+')
+
+########################################
+## <summary>
+##      Allow the specified domain to read
+##      and write icinga2 configuration files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+## <rolecap/>
+#
+interface(`icinga2_manage_config',`
+        gen_require(`
+                type icinga2_etc_t;
+        ')
+
+        files_search_etc($1)
+        manage_dirs_pattern($1, icinga2_etc_t, icinga2_etc_t)
+        manage_files_pattern($1, icinga2_etc_t, icinga2_etc_t)
+')
+
 ########################################
 ## <summary>
 ##	Read icinga2's log files.

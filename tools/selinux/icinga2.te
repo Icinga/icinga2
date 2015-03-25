@@ -26,6 +26,9 @@ permissive icinga2_t;
 type icinga2_initrc_exec_t;
 init_script_file(icinga2_initrc_exec_t)
 
+type icinga2_etc_t;
+files_config_file(icinga2_etc_t)
+
 type icinga2_log_t;
 logging_log_file(icinga2_log_t)
 
@@ -58,6 +61,9 @@ allow icinga2_t self:capability { setgid setuid sys_resource };
 allow icinga2_t self:process { setsched signal setrlimit };
 allow icinga2_t self:fifo_file rw_fifo_file_perms;
 allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
+
+read_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
+read_lnk_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 
 manage_dirs_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
 manage_files_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
