@@ -54,6 +54,52 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.3
+
+#### Changes
+
+* New function: parse_performance_data
+* Include more details in --version
+* Improve documentation
+* Bugfixes
+
+#### Issues
+
+* Feature 8685: Show state/type filter names in notice/debug log
+* Feature 8686: Update documentation for "apply for" rules
+* Feature 8693: New function: parse_performance_data
+* Feature 8740: Add "access objects at runtime" examples to advanced section
+* Feature 8761: Include more details in --version
+* Feature 8816: Add "random" CheckCommand for test and demo purposes
+* Feature 8827: Move release info in INSTALL.md into a separate file
+
+* Bug 8660: Update syntax highlighting for 2.3 features
+* Bug 8677: Re-order the object types in alphabetical order
+* Bug 8724: Missing config validator for command arguments 'set_if'
+* Bug 8734: startup.log broken when the DB schema needs an update
+* Bug 8736: Don't update custom vars for each status update
+* Bug 8748: Don't ignore extraneous arguments for functions
+* Bug 8749: Build warnings with CMake 3.1.3
+* Bug 8750: Flex version check does not reject unsupported versions
+* Bug 8753: Fix a typo in the documentation of ICINGA2_WITH_MYSQL and ICINGA2_WITH_PGSQL
+* Bug 8755: Fix VIM syntax highlighting for comments
+* Bug 8757: Add missing keywords in the syntax highlighting files
+* Bug 8762: Plugin "check_http" is missing in Windows environments
+* Bug 8763: Typo in doc library-reference
+* Bug 8764: Revamp migration documentation
+* Bug 8765: Explain processing logic/order of apply rules with for loops
+* Bug 8766: Remove prompt to create a TicketSalt from the wizard
+* Bug 8767: Typo and invalid example in the runtime macro documentation
+* Bug 8769: Improve error message for invalid field access
+* Bug 8770: object Notification + apply Service fails with error "...refers to service which doesn't exist"
+* Bug 8771: Correct HA documentation
+* Bug 8829: Figure out why command validators are not triggered
+* Bug 8834: Return doesn't work inside loops
+* Bug 8844: Segmentation fault when executing "icinga2 pki new-cert"
+* Bug 8862: wrong 'dns_lookup' custom attribute default in command-plugins.conf
+* Bug 8866: Fix incorrect perfdata templates in the documentation
+* Bug 8869: Array in command arguments doesn't work
+
 ### What's New in Version 2.3.2
 
 #### Changes
