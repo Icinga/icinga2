@@ -54,8 +54,13 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 		BOOST_FOREACH(const Value& arg, arr) {
 			/* Note: don't escape macros here. */
-			resultArr->Add(InternalResolveMacros(arg, resolvers, cr, missingMacro,
-			    EscapeCallback(), resolvedMacros, useResolvedMacros));
+			Value value = InternalResolveMacros(arg, resolvers, cr, missingMacro,
+			    EscapeCallback(), resolvedMacros, useResolvedMacros);
+
+			if (value.IsObjectType<Array>())
+				resultArr->Add(Utility::Join(value, ';'));
+			else
+				resultArr->Add(value);
 		}
 
 		result = resultArr;
