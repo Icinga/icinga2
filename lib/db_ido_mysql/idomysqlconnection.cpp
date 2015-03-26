@@ -683,7 +683,8 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 		if (DbValue::IsObjectInsertID(value)) {
 			dbrefcol = GetInsertID(dbobjcol);
 
-			ASSERT(dbrefcol.IsValid());
+			if (!dbrefcol.IsValid())
+				return false;
 		} else {
 			dbrefcol = GetObjectID(dbobjcol);
 
@@ -750,8 +751,10 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		bool first = true;
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
-			if (!FieldToEscapedString(kv.first, kv.second, &value))
+			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL));
 				return;
+			}
 
 			if (!first)
 				where << " AND ";
