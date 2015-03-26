@@ -424,8 +424,8 @@ Therefore the Icinga 2 `PerfdataWriter` object allows you to define
 the output template format for host and services backed with Icinga 2
 runtime vars.
 
-    host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$"
-    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.checkcommand$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.statetype$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.statetype$"
+    host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
+    service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
 
 The default templates are already provided with the Icinga 2 feature configuration
 which can be enabled using
