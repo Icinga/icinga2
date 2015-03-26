@@ -84,7 +84,7 @@ while True:
         if ignore_issue:
             continue
 
-        log_entries.append((issue["tracker"]["name"], issue["id"], issue["subject"]))
+        log_entries.append((issue["tracker"]["name"], issue["id"], issue["subject"].strip()))
 
 for p in range(2):
     not_empty = False
