@@ -242,6 +242,24 @@ interface(`icinga2_manage_lib_dirs',`
 	manage_dirs_pattern($1, icinga2_var_lib_t, icinga2_var_lib_t)
 ')
 
+########################################
+## <summary>
+##	Manage icinga2 spool files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`icinga2_manage_spool_files',`
+	gen_require(`
+		type icinga2_spool_t;
+	')
+
+	files_search_var_lib($1)
+	manage_files_pattern($1, icinga2_spool_t, icinga2_spool_t)
+')
 
 ########################################
 ## <summary>
