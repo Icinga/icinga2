@@ -72,7 +72,7 @@ The command pipe is labeled `icinga2_command_t` and other services can request a
 The nagios plugins use their own contexts and icinga2 will transition to it. This means plugins have to be labeled correctly for their required permissions. The plugins installed from package should have set their permissions by the corresponding policy module and you can restore them using `restorecon -R -v /usr/lib64/nagios/plugins/`. To label your own plugins use `chcon -t type /path/to/plugin`, for the type have a look at table below.
 
 Type                              | Domain                       | Use case                                                         | Provided by policy package
-----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------|------------------------------|------------------------------------------------------------------|---------------------------
 nagios_admin_plugin_exec_t        | nagios_admin_plugin_t        | Plugins which require require read access on all file attributes | nagios
 nagios_checkdisk_plugin_exec_t    | nagios_checkdisk_plugin_t    | Plugins which require read access to all filesystem attributes   | nagios
 nagios_mail_plugin_exec_t         | nagios_mail_plugin_t         | Plugins which access the local mail service                      | nagios
@@ -85,7 +85,81 @@ nagios_notification_plugin_exec_t | nagios_notification_plugin_t | Notification 
 
 If one of those plugin domains causes problems you can set it to permissive by executing `semanage permissive -a domain`.
 
+The policy provides a role `icinga2adm_r` for confining an user which enables an administrative user managing only Icinga 2 on the system.
+
 ### <a id="selinux-policy-examples"></a> Configuration Examples
+
+#### <a id="selinux-policy-examples-plugin"></a> Confining a plugin
+
+Download and install a plugin, for example check_mysql_health.
+
+    # wget http://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
+    # tar xvzf check_mysql_health-2.1.9.2.tar.gz 
+    # cd check_mysql_health-2.1.9.2/
+    # ./configure --libexecdir /usr/lib64/nagios/plugins
+    # make
+    # make install
+
+It is label `nagios_unconfined_plugins_exec_t` by default, so it runs without restrictions.
+
+    # ls -lZ /usr/lib64/nagios/plugins/check_mysql_health 
+    -rwxr-xr-x. root root system_u:object_r:nagios_unconfined_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
+
+In this case the plugin is monitoring a service, so it should be labeled `nagios_services_plugin_exec_t` to restrict its permissions.
+
+    # chcon -t nagios_services_plugin_exec_t /usr/lib64/nagios/plugins/check_mysql_health
+    # ls -lZ /usr/lib64/nagios/plugins/check_mysql_health
+    -rwxr-xr-x. root root system_u:object_r:nagios_services_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
+
+The plugin still runs fine but if someone changes the script to do weird stuff it will fail to do so.
+
+#### <a id="selinux-policy-examples-user"></a> Confining a user
+
+Start by adding the Icinga 2 administrator role `icinga2adm_r` to the administrative SELinux user `staff_u`.
+
+    # semanage user -m -R "staff_r sysadm_r system_r unconfined_r icinga2adm_r" staff_u
+
+Confine your user login and create a sudo rule.
+
+    # semanage login -a dirk -s staff_u
+    # echo "dirk ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dirk
+
+Login to the system using ssh and verify your id.
+
+    $ id -Z
+    staff_u:staff_r:staff_t:s0-s0:c0.c1023
+
+Try to execute some commands as root using sudo.
+
+    $ sudo id -Z
+    staff_u:staff_r:staff_t:s0-s0:c0.c1023
+    $ sudo vi /etc/icinga2/icinga2.conf
+    "/etc/icinga2/icinga2.conf" [Permission Denied]
+    $ sudo cat /var/log/icinga2/icinga2.log
+    cat: /var/log/icinga2/icinga2.log: Keine Berechtigung
+    $ sudo systemctl reload icinga2.service
+    Failed to get D-Bus connection: No connection to service manager.
+
+Those commands fail because you only switch to root but do not change your SELinux role. Try again but tell sudo also to switch the SELinux role and type.
+
+    $ sudo -r icinga2adm_r -t icinga2adm_t id -Z
+    staff_u:icinga2adm_r:icinga2adm_t:s0-s0:c0.c1023
+    $ sudo -r icinga2adm_r -t icinga2adm_t vi /etc/icinga2/icinga2.conf
+    "/etc/icinga2/icinga2.conf"
+    $ sudo -r icinga2adm_r -t icinga2adm_t cat /var/log/icinga2/icinga2.log
+    [2015-03-26 20:48:14 +0000] information/DynamicObject: Dumping program state to file '/var/lib/icinga2/icinga2.state'
+    $ sudo -r icinga2adm_r -t icinga2adm_t systemctl reload icinga2.service
+
+Now the commands will work, but you have always to remember to add the arguments, so change the sudo rule to set it by default.
+
+    # echo "dirk ALL=(ALL) ROLE=icinga2adm_r TYPE=icinga2adm_t NOPASSWD: ALL" > /etc/sudoers.d/dirk
+
+Now try the commands again without providing the role and type and they will work, but if you try to read apache logs or restart apache for example it will still fail.
+
+    $ sudo cat /var/log/httpd/error_log
+    /bin/cat: /var/log/httpd/error_log: Keine Berechtigung
+    $ sudo systemctl reload httpd.service
+    Failed to issue method call: Access denied
 
 ## <a id="selinux-bugreports"></a> Bugreports
 
