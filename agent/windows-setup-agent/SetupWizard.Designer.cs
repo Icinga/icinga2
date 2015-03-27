@@ -75,6 +75,9 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
+			this.groupBox3 = new System.Windows.Forms.GroupBox();
+			this.chkAcceptCommands = new System.Windows.Forms.CheckBox();
+			this.chkAcceptConfig = new System.Windows.Forms.CheckBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -86,6 +89,7 @@
 			this.grpX509Fields.SuspendLayout();
 			this.tabError.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).BeginInit();
+			this.groupBox3.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// btnBack
@@ -170,6 +174,7 @@
 			// 
 			// tabParameters
 			// 
+			this.tabParameters.Controls.Add(this.groupBox3);
 			this.tabParameters.Controls.Add(this.txtTicket);
 			this.tabParameters.Controls.Add(this.lblTicket);
 			this.tabParameters.Controls.Add(this.txtInstanceName);
@@ -224,7 +229,7 @@
 			this.groupBox2.Controls.Add(this.rdoListener);
 			this.groupBox2.Location = new System.Drawing.Point(8, 359);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(601, 111);
+			this.groupBox2.Size = new System.Drawing.Size(294, 111);
 			this.groupBox2.TabIndex = 2;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "TCP Listener";
@@ -554,6 +559,37 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
+			// groupBox3
+			// 
+			this.groupBox3.Controls.Add(this.chkAcceptConfig);
+			this.groupBox3.Controls.Add(this.chkAcceptCommands);
+			this.groupBox3.Location = new System.Drawing.Point(308, 359);
+			this.groupBox3.Name = "groupBox3";
+			this.groupBox3.Size = new System.Drawing.Size(301, 111);
+			this.groupBox3.TabIndex = 5;
+			this.groupBox3.TabStop = false;
+			this.groupBox3.Text = "Advanced Settings";
+			// 
+			// chkAcceptCommands
+			// 
+			this.chkAcceptCommands.AutoSize = true;
+			this.chkAcceptCommands.Location = new System.Drawing.Point(9, 24);
+			this.chkAcceptCommands.Name = "chkAcceptCommands";
+			this.chkAcceptCommands.Size = new System.Drawing.Size(171, 17);
+			this.chkAcceptCommands.TabIndex = 0;
+			this.chkAcceptCommands.Text = "Accept commands from master";
+			this.chkAcceptCommands.UseVisualStyleBackColor = true;
+			// 
+			// chkAcceptConfig
+			// 
+			this.chkAcceptConfig.AutoSize = true;
+			this.chkAcceptConfig.Location = new System.Drawing.Point(9, 47);
+			this.chkAcceptConfig.Name = "chkAcceptConfig";
+			this.chkAcceptConfig.Size = new System.Drawing.Size(190, 17);
+			this.chkAcceptConfig.TabIndex = 1;
+			this.chkAcceptConfig.Text = "Accept config updates from master";
+			this.chkAcceptConfig.UseVisualStyleBackColor = true;
+			// 
 			// SetupWizard
 			// 
 			this.AcceptButton = this.btnNext;
@@ -592,6 +628,8 @@
 			this.tabError.ResumeLayout(false);
 			this.tabError.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).EndInit();
+			this.groupBox3.ResumeLayout(false);
+			this.groupBox3.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -644,6 +682,9 @@
 		private System.Windows.Forms.TextBox txtTicket;
 		private System.Windows.Forms.Label lblTicket;
 		private System.Windows.Forms.ColumnHeader colInstanceName;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.CheckBox chkAcceptConfig;
+        private System.Windows.Forms.CheckBox chkAcceptCommands;
 	}
 }
 

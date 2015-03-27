@@ -222,6 +222,12 @@ namespace Icinga
 			if (rdoListener.Checked)
 				args += " --listen ::," + txtListenerPort.Text;
 
+			if (chkAcceptConfig.Checked)
+				args += " --accept-config";
+
+			if (chkAcceptCommands.Checked)
+				args += " --accept-commands";
+
 			args += " --ticket " + txtTicket.Text;
 			args += " --trustedcert " + _TrustedFile;
 			args += " --cn " + txtInstanceName.Text;
@@ -502,6 +508,6 @@ namespace Icinga
 			while (lvwEndpoints.SelectedItems.Count > 0) {
 				lvwEndpoints.Items.Remove(lvwEndpoints.SelectedItems[0]);
 			}
-		}
+        }
 	}
 }

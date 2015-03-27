@@ -99,6 +99,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 	std::string answer;
 	bool is_node_setup = true;
 
+	/* master or node setup */
 	std::cout << ConsoleColorTag(Console_Bold) << "Please specify if this is a satellite setup "
 	    << "('n' installs a master setup)" << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 	std::getline (std::cin, answer);
@@ -335,6 +336,20 @@ wizard_ticket:
 		String bind_port = answer;
 		bind_port.Trim();
 
+		std::cout << ConsoleColorTag(Console_Bold) << "Accept config from master?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+		std::getline(std::cin, answer);
+		boost::algorithm::to_lower(answer);
+		choice = answer;
+
+		String accept_config = (choice.Contains("y") || choice.Contains("j")) ? "true" : "false";
+
+		std::cout << ConsoleColorTag(Console_Bold) << "Accept commands from master?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+		std::getline(std::cin, answer);
+		boost::algorithm::to_lower(answer);
+		choice = answer;
+
+		String accept_commands = (choice.Contains("y") || choice.Contains("j")) ? "true" : "false";
+
 		/* disable the notifications feature on client nodes */
 		Log(LogInformation, "cli", "Disabling the Notification feature.");
 
@@ -362,7 +377,9 @@ wizard_ticket:
 		    << "object ApiListener \"api\" {\n"
 		    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
 		    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-		    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+		    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n"
+			<< "  accept_config = " << accept_config << '\n'
+			<< "  accept_commands = " << accept_commands << '\n';
 
 		if (!bind_host.IsEmpty())
 			fp << "  bind_host = \"" << bind_host << "\"\n";

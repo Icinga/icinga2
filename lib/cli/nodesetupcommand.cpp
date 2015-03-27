@@ -64,6 +64,8 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("ticket", po::value<std::string>(), "Generated ticket number for this request")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
 		("cn", po::value<std::string>(), "The certificate's common name")
+		("accept-config", "Accept config from master")
+		("accept-commands", "Accept commands from master")
 		("master", "Use setup for a master instance");
 }
 
@@ -113,6 +115,12 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	if (vm.count("trustedcert"))
 		Log(LogWarning, "cli", "Master for Node setup: Ignoring --trustedcert");
+
+	if (vm.count("accept-config"))
+		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-config");
+
+	if (vm.count("accept-commands"))
+		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-commands");
 
 	/* Generate a new CA, if not already existing */
 
@@ -455,6 +463,15 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		if (tokens.size() > 1)
 			fp << "  bind_port = " << tokens[1] << "\n";
 	}
+	if (vm.count("accept-config"))
+		fp << "accept_config = true\n";
+	else
+		fp << "accept_config = false\n";
+
+	if (vm.count("accept-commands"))
+		fp << "accept_commands = true\n";
+	else
+		fp << "accept_commands = false\n";
 
 	fp << "\n"
 	    << "  ticket_salt = TicketSalt\n"
