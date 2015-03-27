@@ -749,8 +749,14 @@ Custom Attributes:
 
 Name            | Description
 ----------------|--------------
-ups_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-ups_name        | **Optional.** The UPS name. Defaults to `ups`.
+ups_address     | **Required.** The address of the host running upsd. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ups_name        | **Required.** The UPS name. Defaults to `ups`.
+ups_port        | **Optional.** The port to which to connect. Defaults to 3493.
+ups_variable    | **Optional.** The variable to monitor. Must be one of LINE, TEMP, BATTPCT or LOADPCT. If this is not set, the check only relies on the value of `ups.status`.
+ups_warning     | **Optional.** The warning threshold for the selected variable.
+ups_critical    | **Optional.** The critical threshold for the selected variable.
+ups_celsius     | **Optional.** Display the temperature in degrees Celsius instead of Fahrenheit. Defaults to `false`.
+ups_timeout     | **Optional.** The number of seconds before the connection times out. Defaults to 10.
 
 
 ## <a id="plugin-check-command-users"></a> users
