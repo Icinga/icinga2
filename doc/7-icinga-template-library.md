@@ -937,7 +937,7 @@ swap\_win\_unit | **Optional**. The unit to display the received value in, thres
 
 ## <a id="windows-plugins-update-windows"></a>update-windows
 
-Check command object for `check_update.exe`plugin.  
+Check command object for `check_update.exe` plugin.
 Querying Microsoft for Windows updates can take multiple seconds to minutes. An update is treated as important when it has the WSUS flag for SecurityUpdates or CriticalUpdates. 
 
 Custom attributes:

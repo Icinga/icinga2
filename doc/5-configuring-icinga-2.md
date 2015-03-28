@@ -476,7 +476,7 @@ The `interval` attribute is not explicitly set - it [defaults to 30 minutes](6-o
 
 By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](5-configuring-icinga-2.md#hosts-conf) attribute we'll
-implicitely use the`icingaadmins` UserGroup defined in [users.conf](5-configuring-icinga-2.md#users-conf).
+implicitely use the `icingaadmins` UserGroup defined in [users.conf](5-configuring-icinga-2.md#users-conf).
 
     apply Notification "mail-icingaadmin" to Host {
       import "mail-host-notification"
