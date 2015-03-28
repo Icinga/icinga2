@@ -738,7 +738,7 @@ included in `icinga2.conf` by default.
 
 > **Note**
 >
-> Add your own custom templates in the `conf.d`directory as well, e.g. inside
+> Add your own custom templates in the `conf.d/` directory as well, e.g. inside
 > the [templates.conf](5-configuring-icinga-2.md#templates-conf) file.
 
 ### <a id="differences-1x-2-main-config"></a> Main Config File

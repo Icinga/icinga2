@@ -1556,7 +1556,7 @@ will fail in case the `dsl-router` host is down. Therefore the example below
 defines a host dependency which acts implicitly as parent relation too.
 
 Furthermore the host may be reachable but ping probes are dropped by the
-router's firewall. In case the `dsl-router``ping4` service check fails, all
+router's firewall. In case the `dsl-router`'s `ping4` service check fails, all
 further checks for the `ping4` service on host `google-dns` service should
 be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
 
@@ -1597,7 +1597,7 @@ be suppressed. This is achieved by setting the `disable_checks` attribute to `tr
 ### <a id="dependencies-apply-custom-attributes"></a> Apply Dependencies based on Custom Attributes
 
 You can use [apply rules](3-monitoring-basics.md#using-apply) to set parent or
-child attributes e.g. `parent_host_name`to other object's
+child attributes e.g. `parent_host_name` to other object's
 attributes.
 
 A common example are virtual machines hosted on a master. The object
