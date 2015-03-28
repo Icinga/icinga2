@@ -640,17 +640,12 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 void ClassCompiler::CodeGenValidator(const std::string& name, const std::string& klass, const std::vector<Rule>& rules, const std::string& field, const FieldType& fieldType, ValidatorType validatorType)
 {
-	m_Header << "void TIValidate" << name << "(const intrusive_ptr<ObjectImpl<" << klass << "> >& object, ";
-	m_Impl << "void TIValidate" << name << "(const intrusive_ptr<ObjectImpl<" << klass << "> >& object, ";
+	m_Impl << "static void TIValidate" << name << "(const intrusive_ptr<ObjectImpl<" << klass << "> >& object, ";
 
-	if (validatorType != ValidatorField) {
-		m_Header << "const String& key, ";
+	if (validatorType != ValidatorField)
 		m_Impl << "const String& key, ";
-	}
 
 	bool static_known_attribute = false;
-
-	m_Header << fieldType.GetArgumentType() << " value, std::vector<String>& location, const ValidationUtils& utils);" << std::endl;
 
 	m_Impl << fieldType.GetArgumentType() << " value, std::vector<String>& location, const ValidationUtils& utils)" << std::endl
 	       << "{" << std::endl;
