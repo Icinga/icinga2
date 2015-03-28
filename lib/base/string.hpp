@@ -69,6 +69,9 @@ public:
 		: m_Data(other.m_Data)
 	{ }
 
+	inline ~String(void)
+	{ }
+
 	template<typename InputIterator>
 	String(InputIterator begin, InputIterator end)
 		: m_Data(begin, end)

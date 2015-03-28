@@ -49,6 +49,12 @@ public:
 
 	typedef std::pair<String, Value> Pair;
 
+	inline Dictionary(void)
+	{ }
+
+	inline ~Dictionary(void)
+	{ }
+
 	Value Get(const char *key) const;
 	Value Get(const String& key) const;
 	void Set(const String& key, const Value& value);

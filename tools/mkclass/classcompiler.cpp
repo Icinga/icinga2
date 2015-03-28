@@ -597,7 +597,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			std::string realType = it->Type.GetRealType();
 
 			m_Header << "private:" << std::endl
-				 << "\t" << realType << " GetDefault" << it->GetFriendlyName() << "(void) const;" << std::endl;
+				 << "\t" << "inline " << realType << " GetDefault" << it->GetFriendlyName() << "(void) const;" << std::endl;
 
 			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << it->GetFriendlyName() << "(void) const" << std::endl
 			       << "{" << std::endl;
