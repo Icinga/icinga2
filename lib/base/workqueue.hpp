@@ -22,12 +22,12 @@
 
 #include "base/i2-base.hpp"
 #include "base/timer.hpp"
-#include <deque>
 #include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/exception_ptr.hpp>
+#include <deque>
 
 namespace icinga
 {

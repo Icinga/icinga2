@@ -22,7 +22,6 @@
 
 #include "config/i2-config.hpp"
 #include "base/dictionary.hpp"
-#include "base/scriptglobal.hpp"
 #include <boost/thread/tss.hpp>
 
 namespace icinga

@@ -83,7 +83,7 @@
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "visibility.hpp"
+#include "base/visibility.hpp"
 
 #ifdef I2_BASE_BUILD
 #	define I2_BASE_API I2_EXPORT

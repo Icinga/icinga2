@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/scriptframe.hpp"
+#include "base/scriptglobal.hpp"
 
 using namespace icinga;
 

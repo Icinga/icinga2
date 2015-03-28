@@ -26,7 +26,7 @@
 #include <string.h>
 #include <functional>
 #include <string>
-#include <istream>
+#include <iosfwd>
 
 namespace icinga {
 

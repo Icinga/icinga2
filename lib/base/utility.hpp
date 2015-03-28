@@ -23,11 +23,11 @@
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
 #include "base/array.hpp"
-#include <typeinfo>
+#include "base/threadpool.hpp"
 #include <boost/function.hpp>
 #include <boost/thread/tss.hpp>
+#include <typeinfo>
 #include <vector>
-#include "base/threadpool.hpp"
 
 namespace icinga
 {

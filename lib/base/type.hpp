@@ -24,7 +24,6 @@
 #include "base/string.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
-#include <boost/function.hpp>
 #include <vector>
 
 namespace icinga

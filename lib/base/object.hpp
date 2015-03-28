@@ -23,13 +23,14 @@
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
 #include "base/thinmutex.hpp"
-#include <boost/thread/thread.hpp>
 
 #ifndef I2_DEBUG
 #include <boost/thread/mutex.hpp>
 #else /* I2_DEBUG */
 #include <boost/thread/recursive_mutex.hpp>
 #endif /* I2_DEBUG */
+
+#include <boost/thread/condition_variable.hpp>
 
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 

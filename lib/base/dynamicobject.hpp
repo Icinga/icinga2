@@ -25,9 +25,7 @@
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
-#include "base/debuginfo.hpp"
 #include <boost/signals2.hpp>
-#include <map>
 
 namespace icinga
 {
