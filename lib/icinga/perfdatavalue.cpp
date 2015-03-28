@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/perfdatavalue.hpp"
+#include "icinga/perfdatavalue.tcpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"

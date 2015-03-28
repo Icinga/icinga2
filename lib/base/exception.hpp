@@ -27,6 +27,7 @@
 #include "base/utility.hpp"
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
+#include "base/dynamicobject.hpp"
 #include <sstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -65,21 +66,18 @@ private:
 	bool m_IncompleteExpr;
 };
 
-class DynamicObject;
-template<> class ObjectImpl<DynamicObject>;
-
 /*
  * @ingroup base
  */
 class I2_BASE_API ValidationError : virtual public user_error
 {
 public:
-	ValidationError(const intrusive_ptr<ObjectImpl<DynamicObject> >& object, const std::vector<String>& attributePath, const String& message);
+	ValidationError(const DynamicObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
 	~ValidationError(void) throw();
 
 	virtual const char *what(void) const throw();
 
-	intrusive_ptr<ObjectImpl<DynamicObject> > GetObject(void) const;
+	DynamicObject::Ptr GetObject(void) const;
 	std::vector<String> GetAttributePath(void) const;
 	String GetMessage(void) const;
 
@@ -87,7 +85,7 @@ public:
 	Dictionary::Ptr GetDebugHint(void) const;
 
 private:
-	intrusive_ptr<ObjectImpl<DynamicObject> > m_Object;
+	DynamicObject::Ptr m_Object;
 	std::vector<String> m_AttributePath;
 	String m_Message;
 	String m_What;

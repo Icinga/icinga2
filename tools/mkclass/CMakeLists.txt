@@ -40,15 +40,12 @@ set_target_properties (
   FOLDER Bin
 )
 
-macro(MKCLASS_TARGET ClassInput ClassOutput)
+macro(MKCLASS_TARGET ClassInput ClassImplOutput ClassHeaderOutput)
     add_custom_command(
-        OUTPUT ${ClassOutput}
+        OUTPUT ${ClassImplOutput} ${ClassHeaderOutput}
         COMMAND mkclass
-        ARGS ${ClassInput} > ${CMAKE_CURRENT_BINARY_DIR}/${ClassOutput}.tmp
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${CMAKE_CURRENT_BINARY_DIR}/${ClassOutput}.tmp ${CMAKE_CURRENT_BINARY_DIR}/${ClassOutput}
+        ARGS ${ClassInput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassImplOutput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassHeaderOutput}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS mkclass ${ClassInput}
     )
-    set_property(SOURCE ${ClassOutput} PROPERTY EXCLUDE_UNITY_BUILD)
 endmacro()

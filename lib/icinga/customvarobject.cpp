@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
+#include "icinga/customvarobject.tcpp"
 #include "icinga/macroprocessor.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"

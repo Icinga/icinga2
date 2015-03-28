@@ -17,9 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "base/logger.hpp"
+#include "base/logger.tcpp"
 #include "base/application.hpp"
 #include "base/streamlogger.hpp"
-#include "base/logger.hpp"
 #include "base/dynamictype.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"

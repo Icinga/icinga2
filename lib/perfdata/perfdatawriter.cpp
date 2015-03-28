@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "perfdata/perfdatawriter.hpp"
+#include "perfdata/perfdatawriter.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"

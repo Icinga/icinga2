@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "compat/statusdatawriter.hpp"
+#include "compat/statusdatawriter.tcpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "icinga/hostgroup.hpp"

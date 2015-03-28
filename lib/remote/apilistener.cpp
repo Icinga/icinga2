@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "remote/apilistener.hpp"
+#include "remote/apilistener.tcpp"
 #include "remote/apiclient.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/jsonrpc.hpp"

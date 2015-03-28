@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "compat/compatlogger.hpp"
+#include "compat/compatlogger.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"

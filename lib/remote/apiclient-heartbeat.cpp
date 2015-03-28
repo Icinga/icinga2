@@ -23,6 +23,7 @@
 #include "base/initialize.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
+#include "base/utility.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;

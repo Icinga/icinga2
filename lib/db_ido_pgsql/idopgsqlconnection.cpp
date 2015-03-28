@@ -17,9 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "db_ido_pgsql/idopgsqlconnection.hpp"
+#include "db_ido_pgsql/idopgsqlconnection.tcpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "db_ido_pgsql/idopgsqlconnection.hpp"
 #include "icinga/perfdatavalue.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"

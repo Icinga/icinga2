@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "perfdata/gelfwriter.hpp"
+#include "perfdata/gelfwriter.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/macroprocessor.hpp"

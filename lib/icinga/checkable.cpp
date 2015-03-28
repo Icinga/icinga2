@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/checkable.hpp"
+#include "icinga/checkable.tcpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"

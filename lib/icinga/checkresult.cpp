@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/checkresult.hpp"
+#include "icinga/checkresult.tcpp"
 
 using namespace icinga;
 

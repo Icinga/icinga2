@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/notification.hpp"
+#include "icinga/notification.tcpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/service.hpp"
 #include "base/objectlock.hpp"

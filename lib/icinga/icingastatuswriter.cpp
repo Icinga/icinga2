@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/icingastatuswriter.hpp"
+#include "icinga/icingastatuswriter.tcpp"
 #include "icinga/cib.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"

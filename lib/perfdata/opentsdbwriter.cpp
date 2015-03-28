@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "perfdata/opentsdbwriter.hpp"
+#include "perfdata/opentsdbwriter.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"

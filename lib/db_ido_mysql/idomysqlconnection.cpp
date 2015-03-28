@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/perfdatavalue.hpp"
+#include "icinga/perfdatavalue.tcpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "db_ido_mysql/idomysqlconnection.hpp"

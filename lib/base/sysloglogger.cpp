@@ -22,6 +22,8 @@
 #include "base/statsfunction.hpp"
 
 #ifndef _WIN32
+#include "base/sysloglogger.tcpp"
+
 using namespace icinga;
 
 REGISTER_TYPE(SyslogLogger);

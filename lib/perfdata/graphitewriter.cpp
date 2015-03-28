@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "perfdata/graphitewriter.hpp"
+#include "perfdata/graphitewriter.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"

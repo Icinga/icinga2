@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "checker/checkercomponent.hpp"
+#include "checker/checkercomponent.tcpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
 #include "icinga/perfdatavalue.hpp"

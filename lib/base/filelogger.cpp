@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/filelogger.hpp"
+#include "base/filelogger.tcpp"
 #include "base/dynamictype.hpp"
 #include "base/statsfunction.hpp"
 #include "base/application.hpp"

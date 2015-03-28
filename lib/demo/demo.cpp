@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "demo/demo.hpp"
+#include "demo/demo.tcpp"
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "base/dynamictype.hpp"

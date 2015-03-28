@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(checkresultreader.ti checkresultreader.thpp)
-mkclass_target(compatlogger.ti compatlogger.thpp)
-mkclass_target(externalcommandlistener.ti externalcommandlistener.thpp)
-mkclass_target(statusdatawriter.ti statusdatawriter.thpp)
+mkclass_target(checkresultreader.ti checkresultreader.tcpp checkresultreader.thpp)
+mkclass_target(compatlogger.ti compatlogger.tcpp compatlogger.thpp)
+mkclass_target(externalcommandlistener.ti externalcommandlistener.tcpp externalcommandlistener.thpp)
+mkclass_target(statusdatawriter.ti statusdatawriter.tcpp statusdatawriter.thpp)
 
 set(compat_SOURCES
   checkresultreader.cpp checkresultreader.thpp compatlogger.cpp

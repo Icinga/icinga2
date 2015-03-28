@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/notificationcommand.hpp"
+#include "icinga/notificationcommand.tcpp"
 
 using namespace icinga;
 

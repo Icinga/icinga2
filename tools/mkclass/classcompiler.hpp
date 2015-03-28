@@ -171,6 +171,13 @@ struct Rule
 	std::vector<Rule> Rules;
 };
 
+enum ValidatorType
+{
+	ValidatorField,
+	ValidatorArray,
+	ValidatorDictionary
+};
+
 struct Validator
 {
 	std::string Name;
@@ -180,7 +187,7 @@ struct Validator
 class ClassCompiler
 {
 public:
-	ClassCompiler(const std::string& path, std::istream *input);
+	ClassCompiler(const std::string& path, std::istream& input, std::ostream& oimpl, std::ostream& oheader);
 	~ClassCompiler(void);
 
 	void Compile(void);
@@ -203,14 +210,21 @@ public:
 	void HandleCode(const std::string& code, const ClassDebugInfo& locp);
 	void HandleMissingValidators(void);
 
-	static void CompileFile(const std::string& path);
-	static void CompileStream(const std::string& path, std::istream *stream);
+	void CodeGenValidator(const std::string& name, const std::string& klass, const std::vector<Rule>& rules, const std::string& field, const FieldType& fieldType, ValidatorType validatorType);
+	void CodeGenValidatorSubrules(const std::string& name, const std::string& klass, const std::vector<Rule>& rules);
+
+	static void CompileFile(const std::string& inputpath, const std::string& implpath,
+	    const std::string& headerpath);
+	static void CompileStream(const std::string& path, std::istream& input,
+	    std::ostream& oimpl, std::ostream& oheader);
 
 	static void OptimizeStructLayout(std::vector<Field>& fields);
 
 private:
 	std::string m_Path;
-	std::istream *m_Input;
+	std::istream& m_Input;
+	std::ostream& m_Impl;
+	std::ostream& m_Header;
 	void *m_Scanner;
 
 	std::map<std::pair<std::string, std::string>, Field> m_MissingValidators;

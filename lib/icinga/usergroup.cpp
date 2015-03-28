@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/usergroup.hpp"
+#include "icinga/usergroup.tcpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
 #include "base/dynamictype.hpp"

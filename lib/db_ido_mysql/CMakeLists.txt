@@ -18,7 +18,7 @@
 find_package(MySQL)
 
 if(MYSQL_FOUND)
-  mkclass_target(idomysqlconnection.ti idomysqlconnection.thpp)
+  mkclass_target(idomysqlconnection.ti idomysqlconnection.tcpp idomysqlconnection.thpp)
 
   set(db_ido_mysql_SOURCES
     idomysqlconnection.cpp idomysqlconnection.thpp

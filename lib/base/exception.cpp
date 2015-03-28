@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include "base/exception.hpp"
-#include "base/dynamicobject.hpp"
 #include <boost/thread/tss.hpp>
+#include <boost/foreach.hpp>
 
 #ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>
@@ -154,7 +154,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	if (vex) {
 		DebugInfo di;
 
-		DynamicObject::Ptr dobj = dynamic_pointer_cast<DynamicObject>(vex->GetObject());
+		DynamicObject::Ptr dobj = vex->GetObject();
 		if (dobj)
 			di = dobj->GetDebugInfo();
 
@@ -313,7 +313,7 @@ const char *posix_error::what(void) const throw()
 	return m_Message;
 }
 
-ValidationError::ValidationError(const intrusive_ptr<ObjectImpl<DynamicObject> >& object, const std::vector<String>& attributePath, const String& message)
+ValidationError::ValidationError(const DynamicObject::Ptr& object, const std::vector<String>& attributePath, const String& message)
 	: m_Object(object), m_AttributePath(attributePath), m_Message(message)
 {
 	String path;
@@ -342,7 +342,7 @@ const char *ValidationError::what(void) const throw()
 	return m_What.CStr();
 }
 
-intrusive_ptr<ObjectImpl<DynamicObject> > ValidationError::GetObject(void) const
+DynamicObject::Ptr ValidationError::GetObject(void) const
 {
 	return m_Object;
 }

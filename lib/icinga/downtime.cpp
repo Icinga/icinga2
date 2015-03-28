@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/downtime.hpp"
+#include "icinga/downtime.tcpp"
 #include "base/utility.hpp"
 
 using namespace icinga;

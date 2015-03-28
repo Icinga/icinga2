@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/timeperiod.hpp"
+#include "icinga/timeperiod.tcpp"
 #include "icinga/legacytimeperiod.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"

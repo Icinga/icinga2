@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/dynamicobject.hpp"
+#include "base/dynamicobject.tcpp"
 #include "base/dynamictype.hpp"
 #include "base/serializer.hpp"
 #include "base/netstring.hpp"

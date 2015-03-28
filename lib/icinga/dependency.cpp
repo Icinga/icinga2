@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/dependency.hpp"
+#include "icinga/dependency.tcpp"
 #include "icinga/service.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"

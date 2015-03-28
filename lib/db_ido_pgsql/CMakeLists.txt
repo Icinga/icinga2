@@ -18,7 +18,7 @@
 find_package(PostgreSQL)
 
 if(PostgreSQL_FOUND)
-  mkclass_target(idopgsqlconnection.ti idopgsqlconnection.thpp)
+  mkclass_target(idopgsqlconnection.ti idopgsqlconnection.tcpp idopgsqlconnection.thpp)
 
   link_directories(${PostgreSQL_LIBRARY_DIRS})
   include_directories(${PostgreSQL_INCLUDE_DIRS})

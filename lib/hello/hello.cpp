@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "hello/hello.hpp"
+#include "hello/hello.tcpp"
 #include "base/logger.hpp"
 
 using namespace icinga;

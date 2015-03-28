@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/application.hpp"
+#include "base/application.tcpp"
 #include "base/stacktrace.hpp"
 #include "base/timer.hpp"
 #include "base/logger.hpp"

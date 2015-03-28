@@ -15,15 +15,15 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(application.ti application.thpp)
-mkclass_target(dynamicobject.ti dynamicobject.thpp)
-mkclass_target(filelogger.ti filelogger.thpp)
-mkclass_target(logger.ti logger.thpp)
-mkclass_target(streamlogger.ti streamlogger.thpp)
-mkclass_target(sysloglogger.ti sysloglogger.thpp)
+mkclass_target(application.ti application.tcpp application.thpp)
+mkclass_target(dynamicobject.ti dynamicobject.tcpp dynamicobject.thpp)
+mkclass_target(filelogger.ti filelogger.tcpp filelogger.thpp)
+mkclass_target(logger.ti logger.tcpp logger.thpp)
+mkclass_target(streamlogger.ti streamlogger.tcpp streamlogger.thpp)
+mkclass_target(sysloglogger.ti sysloglogger.tcpp sysloglogger.thpp)
 
 set(base_SOURCES
-  application.cpp application-version.cpp application.thpp array.cpp array-script.cpp boolean.cpp boolean-script.cpp console.cpp context.cpp
+  application.cpp application.thpp application-version.cpp array.cpp array-script.cpp boolean.cpp boolean-script.cpp console.cpp context.cpp
   convert.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp object-script.cpp primitivetype.cpp process.cpp

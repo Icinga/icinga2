@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/icingaapplication.hpp"
+#include "icinga/icingaapplication.tcpp"
 #include "icinga/cib.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"

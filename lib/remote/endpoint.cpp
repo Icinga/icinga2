@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "remote/endpoint.hpp"
+#include "remote/endpoint.tcpp"
 #include "remote/apilistener.hpp"
 #include "remote/apiclient.hpp"
 #include "remote/zone.hpp"

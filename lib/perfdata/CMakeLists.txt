@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-mkclass_target(gelfwriter.ti gelfwriter.thpp)
-mkclass_target(graphitewriter.ti graphitewriter.thpp)
-mkclass_target(opentsdbwriter.ti opentsdbwriter.thpp)
-mkclass_target(perfdatawriter.ti perfdatawriter.thpp)
+mkclass_target(gelfwriter.ti gelfwriter.tcpp gelfwriter.thpp)
+mkclass_target(graphitewriter.ti graphitewriter.tcpp graphitewriter.thpp)
+mkclass_target(opentsdbwriter.ti opentsdbwriter.tcpp opentsdbwriter.thpp)
+mkclass_target(perfdatawriter.ti perfdatawriter.tcpp perfdatawriter.thpp)
 
 set(perfdata_SOURCES
   gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp opentsdbwriter.cpp opentsdbwriter.thpp perfdatawriter.cpp perfdatawriter.thpp
