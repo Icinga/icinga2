@@ -17,11 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "db_ido_mysql/idomysqlconnection.hpp"
+#include "db_ido_mysql/idomysqlconnection.tcpp"
 #include "icinga/perfdatavalue.hpp"
 #include "icinga/perfdatavalue.tcpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "db_ido_mysql/idomysqlconnection.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
