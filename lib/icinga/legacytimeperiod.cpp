@@ -371,6 +371,10 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 	end->tm_sec = 0;
 	end->tm_min = Convert::ToLong(hd2[1]);
 	end->tm_hour = Convert::ToLong(hd2[0]);
+
+	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
+	    end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
 }
 
 Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *reference)
@@ -404,7 +408,7 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 		}
 
 		if (segment->Get("begin") >= segment->Get("end"))
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
+			continue;
 
 		result->Add(segment);
 	}
