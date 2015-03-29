@@ -199,16 +199,16 @@ void ScheduledDowntime::ValidateRanges(const String& location, const ScheduledDo
 			tm begin_tm, end_tm;
 			int stride;
 			LegacyTimePeriod::ParseTimeRange(kv.first, &begin_tm, &end_tm, &stride, &reference);
-		} catch (std::exception&) {
+		} catch (const std::exception& ex) {
 			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-			    location + ": Invalid time specification.", object->GetDebugInfo()));
+			    location + ": Invalid time specification '" + kv.first + "': " + ex.what(), object->GetDebugInfo()));
 		}
 
 		try {
 			LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);
-		} catch (std::exception&) {
+		} catch (const std::exception& ex) {
 			BOOST_THROW_EXCEPTION(ScriptError("Validation failed for " +
-			    location + ": Invalid time range definition.", object->GetDebugInfo()));
+			    location + ": Invalid time range definition '" + kv.second + "': " + ex.what(), object->GetDebugInfo()));
 		}
 	}
 }
