@@ -22,39 +22,54 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<ScriptFrame *> ScriptFrame::m_CurrentFrame;
+boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
 ScriptFrame::ScriptFrame(void)
 	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals())
 {
-	NextFrame = GetCurrentFrame();
-	SetCurrentFrame(this);
+	PushFrame(this);
 }
 
 ScriptFrame::ScriptFrame(const Value& self)
 	: Locals(new Dictionary()), Self(self)
 {
-	NextFrame = GetCurrentFrame();
-	SetCurrentFrame(this);
+	PushFrame(this);
 }
 
 ScriptFrame::~ScriptFrame(void)
 {
-	ASSERT(GetCurrentFrame() == this);
-	SetCurrentFrame(NextFrame);
+	ScriptFrame *frame = PopFrame();
+	ASSERT(frame == this);
 }
 
 ScriptFrame *ScriptFrame::GetCurrentFrame(void)
 {
-	ScriptFrame **pframe = m_CurrentFrame.get();
+	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
 
-	if (pframe)
-		return *pframe;
-	else
-		return NULL;
+	ASSERT(!frames->empty());
+	return frames->top();
 }
 
-void ScriptFrame::SetCurrentFrame(ScriptFrame *frame)
+ScriptFrame *ScriptFrame::PopFrame(void)
 {
-	m_CurrentFrame.reset(new ScriptFrame *(frame));
+	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+
+	ASSERT(!frames->empty());
+
+	ScriptFrame *frame = frames->top();
+	frames->pop();
+
+	return frame;
+}
+
+void ScriptFrame::PushFrame(ScriptFrame *frame)
+{
+	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+
+	if (!frames) {
+		frames = new std::stack<ScriptFrame *>();
+		m_ScriptFrames.reset(frames);
+	}
+
+	frames->push(frame);
 }
