@@ -289,11 +289,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 		String second = def.SubStr(pos + 1);
 		second.Trim();
 
-		try {
-			ParseTimeSpec(first, begin, NULL, reference);
-		} catch (std::exception&) {
-			throw;
-		}
+		ParseTimeSpec(first, begin, NULL, reference);
 
 		/* If the second definition starts with a number we need
 		 * to add the first word from the first definition, e.g.:
@@ -314,17 +310,9 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 			second = first.SubStr(0, xpos + 1) + second;
 		}
 
-		try {
-			ParseTimeSpec(second, NULL, end, reference);
-		} catch (std::exception&) {
-			throw;
-		}
+		ParseTimeSpec(second, NULL, end, reference);
 	} else {
-		try {
-			ParseTimeSpec(def, begin, end, reference);
-		} catch (std::exception&) {
-			throw;
-		}
+		ParseTimeSpec(def, begin, end, reference);
 	}
 }
 
@@ -381,11 +369,7 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 {
 	tm begin, end;
 
-	try {
-		ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
-	} catch (std::exception&) {
-		throw;
-	}
+	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 
 	Dictionary::Ptr segment = new Dictionary();
 	segment->Set("begin", (long)mktime(&begin));
@@ -400,12 +384,7 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 	boost::algorithm::split(ranges, timeranges, boost::is_any_of(","));
 
 	BOOST_FOREACH(const String& range, ranges) {
-		Dictionary::Ptr segment;
-		try {
-			segment = ProcessTimeRange(range, reference);
-		} catch (std::exception&) {
-			throw;
-		}
+		Dictionary::Ptr segment = ProcessTimeRange(range, reference);
 
 		if (segment->Get("begin") >= segment->Get("end"))
 			continue;
