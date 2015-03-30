@@ -193,7 +193,10 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable) && endpoint != checkable->GetCommandEndpoint())
 		return Empty;
 
-	checkable->ProcessCheckResult(cr, origin);
+	if (endpoint == checkable->GetCommandEndpoint())
+		checkable->ProcessCheckResult(cr);
+	else
+		checkable->ProcessCheckResult(cr, origin);
 
 	return Empty;
 }

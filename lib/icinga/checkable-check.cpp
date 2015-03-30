@@ -268,25 +268,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			/* send message back to its origin */
 			Dictionary::Ptr message = ApiEvents::MakeCheckResultMessage(this, cr);
 			listener->SyncSendMessage(command_endpoint, message);
-
-			/* HA cluster zone nodes must also process the check result locally
-			 * by fetching the real host/service object if existing
-			 */
-			Host::Ptr tempHost;
-			Service::Ptr tempService;
-			tie(tempHost, tempService) = GetHostService(this);
-			Host::Ptr realHost = Host::GetByName(tempHost->GetName());
-			if (realHost) {
-				Value agent_service_name = GetExtension("agent_service_name");
-				if (!agent_service_name.IsEmpty()) {
-					Checkable::Ptr realCheckable;
-					realCheckable = realHost->GetServiceByShortName(agent_service_name);
-					if (realCheckable) {
-						realCheckable->ProcessCheckResult(cr, origin);
-					}
-				}
-			}
-
 		}
 
 		return;
