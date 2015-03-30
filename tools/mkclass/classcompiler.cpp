@@ -721,7 +721,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 
 		if (fieldType.GetRealType() == "Value") {
 			if (rule.Type == "String")
-				m_Impl << "\t\t" << "if (value.IsScalar())" << std::endl
+				m_Impl << "\t\t" << "if (value.IsEmpty() || value.IsScalar())" << std::endl
 				       << "\t\t\t" << "return;" << std::endl;
 			else if (rule.Type == "Number") {
 				m_Impl << "\t\t" << "try {" << std::endl
@@ -829,14 +829,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid attribute: \" + key));" << std::endl
 			       << "\t" << "else" << std::endl;
 
-		m_Impl << (!static_known_attribute ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), boost::assign::list_of(";
-
-		if (validatorType == ValidatorField)
-			m_Impl << "\"" << field << "\"";
-		else
-			m_Impl << "key";
-
-		m_Impl << "), \"Invalid type.\"));" << std::endl;
+		m_Impl << (!static_known_attribute ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid type.\"));" << std::endl;
 	}
 
 	m_Impl << "}" << std::endl << std::endl;
