@@ -345,7 +345,7 @@ interface(`icinga2_send_commands',`
 
 ########################################
 ## <summary>
-##	For domains icinga should transition to (e.g. Plugins).
+##	For domains icinga2 should transition to (e.g. Plugins).
 ## </summary>
 ## <param name="executable">
 ## <summary>
@@ -403,4 +403,32 @@ interface(`icinga2adm_role_change',`
         ')
 
         allow $1 icinga2adm_r;
+')
+
+########################################
+## <summary>
+##	For domains icinga2adm should transition to (e.g. Plugins).
+## </summary>
+## <param name="executable">
+## <summary>
+##	Context of the executable.
+## </summary>
+## </param>
+## <param name="domain">
+## <summary>
+##	Domain icinga should transition to. 
+## </summary>
+## </param>
+#
+interface(`icinga2adm_execstrans',`
+	gen_require(`
+		type icinga2adm_t;
+	')
+	
+	role icinga2adm_r types $2;
+	allow icinga2adm_r system_r;
+	type_transition icinga2adm_t $1:process $2;
+	allow icinga2adm_t $2:process transition;
+	allow $2 icinga2adm_t:process sigchld;
+	role_transition icinga2adm_r $1 system_r;
 ')

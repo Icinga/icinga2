@@ -40,11 +40,12 @@ As a prerequisite install the `git`, `selinux-policy-devel` and `audit` package.
 After that clone the icinga2 git repository and checkout the feature branch.
 
     # git clone git://git.icinga.org/icinga2.git
+    # cd icinga2/
     # git checkout feature/rpm-selinux-8332
 
 To create and install the policy package run the installation script which also labels the resources. (The script assumes Icinga 2 was started once after system startup, the labeling of the port will only happen once and fail later on.)
 
-    # cd icinga2/tools/selinux/
+    # cd tools/selinux/
     # ./icinga.sh
 
 Some changes to the systemd scripts are also required to handle file contexts correctly. This is at the moment only included in the feature branch, so it has to be copied manually.
@@ -61,7 +62,7 @@ After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
 
 When the SELinux policy package for Icinga 2 is installed, the Icinga 2 daemon (icinga2) runs in its own domain `icinga2_t` and is separated from other confined services.
 
-Files have to be labeled correctly for allowing icinga2 access to it. For example it writes to its own log files labeled `icinga2_log_t`. Also the API port is labeled `icinga_port_t` and the icinga2 is allowed to manage it. Furthermore icinga2 can open high ports and unix sockets to connect to databases and features like graphite. It executes the nagios plugins and transitions to their context if those are labeled for example `nagios_services_plugin_exec_t` or `nagios_system_plugin_exec_t`.
+Files have to be labeled correctly for allowing icinga2 access to it. For example it writes to its own log files labeled `icinga2_log_t`. Also the API port is labeled `icinga_port_t` and icinga2 is allowed to manage it. Furthermore icinga2 can open high ports and unix sockets to connect to databases and features like graphite. It executes the nagios plugins and transitions to their context if those are labeled for example `nagios_services_plugin_exec_t` or `nagios_system_plugin_exec_t`.
 
 Additional the Apache webserver is allowed to connect to the Command pipe of Icinga 2 to allow web interfaces sending commands to icinga2. This will perhaps change later on while investigating Icinga Web 2 for SELinux!
 
@@ -85,7 +86,15 @@ nagios_notification_plugin_exec_t | nagios_notification_plugin_t | Notification 
 
 If one of those plugin domains causes problems you can set it to permissive by executing `semanage permissive -a domain`.
 
-The policy provides a role `icinga2adm_r` for confining an user which enables an administrative user managing only Icinga 2 on the system.
+The policy provides a role `icinga2adm_r` for confining an user which enables an administrative user managing only Icinga 2 on the system. This user will also execute the plugins in their domain instead of the users one, so you can verify their execution with the same restrictions like they have when executed by icinga2.
+
+### <a id="selinux-policy-booleans"></a> Booleans
+
+SELinux is based on the least level of access required for a service to run. Using booleans you can grant more access in a defined way. The Icinga 2 policy package provides the following booleans.
+
+**icinga2_can_connect_all** 
+
+Having this boolean enabled allows icinga2 to connect to all ports. This can be neccesary if you use features which connect to unconfined services.
 
 ### <a id="selinux-policy-examples"></a> Configuration Examples
 
@@ -94,15 +103,15 @@ The policy provides a role `icinga2adm_r` for confining an user which enables an
 Download and install a plugin, for example check_mysql_health.
 
     # wget http://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
-    # tar xvzf check_mysql_health-2.1.9.2.tar.gz 
+    # tar xvzf check_mysql_health-2.1.9.2.tar.gz
     # cd check_mysql_health-2.1.9.2/
     # ./configure --libexecdir /usr/lib64/nagios/plugins
     # make
     # make install
 
-It is label `nagios_unconfined_plugins_exec_t` by default, so it runs without restrictions.
+It is labeled `nagios_unconfined_plugins_exec_t` by default, so it runs without restrictions.
 
-    # ls -lZ /usr/lib64/nagios/plugins/check_mysql_health 
+    # ls -lZ /usr/lib64/nagios/plugins/check_mysql_health
     -rwxr-xr-x. root root system_u:object_r:nagios_unconfined_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
 
 In this case the plugin is monitoring a service, so it should be labeled `nagios_services_plugin_exec_t` to restrict its permissions.
@@ -112,6 +121,34 @@ In this case the plugin is monitoring a service, so it should be labeled `nagios
     -rwxr-xr-x. root root system_u:object_r:nagios_services_plugin_exec_t:s0 /usr/lib64/nagios/plugins/check_mysql_health
 
 The plugin still runs fine but if someone changes the script to do weird stuff it will fail to do so.
+
+#### <a id="selinux-policy-examples-connectall"></a> Allow icinga to connect to all ports.
+
+You are running graphite on a different port than `2003` and want `icinga2` to connect to it.
+
+Change the port value for the graphite feature according to your graphite installation before enabling it.
+
+    # cat /etc/icinga2/features-enabled/graphite.conf 
+    /**
+     * The GraphiteWriter type writes check result metrics and
+     * performance data to a graphite tcp socket.
+     */
+
+    library "perfdata"
+
+    object GraphiteWriter "graphite" {
+      //host = "127.0.0.1"
+      //port = 2003
+      port = 2004
+    }
+    # icinga2 feature enable graphite
+
+Before you restart the icinga2 service allow it to connect to all ports by enabling the boolean ´icinga2_can_connect_all` (now and permanent).
+
+    # setsebool icinga2_can_connect_all true
+    # setsebool -P icinga2_can_connect_all true
+
+If you restart the daemon now it will successfully connect to graphite.
 
 #### <a id="selinux-policy-examples-user"></a> Confining a user
 
