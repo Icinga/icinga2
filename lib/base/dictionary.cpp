@@ -47,6 +47,27 @@ Value Dictionary::Get(const String& key) const
 }
 
 /**
+ * Retrieves a value from a dictionary.
+ *
+ * @param key The key whose value should be retrieved.
+ * @param result The value of the dictionary item (only set when the key exists)
+ * @returns true if the key exists, false otherwise.
+ */
+bool Dictionary::Get(const String& key, Value *result) const
+{
+	ASSERT(!OwnsLock());
+	ObjectLock olock(this);
+
+	std::map<String, Value>::const_iterator it = m_Data.find(key);
+
+	if (it == m_Data.end())
+		return false;
+
+	*result = it->second;
+	return true;
+}
+
+/**
  * Sets a value in the dictionary.
  *
  * @param key The key.

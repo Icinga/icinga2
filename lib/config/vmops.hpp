@@ -46,8 +46,9 @@ class VMOps
 public:
 	static inline Value Variable(ScriptFrame& frame, const String& name, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (frame.Locals && frame.Locals->Contains(name))
-			return frame.Locals->Get(name);
+		Value value;
+		if (frame.Locals && frame.Locals->Get(name, &value))
+			return value;
 		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && HasField(frame.Self, name))
 			return GetField(frame.Self, name, debugInfo);
 		else
@@ -244,8 +245,9 @@ public:
 		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(object);
 
 		if (dict) {
-			if (dict->Contains(field))
-				return dict->Get(field);
+			Value value;
+			if (dict->Get(field, &value))
+				return value;
 			else
 				return GetPrototypeField(context, field, false, debugInfo);
 		}

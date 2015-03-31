@@ -56,6 +56,7 @@ public:
 	{ }
 
 	Value Get(const String& key) const;
+	bool Get(const String& key, Value *result) const;
 	void Set(const String& key, const Value& value);
 	bool Contains(const String& key) const;
 

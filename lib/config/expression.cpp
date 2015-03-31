@@ -92,8 +92,10 @@ const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
 
 ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	if (frame.Locals && frame.Locals->Contains(m_Variable))
-		return frame.Locals->Get(m_Variable);
+	Value value;
+
+	if (frame.Locals && frame.Locals->Get(m_Variable, &value))
+		return value;
 	else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && VMOps::HasField(frame.Self, m_Variable))
 		return VMOps::GetField(frame.Self, m_Variable, m_DebugInfo);
 	else
