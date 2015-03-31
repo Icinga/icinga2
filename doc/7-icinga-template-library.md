@@ -671,7 +671,8 @@ Name              | Description
 snmpv3_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 snmpv3_user       | **Required.** The username to log in with.
 snmpv3_auth_alg   | **Optional.** The authentication algorithm. Defaults to SHA.
-snmpv3_auth_key   | **Required.** The authentication key.
+snmpv3_seclevel   | **Optional.** The security level. Defaults to authPriv.
+snmpv3_auth_key   | **Required,** The authentication key. Required if `snmpv3_seclevel` is set to `authPriv` otherwise optional.
 snmpv3_priv_alg   | **Optional.** The encryption algorithm. Defaults to AES.
 snmpv3_priv_key   | **Required.** The encryption key.
 snmpv3_oid        | **Required.** The SNMP OID.
