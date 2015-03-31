@@ -28,67 +28,22 @@ using namespace icinga;
 REGISTER_PRIMITIVE_TYPE(Dictionary, Dictionary::GetPrototype());
 
 /**
- * Compares dictionary keys using the less operator.
- */
-struct DictionaryKeyLessComparer
-{
-	/**
-	 * Compares two keys.
-	 *
-	 * @param a The first key.
-	 * @param b The second key.
-	 * @returns true if the first key is less than the second key, false
-	 *		 otherwise
-	 */
-	bool operator()(const std::pair<String, Value>& a, const char *b)
-	{
-		return a.first < b;
-	}
-
-	/**
-	 * Compares two keys.
-	 *
-	 * @param a The first key.
-	 * @param b The second key.
-	 * @returns true if the first key is less than the second key, false
-	 *		 otherwise
-	 */
-	bool operator()(const char *a, const std::pair<String, Value>& b)
-	{
-		return a < b.first;
-	}
-};
-
-/**
  * Retrieves a value from a dictionary.
  *
  * @param key The key whose value should be retrieved.
  * @returns The value of an empty value if the key was not found.
  */
-Value Dictionary::Get(const char *key) const
+Value Dictionary::Get(const String& key) const
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	std::map<String, Value>::const_iterator it;
+	std::map<String, Value>::const_iterator it = m_Data.find(key);
 
-	it = std::lower_bound(m_Data.begin(), m_Data.end(), key, DictionaryKeyLessComparer());
-
-	if (it == m_Data.end() || DictionaryKeyLessComparer()(key, *it))
+	if (it == m_Data.end())
 		return Empty;
 
 	return it->second;
-}
-
-/**
- * Retrieves a value from the dictionary.
- *
- * @param key The key whose value should be retrieved.
- * @returns The value or an empty value if the key was not found.
- */
-Value Dictionary::Get(const String& key) const
-{
-	return Get(key.CStr());
 }
 
 /**
