@@ -49,7 +49,6 @@ public:
 
 	typedef std::pair<String, Value> Pair;
 
-	Value Get(const char *key) const;
 	Value Get(const String& key) const;
 	void Set(const String& key, const Value& value);
 	bool Contains(const String& key) const;
