@@ -88,12 +88,7 @@ public:
 
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
-		boost::shared_ptr<ScriptFrame> vframe;
-
-		if (!self.IsEmpty())
-			vframe = boost::make_shared<ScriptFrame>(self); /* passes self to the callee using a TLS variable */
-		else
-			vframe = boost::make_shared<ScriptFrame>();
+		ScriptFrame vframe = (self.IsEmpty()) ? ScriptFrame() : ScriptFrame(self);
 
 		return func->Invoke(arguments);
 	}
@@ -334,16 +329,15 @@ private:
 		if (arguments.size() < funcargs.size())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
-		ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-		ScriptFrame frame(vframe->Self);
+		ScriptFrame *frame = ScriptFrame::GetCurrentFrame();
 
 		if (closedVars)
-			closedVars->CopyTo(frame.Locals);
+			closedVars->CopyTo(frame->Locals);
 
 		for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
-			frame.Locals->Set(funcargs[i], arguments[i]);
+			frame->Locals->Set(funcargs[i], arguments[i]);
 
-		return expr->Evaluate(frame);
+		return expr->Evaluate(*frame);
 	}
 
 	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, std::map<String, Expression *> *closedVars)
