@@ -441,29 +441,32 @@ ExpressionResult ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 
 ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	ScriptFrame *dframe;
-	ScriptFrame rframe;
+	Value self;
 
 	if (!m_Inline) {
-		dframe = &rframe;
-		rframe.Locals = frame.Locals;
-		rframe.Self = new Dictionary();
-	} else {
-		dframe = &frame;
+		self = frame.Self;
+		frame.Self = new Dictionary();
 	}
 
 	Value result;
 
-	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
-		ExpressionResult element = aexpr->Evaluate(*dframe, dhint);
-		CHECK_RESULT(element);
-		result = element.GetValue();
+	try {
+		BOOST_FOREACH(Expression *aexpr, m_Expressions) {
+			ExpressionResult element = aexpr->Evaluate(frame, dhint);
+			CHECK_RESULT(element);
+			result = element.GetValue();
+		}
+	} catch (...) {
+		std::swap(self, frame.Self);
+		throw;
 	}
 
 	if (m_Inline)
 		return result;
-	else
-		return dframe->Self;
+	else {
+		std::swap(self, frame.Self);
+		return self;
+	}
 }
 
 ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
