@@ -193,7 +193,7 @@ wizard_endpoint_loop_start:
 
 		String choice = answer;
 
-		if (choice.Contains("y") || choice.Contains("j"))
+		if (choice.Contains("y"))
 			goto wizard_endpoint_loop_start;
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the master connection for CSR auto-signing" << ConsoleColorTag(Console_Normal) << " (defaults to master endpoint host):\n";
@@ -341,14 +341,14 @@ wizard_ticket:
 		boost::algorithm::to_lower(answer);
 		choice = answer;
 
-		String accept_config = (choice.Contains("y") || choice.Contains("j")) ? "true" : "false";
+		String accept_config = choice.Contains("y") ? "true" : "false";
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Accept commands from master?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
 		choice = answer;
 
-		String accept_commands = (choice.Contains("y") || choice.Contains("j")) ? "true" : "false";
+		String accept_commands = choice.Contains("y") ? "true" : "false";
 
 		/* disable the notifications feature on client nodes */
 		Log(LogInformation, "cli", "Disabling the Notification feature.");
