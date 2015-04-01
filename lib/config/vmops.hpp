@@ -89,7 +89,10 @@ public:
 
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
-		ScriptFrame vframe = (self.IsEmpty()) ? ScriptFrame() : ScriptFrame(self);
+		ScriptFrame vframe;
+		
+		if (!self.IsEmpty())
+			vframe.Self = self;
 
 		return func->Invoke(arguments);
 	}
