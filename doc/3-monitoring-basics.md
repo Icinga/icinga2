@@ -1423,7 +1423,7 @@ which can be used for all event commands triggered using ssh:
 The actual event command only passes the `event_by_ssh_command` attribute.
 The `event_by_ssh_service` custom attribute takes care of passing the correct
 daemon name, while `test $service.state_id$ -gt 0` makes sure that the daemon
-is only restarted when the service is an a not `OK` state.
+is only restarted when the service is not in an `OK` state.
 
 
     object EventCommand "event_by_ssh_restart_service" {
