@@ -64,7 +64,6 @@ private:
 
 	WorkQueue m_QueryQueue;
 
-	boost::mutex m_ConnectionMutex;
 	PGconn *m_Connection;
 	int m_AffectedRows;
 
@@ -79,6 +78,7 @@ private:
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
+	void InternalDeactivateObject(const DbObject::Ptr& dbobj);
 
 	void Disconnect(void);
 	void InternalNewTransaction(void);
