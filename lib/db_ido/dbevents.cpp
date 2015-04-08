@@ -527,11 +527,8 @@ void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime
 	fields1->Set("duration", downtime->GetDuration());
 	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	fields1->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
-	fields1->Set("was_started", Empty);
-	fields1->Set("actual_start_time", Empty);
-	fields1->Set("actual_start_time_usec", Empty);
-	fields1->Set("is_in_effect", Empty);
-	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
+	fields1->Set("was_started", 0);
+	fields1->Set("is_in_effect", 0);
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	String node = IcingaApplication::GetInstance()->GetNodeName();
