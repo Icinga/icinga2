@@ -48,7 +48,7 @@ Graphite consists of 3 software components:
 Use the [GraphiteWriter](4-advanced-topics.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to Graphite.
 
-    # icinga 2 feature enable graphite
+    # icinga2 feature enable graphite
 
 There are Graphite addons available for collecting the performance data files too (e.g. `Graphios`).
 
