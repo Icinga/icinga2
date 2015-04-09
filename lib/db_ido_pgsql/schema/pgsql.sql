@@ -54,7 +54,7 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE  icinga_acknowledgements (
   acknowledgement_id bigserial,
   instance_id bigint default 0,
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   entry_time_usec INTEGER  default 0,
   acknowledgement_type INTEGER  default 0,
   object_id bigint default 0,
@@ -64,8 +64,8 @@ CREATE TABLE  icinga_acknowledgements (
   is_sticky INTEGER  default 0,
   persistent_comment INTEGER  default 0,
   notify_contacts INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
-  CONSTRAINT PK_acknowledgement_id PRIMARY KEY (acknowledgement_id) 
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  CONSTRAINT PK_acknowledgement_id PRIMARY KEY (acknowledgement_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -93,20 +93,20 @@ CREATE TABLE  icinga_commands (
 CREATE TABLE  icinga_commenthistory (
   commenthistory_id bigserial,
   instance_id bigint default 0,
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   entry_time_usec INTEGER  default 0,
   comment_type INTEGER  default 0,
   entry_type INTEGER  default 0,
   object_id bigint default 0,
-  comment_time timestamp with time zone default '1970-01-01 00:00:00',
+  comment_time timestamp with time zone default '1970-01-01 00:00:00+00',
   internal_comment_id bigint default 0,
   author_name TEXT  default '',
   comment_data TEXT  default '',
   is_persistent INTEGER  default 0,
   comment_source INTEGER  default 0,
   expires INTEGER  default 0,
-  expiration_time timestamp with time zone default '1970-01-01 00:00:00',
-  deletion_time timestamp with time zone default '1970-01-01 00:00:00',
+  expiration_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  deletion_time timestamp with time zone default '1970-01-01 00:00:00+00',
   deletion_time_usec INTEGER  default 0,
   CONSTRAINT PK_commenthistory_id PRIMARY KEY (commenthistory_id) ,
   CONSTRAINT UQ_commenthistory UNIQUE (instance_id,object_id,comment_time,internal_comment_id)
@@ -121,19 +121,19 @@ CREATE TABLE  icinga_commenthistory (
 CREATE TABLE  icinga_comments (
   comment_id bigserial,
   instance_id bigint default 0,
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   entry_time_usec INTEGER  default 0,
   comment_type INTEGER  default 0,
   entry_type INTEGER  default 0,
   object_id bigint default 0,
-  comment_time timestamp with time zone default '1970-01-01 00:00:00',
+  comment_time timestamp with time zone default '1970-01-01 00:00:00+00',
   internal_comment_id bigint default 0,
   author_name TEXT  default '',
   comment_data TEXT  default '',
   is_persistent INTEGER  default 0,
   comment_source INTEGER  default 0,
   expires INTEGER  default 0,
-  expiration_time timestamp with time zone default '1970-01-01 00:00:00',
+  expiration_time timestamp with time zone default '1970-01-01 00:00:00+00',
   CONSTRAINT PK_comment_id PRIMARY KEY (comment_id) ,
   CONSTRAINT UQ_comments UNIQUE (instance_id,object_id,comment_time,internal_comment_id)
 )  ;
@@ -165,7 +165,7 @@ CREATE TABLE  icinga_configfilevariables (
   configfile_id bigint default 0,
   varname TEXT  default '',
   varvalue TEXT  default '',
-  CONSTRAINT PK_configfilevariable_id PRIMARY KEY (configfilevariable_id) 
+  CONSTRAINT PK_configfilevariable_id PRIMARY KEY (configfilevariable_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -182,15 +182,15 @@ CREATE TABLE  icinga_conninfo (
   disposition TEXT  default '',
   connect_source TEXT  default '',
   connect_type TEXT  default '',
-  connect_time timestamp with time zone default '1970-01-01 00:00:00',
-  disconnect_time timestamp with time zone default '1970-01-01 00:00:00',
-  last_checkin_time timestamp with time zone default '1970-01-01 00:00:00',
-  data_start_time timestamp with time zone default '1970-01-01 00:00:00',
-  data_end_time timestamp with time zone default '1970-01-01 00:00:00',
+  connect_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  disconnect_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_checkin_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  data_start_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  data_end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   bytes_processed bigint  default 0,
   lines_processed bigint  default 0,
   entries_processed bigint  default 0,
-  CONSTRAINT PK_conninfo_id PRIMARY KEY (conninfo_id) 
+  CONSTRAINT PK_conninfo_id PRIMARY KEY (conninfo_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -233,9 +233,9 @@ CREATE TABLE  icinga_contactnotificationmethods (
   contactnotificationmethod_id bigserial,
   instance_id bigint default 0,
   contactnotification_id bigint default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   end_time_usec INTEGER  default 0,
   command_object_id bigint default 0,
   command_args TEXT  default '',
@@ -254,9 +254,9 @@ CREATE TABLE  icinga_contactnotifications (
   instance_id bigint default 0,
   notification_id bigint default 0,
   contact_object_id bigint default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   end_time_usec INTEGER  default 0,
   CONSTRAINT PK_contactnotification_id PRIMARY KEY (contactnotification_id) ,
   CONSTRAINT UQ_contactnotifications UNIQUE (instance_id,contact_object_id,start_time,start_time_usec)
@@ -306,11 +306,11 @@ CREATE TABLE  icinga_contactstatus (
   contactstatus_id bigserial,
   instance_id bigint default 0,
   contact_object_id bigint default 0,
-  status_update_time timestamp with time zone default '1970-01-01 00:00:00',
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
   host_notifications_enabled INTEGER  default 0,
   service_notifications_enabled INTEGER  default 0,
-  last_host_notification timestamp with time zone default '1970-01-01 00:00:00',
-  last_service_notification timestamp with time zone default '1970-01-01 00:00:00',
+  last_host_notification timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_service_notification timestamp with time zone default '1970-01-01 00:00:00+00',
   modified_attributes INTEGER  default 0,
   modified_host_attributes INTEGER  default 0,
   modified_service_attributes INTEGER  default 0,
@@ -381,7 +381,7 @@ CREATE TABLE  icinga_customvariablestatus (
   customvariablestatus_id bigserial,
   instance_id bigint default 0,
   object_id bigint default 0,
-  status_update_time timestamp with time zone default '1970-01-01 00:00:00',
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
   has_been_modified INTEGER  default 0,
   varname TEXT  default '',
   varvalue TEXT  default '',
@@ -402,8 +402,8 @@ CREATE TABLE  icinga_dbversion (
   dbversion_id bigserial,
   name TEXT  default '',
   version TEXT  default '',
-  create_time timestamp with time zone default '1970-01-01 00:00:00',
-  modify_time timestamp with time zone default '1970-01-01 00:00:00',
+  create_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  modify_time timestamp with time zone default '1970-01-01 00:00:00+00',
   CONSTRAINT PK_dbversion_id PRIMARY KEY (dbversion_id) ,
   CONSTRAINT UQ_dbversion UNIQUE (name)
 ) ;
@@ -419,23 +419,23 @@ CREATE TABLE  icinga_downtimehistory (
   instance_id bigint default 0,
   downtime_type INTEGER  default 0,
   object_id bigint default 0,
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   author_name TEXT  default '',
   comment_data TEXT  default '',
   internal_downtime_id bigint default 0,
   triggered_by_id bigint default 0,
   is_fixed INTEGER  default 0,
   duration BIGINT  default 0,
-  scheduled_start_time timestamp with time zone default '1970-01-01 00:00:00',
-  scheduled_end_time timestamp with time zone default '1970-01-01 00:00:00',
+  scheduled_start_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  scheduled_end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   was_started INTEGER  default 0,
-  actual_start_time timestamp with time zone default '1970-01-01 00:00:00',
+  actual_start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   actual_start_time_usec INTEGER  default 0,
-  actual_end_time timestamp with time zone default '1970-01-01 00:00:00',
+  actual_end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   actual_end_time_usec INTEGER  default 0,
   was_cancelled INTEGER  default 0,
   is_in_effect INTEGER  default 0,
-  trigger_time timestamp with time zone default '1970-01-01 00:00:00',
+  trigger_time timestamp with time zone default '1970-01-01 00:00:00+00',
   CONSTRAINT PK_downtimehistory_id PRIMARY KEY (downtimehistory_id) ,
   CONSTRAINT UQ_downtimehistory UNIQUE (instance_id,object_id,entry_time,internal_downtime_id)
 ) ;
@@ -453,9 +453,9 @@ CREATE TABLE  icinga_eventhandlers (
   object_id bigint default 0,
   state INTEGER  default 0,
   state_type INTEGER  default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   end_time_usec INTEGER  default 0,
   command_object_id bigint default 0,
   command_args TEXT  default '',
@@ -479,11 +479,11 @@ CREATE TABLE  icinga_eventhandlers (
 CREATE TABLE  icinga_externalcommands (
   externalcommand_id bigserial,
   instance_id bigint default 0,
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   command_type INTEGER  default 0,
   command_name TEXT  default '',
   command_args TEXT  default '',
-  CONSTRAINT PK_externalcommand_id PRIMARY KEY (externalcommand_id) 
+  CONSTRAINT PK_externalcommand_id PRIMARY KEY (externalcommand_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -495,7 +495,7 @@ CREATE TABLE  icinga_externalcommands (
 CREATE TABLE  icinga_flappinghistory (
   flappinghistory_id bigserial,
   instance_id bigint default 0,
-  event_time timestamp with time zone default '1970-01-01 00:00:00',
+  event_time timestamp with time zone default '1970-01-01 00:00:00+00',
   event_time_usec INTEGER  default 0,
   event_type INTEGER  default 0,
   reason_type INTEGER  default 0,
@@ -504,9 +504,9 @@ CREATE TABLE  icinga_flappinghistory (
   percent_state_change double precision  default 0,
   low_threshold double precision  default 0,
   high_threshold double precision  default 0,
-  comment_time timestamp with time zone default '1970-01-01 00:00:00',
+  comment_time timestamp with time zone default '1970-01-01 00:00:00+00',
   internal_comment_id bigint default 0,
-  CONSTRAINT PK_flappinghistory_id PRIMARY KEY (flappinghistory_id) 
+  CONSTRAINT PK_flappinghistory_id PRIMARY KEY (flappinghistory_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -525,9 +525,9 @@ CREATE TABLE  icinga_hostchecks (
   max_check_attempts INTEGER  default 0,
   state INTEGER  default 0,
   state_type INTEGER  default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   end_time_usec INTEGER  default 0,
   command_object_id bigint default 0,
   command_args TEXT  default '',
@@ -540,7 +540,7 @@ CREATE TABLE  icinga_hostchecks (
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
-  CONSTRAINT PK_hostcheck_id PRIMARY KEY (hostcheck_id) 
+  CONSTRAINT PK_hostcheck_id PRIMARY KEY (hostcheck_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -730,7 +730,7 @@ CREATE TABLE  icinga_hoststatus (
   hoststatus_id bigserial,
   instance_id bigint default 0,
   host_object_id bigint default 0,
-  status_update_time timestamp with time zone default '1970-01-01 00:00:00',
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
@@ -740,18 +740,18 @@ CREATE TABLE  icinga_hoststatus (
   should_be_scheduled INTEGER  default 0,
   current_check_attempt INTEGER  default 0,
   max_check_attempts INTEGER  default 0,
-  last_check timestamp with time zone default '1970-01-01 00:00:00',
-  next_check timestamp with time zone default '1970-01-01 00:00:00',
+  last_check timestamp with time zone default '1970-01-01 00:00:00+00',
+  next_check timestamp with time zone default '1970-01-01 00:00:00+00',
   check_type INTEGER  default 0,
-  last_state_change timestamp with time zone default '1970-01-01 00:00:00',
-  last_hard_state_change timestamp with time zone default '1970-01-01 00:00:00',
+  last_state_change timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_hard_state_change timestamp with time zone default '1970-01-01 00:00:00+00',
   last_hard_state INTEGER  default 0,
-  last_time_up timestamp with time zone default '1970-01-01 00:00:00',
-  last_time_down timestamp with time zone default '1970-01-01 00:00:00',
-  last_time_unreachable timestamp with time zone default '1970-01-01 00:00:00',
+  last_time_up timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_time_down timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_time_unreachable timestamp with time zone default '1970-01-01 00:00:00+00',
   state_type INTEGER  default 0,
-  last_notification timestamp with time zone default '1970-01-01 00:00:00',
-  next_notification timestamp with time zone default '1970-01-01 00:00:00',
+  last_notification timestamp with time zone default '1970-01-01 00:00:00+00',
+  next_notification timestamp with time zone default '1970-01-01 00:00:00+00',
   no_more_notifications INTEGER  default 0,
   notifications_enabled INTEGER  default 0,
   problem_has_been_acknowledged INTEGER  default 0,
@@ -805,7 +805,7 @@ CREATE TABLE  icinga_host_contacts (
   instance_id bigint default 0,
   host_id bigint default 0,
   contact_object_id bigint default 0,
-  CONSTRAINT PK_host_contact_id PRIMARY KEY (host_contact_id) 
+  CONSTRAINT PK_host_contact_id PRIMARY KEY (host_contact_id)
 )  ;
 
 -- --------------------------------------------------------
@@ -832,7 +832,7 @@ CREATE TABLE  icinga_instances (
   instance_id bigserial,
   instance_name TEXT  default '',
   instance_description TEXT  default '',
-  CONSTRAINT PK_instance_id PRIMARY KEY (instance_id) 
+  CONSTRAINT PK_instance_id PRIMARY KEY (instance_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -844,15 +844,15 @@ CREATE TABLE  icinga_instances (
 CREATE TABLE  icinga_logentries (
   logentry_id bigserial,
   instance_id bigint default 0,
-  logentry_time timestamp with time zone default '1970-01-01 00:00:00',
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  logentry_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   entry_time_usec INTEGER  default 0,
   logentry_type INTEGER  default 0,
   logentry_data TEXT  default '',
   realtime_data INTEGER  default 0,
   inferred_data_extracted INTEGER  default 0,
   object_id bigint default NULL,
-  CONSTRAINT PK_logentry_id PRIMARY KEY (logentry_id) 
+  CONSTRAINT PK_logentry_id PRIMARY KEY (logentry_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -867,9 +867,9 @@ CREATE TABLE  icinga_notifications (
   notification_type INTEGER  default 0,
   notification_reason INTEGER  default 0,
   object_id bigint default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   end_time_usec INTEGER  default 0,
   state INTEGER  default 0,
   output TEXT  default '',
@@ -893,7 +893,7 @@ CREATE TABLE  icinga_objects (
   name1 TEXT,
   name2 TEXT,
   is_active INTEGER  default 0,
-  CONSTRAINT PK_object_id PRIMARY KEY (object_id) 
+  CONSTRAINT PK_object_id PRIMARY KEY (object_id)
 --  UNIQUE (objecttype_id,name1,name2)
 ) ;
 CREATE INDEX icinga_objects_i ON icinga_objects(objecttype_id,name1,name2);
@@ -908,13 +908,13 @@ CREATE TABLE  icinga_processevents (
   processevent_id bigserial,
   instance_id bigint default 0,
   event_type INTEGER  default 0,
-  event_time timestamp with time zone default '1970-01-01 00:00:00',
+  event_time timestamp with time zone default '1970-01-01 00:00:00+00',
   event_time_usec INTEGER  default 0,
   process_id bigint default 0,
   program_name TEXT  default '',
   program_version TEXT  default '',
   program_date TEXT  default '',
-  CONSTRAINT PK_processevent_id PRIMARY KEY (processevent_id) 
+  CONSTRAINT PK_processevent_id PRIMARY KEY (processevent_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -927,17 +927,17 @@ CREATE TABLE  icinga_programstatus (
   programstatus_id bigserial,
   instance_id bigint default 0,
   program_version TEXT  default NULL,
-  status_update_time timestamp with time zone default '1970-01-01 00:00:00',
-  program_start_time timestamp with time zone default '1970-01-01 00:00:00',
-  program_end_time timestamp with time zone default '1970-01-01 00:00:00',
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  program_start_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  program_end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   is_currently_running INTEGER  default 0,
   endpoint_name TEXT  default '',
   process_id bigint default 0,
   daemon_mode INTEGER  default 0,
-  last_command_check timestamp with time zone default '1970-01-01 00:00:00',
-  last_log_rotation timestamp with time zone default '1970-01-01 00:00:00',
+  last_command_check timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_log_rotation timestamp with time zone default '1970-01-01 00:00:00+00',
   notifications_enabled INTEGER  default 0,
-  disable_notif_expire_time timestamp with time zone default '1970-01-01 00:00:00',
+  disable_notif_expire_time timestamp with time zone default '1970-01-01 00:00:00+00',
   active_service_checks_enabled INTEGER  default 0,
   passive_service_checks_enabled INTEGER  default 0,
   active_host_checks_enabled INTEGER  default 0,
@@ -982,20 +982,20 @@ CREATE TABLE  icinga_scheduleddowntime (
   instance_id bigint default 0,
   downtime_type INTEGER  default 0,
   object_id bigint default 0,
-  entry_time timestamp with time zone default '1970-01-01 00:00:00',
+  entry_time timestamp with time zone default '1970-01-01 00:00:00+00',
   author_name TEXT  default '',
   comment_data TEXT  default '',
   internal_downtime_id bigint default 0,
   triggered_by_id bigint default 0,
   is_fixed INTEGER  default 0,
   duration BIGINT  default 0,
-  scheduled_start_time timestamp with time zone default '1970-01-01 00:00:00',
-  scheduled_end_time timestamp with time zone default '1970-01-01 00:00:00',
+  scheduled_start_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  scheduled_end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   was_started INTEGER  default 0,
-  actual_start_time timestamp with time zone default '1970-01-01 00:00:00',
+  actual_start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   actual_start_time_usec INTEGER  default 0,
   is_in_effect INTEGER  default 0,
-  trigger_time timestamp with time zone default '1970-01-01 00:00:00',
+  trigger_time timestamp with time zone default '1970-01-01 00:00:00+00',
   CONSTRAINT PK_scheduleddowntime_id PRIMARY KEY (scheduleddowntime_id) ,
   CONSTRAINT UQ_scheduleddowntime UNIQUE (instance_id,object_id,entry_time,internal_downtime_id)
 ) ;
@@ -1015,9 +1015,9 @@ CREATE TABLE  icinga_servicechecks (
   max_check_attempts INTEGER  default 0,
   state INTEGER  default 0,
   state_type INTEGER  default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00',
   end_time_usec INTEGER  default 0,
   command_object_id bigint default 0,
   command_args TEXT  default '',
@@ -1030,7 +1030,7 @@ CREATE TABLE  icinga_servicechecks (
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
-  CONSTRAINT PK_servicecheck_id PRIMARY KEY (servicecheck_id) 
+  CONSTRAINT PK_servicecheck_id PRIMARY KEY (servicecheck_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -1215,7 +1215,7 @@ CREATE TABLE  icinga_servicestatus (
   servicestatus_id bigserial,
   instance_id bigint default 0,
   service_object_id bigint default 0,
-  status_update_time timestamp with time zone default '1970-01-01 00:00:00',
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
@@ -1225,19 +1225,19 @@ CREATE TABLE  icinga_servicestatus (
   should_be_scheduled INTEGER  default 0,
   current_check_attempt INTEGER  default 0,
   max_check_attempts INTEGER  default 0,
-  last_check timestamp with time zone default '1970-01-01 00:00:00',
-  next_check timestamp with time zone default '1970-01-01 00:00:00',
+  last_check timestamp with time zone default '1970-01-01 00:00:00+00',
+  next_check timestamp with time zone default '1970-01-01 00:00:00+00',
   check_type INTEGER  default 0,
-  last_state_change timestamp with time zone default '1970-01-01 00:00:00',
-  last_hard_state_change timestamp with time zone default '1970-01-01 00:00:00',
+  last_state_change timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_hard_state_change timestamp with time zone default '1970-01-01 00:00:00+00',
   last_hard_state INTEGER  default 0,
-  last_time_ok timestamp with time zone default '1970-01-01 00:00:00',
-  last_time_warning timestamp with time zone default '1970-01-01 00:00:00',
-  last_time_unknown timestamp with time zone default '1970-01-01 00:00:00',
-  last_time_critical timestamp with time zone default '1970-01-01 00:00:00',
+  last_time_ok timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_time_warning timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_time_unknown timestamp with time zone default '1970-01-01 00:00:00+00',
+  last_time_critical timestamp with time zone default '1970-01-01 00:00:00+00',
   state_type INTEGER  default 0,
-  last_notification timestamp with time zone default '1970-01-01 00:00:00',
-  next_notification timestamp with time zone default '1970-01-01 00:00:00',
+  last_notification timestamp with time zone default '1970-01-01 00:00:00+00',
+  next_notification timestamp with time zone default '1970-01-01 00:00:00+00',
   no_more_notifications INTEGER  default 0,
   notifications_enabled INTEGER  default 0,
   problem_has_been_acknowledged INTEGER  default 0,
@@ -1291,7 +1291,7 @@ CREATE TABLE  icinga_service_contacts (
   instance_id bigint default 0,
   service_id bigint default 0,
   contact_object_id bigint default 0,
-  CONSTRAINT PK_service_contact_id PRIMARY KEY (service_contact_id) 
+  CONSTRAINT PK_service_contact_id PRIMARY KEY (service_contact_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -1303,7 +1303,7 @@ CREATE TABLE  icinga_service_contacts (
 CREATE TABLE  icinga_statehistory (
   statehistory_id bigserial,
   instance_id bigint default 0,
-  state_time timestamp with time zone default '1970-01-01 00:00:00',
+  state_time timestamp with time zone default '1970-01-01 00:00:00+00+00',
   state_time_usec INTEGER  default 0,
   object_id bigint default 0,
   state_change INTEGER  default 0,
@@ -1316,7 +1316,7 @@ CREATE TABLE  icinga_statehistory (
   output TEXT  default '',
   long_output TEXT  default '',
   check_source varchar(255) default NULL,
-  CONSTRAINT PK_statehistory_id PRIMARY KEY (statehistory_id) 
+  CONSTRAINT PK_statehistory_id PRIMARY KEY (statehistory_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -1328,9 +1328,9 @@ CREATE TABLE  icinga_statehistory (
 CREATE TABLE  icinga_systemcommands (
   systemcommand_id bigserial,
   instance_id bigint default 0,
-  start_time timestamp with time zone default '1970-01-01 00:00:00',
+  start_time timestamp with time zone default '1970-01-01 00:00:00+00+00',
   start_time_usec INTEGER  default 0,
-  end_time timestamp with time zone default '1970-01-01 00:00:00',
+  end_time timestamp with time zone default '1970-01-01 00:00:00+00+00',
   end_time_usec INTEGER  default 0,
   command_line TEXT  default '',
   timeout INTEGER  default 0,
@@ -1405,7 +1405,7 @@ CREATE TABLE  icinga_endpointstatus (
   endpointstatus_id bigserial,
   instance_id bigint default 0,
   endpoint_object_id bigint default 0,
-  status_update_time timestamp with time zone default '1970-01-01 00:00:00',
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00+00',
   identity text DEFAULT NULL,
   node text DEFAULT NULL,
   is_connected integer default 0,
@@ -1603,7 +1603,7 @@ CREATE INDEX notification_object_id_idx ON icinga_notifications(object_id);
 CREATE INDEX contact_notification_idx ON icinga_contactnotifications(notification_id, contact_object_id);
 CREATE INDEX contacts_object_id_idx ON icinga_contacts(contact_object_id);
 CREATE INDEX contact_notif_meth_notif_idx ON icinga_contactnotificationmethods(contactnotification_id, command_object_id);
-CREATE INDEX command_object_idx ON icinga_commands(object_id);                         
+CREATE INDEX command_object_idx ON icinga_commands(object_id);
 CREATE INDEX services_combined_object_idx ON icinga_services(service_object_id, host_object_id);
 
 -- statehistory
