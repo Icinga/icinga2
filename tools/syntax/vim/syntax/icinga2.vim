@@ -45,7 +45,7 @@ syn match		Parens		"[()]"
 
 
 " objects types
-syn match		icinga2ObjDef		"object[ \t]\+\(hostgroup\|host\|service\|servicegroup\|user\|usergroup\)"
+syn match		icinga2ObjDef		"object[ \t]\+\(hostgroup\|host\|servicegroup\|service\|usergroup\|user\)"
 syn match		icinga2ObjDef		"object[ \t]\+\(checkcommand\|notificationcommand\|eventcommand\|notification\)"
 syn match		icinga2Objdef		"object[ \t]\+\(timeperiod\|scheduleddowntime\|dependency\|perfdatawriter\)"
 syn match		icinga2ObjDef		"object[ \t]\+\(graphitewriter\|idomysqlconnection\|idomysqlconnection\)"
