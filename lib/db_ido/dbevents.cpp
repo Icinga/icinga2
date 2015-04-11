@@ -610,6 +610,37 @@ void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::P
 	query3.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query3);
+
+	/* host/service status */
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	DbQuery query4;
+	if (service)
+		query4.Table = "servicestatus";
+	else
+		query4.Table = "hoststatus";
+
+	query4.Type = DbQueryInsert | DbQueryUpdate;
+	query4.Category = DbCatState;
+	query4.StatusUpdate = true;
+	query4.Object = DbObject::GetOrCreateByObject(checkable);
+
+	Dictionary::Ptr fields4 = new Dictionary();
+	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
+
+	query4.Fields = fields4;
+
+	query4.WhereCriteria = new Dictionary();
+	if (service)
+		query4.WhereCriteria->Set("service_object_id", service);
+	else
+		query4.WhereCriteria->Set("host_object_id", host);
+
+	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	DbObject::OnQuery(query4);
 }
 
 void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
