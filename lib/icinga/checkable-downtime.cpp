@@ -104,20 +104,23 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 		l_DowntimesCache[uid] = this;
 	}
 
-	/* if this object is already in a NOT-OK state trigger this downtime now */
-	if (GetStateRaw() != ServiceOK) {
-		Log(LogNotice, "Checkable")
-		    << "Checkable '" << GetName() << "' already in a NOT-OK state."
-		    << " Triggering downtime now.";
-		TriggerDowntime(uid);
-	}
-
 	Log(LogNotice, "Checkable")
 	    << "Added downtime with ID '" << downtime->GetLegacyId()
 	    << "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
 	    << "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "'.";
 
 	OnDowntimeAdded(this, downtime, origin);
+
+	/* if this object is already in a NOT-OK state trigger
+	 * this downtime now *after* it has been added (important
+	 * for DB IDO, etc.)
+	 */
+	if (GetStateRaw() != ServiceOK) {
+		Log(LogNotice, "Checkable")
+		    << "Checkable '" << GetName() << "' already in a NOT-OK state."
+		    << " Triggering downtime now.";
+		TriggerDowntime(uid);
+	}
 
 	return uid;
 }
