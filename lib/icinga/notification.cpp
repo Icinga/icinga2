@@ -231,7 +231,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 {
 	ASSERT(!OwnsLock());
 
-	Log(LogInformation, "Notification")
+	Log(LogNotice, "Notification")
 	    << "Attempting to send notifications for notification object '" << GetName() << "'.";
 
 	Checkable::Ptr checkable = GetCheckable();
