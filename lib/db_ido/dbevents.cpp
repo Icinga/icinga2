@@ -45,7 +45,7 @@ void DbEvents::StaticInitialize(void)
 	/* Status */
 	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1, _2));
 	Checkable::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1, _2));
-	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, _2));
+	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, _2, true));
 	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1, _2));
 	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1, _2));
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
@@ -469,17 +469,18 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 	ObjectLock olock(downtimes);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
-		AddDowntime(checkable, kv.second);
+		AddDowntime(checkable, kv.second, false);
 	}
 }
 
-void DbEvents::AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void DbEvents::AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool remove_existing)
 {
 	/*
 	 * make sure to delete any old downtime to avoid multiple inserts from
 	 * configured ScheduledDowntime dumps and CreateNextDowntime() calls
 	 */
-	RemoveDowntime(checkable, downtime);
+	if (remove_existing)
+		RemoveDowntime(checkable, downtime);
 	AddDowntimeInternal(checkable, downtime, false);
 }
 

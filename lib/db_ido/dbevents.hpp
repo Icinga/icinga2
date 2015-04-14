@@ -94,7 +94,7 @@ public:
 	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 
-	static void AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool remove_existing);
 	static void RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 	static void TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 
