@@ -123,7 +123,6 @@ enum CombinedSetOp
 enum ScopeSpecifier
 {
 	ScopeLocal,
-	ScopeCurrent,
 	ScopeThis,
 	ScopeGlobal
 };

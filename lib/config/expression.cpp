@@ -473,8 +473,6 @@ ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 {
 	if (m_ScopeSpec == ScopeLocal)
 		return frame.Locals;
-	else if (m_ScopeSpec == ScopeCurrent)
-		return frame.Self;
 	else if (m_ScopeSpec == ScopeThis)
 		return frame.Self;
 	else if (m_ScopeSpec == ScopeGlobal)

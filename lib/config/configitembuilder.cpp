@@ -94,7 +94,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	Array::Ptr templateArray = new Array();
 	templateArray->Add(m_Name);
 
-	exprs.push_back(new SetExpression(MakeIndexer(ScopeCurrent, "templates"), OpSetAdd,
+	exprs.push_back(new SetExpression(MakeIndexer(ScopeThis, "templates"), OpSetAdd,
 	    new LiteralExpression(templateArray), m_DebugInfo));
 
 	DictExpression *dexpr = new DictExpression(m_Expressions, m_DebugInfo);

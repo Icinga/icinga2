@@ -521,7 +521,7 @@ lterm: library
 		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, $7, @$);
 		delete $4;
 
-		$$ = new SetExpression(MakeIndexer(ScopeCurrent, $2), OpSetLiteral, fexpr, @$);
+		$$ = new SetExpression(MakeIndexer(ScopeThis, $2), OpSetLiteral, fexpr, @$);
 		free($2);
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
@@ -780,7 +780,7 @@ rterm_no_side_effect: T_STRING
 	| rterm_scope_require_side_effect
 	{
 		Expression *expr = $1;
-		BindToScope(expr, ScopeCurrent);
+		BindToScope(expr, ScopeThis);
 		$$ = expr;
 	}
 	| '('
