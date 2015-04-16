@@ -82,7 +82,7 @@ Configuration Attributes:
   Name            |Description
   ----------------|----------------
   execute         |**Required.** The "execute" script method takes care of executing the check. In virtually all cases you should import the "plugin-check-command" template to take care of this setting.
-  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array.
+  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
@@ -128,12 +128,12 @@ CheckCommand:
 
   Option      | Description
   ------------|--------------
-  value       | Optional argument value.
+  value       | Optional argument value set by a macro string or a function call.
   key 	      | Optional argument key overriding the key identifier.
   description | Optional argument description.
   required    | Required argument. Execution error if not set. Defaults to false (optional).
   skip_key    | Use the value as argument and skip the key.
-  set_if      | Argument is added if the macro resolves to a defined numeric value. String values are not supported.
+  set_if      | Argument is added if the macro resolves to a defined numeric or boolean value. String values are not supported. Function calls returning a value are supported too.
   order       | Set if multiple arguments require a defined argument order.
   repeat_key  | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat).
 
