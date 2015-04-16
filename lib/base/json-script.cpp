@@ -36,8 +36,8 @@ static void InitializeJsonObj(void)
 	Dictionary::Ptr jsonObj = new Dictionary();
 
 	/* Methods */
-	jsonObj->Set("encode", new Function(WrapFunction(JsonEncodeShim)));
-	jsonObj->Set("decode", new Function(WrapFunction(JsonDecode)));
+	jsonObj->Set("encode", new Function(WrapFunction(JsonEncodeShim), true));
+	jsonObj->Set("decode", new Function(WrapFunction(JsonDecode), true));
 
 	ScriptGlobal::Set("Json", jsonObj);
 }

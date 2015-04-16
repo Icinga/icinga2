@@ -38,7 +38,7 @@ Object::Ptr Number::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("to_string", new Function(WrapFunction(NumberToString)));
+		prototype->Set("to_string", new Function(WrapFunction(NumberToString), true));
 	}
 
 	return prototype;

@@ -38,7 +38,7 @@ Object::Ptr Object::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("to_string", new Function(WrapFunction(ObjectToString)));
+		prototype->Set("to_string", new Function(WrapFunction(ObjectToString), true));
 	}
 
 	return prototype;

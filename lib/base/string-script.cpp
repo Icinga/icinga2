@@ -133,15 +133,15 @@ Object::Ptr String::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function(WrapFunction(StringLen)));
-		prototype->Set("to_string", new Function(WrapFunction(StringToString)));
-		prototype->Set("substr", new Function(WrapFunction(StringSubstr)));
-		prototype->Set("upper", new Function(WrapFunction(StringUpper)));
-		prototype->Set("lower", new Function(WrapFunction(StringLower)));
-		prototype->Set("split", new Function(WrapFunction(StringSplit)));
-		prototype->Set("find", new Function(WrapFunction(StringFind)));
-		prototype->Set("contains", new Function(WrapFunction(StringContains)));
-		prototype->Set("replace", new Function(WrapFunction(StringReplace)));
+		prototype->Set("len", new Function(WrapFunction(StringLen), true));
+		prototype->Set("to_string", new Function(WrapFunction(StringToString), true));
+		prototype->Set("substr", new Function(WrapFunction(StringSubstr), true));
+		prototype->Set("upper", new Function(WrapFunction(StringUpper), true));
+		prototype->Set("lower", new Function(WrapFunction(StringLower), true));
+		prototype->Set("split", new Function(WrapFunction(StringSplit), true));
+		prototype->Set("find", new Function(WrapFunction(StringFind), true));
+		prototype->Set("contains", new Function(WrapFunction(StringContains), true));
+		prototype->Set("replace", new Function(WrapFunction(StringReplace), true));
 	}
 
 	return prototype;

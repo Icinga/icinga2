@@ -59,6 +59,7 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 {
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
+		("sandbox", "enable sandbox mode")
 	;
 }
 
@@ -192,6 +193,15 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
 		session = Utility::NewUniqueID();
+	}
+
+	if (vm.count("sandbox")) {
+		if (vm.count("connect")) {
+			Log(LogCritical, "ConsoleCommand", "Sandbox mode cannot be used together with --connect.");
+			return EXIT_FAILURE;
+		}
+
+		l_ScriptFrame.Sandboxed = true;
 	}
 
 	std::cout << "Icinga (version: " << Application::GetVersion() << ")\n";

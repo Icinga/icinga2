@@ -25,13 +25,13 @@ using namespace icinga;
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
 ScriptFrame::ScriptFrame(void)
-	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals())
+	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false)
 {
 	PushFrame(this);
 }
 
 ScriptFrame::ScriptFrame(const Value& self)
-	: Locals(new Dictionary()), Self(self)
+	: Locals(new Dictionary()), Self(self), Sandboxed(false)
 {
 	PushFrame(this);
 }

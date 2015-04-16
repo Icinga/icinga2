@@ -42,20 +42,31 @@ public:
 
 	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
 
-	Function(const Callback& function);
+	Function(const Callback& function, bool side_effect_free = false);
 
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
+	bool IsSideEffectFree(void) const;
 
 	static Object::Ptr GetPrototype(void);
 
 private:
 	Callback m_Callback;
+	bool m_SideEffectFree;
 };
 
 #define REGISTER_SCRIPTFUNCTION(name, callback) \
 	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## name { \
 		void RegisterFunction(void) { \
 			Function::Ptr sf = new icinga::Function(WrapFunction(callback)); \
+			ScriptGlobal::Set(#name, sf); \
+		} \
+		INITIALIZE_ONCE(RegisterFunction); \
+	} } }
+
+#define REGISTER_SAFE_SCRIPTFUNCTION(name, callback) \
+	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## name { \
+		void RegisterFunction(void) { \
+			Function::Ptr sf = new icinga::Function(WrapFunction(callback), true); \
 			ScriptGlobal::Set(#name, sf); \
 		} \
 		INITIALIZE_ONCE(RegisterFunction); \

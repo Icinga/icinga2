@@ -25,12 +25,17 @@ using namespace icinga;
 
 REGISTER_PRIMITIVE_TYPE_NOINST(Function, Function::GetPrototype());
 
-Function::Function(const Callback& function)
-	: m_Callback(function)
+Function::Function(const Callback& function, bool side_effect_free)
+	: m_Callback(function), m_SideEffectFree(side_effect_free)
 { }
 
 Value Function::Invoke(const std::vector<Value>& arguments)
 {
 	return m_Callback(arguments);
+}
+
+bool Function::IsSideEffectFree(void) const
+{
+	return m_SideEffectFree;
 }
 

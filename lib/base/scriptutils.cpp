@@ -33,24 +33,24 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(regex, &ScriptUtils::Regex);
-REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
-REGISTER_SCRIPTFUNCTION(len, &ScriptUtils::Len);
-REGISTER_SCRIPTFUNCTION(union, &ScriptUtils::Union);
-REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
+REGISTER_SAFE_SCRIPTFUNCTION(regex, &ScriptUtils::Regex);
+REGISTER_SAFE_SCRIPTFUNCTION(match, &Utility::Match);
+REGISTER_SAFE_SCRIPTFUNCTION(len, &ScriptUtils::Len);
+REGISTER_SAFE_SCRIPTFUNCTION(union, &ScriptUtils::Union);
+REGISTER_SAFE_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
 REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
 REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
 REGISTER_SCRIPTFUNCTION(exit, &Application::Exit);
-REGISTER_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
-REGISTER_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
-REGISTER_SCRIPTFUNCTION(random, &Utility::Random);
-REGISTER_SCRIPTFUNCTION(get_object, &ScriptUtils::GetObject);
-REGISTER_SCRIPTFUNCTION(get_objects, &ScriptUtils::GetObjects);
+REGISTER_SAFE_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
+REGISTER_SAFE_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
+REGISTER_SAFE_SCRIPTFUNCTION(random, &Utility::Random);
+REGISTER_SAFE_SCRIPTFUNCTION(get_object, &ScriptUtils::GetObject);
+REGISTER_SAFE_SCRIPTFUNCTION(get_objects, &ScriptUtils::GetObjects);
 REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
-REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
-REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
-REGISTER_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
-REGISTER_SCRIPTFUNCTION(get_time, &Utility::GetTime);
+REGISTER_SAFE_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
+REGISTER_SAFE_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
+REGISTER_SAFE_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
+REGISTER_SAFE_SCRIPTFUNCTION(get_time, &Utility::GetTime);
 
 String ScriptUtils::CastString(const Value& value)
 {

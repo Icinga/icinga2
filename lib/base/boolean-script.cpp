@@ -38,7 +38,7 @@ Object::Ptr Boolean::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("to_string", new Function(WrapFunction(BooleanToString)));
+		prototype->Set("to_string", new Function(WrapFunction(BooleanToString), true));
 	}
 
 	return prototype;

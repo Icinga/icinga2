@@ -129,15 +129,15 @@ Object::Ptr Array::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function(WrapFunction(ArrayLen)));
+		prototype->Set("len", new Function(WrapFunction(ArrayLen), true));
 		prototype->Set("set", new Function(WrapFunction(ArraySet)));
 		prototype->Set("add", new Function(WrapFunction(ArrayAdd)));
 		prototype->Set("remove", new Function(WrapFunction(ArrayRemove)));
-		prototype->Set("contains", new Function(WrapFunction(ArrayContains)));
+		prototype->Set("contains", new Function(WrapFunction(ArrayContains), true));
 		prototype->Set("clear", new Function(WrapFunction(ArrayClear)));
-		prototype->Set("sort", new Function(WrapFunction(ArraySort)));
-		prototype->Set("clone", new Function(WrapFunction(ArrayClone)));
-		prototype->Set("join", new Function(WrapFunction(ArrayJoin)));
+		prototype->Set("sort", new Function(WrapFunction(ArraySort), true));
+		prototype->Set("clone", new Function(WrapFunction(ArrayClone), true));
+		prototype->Set("join", new Function(WrapFunction(ArrayJoin), true));
 	}
 
 	return prototype;

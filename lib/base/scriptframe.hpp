@@ -32,6 +32,7 @@ struct I2_BASE_API ScriptFrame
 {
 	Dictionary::Ptr Locals;
 	Value Self;
+	bool Sandboxed;
 
 	ScriptFrame(void);
 	ScriptFrame(const Value& self);

@@ -65,11 +65,11 @@ Object::Ptr Dictionary::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function(WrapFunction(DictionaryLen)));
+		prototype->Set("len", new Function(WrapFunction(DictionaryLen), true));
 		prototype->Set("set", new Function(WrapFunction(DictionarySet)));
 		prototype->Set("remove", new Function(WrapFunction(DictionaryRemove)));
-		prototype->Set("contains", new Function(WrapFunction(DictionaryContains)));
-		prototype->Set("clone", new Function(WrapFunction(DictionaryClone)));
+		prototype->Set("contains", new Function(WrapFunction(DictionaryContains), true));
+		prototype->Set("clone", new Function(WrapFunction(DictionaryClone), true));
 	}
 
 	return prototype;

@@ -414,6 +414,9 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 
 	Function::Ptr func = vfunc;
 
+	if (!func->IsSideEffectFree() && frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Function is not marked as safe for sandbox mode.", m_DebugInfo));
+
 	std::vector<Value> arguments;
 	BOOST_FOREACH(Expression *arg, m_Args) {
 		ExpressionResult argres = arg->Evaluate(frame);
@@ -483,6 +486,9 @@ ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 
 ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Assignments are not allowed in sandbox mode.", m_DebugInfo));
+
 	DebugHint *psdhint = dhint;
 
 	Value parent;
@@ -565,6 +571,9 @@ ExpressionResult ConditionalExpression::DoEvaluate(ScriptFrame& frame, DebugHint
 
 ExpressionResult WhileExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("While loops are not allowed in sandbox mode.", m_DebugInfo));
+
 	for (;;) {
 		ExpressionResult condition = m_Condition->Evaluate(frame, dhint);
 		CHECK_RESULT(condition);
@@ -617,6 +626,9 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 	if (dhint)
 		psdhint = *dhint;
+
+	if (frame.Sandboxed)
+		init_dict = false;
 
 	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, &psdhint)) {
 		if (init_dict && VMOps::GetField(vparent, vindex, m_Operand1->GetDebugInfo()).IsEmpty())
@@ -687,6 +699,9 @@ void icinga::BindToScope(Expression *& expr, ScopeSpecifier scopeSpec)
 
 ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Imports are not allowed in sandbox mode.", m_DebugInfo));
+
 	String type = VMOps::GetField(frame.Self, "type", m_DebugInfo);
 	ExpressionResult nameres = m_Name->Evaluate(frame);
 	CHECK_RESULT(nameres);
@@ -713,6 +728,9 @@ ExpressionResult FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 
 ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Apply rules are not allowed in sandbox mode.", m_DebugInfo));
+
 	ExpressionResult nameres = m_Name->Evaluate(frame);
 	CHECK_RESULT(nameres);
 
@@ -722,6 +740,9 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 
 ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Object definitions are not allowed in sandbox mode.", m_DebugInfo));
+
 	String name;
 
 	if (m_Name) {
@@ -737,6 +758,9 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 
 ExpressionResult ForExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("For loops are not allowed in sandbox mode.", m_DebugInfo));
+
 	ExpressionResult valueres = m_Value->Evaluate(frame, dhint);
 	CHECK_RESULT(valueres);
 
