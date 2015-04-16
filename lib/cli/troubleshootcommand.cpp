@@ -409,8 +409,8 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 	else {
 		InfoLogLine(log)
 		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()) << '\n'
-		    << "File: " << bestFilename << '\n';
-		Tail(bestFilename, 20, log);
+		    << "File: " << bestFilename << "\n\n";
+		PrintConf(log, bestFilename);
 		InfoLogLine(log)
 		    << '\n';
 	}
