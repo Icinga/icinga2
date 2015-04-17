@@ -677,7 +677,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
-	service->AddComment(CommentAcknowledgement, arguments[6], arguments[7], 0);
+	service->AddComment(CommentAcknowledgement, arguments[6], arguments[7], timestamp);
 	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, timestamp);
 }
 
@@ -736,7 +736,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-	host->AddComment(CommentAcknowledgement, arguments[5], arguments[6], 0);
+	host->AddComment(CommentAcknowledgement, arguments[5], arguments[6], timestamp);
 	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, timestamp);
 }
 
