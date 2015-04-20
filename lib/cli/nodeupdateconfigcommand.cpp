@@ -237,7 +237,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		host_attrs->Set("import", host_imports);
 
 		if (!RepositoryUtility::AddObject(object_paths, zone, "Host", host_attrs, changes, false)) {
-			Log(LogCritical, "cli")
+			Log(LogWarning, "cli")
 			    << "Cannot add node host '" << zone << "' to the config repository!\n";
 		}
 
@@ -256,7 +256,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 				BOOST_FOREACH(const String& object_path, object_paths) {
 					if (object_path.Contains(host_pattern)) {
-						Log(LogWarning, "cli")
+						Log(LogNotice, "cli")
 						    << "Host '" << host << "' already existing. Skipping its creation.";
 						skip_host = true;
 						break;
@@ -321,7 +321,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 					BOOST_FOREACH(const String& object_path, object_paths) {
 						if (object_path.Contains(service_pattern)) {
-							Log(LogWarning, "cli")
+							Log(LogNotice, "cli")
 							    << "Service '" << service << "' on Host '" << host << "' already existing. Skipping its creation.";
 							skip_service = true;
 							break;
@@ -377,7 +377,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		    << "Adding endpoint '" << endpoint << "' to the repository.";
 
 		if (!RepositoryUtility::AddObject(object_paths, endpoint, "Endpoint", endpoint_attrs, changes, false)) {
-			Log(LogCritical, "cli")
+			Log(LogWarning, "cli")
 			    << "Cannot add node endpoint '" << endpoint << "' to the config repository!\n";
 		}
 
@@ -412,7 +412,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		    << "Adding zone '" << zone << "' to the repository.";
 
 		if (!RepositoryUtility::AddObject(object_paths, zone, "Zone", zone_attrs, changes, false)) {
-			Log(LogCritical, "cli")
+			Log(LogWarning, "cli")
 			    << "Cannot add node zone '" << zone << "' to the config repository!\n";
 		}
 	}
