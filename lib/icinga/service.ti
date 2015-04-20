@@ -37,6 +37,10 @@ class Service : Checkable < ServiceNameComposer
 {
 	load_after Host;
 
+	[config] Array::Ptr groups {
+		default {{{ return new Array(); }}}
+	};
+
 	[config] String display_name {
 		get {{{
 			if (m_DisplayName.IsEmpty())

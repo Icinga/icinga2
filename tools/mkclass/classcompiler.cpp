@@ -645,14 +645,10 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 	if (validatorType != ValidatorField)
 		m_Impl << "const String& key, ";
 
-	bool static_known_attribute = false;
-
 	m_Impl << fieldType.GetArgumentType() << " value, std::vector<String>& location, const ValidationUtils& utils)" << std::endl
 	       << "{" << std::endl;
 
 	if (validatorType == ValidatorField) {
-		static_known_attribute = true;
-
 		bool required = false;
 
 		for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
@@ -679,7 +675,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 		}
 	}
 
-	if (!static_known_attribute)
+	if (validatorType != ValidatorField)
 		m_Impl << "\t" << "bool known_attribute = false;" << std::endl;
 
 	bool type_check = false;
@@ -703,11 +699,9 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					m_Impl << "\t\t" << "if (key != \"" << rule.Pattern << "\")" << std::endl;
 
 				m_Impl << "\t\t\t" << "break;" << std::endl;
-			} else
-				static_known_attribute = true;
+			}
 
-			if (!static_known_attribute)
-				m_Impl << "\t\t" << "known_attribute = true;" << std::endl;
+			m_Impl << "\t\t" << "known_attribute = true;" << std::endl;
 		}
 
 		if (rule.IsName) {
@@ -824,12 +818,13 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 	}
 
 	if (type_check || validatorType != ValidatorField) {
-		if (!static_known_attribute)
+		if (validatorType != ValidatorField) {
 			m_Impl << "\t" << "if (!known_attribute)" << std::endl
 			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid attribute: \" + key));" << std::endl
 			       << "\t" << "else" << std::endl;
+		}
 
-		m_Impl << (!static_known_attribute ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid type.\"));" << std::endl;
+		m_Impl << (validatorType != ValidatorField ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid type.\"));" << std::endl;
 	}
 
 	m_Impl << "}" << std::endl << std::endl;

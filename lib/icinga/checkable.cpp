@@ -19,6 +19,8 @@
 
 #include "icinga/checkable.hpp"
 #include "icinga/checkable.tcpp"
+#include "icinga/host.hpp"
+#include "icinga/service.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
@@ -81,7 +83,13 @@ void Checkable::AddGroup(const String& name)
 {
 	boost::mutex::scoped_lock lock(m_CheckableMutex);
 
-	Array::Ptr groups = GetGroups();
+	Array::Ptr groups;
+	Host *host = dynamic_cast<Host *>(this);
+
+	if (host)
+		groups = host->GetGroups();
+	else
+		groups = static_cast<Service *>(this)->GetGroups();
 
 	if (groups && groups->Contains(name))
 		return;

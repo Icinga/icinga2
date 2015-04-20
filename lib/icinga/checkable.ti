@@ -40,9 +40,6 @@ enum AcknowledgementType
 
 abstract class Checkable : CustomVarObject
 {
-	[config] Array::Ptr groups {
-		default {{{ return new Array(); }}}
-	};
 	[config, protected, required] name(CheckCommand) check_command (CheckCommandRaw);
 	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
 		default {{{ return 3; }}}
