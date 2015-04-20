@@ -54,6 +54,47 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.4
+
+#### Changes
+
+* Bugfixes
+* ITL: Check commands for various databases
+* Improve validation messages for time periods
+* Update max_check_attempts in generic-{host,service} templates
+* Update logrotate configuration
+
+#### Issues
+
+* Feature 8760: Add database plugins to ITL
+* Feature 8803: Agent Wizard: add options for API defaults
+* Feature 8893: Improve timeperiod validation error messages
+* Feature 8895: Add explanatory note for Icinga2 client documentation
+
+* Bug 8808: logrotate doesn't work on Ubuntu
+* Bug 8821: command_endpoint check_results are not replicated to other endpoints in the same zone
+* Bug 8879: Reword documentation of check_address
+* Bug 8881: Add arguments to the UPS check
+* Bug 8889: Fix a minor markdown error
+* Bug 8892: Validation errors for time ranges which span the DST transition
+* Bug 8894: Default max_check_attempts should be lower for hosts than for services
+* Bug 8913: Windows Build: Flex detection
+* Bug 8917: Node wizard should only accept 'y', 'n', 'Y' and 'N' as answers for boolean questions
+* Bug 8919: Fix complexity class for Dictionary::Get
+* Bug 8987: Fix a typo
+* Bug 9012: Typo in graphite feature enable documentation
+* Bug 9014: Don't update scheduleddowntime table w/ trigger_time column when only adding a downtime
+* Bug 9016: Downtimes which have been triggered are not properly recorded in the database
+* Bug 9017: scheduled_downtime_depth column is not reset when a downtime ends or when a downtime is being removed
+* Bug 9021: Multiple log messages w/ "Attempting to send notifications for notification object"
+* Bug 9041: Acknowledging problems w/ expire time does not add the expiry information to the related comment for IDO and compat
+* Bug 9045: Vim syntax: Match groups before host/service/user objects
+* Bug 9049: check_disk order of command arguments
+* Bug 9050: web.conf is not in the RPM package
+* Bug 9064: troubleshoot truncates crash reports
+* Bug 9069: Documentation: set_if usage with boolean values and functions
+* Bug 9073: custom attributes with recursive macro function calls causing sigabrt
+
 ### What's New in Version 2.3.3
 
 #### Changes
