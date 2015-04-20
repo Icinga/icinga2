@@ -489,18 +489,37 @@ static String UnameHelper(char type)
 
 static String LsbReleaseHelper(void)
 {
+	String result = "Could not get release string";
 	FILE *fp = popen("lsb_release -s -d 2>&1", "r");
-
-	char line[1024];
 	std::ostringstream msgbuf;
 
-	while (fgets(line, sizeof(line), fp) != NULL)
-		msgbuf << line;
+	if (fp != NULL) {
+		char line[1024];
 
-	pclose(fp);
+		while (fgets(line, sizeof(line), fp) != NULL)
+			msgbuf << line;
 
-	String result = msgbuf.str();
-	result.Trim();
+		int status = pclose(fp);
+
+		if (WEXITSTATUS(status) == 0) {
+			result = msgbuf.str();
+			result.Trim();
+			return result;
+		}
+	}
+
+	std::ifstream release("/etc/os-release");
+	if (!release.is_open())
+		return result;
+	std::string release_line;
+
+	while (getline(release, release_line)) {
+		if (release_line.find("PRETTY_NAME") != std::string::npos) {
+			result = release_line.substr(13, release_line.length()-14);
+			break;
+		}
+	}
+	release.close();
 
 	return result;
 }
