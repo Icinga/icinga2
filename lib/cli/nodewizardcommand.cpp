@@ -160,33 +160,49 @@ wizard_endpoint_loop_start:
 		endpoint_buffer = answer;
 		endpoint_buffer.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Please fill out the master connection information:" << ConsoleColorTag(Console_Normal) << "\n";
-		std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint host" << ConsoleColorTag(Console_Normal) << " (optional, your master's IP address or FQDN): ";
+		std::cout << "Do you want to establish a connection to the master " << ConsoleColorTag(Console_Bold) << "now " << ConsoleColorTag(Console_Normal) << " [Y/n]? ";
 
-		std::getline(std::cin, answer);
+		std::getline (std::cin, answer);
 		boost::algorithm::to_lower(answer);
+		choice = answer;
 
-		if (!answer.empty()) {
+		if (choice.Contains("n")) {
+			Log(LogWarning, "cli", "Node to master connection setup skipped");
+			std::cout << "Connection setup skipped, you know hat you are doing.\n";
+		} else  {
+	  		std::cout << ConsoleColorTag(Console_Bold) << "Please fill out the master connection information:" << ConsoleColorTag(Console_Normal) << "\n";
+			std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint host" << ConsoleColorTag(Console_Normal) << " (Your master's IP address or FQDN): ";
+
+			std::getline(std::cin, answer);
+			boost::algorithm::to_lower(answer);
+
+		if (answer.empty()) {
+			Log(LogWarning, "cli", "Please enter the masters endpoint data");
+			goto wizard_endpoint_loop_start;
+		}
+
 			String tmp = answer;
 			tmp.Trim();
 			endpoint_buffer += "," + tmp;
 			master_endpoint_name = tmp; //store the endpoint name for later
-		}
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint port" << ConsoleColorTag(Console_Normal) << " (optional) []: ";
+			std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint port" << ConsoleColorTag(Console_Normal) << " [5665]: ";
 
-		std::getline(std::cin, answer);
-		boost::algorithm::to_lower(answer);
+			std::getline(std::cin, answer);
+			boost::algorithm::to_lower(answer);
 
-		if (!answer.empty()) {
-			String tmp = answer;
+			if (!answer.empty())
+				tmp = answer;
+			else
+				tmp = "5665";
+
 			tmp.Trim();
 			endpoint_buffer += "," + answer;
 		}
 
 		endpoints.push_back(endpoint_buffer);
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Add more master endpoints?" << ConsoleColorTag(Console_Normal) << " [y/N]";
+		std::cout << ConsoleColorTag(Console_Bold) << "Add more master endpoints?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
 		std::getline (std::cin, answer);
 
 		boost::algorithm::to_lower(answer);
