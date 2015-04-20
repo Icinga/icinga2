@@ -253,14 +253,14 @@ bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options:
 	InfoLogLine(log)
 	    << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc\n";
 
-	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
+	if (!PrintFile(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
 		InfoLogLine(log, 0, LogWarning)
 		    << "icinga2.conf not found, therefore skipping validation.\n"
 		    << "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
 		    << "and provide it with your support request.\n";
 	}
 
-	if (!PrintConf(log, Application::GetSysconfDir() + "/icinga2/zones.conf")) {
+	if (!PrintFile(log, Application::GetSysconfDir() + "/icinga2/zones.conf")) {
 		InfoLogLine(log, 0, LogWarning)
 		    << "zones.conf not found.\n"
 		    << "If you are using a zones.conf somewhere but the default path please provide it with your support request\n";
@@ -410,7 +410,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 		InfoLogLine(log)
 		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()) << '\n'
 		    << "File: " << bestFilename << "\n\n";
-		PrintConf(log, bestFilename);
+		PrintFile(log, bestFilename);
 		InfoLogLine(log)
 		    << '\n';
 	}
@@ -418,7 +418,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 	return true;
 }
 
-bool TroubleshootCommand::PrintConf(InfoLog& log, const String& path)
+bool TroubleshootCommand::PrintFile(InfoLog& log, const String& path)
 {
 	std::ifstream text;
 	text.open(path.CStr(), std::ifstream::in);

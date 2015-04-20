@@ -58,7 +58,7 @@ private:
 	static bool CheckFeatures(InfoLog& log);
 	static void GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename);
 	static bool PrintCrashReports(InfoLog& log);
-	static bool PrintConf(InfoLog& log, const String& path);
+	static bool PrintFile(InfoLog& log, const String& path);
 	static bool CheckConfig(void);
 	static void CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile, const bool objectConsole,
 	    Dictionary::Ptr& logs, std::set<String>& configs);
