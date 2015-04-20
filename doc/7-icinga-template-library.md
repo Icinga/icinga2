@@ -445,6 +445,7 @@ nscp_params     | **Optional.** Parameters for the query. Multiple parameters mu
 nscp_warn       | **Optional.** The warning threshold.
 nscp_crit       | **Optional.** The critical threshold.
 nscp_timeout    | **Optional.** The query timeout in seconds.
+nscp_showall    | **Optional.** Use with SERVICESTATE to see working services or PROCSTATE for running processes. Defaults to false.
 
 
 ## <a id="plugin-check-command-ntp-time"></a> ntp_time
