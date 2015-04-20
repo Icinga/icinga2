@@ -1,4 +1,4 @@
-@MAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/icinga2.log @CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/debug.log {
+@CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/icinga2.log @CMAKE_INSTALL_FULL_LOCALSTATEDIR@/log/icinga2/debug.log {
 	daily
 	rotate 7
 	compress
@@ -9,7 +9,7 @@
 	postrotate
 		if ! kill -l USR1 `cat @ICINGA2_RUNDIR@/icinga2/icinga2.pid`; then
 			exit 1
-		fi      
+		fi
 	endscript
 }
 
