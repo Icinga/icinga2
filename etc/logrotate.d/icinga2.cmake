@@ -7,8 +7,10 @@
 	notifempty
 	create 644 @ICINGA2_USER@ @ICINGA2_GROUP@
 	postrotate
-		if ! kill -l USR1 `cat @ICINGA2_RUNDIR@/icinga2/icinga2.pid`; then
-			exit 1
+		if service icinga2 status > /dev/null; then
+			if [ -e @ICINGA2_RUNDIR@/icinga2/icinga2.pid ]; then
+				kill -USR1 $(cat @ICINGA2_RUNDIR@/icinga2/icinga2.pid)
+			fi
 		fi
 	endscript
 }
