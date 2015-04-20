@@ -1,6 +1,9 @@
-# Release Workflow
+# Quality Assurance
 
-Here's a short check-list for releases:
+Review and test the changes and issues for this version.
+https://dev.icinga.org/projects/i2/roadmap
+
+# Release Workflow
 
 Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
 
@@ -38,3 +41,25 @@ For major releases: Create a new "support" branch:
     $ git checkout -b support/2.x
     $ git push -u origin support/2.x
 
+# External Dependencies
+
+## Build Server
+
+* Build the newly created git tag for Debian/RHEL/SuSE.
+* Provision the vagrant boxes and test the release packages.
+
+## Github Release
+
+Create a new release from the newly created git tag.
+https://github.com/Icinga/icinga2/releases
+
+## Online Documentation
+
+Ssh into the web box, navigate into `icinga2-latest/module/icinga2`
+and pull the current icinga2 revision to update what's new".
+
+## Announcement
+
+* Create a new blog post on www.icinga.org
+* Send announcement mail to icinga-announce@lists.icinga.org
+* Social media
