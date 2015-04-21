@@ -484,10 +484,9 @@ The notification is ignored for services whose host name ends with `*internal`
     apply Notification "notify-cust-xy-mysql" to Service {
       import "cust-xy-notification"
 
-      assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true
+      assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true)
       ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
     }
-
 
 
 
