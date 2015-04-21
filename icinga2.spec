@@ -100,7 +100,7 @@ BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: make
 
-%if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && ((0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5") || (0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"))
+%if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 # el5 and el6 require packages.icinga.org
 BuildRequires: boost153-devel
 %else
@@ -205,7 +205,7 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DICINGA2_GROUP=%{icinga_group} \
          -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
 %if "%{_vendor}" == "redhat"
-%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5"
+%if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
 # details in https://dev.icinga.org/issues/5033
 CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
