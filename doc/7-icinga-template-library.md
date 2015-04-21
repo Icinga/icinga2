@@ -254,6 +254,23 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name               | Description
 -------------------|--------------
 ftp_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ftp_port           | **Optional.** The FTP port number.
+ftp_expect         | **Optional.** String to expect in server response (may be repeated).
+ftp_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
+ftp_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+ftp_send           | **Optional.** String to send to the server.
+ftp_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+ftp_quit           | **Optional.** String to send server to initiate a clean close of the connection.
+ftp_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
+ftp_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
+ftp_jail           | **Optional.** Hide output from TCP socket.
+ftp_maxbytes       | **Optional.** Close connection once more than this number of bytes are received.
+ftp_delay          | **Optional.** Seconds to wait between sending string and polling for response.
+ftp_certificate    | **Optional.** Minimum number of days a certificate has to be valid. 1st value is number of days for warning, 2nd is critical (if not specified: 0) - seperated by comma.
+ftp_ssl            | **Optional.** Use SSL for the connection. Defaults to false.
+ftp_wtime          | **Optional.** Response time to result in warning status (seconds).
+ftp_ctime          | **Optional.** Response time to result in critical status (seconds).
+ftp_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
 
 
 ## <a id="plugin-check-command-hostalive"></a> hostalive
