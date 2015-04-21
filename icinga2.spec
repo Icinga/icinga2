@@ -100,8 +100,8 @@ BuildRequires: flex >= 2.5.35
 BuildRequires: bison
 BuildRequires: make
 
-%if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5")
-# el5 requires packages.icinga.org
+%if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && ((0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5") || (0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"))
+# el5 and el6 require packages.icinga.org
 BuildRequires: boost153-devel
 %else
 %if 0%{?build_icinga_org} && "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
