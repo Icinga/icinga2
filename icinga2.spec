@@ -215,6 +215,9 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
 %endif
+%if 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_TESTING=FALSE"
+%endif
 %endif
 
 %if "%{_vendor}" != "suse"
