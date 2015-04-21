@@ -63,7 +63,6 @@ if(GIT_EXECUTABLE)
   if (git_version MATCHES "^git version [0-9]")
     string(REPLACE "git version " "" GIT_VERSION_STRING "${git_version}")
   endif()
-  unset(git_version)
 endif()
 
 # Handle the QUIETLY and REQUIRED arguments and set GIT_FOUND to TRUE if
