@@ -745,6 +745,22 @@ Name            | Description
 ----------------|--------------
 tcp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 tcp_port        | **Required.** The port that should be checked.
+tcp_expect      | **Optional.** String to expect in server response (may be repeated).
+tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
+tcp_escape_send | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+tcp_send        | **Optional.** String to send to the server.
+tcp_escape_quit | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+tcp_quit        | **Optional.** String to send server to initiate a clean close of the connection.
+tcp_refuse      | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
+tcp_mismatch    | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
+tcp_jail        | **Optional.** Hide output from TCP socket.
+tcp_maxbytes    | **Optional.** Close connection once more than this number of bytes are received.
+tcp_delay       | **Optional.** Seconds to wait between sending string and polling for response.
+tcp_certificate | **Optional.** Minimum number of days a certificate has to be valid. 1st value is number of days for warning, 2nd is critical (if not specified: 0) - seperated by comma.
+tcp_ssl         | **Optional.** Use SSL for the connection. Defaults to false.
+tcp_wtime       | **Optional.** Response time to result in warning status (seconds).
+tcp_ctime       | **Optional.** Response time to result in critical status (seconds).
+tcp_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
 
 
 ## <a id="plugin-check-command-udp"></a> udp
