@@ -129,7 +129,7 @@ public:
 
 	/* other history */
 	static void AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
-	static void AddServiceCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
+	static void AddCheckableCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
 	static void AddEventHandlerHistory(const Checkable::Ptr& checkable);
 	static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
 

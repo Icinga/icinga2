@@ -79,7 +79,7 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1, _2));
 
 	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingHistory, _1, _2));
-	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddServiceCheckHistory, _1, _2));
+	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddCheckableCheckHistory, _1, _2));
 
 	Checkable::OnEventCommandExecuted.connect(boost::bind(&DbEvents::AddEventHandlerHistory, _1));
 
@@ -905,8 +905,10 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	Log(LogDebug, "DbEvents")
 	    << "add state change history for '" << checkable->GetName() << "'";
 
+	double ts = cr->GetExecutionEnd();
+
 	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> state_time_bag = CompatUtility::ConvertTimestamp(ts);
 
 	DbQuery query1;
 	query1.Table = "statehistory";
@@ -918,8 +920,8 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("state_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("state_time_usec", time_bag.second);
+	fields1->Set("state_time", DbValue::FromTimestamp(state_time_bag.first));
+	fields1->Set("state_time_usec", state_time_bag.second);
 	fields1->Set("object_id", checkable);
 	fields1->Set("state_change", 1); /* service */
 	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
@@ -1315,7 +1317,7 @@ void DbEvents::AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState
 }
 
 /* servicechecks */
-void DbEvents::AddServiceCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr)
+void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr)
 {
 	if (!cr)
 		return;
@@ -1335,21 +1337,21 @@ void DbEvents::AddServiceCheckHistory(const Checkable::Ptr& checkable, const Che
 	query1.Category = DbCatCheck;
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	double execution_time = Service::CalculateExecutionTime(cr);
-
 	fields1->Set("check_type", CompatUtility::GetCheckableCheckType(checkable));
 	fields1->Set("current_check_attempt", checkable->GetCheckAttempt());
 	fields1->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 	fields1->Set("state_type", checkable->GetStateType());
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	double start = cr->GetExecutionStart();
+	std::pair<unsigned long, unsigned long> time_bag_start = CompatUtility::ConvertTimestamp(start);
 
-	double end = now + execution_time;
+	double end = cr->GetExecutionEnd();
 	std::pair<unsigned long, unsigned long> time_bag_end = CompatUtility::ConvertTimestamp(end);
 
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("start_time_usec", time_bag.second);
+	double execution_time = Service::CalculateExecutionTime(cr);
+
+	fields1->Set("start_time", DbValue::FromTimestamp(time_bag_start.first));
+	fields1->Set("start_time_usec", time_bag_start.second);
 	fields1->Set("end_time", DbValue::FromTimestamp(time_bag_end.first));
 	fields1->Set("end_time_usec", time_bag_end.second);
 	fields1->Set("command_object_id", checkable->GetCheckCommand());
