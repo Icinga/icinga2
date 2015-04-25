@@ -524,7 +524,7 @@ void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime
 	fields1->Set("author_name", downtime->GetAuthor());
 	fields1->Set("comment_data", downtime->GetComment());
 	fields1->Set("triggered_by_id", Service::GetDowntimeByID(downtime->GetTriggeredBy()));
-	fields1->Set("is_fixed", downtime->GetFixed());
+	fields1->Set("is_fixed", downtime->GetFixed() ? 1 : 0);
 	fields1->Set("duration", downtime->GetDuration());
 	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	fields1->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
