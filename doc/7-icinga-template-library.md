@@ -52,7 +52,7 @@ The `cluster` check command does not support any vars.
 
 Check command for the built-in `cluster-zone` check.
 
-Cluster Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name         | Description
 -------------|---------------
@@ -90,7 +90,7 @@ The `apt` check command does not support any vars.
 
 Check command object for the `check_by_ssh` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -109,7 +109,7 @@ by_ssh_timeout  | **Optional.** The timeout in seconds.
 
 Check command object for the `check_dhcp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -125,7 +125,7 @@ dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to fal
 
 Check command object for the `check_dig` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                 | Description
 ---------------------|--------------
@@ -142,7 +142,7 @@ Check command object for the `check_disk` plugin.
 > `disk_wfree` and `disk_cfree` require the percent sign compared to older versions.
 > If omitted, disk units can be used. This has been changed in **2.3.0**.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            	| Description
 ------------------------|------------------------
@@ -177,7 +177,7 @@ disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type 
 
 Check command object for the `check_dns` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                 | Description
 ---------------------|--------------
@@ -192,7 +192,7 @@ dns_authoritative    | **Optional.** Expect the server to send an authoritative 
 
 Check command object for the `check_dummy` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -204,7 +204,7 @@ dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful
 
 Check command object for the `check_fping` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -225,7 +225,7 @@ fping_source_interface | **Optional.** The source interface name.
 
 Check command object for the `check_fping` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -246,7 +246,7 @@ fping_source_interface | **Optional.** The source interface name.
 
 Check command object for the `check_ftp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name               | Description
 -------------------|--------------
@@ -259,7 +259,7 @@ Check command object for the `check_ping` plugin with host check default values.
 uses the host's `address` attribute if available and falls back to using the `address6` attribute
 if the `address` attribute is not set.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -277,7 +277,7 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 Check command object for the `check_ping` plugin with host check default values. This variant
 uses the host's `address` attribute.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -295,7 +295,7 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 Check command object for the `check_ping` plugin with host check default values. This variant
 uses the host's `address6` attribute.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -312,7 +312,7 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 Check command object for the `check_hpjd` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -325,7 +325,7 @@ hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
 
 Check command object for the `check_http` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                     | Description
 -------------------------|--------------
@@ -366,7 +366,7 @@ http_timeout             | **Optional.** Seconds before connection times out.
 
 Check command object for the `check_icmp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -388,7 +388,7 @@ icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (s
 
 Check command object for the `check_imap` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -400,7 +400,7 @@ imap_port       | **Optional.** The port that should be checked. Defaults to 143
 
 Check command object for the `check_load` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -416,7 +416,7 @@ load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
 
 Check command object for the `check_nrpe` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -433,7 +433,7 @@ nrpe_arguments	| **Optional.** Arguments that should be passed to the command. M
 
 Check command object for the `check_nt` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -452,7 +452,7 @@ nscp_showall    | **Optional.** Use with SERVICESTATE to see working services or
 
 Check command object for the `check_ntp_time` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -463,7 +463,7 @@ ntp_address     | **Optional.** The host's address. Defaults to "$address$" if t
 
 Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -477,7 +477,7 @@ Check command object for the `check_ping` plugin. This command uses the host's `
 if available and falls back to using the `address6` attribute if the `address` attribute is not set.
 
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -494,7 +494,7 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 Check command object for the `check_ping` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -510,7 +510,7 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 Check command object for the `check_ping` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -527,7 +527,7 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 Check command object for the `check_pop` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -539,7 +539,7 @@ pop_port        | **Optional.** The port that should be checked. Defaults to 110
 
 Check command object for the `check_procs` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                 | Description
 ---------------------|--------------
@@ -572,7 +572,7 @@ The `running_kernel` check command does not support any vars.
 
 Check command object for the `check_simap` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -584,7 +584,7 @@ simap_port      | **Optional.** The host's port.
 
 Check command object for the `check_smtp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                 | Description
 ---------------------|--------------
@@ -597,7 +597,7 @@ smtp_mail_from       | **Optional.** Test a MAIL FROM command with the given ema
 
 Check command object for the `check_snmp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                | Description
 --------------------|--------------
@@ -623,7 +623,7 @@ snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 
 
 Check command object for the `check_snmp` plugin, using SNMPv3 authentication and encryption options.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name              | Description
 ------------------|--------------
@@ -642,7 +642,7 @@ snmpv3_label      | **Optional.** Prefix label for output value.
 
 Check command object for the `check_snmp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -655,7 +655,7 @@ snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
 Check command object for the `check_spop` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -667,7 +667,7 @@ spop_port       | **Optional.** The host's port.
 
 Check command object for the `check_ssh` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -680,7 +680,7 @@ ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to
 
 Check command object for the `check_tcp` plugin, using ssl-related options.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                          | Description
 ------------------------------|--------------
@@ -695,7 +695,7 @@ ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before
 
 Check command object for the `check_ssmtp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -707,7 +707,7 @@ ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465
 
 Check command object for the `check_swap` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -719,7 +719,7 @@ swap_cfree      | **Optional.** The free swap space critical threshold in %. Def
 
 Check command object for the `check_tcp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -731,7 +731,7 @@ tcp_port        | **Required.** The port that should be checked.
 
 Check command object for the `check_udp` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -746,7 +746,7 @@ udp_quit        | **Optional.** The payload to send to 'close' the session.
 
 Check command object for the `check_ups` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -764,7 +764,7 @@ ups_timeout     | **Optional.** The number of seconds before the connection time
 
 Check command object for the `check_users` plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -794,7 +794,7 @@ Note that it is not necessary to run NSClient++ as a Windows service for these c
 
 Check command object for NSClient++
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            | Description
 ----------------|--------------
@@ -896,7 +896,7 @@ You can enable these plugin check commands by adding the following the include d
 
 Check command object for the [check_snmp_load.pl](http://nagios.manubulon.com/snmp_load.html) plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 
 Name                    | Description
@@ -922,7 +922,7 @@ snmp_timeout            | **Optional.** The command timeout in seconds. Defaults
 
 Check command object for the [check_snmp_mem.pl](http://nagios.manubulon.com/snmp_mem.html) plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -946,7 +946,7 @@ snmp_timeout            | **Optional.** The command timeout in seconds. Defaults
 
 Check command object for the [check_snmp_storage.pl](http://nagios.manubulon.com/snmp_storage.html) plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -971,7 +971,7 @@ snmp_timeout            | **Optional.** The command timeout in seconds. Defaults
 
 Check command object for the [check_snmp_int.pl](http://nagios.manubulon.com/snmp_int.html) plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                        | Description
 ----------------------------|--------------
@@ -1007,7 +1007,7 @@ snmp_timeout                | **Optional.** The command timeout in seconds. Defa
 
 Check command object for the [check_snmp_process.pl](http://nagios.manubulon.com/snmp_process.html) plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1044,7 +1044,7 @@ All database plugins go in this category.
 The plugin `mssql_health` utilises Perl DBD::Sybase based on FreeTDS to connect to MSSQL databases for monitoring.
 For release tarballs, detailed documentation especially on the different modes and scripts for creating a monitoring user see [https://labs.consol.de](https://labs.consol.de/nagios/check_mssql_health/). For development check [https://github.com](https://github.com/lausser/check_mssql_health).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
@@ -1069,7 +1069,7 @@ mssql_health_commit              | **Optional.** Set this to true to turn on aut
 The plugin `mysql_health` utilises Perl DBD::MySQL to connect to MySQL databases for monitoring.
 For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_mysql_health/). For development check [https://github.com](https://github.com/lausser/check_mysql_health).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
@@ -1092,7 +1092,7 @@ mysql_health_labelformat         | **Optional.** One of those formats pnp4nagios
 The plugin `oracle_health` utilises Perl DBD::Oracle based on oracle-instantclient-sdk or sqlplus to connect to Oracle databases for monitoring.
 For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_oracle_health/). For development check [https://github.com](https://github.com/lausser/check_oracle_health).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
@@ -1121,7 +1121,7 @@ TNS_ADMIN           | **Required.** Specifies the location of the tnsnames.ora i
 The plugin `postgres` utilises the psql binary to connect to PostgreSQL databases for monitoring.
 For release tarballs and detailed documentation especially the different actions and required persmissions see [https://bucardo.org/wiki/Check_postgres](https://bucardo.org/wiki/Check_postgres). For development check [https://github.com](https://github.com/bucardo/check_postgres).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
@@ -1150,7 +1150,7 @@ This category includes all plugins for IPMI devices.
 
 With the plugin `ipmi-sensor` provided by <a href="https://www.thomas-krenn.com/">Thomas-Krenn.AG</a> you can monitor sensor data for IPMI devices. See https://www.thomas-krenn.com/en/wiki/IPMI_Sensor_Monitoring_Plugin for installation and configuration instructions.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
 ---------------------------------|-----------------------------------------------------------------------------------------------------
@@ -1176,7 +1176,7 @@ This category includes all plugins for various network components like routers, 
 
 The plugin `interfacetable` generates a html page containing information about the monitored node and all of its interfaces. The actively developed and maintained version is `interfacetable_v3t` provided by `Yannick Charton` on [http://www.tontonitch.com](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t) or [https://github.com](https://github.com/Tontonitch/interfacetable_v3t).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                                | Description
 ------------------------------------|-----------------------------------------------------------------------------------------------------
@@ -1248,7 +1248,7 @@ This category includes all plugins for web-based checks.
 
 Check command object for the [check_webinject](http://http://www.webinject.org/manual.html) plugin.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1267,7 +1267,7 @@ In this category you can find plugins for gathering information about your opera
 
 The plugin `mem` is used for gathering information about memory usage on linux and unix hosts. It is able to count cache memory as free when comparing it to the thresholds. It is provided by `Justin Ellison` on [https://github.com](https://github.com/justintime/nagios-plugins). For more details see the developers blog [http://sysadminsjourney.com](http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name         | Description
 -------------|-----------------------------------------------------------------------------------------------------------------------
@@ -1285,7 +1285,7 @@ This category includes all plugins for various virtualization technologies.
 
 The plugin `esxi_hardware` is a plugin to monitor hardware of ESXi servers through the vmware api and cim service. It is provided by `Claudio Kuenzler` on [http://www.claudiokuenzler.com](http://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php). For instruction on creating the required local user and workarounds for some hardware types have a look on his homepage.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1310,7 +1310,7 @@ Check commands for the [check_vmware_esx](https://github.com/BaldMansMojo/check_
 
 Check command object for the `check_vmware_esx` plugin. Shows all datastore volumes info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1342,7 +1342,7 @@ vmware_crit             | **Optional.** The critical threshold for volumes. Defa
 
 Check command object for the `check_vmware_esx` plugin. Shows all runtime info for the datacenter/Vcenter.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1364,7 +1364,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. List of vmware machines and their power state. BEWARE!! In larger environments systems can cause trouble displaying the informations needed due to the mass of data. Use **vmware_alertonly** to avoid this.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1391,7 +1391,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. List of VMware ESX hosts and their power state.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1418,7 +1418,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. List of VMware clusters and their states.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1445,7 +1445,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. All issues for the host.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1471,7 +1471,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Overall object status (gray/green/red/yellow).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1493,7 +1493,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Vmware Tools status.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1521,7 +1521,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Simple check to verify a successfull connection to VMware SOAP API.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1543,7 +1543,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Displays uptime of the VMware host.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1565,7 +1565,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. CPU usage in percentage.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1589,7 +1589,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. Defau
 
 Check command object for the `check_vmware_esx` plugin. Percentage of time that the virtual machine was ready, but could not get scheduled to run on the physical CPU. CPU ready time is dependent on the number of virtual machines on the host and their CPU loads. High or growing ready time can be a hint CPU bottlenecks.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1611,7 +1611,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. CPU time spent in wait state. The wait total includes time spent the CPU idle, CPU swap wait, and CPU I/O wait states. High or growing wait time can be a hint I/O bottlenecks.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1633,7 +1633,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Actively used CPU of the host, as a percentage of the total available CPU. Active CPU is approximately equal to the ratio of the used CPU to the available CPU.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1657,7 +1657,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. Defau
 
 Check command object for the `check_vmware_esx` plugin. All mem info(except overall and no thresholds).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1679,7 +1679,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Average mem usage in percentage.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1703,7 +1703,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. Defau
 
 Check command object for the `check_vmware_esx` plugin. Amount of machine memory used on the host. Consumed memory includes Includes memory used by the Service Console, the VMkernel vSphere services, plus the total consumed metrics for all running virtual machines in MB.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1727,7 +1727,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. No va
 
 Check command object for the `check_vmware_esx` plugin. Amount of memory that is used by swap. Sum of memory swapped of all powered on VMs and vSphere services on the host in MB. In case of an error all VMs with their swap used will be displayed.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1752,7 +1752,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Additional mem used by VM Server in MB.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1776,7 +1776,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. No va
 
 Check command object for the `check_vmware_esx` plugin. The sum of all vmmemctl values in MB for all powered-on virtual machines, plus vSphere services on the host. If the balloon target value is greater than the balloon value, the VMkernel inflates the balloon, causing more virtual machine memory to be reclaimed. If the balloon target value is less than the balloon value, the VMkernel deflates the balloon, which allows the virtual machine to consume additional memory if needed.used by VM memory control driver. In case of an error all VMs with their vmmemctl values will be displayed.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1801,7 +1801,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Shows net info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1825,7 +1825,7 @@ vmware_isregexp         | **Optional.** Treat blacklist expression as regexp.
 
 Check command object for the `check_vmware_esx` plugin. Overall network usage in KBps(Kilobytes per Second).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1849,7 +1849,7 @@ vmware_crit             | **Optional.** The critical threshold in KBps(Kilobytes
 
 Check command object for the `check_vmware_esx` plugin. Data receive in KBps(Kilobytes per Second).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1873,7 +1873,7 @@ vmware_crit             | **Optional.** The critical threshold in KBps(Kilobytes
 
 Check command object for the `check_vmware_esx` plugin. Data send in KBps(Kilobytes per Second).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1897,7 +1897,7 @@ vmware_crit             | **Optional.** The critical threshold in KBps(Kilobytes
 
 Check command object for the `check_vmware_esx` plugin. Check all active NICs.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1921,7 +1921,7 @@ vmware_isregexp         | **Optional.** Treat blacklist expression as regexp.
 
 Check command object for the `check_vmware_esx` plugin. Shows all datastore volumes info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1953,7 +1953,7 @@ vmware_spaceleft        | **Optional.** This has to be used in conjunction with 
 
 Check command object for the `check_vmware_esx` plugin. Shows all disk io info. Without subselect no thresholds can be given. All I/O values are aggregated from historical intervals over the past 24 hours with a 5 minute sample rate.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1975,7 +1975,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Number of aborted SCSI commands.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -1999,7 +1999,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Number of SCSI bus resets.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2023,7 +2023,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes read from the disk each second.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2047,7 +2047,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) to process a SCSI read command issued from the Guest OS to the virtual machine.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2071,7 +2071,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes written to disk each second.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2095,7 +2095,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) taken to process a SCSI write command issued by the Guest OS to the virtual machine.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2119,7 +2119,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Aggregated disk I/O rate. For hosts, this metric includes the rates for all virtual machines running on the host.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2143,7 +2143,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) spent by VMkernel processing each SCSI command.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2167,7 +2167,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) to complete a SCSI command from the physical device.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2191,7 +2191,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) spent in the VMkernel queue.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2215,7 +2215,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) taken during the collection interval to process a SCSI command issued by the guest OS to the virtual machine. The sum of kernelWriteLatency and deviceWriteLatency.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2239,7 +2239,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. List vm's with attached host mounted media like cd,dvd or floppy drives. This is important for monitoring because a virtual machine with a mount cd or dvd drive can not be moved to another host.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2265,7 +2265,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Shows host service info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2291,7 +2291,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Shows runtime info: VMs, overall status, connection state, health, storagehealth, temperature and sensor are represented as one value and without thresholds.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2313,7 +2313,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Shows connection state.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2335,7 +2335,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. List of VMware machines and their status.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2361,7 +2361,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Overall object status (gray/green/red/yellow).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2383,7 +2383,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Checks cpu/storage/memory/sensor status.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2408,7 +2408,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 
 Check command object for the `check_vmware_esx` plugin. List all available sensors(use for listing purpose only).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2433,7 +2433,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 
 Check command object for the `check_vmware_esx` plugin. This is to avoid a double alarm if you use **vmware-esx-soap-host-runtime-health** and **vmware-esx-soap-host-runtime-storagehealth**.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2458,7 +2458,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 
 Check command object for the `check_vmware_esx` plugin. Local storage status check.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2484,7 +2484,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Lists all temperature sensors.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2510,7 +2510,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Lists all configuration issues for the host.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2536,7 +2536,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Shows Host storage info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2561,7 +2561,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 
 Check command object for the `check_vmware_esx` plugin. List host bus adapters.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2587,7 +2587,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. List SCSI logical units. The listing will include: LUN, canonical name of the disc, all of displayed name which is not part of the canonical name and status.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2613,7 +2613,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. List multipaths and the associated paths.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2640,7 +2640,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 Check command object for the `check_vmware_esx` plugin. Shows all CPU usage info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2665,7 +2665,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Percentage of time that the virtual machine was ready, but could not get scheduled to run on the physical CPU.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2691,7 +2691,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. CPU time spent in wait state. The wait total includes time spent the CPU idle, CPU swap wait, and CPU I/O wait states. High or growing wait time can be a hint I/O bottlenecks.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2717,7 +2717,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Amount of actively used virtual CPU, as a percentage of total available CPU. This is the host's view of the CPU usage, not the guest operating system view. It is the average CPU utilization over all available virtual CPUs in the virtual machine.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2743,7 +2743,7 @@ vmware_crit             | **Optional.** Critical threshold in percent. Defaults 
 
 Check command object for the `check_vmware_esx` plugin. Shows all memory info, except overall.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2767,7 +2767,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Average mem usage in percentage of configured virtual machine "physical" memory.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2794,7 +2794,7 @@ vmware_crit             | **Optional.** Critical threshold in percent. Defaults 
 Check command object for the `check_vmware_esx` plugin. Amount of guest physical memory in MB consumed by the virtual machine for guest memory. Consumed memory does not include overhead memory. It includes shared memory and memory that might be reserved, but not actually used. Use this metric for charge-back purposes.<br>
 **vm consumed memory = memory granted - memory saved**
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2820,7 +2820,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Amount of guest physical memory that is currently reclaimed from the virtual machine through ballooning. This is the amount of guest physical memory that has been allocated and pinned by the balloon driver.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2847,7 +2847,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Shows net info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2871,7 +2871,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Overall network usage in KBps(Kilobytes per Second).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2897,7 +2897,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Receive in KBps(Kilobytes per Second).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2923,7 +2923,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Send in KBps(Kilobytes per Second).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2949,7 +2949,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. SShows all disk io info. Without subselect no thresholds can be given. All I/O values are aggregated from historical intervals over the past 24 hours with a 5 minute sample rate.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2973,7 +2973,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes read from the disk each second.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -2999,7 +2999,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes written to disk each second.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3025,7 +3025,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Aggregated disk I/O rate.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3051,7 +3051,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Shows virtual machine runtime info.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3075,7 +3075,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Shows the connection state.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3099,7 +3099,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Shows virtual machine power state: poweredOn, poweredOff or suspended.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3123,7 +3123,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Overall object status (gray/green/red/yellow).
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3147,7 +3147,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Console connections to virtual machine.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3173,7 +3173,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 Check command object for the `check_vmware_esx` plugin. Guest OS status. Needs VMware Tools installed and running.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3196,7 +3196,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. Guest OS status. VMware tools  status.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
@@ -3220,7 +3220,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 Check command object for the `check_vmware_esx` plugin. All issues for the virtual machine.
 
-Custom Attributes:
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
 ------------------------|--------------
