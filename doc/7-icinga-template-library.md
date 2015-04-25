@@ -437,6 +437,24 @@ imap_address    | **Optional.** The host's address. Defaults to "$address$" if t
 imap_port       | **Optional.** The port that should be checked. Defaults to 143.
 
 
+## <a id="plugin-check-command-ldap"></a> ldap
+
+Check command object for the `check_ldap` plugin.
+
+Custom Attributes:
+
+Name            | Description
+----------------|--------------
+ldap_address    | **Optional.** Host name, IP Address, or unix socket (must be an absolute path). Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ldap_port       | **Optional.** Port number. Defaults to 389.
+ldap_base       | **Required.** LDAP base (eg. ou=myunit,o=myorg,c=at).
+ldap_bind       | **Optional.** LDAP bind DN (if required).
+ldap_pass       | **Optional.** LDAP password (if required).
+ldap_starttls   | **Optional.** Use STARTSSL mechanism introduced in protocol version 3.
+ldap_ssl        | **Optional.** Use LDAPS. This also sets the default port to 636.
+ldap_v3         | **Optional.** Use LDAP protocol version 3 (default protocol version: 2)
+
+
 ## <a id="plugin-check-command-load"></a> load
 
 Check command object for the `check_load` plugin.
