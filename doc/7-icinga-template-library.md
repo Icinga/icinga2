@@ -614,14 +614,6 @@ procs_command        | **Optional.** Only scan for exact matches of COMMAND (wit
 procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to false.
 
 
-## <a id="plugin-check-command-running-kernel"></a> running_kernel
-
-Check command object for the `check_running_kernel` plugin
-provided by the `nagios-plugins-contrib` package on Debian.
-
-The `running_kernel` check command does not support any vars.
-
-
 ## <a id="plugin-check-command-simap"></a> simap
 
 Check command object for the `check_simap` plugin.
@@ -1546,6 +1538,14 @@ mem_free     | **Optional.** Tell the plugin to check for free memory in opposit
 mem_cache    | **Optional.** If set to true plugin will count cache as free memory. Defaults to false.
 mem_warning  | **Required.** Specifiy the warning threshold as number interpreted as percent.
 mem_critical | **Required.** Specifiy the critical threshold as number interpreted as percent.
+
+## <a id="plugin-contrib-command-running-kernel"></a> running_kernel
+
+Check command object for the `check_running_kernel` plugin
+provided by the `nagios-plugins-contrib` package on Debian.
+
+The `running_kernel` check command does not support any vars.
+
 
 ## <a id="plugins-contrib-virtualization"></a> Virtualization
 
