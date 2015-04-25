@@ -437,13 +437,18 @@ Name            | Description
 ----------------|--------------
 ldap_address    | **Optional.** Host name, IP Address, or unix socket (must be an absolute path). Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ldap_port       | **Optional.** Port number. Defaults to 389.
+ldap_attr	| **Optional.** LDAP attribute to search for (default: "(objectclass=*)"
 ldap_base       | **Required.** LDAP base (eg. ou=myunit,o=myorg,c=at).
 ldap_bind       | **Optional.** LDAP bind DN (if required).
 ldap_pass       | **Optional.** LDAP password (if required).
 ldap_starttls   | **Optional.** Use STARTSSL mechanism introduced in protocol version 3.
-ldap_ssl        | **Optional.** Use LDAPS. This also sets the default port to 636.
-ldap_v3         | **Optional.** Use LDAP protocol version 3 (default protocol version: 2)
-
+ldap_ssl        | **Optional.** Use LDAPS (LDAP v2 SSL method). This also sets the default port to 636.
+ldap_v2         | **Optional.** Use LDAP protocol version 2 (enabled by default).
+ldap_v3         | **Optional.** Use LDAP protocol version 3 (disabled by default)
+ldap_warning	| **Optional.** Response time to result in warning status (seconds).
+ldap_critical	| **Optional.** Response time to result in critical status (seconds).
+ldap_timeout	| **Optional.** Seconds before connection times out (default: 10).
+ldap_verbose	| **Optional.** Show details for command-line debugging (disabled by default)
 
 ## <a id="plugin-check-command-load"></a> load
 
