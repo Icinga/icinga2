@@ -116,7 +116,7 @@ syn match 	icinga2StrFunction	contained 	"\(\.split\)"
 syn match 	icinga2StrFunction	contained 	"\(\.substr\)"
 
 " Array and Dict  Functions
-syn match 	icinga2ArrFunction 	contained 	"\(\.add\)"
+syn match 	icinga2ArrFunction 	contained 	"\(\.add(\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.clear\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.clone\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.contains\)"
