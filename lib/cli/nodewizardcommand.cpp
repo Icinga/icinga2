@@ -160,7 +160,7 @@ wizard_endpoint_loop_start:
 		endpoint_buffer = answer;
 		endpoint_buffer.Trim();
 
-		std::cout << "Do you want to establish a connection to the master " << ConsoleColorTag(Console_Bold) << "now " << ConsoleColorTag(Console_Normal) << " [Y/n]? ";
+		std::cout << "Do you want to establish a connection to the master " << ConsoleColorTag(Console_Bold) << "from this node?" << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 
 		std::getline (std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -168,7 +168,7 @@ wizard_endpoint_loop_start:
 
 		if (choice.Contains("n")) {
 			Log(LogWarning, "cli", "Node to master connection setup skipped");
-			std::cout << "Connection setup skipped, you know hat you are doing.\n";
+			std::cout << "Connection setup skipped. Please configure your master to connect to this node.\n";
 		} else  {
 	  		std::cout << ConsoleColorTag(Console_Bold) << "Please fill out the master connection information:" << ConsoleColorTag(Console_Normal) << "\n";
 			std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint host" << ConsoleColorTag(Console_Normal) << " (Your master's IP address or FQDN): ";
@@ -176,10 +176,10 @@ wizard_endpoint_loop_start:
 			std::getline(std::cin, answer);
 			boost::algorithm::to_lower(answer);
 
-		if (answer.empty()) {
-			Log(LogWarning, "cli", "Please enter the masters endpoint data");
-			goto wizard_endpoint_loop_start;
-		}
+			if (answer.empty()) {
+				Log(LogWarning, "cli", "Please enter the master's endpoint connection information.");
+				goto wizard_endpoint_loop_start;
+			}
 
 			String tmp = answer;
 			tmp.Trim();
@@ -394,8 +394,8 @@ wizard_ticket:
 		    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
 		    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
 		    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n"
-			<< "  accept_config = " << accept_config << '\n'
-			<< "  accept_commands = " << accept_commands << '\n';
+		    << "  accept_config = " << accept_config << "\n"
+		    << "  accept_commands = " << accept_commands << "\n";
 
 		if (!bind_host.IsEmpty())
 			fp << "  bind_host = \"" << bind_host << "\"\n";
