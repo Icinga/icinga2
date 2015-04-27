@@ -95,8 +95,6 @@ void Checkable::AddGroup(const String& name)
 
 AcknowledgementType Checkable::GetAcknowledgement(void)
 {
-	ASSERT(OwnsLock());
-
 	AcknowledgementType avalue = static_cast<AcknowledgementType>(GetAcknowledgementRaw());
 
 	if (avalue != AcknowledgementNone) {
@@ -118,12 +116,8 @@ bool Checkable::IsAcknowledged(void)
 
 void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, double expiry, const MessageOrigin& origin)
 {
-	{
-		ObjectLock olock(this);
-
-		SetAcknowledgementRaw(type);
-		SetAcknowledgementExpiry(expiry);
-	}
+	SetAcknowledgementRaw(type);
+	SetAcknowledgementExpiry(expiry);
 
 	if (notify)
 		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment);
@@ -133,8 +127,6 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 
 void Checkable::ClearAcknowledgement(const MessageOrigin& origin)
 {
-	ASSERT(OwnsLock());
-
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 
