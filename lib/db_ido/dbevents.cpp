@@ -1317,7 +1317,7 @@ void DbEvents::AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState
 }
 
 /* servicechecks */
-void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr)
+void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (!cr)
 		return;
