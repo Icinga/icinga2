@@ -1404,6 +1404,33 @@ postgres_production  | **Optional.** Assume that the server is in production mod
 postgres_action      | **Required.** Determines the test executed.
 postgres_unixsocket  | **Optional.** If "postgres_unixsocket" is set to true the unix socket is used instead of an address. Defaults to false.
 
+### <a id="plugins-contrib-command-mongodb"></a> mongodb
+
+The plugin `mongodb` utilises Python PyMongo.
+For development check [https://github.com](https://github.com/mzupan/nagios-plugin-mongodb).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                             | Description
+---------------------------------|------------------------------------------------------------------------------------------------------------------------------
+mongodb_host                     | **Required.** Specifies the hostname or address.
+mongodb_port                     | **Required.** The port mongodb is runnung on.
+mongodb_user                     | **Optional.** The username you want to login as
+mongodb_passwd                   | **Optional.** The password you want to use for that user
+mongodb_warning                  | **Optional.** The warning threshold we want to set
+mongodb_critical                 | **Optional.** The critical threshold we want to set
+mongodb_action                   | **Required.** The action you want to take
+mongodb_maxlag                   | **Optional.** Get max replication lag (for replication_lag action only)
+mongodb_mappedmemory             | **Optional.** Get mapped memory instead of resident (if resident memory can not be read)
+mongodb_perfdata                 | **Optional.** Enable output of Nagios performance data
+mongodb_database                 | **Optional.** Specify the database to check
+mongodb_alldatabases             | **Optional.** Check all databases (action database_size)
+mongodb_ssl                      | **Optional.** Connect using SSL
+mongodb_replicaset               | **Optional.** Connect to replicaset
+mongodb_querytype                | **Optional.** The query type to check [query|insert|update|delete|getmore|command] from queries_per_second
+mongodb_collection               | **Optional.** Specify the collection to check
+mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
+
 ## <a id="plugins-contrib-ipmi"></a> IPMI Devices
 
 This category includes all plugins for IPMI devices.
