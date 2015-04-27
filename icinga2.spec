@@ -513,7 +513,7 @@ exit 0
 %{_libexecdir}/%{name}/prepare-dirs
 %{_libexecdir}/%{name}/safe-reload
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
+%attr(0770,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/perfdata
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_localstatedir}/spool/%{name}/tmp
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_datadir}/%{name}/include
 %{_datadir}/%{name}/include
