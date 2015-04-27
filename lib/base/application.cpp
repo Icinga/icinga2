@@ -32,6 +32,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
@@ -485,23 +486,58 @@ static String UnameHelper(char type)
 	return result;
 }
 
-static String LsbReleaseHelper(void)
+int ReleaseHelper(std::string &result)
 {
-	FILE *fp = popen("lsb_release -s -d 2>&1", "r");
+    /* You are useing *some* distribution */
+    FILE *fp = popen("lsb_release -s -d 2>&1", "r");
+    std::ostringstream msgbuf;
 
-	char line[1024];
-	std::ostringstream msgbuf;
+    if (fp != NULL) {
+        char line[1024];
+        while (fgets(line, sizeof(line), fp) != NULL)
+            msgbuf << line;
+        int status = pclose(fp);
+        if (WEXITSTATUS(status) == 0) { 
+            result = msgbuf.str();
+			boost::trim(result);
+            return result.length();
+        }    
+    }    
 
-	while (fgets(line, sizeof(line), fp) != NULL)
-		msgbuf << line;
+    /* You have systemd or Ubuntu etc. */
+    std::ifstream release("/etc/os-release");
+    std::string release_line;
+    if (release.is_open()) {
+        while (getline(release, release_line)) {
+            if (release_line.find("PRETTY_NAME") != std::string::npos) {
+                result = release_line.substr(13, release_line.length() - 14); 
+                return result.length();
+            }    
+        }    
+    }    
 
-	pclose(fp);
+    /* Centos < 7 */
+    release.close();
+    release.open("/etc/redhat-release");
+    if (release.is_open()) {
+        getline(release, release_line);
+		result = release_line;
+        return result.length();
+    }    
 
-	String result = msgbuf.str();
-	result.Trim();
+    /* sles 11 sp3, opensuse w/e */
+    release.close();
+    release.open("etc/SuSE-release");
+    if (release.is_open()) {
+        getline(release, release_line);
+        result = release_line;
+        return result.length();
+    }    
 
-	return result;
+    /* Just give up */
+    return 0;
 }
+
 #endif /* _WIN32 */
 
 /**
@@ -534,7 +570,9 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 #endif /* _WIN32 */
 
 #ifdef __linux__
-	os << "  Distribution: " << LsbReleaseHelper() << "\n";
+	std::string release;
+	if (ReleaseHelper(release))
+		os << "  Distribution: " << release << "\n";
 #endif /* __linux__ */
 }
 
