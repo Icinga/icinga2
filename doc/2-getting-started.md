@@ -325,28 +325,19 @@ to obtain the Vim configuration, please install the extra package `vim-icinga2`.
 
 ### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
 
-Create a new local vim configuration storage in your home directory (`~/.vim`), if it doesn't exist already.
-The `~/.vim/syntax` directory  contains the actual syntax file and the one in `~/.vim/ftdetect` is used to detect
-the file type. Both are called `icinga2.vim`. 
+Install the package vim-icinga2 with your distribution's package manager.
 
-    $ PREFIX=~/.vim
-    $ mkdir -p $PREFIX/{syntax,ftdetect}
-    $ cd /usr/share/doc/icinga2-common-[x.x.x]/syntax/vim
-    $ cp syntax/icinga2.vim $PREFIX/syntax/
-    $ cp ftdetect/icinga2.vim $PREFIX/ftdetect/
+Debian/Ubuntu:
 
-On Debian systems replace the path `/usr/share/doc/icinga2-common-[x.x.x]/syntax/vim` with `/usr/share/vim/addons`. Alternatively,
-you can use the `vim-addons` tool to create the `~/.vim/syntax` and `~/.vim/ftdetect` directories and create symlinks to the files
-in `/usr/share/vim/addons`:
+    $ apt-get install vim-icinga2
 
-    $ vim-addons install icinga2
-    Info: installing removed addon 'icinga2' to /home/root/.vim
-    $ ls -l /home/root/.vim/*
-    /home/root/.vim/ftdetect:
-    lrwxrwxrwx 1 root root [...] icinga2.vim -> /usr/share/vim/addons/ftdetect/icinga2.vim
+RHEL/CentOS/Fedora:
 
-    /home/root/.vim/syntax:
-    lrwxrwxrwx 1 root root [...]  icinga2.vim -> /usr/share/vim/addons/syntax/icinga2.vim
+    $ yum install vim-icinga2
+
+SLES/openSUSE:
+
+    $ zypper install vim-icinga2
 
 Test it:
 
@@ -357,19 +348,30 @@ Test it:
 
 ### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
 
-Copy the `/etc/nanorc` sample file to your home directory and rename it to `~/.nanorc`. Create the `/etc/nano`
-directory and copy the provided `icinga2.nanorc` into it.
+Install the package nano-icinga2 with your distribution's package manager.
+
+Debian/Ubuntu:
+
+    $ apt-get install nano-icinga2
+
+RHEL/CentOS/Fedora:
+
+    $ yum install nano-icinga2
+
+SLES/openSUSE:
+
+    $ zypper install nano-icinga2
+
+Copy the `/etc/nanorc` sample file to your home directory. 
 
     $ cp /etc/nanorc ~/.nanorc
-    # mkdir -p /etc/nano
-    # cp /usr/share/doc/icinga2-common-[x.x.x]/syntax/nano/icinga2.nanorc /etc/nano
 
 On Debian systems change `/usr/share/doc/icinga2-common-[x.x.x]/syntax/nano/icinga2.nanorc` to `/usr/share/nano/icinga2.nanorc`.
 
 Then include the icinga2.nanorc file in your ~/.nanorc by adding the following line:
 
     ## Icinga 2
-    include "/etc/nano/icinga2.nanorc"
+    include "/usr/share/nano/icinga2.nanorc"
 
 Test it:
 
