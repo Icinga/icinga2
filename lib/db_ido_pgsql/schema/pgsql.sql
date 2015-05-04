@@ -1633,5 +1633,5 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.13.0');
+SELECT updatedbversion('1.14.0');
 

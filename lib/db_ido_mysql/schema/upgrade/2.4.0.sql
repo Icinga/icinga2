@@ -1,5 +1,5 @@
 -- -----------------------------------------
--- upgrade path for Icinga 2.3.0
+-- upgrade path for Icinga 2.4.0
 --
 -- -----------------------------------------
 -- Copyright (c) 2015 Icinga Development Team (http://www.icinga.org)
