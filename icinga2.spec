@@ -189,6 +189,26 @@ Conflicts:    icinga-gui-config
 Icinga 1.x Classic UI Standalone configuration with locations
 for Icinga 2.
 
+%if "%{_vendor}" == "redhat"
+%global selinux_variants mls targeted
+%{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp 2>/dev/null)}
+%global modulename %{name}
+
+%package selinux
+Summary:        SELinux policy module supporting icinga2
+Group:          System Environment/Base
+BuildRequires:  checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/policyhelp, hardlink
+%if "%{_selinux_policy_version}" != ""
+Requires:       selinux-policy >= %{_selinux_policy_version}
+%endif
+Requires:       %{name} = %{version}-%{release}
+Requires(post):   /usr/sbin/semodule, /sbin/restorecon
+Requires(postun): /usr/sbin/semodule, /sbin/restorecon
+
+%description selinux
+SELinux policy module supporting icinga2
+%endif
+
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -242,6 +262,16 @@ cmake $CMAKE_OPTS -DCMAKE_C_FLAGS:STRING="%{optflags} %{?march_flag}" -DCMAKE_CX
 
 make %{?_smp_mflags}
 
+%if "%{_vendor}" == "redhat"
+cd tools/selinux
+for selinuxvariant in %{selinux_variants}
+do
+  make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
+  mv %{modulename}.pp %{modulename}.pp.${selinuxvariant}
+  make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
+done
+cd -
+%endif
 
 %install
 make install \
@@ -266,6 +296,18 @@ mkdir -p "%{buildroot}%{_localstatedir}/adm/fillup-templates/"
 mv "%{buildroot}%{_sysconfdir}/sysconfig/%{name}" "%{buildroot}%{_localstatedir}/adm/fillup-templates/sysconfig.%{name}"
 %endif
 
+%if "%{_vendor}" == "redhat"
+cd tools/selinux
+for selinuxvariant in %{selinux_variants}
+do
+  install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
+  install -p -m 644 %{modulename}.pp.${selinuxvariant} \
+    %{buildroot}%{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp
+done
+cd -
+
+/usr/sbin/hardlink -cv %{buildroot}%{_datadir}/selinux
+%endif
 
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
@@ -446,6 +488,30 @@ fi
 
 exit 0
 
+%if "%{_vendor}" == "redhat"
+%post selinux
+for selinuxvariant in %{selinux_variants}
+do
+  /usr/sbin/semodule -s ${selinuxvariant} -i \
+    %{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp &> /dev/null || :
+done
+/sbin/fixfiles -R icinga2-bin restore &> /dev/null || :
+/sbin/fixfiles -R icinga2-common restore &> /dev/null || :
+/sbin/semanage port -a -t icinga2_port_t -p tcp 5665 &> /dev/null || :
+
+%postun selinux
+if [ $1 -eq 0 ] ; then
+  /sbin/semanage port -d -t icinga2_port_t -p tcp 5665 &> /dev/null || :
+  for selinuxvariant in %{selinux_variants}
+  do
+     /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} &> /dev/null || :
+  done
+  /sbin/fixfiles -R icinga2-bin restore &> /dev/null || :
+  /sbin/fixfiles -R icinga2-common restore &> /dev/null || :
+fi
+%endif
+
+
 %files
 %defattr(-,root,root,-)
 %doc COPYING
@@ -491,7 +557,7 @@ exit 0
 %else
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %endif
-%attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}
+%attr(0750,root,%{icinga_group}) %dir %{_sysconfdir}/%{name}
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/conf.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/features-available
 %exclude %{_sysconfdir}/%{name}/features-available/ido-*.conf
@@ -501,7 +567,7 @@ exit 0
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/repository.d
 %attr(0750,%{icinga_user},%{icinga_group}) %dir %{_sysconfdir}/%{name}/zones.d
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/%{name}.conf
-%config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/init.conf
+%config(noreplace) %attr(0640,root,%{icinga_group}) %{_sysconfdir}/%{name}/init.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/constants.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/zones.conf
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/conf.d/*.conf
@@ -543,5 +609,12 @@ exit 0
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
+
+%if "%{_vendor}" == "redhat"
+%files selinux
+%defattr(-,root,root,0755)
+%doc SELinux/*
+%{_datadir}/selinux/*/%{modulename}.pp
+%endif
 
 %changelog
