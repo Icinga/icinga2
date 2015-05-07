@@ -1,6 +1,6 @@
 # <a id="configuring-icinga2-first-steps"></a> Configuring Icinga 2: First Steps
 
-This chapter prodides an introduction into best practices with your Icinga 2 configuration.
+This chapter provides an introduction into best practices with your Icinga 2 configuration.
 The configuration files which are automatically created when installing the Icinga 2 packages
 are a good way to start with Icinga 2.
 
