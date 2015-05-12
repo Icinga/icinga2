@@ -190,6 +190,12 @@ You can find additional plugins at the [Icinga Exchange](https://exchange.icinga
 
 More details on the plugins can also be found on the Icinga Wiki at https://wiki.icinga.org
 
+> **Tip**
+>
+> Create the best `CheckCommand` definition there is and send it upstream. More
+> information can be found in [Contribute Icinga 2 ITL Plugin Check Command Definitions](https://wiki.icinga.org/display/community/Contribute+Icinga+2+ITL+Plugin+Check+Command+Definitions)
+> on the Icinga Wiki. Thank you in advance!
+
 ## <a id="plugin-api"></a> Plugin API
 
 Currently Icinga 2 supports the native plugin API specification from the `Monitoring Plugins`
