@@ -227,12 +227,33 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
 set(CPACK_NSIS_EXECUTABLES_DIRECTORY "sbin")
 set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
 set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Icinga2SetupAgent")
+set(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS "nsExec::Exec 'net stop icinga2'")
+set(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS "${CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS}\nSleep 10000")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'msiexec /i \\\"$INSTDIR\\\\sbin\\\\NSCP-0.4.3.143-Win32.msi\\\" /quiet'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'icacls \\\"$INSTDIR\\\" /grant *S-1-5-20:(oi)(ci)m'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\etc\\\\icinga2\\\\pki'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\cache\\\\icinga2'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\lib\\\\icinga2\\\\pki'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\lib\\\\icinga2\\\\agent\\\\inventory'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\lib\\\\icinga2\\\\api\\\\config'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\lib\\\\icinga2\\\\api\\\\log'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\lib\\\\icinga2\\\\api\\\\zones'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\log\\\\icinga2\\\\compat\\\\archive'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\log\\\\icinga2\\\\crash'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\run\\\\icinga2\\\\cmd'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\spool\\\\icinga2\\\\perfdata'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\spool\\\\icinga2\\\\tmp'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" --scm-install daemon'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'net start icinga2'")
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "nsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" --scm-uninstall'")
 
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
+  file(DOWNLOAD http://files.nsclient.org/released/NSCP-0.4.3.143-Win32.msi ${CMAKE_CURRENT_BINARY_DIR}/NSCP-0.4.3.143-Win32.msi)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP-0.4.3.143-Win32.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
+
   install(
     PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
       ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll
