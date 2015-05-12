@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Net.NetworkInformation;
-using Microsoft.Win32;
 using System.IO.Compression;
 using System.Diagnostics;
 using System.ServiceProcess;
@@ -27,28 +26,9 @@ namespace Icinga
 			txtInstanceName.Text = Icinga2InstanceName;
 		}
 
-		private void FatalError(string message)
-		{
-			MessageBox.Show(this, message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-			Application.Exit();
-		}
-
 		private void Warning(string message)
 		{
 			MessageBox.Show(this, message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-		}
-
-		private string Icinga2InstallDir
-		{
-			get
-			{
-				RegistryKey rk = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Icinga Development Team\\ICINGA2");
-
-				if (rk == null)
-					return "";
-
-				return (string)rk.GetValue("");
-			}
 		}
 
 		private string Icinga2InstanceName
@@ -85,7 +65,7 @@ namespace Icinga
 		{
 			FileStream fp = null;
 			try {
-				fp = File.Open(Icinga2InstallDir + String.Format("\\etc\\icinga2\\features-enabled\\{0}.conf", feature), FileMode.Create);
+				fp = File.Open(Program.Icinga2InstallDir + String.Format("\\etc\\icinga2\\features-enabled\\{0}.conf", feature), FileMode.Create);
 				using (StreamWriter sw = new StreamWriter(fp, Encoding.ASCII)) {
 					fp = null;
 					sw.Write(String.Format("include \"../features-available/{0}.conf\"\n", feature));
@@ -164,12 +144,12 @@ namespace Icinga
 		{
 			SetRetrievalStatus(25);
 
-			string pathPrefix = Icinga2InstallDir + "\\etc\\icinga2\\pki\\" + txtInstanceName.Text;
+			string pathPrefix = Program.Icinga2InstallDir + "\\etc\\icinga2\\pki\\" + txtInstanceName.Text;
 
 			string output;
 
 			if (!File.Exists(pathPrefix + ".crt")) {
-				if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+				if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 					"pki new-cert --cn \"" + txtInstanceName.Text + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\"",
 					out output)) {
 					ShowErrorText(output);
@@ -181,7 +161,7 @@ namespace Icinga
 
 			_TrustedFile = Path.GetTempFileName();
 
-			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"",
 				out output)) {
 				ShowErrorText(output);
@@ -233,7 +213,7 @@ namespace Icinga
 			args += " --cn " + txtInstanceName.Text;
 			args += " --zone " + txtInstanceName.Text;
 
-			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
 				out output)) {
 				ShowErrorText(output);
@@ -241,7 +221,7 @@ namespace Icinga
 			}
 
 			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
-			DirectoryInfo di = new DirectoryInfo(Icinga2InstallDir);
+			DirectoryInfo di = new DirectoryInfo(Program.Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
 			FileSystemAccessRule rule = new FileSystemAccessRule("NT AUTHORITY\\NetworkService",
 				FileSystemRights.Modify,
@@ -251,18 +231,18 @@ namespace Icinga
 
 			SetConfigureStatus(75, "Installing the Icinga 2 service...");
 
-			RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"--scm-uninstall",
 				out output);
 
-			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"daemon --validate",
 				out output)) {
 				ShowErrorText(output);
 				return;
 			}
 
-			if (!RunProcess(Icinga2InstallDir + "\\sbin\\icinga2.exe",
+			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"--scm-install daemon",
 				out output)) {
 				ShowErrorText(output);
@@ -286,10 +266,7 @@ namespace Icinga
 
 		private void AgentWizard_Shown(object sender, EventArgs e)
 		{
-			string installDir = Icinga2InstallDir;
-
-			if (installDir == "")
-				FatalError("Icinga 2 does not seem to be installed properly.");
+			string installDir = Program.Icinga2InstallDir;
 
 			/* TODO: This is something the NSIS installer should do */
 			Directory.CreateDirectory(installDir + "\\etc\\icinga2\\pki");
