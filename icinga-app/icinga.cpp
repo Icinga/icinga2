@@ -497,7 +497,7 @@ static int SetupService(bool install, int argc, char **argv)
 	for (int i = 0; i < argc; i++)
 		szArgs += " " + Utility::EscapeShellArg(argv[i]);
 
-	SC_HANDLE schService = OpenService(schSCManager, "icinga2", DELETE | SERVICE_STOP | SERVICE_QUERY_STATUS);
+	SC_HANDLE schService = OpenService(schSCManager, "icinga2", SERVICE_ALL_ACCESS);
 
 	if (schService != NULL) {
 		SERVICE_STATUS status;
@@ -519,21 +519,7 @@ static int SetupService(bool install, int argc, char **argv)
 				return 1;
 			}
 		}
-
-		if (!DeleteService(schService)) {
-			printf("DeleteService failed (%d)\n", GetLastError());
-			CloseServiceHandle(schService);
-			CloseServiceHandle(schSCManager);
-			return 1;
-		}
-
-		if (!install)
-			printf("Service uninstalled successfully\n");
-
-		CloseServiceHandle(schService);
-	}
-
-	if (install) {
+	} else if (install) {
 		schService = CreateService(
 			schSCManager,
 			"icinga2",
@@ -553,11 +539,25 @@ static int SetupService(bool install, int argc, char **argv)
 			printf("CreateService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schSCManager);
 			return 1;
-		} else
-			printf("Service installed successfully\n");
+		}	
+	} else {
+		printf("Service isn't installed.\n");
+		CloseServiceHandle(schSCManager);
+		return 0;
+	}
 
+	if (!install) {
+		if (!DeleteService(schService)) {
+			printf("DeleteService failed (%d)\n", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 1;
+		}
+
+		printf("Service uninstalled successfully\n");
+	} else {
 		ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
-		    SERVICE_ERROR_NORMAL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+		    SERVICE_ERROR_NORMAL, szArgs.CStr(), NULL, NULL, NULL, NULL, NULL, NULL);
 
 		SERVICE_DESCRIPTION sdDescription = { "The Icinga 2 monitoring application" };
 		ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription);
@@ -569,9 +569,10 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		CloseServiceHandle(schService);
+		printf("Service installed successfully\n");
 	}
 
+	CloseServiceHandle(schService);
 	CloseServiceHandle(schSCManager);
 
 	return 0;
