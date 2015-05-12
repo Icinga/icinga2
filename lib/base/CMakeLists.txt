@@ -63,7 +63,7 @@ if(UNIX OR CYGWIN)
 endif()
 
 if(WIN32)
-  target_link_libraries(base ws2_32 dbghelp shlwapi)
+  target_link_libraries(base ws2_32 dbghelp shlwapi msi)
 endif()
 
 set_target_properties (

@@ -31,6 +31,9 @@
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
+#ifdef _WIN32
+#include <msi.h>
+#endif /* _WIN32 */
 
 using namespace icinga;
 
@@ -52,6 +55,9 @@ REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
 REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
 REGISTER_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
 REGISTER_SCRIPTFUNCTION(get_time, &Utility::GetTime);
+#ifdef _WIN32
+REGISTER_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
+#endif /* _WIN32 */
 
 String ScriptUtils::CastString(const Value& value)
 {
@@ -278,3 +284,16 @@ void ScriptUtils::Assert(const Value& arg)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Assertion failed"));
 }
 
+#ifdef _WIN32
+String ScriptUtils::MsiGetComponentPathShim(const String& component)
+{
+	TCHAR productCode[39];
+	if (MsiGetProductCode(component.CStr(), productCode) != ERROR_SUCCESS)
+		return "";
+	TCHAR path[2048];
+	DWORD szPath = sizeof(path);
+	path[0] = '\0';
+	MsiGetComponentPath(productCode, component.CStr(), path, &szPath);
+	return path;
+}
+#endif /* _WIN32 */
