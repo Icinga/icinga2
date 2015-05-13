@@ -1,8 +1,8 @@
 # <a id="monitoring-basics"></a> Monitoring Basics
 
 This part of the Icinga 2 documentation provides an overview of all the basic
-monitoring concepts you need to know to run Icinga 2.  
-Keep in mind these examples are made with a linux server in mind, if you are 
+monitoring concepts you need to know to run Icinga 2.
+Keep in mind these examples are made with a linux server in mind, if you are
 using Windows you will need to change the services accordingly. See the [ITL reference](7-icinga-template-library.md#windows-plugins)
  for further information.
 
@@ -575,7 +575,7 @@ The service's `display_name` should be set to the identifier inside the dictiona
       ignore where identifier == "bgp" //don't generate service for bgp checks
     }
 
-Icinga 2 evalatues the `apply for` rule for all objects with the custom attribute
+Icinga 2 evaluates the `apply for` rule for all objects with the custom attribute
 `oids` set. It then iterates over all list items inside the `for` loop and evaluates the
 `assign/ignore where` expressions. You can access the loop variable
 in these expressions, e.g. for ignoring certain values.
@@ -594,38 +594,52 @@ generic `apply for` rule generating the object name with or without a prefix.
 
 #### <a id="using-apply-for-custom-attribute-override"></a> Apply For and Custom Attribute Override
 
-Imagine a different more advanced example: You are monitoring your switch (hosts) with many
-interfaces (services). The following requirements/problems apply:
+Imagine a different more advanced example: You are monitoring your network device (host)
+with many interfaces (services). The following requirements/problems apply:
 
-* Each interface service check should be named with a prefix and a running number
+* Each interface service check should be named with a prefix and a name defined in your host object (which could be generated from your CMDB, etc)
 * Each interface has its own vlan tag
 * Some interfaces have QoS enabled
 * Additional attributes such as `display_name` or `notes, `notes_url` and `action_url` must be
 dynamically generated
 
-By defining the `interfaces` dictionary with three example interfaces on the `core-switch`
-host object, you'll make sure to pass the storage required by the for loop in the service apply
-rule.
 
-    object Host "core-switch" {
+Tip: Define the snmp community as global constant in your [constants.conf](5-configuring-icinga-2.md#constants-conf) file.
+
+    const IftrafficSnmpCommunity = "public"
+
+By defining the `interfaces` dictionary with three example interfaces on the `cisco-catalyst-6509-34`
+host object, you'll make sure to pass the [custom attribute](3-monitoring-basics.md#custom-attributes)
+storage required by the for loop in the service apply rule.
+
+    object Host "cisco-catalyst-6509-34" {
       import "generic-host"
-      address = "127.0.0.1"
+      display_name = "Catalyst 6509 #34 VIE21"
+      address = "127.0.1.4"
 
-      vars.interfaces["0"] = {
-        port = 1
-        vlan = "internal"
-        address = "127.0.0.2"
-        qos = "enabled"
+      /* "GigabitEthernet0/2" is the interface name,
+       * and key name in service apply for later on
+       */
+      vars.interfaces["GigabitEthernet0/2"] = {
+         /* define all custom attributes with the
+          * same name required for command parameters/arguments
+          * in service apply (look into your CheckCommand definition)
+          */
+         iftraffic_units = "g"
+         iftraffic_community = IftrafficSnmpCommunity
+         vlan = "internal"
+         qos = "disabled"
       }
-      vars.interfaces["1"] = {
-        port = 2
-        vlan = "mgmt"
-        address = "127.0.1.2"
+      vars.interfaces["GigabitEthernet0/4"] = {
+         iftraffic_units = "g"
+         //iftraffic_community = IftrafficSnmpCommunity
+         vlan = "renote"
+         qos = "enabled"
       }
-      vars.interfaces["2"] = {
-        port = 3
-        vlan = "remote"
-        address = "127.0.2.2"
+      vars.interfaces["MgmtInterface1"] = {
+         iftraffic_community = IftrafficSnmpCommunity
+         vlan = "mgmt"
+         interface_address = "127.99.0.100" #special management ip
       }
     }
 
@@ -633,38 +647,134 @@ You can also omit the `"if-"` string, then all generated service names are direc
 taken from the `if_name` variable value.
 
 The config dictionary contains all key-value pairs for the specific interface in one
-loop cycle, like `port`, `vlan`, `address` and `qos` for the `0` interface.
+loop cycle, like `iftraffic_units`, `vlan`, and `qos` for the specified interface.
 
-By defining a default value for the custom attribute `qos` in the `vars` dictionary
-before adding the `config` dictionary we'll ensure that this attribute is always defined.
+You can either map the custom attributes from the `interface_config` dictionary to
+local custom attributes stashed into `vars`. If the names match the required command
+argument parameters already (for example `iftraffic_units`), you could also add the
+`interface_config` dictionary to the `vars` dictionary using the `+=` operator.
 
-After `vars` is fully populated, all object attributes can be set. For strings, you can use
-string concatention with the `+` operator.
+After `vars` is fully populated, all object attributes can be set calculated from
+provided host attributes. For strings, you can use string concatention with the `+` operator.
 
-You can also specifiy the check command that way.
+You can also specifiy the display_name, check command, interval, notes, notes_url, action_url, etc.
+attributes that way.
 
-    apply Service "if-" for (if_name => config in host.vars.interfaces) {
+This example also uses [if conditions](19-language-reference.md#conditional-statements)
+if specific values are not set, adding a local default value.
+The other way around you can override specific custom attributes inherited from a service template,
+if set.
+
+    /* loop over the host.vars.interfaces dictionary
+     * for (key => value in dict) means `interface_name` as key
+     * and `interface_config` as value. Access config attributes
+     * with the indexer (`.`) character.
+     */
+    apply Service "if-" for (interface_name => interface_config in host.vars.interfaces) {
       import "generic-service"
-      check_command = "ping4"
+      check_command = "iftraffic"
+      display_name = "IF-" + interface_name
 
-      vars.qos = "disabled"
-      vars += config
+      /* use the key as command argument (no duplication of values in host.vars.interfaces) */
+      vars.iftraffic_interface = interface_name
 
-      display_name = "if-" + if_name + "-" + vars.vlan
+      /* set the global constant if not explicitely set a) not set in the imported service template
+       * b) not provided by the `interfaces` dictionary on the host
+       */
+      if (interface_config.iftraffic_community == "" || vars.iftraffic_community == "") {
+        vars.iftraffic_community = IftrafficSnmpCommunity
+      }
 
-      notes = "Interface check for Port " + string(vars.port) + " in VLAN " + vars.vlan + " on Address " + vars.address + " QoS " + vars.qos
+      /* map the custom attributes as command arguments */
+      vars.iftraffic_units = interface_config.iftraffic_units
+      vars.iftraffic_community = interface_config.iftraffic_community
+
+      /* the above can be achieved in a shorter fashion if the names inside host.vars.interfaces
+       * are the _exact_ same as required as command parameter by the check command
+       * definition.
+       */
+      vars += interface_config
+
+      /* set a default value for units */
+      if (interface_config.iftraffic_units == "") {
+        vars.iftraffic_units = "b"
+      }
+      if (interface_config.vlan == "") {
+        vars.vlan = "not set"
+      }
+      if (interface_config.qos == "") {
+        vars.qos = "not set"
+      }
+
+      /* Calculate some additional object attributes after populating the `vars` dictionary */
+      notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' on address '" + vars.interface_address + "' QoS '" + vars.qos + "'"
       notes_url = "http://foreman.company.com/hosts/" + host.name
-      action_url = "http://snmp.checker.company.com/" + host.name + "if-" + if_name
+      action_url = "http://snmp.checker.company.com/" + host.name + "/if-" + interface_name
     }
 
-Note that numbers must be explicitely casted to string when adding to strings.
-This can be achieved by wrapping them into the [string()](19-language-reference.md#function-calls) function.
+
+This example makes use of the [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic) plugin.
+The `CheckCommand` definition can be found in the
+[contributed plugin check commands](7-icinga-template-library.md#plugins-contrib-command-iftraffic)
+- make sure to include them in your [icinga2 configuration file](5-configuring-icinga-2.md#icinga2-conf).
+
 
 > **Tip**
 >
 > Building configuration in that dynamic way requires detailed information
 > of the generated objects. Use the `object list` [CLI command](8-cli-commands.md#cli-command-object)
 > after successful [configuration validation](8-cli-commands.md#config-validation).
+
+Verify that the apply-for-rule succesfully created the service objects with the
+inherited custom attributes:
+
+    # icinga2 daemon -C
+    # icinga2 object list --type Service --name *catalyst*
+
+    Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
+    ...
+      * vars
+        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 62:3-62:26
+        * iftraffic_community = "public"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 51:5-51:53
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 56:3-56:65
+        * iftraffic_interface = "GigabitEthernet0/2"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 45:3-45:43
+        * iftraffic_units = "g"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 55:3-55:57
+        * qos = "disabled"
+        * vlan = "internal"
+
+    Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/4' of type 'Service':
+    ...
+      * vars
+        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 62:3-62:26
+        * iftraffic_community = null
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 51:5-51:53
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 56:3-56:65
+        * iftraffic_interface = "GigabitEthernet0/4"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 45:3-45:43
+        * iftraffic_units = "g"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 55:3-55:57
+        * qos = "enabled"
+        * vlan = "renote"
+
+    Object 'cisco-catalyst-6509-34!if-MgmtInterface1' of type 'Service':
+    ...
+      * vars
+        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 62:3-62:26
+        * iftraffic_community = "public"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 51:5-51:53
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 56:3-56:65
+        * iftraffic_interface = "MgmtInterface1"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 45:3-45:43
+        * iftraffic_units = "b"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 55:3-55:57
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 66:5-66:30
+        * interface_address = "127.99.0.100"
+        * qos = "not set"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 72:5-72:24
+        * vlan = "mgmt"
 
 
 ### <a id="using-apply-object-attributes"></a> Use Object Attributes in Apply Rules
