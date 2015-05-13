@@ -1500,6 +1500,24 @@ interfacetable_defaulttablesorting  | **Optional.** Default table sorting can be
 interfacetable_tablesplit           | **Optional.** Generate multiple interface tables, one per interface type. Defaults to false.
 interfacetable_notype               | **Optional.** Remove the interface type for each interface. Defaults to false.
 
+### <a id="plugins-contrib-command-iftraffic"></a> iftraffic
+
+The plugin [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic)
+checks the utilization of a given interface name using the SNMP protocol.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------
+iftraffic_address	| **Required.** Specifies the remote host. Defaults to "$address$".
+iftraffic_community	| **Optional.** SNMP community. Defaults to "public'" if omitted.
+iftraffic_interface	| **Required.** Queried interface name.
+iftraffic_bandwidth	| **Required.** Interface maximum speed in kilo/mega/giga/bits per second.
+iftraffic_units		| **Optional.** Interface units can be one of these values: `g` (gigabits/s),`m` (megabits/s), `k` (kilobits/s),`b` (bits/s)
+iftraffic_warn		| **Optional.** Percent of bandwidth usage necessary to result in warning status (defaults to `85%`).
+iftraffic_crit		| **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98%`).
+iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
+
 ## <a id="plugins-contrib-web"></a> Web
 
 This category includes all plugins for web-based checks.
