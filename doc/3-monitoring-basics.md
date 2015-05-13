@@ -627,12 +627,14 @@ storage required by the for loop in the service apply rule.
           */
          iftraffic_units = "g"
          iftraffic_community = IftrafficSnmpCommunity
+	 iftraffic_bandwidth = 1
          vlan = "internal"
          qos = "disabled"
       }
       vars.interfaces["GigabitEthernet0/4"] = {
          iftraffic_units = "g"
          //iftraffic_community = IftrafficSnmpCommunity
+	 iftraffic_bandwidth = 1
          vlan = "renote"
          qos = "enabled"
       }
@@ -678,13 +680,6 @@ if set.
       /* use the key as command argument (no duplication of values in host.vars.interfaces) */
       vars.iftraffic_interface = interface_name
 
-      /* set the global constant if not explicitely set a) not set in the imported service template
-       * b) not provided by the `interfaces` dictionary on the host
-       */
-      if (interface_config.iftraffic_community == "" || vars.iftraffic_community == "") {
-        vars.iftraffic_community = IftrafficSnmpCommunity
-      }
-
       /* map the custom attributes as command arguments */
       vars.iftraffic_units = interface_config.iftraffic_units
       vars.iftraffic_community = interface_config.iftraffic_community
@@ -695,9 +690,12 @@ if set.
        */
       vars += interface_config
 
-      /* set a default value for units */
+      /* set a default value for units and bandwidth */
       if (interface_config.iftraffic_units == "") {
-        vars.iftraffic_units = "b"
+        vars.iftraffic_units = "m"
+      }
+      if (interface_config.iftraffic_bandwidth == "") {
+        vars.iftraffic_bandwidth = 1
       }
       if (interface_config.vlan == "") {
         vars.vlan = "not set"
@@ -706,11 +704,19 @@ if set.
         vars.qos = "not set"
       }
 
+      /* set the global constant if not explicitely
+       * not provided by the `interfaces` dictionary on the host
+       */
+      if (len(interface_config.iftraffic_community) == 0 || len(vars.iftraffic_community) == 0) {
+        vars.iftraffic_community = IftrafficSnmpCommunity
+      }
+
       /* Calculate some additional object attributes after populating the `vars` dictionary */
-      notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' on address '" + vars.interface_address + "' QoS '" + vars.qos + "'"
+      notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' with ' QoS '" + vars.qos + "'"
       notes_url = "http://foreman.company.com/hosts/" + host.name
       action_url = "http://snmp.checker.company.com/" + host.name + "/if-" + interface_name
     }
+
 
 
 This example makes use of the [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic) plugin.
@@ -731,46 +737,49 @@ inherited custom attributes:
     # icinga2 daemon -C
     # icinga2 object list --type Service --name *catalyst*
 
-    Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
-    ...
+Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
+    ......
       * vars
-        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 62:3-62:26
+        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
+        * iftraffic_bandwidth = 1
         * iftraffic_community = "public"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 51:5-51:53
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 56:3-56:65
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
         * iftraffic_interface = "GigabitEthernet0/2"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 45:3-45:43
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
         * iftraffic_units = "g"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 55:3-55:57
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
         * qos = "disabled"
         * vlan = "internal"
+
 
     Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/4' of type 'Service':
     ...
       * vars
-        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 62:3-62:26
-        * iftraffic_community = null
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 51:5-51:53
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 56:3-56:65
+        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
+        * iftraffic_bandwidth = 1
+        * iftraffic_community = "public"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 79:5-79:53
         * iftraffic_interface = "GigabitEthernet0/4"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 45:3-45:43
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
         * iftraffic_units = "g"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 55:3-55:57
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
         * qos = "enabled"
         * vlan = "renote"
 
     Object 'cisco-catalyst-6509-34!if-MgmtInterface1' of type 'Service':
     ...
       * vars
-        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 62:3-62:26
+        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
+        * iftraffic_bandwidth = 1
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 66:5-66:32
         * iftraffic_community = "public"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 51:5-51:53
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 56:3-56:65
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
         * iftraffic_interface = "MgmtInterface1"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 45:3-45:43
-        * iftraffic_units = "b"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 55:3-55:57
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 66:5-66:30
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
+        * iftraffic_units = "m"
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
+          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 63:5-63:30
         * interface_address = "127.99.0.100"
         * qos = "not set"
           % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 72:5-72:24
