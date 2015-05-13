@@ -54,6 +54,8 @@ REGISTER_SAFE_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
 REGISTER_SAFE_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
 REGISTER_SAFE_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
 REGISTER_SAFE_SCRIPTFUNCTION(get_time, &Utility::GetTime);
+REGISTER_SAFE_SCRIPTFUNCTION(basename, &Utility::BaseName);
+REGISTER_SAFE_SCRIPTFUNCTION(dirname, &Utility::DirName);
 #ifdef _WIN32
 REGISTER_SAFE_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
 #endif /* _WIN32 */
