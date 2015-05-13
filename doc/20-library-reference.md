@@ -19,6 +19,8 @@ log(severity, facility, value)  | Writes a message to the log. `severity` can be
 typeof(value)                   | Returns the type object for a value.
 get_time()                      | Returns the current UNIX timestamp.
 parse_performance_data(pd)      | Parses a performance data string and returns an array describing the values.
+dirname(path)                   | Returns the directory portion of the specified path.
+basename(path)                  | Returns the filename portion of the specified path.
 exit(integer)                   | Terminates the application.
 
 ## <a id="object-accessor-functions"></a> Object Accessor Functions

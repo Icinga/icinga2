@@ -55,6 +55,8 @@ REGISTER_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
 REGISTER_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
 REGISTER_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
 REGISTER_SCRIPTFUNCTION(get_time, &Utility::GetTime);
+REGISTER_SCRIPTFUNCTION(basename, &Utility::BaseName);
+REGISTER_SCRIPTFUNCTION(dirname, &Utility::DirName);
 #ifdef _WIN32
 REGISTER_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
 #endif /* _WIN32 */

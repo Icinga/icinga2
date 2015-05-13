@@ -1016,7 +1016,8 @@ file:
 
     const NscpPath = "C:\\Program Files (x86)\\NSClient++"
 
-By default the check commands assume that NSClient++ is installed in "C:\Program Files\NSClient++".
+By default Icinga 2 uses the Microsoft Installer API to determine where NSClient++ is installed. It should
+not be necessary to manually set this constant.
 
 Note that it is not necessary to run NSClient++ as a Windows service for these commands to work.
 
