@@ -352,58 +352,14 @@ int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checka
 }
 
 /* vars attr */
-
-bool CompatUtility::IsLegacyAttribute(const CustomVarObject::Ptr& object, const String& name)
-{
-	if ((name == "address" ||
-	    name == "address6") &&
-	    object->GetType() == DynamicType::GetByName("Host"))
-		return true;
-
-	if ((name == "address1" ||
-	    name == "address2" ||
-	    name == "address3" ||
-	    name == "address4" ||
-	    name == "address5" ||
-	    name == "address6" ||
-	    name == "email" ||
-	    name == "pager") &&
-	    object->GetType() == DynamicType::GetByName("User"))
-		return true;
-
-	if ((name == "notes" ||
-	    name == "action_url" ||
-	    name == "notes_url" ||
-	    name == "icon_image" ||
-	    name == "icon_image_alt") &&
-	    (object->GetType() == DynamicType::GetByName("Host") ||
-	    object->GetType() == DynamicType::GetByName("Service")))
-		return true;
-
-	return false;
-}
-
 Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& object)
 {
 	Dictionary::Ptr vars = object->GetVars();
 
-	Dictionary::Ptr varsvars = new Dictionary();
-
 	if (!vars)
 		return Dictionary::Ptr();
 
-	String key;
-	Value value;
-
-	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		if (kv.first.IsEmpty() || IsLegacyAttribute(object, kv.first))
-			continue;
-
-		varsvars->Set(kv.first, kv.second);
-	}
-
-	return varsvars;
+	return vars;
 }
 
 String CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& object, const String& name)
