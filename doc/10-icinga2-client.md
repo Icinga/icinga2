@@ -397,7 +397,6 @@ Restart Icinga 2 once complete.
 Download the MSI-Installer package from [http://packages.icinga.org/windows/](http://packages.icinga.org/windows/).
 
 Requirements:
-* Windows Vista/Server 2008 or higher
 * [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639) if not already installed.
 
 The setup wizard will install Icinga 2 and then continue with SSL certificate generation,
