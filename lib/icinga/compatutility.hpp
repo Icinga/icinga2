@@ -103,7 +103,6 @@ public:
 	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
 
 	/* custom attribute */
-	static bool IsLegacyAttribute(const CustomVarObject::Ptr& object, const String& name);
 	static String GetCustomAttributeConfig(const CustomVarObject::Ptr& object, const String& name);
 	static Dictionary::Ptr GetCustomAttributeConfig(const CustomVarObject::Ptr& object);
 
