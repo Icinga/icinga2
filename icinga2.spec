@@ -458,8 +458,6 @@ exit 0
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %dir %{_libdir}/%{name}
 %{_libdir}/%{name}/*.so*
-%dir %{_libdir}/%{name}/sbin
-%{_libdir}/%{name}/sbin/%{name}
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz
