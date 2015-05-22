@@ -1200,6 +1200,7 @@ snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. 
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
 snmp_crit               | **Optional.** The critical threshold.
+snmp_is_cisco		| **Optional.** Change OIDs for Cisco switches. Defaults to false.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
