@@ -728,6 +728,13 @@ String CompatUtility::EscapeString(const String& str)
 	return result;
 }
 
+String CompatUtility::UnEscapeString(const String& str)
+{
+	String result = str;
+	boost::algorithm::replace_all(result, "\\n", "\n");
+	return result;
+}
+
 std::pair<unsigned long, unsigned long> CompatUtility::ConvertTimestamp(double time)
 {
 	unsigned long time_sec = static_cast<long>(time);

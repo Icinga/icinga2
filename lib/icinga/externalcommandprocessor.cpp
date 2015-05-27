@@ -354,7 +354,8 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 
 	int exitStatus = Convert::ToDouble(arguments[2]);
 	CheckResult::Ptr result = new CheckResult();
-	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[3]);
+	String output = CompatUtility::UnEscapeString(arguments[3]);
+	std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
 	result->SetState(PluginUtility::ExitStatusToState(exitStatus));
