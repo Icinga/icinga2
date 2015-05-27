@@ -17,6 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "icinga/compatutility.hpp"
 #include "compat/checkresultreader.hpp"
 #include "icinga/service.hpp"
 #include "icinga/pluginutility.hpp"
@@ -133,7 +134,8 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	}
 
 	CheckResult::Ptr result = new CheckResult();
-	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(attrs["output"]);
+	String output = CompatUtility::UnEscapeString(attrs["output"]);
+	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(output);
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
 	result->SetState(PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));

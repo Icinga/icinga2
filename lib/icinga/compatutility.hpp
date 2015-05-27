@@ -118,6 +118,7 @@ public:
 	static int MapExternalCommandType(const String& name);
 
 	static String EscapeString(const String& str);
+	static String UnEscapeString(const String& str);
 
 private:
 	CompatUtility(void);
