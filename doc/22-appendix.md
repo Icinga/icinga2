@@ -420,9 +420,10 @@ Not supported: `initial_state`, `pending_flex_downtime`, `check_flapping_recover
   no_more_notifications | int       | notification_interval == 0 && volatile == false.
   last_check            | int       | .
   last_state_change     | int       | .
-  last_time_up          | int       | .
-  last_time_down        | int       | .
-  last_time_unreachable | int       | .
+  last_time_ok          | int       | .
+  last_time_warning     | int       | .
+  last_time_critical    | int       | .
+  last_time_unknown     | int       | .
   is_flapping           | int       | .
   scheduled_downtime_depth | int    | .
   active_checks_enabled | int       | .
