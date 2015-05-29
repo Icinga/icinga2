@@ -1196,6 +1196,8 @@ Next step is to understand how command parameters are being passed from
 a host or service object, and add a [CheckCommand](6-object-types.md#objecttype-checkcommand)
 definition based on these required parameters and/or default values.
 
+Please continue reading in the [plugins section](13-addons-plugins.md#plugins) for additional integration examples.
+
 #### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
 
 Check command parameters are defined as custom attributes which can be accessed as runtime macros
