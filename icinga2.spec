@@ -613,7 +613,7 @@ fi
 %if "%{_vendor}" == "redhat"
 %files selinux
 %defattr(-,root,root,0755)
-%doc SELinux/*
+%doc tools/selinux/*
 %{_datadir}/selinux/*/%{modulename}.pp
 %endif
 
