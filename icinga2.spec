@@ -189,7 +189,7 @@ Conflicts:    icinga-gui-config
 Icinga 1.x Classic UI Standalone configuration with locations
 for Icinga 2.
 
-%if "%{_vendor}" == "redhat"
+%if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 %global selinux_variants mls targeted
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp 2>/dev/null)}
 %global modulename %{name}
@@ -262,7 +262,7 @@ cmake $CMAKE_OPTS -DCMAKE_C_FLAGS:STRING="%{optflags} %{?march_flag}" -DCMAKE_CX
 
 make %{?_smp_mflags}
 
-%if "%{_vendor}" == "redhat"
+%if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 cd tools/selinux
 for selinuxvariant in %{selinux_variants}
 do
@@ -296,7 +296,7 @@ mkdir -p "%{buildroot}%{_localstatedir}/adm/fillup-templates/"
 mv "%{buildroot}%{_sysconfdir}/sysconfig/%{name}" "%{buildroot}%{_localstatedir}/adm/fillup-templates/sysconfig.%{name}"
 %endif
 
-%if "%{_vendor}" == "redhat"
+%if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 cd tools/selinux
 for selinuxvariant in %{selinux_variants}
 do
@@ -488,7 +488,7 @@ fi
 
 exit 0
 
-%if "%{_vendor}" == "redhat"
+%if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 %post selinux
 for selinuxvariant in %{selinux_variants}
 do
@@ -610,7 +610,7 @@ fi
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
 
-%if "%{_vendor}" == "redhat"
+%if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 %files selinux
 %defattr(-,root,root,0755)
 %doc tools/selinux/*
