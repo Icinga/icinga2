@@ -32,7 +32,8 @@ parentheses):
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian); set CMake
             variable `ICINGA2_WITH_PGSQL` to `OFF` to disable this module
 * optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
-* optional: libedit (libedit-devel on RHEL, libedit-dev on Debian)
+* optional: libedit (libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms
+            repository for el7 e.g.), libedit-dev on Debian)
 * optional: Termcap (libtermcap-devel on RHEL, not necessary on Debian) - only
             required if libedit doesn't already link against termcap/ncurses
 
