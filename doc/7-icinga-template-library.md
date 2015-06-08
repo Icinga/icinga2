@@ -1319,7 +1319,7 @@ mssql_health_critical            | **Optional.** The critical threshold dependin
 mssql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "database-free" or "sql".
 mssql_health_name                | **Optional.** Depending on the mode this could be the database name or a SQL statement.
 mssql_health_name2               | **Optional.** If "mssql_health_name" is a sql statement, "mssql_health_name2" can be used to appear in the output and the performance data.
-mssql_health_regexep             | **Optional.** If set to true, "mssql_health_name" will be interpreted as a regular expression. Defaults to false.
+mssql_health_regexp              | **Optional.** If set to true, "mssql_health_name" will be interpreted as a regular expression. Defaults to false.
 mssql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
 mssql_health_offlineok           | **Optional.** Set this to true, if offline databases are perfectly ok for you. Defaults to false.
 mssql_health_commit              | **Optional.** Set this to true to turn on autocommit for the dbd::sybase module. Defaults to false.
@@ -1364,6 +1364,7 @@ oracle_health_critical           | **Optional.** The critical threshold dependin
 oracle_health_mode               | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "flash-recovery-area-usage" or "sql".
 oracle_health_name               | **Optional.** The tablespace, datafile, wait event, latch, enqueue depending on the mode or SQL statement to be executed with "oracle_health_mode" sql.
 oracle_health_name2              | **Optional.** If "oracle_health_name" is a sql statement, "oracle_health_name2" can be used to appear in the output and the performance data.
+oracle_health_regexp             | **Optional.** If set to true, "oracle_health_name" will be interpreted as a regular expression. Defaults to false.
 oracle_health_units              | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
 oracle_health_ident              | **Optional.** If set to true outputs instance and database names. Defaults to false.
 oracle_health_commit             | **Optional.** Set this to true to turn on autocommit for the dbd::oracle module. Defaults to false.
