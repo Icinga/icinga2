@@ -368,58 +368,47 @@ void ApiListener::ApiTimerHandler(void)
 		}
 	}
 
-	if (IsMaster()) {
-		Zone::Ptr my_zone = Zone::GetLocalZone();
+	Zone::Ptr my_zone = Zone::GetLocalZone();
 
-		BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
-			/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
-			if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
+		/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
+		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
+			Log(LogDebug, "ApiListener")
+			    << "Not connecting to Zone '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
+			continue;
+		}
+
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+			/* don't connect to ourselves */
+			if (endpoint->GetName() == GetIdentity()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Zone '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
+				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because that's us.";
 				continue;
 			}
 
-			bool connected = false;
-
-			BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
-				if (endpoint->IsConnected()) {
-					connected = true;
-					break;
-				}
-			}
-
-			/* don't connect to an endpoint if we already have a connection to the zone */
-			if (connected) {
+			/* don't try to connect to endpoints which don't have a host and port */
+			if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Zone '" << zone->GetName() << "' because we're already connected to it.";
+				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because the host/port attributes are missing.";
 				continue;
 			}
 
-			BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
-				/* don't connect to ourselves */
-				if (endpoint->GetName() == GetIdentity()) {
-					Log(LogDebug, "ApiListener")
-					    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because that's us.";
-					continue;
-				}
-
-				/* don't try to connect to endpoints which don't have a host and port */
-				if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty()) {
-					Log(LogDebug, "ApiListener")
-					    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because the host/port attributes are missing.";
-					continue;
-				}
-
-				/* don't try to connect if there's already a connection attempt */
-				if (endpoint->GetConnecting()) {
-					Log(LogDebug, "ApiListener")
-					    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because we're already trying to connect to it.";
-					continue;
-				}
-
-				boost::thread thread(boost::bind(&ApiListener::AddConnection, this, endpoint));
-				thread.detach();
+			/* don't try to connect if there's already a connection attempt */
+			if (endpoint->GetConnecting()) {
+				Log(LogDebug, "ApiListener")
+				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because we're already trying to connect to it.";
+				continue;
 			}
+
+			/* don't try to connect if we're already connected */
+			if (endpoint->IsConnected()) {
+				Log(LogDebug, "ApiListener")
+				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because we're already connected to it.";
+				continue;
+			}
+
+			boost::thread thread(boost::bind(&ApiListener::AddConnection, this, endpoint));
+			thread.detach();
 		}
 	}
 
