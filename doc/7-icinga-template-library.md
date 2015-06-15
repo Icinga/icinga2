@@ -1431,6 +1431,21 @@ mongodb_querytype                | **Optional.** The query type to check [query|
 mongodb_collection               | **Optional.** Specify the collection to check
 mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
 
+### <a id="plugins-contrib-command-elasticsearch"></a> elasticsearch
+
+An ElasticSearch availability and performance monitoring plugin for Nagios provided by [Anchor](http://www.anchor.com.au) on [https://github.com](https://github.com/anchor/nagios-plugin-elasticsearch).
+It ulitizes the API so requires HTTP enabled for your elasticsearch node.
+
+Name                         | Description
+-----------------------------|-------------------------------------------------------------------------------------------------------
+elasticsearch_failuredomain  | **Optional.** A comma-separated list of ElasticSearch attributes that make up your cluster's failure domain.
+elasticsearch_host           | **Optional.** Hostname or network address to probe. Defaults to 'localhost'.
+elasticsearch_masternodes    | **Optional.** Issue a warning if the number of master-eligible nodes in the cluster drops below this number. By default, do not monitor the number of nodes in the cluster.
+elasticsearch_port           | **Optional.** TCP port to probe.  The ElasticSearch API should be listening here. Defaults to 9200.
+elasticsearch_prefix         | **Optional.** Optional prefix (e.g. 'es') for the ElasticSearch API. Defaults to ''.
+elasticsearch_yellowcritical | **Optional.** Instead of issuing a 'warning' for a yellow cluster state, issue a 'critical' alert. Defaults to false.
+
+
 ## <a id="plugins-contrib-ipmi"></a> IPMI Devices
 
 This category includes all plugins for IPMI devices.
