@@ -155,7 +155,7 @@ graphical installer for Windows based client setup.
 Your client setup requires the following
 
 * A ready configured and installed [master node](10-icinga2-client.md#icinga2-client-installation-master-setup)
-* SSL signed certificate for communication with the master (Use [CSR auto-signing](certifiates-csr-autosigning)).
+* SSL signed certificate for communication with the master (Use [CSR auto-signing](10-icinga2-client.md#csr-autosigning-requirements)).
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
 
@@ -600,8 +600,8 @@ defined endpoint. The check result is then received asynchronously through the c
       vars.users_wgreater = 10
       vars.users_cgreater = 20
 
-      /* assign where a remote client is set */
-      assign where host.vars.remote_client
+      /* assign where a remote client pattern is matched */
+      assign where match("*-remote", host.name)
     }
 
 
