@@ -50,9 +50,7 @@ public:
 	static DynamicObject::Ptr GetObject(const Type::Ptr& type, const String& name);
 	static Array::Ptr GetObjects(const Type::Ptr& type);
 	static void Assert(const Value& arg);
-#ifdef _WIN32
 	static String MsiGetComponentPathShim(const String& component);
-#endif /* _WIN32 */
 
 private:
 	ScriptUtils(void);
