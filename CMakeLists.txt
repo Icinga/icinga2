@@ -251,6 +251,9 @@ set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
+  file(DOWNLOAD http://files.nsclient.org/released/NSCP-0.4.3.143-Win32.msi ${CMAKE_CURRENT_BINARY_DIR}/NSCP-Win32.msi)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP-Win32.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
+
   install(
     PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
       ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll
