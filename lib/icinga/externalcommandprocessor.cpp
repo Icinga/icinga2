@@ -28,6 +28,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
+#include "icinga/compatutility.hpp"
 #include "remote/apifunction.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
