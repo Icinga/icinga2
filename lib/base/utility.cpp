@@ -175,7 +175,7 @@ String Utility::DirName(const String& path)
 #ifndef _WIN32
 	result = dirname(dir);
 #else /* _WIN32 */
-	if (!PathRemoveFileSpec(dir)) {
+	if (dir[0] != 0 && !PathRemoveFileSpec(dir)) {
 		free(dir);
 
 		BOOST_THROW_EXCEPTION(win32_error()
