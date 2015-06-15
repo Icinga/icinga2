@@ -48,7 +48,7 @@ For general support questions, please refer to the [community support channels](
 
 More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
-* [Register](https://exchange.icinga.org/authentication/register) an Icinga account.
+* [Register](https://accounts.icinga.org/register) an Icinga account.
 * Create a new issue at the [Icinga 2 Development Tracker](https://dev.icinga.org/projects/i2).
 * When reporting a bug, please include the details described in the [Troubleshooting](16-troubleshooting.md#troubleshooting-information-required) chapter (version, configs, logs, etc).
 
