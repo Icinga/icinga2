@@ -152,14 +152,14 @@ In addition to built-in attributes you can define your own attributes:
 
 Valid values for custom attributes include:
 
-* Strings and numbers
-* Arrays and dictionaries
-* Functions
+* [Strings](19-language-reference.md#string-literals), [numbers](19-language-reference.md#numeric-literals) and [booleans](19-language-reference.md#boolean-literals)
+* [Arrays](19-language-reference.md#array) and [dictionaries](19-language-reference.md#dictionary)
+* [Functions](3-monitoring-basics.md#custom-attributes-functions)
 
 ### <a id="custom-attributes-functions"></a> Functions as Custom Attributes
 
-Icinga 2 lets you specify functions for custom attributes. The special case here
-is that whenever Icinga 2 needs the value for such a custom attribute it runs
+Icinga 2 lets you specify [functions](19-language-reference.md#functions) for custom attributes.
+The special case here is that whenever Icinga 2 needs the value for such a custom attribute it runs
 the function and uses whatever value the function returns:
 
     object CheckCommand "random-value" {
