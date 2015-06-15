@@ -391,11 +391,18 @@ master instances anymore.
 
 ## <a id="cluster-health-check"></a> Cluster Health Check
 
-The Icinga 2 [ITL](7-icinga-template-library.md#icinga-template-library) ships an internal check command checking all configured
-`EndPoints` in the cluster setup. The check result will become critical if
-one or more configured nodes are not connected.
+The Icinga 2 [ITL](7-icinga-template-library.md#icinga-template-library) provides
+an internal check command checking all configured `EndPoints` in the cluster setup.
+The check result will become critical if one or more configured nodes are not connected.
 
 Example:
+
+    object Host "icinga2a" {
+      display_name = "Health Checks on icinga2a"
+
+      address = "192.168.33.10"
+      check_command = "hostalive"
+    }
 
     object Service "cluster" {
         check_command = "cluster"
@@ -421,6 +428,31 @@ Example for the `checker` zone checking the connection to the `master` zone:
       vars.cluster_zone = "master"
 
       host_name = "icinga2b"
+    }
+
+## <a id="cluster-health-check-command-endpoint"></a> Cluster Health Check with Command Endpoints
+
+If you are planning to sync the zone configuration inside a [High-Availability]()
+cluster zone, you can also use the `command_endpoint` object attribute to
+pin host/service checks to a specific endpoint inside the same zone.
+
+This requires the `accept_commands` setting inside the [ApiListener](12-distributed-monitoring-ha.md#configure-apilistener-object)
+object set to `true` similar to the [remote client command execution bridge](10-icinga2-client.md#icinga2-client-configuration-command-bridge)
+setup.
+
+Make sure to set `command_endpoint` to the correct endpoint instance.
+The example below assumes that the endpoint name is the same as the
+host name configured for health checks. If it differs, define a host
+custom attribute providing [this information](10-icinga2-client.md#icinga2-client-configuration-command-bridge-master-config).
+
+    apply Service "cluster-ha" {
+      check_command = "cluster"
+      check_interval = 5s
+      retry_interval = 1s
+      /* make sure host.name is the same as endpoint name */
+      command_endpoint = host.name
+
+      assign where regex("^icinga2[a|b]", host.name)
     }
 
 
