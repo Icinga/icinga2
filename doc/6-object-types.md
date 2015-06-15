@@ -86,7 +86,6 @@ Configuration Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
-  zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
 
@@ -254,7 +253,6 @@ Configuration Attributes:
   disable_notifications |**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
   ignore_soft_states    |**Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
   period                |**Optional.** Time period during which this dependency is enabled.
-  zone		        |**Optional.** The zone this object is a member of.
   states    	        |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
 
 Available state filters:
@@ -913,7 +911,6 @@ Configuration Attributes:
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
-  zone		  |**Optional.** The zone this object is a member of.
   arguments       |**Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for [CheckCommand objects](6-object-types.md#objecttype-checkcommand-arguments).
@@ -1031,7 +1028,6 @@ Configuration Attributes:
   comment         |**Required.** A comment for the downtime.
   fixed           |**Optional.** Whether this is a fixed downtime. Defaults to true.
   duration        |**Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
-  zone		  |**Optional.** The zone this object is a member of.
   ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
 
 ScheduledDowntime objects have composite names, i.e. their names are based
@@ -1218,7 +1214,6 @@ Configuration Attributes:
   ----------------|----------------
   display_name    |**Optional.** A short description of the time period.
   update          |**Required.** The "update" script method takes care of updating the internal representation of the time period. In virtually all cases you should import the "legacy-timeperiod" template to take care of this setting.
-  zone		  |**Optional.** The zone this object is a member of.
   ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
 
 The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
@@ -1285,7 +1280,6 @@ Configuration Attributes:
   period          |**Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default.
   types           |**Optional.** A set of type filters when this notification should be triggered. By default everything is matched.
   states          |**Optional.** A set of state filters when this notification should be triggered. By default everything is matched.
-  zone		  |**Optional.** The zone this object is a member of.
 
 Runtime Attributes:
 
@@ -1313,7 +1307,6 @@ Configuration Attributes:
   ----------------|----------------
   display_name    |**Optional.** A short description of the user group.
   groups          |**Optional.** An array of nested group names.
-  zone            |**Optional.** The zone this object is a member of.
 
 
 ## <a id="objecttype-zone"></a> Zone

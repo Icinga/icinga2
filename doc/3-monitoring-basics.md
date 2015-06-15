@@ -535,7 +535,7 @@ Detailed examples can be found in the [dependencies](3-monitoring-basics.md#depe
 
 ### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
 
-The sample confituration includes an example in [downtimes.conf](5-configuring-icinga-2.md#downtimes-conf).
+The sample configuration includes an example in [downtimes.conf](5-configuring-icinga-2.md#downtimes-conf).
 
 Detailed examples can be found in the [recurring downtimes](4-advanced-topics.md#recurring-downtimes) chapter.
 
