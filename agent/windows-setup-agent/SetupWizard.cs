@@ -176,17 +176,6 @@ namespace Icinga
 
 		private void ConfigureService()
 		{
-			if (chkInstallNSCP.Checked)
-			{
-				SetConfigureStatus(0, "Waiting for NSClient++ installation to complete...");
-
-				Process proc = new Process();
-				proc.StartInfo.FileName = "msiexec.exe";
-				proc.StartInfo.Arguments = "/i \"" + Program.Icinga2InstallDir + "\\sbin\\NSCP-Win32.msi\"";
-				proc.Start();
-				proc.WaitForExit();
-			}
-
 			SetConfigureStatus(0, "Updating configuration files...");
 
 			string output;
@@ -258,6 +247,17 @@ namespace Icinga
 				out output)) {
 				ShowErrorText(output);
 				return;
+			}
+
+			if (chkInstallNSCP.Checked)
+			{
+				SetConfigureStatus(85, "Waiting for NSClient++ installation to complete...");
+
+				Process proc = new Process();
+				proc.StartInfo.FileName = "msiexec.exe";
+				proc.StartInfo.Arguments = "/i \"" + Program.Icinga2InstallDir + "\\sbin\\NSCP-Win32.msi\"";
+				proc.Start();
+				proc.WaitForExit();
 			}
 
 			SetConfigureStatus(100, "Finished.");
