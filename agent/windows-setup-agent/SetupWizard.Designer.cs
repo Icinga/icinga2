@@ -38,6 +38,9 @@
 			this.lblConfigStatus = new System.Windows.Forms.Label();
 			this.prgConfig = new System.Windows.Forms.ProgressBar();
 			this.tabParameters = new System.Windows.Forms.TabPage();
+			this.groupBox3 = new System.Windows.Forms.GroupBox();
+			this.chkAcceptConfig = new System.Windows.Forms.CheckBox();
+			this.chkAcceptCommands = new System.Windows.Forms.CheckBox();
 			this.txtTicket = new System.Windows.Forms.TextBox();
 			this.lblTicket = new System.Windows.Forms.Label();
 			this.txtInstanceName = new System.Windows.Forms.TextBox();
@@ -75,12 +78,11 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.groupBox3 = new System.Windows.Forms.GroupBox();
-			this.chkAcceptCommands = new System.Windows.Forms.CheckBox();
-			this.chkAcceptConfig = new System.Windows.Forms.CheckBox();
+			this.chkInstallNSCP = new System.Windows.Forms.CheckBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
+			this.groupBox3.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			this.tbcPages.SuspendLayout();
@@ -89,7 +91,6 @@
 			this.grpX509Fields.SuspendLayout();
 			this.tabError.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).BeginInit();
-			this.groupBox3.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// btnBack
@@ -188,6 +189,38 @@
 			this.tabParameters.TabIndex = 3;
 			this.tabParameters.Text = "Agent Parameters";
 			this.tabParameters.UseVisualStyleBackColor = true;
+			// 
+			// groupBox3
+			// 
+			this.groupBox3.Controls.Add(this.chkInstallNSCP);
+			this.groupBox3.Controls.Add(this.chkAcceptConfig);
+			this.groupBox3.Controls.Add(this.chkAcceptCommands);
+			this.groupBox3.Location = new System.Drawing.Point(308, 359);
+			this.groupBox3.Name = "groupBox3";
+			this.groupBox3.Size = new System.Drawing.Size(301, 111);
+			this.groupBox3.TabIndex = 5;
+			this.groupBox3.TabStop = false;
+			this.groupBox3.Text = "Advanced Options";
+			// 
+			// chkAcceptConfig
+			// 
+			this.chkAcceptConfig.AutoSize = true;
+			this.chkAcceptConfig.Location = new System.Drawing.Point(9, 47);
+			this.chkAcceptConfig.Name = "chkAcceptConfig";
+			this.chkAcceptConfig.Size = new System.Drawing.Size(190, 17);
+			this.chkAcceptConfig.TabIndex = 1;
+			this.chkAcceptConfig.Text = "Accept config updates from master";
+			this.chkAcceptConfig.UseVisualStyleBackColor = true;
+			// 
+			// chkAcceptCommands
+			// 
+			this.chkAcceptCommands.AutoSize = true;
+			this.chkAcceptCommands.Location = new System.Drawing.Point(9, 24);
+			this.chkAcceptCommands.Name = "chkAcceptCommands";
+			this.chkAcceptCommands.Size = new System.Drawing.Size(171, 17);
+			this.chkAcceptCommands.TabIndex = 0;
+			this.chkAcceptCommands.Text = "Accept commands from master";
+			this.chkAcceptCommands.UseVisualStyleBackColor = true;
 			// 
 			// txtTicket
 			// 
@@ -559,36 +592,15 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
-			// groupBox3
+			// chkInstallNSCP
 			// 
-			this.groupBox3.Controls.Add(this.chkAcceptConfig);
-			this.groupBox3.Controls.Add(this.chkAcceptCommands);
-			this.groupBox3.Location = new System.Drawing.Point(308, 359);
-			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(301, 111);
-			this.groupBox3.TabIndex = 5;
-			this.groupBox3.TabStop = false;
-			this.groupBox3.Text = "Advanced Settings";
-			// 
-			// chkAcceptCommands
-			// 
-			this.chkAcceptCommands.AutoSize = true;
-			this.chkAcceptCommands.Location = new System.Drawing.Point(9, 24);
-			this.chkAcceptCommands.Name = "chkAcceptCommands";
-			this.chkAcceptCommands.Size = new System.Drawing.Size(171, 17);
-			this.chkAcceptCommands.TabIndex = 0;
-			this.chkAcceptCommands.Text = "Accept commands from master";
-			this.chkAcceptCommands.UseVisualStyleBackColor = true;
-			// 
-			// chkAcceptConfig
-			// 
-			this.chkAcceptConfig.AutoSize = true;
-			this.chkAcceptConfig.Location = new System.Drawing.Point(9, 47);
-			this.chkAcceptConfig.Name = "chkAcceptConfig";
-			this.chkAcceptConfig.Size = new System.Drawing.Size(190, 17);
-			this.chkAcceptConfig.TabIndex = 1;
-			this.chkAcceptConfig.Text = "Accept config updates from master";
-			this.chkAcceptConfig.UseVisualStyleBackColor = true;
+			this.chkInstallNSCP.AutoSize = true;
+			this.chkInstallNSCP.Location = new System.Drawing.Point(9, 70);
+			this.chkInstallNSCP.Name = "chkInstallNSCP";
+			this.chkInstallNSCP.Size = new System.Drawing.Size(149, 17);
+			this.chkInstallNSCP.TabIndex = 6;
+			this.chkInstallNSCP.Text = "Install/Update NSClient++";
+			this.chkInstallNSCP.UseVisualStyleBackColor = true;
 			// 
 			// SetupWizard
 			// 
@@ -614,6 +626,8 @@
 			this.tabConfigure.PerformLayout();
 			this.tabParameters.ResumeLayout(false);
 			this.tabParameters.PerformLayout();
+			this.groupBox3.ResumeLayout(false);
+			this.groupBox3.PerformLayout();
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();
 			this.groupBox1.ResumeLayout(false);
@@ -628,8 +642,6 @@
 			this.tabError.ResumeLayout(false);
 			this.tabError.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picBanner)).EndInit();
-			this.groupBox3.ResumeLayout(false);
-			this.groupBox3.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -685,6 +697,7 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.CheckBox chkAcceptConfig;
         private System.Windows.Forms.CheckBox chkAcceptCommands;
+	private System.Windows.Forms.CheckBox chkInstallNSCP;
 	}
 }
 
