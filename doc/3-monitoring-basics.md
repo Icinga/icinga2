@@ -424,7 +424,7 @@ for not only matching for their existance or values in apply expressions, but al
 
 * [Apply services to hosts](3-monitoring-basics.md#using-apply-services)
 * [Apply notifications to hosts and services](3-monitoring-basics.md#using-apply-notifications)
-* [Apply dependencies to hosts and services](3-monitoring-basics.md#using-apply-scheduledowntimes)
+* [Apply dependencies to hosts and services](3-monitoring-basics.md#using-apply-dependencies)
 * [Apply scheduled downtimes to hosts and services](3-monitoring-basics.md#using-apply-scheduledowntimes)
 
 A more advanced example is using [apply with for loops on arrays or
@@ -660,7 +660,8 @@ After `vars` is fully populated, all object attributes can be set calculated fro
 provided host attributes. For strings, you can use string concatention with the `+` operator.
 
 You can also specifiy the display_name, check command, interval, notes, notes_url, action_url, etc.
-attributes that way.
+attributes that way. Attribute strings can be [concatenated](19-language-reference.md#expression-operators),
+for example for adding a more detailed service `display_name`.
 
 This example also uses [if conditions](19-language-reference.md#conditional-statements)
 if specific values are not set, adding a local default value.
@@ -1166,7 +1167,7 @@ using the `check_command` attribute.
 
 Unless you have done so already, download your check plugin and put it
 into the [PluginDir](4-configuring-icinga-2.md#constants-conf) directory. The following example uses the
-`check_disk` plugin contained in the Monitoring Plugins package.
+`check_mysql` plugin contained in the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
 double-quoted string arguments for proper shell escaping.
@@ -1176,21 +1177,15 @@ all available options. Our example defines warning (`-w`) and
 critical (`-c`) thresholds for the disk usage. Without any
 partition defined (`-p`) it will check all local partitions.
 
-    icinga@icinga2 $ /usr/lib/nagios/plugins/check_disk --help
-    ...
-    This plugin checks the amount of used disk space on a mounted file system
-    and generates an alert if free space is less than one of the threshold values
+   icinga@icinga2 $ /usr/lib64/nagios/plugins/check_mysql --help
+   ...
 
+    This program tests connections to a MySQL server
 
-    Usage:
-     check_disk -w limit -c limit [-W limit] [-K limit] {-p path | -x device}
-    [-C] [-E] [-e] [-f] [-g group ] [-k] [-l] [-M] [-m] [-R path ] [-r path ]
-    [-t timeout] [-u unit] [-v] [-X type] [-N type]
-    ...
-
-> **Note**
->
-> Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us.
+   Usage:
+     check_mysql [-d database] [-H host] [-P port] [-s socket]
+           [-u user] [-p password] [-S] [-l] [-a cert] [-k key]
+           [-C ca-cert] [-D ca-dir] [-L ciphers] [-f optfile] [-g group]
 
 Next step is to understand how [command parameters](3-monitoring-basics.md#command-passing-parameters)
 are being passed from a host or service object, and add a [CheckCommand](6-object-types.md#objecttype-checkcommand)
