@@ -36,7 +36,7 @@ Start your search at
 * [Icinga Wiki](https://wiki.icinga.org)
 
 An example is provided in the sample configuration in the getting started
-section shipped with Icinga 2 ([hosts.conf](5-configuring-icinga-2.md#hosts-conf), [services.conf](5-configuring-icinga-2.md#services-conf)).
+section provided by Icinga 2 ([hosts.conf](4-configuring-icinga-2.md#hosts-conf), [services.conf](4-configuring-icinga-2.md#services-conf)).
 
 
 ## <a id="agent-based-checks"></a> Agent-based Checks

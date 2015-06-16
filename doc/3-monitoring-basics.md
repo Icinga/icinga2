@@ -197,7 +197,7 @@ value of arbitrary macro expressions:
     }}
 
 Acessing object attributes at runtime inside these functions is described in the
-[advanced topics](4-advanced-topics.md#access-object-attributes-at-runtime) chapter.
+[advanced topics](5-advanced-topics.md#access-object-attributes-at-runtime) chapter.
 
 ## <a id="runtime-macros"></a> Runtime Macros
 
@@ -407,7 +407,7 @@ based on attribute identifiers for example `host_name` objects can be [applied](
 Before you start using the apply rules keep the following in mind:
 
 * Define the best match.
-    * A set of unique [custom attributes](#custom-attributes-apply) for these hosts/services?
+    * A set of unique [custom attributes](3-monitoring-basics.md#custom-attributes) for these hosts/services?
     * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
     * A generic pattern [match](19-language-reference.md#function-calls) on the host/service name?
     * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](19-language-reference.md#expression-operators)
@@ -429,7 +429,7 @@ for not only matching for their existance or values in apply expressions, but al
 
 A more advanced example is using [apply with for loops on arrays or
 dictionaries](#using-apply-for) for example provided by
-[custom atttributes](#custom-attributes-apply) or groups.
+[custom atttributes](3-monitoring-basics.md#custom-attributes) or groups.
 
 > **Tip**
 >
@@ -492,8 +492,8 @@ The notification is ignored for services whose host name ends with `*internal`
 
 ### <a id="using-apply-services"></a> Apply Services to Hosts
 
-The sample configuration already includes a detailed example in [hosts.conf](5-configuring-icinga-2.md#hosts-conf)
-and [services.conf](5-configuring-icinga-2.md#services-conf) for this use case.
+The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
+and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.
 
 The example for `ssh` applies a service object to all hosts with the `address`
 attribute being defined and the custom attribute `os` set to the string `Linux` in `vars`.
@@ -508,7 +508,7 @@ attribute being defined and the custom attribute `os` set to the string `Linux` 
 
 
 Other detailed scenario examples are used in their respective chapters, for example
-[apply services with custom command arguments](#using-apply-services-command-arguments).
+[apply services with custom command arguments](3-monitoring-basics.md#command-passing-parameters).
 
 ### <a id="using-apply-notifications"></a> Apply Notifications to Hosts and Services
 
@@ -535,9 +535,9 @@ Detailed examples can be found in the [dependencies](3-monitoring-basics.md#depe
 
 ### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
 
-The sample configuration includes an example in [downtimes.conf](5-configuring-icinga-2.md#downtimes-conf).
+The sample configuration includes an example in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
 
-Detailed examples can be found in the [recurring downtimes](4-advanced-topics.md#recurring-downtimes) chapter.
+Detailed examples can be found in the [recurring downtimes](5-advanced-topics.md#recurring-downtimes) chapter.
 
 
 ### <a id="using-apply-for"></a> Using Apply For Rules
@@ -546,8 +546,8 @@ Next to the standard way of using [apply rules](3-monitoring-basics.md#using-app
 there is the requirement of generating apply rules objects based on set (array or
 dictionary).
 
-The sample configuration already includes a detailed example in [hosts.conf](5-configuring-icinga-2.md#hosts-conf)
-and [services.conf](5-configuring-icinga-2.md#services-conf) for this use case.
+The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
+and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.
 
 Take the following example: A host provides the snmp oids for different service check
 types. This could look like the following example:
@@ -604,7 +604,7 @@ with many interfaces (services). The following requirements/problems apply:
 dynamically generated
 
 
-Tip: Define the snmp community as global constant in your [constants.conf](5-configuring-icinga-2.md#constants-conf) file.
+Tip: Define the snmp community as global constant in your [constants.conf](4-configuring-icinga-2.md#constants-conf) file.
 
     const IftrafficSnmpCommunity = "public"
 
@@ -722,7 +722,7 @@ if set.
 This example makes use of the [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic) plugin.
 The `CheckCommand` definition can be found in the
 [contributed plugin check commands](7-icinga-template-library.md#plugins-contrib-command-iftraffic)
-- make sure to include them in your [icinga2 configuration file](5-configuring-icinga-2.md#icinga2-conf).
+- make sure to include them in your [icinga2 configuration file](4-configuring-icinga-2.md#icinga2-conf).
 
 
 > **Tip**
@@ -1014,7 +1014,7 @@ notifications between start and end time.
       vars.mobile = "+1 555 424642"
     }
 
-Define an additional [NotificationCommand](#notification) for SMS notifications.
+Define an additional [NotificationCommand](3-monitoring-basics.md#notification-commands) for SMS notifications.
 
 > **Note**
 >
@@ -1165,7 +1165,7 @@ using the `check_command` attribute.
 `plugin-check-command` to support native plugin based check methods.
 
 Unless you have done so already, download your check plugin and put it
-into the [PluginDir](5-configuring-icinga-2.md#constants-conf) directory. The following example uses the
+into the [PluginDir](4-configuring-icinga-2.md#constants-conf) directory. The following example uses the
 `check_disk` plugin contained in the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
@@ -1292,7 +1292,7 @@ string values for passing multiple partitions to the `check_disk` check plugin.
 
 
 More details on using arrays in custom attributes can be found in
-[this chapter](#runtime-custom-attributes).
+[this chapter](3-monitoring-basics.md#custom-attributes).
 
 
 #### <a id="command-arguments"></a> Command Arguments

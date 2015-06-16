@@ -154,7 +154,7 @@ FreeBSD                | nagios-plugins     | /usr/local/libexec/nagios
 OS X (MacPorts)        | nagios-plugins     | /opt/local/libexec
 
 Depending on which directory your plugins are installed into you may need to
-update the global `PluginDir` constant in your [Icinga 2 configuration](5-configuring-icinga-2.md#constants-conf).
+update the global `PluginDir` constant in your [Icinga 2 configuration](4-configuring-icinga-2.md#constants-conf).
 This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 

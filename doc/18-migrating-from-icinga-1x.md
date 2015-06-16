@@ -739,7 +739,7 @@ included in `icinga2.conf` by default.
 > **Note**
 >
 > Add your own custom templates in the `conf.d/` directory as well, e.g. inside
-> the [templates.conf](5-configuring-icinga-2.md#templates-conf) file.
+> the [templates.conf](4-configuring-icinga-2.md#templates-conf) file.
 
 ### <a id="differences-1x-2-main-config"></a> Main Config File
 
@@ -747,7 +747,7 @@ In Icinga 1.x there are many global configuration settings available in `icinga.
 Icinga 2 only uses a small set of [global constants](19-language-reference.md#constants) allowing
 you to specify certain different setting such as the `NodeName` in a cluster scenario.
 
-Aside from that, the [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) should take care of including
+Aside from that, the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) should take care of including
 global constants, enabled [features](8-cli-commands.md#features) and the object configuration.
 
 ### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories

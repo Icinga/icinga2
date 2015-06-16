@@ -11,7 +11,7 @@ description are explained as well.
 ApiListener objects are used for distributed monitoring setups
 specifying the certificate files used for ssl authorization.
 
-The `NodeName` constant must be defined in [constants.conf](5-configuring-icinga-2.md#constants-conf).
+The `NodeName` constant must be defined in [constants.conf](4-configuring-icinga-2.md#constants-conf).
 
 Example:
 
@@ -317,31 +317,6 @@ Configuration Attributes:
   host            |**Optional.** The hostname/IP address of the remote Icinga 2 instance.
   port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
   log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d`.
-
-
-## <a id="objecttype-zone"></a> Zone
-
-Zone objects are used to specify which Icinga 2 instances are located in a zone.
-
-Example:
-
-    object Zone "config-ha-master" {
-      endpoints = [ "icinga2a", "icinga2b" ]
-
-    }
-
-    object Zone "check-satellite" {
-      endpoints = [ "icinga2c" ]
-      parent = "config-ha-master"
-    }
-
-Configuration Attributes:
-
-  Name            |Description
-  ----------------|----------------
-  endpoints       |**Optional.** Dictionary with endpoints located in this zone.
-  parent          |**Optional.** The name of the parent zone.
-  global          |**Optional.** Whether configuration files for this zone should be synced to all endpoints. Defaults to false.
 
 
 ## <a id="objecttype-eventcommand"></a> EventCommand
@@ -999,7 +974,7 @@ ScheduledDowntime objects can be used to set up recurring downtimes for hosts/se
 > to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
 > scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
-> Check the [recurring downtimes](4-advanced-topics.md#recurring-downtimes) example for details.
+> Check the [recurring downtimes](5-advanced-topics.md#recurring-downtimes) example for details.
 
 Example:
 

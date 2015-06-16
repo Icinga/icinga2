@@ -13,7 +13,7 @@ Use your distribution's package manager to install the `pnp4nagios` package.
 
 If you're planning to use it configure it to use the
 [bulk mode with npcd and npcdmod](http://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
-in combination with Icinga 2's [PerfdataWriter](4-advanced-topics.md#performance-data). NPCD collects the performance
+in combination with Icinga 2's [PerfdataWriter](5-advanced-topics.md#performance-data). NPCD collects the performance
 data files which Icinga 2 generates.
 
 Enable performance data writer in icinga 2
@@ -45,7 +45,7 @@ Graphite consists of 3 software components:
 * whisper - a simple database library for storing time-series data (similar in design to RRD)
 * graphite webapp - A Django webapp that renders graphs on-demand using Cairo
 
-Use the [GraphiteWriter](4-advanced-topics.md#graphite-carbon-cache-writer) feature
+Use the [GraphiteWriter](5-advanced-topics.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to Graphite.
 
     # icinga2 feature enable graphite
@@ -55,7 +55,7 @@ There are Graphite addons available for collecting the performance data files to
 ### <a id="addons-graphing-ingraph"></a> inGraph
 
 [inGraph](https://www.netways.org/projects/ingraph/wiki) requires the ingraph-collector addon
-to be configured to point at the perfdata files. Icinga 2's [PerfdataWriter](4-advanced-topics.md#performance-data) will
+to be configured to point at the perfdata files. Icinga 2's [PerfdataWriter](5-advanced-topics.md#performance-data) will
 write to the performance data spool directory.
 
 ## <a id="addons-visualization"></a> Visualization
@@ -112,7 +112,7 @@ list of popular community sites which host check plugins:
 * [Icinga Wiki](https://wiki.icinga.org)
 
 The recommended way of setting up these plugins is to copy them to a common directory
-and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](5-configuring-icinga-2.md#constants-conf)
+and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](4-configuring-icinga-2.md#constants-conf)
 configuration file:
 
     # cp check_snmp_int.pl /opt/monitoring/plugins
@@ -229,7 +229,7 @@ This behavior changed in Icinga 2 compared to Icinga 1.x. Though there are certa
 fix this:
 
 * Create a symlink for example from the `templates.dist/check_ping.php` template to the actual check name in Icinga 2 (`templates/ping4.php`)
-* Pass the check command name inside the [format template configuration](4-advanced-topics.md#writing-performance-data-files)
+* Pass the check command name inside the [format template configuration](5-advanced-topics.md#writing-performance-data-files)
 
 The latter becomes difficult with agent based checks like NRPE or SSH where the first command argument acts as
 graph template identifier. There is the possibility to define the pnp template name as custom attribute

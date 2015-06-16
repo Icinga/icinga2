@@ -102,7 +102,7 @@ included using
     include <itl>
     include <plugins>
 
-in the [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
+in the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
 on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
 `LocalStateDir + "/share/icinga2/includes"`.
 
@@ -151,7 +151,7 @@ Examples:
 ## <a id="feature-not-working"></a> Feature is not working
 
 * Make sure that the feature configuration is enabled by symlinking from `features-available/`
-to `features-enabled` and that the latter is included in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf).
+to `features-enabled` and that the latter is included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf).
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
 
@@ -159,7 +159,7 @@ to `features-enabled` and that the latter is included in [icinga2.conf](5-config
 
 * Make sure that the line(s) are not [commented out](19-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
-* Is the configuration file included in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf)?
+* Is the configuration file included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf)?
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
