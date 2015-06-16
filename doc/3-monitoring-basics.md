@@ -428,7 +428,7 @@ for not only matching for their existance or values in apply expressions, but al
 * [Apply scheduled downtimes to hosts and services](3-monitoring-basics.md#using-apply-scheduledowntimes)
 
 A more advanced example is using [apply with for loops on arrays or
-dictionaries](#using-apply-for) for example provided by
+dictionaries](3-monitoring-basics.md#using-apply-for) for example provided by
 [custom atttributes](3-monitoring-basics.md#custom-attributes) or groups.
 
 > **Tip**
@@ -731,7 +731,7 @@ The `CheckCommand` definition can be found in the
 > of the generated objects. Use the `object list` [CLI command](8-cli-commands.md#cli-command-object)
 > after successful [configuration validation](8-cli-commands.md#config-validation).
 
-Verify that the apply-for-rule succesfully created the service objects with the
+Verify that the apply-for-rule successfully created the service objects with the
 inherited custom attributes:
 
     # icinga2 daemon -C
@@ -1192,8 +1192,8 @@ partition defined (`-p`) it will check all local partitions.
 >
 > Don't execute plugins as `root` and always use the absolute path to the plugin! Trust us.
 
-Next step is to understand how command parameters are being passed from
-a host or service object, and add a [CheckCommand](6-object-types.md#objecttype-checkcommand)
+Next step is to understand how [command parameters](3-monitoring-basics.md#command-passing-parameters)
+are being passed from a host or service object, and add a [CheckCommand](6-object-types.md#objecttype-checkcommand)
 definition based on these required parameters and/or default values.
 
 Please continue reading in the [plugins section](13-addons-plugins.md#plugins) for additional integration examples.
@@ -1203,67 +1203,119 @@ Please continue reading in the [plugins section](13-addons-plugins.md#plugins) f
 Check command parameters are defined as custom attributes which can be accessed as runtime macros
 by the executed check command.
 
-Define the default check command custom attribute `disk_wfree` and `disk_cfree`
-(freely definable naming schema) and their default threshold values. You can
+The check command parameters for ITL provided plugin check command definitions are documented
+[here](7-icinga-template-library.md#plugin-check-commands), for example
+[disk](7-icinga-template-library.md#plugin-check-command-disk).
+
+In order to practice passing command parameters you should [integrate your own plugin](3-monitoring-basics.md#command-plugin-integration).
+
+The following example will use `check_mysql` provided by the [Monitoring Plugins installation](2-getting-started.md#setting-up-check-plugins).
+
+Define the default check command custom attributes, for example `mysql_user` and `mysql_password`
+(freely definable naming schema) and optional their default threshold values. You can
 then use these custom attributes as runtime macros for [command arguments](3-monitoring-basics.md#command-arguments)
 on the command line.
 
 > **Tip**
 >
 > Use a common command type as prefix for your command arguments to increase
-> readability. `disk_wfree` helps understanding the context better than just
-> `wfree` as argument.
+> readability. `mysql_user` helps understanding the context better than just
+> `user` as argument.
 
 The default custom attributes can be overridden by the custom attributes
-defined in the service using the check command `my-disk`. The custom attributes
+defined in the host or service using the check command `my-mysql`. The custom attributes
 can also be inherited from a parent template using additive inheritance (`+=`).
 
-    object CheckCommand "my-disk" {
+    # vim /etc/icinga2/conf.d/commands.conf
+
+    object CheckCommand "my-mysql" {
       import "plugin-check-command"
 
-      command = [ PluginDir + "/check_disk" ]
+      command = [ PluginDir + "/check_mysql" ] //constants.conf -> const PluginDir
 
       arguments = {
-        "-w" = {
-          value = "$disk_wfree$"
-          description = "Exit with WARNING status if less than INTEGER units of disk are free or Exit with WARNING status if less than PERCENT of disk space is free"
+        "-H" = "$mysql_host$"
+        "-u" = {
           required = true
+          value = "$mysql_user$"
         }
-        "-c" = {
-          value = "$disk_cfree$"
-          description = "Exit with CRITICAL status if less than INTEGER units of disk are free or Exit with CRITCAL status if less than PERCENT of disk space is free"
-          required = true
+        "-p" = "$mysql_password$"
+        "-P" = "$mysql_port$"
+        "-s" = "$mysql_socket$"
+        "-a" = "$mysql_cert$"
+        "-d" = "$mysql_database$"
+        "-k" = "$mysql_key$"
+        "-C" = "$mysql_ca_cert$"
+        "-D" = "$mysql_ca_dir$"
+        "-L" = "$mysql_ciphers$"
+        "-f" = "$mysql_optfile$"
+        "-g" = "$mysql_group$"
+        "-S" = {
+          set_if = "$mysql_check_slave$"
+          description = "Check if the slave thread is running properly."
         }
-        "-W" = {
-          value = "$disk_inode_wfree$"
-          description = "Exit with WARNING status if less than PERCENT of inode space is free"
-        }
-        "-K" = {
-          value = "$disk_inode_cfree$"
-          description = "Exit with CRITICAL status if less than PERCENT of inode space is free"
-        }
-        "-p" = {
-          value = "$disk_partitions$"
-          description = "Path or partition (may be repeated)"
-          repeat_key = true
-          order = 1
-        }
-        "-x" = {
-          value = "$disk_partitions_excluded$"
-          description = "Ignore device (only works if -p unspecified)"
+        "-l" = {
+          set_if = "$mysql_ssl$"
+          description = "Use ssl encryption"
         }
       }
 
-      vars.disk_wfree = "20%"
-      vars.disk_cfree = "10%"
+      vars.mysql_check_slave = false
+      vars.mysql_ssl = false
+      vars.mysql_host = "$address$"
     }
 
-> **Note**
->
-> A proper example for the `check_disk` plugin is already shipped with Icinga 2
-> ready to use with the [plugin check commands](7-icinga-template-library.md#plugin-check-command-disk).
+The check command definition also sets `mysql_host` to the `$address$` default value. You can override
+this command parameter if for example your MySQL host is not running on the same server's ip address.
 
-The host `localhost` with the applied service `basic-partitions` checks a basic set of disk partitions
+Make sure pass all required command parameters, such as `mysql_user`, `mysql_password` and `mysql_database`.
+`MysqlUsername` and `MysqlPassword` are specified as [global constants](4-configuring-icinga-2.md#constants-conf)
+in this example.
+
+    # vim /etc/icinga2/conf.d/services.conf
+
+    apply Service "mysql-icinga-db-health" {
+      import "generic-service"
+
+      check_command = "my-mysql"
+
+      vars.mysql_user = MysqlUsername
+      vars.mysql_password = MysqlPassword
+
+      vars.mysql_database = "icinga"
+      vars.mysql_host = "192.168.33.11"
+
+      assign where match("icinga2*", host.name)
+      ignore where host.vars.no_health_check == true
+    }
+
+
+Take a different example: The example host configuration in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
+also applies an `ssh` service check. Your host's ssh port is not the default `22`, but set to `2022`.
+You can pass the command parameter as custom attribute `ssh_port` directly inside the service apply rule
+inside [services.conf](4-configuring-icinga-2.md#services-conf):
+
+    apply Service "ssh" {
+      import "generic-service"
+
+      check_command = "ssh"
+      vars.ssh_port = 2022 //custom command parameter
+
+      assign where (host.address || host.address6) && host.vars.os == "Linux"
+    }
+
+If you prefer this being configured at the host instead of the service, modify the host configuration
+object instead. The runtime macro resolving order is described [here](3-monitoring-basics.md#macro-evaluation-order).
+
+   object Host NodeName {
+   ...
+     vars.ssh_port = 2022
+   }
+
+#### <a id="command-passing-parameters-apply-for"></a> Passing Check Command Parameters Using Apply For
+
+The host `localhost` with the generated services from the `basic-partitions` dictionary (see
+[apply for](3-monitoring-basics.md#using-apply-for) for details) checks a basic set of disk partitions
 with modified custom attributes (warning thresholds at `10%`, critical thresholds at `5%`
 free disk space).
 
