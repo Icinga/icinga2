@@ -1053,12 +1053,12 @@ users\_win\_crit | **Optional**. The critical threshold.
 Icinga 2 can use the `nscp client` command to run arbitrary NSClient++ checks.
 
 You can enable these check commands by adding the following the include directive in your
-[icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) configuration file:
+[icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file:
 
     include <nscp>
 
 You can also optionally specify an alternative installation directory for NSClient++ by adding
-the NscpPath constant in your [constants.conf](5-configuring-icinga-2.md#constants-conf) configuration
+the NscpPath constant in your [constants.conf](4-configuring-icinga-2.md#constants-conf) configuration
 file:
 
     const NscpPath = "C:\\Program Files (x86)\\NSClient++"
@@ -1146,7 +1146,7 @@ The SNMP manubulon plugin check commands assume that the global constant named `
 is set to the path where the Manubublon SNMP plugins are installed.
 
 You can enable these plugin check commands by adding the following the include directive in your
-[icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) configuration file:
+[icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file:
 
     include <manubulon>
 

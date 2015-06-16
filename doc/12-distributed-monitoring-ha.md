@@ -263,7 +263,7 @@ configuration from the parent zone. You can define that in the
 attribute accordingly.
 
 You should remove the sample config included in `conf.d` by commenting the `recursive_include`
-statement in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf):
+statement in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf):
 
     //include_recursive "conf.d"
 
@@ -321,7 +321,7 @@ process.
 
 > **Note**
 >
-> `zones.d` must not be included in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf). Icinga 2 automatically
+> `zones.d` must not be included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
 > [global constant](19-language-reference.md#constants) `ZonesDir`.
 
@@ -811,7 +811,7 @@ Special scenarios might require multiple cluster nodes running on a single host.
 By default Icinga 2 and its features will place their runtime data below the prefix
 `LocalStateDir`. By default packages will set that path to `/var`.
 You can either set that variable as constant configuration
-definition in [icinga2.conf](5-configuring-icinga-2.md#icinga2-conf) or pass it as runtime variable to
+definition in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) or pass it as runtime variable to
 the Icinga 2 daemon.
 
     # icinga2 -c /etc/icinga2/node1/icinga2.conf -DLocalStateDir=/opt/node1/var

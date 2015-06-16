@@ -53,7 +53,7 @@ is removed (may happen before or after the actual end time!).
 
 ### <a id="scheduling-downtime"></a> Scheduling a downtime
 
-This can either happen through a web interface or by sending an [external command](4-advanced-topics.md#external-commands)
+This can either happen through a web interface or by sending an [external command](5-advanced-topics.md#external-commands)
 to the external command pipe provided by the `ExternalCommandListener` configuration.
 
 Fixed downtimes require a start and end time (a duration will be ignored).
@@ -462,7 +462,7 @@ You can customize the metric prefix name by using the `host_name_template` and
 
 The example below uses [runtime macros](3-monitoring-basics.md#runtime-macros) and a
 [global constant](19-language-reference.md#constants) named `GraphiteEnv`. The constant name
-is freely definable and should be put in the [constants.conf](5-configuring-icinga-2.md#constants-conf) file.
+is freely definable and should be put in the [constants.conf](4-configuring-icinga-2.md#constants-conf) file.
 
     const GraphiteEnv = "icinga.env1"
 

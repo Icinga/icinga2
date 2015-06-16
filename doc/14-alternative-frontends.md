@@ -3,7 +3,7 @@
 ## <a id="setting-up-icinga-classic-ui"></a> Setting up Icinga Classic UI 1.x
 
 Icinga 2 can write `status.dat` and `objects.cache` files in the format that
-is supported by the Icinga 1.x Classic UI. [External commands](4-advanced-topics.md#external-commands)
+is supported by the Icinga 1.x Classic UI. [External commands](5-advanced-topics.md#external-commands)
 (a.k.a. the "command pipe") are also supported. It also supports writing Icinga 1.x
 log files which are required for the reporting functionality in the Classic UI.
 
@@ -32,8 +32,8 @@ to satisfy this dependency:
 On all distributions other than Debian you may have to restart both your web
 server as well as Icinga 2 after installing the Classic UI package.
 
-Icinga Classic UI requires the [StatusDataWriter](4-advanced-topics.md#status-data), [CompatLogger](4-advanced-topics.md#compat-logging)
-and [ExternalCommandListener](4-advanced-topics.md#external-commands) features.
+Icinga Classic UI requires the [StatusDataWriter](5-advanced-topics.md#status-data), [CompatLogger](5-advanced-topics.md#compat-logging)
+and [ExternalCommandListener](5-advanced-topics.md#external-commands) features.
 Enable these features and restart Icinga 2.
 
     # icinga2 feature enable statusdata compatlog command
@@ -104,7 +104,7 @@ found in the [Icinga Web documentation](http://docs.icinga.org/latest/en/icinga-
 
     # icinga-web-clearcache
 
-Additionally you need to enable the `command` feature for sending [external commands](4-advanced-topics.md#external-commands):
+Additionally you need to enable the `command` feature for sending [external commands](5-advanced-topics.md#external-commands):
 
     # icinga2 feature enable command
 
