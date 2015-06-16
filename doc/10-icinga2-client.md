@@ -659,7 +659,8 @@ cluster configuration and its object relation (Zones, Endpoints, etc) and the wa
 will be able to sync the configuration from the master to the remote satellite or client.
 
 Please continue reading in the [distributed monitoring chapter](12-distributed-monitoring-ha.md#distributed-monitoring-high-availability),
-especially the [configuration synchronisation section](12-distributed-monitoring-ha.md#cluster-zone-config-sync).
+especially the [configuration synchronisation](12-distributed-monitoring-ha.md#cluster-zone-config-sync)
+and [best practices](12-distributed-monitoring-ha.md#zone-config-sync-best-practice).
 
 
 
