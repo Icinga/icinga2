@@ -58,8 +58,6 @@ print "#### Changes"
 print ""
 print changes
 print ""
-print "#### Issues"
-print ""
 
 offset = 0
 
@@ -92,13 +90,20 @@ while True:
 for p in range(2):
     not_empty = False
 
+    for log_entry in log_entries:
+        if (p == 0 and log_entry[0] == "Feature") or (p == 1 and log_entry[0] != "Feature"):
+            not_empty = True
+
+    if not_empty:
+        print "####", "Features" if p == 0 else "Bugfixes"
+        print ""
+
     for log_entry in sorted(log_entries):
         if (p == 0 and log_entry[0] == "Feature") or (p == 1 and log_entry[0] != "Feature"):
             if not link_issues:  
                 print "* %s %d: %s" % log_entry
             else:
                 print "* {0} [{1}]({3}{1} \"{0} {1}\"): {2}".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
-            not_empty = True
 
     if not_empty:
         print ""
