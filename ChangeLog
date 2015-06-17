@@ -4,22 +4,102 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.5
+
+#### Changes
+
+* NSClient++ is now bundled with the Windows setup wizard and can optionally be installed
+* Windows Wizard: "include <nscp>" is set by default
+* Windows Wizard: Add update mode
+* Plugins: Add check_perfmon plugin for Windows
+* ITL: Add CheckCommand objects for Windows plugins ("include <windows-plugins>")
+* ITL: Add CheckCommand definitions for "mongodb", "iftraffic", "disk_smb"
+* ITL: Add arguments to CheckCommands "dns", "ftp", "tcp", "nscp"
+
+#### Features
+
+* Feature 8116: Extend Windows installer with an update mode
+* Feature 8180: Add documentation and CheckCommands for the windows plugins
+* Feature 8809: Add check_perfmon plugin for Windows
+* Feature 9115: Add SHOWALL to NSCP Checkcommand
+* Feature 9130: Add 'check_drivesize' as nscp-local check command
+* Feature 9145: Add arguments to "dns" CheckCommand
+* Feature 9146: Add arguments to "ftp" CheckCommand
+* Feature 9147: Add arguments to "tcp" CheckCommand
+* Feature 9176: ITL Documentation: Add a link for passing custom attributes as command parameters
+* Feature 9180: Include Windows support details in the documentation
+* Feature 9185: Add timestamp support for PerfdataWriter
+* Feature 9191: Add "mongodb" CheckCommand definition
+* Feature 9238: Bundle NSClient++ in Windows Installer
+* Feature 9254: Add 'disk_smb' Plugin CheckCommand definition
+* Feature 9256: Determine NSClient++ installation path using MsiGetComponentPath
+* Feature 9260: Include <nscp> by default on Windows
+* Feature 9261: Add the --load-all and --log options for nscp-local
+* Feature 9263: Add support for installing NSClient++ in the Icinga 2 Windows wizard
+* Feature 9270: Update service apply for documentation
+* Feature 9272: Add 'iftraffic' to plugins-contrib check command definitions
+* Feature 9285: Best practices: cluster config sync
+* Feature 9297: Add examples for function usage in "set_if" and "command" attributes
+* Feature 9310: Add typeof in 'assign/ignore where' expression as example
+* Feature 9311: Add local variable scope for *Command to documentation (host, service, etc)
+* Feature 9313: Use a more simple example for passing command parameters
+* Feature 9318: Explain string concatenation in objects by real-world example
+* Feature 9363: Update documentation for escape sequences
+* Feature 9419: Enhance cluster/client troubleshooting
+* Feature 9420: Enhance cluster docs with HA command_endpoints
+* Feature 9431: Documentation: Move configuration before advanced topics
+
+#### Bugfixes
+
+* Bug 8853: Syntax Highlighting: host.address vs host.add
+* Bug 8888: Icinga2 --version: Error showing Distribution
+* Bug 8891: Node wont connect properly to master if host is is not set for Endpoint on new installs
+* Bug 9055: Wrong timestamps w/ historical data replay in DB IDO
+* Bug 9109: WIN: syslog is not an enable-able feature in windows
+* Bug 9116: node update-config reports critical and warning
+* Bug 9121: Possible DB deadlock
+* Bug 9131: Missing ")" in last Apply Rules example
+* Bug 9142: Downtimes are always "fixed"
+* Bug 9143: Incorrect type and state filter mapping for User objects in DB IDO
+* Bug 9161: 'disk': wrong order of threshold command arguments
+* Bug 9187: SPEC: Give group write permissions for perfdata dir
+* Bug 9205: port empty when using icinga2 node wizard
+* Bug 9222: Missing custom attributes in backends if name is equal to object attribute
+* Bug 9253: Incorrect variable name in the ITL
+* Bug 9255: --scm-installs fails when the service is already installed
+* Bug 9258: Some checks in the default Windows configuration fail
+* Bug 9259: Disk and 'icinga' services are missing in the default Windows config
+* Bug 9268: Typo in Configuration Best Practice
+* Bug 9269: Wrong permission etc on windows
+* Bug 9324: Multi line output not correctly handled from compat channels
+* Bug 9328: Multiline vars are broken in objects.cache output
+* Bug 9372: plugins-contrib.d/databases.conf: wrong argument for mssql_health
+* Bug 9389: Documentation: Typo
+* Bug 9390: Wrong service table attributes in Livestatus documentation
+* Bug 9393: Documentation: Extend Custom Attributes with the boolean type
+* Bug 9394: Including <nscp> on Linux fails with unregistered function
+* Bug 9399: Documentation: Typo
+* Bug 9406: Selective cluster reconnecting breaks client communication
+* Bug 9412: Documentation: Update the link to register a new Icinga account
+
 ### What's New in Version 2.3.4
 
 #### Changes
 
-* Bugfixes
 * ITL: Check commands for various databases
 * Improve validation messages for time periods
 * Update max_check_attempts in generic-{host,service} templates
 * Update logrotate configuration
+* Bugfixes
 
-#### Issues
+#### Features
 
 * Feature 8760: Add database plugins to ITL
 * Feature 8803: Agent Wizard: add options for API defaults
 * Feature 8893: Improve timeperiod validation error messages
 * Feature 8895: Add explanatory note for Icinga2 client documentation
+
+#### Bugfixes
 
 * Bug 8808: logrotate doesn't work on Ubuntu
 * Bug 8821: command_endpoint check_results are not replicated to other endpoints in the same zone
@@ -54,7 +134,7 @@ Please check [doc/1-about.md].
 * Improve documentation
 * Bugfixes
 
-#### Issues
+#### Features
 
 * Feature 8685: Show state/type filter names in notice/debug log
 * Feature 8686: Update documentation for "apply for" rules
@@ -63,6 +143,8 @@ Please check [doc/1-about.md].
 * Feature 8761: Include more details in --version
 * Feature 8816: Add "random" CheckCommand for test and demo purposes
 * Feature 8827: Move release info in INSTALL.md into a separate file
+
+#### Bugfixes
 
 * Bug 8660: Update syntax highlighting for 2.3 features
 * Bug 8677: Re-order the object types in alphabetical order
@@ -97,7 +179,7 @@ Please check [doc/1-about.md].
 
 * Bugfixes
 
-#### Issues
+#### Bugfixes
 
 * Bug 8721: Log message for cli commands breaks the init script
 
@@ -109,9 +191,11 @@ Please check [doc/1-about.md].
 
 Please note that this version fixes the default thresholds for the disk check which were inadvertently broken in 2.3.0; if you're using percent-based custom thresholds you will need to add the '%' sign to your custom attributes
 
-#### Issues
+#### Features
 
 * Feature 8659: Implement String#contains
+
+#### Bugfixes
 
 * Bug 8540: Kill signal sent only to check process, not whole process group
 * Bug 8657: Missing program name in 'icinga2 --version'
@@ -169,7 +253,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 
 * [DB IDO schema upgrade](17-upgrading-icinga-2.md#upgrading-icinga-2) to `1.13.0` required!
 
-#### Issues
+#### Features
 
 * Feature 3446: Add troubleshooting collect cli command
 * Feature 6109: Don't spawn threads for network connections
@@ -265,6 +349,8 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Feature 8610: Support the SNI TLS extension
 * Feature 8621: Add check commands for NSClient++
 * Feature 8648: Document closures ('use')
+
+#### Bugfixes
 
 * Bug 6171: Remove name and return value for stats functions
 * Bug 6959: Scheduled start time will be ignored if the host or service is already in a problem state
@@ -368,7 +454,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 
 * Bugfixes
 
-#### Issues
+#### Bugfixes
 
 * Bug #6943: Configured recurring downtimes not applied on saturdays
 * Bug #7660: livestatus / nsca / etc submits are ignored during reload
@@ -396,7 +482,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 
 * Bugfixes
 
-#### Issues
+#### Bugfixes
 
 * Bug #8063: Volatile checks trigger invalid notifications on OK->OK state changes
 * Bug #8125: Incorrect ticket shouldn't cause "node wizard" to terminate
@@ -416,7 +502,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 
 * Bugfixes
 
-#### Issues
+#### Bugfixes
 
 * Bug #7045: icinga2 init-script doesn't validate configuration on reload action
 * Bug #7064: Missing host downtimes/comments in Livestatus
@@ -460,13 +546,15 @@ Please note that this version fixes the default thresholds for the disk check wh
     * Allows to define multiple parameters for [nrpe -a](#plugin-check-command-nrpe), [nscp -l](#plugin-check-command-nscp), [disk -p](#plugin-check-command-disk), [dns -a](#plugin-check-command-dns).
 * Bugfixes
 
-#### Issues
+#### Features
 
 * Feature #6709: Support for arrays in macros
 * Feature #7463: Update spec file to use yajl-devel
 * Feature #7739: The classicui Apache conf doesn't support Apache 2.4
 * Feature #7747: Increase default timeout for NRPE checks
 * Feature #7867: Document how arrays in macros work
+
+#### Bugfixes
 
 * Bug #7173: service icinga2 status gives wrong information when run as unprivileged user
 * Bug #7602: livestatus large amount of submitting unix socket command results in broken pipes
@@ -537,7 +625,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 >
 >  Please remove `conf.d/hosts/localhost*` after verifying your updated configuration!
 
-#### Issues
+#### Features
 
 * Feature #6544: Support for array in custom variable.
 * Feature #6946: Add downtime depth as statistic metric for GraphiteWriter
@@ -591,6 +679,8 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Feature #7620: Documentation: Update Icinga Web 2 installation
 * Feature #7622: Icinga 2 should use less RAM
 * Feature #7680: Conditionally enable MySQL and PostgresSQL, add support for FreeBSD and DragonFlyBSD
+
+#### Bugfixes
 
 * Bug #6547: delaying notifications with times.begin should postpone first notification into that window
 * Bug #7257: default value for "disable_notifications" in service dependencies is set to "false"
@@ -650,7 +740,20 @@ Please note that this version fixes the default thresholds for the disk check wh
 
 ### What's New in Version 2.1.1
 
-#### Issues
+#### Features
+
+* Feature #6719: Change log message for checking/sending notifications
+* Feature #7028: Document how to use @ to escape keywords
+* Feature #7033: Add include guards for mkclass files
+* Feature #7034: Ensure that namespaces for INITIALIZE_ONCE and REGISTER_TYPE are truly unique
+* Feature #7035: Implement support for unity builds
+* Feature #7039: Figure out a better way to set the version for snapshot builds
+* Feature #7040: Unity builds: Detect whether __COUNTER__ is available
+* Feature #7041: Enable unity build for RPM/Debian packages
+* Feature #7070: Explain event commands and their integration by a real life example (httpd restart via ssh)
+* Feature #7158: Extend documentation for icinga-web on Debian systems
+
+#### Bugfixes
 
 * Bug #6147: Link libcJSON against libm
 * Bug #6696: make test fails on openbsd
@@ -678,16 +781,6 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Bug #7186: Livestatus hangs from time to time
 * Bug #7195: fix memory leak ido_pgsql
 * Bug #7210: clarify on db ido upgrades
-* Feature #6719: Change log message for checking/sending notifications
-* Feature #7028: Document how to use @ to escape keywords
-* Feature #7033: Add include guards for mkclass files
-* Feature #7034: Ensure that namespaces for INITIALIZE_ONCE and REGISTER_TYPE are truly unique
-* Feature #7035: Implement support for unity builds
-* Feature #7039: Figure out a better way to set the version for snapshot builds
-* Feature #7040: Unity builds: Detect whether __COUNTER__ is available
-* Feature #7041: Enable unity build for RPM/Debian packages
-* Feature #7070: Explain event commands and their integration by a real life example (httpd restart via ssh)
-* Feature #7158: Extend documentation for icinga-web on Debian systems
 
 ### What's New in Version 2.1.0
 
@@ -706,18 +799,8 @@ Please note that this version fixes the default thresholds for the disk check wh
     * New config attributes: `enable_ha` and `failover_timeout`
 * RPMs use the `icingacmd` group for /var/{cache,log,run}/icinga2 #6948
 
-#### Issues
+#### Features
 
-* Bug #6881: make install does not install the db-schema
-* Bug #6915: use _rundir macro for configuring the run directory
-* Bug #6916: External command pipe: Too many open files
-* Bug #6917: enforce /usr/lib as base for the cgi path on SUSE distributions
-* Bug #6942: ExternalCommandListener fails open pipe: Too many open files
-* Bug #6948: check file permissions in /var/cache/icinga2
-* Bug #6962: Commands are processed multiple times
-* Bug #6964: Host and service checks stuck in "pending" when hostname = localhost a parent/satellite setup
-* Bug #7001: Build fails with Boost 1.56
-* Bug #7016: 64-bit RPMs are not installable
 * Feature #5219: Cluster support for modified attributes
 * Feature #6066: Better log messages for cluster changes
 * Feature #6203: Better cluster support for notifications / IDO
@@ -749,8 +832,51 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Documentation - Feature #7018: add example selinux policy for external command pipe
 * Plugins - Feature #6650: Plugin Check Commands: add manubulon snmp plugins
 
+#### Bugfixes
+
+* Bug #6881: make install does not install the db-schema
+* Bug #6915: use _rundir macro for configuring the run directory
+* Bug #6916: External command pipe: Too many open files
+* Bug #6917: enforce /usr/lib as base for the cgi path on SUSE distributions
+* Bug #6942: ExternalCommandListener fails open pipe: Too many open files
+* Bug #6948: check file permissions in /var/cache/icinga2
+* Bug #6962: Commands are processed multiple times
+* Bug #6964: Host and service checks stuck in "pending" when hostname = localhost a parent/satellite setup
+* Bug #7001: Build fails with Boost 1.56
+* Bug #7016: 64-bit RPMs are not installable
 
 ### What's New in Version 2.0.2
+
+#### Changes
+
+* DB IDO schema upgrade required (new schema version: 1.11.6)
+
+#### Features
+
+* Feature #5818: SUSE packages
+* Feature #6655: Build packages for el7
+* Feature #6688: Rename README to README.md
+* Feature #6698: Require command to be an array when the arguments attribute is used
+* Feature #6700: Release 2.0.2
+* Feature #6783: Print application paths for --version
+* DB IDO - Bug #6414: objects and their ids are inserted twice
+* DB IDO - Bug #6608: Two Custom Variables with same name, but Upper/Lowercase creating IDO duplicate entry
+* DB IDO - Bug #6646: NULL vs empty string
+* DB IDO - Bug #6850: exit application if ido schema version does not match
+* Documentation - Bug #6652: clarify on which features are required for classic ui/web/web2
+* Documentation - Bug #6708: update installation with systemd usage
+* Documentation - Bug #6711: icinga Web: wrong path to command pipe
+* Documentation - Bug #6725: Missing documentation about implicit dependency
+* Documentation - Bug #6728: wrong path for the file 'localhost.conf'
+* Migration - Bug #6558: group names quoted twice in arrays
+* Migration - Bug #6560: Service dependencies aren't getting converted properly
+* Migration - Bug #6561: $TOTALHOSTSERVICESWARNING$ and $TOTALHOSTSERVICESCRITICAL$ aren't getting converted
+* Migration - Bug #6563: Check and retry intervals are incorrect
+* Migration - Bug #6786: Fix notification definition if no host_name / service_description given
+* Plugins - Feature #6695: Plugin Check Commands: Add expect option to check_http
+* Plugins - Feature #6791: Plugin Check Commands: Add timeout option to check_ssh
+
+#### Bugfixes
 
 * Bug #6450: ipmi-sensors segfault due to stack size
 * Bug #6479: Notifications not always triggered
@@ -785,34 +911,23 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Bug #6852: Startup logfile is not flushed to disk
 * Bug #6856: event command execution does not call finish handler
 * Bug #6861: write startup error messages to error.log
-* Feature #5818: SUSE packages
-* Feature #6655: Build packages for el7
-* Feature #6688: Rename README to README.md
-* Feature #6698: Require command to be an array when the arguments attribute is used
-* Feature #6700: Release 2.0.2
-* Feature #6783: Print application paths for --version
-* DB IDO - Bug #6414: objects and their ids are inserted twice
-* DB IDO - Bug #6608: Two Custom Variables with same name, but Upper/Lowercase creating IDO duplicate entry
-* DB IDO - Bug #6646: NULL vs empty string
-* DB IDO - Bug #6850: exit application if ido schema version does not match
-* Documentation - Bug #6652: clarify on which features are required for classic ui/web/web2
-* Documentation - Bug #6708: update installation with systemd usage
-* Documentation - Bug #6711: icinga Web: wrong path to command pipe
-* Documentation - Bug #6725: Missing documentation about implicit dependency
-* Documentation - Bug #6728: wrong path for the file 'localhost.conf'
-* Migration - Bug #6558: group names quoted twice in arrays
-* Migration - Bug #6560: Service dependencies aren't getting converted properly
-* Migration - Bug #6561: $TOTALHOSTSERVICESWARNING$ and $TOTALHOSTSERVICESCRITICAL$ aren't getting converted
-* Migration - Bug #6563: Check and retry intervals are incorrect
-* Migration - Bug #6786: Fix notification definition if no host_name / service_description given
-* Plugins - Feature #6695: Plugin Check Commands: Add expect option to check_http
-* Plugins - Feature #6791: Plugin Check Commands: Add timeout option to check_ssh
-
-#### Changes
-
-* DB IDO schema upgrade required (new schema version: 1.11.6)
 
 ### What's New in Version 2.0.1
+
+#### Features
+
+* Feature #6531: Add port option to check imap/pop/smtp and a new dig
+* Feature #6581: Add more options to snmp check
+* DB IDO - Bug #5577: PostgreSQL string escaping
+* DB IDO - Bug #6577: icinga2-ido-pgsql snapshot package missing dependecy dbconfig-common
+* Documentation - Bug #6506: Array section confusing
+* Documentation - Bug #6592: Documentation for || and && is missing
+* Documentation - Feature #6658: change docs.icinga.org/icinga2/latest to git master
+* Livestatus - Bug #6494: Thruk Panorama View cannot query Host Status
+* Livestatus - Feature #5312: OutputFormat python
+* Migration - Bug #6559: $SERVICEDESC$ isn't getting converted correctly
+
+#### Bugfixes
 
 * Bug #6316: application fails to start on wrong log file permissions but does not tell about it
 * Bug #6368: Deadlock in ApiListener::RelayMessage
@@ -842,17 +957,4 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Bug #6671: enabled_notification doesn't work as expected
 * Bug #6672: Icinga crashes after "Too many queued messages"
 * Bug #6673: enable_notifications = false for users has no effect
-* Feature #6531: Add port option to check imap/pop/smtp and a new dig
-* Feature #6581: Add more options to snmp check
-* DB IDO - Bug #5577: PostgreSQL string escaping
-* DB IDO - Bug #6577: icinga2-ido-pgsql snapshot package missing dependecy dbconfig-common
-* Documentation - Bug #6506: Array section confusing
-* Documentation - Bug #6592: Documentation for || and && is missing
-* Documentation - Feature #6658: change docs.icinga.org/icinga2/latest to git master
-* Livestatus - Bug #6494: Thruk Panorama View cannot query Host Status
-* Livestatus - Feature #5312: OutputFormat python
-* Migration - Bug #6559: $SERVICEDESC$ isn't getting converted correctly
 
-#### Changes
-
-### Archive
