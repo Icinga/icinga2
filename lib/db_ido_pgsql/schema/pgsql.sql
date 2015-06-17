@@ -1388,6 +1388,7 @@ CREATE TABLE  icinga_endpoints (
   endpoint_id bigserial,
   instance_id bigint default 0,
   endpoint_object_id bigint default 0,
+  zone_object_id bigint default 0,
   config_type integer default 0,
   identity text DEFAULT NULL,
   node text DEFAULT NULL,
@@ -1405,12 +1406,44 @@ CREATE TABLE  icinga_endpointstatus (
   endpointstatus_id bigserial,
   instance_id bigint default 0,
   endpoint_object_id bigint default 0,
+  zone_object_id bigint default 0,
   status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
   identity text DEFAULT NULL,
   node text DEFAULT NULL,
   is_connected integer default 0,
   CONSTRAINT PK_endpointstatus_id PRIMARY KEY (endpointstatus_id) ,
   CONSTRAINT UQ_endpointstatus UNIQUE (endpoint_object_id)
+) ;
+
+--
+-- Table structure for table icinga_zones
+--
+
+CREATE TABLE  icinga_zones (
+  zone_id bigserial,
+  instance_id bigint default 0,
+  zone_object_id bigint default 0,
+  parent_zone_object_id bigint default 0,
+  config_type integer default 0,
+  is_global integer default 0,
+  CONSTRAINT PK_zone_id PRIMARY KEY (zone_id) ,
+  CONSTRAINT UQ_zones UNIQUE (instance_id,config_type,zone_object_id)
+) ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table icinga_zonestatus
+--
+
+CREATE TABLE  icinga_zonestatus (
+  zonestatus_id bigserial,
+  instance_id bigint default 0,
+  zone_object_id bigint default 0,
+  parent_zone_object_id bigint default 0,
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  CONSTRAINT PK_zonestatus_id PRIMARY KEY (zonestatus_id) ,
+  CONSTRAINT UQ_zonestatus UNIQUE (zone_object_id)
 ) ;
 
 

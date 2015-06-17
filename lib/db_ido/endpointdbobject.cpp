@@ -53,6 +53,7 @@ Dictionary::Ptr EndpointDbObject::GetConfigFields(void) const
 
 	fields->Set("identity", endpoint->GetName());
 	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
+	fields->Set("zone_object_id", endpoint->GetZone());
 
 	return fields;
 }
@@ -67,6 +68,7 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
 
 	fields->Set("identity", endpoint->GetName());
 	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
+	fields->Set("zone_object_id", endpoint->GetZone());
 	fields->Set("is_connected", EndpointIsConnected(endpoint));
 
 	return fields;
@@ -120,6 +122,7 @@ void EndpointDbObject::OnConfigUpdate(void)
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("identity", endpoint->GetName());
 	fields1->Set("node", IcingaApplication::GetInstance()->GetNodeName());
+	fields1->Set("zone_object_id", endpoint->GetZone());
 	fields1->Set("is_connected", EndpointIsConnected(endpoint));
 	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	fields1->Set("endpoint_object_id", endpoint);

@@ -124,6 +124,34 @@ ALTER TABLE icinga_statehistory ALTER COLUMN check_source TYPE TEXT;
 ALTER TABLE icinga_statehistory ALTER COLUMN check_source SET default '';
 
 -- -----------------------------------------
+-- #9286 zones table
+-- -----------------------------------------
+
+ALTER TABLE icinga_endpoints ADD COLUMN zone_object_id bigint default 0;
+ALTER TABLE icinga_endpointstatus ADD COLUMN zone_object_id bigint default 0;
+
+CREATE TABLE  icinga_zones (
+  zone_id bigserial,
+  instance_id bigint default 0,
+  zone_object_id bigint default 0,
+  parent_zone_object_id bigint default 0,
+  config_type integer default 0,
+  is_global integer default 0,
+  CONSTRAINT PK_zone_id PRIMARY KEY (zone_id) ,
+  CONSTRAINT UQ_zones UNIQUE (instance_id,config_type,zone_object_id)
+) ;
+
+CREATE TABLE  icinga_zonestatus (
+  zonestatus_id bigserial,
+  instance_id bigint default 0,
+  zone_object_id bigint default 0,
+  parent_zone_object_id bigint default 0,
+  status_update_time timestamp with time zone default '1970-01-01 00:00:00+00',
+  CONSTRAINT PK_zonestatus_id PRIMARY KEY (zonestatus_id) ,
+  CONSTRAINT UQ_zonestatus UNIQUE (zone_object_id)
+) ;
+
+-- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
 

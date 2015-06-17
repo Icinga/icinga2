@@ -168,6 +168,7 @@ New table: `endpointstatus`
   endpoints           | endpoint_object_id | bigint   | NULL    | FK: objects table
   endpoints           | identity           | TEXT     | NULL    | endpoint name
   endpoints           | node               | TEXT     | NULL    | local node name
+  endpoints           | zone_object_id     | bigint   | NULL    | zone object where this endpoint is a member of
 
 New table: `endpointstatus`
 
@@ -177,6 +178,16 @@ New table: `endpointstatus`
   endpointstatus      | identity           | TEXT     | NULL    | endpoint name
   endpointstatus      | node               | TEXT     | NULL    | local node name
   endpointstatus      | is_connected       | smallint | 0       | update on endpoint connect/disconnect
+  endpointstatus      | zone_object_id     | bigint   | NULL    | zone object where this endpoint is a member of
+
+New tables: `zones` and `zonestatus`:
+
+  Table               | Column             | Type     | Default | Description
+  --------------------|--------------------|----------|---------|-------------
+  zones               | zone_object_id     | bigint   | NULL    | FK: objects table
+  zones               | parent_zone_object_id | bigint   | NULL    | FK: zones table
+  zones               | is_global          | smallint | 0       | zone is global
+
 
 New columns:
 

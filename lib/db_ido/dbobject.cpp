@@ -122,8 +122,8 @@ void DbObject::SendStatusUpdate(void)
 	query.Fields = fields;
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 
-	/* do not override our own endpoint dbobject id */
-	if (GetType()->GetTable() != "endpoint") {
+	/* do not override endpoint_object_id for endpoints & zones */
+	if (query.Table != "endpointstatus" && query.Table != "zonestatus") {
 		String node = IcingaApplication::GetInstance()->GetNodeName();
 
 		Log(LogDebug, "DbObject")

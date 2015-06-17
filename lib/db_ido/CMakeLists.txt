@@ -25,7 +25,7 @@ set(db_ido_SOURCES
   dbreference.cpp dbtype.cpp dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp
   hostgroupdbobject.cpp idochecktask.cpp servicedbobject.cpp
   servicegroupdbobject.cpp timeperioddbobject.cpp userdbobject.cpp
-  usergroupdbobject.cpp
+  usergroupdbobject.cpp zonedbobject.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)

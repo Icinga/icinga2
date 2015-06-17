@@ -1362,6 +1362,7 @@ CREATE TABLE IF NOT EXISTS icinga_endpoints (
   endpoint_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   instance_id bigint unsigned default 0,
   endpoint_object_id bigint(20) unsigned DEFAULT '0',
+  zone_object_id bigint(20) unsigned DEFAULT '0',
   config_type smallint(6) DEFAULT '0',
   identity varchar(255) DEFAULT NULL,
   node varchar(255) DEFAULT NULL,
@@ -1378,12 +1379,44 @@ CREATE TABLE IF NOT EXISTS icinga_endpointstatus (
   endpointstatus_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   instance_id bigint unsigned default 0,
   endpoint_object_id bigint(20) unsigned DEFAULT '0',
+  zone_object_id bigint(20) unsigned DEFAULT '0',
   status_update_time timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   identity varchar(255) DEFAULT NULL,
   node varchar(255) DEFAULT NULL,
   is_connected smallint(6),
   PRIMARY KEY  (endpointstatus_id)
 ) ENGINE=InnoDB COMMENT='Endpoint status';
+
+--
+-- Table structure for table icinga_zones
+--
+
+CREATE TABLE IF NOT EXISTS icinga_zones (
+  zone_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  instance_id bigint unsigned default 0,
+  zone_object_id bigint(20) unsigned DEFAULT '0',
+  config_type smallint(6) DEFAULT '0',
+  parent_zone_object_id bigint(20) unsigned DEFAULT '0',
+  is_global smallint(6),
+  PRIMARY KEY  (zone_id)
+) ENGINE=InnoDB COMMENT='Zone configuration';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table icinga_zonestatus
+--
+
+CREATE TABLE IF NOT EXISTS icinga_zonestatus (
+  zonestatus_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  instance_id bigint unsigned default 0,
+  zone_object_id bigint(20) unsigned DEFAULT '0',
+  status_update_time timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  parent_zone_object_id bigint(20) unsigned DEFAULT '0',
+  PRIMARY KEY  (zonestatus_id)
+) ENGINE=InnoDB COMMENT='Zone status';
+
+
 
 
 ALTER TABLE icinga_servicestatus ADD COLUMN endpoint_object_id bigint default NULL;
