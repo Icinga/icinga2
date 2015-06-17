@@ -866,7 +866,7 @@ A check-commands-windows.conf comes with Icinga 2, it asumes that the Windows Pl
 One of the differences between the Windows plugins and their linux counterparts is that they consistently do not require thresholds to run, functioning like dummies without.
 
 
-## <a id"windows-plugins-thresholds"></a>Threshold syntax
+## <a id="windows-plugins-thresholds"></a>Threshold syntax
 
 So not specified differently the thresholds for the plugins all follow the same pattern
 
