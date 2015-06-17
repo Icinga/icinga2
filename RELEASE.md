@@ -45,8 +45,24 @@ For major releases: Create a new "support" branch:
 
 ## Build Server
 
+### Linux
+
 * Build the newly created git tag for Debian/RHEL/SuSE.
 * Provision the vagrant boxes and test the release packages.
+* Start a new docker container and install/run icinga2
+
+Example for CentOS7:
+
+    $ sudo docker run -ti centos:latest bash
+    # yum -y install http://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    # yum -y install icinga
+    # systemctl start icinga2
+    # tail -f /var/log/icinga2/icinga2.log
+
+### Windows
+
+* Build the newly created git tag for Windows.
+* Test the [setup wizard](http://packages.icinga.org/windows/) inside a Windows VM.
 
 ## Github Release
 
@@ -60,6 +76,6 @@ and pull the current icinga2 revision to update what's new".
 
 ## Announcement
 
-* Create a new blog post on www.icinga.org
+* Create a new blog post on www.icinga.org/blog
 * Send announcement mail to icinga-announce@lists.icinga.org
-* Social media
+* Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [G+](http://plus.google.com/+icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
