@@ -8,7 +8,7 @@
     <title>Icinga2</title>
     <version>2.3.5</version>
     <authors>2015 - The Icinga Project</authors>
-    <owners>Martin Schuster</owners>
+    <owners>Icinga Development Team</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
     <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>
     <projectUrl>http://www.icinga.org</projectUrl>
@@ -21,6 +21,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="tools\**" target="tools" />
+    <file src="tools\chocolateyInstall.ps1" target="tools" />
   </files>
 </package>
