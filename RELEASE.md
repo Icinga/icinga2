@@ -14,6 +14,18 @@ Update the version number in the icinga2.spec file.
 Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files using
 the changelog.py script.
 
+Changelog:
+
+    $ ./changelog.py --version 2.3.5 --project i2
+
+Docs:
+
+    $ ./changelog.py --version 2.3.5 --project i2 --links
+
+Wordpress:
+
+    $ ./changelog.py --version 2.3.5 --project i2 --html --links
+
 Commit these changes to the "master" branch:
 
     $ git commit -v -a -m "Release version <VERSION>"
