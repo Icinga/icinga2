@@ -44,6 +44,7 @@ validator Command {
 
 	Dictionary arguments {
 		String "*";
+		Function "*";
 		Dictionary "*" {
 			String key;
 			String value;
