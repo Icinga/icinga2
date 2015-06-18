@@ -19,18 +19,48 @@
 # ******************************************************************************/
 
 import urllib2, json, sys, string
+from argparse import ArgumentParser
 
-if len(sys.argv) < 2:
-    print "Usage:", sys.argv[0], "<VERSION>", "[link-issues]"
-    sys.exit(0)
+DESCRIPTION="update release changes"
+VERSION="1.0.0"
+ISSUE_URL= "https://dev.icinga.org/issues/"
+ISSUE_PROJECT="i2"
 
-version_name = sys.argv[1]
+arg_parser = ArgumentParser(description= "%s (Version: %s)" % (DESCRIPTION, VERSION))
+arg_parser.add_argument('-V', '--version', type=str, help="define version to query")
+arg_parser.add_argument('-p', '--project', type=str, help="add urls to issues")
+arg_parser.add_argument('-l', '--links', action='store_true', help="add urls to issues")
+arg_parser.add_argument('-H', '--html', action='store_true', help="print html output (defaults to markdown)")
 
-link_issues = (len(sys.argv) >= 3 and sys.argv[2] == "link-issues")
-issue_url = "https://dev.icinga.org/issues/"
-issue_project = "i2"
+args = arg_parser.parse_args(sys.argv[1:])
 
-rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/versions.json" % (issue_project))
+ftype = "md" if not args.html else "html"
+
+def format_header(text, lvl, ftype = ftype):
+   if ftype == "html":
+       return "<h%s>%s</h%s>" % (lvl, text, lvl)
+   if ftype == "md":
+       return "#" * lvl + " " + text
+
+def format_logentry(log_entry, args = args, issue_url = ISSUE_URL):
+   if args.links:
+       if args.html:
+           return "<li> {0} <a href=\"{3}{1}\">{1}</a>: {2}</li>".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+       else:
+           return "* {0} [{1}]({3}{1} \"{0} {1}\"): {2}".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+   else:
+       if args.html:
+           return "<li>{0} <a href=\"{3}{1}\">{1}</a>: {2}</li>".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+       else:
+           return "* {0} [{1}]({3}{1} \"{0} {1}\"): {2}".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+
+
+version_name = args.version
+
+if args.project:
+    ISSUE_PROJECT=args.project
+
+rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/versions.json" % (ISSUE_PROJECT))
 versions_data = json.loads(rsp.read())
 
 version_id = None
@@ -54,11 +84,11 @@ if "custom_fields" in version:
 
     changes = string.join(string.split(changes, "\r\n"), "\n")
 
-print "### What's New in Version %s" % (version_name)
+print format_header("What's New in Version %s" % (version_name), 2)
 print ""
 
 if changes:
-    print "#### Changes"
+    print format_header("Changes", 3)
     print ""
     print changes
     print ""
@@ -70,7 +100,7 @@ log_entries = []
 while True:
     # We could filter using &cf_13=1, however this doesn't currently work because the custom field isn't set
     # for some of the older tickets:
-    rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/issues.json?offset=%d&status_id=closed&fixed_version_id=%d" % (issue_project, offset, version_id))
+    rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/issues.json?offset=%d&status_id=closed&fixed_version_id=%d" % (ISSUE_PROJECT, offset, version_id))
     issues_data = json.loads(rsp.read())
     issues_count = len(issues_data["issues"])
     offset = offset + issues_count
@@ -100,17 +130,19 @@ for p in range(2):
             not_empty = True
 
     if not_empty:
-        print "####", "Features" if p == 0 else "Bugfixes"
+        print format_header("Features", 4) if p == 0 else format_header("Bugfixes", 4)
         print ""
+	if args.html:
+            print "<ul>"
 
     for log_entry in sorted(log_entries):
         if (p == 0 and log_entry[0] == "Feature") or (p == 1 and log_entry[0] != "Feature"):
-            if not link_issues:  
-                print "* %s %d: %s" % log_entry
-            else:
-                print "* {0} [{1}]({3}{1} \"{0} {1}\"): {2}".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+            print format_logentry(log_entry)
 
     if not_empty:
+	if args.html:
+            print "</ul>"
+
         print ""
 
 sys.exit(0)
