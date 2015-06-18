@@ -50,9 +50,9 @@ def format_logentry(log_entry, args = args, issue_url = ISSUE_URL):
            return "* {0} [{1}]({3}{1} \"{0} {1}\"): {2}".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
    else:
        if args.html:
-           return "<li>{0} <a href=\"{3}{1}\">{1}</a>: {2}</li>".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+           return "<li>%s %d: %s</li>" % log_entry
        else:
-           return "* {0} [{1}]({3}{1} \"{0} {1}\"): {2}".format(log_entry[0], log_entry[1], log_entry[2], issue_url)
+           return "* %s %d: %s" % log_entry
 
 
 version_name = args.version
