@@ -10,7 +10,7 @@
     <authors>2015 - The Icinga Project</authors>
     <owners>Martin Schuster</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
-    <description>Icinga2, make the way for the next generation </description>
+    <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>
     <projectUrl>http://www.icinga.org</projectUrl>
     <tags>icinga2 agent monitoring</tags>
     <licenseUrl>http://www.icinga.org/icinga/faq</licenseUrl>
