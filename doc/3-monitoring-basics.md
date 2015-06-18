@@ -1518,7 +1518,7 @@ NotificationCommand object refer to that.
 
 ### <a id="event-commands"></a> Event Commands
 
-Unlike notifications event commands for hosts/services are called on every
+Unlike notifications, event commands for hosts/services are called on every
 check execution if one of these conditions match:
 
 * The host/service is in a [soft state](3-monitoring-basics.md#hard-soft-states)
