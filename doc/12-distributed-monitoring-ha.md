@@ -452,7 +452,7 @@ The configuration tree could look like this:
     
     7 directories, 13 files
 
-If you prefer adifferent naming schema for directories or files names, go for it. If you
+If you prefer a different naming schema for directories or files names, go for it. If you
 are unsure about the best method, join the [support channels](1-about.md#support) and discuss
 with the community.
 
