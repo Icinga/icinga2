@@ -28,8 +28,9 @@ version_name = sys.argv[1]
 
 link_issues = (len(sys.argv) >= 3 and sys.argv[2] == "link-issues")
 issue_url = "https://dev.icinga.org/issues/"
+issue_project = "i2"
 
-rsp = urllib2.urlopen("https://dev.icinga.org/projects/i2/versions.json")
+rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/versions.json" % (issue_project))
 versions_data = json.loads(rsp.read())
 
 version_id = None
@@ -45,19 +46,22 @@ if version_id == None:
 
 changes = ""
 
-for field in version["custom_fields"]:
-    if field["id"] == 14:
-        changes = field["value"]
-        break
+if "custom_fields" in version:
+    for field in version["custom_fields"]:
+        if field["id"] == 14:
+            changes = field["value"]
+            break
 
-changes = string.join(string.split(changes, "\r\n"), "\n")
+    changes = string.join(string.split(changes, "\r\n"), "\n")
 
 print "### What's New in Version %s" % (version_name)
 print ""
-print "#### Changes"
-print ""
-print changes
-print ""
+
+if changes:
+    print "#### Changes"
+    print ""
+    print changes
+    print ""
 
 offset = 0
 
@@ -66,7 +70,7 @@ log_entries = []
 while True:
     # We could filter using &cf_13=1, however this doesn't currently work because the custom field isn't set
     # for some of the older tickets:
-    rsp = urllib2.urlopen("https://dev.icinga.org/projects/i2/issues.json?offset=%d&status_id=closed&fixed_version_id=%d" % (offset, version_id))
+    rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/issues.json?offset=%d&status_id=closed&fixed_version_id=%d" % (issue_project, offset, version_id))
     issues_data = json.loads(rsp.read())
     issues_count = len(issues_data["issues"])
     offset = offset + issues_count
@@ -77,13 +81,14 @@ while True:
     for issue in issues_data["issues"]:
         ignore_issue = False
 
-        for field in issue["custom_fields"]:
-            if field["id"] == 13 and "value" in field and field["value"] == "0":
-                ignore_issue = True
-                break
+        if "custom_fields" in issue:
+            for field in issue["custom_fields"]:
+                if field["id"] == 13 and "value" in field and field["value"] == "0":
+                    ignore_issue = True
+                    break
 
-        if ignore_issue:
-            continue
+            if ignore_issue:
+                continue
 
         log_entries.append((issue["tracker"]["name"], issue["id"], issue["subject"].strip()))
 
