@@ -394,6 +394,7 @@ wizard_ticket:
 		    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
 		    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
 		    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n"
+		    << "\n"
 		    << "  accept_config = " << accept_config << "\n"
 		    << "  accept_commands = " << accept_commands << "\n";
 

@@ -463,15 +463,18 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		if (tokens.size() > 1)
 			fp << "  bind_port = " << tokens[1] << "\n";
 	}
+
+	fp << "\n";
+
 	if (vm.count("accept-config"))
-		fp << "accept_config = true\n";
+		fp << "  accept_config = true\n";
 	else
-		fp << "accept_config = false\n";
+		fp << "  accept_config = false\n";
 
 	if (vm.count("accept-commands"))
-		fp << "accept_commands = true\n";
+		fp << "  accept_commands = true\n";
 	else
-		fp << "accept_commands = false\n";
+		fp << "  accept_commands = false\n";
 
 	fp << "\n"
 	    << "  ticket_salt = TicketSalt\n"
