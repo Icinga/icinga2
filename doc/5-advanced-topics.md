@@ -612,7 +612,104 @@ You can enable the feature using
 By default the `GraphiteWriter` object expects the Graphite Carbon Cache to listen at
 `127.0.0.1` on TCP port `2003`.
 
-The current naming schema is
+#### <a id="graphite-carbon-cache-writer-schema"></a> Current Graphite Schema
+
+The current naming schema is defined as follows. The official Icinga Web 2 Graphite
+module will use that schema too.
+
+The default prefix for hosts and services is configured using
+[runtime macros](3-monitoring-basics.md#runtime-macros)like this:
+
+    icinga2.$host.name$.host.$host.check_command$
+    icinga2.$host.name$.services.$service.name$.$service.check_command$
+
+You can customize the prefix name by using the `host_name_template` and
+`service_name_template` configuration attributes.
+
+The additional levels will allow fine granular filters and also template
+capabilities, e.g. by using the check command `disk` for specific
+graph templates in web applications rendering the Graphite data.
+
+The following characters are escaped in prefix labels:
+
+  Character	| Escaped character
+  --------------|--------------------------
+  whitespace	| _
+  .		| _
+  \		| _
+  /		| _
+
+Metric values are stored like this:
+
+    <prefix>.perfdata.<perfdata-label>.value
+
+The following characters are escaped in perfdata labels:
+
+  Character	| Escaped character
+  --------------|--------------------------
+  whitespace	| _
+  \		| _
+  /		| _
+  ::		| .
+
+Note that perfdata labels may contain dots (`.`) allowing to
+add more subsequent levels inside the Graphite tree.
+`::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
+and is therefore replaced by `.`.
+
+By enabling `enable_send_thresholds` Icinga 2 automatically adds the following threshold metrics:
+
+    <prefix>.perfdata.<perfdata-label>.min
+    <prefix>.perfdata.<perfdata-label>.max
+    <prefix>.perfdata.<perfdata-label>.warn
+    <prefix>.perfdata.<perfdata-label>.crit
+
+By enabling `enable_send_metadata` Icinga 2 automatically adds the following metadata metrics:
+
+    <prefix>.metadata.current_attempt
+    <prefix>.metadata.downtime_depth
+    <prefix>.metadata.execution_time
+    <prefix>.metadata.latency
+    <prefix>.metadata.max_check_attempts
+    <prefix>.metadata.reachable
+    <prefix>.metadata.state
+    <prefix>.metadata.state_type
+
+Metadata metric overview:
+
+  metric             | description
+  -------------------|------------------------------------------
+  current_attempt    | current check attempt
+  max_check_attempts | maximum check attempts until the hard state is reached
+  reachable          | checked object is reachable
+  downtime_depth     | number of downtimes this object is in
+  execution_time     | check execution time
+  latency            | check latency
+  state              | current state of the checked object
+  state_type         | 0=SOFT, 1=HARD state
+
+The following example illustrates how to configure the storage schemas for Graphite Carbon
+Cache.
+
+    [icinga2_default]
+    # intervals like PNP4Nagios uses them per default
+    pattern = ^icinga2\.
+    retentions = 1m:2d,5m:10d,30m:90d,360m:4y
+
+#### <a id="graphite-carbon-cache-writer-schema-legacy"></a> Graphite Schema < 2.4
+
+In order to restore the old legacy schema, you'll need to adopt the `GraphiteWriter`
+configuration:
+
+    object GraphiteWriter "graphite" {
+
+      enable_legacy_mode = true
+
+      host_name_template = "icinga.$host.name$"
+      service_name_template = "icinga.$host.name$.$service.name$"
+    }
+
+The old legacy naming schema is
 
     icinga.<hostname>.<metricname>
     icinga.<hostname>.<servicename>.<metricname>

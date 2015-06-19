@@ -446,17 +446,13 @@ Configuration Attributes:
   ----------------------|----------------------
   host            	|**Optional.** Graphite Carbon host address. Defaults to '127.0.0.1'.
   port            	|**Optional.** Graphite Carbon port. Defaults to 2003.
-  host_name_template 	|**Optional.** Metric prefix for host name. Defaults to "icinga.$host.name$".
-  service_name_template |**Optional.** Metric prefix for service name. Defaults to "icinga.$host.name$.$service.name$".
+  host_name_template 	|**Optional.** Metric prefix for host name. Defaults to "icinga2.$host.name$.host.$host.check_command$".
+  service_name_template |**Optional.** Metric prefix for service name. Defaults to "icinga2.$host.name$.services.$service.name$.$service.check_command$".
+  enable_send_thresholds | **Optional.** Send additional threshold metrics. Defaults to `false`.
+  enable_send_metadata 	| **Optional.** Send additional metadata metrics. Defaults to `false`.
+  enable_legacy_mode	| **Optional.** Enable legacy mode for schema < 2.4. **Note**: This will be removed in future versions.
 
-Metric prefix names can be modified using [runtime macros](3-monitoring-basics.md#runtime-macros).
-
-Example with your custom [global constant](20-language-reference.md#constants) `GraphiteEnv`:
-
-    const GraphiteEnv = "icinga.env1"
-
-    host_name_template = GraphiteEnv + ".$host.name$"
-    service_name_template = GraphiteEnv + ".$host.name$.$service.name$"
+Additional usage examples can be found [here](5-advanced-topics.md#graphite-carbon-cache-writer).
 
 
 
