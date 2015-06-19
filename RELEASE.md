@@ -5,14 +5,24 @@ https://dev.icinga.org/projects/i2/roadmap
 
 # Release Workflow
 
+## Authors
+
 Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
 
     $ git log --use-mailmap | grep ^Author: | cut -f2- -d' ' | sort | uniq > AUTHORS
 
-Update the version number in the icinga2.spec file.
+## Version
+
+Update the version number in the following files:
+
+* [icinga2.spec]: Version: (.*)
+* [icinga2.nuspec]: <version>(.*)</version>
+* [tools/chocolateyInstall.ps1]: Icinga2-v(.*).exe
+
+## Changelog
 
 Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files using
-the changelog.py script.
+the changelog.py script. Also generate HTML for the wordpress release announcement.
 
 Changelog:
 
@@ -25,6 +35,8 @@ Docs:
 Wordpress:
 
     $ ./changelog.py --version 2.3.5 --project i2 --html --links
+
+## Git Tag
 
 Commit these changes to the "master" branch:
 
