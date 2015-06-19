@@ -1051,7 +1051,6 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 
 Name            | Description
 ----------------|--------------
-nscp_path       | **Optional.** Can be used to override the NSClient++ on a per-command basis. Defaults to NscpPath.
 nscp_log_level  | **Optional.** The log level. Defaults to "critical".
 nscp_load_all   | **Optional.** Whether to load all modules. Defaults to true.
 nscp_boot       | **Optional.** Whether to use the --boot option. Defaults to true.
