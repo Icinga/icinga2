@@ -8,15 +8,16 @@ network resources, notifies users of outages, and generates performance data for
 Scalable and extensible, Icinga 2 can monitor large, complex environments across
 multiple locations.
 
-Check doc/1-about.md for a detailed introduction.
+More details online at [www.icinga.org](https://www.icinga.org/icinga/icinga-2/)
+and inside the [documentation](doc/1-about.md).
 
 ## Installation
 
-Read the INSTALL file for more information about how to install it.
+Read the [INSTALL.md] file for more information about how to install it.
 
 ## Documentation
 
-The documentation is located in the doc/ directory. The latest documentation
+The documentation is located in the [doc/] directory. The latest documentation
 is also available on https://docs.icinga.org
 
 ## Support
