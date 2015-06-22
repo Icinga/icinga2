@@ -157,7 +157,7 @@ void ApiListener::SyncZoneDirs(void) const
 	}
 }
 
-void ApiListener::SendConfigUpdate(const ApiClient::Ptr& aclient)
+void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 {
 	Endpoint::Ptr endpoint = aclient->GetEndpoint();
 	ASSERT(endpoint);

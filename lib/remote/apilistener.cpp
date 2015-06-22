@@ -19,7 +19,7 @@
 
 #include "remote/apilistener.hpp"
 #include "remote/apilistener.tcpp"
-#include "remote/apiclient.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/jsonrpc.hpp"
 #include "base/convert.hpp"
@@ -211,7 +211,8 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			Utility::QueueAsyncCallback(boost::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer), LowLatencyScheduler);
+			boost::thread thread(boost::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
+			thread.detach();
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
 		}
@@ -239,7 +240,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	String host = endpoint->GetHost();
 	String port = endpoint->GetPort();
 
-	Log(LogInformation, "ApiClient")
+	Log(LogInformation, "JsonRpcConnection")
 	    << "Reconnecting to API endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 	TcpSocket::Ptr client = new TcpSocket();
@@ -284,56 +285,98 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& host
 
 	try {
 		tlsStream->Handshake();
-	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener", "Client TLS handshake failed.");
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener", "Client TLS handshake failed");
 		return;
 	}
 
 	boost::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity;
-
-	try {
-		identity = GetCertificateCN(cert);
-	} catch (const std::exception&) {
-		Log(LogCritical, "ApiListener")
-		    << "Cannot get certificate common name from cert path: '" << GetCertPath() << "'.";
-		return;
-	}
-
-	bool verify_ok = tlsStream->IsVerifyOK();
-
-	Log(LogInformation, "ApiListener")
-	    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated)");
-
 	Endpoint::Ptr endpoint;
+	bool verify_ok = false;
 
-	if (verify_ok)
-		endpoint = Endpoint::GetByName(identity);
+	if (cert) {
+		try {
+			identity = GetCertificateCN(cert);
+		} catch (const std::exception&) {
+			Log(LogCritical, "ApiListener")
+			    << "Cannot get certificate common name from cert path: '" << GetCertPath() << "'.";
+			return;
+		}
+
+		verify_ok = tlsStream->IsVerifyOK();
+
+		Log(LogInformation, "ApiListener")
+		    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated)");
+
+
+		if (verify_ok)
+			endpoint = Endpoint::GetByName(identity);
+	} else {
+		Log(LogInformation, "ApiListener")
+		    << "New client connection (no client certificate)";
+	}
 
 	bool need_sync = false;
 
 	if (endpoint)
 		need_sync = !endpoint->IsConnected();
 
-	ApiClient::Ptr aclient = new ApiClient(identity, verify_ok, tlsStream, role);
-	aclient->Start();
+	ClientType ctype;
 
-	if (endpoint) {
-		endpoint->AddClient(aclient);
+	if (role == RoleClient) {
+		Dictionary::Ptr message = new Dictionary();
+		message->Set("jsonrpc", "2.0");
+		message->Set("method", "icinga::Hello");
+		message->Set("params", new Dictionary());
+		JsonRpc::SendMessage(tlsStream, message);
+		ctype = ClientJsonRpc;
+	} else {
+		tlsStream->WaitForData(5);
 
-		if (need_sync) {
-			{
-				ObjectLock olock(endpoint);
-
-				endpoint->SetSyncing(true);
-			}
-
-			ReplayLog(aclient);
+		if (!tlsStream->IsDataAvailable()) {
+			Log(LogWarning, "ApiListener", "No data received on new API connection.");
+			return;
 		}
 
-		SendConfigUpdate(aclient);
-	} else
-		AddAnonymousClient(aclient);
+		char firstByte;
+		tlsStream->Peek(&firstByte, 1, false);
+
+		if (firstByte >= '0' && firstByte <= '9')
+			ctype = ClientJsonRpc;
+		else
+			ctype = ClientHttp;
+	}
+
+	if (ctype == ClientJsonRpc) {
+		Log(LogInformation, "ApiListener", "New JSON-RPC client");
+
+		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, tlsStream, role);
+		aclient->Start();
+
+		if (endpoint) {
+			endpoint->AddClient(aclient);
+
+			if (need_sync) {
+				{
+					ObjectLock olock(endpoint);
+
+					endpoint->SetSyncing(true);
+				}
+
+				ReplayLog(aclient);
+			}
+
+			SendConfigUpdate(aclient);
+		} else
+			AddAnonymousClient(aclient);
+	} else {
+		Log(LogInformation, "ApiListener", "New HTTP client");
+
+		HttpConnection::Ptr aclient = new HttpConnection(identity, verify_ok, tlsStream);
+		aclient->Start();
+		AddHttpClient(aclient);
+	}
 }
 
 void ApiListener::ApiTimerHandler(void)
@@ -429,7 +472,7 @@ void ApiListener::ApiTimerHandler(void)
 		lmessage->Set("method", "log::SetLogPosition");
 		lmessage->Set("params", lparams);
 
-		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients())
 			client->SendMessage(lmessage);
 
 		Log(LogNotice, "ApiListener")
@@ -495,7 +538,7 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 		Log(LogNotice, "ApiListener")
 		    << "Sending message to '" << endpoint->GetName() << "'";
 
-		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients())
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients())
 			client->SendMessage(message);
 	}
 }
@@ -635,7 +678,7 @@ void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
 	files.push_back(ts);
 }
 
-void ApiListener::ReplayLog(const ApiClient::Ptr& client)
+void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 {
 	Endpoint::Ptr endpoint = client->GetEndpoint();
 
@@ -823,20 +866,38 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	return std::make_pair(status, perfdata);
 }
 
-void ApiListener::AddAnonymousClient(const ApiClient::Ptr& aclient)
+void ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	ObjectLock olock(this);
 	m_AnonymousClients.insert(aclient);
 }
 
-void ApiListener::RemoveAnonymousClient(const ApiClient::Ptr& aclient)
+void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
 	ObjectLock olock(this);
 	m_AnonymousClients.erase(aclient);
 }
 
-std::set<ApiClient::Ptr> ApiListener::GetAnonymousClients(void) const
+std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
 {
 	ObjectLock olock(this);
 	return m_AnonymousClients;
+}
+
+void ApiListener::AddHttpClient(const HttpConnection::Ptr& aclient)
+{
+	ObjectLock olock(this);
+	m_HttpClients.insert(aclient);
+}
+
+void ApiListener::RemoveHttpClient(const HttpConnection::Ptr& aclient)
+{
+	ObjectLock olock(this);
+	m_HttpClients.erase(aclient);
+}
+
+std::set<HttpConnection::Ptr> ApiListener::GetHttpClients(void) const
+{
+	ObjectLock olock(this);
+	return m_HttpClients;
 }

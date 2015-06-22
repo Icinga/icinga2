@@ -40,6 +40,16 @@ bool Stream::IsDataAvailable(void) const
 	return false;
 }
 
+void Stream::Shutdown(void)
+{
+	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Shutdown()."));
+}
+
+size_t Stream::Peek(void *buffer, size_t count, bool allow_partial)
+{
+	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Peek()."));
+}
+
 void Stream::SignalDataAvailable(void)
 {
 	OnDataAvailable();
@@ -50,15 +60,20 @@ void Stream::SignalDataAvailable(void)
 	}
 }
 
-void Stream::WaitForData(void)
+bool Stream::WaitForData(int timeout)
 {
 	if (!SupportsWaiting())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	while (!IsDataAvailable())
-		m_CV.wait(lock);
+	while (!IsDataAvailable() && !IsEof())
+		if (timeout < 0)
+			m_CV.wait(lock);
+		else
+			m_CV.timed_wait(lock, boost::posix_time::milliseconds(timeout * 1000));
+
+	return IsDataAvailable() || IsEof();
 }
 
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)
@@ -132,6 +147,7 @@ bool StreamReadContext::FillFromStream(const Stream::Ptr& stream, bool may_wait)
 
 void StreamReadContext::DropData(size_t count)
 {
+	ASSERT(count <= Size);
 	memmove(Buffer, Buffer + count, Size - count);
 	Size -= count;
 }

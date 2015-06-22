@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/apiclient.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
@@ -35,65 +35,65 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 static Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
-static boost::once_flag l_ApiClientOnceFlag = BOOST_ONCE_INIT;
-static Timer::Ptr l_ApiClientTimeoutTimer;
+static boost::once_flag l_JsonRpcConnectionOnceFlag = BOOST_ONCE_INIT;
+static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
 
-ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
+JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
 	  m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
-	boost::call_once(l_ApiClientOnceFlag, &ApiClient::StaticInitialize);
+	boost::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);
 
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
 }
 
-void ApiClient::StaticInitialize(void)
+void JsonRpcConnection::StaticInitialize(void)
 {
-	l_ApiClientTimeoutTimer = new Timer();
-	l_ApiClientTimeoutTimer->OnTimerExpired.connect(boost::bind(&ApiClient::TimeoutTimerHandler));
-	l_ApiClientTimeoutTimer->SetInterval(15);
-	l_ApiClientTimeoutTimer->Start();
+	l_JsonRpcConnectionTimeoutTimer = new Timer();
+	l_JsonRpcConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&JsonRpcConnection::TimeoutTimerHandler));
+	l_JsonRpcConnectionTimeoutTimer->SetInterval(15);
+	l_JsonRpcConnectionTimeoutTimer->Start();
 }
 
-void ApiClient::Start(void)
+void JsonRpcConnection::Start(void)
 {
-	m_Stream->RegisterDataHandler(boost::bind(&ApiClient::DataAvailableHandler, this));
+	m_Stream->RegisterDataHandler(boost::bind(&JsonRpcConnection::DataAvailableHandler, this));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
 
-String ApiClient::GetIdentity(void) const
+String JsonRpcConnection::GetIdentity(void) const
 {
 	return m_Identity;
 }
 
-bool ApiClient::IsAuthenticated(void) const
+bool JsonRpcConnection::IsAuthenticated(void) const
 {
 	return m_Authenticated;
 }
 
-Endpoint::Ptr ApiClient::GetEndpoint(void) const
+Endpoint::Ptr JsonRpcConnection::GetEndpoint(void) const
 {
 	return m_Endpoint;
 }
 
-TlsStream::Ptr ApiClient::GetStream(void) const
+TlsStream::Ptr JsonRpcConnection::GetStream(void) const
 {
 	return m_Stream;
 }
 
-ConnectionRole ApiClient::GetRole(void) const
+ConnectionRole JsonRpcConnection::GetRole(void) const
 {
 	return m_Role;
 }
 
-void ApiClient::SendMessage(const Dictionary::Ptr& message)
+void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
-	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, ApiClient::Ptr(this), message));
+	m_WriteQueue.Enqueue(boost::bind(&JsonRpcConnection::SendMessageSync, JsonRpcConnection::Ptr(this), message));
 }
 
-void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
+void JsonRpcConnection::SendMessageSync(const Dictionary::Ptr& message)
 {
 	try {
 		ObjectLock olock(m_Stream);
@@ -103,18 +103,18 @@ void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
 	} catch (const std::exception& ex) {
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
-		Log(LogWarning, "ApiClient")
+		Log(LogWarning, "JsonRpcConnection")
 		    << info.str();
-		Log(LogDebug, "ApiClient")
+		Log(LogDebug, "JsonRpcConnection")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 
 		Disconnect();
 	}
 }
 
-void ApiClient::Disconnect(void)
+void JsonRpcConnection::Disconnect(void)
 {
-	Log(LogWarning, "ApiClient")
+	Log(LogWarning, "JsonRpcConnection")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
 	if (m_Endpoint)
@@ -127,11 +127,11 @@ void ApiClient::Disconnect(void)
 	m_Stream->Close();
 }
 
-bool ApiClient::ProcessMessage(void)
+bool JsonRpcConnection::ProcessMessage(void)
 {
 	Dictionary::Ptr message;
 
-	StreamReadStatus srs = JsonRpc::ReadMessage(m_Stream, &message, m_Context);
+	StreamReadStatus srs = JsonRpc::ReadMessage(m_Stream, &message, m_Context, false);
 
 	if (srs != StatusNewItem)
 		return false;
@@ -163,7 +163,7 @@ bool ApiClient::ProcessMessage(void)
 
 	String method = message->Get("method");
 
-	Log(LogNotice, "ApiClient")
+	Log(LogNotice, "JsonRpcConnection")
 	    << "Received '" << method << "' message from '" << m_Identity << "'";
 
 	Dictionary::Ptr resultMessage = new Dictionary();
@@ -180,9 +180,9 @@ bool ApiClient::ProcessMessage(void)
 		resultMessage->Set("error", DiagnosticInformation(ex));
 		std::ostringstream info;
 		info << "Error while processing message for identity '" << m_Identity << "'";
-		Log(LogWarning, "ApiClient")
+		Log(LogWarning, "JsonRpcConnection")
 		    << info.str();
-		Log(LogDebug, "ApiClient")
+		Log(LogDebug, "JsonRpcConnection")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 	}
 
@@ -195,7 +195,7 @@ bool ApiClient::ProcessMessage(void)
 	return true;
 }
 
-void ApiClient::DataAvailableHandler(void)
+void JsonRpcConnection::DataAvailableHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
@@ -203,7 +203,7 @@ void ApiClient::DataAvailableHandler(void)
 		while (ProcessMessage())
 			; /* empty loop body */
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "ApiClient")
+		Log(LogWarning, "JsonRpcConnection")
 		    << "Error while reading JSON-RPC message for identity '" << m_Identity << "': " << DiagnosticInformation(ex);
 
 		Disconnect();
@@ -267,25 +267,25 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 	return result;
 }
 
-void ApiClient::CheckLiveness(void)
+void JsonRpcConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
-		Log(LogInformation, "ApiClient")
+		Log(LogInformation, "JsonRpcConnection")
 		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
 		Disconnect();
 	}
 }
 
-void ApiClient::TimeoutTimerHandler(void)
+void JsonRpcConnection::TimeoutTimerHandler(void)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	BOOST_FOREACH(const ApiClient::Ptr& client, listener->GetAnonymousClients()) {
+	BOOST_FOREACH(const JsonRpcConnection::Ptr& client, listener->GetAnonymousClients()) {
 		client->CheckLiveness();
 	}
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
-		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
 			client->CheckLiveness();
 		}
 	}

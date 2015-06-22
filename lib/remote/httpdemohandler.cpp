@@ -17,31 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#include "remote/httpdemohandler.hpp"
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
-#include "remote/i2-remote.hpp"
+using namespace icinga;
 
-namespace icinga
+REGISTER_URLHANDLER("/demo", HttpDemoHandler);
+
+void HttpDemoHandler::HandleRequest(HttpRequest& request, HttpResponse& response)
 {
+	if (request.RequestMethod == "GET") {
+		String form = "<form action=\"/demo\" method=\"post\"><input type=\"text\" name=\"msg\"><input type=\"submit\"></form>";
+		response.SetStatus(200, "OK");
+		response.AddHeader("Content-Type", "text/html");
+		response.WriteBody(form.CStr(), form.GetLength());
+	} else if (request.RequestMethod == "POST") {
+		response.SetStatus(200, "OK");
+		String msg = "You sent: ";
 
-/**
- * A JSON-RPC connection.
- *
- * @ingroup remote
- */
-class I2_REMOTE_API JsonRpc
-{
-public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
-
-private:
-	JsonRpc(void);
-};
-
+		char buffer[512];
+		size_t count;
+		while ((count = request.ReadBody(buffer, sizeof(buffer))) > 0)
+			msg += String(buffer, buffer + count);
+		response.WriteBody(msg.CStr(), msg.GetLength());
+	} else {
+		response.SetStatus(400, "Bad request");
+	}
 }
 
-#endif /* JSONRPC_H */

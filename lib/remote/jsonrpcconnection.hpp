@@ -17,31 +17,83 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef JSONRPCCONNECTION_H
+#define JSONRPCCONNECTION_H
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
+#include "remote/endpoint.hpp"
+#include "base/tlsstream.hpp"
+#include "base/timer.hpp"
+#include "base/workqueue.hpp"
 #include "remote/i2-remote.hpp"
 
 namespace icinga
 {
 
+enum ClientRole
+{
+	ClientInbound,
+	ClientOutbound
+};
+
+enum ClientType
+{
+	ClientJsonRpc,
+	ClientHttp
+};
+
+struct MessageOrigin;
+
 /**
- * A JSON-RPC connection.
+ * An API client connection.
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpc
+class I2_REMOTE_API JsonRpcConnection : public Object
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
+	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);
+
+	JsonRpcConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role);
+
+	void Start(void);
+
+	String GetIdentity(void) const;
+	bool IsAuthenticated(void) const;
+	Endpoint::Ptr GetEndpoint(void) const;
+	TlsStream::Ptr GetStream(void) const;
+	ConnectionRole GetRole(void) const;
+
+	void Disconnect(void);
+
+	void SendMessage(const Dictionary::Ptr& request);
+
+	static void HeartbeatTimerHandler(void);
+	static Value HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
 private:
-	JsonRpc(void);
+	String m_Identity;
+	bool m_Authenticated;
+	Endpoint::Ptr m_Endpoint;
+	TlsStream::Ptr m_Stream;
+	ConnectionRole m_Role;
+	double m_Seen;
+	double m_NextHeartbeat;
+	double m_HeartbeatTimeout;
+	boost::mutex m_DataHandlerMutex;
+
+	StreamReadContext m_Context;
+
+	WorkQueue m_WriteQueue;
+
+	bool ProcessMessage(void);
+	void DataAvailableHandler(void);
+	void SendMessageSync(const Dictionary::Ptr& request);
+
+	static void StaticInitialize(void);
+	static void TimeoutTimerHandler(void);
+	void CheckLiveness(void);
 };
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* JSONRPCCONNECTION_H */

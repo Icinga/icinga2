@@ -21,7 +21,8 @@
 #define APILISTENER_H
 
 #include "remote/apilistener.thpp"
-#include "remote/apiclient.hpp"
+#include "remote/jsonrpcconnection.hpp"
+#include "remote/httpconnection.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/dynamicobject.hpp"
@@ -34,7 +35,7 @@
 namespace icinga
 {
 
-class ApiClient;
+class JsonRpcConnection;
 
 /**
 * @ingroup remote
@@ -64,9 +65,13 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus(void);
 
-	void AddAnonymousClient(const ApiClient::Ptr& aclient);
-	void RemoveAnonymousClient(const ApiClient::Ptr& aclient);
-	std::set<ApiClient::Ptr> GetAnonymousClients(void) const;
+	void AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
+	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
+	std::set<JsonRpcConnection::Ptr> GetAnonymousClients(void) const;
+
+	void AddHttpClient(const HttpConnection::Ptr& aclient);
+	void RemoveHttpClient(const HttpConnection::Ptr& aclient);
+	std::set<HttpConnection::Ptr> GetHttpClients(void) const;
 
 	static Value ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
@@ -78,7 +83,8 @@ protected:
 private:
 	boost::shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;
-	std::set<ApiClient::Ptr> m_AnonymousClients;
+	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
+	std::set<HttpConnection::Ptr> m_HttpClients;
 	Timer::Ptr m_Timer;
 
 	void ApiTimerHandler(void);
@@ -102,7 +108,7 @@ private:
 	void RotateLogFile(void);
 	void CloseLogFile(void);
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
-	void ReplayLog(const ApiClient::Ptr& client);
+	void ReplayLog(const JsonRpcConnection::Ptr& client);
 
 	static Dictionary::Ptr LoadConfigDir(const String& dir);
 	static bool UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative);
@@ -112,7 +118,7 @@ private:
 
 	static bool IsConfigMaster(const Zone::Ptr& zone);
 	static void ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file);
-	void SendConfigUpdate(const ApiClient::Ptr& aclient);
+	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 };
 
 }

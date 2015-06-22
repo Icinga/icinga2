@@ -57,7 +57,9 @@ public:
 	void Handshake(void);
 
 	virtual void Close(void);
+	virtual void Shutdown(void);
 
+	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false);
 	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false);
 	virtual void Write(const void *buffer, size_t count);
 
@@ -86,6 +88,7 @@ private:
 
 	TlsAction m_CurrentAction;
 	bool m_Retry;
+	bool m_Shutdown;
 
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;

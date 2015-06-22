@@ -17,31 +17,61 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef HTTPREQUEST_H
+#define HTTPREQUEST_H
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
 #include "remote/i2-remote.hpp"
+#include "remote/httpchunkedencoding.hpp"
+#include "base/stream.hpp"
+#include "base/fifo.hpp"
+#include "base/dictionary.hpp"
+#include "base/url.hpp"
 
 namespace icinga
 {
 
+enum HttpVersion
+{
+	HttpVersion10,
+	HttpVersion11
+};
+
+enum HttpRequestState
+{
+	HttpRequestStart,
+	HttpRequestHeaders,
+	HttpRequestBody
+};
+
 /**
- * A JSON-RPC connection.
+ * An HTTP request.
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpc
+struct I2_REMOTE_API HttpRequest
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
+	bool Complete;
+
+	String RequestMethod;
+	Url::Ptr Url;
+	HttpVersion ProtocolVersion;
+
+	Dictionary::Ptr Headers;
+
+	HttpRequest(StreamReadContext& ctx);
+
+	bool Parse(const Stream::Ptr& stream, StreamReadContext& src, bool may_wait);
+
+	size_t ReadBody(char *data, size_t count);
 
 private:
-	JsonRpc(void);
+	StreamReadContext& m_Context;
+	ChunkReadContext m_ChunkContext;
+	HttpRequestState m_State;
+	FIFO::Ptr m_Body;
 };
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* HTTPREQUEST_H */

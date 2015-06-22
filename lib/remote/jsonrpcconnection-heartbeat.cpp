@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/apiclient.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include "remote/messageorigin.hpp"
 #include "remote/apifunction.hpp"
 #include "base/initialize.hpp"
@@ -28,32 +28,32 @@
 
 using namespace icinga;
 
-REGISTER_APIFUNCTION(Heartbeat, event, &ApiClient::HeartbeatAPIHandler);
+REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
 static Timer::Ptr l_HeartbeatTimer;
 
 static void StartHeartbeatTimer(void)
 {
 	l_HeartbeatTimer = new Timer();
-	l_HeartbeatTimer->OnTimerExpired.connect(boost::bind(&ApiClient::HeartbeatTimerHandler));
+	l_HeartbeatTimer->OnTimerExpired.connect(boost::bind(&JsonRpcConnection::HeartbeatTimerHandler));
 	l_HeartbeatTimer->SetInterval(10);
 	l_HeartbeatTimer->Start();
 }
 
 INITIALIZE_ONCE(StartHeartbeatTimer);
 
-void ApiClient::HeartbeatTimerHandler(void)
+void JsonRpcConnection::HeartbeatTimerHandler(void)
 {
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
-		BOOST_FOREACH(const ApiClient::Ptr& client, endpoint->GetClients()) {
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
 			if (endpoint->GetSyncing()) {
-				Log(LogInformation, "ApiClient")
+				Log(LogInformation, "JsonRpcConnection")
 				    << "Not sending heartbeat for endpoint '" << endpoint->GetName() << "' because we're replaying the log for it.";
 				continue;
 			}
 
 			if (client->m_NextHeartbeat != 0 && client->m_NextHeartbeat < Utility::GetTime()) {
-				Log(LogWarning, "ApiClient")
+				Log(LogWarning, "JsonRpcConnection")
 				    << "Client for endpoint '" << endpoint->GetName() << "' has requested "
 				    << "heartbeat message but hasn't responded in time. Closing connection.";
 
@@ -75,7 +75,7 @@ void ApiClient::HeartbeatTimerHandler(void)
 	}
 }
 
-Value ApiClient::HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
 	Value vtimeout = params->Get("timeout");
 

@@ -17,31 +17,59 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef HTTPCONNECTION_H
+#define HTTPCONNECTION_H
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
-#include "remote/i2-remote.hpp"
+#include "remote/httprequest.hpp"
+#include "remote/apiuser.hpp"
+#include "base/tlsstream.hpp"
+#include "base/timer.hpp"
+#include "base/workqueue.hpp"
 
 namespace icinga
 {
 
 /**
- * A JSON-RPC connection.
+ * An API client connection.
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpc
+class I2_REMOTE_API HttpConnection : public Object
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
+	DECLARE_PTR_TYPEDEFS(HttpConnection);
+
+	HttpConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream);
+
+	void Start(void);
+
+	ApiUser::Ptr GetApiUser(void) const;
+	bool IsAuthenticated(void) const;
+	TlsStream::Ptr GetStream(void) const;
+
+	void Disconnect(void);
 
 private:
-	JsonRpc(void);
+	ApiUser::Ptr m_ApiUser;
+	TlsStream::Ptr m_Stream;
+	double m_Seen;
+	HttpRequest m_CurrentRequest;
+	boost::mutex m_DataHandlerMutex;
+	WorkQueue m_RequestQueue;
+	int m_PendingRequests;
+
+	StreamReadContext m_Context;
+
+	bool ProcessMessage(void);
+	void DataAvailableHandler(void);
+
+	static void StaticInitialize(void);
+	static void TimeoutTimerHandler(void);
+	void CheckLiveness(void);
+
+	void ProcessMessageAsync(HttpRequest& request);
 };
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* HTTPCONNECTION_H */

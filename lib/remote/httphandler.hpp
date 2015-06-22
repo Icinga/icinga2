@@ -17,31 +17,60 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef HTTPHANDLER_H
+#define HTTPHANDLER_H
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
 #include "remote/i2-remote.hpp"
+#include "remote/httpresponse.hpp"
+#include "base/registry.hpp"
+#include <vector>
+#include <boost/function.hpp>
 
 namespace icinga
 {
 
 /**
- * A JSON-RPC connection.
+ * HTTP handler.
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpc
+class I2_REMOTE_API HttpHandler : public Object
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
+	DECLARE_PTR_TYPEDEFS(HttpHandler);
+
+	virtual bool CanAlsoHandleUrl(const Url::Ptr& url) const;
+	virtual void HandleRequest(HttpRequest& request, HttpResponse& response) = 0;
+
+	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
+	static void ProcessRequest(HttpRequest& request, HttpResponse& response);
 
 private:
-	JsonRpc(void);
+	static Dictionary::Ptr m_UrlTree;
 };
+
+/**
+ * Helper class for registering HTTP handlers.
+ *
+ * @ingroup remote
+ */
+class I2_REMOTE_API RegisterHttpHandler
+{
+public:
+	RegisterHttpHandler(const String& url, const HttpHandler& function);
+};
+
+#define REGISTER_URLHANDLER(url, klass) \
+	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
+		void RegisterHandler(void) \
+		{ \
+			Url::Ptr uurl = new Url(url); \
+			HttpHandler::Ptr handler = new klass(); \
+			HttpHandler::Register(uurl, handler); \
+		} \
+		INITIALIZE_ONCE(RegisterHandler); \
+	} } }
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* HTTPHANDLER_H */

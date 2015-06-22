@@ -17,78 +17,47 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APICLIENT_H
-#define APICLIENT_H
+#ifndef HTTPRESPONSE_H
+#define HTTPRESPONSE_H
 
-#include "remote/endpoint.hpp"
-#include "base/tlsstream.hpp"
-#include "base/timer.hpp"
-#include "base/workqueue.hpp"
-#include "remote/i2-remote.hpp"
+#include "remote/httprequest.hpp"
+#include "base/stream.hpp"
+#include "base/fifo.hpp"
 
 namespace icinga
 {
 
-enum ClientRole
+enum HttpResponseState
 {
-	ClientInbound,
-	ClientOutbound
+	HttpResponseStart,
+	HttpResponseHeaders,
+	HttpResponseBody
 };
 
-struct MessageOrigin;
-
 /**
- * An API client connection.
+ * An HTTP response.
  *
  * @ingroup remote
  */
-class I2_REMOTE_API ApiClient : public Object
+struct I2_REMOTE_API HttpResponse
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ApiClient);
+	HttpResponse(const Stream::Ptr& stream, const HttpRequest& request);
 
-	ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role);
-
-	void Start(void);
-
-	String GetIdentity(void) const;
-	bool IsAuthenticated(void) const;
-	Endpoint::Ptr GetEndpoint(void) const;
-	TlsStream::Ptr GetStream(void) const;
-	ConnectionRole GetRole(void) const;
-
-	void Disconnect(void);
-
-	void SendMessage(const Dictionary::Ptr& request);
-
-	static void HeartbeatTimerHandler(void);
-	static Value HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+	void SetStatus(int code, const String& message);
+	void AddHeader(const String& key, const String& value);
+	void WriteBody(const char *data, size_t count);
+	void Finish(void);
 
 private:
-	String m_Identity;
-	bool m_Authenticated;
-	Endpoint::Ptr m_Endpoint;
-	TlsStream::Ptr m_Stream;
-	ConnectionRole m_Role;
-	double m_Seen;
-	double m_NextHeartbeat;
-	double m_HeartbeatTimeout;
-	Timer::Ptr m_TimeoutTimer;
-	boost::mutex m_DataHandlerMutex;
+	HttpResponseState m_State;
+	const HttpRequest& m_Request;
+	Stream::Ptr m_Stream;
+	FIFO::Ptr m_Body;
 
-	StreamReadContext m_Context;
-
-	WorkQueue m_WriteQueue;
-
-	bool ProcessMessage(void);
-	void DataAvailableHandler(void);
-	void SendMessageSync(const Dictionary::Ptr& request);
-
-	static void StaticInitialize(void);
-	static void TimeoutTimerHandler(void);
-	void CheckLiveness(void);
+	void FinishHeaders(void);
 };
 
 }
 
-#endif /* APICLIENT_H */
+#endif /* HTTPRESPONSE_H */

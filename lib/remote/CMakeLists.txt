@@ -21,8 +21,10 @@ mkclass_target(endpoint.ti endpoint.tcpp endpoint.thpp)
 mkclass_target(zone.ti zone.tcpp zone.thpp)
 
 set(remote_SOURCES
-  apiclient.cpp apiclient-heartbeat.cpp apifunction.cpp apilistener.cpp apilistener.thpp apilistener-sync.cpp
-  apiuser.cpp apiuser.thpp authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
+  apifunction.cpp apilistener.cpp apilistener.thpp apilistener-sync.cpp
+  apiuser.cpp apiuser.thpp authority.cpp endpoint.cpp endpoint.thpp
+  httpchunkedencoding.cpp  httpconnection.cpp httpdemohandler.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
+  jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp
   messageorigin.cpp zone.cpp zone.thpp
 )
 

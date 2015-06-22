@@ -78,8 +78,10 @@ void FIFO::Optimize(void)
 	}
 }
 
-size_t FIFO::Peek(void *buffer, size_t count)
+size_t FIFO::Peek(void *buffer, size_t count, bool allow_partial)
 {
+	ASSERT(allow_partial);
+
 	if (count > m_DataSize)
 		count = m_DataSize;
 

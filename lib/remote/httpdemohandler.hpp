@@ -17,31 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef HTTPDEMOHANDLER_H
+#define HTTPDEMOHANDLER_H
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
-#include "remote/i2-remote.hpp"
+#include "remote/httphandler.hpp"
 
 namespace icinga
 {
 
-/**
- * A JSON-RPC connection.
- *
- * @ingroup remote
- */
-class I2_REMOTE_API JsonRpc
+class I2_REMOTE_API HttpDemoHandler : public HttpHandler
 {
 public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
+	DECLARE_PTR_TYPEDEFS(HttpDemoHandler);
 
-private:
-	JsonRpc(void);
+	virtual void HandleRequest(HttpRequest& request, HttpResponse& response);
 };
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* HTTPDEMOHANDLER_H */

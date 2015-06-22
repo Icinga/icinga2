@@ -20,7 +20,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/endpoint.tcpp"
 #include "remote/apilistener.hpp"
-#include "remote/apiclient.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include "remote/zone.hpp"
 #include "base/dynamictype.hpp"
 #include "base/utility.hpp"
@@ -32,8 +32,8 @@ using namespace icinga;
 
 REGISTER_TYPE(Endpoint);
 
-boost::signals2::signal<void(const Endpoint::Ptr&, const ApiClient::Ptr&)> Endpoint::OnConnected;
-boost::signals2::signal<void(const Endpoint::Ptr&, const ApiClient::Ptr&)> Endpoint::OnDisconnected;
+boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnConnected;
+boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
 
 void Endpoint::OnAllConfigLoaded(void)
 {
@@ -57,7 +57,7 @@ void Endpoint::OnAllConfigLoaded(void)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() + "' does not belong to a zone.", GetDebugInfo()));
 }
 
-void Endpoint::AddClient(const ApiClient::Ptr& client)
+void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)
 {
 	bool was_master = ApiListener::GetInstance()->IsMaster();
 
@@ -74,7 +74,7 @@ void Endpoint::AddClient(const ApiClient::Ptr& client)
 	OnConnected(this, client);
 }
 
-void Endpoint::RemoveClient(const ApiClient::Ptr& client)
+void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 {
 	bool was_master = ApiListener::GetInstance()->IsMaster();
 
@@ -96,7 +96,7 @@ void Endpoint::RemoveClient(const ApiClient::Ptr& client)
 	OnDisconnected(this, client);
 }
 
-std::set<ApiClient::Ptr> Endpoint::GetClients(void) const
+std::set<JsonRpcConnection::Ptr> Endpoint::GetClients(void) const
 {
 	boost::mutex::scoped_lock lock(m_ClientsLock);
 	return m_Clients;

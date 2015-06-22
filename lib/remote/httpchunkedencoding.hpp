@@ -17,31 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef JSONRPC_H
-#define JSONRPC_H
+#ifndef HTTPCHUNKEDENCODING_H
+#define HTTPCHUNKEDENCODING_H
 
-#include "base/stream.hpp"
-#include "base/dictionary.hpp"
 #include "remote/i2-remote.hpp"
+#include "base/stream.hpp"
 
 namespace icinga
 {
 
+struct ChunkReadContext
+{
+	StreamReadContext& StreamContext;
+	int LengthIndicator;
+
+	ChunkReadContext(StreamReadContext& scontext)
+	    : StreamContext(scontext), LengthIndicator(-1)
+	{ }
+};
+
 /**
- * A JSON-RPC connection.
+ * HTTP chunked encoding.
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpc
+struct I2_REMOTE_API HttpChunkedEncoding
 {
-public:
-	static void SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);
-	static StreamReadStatus ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait = false);
+	static StreamReadStatus ReadChunkFromStream(const Stream::Ptr& stream,
+	    char **data, size_t *size, ChunkReadContext& ccontext, bool may_wait = false);
+	static void WriteChunkToStream(const Stream::Ptr& stream, const char *data, size_t count);
 
-private:
-	JsonRpc(void);
 };
 
 }
 
-#endif /* JSONRPC_H */
+#endif /* HTTPCHUNKEDENCODING_H */

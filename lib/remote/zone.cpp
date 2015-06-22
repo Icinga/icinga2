@@ -19,7 +19,7 @@
 
 #include "remote/zone.hpp"
 #include "remote/zone.tcpp"
-#include "remote/apiclient.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
 
