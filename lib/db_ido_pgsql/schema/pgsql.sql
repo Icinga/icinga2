@@ -1315,7 +1315,7 @@ CREATE TABLE  icinga_statehistory (
   last_hard_state INTEGER  default '-1',
   output TEXT  default '',
   long_output TEXT  default '',
-  check_source varchar(255) default NULL,
+  check_source TEXT default '',
   CONSTRAINT PK_statehistory_id PRIMARY KEY (statehistory_id)
 ) ;
 

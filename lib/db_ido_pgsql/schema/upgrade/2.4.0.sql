@@ -117,6 +117,13 @@ ALTER TABLE icinga_systemcommands ALTER COLUMN end_time SET DEFAULT '1970-01-01 
 ALTER TABLE icinga_endpointstatus ALTER COLUMN status_update_time SET DEFAULT '1970-01-01 00:00:00+00';
 
 -- -----------------------------------------
+-- #9455 check_source data type
+-- -----------------------------------------
+
+ALTER TABLE icinga_statehistory ALTER COLUMN check_source TYPE TEXT;
+ALTER TABLE icinga_statehistory ALTER COLUMN check_source SET default '';
+
+-- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
 
