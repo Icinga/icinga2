@@ -204,17 +204,17 @@ INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 		wsPerf.push_back(L" " + it->name + L"=" + removeZero(it->free) + unit + L";" + 
 						 printInfo.warn.pString(it->cap) + L";" + printInfo.crit.pString(it->cap) + L";0;"
 						 + removeZero(it->cap));
+		if (printInfo.crit.rend(it->free, it->cap))
+			state = CRITICAL;
+		if (state == OK && printInfo.warn.rend(it->free, it->cap))
+			state = WARNING;
 	}
 
-	if (printInfo.warn.rend(tFree, tCap)) {
-		state = WARNING;
+	if (state == WARNING)
 		output = L"DISK WARNING - free space:";
-	}
 
-	if (printInfo.crit.rend(tFree, tCap)) {
-		state = CRITICAL;
+	if (state == CRITICAL)
 		output = L"DISK CRITICAL - free space:";
-	}
 
 	std::wcout << output;
 	if (vDrives.size() > 1)
