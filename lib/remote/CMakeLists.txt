@@ -16,12 +16,13 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 mkclass_target(apilistener.ti apilistener.tcpp apilistener.thpp)
+mkclass_target(apiuser.ti apiuser.tcpp apiuser.thpp)
 mkclass_target(endpoint.ti endpoint.tcpp endpoint.thpp)
 mkclass_target(zone.ti zone.tcpp zone.thpp)
 
 set(remote_SOURCES
   apiclient.cpp apiclient-heartbeat.cpp apifunction.cpp apilistener.cpp apilistener.thpp apilistener-sync.cpp
-  authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
+  apiuser.cpp apiuser.thpp authority.cpp endpoint.cpp endpoint.thpp jsonrpc.cpp
   messageorigin.cpp zone.cpp zone.thpp
 )
 

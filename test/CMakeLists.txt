@@ -23,7 +23,7 @@ set(base_test_SOURCES
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
   base-value.cpp config-ops.cpp icinga-macros.cpp icinga-perfdata.cpp
-  test.cpp
+  remote-apiuser.cpp test.cpp
 )
 
 set(livestatus_test_SOURCES
@@ -106,6 +106,8 @@ add_boost_test(base
 	icinga_perfdata/ignore_invalid_warn_crit_min_max
 	icinga_perfdata/invalid
 	icinga_perfdata/multi
+	remote_apiuser/get_password
+	remote_apiuser/check_password
 )
 
 if(ICINGA2_WITH_LIVESTATUS)
