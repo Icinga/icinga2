@@ -20,6 +20,8 @@
 #include <Shlwapi.h>
 #include <iostream>
 #include <math.h>
+#include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 #include "check_disk.h"
 
@@ -45,7 +47,7 @@ INT wmain(INT argc, WCHAR **argv)
 	printInfo.crit.legal = !printInfo.crit.legal;
 
 	if (printInfo.drives.empty())
-		ret = check_drives(vDrives);
+		ret = check_drives(vDrives, printInfo.exclude_drives);
 	else
 		ret = check_drives(vDrives, printInfo);
 	
@@ -62,7 +64,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(printInfo, vDrives);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -77,23 +79,18 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("warning,w", po::wvalue<std::wstring>(), "Warning threshold")
 		("critical,c", po::wvalue<std::wstring>(), "Critical threshold")
 		("path,p", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Declare explicitly which drives to check (default checks all)")
-		("unit,u", po::wvalue<std::wstring>(), "Assign unit possible are: B, kB, MB, GB, TB")
+		("exclude_device,x", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Exclude these drives from check")
+		("exclude-type,X", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Exclude partition types (ignored)")
+		("unit,u", po::wvalue<std::wstring>(), "Assign unit possible are: B, kB, MB, GB, TB")\
+		("megabytes,m", "use megabytes, overridden by -unit")
 		;
 
 	po::basic_command_line_parser<WCHAR> parser(ac, av);
 
 	try {
-		po::options_description allDesc;
-
-		allDesc.add(desc);
-		allDesc.add_options()
-			("exclude-type,X", po::wvalue<std::vector<std::wstring>>()->multitoken(), "exclude partition types (ignored)")
-			("megabytes,m", "use megabytes")
-			;
-
 		po::store(
 			parser
-			.options(allDesc)
+			.options(desc)
 			.style(
 			po::command_line_style::unix_style |
 			po::command_line_style::allow_long_disguise)
@@ -124,7 +121,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 			L" 0\tOK,\n\tNo Thresholds were broken or the programs check part was not executed\n"
 			L" 1\tWARNING,\n\tThe warning, but not the critical threshold was broken\n"
 			L" 2\tCRITICAL,\n\tThe critical threshold was broken\n"
-			L" 3\tUNKNOWN, \n\tThe program experienced an INTernal or input error\n\n"
+			L" 3\tUNKNOWN, \n\tThe program experienced an internal or input error\n\n"
 			L"Threshold syntax:\n\n"
 			L"-w THRESHOLD\n"
 			L"warn if threshold is broken, which means VALUE < THRESHOLD\n\n"
@@ -168,6 +165,9 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	if (vm.count("path")) 
 		printInfo.drives = vm["path"].as<std::vector<std::wstring>>();
 
+	if (vm.count("exclude_device"))
+		printInfo.exclude_drives = vm["exclude_device"].as<std::vector<std::wstring>>();
+
 	if (vm.count("unit")) {
 		try {
 			printInfo.unit = parseBUnit(vm["unit"].as<std::wstring>());
@@ -175,8 +175,12 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 			std::wcout << "Unknown unit Type " << vm["unit"].as<std::wstring>() << '\n';
 			return 3;
 		}
-	} else
-		printInfo.unit = BunitB;
+	} else {
+		if (vm.count("megabytes"))
+			printInfo.unit = BunitMB;
+		else
+			printInfo.unit = BunitB;
+	}
 
 	if (vm.count("debug"))
 		debug = TRUE;
@@ -184,7 +188,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives) 
+static INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives) 
 {
 	if (debug)
 		std::wcout << "Constructing output string\n";
@@ -231,7 +235,7 @@ INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 	return state;
 }
 
-INT check_drives(std::vector<drive>& vDrives) 
+static INT check_drives(std::vector<drive>& vDrives, std::vector<std::wstring>& vExclude_Drives)
 {
 	DWORD dwResult, dwSize = 0, dwVolumePathNamesLen = MAX_PATH + 1;
 	WCHAR szLogicalDrives[1024], szVolumeName[MAX_PATH], *szVolumePathNames = NULL;
@@ -248,7 +252,7 @@ INT check_drives(std::vector<drive>& vDrives)
 	if (dwResult > MAX_PATH)
 		goto die;
 	if (debug)
-		std::wcout << "Splitting string INTo single drive names\n";
+		std::wcout << "Splitting string intoo single drive names\n";
 
 	LPTSTR szSingleDrive = szLogicalDrives;
 	while (*szSingleDrive) {
@@ -259,9 +263,9 @@ INT check_drives(std::vector<drive>& vDrives)
 			std::wcout << "Got: " << drname << '\n';
 	}
 
-	if (debug) 
-		std::wcout << "Getting volume mountpoINTs (includes NTFS folders)\n"
-		<< "Getting first volume\n";
+	if (debug)
+		std::wcout << "Getting volume mountpoints (includes NTFS folders)\n"
+		    << "Getting first volume\n";
 
 	hVolume = FindFirstVolume(szVolumeName, MAX_PATH);
 	if (hVolume == INVALID_HANDLE_VALUE)
@@ -276,7 +280,8 @@ INT check_drives(std::vector<drive>& vDrives)
 		volumeNameEnd = wcslen(szVolumeName) - 1;
 		szVolumePathNames = reinterpret_cast<WCHAR*>(new WCHAR[dwVolumePathNamesLen]);
 
-		while (!GetVolumePathNamesForVolumeName(szVolumeName, szVolumePathNames, dwVolumePathNamesLen, &dwVolumePathNamesLen)) {
+		while (!GetVolumePathNamesForVolumeName(szVolumeName, szVolumePathNames, dwVolumePathNamesLen, 
+			    &dwVolumePathNamesLen)) {
 			if (GetLastError() != ERROR_MORE_DATA)
 				break;
 			delete[] reinterpret_cast<WCHAR*>(szVolumePathNames);
@@ -303,8 +308,19 @@ INT check_drives(std::vector<drive>& vDrives)
 	FindVolumeClose(hVolume);
 	if (szVolumePathNames)
 		delete[] reinterpret_cast<WCHAR*>(szVolumePathNames);
+
+	if (!vExclude_Drives.empty()) {
+		if (debug)
+			std::wcout << "Removing excluded drives\n";
+
+		BOOST_FOREACH(const std::wstring wsDriveName, vExclude_Drives)
+		{
+			vDrives.erase(std::remove_if(vDrives.begin(), vDrives.end(), 
+			    boost::bind(checkName, _1, wsDriveName + L'\\')), vDrives.end());
+		}
+	}
 	return -1;
- 
+
 die:
 	if (hVolume)
 		FindVolumeClose(hVolume);
@@ -312,17 +328,27 @@ die:
 	return 3;
 }
 
-INT check_drives(std::vector<drive>& vDrives, printInfoStruct& printInfo) 
+
+
+static INT check_drives(std::vector<drive>& vDrives, printInfoStruct& printInfo) 
 {
-	WCHAR *slash = L"\\";
+	if (!printInfo.exclude_drives.empty()) {
+		if (debug)
+			std::wcout << "Removing excluded drives from user input drives\n";
+		BOOST_FOREACH(std::wstring wsDrive, printInfo.exclude_drives)
+		{
+			printInfo.drives.erase(std::remove(printInfo.drives.begin(), printInfo.drives.end(), wsDrive),
+			    printInfo.drives.end());
+		}
+	}
 
 	if (debug)
 		std::wcout << "Parsing user input drive names\n";
 
 	for (std::vector<std::wstring>::iterator it = printInfo.drives.begin();
 			it != printInfo.drives.end(); ++it) {
-		if (it->at(it->length() - 1) != *slash)
-			it->append(slash);
+		if (it->at(it->length() - 1) != *L"\\")
+			it->append(L"\\");
 		if (std::wstring::npos == it->find(L":\\")) {
 			std::wcout << "A \":\" is required after the drive name of " << *it << '\n';
 			return 3;
@@ -334,7 +360,7 @@ INT check_drives(std::vector<drive>& vDrives, printInfoStruct& printInfo)
 	return -1;
 }
 
-BOOL getFreeAndCap(drive& drive, const Bunit& unit) 
+static BOOL getFreeAndCap(drive& drive, const Bunit& unit) 
 {
 	if (debug)
 		std::wcout << "Getting free disk space for drive " << drive.name << '\n';
@@ -347,10 +373,16 @@ BOOL getFreeAndCap(drive& drive, const Bunit& unit)
 	drive.cap = round((tempTotal.QuadPart / pow(1024.0, unit)));
 	if (debug)
 		std::wcout << "\tAfter conversion: " << drive.cap << '\n'
-		<< "\tfree: " << tempFree.QuadPart << '\n';
+		    << "\tfree: " << tempFree.QuadPart << '\n';
 	drive.free = round((tempFree.QuadPart / pow(1024.0, unit)));
 	if (debug)
 		std::wcout << "\tAfter conversion: " << drive.free << '\n' << '\n';
 
 	return TRUE;
 }
+
+static bool checkName(const drive& d, const std::wstring& s)
+{
+	return (s == d.name);
+}
+
