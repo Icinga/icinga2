@@ -582,13 +582,10 @@ Even further all commands are distributed amongst connected nodes. For example, 
 re-schedule a check or acknowledge a problem on the master, and it gets replicated to the
 actual slave checker node.
 
-DB IDO on the left, graphite on the right side - works (if you disable
-[DB IDO HA](12-distributed-monitoring-ha.md#high-availability-db-ido)).
-Icinga Web 2 on the left, checker and notifications on the right side - works too.
-Everything on the left and on the right side - make sure to deal with
-[load-balanced notifications and checks](12-distributed-monitoring-ha.md#high-availability-features) in a
-[HA zone](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability).
-
+> **Note**
+>
+> All features must be same on all endpoints inside an [HA zone](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability).
+> There are additional [High-Availability-enabled features](12-distributed-monitoring-ha.md#high-availability-features) available.
 
 ### <a id="cluster-scenarios-distributed-zones"></a> Distributed Zones
 
@@ -794,18 +791,24 @@ By default the following features provide advanced HA functionality:
 
 ### <a id="high-availability-checks"></a> High Availability with Checks
 
-All nodes in the same zone load-balance the check execution. When one instance
-fails the other nodes will automatically take over the reamining checks.
+All instances within the same zone (e.g. the `master` zone as HA cluster) must
+have the `checker` feature enabled.
 
-> **Note**
->
-> If a node should not check anything, disable the `checker` feature explicitely and
-> reload Icinga 2.
+Example:
 
-    # icinga2 feature disable checker
-    # service icinga2 reload
+    # icinga2 feature enable checker
+
+All nodes in the same zone load-balance the check execution. When one instance shuts down
+the other nodes will automatically take over the reamining checks.
 
 ### <a id="high-availability-notifications"></a> High Availability with Notifications
+
+All instances within the same zone (e.g. the `master` zone as HA cluster) must
+have the `notification` feature enabled.
+
+Example:
+
+    # icinga2 feature enable notification
 
 Notifications are load balanced amongst all nodes in a zone. By default this functionality
 is enabled.
@@ -821,7 +824,6 @@ have the DB IDO feature enabled.
 Example DB IDO MySQL:
 
     # icinga2 feature enable ido-mysql
-    The feature 'ido-mysql' is already enabled.
 
 By default the DB IDO feature only runs on one node. All other nodes in the same zone disable
 the active IDO database connection at runtime. The node with the active DB IDO connection is
