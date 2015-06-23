@@ -84,6 +84,25 @@ is even simpler these days.
 
 More details can be found in [this blog post](https://www.icinga.org/2014/12/02/team-icinga-at-osmc-2014/).
 
+## <a id="notification-scripts-interfaces"></a> Notification Scripts and Interfaces
+
+There's a variety of resources available, be it different notification scripts such as:
+
+* E-Mail ([examples](3-monitoring-basics.md#notifications) provided)
+* SMS
+* Pager (XMPP, etc.)
+* Twitter
+* IRC
+* Ticket systems
+* etc.
+
+Additionally external services can be integrated with Icinga 2:
+
+* [Pagerduty](https://www.pagerduty.com/docs/guides/icinga2-integration-guide/)
+
+More information can be found on the [Icinga Website](https://www.icinga.org)
+and the [Icinga Wiki](https://wiki.icinga.org/display/howtos/Home).
+
 ## <a id="configuration-tools"></a> Configuration Management Tools
 
 If you require your favourite configuration tool to export Icinga 2 configuration, please get in
