@@ -74,6 +74,7 @@ private:
 	double m_NextHeartbeat;
 	double m_HeartbeatTimeout;
 	Timer::Ptr m_TimeoutTimer;
+	boost::mutex m_DataHandlerMutex;
 
 	StreamReadContext m_Context;
 

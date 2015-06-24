@@ -61,13 +61,13 @@ void Stream::WaitForData(void)
 		m_CV.wait(lock);
 }
 
-StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context)
+StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)
 {
 	if (context.Eof)
 		return StatusEof;
 
 	if (context.MustRead) {
-		if (!context.FillFromStream(this)) {
+		if (!context.FillFromStream(this, may_wait)) {
 			context.Eof = true;
 
 			*line = String(context.Buffer, &(context.Buffer[context.Size]));
@@ -86,6 +86,8 @@ StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context)
 
 			if (count == 1)
 				first_newline = i;
+			else if (count > 1)
+				break;
 		}
 	}
 
@@ -103,9 +105,9 @@ StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context)
 	return StatusNeedData;
 }
 
-bool StreamReadContext::FillFromStream(const Stream::Ptr& stream)
+bool StreamReadContext::FillFromStream(const Stream::Ptr& stream, bool may_wait)
 {
-	if (Wait && stream->SupportsWaiting())
+	if (may_wait && stream->SupportsWaiting())
 		stream->WaitForData();
 
 	size_t count = 0;
@@ -120,7 +122,7 @@ bool StreamReadContext::FillFromStream(const Stream::Ptr& stream)
 
 		Size += rc;
 		count += rc;
-	} while (stream->IsDataAvailable());
+	} while (count < 64 * 1024 && stream->IsDataAvailable());
 
 	if (count == 0 && stream->IsEof())
 		return false;

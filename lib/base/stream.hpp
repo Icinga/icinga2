@@ -38,8 +38,8 @@ enum ConnectionRole
 
 struct StreamReadContext
 {
-	StreamReadContext(bool wait = true)
-		: Buffer(NULL), Size(0), MustRead(true), Eof(false), Wait(wait)
+	StreamReadContext(void)
+		: Buffer(NULL), Size(0), MustRead(true), Eof(false)
 	{ }
 
 	~StreamReadContext(void)
@@ -47,14 +47,13 @@ struct StreamReadContext
 		free(Buffer);
 	}
 
-	bool FillFromStream(const intrusive_ptr<Stream>& stream);
+	bool FillFromStream(const intrusive_ptr<Stream>& stream, bool may_wait);
 	void DropData(size_t count);
 
 	char *Buffer;
 	size_t Size;
 	bool MustRead;
 	bool Eof;
-	bool Wait;
 };
 
 enum StreamReadStatus
@@ -117,7 +116,7 @@ public:
 
 	void RegisterDataHandler(const boost::function<void(void)>& handler);
 
-	StreamReadStatus ReadLine(String *line, StreamReadContext& context);
+	StreamReadStatus ReadLine(String *line, StreamReadContext& context, bool may_wait = false);
 
 protected:
 	void SignalDataAvailable(void);

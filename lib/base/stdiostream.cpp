@@ -61,6 +61,11 @@ void StdioStream::Close(void)
 	}
 }
 
+bool StdioStream::IsDataAvailable(void) const
+{
+	return !IsEof();
+}
+
 bool StdioStream::IsEof(void) const
 {
 	return !m_InnerStream->good();
