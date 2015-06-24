@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTREMOVECOMMAND_H
-#define AGENTREMOVECOMMAND_H
+#ifndef NODEREMOVECOMMAND_H
+#define NODEREMOVECOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -45,4 +45,4 @@ public:
 
 }
 
-#endif /* AGENTREMOVECOMMAND_H */
+#endif /* NODEREMOVECOMMAND_H */

@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTSETCOMMAND_H
-#define AGENTSETCOMMAND_H
+#ifndef NODESETCOMMAND_H
+#define NODESETCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -45,4 +45,4 @@ public:
 
 }
 
-#endif /* AGENTSETCOMMAND_H */
+#endif /* NODESETCOMMAND_H */

@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTWIZARDCOMMAND_H
-#define AGENTWIZARDCOMMAND_H
+#ifndef NODEWIZARDCOMMAND_H
+#define NODEWIZARDCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -26,7 +26,7 @@ namespace icinga
 {
 
 /**
- * The "agent wizard" command.
+ * The "node wizard" command.
  *
  * @ingroup cli
  */
@@ -44,4 +44,4 @@ public:
 
 }
 
-#endif /* AGENTWIZARDCOMMAND_H */
+#endif /* NODEWIZARDCOMMAND_H */
