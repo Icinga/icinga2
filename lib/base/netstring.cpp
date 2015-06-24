@@ -32,13 +32,13 @@ using namespace icinga;
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str, StreamReadContext& context)
+StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, String *str, StreamReadContext& context, bool may_wait)
 {
 	if (context.Eof)
 		return StatusEof;
 
 	if (context.MustRead) {
-		if (!context.FillFromStream(stream)) {
+		if (!context.FillFromStream(stream, may_wait)) {
 			context.Eof = true;
 			return StatusEof;
 		}

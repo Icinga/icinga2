@@ -40,7 +40,7 @@ static Timer::Ptr l_ApiClientTimeoutTimer;
 
 ApiClient::ApiClient(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
-	  m_NextHeartbeat(0), m_HeartbeatTimeout(0), m_Context(false)
+	  m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
 	boost::call_once(l_ApiClientOnceFlag, &ApiClient::StaticInitialize);
 
@@ -59,6 +59,8 @@ void ApiClient::StaticInitialize(void)
 void ApiClient::Start(void)
 {
 	m_Stream->RegisterDataHandler(boost::bind(&ApiClient::DataAvailableHandler, this));
+	if (m_Stream->IsDataAvailable())
+		DataAvailableHandler();
 }
 
 String ApiClient::GetIdentity(void) const
@@ -195,6 +197,8 @@ bool ApiClient::ProcessMessage(void)
 
 void ApiClient::DataAvailableHandler(void)
 {
+	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+
 	try {
 		while (ProcessMessage())
 			; /* empty loop body */

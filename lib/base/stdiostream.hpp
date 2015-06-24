@@ -39,6 +39,7 @@ public:
 
 	virtual void Close(void);
 
+	virtual bool IsDataAvailable(void) const;
 	virtual bool IsEof(void) const;
 
 private:
