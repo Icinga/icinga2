@@ -243,7 +243,10 @@ Unauthenticated nodes are able to connect required by the
     [2015-06-10 03:28:11 +0200] information/ApiListener: New client connection for identity 'icinga-client' (unauthenticated)
 
 If this message does not go away, make sure to verify the client's certificate and
-its received `ca.crt` in `/etc/icinga2/pki`.
+its received `ca.crt` in `/etc/icinga2/pki` (both master and client).
+
+    # openssl verify -verbose -CAfile ca.crt nbmif.int.netways.de.crt
+    nbmif.int.netways.de.crt: OK
 
 
 ### <a id="troubleshooting-cluster-message-errors"></a> Cluster Troubleshooting Message Errors
