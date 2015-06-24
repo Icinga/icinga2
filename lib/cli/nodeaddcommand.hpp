@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTADDCOMMAND_H
-#define AGENTADDCOMMAND_H
+#ifndef NODEADDCOMMAND_H
+#define NODEADDCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -43,4 +43,4 @@ public:
 
 }
 
-#endif /* AGENTADDCOMMAND_H */
+#endif /* NODEADDCOMMAND_H */

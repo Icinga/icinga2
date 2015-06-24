@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTLISTCOMMAND_H
-#define AGENTLISTCOMMAND_H
+#ifndef NODELISTCOMMAND_H
+#define NODELISTCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -44,4 +44,4 @@ public:
 
 }
 
-#endif /* AGENTLISTCOMMAND_H */
+#endif /* NODELISTCOMMAND_H */

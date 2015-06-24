@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTUPDATECONFIGCOMMAND_H
-#define AGENTUPDATECONFIGCOMMAND_H
+#ifndef NODEUPDATECONFIGCOMMAND_H
+#define NODEUPDATECONFIGCOMMAND_H
 
 #include "cli/clicommand.hpp"
 
@@ -43,4 +43,4 @@ public:
 
 }
 
-#endif /* AGENTUPDATECONFIGCOMMAND_H */
+#endif /* NODEUPDATECONFIGCOMMAND_H */

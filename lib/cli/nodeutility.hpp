@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef AGENTUTILITY_H
-#define AGENTUTILITY_H
+#ifndef NODEUTILITY_H
+#define NODEUTILITY_H
 
 #include "base/i2-base.hpp"
 #include "cli/i2-cli.hpp"
@@ -86,4 +86,4 @@ private:
 
 }
 
-#endif /* AGENTUTILITY_H */
+#endif /* NODEUTILITY_H */
