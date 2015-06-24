@@ -906,8 +906,6 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	    << "add state change history for '" << checkable->GetName() << "'";
 
 	double ts = cr->GetExecutionEnd();
-
-	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> state_time_bag = CompatUtility::ConvertTimestamp(ts);
 
 	DbQuery query1;
