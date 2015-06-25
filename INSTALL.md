@@ -130,6 +130,15 @@ into your source tree and run the following command:
 
     $ dpkg-buildpackage -uc -us
 
+### Building Post Install Tasks
+
+After building Icinga 2 yourself, your package build system should at least run the following post
+install requirements:
+
+* enable the `checker`, `notification` and `mainlog` feature by default
+* run 'icinga2 api setup' in order to enable the `api` feature and generate SSL certificates for the node
+
+
 ## Running Icinga 2
 
 Icinga 2 comes with a single binary that takes care of loading all the relevant
