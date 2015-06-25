@@ -45,6 +45,16 @@ String ApiSetupUtility::GetConfdPath(void)
 
 int ApiSetupUtility::SetupMaster(void)
 {
+	/* if the 'api' feature is enabled we can safely assume
+	 * that either 'api setup' was run, or the user manually
+	 * enabled the api including all certificates e.g. by 'node wizard' in <= v2.3.x
+	 */
+	if (FeatureUtility::CheckFeatureEnabled("api")) {
+		Log(LogInformation, "cli")
+		    << "'api' feature already enabled, skipping feature enable and master certificate creation.\n";
+		return 0;
+	}
+
 	Log(LogInformation, "cli")
 	    << "Generating new CA.\n";
 
@@ -176,7 +186,6 @@ int ApiSetupUtility::SetupMaster(void)
 	std::vector<std::string> enable;
 	enable.push_back("api");
 	FeatureUtility::EnableFeatures(enable);
-
 
 	return 0;
 }
